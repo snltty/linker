@@ -39,7 +39,7 @@ namespace cmonitor.service.messengers.active
         [MessengerId((ushort)ActiveMessengerIds.Disallow)]
         public void Disallow(IConnection connection)
         {
-            activeWindowReport.DisallowRun(MemoryPackSerializer.Deserialize<string[]>(connection.ReceiveRequestWrap.Payload.Span));
+            activeWindowReport.DisallowRun(MemoryPackSerializer.Deserialize<ActiveDisallowInfo>(connection.ReceiveRequestWrap.Payload.Span));
             connection.Write(Helper.TrueArray);
         }
     }

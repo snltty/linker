@@ -51,7 +51,7 @@ export default {
             items: computed(() => {
                 const devices = pluginState.value.activeWindow.devices;
                 let ids = devices.reduce((arr, value) => {
-                    arr.push(...value.DisallowRunIds);
+                    arr.push(...value.ActiveWindow.DisallowRunIds);
                     return arr;
                 }, []);
                 state.currentPrivate = state.privateExes.filter(c => ids.indexOf(c.ID) >= 0);
@@ -116,7 +116,7 @@ export default {
                     state.loading = false;
                     ElMessage.success('操作成功！');
                     globalData.value.devices.filter(c => _devices.indexOf(c.MachineName) >= 0).forEach(device => {
-                        device.DisallowRunIds = exes.ids;
+                        device.ActiveWindow.DisallowRunIds = exes.ids;
                     });
                 }).catch((e) => {
                     state.loading = false;

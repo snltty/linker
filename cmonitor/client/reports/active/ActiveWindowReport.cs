@@ -13,10 +13,8 @@ namespace cmonitor.client.reports.active
         private readonly ActiveWindowTimeManager activeWindowTimeManager = new ActiveWindowTimeManager();
         private ActiveReportInfo report = new ActiveReportInfo();
 
-        private uint lastPid = 0;
-        private string lastTitle = string.Empty;
-        private int count = 0;
-        public ActiveWindowReport(Config config, ClientConfig clientConfig, IActiveWindow activeWindow,ClientSignInState clientSignInState)
+        private int hashCode = 0;
+        public ActiveWindowReport(Config config, ClientConfig clientConfig, IActiveWindow activeWindow, ClientSignInState clientSignInState)
         {
             this.clientConfig = clientConfig;
             this.activeWindow = activeWindow;
@@ -37,17 +35,25 @@ namespace cmonitor.client.reports.active
         public object GetReports(ReportType reportType)
         {
             ticks = DateTime.UtcNow.Ticks;
-            if (reportType == ReportType.Full || report.Pid != lastPid || report.Title != lastTitle || report.DisallowCount != count)
+            report.Ids = clientConfig.WindowIds;
+            int hashcode = report.HashCode();
+            if (reportType == ReportType.Full || hashcode != hashCode)
             {
-                lastPid = report.Pid;
-                lastTitle = report.Title;
-                count = report.DisallowCount;
+                hashCode = hashcode;
                 return report;
             }
             return null;
         }
 
-        public void DisallowRun(string[] names)
+
+        public void DisallowRun(ActiveDisallowInfo activeDisallowInfo)
+        {
+            clientConfig.WindowNames = activeDisallowInfo.FileNames;
+            clientConfig.WindowIds = activeDisallowInfo.Ids;
+            report.DisallowCount = activeDisallowInfo.FileNames.Length;
+            activeWindow.DisallowRun(activeDisallowInfo.FileNames);
+        }
+        private void DisallowRun(string[] names)
         {
             clientConfig.WindowNames = names;
             report.DisallowCount = names.Length;
@@ -98,6 +104,13 @@ namespace cmonitor.client.reports.active
         }
     }
 
+    [MemoryPackable]
+    public sealed partial class ActiveDisallowInfo
+    {
+        public string[] FileNames { get; set; }
+        public uint[] Ids { get; set; }
+    }
+
     public sealed class ActiveReportInfo
     {
         public string Title { get; set; } = string.Empty;
@@ -106,6 +119,12 @@ namespace cmonitor.client.reports.active
         public uint Pid { get; set; }
         public int DisallowCount { get; set; }
         public int WindowCount { get; set; }
+
+        public uint[] Ids { get; set; }
+        public int HashCode()
+        {
+            return Title.GetHashCode() ^ Pid.GetHashCode() ^ DisallowCount.GetHashCode() ^ Ids.GetHashCode();
+        }
     }
 
     public sealed class ActiveWindowTimeManager

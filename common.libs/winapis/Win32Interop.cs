@@ -1,15 +1,17 @@
 ﻿using cmonitor.libs.winapis;
-using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Metadata;
+using System.Net;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Security.Principal;
 using System.Text;
+using System.Threading.Tasks;
 using static common.libs.winapis.ADVAPI32;
+using static common.libs.winapis.Kernel32;
 using static common.libs.winapis.NetApi32;
 using static common.libs.winapis.User32;
 
@@ -399,6 +401,42 @@ namespace common.libs.winapis
             Kernel32.SetHandleInformation(handle, HANDLE_FLAG_PROTECT_FROM_CLOSE, HANDLE_FLAG_PROTECT_FROM_CLOSE);
         }
 
+        public static async Task<DateTime> GetNetworkTime()
+        {
+            string ntpServer = "time.windows.com";
+            byte[] ntpData = new byte[48];
+            ntpData[0] = 0x1B;
+            IPAddress address = Dns.GetHostEntry(ntpServer).AddressList[0];
+            IPEndPoint ep = new IPEndPoint(address, 123);
+            using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
+            {
+                await socket.ConnectAsync(ep);
+                await socket.SendAsync(ntpData);
+                await socket.ReceiveAsync(ntpData);
+            }
+
+            ulong intPart = (ulong)ntpData[40] << 24 | (ulong)ntpData[41] << 16 | (ulong)ntpData[42] << 8 | (ulong)ntpData[43];
+            ulong fractPart = (ulong)ntpData[44] << 24 | (ulong)ntpData[45] << 16 | (ulong)ntpData[46] << 8 | (ulong)ntpData[47];
+            ulong milliseconds = (intPart * 1000) + ((fractPart * 1000) / 0x100000000L);
+
+            DateTime networkDateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMilliseconds((long)milliseconds);
+
+            return networkDateTime;
+        }
+        public static void SetSystemTime(DateTime dateTime)
+        {
+            SYSTEMTIME st = new SYSTEMTIME
+            {
+                wYear = (ushort)dateTime.Year,
+                wMonth = (ushort)dateTime.Month,
+                wDay = (ushort)dateTime.Day,
+                wHour = (ushort)dateTime.Hour,
+                wMinute = (ushort)dateTime.Minute,
+                wSecond = (ushort)dateTime.Second,
+                wMilliseconds = (ushort)dateTime.Millisecond
+            };
+            Kernel32.SetSystemTime(ref st);
+        }
     }
 
 

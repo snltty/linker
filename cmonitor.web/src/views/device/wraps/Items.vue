@@ -38,6 +38,7 @@ export default {
         const getData = () => {
             getList().then((res) => {
                 globalData.value.allDevices = res.map(c => {
+                    console.log(c);
                     return pluginSettings.reduce((result, item, index) => {
                         if (item.field) {
                             result = Object.assign(result, item.field());

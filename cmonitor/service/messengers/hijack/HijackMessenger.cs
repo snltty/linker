@@ -15,7 +15,7 @@ namespace cmonitor.service.messengers.hijack
         [MessengerId((ushort)HijackMessengerIds.Update)]
         public void Update(IConnection connection)
         {
-            SetRuleInfo info = MemoryPackSerializer.Deserialize<SetRuleInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            HijackSetRuleInfo info = MemoryPackSerializer.Deserialize<HijackSetRuleInfo>(connection.ReceiveRequestWrap.Payload.Span);
             hijackReport.Update(info);
         }
     }

@@ -49,7 +49,7 @@ export default {
             items: computed(() => {
                 const devices = pluginState.value.hijack.devices;
                 let ids = devices.reduce((arr, value) => {
-                    arr.push(...value.RuleIds);
+                    arr.push(...value.Hijack.RuleIds);
                     return arr;
                 }, []);
                 state.currentPrivate = state.privateRules.filter(c => ids.indexOf(c.ID) >= 0);
@@ -138,7 +138,7 @@ export default {
                     } else {
                         ElMessage.success('操作成功！');
                         globalData.value.devices.filter(c => _devices.indexOf(c.MachineName) >= 0).forEach(device => {
-                            device.RuleIds = rules.ids;
+                            device.Hijack.RuleIds = rules.ids;
                         });
                     }
                 }).catch((e) => {

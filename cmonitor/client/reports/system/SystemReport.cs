@@ -9,15 +9,14 @@ namespace cmonitor.client.reports.system
         public string Name => "System";
 
         private readonly SystemReportInfo systemReportInfo = new SystemReportInfo();
-       
+
         private readonly ISystem system;
 
-        private double lastCpu;
-        private double lastMemory;
+        private int hashCode = 0;
         private ReportDriveInfo[] drives;
         private Dictionary<string, SystemOptionKeyInfo> registryKeys;
 
-        public SystemReport(ISystem system,Config config)
+        public SystemReport(ISystem system, Config config)
         {
             this.system = system;
             if (config.IsCLient)
@@ -43,11 +42,10 @@ namespace cmonitor.client.reports.system
                 systemReportInfo.Drives = null;
                 systemReportInfo.OptionKeys = null;
             }
-
-            if (reportType == ReportType.Full || systemReportInfo.Cpu != lastCpu || systemReportInfo.Memory != lastMemory)
+            int hashcode = systemReportInfo.GetHashCode();
+            if (reportType == ReportType.Full || hashcode != hashCode)
             {
-                lastCpu = systemReportInfo.Cpu;
-                lastMemory = systemReportInfo.Memory;
+                hashCode = hashcode;
                 return systemReportInfo;
             }
             return null;
@@ -66,7 +64,7 @@ namespace cmonitor.client.reports.system
 
         private void ReportTask()
         {
-            Task.Factory.StartNew(() =>
+            Task.Factory.StartNew(async () =>
             {
                 while (true)
                 {
@@ -77,7 +75,7 @@ namespace cmonitor.client.reports.system
                         systemReportInfo.OptionValues = system.OptionValues();
                         //systemReportInfo.Disk = WindowsDrive.GetDiskUsage();
                     }
-                    Thread.Sleep(1000);
+                    await Task.Delay(1000);
                 }
             }, TaskCreationOptions.LongRunning);
 
@@ -93,6 +91,11 @@ namespace cmonitor.client.reports.system
 
         public string OptionValues { get; set; }
         public Dictionary<string, SystemOptionKeyInfo> OptionKeys { get; set; }
+
+        public int HashCode()
+        {
+            return Cpu.GetHashCode() ^ Memory.GetHashCode();
+        }
     }
 
     [MemoryPackable]
@@ -102,6 +105,6 @@ namespace cmonitor.client.reports.system
         public bool Value { get; set; }
     }
 
-    
+
 
 }

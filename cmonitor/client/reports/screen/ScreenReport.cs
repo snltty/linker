@@ -98,7 +98,7 @@ namespace cmonitor.client.reports.screen
         private Task task;
         private void CaptureTask()
         {
-            Task.Factory.StartNew(() =>
+            Task.Factory.StartNew(async () =>
             {
                 while (true)
                 {
@@ -118,7 +118,7 @@ namespace cmonitor.client.reports.screen
                         }
                     }
 
-                    Thread.Sleep(config.ScreenDelay);
+                    await Task.Delay(config.ScreenDelay);
                 }
             }, TaskCreationOptions.LongRunning);
         }

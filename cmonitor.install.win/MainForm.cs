@@ -97,11 +97,11 @@ namespace cmonitor.install.win
         }
 
 
-        bool loading = false;
-        bool installed = false;
-        bool running = false;
-        string serviceName = "cmonitor.sas.service";
-        string exeName = "cmonitor.sas.service.exe";
+        private bool loading = false;
+        private bool installed = false;
+        private bool running = false;
+        private string serviceName = "cmonitor.sas.service";
+        private string exeName = "cmonitor.sas.service.exe";
         private void OnInstallClick(object sender, EventArgs e)
         {
             if (loading)
@@ -135,7 +135,7 @@ namespace cmonitor.install.win
             string shareLenStr = shareLen.Text;
             string shareItemLenStr = shareItemLen.Text;
 
-            Task.Run(() =>
+            Task.Run(async () =>
             {
                 if (installed == false)
                 {
@@ -150,7 +150,7 @@ namespace cmonitor.install.win
                     while (running)
                     {
                         Stop();
-                        System.Threading.Thread.Sleep(1000);
+                        await Task.Delay(1000);
                         CheckRunning();
                     }
                     string resultStr = CommandHelper.Windows(string.Empty, new string[] {
@@ -338,7 +338,7 @@ namespace cmonitor.install.win
 
             CheckLoading(true);
 
-            Task.Run(() =>
+            Task.Run(async () =>
             {
                 if (running)
                 {
@@ -346,7 +346,7 @@ namespace cmonitor.install.win
                     while (running)
                     {
                         CheckRunning();
-                        System.Threading.Thread.Sleep(1000);
+                        await Task.Delay(1000);
                     }
                 }
                 else
@@ -355,7 +355,7 @@ namespace cmonitor.install.win
                     for (int i = 0; i < 15 && running == false; i++)
                     {
                         CheckRunning();
-                        System.Threading.Thread.Sleep(1000);
+                        await Task.Delay(1000);
                     }
                 }
                 CheckLoading(false);

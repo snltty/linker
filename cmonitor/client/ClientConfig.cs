@@ -2,7 +2,6 @@
 using cmonitor.client.reports.screen;
 using common.libs.database;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;
 
 namespace cmonitor.client
 {
@@ -19,12 +18,14 @@ namespace cmonitor.client
             this.configDataProvider = configDataProvider;
             this.config = config;
 
-            ClientConfig clientConfig   = configDataProvider.Load().Result ?? new ClientConfig();
+            ClientConfig clientConfig = configDataProvider.Load().Result ?? new ClientConfig();
             LLock = clientConfig.LLock;
             Wallpaper = clientConfig.Wallpaper;
             WallpaperUrl = clientConfig.WallpaperUrl;
             HijackConfig = clientConfig.HijackConfig;
+            HijackIds = clientConfig.HijackIds;
             WindowNames = clientConfig.WindowNames;
+            WindowIds = clientConfig.WindowIds;
             ScreenShareState = clientConfig.ScreenShareState;
             UserSid = clientConfig.UserSid;
             SaveTask();
@@ -32,7 +33,7 @@ namespace cmonitor.client
 
         private void SaveTask()
         {
-            Task.Factory.StartNew(() =>
+            Task.Factory.StartNew(async () =>
             {
                 while (true)
                 {
@@ -46,7 +47,7 @@ namespace cmonitor.client
                     catch (Exception)
                     {
                     }
-                    Thread.Sleep(5000);
+                    await Task.Delay(5000);
                 }
             }, TaskCreationOptions.LongRunning);
         }
@@ -93,12 +94,33 @@ namespace cmonitor.client
             }
         }
 
+        private uint[] _hijackIds = Array.Empty<uint>();
+        public uint[] HijackIds
+        {
+            get => _hijackIds; set
+            {
+                _hijackIds = value;
+                updated = true;
+            }
+        }
+
+
         private string[] _windowNames = Array.Empty<string>();
         public string[] WindowNames
         {
             get => _windowNames; set
             {
                 _windowNames = value;
+                updated = true;
+            }
+        }
+
+        private uint[] _windowIds = Array.Empty<uint>();
+        public uint[] WindowIds
+        {
+            get => _windowIds; set
+            {
+                _windowIds = value;
                 updated = true;
             }
         }

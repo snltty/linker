@@ -57,7 +57,6 @@ namespace cmonitor.api.services
         {
             if (signCaching.Get(param.Content, out SignCacheInfo cache) && cache.Connected)
             {
-                cache.CLearDisallowIds();
                 signCaching.Update();
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
@@ -71,19 +70,11 @@ namespace cmonitor.api.services
         public async Task<bool> Disallow(ClientServiceParamsInfo param)
         {
             DisallowInfo disallowInfo = param.Content.DeJson<DisallowInfo>();
-            byte[] bytes = MemoryPackSerializer.Serialize(disallowInfo.FileNames);
+            byte[] bytes = MemoryPackSerializer.Serialize(new ActiveDisallowInfo { FileNames = disallowInfo.FileNames, Ids = disallowInfo.Ids });
             foreach (string name in disallowInfo.UserNames)
             {
                 if (signCaching.Get(name, out SignCacheInfo cache) && cache.Connected)
                 {
-                    if (disallowInfo.Ids != null)
-                    {
-                        cache.DisallowRunIds = disallowInfo.Ids;
-                    }
-                    else
-                    {
-                        cache.CLearDisallowIds();
-                    }
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
                         Connection = cache.Connection,
@@ -92,7 +83,6 @@ namespace cmonitor.api.services
                     });
                 }
             }
-            signCaching.Update();
 
             return false;
         }

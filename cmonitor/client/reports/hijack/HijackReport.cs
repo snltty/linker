@@ -11,8 +11,9 @@ namespace cmonitor.client.reports.hijack
         private readonly ClientConfig clientConfig;
         private readonly IHijack hijack;
 
-        private ulong[] array = new ulong[3];
-        private ulong[] lastArray = new ulong[3];
+
+        private HijackReportInfo hijackReportInfo = new HijackReportInfo();
+        private int hashCode = 0;
         private long ticks = DateTime.UtcNow.Ticks;
 
         public HijackReport(IHijack hijack, HijackConfig hijackConfig, ClientConfig clientConfig, Config config, ClientSignInState clientSignInState)
@@ -39,45 +40,69 @@ namespace cmonitor.client.reports.hijack
                 }
             }
 
-           
+
         }
 
-        public void Update(SetRuleInfo info)
+        public void Update(HijackSetRuleInfo info)
         {
-            hijackConfig.AllowDomains = info.AllowDomains;
-            hijackConfig.DeniedDomains = info.DeniedDomains;
-            hijackConfig.AllowProcesss = info.AllowProcesss;
-            hijackConfig.DeniedProcesss = info.DeniedProcesss;
-            hijackConfig.AllowIPs = info.AllowIPs;
-            hijackConfig.DeniedIPs = info.DeniedIPs;
+            hijackConfig.AllowDomains = info.Rules.AllowDomains;
+            hijackConfig.DeniedDomains = info.Rules.DeniedDomains;
+            hijackConfig.AllowProcesss = info.Rules.AllowProcesss;
+            hijackConfig.DeniedProcesss = info.Rules.DeniedProcesss;
+            hijackConfig.AllowIPs = info.Rules.AllowIPs;
+            hijackConfig.DeniedIPs = info.Rules.DeniedIPs;
 
             clientConfig.HijackConfig = hijackConfig;
+            clientConfig.HijackIds = info.Ids;
 
             hijack.SetRules();
         }
 
         public object GetReports(ReportType reportType)
         {
-            array[0] = hijack.UdpSend + hijack.TcpSend;
-            array[1] = hijack.TcpReceive + hijack.UdpReceive;
-            ulong count = (ulong)(hijackConfig.AllowIPs.Length + hijackConfig.DeniedIPs.Length + hijackConfig.AllowDomains.Length + hijackConfig.DeniedDomains.Length + hijackConfig.AllowProcesss.Length + hijackConfig.DeniedProcesss.Length);
-            array[2] = count;
+            hijackReportInfo.Upload = hijack.UdpSend + hijack.TcpSend;
+            hijackReportInfo.Download = hijack.TcpReceive + hijack.UdpReceive;
+            hijackReportInfo.Count = (ulong)(hijackConfig.AllowIPs.Length + hijackConfig.DeniedIPs.Length + hijackConfig.AllowDomains.Length + hijackConfig.DeniedDomains.Length + hijackConfig.AllowProcesss.Length + hijackConfig.DeniedProcesss.Length);
+            hijackReportInfo.Ids = clientConfig.HijackIds;
 
             long _ticks = DateTime.UtcNow.Ticks;
-            if (((_ticks - ticks) / TimeSpan.TicksPerMillisecond >= 300 && array.SequenceEqual(lastArray) == false) || reportType == ReportType.Full)
+            int hashcode = hijackReportInfo.HashCode();
+            if (((_ticks - ticks) / TimeSpan.TicksPerMillisecond >= 300 && hashCode != hashcode) || reportType == ReportType.Full)
             {
                 ticks = _ticks;
-                lastArray[0] = array[0];
-                lastArray[1] = array[1];
-                lastArray[2] = array[2];
-                return array;
+                hashCode = hashcode;
+                return hijackReportInfo;
             }
             return null;
         }
     }
 
+    public sealed class HijackReportInfo
+    {
+        public ulong Upload { get; set; }
+        public ulong Download { get; set; }
+        public ulong Count { get; set; }
+
+        public uint[] Ids { get; set; }
+
+
+        public int HashCode()
+        {
+            return Upload.GetHashCode() ^ Download.GetHashCode() ^ Count.GetHashCode() ^ Ids.GetHashCode();
+        }
+
+    }
+
     [MemoryPackable]
-    public sealed partial class SetRuleInfo
+    public sealed partial class HijackSetRuleInfo
+    {
+        public HijackRuleUpdateInfo Rules { get; set; }
+        public uint[] Ids { get; set; }
+    }
+
+
+    [MemoryPackable]
+    public sealed partial class HijackRuleUpdateInfo
     {
         /// <summary>
         /// 进程白名单

@@ -219,7 +219,9 @@ namespace cmonitor
             else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<ISnatch, SnatchMacOS>();
 
             serviceCollection.AddSingleton<ShareReport>();
+
             serviceCollection.AddSingleton<CommandReport>();
+            serviceCollection.AddSingleton<ICommandLine, CommandLineWindows>();
 
 
             //服务

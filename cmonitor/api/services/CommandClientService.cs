@@ -36,6 +36,89 @@ namespace cmonitor.api.services
             return true;
         }
 
+        public async Task<int> CommandStart(ClientServiceParamsInfo param)
+        {
+            if (signCaching.Get(param.Content, out SignCacheInfo cache) && cache.Connected)
+            {
+                MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = cache.Connection,
+                    MessengerId = (ushort)CommandMessengerIds.CommandStart
+                });
+                if (resp.Code == MessageResponeCodes.OK && resp.Data.Length == 4)
+                {
+                    return BitConverter.ToInt32(resp.Data.Span);
+                }
+            }
+            return 0;
+        }
+
+        public async Task<bool> CommandWrite(ClientServiceParamsInfo param)
+        {
+            CommandWriteInfo info = param.Content.DeJson<CommandWriteInfo>();
+            if (signCaching.Get(info.Name, out SignCacheInfo cache) && cache.Connected)
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cache.Connection,
+                    MessengerId = (ushort)CommandMessengerIds.CommandWrite,
+                    Payload = MemoryPackSerializer.Serialize(info.Write)
+                });
+            }
+
+            return true;
+        }
+
+        public async Task<bool> CommandStop(ClientServiceParamsInfo param)
+        {
+            CommandStopInfo info = param.Content.DeJson<CommandStopInfo>();
+            if (signCaching.Get(info.Name, out SignCacheInfo cache) && cache.Connected)
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cache.Connection,
+                    MessengerId = (ushort)CommandMessengerIds.CommandStop,
+                    Payload = BitConverter.GetBytes(info.Id)
+                });
+            }
+
+            return true;
+        }
+
+        public async Task<bool> CommandAlive(ClientServiceParamsInfo param)
+        {
+            CommandAliveInfo info = param.Content.DeJson<CommandAliveInfo>();
+            if (signCaching.Get(info.Name, out SignCacheInfo cache) && cache.Connected)
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cache.Connection,
+                    MessengerId = (ushort)CommandMessengerIds.CommandAlive,
+                    Payload = BitConverter.GetBytes(info.Id)
+                });
+            }
+
+            return true;
+        }
+
+    }
+
+    public sealed class CommandWriteInfo
+    {
+        public string Name { get; set; }
+        public CommandLineWriteInfo Write { get; set; }
+    }
+
+    public sealed class CommandAliveInfo
+    {
+        public string Name { get; set; }
+        public int Id { get; set; }
+    }
+
+    public sealed class CommandStopInfo
+    {
+        public string Name { get; set; }
+        public int Id { get; set; }
     }
 
     public sealed class ExecInfo

@@ -112,7 +112,7 @@ namespace cmonitor.libs
         {
             cancellationTokenSource?.Cancel();
             cancellationTokenSource = new CancellationTokenSource();
-            Task.Factory.StartNew(() =>
+            Task.Factory.StartNew(async () =>
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
@@ -126,12 +126,12 @@ namespace cmonitor.libs
                     {
                     }
 
-                    Thread.Sleep(10);
+                    await Task.Delay(10);
                 }
 
             }, TaskCreationOptions.LongRunning);
 
-            Task.Factory.StartNew(() =>
+            Task.Factory.StartNew(async () =>
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
@@ -146,7 +146,7 @@ namespace cmonitor.libs
                     {
                     }
 
-                    Thread.Sleep(30);
+                    await Task.Delay(30);
                 }
 
             }, TaskCreationOptions.LongRunning);
@@ -175,7 +175,7 @@ namespace cmonitor.libs
                     {
                         foreach (var action in actions)
                         {
-                            attributeChangeds.Enqueue(new ShareItemAttributeChanged { Action=action, Attribute= attribute });
+                            attributeChangeds.Enqueue(new ShareItemAttributeChanged { Action = action, Attribute = attribute });
                         }
                     }
                 }
@@ -457,7 +457,7 @@ namespace cmonitor.libs
             long version = ReadVersion(accessor, index);
             return version > itemVersions[index];
         }
-        private bool ReadVersionUpdated(IShareMemory accessor, int index,ref long version)
+        private bool ReadVersionUpdated(IShareMemory accessor, int index, ref long version)
         {
             long _version = ReadVersion(accessor, index);
             bool res = _version > version;
@@ -510,12 +510,12 @@ namespace cmonitor.libs
 
             return ReadVersionUpdated(accessor, index);
         }
-        public bool ReadVersionUpdated(int index,ref long version)
+        public bool ReadVersionUpdated(int index, ref long version)
         {
             IShareMemory accessor = accessorLocal ?? accessorGlobal;
             if (accessor == null) return false;
 
-            return ReadVersionUpdated(accessor, index,ref version);
+            return ReadVersionUpdated(accessor, index, ref version);
         }
     }
 

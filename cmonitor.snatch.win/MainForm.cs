@@ -21,8 +21,8 @@ namespace cmonitor.snatch.win
             }
         }
 
-        SnatchQuestionInfo snatchQuesionInfo;
-        SnatchAnswerInfo snatchAnswerInfo;
+        private SnatchQuestionInfo snatchQuesionInfo;
+        private SnatchAnswerInfo snatchAnswerInfo;
         private readonly ShareMemory shareMemory;
         private int shareQuestionIndex;
         private int shareAnswerIndex;
@@ -45,7 +45,7 @@ namespace cmonitor.snatch.win
 
         }
 
-        CheckBox[] options = Array.Empty<CheckBox>();
+        private CheckBox[] options = Array.Empty<CheckBox>();
         private void OnLoad(object sender, EventArgs e)
         {
             TopMost = true;

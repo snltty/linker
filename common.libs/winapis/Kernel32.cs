@@ -1,4 +1,6 @@
 using System;
+using System.Net.Sockets;
+using System.Net;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 
@@ -31,9 +33,6 @@ public static class Kernel32
     [DllImport("kernel32.dll")]
     public static extern uint GetLastError();
 
-    /// <summary>
-    /// contains information about the current state of both physical and virtual memory, including extended memory
-    /// </summary>
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
     public class MEMORYSTATUSEX
     {
@@ -91,12 +90,23 @@ public static class Kernel32
         }
     }
 
-
     [DllImport("kernel32.dll")]
     public static extern bool SetHandleInformation(IntPtr hObject, int dwMask, int dwFlags);
 
-    
 
-    // 将进程句柄标记为不可被终止
   
+
+    public struct SYSTEMTIME
+    {
+        public ushort wYear;
+        public ushort wMonth;
+        public ushort wDayOfWeek;
+        public ushort wDay;
+        public ushort wHour;
+        public ushort wMinute;
+        public ushort wSecond;
+        public ushort wMilliseconds;
+    }
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool SetSystemTime(ref SYSTEMTIME time);
 }

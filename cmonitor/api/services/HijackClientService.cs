@@ -65,20 +65,15 @@ namespace cmonitor.api.services
             SetRuleParamInfo setRuleParamInfo = param.Content.DeJson<SetRuleParamInfo>();
             if (setRuleParamInfo.Devices.Length > 0)
             {
-                byte[] bytes = MemoryPackSerializer.Serialize(setRuleParamInfo.Rules);
+                byte[] bytes = MemoryPackSerializer.Serialize(new HijackSetRuleInfo
+                {
+                    Rules = setRuleParamInfo.Rules,
+                    Ids = setRuleParamInfo.Ids,
+                });
                 for (int i = 0; i < setRuleParamInfo.Devices.Length; i++)
                 {
                     if (signCaching.Get(setRuleParamInfo.Devices[i], out SignCacheInfo cache))
                     {
-                        if (setRuleParamInfo.Ids != null)
-                        {
-                            cache.RuleIds = setRuleParamInfo.Ids;
-                        }
-                        else
-                        {
-                            cache.CLearRuleIds();
-                        }
-
                         bool res = await messengerSender.SendOnly(new MessageRequestWrap
                         {
                             Connection = cache.Connection,
@@ -91,7 +86,6 @@ namespace cmonitor.api.services
                         }
                     }
                 }
-                signCaching.Update();
             }
             return errorDevices;
         }
@@ -99,7 +93,7 @@ namespace cmonitor.api.services
         public sealed class SetRuleParamInfo
         {
             public string[] Devices { get; set; }
-            public SetRuleInfo Rules { get; set; }
+            public HijackRuleUpdateInfo Rules { get; set; }
             public uint[] Ids { get; set; }
         }
     }

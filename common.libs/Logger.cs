@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace common.libs
 {
@@ -21,7 +22,7 @@ namespace common.libs
 
         private Logger()
         {
-            new Thread(() =>
+            Task.Factory.StartNew(async () =>
             {
                 while (true)
                 {
@@ -32,10 +33,9 @@ namespace common.libs
                             OnLogger?.Invoke(model);
                         }
                     }
-                    Thread.Sleep(15);
+                    await Task.Delay(15);
                 }
-            })
-            { IsBackground = true }.Start();
+            });
         }
 
 

@@ -4,9 +4,7 @@
     {
         public string Name => "Volume";
         private VolumeReportInfo report = new VolumeReportInfo();
-        private float lastValue;
-        private bool lastMute;
-        private float lastMasterPeak;
+        private int hashCode = 0;
 
         private readonly Config config;
         private readonly IVolume volume;
@@ -24,11 +22,10 @@
             {
                 report.MasterPeak = volume.GetMasterPeak();
             }
-            if (reportType == ReportType.Full || report.Value != lastValue || report.Mute != lastMute || report.MasterPeak != lastMasterPeak)
+            int hashcode = report.HashCode();
+            if (reportType == ReportType.Full || hashcode != hashCode)
             {
-                lastValue = report.Value;
-                lastMute = report.Mute;
-                lastMasterPeak = report.MasterPeak;
+                hashCode = hashcode;
                 return report;
             }
             return null;
@@ -55,5 +52,10 @@
         public float Value { get; set; }
         public bool Mute { get; set; }
         public float MasterPeak { get; set; }
+
+        public int HashCode()
+        {
+            return Value.GetHashCode() ^ Mute.GetHashCode() ^ MasterPeak.GetHashCode();
+        }
     }
 }

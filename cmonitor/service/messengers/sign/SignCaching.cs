@@ -26,13 +26,13 @@ namespace cmonitor.service.messengers.sign
                 cache.Connection?.Disponse();
             }
             connection.Name = signInfo.MachineName;
-            cache = new SignCacheInfo
+            SignCacheInfo cache1 = new SignCacheInfo
             {
                 Connection = connection,
                 MachineName = signInfo.MachineName,
                 Version = signInfo.Version
             };
-            config.Clients.TryAdd(signInfo.MachineName, cache);
+            config.Clients.TryAdd(signInfo.MachineName, cache1);
             changed = true;
         }
         public bool Get(string machineName, out SignCacheInfo cache)
@@ -58,7 +58,7 @@ namespace cmonitor.service.messengers.sign
 
         private void SaveConfig()
         {
-            Task.Factory.StartNew(() =>
+            Task.Factory.StartNew(async () =>
             {
                 while (true)
                 {
@@ -67,7 +67,7 @@ namespace cmonitor.service.messengers.sign
                         changed = false;
                         configDataProvider.Save(config).Wait();
                     }
-                    Thread.Sleep(5000);
+                    await Task.Delay(5000);
                 }
 
             }, TaskCreationOptions.LongRunning);
@@ -84,16 +84,6 @@ namespace cmonitor.service.messengers.sign
     {
         public string MachineName { get; set; }
         public string Version { get; set; } = "1.0.0.0";
-        public uint[] DisallowRunIds { get; set; } = Array.Empty<uint>();
-        public uint[] RuleIds { get; set; } = Array.Empty<uint>();
-        public void CLearDisallowIds()
-        {
-            DisallowRunIds = Array.Empty<uint>();
-        }
-        public void CLearRuleIds()
-        {
-            RuleIds = Array.Empty<uint>();
-        }
 
         [JsonIgnore]
         public int ReportFlag = 1;

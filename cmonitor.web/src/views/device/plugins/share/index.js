@@ -4,7 +4,7 @@ export default {
             Share: {
                 KeyBoard: { Index: 0, Value: '' },
                 UserName: { Index: 1, Value: '' },
-                Lock: { Index: 2, Value: { type: 'list', val: 'none', star1: 0, star2: 0, star3: 0, notify: false }, TypeText: '' },
+                Lock: { Index: 2, Value: { type: 'list', val: 'none', star1: 0, star2: 0, star3: 0, notify: false, remarked: false, typeText: '' } },
 
                 draw(canvas, ctx) {
                     if (this.KeyBoard.Value) {
@@ -60,10 +60,13 @@ export default {
                 const json = JSON.parse(report.Share.Lock.Value);
                 item.Share.Lock.Value.type = json.type;
                 item.Share.Lock.Value.val = json.val;
+                item.Share.Lock.Value.remarked = json.remarked;
                 item.Share.Lock.Value.star1 = json.star1 || 0;
                 item.Share.Lock.Value.star2 = json.star2 || 0;
                 item.Share.Lock.Value.star3 = json.star3 || 0;
-                item.Share.Lock.TypeText = json.typeText;
+                item.Share.Lock.Value.star4 = json.star4 || 0;
+                item.Share.Lock.Value.star5 = json.star5 || 0;
+                item.Share.Lock.Value.typeText = json.typeText;
             }
         }
         if (report.Share.KeyBoard) {

@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace common.libs
 {
@@ -58,7 +59,7 @@ namespace common.libs
         double ticksMore = 0;
         private void Worker()
         {
-            new Thread(() =>
+            Task.Factory.StartNew(() =>
             {
                 for (; ; )
                 {
@@ -90,8 +91,7 @@ namespace common.libs
                     }
                 }
 
-            })
-            { IsBackground = true }.Start();
+            }, TaskCreationOptions.LongRunning);
         }
         private void WaitForNextTick()
         {

@@ -67,7 +67,7 @@ namespace cmonitor.client.reports.keyboard
         private void CheckQueue()
         {
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-            Task.Factory.StartNew((a) =>
+            Task.Factory.StartNew(async (a) =>
             {
                 CancellationTokenSource tks = a as CancellationTokenSource;
                 while (tks.IsCancellationRequested == false)
@@ -94,7 +94,7 @@ namespace cmonitor.client.reports.keyboard
                     }
                     else
                     {
-                        Thread.Sleep(10);
+                        await Task.Delay(10);
                     }
                 }
             }, cancellationTokenSource, TaskCreationOptions.LongRunning);

@@ -41,8 +41,6 @@ namespace notify.win
             this.TopMost = true;
             this.ShowInTaskbar = false;
 
-            //username.BackColor = Color.FromArgb(255, 248, 153);
-            //username.ForeColor = Color.LightGreen;
             SetWindowPos(this.Handle, IntPtr.Zero, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
         }
 
@@ -93,7 +91,7 @@ namespace notify.win
 
             username.Text = this.msg;
 
-            Task.Run(() =>
+            Task.Run(async () =>
             {
                 this.Left = screenWidth + width;
                 this.Top = screenHeight - height;
@@ -108,9 +106,8 @@ namespace notify.win
                         return;
                     }
 
-                    System.Threading.Thread.Sleep(10);
+                    await Task.Delay(10);
                 }
-
             });
 
         }

@@ -2,6 +2,7 @@
 using common.libs.winapis;
 using Microsoft.Win32;
 using System.Collections.Concurrent;
+using System.Threading.Channels;
 
 namespace cmonitor.client.reports.system
 {
@@ -63,22 +64,46 @@ namespace cmonitor.client.reports.system
         }
         private void LoopTask()
         {
-            Task.Factory.StartNew(() =>
+            Task.Factory.StartNew(async () =>
             {
                 while (true)
                 {
-                    if (registryOptionHelper.CanWrite && actions.Count > 0)
+                    if (registryOptionHelper.GetSid() == false)
                     {
-                        while (actions.TryDequeue(out Action action))
-                        {
-                            action();
-                        }
-                        registryOptionHelper.Refresh();
+                        await Task.Delay(1000);
                     }
-                    Thread.Sleep(30);
+                    else
+                    {
+                        if (actions.IsEmpty == false)
+                        {
+                            while (actions.TryDequeue(out Action action))
+                            {
+                                action();
+                            }
+                            registryOptionHelper.Refresh();
+                        }
+                        await Task.Delay(30);
+                    }
                 }
             }, TaskCreationOptions.LongRunning);
 
+
+            Task.Factory.StartNew(async () =>
+            {
+                while (true)
+                {
+                    await TimeSync();
+                    await Task.Delay(30000);
+                }
+            }, TaskCreationOptions.LongRunning);
+        }
+        private async Task TimeSync()
+        {
+            if (registryOptionHelper.GetValue("TimeSync", true))
+            {
+                DateTime dt = await Win32Interop.GetNetworkTime();
+                Win32Interop.SetSystemTime(dt);
+            }
         }
 
         public bool Password(PasswordInputInfo command)
@@ -101,14 +126,12 @@ namespace cmonitor.client.reports.system
         }
     }
 
-
     public sealed class SystemOptionHelper
     {
         private string currentUserSid = string.Empty;
         private readonly ClientConfig clientConfig;
-        char[] values;
-
-        public bool CanWrite => string.IsNullOrWhiteSpace(currentUserSid) == false;
+        private char[] values;
+        private bool changed = true;
 
         public SystemOptionHelper(ClientConfig clientConfig)
         {
@@ -117,8 +140,8 @@ namespace cmonitor.client.reports.system
             GetSid();
         }
 
-        string backupPath = "HKEY_LOCAL_MACHINE\\SOFTWARE\\cmonitorBackup";
-        string backupKey = "cmonitorBackup";
+        private string backupPath = "HKEY_LOCAL_MACHINE\\SOFTWARE\\cmonitorBackup";
+        private string backupKey = "cmonitorBackup";
         public void Restore()
         {
             if (OperatingSystem.IsWindows() && GetSid())
@@ -201,10 +224,11 @@ namespace cmonitor.client.reports.system
             }
         }
 
-        int registryUpdated = 0;
-        int registryUpdateFlag = 1;
+        private int registryUpdated = 0;
+        private int registryUpdateFlag = 1;
         private void Updated()
         {
+            changed = true;
             Interlocked.Exchange(ref registryUpdated, 1);
         }
         public void Refresh()
@@ -235,14 +259,16 @@ namespace cmonitor.client.reports.system
         }
         public string GetValues()
         {
-            if (OperatingSystem.IsWindows() && GetSid())
+            if (OperatingSystem.IsWindows() && GetSid() && changed)
             {
+                changed = false;
                 for (int i = 0; i < Infos.Length; i++)
                 {
                     RegistryOptionInfo item = Infos[i];
                     foreach (RegistryOptionPathInfo pathItem in item.Paths)
                     {
                         string path = ReplaceRegistryPath(pathItem.Path);
+
                         if (string.IsNullOrWhiteSpace(path))
                         {
                             continue;
@@ -260,14 +286,31 @@ namespace cmonitor.client.reports.system
             }
             return new string(values);
         }
+        public bool GetValue(string key, bool allow)
+        {
+            bool _allow = false;
+            if (OperatingSystem.IsWindows() && GetSid())
+            {
+                RegistryOptionPathInfo[] paths = GetPaths(key);
+                for (int i = 0; i < paths.Length; i++)
+                {
+                    object obj = Registry.GetValue(paths[i].Path, paths[i].Key, null);
+                    if (obj != null)
+                    {
+                        _allow |= (obj.ToString() == (allow ? paths[i].AllowValue : paths[i].DisallowValue));
+                    }
+                }
+            }
+            return _allow;
+        }
         public bool UpdateValue(string[] keys, bool value)
         {
             bool result = false;
-            if (string.IsNullOrWhiteSpace(currentUserSid))
+            if (GetSid() == false)
             {
                 return result;
             }
-             
+
             if (OperatingSystem.IsWindows())
             {
                 IEnumerable<RegistryOptionInfo> info = Infos.Where(c => keys.Contains(c.Key));
@@ -310,7 +353,7 @@ namespace cmonitor.client.reports.system
             }
             return string.Empty;
         }
-        private bool GetSid()
+        public bool GetSid()
         {
             if (string.IsNullOrWhiteSpace(currentUserSid) == false)
             {
@@ -504,15 +547,32 @@ namespace cmonitor.client.reports.system
                 Paths = new RegistryOptionPathInfo[]{
                      new RegistryOptionPathInfo{ Path="HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\StorageDevicePolicies", Key="WriteProtect", DisallowValue="1", AllowValue="0" }
                 }
+            },
+             new RegistryOptionInfo{
+                Key="TimeSync",
+                Desc="时间同步",
+                Paths = new RegistryOptionPathInfo[]{
+                     new RegistryOptionPathInfo{ Path="HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", Key="Snltty_TimeSync", DisallowValue="0", AllowValue="1" }
+                }
             }
         };
-        sealed class RegistryOptionInfo
+        public RegistryOptionPathInfo[] GetPaths(string key)
+        {
+            RegistryOptionInfo info = Infos.FirstOrDefault(c => c.Key == key);
+            if (info != null)
+            {
+                return info.Paths;
+            }
+            return Array.Empty<RegistryOptionPathInfo>();
+        }
+
+        public sealed class RegistryOptionInfo
         {
             public string Key { get; set; } = string.Empty;
             public string Desc { get; set; } = string.Empty;
             public RegistryOptionPathInfo[] Paths { get; set; }
         }
-        sealed class RegistryOptionPathInfo
+        public sealed class RegistryOptionPathInfo
         {
             public string Path { get; set; }
             public string Key { get; set; }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 
@@ -16,14 +17,15 @@ namespace common.libs
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(domain)) return null;
+                if (string.IsNullOrWhiteSpace(domain))
+                {
+                    return null;
+                }
                 if (IPAddress.TryParse(domain, out IPAddress ip))
                 {
                     return ip;
                 }
-                IPAddress[] list = Dns.GetHostEntry(domain).AddressList;
-                if (list.Length > 0) return list[0];
-                return null;
+                return Dns.GetHostEntry(domain).AddressList.FirstOrDefault();
             }
             catch (Exception)
             {

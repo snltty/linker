@@ -7,7 +7,8 @@ export default {
                 UploadText: '',
                 Download: 0,
                 DownloadText: '',
-                Count: 0
+                Count: 0,
+                RuleIds: []
             }
         }
     },
@@ -71,7 +72,7 @@ export default {
             item.Hijack.Upload = report.Hijack.Upload;
             item.Hijack.Download = report.Hijack.Download;
             item.Hijack.Count = report.Hijack.Count;
+            item.Hijack.RuleIds = report.Hijack.Ids;
         }
-
     }
 }

@@ -2,13 +2,13 @@
     <div class="share-lock-wrap" v-if="data.Share.Lock.Value.val == 'ask'">
         <div class="inner">
             <h5>
-                <span>【{{data.Share.Lock.TypeText}}】</span>
-                <template v-if="data.Share.Lock.Value.type == 'remark-block' || data.Share.Lock.Value.type == 'remark-cpp'">
+                <span>【{{data.Share.Lock.Value.typeText}}】</span>
+                <template v-if="data.Share.Lock.Value.remarked == false &&(data.Share.Lock.Value.type == 'remark-block' || data.Share.Lock.Value.type == 'remark-cpp')">
                     <el-checkbox v-model="data.Share.Lock.Value.notify" size="small">广播</el-checkbox>
                 </template>
             </h5>
             <div class="stars">
-                <template v-if="data.Share.Lock.Value.type == 'remark-block' || data.Share.Lock.Value.type == 'remark-cpp'">
+                <template v-if="data.Share.Lock.Value.remarked == false &&(data.Share.Lock.Value.type == 'remark-block' || data.Share.Lock.Value.type == 'remark-cpp')">
                     <div class="line flex flex-nowrap"><span>读题分析</span>
                         <el-rate @change="handleStarChange" v-model="data.Share.Lock.Value.star1" size="large" />
                     </div>
@@ -17,6 +17,11 @@
                     </div>
                     <div class="line flex flex-nowrap"><span>数据校验</span>
                         <el-rate @change="handleStarChange" v-model="data.Share.Lock.Value.star3" size="large" />
+                    </div>
+                </template>
+                <template v-else-if="data.Share.Lock.Value.remarked">
+                    <div class="line flex flex-nowrap"><span>复习质量</span>
+                        <el-rate @change="handleStarChange" v-model="data.Share.Lock.Value.star4" size="large" />
                     </div>
                 </template>
             </div>
@@ -94,6 +99,7 @@ export default {
         const handleStarChange = () => {
             state.loading = true;
             let value = JSON.parse(JSON.stringify(props.data.Share.Lock.Value));
+            console.log(value);
             shareUpdate([props.data.MachineName], {
                 index: props.data.Share.Lock.Index,
                 value: JSON.stringify(value)

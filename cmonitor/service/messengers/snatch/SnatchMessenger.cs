@@ -45,7 +45,7 @@ namespace cmonitor.service.messengers.snatch
             SnatchAnswerInfo answerInfo = SnatchAnswerInfo.DeBytes(connection.ReceiveRequestWrap.Payload);
             snatachCaching.Update(connection.Name, answerInfo);
 
-            Task.Run(() =>
+            Task.Run(async () =>
             {
                 if (snatachCaching.Get(answerInfo.Name, out SnatchQuestionCacheInfo info))
                 {
@@ -54,7 +54,7 @@ namespace cmonitor.service.messengers.snatch
                     {
                         if (signCaching.Get(info.Names[i], out SignCacheInfo cache))
                         {
-                            _ = messengerSender.SendOnly(new MessageRequestWrap
+                            await messengerSender.SendOnly(new MessageRequestWrap
                             {
                                 Connection = cache.Connection,
                                 MessengerId = (ushort)SnatchMessengerIds.UpdateQuestion,

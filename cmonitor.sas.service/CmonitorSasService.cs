@@ -16,19 +16,16 @@ namespace cmonitor.sas.service
         }
 
 
-        string shareMkey = "cmonitor/share";
-        int shareMLength = 10;
-        int shareItemMLength = 1024;
-        int shareIndex = 4;
-        string mainArgs = string.Empty;
-        string mainExeName = "cmonitor";
-        byte[] keyBytes = Encoding.UTF8.GetBytes("cmonitor.sas.service");
-        ShareMemory shareMemory;
+        private string shareMkey = "cmonitor/share";
+        private int shareMLength = 10;
+        private int shareItemMLength = 1024;
+        private int shareIndex = 4;
+        private string mainArgs = string.Empty;
+        private string mainExeName = "cmonitor";
+        private byte[] keyBytes = Encoding.UTF8.GetBytes("cmonitor.sas.service");
+        private ShareMemory shareMemory;
 
-        CancellationTokenSource cancellationTokenSource;
-
-        [DllImport("sas.dll")]
-        public static extern void SendSAS(bool asUser);
+        private CancellationTokenSource cancellationTokenSource;
 
         protected override void OnStart(string[] _args)
         {
@@ -63,7 +60,7 @@ namespace cmonitor.sas.service
         }
         private void WaitClose()
         {
-            while (Process.GetProcessesByName(mainExeName).Any())
+            while (Process.GetProcessesByName(mainExeName).Length != 0)
             {
                 WriteAllCloseState();
                 Thread.Sleep(1000);
@@ -73,7 +70,7 @@ namespace cmonitor.sas.service
         private void CheckMemory()
         {
             cancellationTokenSource = new CancellationTokenSource();
-            Task.Factory.StartNew((a) =>
+            Task.Factory.StartNew(async (a) =>
             {
                 CancellationTokenSource tks = a as CancellationTokenSource;
                 while (tks.IsCancellationRequested == false)
@@ -97,7 +94,7 @@ namespace cmonitor.sas.service
                     {
                     }
 
-                    Thread.Sleep(10);
+                    await Task.Delay(10);
                 }
             }, cancellationTokenSource, TaskCreationOptions.LongRunning);
         }
@@ -106,18 +103,18 @@ namespace cmonitor.sas.service
         {
             for (int i = 0; i < shareMLength; i++)
             {
-                shareMemory.AddAttribute(i,  ShareMemoryAttribute.Closed);
+                shareMemory.AddAttribute(i, ShareMemoryAttribute.Closed);
             }
         }
 
-        Process proc;
+        private Process proc;
         private void CheckMainProcess()
         {
             if (string.IsNullOrWhiteSpace(mainArgs))
             {
                 return;
             }
-            Task.Factory.StartNew(() =>
+            Task.Factory.StartNew(async () =>
             {
                 while (true)
                 {
@@ -132,7 +129,7 @@ namespace cmonitor.sas.service
                     catch (Exception)
                     {
                     }
-                    Thread.Sleep(30000);
+                    await Task.Delay(30000);
                 }
             }, TaskCreationOptions.LongRunning);
         }
@@ -189,5 +186,8 @@ namespace cmonitor.sas.service
             }
         }
 
+
+        [DllImport("sas.dll")]
+        public static extern void SendSAS(bool asUser);
     }
 }
