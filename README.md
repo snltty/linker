@@ -31,7 +31,7 @@
 2. 桌面捕获很粗略，只是做了一个减小图片尺寸，没有做区域更新
 
 ## 看图
-<p><img src="./readme/cmonitor.jpg" height="150"></p> 
+<p><img src="./readme/cmonitor.jpg"></p> 
 
 
 ## 支持平台
@@ -40,10 +40,10 @@
 
 ## 运行参数
 
-### 公共参数
+##### 公共参数
 - [x] **【--mode】** 运行模式 **client,server**
 
-### 1、客户端
+##### 1、客户端
 - [x] **【--server】** 服务器ip  **192.168.1.18**
 - **【--name】** 机器名 **Dns.GetHostName()**
 - **【--username-key】** 用户名内存共享key，谁在用此设备 **cmonitor/username**
@@ -53,7 +53,7 @@
 - **【--share-key】** 自定义其它数据共享 **cmonitor/share**
 - **【--share-len】** 长度 **255**
 
-### 2、服务端
+##### 2、服务端
 - [x] **【--web】** 管理UI端口 **1800**
 - [x] **【--api】** 管理接口端口 **1801**
 - [x] **【--service】** 服务端口 **1802**
