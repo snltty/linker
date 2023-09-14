@@ -17,8 +17,8 @@
 
 ![GitHub Repo stars](https://img.shields.io/github/stars/snltty/cminitor?style=social)
 ![GitHub Repo forks](https://img.shields.io/github/forks/snltty/cminitor?style=social)
-[![star](https://gitee.com/snltty/cminitor/badge/star.svg?theme=dark)](https://gitee.com/snltty/cminitor/stargazers)
-[![fork](https://gitee.com/snltty/cminitor/badge/fork.svg?theme=dark)](https://gitee.com/snltty/cminitor/members)
+[![star](https://gitee.com/snltty/cmonitor/badge/star.svg?theme=dark)](https://gitee.com/snltty/cminitor/stargazers)
+[![fork](https://gitee.com/snltty/cmonitor/badge/fork.svg?theme=dark)](https://gitee.com/snltty/cminitor/members)
 
 使用前请确保你已知其中风险
 
