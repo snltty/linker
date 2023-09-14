@@ -1,4 +1,6 @@
-﻿using common.libs.database;
+﻿using common.libs;
+using common.libs.database;
+using common.libs.extends;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 

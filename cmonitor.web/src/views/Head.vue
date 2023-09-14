@@ -67,6 +67,7 @@ export default {
 
         const handleConnect = () => {
             initWebsocket(`ws://${window.location.hostname}:${state.port}`);
+            //initWebsocket(`ws://192.168.1.18:${state.port}`);
             localStorage.setItem('port', state.port);
         }
         const handleUsername = () => {

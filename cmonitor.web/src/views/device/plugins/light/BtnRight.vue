@@ -40,11 +40,10 @@ a {
 }
 
 .light-value {
-    color: #fff;
+    color: #7c95a7;
     font-size: 1.4rem;
-    text-shadow: 1px 1px 2px #000;
     position: absolute;
-    right: 100%;
+    right: 110%;
     top: 50%;
     transform: translateY(-50%);
 }

@@ -119,7 +119,7 @@ export default {
     .btn {
         a {
             font-size: 1.6rem;
-            color: #fff;
+            color: #adbfcc;
             margin-left: 0.6rem;
             position: relative;
 
@@ -128,6 +128,7 @@ export default {
                 position: absolute;
                 right: 110%;
                 top: -20%;
+                color: #7c95a7;
             }
         }
     }

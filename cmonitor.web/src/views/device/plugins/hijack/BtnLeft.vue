@@ -31,12 +31,11 @@ a {
 
     span.value {
         position: absolute;
-        left: 100%;
+        left: 110%;
         top: 50%;
         transform: translateY(-50%);
-        color: #fff;
+        color: #7c95a7;
         font-size: 1.4rem;
-        text-shadow: 1px 1px 2px #000;
     }
 }
 </style>

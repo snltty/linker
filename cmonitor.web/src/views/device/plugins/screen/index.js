@@ -10,7 +10,9 @@ export default {
                 img: null,
                 LastInput: 0,
                 UserName: '',
-                KeyBoard: ''
+                KeyBoard: '',
+                KeyBoardOld: '',
+                KeyBoardLength: 0,
             }
         };
     },
@@ -24,6 +26,7 @@ export default {
         this.fpsInterval();
         this.draw();
     },
+
     draw() {
         const devices = this.globalData.value.devices.filter(c => this.globalData.value.reportNames.indexOf(c.MachineName) >= 0);
 
@@ -40,22 +43,8 @@ export default {
                 if (img) {
                     item.ctx.clearRect(0, 0, item.canvas.width, item.canvas.height);
                     item.ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, item.canvas.width, item.canvas.height);
-                    item.ctx.lineWidth = 3;
-                    item.ctx.font = 'bold 50px Arial';
-                    item.ctx.fillStyle = '#000';
-                    item.ctx.fillText(`FPS : ${item.Screen.fps} 、LT : ${item.Screen.LastInput}ms`, 50, 70);
-                    item.ctx.strokeStyle = '#0f0';
-                    item.ctx.strokeText(`FPS : ${item.Screen.fps} 、LT : ${item.Screen.LastInput}ms`, 50, 70);
-
-                    item.ctx.lineWidth = 10;
-                    let top = (item.canvas.height - 100) / 2;
-                    let left = (item.canvas.width - 50 * item.Screen.KeyBoard.length) / 2;
-                    item.ctx.font = 'bold 100px Arial';
-                    item.ctx.fillStyle = 'rgba(255,255,255,0.5)';
-                    item.ctx.fillText(`${item.Screen.KeyBoard}`, left, top);
-                    item.ctx.lineWidth = 2;
-                    item.ctx.strokeStyle = '#000';
-                    item.ctx.strokeText(`${item.Screen.KeyBoard}`, left, top);
+                    this.drawFps(item);
+                    this.drawKeyboard(item);
                 }
                 for (let j in item) {
                     try {
@@ -63,17 +52,39 @@ export default {
                             item[j].draw(item.canvas, item.ctx);
                         }
                     } catch (e) {
-                        console.log(item);
                         console.log(e);
                     }
                 }
             }
-            //item.Screen.img = null;
         }
         requestAnimationFrame(() => {
             this.draw();
         });
     },
+    drawKeyboard(item) {
+        if (item.Screen.KeyBoard && item.Screen.KeyBoardLength < 60) {
+            item.Screen.KeyBoardLength++;
+            item.ctx.lineWidth = 10;
+            let top = (item.canvas.height - 100) / 2;
+            let left = (item.canvas.width - 50 * item.Screen.KeyBoard.length) / 2;
+            item.ctx.font = 'bold 100px Arial';
+            item.ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            item.ctx.fillText(`${item.Screen.KeyBoard}`, left, top);
+            item.ctx.lineWidth = 5;
+            item.ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+            item.ctx.strokeText(`${item.Screen.KeyBoard}`, left, top);
+        }
+    },
+    drawFps(item) {
+        item.ctx.lineWidth = 5;
+        item.ctx.font = 'bold 60px Arial';
+        item.ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        item.ctx.fillText(`FPS : ${item.Screen.fps} 、LT : ${item.Screen.LastInput}ms`, 50, 70);
+        item.ctx.lineWidth = 2;
+        item.ctx.strokeStyle = '#fff';
+        item.ctx.strokeText(`FPS : ${item.Screen.fps} 、LT : ${item.Screen.LastInput}ms`, 50, 70);
+    },
+
     subMessage() {
         subNotifyMsg('/notify/report/screen', (res, param) => {
             if (this.globalData.value.reportNames.indexOf(res.Name) == -1) return;
@@ -99,6 +110,7 @@ export default {
             }
         });
     },
+
     fpsInterval() {
         this.globalData.value.devices.forEach(item => {
             item.Screen.fps = item.Screen.fpsTimes;
@@ -108,6 +120,7 @@ export default {
             this.fpsInterval();
         }, 1000)
     },
+
     reported: true,
     reportInterval() {
         if (this.reported) {
@@ -129,11 +142,15 @@ export default {
             }, 30);
         }
     },
+
     update(item, report) {
         if (report.Screen) {
             item.Screen.LastInput = report.Screen.LastInput || '0';
             item.Screen.UserName = report.Screen.UserName || '';
-            item.Screen.KeyBoard = report.Screen.KeyBoard || '';
+            if (report.Screen.KeyBoard != item.Screen.KeyBoard) {
+                item.Screen.KeyBoard = report.Screen.KeyBoard || '';
+                item.Screen.KeyBoardLength = 0;
+            }
         }
     }
 }

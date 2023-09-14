@@ -51,6 +51,8 @@ namespace common.libs.database
                 if (File.Exists(fileName))
                 {
                     string str = (await File.ReadAllTextAsync(fileName).ConfigureAwait(false));
+                    //Logger.Instance.Error($"read:{fileName}");
+                   // Logger.Instance.Error(str);
                     return str.DeJson<T>();
                 }
                 else
@@ -79,6 +81,10 @@ namespace common.libs.database
             try
             {
                 string fileName = GetTableName(typeof(T));
+
+                //Logger.Instance.Error($"save:{fileName}");
+                //Logger.Instance.Error(model.ToJsonIndented());
+
                 await File.WriteAllTextAsync(fileName, model.ToJsonIndented(), Encoding.UTF8).ConfigureAwait(false);
             }
             catch (Exception)

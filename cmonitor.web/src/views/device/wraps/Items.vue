@@ -12,6 +12,7 @@
 import Item from './Item.vue'
 import { computed, watch } from 'vue'
 import { getList } from '../../../apis/signin.js'
+import { websocketState } from '../../../apis/request'
 import { nextTick, onMounted, onUnmounted } from 'vue'
 import { injectGlobalData } from '@/views/provide'
 import { subNotifyMsg } from '@/apis/request'
@@ -117,11 +118,31 @@ export default {
                 console.log(e);
             }
         }
+
+        const updateListInterver = () => {
+            if (websocketState.connected) {
+                getList().then((res) => {
+                    globalData.value.allDevices.forEach(c => {
+                        let item = res.filter(d => d.MachineName == c.MachineName)[0];
+                        if (item) {
+                            c.Connected = item.Connected;
+                        }
+                    });
+                }).catch(() => {
+                });
+            }
+
+            setTimeout(() => {
+                updateListInterver();
+            }, 1000);
+        }
+
         onMounted(() => {
             getData();
             listWrapScrollListener();
             updateVisibleItems();
             subMessage();
+            updateListInterver();
         });
         onUnmounted(() => {
             listWrapRemoveScrollListener();
