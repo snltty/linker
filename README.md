@@ -45,13 +45,13 @@
 
 ##### 1、客户端
 - [x] **【--server】** 服务器ip  **192.168.1.18**
-- **【--name】** 机器名 **Dns.GetHostName()**
-- **【--username-key】** 用户名内存共享key，谁在用此设备 **cmonitor/username**
-- **【--username-len】** 用户名内存共享长度 **255**
-- **【--keyboard-key】** 键盘按键内存共享key，按下哪些按键 **cmonitor/keyboard**
-- **【--keyboard-len】** 键盘按键内存共享长度 **255**
-- **【--share-key】** 自定义其它数据共享 **cmonitor/share**
-- **【--share-len】** 长度 **255**
+- [x] **【--name】** 机器名 **Dns.GetHostName()**
+- [ ] **【--username-key】** 用户名内存共享key，谁在用此设备 **cmonitor/username**
+- [ ] **【--username-len】** 用户名内存共享长度 **255**
+- [ ] **【--keyboard-key】** 键盘按键内存共享key，按下哪些按键 **cmonitor/keyboard**
+- [ ] **【--keyboard-len】** 键盘按键内存共享长度 **255**
+- [ ] **【--share-key】** 自定义其它数据共享 **cmonitor/share**
+- [ ] **【--share-len】** 长度 **255**
 
 ##### 2、服务端
 - [x] **【--web】** 管理UI端口 **1800**
