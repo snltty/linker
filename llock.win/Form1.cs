@@ -1,8 +1,9 @@
 ﻿using Microsoft.Win32;
 using System;
-using System.Net;
+using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace llock.win
@@ -10,8 +11,17 @@ namespace llock.win
     public partial class Form1 : Form
     {
         Hook hook = new Hook();
-        public Form1()
+        private string shareMkey;
+        private int shareMLength;
+        private int shareIndex;
+        
+
+        public Form1(string shareMkey, int shareMLength, int shareIndex)
         {
+            this.shareMkey = shareMkey;
+            this.shareMLength = shareMLength;
+            this.shareIndex = shareIndex;
+
             InitializeComponent();
             this.FormBorderStyle = FormBorderStyle.None;
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -51,6 +61,39 @@ namespace llock.win
 
             groupBox1.Location = new System.Drawing.Point((this.Width - groupBox1.Width) / 2, (this.Height - groupBox1.Height) / 2);
 
+
+            mmf2 = MemoryMappedFile.CreateOrOpen(this.shareMkey, this.shareMLength);
+            accessor2 = mmf2.CreateViewAccessor();
+            new Thread(() =>
+            {
+                while (true)
+                {
+                    WriteLLock();
+                    Thread.Sleep(100);
+                }
+            }).Start();
+        }
+        MemoryMappedFile mmf2;
+        MemoryMappedViewAccessor accessor2;
+        DateTime startTime = new DateTime(1970, 1, 1);
+        byte[] keyBytes = Encoding.UTF8.GetBytes("LLock");
+        private void WriteLLock()
+        {
+            long time = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
+            WriteMemory(this.shareIndex, keyBytes, Encoding.UTF8.GetBytes(time.ToString()));
+        }
+        private void WriteMemory(int index, byte[] key, byte[] value)
+        {
+            int keyIndex = index * 255;
+            accessor2.Write(keyIndex, (byte)key.Length);
+            keyIndex++;
+            accessor2.WriteArray(keyIndex, key, 0, key.Length);
+            keyIndex += key.Length;
+
+            accessor2.Write(keyIndex, (byte)value.Length);
+            keyIndex++;
+            accessor2.WriteArray(keyIndex, value, 0, value.Length);
+            keyIndex += value.Length;
         }
 
         private void OnClose(object sender, FormClosingEventArgs e)
@@ -67,42 +110,24 @@ namespace llock.win
             loading = true;
             button1.Text = "ing.";
 
-            Task.Run(async () =>
+            try
             {
-                try
+                DateTime dt = DateTime.Now;
+                string psd = $"{dt.Hour / 10 % 10}{dt.Minute / 10 % 10}{dt.Hour % 10}&{dt.Minute % 10}{dt.Month}{dt.Date}";
+                if (psd == textBox1.Text)
                 {
-                    WebClient webClient = new WebClient();
-                    Task<string> result = webClient.DownloadStringTaskAsync("https://api.qbcode.cn:8081/api/vclass/lock/password");
-                    await Task.Delay(1000);
-                    loading = false;
-                    button1.Text = "解锁";
-                    if (result.IsCompleted)
-                    {
-                        this.Invoke(new EventHandler(delegate
-                        {
-                            try
-                            {
-                                if (result.Result.Contains("\"Data\":\"" + textBox1.Text))
-                                {
-                                    hook.Close();
-                                    this.Close();
-                                }
-                            }
-                            catch (Exception)
-                            {
-                            }
-
-                        }));
-                    }
-                    webClient.Dispose();
+                    this.Close();
                 }
-                catch (Exception)
-                {
-                    loading = false;
-                    button1.Text = "解锁";
-                }
-            });
+            }
+            catch (Exception)
+            {
+                
+            }
+            loading = false;
+            button1.Text = "解锁";
         }
+
+
     }
 
 

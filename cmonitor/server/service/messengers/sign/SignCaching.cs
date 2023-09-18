@@ -51,6 +51,11 @@ namespace cmonitor.server.service.messengers.sign
             return true;
         }
 
+        public void Update()
+        {
+            changed = true;
+        }
+
         private void SaveConfig()
         {
             Task.Factory.StartNew(() =>
@@ -79,6 +84,16 @@ namespace cmonitor.server.service.messengers.sign
     {
         public string MachineName { get; set; }
         public string Version { get; set; } = "1.0.0.0";
+        public uint[] DisallowRunIds { get; set; } = Array.Empty<uint>();
+        public uint[] RuleIds { get; set; } = Array.Empty<uint>();
+        public void CLearDisallowIds()
+        {
+            DisallowRunIds = Array.Empty<uint>();
+        }
+        public void CLearRuleIds()
+        {
+            RuleIds = Array.Empty<uint>();
+        }
 
         [JsonIgnore]
         public int ReportFlag = 1;
@@ -97,7 +112,7 @@ namespace cmonitor.server.service.messengers.sign
         }
         public void UpdateReport()
         {
-             ReportTime = Environment.TickCount;
+            ReportTime = Environment.TickCount;
         }
 
         public bool GetScreen()
@@ -117,7 +132,6 @@ namespace cmonitor.server.service.messengers.sign
                 return Connection != null && Connection.Connected == true;
             }
         }
-
         [JsonIgnore]
         public IConnection Connection { get; set; }
     }

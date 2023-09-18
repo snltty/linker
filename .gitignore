@@ -1,4 +1,5 @@
 .vs
+.svn
 bin
 obj
 node_modules

@@ -7,9 +7,7 @@ using System.Buffers;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Drawing;
-using System.IO.MemoryMappedFiles;
 #endif
-using System.Text;
 
 namespace cmonitor.server.client.reports.screen
 {
@@ -18,30 +16,24 @@ namespace cmonitor.server.client.reports.screen
         public string Name => "Screen";
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
-        private readonly Config config;
 
-        Dictionary<string, object> dic = new Dictionary<string, object> { { "LastInput", 0 }, { "UserName", string.Empty }, { "KeyBoard", string.Empty } };
+        private ScreenReportInfo report = new  ScreenReportInfo();
 
         public ScreenReport(ClientSignInState clientSignInState, MessengerSender messengerSender, Config config)
         {
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
-            this.config = config;
 
             if (config.IsCLient)
             {
                 ScreenCaptureTask();
-                InitUserNameMemory();
                 InitLastInputInfo();
-                InitKeyBoard();
             }
         }
-        public Dictionary<string, object> GetReports()
+        public object GetReports()
         {
-            dic["LastInput"] = GetLastInputInfo();
-            dic["UserName"] = GetUserNameMemory();
-            dic["KeyBoard"] = GetKeyBoard();
-            return dic;
+            report.LastInput = GetLastInputInfo();
+            return report;
         }
 
 
@@ -78,8 +70,6 @@ namespace cmonitor.server.client.reports.screen
             byte[] bytes = ScreenCapture();
             if (bytes.Length > 0)
             {
-
-                // byte[] bytes = MemoryPackSerializer.Serialize(img);
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = clientSignInState.Connection,
@@ -95,50 +85,49 @@ namespace cmonitor.server.client.reports.screen
             if (OperatingSystem.IsWindows())
             {
                 IntPtr hdc = GetDC(IntPtr.Zero);
-                using Bitmap source = new Bitmap(GetDeviceCaps(hdc, DESKTOPHORZRES), GetDeviceCaps(hdc, DESKTOPVERTRES));
-                using (Graphics g = Graphics.FromImage(source))
+                if(hdc != IntPtr.Zero)
                 {
-                    g.CopyFromScreen(0, 0, 0, 0, source.Size, CopyPixelOperation.SourceCopy);
-
-                    CURSORINFO pci;
-                    pci.cbSize = Marshal.SizeOf(typeof(CURSORINFO));
-                    if (GetCursorInfo(out pci))
+                    using Bitmap source = new Bitmap(GetDeviceCaps(hdc, DESKTOPHORZRES), GetDeviceCaps(hdc, DESKTOPVERTRES));
+                    using (Graphics g = Graphics.FromImage(source))
                     {
-                        if (pci.flags == CURSOR_SHOWING)
+                        g.CopyFromScreen(0, 0, 0, 0, source.Size, CopyPixelOperation.SourceCopy);
+
+                        CURSORINFO pci;
+                        pci.cbSize = Marshal.SizeOf(typeof(CURSORINFO));
+                        if (GetCursorInfo(out pci))
                         {
-                            var hdc1 = g.GetHdc();
-                            DrawIconEx(hdc1, pci.ptScreenPos.x - 0, pci.ptScreenPos.y - 0, pci.hCursor, 0, 0, 0, IntPtr.Zero, DI_NORMAL);
-                            g.ReleaseHdc();
+                            if (pci.flags == CURSOR_SHOWING)
+                            {
+                                var hdc1 = g.GetHdc();
+                                DrawIconEx(hdc1, pci.ptScreenPos.x - 0, pci.ptScreenPos.y - 0, pci.hCursor, 0, 0, 0, IntPtr.Zero, DI_NORMAL);
+                                g.ReleaseHdc();
+                            }
                         }
+
+                        g.Dispose();
                     }
+                    ReleaseDC(IntPtr.Zero, hdc);
 
-                    g.Dispose();
+
+                    int newWidth = 384;
+                    int newHeight = (int)(source.Height * (newWidth * 1.0 / source.Width));
+                    Bitmap bmp = new Bitmap(newWidth, newHeight);
+                    bmp.SetResolution(source.HorizontalResolution, source.VerticalResolution);
+                    using Graphics graphic = Graphics.FromImage(bmp);
+                    graphic.SmoothingMode = SmoothingMode.HighQuality;
+                    graphic.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    graphic.DrawImage(source, new Rectangle(0, 0, newWidth, newHeight));
+
+                    using Image image = bmp;
+
+                    using MemoryStream ms = new MemoryStream();
+                    image.Save(ms, ImageFormat.Jpeg);
+                    ms.Seek(0, SeekOrigin.Begin);
+
+                    byte[] bytes = ArrayPool<byte>.Shared.Rent((int)ms.Length);
+                    ms.Read(bytes);
+                    return bytes;
                 }
-                ReleaseDC(IntPtr.Zero, hdc);
-
-
-                int newWidth = 384;
-                int newHeight = (int)(source.Height * (newWidth * 1.0 / source.Width));
-                Bitmap bmp = new Bitmap(newWidth, newHeight);
-                bmp.SetResolution(source.HorizontalResolution, source.VerticalResolution);
-                using Graphics graphic = Graphics.FromImage(bmp);
-                graphic.SmoothingMode = SmoothingMode.HighQuality;
-                graphic.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                graphic.DrawImage(source, new Rectangle(0, 0, newWidth, newHeight));
-
-                using Image image = bmp;
-
-                using MemoryStream ms = new MemoryStream();
-                image.Save(ms, ImageFormat.Jpeg);
-                ms.Seek(0, SeekOrigin.Begin);
-
-                byte[] bytes = ArrayPool<byte>.Shared.Rent((int)ms.Length);
-                ms.Read(bytes);
-                return bytes;
-                //string base64 = Convert.ToBase64String(bytes, 0, (int)ms.Length);
-                //ArrayPool<byte>.Shared.Return(bytes);
-                //return base64;
-
             }
 #endif
             return Array.Empty<byte>();
@@ -217,95 +206,11 @@ namespace cmonitor.server.client.reports.screen
             public uint dwTime;
         }
         #endregion
+    }
 
-        #region 用户名
-
-#if DEBUG || RELEASE
-        MemoryMappedFile mmf2;
-        MemoryMappedViewAccessor accessor2;
-        byte[] userNameBytes;
-#endif
-        private void InitUserNameMemory()
-        {
-#if DEBUG || RELEASE
-            userNameBytes = new byte[config.UserNameMemoryLength];
-            if (OperatingSystem.IsWindows())
-            {
-                mmf2 = MemoryMappedFile.CreateOrOpen(config.UserNameMemoryKey, userNameBytes.Length);
-                accessor2 = mmf2.CreateViewAccessor();
-            }
-#endif
-        }
-
-        private string GetUserNameMemory()
-        {
-#if DEBUG || RELEASE
-            try
-            {
-                if (OperatingSystem.IsWindows())
-                {
-                    if (accessor2 != null)
-                    {
-                        accessor2.Read(0, out byte length);
-                        if (length > 0)
-                        {
-                            accessor2.ReadArray(1, userNameBytes, 0, length);
-                            return Encoding.UTF8.GetString(userNameBytes.AsSpan(0, length));
-                        }
-                    }
-                }
-            }
-            catch (Exception)
-            {
-            }
-#endif
-            return string.Empty;
-        }
-        #endregion
-
-        #region 键盘
-
-#if DEBUG || RELEASE
-        MemoryMappedFile mmf3;
-        MemoryMappedViewAccessor accessor3;
-        byte[] keyBoardBytes;
-#endif
-        private void InitKeyBoard()
-        {
-#if DEBUG || RELEASE
-            keyBoardBytes = new byte[config.KeyboardMemoryLength];
-            if (OperatingSystem.IsWindows())
-            {
-                mmf3 = MemoryMappedFile.CreateOrOpen(config.KeyboardMemoryKey, keyBoardBytes.Length);
-                accessor3 = mmf3.CreateViewAccessor();
-            }
-#endif
-        }
-        private string GetKeyBoard()
-        {
-#if DEBUG || RELEASE
-            try
-            {
-                if (OperatingSystem.IsWindows())
-                {
-                    if (accessor3 != null)
-                    {
-                        accessor3.Read(0, out byte length);
-                        if (length > 0)
-                        {
-                            accessor3.ReadArray(1, keyBoardBytes, 0, length);
-                            return Encoding.UTF8.GetString(keyBoardBytes.AsSpan(0, length));
-                        }
-                    }
-                }
-            }
-            catch (Exception)
-            {
-            }
-#endif
-            return string.Empty;
-        }
-        #endregion
+    public sealed class ScreenReportInfo
+    {
+        public uint LastInput { get; set; }
     }
 
 }

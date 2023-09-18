@@ -7,7 +7,7 @@
             <div class="flex-1"></div>
             <div class="Exes flex flex-column">
                 <div class="private">
-                    <CheckBoxWrap ref="privateExes" :data="state.privateExes" :items="[]" label="FileName" text="Desc" title="私有窗口">
+                    <CheckBoxWrap ref="privateExes" :data="state.privateExes" :items="state.currentPrivate" label="ID" text="Desc" title="私有窗口">
                         <template #name="scoped">
                             {{scoped.item.Desc || scoped.item.FileName }}
                         </template>
@@ -15,7 +15,7 @@
                 </div>
                 <div class="flex-1"></div>
                 <div class="public">
-                    <CheckBoxWrap ref="publicExes" :data="state.publicExes" :items="[]" label="FileName" text="Desc" title="公共窗口">
+                    <CheckBoxWrap ref="publicExes" :data="state.publicExes" :items="state.currentPublic" label="ID" text="Desc" title="公共窗口">
                         <template #name="scoped">
                             {{scoped.item.Desc || scoped.item.FileName }}
                         </template>
@@ -56,7 +56,9 @@ export default {
             items: computed(() => pluginState.value.activeWindow.devices),
             privateExes: computed(() => user.value ? user.value.FileNames : []),
             publicExes: computed(() => usePublic ? publicUser.value.FileNames : []),
-            loading: false
+            loading: false,
+            currentPrivate: [],
+            currentPublic: [],
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -68,16 +70,23 @@ export default {
 
         onMounted(() => {
             globalData.value.updateFlag = Date.now();
+            if (state.items.length == 1) {
+                let item = state.items[0];
+                state.currentPrivate = state.privateExes.filter(c => item.DisallowRunIds.indexOf(c.ID) >= 0);
+                state.currentPublic = state.publicExes.filter(c => item.DisallowRunIds.indexOf(c.ID) >= 0);
+            }
         });
 
         const devices = ref(null);
         const privateExes = ref(null);
         const publicExes = ref(null);
         const parseRule = () => {
-            const _privateExes = privateExes.value.getData();
-            const _publicExes = publicExes.value.getData();
-            return _privateExes.concat(_publicExes).reduce((data, item, index) => {
-                let arr = item.split(',');
+            const _privateIds = privateExes.value.getData();
+            const _privateExes = state.privateExes.filter(c => _privateIds.indexOf(c.ID) >= 0);
+            const _publicIds = publicExes.value.getData();
+            const _publicExes = state.publicExes.filter(c => _publicIds.indexOf(c.ID) >= 0);
+            const exes = _privateExes.concat(_publicExes).reduce((data, item, index) => {
+                let arr = item.FileName.split(',');
                 for (let i = 0; i < arr.length; i++) {
                     if (data.indexOf(arr[i]) == -1) {
                         data.push(arr[i]);
@@ -85,6 +94,13 @@ export default {
                 }
                 return data;
             }, []);
+            if (exes.length == 0) {
+                exes.push('snltty');
+            }
+            return {
+                ids: _privateIds.concat(_publicIds),
+                exes: exes
+            };
         }
         const handleSubmit = () => {
             const _devices = devices.value.getData();
@@ -100,9 +116,12 @@ export default {
             }).then(() => {
                 state.loading = true;
                 const exes = parseRule();
-                activeDisallow(_devices, exes).then((res) => {
+                activeDisallow(_devices, exes.exes, exes.ids).then((res) => {
                     state.loading = false;
                     ElMessage.success('操作成功！');
+                    globalData.value.devices.filter(c => _devices.indexOf(c.MachineName) >= 0).forEach(device => {
+                        device.DisallowRunIds = exes.ids;
+                    });
                 }).catch((e) => {
                     state.loading = false;
                     ElMessage.error('操作失败');

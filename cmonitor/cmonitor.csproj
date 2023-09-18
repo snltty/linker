@@ -37,6 +37,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Update="cmonitor.volume.dll">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="nfapi.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
@@ -60,8 +63,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="MemoryPack" Version="1.9.16" />
-		
-		<PackageReference Include="NAudio" Version="2.2.0" />
+		<PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
 		<PackageReference Include="System.Management" Version="7.0.2" />
 	</ItemGroup>
 

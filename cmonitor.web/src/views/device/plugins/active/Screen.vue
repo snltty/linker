@@ -1,5 +1,5 @@
 <template>
-    <a v-if="data.ActiveWindow.Pid>0" class="process flex" href="javascript:;" @click="handleCloseActive">
+    <a class="process flex" href="javascript:;" @click="handleCloseActive">
         <span class="title flex-1">{{data.ActiveWindow.Title}}</span>
         <p class="btn">
             <a href="javascript:;" @click.stop="handleChoose">
@@ -54,14 +54,20 @@ export default {
         }
         const handleAddExe = () => {
             const arr = props.data.ActiveWindow.FileName.split('\\');
-            const fileName = arr[arr.length - 1];
-            const desc = props.data.ActiveWindow.Desc;
+            let fileName = arr[arr.length - 1];
+            let desc = props.data.ActiveWindow.Desc;
             const title = props.data.ActiveWindow.Title;
+
             let html = `</p>是否确定添加到待选列表？</p>`;
             html += `<p>标题:【${title}】</p>`;
-            html += `<p>描述:【${desc}】</p>`;
-            html += `<p>文件:【${fileName}】</p>`;
-            html += `<p>windows商店应用，可能无法阻止，需要手动添加例如【计算器】，以侦测程序关闭</p>`;
+            if (desc != 'Application Frame Host') {
+                html += `<p>描述:【${desc}】</p>`;
+                html += `<p>文件:【${fileName}】</p>`;
+            } else {
+                fileName = title;
+                desc = title;
+            }
+
             ElMessageBox.confirm(html, '提示', {
                 confirmButtonText: '确定',
                 cancelButtonText: '取消',
@@ -119,7 +125,7 @@ export default {
     .btn {
         a {
             font-size: 1.6rem;
-            color: #adbfcc;
+            color: #fff;
             margin-left: 0.6rem;
             position: relative;
 
@@ -128,7 +134,7 @@ export default {
                 position: absolute;
                 right: 110%;
                 top: -20%;
-                color: #7c95a7;
+                color: #fff;
             }
         }
     }

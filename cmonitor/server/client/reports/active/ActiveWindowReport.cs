@@ -15,36 +15,20 @@ namespace cmonitor.server.client.reports.active
         public string Name => "ActiveWindow";
 
         private readonly ActiveWindowTimeManager activeWindowTimeManager = new ActiveWindowTimeManager();
-        private ActiveWindow active = new ActiveWindow();
-        private Dictionary<string, object> report = new Dictionary<string, object> {
-            { "Title", string.Empty }, { "FileName", string.Empty }, { "Desc", string.Empty }, { "Pid", 0 }, { "Disallow",  Array.Empty<string>() }
-        };
-        private string[] disallowList = Array.Empty<string>();
+        private ActiveReportInfo report = new ActiveReportInfo();
+
         private List<string> disallowTitles = new List<string>();
-
-        private ActiveWindow[] backgroundWindow = Array.Empty<ActiveWindow>();
-
-        private readonly Config config;
         public ActiveWindowReport(Config config)
         {
-            this.config = config;
             if (config.IsCLient)
             {
                 Timers();
+                DisallowInit();
             }
-           
-            DisallowInit();
         }
 
-        public Dictionary<string, object> GetReports()
+        public object GetReports()
         {
-            //GetActiveWindow();
-            report["Title"] = active.Title;
-            report["FileName"] = active.FileName;
-            report["Desc"] = active.Desc;
-            report["Pid"] = active.Pid;
-            report["Count"] = disallowList.Length;
-            report["Backs"] = backgroundWindow;
             return report;
         }
         public ActiveWindowTimeReportInfo GetActiveWindowTimes()
@@ -60,13 +44,12 @@ namespace cmonitor.server.client.reports.active
         {
             DisallowRun(false);
             DisallowRunClear();
-            disallowList = names;
+            report.Count = names.Length;
+            disallowTitles = names.Where(c => c.EndsWith(".exe") == false).ToList();
             if (names.Length > 0)
             {
                 DisallowRun(true);
                 DisallowRunFileNames(names);
-
-                disallowTitles = names.Where(c => c.EndsWith(".exe") == false).ToList();
             }
             Task.Run(() =>
             {
@@ -83,9 +66,9 @@ namespace cmonitor.server.client.reports.active
                     try
                     {
                         GetActiveWindow();
-                        if (disallowTitles.Count > 0 && disallowTitles.Contains(active.Title))
+                        if (disallowTitles.Count > 0 && disallowTitles.Contains(report.Title))
                         {
-                            uint pid = active.Pid;
+                            uint pid = report.Pid;
                             _ = Task.Run(() =>
                             {
                                 CommandHelper.Windows(string.Empty, new string[] { $"taskkill /f /pid {pid}" });
@@ -93,13 +76,8 @@ namespace cmonitor.server.client.reports.active
                         }
                         else
                         {
-                            activeWindowTimeManager.Update(active);
+                            activeWindowTimeManager.Update(report);
                         }
-                        WindowHelper.UpdateCurrentProcesses();
-                        if (WindowHelper.processes != null)
-                        {
-                        }
-
                     }
                     catch (Exception ex)
                     {
@@ -147,16 +125,16 @@ namespace cmonitor.server.client.reports.active
                 {
                 }
 
-                active.Title = buff.ToString();
-                active.FileName = filename;
-                active.Desc = desc;
-                active.Pid = id;
+                report.Title = buff.ToString();
+                report.FileName = filename;
+                report.Desc = desc;
+                report.Pid = id;
                 return;
             }
-            active.Title = string.Empty;
-            active.FileName = string.Empty;
-            active.Desc = string.Empty;
-            active.Pid = 0;
+            report.Title = string.Empty;
+            report.FileName = string.Empty;
+            report.Desc = string.Empty;
+            report.Pid = 0;
         }
 
         private void DisallowInit()
@@ -191,7 +169,7 @@ namespace cmonitor.server.client.reports.active
                     }
                 }
 
-             }
+            }
             catch (Exception ex)
             {
                 Logger.Instance.Error($"application disallow clear {ex}");
@@ -224,7 +202,7 @@ namespace cmonitor.server.client.reports.active
         }
         private void DisallowRun(bool value)
         {
-            #if DEBUG || RELEASE
+#if DEBUG || RELEASE
             try
             {
                 if (OperatingSystem.IsWindows())
@@ -243,7 +221,7 @@ namespace cmonitor.server.client.reports.active
         }
         private void CreateKey()
         {
-            #if DEBUG || RELEASE
+#if DEBUG || RELEASE
             try
             {
                 if (OperatingSystem.IsWindows())
@@ -264,6 +242,15 @@ namespace cmonitor.server.client.reports.active
 
     }
 
+    public sealed class ActiveReportInfo
+    {
+        public string Title { get; set; } = string.Empty;
+        public string FileName { get; set; } = string.Empty;
+        public string Desc { get; set; } = string.Empty;
+        public uint Pid { get; set; }
+        public int Count { get; set; }
+    }
+
     public sealed class ActiveWindow
     {
         public string Title { get; set; } = string.Empty;
@@ -272,7 +259,6 @@ namespace cmonitor.server.client.reports.active
 
         public uint Pid = 0;
     }
-
     public sealed class ActiveWindowTimeManager
     {
         private ConcurrentDictionary<string, ActiveWindowTimeInfo> dic = new ConcurrentDictionary<string, ActiveWindowTimeInfo>();
@@ -293,7 +279,7 @@ namespace cmonitor.server.client.reports.active
                 List = dic.Values.ToList()
             };
         }
-        public void Update(ActiveWindow active)
+        public void Update(ActiveReportInfo active)
         {
             if (string.IsNullOrWhiteSpace(active.FileName)) return;
 

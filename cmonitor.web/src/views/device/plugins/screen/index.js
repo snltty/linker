@@ -8,11 +8,7 @@ export default {
                 fps: 0,
                 fpsTimes: 0,
                 img: null,
-                LastInput: 0,
-                UserName: '',
-                KeyBoard: '',
-                KeyBoardOld: '',
-                KeyBoardLength: 0,
+                LastInput: 0
             }
         };
     },
@@ -44,7 +40,6 @@ export default {
                     item.ctx.clearRect(0, 0, item.canvas.width, item.canvas.height);
                     item.ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, item.canvas.width, item.canvas.height);
                     this.drawFps(item);
-                    this.drawKeyboard(item);
                 }
                 for (let j in item) {
                     try {
@@ -60,20 +55,6 @@ export default {
         requestAnimationFrame(() => {
             this.draw();
         });
-    },
-    drawKeyboard(item) {
-        if (item.Screen.KeyBoard && item.Screen.KeyBoardLength < 60) {
-            item.Screen.KeyBoardLength++;
-            item.ctx.lineWidth = 10;
-            let top = (item.canvas.height - 100) / 2;
-            let left = (item.canvas.width - 50 * item.Screen.KeyBoard.length) / 2;
-            item.ctx.font = 'bold 100px Arial';
-            item.ctx.fillStyle = 'rgba(0,0,0,0.5)';
-            item.ctx.fillText(`${item.Screen.KeyBoard}`, left, top);
-            item.ctx.lineWidth = 5;
-            item.ctx.strokeStyle = 'rgba(255,255,255,0.7)';
-            item.ctx.strokeText(`${item.Screen.KeyBoard}`, left, top);
-        }
     },
     drawFps(item) {
         item.ctx.lineWidth = 5;
@@ -145,12 +126,7 @@ export default {
 
     update(item, report) {
         if (report.Screen) {
-            item.Screen.LastInput = report.Screen.LastInput || '0';
-            item.Screen.UserName = report.Screen.UserName || '';
-            if (report.Screen.KeyBoard != item.Screen.KeyBoard) {
-                item.Screen.KeyBoard = report.Screen.KeyBoard || '';
-                item.Screen.KeyBoardLength = 0;
-            }
+            item.Screen.LastInput = report.Screen.LastInput || 0;
         }
     }
 }

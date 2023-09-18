@@ -3,6 +3,7 @@
     public sealed class LightReport : IReport
     {
         public string Name => "Light";
+        LightReportInfo report = new LightReportInfo();
 
         private readonly LightWatcher lightWatcher;
         public LightReport()
@@ -13,21 +14,25 @@
                 lightWatcher = new LightWatcher();
                 lightWatcher.BrightnessChanged += (e, value) =>
                 {
-                    dic["Value"] = value.newBrightness;
+                    report.Value = (int)value.newBrightness;
                 };
-                dic["Value"] = LightWmiHelper.GetBrightnessLevel();
+                report.Value = LightWmiHelper.GetBrightnessLevel();
             }
         }
 
-        Dictionary<string, object> dic = new Dictionary<string, object> { { "Value", 0 } };
-        public Dictionary<string, object> GetReports()
+        public object GetReports()
         {
-            return dic;
+            return report;
         }
 
         public void SetLight(int value)
         {
             LightWmiHelper.SetBrightnessLevel(value);
         }
+    }
+
+    public sealed class LightReportInfo
+    {
+        public int Value { get; set; }
     }
 }

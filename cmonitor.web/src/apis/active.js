@@ -6,9 +6,9 @@ export const getActiveTimes = (name) => {
 export const activeTimesClear = (name) => {
     return sendWebsocketMsg('active/clear', name);
 }
-export const activeDisallow = (names, filenames) => {
+export const activeDisallow = (names, filenames, ids) => {
     return sendWebsocketMsg('active/disallow', {
-        names, filenames
+        names, filenames, ids: ids || []
     });
 }
 

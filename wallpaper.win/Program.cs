@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -20,25 +18,14 @@ namespace wallpaper.win
                 Environment.Exit(1);
             }
 
-            string img = "https://www.qbcode.cn/images/carousel-cpp.jpg";
-            string key = "cmonitor/keyboard";
-            int len = 1024;
-            if(arg.Length > 0)
-            {
-                img = arg[0];
-            }
-            if (arg.Length > 1)
-            {
-                key = arg[1];
-            }
-            if (arg.Length > 2)
-            {
-                len = int.Parse(arg[2]);
-            }
-
+            string imgUrl = arg[0];
+            string shareMkey = arg[1];
+            int shareMLength = int.Parse(arg[2]);
+            int shareKeyBoardIndex = int.Parse(arg[3]);
+            int shareWallpaperIndex = int.Parse(arg[4]);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1(img, key, len));
+            Application.Run(new Form1(imgUrl, shareMkey, shareMLength, shareKeyBoardIndex, shareWallpaperIndex));
         }
     }
 }

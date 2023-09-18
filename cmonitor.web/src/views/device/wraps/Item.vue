@@ -6,7 +6,9 @@
                 <div class="value flex">
                     <span class="name" :class="{connected:data.Connected}">
                         <span class="machine-mame">{{data.MachineName}}</span>
-                        <i class="user-name" v-if="data.Screen.UserName"> - {{data.Screen.UserName}}</i>
+                        <template v-for="(item,index) in titleLeftModules" :key="index">
+                            <component :is="item" :data="data"></component>
+                        </template>
                     </span>
                     <span class="flex-1"></span>
                     <template v-for="(item,index) in titleRightModules" :key="index">
@@ -57,6 +59,8 @@ export default {
     setup(props, { emit }) {
         const data = props.data;
 
+        const titleLeftFiles = require.context('../plugins/', true, /TitleLeft\.vue/);
+        const titleLeftModules = titleLeftFiles.keys().map(c => titleLeftFiles(c).default);
 
         const titleRightFiles = require.context('../plugins/', true, /TitleRight\.vue/);
         const titleRightModules = titleRightFiles.keys().map(c => titleRightFiles(c).default);
@@ -74,7 +78,7 @@ export default {
         const optionModules = optionFiles.keys().map(c => optionFiles(c).default).sort((a, b) => (a.sort || 0) - (b.sort || 0));
 
         return {
-            data, titleRightModules, screenModules, btnLeftModules, btnRightModules, optionModules
+            data, titleLeftModules, titleRightModules, screenModules, btnLeftModules, btnRightModules, optionModules
         }
     }
 }
@@ -113,13 +117,6 @@ export default {
             &.connected {
                 color: green;
                 font-weight: bold;
-            }
-
-            span.machine-mame {
-            }
-
-            i.user-name {
-                color: #666;
             }
         }
     }

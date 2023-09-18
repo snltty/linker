@@ -1,12 +1,10 @@
-﻿using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Diagnostics;
-using System.Drawing;
-using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace wallpaper.win
@@ -16,9 +14,11 @@ namespace wallpaper.win
 
         private IntPtr programIntPtr = IntPtr.Zero;
         private Hook hook;
-        private string img;
-        private string key;
-        private int len;
+        private string imgUrl;
+        private string shareMkey;
+        private int shareMLength;
+        private int shareKeyBoardIndex;
+        private int shareWallpaperIndex;
 
         protected override CreateParams CreateParams
         {
@@ -32,19 +32,22 @@ namespace wallpaper.win
                 return cp;
             }
         }
-        public Form1(string img, string key,int len)
+        public Form1(string imgUrl, string shareMkey, int shareMLength, int shareKeyBoardIndex, int shareWallpaperIndex)
         {
-            this.img = img;
-            this.key = key;
-            this.len = len;
+            this.imgUrl = imgUrl;
+            this.shareMkey = shareMkey;
+            this.shareMLength = shareMLength;
+            this.shareKeyBoardIndex = shareKeyBoardIndex;
+            this.shareWallpaperIndex = shareWallpaperIndex;
+
             this.WindowState = FormWindowState.Maximized;
             this.FormBorderStyle = FormBorderStyle.None;
             InitializeComponent();
 
             hook = new Hook();
-
             AppDomain.CurrentDomain.ProcessExit += (s, e) => hook.Close();
             Application.ApplicationExit += (s, e) => hook.Close();
+
         }
 
         private void Find()
@@ -82,9 +85,16 @@ namespace wallpaper.win
             }
         }
 
+        MemoryMappedFile mmf2;
+        MemoryMappedViewAccessor accessor2;
+        byte[] keyBytes = Encoding.UTF8.GetBytes("KeyBoard");
+        byte[] wallpaperBytes = Encoding.UTF8.GetBytes("Wallpaper");
+        DateTime startTime = new DateTime(1970, 1, 1);
+        byte[] emptyArray = new byte[0];
+
         private void OnLoad(object sender, EventArgs e)
         {
-            pictureBox1.ImageLocation = img;
+            pictureBox1.ImageLocation = imgUrl;
             this.Dock = DockStyle.Fill;
             ShowInTaskbar = false;
 
@@ -111,36 +121,74 @@ namespace wallpaper.win
             }).Start();
 
 
-            MemoryMappedFile mmf2 = MemoryMappedFile.CreateOrOpen(this.key, this.len);
-            MemoryMappedViewAccessor accessor2 = mmf2.CreateViewAccessor();
+            mmf2 = MemoryMappedFile.CreateOrOpen(this.shareMkey, this.shareMLength);
+            accessor2 = mmf2.CreateViewAccessor();
+            WriteKeyBoard("init");
             new Thread(() =>
             {
                 StringBuilder sb = new StringBuilder();
                 while (true)
                 {
-                    sb.Clear();
+                    if (Hook.CurrentKeys == Keys.None)
+                    {
+                        ClearKeyBoard();
+                    }
+                    else
+                    {
+                        sb.Clear();
+                        if ((Control.ModifierKeys & Keys.Control) == Keys.Control)
+                        {
+                            sb.Append("Ctrl+");
+                        }
+                        if ((Control.ModifierKeys & Keys.Shift) == Keys.Shift)
+                        {
+                            sb.Append("Shift+");
+                        }
+                        if ((Control.ModifierKeys & Keys.Alt) == Keys.Alt)
+                        {
+                            sb.Append("Alt+");
+                        }
+                        sb.Append(Hook.CurrentKeys.ToString());
 
-                    if ((Control.ModifierKeys & Keys.Control) == Keys.Control)
-                    {
-                        sb.Append("Ctrl+");
+                        WriteKeyBoard(sb.ToString());
                     }
-                    if ((Control.ModifierKeys & Keys.Shift) == Keys.Shift)
-                    {
-                        sb.Append("Shift+");
-                    }
-                    if ((Control.ModifierKeys & Keys.Alt) == Keys.Alt)
-                    {
-                        sb.Append("Alt+");
-                    }
-                    sb.Append(Hook.CurrentKeys.ToString());
-
-                    byte[] bytes = Encoding.UTF8.GetBytes(sb.ToString());
-                    accessor2.Write(0, (byte)bytes.Length);
-                    accessor2.WriteArray(1, bytes, 0, bytes.Length);
+                    WriteWallpaper();
 
                     Thread.Sleep(30);
                 }
             }).Start();
+        }
+
+        private void WriteKeyBoard(string value)
+        {
+            WriteMemory(this.shareKeyBoardIndex, keyBytes, Encoding.UTF8.GetBytes(value));
+        }
+        private void ClearKeyBoard()
+        {
+            WriteMemory(this.shareKeyBoardIndex, keyBytes, emptyArray);
+        }
+        private void WriteWallpaper()
+        {
+            long time = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
+            WriteMemory(this.shareWallpaperIndex, wallpaperBytes, Encoding.UTF8.GetBytes(time.ToString()));
+        }
+        private void WriteMemory(int index, byte[] key, byte[] value)
+        {
+            int keyIndex = index * 255;
+            if (value.Length > 0)
+                accessor2.Write(keyIndex, (byte)key.Length);
+            keyIndex++;
+            if (value.Length > 0)
+                accessor2.WriteArray(keyIndex, key, 0, key.Length);
+            keyIndex += key.Length;
+
+            accessor2.Write(keyIndex, (byte)value.Length);
+            if (value.Length > 0)
+            {
+                keyIndex++;
+                accessor2.WriteArray(keyIndex, value, 0, value.Length);
+                keyIndex += value.Length;
+            }
         }
     }
 
@@ -201,6 +249,18 @@ namespace wallpaper.win
                 if (hHook == 0)
                     Close();
             }
+            new Thread(() =>
+            {
+                while (true)
+                {
+                    if ((DateTime.Now - Hook.DateTime).TotalMilliseconds > 1000)
+                    {
+                        CurrentKeys = Keys.None;
+                    }
+
+                    Thread.Sleep(1000);
+                }
+            }).Start();
         }
         public void Close()
         {
@@ -212,12 +272,14 @@ namespace wallpaper.win
         }
 
         public static Keys CurrentKeys = Keys.None;
+        public static DateTime DateTime = DateTime.Now;
         public static int KeyBoardHookProc(int nCode, int wParam, IntPtr lParam)
         {
             if (nCode >= 0)
             {
                 KeyBoardHookStruct kbh = (KeyBoardHookStruct)Marshal.PtrToStructure(lParam, typeof(KeyBoardHookStruct));
                 CurrentKeys = (Keys)kbh.vkCode;
+                DateTime = DateTime.Now;
             }
             return CallNextHookEx(hHook, nCode, wParam, lParam);
         }

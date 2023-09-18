@@ -40,6 +40,8 @@ namespace cmonitor.server.api.services
         {
             if (signCaching.Get(param.Content, out SignCacheInfo cache) && cache.Connected)
             {
+                cache.CLearDisallowIds();
+                signCaching.Update();
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = cache.Connection,
@@ -57,6 +59,14 @@ namespace cmonitor.server.api.services
             {
                 if (signCaching.Get(name, out SignCacheInfo cache) && cache.Connected)
                 {
+                    if (disallowInfo.Ids != null)
+                    {
+                        cache.DisallowRunIds = disallowInfo.Ids;
+                    }
+                    else
+                    {
+                        cache.CLearDisallowIds();
+                    }
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
                         Connection = cache.Connection,
@@ -65,6 +75,7 @@ namespace cmonitor.server.api.services
                     });
                 }
             }
+            signCaching.Update();
 
             return false;
         }
@@ -83,5 +94,6 @@ namespace cmonitor.server.api.services
     {
         public string[] Names { get; set; }
         public string[] FileNames { get; set; }
+        public uint[] Ids { get; set; }
     }
 }

@@ -8,19 +8,18 @@ namespace cmonitor.server.client.reports.volume
     public sealed class VolumeReport : IReport
     {
         public string Name => "Volume";
+        private VolumeReportInfo report = new VolumeReportInfo();
         public VolumeReport()
         {
             Volume();
         }
 
-        public Dictionary<string, object> GetReports()
+        public object GetReports()
         {
-            return new Dictionary<string, object>()
-            {
-                { "Value",GetVolume()},
-                { "Mute",GetVolumeMute()},
-                { "MasterPeak",GetMasterPeakValue()},
-            };
+            report.Value = GetVolume();
+            report.Mute = GetVolumeMute();
+            report.MasterPeak = GetMasterPeakValue();
+            return report;
         }
 
 #if DEBUG || RELEASE
@@ -127,5 +126,12 @@ namespace cmonitor.server.client.reports.volume
             {
             }
         }
+    }
+
+    public sealed class VolumeReportInfo
+    {
+        public float Value { get; set; }
+        public bool Mute { get; set; }
+        public float MasterPeak { get; set; }
     }
 }

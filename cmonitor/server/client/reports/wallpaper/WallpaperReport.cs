@@ -1,4 +1,5 @@
-﻿using common.libs;
+﻿using cmonitor.server.client.reports.share;
+using common.libs;
 
 namespace cmonitor.server.client.reports.llock
 {
@@ -6,36 +7,42 @@ namespace cmonitor.server.client.reports.llock
     {
         public string Name => "Wallpaper";
 
-        private Dictionary<string, object> report = new Dictionary<string, object>() { { "Value", false } };
+        private WallpaperReportInfo report = new WallpaperReportInfo();
         private readonly Config config;
-        public WallpaperReport(Config config)
+        private readonly ShareReport shareReport;
+        public WallpaperReport(Config config, ShareReport shareReport)
         {
             this.config = config;
+            this.shareReport = shareReport;
         }
 
-        public Dictionary<string, object> GetReports()
+        DateTime startTime = new DateTime(1970, 1, 1);
+        public object GetReports()
         {
-            report["Value"] = WindowHelper.GetHasWindowByName("wallpaper.win");
+            if (shareReport.GetShare(Name, out ShareItemInfo share) && string.IsNullOrWhiteSpace(share.Value) == false && long.TryParse(share.Value, out long time))
+            {
+                report.Value = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds - time < 1000;
+            }
             return report;
         }
 
         public void Update(bool open, string url)
         {
+            CommandHelper.Windows(string.Empty, new string[] { "taskkill /f /t /im \"wallpaper.win.exe\"" });
             if (open)
             {
                 Task.Run(() =>
                 {
                     CommandHelper.Windows(string.Empty, new string[] {
-                        $"start wallpaper.win.exe \"{url}\"  {config.KeyboardMemoryKey} {config.KeyboardMemoryLength}"
+                        $"start wallpaper.win.exe \"{url}\" {config.ShareMemoryKey} {config.ShareMemoryLength} {Config.ShareMemoryKeyBoardIndex} {Config.ShareMemoryWallpaperIndex}"
                     });
                 });
             }
-            else
-            {
-                CommandHelper.Windows(string.Empty, new string[] {
-                        "taskkill /f /t /im \"wallpaper.win.exe\""
-                    });
-            }
         }
+    }
+
+    public sealed class WallpaperReportInfo
+    {
+        public bool Value { get; set; }
     }
 }

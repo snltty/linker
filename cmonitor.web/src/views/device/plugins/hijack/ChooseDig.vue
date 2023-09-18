@@ -7,11 +7,11 @@
             <div class="flex-1"></div>
             <div class="rules flex flex-column">
                 <div class="private">
-                    <CheckBoxWrap ref="privateRules" :data="state.privateRules" :items="[]" label="ID" text="Name" title="私有限制"></CheckBoxWrap>
+                    <CheckBoxWrap ref="privateRules" :data="state.privateRules" :items="state.currentPrivate" label="ID" text="Name" title="私有限制"></CheckBoxWrap>
                 </div>
                 <div class="flex-1"></div>
                 <div class="public">
-                    <CheckBoxWrap ref="publicRules" :data="state.publicRules" :items="[]" label="ID" text="Name" title="公共限制"></CheckBoxWrap>
+                    <CheckBoxWrap ref="publicRules" :data="state.publicRules" :items="state.currentPublic" label="ID" text="Name" title="公共限制"></CheckBoxWrap>
                 </div>
             </div>
         </div>
@@ -24,7 +24,7 @@
 
 <script>
 import { reactive, ref } from '@vue/reactivity';
-import { computed, inject, watch } from '@vue/runtime-core';
+import { computed, inject, onMounted, watch } from '@vue/runtime-core';
 import CheckBoxWrap from '../../boxs/CheckBoxWrap.vue'
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { setRules } from '../../../../apis/hijack'
@@ -48,13 +48,22 @@ export default {
             items: computed(() => pluginState.value.hijack.showRulesItems),
             privateRules: computed(() => user.value ? user.value.Rules : []),
             publicRules: computed(() => usePublic ? publicUser.value.Rules : []),
-            loading: false
+            loading: false,
+            currentPrivate: [],
+            currentPublic: [],
         });
         watch(() => state.show, (val) => {
             if (!val) {
                 setTimeout(() => {
                     emit('update:modelValue', val);
                 }, 300);
+            }
+        });
+        onMounted(() => {
+            if (state.items.length == 1) {
+                let item = state.items[0];
+                state.currentPrivate = state.privateRules.filter(c => item.RuleIds.indexOf(c.ID) >= 0);
+                state.currentPublic = state.publicRules.filter(c => item.RuleIds.indexOf(c.ID) >= 0);
             }
         });
 
@@ -89,12 +98,15 @@ export default {
             });
 
             return {
-                AllowProcesss: res.filter(c => c.DataType == 0 && c.AllowType == 0).map(c => c.Name),
-                DeniedProcesss: res.filter(c => c.DataType == 0 && c.AllowType == 1).map(c => c.Name),
-                AllowDomains: res.filter(c => c.DataType == 1 && c.AllowType == 0).map(c => c.Name),
-                DeniedDomains: res.filter(c => c.DataType == 1 && c.AllowType == 1).map(c => c.Name),
-                AllowIPs: res.filter(c => c.DataType == 2 && c.AllowType == 0).map(c => c.Name),
-                DeniedIPs: res.filter(c => c.DataType == 2 && c.AllowType == 1).map(c => c.Name),
+                ids: _privateRules.concat(_publicRules),
+                list: {
+                    AllowProcesss: res.filter(c => c.DataType == 0 && c.AllowType == 0).map(c => c.Name),
+                    DeniedProcesss: res.filter(c => c.DataType == 0 && c.AllowType == 1).map(c => c.Name),
+                    AllowDomains: res.filter(c => c.DataType == 1 && c.AllowType == 0).map(c => c.Name),
+                    DeniedDomains: res.filter(c => c.DataType == 1 && c.AllowType == 1).map(c => c.Name),
+                    AllowIPs: res.filter(c => c.DataType == 2 && c.AllowType == 0).map(c => c.Name),
+                    DeniedIPs: res.filter(c => c.DataType == 2 && c.AllowType == 1).map(c => c.Name),
+                }
             }
         }
         const handleSubmit = () => {
@@ -103,7 +115,6 @@ export default {
                 ElMessage.error('未选择任何设备');
                 return;
             }
-
 
             ElMessageBox.confirm('如果未选择任何限制，则视为清空限制，是否确定应用限制？', '提示', {
                 confirmButtonText: '确定',
@@ -115,13 +126,17 @@ export default {
                 const rules = parseRule();
                 setRules({
                     Devices: _devices,
-                    Rules: rules
+                    Rules: rules.list,
+                    ids: rules.ids
                 }).then((errorDevices) => {
                     state.loading = false;
                     if (errorDevices && errorDevices.length > 0) {
                         ElMessage.error(`操作失败，失败设备:${errorDevices.join(',')}`);
                     } else {
                         ElMessage.success('操作成功！');
+                        globalData.value.devices.filter(c => _devices.indexOf(c.MachineName) >= 0).forEach(device => {
+                            device.RuleIds = rules.ids;
+                        });
                     }
                 }).catch((e) => {
                     state.loading = false;

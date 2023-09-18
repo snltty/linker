@@ -69,6 +69,15 @@ namespace cmonitor.server.api.services
                 {
                     if (signCaching.Get(setRuleParamInfo.Devices[i], out SignCacheInfo cache))
                     {
+                        if (setRuleParamInfo.Ids != null)
+                        {
+                            cache.RuleIds = setRuleParamInfo.Ids;
+                        }
+                        else
+                        {
+                            cache.CLearRuleIds();
+                        }
+
                         bool res = await messengerSender.SendOnly(new MessageRequestWrap
                         {
                             Connection = cache.Connection,
@@ -80,8 +89,8 @@ namespace cmonitor.server.api.services
                             errorDevices.Add(setRuleParamInfo.Devices[i]);
                         }
                     }
-
                 }
+                signCaching.Update();
             }
             return errorDevices;
         }
@@ -90,6 +99,7 @@ namespace cmonitor.server.api.services
         {
             public string[] Devices { get; set; }
             public SetRuleInfo Rules { get; set; }
+            public uint[] Ids { get; set; }
         }
     }
 }

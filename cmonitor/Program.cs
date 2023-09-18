@@ -27,6 +27,8 @@ using cmonitor.server.client.reports;
 using common.libs.extends;
 using cmonitor.server.service.messengers.light;
 using System.Reflection;
+using cmonitor.server.client.reports.share;
+using cmonitor.server.service.messengers.share;
 
 namespace cmonitor
 {
@@ -34,48 +36,86 @@ namespace cmonitor
     {
         static async Task Main(string[] args)
         {
+            //单服务
             Mutex mutex = new Mutex(true, System.Diagnostics.Process.GetCurrentProcess().ProcessName, out bool isAppRunning);
             if (isAppRunning == false)
             {
                 Environment.Exit(1);
             }
-
+            //全局异常
             AppDomain.CurrentDomain.UnhandledException += (a, b) =>
             {
                 Logger.Instance.Error(b.ExceptionObject + "");
             };
+            //线程数
             ThreadPool.SetMinThreads(1024, 1024);
             ThreadPool.SetMaxThreads(65535, 65535);
+            //日志输出
             LoggerConsole();
 
-
-
+            //初始化配置文件
             Config config = new Config();
             Dictionary<string, string> dic = ArgumentParser.Parse(args, out string error);
-            config.BroadcastIP = IPAddress.Parse(dic["server"]);
-            config.Name = dic["name"];
-            config.WebPort = int.Parse(dic["web"]);
-            config.ApiPort = int.Parse(dic["api"]);
-            config.ServicePort = int.Parse(dic["service"]);
-            config.UserNameMemoryKey = dic["username-key"];
-            config.UserNameMemoryLength = int.Parse(dic["username-len"]);
-            config.KeyboardMemoryKey = dic["keyboard-key"];
-            config.KeyboardMemoryLength = int.Parse(dic["keyboard-len"]);
-            config.ShareMemoryKey = dic["share-key"];
-            config.ShareMemoryLength = int.Parse(dic["share-len"]);
-            Logger.Instance.Debug($"config:{config.ToJson()}");
-            Logger.Instance.Debug($"args:{string.Join(" ", args)}");
+            InitConfig(config, dic);
 
-            config.IsCLient = dic.ContainsKey("mode") && dic["mode"].Contains("client");
-            config.IsServer = dic.ContainsKey("mode") && dic["mode"].Contains("server");
             //注入对象
             ServiceProvider serviceProvider = null;
             ServiceCollection serviceCollection = new ServiceCollection();
             //注入 依赖注入服务供应 使得可以在别的地方通过注入的方式获得 ServiceProvider 以用来获取其它服务
             serviceCollection.AddSingleton((e) => serviceProvider);
-
+            //注入
             serviceCollection.AddSingleton<Config>((a) => config);
+            AddSingleton(serviceCollection);
 
+            serviceProvider = serviceCollection.BuildServiceProvider();
+            //运行服务
+            RunService(serviceProvider,config);
+
+
+            GCHelper.FlushMemory();
+            await Helper.Await();
+        }
+
+        private static void RunService(ServiceProvider serviceProvider,Config config)
+        {
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            MessengerResolver messengerResolver = serviceProvider.GetService<MessengerResolver>();
+            messengerResolver.LoadMessenger(assemblies);
+
+            if (config.IsServer)
+            {
+                Logger.Instance.Info($"start server");
+                //api
+                IClientServer clientServer = serviceProvider.GetService<IClientServer>();
+                clientServer.LoadPlugins(assemblies);
+                clientServer.Websocket();
+                Logger.Instance.Info($"api listen:{config.ApiPort}");
+
+                //web
+                IWebServer webServer = serviceProvider.GetService<IWebServer>();
+                webServer.Start();
+                Logger.Instance.Info($"web listen:{config.WebPort}");
+
+                //服务
+                TcpServer tcpServer = serviceProvider.GetService<TcpServer>();
+                tcpServer.Start();
+                Logger.Instance.Info($"service listen:{config.ServicePort}");
+
+            }
+            if (config.IsCLient)
+            {
+                Logger.Instance.Info($"start client");
+                Logger.Instance.Info($"server ip {config.Server}");
+
+                ReportTransfer report = serviceProvider.GetService<ReportTransfer>();
+                report.LoadPlugins(assemblies);
+
+                ClientTransfer clientTransfer = serviceProvider.GetService<ClientTransfer>();
+            }
+        }
+
+        private static void AddSingleton(ServiceCollection serviceCollection)
+        {
             serviceCollection.AddTransient(typeof(IConfigDataProvider<>), typeof(ConfigDataFileProvider<>));
 
             //劫持
@@ -117,6 +157,7 @@ namespace cmonitor
             serviceCollection.AddSingleton<VolumeMessenger>();
             serviceCollection.AddSingleton<WallpaperMessenger>();
             serviceCollection.AddSingleton<LightMessenger>();
+            serviceCollection.AddSingleton<ShareMessenger>();
 
             //api
             serviceCollection.AddSingleton<RuleConfig>();
@@ -132,54 +173,25 @@ namespace cmonitor
             serviceCollection.AddSingleton<VolumeClientService>();
             serviceCollection.AddSingleton<WallpaperClientService>();
             serviceCollection.AddSingleton<LightClientService>();
+            serviceCollection.AddSingleton<ShareClientService>();
 
             //web
             serviceCollection.AddSingleton<IWebServer, WebServer>();
+        }
+        private static void InitConfig(Config config, Dictionary<string, string> dic)
+        {
+            config.Server = IPAddress.Parse(dic["server"]);
+            config.Name = dic["name"];
+            config.WebPort = int.Parse(dic["web"]);
+            config.ApiPort = int.Parse(dic["api"]);
+            config.ServicePort = int.Parse(dic["service"]);
+            config.ShareMemoryKey = dic["share-key"];
+            config.ShareMemoryLength = int.Parse(dic["share-len"]);
+            Logger.Instance.Debug($"config:{config.ToJson()}");
+            //Logger.Instance.Debug($"args:{string.Join(" ", args)}");
 
-
-            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-            serviceProvider = serviceCollection.BuildServiceProvider();
-            if (config.IsCLient || config.IsServer)
-            {
-                MessengerResolver messengerResolver = serviceProvider.GetService<MessengerResolver>();
-                messengerResolver.LoadMessenger(assemblies);
-
-            }
-            if (config.IsServer)
-            {
-                Logger.Instance.Info($"start server");
-                //api
-                IClientServer clientServer = serviceProvider.GetService<IClientServer>();
-                clientServer.LoadPlugins(assemblies);
-                clientServer.Websocket();
-                Logger.Instance.Info($"api listen:{config.ApiPort}");
-
-                //web
-                IWebServer webServer = serviceProvider.GetService<IWebServer>();
-                webServer.Start();
-                Logger.Instance.Info($"web listen:{config.WebPort}");
-
-                //服务
-                TcpServer tcpServer = serviceProvider.GetService<TcpServer>();
-                tcpServer.Start();
-                Logger.Instance.Info($"service listen:{config.ServicePort}");
-
-            }
-            if (config.IsCLient)
-            {
-                Logger.Instance.Info($"start client");
-                Logger.Instance.Info($"server ip {config.BroadcastIP}");
-
-                ReportTransfer report = serviceProvider.GetService<ReportTransfer>();
-                report.LoadPlugins(assemblies);
-
-                ClientTransfer clientTransfer = serviceProvider.GetService<ClientTransfer>();
-            }
-
-            GCHelper.FlushMemory();
-
-            await Helper.Await();
+            config.IsCLient = dic.ContainsKey("mode") && dic["mode"].Contains("client");
+            config.IsServer = dic.ContainsKey("mode") && dic["mode"].Contains("server");
         }
 
         private static void LoggerConsole()
@@ -232,33 +244,26 @@ namespace cmonitor
         public int WebPort { get; set; } = 1800;
         public int ApiPort { get; set; } = 1801;
         public int ServicePort { get; set; } = 1802;
-        public IPAddress BroadcastIP { get; set; } = IPAddress.Parse("192.168.1.35");
-
-        public bool IsCLient { get; set; }
-        public bool IsServer { get; set; }
-
+        public IPAddress Server { get; set; } = IPAddress.Parse("192.168.1.18");
         public string WebRoot { get; set; } = "./web/";
         public string Name { get; set; } = Dns.GetHostName();
 
         public string Version { get; set; } = "1.0.0.1";
+        public bool IsCLient { get; set; }
+        public bool IsServer { get; set; }
 
+        public string ShareMemoryKey { get; set; } = "cmonitor/share";
+        public int ShareMemoryLength { get; set; } = ShareMemoryItemLength * 10;
 
-        public string UserNameMemoryKey { get; set; } = "cmonitor/username";
-        public string KeyboardMemoryKey { get; set; } = "cmonitor/keyboard";
-
-        public int UserNameMemoryLength { get; set; } = 255;
-        public int KeyboardMemoryLength { get; set; } = 255;
-
-
-        public string ShareMemoryKey { get; set; } = "cmonitor/sharememory";
-        public int ShareMemoryLength { get; set; } = 1024;
-
+        public const int ShareMemoryItemLength = 255;
+        public const int ShareMemoryKeyBoardIndex = 0;
+        public const int ShareMemoryUserNameIndex = 1;
+        public const int ShareMemoryLockIndex = 2;
+        public const int ShareMemoryWallpaperIndex = 3;
+        public const int ShareMemoryLLockIndex = 4;
 
         public const int ReportTime = 30;
-
         public const int ScreenTime = 200;
-
-
     }
 
     public class ArgumentParser
@@ -351,32 +356,13 @@ namespace cmonitor
         static bool ValidateMemoryKey(Dictionary<string, string> dic, out string error)
         {
             error = string.Empty;
-            if (dic.ContainsKey("username-key") == false || string.IsNullOrWhiteSpace(dic["username-key"]))
-            {
-                dic["username-key"] = "cmonitor/username";
-            }
-            if (dic.ContainsKey("username-len") == false || string.IsNullOrWhiteSpace(dic["username-len"]))
-            {
-                dic["username-len"] = "255";
-            }
-
-            if (dic.ContainsKey("keyboard-key") == false || string.IsNullOrWhiteSpace(dic["keyboard-key"]))
-            {
-                dic["keyboard-key"] = "cmonitor/keyboard";
-            }
-            if (dic.ContainsKey("keyboard-len") == false || string.IsNullOrWhiteSpace(dic["keyboard-len"]))
-            {
-                dic["keyboard-len"] = "255";
-            }
-
-
             if (dic.ContainsKey("share-key") == false || string.IsNullOrWhiteSpace(dic["share-key"]))
             {
                 dic["share-key"] = "cmonitor/share";
             }
             if (dic.ContainsKey("share-len") == false || string.IsNullOrWhiteSpace(dic["share-len"]))
             {
-                dic["share-len"] = "1024";
+                dic["share-len"] = "2550";
             }
             return true;
         }

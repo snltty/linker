@@ -2,7 +2,7 @@
     <div class="checkbox-wrap absolute flex flex-column">
         <div class="head flex">
             <span>
-                <el-checkbox :indeterminate="state.isIndeterminate" v-model="state.checkAll" @change="handleCheckAllChange" :label="state.title" size="large" />
+                <el-checkbox :indeterminate="state.isIndeterminate" v-model="state.checkAll" @change="handleCheckAllChange" :label="state.title" />
             </span>
             <span class="flex-1"></span>
             <slot name="title"></slot>
@@ -13,7 +13,7 @@
                     <template v-for="(item,index) in state.data" :key="index">
                         <li class="flex">
                             <div class="flex-1">
-                                <el-checkbox :label="item[state.label]" size="large">
+                                <el-checkbox :label="item[state.label]">
                                     <slot name="name" :item="item">
                                         {{item[state.text]}}
                                     </slot>

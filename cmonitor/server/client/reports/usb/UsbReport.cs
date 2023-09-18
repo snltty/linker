@@ -8,14 +8,15 @@ namespace cmonitor.server.client.reports.llock
     public sealed class UsbReport : IReport
     {
         public string Name => "Usb";
+        private UsbReportInfo report = new UsbReportInfo();
 
         public UsbReport()
         {
             UnLockUsb();
+            report.Value = GetHasUSBDisabled();
         }
 
-        private Dictionary<string, object> report = new Dictionary<string, object>() { { "Value", false } };
-        public Dictionary<string, object> GetReports()
+        public object GetReports()
         {
             return report;
         }
@@ -31,7 +32,7 @@ namespace cmonitor.server.client.reports.llock
                 UnLockUsb();
             }
 
-            report["Value"] = GetHasUSBDisabled();
+            report.Value = GetHasUSBDisabled();
         }
 
         private bool GetHasUSBDisabled()
@@ -94,5 +95,10 @@ namespace cmonitor.server.client.reports.llock
             }
 #endif
         }
+    }
+
+    public sealed class UsbReportInfo
+    {
+        public bool Value { get; set; }
     }
 }

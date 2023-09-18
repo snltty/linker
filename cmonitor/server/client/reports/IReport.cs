@@ -12,7 +12,7 @@ namespace cmonitor.server.client.reports
     {
         public string Name { get; }
 
-        public Dictionary<string, object> GetReports();
+        public object GetReports();
     }
 
     public sealed class ReportTransfer : IReport
@@ -22,34 +22,31 @@ namespace cmonitor.server.client.reports
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
         private readonly ServiceProvider serviceProvider;
-        private readonly Config config;
 
         private List<IReport> reports;
-        private Dictionary<string, Dictionary<string, object>> reportObj;
+        private Dictionary<string, object> reportObj;
         public ReportTransfer(ClientSignInState clientSignInState, MessengerSender messengerSender, ServiceProvider serviceProvider, Config config)
         {
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
             this.serviceProvider = serviceProvider;
-            this.config = config;
 
             if (config.IsCLient)
             {
                 ReportTask();
             }
-
         }
 
-        public Dictionary<string, object> GetReports()
+        public object GetReports()
         {
-            return new Dictionary<string, object>();
+            return null;
         }
 
         public void LoadPlugins(Assembly[] assembs)
         {
             IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs, typeof(IReport));
             reports = types.Select(c => (IReport)serviceProvider.GetService(c)).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
-            reportObj = new Dictionary<string, Dictionary<string, object>>(reports.Count);
+            reportObj = new Dictionary<string, object>(reports.Count);
         }
         private uint reportFlag = 0;
         public void Update()
@@ -80,12 +77,15 @@ namespace cmonitor.server.client.reports
         }
         private async Task SendReport()
         {
-            reportObj.Clear();
             foreach (IReport item in reports)
             {
                 if (string.IsNullOrWhiteSpace(item.Name) == false)
                 {
-                    reportObj.Add(item.Name, item.GetReports());
+                    object val = item.GetReports();
+                    if(val != null)
+                    {
+                        reportObj[item.Name] = item.GetReports();
+                    }
                 }
             }
             byte[] res = MemoryPackSerializer.Serialize(reportObj.ToJson());

@@ -40,7 +40,8 @@ a {
 }
 
 .light-value {
-    color: #7c95a7;
+    color: #fff;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 255);
     font-size: 1.4rem;
     position: absolute;
     right: 110%;

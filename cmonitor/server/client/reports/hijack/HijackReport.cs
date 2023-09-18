@@ -9,6 +9,7 @@ namespace cmonitor.server.client.reports.hijack
 
         private readonly HijackEventHandler hijackEventHandler;
         private readonly HijackConfig hijackConfig;
+        HijackReportInfo report = new HijackReportInfo();
         public HijackReport(HijackEventHandler hijackEventHandler, HijackController hijackController, HijackConfig hijackConfig)
         {
             this.hijackEventHandler = hijackEventHandler;
@@ -26,15 +27,19 @@ namespace cmonitor.server.client.reports.hijack
             }
         }
 
-        public Dictionary<string, object> GetReports()
+        public object GetReports()
         {
-            ulong upload = hijackEventHandler.UdpSend + hijackEventHandler.TcpSend;
-            ulong download = hijackEventHandler.TcpReceive + hijackEventHandler.UdpReceive;
-            return new Dictionary<string, object> {
-                { "Upload",upload},
-                { "Download",download},
-                { "Count",hijackConfig.AllowIPs.Length + hijackConfig.DeniedIPs.Length + hijackConfig.AllowDomains.Length+hijackConfig.DeniedDomains.Length + hijackConfig.AllowProcesss.Length+hijackConfig.DeniedProcesss.Length }
-            };
+            report.Upload = hijackEventHandler.UdpSend + hijackEventHandler.TcpSend;
+            report.Download = hijackEventHandler.TcpReceive + hijackEventHandler.UdpReceive;
+            report.Count = hijackConfig.AllowIPs.Length + hijackConfig.DeniedIPs.Length + hijackConfig.AllowDomains.Length + hijackConfig.DeniedDomains.Length + hijackConfig.AllowProcesss.Length + hijackConfig.DeniedProcesss.Length;
+            return report;
         }
+    }
+
+    public sealed class HijackReportInfo
+    {
+        public ulong Upload { get; set; }
+        public ulong Download { get; set; }
+        public int Count { get; set; }
     }
 }

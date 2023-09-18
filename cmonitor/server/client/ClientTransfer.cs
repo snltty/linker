@@ -50,13 +50,13 @@ namespace cmonitor.server.client
                                 Logger.Instance.Error(ex);
                         }
                     }
-                    await Task.Delay(1000);
+                    await Task.Delay(10000);
                 }
             }, TaskCreationOptions.LongRunning);
         }
         private async Task SignIn()
         {
-            IPAddress[] ips = new IPAddress[] { config.BroadcastIP };
+            IPAddress[] ips = new IPAddress[] { config.Server };
 
             //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             Logger.Instance.Info($"get ip:{ips.ToJson()}");

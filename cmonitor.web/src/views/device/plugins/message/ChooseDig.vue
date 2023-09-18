@@ -59,8 +59,8 @@ export default {
             loading: false
         });
         try {
-            if (pluginState.value.message.items.length == 1 && pluginState.value.message.items[0].Screen.UserName) {
-                state.prevs.push(`【${pluginState.value.message.items[0].Screen.UserName}】请注意上课纪律!`);
+            if (pluginState.value.message.items.length == 1 && pluginState.value.message.items[0].Share.UserName) {
+                state.prevs.push(`【${pluginState.value.message.items[0].Share.UserName}】请注意上课纪律!`);
             }
         } catch (e) {
         }
