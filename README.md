@@ -28,8 +28,8 @@
 1. 这是一个粗略的局域网监控程序（说是局域网，你放外网也不是不行）
 2. 桌面捕获很粗略，只是做了一个减小图片尺寸，没有做区域更新
 ## 平台
-- [x] 客户端支持 **【windows】**
-- [x] 服务端支持 **【windows】**、**【linux】**
+- 客户端支持 **【windows】**
+- 服务端支持 **【windows】**、**【linux】**
 
 ## 看图
 <p><img src="./readme/cmonitor.jpg"></p> 
@@ -42,8 +42,8 @@
 ##### 2、客户端
 - [x] **【--server】** 服务器ip  **192.168.1.18**
 - [x] **【--service** 服务端口 **1802**
-- [ ] **【--share-key】** 自定数据共享 **cmonitor/share**，每项数据长度255
-- [ ] **【--share-len】** 长度 **2550**，默认预留10项位置，0键盘KeyBoard、1用户名UserName、2解锁Lock、3壁纸Wallpaper、4锁屏LLock
+- [x] **【--share-key】** 自定数据共享 **cmonitor/share**，每项数据长度255
+- [x] **【--share-len】** 长度 **2550**，默认预留10项位置，0键盘KeyBoard、1用户名UserName、2解锁Lock、3壁纸Wallpaper、4锁屏LLock
 
 ##### 3、服务端
 - [x] **【--web】** 管理UI端口 **1800**
@@ -54,7 +54,8 @@
 ##### windows计划任务
 ```
 //client
-params = " --mode client --name cmonitor --server 192.168.1.18 --service 1802 --share-key cmonitor/share --share-len 2550";
+params = " --mode client --name cmonitor --server 192.168.1.18 --service 1802";
+params += " --share-key cmonitor/share --share-len 2550";
 
 //server
 params = " --mode server --web 1800 --api 1801 --service 1802";
