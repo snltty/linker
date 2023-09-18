@@ -4,3 +4,5 @@ bin
 obj
 node_modules
 /public/*
+x64/Release
+x64/Debug

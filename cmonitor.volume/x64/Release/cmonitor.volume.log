@@ -1,8 +1,0 @@
-﻿  pch.cpp
-  dllmain.cpp
-    正在创建库 D:\desktop\cmonitor\\cmonitor.volume\x64\Release\cmonitor.volume.lib 和对象 D:\desktop\cmonitor\\cmonitor.volume\x64\Release\cmonitor.volume.exp
-  正在生成代码
-  Previous IPDB not found, fall back to full compilation.
-  All 11 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
-  已完成代码的生成
-  cmonitor.volume.vcxproj -> D:\desktop\cmonitor\cmonitor.volume\x64\Release\cmonitor.volume.dll
