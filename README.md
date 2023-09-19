@@ -27,6 +27,8 @@
 ## 说明
 1. 这是一个粗略的局域网监控程序（说是局域网，你放外网也不是不行）
 2. 桌面捕获很粗略，只是做了一个减小图片尺寸，没有做区域更新
+3. 声音控制使用NAudio，系统亮度使用WMI，涉及COM，导致无法裁剪，正在努力将此此功能转向C++
+
 ## 平台
 - 客户端支持 **【windows】**
 - 服务端支持 **【windows】**、**【linux】**
@@ -51,7 +53,7 @@
 - [x] **【--service】** 服务端口 **1802**
 
 ## 安装示例
-##### windows计划任务
+##### windows计划任务，客户端、服务端
 ```
 //client
 params = " --mode client --name cmonitor --server 192.168.1.18 --service 1802";
@@ -62,7 +64,7 @@ params = " --mode server --web 1800 --api 1801 --service 1802";
 
 schtasks.exe /create /tn "cmonitor" /rl highest /sc ONLOGON /delay 0000:30 /tr "\"{exePath}\"{params}" /f
 ```
-##### linux服务端
+##### linux服务端 systemd
 ```
 //1、下载linux版本程序，放到 /usr/local/cmonitor 文件夹，并在文件夹下创建一个 log 目录
 
@@ -88,6 +90,15 @@ systemctl daemon-reload
 //5、启动，或者重新启动
 systemctl start cmonitor
 systemctl restart cmonitor
+```
+
+##### linux服务端 docker
+docker镜像 snltty/cmonitor-alpine-x64 or snltty/cmonitor-alpine-arm64
+```
+docker run -it -d --name="cmonitor" \ 
+-p 1800:1800/tcp -p 1801:1801/tcp -p 1802:1802/tcp -p 1802:1802/udp \ 
+snltty/cmonitor-alpine-x64 \
+--entrypoint ./cmonitor.run --mode server --web 1800 --api 1801 --service 1802
 ```
 
 ## 支持作者
