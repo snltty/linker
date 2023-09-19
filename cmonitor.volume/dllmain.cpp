@@ -40,6 +40,7 @@ extern "C" __declspec(dllexport) IMMDeviceEnumerator * InitEnumerator()
 	);
 	if (FAILED(hr))
 	{
+		CoUninitialize();
 		return NULL;
 	}
 	return pEnumerator;
@@ -145,6 +146,21 @@ extern "C" __declspec(dllexport) float GetSystemVolume(IAudioEndpointVolume * pE
 	}
 	return 3;
 }
+extern "C" __declspec(dllexport) int SetSystemVolume(IAudioEndpointVolume * pEndpointVolume, float volume)
+{
+	if (pEndpointVolume == NULL)
+	{
+		return false;
+	}
+
+	HRESULT hr = pEndpointVolume->SetMasterVolumeLevelScalar(volume, NULL);
+	if (FAILED(hr))
+	{
+		return false;
+	}
+
+	return true;
+}
 
 extern "C" __declspec(dllexport) float GetSystemMasterPeak(IAudioMeterInformation * pMeterInfo)
 {
@@ -162,23 +178,6 @@ extern "C" __declspec(dllexport) float GetSystemMasterPeak(IAudioMeterInformatio
 	return peakValue;
 }
 
-extern "C" __declspec(dllexport) int SetSystemVolume(IAudioEndpointVolume * pEndpointVolume, float volume)
-{
-	if (pEndpointVolume == NULL)
-	{
-		return false;
-	}
-
-	HRESULT hr = pEndpointVolume->SetMasterVolumeLevelScalar(volume, NULL);
-	if (FAILED(hr))
-	{
-		return false;
-	}
-
-	return true;
-}
-
-
 extern "C" __declspec(dllexport) bool GetSystemMute(IAudioEndpointVolume * pEndpointVolume)
 {
 	if (pEndpointVolume == NULL)
@@ -194,7 +193,6 @@ extern "C" __declspec(dllexport) bool GetSystemMute(IAudioEndpointVolume * pEndp
 	}
 	return mute;
 }
-
 extern "C" __declspec(dllexport) bool SetSystemMute(IAudioEndpointVolume * pEndpointVolume, BOOL mute)
 {
 	if (pEndpointVolume == NULL)

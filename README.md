@@ -40,6 +40,9 @@
 
 ##### 1、公共的
 - [x] **【--mode】** 运行模式 **client,server**
+- [x] **【--report-delay】** 数据报告间隔ms **30**
+- [x] **【--screen-delay】** 屏幕报告间隔ms **200**
+- [x] **【--screen-scale】** 屏幕图片缩放比例 **0.2** 默认1/5
 
 ##### 2、客户端
 - [x] **【--server】** 服务器ip  **192.168.1.18**
@@ -55,8 +58,9 @@
 ## 安装示例
 ##### windows计划任务，客户端、服务端
 ```
+params = " --report-delay 30 --screen-delay 200 --screen-scale 0.2";
 //client
-params = " --mode client --name cmonitor --server 192.168.1.18 --service 1802";
+params += " --mode client --name cmonitor --server 192.168.1.18 --service 1802";
 params += " --share-key cmonitor/share --share-len 2550";
 
 //server
@@ -98,7 +102,7 @@ docker镜像 snltty/cmonitor-alpine-x64 or snltty/cmonitor-alpine-arm64
 docker run -it -d --name="cmonitor" \ 
 -p 1800:1800/tcp -p 1801:1801/tcp -p 1802:1802/tcp -p 1802:1802/udp \ 
 snltty/cmonitor-alpine-x64 \
---entrypoint ./cmonitor.run --mode server --web 1800 --api 1801 --service 1802
+--entrypoint ./cmonitor.run  --mode server --web 1800 --api 1801 --service 1802
 ```
 
 ## 支持作者

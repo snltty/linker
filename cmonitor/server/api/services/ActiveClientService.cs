@@ -55,7 +55,7 @@ namespace cmonitor.server.api.services
         {
             DisallowInfo disallowInfo = param.Content.DeJson<DisallowInfo>();
             byte[] bytes = MemoryPackSerializer.Serialize(disallowInfo.FileNames);
-            foreach (string name in disallowInfo.Names)
+            foreach (string name in disallowInfo.UserNames)
             {
                 if (signCaching.Get(name, out SignCacheInfo cache) && cache.Connected)
                 {
@@ -80,19 +80,28 @@ namespace cmonitor.server.api.services
             return false;
         }
 
+
+        public string AddGroup(ClientServiceParamsInfo param)
+        {
+            return ruleConfig.AddWindowGroup(param.Content.DeJson<UpdateWindowGroupInfo>());
+        }
+        public string DeleteGroup(ClientServiceParamsInfo param)
+        {
+            return ruleConfig.DeleteWindowGroup(param.Content.DeJson<DeleteWindowGroupInfo>());
+        }
         public string Add(ClientServiceParamsInfo param)
         {
-            return ruleConfig.AddFileName(param.Content.DeJson<AddFileNameInfo>());
+            return ruleConfig.AddWindow(param.Content.DeJson<AddWindowItemInfo>());
         }
         public string Del(ClientServiceParamsInfo param)
         {
-            return ruleConfig.DelFileName(param.Content.DeJson<DeletedFileNameInfo>());
+            return ruleConfig.DelWindow(param.Content.DeJson<DeletedWindowItemInfo>());
         }
     }
 
     public sealed class DisallowInfo
     {
-        public string[] Names { get; set; }
+        public string[] UserNames { get; set; }
         public string[] FileNames { get; set; }
         public uint[] Ids { get; set; }
     }

@@ -9,10 +9,12 @@ namespace cmonitor.server.api.services
     {
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;
-        public ScreenClientService(MessengerSender messengerSender, SignCaching signCaching)
+        private readonly Config config;
+        public ScreenClientService(MessengerSender messengerSender, SignCaching signCaching, Config config)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
+            this.config = config;
         }
         public bool Update(ClientServiceParamsInfo param)
         {
@@ -21,7 +23,7 @@ namespace cmonitor.server.api.services
             {
                 bool res = signCaching.Get(names[i], out SignCacheInfo cache)
                     && cache.Connected
-                    && cache.GetScreen()
+                    && cache.GetScreen(config.ScreenDelay)
                     && Interlocked.CompareExchange(ref cache.ScreenFlag, 0, 1) == 1;
                 if (res)
                 {

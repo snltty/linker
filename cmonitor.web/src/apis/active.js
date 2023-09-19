@@ -8,15 +8,25 @@ export const activeTimesClear = (name) => {
 }
 export const activeDisallow = (names, filenames, ids) => {
     return sendWebsocketMsg('active/disallow', {
-        names, filenames, ids: ids || []
+        usernames: names, filenames, ids: ids || []
     });
 }
 
-export const activeAddExe = (data) => {
+
+export const activeAddGroup = (data) => {
+    return sendWebsocketMsg('active/AddGroup', data);
+}
+export const activeDelGroup = (username, id) => {
+    return sendWebsocketMsg('active/DeleteGroup', {
+        username, id
+    });
+}
+
+export const activeAdd = (data) => {
     return sendWebsocketMsg('active/add', data);
 }
-export const activeDelExe = (username, id) => {
+export const activeDel = (username, groupid, id) => {
     return sendWebsocketMsg('active/del', {
-        username, id
+        username, groupid, id
     });
 }

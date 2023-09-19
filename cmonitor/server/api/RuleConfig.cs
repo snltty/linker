@@ -1,7 +1,4 @@
-﻿using common.libs;
-using common.libs.database;
-using common.libs.extends;
-using System;
+﻿using common.libs.database;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace cmonitor.server.api
@@ -20,6 +17,7 @@ namespace cmonitor.server.api
                 UserNames = new Dictionary<string, UserNameInfo> { { "snltty", new UserNameInfo {
                      Rules = new List<RulesInfo>{ new RulesInfo { ID = 1, Name = "默认" } },
                      Processs = new  List<GroupInfo>{ new GroupInfo { ID = 1, Name = "默认" } },
+                      Windows = new List<WindowGroupInfo> { new WindowGroupInfo { ID = 1, Name = "默认" } },
                 } } }
             };
             UserNames = config.UserNames;
@@ -49,6 +47,7 @@ namespace cmonitor.server.api
                     {
                         Rules = new List<RulesInfo> { new RulesInfo { ID = 1, Name = "默认" } },
                         Processs = new List<GroupInfo> { new GroupInfo { ID = 1, Name = "默认" } },
+                        Windows = new List<WindowGroupInfo> { new WindowGroupInfo { ID = 1, Name = "默认" } },
                     });
                 }
                 Save();
@@ -233,41 +232,96 @@ namespace cmonitor.server.api
             return string.Empty;
         }
 
-        public string AddFileName(AddFileNameInfo addFileNameInfo)
+        public string AddWindowGroup(UpdateWindowGroupInfo updateGroupInfo)
         {
             lock (lockObj)
             {
-                if (UserNames.TryGetValue(addFileNameInfo.UserName, out UserNameInfo userNameInfo) == false)
+                if (UserNames.TryGetValue(updateGroupInfo.UserName, out UserNameInfo userNameInfo) == false)
                 {
                     return "不存在此管理用户";
                 }
-                if (userNameInfo.FileNames.FirstOrDefault(c => c.FileName == addFileNameInfo.FileName.FileName && c.ID != addFileNameInfo.FileName.ID) != null)
+                if (userNameInfo.Windows.FirstOrDefault(c => c.Name == updateGroupInfo.Group.Name && c.ID != updateGroupInfo.Group.ID) != null)
                 {
                     return "已存在同名记录";
                 }
 
                 //添加
-                if (addFileNameInfo.FileName.ID == 0)
+                if (updateGroupInfo.Group.ID == 0)
                 {
-                    addFileNameInfo.FileName.ID = Interlocked.Increment(ref maxid);
-                    userNameInfo.FileNames.Add(addFileNameInfo.FileName);
+                    updateGroupInfo.Group.ID = Interlocked.Increment(ref maxid);
+                    userNameInfo.Windows.Add(updateGroupInfo.Group);
                     Save();
                     return string.Empty;
                 }
 
                 //修改
-                FileNameInfo old = userNameInfo.FileNames.FirstOrDefault(c => c.ID == addFileNameInfo.FileName.ID);
+                WindowGroupInfo old = userNameInfo.Windows.FirstOrDefault(c => c.ID == updateGroupInfo.Group.ID);
                 if (old == null)
                 {
                     return "不存在记录，无法修改";
                 }
-                old.FileName = addFileNameInfo.FileName.FileName;
-                old.Desc = addFileNameInfo.FileName.Desc;
+                old.Name = updateGroupInfo.Group.Name;
+                Save();
+            }
+
+            return string.Empty;
+        }
+        public string DeleteWindowGroup(DeleteWindowGroupInfo deleteGroupInfo)
+        {
+            lock (lockObj)
+            {
+                if (UserNames.TryGetValue(deleteGroupInfo.UserName, out UserNameInfo userNameInfo) == false)
+                {
+                    return "不存在此管理用户";
+                }
+
+                userNameInfo.Windows.Remove(userNameInfo.Windows.FirstOrDefault(c => c.ID == deleteGroupInfo.ID));
+
+                Save();
+            }
+
+            return string.Empty;
+        }
+        public string AddWindow(AddWindowItemInfo updateItem)
+        {
+            lock (lockObj)
+            {
+                if (UserNames.TryGetValue(updateItem.UserName, out UserNameInfo userNameInfo) == false)
+                {
+                    return "不存在此管理用户";
+                }
+                WindowGroupInfo group = userNameInfo.Windows.FirstOrDefault(c => c.ID == updateItem.GroupID);
+                if (group == null)
+                {
+                    return "不存在此分组";
+                }
+                if (group.List.FirstOrDefault(c => c.Name == updateItem.Item.Name && c.ID != updateItem.Item.ID) != null)
+                {
+                    return "已存在同名记录";
+                }
+
+                //添加
+                if (updateItem.Item.ID == 0)
+                {
+                    updateItem.Item.ID = Interlocked.Increment(ref maxid);
+                    group.List.Add(updateItem.Item);
+                    Save();
+                    return string.Empty;
+                }
+
+                //修改
+                WindowItemInfo old = group.List.FirstOrDefault(c => c.ID == updateItem.Item.ID);
+                if (old == null)
+                {
+                    return "不存在记录，无法修改";
+                }
+                old.Name = updateItem.Item.Name;
+                old.Desc = updateItem.Item.Desc;
                 Save();
             }
             return string.Empty;
         }
-        public string DelFileName(DeletedFileNameInfo deletedFileNameInfo)
+        public string DelWindow(DeletedWindowItemInfo deletedFileNameInfo)
         {
             lock (lockObj)
             {
@@ -275,7 +329,13 @@ namespace cmonitor.server.api
                 {
                     return "不存在此管理用户";
                 }
-                userNameInfo.FileNames.Remove(userNameInfo.FileNames.FirstOrDefault(c=>c.ID == deletedFileNameInfo.ID));
+                WindowGroupInfo group = userNameInfo.Windows.FirstOrDefault(c => c.ID == deletedFileNameInfo.GroupID);
+                if (group == null)
+                {
+                    return "不存在此分组";
+                }
+
+                group.List.Remove(group.List.FirstOrDefault(c => c.ID == deletedFileNameInfo.ID));
                 Save();
             }
             return string.Empty;
@@ -292,7 +352,7 @@ namespace cmonitor.server.api
         public List<RulesInfo> Rules { get; set; } = new List<RulesInfo>();
         public List<GroupInfo> Processs { get; set; } = new List<GroupInfo>();
         public List<string> Devices { get; set; } = new List<string>();
-        public List<FileNameInfo> FileNames { get; set; } = new List<FileNameInfo>();
+        public List<WindowGroupInfo> Windows { get; set; } = new List<WindowGroupInfo>();
     }
     public sealed class UpdateDevicesInfo
     {
@@ -369,20 +429,39 @@ namespace cmonitor.server.api
     }
 
 
-    public sealed class FileNameInfo
+
+    public sealed class WindowGroupInfo
     {
         public uint ID { get; set; }
-        public string FileName { get; set; }
+        public string Name { get; set; }
+        public List<WindowItemInfo> List { get; set; } = new List<WindowItemInfo>();
+    }
+    public sealed class UpdateWindowGroupInfo
+    {
+        public string UserName { get; set; }
+        public WindowGroupInfo Group { get; set; }
+    }
+    public sealed class DeleteWindowGroupInfo
+    {
+        public string UserName { get; set; }
+        public uint ID { get; set; }
+    }
+    public sealed class WindowItemInfo
+    {
+        public uint ID { get; set; }
+        public string Name { get; set; }
         public string Desc { get; set; }
     }
-    public sealed class AddFileNameInfo
+    public sealed class AddWindowItemInfo
     {
         public string UserName { get; set; }
-        public FileNameInfo FileName { get; set; }
+        public uint GroupID { get; set; }
+        public WindowItemInfo Item { get; set; }
     }
-    public sealed class DeletedFileNameInfo
+    public sealed class DeletedWindowItemInfo
     {
         public string UserName { get; set; }
+        public uint GroupID { get; set; }
         public uint ID { get; set; }
     }
 }

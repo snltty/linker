@@ -60,7 +60,7 @@ export default {
         });
         try {
             if (pluginState.value.message.items.length == 1 && pluginState.value.message.items[0].Share.UserName) {
-                state.prevs.push(`【${pluginState.value.message.items[0].Share.UserName}】请注意上课纪律!`);
+                state.prevs.push(`【${pluginState.value.message.items[0].Share.UserName.Value}】请注意上课纪律!`);
             }
         } catch (e) {
         }

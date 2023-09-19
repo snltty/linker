@@ -5,6 +5,7 @@ using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
 using common.libs.extends;
 using System.Reflection;
+using System.Diagnostics;
 
 namespace cmonitor.server.client.reports
 {
@@ -22,6 +23,7 @@ namespace cmonitor.server.client.reports
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
         private readonly ServiceProvider serviceProvider;
+        private readonly Config config;
 
         private List<IReport> reports;
         private Dictionary<string, object> reportObj;
@@ -30,7 +32,7 @@ namespace cmonitor.server.client.reports
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
             this.serviceProvider = serviceProvider;
-
+            this.config = config;
             if (config.IsCLient)
             {
                 ReportTask();
@@ -71,7 +73,7 @@ namespace cmonitor.server.client.reports
                         if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                             Logger.Instance.Error(ex);
                     }
-                    await Task.Delay(Config.ReportTime);
+                    await Task.Delay(config.ReportDelay);
                 }
             }, TaskCreationOptions.LongRunning);
         }

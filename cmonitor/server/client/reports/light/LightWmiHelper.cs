@@ -33,12 +33,11 @@ namespace cmonitor.server.client.reports.light
                 }
                 catch (ManagementException)
                 {
-                    // ignore
-                    // it is possible that laptop lid is closed, and using external monitor
+                    //Logger.Instance.Error(ex);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    Console.WriteLine(ex.ToString());
+                    //Logger.Instance.Error(ex);
                 }
             }
 #endif
@@ -74,15 +73,13 @@ namespace cmonitor.server.client.reports.light
                     moc.Dispose();
                     mos.Dispose();
                 }
-                catch (ManagementException ex)
+                catch (ManagementException)
                 {
-                    Logger.Instance.Error(ex);
-                    // ignore
-                    // it is possible that laptop lid is closed, and using external monitor
+                  //  Logger.Instance.Error(ex);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    Logger.Instance.Error(ex);
+                  //  Logger.Instance.Error(ex);
                 }
             }
 #endif

@@ -187,6 +187,10 @@ namespace cmonitor
             config.ServicePort = int.Parse(dic["service"]);
             config.ShareMemoryKey = dic["share-key"];
             config.ShareMemoryLength = int.Parse(dic["share-len"]);
+            config.ReportDelay = int.Parse(dic["report-delay"]);
+            config.ScreenScale = float.Parse(dic["screen-scale"]);
+            config.ScreenDelay = int.Parse(dic["screen-delay"]);
+
             Logger.Instance.Debug($"config:{config.ToJson()}");
             //Logger.Instance.Debug($"args:{string.Join(" ", args)}");
 
@@ -248,6 +252,11 @@ namespace cmonitor
         public string WebRoot { get; set; } = "./web/";
         public string Name { get; set; } = Dns.GetHostName();
 
+        public int ReportDelay { get; set; } = 30;
+
+        public float ScreenScale { get; set; } = 0.2f;
+        public int ScreenDelay { get; set; } = 200;
+
         public string Version { get; set; } = "1.0.0.1";
         public bool IsCLient { get; set; }
         public bool IsServer { get; set; }
@@ -260,8 +269,6 @@ namespace cmonitor
         public const int ShareMemoryWallpaperIndex = 1;
         public const int ShareMemoryLLockIndex = 2;
 
-        public const int ReportTime = 30;
-        public const int ScreenTime = 200;
     }
 
     public class ArgumentParser
@@ -294,7 +301,12 @@ namespace cmonitor
             error = string.Empty;
 
             return ValidateMode(dic) &&
-             ValidateServer(dic, out error) && ValidateName(dic, out error) && ValidatePort(dic, out error) && ValidateMemoryKey(dic, out error);
+             ValidateServer(dic, out error) 
+             && ValidateName(dic, out error) 
+             && ValidatePort(dic, out error) 
+             && ValidateMemoryKey(dic, out error)
+             && ValidateScreenScale(dic, out error)
+             && ValidateReport(dic, out error);
         }
         static bool ValidateMode(Dictionary<string, string> dic)
         {
@@ -361,6 +373,29 @@ namespace cmonitor
             if (dic.ContainsKey("share-len") == false || string.IsNullOrWhiteSpace(dic["share-len"]))
             {
                 dic["share-len"] = "2550";
+            }
+            return true;
+        }
+
+        static bool ValidateScreenScale(Dictionary<string, string> dic, out string error)
+        {
+            error = string.Empty;
+            if (dic.ContainsKey("screen-scale") == false || string.IsNullOrWhiteSpace(dic["screen-scale"]))
+            {
+                dic["screen-scale"] = "0.2";
+            }
+            if (dic.ContainsKey("screen-delay") == false || string.IsNullOrWhiteSpace(dic["screen-delay"]))
+            {
+                dic["screen-delay"] = "200";
+            }
+            return true;
+        }
+        static bool ValidateReport(Dictionary<string, string> dic, out string error)
+        {
+            error = string.Empty;
+            if (dic.ContainsKey("report-delay") == false || string.IsNullOrWhiteSpace(dic["report-delay"]))
+            {
+                dic["report-delay"] = "30";
             }
             return true;
         }

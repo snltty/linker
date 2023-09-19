@@ -16,14 +16,15 @@ namespace cmonitor.server.client.reports.screen
         public string Name => "Screen";
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
+        private readonly Config config;
 
-        private ScreenReportInfo report = new  ScreenReportInfo();
+        private ScreenReportInfo report = new ScreenReportInfo();
 
         public ScreenReport(ClientSignInState clientSignInState, MessengerSender messengerSender, Config config)
         {
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
-
+            this.config = config;
             if (config.IsCLient)
             {
                 ScreenCaptureTask();
@@ -61,7 +62,7 @@ namespace cmonitor.server.client.reports.screen
                                 Logger.Instance.Error(ex);
                         }
                     }
-                    await Task.Delay(Config.ScreenTime);
+                    await Task.Delay(config.ScreenDelay);
                 }
             }, TaskCreationOptions.LongRunning);
         }
@@ -85,7 +86,7 @@ namespace cmonitor.server.client.reports.screen
             if (OperatingSystem.IsWindows())
             {
                 IntPtr hdc = GetDC(IntPtr.Zero);
-                if(hdc != IntPtr.Zero)
+                if (hdc != IntPtr.Zero)
                 {
                     using Bitmap source = new Bitmap(GetDeviceCaps(hdc, DESKTOPHORZRES), GetDeviceCaps(hdc, DESKTOPVERTRES));
                     using (Graphics g = Graphics.FromImage(source))
@@ -109,8 +110,8 @@ namespace cmonitor.server.client.reports.screen
                     ReleaseDC(IntPtr.Zero, hdc);
 
 
-                    int newWidth = 384;
-                    int newHeight = (int)(source.Height * (newWidth * 1.0 / source.Width));
+                    int newWidth = (int)(source.Width * config.ScreenScale);
+                    int newHeight = (int)(source.Height * config.ScreenScale);
                     Bitmap bmp = new Bitmap(newWidth, newHeight);
                     bmp.SetResolution(source.HorizontalResolution, source.VerticalResolution);
                     using Graphics graphic = Graphics.FromImage(bmp);

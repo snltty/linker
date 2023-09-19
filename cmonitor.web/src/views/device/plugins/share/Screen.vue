@@ -1,7 +1,12 @@
 <template>
-    <div class="share-lock-wrap" v-if="data.Share.Lock.Value == 'ask'">
+    <div class="share-lock-wrap" v-if="data.Share.Lock.Value.val == 'ask'">
         <div class="inner">
             <h3>请求解锁</h3>
+            <h5>
+                <span>【{{data.Share.Lock.TypeText}}】</span>
+                <span v-if="data.Share.Lock.Value.type == 'remark-block'">【{{data.Share.Lock.Value.star}}】星</span>
+                <span v-if="data.Share.Lock.Value.type == 'remark-cpp'">【{{data.Share.Lock.Value.star}}】星</span>
+            </h5>
             <div>
                 <el-popconfirm confirm-button-text="确认" cancel-button-text="取消" title="确认驳回请求吗?" @confirm="handleReject">
                     <template #reference>
@@ -31,9 +36,11 @@ export default {
         });
         const handleReject = () => {
             state.loading = true;
+            let value = JSON.parse(JSON.stringify(props.data.Share.Lock.Value));
+            value.val = 'reject';
             shareUpdate(props.data.MachineName, {
                 index: props.data.Share.Lock.Index,
-                value: 'reject'
+                value: JSON.stringify(value)
             }).then((res) => {
                 state.loading = false;
                 if (res) {
@@ -48,9 +55,11 @@ export default {
         }
         const handleConfirm = () => {
             state.loading = true;
+            let value = JSON.parse(JSON.stringify(props.data.Share.Lock.Value));
+            value.val = 'confirm';
             shareUpdate(props.data.MachineName, {
                 index: props.data.Share.Lock.Index,
-                value: 'confirm'
+                value: JSON.stringify(value)
             }).then((res) => {
                 state.loading = false;
                 if (res) {
@@ -86,17 +95,22 @@ export default {
         top: 50%;
         transform: translateX(-50%) translateY(-70%);
         text-align: center;
-        border: 1px solid #fff;
+        border: 1px solid rgba(255, 255, 255, 0.5);
         background-color: rgba(0, 0, 0, 0.3);
         padding: 1rem;
         z-index: 2;
         border-radius: 0.4rem;
 
         h3 {
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             font-weight: 600;
             color: #fff;
+        }
+
+        h5 {
+            font-size: 1.3rem;
             padding-bottom: 1rem;
+            color: #fff;
         }
     }
 }

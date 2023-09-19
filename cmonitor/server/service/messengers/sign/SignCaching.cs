@@ -106,18 +106,18 @@ namespace cmonitor.server.service.messengers.sign
         [JsonIgnore]
         public int ScreenTime = Environment.TickCount;
 
-        public bool GetReport()
+        public bool GetReport(int delay)
         {
-            return Environment.TickCount - ReportTime > Config.ReportTime;
+            return Environment.TickCount - ReportTime > delay;
         }
         public void UpdateReport()
         {
             ReportTime = Environment.TickCount;
         }
 
-        public bool GetScreen()
+        public bool GetScreen(int delay)
         {
-            return Environment.TickCount - ScreenTime > Config.ScreenTime;
+            return Environment.TickCount - ScreenTime > delay;
         }
         public void UpdateScreen()
         {

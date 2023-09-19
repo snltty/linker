@@ -7,18 +7,12 @@
             <div class="flex-1"></div>
             <div class="Exes flex flex-column">
                 <div class="private">
-                    <CheckBoxWrap ref="privateExes" :data="state.privateExes" :items="state.currentPrivate" label="ID" text="Desc" title="私有窗口">
-                        <template #name="scoped">
-                            {{scoped.item.Desc || scoped.item.FileName }}
-                        </template>
+                    <CheckBoxWrap ref="privateExes" :data="state.privateExes" :items="state.currentPrivate" label="ID" text="Name" title="私有窗口">
                     </CheckBoxWrap>
                 </div>
                 <div class="flex-1"></div>
                 <div class="public">
-                    <CheckBoxWrap ref="publicExes" :data="state.publicExes" :items="state.currentPublic" label="ID" text="Desc" title="公共窗口">
-                        <template #name="scoped">
-                            {{scoped.item.Desc || scoped.item.FileName }}
-                        </template>
+                    <CheckBoxWrap ref="publicExes" :data="state.publicExes" :items="state.currentPublic" label="ID" text="Name" title="公共窗口">
                     </CheckBoxWrap>
                 </div>
             </div>
@@ -54,8 +48,8 @@ export default {
         const state = reactive({
             show: props.modelValue,
             items: computed(() => pluginState.value.activeWindow.devices),
-            privateExes: computed(() => user.value ? user.value.FileNames : []),
-            publicExes: computed(() => usePublic ? publicUser.value.FileNames : []),
+            privateExes: computed(() => user.value ? user.value.Windows : []),
+            publicExes: computed(() => usePublic ? publicUser.value.Windows : []),
             loading: false,
             currentPrivate: [],
             currentPublic: [],
@@ -86,9 +80,12 @@ export default {
             const _publicIds = publicExes.value.getData();
             const _publicExes = state.publicExes.filter(c => _publicIds.indexOf(c.ID) >= 0);
             const exes = _privateExes.concat(_publicExes).reduce((data, item, index) => {
-                let arr = item.FileName.split(',');
+                let arr = item.List.reduce((val, item, index) => {
+                    val = val.concat(item.Name.split(','));
+                    return val;
+                }, []);
                 for (let i = 0; i < arr.length; i++) {
-                    if (data.indexOf(arr[i]) == -1) {
+                    if (arr[i] && data.indexOf(arr[i]) == -1) {
                         data.push(arr[i]);
                     }
                 }

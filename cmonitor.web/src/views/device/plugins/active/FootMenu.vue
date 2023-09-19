@@ -1,5 +1,5 @@
 <template>
-    <a href="javascript:;" @click="handleFileNames">
+    <a href="javascript:;" @click="handleWindows">
         <span>
             <el-icon>
                 <Monitor />
@@ -17,12 +17,12 @@ export default {
 
         const pluginState = injectPluginState();
         const globalData = injectGlobalData();
-        const handleFileNames = () => {
-            pluginState.value.activeWindow.showFileNames = true;
+        const handleWindows = () => {
+            pluginState.value.activeWindow.showWindows = true;
         }
 
         return {
-            handleFileNames
+            handleWindows
         }
     }
 }
