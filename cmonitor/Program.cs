@@ -257,10 +257,8 @@ namespace cmonitor
 
         public const int ShareMemoryItemLength = 255;
         public const int ShareMemoryKeyBoardIndex = 0;
-        public const int ShareMemoryUserNameIndex = 1;
-        public const int ShareMemoryLockIndex = 2;
-        public const int ShareMemoryWallpaperIndex = 3;
-        public const int ShareMemoryLLockIndex = 4;
+        public const int ShareMemoryWallpaperIndex = 1;
+        public const int ShareMemoryLLockIndex = 2;
 
         public const int ReportTime = 30;
         public const int ScreenTime = 200;

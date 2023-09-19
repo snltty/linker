@@ -1,0 +1,41 @@
+name: Docker
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: setup dotnet7
+      uses: actions/setup-dotnet@v2
+      env:
+          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
+      with:
+        dotnet-version: 7.0.x
+        
+    - name: restore projects
+      run: 
+        dotnet restore ./cmonitor
+        
+    - name: docker login
+      uses: docker/login-action@v2.1.0
+      with:
+        username: '${{secrets.DOCKER_USERNAME}}'
+        password: '${{secrets.DOCKER_PASSWORD}}'
+    
+    - name: docker buildx
+      uses: docker/setup-buildx-action@v2.5.0
+      
+    - name: chmod shell
+      run: chmod +x publish-docker.sh
+    - name: publish projects
+      run: ./publish-docker.sh 

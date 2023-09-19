@@ -23,11 +23,11 @@ namespace cmonitor.server.client.reports.share
             GetShare();
             return dic;
         }
-        public  bool GetShare(string key,out ShareItemInfo item)
+        public bool GetShare(string key, out ShareItemInfo item)
         {
             return dic.TryGetValue(key, out item);
         }
-        
+
 
         MemoryMappedFile mmf3;
         MemoryMappedViewAccessor accessor3;
@@ -56,12 +56,12 @@ namespace cmonitor.server.client.reports.share
                     while (span.Length > 0)
                     {
                         byte keyLen = span[0];
-                        if (keyLen > 0)
+                        if (keyLen > 0 && keyLen <= Config.ShareMemoryItemLength - 2)
                         {
                             string key = Encoding.UTF8.GetString(span.Slice(1, keyLen));
                             string val = string.Empty;
                             byte valLen = span[1 + keyLen];
-                            if (valLen > 0)
+                            if (valLen > 0 && valLen <= Config.ShareMemoryItemLength - 2 - keyLen)
                             {
                                 val = Encoding.UTF8.GetString(span.Slice(2 + keyLen, valLen));
                             }

@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "cmonitor": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

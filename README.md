@@ -41,9 +41,9 @@
 
 ##### 2、客户端
 - [x] **【--server】** 服务器ip  **192.168.1.18**
-- [x] **【--service** 服务端口 **1802**
+- [x] **【--service】** 服务端口 **1802**
 - [x] **【--share-key】** 自定数据共享 **cmonitor/share**，每项数据长度255
-- [x] **【--share-len】** 长度 **2550**，默认预留10项位置，0键盘KeyBoard、1用户名UserName、2解锁Lock、3壁纸Wallpaper、4锁屏LLock
+- [x] **【--share-len】** 长度 **2550**，默认预留10项位置，0键盘KeyBoard、1壁纸Wallpaper、2锁屏LLock
 
 ##### 3、服务端
 - [x] **【--web】** 管理UI端口 **1800**
@@ -60,7 +60,7 @@ params += " --share-key cmonitor/share --share-len 2550";
 //server
 params = " --mode server --web 1800 --api 1801 --service 1802";
 
-schtasks.exe /create /tn "cmonitor" /rl highest /sc ONLOGON /delay 0000:30 /tr "\\"{exePath}\\"{params}" /f
+schtasks.exe /create /tn "cmonitor" /rl highest /sc ONLOGON /delay 0000:30 /tr "\"{exePath}\"{params}" /f
 ```
 ##### linux服务端
 ```
