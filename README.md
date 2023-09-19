@@ -6,7 +6,7 @@
  * @LastEditTime: 2022-11-21 16:36:26
  * @version: v1.0.0
  * @Descripttion: 功能说明
- * @FilePath: \client.service.ui.webd:\desktop\cminitor\README.md
+ * @FilePath: \client.service.ui.webd:\desktop\cmonitor\README.md
 -->
 <div align="center">
 <p><img src="./readme/logo.png" height="150"></p> 
@@ -15,10 +15,10 @@
 #### Visual Studio 2022 LTSC 17.4.1
 <a href="https://jq.qq.com/?_wv=1027&k=ucoIVfz4" target="_blank">QQ 群：1121552990</a>
 
-![GitHub Repo stars](https://img.shields.io/github/stars/snltty/cminitor?style=social)
-![GitHub Repo forks](https://img.shields.io/github/forks/snltty/cminitor?style=social)
-[![star](https://gitee.com/snltty/cmonitor/badge/star.svg?theme=dark)](https://gitee.com/snltty/cminitor/stargazers)
-[![fork](https://gitee.com/snltty/cmonitor/badge/fork.svg?theme=dark)](https://gitee.com/snltty/cminitor/members)
+![GitHub Repo stars](https://img.shields.io/github/stars/snltty/cmonitor?style=social)
+![GitHub Repo forks](https://img.shields.io/github/forks/snltty/cmonitor?style=social)
+[![star](https://gitee.com/snltty/cmonitor/badge/star.svg?theme=dark)](https://gitee.com/snltty/cmonitor/stargazers)
+[![fork](https://gitee.com/snltty/cmonitor/badge/fork.svg?theme=dark)](https://gitee.com/snltty/cmonitor/members)
 
 适合教培机构计算机教室监控
 
