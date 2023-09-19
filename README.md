@@ -102,5 +102,8 @@ snltty/cmonitor-alpine-x64 \
 ```
 
 ## 支持作者
+
+<div align="center">
 请作者喝一杯咖啡，使其更有精力更新代码
 <p><img src="./readme/qr.jpg" width="360"></p> 
+</div>
