@@ -15,6 +15,7 @@ export default {
                     return color;
                 },
                 draw(canvas, ctx) {
+
                     const space = 10;
 
                     const arr = [
@@ -48,6 +49,12 @@ export default {
                     }
                     this.Cpu--;
                     this.Memory--;
+                    if (this.Cpu < 0) {
+                        this.Cpu = 0;
+                    }
+                    if (this.Memory < 0) {
+                        this.Memory = 0;
+                    }
                 }
             }
         };
