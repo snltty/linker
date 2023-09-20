@@ -5,4 +5,3 @@ obj
 node_modules
 /public/*
 /cmonitor.volume/x64/*
-/cmonitor.light/x64/*
