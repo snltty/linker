@@ -1,94 +1,70 @@
 ﻿using common.libs;
-#if DEBUG || RELEASE
-using NAudio.CoreAudioApi;
-#endif
+using System.Runtime.InteropServices;
 
 namespace cmonitor.server.client.reports.volume
 {
-    public sealed class VolumeReport : IReport
+    public sealed class VolumeReport : IReport, IDisposable
     {
         public string Name => "Volume";
+
         private VolumeReportInfo report = new VolumeReportInfo();
+        private IntPtr pEnumerator = IntPtr.Zero;
+        private IntPtr pDevice = IntPtr.Zero;
+        private IntPtr pEndpointVolume = IntPtr.Zero;
+        private IntPtr pMeterInfo = IntPtr.Zero;
         public VolumeReport()
         {
-            Volume();
+            Init();
         }
 
         public object GetReports()
         {
-            report.Value = GetVolume();
-            report.Mute = GetVolumeMute();
-            report.MasterPeak = GetMasterPeakValue();
+            if (OperatingSystem.IsWindows())
+            {
+                report.Value = GetVolume();
+                report.Mute = GetVolumeMute();
+                report.MasterPeak = GetMasterPeakValue();
+            }
             return report;
         }
 
-#if DEBUG || RELEASE
-        MMDeviceEnumerator enumerator;
-        MMDevice device;
-        AudioEndpointVolume volumeObject;
-#endif
-        private void Volume()
-        {
-
-            if (OperatingSystem.IsWindows())
-            {
-                try
-                {
-#if DEBUG || RELEASE
-                    enumerator = new MMDeviceEnumerator();
-                    device = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Console);
-                    volumeObject = device.AudioEndpointVolume;
-#endif
-                }
-                catch (Exception ex)
-                {
-                    Logger.Instance.Error(ex);
-                }
-            }
-        }
         private float GetVolume()
         {
             try
             {
-#if DEBUG || RELEASE
-                if (volumeObject != null)
+                if (pEndpointVolume != IntPtr.Zero)
                 {
-                    return volumeObject.MasterVolumeLevelScalar * 100;
+                    return GetSystemVolume(pEndpointVolume) * 100;
                 }
-#endif
             }
             catch (Exception)
             {
             }
-            return -1;
+            return 0;
         }
         private float GetMasterPeakValue()
         {
             try
             {
-#if DEBUG || RELEASE
-                if (device != null)
+                if (pMeterInfo != IntPtr.Zero)
                 {
-                    return device.AudioMeterInformation.MasterPeakValue * 100;
+                    return GetSystemMasterPeak(pMeterInfo) * 100;
                 }
-#endif
             }
             catch (Exception)
             {
             }
-            return -1;
+            return 0;
 
         }
         private bool GetVolumeMute()
         {
             try
             {
-#if DEBUG || RELEASE
-                if (volumeObject != null)
+                if (pEndpointVolume != IntPtr.Zero)
                 {
-                    return volumeObject.Mute;
+                    return GetSystemMute(pEndpointVolume);
                 }
-#endif
             }
             catch (Exception)
             {
@@ -99,13 +75,11 @@ namespace cmonitor.server.client.reports.volume
         {
             try
             {
-#if DEBUG || RELEASE
                 volume = Math.Max(0, Math.Min(1, volume));
-                if (volumeObject != null)
+                if (pEndpointVolume != IntPtr.Zero)
                 {
-                    volumeObject.MasterVolumeLevelScalar = volume;
+                    SetSystemVolume(pEndpointVolume, volume);
                 }
-#endif
             }
             catch (Exception)
             {
@@ -115,17 +89,95 @@ namespace cmonitor.server.client.reports.volume
         {
             try
             {
-#if DEBUG || RELEASE
-                if (volumeObject != null)
+                if (pEndpointVolume != IntPtr.Zero)
                 {
-                    volumeObject.Mute = mute;
+                    SetSystemMute(pEndpointVolume, mute);
                 }
-#endif
             }
             catch (Exception)
             {
             }
         }
+
+        private void Init()
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                try
+                {
+                    pEnumerator = InitSystemDeviceEnumerator();
+                    if (pEnumerator != IntPtr.Zero)
+                    {
+                        pDevice = InitSystemDevice(pEnumerator);
+                        if (pDevice != IntPtr.Zero)
+                        {
+                            pEndpointVolume = InitSystemAudioEndpointVolume(pDevice);
+                            pMeterInfo = InitSystemAudioMeterInformation(pDevice);
+                        }
+                    }
+                    FreeDevice();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.Error(ex);
+                }
+            }
+        }
+        private void FreeVolume()
+        {
+            FreeSystemDevice(pEnumerator, pDevice, pEndpointVolume, pMeterInfo);
+            pEnumerator = IntPtr.Zero;
+            pDevice = IntPtr.Zero;
+            pEndpointVolume = IntPtr.Zero;
+            pMeterInfo = IntPtr.Zero;
+        }
+        private void FreeDevice()
+        {
+            FreeSystemDevice(pEnumerator, pDevice, IntPtr.Zero, IntPtr.Zero);
+            pEnumerator = IntPtr.Zero;
+            pDevice = IntPtr.Zero;
+        }
+
+        ~VolumeReport()
+        {
+            FreeVolume();
+            pEnumerator = IntPtr.Zero;
+        }
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+        private void Dispose(bool disposing)
+        {
+            if (disposing && pEnumerator != IntPtr.Zero)
+            {
+                FreeVolume();
+            }
+        }
+
+        [DllImport("cmonitor.volume.dll")]
+        public static extern IntPtr InitSystemDeviceEnumerator();
+        [DllImport("cmonitor.volume.dll")]
+        public static extern IntPtr InitSystemDevice(IntPtr pEnumerator);
+        [DllImport("cmonitor.volume.dll")]
+        public static extern IntPtr InitSystemAudioEndpointVolume(IntPtr pDevice);
+        [DllImport("cmonitor.volume.dll")]
+        public static extern IntPtr InitSystemAudioMeterInformation(IntPtr pDevice);
+        [DllImport("cmonitor.volume.dll")]
+        public static extern bool FreeSystemDevice(IntPtr pEnumerator, IntPtr pDevice, IntPtr pEndpointVolume, IntPtr pMeterInfo);
+
+        [DllImport("cmonitor.volume.dll")]
+        public static extern float GetSystemVolume(IntPtr pEndpointVolume);
+        [DllImport("cmonitor.volume.dll")]
+        public static extern bool SetSystemVolume(IntPtr pEndpointVolume, float volume);
+        [DllImport("cmonitor.volume.dll")]
+        public static extern float GetSystemMasterPeak(IntPtr pMeterInfo);
+        [DllImport("cmonitor.volume.dll")]
+        public static extern bool GetSystemMute(IntPtr pEndpointVolume);
+        [DllImport("cmonitor.volume.dll")]
+        public static extern bool SetSystemMute(IntPtr pEndpointVolume, bool mute);
+
     }
 
     public sealed class VolumeReportInfo

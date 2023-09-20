@@ -9,11 +9,15 @@ namespace cmonitor.server.client.reports.llock
     {
         public string Name => "Usb";
         private UsbReportInfo report = new UsbReportInfo();
-
-        public UsbReport()
+        public UsbReport(Config config)
         {
-            UnLockUsb();
-            report.Value = GetHasUSBDisabled();
+            if (config.IsCLient)
+            {
+                UnLockUsb();
+                report.Value = GetHasUSBDisabled();
+                AppDomain.CurrentDomain.ProcessExit += (s, e) => UnLockUsb();
+                Console.CancelKeyPress += (s, e) => UnLockUsb();
+            }
         }
 
         public object GetReports()
@@ -56,7 +60,7 @@ namespace cmonitor.server.client.reports.llock
         }
         private void LockUsb()
         {
-            #if DEBUG || RELEASE
+#if DEBUG || RELEASE
             try
             {
                 if (OperatingSystem.IsWindows())
@@ -81,7 +85,7 @@ namespace cmonitor.server.client.reports.llock
             {
                 if (OperatingSystem.IsWindows())
                 {
-                   
+
                     RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\\CurrentControlSet\\Services\\USBSTOR", true);
                     if (key != null)
                     {

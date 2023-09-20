@@ -29,6 +29,7 @@ namespace cmonitor.server.api.services
                     && cache.Connected
                     && cache.GetReport(config.ReportDelay)
                     && Interlocked.CompareExchange(ref cache.ReportFlag, 0, 1) == 1;
+
                 if (res)
                 {
                     cache.UpdateReport();

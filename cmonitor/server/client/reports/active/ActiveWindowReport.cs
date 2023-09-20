@@ -24,6 +24,9 @@ namespace cmonitor.server.client.reports.active
             {
                 Timers();
                 DisallowInit();
+
+                AppDomain.CurrentDomain.ProcessExit += (s, e) => DisallowRun(Array.Empty<string>());
+                Console.CancelKeyPress += (s, e) => DisallowRun(Array.Empty<string>());
             }
         }
 

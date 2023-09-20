@@ -29,6 +29,7 @@ using cmonitor.server.service.messengers.light;
 using System.Reflection;
 using cmonitor.server.client.reports.share;
 using cmonitor.server.service.messengers.share;
+using cmonitor.server.client.reports.system;
 
 namespace cmonitor
 {
@@ -138,8 +139,8 @@ namespace cmonitor
             serviceCollection.AddSingleton<WallpaperReport>();
             serviceCollection.AddSingleton<LightReport>();
             serviceCollection.AddSingleton<ShareReport>();
-
-
+            serviceCollection.AddSingleton<SystemReport>();
+            
             //服务
             serviceCollection.AddSingleton<TcpServer>();
             serviceCollection.AddSingleton<MessengerSender>();

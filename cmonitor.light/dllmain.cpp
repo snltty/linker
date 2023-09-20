@@ -58,7 +58,7 @@ public:
 };
 
 
-extern "C" __declspec(dllexport) IWbemLocator * InitIWbemLocator()
+extern "C" __declspec(dllexport) IWbemLocator * InitSystemIWbemLocator()
 {
 	HRESULT hr;
 	hr = CoInitialize(nullptr);
@@ -101,7 +101,7 @@ extern "C" __declspec(dllexport) IWbemLocator * InitIWbemLocator()
 
 	return pWbemLocator;
 }
-extern "C" __declspec(dllexport) IWbemServices * InitIWbemServices(IWbemLocator * pWbemLocator)
+extern "C" __declspec(dllexport) IWbemServices * InitSystemIWbemServices(IWbemLocator * pWbemLocator)
 {
 	HRESULT hr;
 	// 连接WMI服务
@@ -128,7 +128,7 @@ extern "C" __declspec(dllexport) IWbemServices * InitIWbemServices(IWbemLocator 
 	return pWbemServices;
 }
 
-extern "C" __declspec(dllexport) HRESULT GetBrightness(IWbemServices* pServices, BYTE* pBrightness)
+extern "C" __declspec(dllexport) HRESULT GetSystemBrightness(IWbemServices* pServices, BYTE* pBrightness)
 {
 	HRESULT hResult = S_OK;
 
@@ -173,7 +173,7 @@ extern "C" __declspec(dllexport) HRESULT GetBrightness(IWbemServices* pServices,
 
 	return hResult;
 }
-extern "C" __declspec(dllexport) HRESULT SetBrightness(IWbemServices * pServices, BYTE brightness)
+extern "C" __declspec(dllexport) HRESULT SetSystemBrightness(IWbemServices * pServices, BYTE brightness)
 {
 	HRESULT hResult = S_OK;
 
@@ -272,13 +272,12 @@ extern "C" __declspec(dllexport) HRESULT SetBrightness(IWbemServices * pServices
 }
 
 
-extern "C" __declspec(dllexport) bool FreeLight(IWbemLocator * pWbemLocator, IWbemServices * pWbemServices, IWbemObjectSink * pEventSink)
+extern "C" __declspec(dllexport) bool FreeSystemBrightness(IWbemLocator * pWbemLocator, IWbemServices * pWbemServices, IWbemObjectSink * pEventSink)
 {
 	if (pWbemLocator != NULL)
 	{
 		pWbemLocator->Release();
 	}
-
 	if (pWbemServices != NULL)
 	{
 		pWbemServices->Release();
@@ -291,7 +290,7 @@ extern "C" __declspec(dllexport) bool FreeLight(IWbemLocator * pWbemLocator, IWb
 	return true;
 }
 
-extern "C" __declspec(dllexport) IWbemObjectSink * StartListener(IWbemServices * pWbemServices, BrightnessChangeCallback g_pfnCallback)
+extern "C" __declspec(dllexport) IWbemObjectSink * ListenSystemBrightness(IWbemServices * pWbemServices, BrightnessChangeCallback g_pfnCallback)
 {
 	HRESULT hr;
 	// 设置安全性

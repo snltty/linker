@@ -5,7 +5,6 @@ using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
 using common.libs.extends;
 using System.Reflection;
-using System.Diagnostics;
 
 namespace cmonitor.server.client.reports
 {
@@ -50,11 +49,13 @@ namespace cmonitor.server.client.reports
             reports = types.Select(c => (IReport)serviceProvider.GetService(c)).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
             reportObj = new Dictionary<string, object>(reports.Count);
         }
+
         private uint reportFlag = 0;
         public void Update()
         {
             Interlocked.CompareExchange(ref reportFlag, 1, 0);
         }
+
         private void ReportTask()
         {
             Task.Factory.StartNew(async () =>

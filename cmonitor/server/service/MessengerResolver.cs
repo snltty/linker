@@ -43,7 +43,6 @@ namespace cmonitor.server.service
                     MessengerIdAttribute mid = method.GetCustomAttribute(midType) as MessengerIdAttribute;
                     if (mid != null)
                     {
-                      
                         if (messengers.ContainsKey(mid.Id) == false)
                         {
                             MessengerCacheInfo cache = new MessengerCacheInfo
@@ -85,6 +84,7 @@ namespace cmonitor.server.service
             MessageRequestWrap requestWrap = connection.ReceiveRequestWrap;
             try
             {
+                
                 //回复的消息
                 if ((MessageTypes)(readReceive.Span[0] & 0b0000_1111) == MessageTypes.RESPONSE)
                 {

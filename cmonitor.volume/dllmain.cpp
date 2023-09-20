@@ -21,8 +21,9 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 }
 
 
-extern "C" __declspec(dllexport) IMMDeviceEnumerator * InitEnumerator()
+extern "C" __declspec(dllexport) IMMDeviceEnumerator * InitSystemDeviceEnumerator()
 {
+	CoUninitialize();
 	HRESULT hr;
 	hr = CoInitialize(nullptr);
 	if (FAILED(hr))
@@ -34,9 +35,9 @@ extern "C" __declspec(dllexport) IMMDeviceEnumerator * InitEnumerator()
 	hr = CoCreateInstance(
 		__uuidof(MMDeviceEnumerator),
 		NULL,
-		CLSCTX_ALL,
+		CLSCTX_INPROC_SERVER,
 		__uuidof(IMMDeviceEnumerator),
-		(LPVOID*)&pEnumerator
+		(void**)&pEnumerator
 	);
 	if (FAILED(hr))
 	{
@@ -45,7 +46,7 @@ extern "C" __declspec(dllexport) IMMDeviceEnumerator * InitEnumerator()
 	}
 	return pEnumerator;
 }
-extern "C" __declspec(dllexport) IMMDevice * InitDevice(IMMDeviceEnumerator * pEnumerator)
+extern "C" __declspec(dllexport) IMMDevice * InitSystemDevice(IMMDeviceEnumerator * pEnumerator)
 {
 	if (pEnumerator == NULL)
 	{
@@ -62,7 +63,7 @@ extern "C" __declspec(dllexport) IMMDevice * InitDevice(IMMDeviceEnumerator * pE
 	}
 	return pDevice;
 }
-extern "C" __declspec(dllexport) IAudioEndpointVolume * InitVolume(IMMDevice * pDevice)
+extern "C" __declspec(dllexport) IAudioEndpointVolume * InitSystemAudioEndpointVolume(IMMDevice * pDevice)
 {
 	if (pDevice == NULL)
 	{
@@ -75,7 +76,7 @@ extern "C" __declspec(dllexport) IAudioEndpointVolume * InitVolume(IMMDevice * p
 		__uuidof(IAudioEndpointVolume),
 		CLSCTX_ALL,
 		NULL,
-		(LPVOID*)&pEndpointVolume
+		(void**)&pEndpointVolume
 	);
 	if (FAILED(hr))
 	{
@@ -84,7 +85,7 @@ extern "C" __declspec(dllexport) IAudioEndpointVolume * InitVolume(IMMDevice * p
 	}
 	return pEndpointVolume;
 }
-extern "C" __declspec(dllexport) IAudioMeterInformation * InitMeterInfo(IMMDevice * pDevice) {
+extern "C" __declspec(dllexport) IAudioMeterInformation * InitSystemAudioMeterInformation(IMMDevice * pDevice) {
 
 	if (pDevice == NULL)
 	{
@@ -96,7 +97,7 @@ extern "C" __declspec(dllexport) IAudioMeterInformation * InitMeterInfo(IMMDevic
 		__uuidof(IAudioMeterInformation),
 		CLSCTX_ALL,
 		nullptr,
-		reinterpret_cast<void**>(&pMeterInfo));
+		(void**)(&pMeterInfo));
 
 	if (FAILED(hr))
 	{
@@ -107,7 +108,7 @@ extern "C" __declspec(dllexport) IAudioMeterInformation * InitMeterInfo(IMMDevic
 	return pMeterInfo;
 }
 
-extern "C" __declspec(dllexport) bool FreeVolume(IMMDeviceEnumerator * pEnumerator, IMMDevice * pDevice, IAudioEndpointVolume * pEndpointVolume, IAudioMeterInformation * pMeterInfo)
+extern "C" __declspec(dllexport) bool FreeSystemDevice(IMMDeviceEnumerator * pEnumerator, IMMDevice * pDevice, IAudioEndpointVolume * pEndpointVolume, IAudioMeterInformation * pMeterInfo)
 {
 	if (pEnumerator != NULL)
 	{
@@ -130,33 +131,32 @@ extern "C" __declspec(dllexport) bool FreeVolume(IMMDeviceEnumerator * pEnumerat
 	CoUninitialize();
 	return true;
 }
-
 extern "C" __declspec(dllexport) float GetSystemVolume(IAudioEndpointVolume * pEndpointVolume)
 {
 	if (pEndpointVolume == NULL)
 	{
-		return 1;
+		return 0;
 	}
 
 	float volume = 0.0f;
 	HRESULT hr = pEndpointVolume->GetMasterVolumeLevelScalar(&volume);
 	if (FAILED(hr))
 	{
-		return 2;
+		return 0;
 	}
-	return 3;
+	return volume;
 }
-extern "C" __declspec(dllexport) int SetSystemVolume(IAudioEndpointVolume * pEndpointVolume, float volume)
+extern "C" __declspec(dllexport) bool SetSystemVolume(IAudioEndpointVolume * pEndpointVolume, float volume)
 {
 	if (pEndpointVolume == NULL)
 	{
-		return false;
+		return FALSE;
 	}
 
 	HRESULT hr = pEndpointVolume->SetMasterVolumeLevelScalar(volume, NULL);
 	if (FAILED(hr))
 	{
-		return false;
+		return FALSE;
 	}
 
 	return true;
@@ -182,14 +182,14 @@ extern "C" __declspec(dllexport) bool GetSystemMute(IAudioEndpointVolume * pEndp
 {
 	if (pEndpointVolume == NULL)
 	{
-		return 0;
+		return FALSE;
 	}
 
 	BOOL mute;
 	HRESULT hr = pEndpointVolume->GetMute(&mute);
 	if (FAILED(hr))
 	{
-		return mute;
+		return FALSE;
 	}
 	return mute;
 }
@@ -197,13 +197,13 @@ extern "C" __declspec(dllexport) bool SetSystemMute(IAudioEndpointVolume * pEndp
 {
 	if (pEndpointVolume == NULL)
 	{
-		return 0;
+		return FALSE;
 	}
 
 	HRESULT hr = pEndpointVolume->SetMute(mute, NULL);
 	if (FAILED(hr))
 	{
-		return false;
+		return FALSE;
 	}
 	return true;
 }
