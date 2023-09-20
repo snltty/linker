@@ -5,7 +5,7 @@ namespace cmonitor.server.client.reports.system
     public static class WindowsMemory
     {
 
-        private static double GetMemoryUsage()
+        public static double GetMemoryUsage()
         {
             MEMORYSTATUSEX memoryStatus = new MEMORYSTATUSEX();
             memoryStatus.dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX));

@@ -5,6 +5,7 @@ using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
 using common.libs.extends;
 using System.Reflection;
+using System.Diagnostics;
 
 namespace cmonitor.server.client.reports
 {

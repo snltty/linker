@@ -17,8 +17,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cmonitor.win", "cmonitor.wi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cmonitor.volume", "cmonitor.volume\cmonitor.volume.vcxproj", "{EDA47DD6-82DC-415C-A3CC-35A564FF0D0F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cmonitor.light", "cmonitor.light\cmonitor.light.vcxproj", "{2F80F5DE-AF7E-4BBD-9A77-9AA12629AD30}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -158,24 +156,6 @@ Global
 		{EDA47DD6-82DC-415C-A3CC-35A564FF0D0F}.ReleaseLinux|x64.Build.0 = Release|x64
 		{EDA47DD6-82DC-415C-A3CC-35A564FF0D0F}.ReleaseLinux|x86.ActiveCfg = Release|Win32
 		{EDA47DD6-82DC-415C-A3CC-35A564FF0D0F}.ReleaseLinux|x86.Build.0 = Release|Win32
-		{2F80F5DE-AF7E-4BBD-9A77-9AA12629AD30}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{2F80F5DE-AF7E-4BBD-9A77-9AA12629AD30}.Debug|Any CPU.Build.0 = Debug|x64
-		{2F80F5DE-AF7E-4BBD-9A77-9AA12629AD30}.Debug|x64.ActiveCfg = Debug|x64
-		{2F80F5DE-AF7E-4BBD-9A77-9AA12629AD30}.Debug|x64.Build.0 = Debug|x64
-		{2F80F5DE-AF7E-4BBD-9A77-9AA12629AD30}.Debug|x86.ActiveCfg = Debug|Win32
-		{2F80F5DE-AF7E-4BBD-9A77-9AA12629AD30}.Debug|x86.Build.0 = Debug|Win32
-		{2F80F5DE-AF7E-4BBD-9A77-9AA12629AD30}.Release|Any CPU.ActiveCfg = Release|x64
-		{2F80F5DE-AF7E-4BBD-9A77-9AA12629AD30}.Release|Any CPU.Build.0 = Release|x64
-		{2F80F5DE-AF7E-4BBD-9A77-9AA12629AD30}.Release|x64.ActiveCfg = Release|x64
-		{2F80F5DE-AF7E-4BBD-9A77-9AA12629AD30}.Release|x64.Build.0 = Release|x64
-		{2F80F5DE-AF7E-4BBD-9A77-9AA12629AD30}.Release|x86.ActiveCfg = Release|Win32
-		{2F80F5DE-AF7E-4BBD-9A77-9AA12629AD30}.Release|x86.Build.0 = Release|Win32
-		{2F80F5DE-AF7E-4BBD-9A77-9AA12629AD30}.ReleaseLinux|Any CPU.ActiveCfg = Release|x64
-		{2F80F5DE-AF7E-4BBD-9A77-9AA12629AD30}.ReleaseLinux|Any CPU.Build.0 = Release|x64
-		{2F80F5DE-AF7E-4BBD-9A77-9AA12629AD30}.ReleaseLinux|x64.ActiveCfg = Release|x64
-		{2F80F5DE-AF7E-4BBD-9A77-9AA12629AD30}.ReleaseLinux|x64.Build.0 = Release|x64
-		{2F80F5DE-AF7E-4BBD-9A77-9AA12629AD30}.ReleaseLinux|x86.ActiveCfg = Release|Win32
-		{2F80F5DE-AF7E-4BBD-9A77-9AA12629AD30}.ReleaseLinux|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

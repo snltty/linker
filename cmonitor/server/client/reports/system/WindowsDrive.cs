@@ -2,19 +2,23 @@
 {
     public static class WindowsDrive
     {
-        public static List<string> GetAllDrives()
+        public static List<ReportDriveInfo> GetAllDrives()
         {
-            List<string> drives = new List<string>();
-
-            foreach (DriveInfo driveInfo in DriveInfo.GetDrives())
+            return DriveInfo.GetDrives().Select(c => new ReportDriveInfo
             {
-                if (driveInfo.IsReady && driveInfo.DriveType == DriveType.Fixed)
-                {
-                    drives.Add(driveInfo.Name);
-                }
-            }
-
-            return drives;
+                Name = c.Name,
+                Free = c.TotalFreeSpace,
+                Total = c.TotalSize
+            }).ToList();
         }
     }
+
+    public sealed class ReportDriveInfo
+    {
+        public string Name { get; set; }
+        public long Free { get; set; }
+        public long Total { get; set; }
+    }
+
+
 }

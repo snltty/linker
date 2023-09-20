@@ -13,7 +13,7 @@ export default {
                     }
                     ctx.beginPath();
                     ctx.fillStyle = '#0f0';
-                    ctx.fillRect(0, canvas.height - 10, this.MasterPeak / 100 * canvas.width, 10);
+                    ctx.fillRect(0, 0, this.MasterPeak / 100 * canvas.width, 10);
                     ctx.closePath();
                 }
             },

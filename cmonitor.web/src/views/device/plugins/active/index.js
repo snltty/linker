@@ -16,7 +16,7 @@ export default {
                 showTimes: false,
                 items: [],
                 showWindows: false,
-                showChoose: true,
+                showChoose: false,
                 devices: []
             }
         ]

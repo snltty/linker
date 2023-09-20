@@ -31,7 +31,7 @@ a {
 
     span.value {
         position: absolute;
-        left: 110%;
+        right: 110%;
         top: 50%;
         transform: translateY(-50%);
         color: rgba(255, 255, 255, 255);

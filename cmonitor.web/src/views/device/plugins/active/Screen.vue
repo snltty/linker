@@ -1,13 +1,7 @@
 <template>
-    <a class="process flex" href="javascript:;" @click="handleCloseActive">
+    <a class="process flex" href="javascript:;" @click="handleClick">
         <span class="title flex-1">{{data.ActiveWindow.Title}}</span>
         <p class="btn">
-            <a href="javascript:;" @click.stop="handleChoose">
-                <el-icon>
-                    <Warning />
-                </el-icon>
-                <span class="num">{{data.ActiveWindow.Count}}</span>
-            </a>
             <a href="javascript:;" @click.stop="handleAddExe">
                 <el-icon>
                     <CirclePlus />
@@ -81,12 +75,6 @@ export default {
 
             }).catch(() => { });
         }
-
-        const handleChoose = () => {
-            pluginState.value.activeWindow.devices = [props.data];
-            pluginState.value.activeWindow.showChoose = true;
-        }
-
         const handleEditCancel = () => {
             state.showAdd = false;
         }
@@ -126,9 +114,27 @@ export default {
             state.showAdd = true;
         }
 
+        const handleTimes = () => {
+            pluginState.value.activeWindow.items = [props.data];
+            pluginState.value.activeWindow.showTimes = true;
+        }
+        let timer = 0;
+        const handleClick = () => {
+            if (timer) {
+                clearTimeout(timer);
+                timer = 0;
+                handleTimes();
+                return;
+            }
+            timer = setTimeout(() => {
+                timer = 0;
+                handleCloseActive();
+            }, 300);
+        }
+
         return {
             data: props.data, state,
-            handleCloseActive, handleChoose, handleAddExe, handleEditCancel, handleEditSubmit
+            handleCloseActive, handleAddExe, handleEditCancel, handleEditSubmit, handleTimes, handleClick
         }
     }
 }
@@ -150,7 +156,6 @@ export default {
         color: #fff;
         word-break: break-all;
         border-radius: 4px;
-        line-height: 1.4rem;
     }
 
     .btn {
