@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using System.Runtime.InteropServices;
-
-namespace cmonitor.server.client.reports.system
+﻿namespace cmonitor.server.client.reports.system
 {
     public static class WindowsDrive
     {
