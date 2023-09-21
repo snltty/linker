@@ -49,9 +49,9 @@ export default {
                         ctx.strokeStyle = '#fff';
                         ctx.strokeText(`${item.text} ${(item.value * 100).toFixed(0)}`, pos, canvas.height - 20);
                     }
-                    this.Cpu--;
-                    this.Memory--;
-                    this.Disk--;
+                    //this.Cpu--;
+                    //this.Memory--;
+                    //this.Disk--;
                     if (this.Cpu < 0) {
                         this.Cpu = 0;
                     }
@@ -70,12 +70,12 @@ export default {
 
     update(item, report) {
         if (report.System) {
-            if (report.System.Cpu > item.System.Cpu)
-                item.System.Cpu = report.System.Cpu;
-            if (report.System.Memory > item.System.Memory)
-                item.System.Memory = report.System.Memory;
-            if (report.System.Disk > item.System.Disk)
-                item.System.Disk = report.System.Disk;
+            // if (report.System.Cpu > item.System.Cpu)
+            item.System.Cpu = report.System.Cpu;
+            //if (report.System.Memory > item.System.Memory)
+            item.System.Memory = report.System.Memory;
+            // if (report.System.Disk > item.System.Disk)
+            item.System.Disk = report.System.Disk;
             item.System.Drives = report.System.Drives || [];
         }
     }
