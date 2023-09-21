@@ -28,6 +28,7 @@
                     oldTime = newTime;
 
                     systemReportInfo.Memory = WindowsMemory.GetMemoryUsage();
+                    //systemReportInfo.Disk = WindowsDrive.GetDiskUsage();
 
                     Thread.Sleep(1000);
                 }
@@ -39,6 +40,7 @@
     {
         public double Cpu { get; set; }
         public double Memory { get; set; }
+        public float Disk { get; set; }
         public List<ReportDriveInfo> Drives { get; set; }
     }
 }

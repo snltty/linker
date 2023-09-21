@@ -48,14 +48,15 @@ namespace cmonitor.server.client.reports.system
 
         public static CPUTime GetCPUTime()
         {
-            FILETIME lpIdleTime = default;
-            FILETIME lpKernelTime = default;
-            FILETIME lpUserTime = default;
-            if (!GetSystemTimes(out lpIdleTime, out lpKernelTime, out lpUserTime))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                return default;
+                if (GetSystemTimes(out FILETIME lpIdleTime, out FILETIME lpKernelTime, out FILETIME lpUserTime) == false)
+                {
+                    return default;
+                }
+                return GetCPUTime(lpIdleTime, lpKernelTime, lpUserTime);
             }
-            return GetCPUTime(lpIdleTime, lpKernelTime, lpUserTime);
+            return new CPUTime();
         }
     }
 

@@ -7,15 +7,19 @@ namespace cmonitor.server.client.reports.system
 
         public static double GetMemoryUsage()
         {
-            MEMORYSTATUSEX memoryStatus = new MEMORYSTATUSEX();
-            memoryStatus.dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX));
-
-            if (GlobalMemoryStatusEx(ref memoryStatus) == false)
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                return 0;
-            }
+                MEMORYSTATUSEX memoryStatus = new MEMORYSTATUSEX();
+                memoryStatus.dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX));
 
-            return Math.Round((float)(memoryStatus.ullTotalPhys - memoryStatus.ullAvailPhys) / memoryStatus.ullTotalPhys * 100f, 2);
+                if (GlobalMemoryStatusEx(ref memoryStatus) == false)
+                {
+                    return 0;
+                }
+
+                return Math.Round((float)(memoryStatus.ullTotalPhys - memoryStatus.ullAvailPhys) / memoryStatus.ullTotalPhys * 100f, 2);
+            }
+            return 0;
         }
 
         [DllImport("kernel32.dll")]

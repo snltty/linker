@@ -65,6 +65,7 @@
 	<ItemGroup>
 		<PackageReference Include="MemoryPack" Version="1.9.16" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
+		<PackageReference Include="System.Diagnostics.PerformanceCounter" Version="7.0.0" />
 		<PackageReference Include="System.Management" Version="7.0.2" />
 		<TrimmerRootAssembly Include="System.Management" />
 	</ItemGroup>
