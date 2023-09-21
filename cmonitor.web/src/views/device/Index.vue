@@ -81,7 +81,7 @@ export default {
     }
 
     .items {
-        padding: 1rem;
+        padding: 1rem 0.6rem;
         transform-style: preserve-3d;
         perspective: 600px;
         background-color: #333;

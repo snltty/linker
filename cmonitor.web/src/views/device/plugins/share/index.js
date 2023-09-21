@@ -22,7 +22,7 @@ export default {
 
                         str = str.padEnd(5, '★');
                         let top = (canvas.height - 100) / 2 + 100;
-                        let left = (canvas.width - 80 * 5) / 2;
+                        let left = (canvas.width - 100 * 5) / 2;
                         ctx.beginPath();
                         ctx.lineWidth = 5;
                         ctx.font = 'bold 100px Arial';
