@@ -17,11 +17,11 @@ export default {
                         ctx.strokeStyle = 'rgba(255,255,255,0.7)';
                         ctx.strokeText(`${this.KeyBoard.Value}`, left, top);
                     }
-                    if (this.Lock.Value.val == 'star') {
+                    if (this.Lock.Value.val == 'star' || this.Lock.Value.val == 'ask') {
                         let str = '';
 
                         str = str.padEnd(5, '★');
-                        let top = (canvas.height - 100) / 2 + 100;
+                        let top = 120;
                         let left = (canvas.width - 100 * 5) / 2;
                         ctx.beginPath();
                         ctx.lineWidth = 5;
@@ -47,7 +47,6 @@ export default {
     },
     lockTypes: { code: '代码', lock: '锁屏', cmonitor: '班长', flag: '学习目标', class: '课程', 'remark-block': '图形化点评', 'remark-cpp': 'C++点评' },
     update(item, report) {
-        //console.log(report.Share);
         if (report.Share) {
             if (report.Share.UserName) {
                 item.Share.UserName.Index = report.Share.UserName.Index;

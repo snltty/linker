@@ -8,7 +8,8 @@ export default {
                 fps: 0,
                 fpsTimes: 0,
                 img: null,
-                LastInput: 0
+                LastInput: 0,
+                pos: { x: 0, y: 0 }
             }
         };
     },
@@ -68,8 +69,9 @@ export default {
 
     subMessage() {
         subNotifyMsg('/notify/report/screen', (res, param) => {
-            if (this.globalData.value.reportNames.indexOf(res.Name) == -1) return;
-            let item = this.globalData.value.devices.filter(c => c.MachineName == res.Name)[0];
+            const name = res.Name;
+            if (this.globalData.value.reportNames.indexOf(name) == -1) return;
+            let item = this.globalData.value.devices.filter(c => c.MachineName == name)[0];
             if (item) {
                 item.Screen.fpsTimes++;
                 const img = new Image();

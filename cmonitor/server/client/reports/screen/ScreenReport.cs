@@ -3,6 +3,7 @@ using common.libs;
 using cmonitor.server.service.messengers.screen;
 using System.Runtime.InteropServices;
 using System.Buffers;
+using MemoryPack;
 #if DEBUG || RELEASE
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -68,20 +69,23 @@ namespace cmonitor.server.client.reports.screen
         }
         private async Task SendScreenCapture()
         {
-            byte[] bytes = ScreenCapture();
-            if (bytes.Length > 0)
+            byte[] bytes = ScreenCapture(out int length);
+            if (length > 0)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = clientSignInState.Connection,
                     MessengerId = (ushort)ScreenMessengerIds.Report,
-                    Payload = bytes,
+                    Payload = bytes.AsMemory(0, length),
                 });
+                Return(bytes);
             }
-            Return(bytes);
         }
-        private byte[] ScreenCapture()
+
+
+        private byte[] ScreenCapture(out int length)
         {
+            length = 0;
 #if DEBUG || RELEASE
             if (OperatingSystem.IsWindows())
             {
@@ -125,6 +129,8 @@ namespace cmonitor.server.client.reports.screen
                     image.Save(ms, ImageFormat.Jpeg);
                     ms.Seek(0, SeekOrigin.Begin);
 
+                    length = (int)ms.Length;
+
                     byte[] bytes = ArrayPool<byte>.Shared.Rent((int)ms.Length);
                     ms.Read(bytes);
                     return bytes;
@@ -132,8 +138,132 @@ namespace cmonitor.server.client.reports.screen
             }
 #endif
             return Array.Empty<byte>();
-
         }
+        /*
+        Bitmap previousFrame;
+        private Bitmap DiffArea(Bitmap currentFrame, out int x, out int y)
+        {
+            Bitmap bmp;
+            x = 0; y = 0;
+            if (previousFrame == null)
+            {
+                int newWidth = (int)(currentFrame.Width * config.ScreenScale);
+                int newHeight = (int)(currentFrame.Height * config.ScreenScale);
+                bmp = new Bitmap(newWidth, newHeight);
+            }
+            else
+            {
+                Rectangle rectangle = DiffArea(currentFrame, previousFrame);
+                bmp = new Bitmap(rectangle.Width, rectangle.Height);
+                x = rectangle.X;
+                y = rectangle.X;
+                previousFrame.Dispose();
+                previousFrame = null;
+            }
+
+            bmp.SetResolution(currentFrame.HorizontalResolution, currentFrame.VerticalResolution);
+            using Graphics graphic = Graphics.FromImage(bmp);
+            graphic.SmoothingMode = SmoothingMode.HighQuality;
+            graphic.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            Rectangle rectangle1 = new Rectangle(x, y, bmp.Width, bmp.Height);
+            graphic.DrawImage(currentFrame, rectangle1);
+
+            //previousFrame = currentFrame;
+
+            return bmp;
+        }
+        private Rectangle DiffArea(Bitmap currentFrame, Bitmap previousFrame)
+        {
+            if (currentFrame.Height != previousFrame.Height || currentFrame.Width != previousFrame.Width)
+            {
+                throw new Exception("Bitmaps are not of equal dimensions.");
+            }
+            if (!Bitmap.IsAlphaPixelFormat(currentFrame.PixelFormat) || !Bitmap.IsAlphaPixelFormat(previousFrame.PixelFormat) ||
+                !Bitmap.IsCanonicalPixelFormat(currentFrame.PixelFormat) || !Bitmap.IsCanonicalPixelFormat(previousFrame.PixelFormat))
+            {
+                throw new Exception("Bitmaps must be 32 bits per pixel and contain alpha channel.");
+            }
+            var width = currentFrame.Width;
+            var height = currentFrame.Height;
+            int left = int.MaxValue;
+            int top = int.MaxValue;
+            int right = int.MinValue;
+            int bottom = int.MinValue;
+
+            BitmapData bd1 = null;
+            BitmapData bd2 = null;
+
+            try
+            {
+                bd1 = previousFrame.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, currentFrame.PixelFormat);
+                bd2 = currentFrame.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, previousFrame.PixelFormat);
+
+                var bytesPerPixel = Bitmap.GetPixelFormatSize(currentFrame.PixelFormat) / 8;
+                var totalSize = bd1.Height * bd1.Width * bytesPerPixel;
+
+                unsafe
+                {
+                    byte* scan1 = (byte*)bd1.Scan0.ToPointer();
+                    byte* scan2 = (byte*)bd2.Scan0.ToPointer();
+
+                    for (int counter = 0; counter < totalSize - bytesPerPixel; counter += bytesPerPixel)
+                    {
+                        byte* data1 = scan1 + counter;
+                        byte* data2 = scan2 + counter;
+
+                        if (data1[0] != data2[0] ||
+                            data1[1] != data2[1] ||
+                            data1[2] != data2[2] ||
+                            data1[3] != data2[3])
+                        {
+                            var pixel = counter / 4;
+                            var row = (int)Math.Floor((double)pixel / bd1.Width);
+                            var column = pixel % bd1.Width;
+                            if (row < top)
+                            {
+                                top = row;
+                            }
+                            if (row > bottom)
+                            {
+                                bottom = row;
+                            }
+                            if (column < left)
+                            {
+                                left = column;
+                            }
+                            if (column > right)
+                            {
+                                right = column;
+                            }
+                        }
+                    }
+                }
+
+                if (left < right && top < bottom)
+                {
+                    left = Math.Max(left - 10, 0);
+                    top = Math.Max(top - 10, 0);
+                    right = Math.Min(right + 10, width);
+                    bottom = Math.Min(bottom + 10, height);
+
+                    return new Rectangle(left, top, right - left, bottom - top);
+                }
+                else
+                {
+                    return Rectangle.Empty;
+                }
+            }
+            catch
+            {
+                return Rectangle.Empty;
+            }
+            finally
+            {
+                currentFrame.UnlockBits(bd1);
+                previousFrame.UnlockBits(bd2);
+            }
+        }
+        */
         private void Return(byte[] bytes)
         {
             ArrayPool<byte>.Shared.Return(bytes);
@@ -213,5 +343,12 @@ namespace cmonitor.server.client.reports.screen
     {
         public uint LastInput { get; set; }
     }
+    [MemoryPackable]
+    public sealed partial class ScreenFrameInfo
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+        public byte[] Data { get; set; }
 
+    }
 }

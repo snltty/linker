@@ -2,6 +2,8 @@
 using cmonitor.server.client.reports.screen;
 using cmonitor.server.service.messengers.sign;
 using MemoryPack;
+using MemoryPack.Compression;
+using System;
 
 namespace cmonitor.server.service.messengers.screen
 {
