@@ -4,7 +4,7 @@ export default {
             Share: {
                 KeyBoard: { Index: 0, Value: '' },
                 UserName: { Index: 1, Value: '' },
-                Lock: { Index: 2, Value: { type: 'list', val: 'none', star: 0 }, TypeText: '' },
+                Lock: { Index: 2, Value: { type: 'list', val: 'none', star: 0, notify: false }, TypeText: '' },
 
                 draw(canvas, ctx) {
                     if (this.KeyBoard.Value) {

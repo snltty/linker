@@ -40,7 +40,7 @@
             </div>
             <template #footer>
                 <el-button @click="handleEditCancel">取 消</el-button>
-                <el-button type="primary" :loading="state.loading" @click="handleEditSubmit">确 定</el-button>
+                <el-button type="success" plain :loading="state.loading" @click="handleEditSubmit">确 定</el-button>
             </template>
         </el-dialog>
     </div>
@@ -78,8 +78,9 @@ export default {
         });
 
         const handleAdd = (item) => {
-            item = item || { Name: '', ID: 0, Name: '' };
+            item = item || { Name: '', ID: 0, Desc: '' };
             state.currentItem.Name = item.Name;
+            state.currentItem.Desc = item.Desc;
             state.currentItem.ID = item.ID;
             state.showEdit = true;
         }

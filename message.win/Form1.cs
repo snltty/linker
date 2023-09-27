@@ -8,15 +8,35 @@ namespace message.win
     public partial class Form1 : Form
     {
         private readonly int times = 10;
-        public Form1(string msg,int times)
+
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                const int WS_EX_APPWINDOW = 0x40000;
+                const int WS_EX_TOOLWINDOW = 0x80;
+                CreateParams cp = base.CreateParams;
+                cp.ExStyle &= (~WS_EX_APPWINDOW);
+                cp.ExStyle |= WS_EX_TOOLWINDOW;
+                return cp;
+            }
+        }
+
+        public Form1(string msg, int times)
         {
             InitializeComponent();
             ShowInTaskbar = false;
             StartPosition = FormStartPosition.CenterScreen;
             label2.Text = msg;
             this.times = times;
+
+
         }
 
+        [DllImport("user32.dll")]
+        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+        [DllImport("user32.dll")]
+        private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
 
         [DllImport("user32.dll", EntryPoint = "SetWindowPos")]
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
@@ -24,6 +44,9 @@ namespace message.win
         public const uint SWP_NOSIZE = 0x1;
         public static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
         public static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
+        private const int GWL_STYLE = -16;
+        private const int WS_SYSMENU = 0x80000;
+        private const uint SWP_FRAMECHANGED = 0x20;
 
         bool autoClose = false;
         private void Countdown()
@@ -59,6 +82,13 @@ namespace message.win
 
             //将窗口置顶
             SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+
+            int style = GetWindowLong(this.Handle, GWL_STYLE);
+            SetWindowLong(this.Handle, GWL_STYLE, style & ~WS_SYSMENU);
+
+            // 添加窗体阴影
+            SetWindowPos(this.Handle, IntPtr.Zero, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE);
+
             //将窗口置底
             //SetWindowPos(this.Handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
         }

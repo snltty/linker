@@ -112,13 +112,24 @@ span.split-pad10 {
 }
 
 .scrollbar,
+.scrollbar-1,
 .scrollbar-4,
 .scrollbar-10 {
     overflow: auto;
 }
 
+.scrollbar-1::-webkit-scrollbar {
+    width: 0px;
+    height: 1px;
+}
+
+.scrollbar-1::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
 .scrollbar::-webkit-scrollbar {
-    width: 4px;
+    width: 1px;
     height: 1px;
 }
 
@@ -146,6 +157,17 @@ span.split-pad10 {
     background: rgba(0, 0, 0, 0.1);
     border-radius: 10px;
 }
+
+:root {
+    --el-color-primary: var(--el-color-success) !important;
+    --el-color-primary-light-3: var(--el-color-success-light-3) !important;
+    --el-color-primary-light-5: var(--el-color-success-light-5) !important;
+    --el-color-primary-light-7: var(--el-color-success-light-7) !important;
+    --el-color-primary-light-8: var(--el-color-success-light-8) !important;
+    --el-color-primary-light-9: var(--el-color-success-light-9) !important;
+    --el-color-primary-dark-2: var(--el-color-success-dark-2) !important;
+}
+
 
 .el-table--scrollable-y .el-table__body-wrapper::-webkit-scrollbar {
     background: #f5f5f5

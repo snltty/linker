@@ -9,7 +9,7 @@ namespace cmonitor.server.client.reports.light
 
         public class BrightnessChangedEventArgs : EventArgs
         {
-            public object newBrightness { get; set; } // new screen brightness value
+            public object newBrightness { get; set; }
 
             public BrightnessChangedEventArgs(object b)
             {

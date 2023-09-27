@@ -1,6 +1,6 @@
 <template>
     <el-col :span="4">
-        <el-switch size="small" @click="handleWallpaper" :model-value="data.Wallpaper.Value" inline-prompt active-text="壁纸" inactive-text="壁纸" />
+        <el-switch class="wallpaper" size="small" @click="handleWallpaper" :model-value="data.Wallpaper.Value" inline-prompt active-text="壁纸" inactive-text="壁纸" />
     </el-col>
 </template>
 

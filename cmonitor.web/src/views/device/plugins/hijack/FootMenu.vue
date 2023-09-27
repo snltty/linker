@@ -4,7 +4,8 @@
             <span class="el-dropdown-link">
                 <el-icon>
                     <Umbrella />
-                </el-icon>网络
+                </el-icon>
+                <span>网络</span>
                 <el-icon class="el-icon--right">
                     <arrow-down />
                 </el-icon>
@@ -42,15 +43,15 @@ export default {
 <style lang="stylus" scoped>
 .el-icon {
     font-size: 1.6rem;
+    vertical-align: middle;
+    margin-top: -1px;
 }
 
 .el-dropdown {
-    color: #ebffef;
+    color: #f5f5f5;
     font-size: 1.6rem;
 
     .el-dropdown-link {
-        display: inline-flex;
-        line-height: 1;
     }
 }
 </style>

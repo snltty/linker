@@ -1,6 +1,6 @@
 <template>
     <el-dialog class="options" title="执行命令" destroy-on-close v-model="state.show" center align-center width="94%">
-        <div class="command-wrap flex">
+        <div class="command-wrap common-command-wrap flex">
             <div class="items">
                 <CheckBoxWrap ref="items" :data="globalData.devices" :items="state.items" label="MachineName" title="选择设备"></CheckBoxWrap>
             </div>
@@ -19,7 +19,7 @@
         </div>
         <template #footer>
             <el-button @click="handleCancel">取 消</el-button>
-            <el-button type="primary" @click="handleCancel">确 定</el-button>
+            <el-button type="success" plain @click="handleCancel">确 定</el-button>
         </template>
     </el-dialog>
 </template>
@@ -57,6 +57,8 @@ export default {
                 { label: '强制重启', value: 'shutdown -r -f -t 00' },
                 { label: '打开锁屏', func: llockUpdate, value: true },
                 { label: '关闭锁屏', func: llockUpdate, value: false },
+                { label: '开资源管理器', value: 'start explorer.exe' },
+                { label: '关资源管理器', value: 'taskkill /f /t /im "explorer.exe"' },
                 { label: '打开壁纸', func: wallpaperFunc, value: true },
                 { label: '关闭壁纸', func: wallpaperFunc, value: false },
                 { label: '禁用U盘', func: usbUpdate, value: true },
@@ -113,6 +115,15 @@ export default {
     }
 }
 </script>
+<style lang="stylus">
+.common-command-wrap {
+    .checkbox-wrap {
+        li:nth-child(2n) {
+            padding-bottom: 1rem;
+        }
+    }
+}
+</style>
 <style lang="stylus" scoped>
 .command-wrap {
     height: 60vh;
@@ -131,7 +142,7 @@ export default {
 
     .btn {
         text-align: center;
-        padding: 0.6rem 0;
+        padding: 0.2rem 0;
         width: 100%;
     }
 }

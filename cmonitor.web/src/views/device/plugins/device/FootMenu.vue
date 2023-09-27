@@ -1,8 +1,9 @@
 <template>
     <a href="javascript:;" @click="handleDevices">
-        <span><el-icon>
-                <Grid />
-            </el-icon>设备</span>
+        <el-icon>
+            <Grid />
+        </el-icon>
+        <span>设备</span>
     </a>
 </template>
 
@@ -25,6 +26,11 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+.el-icon {
+    vertical-align: middle;
+    margin-top: -3px;
+}
+
 span {
     display: inline-flex;
     line-height: 1;

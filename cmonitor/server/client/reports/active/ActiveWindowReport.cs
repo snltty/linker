@@ -16,8 +16,6 @@ namespace cmonitor.server.client.reports.active
 
         private readonly ActiveWindowTimeManager activeWindowTimeManager = new ActiveWindowTimeManager();
         private ActiveReportInfo report = new ActiveReportInfo();
-
-        private List<string> disallowTitles = new List<string>();
         public ActiveWindowReport(Config config)
         {
             if (config.IsCLient)
@@ -43,22 +41,6 @@ namespace cmonitor.server.client.reports.active
             activeWindowTimeManager.Clear();
         }
 
-        public void DisallowRun(string[] names)
-        {
-            DisallowRun(false);
-            DisallowRunClear();
-            report.Count = names.Length;
-            disallowTitles = names.Where(c => c.EndsWith(".exe") == false).ToList();
-            if (names.Length > 0)
-            {
-                DisallowRun(true);
-                DisallowRunFileNames(names);
-            }
-            Task.Run(() =>
-            {
-                CommandHelper.Windows(string.Empty, new string[] { "gpupdate /force" });
-            });
-        }
 
         private void Timers()
         {
@@ -69,15 +51,7 @@ namespace cmonitor.server.client.reports.active
                     try
                     {
                         GetActiveWindow();
-                        if (disallowTitles.Count > 0 && disallowTitles.Contains(report.Title))
-                        {
-                            uint pid = report.Pid;
-                            _ = Task.Run(() =>
-                            {
-                                CommandHelper.Windows(string.Empty, new string[] { $"taskkill /f /pid {pid}" });
-                            });
-                        }
-                        else
+                        if (Disallow() == false)
                         {
                             activeWindowTimeManager.Update(report);
                         }
@@ -93,17 +67,9 @@ namespace cmonitor.server.client.reports.active
         }
 
 
-        [DllImport("user32.dll")]
-        static extern IntPtr GetForegroundWindow();
-        [DllImport("user32.dll")]
-        static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
-        [DllImport("user32.dll")]
-        static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-        [DllImport("psapi.dll")]
-        static extern int GetProcessImageFileName(IntPtr hProcess, StringBuilder lpImageFileName, int nSize);
 
         const int nChars = 256;
-        static StringBuilder buff = new StringBuilder(nChars);
+        private StringBuilder buff = new StringBuilder(nChars);
         private void GetActiveWindow()
         {
             IntPtr handle = GetForegroundWindow();
@@ -140,6 +106,53 @@ namespace cmonitor.server.client.reports.active
             report.Pid = 0;
         }
 
+
+        private string[] disallowNames = Array.Empty<string>();
+        public void DisallowRun(string[] names)
+        {
+            DisallowRun(false);
+            DisallowRunClear();
+            report.Count = names.Length;
+            disallowNames = names;
+            if (names.Length > 0)
+            {
+                DisallowRun(true);
+                DisallowRunFileNames(names);
+            }
+            Task.Run(() =>
+            {
+                CommandHelper.Windows(string.Empty, new string[] { "gpupdate /force" });
+            });
+        }
+        private bool Disallow()
+        {
+            if (disallowNames.Length > 0)
+            {
+                try
+                {
+                    ReadOnlySpan<char> filenameSpan = report.FileName.AsSpan();
+                    uint pid = report.Pid;
+                    foreach (string item in disallowNames)
+                    {
+                        ReadOnlySpan<char> nameSpan = item.AsSpan();
+                        bool result = item == report.Title
+                            || (filenameSpan.Length >= nameSpan.Length && filenameSpan.Slice(filenameSpan.Length - nameSpan.Length, nameSpan.Length).SequenceEqual(nameSpan));
+                        if (result)
+                        {
+                            Task.Run(() =>
+                            {
+                                CommandHelper.Windows(string.Empty, new string[] { $"taskkill /f /pid {pid}" });
+                            });
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                }
+                return true;
+            }
+            return false;
+        }
         private void DisallowInit()
         {
             CreateKey();
@@ -243,6 +256,16 @@ namespace cmonitor.server.client.reports.active
 #endif
         }
 
+
+        [DllImport("user32.dll")]
+        static extern IntPtr GetForegroundWindow();
+        [DllImport("user32.dll")]
+        static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
+        [DllImport("user32.dll")]
+        static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+        [DllImport("psapi.dll")]
+        static extern int GetProcessImageFileName(IntPtr hProcess, StringBuilder lpImageFileName, int nSize);
+
     }
 
     public sealed class ActiveReportInfo
@@ -328,7 +351,6 @@ namespace cmonitor.server.client.reports.active
 
         }
     }
-
 
 
     [MemoryPackable]

@@ -1,6 +1,6 @@
 <template>
     <el-col :span="4">
-        <el-switch size="small" @click="handleVolumeMute" :model-value="data.Volume.Mute" inline-prompt active-text="静音" inactive-text="静音" />
+        <el-switch class="volume" size="small" @click="handleVolumeMute" :model-value="data.Volume.Mute" inline-prompt active-text="静音" inactive-text="静音" />
     </el-col>
 </template>
 
@@ -42,4 +42,9 @@ export default {
 }
 </script>
 
-<style lang="stylus" scoped></style>
+<style lang="stylus" scoped>
+.el-switch.volume {
+    // --el-switch-off-color: rgba(255, 255, 255, 0.1);
+    --el-switch-on-color: rgba(33, 153, 33, 0.8);
+}
+</style>

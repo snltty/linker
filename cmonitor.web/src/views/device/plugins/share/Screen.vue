@@ -1,12 +1,17 @@
 <template>
     <div class="share-lock-wrap" v-if="data.Share.Lock.Value.val == 'ask'">
         <div class="inner">
-            <h3>请求解锁</h3>
             <h5>
                 <span>【{{data.Share.Lock.TypeText}}】</span>
-                <span v-if="data.Share.Lock.Value.type == 'remark-block'">【{{data.Share.Lock.Value.star}}】星</span>
-                <span v-if="data.Share.Lock.Value.type == 'remark-cpp'">【{{data.Share.Lock.Value.star}}】星</span>
+                <template v-if="data.Share.Lock.Value.type == 'remark-block' || data.Share.Lock.Value.type == 'remark-cpp'">
+                    <el-checkbox v-model="data.Share.Lock.Value.notify" size="small">广播</el-checkbox>
+                </template>
             </h5>
+            <div>
+                <template v-if="data.Share.Lock.Value.type == 'remark-block' || data.Share.Lock.Value.type == 'remark-cpp'">
+                    <el-rate @change="handleStarChange" v-model="data.Share.Lock.Value.star" size="large" />
+                </template>
+            </div>
             <div>
                 <el-popconfirm confirm-button-text="确认" cancel-button-text="取消" title="确认驳回请求吗?" @confirm="handleReject">
                     <template #reference>
@@ -26,6 +31,7 @@
 <script>
 import { reactive } from 'vue'
 import { shareUpdate } from '@/apis/share'
+import { notifyUpdate } from '@/apis/notify'
 import { ElMessage } from 'element-plus';
 export default {
     props: ['data'],
@@ -57,6 +63,7 @@ export default {
             state.loading = true;
             let value = JSON.parse(JSON.stringify(props.data.Share.Lock.Value));
             value.val = 'confirm';
+            props.data.Share.Lock.Value.notify = false;
             shareUpdate(props.data.MachineName, {
                 index: props.data.Share.Lock.Index,
                 value: JSON.stringify(value)
@@ -64,6 +71,9 @@ export default {
                 state.loading = false;
                 if (res) {
                     ElMessage.success('操作成功！');
+                    if (value.notify) {
+                        notifyUpdate(2, `恭喜[${props.data.Share.UserName.Value}]获得【${value.star}星】点评`);
+                    }
                 } else {
                     ElMessage.error('操作失败！');
                 }
@@ -73,8 +83,22 @@ export default {
             });
         }
 
+        const handleStarChange = () => {
+            state.loading = true;
+            let value = JSON.parse(JSON.stringify(props.data.Share.Lock.Value));
+            shareUpdate(props.data.MachineName, {
+                index: props.data.Share.Lock.Index,
+                value: JSON.stringify(value)
+            }).then((res) => {
+                state.loading = false;
+            }).catch(() => {
+                state.loading = false;
+                ElMessage.error('操作失败！');
+            });
+        }
+
         return {
-            data: props.data, state, handleReject, handleConfirm
+            data: props.data, state, handleReject, handleConfirm, handleStarChange
         }
     }
 }
@@ -88,7 +112,6 @@ export default {
     right: 0;
     bottom: 0;
 
-    // background-color: rgba(0, 0, 0, 0.2);
     .inner {
         position: absolute;
         left: 50%;
@@ -101,16 +124,21 @@ export default {
         z-index: 2;
         border-radius: 0.4rem;
 
-        h3 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #fff;
-        }
-
         h5 {
             font-size: 1.3rem;
-            padding-bottom: 1rem;
             color: #fff;
+            line-height: 1.6rem;
+
+            .el-checkbox {
+                height: 1.6rem;
+                vertical-align: bottom;
+                color: #fff;
+            }
+        }
+
+        .el-rate.el-rate--large {
+            height: inherit;
+            padding: 0.6rem 0 1.6rem 0;
         }
     }
 }

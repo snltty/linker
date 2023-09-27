@@ -23,13 +23,13 @@ export default {
 
 <style lang="stylus">
 .el-dialog.is-align-center.options {
-    margin-top: 3vh;
+    margin-top: 1vh;
 }
 </style>
 
 <style lang="stylus" scoped>
 .foot-wrap {
-    border-top: 1px solid rgba(0, 0, 0, 0.2);
+    border-top: 1px solid rgba(18, 63, 76, 0.8);
     position: relative;
     z-index: 999;
 }
@@ -39,10 +39,10 @@ ul li {
     text-align: center;
 
     a {
-        padding: 1.7rem 0;
+        padding: 1.2rem 0;
         font-size: 1.6rem;
         display: block;
-        color: #ebffef;
+        color: #f5f5f5;
         line-height: 1;
 
         &:hover {

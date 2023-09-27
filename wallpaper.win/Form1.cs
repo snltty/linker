@@ -40,8 +40,7 @@ namespace wallpaper.win
             this.shareKeyBoardIndex = shareKeyBoardIndex;
             this.shareWallpaperIndex = shareWallpaperIndex;
 
-            this.WindowState = FormWindowState.Maximized;
-            this.FormBorderStyle = FormBorderStyle.None;
+            
             InitializeComponent();
 
             hook = new Hook();
@@ -96,7 +95,9 @@ namespace wallpaper.win
         {
             pictureBox1.ImageLocation = imgUrl;
             this.Dock = DockStyle.Fill;
-            ShowInTaskbar = false;
+            this.ShowInTaskbar = false;
+            this.WindowState = FormWindowState.Maximized;
+            this.FormBorderStyle = FormBorderStyle.None;
 
             hook.Start();
 

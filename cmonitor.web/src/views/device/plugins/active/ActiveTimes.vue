@@ -19,7 +19,7 @@
         </div>
         <template #footer>
             <el-button @click="handleCancel">取 消</el-button>
-            <el-button type="primary" @click="handleCancel">确 定</el-button>
+            <el-button type="success" @click="handleCancel" plain>确 定</el-button>
         </template>
     </el-dialog>
     <el-dialog class="options" title="详细标题" destroy-on-close v-model="state.showTitles" center align-center width="94%">
@@ -42,7 +42,7 @@
         </div>
         <template #footer>
             <el-button @click="handleCancel">取 消</el-button>
-            <el-button type="primary" @click="handleCancel">确 定</el-button>
+            <el-button type="success" @click="handleCancel" plain>确 定</el-button>
         </template>
     </el-dialog>
 </template>

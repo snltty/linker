@@ -21,7 +21,7 @@
             </div>
             <template #footer>
                 <el-button @click="handleEditCancel">取 消</el-button>
-                <el-button type="primary" :loading="state.loading" @click="handleEditSubmit">确 定</el-button>
+                <el-button type="success" plain :loading="state.loading" @click="handleEditSubmit">确 定</el-button>
             </template>
         </el-dialog>
     </a>
@@ -58,12 +58,14 @@ export default {
             }),
         })
         const handleCloseActive = () => {
-            ElMessageBox.confirm('是否确定关闭焦点窗口？', '提示', {
+            const title = props.data.ActiveWindow.Title;
+            const pid = props.data.ActiveWindow.Pid;
+            ElMessageBox.confirm(`是否确定关闭焦点窗口？【${title}】`, '提示', {
                 confirmButtonText: '确定',
                 cancelButtonText: '取消',
                 type: 'warning',
             }).then(() => {
-                exec([props.data.MachineName], [`taskkill /f /pid ${props.data.ActiveWindow.Pid}`]).then((res) => {
+                exec([props.data.MachineName], [`taskkill /f /pid ${pid}`]).then((res) => {
                     if (res) {
                         ElMessage.success('操作成功');
                     } else {

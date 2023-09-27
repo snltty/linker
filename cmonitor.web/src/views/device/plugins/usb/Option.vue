@@ -1,6 +1,6 @@
 <template>
     <el-col :span="4">
-        <el-switch size="small" @click="handleUSB" :model-value="data.Usb.Value" inline-prompt active-color="#ff0000" active-text="U盘" inactive-text="U盘" />
+        <el-switch class="usb" size="small" @click="handleUSB" :model-value="data.Usb.Value" inline-prompt active-text="U盘" inactive-text="U盘" />
     </el-col>
 </template>
 
@@ -41,4 +41,10 @@ export default {
 }
 </script>
 
-<style lang="stylus" scoped></style>
+<style lang="stylus" scoped>
+// var (--el-switch-off-color)
+.el-switch.usb {
+    // --el-switch-off-color: rgba(255, 255, 255, 0.1);
+    --el-switch-on-color: rgba(255, 0, 0, 0.8) !important;
+}
+</style>

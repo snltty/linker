@@ -14,6 +14,7 @@ import 'element-plus/theme-chalk/dark/css-vars.css'
 import {
     ChromeFilled, Promotion, Grid, ArrowDown, Upload, Download, EditPen, Delete, Refresh, BellFilled, Microphone
     , Position, Message, Bell, Mute, SwitchButton, Lock, DataLine, CirclePlus, QuestionFilled, Monitor, Sunny, Warning, Umbrella
+    , ScaleToOriginal, Close
 } from '@element-plus/icons-vue'
 app.component(ChromeFilled.name, ChromeFilled);
 app.component(Promotion.name, Promotion);
@@ -40,6 +41,8 @@ app.component(Monitor.name, Monitor);
 app.component(Sunny.name, Sunny);
 app.component(Warning.name, Warning);
 app.component(Umbrella.name, Umbrella);
+app.component(ScaleToOriginal.name, ScaleToOriginal);
+app.component(Close.name, Close);
 
 
 app.use(ElementPlus, { size: 'default' }).use(router).mount('#app');

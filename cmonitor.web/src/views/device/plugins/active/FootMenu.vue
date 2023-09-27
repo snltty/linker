@@ -1,10 +1,9 @@
 <template>
     <a href="javascript:;" @click="handleWindows">
-        <span>
-            <el-icon>
-                <Monitor />
-            </el-icon>窗口
-        </span>
+        <el-icon>
+            <Monitor />
+        </el-icon>
+        <span>窗口</span>
     </a>
 </template>
 
@@ -29,6 +28,11 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+.el-icon {
+    vertical-align: middle;
+    margin-top: -3px;
+}
+
 span {
     display: inline-flex;
     line-height: 1;

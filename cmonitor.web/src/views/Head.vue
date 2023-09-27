@@ -7,7 +7,7 @@
                 </el-select>
             </div>
             <template #footer>
-                <el-button type="primary" @click="handleUsername">确 定</el-button>
+                <el-button type="success" @click="handleUsername" plain>确 定</el-button>
             </template>
         </el-dialog>
         <el-dialog title="管理端口" destroy-on-close v-model="showPort" center :show-close="false" :close-on-click-modal="false" align-center width="70%">
@@ -15,7 +15,7 @@
                 <el-input v-model="state.port" style="width:auto"></el-input>
             </div>
             <template #footer>
-                <el-button type="primary" @click="handleConnect">确 定</el-button>
+                <el-button type="success" @click="handleConnect" plain>确 定</el-button>
             </template>
         </el-dialog>
     </div>

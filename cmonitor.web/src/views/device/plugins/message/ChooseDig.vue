@@ -24,7 +24,7 @@
         </div>
         <template #footer>
             <el-button @click="handleCancel">取 消</el-button>
-            <el-button type="primary" :loading="state.loading" @click="handleSubmit">确 定</el-button>
+            <el-button type="success" plain :loading="state.loading" @click="handleSubmit">确 定</el-button>
         </template>
     </el-dialog>
 </template>
@@ -59,7 +59,7 @@ export default {
             loading: false
         });
         try {
-            if (pluginState.value.message.items.length == 1 && pluginState.value.message.items[0].Share.UserName) {
+            if (pluginState.value.message.items.length == 1 && pluginState.value.message.items[0].Share.UserName.Value) {
                 state.prevs.push(`【${pluginState.value.message.items[0].Share.UserName.Value}】请注意上课纪律!`);
             }
         } catch (e) {

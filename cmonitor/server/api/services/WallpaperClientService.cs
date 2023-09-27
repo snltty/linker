@@ -18,6 +18,11 @@ namespace cmonitor.server.api.services
         public async Task<bool> Update(ClientServiceParamsInfo param)
         {
             WallpaperLockInfo info = param.Content.DeJson<WallpaperLockInfo>();
+            byte[] bytes = MemoryPackSerializer.Serialize(new WallpaperUpdateInfo
+            {
+                Value = info.Value,
+                Url = info.Url
+            });
             for (int i = 0; i < info.Names.Length; i++)
             {
                 if (signCaching.Get(info.Names[i], out SignCacheInfo cache) && cache.Connected)
@@ -26,11 +31,7 @@ namespace cmonitor.server.api.services
                     {
                         Connection = cache.Connection,
                         MessengerId = (ushort)WallpaperMessengerIds.Update,
-                        Payload = MemoryPackSerializer.Serialize(new WallpaperUpdateInfo
-                        {
-                            Value = info.Value,
-                            Url = info.Url
-                        })
+                        Payload = bytes
                     });
                 }
             }

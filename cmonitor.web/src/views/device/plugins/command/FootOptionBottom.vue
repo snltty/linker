@@ -1,6 +1,6 @@
 <template>
     <el-button size="small" plain dark @click="handleCommand">命令<el-icon>
-            <Position />
+            <ScaleToOriginal />
         </el-icon></el-button>
 </template>
 

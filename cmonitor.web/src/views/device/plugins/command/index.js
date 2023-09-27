@@ -1,5 +1,3 @@
-import { commandPing } from '../../../../apis/command'
-import { injectGlobalData } from '@/views/provide';
 export default {
     field() {
         return {}
@@ -7,6 +5,8 @@ export default {
     state: {
         command: {
             showCommand: false,
+            showCloseSystem: false,
+            showKeyBoard: false,
             items: []
         }
     },

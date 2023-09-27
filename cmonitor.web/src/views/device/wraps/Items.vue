@@ -95,7 +95,7 @@ export default {
                 //哪个是在最中间的
                 const middleItem = doms.sort((a, b) => a.offset - b.offset)[0];
                 for (let i = 0; i < items.length; i++) {
-                    let style = 'z-index:9;background-color:#fff;';
+                    let style = 'z-index:9;background-color:rgba(255,255,255,1);';
                     const dist = Math.abs((middleItem.index - i));
                     const opacity = 1 - Math.abs((middleItem.index - i)) / 10 * 2;
                     const translateZ = 100 + (dist * 100);

@@ -28,16 +28,17 @@ namespace cmonitor.server.client.reports.llock
 
         public void Update(bool open, string url)
         {
-            CommandHelper.Windows(string.Empty, new string[] { "taskkill /f /t /im \"wallpaper.win.exe\"" });
-            if (open)
+            Task.Run(() =>
             {
-                Task.Run(() =>
+                CommandHelper.Windows(string.Empty, new string[] { "taskkill /f /t /im \"wallpaper.win.exe\"" });
+                if (open)
                 {
                     CommandHelper.Windows(string.Empty, new string[] {
                         $"start wallpaper.win.exe \"{url}\" {config.ShareMemoryKey} {config.ShareMemoryLength} {Config.ShareMemoryKeyBoardIndex} {Config.ShareMemoryWallpaperIndex}"
                     });
-                });
-            }
+                }
+            });
+
         }
     }
 

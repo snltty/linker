@@ -19,7 +19,7 @@
         </div>
         <template #footer>
             <el-button @click="handleCancel">取 消</el-button>
-            <el-button type="primary" :loading="state.loading" @click="handleSubmit">确 定</el-button>
+            <el-button type="success" plain :loading="state.loading" @click="handleSubmit">确 定</el-button>
         </template>
     </el-dialog>
 </template>

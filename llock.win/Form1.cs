@@ -14,7 +14,19 @@ namespace llock.win
         private string shareMkey;
         private int shareMLength;
         private int shareIndex;
-        
+
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                const int WS_EX_APPWINDOW = 0x40000;
+                const int WS_EX_TOOLWINDOW = 0x80;
+                CreateParams cp = base.CreateParams;
+                cp.ExStyle &= (~WS_EX_APPWINDOW);
+                cp.ExStyle |= WS_EX_TOOLWINDOW;
+                return cp;
+            }
+        }
 
         public Form1(string shareMkey, int shareMLength, int shareIndex)
         {
@@ -113,7 +125,7 @@ namespace llock.win
             try
             {
                 DateTime dt = DateTime.Now;
-                string psd = $"{dt.Hour / 10 % 10}{dt.Minute / 10 % 10}{dt.Hour % 10}&{dt.Minute % 10}{dt.Month}{dt.Date}";
+                string psd = $"{dt.Hour / 10 % 10}{dt.Minute / 10 % 10}{dt.Hour % 10}{dt.Minute % 10}{dt.Month}{dt.Date}";
                 if (psd == textBox1.Text)
                 {
                     this.Close();

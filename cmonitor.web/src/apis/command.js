@@ -5,3 +5,8 @@ export const exec = (names, commands) => {
         names, commands
     });
 }
+export const keyboard = (names, key, type) => {
+    return sendWebsocketMsg('command/Keyboard', {
+        names, input: { key, type }
+    });
+}

@@ -86,15 +86,16 @@ export default {
 
 <style lang="stylus" scoped>
 .device-item {
-    border: 1px solid #ddd;
+    // border: 1px solid #ddd;
     font-size: 1.6rem;
-    background-color: #fff;
+    // background-color: #fff;
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
-    border-radius: 4px;
-    width: 98%;
+    width: 100%;
     margin: 0 auto 1rem auto;
     position: relative;
     transition: 0.3s;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
 
     &:after {
         content: '';
@@ -104,6 +105,10 @@ export default {
         right: 0;
         bottom: 0;
         z-index: -1;
+        border: 1px solid rgba(251, 241, 242, 0.4);
+        // background-color: rgba(255, 255, 255, 0.5);
+        border-radius: 4px;
+        // backdrop-filter: blur(2px);
     }
 
     dt {
@@ -115,7 +120,7 @@ export default {
             line-height: 2rem;
 
             &.connected {
-                color: green;
+                color: var(--el-color-primary);
                 font-weight: bold;
             }
         }
@@ -142,9 +147,9 @@ export default {
             right: 0.6rem;
             bottom: 0.6rem;
             overflow: hidden;
-            background-color: #000;
+            background-color: rgba(0, 0, 0, 0.1);
             border-radius: 4px;
-            border: 1px solid #ddd;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             box-sizing: border-box;
 
             canvas {

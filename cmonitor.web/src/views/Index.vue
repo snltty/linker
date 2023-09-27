@@ -50,10 +50,14 @@ export default {
     transform: translateX(-50%) translateY(-50%);
     background-color: #fff;
     height: 100%;
+    background-color: #333;
+    background-image: url('../assets/bg3.webp');
+    background-size: cover;
+    background-position: center top;
 
     .body {
         position: relative;
-        background-color: #fafafa;
+        // background-color: #fafafa;
     }
 }
 </style>

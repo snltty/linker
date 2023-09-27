@@ -31,7 +31,7 @@ export default {
 .speed {
     font-size: 1.3rem;
     padding-top: 0.1rem;
-    color: #333;
+    color: #666;
 
     span:nth-child(1) {
         margin-right: 1rem;

@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cmonitor.win", "cmonitor.wi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cmonitor.volume", "cmonitor.volume\cmonitor.volume.vcxproj", "{EDA47DD6-82DC-415C-A3CC-35A564FF0D0F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "notify.win", "notify.win\notify.win.csproj", "{CED6A505-AD7E-4F61-AB40-8D3973F431AB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -156,6 +158,24 @@ Global
 		{EDA47DD6-82DC-415C-A3CC-35A564FF0D0F}.ReleaseLinux|x64.Build.0 = Release|x64
 		{EDA47DD6-82DC-415C-A3CC-35A564FF0D0F}.ReleaseLinux|x86.ActiveCfg = Release|Win32
 		{EDA47DD6-82DC-415C-A3CC-35A564FF0D0F}.ReleaseLinux|x86.Build.0 = Release|Win32
+		{CED6A505-AD7E-4F61-AB40-8D3973F431AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CED6A505-AD7E-4F61-AB40-8D3973F431AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CED6A505-AD7E-4F61-AB40-8D3973F431AB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CED6A505-AD7E-4F61-AB40-8D3973F431AB}.Debug|x64.Build.0 = Debug|Any CPU
+		{CED6A505-AD7E-4F61-AB40-8D3973F431AB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CED6A505-AD7E-4F61-AB40-8D3973F431AB}.Debug|x86.Build.0 = Debug|Any CPU
+		{CED6A505-AD7E-4F61-AB40-8D3973F431AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CED6A505-AD7E-4F61-AB40-8D3973F431AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CED6A505-AD7E-4F61-AB40-8D3973F431AB}.Release|x64.ActiveCfg = Release|Any CPU
+		{CED6A505-AD7E-4F61-AB40-8D3973F431AB}.Release|x64.Build.0 = Release|Any CPU
+		{CED6A505-AD7E-4F61-AB40-8D3973F431AB}.Release|x86.ActiveCfg = Release|Any CPU
+		{CED6A505-AD7E-4F61-AB40-8D3973F431AB}.Release|x86.Build.0 = Release|Any CPU
+		{CED6A505-AD7E-4F61-AB40-8D3973F431AB}.ReleaseLinux|Any CPU.ActiveCfg = Release|Any CPU
+		{CED6A505-AD7E-4F61-AB40-8D3973F431AB}.ReleaseLinux|Any CPU.Build.0 = Release|Any CPU
+		{CED6A505-AD7E-4F61-AB40-8D3973F431AB}.ReleaseLinux|x64.ActiveCfg = Release|Any CPU
+		{CED6A505-AD7E-4F61-AB40-8D3973F431AB}.ReleaseLinux|x64.Build.0 = Release|Any CPU
+		{CED6A505-AD7E-4F61-AB40-8D3973F431AB}.ReleaseLinux|x86.ActiveCfg = Release|Any CPU
+		{CED6A505-AD7E-4F61-AB40-8D3973F431AB}.ReleaseLinux|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

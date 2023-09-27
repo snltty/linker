@@ -65,8 +65,8 @@ export default {
     padding: 0.6rem;
 
     .el-button {
-        background-color: rgba(58, 74, 102, 0.5);
-        border-color: rgba(58, 74, 102, 0.2);
+        background-color: rgba(255, 255, 255, 0.05);
+        border-color: rgba(18, 63, 76, 0.8);
         color: #f5f5f5;
     }
 

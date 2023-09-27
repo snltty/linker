@@ -18,6 +18,7 @@ namespace cmonitor.server.api.services
         public async Task<bool> Update(ClientServiceParamsInfo param)
         {
             LLockUpdateInfo info = param.Content.DeJson<LLockUpdateInfo>();
+            byte[] bytes = MemoryPackSerializer.Serialize(info.Value);
             for (int i = 0; i < info.Names.Length; i++)
             {
                 if (signCaching.Get(info.Names[i], out SignCacheInfo cache) && cache.Connected)
@@ -26,7 +27,7 @@ namespace cmonitor.server.api.services
                     {
                         Connection = cache.Connection,
                         MessengerId = (ushort)LLockMessengerIds.Update,
-                        Payload = MemoryPackSerializer.Serialize(info.Value)
+                        Payload = bytes
                     });
                 }
             }

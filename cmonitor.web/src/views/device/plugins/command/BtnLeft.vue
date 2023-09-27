@@ -1,18 +1,16 @@
 <template>
     <div>
-        <a href="javascript:;" @click="handleRebotSystem">
-            <el-icon>
-                <Refresh />
-            </el-icon>
-        </a>
         <a href="javascript:;" @click="handleCloseSystem">
             <el-icon>
                 <SwitchButton />
             </el-icon>
         </a>
+        <a href="javascript:;" @click="handleKeyBoard">
+            <img src="../../../../assets/keyboard.svg" width="20">
+        </a>
         <a href="javascript:;" @click="handleCommand">
             <el-icon>
-                <Position />
+                <ScaleToOriginal />
             </el-icon>
         </a>
     </div>
@@ -20,8 +18,6 @@
 
 <script>
 import { injectPluginState } from '../../provide'
-import { ElMessage, ElMessageBox } from 'element-plus';
-import { exec } from '@/apis/command';
 export default {
     props: ['data'],
     setup(props) {
@@ -32,34 +28,17 @@ export default {
             pluginState.value.command.showCommand = true;
         }
 
-        const handleRebotSystem = () => {
-            handleSendCommand('确定重启系统吗？', `shutdown -r -f -t 00`);
-        }
         const handleCloseSystem = () => {
-            handleSendCommand('确定关闭系统吗？', `shutdown -s -f -t 00`);
+            pluginState.value.command.items = [props.data];
+            pluginState.value.command.showCloseSystem = true;
         }
-
-        const handleSendCommand = (desc, command, value) => {
-            ElMessageBox.confirm(desc, '提示', {
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
-                type: 'warning',
-            }).then(() => {
-                exec([props.data.MachineName], [command]).then((res) => {
-                    if (res) {
-                        ElMessage.success('操作成功');
-                    } else {
-                        ElMessage.error('操作失败');
-                    }
-                }).catch(() => {
-                    ElMessage.error('操作失败');
-                });
-
-            }).catch(() => { });
+        const handleKeyBoard = () => {
+            pluginState.value.command.items = [props.data];
+            pluginState.value.command.showKeyBoard = true;
         }
 
         return {
-            handleCommand, handleRebotSystem, handleCloseSystem
+            handleCommand, handleCloseSystem, handleKeyBoard
         }
     }
 }

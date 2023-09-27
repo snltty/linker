@@ -25,7 +25,7 @@
                         <div class="slider-wrap flex flex-column">
                             <div class="silder flex flex-1">
                                 <div class="flex-1">
-                                    <el-slider @change="handleChangeLight" v-model="state.light" vertical height="100%" />
+                                    <el-slider type="success" @change="handleChangeLight" v-model="state.light" vertical height="100%" />
                                 </div>
                             </div>
                         </div>
@@ -35,7 +35,7 @@
         </div>
         <template #footer>
             <el-button @click="handleCancel">取 消</el-button>
-            <el-button type="primary" @click="handleCancel">确 定</el-button>
+            <el-button type="success" plain @click="handleCancel">确 定</el-button>
         </template>
     </el-dialog>
 </template>

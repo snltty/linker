@@ -20,6 +20,7 @@ namespace cmonitor.server.api.services
         public async Task<bool> Update(ClientServiceParamsInfo param)
         {
             VolumeInfo info = param.Content.DeJson<VolumeInfo>();
+            byte[] bytes = MemoryPackSerializer.Serialize(info.Value);
             for (int i = 0; i < info.Names.Length; i++)
             {
                 if (signCaching.Get(info.Names[i], out SignCacheInfo cache) && cache.Connected)
@@ -28,7 +29,7 @@ namespace cmonitor.server.api.services
                     {
                         Connection = cache.Connection,
                         MessengerId = (ushort)VolumeMessengerIds.Update,
-                        Payload = MemoryPackSerializer.Serialize(info.Value)
+                        Payload = bytes
                     });
                 }
             }
@@ -39,6 +40,7 @@ namespace cmonitor.server.api.services
         public async Task<bool> Mute(ClientServiceParamsInfo param)
         {
             VolumeMuteInfo info = param.Content.DeJson<VolumeMuteInfo>();
+            byte[] bytes = MemoryPackSerializer.Serialize(info.Value);
             for (int i = 0; i < info.Names.Length; i++)
             {
                 if (signCaching.Get(info.Names[i], out SignCacheInfo cache) && cache.Connected)
@@ -47,7 +49,7 @@ namespace cmonitor.server.api.services
                     {
                         Connection = cache.Connection,
                         MessengerId = (ushort)VolumeMessengerIds.Mute,
-                        Payload = MemoryPackSerializer.Serialize(info.Value)
+                        Payload = bytes
                     });
                 }
             }

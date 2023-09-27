@@ -41,7 +41,7 @@
                                 </div>
                             </div>
                             <div class="btn">
-                                <el-button @click="handleMute(true)">静音</el-button>
+                                <el-button @click="handleMute(true)">设置静音</el-button>
                             </div>
                             <div class="btn">
                                 <el-button @click="handleMute(false)">取消静音</el-button>
@@ -53,7 +53,7 @@
         </div>
         <template #footer>
             <el-button @click="handleCancel">取 消</el-button>
-            <el-button type="primary" @click="handleCancel">确 定</el-button>
+            <el-button type="success" plain @click="handleCancel">确 定</el-button>
         </template>
     </el-dialog>
 </template>

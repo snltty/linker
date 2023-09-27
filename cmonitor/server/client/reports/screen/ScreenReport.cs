@@ -14,6 +14,7 @@ namespace cmonitor.server.client.reports.screen
 {
     public sealed class ScreenReport : IReport
     {
+
         public string Name => "Screen";
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
@@ -92,7 +93,19 @@ namespace cmonitor.server.client.reports.screen
                 IntPtr hdc = GetDC(IntPtr.Zero);
                 if (hdc != IntPtr.Zero)
                 {
-                    using Bitmap source = new Bitmap(GetDeviceCaps(hdc, DESKTOPHORZRES), GetDeviceCaps(hdc, DESKTOPVERTRES));
+                    int sourceWidth = GetDeviceCaps(hdc, DESKTOPHORZRES);
+                    int sourceHeight = GetDeviceCaps(hdc, DESKTOPVERTRES);
+                    int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+                    int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+                    int scaleX = (int)(sourceWidth * 1.0 / screenWidth);
+                    int scaleY = (int)(sourceHeight * 1.0 / screenHeight);
+
+                    int newWidth = (int)(sourceWidth * 1.0 / scaleX * config.ScreenScale);
+                    int newHeight = (int)(sourceHeight * 1.0 / scaleY * config.ScreenScale);
+                    int curWidth = (int)(sourceWidth * config.ScreenScale * config.ScreenScale);
+
+                    using Bitmap source = new Bitmap(sourceWidth, sourceHeight);
                     using (Graphics g = Graphics.FromImage(source))
                     {
                         g.CopyFromScreen(0, 0, 0, 0, source.Size, CopyPixelOperation.SourceCopy);
@@ -104,7 +117,7 @@ namespace cmonitor.server.client.reports.screen
                             if (pci.flags == CURSOR_SHOWING)
                             {
                                 var hdc1 = g.GetHdc();
-                                DrawIconEx(hdc1, pci.ptScreenPos.x - 0, pci.ptScreenPos.y - 0, pci.hCursor, 0, 0, 0, IntPtr.Zero, DI_NORMAL);
+                                DrawIconEx(hdc1, pci.ptScreenPos.x * scaleX, pci.ptScreenPos.y * scaleY, pci.hCursor, curWidth, curWidth, 0, IntPtr.Zero, DI_NORMAL);
                                 g.ReleaseHdc();
                             }
                         }
@@ -114,8 +127,7 @@ namespace cmonitor.server.client.reports.screen
                     ReleaseDC(IntPtr.Zero, hdc);
 
 
-                    int newWidth = (int)(source.Width * config.ScreenScale);
-                    int newHeight = (int)(source.Height * config.ScreenScale);
+
                     Bitmap bmp = new Bitmap(newWidth, newHeight);
                     bmp.SetResolution(source.HorizontalResolution, source.VerticalResolution);
                     using Graphics graphic = Graphics.FromImage(bmp);
@@ -270,8 +282,12 @@ namespace cmonitor.server.client.reports.screen
         }
 
 
-        const int DESKTOPVERTRES = 117;
-        const int DESKTOPHORZRES = 118;
+        private const int DESKTOPVERTRES = 117;
+        private const int DESKTOPHORZRES = 118;
+        private const int LOGPIXELSX = 88;
+        private const int LOGPIXELSY = 90;
+        private const int SM_CXSCREEN = 0;
+        private const int SM_CYSCREEN = 1;
 
         [DllImport("user32.dll")]
         static extern IntPtr GetDC(IntPtr ptr);
