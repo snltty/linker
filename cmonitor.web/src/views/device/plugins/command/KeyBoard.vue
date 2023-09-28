@@ -1,6 +1,6 @@
 <template>
     <div class="keyboard-wrap">
-        <a href="javascript:;" class="close"><el-icon>
+        <a href="javascript:;" class="close" @click="handleClose"><el-icon>
                 <Close />
             </el-icon></a>
         <h3>{{state.name}}</h3>
@@ -46,7 +46,7 @@ export default {
                     { text: 'Shift', style: 'flex:1.5', key: 0xA0 }, { text: 'Z', key: 0x5A }, { text: 'X', key: 0x58 }, { text: 'C', key: 0x43 }, { text: 'V', key: 0x56 }, { text: 'Num', key: 0x90 }
                 ],
                 [
-                    { text: 'Ctrl', key: 0xA2 }, { text: 'Win', key: 0x5B }, { text: 'Alt', key: 18 }, { text: 'Space', key: 0x20 }
+                    { text: 'Ctrl', key: 0xA2 }, { text: 'Win', key: 0x5B }, { text: 'Alt', key: 0x12 }, { text: 'Space', key: 0x20 }
                 ]
             ]
         });
@@ -57,8 +57,11 @@ export default {
         const handleKeyUp = (item1) => {
             keyboard(state.names, item1.key, 2);
         }
+        const handleClose = () => {
+            pluginState.value.command.showKeyBoard = false;
+        }
 
-        return { state, handleKeyDown, handleKeyUp }
+        return { state, handleKeyDown, handleKeyUp, handleClose }
     }
 }
 </script>
