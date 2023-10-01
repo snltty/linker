@@ -265,7 +265,7 @@ namespace cmonitor
         public int ReportDelay { get; set; } = 30;
 
         public float ScreenScale { get; set; } = 0.2f;
-        public int ScreenDelay { get; set; } = 200;
+        public int ScreenDelay { get; set; } = 30;
 
         public string Version { get; set; } = "1.0.0.1";
         public bool IsCLient { get; set; }
@@ -396,7 +396,7 @@ namespace cmonitor
             }
             if (dic.ContainsKey("screen-delay") == false || string.IsNullOrWhiteSpace(dic["screen-delay"]))
             {
-                dic["screen-delay"] = "200";
+                dic["screen-delay"] = "100";
             }
             return true;
         }
