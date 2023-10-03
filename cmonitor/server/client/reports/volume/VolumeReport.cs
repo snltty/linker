@@ -1,17 +1,13 @@
-﻿using common.libs;
-using System.Runtime.InteropServices;
+﻿using NAudio.CoreAudioApi;
+using NAudio.Wave;
 
 namespace cmonitor.server.client.reports.volume
 {
-    public sealed class VolumeReport : IReport, IDisposable
+    public sealed class VolumeReport : IReport
     {
         public string Name => "Volume";
-
         private VolumeReportInfo report = new VolumeReportInfo();
-        private IntPtr pEnumerator = IntPtr.Zero;
-        private IntPtr pDevice = IntPtr.Zero;
-        private IntPtr pEndpointVolume = IntPtr.Zero;
-        private IntPtr pMeterInfo = IntPtr.Zero;
+
         public VolumeReport()
         {
             Init();
@@ -28,6 +24,95 @@ namespace cmonitor.server.client.reports.volume
             return report;
         }
 
+
+
+        private float GetVolume()
+        {
+            try
+            {
+                return defaultDevice.AudioEndpointVolume.MasterVolumeLevelScalar * 100;
+            }
+            catch (Exception)
+            {
+            }
+            return 0;
+        }
+        public void SetVolume(float volume)
+        {
+            try
+            {
+               
+                volume = Math.Max(0, Math.Min(volume, 1));
+                defaultDevice.AudioEndpointVolume.MasterVolumeLevelScalar = volume;
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        public bool GetVolumeMute()
+        {
+            try
+            {
+                return defaultDevice.AudioEndpointVolume.Mute;
+            }
+            catch (Exception)
+            {
+            }
+            return false;
+        }
+        public bool SetVolumeMute(bool mute)
+        {
+            try
+            {
+                defaultDevice.AudioEndpointVolume.Mute = mute;
+            }
+            catch (Exception)
+            {
+            }
+            return false;
+        }
+
+        private float GetMasterPeakValue()
+        {
+            try
+            {
+                return information.MasterPeakValue * 100;
+            }
+            catch (Exception)
+            {
+            }
+            return 0;
+        }
+
+        public void PlayAudio(byte[] audioBytes)
+        {
+            using WaveFileReader stream = new WaveFileReader(new MemoryStream(audioBytes));
+            using WaveOutEvent player = new WaveOutEvent();
+            player.Init(stream);
+            player.Play();
+
+            while (player.PlaybackState == PlaybackState.Playing)
+            {
+                Thread.Sleep(100);
+            }
+        }
+
+        MMDeviceEnumerator deviceEnumerator;
+        MMDevice defaultDevice;
+        AudioMeterInformation information;
+        private void Init()
+        {
+            deviceEnumerator = new MMDeviceEnumerator();
+            defaultDevice = deviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+            information = defaultDevice.AudioMeterInformation;
+        }
+
+        /*
+        private IntPtr pEnumerator = IntPtr.Zero;
+        private IntPtr pDevice = IntPtr.Zero;
+        private IntPtr pEndpointVolume = IntPtr.Zero;
+        private IntPtr pMeterInfo = IntPtr.Zero;
         private float GetVolume()
         {
             try
@@ -177,7 +262,7 @@ namespace cmonitor.server.client.reports.volume
         public static extern bool GetSystemMute(IntPtr pEndpointVolume);
         [DllImport("cmonitor.volume.dll")]
         public static extern bool SetSystemMute(IntPtr pEndpointVolume, bool mute);
-
+        */
     }
 
     public sealed class VolumeReportInfo

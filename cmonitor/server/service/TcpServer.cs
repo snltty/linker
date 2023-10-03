@@ -128,7 +128,6 @@ namespace cmonitor.server.service
         {
             if (e.AcceptSocket != null)
             {
-                e.AcceptSocket.KeepAlive();
                 BindReceive(e.AcceptSocket);
                 StartAccept(e);
             }
@@ -143,6 +142,7 @@ namespace cmonitor.server.service
                     return null;
                 }
 
+                socket.KeepAlive();
                 AsyncUserToken userToken = new AsyncUserToken
                 {
                     Socket = socket,

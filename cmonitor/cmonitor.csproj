@@ -38,9 +38,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="cmonitor.volume.dll">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
 		<None Update="nfapi.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
@@ -64,9 +61,13 @@
 
 	<ItemGroup>
 		<PackageReference Include="MemoryPack" Version="1.9.16" />
+		<PackageReference Include="NAudio" Version="2.2.1" />
 		<PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
 		<PackageReference Include="System.Management" Version="7.0.2" />
 		<TrimmerRootAssembly Include="System.Management" />
+		<TrimmerRootAssembly Include="NAudio" />
+		<TrimmerRootAssembly Include="SharpDX" />
+		
 	</ItemGroup>
 
 </Project>

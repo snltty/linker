@@ -20,7 +20,7 @@ for %%r in (win-x64,win-x64-any) do (
 )
 
 for %%r in (linux-x64,linux-x64-any) do (
-	for %%f in (nfapi.dll,nfdriver.sys,cmonitor.volume.dll) do (
+	for %%f in (nfapi.dll,nfdriver.sys) do (
 		del  "public\\publish\\%%r\\%%f"
 	)
 )

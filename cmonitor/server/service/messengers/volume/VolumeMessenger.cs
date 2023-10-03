@@ -24,6 +24,13 @@ namespace cmonitor.server.service.messengers.volume
             bool value = MemoryPackSerializer.Deserialize<bool>(connection.ReceiveRequestWrap.Payload.Span);
             volumeReport.SetVolumeMute(value);
         }
+
+        [MessengerId((ushort)VolumeMessengerIds.Play)]
+        public void Play(IConnection connection)
+        {
+            byte[] value = MemoryPackSerializer.Deserialize<byte[]>(connection.ReceiveRequestWrap.Payload.Span);
+            volumeReport.PlayAudio(value);
+        }
     }
 
 }

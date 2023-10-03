@@ -25,7 +25,7 @@ namespace cmonitor.server.client.reports.screen
                 {
                     g.CopyFromScreen(0, 0, 0, 0, source.Size, CopyPixelOperation.SourceCopy);
 
-                    DrawCursorIcon(g, sourceWidth, scaleX, scaleY, configScale);
+                    //DrawCursorIcon(g, sourceWidth, scaleX, scaleY, configScale);
                     g.Dispose();
                 }
                 ReleaseDC(IntPtr.Zero, hdc);

@@ -4,6 +4,7 @@
     {
         Update = 900,
         Mute = 901,
+        Play = 902,
 
         None = 999
     }

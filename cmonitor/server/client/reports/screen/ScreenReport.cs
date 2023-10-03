@@ -4,6 +4,7 @@ using cmonitor.server.service.messengers.screen;
 using System.Runtime.InteropServices;
 using MemoryPack;
 using cmonitor.server.client.reports.screen.sharpDX;
+using System.Diagnostics;
 
 namespace cmonitor.server.client.reports.screen
 {
@@ -67,7 +68,11 @@ namespace cmonitor.server.client.reports.screen
         }
         private async Task SendScreenCapture()
         {
+            //var sw = new Stopwatch();
+            //sw.Start();
             byte[] bytes = ScreenCapture2(out int length);
+            //sw.Stop();
+            //Console.WriteLine($"{bytes.Length}->{sw.ElapsedMilliseconds}");
             if (length > 0)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
@@ -92,13 +97,12 @@ namespace cmonitor.server.client.reports.screen
         private byte[] ScreenCapture2(out int length)
         {
             length = 0;
-
-            if (GdiCapture.GetScale(out int x, out int y, out int sourceWidth, out int sourceHeight))
-            {
-                GdiCapture.GetNewSize(sourceWidth, sourceHeight, x, y, config.ScreenScale, out int width, out int height);
-                return desktopDuplicator.GetLatestFrame(width, height, out length);
-            }
+#if DEBUG || RELEASE
+            DesktopFrame frame = desktopDuplicator.GetLatestFrame(config.ScreenScale, out length);
+            return frame.DesktopImage;
+#else
             return Array.Empty<byte>();
+#endif
         }
 
 

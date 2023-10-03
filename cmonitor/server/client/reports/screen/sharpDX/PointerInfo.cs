@@ -2,6 +2,7 @@
 
 namespace cmonitor.server.client.reports.screen.sharpDX
 {
+    
     internal class PointerInfo
     {
         public byte[] PtrShapeBuffer;
