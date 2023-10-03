@@ -112,17 +112,17 @@ export default {
                 this.reported = true;
                 this.reportTimer = setTimeout(() => {
                     this.reportInterval();
-                }, 30);
+                }, 50);
             }).catch(() => {
                 this.reported = true;
                 this.reportTimer = setTimeout(() => {
                     this.reportInterval();
-                }, 30);
+                }, 50);
             });
         } else {
             this.reportTimer = setTimeout(() => {
                 this.reportInterval();
-            }, 30);
+            }, 50);
         }
     },
 
