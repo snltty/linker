@@ -18,7 +18,7 @@
             </dt>
             <dd class="img">
                 <div class="inner">
-                    <canvas v-if="data.Connected" width="1920" height="1080" :id="`canvas-${data.MachineName}`"></canvas>
+                    <canvas v-if="data.Connected" width="1920" height="1080" :id="`canvas-${data.MachineName}`" @dblclick="handleCanvasReset" @touchstart="handleCanvasTouchstart" @touchend="handleCanvasTouchend" @touchmove="handleCanvasTouchmove"></canvas>
                     <template v-for="(item,index) in screenModules" :key="index">
                         <component :is="item" :data="data"></component>
                     </template>
@@ -77,8 +77,31 @@ export default {
         const optionFiles = require.context('../plugins/', true, /\/Option\.vue/);
         const optionModules = optionFiles.keys().map(c => optionFiles(c).default).sort((a, b) => (a.sort || 0) - (b.sort || 0));
 
+
+        const handleCanvasTouchstart = (event) => {
+            if (data.Screen.touchstart) {
+                data.Screen.touchstart(event);
+            }
+        }
+        const handleCanvasTouchend = (event) => {
+            if (data.Screen.touchend) {
+                data.Screen.touchend(event);
+            }
+        }
+        const handleCanvasTouchmove = (event) => {
+            if (data.Screen.touchmove) {
+                data.Screen.touchmove(event);
+            }
+        }
+        const handleCanvasReset = () => {
+            if (data.Screen.reset) {
+                data.Screen.reset();
+            }
+        }
+
         return {
             data, titleLeftModules, titleRightModules, screenModules, btnLeftModules, btnRightModules, optionModules
+            , handleCanvasTouchstart, handleCanvasTouchend, handleCanvasTouchmove, handleCanvasReset
         }
     }
 }
@@ -160,6 +183,7 @@ export default {
             }
 
             .btns {
+                pointer-events: none;
                 position: absolute;
                 left: 0;
                 right: 0;
@@ -167,10 +191,12 @@ export default {
 
                 .left {
                     padding-left: 0.6rem;
+                    pointer-events: all;
                 }
 
                 .right {
                     padding-right: 0.6rem;
+                    pointer-events: all;
                 }
 
                 .left, .right {

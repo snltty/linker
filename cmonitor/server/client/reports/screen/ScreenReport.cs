@@ -4,7 +4,6 @@ using cmonitor.server.service.messengers.screen;
 using System.Runtime.InteropServices;
 using MemoryPack;
 using cmonitor.server.client.reports.screen.sharpDX;
-using System.Diagnostics;
 
 namespace cmonitor.server.client.reports.screen
 {
@@ -17,6 +16,7 @@ namespace cmonitor.server.client.reports.screen
         private readonly Config config;
 
         private ScreenReportInfo report = new ScreenReportInfo();
+        private uint lastInput;
         private readonly DesktopDuplicator desktopDuplicator;
 
         public ScreenReport(ClientSignInState clientSignInState, MessengerSender messengerSender, Config config)
@@ -33,16 +33,27 @@ namespace cmonitor.server.client.reports.screen
         }
         public object GetReports()
         {
-            report.LastInput = GetLastInputInfo();
-            return report;
+            report.LT = GetLastInputInfo();
+            if (report.LT < lastInput || report.LT - lastInput > 1000)
+            {
+                lastInput = report.LT;
+                return report;
+            }
+            return null;
         }
 
 
         #region 截图
         private uint screenCaptureFlag = 0;
+        private long ticks = 0;
         public void Update()
         {
+            ticks = DateTime.UtcNow.Ticks;
             Interlocked.CompareExchange(ref screenCaptureFlag, 1, 0);
+        }
+        public void Clip(ScreenClipInfo screenClipInfo)
+        {
+            GdiCapture.Clip(screenClipInfo);
         }
         private void ScreenCaptureTask()
         {
@@ -50,11 +61,16 @@ namespace cmonitor.server.client.reports.screen
             {
                 while (true)
                 {
-                    if (clientSignInState.Connected == true && Interlocked.CompareExchange(ref screenCaptureFlag, 0, 1) == 1)
+                    int delayms = 0;
+                    bool res = clientSignInState.Connected == true
+                    && (Interlocked.CompareExchange(ref screenCaptureFlag, 0, 1) == 1 || (DateTime.UtcNow.Ticks - ticks) / TimeSpan.TicksPerMillisecond < 1000);
+                    if (res)
                     {
                         try
                         {
+                            long start = DateTime.UtcNow.Ticks;
                             await SendScreenCapture();
+                            delayms = (int)((DateTime.UtcNow.Ticks - start) / TimeSpan.TicksPerMillisecond);
                         }
                         catch (Exception ex)
                         {
@@ -62,7 +78,14 @@ namespace cmonitor.server.client.reports.screen
                                 Logger.Instance.Error(ex);
                         }
                     }
-                    await Task.Delay(config.ScreenDelay);
+                    if (delayms < config.ScreenDelay)
+                    {
+                        Thread.Sleep(config.ScreenDelay - delayms);
+                    }
+                    else
+                    {
+                        Thread.Sleep(config.ScreenDelay);
+                    }
                 }
             }, TaskCreationOptions.LongRunning);
         }
@@ -73,7 +96,7 @@ namespace cmonitor.server.client.reports.screen
             byte[] bytes = ScreenCapture2(out int length);
             //sw.Stop();
             //Console.WriteLine($"{bytes.Length}->{sw.ElapsedMilliseconds}");
-            if (length > 0)
+            if (length > 0 && bytes.Length > 0)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -136,8 +159,17 @@ namespace cmonitor.server.client.reports.screen
 
     public sealed class ScreenReportInfo
     {
-        public uint LastInput { get; set; }
+        public uint LT { get; set; }
     }
+    [MemoryPackable]
+    public sealed partial class ScreenClipInfo
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+        public float Scale { get; set; }
+
+    }
+
     [MemoryPackable]
     public sealed partial class ScreenFrameInfo
     {

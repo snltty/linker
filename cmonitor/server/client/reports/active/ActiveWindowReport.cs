@@ -16,6 +16,7 @@ namespace cmonitor.server.client.reports.active
 
         private readonly ActiveWindowTimeManager activeWindowTimeManager = new ActiveWindowTimeManager();
         private ActiveReportInfo report = new ActiveReportInfo();
+        private uint lastPid = 0;
         public ActiveWindowReport(Config config)
         {
             if (config.IsCLient)
@@ -30,7 +31,12 @@ namespace cmonitor.server.client.reports.active
 
         public object GetReports()
         {
-            return report;
+            if (report.Pid != lastPid)
+            {
+                lastPid = report.Pid;
+                return report;
+            }
+            return null;
         }
         public ActiveWindowTimeReportInfo GetActiveWindowTimes()
         {

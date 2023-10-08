@@ -8,8 +8,11 @@ namespace cmonitor.server.client.reports.llock
         public string Name => "LLock";
 
         private LLockReportInfo report = new LLockReportInfo();
+        bool lastValue = false;
+
         private readonly Config config;
         private readonly ShareReport shareReport;
+
         public LLockReport(Config config, ShareReport shareReport)
         {
             this.config = config;
@@ -23,7 +26,12 @@ namespace cmonitor.server.client.reports.llock
             {
                 report.Value = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds - time < 1000;
             }
-            return report;
+            if(report.Value != lastValue)
+            {
+                lastValue = report.Value;
+                return report;
+            }
+            return null;
         }
 
         public void Update(bool open)

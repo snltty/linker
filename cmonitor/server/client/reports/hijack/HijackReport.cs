@@ -9,7 +9,8 @@ namespace cmonitor.server.client.reports.hijack
 
         private readonly HijackEventHandler hijackEventHandler;
         private readonly HijackConfig hijackConfig;
-        HijackReportInfo report = new HijackReportInfo();
+        ulong[] array = new ulong[3];
+        ulong[] lastArray = new ulong[3];
         public HijackReport(HijackEventHandler hijackEventHandler, HijackController hijackController, HijackConfig hijackConfig)
         {
             this.hijackEventHandler = hijackEventHandler;
@@ -29,17 +30,19 @@ namespace cmonitor.server.client.reports.hijack
 
         public object GetReports()
         {
-            report.Upload = hijackEventHandler.UdpSend + hijackEventHandler.TcpSend;
-            report.Download = hijackEventHandler.TcpReceive + hijackEventHandler.UdpReceive;
-            report.Count = hijackConfig.AllowIPs.Length + hijackConfig.DeniedIPs.Length + hijackConfig.AllowDomains.Length + hijackConfig.DeniedDomains.Length + hijackConfig.AllowProcesss.Length + hijackConfig.DeniedProcesss.Length;
-            return report;
-        }
-    }
+            array[0] = hijackEventHandler.UdpSend + hijackEventHandler.TcpSend;
+            array[1] = hijackEventHandler.TcpReceive + hijackEventHandler.UdpReceive;
+            ulong count =(ulong)(hijackConfig.AllowIPs.Length + hijackConfig.DeniedIPs.Length + hijackConfig.AllowDomains.Length + hijackConfig.DeniedDomains.Length + hijackConfig.AllowProcesss.Length + hijackConfig.DeniedProcesss.Length);
+            array[2] = count;
 
-    public sealed class HijackReportInfo
-    {
-        public ulong Upload { get; set; }
-        public ulong Download { get; set; }
-        public int Count { get; set; }
+            if(array.SequenceEqual(lastArray) == false)
+            {
+                lastArray[0] = array[0];
+                lastArray[1] = array[1];
+                lastArray[2] = array[2];
+                return array;
+            }
+            return null;
+        }
     }
 }

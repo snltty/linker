@@ -35,7 +35,7 @@ export default {
 }
 
 ul li {
-    width: 33.333333%;
+    width: 25%;
     text-align: center;
 
     a {

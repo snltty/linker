@@ -96,8 +96,20 @@ namespace cmonitor.server.client.reports.screen.sharpDX
             try
             {
                 RetrieveFrameMetadata(frame);
-                //RetrieveCursorMetadata(frame);
-                ProcessFrame(frame, configScale, out length);
+                if (frame.UpdatedRegions.Length > 0)
+                {
+                    /*
+                    Console.WriteLine($"update start====================================");
+                    for (int i = 0; i < frame.UpdatedRegions.Length; i++)
+                    {
+                        Console.WriteLine($"x:{frame.UpdatedRegions[i].X},y:{frame.UpdatedRegions[i].Y},w:{frame.UpdatedRegions[i].Width},h:{frame.UpdatedRegions[i].Height}");
+                    }
+                    Console.WriteLine($"update end======================================");
+                    */
+                    //RetrieveCursorMetadata(frame);
+                    ProcessFrame(frame, configScale, out length);
+                }
+
             }
             catch
             {
@@ -139,6 +151,7 @@ namespace cmonitor.server.client.reports.screen.sharpDX
                     throw new DesktopDuplicationException("Failed to acquire next frame.");
                 }
             }
+            if (desktopResource == null) return false;
             using (var tempTexture = desktopResource.QueryInterface<Texture2D>())
                 mDevice.ImmediateContext.CopyResource(tempTexture, desktopImageTexture);
             desktopResource.Dispose();
@@ -251,7 +264,6 @@ namespace cmonitor.server.client.reports.screen.sharpDX
                     GdiCapture.GetScale(out int scalex, out int scaley, out int sourceWidth1, out int sourceHeight1);
                     GdiCapture.GetNewSize(sourceWidth, sourceHeight, scalex, scaley, configScale, out int width, out int height);
 
-
                     using Bitmap image = new Bitmap(sourceWidth, sourceHeight, PixelFormat.Format32bppRgb);
                     Rectangle boundsRect = new Rectangle(0, 0, sourceWidth, sourceHeight);
                     var mapDest = image.LockBits(boundsRect, ImageLockMode.WriteOnly, image.PixelFormat);
@@ -275,8 +287,8 @@ namespace cmonitor.server.client.reports.screen.sharpDX
                     {
                         resizeFilter = new ResizeBilinear(width, height);
                     }
-                    Bitmap bmp = resizeFilter.Apply(image);
-
+                    GdiCapture.CalcClip(sourceWidth, sourceHeight, out int left, out int top, out int _width, out int _height);
+                    Bitmap bmp = resizeFilter.Apply(image, left, top, _width, _height);
 
 
                     using System.Drawing.Image image1 = bmp;
@@ -289,8 +301,9 @@ namespace cmonitor.server.client.reports.screen.sharpDX
                     frame.DesktopImage = ArrayPool<byte>.Shared.Rent((int)ms.Length);
                     ms.Read(frame.DesktopImage);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Console.WriteLine(ex + "");
                 }
             }
         }

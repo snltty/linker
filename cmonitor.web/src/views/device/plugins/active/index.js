@@ -22,6 +22,7 @@ export default {
         ]
     },
     update(item, report) {
+        if (!report.ActiveWindow) return;
         item.ActiveWindow.Title = report.ActiveWindow.Title;
         item.ActiveWindow.FileName = report.ActiveWindow.FileName;
         item.ActiveWindow.Desc = report.ActiveWindow.Desc;

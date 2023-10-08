@@ -7,6 +7,9 @@ namespace cmonitor.server.client.reports.volume
     {
         public string Name => "Volume";
         private VolumeReportInfo report = new VolumeReportInfo();
+        private float lastValue;
+        private bool lastMute;
+        private float lastMasterPeak;
 
         public VolumeReport()
         {
@@ -21,7 +24,14 @@ namespace cmonitor.server.client.reports.volume
                 report.Mute = GetVolumeMute();
                 report.MasterPeak = GetMasterPeakValue();
             }
-            return report;
+            if (report.Value != lastValue || report.Mute != lastMute || report.MasterPeak != lastMasterPeak)
+            {
+                lastValue = report.Value;
+                lastMute = report.Mute;
+                lastMasterPeak = report.MasterPeak;
+                return report;
+            }
+            return null;
         }
 
 
@@ -41,7 +51,7 @@ namespace cmonitor.server.client.reports.volume
         {
             try
             {
-               
+
                 volume = Math.Max(0, Math.Min(volume, 1));
                 defaultDevice.AudioEndpointVolume.MasterVolumeLevelScalar = volume;
             }

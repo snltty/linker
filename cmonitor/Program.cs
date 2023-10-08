@@ -33,6 +33,7 @@ using cmonitor.server.client.reports.system;
 using cmonitor.server.service.messengers.notify;
 using cmonitor.server.client.reports.notify;
 using cmonitor.server.client.reports.command;
+using cmonitor.server.service.messengers.setting;
 
 namespace cmonitor
 {
@@ -73,14 +74,14 @@ namespace cmonitor
 
             serviceProvider = serviceCollection.BuildServiceProvider();
             //运行服务
-            RunService(serviceProvider,config);
+            RunService(serviceProvider, config);
 
 
             GCHelper.FlushMemory();
             await Helper.Await();
         }
 
-        private static void RunService(ServiceProvider serviceProvider,Config config)
+        private static void RunService(ServiceProvider serviceProvider, Config config)
         {
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
             MessengerResolver messengerResolver = serviceProvider.GetService<MessengerResolver>();
@@ -145,7 +146,7 @@ namespace cmonitor
             serviceCollection.AddSingleton<SystemReport>();
             serviceCollection.AddSingleton<NotifyReport>();
             serviceCollection.AddSingleton<CommandReport>();
-            
+
 
             //服务
             serviceCollection.AddSingleton<TcpServer>();
@@ -166,6 +167,7 @@ namespace cmonitor
             serviceCollection.AddSingleton<LightMessenger>();
             serviceCollection.AddSingleton<ShareMessenger>();
             serviceCollection.AddSingleton<NotifyMessenger>();
+            serviceCollection.AddSingleton<SettingMessenger>();
 
             //api
             serviceCollection.AddSingleton<RuleConfig>();
@@ -183,7 +185,8 @@ namespace cmonitor
             serviceCollection.AddSingleton<LightClientService>();
             serviceCollection.AddSingleton<ShareClientService>();
             serviceCollection.AddSingleton<NotifyClientService>();
-            
+            serviceCollection.AddSingleton<SettingClientService>();
+
 
             //web
             serviceCollection.AddSingleton<IWebServer, WebServer>();
@@ -311,9 +314,9 @@ namespace cmonitor
             error = string.Empty;
 
             return ValidateMode(dic) &&
-             ValidateServer(dic, out error) 
-             && ValidateName(dic, out error) 
-             && ValidatePort(dic, out error) 
+             ValidateServer(dic, out error)
+             && ValidateName(dic, out error)
+             && ValidatePort(dic, out error)
              && ValidateMemoryKey(dic, out error)
              && ValidateScreenScale(dic, out error)
              && ValidateReport(dic, out error);

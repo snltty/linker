@@ -9,6 +9,7 @@ namespace cmonitor.server.client.reports.llock
     {
         public string Name => "Usb";
         private UsbReportInfo report = new UsbReportInfo();
+        private bool lastValue;
         public UsbReport(Config config)
         {
             if (config.IsCLient)
@@ -22,7 +23,12 @@ namespace cmonitor.server.client.reports.llock
 
         public object GetReports()
         {
-            return report;
+            if (report.Value != lastValue)
+            {
+                lastValue = report.Value;
+                return report;
+            }
+            return null;
         }
 
         public void Update(bool llock)

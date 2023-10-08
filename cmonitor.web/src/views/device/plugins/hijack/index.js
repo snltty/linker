@@ -61,8 +61,17 @@ export default {
         }, 1000);
     },
     update(item, report) {
-        item.Hijack.Upload = report.Hijack.Upload;
-        item.Hijack.Download = report.Hijack.Download;
-        item.Hijack.Count = report.Hijack.Count;
+
+        if (!report.Hijack) return;
+        if (report.Hijack.length > 0) {
+            item.Hijack.Upload = report.Hijack[0];
+            item.Hijack.Download = report.Hijack[1];
+            item.Hijack.Count = report.Hijack[2];
+        } else {
+            item.Hijack.Upload = report.Hijack.Upload;
+            item.Hijack.Download = report.Hijack.Download;
+            item.Hijack.Count = report.Hijack.Count;
+        }
+
     }
 }

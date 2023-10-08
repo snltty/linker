@@ -29,6 +29,7 @@ export default {
     init() {
     },
     update(item, report) {
+        if (!report.Volume) return;
         item.Volume.Value = report.Volume.Value;
         item.Volume.Mute = report.Volume.Mute;
         if (report.Volume.MasterPeak > item.Volume.MasterPeak) {

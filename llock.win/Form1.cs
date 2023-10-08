@@ -246,6 +246,7 @@ namespace llock.win
             if (nCode >= 0)
             {
                 return 1;
+                /*
                 KeyBoardHookStruct kbh = (KeyBoardHookStruct)Marshal.PtrToStructure(lParam, typeof(KeyBoardHookStruct));
                 bool res = (kbh.vkCode >= (int)Keys.D0 && kbh.vkCode <= (int)Keys.D9)
                     || (kbh.vkCode >= (int)Keys.NumPad0 && kbh.vkCode <= (int)Keys.NumPad9)
@@ -255,6 +256,7 @@ namespace llock.win
                 {
                     return 1;
                 }
+                */
             }
             return CallNextHookEx(hHook, nCode, wParam, lParam);
         }

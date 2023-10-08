@@ -20,9 +20,8 @@ export default {
         this.globalData = injectGlobalData();
     },
     update(item, report) {
-        if (report.Light) {
-            item.Light.Value = Math.floor(+report.Light.Value);
-            if (isNaN(item.Light.Value)) item.Light.Value = 0;
-        }
+        if (!report.Light) return;
+        item.Light.Value = Math.floor(+report.Light.Value);
+        if (isNaN(item.Light.Value)) item.Light.Value = 0;
     }
 }

@@ -9,12 +9,12 @@ namespace cmonitor.server.client.reports.screen.aforge
     {
         public abstract Dictionary<PixelFormat, PixelFormat> FormatTranslations { get; }
 
-        public Bitmap Apply(Bitmap image)
+        public Bitmap Apply(Bitmap image,int x,int y,int width,int height)
         {
             if (OperatingSystem.IsWindows())
             {
                 BitmapData srcData = image.LockBits(
-                new Rectangle(0, 0, image.Width, image.Height),
+                new Rectangle(x, y, width, height),
                 ImageLockMode.ReadOnly, image.PixelFormat);
 
                 Bitmap dstImage = null;

@@ -7,6 +7,7 @@ export default {
         }
     },
     update(item, report) {
+        if (!report.Usb) return;
         item.Usb.Value = report.Usb.Value;
     }
 }

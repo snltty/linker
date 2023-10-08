@@ -52,8 +52,10 @@ namespace cmonitor.server.client.reports
         }
 
         private uint reportFlag = 0;
+        private long ticks = 0;
         public void Update()
         {
+            ticks = DateTime.UtcNow.Ticks;
             Interlocked.CompareExchange(ref reportFlag, 1, 0);
         }
 
@@ -65,7 +67,9 @@ namespace cmonitor.server.client.reports
                 {
                     try
                     {
-                        if (clientSignInState.Connected == true && Interlocked.CompareExchange(ref reportFlag, 0, 1) == 1)
+                        bool res = clientSignInState.Connected == true
+                        && (Interlocked.CompareExchange(ref reportFlag, 0, 1) == 1 || (DateTime.UtcNow.Ticks - ticks) / TimeSpan.TicksPerMillisecond < 1000);
+                        if (res)
                         {
                             await SendReport();
                         }
@@ -81,24 +85,29 @@ namespace cmonitor.server.client.reports
         }
         private async Task SendReport()
         {
+            reportObj.Clear();
             foreach (IReport item in reports)
             {
                 if (string.IsNullOrWhiteSpace(item.Name) == false)
                 {
                     object val = item.GetReports();
-                    if(val != null)
+                    if (val != null)
                     {
-                        reportObj[item.Name] = item.GetReports();
+                        reportObj[item.Name] = val;
                     }
                 }
             }
-            byte[] res = MemoryPackSerializer.Serialize(reportObj.ToJson());
-            await messengerSender.SendOnly(new MessageRequestWrap
+            if(reportObj.Count > 0)
             {
-                Connection = clientSignInState.Connection,
-                MessengerId = (ushort)ReportMessengerIds.Report,
-                Payload = res
-            });
+                string json = reportObj.ToJsonDefault();
+                byte[] res = MemoryPackSerializer.Serialize(json);
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = clientSignInState.Connection,
+                    MessengerId = (ushort)ReportMessengerIds.Report,
+                    Payload = res
+                });
+            }
         }
     }
 }

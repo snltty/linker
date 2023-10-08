@@ -4,6 +4,7 @@
     {
         public string Name => "Light";
         LightReportInfo report = new LightReportInfo();
+        int lastValue = 0;
 
         private readonly LightWatcher lightWatcher;
         public LightReport()
@@ -22,7 +23,12 @@
 
         public object GetReports()
         {
-            return report;
+            if (report.Value != lastValue)
+            {
+                lastValue = report.Value;
+                return report;
+            }
+            return null;
         }
 
         public void SetLight(int value)

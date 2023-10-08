@@ -7,6 +7,7 @@ export default {
         }
     },
     update(item, report) {
+        if (!report.Wallpaper) return;
         item.Wallpaper.Value = report.Wallpaper.Value;
     }
 }

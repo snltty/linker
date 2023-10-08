@@ -9,7 +9,7 @@
                 <li class="flex">
                     <template v-for="(item1,index1) in item" :key="index1">
                         <div class="flex-1 key" :style="item1.style">
-                            <div class="inner" @mousedown="handleKeyDown(item1)" @mouseup="handleKeyUp(item1)">
+                            <div class="inner" @touchstart="handleKeyDown(item1)" @touchend="handleKeyUp(item1)">
                                 {{item1.text}}
                             </div>
                         </div>
@@ -19,7 +19,6 @@
         </ul>
     </div>
 </template>
-
 <script>
 import { computed, reactive } from 'vue'
 import { injectPluginState } from '../../provide';
@@ -65,7 +64,15 @@ export default {
     }
 }
 </script>
-
+<style lang="stylus">
+* {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+</style>
 <style lang="stylus" scoped>
 .keyboard-wrap {
     position: absolute;
@@ -108,6 +115,13 @@ export default {
         text-align: center;
         padding-top: 0.6rem;
         color: #164e51;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
     }
 
     ul {
@@ -130,6 +144,7 @@ export default {
                 -moz-user-select: none;
                 -ms-user-select: none;
                 user-select: none;
+                -webkit-touch-callout: none;
 
                 &:active {
                     background-color: rgba(46, 90, 95, 0.2);

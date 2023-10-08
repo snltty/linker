@@ -65,6 +65,8 @@ export default {
                 { label: '启用U盘', func: usbUpdate, value: false },
                 { label: '设置静音', func: setVolumeMute, value: true },
                 { label: '取消静音', func: setVolumeMute, value: false },
+                { label: '开任务管理器', value: 'reg add HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /v DisableTaskMgr  /t REG_DWORD /f /d 0' },
+                { label: '禁资源管理器', value: 'reg add HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /v DisableTaskMgr  /t REG_DWORD /f /d 1' },
             ],
             loading: false
         });

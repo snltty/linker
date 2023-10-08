@@ -9,6 +9,33 @@ namespace cmonitor.server.client.reports.screen
 {
     public sealed class GdiCapture
     {
+        static ScreenClipInfo screenClipInfo = new ScreenClipInfo { X = 0, Y = 0, Scale = 1 };
+        public static void Clip(ScreenClipInfo _screenClipInfo)
+        {
+            screenClipInfo = _screenClipInfo;
+        }
+        public static void CalcClip(int sourceWidth, int sourceHeight, out int left, out int top, out int width, out int height)
+        {
+            //缩放后宽高
+            int newSourceWidth = (int)(sourceWidth * screenClipInfo.Scale);
+            int newSourceHeight = (int)(sourceHeight * screenClipInfo.Scale);
+
+            //减去的宽高
+            int clipWidth = (int)((newSourceWidth - sourceWidth) * 1.0 / newSourceWidth * sourceWidth);
+            int clipHeight = (int)((newSourceHeight - sourceHeight) * 1.0 / newSourceHeight * sourceHeight);
+            //留下的宽高
+            width = sourceWidth - clipWidth;
+            height = sourceHeight - clipHeight;
+
+            float scaleX = screenClipInfo.X * 1.0f / sourceWidth;
+            float scaleY = screenClipInfo.Y * 1.0f / sourceHeight;
+
+            left = (int)(clipWidth * scaleX);
+            top = (int)(clipHeight * scaleY);
+
+        }
+
+
         static ResizeBilinear resizeFilter;
         public static byte[] Capture(float configScale, out int length)
         {
@@ -36,7 +63,8 @@ namespace cmonitor.server.client.reports.screen
                 {
                     resizeFilter = new ResizeBilinear(width, height);
                 }
-                Bitmap bmp = resizeFilter.Apply(source);
+                GdiCapture.CalcClip(sourceWidth, sourceHeight, out int left, out int top, out int _width, out int _height);
+                Bitmap bmp = resizeFilter.Apply(source, left, top, _width, _height);
 
                 using Image image = bmp;
 

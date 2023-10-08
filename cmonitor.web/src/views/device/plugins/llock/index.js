@@ -7,6 +7,7 @@ export default {
         }
     },
     update(item, report) {
+        if (!report.LLock) return;
         item.LLock.Value = report.LLock.Value;
     }
 }

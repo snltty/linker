@@ -21,6 +21,7 @@ namespace cmonitor.server.client.reports.share
         public object GetReports()
         {
             GetShare();
+            if (dic.Count == 0) return null;
             return dic;
         }
         public bool GetShare(string key, out ShareItemInfo item)

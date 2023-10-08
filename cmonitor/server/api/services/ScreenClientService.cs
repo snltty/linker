@@ -1,7 +1,9 @@
-﻿using cmonitor.server.service;
+﻿using cmonitor.server.client.reports.screen;
+using cmonitor.server.service;
 using cmonitor.server.service.messengers.screen;
 using cmonitor.server.service.messengers.sign;
 using common.libs.extends;
+using MemoryPack;
 
 namespace cmonitor.server.api.services
 {
@@ -42,6 +44,26 @@ namespace cmonitor.server.api.services
 
             return true;
         }
+        public bool Clip(ClientServiceParamsInfo param)
+        {
+            ScreenClipParamInfo screenClipParamInfo = param.Content.DeJson<ScreenClipParamInfo>();
+            if (signCaching.Get(screenClipParamInfo.Name, out SignCacheInfo cache))
+            {
+                _ = messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cache.Connection,
+                    MessengerId = (ushort)ScreenMessengerIds.Clip,
+                    Timeout = 1000,
+                    Payload = MemoryPackSerializer.Serialize(screenClipParamInfo.Clip)
+                });
+            }
+            return true;
+        }
 
+    }
+    public sealed class ScreenClipParamInfo
+    {
+        public string Name { get; set; }
+        public ScreenClipInfo Clip { get; set; }
     }
 }

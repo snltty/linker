@@ -47,25 +47,25 @@ export default {
     },
     lockTypes: { code: '代码', lock: '锁屏', cmonitor: '班长', flag: '学习目标', class: '课程', 'remark-block': '图形化点评', 'remark-cpp': 'C++点评' },
     update(item, report) {
-        if (report.Share) {
-            if (report.Share.UserName) {
-                item.Share.UserName.Index = report.Share.UserName.Index;
-                item.Share.UserName.Value = report.Share.UserName.Value;
+        if (!report.Share) return;
+
+        if (report.Share.UserName) {
+            item.Share.UserName.Index = report.Share.UserName.Index;
+            item.Share.UserName.Value = report.Share.UserName.Value;
+        }
+        if (report.Share.Lock) {
+            item.Share.Lock.Index = report.Share.Lock.Index;
+            if (report.Share.Lock.Value) {
+                const json = JSON.parse(report.Share.Lock.Value);
+                item.Share.Lock.Value.type = json.type;
+                item.Share.Lock.Value.val = json.val;
+                item.Share.Lock.Value.star = json.star || 0;
+                item.Share.Lock.TypeText = this.lockTypes[json.type];
             }
-            if (report.Share.Lock) {
-                item.Share.Lock.Index = report.Share.Lock.Index;
-                if (report.Share.Lock.Value) {
-                    const json = JSON.parse(report.Share.Lock.Value);
-                    item.Share.Lock.Value.type = json.type;
-                    item.Share.Lock.Value.val = json.val;
-                    item.Share.Lock.Value.star = json.star || 0;
-                    item.Share.Lock.TypeText = this.lockTypes[json.type];
-                }
-            }
-            if (report.Share.KeyBoard) {
-                item.Share.KeyBoard.Index = report.Share.KeyBoard.Index;
-                item.Share.KeyBoard.Value = report.Share.KeyBoard.Value;
-            }
+        }
+        if (report.Share.KeyBoard) {
+            item.Share.KeyBoard.Index = report.Share.KeyBoard.Index;
+            item.Share.KeyBoard.Value = report.Share.KeyBoard.Value;
         }
     }
 }

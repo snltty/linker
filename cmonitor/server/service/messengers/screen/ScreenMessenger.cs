@@ -27,6 +27,11 @@ namespace cmonitor.server.service.messengers.screen
         {
             screenReport.Update();
         }
+        [MessengerId((ushort)ScreenMessengerIds.Clip)]
+        public void Clip(IConnection connection)
+        {
+            screenReport.Clip(MemoryPackSerializer.Deserialize<ScreenClipInfo>(connection.ReceiveRequestWrap.Payload.Span));
+        }
 
         [MessengerId((ushort)ScreenMessengerIds.Report)]
         public void Report(IConnection connection)
@@ -42,6 +47,23 @@ namespace cmonitor.server.service.messengers.screen
                 {
                     string base64 = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
                     clientServer.Notify("/notify/report/screen", new { connection.Name, Img = base64 });
+                }
+            }
+        }
+        [MessengerId((ushort)ScreenMessengerIds.Region)]
+        public void Region(IConnection connection)
+        {
+            if (signCaching.Get(connection.Name, out SignCacheInfo cache))
+            {
+                if (cache.Version == config.Version)
+                {
+                    clientServer.Notify("/notify/report/region", connection.Name, connection.ReceiveRequestWrap.Payload);
+                    //clientServer.Notify("/notify/report/screen", new { connection.Name, Img = connection.ReceiveRequestWrap.Payload.ToArray() });
+                }
+                else
+                {
+                    string base64 = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+                    clientServer.Notify("/notify/report/region", new { connection.Name, Img = base64 });
                 }
             }
         }

@@ -8,6 +8,7 @@ namespace cmonitor.server.client.reports.llock
         public string Name => "Wallpaper";
 
         private WallpaperReportInfo report = new WallpaperReportInfo();
+        private bool lastValue;
         private readonly Config config;
         private readonly ShareReport shareReport;
         public WallpaperReport(Config config, ShareReport shareReport)
@@ -23,7 +24,12 @@ namespace cmonitor.server.client.reports.llock
             {
                 report.Value = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds - time < 1000;
             }
-            return report;
+            if (report.Value != lastValue)
+            {
+                lastValue = report.Value;
+                return report;
+            }
+            return null;
         }
 
         public void Update(bool open, string url)

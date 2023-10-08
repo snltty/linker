@@ -5,6 +5,9 @@
         public string Name => "System";
 
         private readonly SystemReportInfo systemReportInfo = new SystemReportInfo();
+        private double lastCpu;
+        private double lastMemory;
+
         public SystemReport()
         {
             systemReportInfo.Drives = WindowsDrive.GetAllDrives();
@@ -13,7 +16,13 @@
 
         public object GetReports()
         {
-            return systemReportInfo;
+            if(systemReportInfo.Cpu != lastCpu || systemReportInfo.Memory != lastMemory)
+            {
+                lastCpu = systemReportInfo.Cpu;
+                lastMemory = systemReportInfo.Memory;
+                return systemReportInfo;
+            }
+            return null;
         }
 
         private void ReportTask()
