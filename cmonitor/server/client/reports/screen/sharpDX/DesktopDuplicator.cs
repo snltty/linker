@@ -16,9 +16,11 @@ namespace cmonitor.server.client.reports.screen.sharpDX
 {
     public class DesktopDuplicator
     {
+        private Adapter1 adapter;
         private Device mDevice;
         private OutputDescription mOutputDesc;
         private OutputDuplication mDeskDupl;
+        private Output output;
         private Output1 output1;
 
         private Texture2D desktopImageTexture = null;
@@ -39,29 +41,88 @@ namespace cmonitor.server.client.reports.screen.sharpDX
 
         private void InitCapture(int whichGraphicsCardAdapter, int whichOutputDevice)
         {
-            Adapter1 adapter = null;
             try
             {
+                try
+                {
+                    if (adapter != null)
+                    {
+                        adapter.Dispose();
+                        adapter = null;
+                    }
+                }
+                catch (Exception)
+                {
+                }
                 adapter = new Factory1().GetAdapter1(whichGraphicsCardAdapter);
             }
             catch (SharpDXException)
             {
                 throw new Exception("Could not find the specified graphics card adapter.");
             }
-            this.mDevice = new Device(adapter);
-            Output output = null;
+
             try
             {
+                if (mDevice != null)
+                {
+                    mDevice.Dispose();
+                    mDevice = null;
+                }
+            }
+            catch (Exception)
+            {
+            }
+            mDevice = new Device(adapter);
+           
+            
+            try
+            {
+                try
+                {
+                    if (output != null)
+                    {
+                        output.Dispose();
+                        output = null;
+                    }
+                }
+                catch (Exception)
+                {
+                }
                 output = adapter.GetOutput(whichOutputDevice);
             }
             catch (SharpDXException)
             {
                 throw new Exception("Could not find the specified output device.");
             }
+
+            try
+            {
+                if (output1 != null)
+                {
+                    output1.Dispose();
+                    output1 = null;
+                }
+            }
+            catch (Exception)
+            {
+            }
             output1 = output.QueryInterface<Output1>();
             this.mOutputDesc = output.Description;
             int width = output1.Description.DesktopBounds.Right - output1.Description.DesktopBounds.Left;
             int height = output1.Description.DesktopBounds.Bottom - output1.Description.DesktopBounds.Top;
+
+
+            try
+            {
+                if (desktopImageTexture != null)
+                {
+                    desktopImageTexture.Dispose();
+                    desktopImageTexture = null;
+                }
+            }
+            catch (Exception)
+            {
+            }
             desktopImageTexture = new Texture2D(mDevice, new Texture2DDescription()
             {
                 CpuAccessFlags = CpuAccessFlags.Read,
@@ -76,7 +137,17 @@ namespace cmonitor.server.client.reports.screen.sharpDX
                 Usage = ResourceUsage.Staging
             });
 
-
+            try
+            {
+                if (smallerTexture != null)
+                {
+                    smallerTexture.Dispose();
+                    smallerTexture = null;
+                }
+            }
+            catch (Exception)
+            {
+            }
             smallerTexture = new Texture2D(mDevice, new Texture2DDescription
             {
                 CpuAccessFlags = CpuAccessFlags.None,
@@ -90,10 +161,27 @@ namespace cmonitor.server.client.reports.screen.sharpDX
                 SampleDescription = { Count = 1, Quality = 0 },
                 Usage = ResourceUsage.Default
             });
+
+            try
+            {
+                if (smallerTextureView != null)
+                {
+                    smallerTextureView.Dispose();
+                    smallerTextureView = null;
+                }
+            }
+            catch (Exception)
+            {
+            }
             smallerTextureView = new ShaderResourceView(mDevice, smallerTexture);
 
             try
             {
+                if (mDeskDupl != null)
+                {
+                    mDeskDupl.Dispose();
+                    mDeskDupl = null;
+                }
                 this.mDeskDupl = output1.DuplicateOutput(mDevice);
             }
             catch (SharpDXException ex)
@@ -118,7 +206,7 @@ namespace cmonitor.server.client.reports.screen.sharpDX
             {
                 return null;
             }
-               
+
             try
             {
                 RetrieveFrameMetadata(frame);
@@ -161,6 +249,7 @@ namespace cmonitor.server.client.reports.screen.sharpDX
                 mDeskDupl.TryAcquireNextFrame(500, out frameInfo, out desktopResource);
                 if (desktopResource == null)
                 {
+                    InitCapture(0,0);
                     return false;
                 }
             }
@@ -254,7 +343,7 @@ namespace cmonitor.server.client.reports.screen.sharpDX
                     GdiCapture.GetNewSize(smallerTexture.Description.Width, smallerTexture.Description.Height, frame.ScaleX, frame.ScaleY, configScale, out int width, out int height);
 
                     int sourceSubresource = frame.Width / width;
-                    if (sourceSubresource >= 1)
+                    if (sourceSubresource >= 0)
                     {
                         while (sourceSubresource > 0 && smallerTexture.Description.Width / (1 << sourceSubresource) < width)
                         {
@@ -274,6 +363,7 @@ namespace cmonitor.server.client.reports.screen.sharpDX
                         Back = 1
                     }, desktopImageTexture, 0);
 
+                   
                     DataBox mapSource = mDevice.ImmediateContext.MapSubresource(desktopImageTexture, 0, MapMode.Read, MapFlags.None);
                     using Bitmap image = new Bitmap(frame.Width, frame.Height, PixelFormat.Format32bppArgb);
                     System.Drawing.Rectangle boundsRect = new System.Drawing.Rectangle(0, 0, frame.Width, frame.Height);
@@ -295,7 +385,7 @@ namespace cmonitor.server.client.reports.screen.sharpDX
                     {
                         bmp = new Bitmap(width, height);
                         using Graphics graphic = Graphics.FromImage(bmp);
-                        graphic.DrawImage(image, new System.Drawing.Rectangle(0, 0, width, height),0,0, frame.Width, frame.Height, GraphicsUnit.Pixel);
+                        graphic.DrawImage(image, new System.Drawing.Rectangle(0, 0, width, height), 0, 0, frame.Width, frame.Height, GraphicsUnit.Pixel);
                     }
 
                     using System.Drawing.Image image1 = bmp;
@@ -318,6 +408,20 @@ namespace cmonitor.server.client.reports.screen.sharpDX
                     {
                         Logger.Instance.Error(ex);
                     }
+                    desktopImageTexture.Dispose();
+                    desktopImageTexture = new Texture2D(mDevice, new Texture2DDescription()
+                    {
+                        CpuAccessFlags = CpuAccessFlags.Read,
+                        BindFlags = BindFlags.None,
+                        Format = Format.B8G8R8A8_UNorm,
+                        Width = smallerTexture.Description.Width,
+                        Height = smallerTexture.Description.Height,
+                        OptionFlags = ResourceOptionFlags.None,
+                        MipLevels = 1,
+                        ArraySize = 1,
+                        SampleDescription = { Count = 1, Quality = 0 },
+                        Usage = ResourceUsage.Staging
+                    });
                 }
             }
         }

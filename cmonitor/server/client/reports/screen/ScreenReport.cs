@@ -64,6 +64,10 @@ namespace cmonitor.server.client.reports.screen
 
         private void ScreenCaptureTask()
         {
+            if (OperatingSystem.IsWindows() == false)
+            {
+                return;
+            }
             Task.Factory.StartNew(async () =>
             {
                 while (true)
