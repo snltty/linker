@@ -113,9 +113,12 @@ namespace cmonitor.server.client.reports.volume
         AudioMeterInformation information;
         private void Init()
         {
-            deviceEnumerator = new MMDeviceEnumerator();
-            defaultDevice = deviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
-            information = defaultDevice.AudioMeterInformation;
+            if (OperatingSystem.IsWindows())
+            {
+                deviceEnumerator = new MMDeviceEnumerator();
+                defaultDevice = deviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+                information = defaultDevice.AudioMeterInformation;
+            }
         }
 
         /*
