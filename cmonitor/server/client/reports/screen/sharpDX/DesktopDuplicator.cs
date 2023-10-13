@@ -31,7 +31,10 @@ namespace cmonitor.server.client.reports.screen.sharpDX
 
         public DesktopDuplicator(int whichGraphicsCardAdapter, int whichOutputDevice)
         {
-            InitCapture(whichGraphicsCardAdapter, whichOutputDevice);
+            if (OperatingSystem.IsWindows())
+            {
+                InitCapture(whichGraphicsCardAdapter, whichOutputDevice);
+            }
         }
 
         private void InitCapture(int whichGraphicsCardAdapter, int whichOutputDevice)
@@ -112,7 +115,10 @@ namespace cmonitor.server.client.reports.screen.sharpDX
             DesktopFrame frame = new DesktopFrame() { FullImage = Helper.EmptyArray, RegionImage = Helper.EmptyArray };
             bool retrievalTimedOut = RetrieveFrame(frame, configScale);
             if (retrievalTimedOut)
+            {
                 return null;
+            }
+               
             try
             {
                 RetrieveFrameMetadata(frame);
@@ -250,7 +256,7 @@ namespace cmonitor.server.client.reports.screen.sharpDX
                     int sourceSubresource = frame.Width / width;
                     if (sourceSubresource >= 1)
                     {
-                        while (sourceSubresource>0 && smallerTexture.Description.Width / (1 << sourceSubresource) < width)
+                        while (sourceSubresource > 0 && smallerTexture.Description.Width / (1 << sourceSubresource) < width)
                         {
                             sourceSubresource--;
                         }
@@ -258,7 +264,6 @@ namespace cmonitor.server.client.reports.screen.sharpDX
                         frame.Width = smallerTexture.Description.Width / (1 << sourceSubresource);
                         frame.Height = smallerTexture.Description.Height / (1 << sourceSubresource);
                     }
-                    //Console.WriteLine($"sourceSubresource:{sourceSubresource},frame.Width:{frame.Width},frame.Height:{frame.Height},width:{width},height:{height}");
 
                     mDevice.ImmediateContext.CopySubresourceRegion(smallerTexture, sourceSubresource, new ResourceRegion
                     {
@@ -289,13 +294,9 @@ namespace cmonitor.server.client.reports.screen.sharpDX
                     if (frame.Width - width > 50)
                     {
                         bmp = new Bitmap(width, height);
-                        bmp.SetResolution(image.HorizontalResolution, image.VerticalResolution);
                         using Graphics graphic = Graphics.FromImage(bmp);
-                        graphic.SmoothingMode = SmoothingMode.HighQuality;
-                        graphic.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                        graphic.DrawImage(image, new System.Drawing.Rectangle(0, 0, image.Width, image.Height));
+                        graphic.DrawImage(image, new System.Drawing.Rectangle(0, 0, width, height),0,0, frame.Width, frame.Height, GraphicsUnit.Pixel);
                     }
-                    //Console.WriteLine($"bmp.Width:{bmp.Width},bmp.Height:{bmp.Height}");
 
                     using System.Drawing.Image image1 = bmp;
 
