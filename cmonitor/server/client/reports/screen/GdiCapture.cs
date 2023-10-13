@@ -1,9 +1,6 @@
-﻿using cmonitor.server.client.reports.screen.aforge;
-using System.Buffers;
+﻿using System.Buffers;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
-using Image = System.Drawing.Image;
 
 namespace cmonitor.server.client.reports.screen
 {
@@ -14,7 +11,16 @@ namespace cmonitor.server.client.reports.screen
         {
             screenClipInfo = _screenClipInfo;
         }
-        public static void CalcClip(int sourceWidth, int sourceHeight, out int left, out int top, out int width, out int height)
+        public static bool IsClip()
+        {
+            return screenClipInfo.Scale != 0;
+        }
+        public static void CalcClip(int sourceWidth, int sourceHeight,  out int left, out int top, out int width, out int height)
+        {
+            CalcClip(sourceWidth, sourceHeight, screenClipInfo.X, screenClipInfo.Y, screenClipInfo.Scale, out left, out top, out width, out height);
+
+        }
+        public static void CalcClip(int sourceWidth, int sourceHeight,int x,int y,float scale, out int left, out int top, out int width, out int height)
         {
             //缩放后宽高
             int newSourceWidth = (int)(sourceWidth * screenClipInfo.Scale);
@@ -35,60 +41,12 @@ namespace cmonitor.server.client.reports.screen
 
         }
 
-
-        static ResizeBilinear resizeFilter;
-        public static byte[] Capture(float configScale, out int length)
-        {
-            length = 0;
-            if (GetScale(out int scaleX, out int scaleY, out int sourceWidth, out int sourceHeight) == false)
-            {
-                return Array.Empty<byte>();
-            }
-            if (OperatingSystem.IsWindows())
-            {
-                IntPtr hdc = GetDC(IntPtr.Zero);
-                using Bitmap source = new Bitmap(sourceWidth, sourceHeight);
-                using (Graphics g = Graphics.FromImage(source))
-                {
-                    g.CopyFromScreen(0, 0, 0, 0, source.Size, CopyPixelOperation.SourceCopy);
-
-                    //DrawCursorIcon(g, sourceWidth, scaleX, scaleY, configScale);
-                    g.Dispose();
-                }
-                ReleaseDC(IntPtr.Zero, hdc);
-
-                GetNewSize(sourceWidth, sourceHeight, scaleX, scaleY, configScale, out int width, out int height);
-
-                if (resizeFilter == null)
-                {
-                    resizeFilter = new ResizeBilinear(width, height);
-                }
-                GdiCapture.CalcClip(sourceWidth, sourceHeight, out int left, out int top, out int _width, out int _height);
-                Bitmap bmp = resizeFilter.Apply(source, left, top, _width, _height);
-
-                using Image image = bmp;
-
-                using MemoryStream ms = new MemoryStream();
-                image.Save(ms, ImageFormat.Jpeg);
-                ms.Seek(0, SeekOrigin.Begin);
-
-                length = (int)ms.Length;
-
-                byte[] bytes = ArrayPool<byte>.Shared.Rent((int)ms.Length);
-                ms.Read(bytes);
-
-                return bytes;
-            }
-
-            return Array.Empty<byte>();
-        }
-
         public static void Return(byte[] bytes)
         {
             ArrayPool<byte>.Shared.Return(bytes);
         }
 
-        public static bool GetScale(out int x, out int y, out int sourceWidth, out int sourceHeight)
+        public static bool GetScale(out float x, out float y, out int sourceWidth, out int sourceHeight)
         {
             x = 1;
             y = 1;
@@ -102,8 +60,8 @@ namespace cmonitor.server.client.reports.screen
                 int screenWidth = GetSystemMetrics(SM_CXSCREEN);
                 int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-                x = (int)(sourceWidth * 1.0 / screenWidth);
-                y = (int)(sourceHeight * 1.0 / screenHeight);
+                x = (sourceWidth * 1.0f / screenWidth);
+                y = (sourceHeight * 1.0f / screenHeight);
 
                 ReleaseDC(IntPtr.Zero, hdc);
 
@@ -111,7 +69,7 @@ namespace cmonitor.server.client.reports.screen
             }
             return false;
         }
-        public static bool GetNewSize(int sourceWidth, int sourceHeight, int scaleX, int scaleY, float configScale, out int width, out int height)
+        public static bool GetNewSize(int sourceWidth, int sourceHeight, float scaleX, float scaleY, float configScale, out int width, out int height)
         {
             width = (int)(sourceWidth * 1.0 / scaleX * configScale);
             height = (int)(sourceHeight * 1.0 / scaleY * configScale);

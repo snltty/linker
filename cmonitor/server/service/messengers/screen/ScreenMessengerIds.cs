@@ -2,10 +2,15 @@
 {
     public enum ScreenMessengerIds : ushort
     {
-        Update = 800,
-        Report = 801,
+        Full = 800,
+        FullReport = 801,
+
         Clip = 802,
+
         Region = 803,
+        RegionReport = 804,
+
+        Rectangles = 805,
 
         None = 899
     }

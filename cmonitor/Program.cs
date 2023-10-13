@@ -399,7 +399,7 @@ namespace cmonitor
             }
             if (dic.ContainsKey("screen-delay") == false || string.IsNullOrWhiteSpace(dic["screen-delay"]))
             {
-                dic["screen-delay"] = "100";
+                dic["screen-delay"] = "200";
             }
             return true;
         }

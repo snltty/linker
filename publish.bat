@@ -11,7 +11,7 @@ dotnet publish ./cmonitor -c releaselinux -f net7.0 -o ./public/publish/linux-x6
 dotnet publish ./cmonitor -c release -f net7.0 -r win-x64 -o ./public/publish/win-x64-any/  -p:PublishSingleFile=true --self-contained false
 dotnet publish ./cmonitor -c releaselinux -f net7.0 -r linux-x64 -o ./public/publish/linux-x64-any/  -p:PublishSingleFile=true --self-contained false
 
-for %%r in (win-x64,win-x64-any) do (
+for %%f in (win-x64,win-x64-any) do (
 	echo F|xcopy "cmonitor\\web\\llock.win.exe" "public\\publish\\%%f\\llock.win.exe"  /s /f /h /y
 	echo F|xcopy "cmonitor\\web\\message.win.exe" "public\\publish\\%%f\\message.win.exe"  /s /f /h /y
 	echo F|xcopy "cmonitor\\web\\wallpaper.win.exe" "public\\publish\\%%f\\wallpaper.win.exe"  /s /f /h /y

@@ -4,6 +4,7 @@ using cmonitor.server.service.messengers.screen;
 using System.Runtime.InteropServices;
 using MemoryPack;
 using cmonitor.server.client.reports.screen.sharpDX;
+using System.Diagnostics;
 
 namespace cmonitor.server.client.reports.screen
 {
@@ -44,17 +45,23 @@ namespace cmonitor.server.client.reports.screen
 
 
         #region 截图
-        private uint screenCaptureFlag = 0;
+        private ScreenReportType screenReportType = ScreenReportType.None;
         private long ticks = 0;
-        public void Update()
+        public void Full()
         {
             ticks = DateTime.UtcNow.Ticks;
-            Interlocked.CompareExchange(ref screenCaptureFlag, 1, 0);
+            screenReportType = ScreenReportType.Full;
         }
         public void Clip(ScreenClipInfo screenClipInfo)
         {
             GdiCapture.Clip(screenClipInfo);
         }
+        public void Region()
+        {
+            ticks = DateTime.UtcNow.Ticks;
+            screenReportType = ScreenReportType.Region;
+        }
+
         private void ScreenCaptureTask()
         {
             Task.Factory.StartNew(async () =>
@@ -63,7 +70,8 @@ namespace cmonitor.server.client.reports.screen
                 {
                     int delayms = 0;
                     bool res = clientSignInState.Connected == true
-                    && (Interlocked.CompareExchange(ref screenCaptureFlag, 0, 1) == 1 || (DateTime.UtcNow.Ticks - ticks) / TimeSpan.TicksPerMillisecond < 1000);
+                    && screenReportType > ScreenReportType.None
+                    && (DateTime.UtcNow.Ticks - ticks) / TimeSpan.TicksPerMillisecond < 1000;
                     if (res)
                     {
                         try
@@ -92,42 +100,44 @@ namespace cmonitor.server.client.reports.screen
         private async Task SendScreenCapture()
         {
             //var sw = new Stopwatch();
-            //sw.Start();
-            byte[] bytes = ScreenCapture2(out int length);
-            //sw.Stop();
-            //Console.WriteLine($"{bytes.Length}->{sw.ElapsedMilliseconds}");
-            if (length > 0 && bytes.Length > 0)
+            // sw.Start();
+            DesktopFrame frame = desktopDuplicator.GetLatestFrame(screenReportType, config.ScreenScale);
+            // sw.Stop();
+            // Console.WriteLine($"{frame.FullImage.Length}->{sw.ElapsedMilliseconds}");
+            if (frame != null)
             {
-                await messengerSender.SendOnly(new MessageRequestWrap
+                if (frame.FullImage.Length > 0)
                 {
-                    Connection = clientSignInState.Connection,
-                    MessengerId = (ushort)ScreenMessengerIds.Report,
-                    Payload = bytes.AsMemory(0, length),
-                });
-                GdiCapture.Return(bytes);
+                    await messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = clientSignInState.Connection,
+                        MessengerId = (ushort)ScreenMessengerIds.FullReport,
+                        Payload = frame.FullImage,
+                    });
+                }
+                else if (frame.RegionImage.Length > 0)
+                {
+                    await messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = clientSignInState.Connection,
+                        MessengerId = (ushort)ScreenMessengerIds.RegionReport,
+                        Payload = frame.RegionImage,
+                    });
+                }
+                /*
+                if (frame.Updateds.Length > 0)
+                {
+                    await messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = clientSignInState.Connection,
+                        MessengerId = (ushort)ScreenMessengerIds.Rectangles,
+                        Payload = MemoryPackSerializer.Serialize(frame.Updateds),
+                    });
+                }
+                */
             }
-        }
 
-        private byte[] ScreenCapture(out int length)
-        {
-            length = 0;
-#if DEBUG || RELEASE
-            return GdiCapture.Capture(config.ScreenScale, out length);
-#else
-            return Array.Empty<byte>();
-#endif
         }
-        private byte[] ScreenCapture2(out int length)
-        {
-            length = 0;
-#if DEBUG || RELEASE
-            DesktopFrame frame = desktopDuplicator.GetLatestFrame(config.ScreenScale, out length);
-            return frame.DesktopImage;
-#else
-            return Array.Empty<byte>();
-#endif
-        }
-
 
         #endregion
 
@@ -161,21 +171,20 @@ namespace cmonitor.server.client.reports.screen
     {
         public uint LT { get; set; }
     }
+
+    public enum ScreenReportType : byte
+    {
+        None = 0,
+        Full = 1,
+        Region = 2
+    };
+
     [MemoryPackable]
     public sealed partial class ScreenClipInfo
     {
         public int X { get; set; }
         public int Y { get; set; }
         public float Scale { get; set; }
-
-    }
-
-    [MemoryPackable]
-    public sealed partial class ScreenFrameInfo
-    {
-        public int X { get; set; }
-        public int Y { get; set; }
-        public byte[] Data { get; set; }
 
     }
 }

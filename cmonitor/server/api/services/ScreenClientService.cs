@@ -18,7 +18,7 @@ namespace cmonitor.server.api.services
             this.signCaching = signCaching;
             this.config = config;
         }
-        public bool Update(ClientServiceParamsInfo param)
+        public bool Full(ClientServiceParamsInfo param)
         {
             string[] names = param.Content.DeJson<string[]>();
             for (int i = 0; i < names.Length; i++)
@@ -33,7 +33,7 @@ namespace cmonitor.server.api.services
                     _ = messengerSender.SendOnly(new MessageRequestWrap
                     {
                         Connection = cache.Connection,
-                        MessengerId = (ushort)ScreenMessengerIds.Update,
+                        MessengerId = (ushort)ScreenMessengerIds.Full,
                         Timeout = 1000,
                     }).ContinueWith((result) =>
                     {
@@ -60,6 +60,33 @@ namespace cmonitor.server.api.services
             return true;
         }
 
+
+        public bool Region(ClientServiceParamsInfo param)
+        {
+            string[] names = param.Content.DeJson<string[]>();
+            for (int i = 0; i < names.Length; i++)
+            {
+                bool res = signCaching.Get(names[i], out SignCacheInfo cache)
+                    && cache.Connected
+                    && cache.GetScreen(config.ScreenDelay)
+                    && Interlocked.CompareExchange(ref cache.ScreenFlag, 0, 1) == 1;
+                if (res)
+                {
+                    cache.UpdateScreen();
+                    _ = messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = cache.Connection,
+                        MessengerId = (ushort)ScreenMessengerIds.Region,
+                        Timeout = 1000,
+                    }).ContinueWith((result) =>
+                    {
+                        Interlocked.Exchange(ref cache.ScreenFlag, 1);
+                    });
+                }
+            }
+
+            return true;
+        }
     }
     public sealed class ScreenClipParamInfo
     {

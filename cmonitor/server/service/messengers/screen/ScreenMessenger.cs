@@ -1,5 +1,6 @@
 ﻿using cmonitor.server.api;
 using cmonitor.server.client.reports.screen;
+using cmonitor.server.client.reports.screen.sharpDX;
 using cmonitor.server.service.messengers.sign;
 using MemoryPack;
 using MemoryPack.Compression;
@@ -22,50 +23,53 @@ namespace cmonitor.server.service.messengers.screen
             this.signCaching = signCaching;
         }
 
-        [MessengerId((ushort)ScreenMessengerIds.Update)]
-        public void Update(IConnection connection)
+        [MessengerId((ushort)ScreenMessengerIds.Full)]
+        public void Full(IConnection connection)
         {
-            screenReport.Update();
+            screenReport.Full();
         }
+        [MessengerId((ushort)ScreenMessengerIds.FullReport)]
+        public void FullReport(IConnection connection)
+        {
+            if (signCaching.Get(connection.Name, out SignCacheInfo cache))
+            {
+                if (cache.Version == config.Version)
+                {
+                    clientServer.Notify("/notify/report/screen/full", connection.Name, connection.ReceiveRequestWrap.Payload);
+                }
+                else
+                {
+                    string base64 = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+                    clientServer.Notify("/notify/report/screen/full", new { connection.Name, Img = base64 });
+                }
+            }
+        }
+
+
         [MessengerId((ushort)ScreenMessengerIds.Clip)]
         public void Clip(IConnection connection)
         {
             screenReport.Clip(MemoryPackSerializer.Deserialize<ScreenClipInfo>(connection.ReceiveRequestWrap.Payload.Span));
         }
 
-        [MessengerId((ushort)ScreenMessengerIds.Report)]
-        public void Report(IConnection connection)
-        {
-            if (signCaching.Get(connection.Name, out SignCacheInfo cache))
-            {
-                if (cache.Version == config.Version)
-                {
-                    clientServer.Notify("/notify/report/screen", connection.Name, connection.ReceiveRequestWrap.Payload);
-                    //clientServer.Notify("/notify/report/screen", new { connection.Name, Img = connection.ReceiveRequestWrap.Payload.ToArray() });
-                }
-                else
-                {
-                    string base64 = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-                    clientServer.Notify("/notify/report/screen", new { connection.Name, Img = base64 });
-                }
-            }
-        }
+
         [MessengerId((ushort)ScreenMessengerIds.Region)]
         public void Region(IConnection connection)
         {
-            if (signCaching.Get(connection.Name, out SignCacheInfo cache))
-            {
-                if (cache.Version == config.Version)
-                {
-                    clientServer.Notify("/notify/report/region", connection.Name, connection.ReceiveRequestWrap.Payload);
-                    //clientServer.Notify("/notify/report/screen", new { connection.Name, Img = connection.ReceiveRequestWrap.Payload.ToArray() });
-                }
-                else
-                {
-                    string base64 = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-                    clientServer.Notify("/notify/report/region", new { connection.Name, Img = base64 });
-                }
-            }
+            screenReport.Region();
+        }
+
+        [MessengerId((ushort)ScreenMessengerIds.RegionReport)]
+        public void RegionReport(IConnection connection)
+        {
+            clientServer.Notify("/notify/report/screen/region", connection.Name, connection.ReceiveRequestWrap.Payload);
+        }
+
+        [MessengerId((ushort)ScreenMessengerIds.Rectangles)]
+        public void Rectangles(IConnection connection)
+        {
+            Rectangle[] rectangles = MemoryPackSerializer.Deserialize<Rectangle[]>(connection.ReceiveRequestWrap.Payload.Span);
+            clientServer.Notify("/notify/report/screen/rectangles", new { Name = connection.Name, Rectangles = rectangles });
         }
     }
 

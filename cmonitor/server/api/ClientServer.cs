@@ -187,19 +187,17 @@ namespace cmonitor.server.api
                         {
                             try
                             {
-
                                 connection.SendFrameText(bytes);
                             }
                             catch (Exception)
                             {
                             }
                         }
-
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    //Logger.Instance.Error(ex);
+                    Logger.Instance.Error(ex);
                 }
             }
         }

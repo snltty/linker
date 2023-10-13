@@ -1,7 +1,10 @@
 import { sendWebsocketMsg } from './request'
 
-export const screenUpdate = (names) => {
-    return sendWebsocketMsg('screen/update', names);
+export const screenUpdateFull = (names) => {
+    return sendWebsocketMsg('screen/full', names);
+}
+export const screenUpdateRegion = (names) => {
+    return sendWebsocketMsg('screen/region', names);
 }
 export const screenClip = (name, x, y, scale) => {
     return sendWebsocketMsg('screen/clip', {

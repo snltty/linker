@@ -56,5 +56,10 @@ namespace cmonitor.server.client.reports.screen.aforge
                 image.Palette = cp;
             }
         }
+
+        public static int GetPixelFormatSize(PixelFormat pixfmt)
+        {
+            return ((int)pixfmt >> 8) & 0xFF;
+        }
     }
 }

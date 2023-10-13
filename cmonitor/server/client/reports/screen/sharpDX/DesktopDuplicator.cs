@@ -7,32 +7,35 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Drawing.Imaging;
 using SharpDX.Mathematics.Interop;
-using System.Buffers;
-using Rectangle = System.Drawing.Rectangle;
-using Point = System.Drawing.Point;
-using cmonitor.server.client.reports.screen.aforge;
 using common.libs;
-using SharpDX.Multimedia;
+using common.libs.extends;
+using cmonitor.server.client.reports.screen.aforge;
+using System.Drawing.Drawing2D;
 
 namespace cmonitor.server.client.reports.screen.sharpDX
 {
     public class DesktopDuplicator
     {
         private Device mDevice;
-        private Texture2DDescription mTextureDesc;
         private OutputDescription mOutputDesc;
         private OutputDuplication mDeskDupl;
+        private Output1 output1;
 
         private Texture2D desktopImageTexture = null;
+        private Texture2D smallerTexture = null;
+        private ShaderResourceView smallerTextureView = null;
         private OutputDuplicateFrameInformation frameInfo = new OutputDuplicateFrameInformation();
-        private int mWhichOutputDevice = -1;
 
         public DesktopDuplicator(int whichMonitor)
             : this(0, whichMonitor) { }
 
         public DesktopDuplicator(int whichGraphicsCardAdapter, int whichOutputDevice)
         {
-            this.mWhichOutputDevice = whichOutputDevice;
+            InitCapture(whichGraphicsCardAdapter, whichOutputDevice);
+        }
+
+        private void InitCapture(int whichGraphicsCardAdapter, int whichOutputDevice)
+        {
             Adapter1 adapter = null;
             try
             {
@@ -40,7 +43,7 @@ namespace cmonitor.server.client.reports.screen.sharpDX
             }
             catch (SharpDXException)
             {
-                throw new DesktopDuplicationException("Could not find the specified graphics card adapter.");
+                throw new Exception("Could not find the specified graphics card adapter.");
             }
             this.mDevice = new Device(adapter);
             Output output = null;
@@ -50,23 +53,41 @@ namespace cmonitor.server.client.reports.screen.sharpDX
             }
             catch (SharpDXException)
             {
-                throw new DesktopDuplicationException("Could not find the specified output device.");
+                throw new Exception("Could not find the specified output device.");
             }
-            var output1 = output.QueryInterface<Output1>();
+            output1 = output.QueryInterface<Output1>();
             this.mOutputDesc = output.Description;
-            this.mTextureDesc = new Texture2DDescription()
+            int width = output1.Description.DesktopBounds.Right - output1.Description.DesktopBounds.Left;
+            int height = output1.Description.DesktopBounds.Bottom - output1.Description.DesktopBounds.Top;
+            desktopImageTexture = new Texture2D(mDevice, new Texture2DDescription()
             {
                 CpuAccessFlags = CpuAccessFlags.Read,
                 BindFlags = BindFlags.None,
                 Format = Format.B8G8R8A8_UNorm,
-                Width = this.mOutputDesc.DesktopBounds.Right - this.mOutputDesc.DesktopBounds.Left,
-                Height = this.mOutputDesc.DesktopBounds.Bottom - this.mOutputDesc.DesktopBounds.Top,
+                Width = width,
+                Height = height,
                 OptionFlags = ResourceOptionFlags.None,
                 MipLevels = 1,
                 ArraySize = 1,
                 SampleDescription = { Count = 1, Quality = 0 },
                 Usage = ResourceUsage.Staging
-            };
+            });
+
+
+            smallerTexture = new Texture2D(mDevice, new Texture2DDescription
+            {
+                CpuAccessFlags = CpuAccessFlags.None,
+                BindFlags = BindFlags.RenderTarget | BindFlags.ShaderResource,
+                Format = Format.B8G8R8A8_UNorm,
+                Width = width,
+                Height = height,
+                OptionFlags = ResourceOptionFlags.GenerateMipMaps,
+                MipLevels = 4,
+                ArraySize = 1,
+                SampleDescription = { Count = 1, Quality = 0 },
+                Usage = ResourceUsage.Default
+            });
+            smallerTextureView = new ShaderResourceView(mDevice, smallerTexture);
 
             try
             {
@@ -77,7 +98,7 @@ namespace cmonitor.server.client.reports.screen.sharpDX
                 Logger.Instance.Error(ex);
                 if (ex.ResultCode.Code == SharpDX.DXGI.ResultCode.NotCurrentlyAvailable.Result.Code)
                 {
-                    throw new DesktopDuplicationException("There is already the maximum number of applications using the Desktop Duplication API running, please close one of the applications and try again.");
+                    throw new Exception("There is already the maximum number of applications using the Desktop Duplication API running, please close one of the applications and try again.");
                 }
             }
             catch (Exception ex)
@@ -86,30 +107,27 @@ namespace cmonitor.server.client.reports.screen.sharpDX
             }
         }
 
-        public DesktopFrame GetLatestFrame(float configScale, out int length)
+        public DesktopFrame GetLatestFrame(ScreenReportType screenReportType, float configScale)
         {
-            length = 0;
-            DesktopFrame frame = new DesktopFrame() { DesktopImage = Helper.EmptyArray };
-            bool retrievalTimedOut = RetrieveFrame();
+            DesktopFrame frame = new DesktopFrame() { FullImage = Helper.EmptyArray, RegionImage = Helper.EmptyArray };
+            bool retrievalTimedOut = RetrieveFrame(frame, configScale);
             if (retrievalTimedOut)
                 return null;
             try
             {
                 RetrieveFrameMetadata(frame);
-                if (frame.UpdatedRegions.Length > 0)
+                if (frame.UpdatedRegions.Length > 0 || GdiCapture.IsClip())
                 {
-                    /*
-                    Console.WriteLine($"update start====================================");
-                    for (int i = 0; i < frame.UpdatedRegions.Length; i++)
+                    if (screenReportType == ScreenReportType.Full)
                     {
-                        Console.WriteLine($"x:{frame.UpdatedRegions[i].X},y:{frame.UpdatedRegions[i].Y},w:{frame.UpdatedRegions[i].Width},h:{frame.UpdatedRegions[i].Height}");
+                        ProcessFrameFull(frame, configScale);
                     }
-                    Console.WriteLine($"update end======================================");
-                    */
-                    //RetrieveCursorMetadata(frame);
-                    ProcessFrame(frame, configScale, out length);
+                    else if (screenReportType == ScreenReportType.Region)
+                    {
+                        frame.UpdatedRegions = Rectangle.UnionRectangles(frame.UpdatedRegions);
+                        ProcessFrameRegion(frame, configScale);
+                    }
                 }
-
             }
             catch
             {
@@ -129,16 +147,16 @@ namespace cmonitor.server.client.reports.screen.sharpDX
             return frame;
         }
 
-        private bool RetrieveFrame()
+        private bool RetrieveFrame(DesktopFrame frame, float configScale)
         {
-            if (desktopImageTexture == null)
-                desktopImageTexture = new Texture2D(mDevice, mTextureDesc);
             SharpDX.DXGI.Resource desktopResource = null;
-            frameInfo = new OutputDuplicateFrameInformation();
-
             try
             {
                 mDeskDupl.TryAcquireNextFrame(500, out frameInfo, out desktopResource);
+                if (desktopResource == null)
+                {
+                    return false;
+                }
             }
             catch (SharpDXException ex)
             {
@@ -148,24 +166,46 @@ namespace cmonitor.server.client.reports.screen.sharpDX
                 }
                 if (ex.ResultCode.Failure)
                 {
-                    throw new DesktopDuplicationException("Failed to acquire next frame.");
+                    throw new Exception("Failed to acquire next frame.");
                 }
             }
-            if (desktopResource == null) return false;
-            using (var tempTexture = desktopResource.QueryInterface<Texture2D>())
-                mDevice.ImmediateContext.CopyResource(tempTexture, desktopImageTexture);
+
+            int sourceWidth = smallerTexture.Description.Width;
+            int sourceHeight = smallerTexture.Description.Height;
+
+            frame.Width = sourceWidth;
+            frame.Height = sourceHeight;
+
+            GdiCapture.GetScale(out float scalex, out float scaley, out int sourceWidth1, out int sourceHeight1);
+            frame.ScaleX = scalex;
+            frame.ScaleY = scaley;
+
+            GdiCapture.CalcClip(sourceWidth, sourceHeight, out int left, out int top, out int _width, out int _height);
+
+            frame.Width = _width;
+            frame.Height = _height;
+
+            using Texture2D tempTexture = desktopResource.QueryInterface<Texture2D>();
+            mDevice.ImmediateContext.CopySubresourceRegion(tempTexture, 0, new ResourceRegion
+            {
+                Left = left,
+                Top = top,
+                Right = left + _width,
+                Bottom = top + _height,
+                Back = 1
+            }, smallerTexture, 0);
+
             desktopResource.Dispose();
             return false;
         }
-
         private void RetrieveFrameMetadata(DesktopFrame frame)
         {
-
             if (frameInfo.TotalMetadataBufferSize > 0)
             {
-                int movedRegionsLength = 0;
+                /*
                 OutputDuplicateMoveRectangle[] movedRectangles = new OutputDuplicateMoveRectangle[frameInfo.TotalMetadataBufferSize];
-                mDeskDupl.GetFrameMoveRects(movedRectangles.Length, movedRectangles, out movedRegionsLength);
+                mDeskDupl.GetFrameMoveRects(movedRectangles.Length, movedRectangles, out int movedRegionsLength);
+                //Console.WriteLine($"movedRegionsLength:{movedRegionsLength}");
                 frame.MovedRegions = new MovedRegion[movedRegionsLength / Marshal.SizeOf(typeof(OutputDuplicateMoveRectangle))];
                 for (int i = 0; i < frame.MovedRegions.Length; i++)
                 {
@@ -173,15 +213,15 @@ namespace cmonitor.server.client.reports.screen.sharpDX
                     int height = movedRectangles[i].DestinationRect.Bottom - movedRectangles[i].DestinationRect.Top;
                     frame.MovedRegions[i] = new MovedRegion()
                     {
-                        Source = new Point(movedRectangles[i].SourcePoint.X, movedRectangles[i].SourcePoint.Y),
-
+                        Source = new System.Drawing.Point(movedRectangles[i].SourcePoint.X, movedRectangles[i].SourcePoint.Y),
                         Destination = new Rectangle(movedRectangles[i].DestinationRect.Left, movedRectangles[i].DestinationRect.Top, width, height)
                     };
-                }
 
-                int dirtyRegionsLength = 0;
+                }
+                */
+
                 RawRectangle[] dirtyRectangles = new RawRectangle[frameInfo.TotalMetadataBufferSize];
-                mDeskDupl.GetFrameDirtyRects(dirtyRectangles.Length, dirtyRectangles, out dirtyRegionsLength);
+                mDeskDupl.GetFrameDirtyRects(dirtyRectangles.Length, dirtyRectangles, out int dirtyRegionsLength);
                 frame.UpdatedRegions = new Rectangle[dirtyRegionsLength / Marshal.SizeOf(typeof(Rectangle))];
                 for (int i = 0; i < frame.UpdatedRegions.Length; i++)
                 {
@@ -192,67 +232,98 @@ namespace cmonitor.server.client.reports.screen.sharpDX
             }
             else
             {
-                frame.MovedRegions = new MovedRegion[0];
-                frame.UpdatedRegions = new System.Drawing.Rectangle[0];
+                //frame.MovedRegions = new MovedRegion[0];
+                frame.UpdatedRegions = new Rectangle[0];
             }
         }
-        private void RetrieveCursorMetadata(DesktopFrame frame)
+
+        byte[] fullImageBytes = Helper.EmptyArray;
+        private unsafe void ProcessFrameFull(DesktopFrame frame, float configScale)
         {
-            var pointerInfo = new PointerInfo();
-
-            if (frameInfo.LastMouseUpdateTime == 0)
-                return;
-
-            bool updatePosition = true;
-
-            if (!frameInfo.PointerPosition.Visible && (pointerInfo.WhoUpdatedPositionLast != this.mWhichOutputDevice))
-                updatePosition = false;
-
-            if (frameInfo.PointerPosition.Visible && pointerInfo.Visible && (pointerInfo.WhoUpdatedPositionLast != this.mWhichOutputDevice) && (pointerInfo.LastTimeStamp > frameInfo.LastMouseUpdateTime))
-                updatePosition = false;
-
-            if (updatePosition)
+            if (OperatingSystem.IsWindows())
             {
-                pointerInfo.Position = new Point(frameInfo.PointerPosition.Position.X, frameInfo.PointerPosition.Position.Y);
-                pointerInfo.WhoUpdatedPositionLast = mWhichOutputDevice;
-                pointerInfo.LastTimeStamp = frameInfo.LastMouseUpdateTime;
-                pointerInfo.Visible = frameInfo.PointerPosition.Visible;
-            }
-
-            if (frameInfo.PointerShapeBufferSize == 0)
-                return;
-
-            if (frameInfo.PointerShapeBufferSize > pointerInfo.BufferSize)
-            {
-                pointerInfo.PtrShapeBuffer = new byte[frameInfo.PointerShapeBufferSize];
-                pointerInfo.BufferSize = frameInfo.PointerShapeBufferSize;
-            }
-
-            try
-            {
-                unsafe
+                try
                 {
-                    fixed (byte* ptrShapeBufferPtr = pointerInfo.PtrShapeBuffer)
+                    mDevice.ImmediateContext.GenerateMips(smallerTextureView);
+                    GdiCapture.GetNewSize(smallerTexture.Description.Width, smallerTexture.Description.Height, frame.ScaleX, frame.ScaleY, configScale, out int width, out int height);
+
+                    int sourceSubresource = frame.Width / width;
+                    if (sourceSubresource >= 1)
                     {
-                        mDeskDupl.GetFramePointerShape(frameInfo.PointerShapeBufferSize, (IntPtr)ptrShapeBufferPtr, out pointerInfo.BufferSize, out pointerInfo.ShapeInfo);
+                        while (sourceSubresource>0 && smallerTexture.Description.Width / (1 << sourceSubresource) < width)
+                        {
+                            sourceSubresource--;
+                        }
+                        if (sourceSubresource >= 3) sourceSubresource = 3;
+                        frame.Width = smallerTexture.Description.Width / (1 << sourceSubresource);
+                        frame.Height = smallerTexture.Description.Height / (1 << sourceSubresource);
+                    }
+                    //Console.WriteLine($"sourceSubresource:{sourceSubresource},frame.Width:{frame.Width},frame.Height:{frame.Height},width:{width},height:{height}");
+
+                    mDevice.ImmediateContext.CopySubresourceRegion(smallerTexture, sourceSubresource, new ResourceRegion
+                    {
+                        Left = 0,
+                        Right = frame.Width,
+                        Top = 0,
+                        Bottom = frame.Height,
+                        Back = 1
+                    }, desktopImageTexture, 0);
+
+                    DataBox mapSource = mDevice.ImmediateContext.MapSubresource(desktopImageTexture, 0, MapMode.Read, MapFlags.None);
+                    using Bitmap image = new Bitmap(frame.Width, frame.Height, PixelFormat.Format32bppArgb);
+                    System.Drawing.Rectangle boundsRect = new System.Drawing.Rectangle(0, 0, frame.Width, frame.Height);
+                    BitmapData mapDest = image.LockBits(boundsRect, ImageLockMode.WriteOnly, image.PixelFormat);
+                    nint sourcePtr = mapSource.DataPointer;
+                    nint destPtr = mapDest.Scan0;
+                    for (int y = 0; y < frame.Height; y++)
+                    {
+                        Utilities.CopyMemory(destPtr, sourcePtr, frame.Width * 4);
+
+                        sourcePtr = IntPtr.Add(sourcePtr, mapSource.RowPitch);
+                        destPtr = IntPtr.Add(destPtr, mapDest.Stride);
+                    }
+                    image.UnlockBits(mapDest);
+                    mDevice.ImmediateContext.UnmapSubresource(desktopImageTexture, 0);
+
+                    Bitmap bmp = image;
+                    if (frame.Width - width > 50)
+                    {
+                        bmp = new Bitmap(width, height);
+                        bmp.SetResolution(image.HorizontalResolution, image.VerticalResolution);
+                        using Graphics graphic = Graphics.FromImage(bmp);
+                        graphic.SmoothingMode = SmoothingMode.HighQuality;
+                        graphic.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        graphic.DrawImage(image, new System.Drawing.Rectangle(0, 0, image.Width, image.Height));
+                    }
+                    //Console.WriteLine($"bmp.Width:{bmp.Width},bmp.Height:{bmp.Height}");
+
+                    using System.Drawing.Image image1 = bmp;
+
+                    using MemoryStream ms = new MemoryStream();
+                    image1.Save(ms, ImageFormat.Jpeg);
+                    ms.Seek(0, SeekOrigin.Begin);
+
+                    int length = (int)ms.Length;
+                    if (length > fullImageBytes.Length)
+                    {
+                        fullImageBytes = new byte[length];
+                    }
+                    ms.Read(fullImageBytes.AsSpan(0, length));
+                    frame.FullImage = fullImageBytes.AsMemory(0, length);
+                }
+                catch (Exception ex)
+                {
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        Logger.Instance.Error(ex);
                     }
                 }
             }
-            catch (SharpDXException ex)
-            {
-                if (ex.ResultCode.Failure)
-                {
-                    throw new DesktopDuplicationException("Failed to get frame pointer shape.");
-                }
-            }
-
-            //frame.CursorLocation = new System.Drawing.Point(pointerInfo.Position.X, pointerInfo.Position.Y);
         }
 
-        ResizeBilinear resizeFilter;
-        private unsafe void ProcessFrame(DesktopFrame frame, float configScale, out int length)
+        byte[] regionImageBytes = Helper.EmptyArray;
+        private unsafe void ProcessFrameRegion(DesktopFrame frame, float configScale)
         {
-            length = 0;
             if (OperatingSystem.IsWindows())
             {
                 try
@@ -261,11 +332,8 @@ namespace cmonitor.server.client.reports.screen.sharpDX
                     int sourceWidth = mOutputDesc.DesktopBounds.Right - mOutputDesc.DesktopBounds.Left;
                     int sourceHeight = mOutputDesc.DesktopBounds.Bottom - mOutputDesc.DesktopBounds.Top;
 
-                    GdiCapture.GetScale(out int scalex, out int scaley, out int sourceWidth1, out int sourceHeight1);
-                    GdiCapture.GetNewSize(sourceWidth, sourceHeight, scalex, scaley, configScale, out int width, out int height);
-
-                    using Bitmap image = new Bitmap(sourceWidth, sourceHeight, PixelFormat.Format32bppRgb);
-                    Rectangle boundsRect = new Rectangle(0, 0, sourceWidth, sourceHeight);
+                    using Bitmap image = new Bitmap(sourceWidth, sourceHeight, PixelFormat.Format32bppArgb);
+                    System.Drawing.Rectangle boundsRect = new System.Drawing.Rectangle(0, 0, sourceWidth, sourceHeight);
                     var mapDest = image.LockBits(boundsRect, ImageLockMode.WriteOnly, image.PixelFormat);
                     var sourcePtr = mapSource.DataPointer;
                     var destPtr = mapDest.Scan0;
@@ -276,35 +344,101 @@ namespace cmonitor.server.client.reports.screen.sharpDX
                         sourcePtr = IntPtr.Add(sourcePtr, mapSource.RowPitch);
                         destPtr = IntPtr.Add(destPtr, mapDest.Stride);
                     }
-
                     image.UnlockBits(mapDest);
                     mDevice.ImmediateContext.UnmapSubresource(desktopImageTexture, 0);
 
-                    //using Graphics g = Graphics.FromImage(image);
-                    //GdiCapture.DrawCursorIcon(g, sourceWidth, scalex, scaley, configScale);
+                    Rectangle[] updatedRegions = frame.UpdatedRegions;
 
-                    if (resizeFilter == null)
+
+                    /*
+                    if (diffFilter.OverlayImage == null)
                     {
-                        resizeFilter = new ResizeBilinear(width, height);
+
+                        diffFilter.OverlayImage = image;
+                        blobCounter = new BlobCounter();
+                        blobCounter.FilterBlobs = true;
+                        blobCounter.MinHeight = 10;
+                        blobCounter.MinWidth = 10;
+                        blobCounter.ObjectsOrder = ObjectsOrder.Area;
                     }
-                    GdiCapture.CalcClip(sourceWidth, sourceHeight, out int left, out int top, out int _width, out int _height);
-                    Bitmap bmp = resizeFilter.Apply(image, left, top, _width, _height);
+                    else
+                    {
+                        var sw = new Stopwatch();
+                        sw.Start();
 
+                        // 获取差异图像
+                        Bitmap diffImage = diffFilter.Apply(image);
+                        blobCounter.ProcessImage(diffImage);
+                        Blob[] blobs = blobCounter.GetObjectsInformation();
 
-                    using System.Drawing.Image image1 = bmp;
-                    using MemoryStream ms = new MemoryStream();
-                    image1.Save(ms, ImageFormat.Jpeg);
-                    ms.Seek(0, SeekOrigin.Begin);
+                        frame.Updateds = new Rectangle[blobs.Length];
 
-                    length = (int)ms.Length;
+                        sw.Stop();
+                        Console.WriteLine($"========================================{sw.ElapsedMilliseconds}->{blobs.Length}");
+                        for (int i = 0; i < blobs.Length; i++)
+                        {
+                            frame.Updateds[i] = new Rectangle(blobs[i].Rectangle.X, blobs[i].Rectangle.Y, blobs[i].Rectangle.Width, blobs[i].Rectangle.Height);
+                            Console.WriteLine($"{blobs[i].Rectangle.X}->{blobs[i].Rectangle.Y}->{blobs[i].Rectangle.Width}->{blobs[i].Rectangle.Height}");
+                        }
 
-                    frame.DesktopImage = ArrayPool<byte>.Shared.Rent((int)ms.Length);
-                    ms.Read(frame.DesktopImage);
+                        diffFilter.OverlayImage.Dispose();
+                        diffFilter.OverlayImage = image;
+
+                    }
+                    Rectangle[] updatedRegions = frame.Updateds;
+                    */
+                    /*
+                    int index = 0;
+                    for (int i = 0; i < updatedRegions.Length; i++)
+                    {
+                        Rectangle region = updatedRegions[i];
+
+                        int width = (int)(region.Width * configScale);
+                        int height = (int)(region.Height * configScale);
+
+                        using System.Drawing.Image image1 = bmp;
+                        using MemoryStream ms = new MemoryStream();
+                        image1.Save(ms, ImageFormat.Jpeg);
+                        ms.Seek(0, SeekOrigin.Begin);
+
+                        int msLength = (int)ms.Length;
+                        ResizeRegionBytes(index, msLength + 4 * 5);
+
+                        msLength.ToBytes(regionImageBytes.AsMemory(index));
+                        index += 4;
+
+                        region.X.ToBytes(regionImageBytes.AsMemory(index));
+                        index += 4;
+                        region.Width.ToBytes(regionImageBytes.AsMemory(index));
+                        index += 4;
+
+                        region.Y.ToBytes(regionImageBytes.AsMemory(index));
+                        index += 4;
+                        region.Height.ToBytes(regionImageBytes.AsMemory(index));
+                        index += 4;
+
+                        ms.Read(regionImageBytes.AsSpan(index));
+                        index += msLength;
+                    }
+                    frame.RegionImage = regionImageBytes.AsMemory(0, index);
+                    */
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex + "");
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        Logger.Instance.Error(ex);
+                    }
                 }
+            }
+        }
+        private void ResizeRegionBytes(int index, int length)
+        {
+            if (regionImageBytes.Length < index + length)
+            {
+                byte[] bytes = new byte[index + length];
+                regionImageBytes.AsMemory(0, index).CopyTo(bytes.AsMemory());
+                regionImageBytes = bytes;
             }
         }
 
@@ -318,7 +452,7 @@ namespace cmonitor.server.client.reports.screen.sharpDX
             {
                 if (ex.ResultCode.Failure)
                 {
-                    throw new DesktopDuplicationException("Failed to release frame.");
+                    throw new Exception("Failed to release frame.");
                 }
             }
         }
