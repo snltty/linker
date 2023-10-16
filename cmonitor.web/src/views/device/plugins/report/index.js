@@ -7,7 +7,8 @@ export default {
             Report: {
                 fps: 0,
                 fpsTimes: 0,
-                ping: 0
+                ping: 0,
+                updated: false
             },
         }
     },
@@ -32,7 +33,14 @@ export default {
     reportInterval() {
         if (this.reported) {
             this.reported = false;
-            reportUpdate(this.globalData.value.reportNames).then(() => {
+
+            const names = this.globalData.value.reportNames;
+            let reportType = 1;
+            this.globalData.value.devices.filter(c => names.indexOf(c.MachineName) >= 0).forEach(item => {
+                reportType &&= Number(item.Report.updated);
+                item.Report.updated = true;
+            });
+            reportUpdate(names, reportType).then(() => {
                 this.reported = true;
                 this.reportTimer = setTimeout(() => {
                     this.reportInterval();

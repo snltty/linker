@@ -18,13 +18,13 @@ namespace cmonitor.server.client.reports.llock
         }
 
         DateTime startTime = new DateTime(1970, 1, 1);
-        public object GetReports()
+        public object GetReports(ReportType reportType)
         {
             if (shareReport.GetShare(Name, out ShareItemInfo share) && string.IsNullOrWhiteSpace(share.Value) == false && long.TryParse(share.Value, out long time))
             {
                 report.Value = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds - time < 1000;
             }
-            if (report.Value != lastValue)
+            if (reportType == ReportType.Full || report.Value != lastValue)
             {
                 lastValue = report.Value;
                 return report;

@@ -13,7 +13,7 @@ namespace cmonitor.server.client.reports
     {
         public string Name { get; }
 
-        public object GetReports();
+        public object GetReports(ReportType reportType);
     }
 
     public sealed class ReportTransfer : IReport
@@ -27,6 +27,8 @@ namespace cmonitor.server.client.reports
 
         private List<IReport> reports;
         private Dictionary<string, object> reportObj;
+        private ReportType reportType = ReportType.Full;
+
         public ReportTransfer(ClientSignInState clientSignInState, MessengerSender messengerSender, ServiceProvider serviceProvider, Config config)
         {
             this.clientSignInState = clientSignInState;
@@ -39,7 +41,7 @@ namespace cmonitor.server.client.reports
             }
         }
 
-        public object GetReports()
+        public object GetReports(ReportType reportType)
         {
             return null;
         }
@@ -53,8 +55,9 @@ namespace cmonitor.server.client.reports
 
         private uint reportFlag = 0;
         private long ticks = 0;
-        public void Update()
+        public void Update(ReportType reportType)
         {
+            this.reportType = reportType;
             ticks = DateTime.UtcNow.Ticks;
             Interlocked.CompareExchange(ref reportFlag, 1, 0);
         }
@@ -90,15 +93,16 @@ namespace cmonitor.server.client.reports
             {
                 if (string.IsNullOrWhiteSpace(item.Name) == false)
                 {
-                    object val = item.GetReports();
+                    object val = item.GetReports(reportType);
                     if (val != null)
                     {
                         reportObj[item.Name] = val;
                     }
                 }
             }
-            if(reportObj.Count > 0)
+            if (reportObj.Count > 0)
             {
+
                 string json = reportObj.ToJsonDefault();
                 byte[] res = MemoryPackSerializer.Serialize(json);
                 await messengerSender.SendOnly(new MessageRequestWrap
@@ -109,5 +113,10 @@ namespace cmonitor.server.client.reports
                 });
             }
         }
+    }
+
+    public enum ReportType : byte
+    {
+        Full = 0, Trim = 1
     }
 }

@@ -20,21 +20,19 @@ namespace cmonitor.server.api.services
         }
         public bool Full(ClientServiceParamsInfo param)
         {
-            string[] names = param.Content.DeJson<string[]>();
-            for (int i = 0; i < names.Length; i++)
+            ScreenReportInfo report = param.Content.DeJson<ScreenReportInfo>();
+            for (int i = 0; i < report.Names.Length; i++)
             {
-                bool res = signCaching.Get(names[i], out SignCacheInfo cache)
-                    && cache.Connected
-                    && cache.GetScreen(config.ScreenDelay)
-                    && Interlocked.CompareExchange(ref cache.ScreenFlag, 0, 1) == 1;
-                if (res)
+                bool connectionRes = signCaching.Get(report.Names[i], out SignCacheInfo cache) && cache.Connected;
+                bool reportRes = cache.GetScreen(config.ScreenDelay) && Interlocked.CompareExchange(ref cache.ScreenFlag, 0, 1) == 1;
+                if (connectionRes && reportRes)
                 {
                     cache.UpdateScreen();
                     _ = messengerSender.SendOnly(new MessageRequestWrap
                     {
                         Connection = cache.Connection,
                         MessengerId = (ushort)ScreenMessengerIds.Full,
-                        Timeout = 1000,
+                        Timeout = 1000
                     }).ContinueWith((result) =>
                     {
                         Interlocked.Exchange(ref cache.ScreenFlag, 1);
@@ -59,7 +57,6 @@ namespace cmonitor.server.api.services
             }
             return true;
         }
-
 
         public bool Region(ClientServiceParamsInfo param)
         {
@@ -87,6 +84,12 @@ namespace cmonitor.server.api.services
 
             return true;
         }
+    }
+
+    public sealed class ScreenReportInfo
+    {
+        public string[] Names { get; set; }
+        public byte Type { get; set; }
     }
     public sealed class ScreenClipParamInfo
     {

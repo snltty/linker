@@ -28,60 +28,116 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
+            this.username = new System.Windows.Forms.Label();
+            this.star5 = new System.Windows.Forms.PictureBox();
+            this.star4 = new System.Windows.Forms.PictureBox();
+            this.star3 = new System.Windows.Forms.PictureBox();
+            this.star2 = new System.Windows.Forms.PictureBox();
+            this.star1 = new System.Windows.Forms.PictureBox();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.pictureBox2 = new System.Windows.Forms.PictureBox();
-            this.label1 = new System.Windows.Forms.Label();
+            ((System.ComponentModel.ISupportInitialize)(this.star5)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.star4)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.star3)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.star2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.star1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.SuspendLayout();
+            // 
+            // username
+            // 
+            this.username.Font = new System.Drawing.Font("宋体", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.username.ForeColor = System.Drawing.Color.Orange;
+            this.username.Location = new System.Drawing.Point(4, 5);
+            this.username.Name = "username";
+            this.username.Size = new System.Drawing.Size(171, 23);
+            this.username.TabIndex = 6;
+            this.username.Text = "label1";
+            this.username.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // star5
+            // 
+            this.star5.Image = global::notify.win.Properties.Resources.star1;
+            this.star5.Location = new System.Drawing.Point(145, 31);
+            this.star5.Name = "star5";
+            this.star5.Size = new System.Drawing.Size(30, 30);
+            this.star5.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.star5.TabIndex = 5;
+            this.star5.TabStop = false;
+            // 
+            // star4
+            // 
+            this.star4.Image = global::notify.win.Properties.Resources.star1;
+            this.star4.Location = new System.Drawing.Point(110, 31);
+            this.star4.Name = "star4";
+            this.star4.Size = new System.Drawing.Size(30, 30);
+            this.star4.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.star4.TabIndex = 4;
+            this.star4.TabStop = false;
+            // 
+            // star3
+            // 
+            this.star3.Image = global::notify.win.Properties.Resources.star1;
+            this.star3.Location = new System.Drawing.Point(74, 31);
+            this.star3.Name = "star3";
+            this.star3.Size = new System.Drawing.Size(30, 30);
+            this.star3.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.star3.TabIndex = 3;
+            this.star3.TabStop = false;
+            // 
+            // star2
+            // 
+            this.star2.Image = global::notify.win.Properties.Resources.star1;
+            this.star2.Location = new System.Drawing.Point(38, 31);
+            this.star2.Name = "star2";
+            this.star2.Size = new System.Drawing.Size(30, 30);
+            this.star2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.star2.TabIndex = 2;
+            this.star2.TabStop = false;
+            // 
+            // star1
+            // 
+            this.star1.Image = global::notify.win.Properties.Resources.star1;
+            this.star1.Location = new System.Drawing.Point(3, 31);
+            this.star1.Name = "star1";
+            this.star1.Size = new System.Drawing.Size(30, 30);
+            this.star1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.star1.TabIndex = 1;
+            this.star1.TabStop = false;
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
-            this.pictureBox1.Location = new System.Drawing.Point(55, 203);
+            this.pictureBox1.Image = global::notify.win.Properties.Resources._3;
+            this.pictureBox1.Location = new System.Drawing.Point(31, 66);
+            this.pictureBox1.Margin = new System.Windows.Forms.Padding(2);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(236, 250);
+            this.pictureBox1.Size = new System.Drawing.Size(118, 113);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox1.TabIndex = 0;
             this.pictureBox1.TabStop = false;
             // 
-            // pictureBox2
-            // 
-            this.pictureBox2.BackColor = System.Drawing.Color.Transparent;
-            this.pictureBox2.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox2.Image")));
-            this.pictureBox2.Location = new System.Drawing.Point(1, -7);
-            this.pictureBox2.Name = "pictureBox2";
-            this.pictureBox2.Size = new System.Drawing.Size(331, 271);
-            this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureBox2.TabIndex = 1;
-            this.pictureBox2.TabStop = false;
-            // 
-            // label1
-            // 
-            this.label1.BackColor = System.Drawing.Color.Gray;
-            this.label1.Font = new System.Drawing.Font("微软雅黑", 11F, System.Drawing.FontStyle.Bold);
-            this.label1.Location = new System.Drawing.Point(67, 108);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(200, 121);
-            this.label1.TabIndex = 2;
-            this.label1.Text = "恭喜地方发鬼地方获得【五星点评】";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
             // Form1
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 24F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(333, 450);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.pictureBox2);
+            this.ClientSize = new System.Drawing.Size(179, 179);
+            this.Controls.Add(this.username);
+            this.Controls.Add(this.star5);
+            this.Controls.Add(this.star4);
+            this.Controls.Add(this.star3);
+            this.Controls.Add(this.star2);
+            this.Controls.Add(this.star1);
             this.Controls.Add(this.pictureBox1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.Name = "Form1";
             this.Text = "广播";
             this.Load += new System.EventHandler(this.OnLoad);
+            ((System.ComponentModel.ISupportInitialize)(this.star5)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.star4)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.star3)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.star2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.star1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -89,8 +145,12 @@
         #endregion
 
         private System.Windows.Forms.PictureBox pictureBox1;
-        private System.Windows.Forms.PictureBox pictureBox2;
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.PictureBox star1;
+        private System.Windows.Forms.PictureBox star2;
+        private System.Windows.Forms.PictureBox star3;
+        private System.Windows.Forms.PictureBox star4;
+        private System.Windows.Forms.PictureBox star5;
+        private System.Windows.Forms.Label username;
     }
 }
 

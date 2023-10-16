@@ -10,6 +10,8 @@ namespace cmonitor.server.client.reports.share
         private readonly Config config;
 
         Dictionary<string, ShareItemInfo> dic = new Dictionary<string, ShareItemInfo>();
+        private bool updated = false;
+
         public ShareReport(Config config)
         {
             this.config = config;
@@ -18,11 +20,12 @@ namespace cmonitor.server.client.reports.share
                 InitShare();
             }
         }
-        public object GetReports()
+        public object GetReports(ReportType reportType)
         {
+            updated = false;
             GetShare();
-            if (dic.Count == 0) return null;
-            return dic;
+            if ((dic.Count > 0 && updated) || reportType == ReportType.Full) return dic;
+            return null;
         }
         public bool GetShare(string key, out ShareItemInfo item)
         {
@@ -66,6 +69,12 @@ namespace cmonitor.server.client.reports.share
                             {
                                 val = Encoding.UTF8.GetString(span.Slice(2 + keyLen, valLen));
                             }
+
+                            if(dic.TryGetValue(key,out ShareItemInfo item) == false || item.Value != val)
+                            {
+                                updated = true;
+                            }
+
                             dic[key] = new ShareItemInfo
                             {
                                 Index = index,

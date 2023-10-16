@@ -7,7 +7,7 @@ namespace cmonitor.server.client.reports.command
     {
         public string Name => "Command";
 
-        public object GetReports()
+        public object GetReports(ReportType reportType)
         {
             return null;
         }

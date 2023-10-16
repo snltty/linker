@@ -1,9 +1,7 @@
 ﻿using cmonitor.server.service;
 using common.libs;
 using cmonitor.server.service.messengers.screen;
-using System.Runtime.InteropServices;
 using MemoryPack;
-using cmonitor.server.client.reports.screen.sharpDX;
 using System.Diagnostics;
 
 namespace cmonitor.server.client.reports.screen
@@ -18,7 +16,8 @@ namespace cmonitor.server.client.reports.screen
 
         private ScreenReportInfo report = new ScreenReportInfo();
         private uint lastInput;
-        private readonly DesktopDuplicator desktopDuplicator;
+        private readonly DxgiDesktop dxgiDesktop;
+        private readonly GdiDesktop gdiDesktop;
 
         public ScreenReport(ClientSignInState clientSignInState, MessengerSender messengerSender, Config config)
         {
@@ -28,13 +27,15 @@ namespace cmonitor.server.client.reports.screen
             if (config.IsCLient)
             {
                 ScreenCaptureTask();
-                InitLastInputInfo();
+                WinApi.InitLastInputInfo();
+                dxgiDesktop = new DxgiDesktop(0);
+                gdiDesktop = new GdiDesktop();
             }
-            desktopDuplicator = new DesktopDuplicator(0);
+
         }
-        public object GetReports()
+        public object GetReports(ReportType reportType)
         {
-            report.LT = GetLastInputInfo();
+            report.LT = WinApi.GetLastInputInfo();
             if (report.LT < lastInput || report.LT - lastInput > 1000)
             {
                 lastInput = report.LT;
@@ -44,7 +45,6 @@ namespace cmonitor.server.client.reports.screen
         }
 
 
-        #region 截图
         private ScreenReportType screenReportType = ScreenReportType.None;
         private long ticks = 0;
         public void Full()
@@ -54,7 +54,9 @@ namespace cmonitor.server.client.reports.screen
         }
         public void Clip(ScreenClipInfo screenClipInfo)
         {
-            GdiCapture.Clip(screenClipInfo);
+            ticks = DateTime.UtcNow.Ticks;
+            screenReportType = ScreenReportType.Full;
+            gdiDesktop.Clip(screenClipInfo);
         }
         public void Region()
         {
@@ -73,10 +75,7 @@ namespace cmonitor.server.client.reports.screen
                 while (true)
                 {
                     int delayms = 0;
-                    bool res = clientSignInState.Connected == true
-                    && screenReportType > ScreenReportType.None
-                    && (DateTime.UtcNow.Ticks - ticks) / TimeSpan.TicksPerMillisecond < 1000;
-                    if (res)
+                    if (clientSignInState.Connected == true && ((DateTime.UtcNow.Ticks - ticks) / TimeSpan.TicksPerMillisecond < 1000))
                     {
                         try
                         {
@@ -103,11 +102,24 @@ namespace cmonitor.server.client.reports.screen
         }
         private async Task SendScreenCapture()
         {
-            //var sw = new Stopwatch();
-            // sw.Start();
-            DesktopFrame frame = desktopDuplicator.GetLatestFrame(screenReportType, config.ScreenScale);
-            // sw.Stop();
-            // Console.WriteLine($"{frame.FullImage.Length}->{sw.ElapsedMilliseconds}");
+            DesktopFrame frame = null;
+            if (gdiDesktop.IsClip()/*|| gdiDesktop.IsLockScreen()*/)
+            {
+                frame = gdiDesktop.GetLatestFrame(config.ScreenScale);
+            }
+            else if (screenReportType == ScreenReportType.Full)
+            {
+                //var sw = new Stopwatch();
+                //sw.Start();
+                frame = dxgiDesktop.GetLatestFullFrame(config.ScreenScale);
+                //sw.Stop();
+                //Console.WriteLine(sw.ElapsedMilliseconds);
+            }
+            else if (screenReportType == ScreenReportType.Region)
+            {
+                frame = dxgiDesktop.GetLatestRegionFrame(config.ScreenScale);
+            }
+
             if (frame != null)
             {
                 if (frame.FullImage.Length > 0)
@@ -128,47 +140,18 @@ namespace cmonitor.server.client.reports.screen
                         Payload = frame.RegionImage,
                     });
                 }
-                /*
-                if (frame.Updateds.Length > 0)
+                if (frame.UpdatedRegions.Length > 0)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
                         Connection = clientSignInState.Connection,
                         MessengerId = (ushort)ScreenMessengerIds.Rectangles,
-                        Payload = MemoryPackSerializer.Serialize(frame.Updateds),
+                        Payload = MemoryPackSerializer.Serialize(frame.UpdatedRegions),
                     });
                 }
-                */
             }
 
         }
-
-        #endregion
-
-        #region 最后活动时间
-        private LASTINPUTINFO lastInputInfo = new LASTINPUTINFO();
-        private void InitLastInputInfo()
-        {
-            lastInputInfo.cbSize = (uint)Marshal.SizeOf(typeof(LASTINPUTINFO));
-        }
-        private uint GetLastInputInfo()
-        {
-            bool res = GetLastInputInfo(ref lastInputInfo);
-            if (res)
-            {
-                return (uint)Environment.TickCount - lastInputInfo.dwTime;
-            }
-            return 0;
-        }
-        [DllImport("user32.dll")]
-        private static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
-        [StructLayout(LayoutKind.Sequential)]
-        struct LASTINPUTINFO
-        {
-            public uint cbSize;
-            public uint dwTime;
-        }
-        #endregion
     }
 
     public sealed class ScreenReportInfo

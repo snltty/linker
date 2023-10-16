@@ -72,7 +72,7 @@ export default {
                 if (res) {
                     ElMessage.success('操作成功！');
                     if (value.notify) {
-                        notifyUpdate(2, `恭喜[${props.data.Share.UserName.Value}]获得【${value.star}星】点评`);
+                        notifyUpdate(2, props.data.Share.UserName.Value, value.star);
                     }
                 } else {
                     ElMessage.error('操作失败！');

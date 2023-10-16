@@ -18,11 +18,19 @@ namespace wallpaper.win
                 Environment.Exit(1);
             }
 
-            string imgUrl = arg[0];
-            string shareMkey = arg[1];
-            int shareMLength = int.Parse(arg[2]);
-            int shareKeyBoardIndex = int.Parse(arg[3]);
-            int shareWallpaperIndex = int.Parse(arg[4]);
+            string imgUrl = string.Empty;
+            string shareMkey = "test";
+            int shareMLength = 2550;
+            int shareKeyBoardIndex = 0;
+            int shareWallpaperIndex = 1;
+            if (arg.Length > 0)
+            {
+                imgUrl = arg[0];
+                shareMkey = arg[1];
+                shareMLength = int.Parse(arg[2]);
+                shareKeyBoardIndex = int.Parse(arg[3]);
+                shareWallpaperIndex = int.Parse(arg[4]);
+            }
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1(imgUrl, shareMkey, shareMLength, shareKeyBoardIndex, shareWallpaperIndex));

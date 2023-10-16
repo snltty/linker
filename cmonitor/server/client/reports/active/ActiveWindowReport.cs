@@ -30,9 +30,9 @@ namespace cmonitor.server.client.reports.active
             }
         }
 
-        public object GetReports()
+        public object GetReports(ReportType reportType)
         {
-            if (report.Pid != lastPid || report.Title != lastTitle)
+            if (reportType == ReportType.Full || report.Pid != lastPid || report.Title != lastTitle)
             {
                 lastPid = report.Pid;
                 lastTitle = report.Title;

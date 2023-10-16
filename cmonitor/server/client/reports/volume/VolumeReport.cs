@@ -16,7 +16,7 @@ namespace cmonitor.server.client.reports.volume
             Init();
         }
 
-        public object GetReports()
+        public object GetReports(ReportType reportType)
         {
             if (OperatingSystem.IsWindows())
             {
@@ -24,7 +24,7 @@ namespace cmonitor.server.client.reports.volume
                 report.Mute = GetVolumeMute();
                 report.MasterPeak = GetMasterPeakValue();
             }
-            if (report.Value != lastValue || report.Mute != lastMute || report.MasterPeak != lastMasterPeak)
+            if (reportType == ReportType.Full || report.Value != lastValue || report.Mute != lastMute || report.MasterPeak != lastMasterPeak)
             {
                 lastValue = report.Value;
                 lastMute = report.Mute;

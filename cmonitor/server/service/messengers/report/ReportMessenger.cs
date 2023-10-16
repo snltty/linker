@@ -20,7 +20,13 @@ namespace cmonitor.server.service.messengers.report
         [MessengerId((ushort)ReportMessengerIds.Update)]
         public void Update(IConnection connection)
         {
-            reportTransfer.Update();
+            ReportType reportType = ReportType.Trim;
+            if(connection.ReceiveRequestWrap.Payload.Length > 0)
+            {
+                reportType = (ReportType)connection.ReceiveRequestWrap.Payload.Span[0];
+            }
+
+            reportTransfer.Update(reportType);
             connection.Write(Helper.TrueArray);
         }
 

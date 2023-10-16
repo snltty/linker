@@ -5,12 +5,47 @@ export default {
     field() {
         return {
             Screen: {
+                regions: [],
+                img: null,
+                fullUpdated: false,
+
+                draw(canvas, ctx) {
+                    this.drawFps(canvas, ctx);
+                    this.drawRectangle(canvas, ctx);
+                    this.drawTouch(canvas, ctx);
+                },
+
+                lastInput: 0,
                 fps: 0,
                 fpsTimes: 0,
-                img: null,
-                regions: [],
-                LastInput: 0,
+                drawFps(canvas, ctx) {
+                    ctx.lineWidth = 5;
+                    ctx.font = 'bold 60px Arial';
+                    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                    ctx.fillText(`FPS : ${this.fps} 、LT : ${this.lastInput}ms`, 50, 70);
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = '#fff';
+                    ctx.strokeText(`FPS : ${this.fps} 、LT : ${this.lastInput}ms`, 50, 70);
+                },
+
                 rectangles: [],
+                drawRectangle(canvas, ctx) {
+                    if (this.rectangles.length > 0 && this.touch.scale == 1) {
+                        ctx.lineWidth = 5;
+                        ctx.strokeStyle = 'rgba(255,0,0,1)';
+                        for (let i = 0; i < this.rectangles.length; i++) {
+
+                            const rectangle = this.rectangles[i];
+                            ctx.rect(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height);
+                            ctx.stroke();
+
+                            ctx.font = 'bold 100px Arial';
+                            ctx.fillStyle = 'rgba(255,0,0,1)';
+                            ctx.fillText(i, rectangle.X + rectangle.Width / 2, rectangle.Y + rectangle.Height / 2);
+                        }
+                    }
+                },
+
                 touch: {
                     //上次位置
                     lastTouch: { x1: 0, y1: 0, x2: 0, y2: 0, dist: 0, },
@@ -20,6 +55,20 @@ export default {
                     origin: { x: 0, y: 0, x1: 0, y1: 0, distX: 0, distY: 0 },
                     updated: false,
                     type: 0
+                },
+                drawTouch(canvas, ctx) {
+                    if (this.touch.type == 2) {
+                        ctx.fillStyle = 'red';
+                        ctx.strokeStyle = 'yellow';
+                        ctx.rect(this.touch.origin.x - 50, this.touch.origin.y - 50, 100, 100);
+                        ctx.fill();
+
+                        ctx.lineWidth = 5;
+                        ctx.strokeStyle = 'yellow';
+                        ctx.moveTo(this.touch.lastTouch.x1, this.touch.lastTouch.y1);
+                        ctx.lineTo(this.touch.lastTouch.x2, this.touch.lastTouch.y2);
+                        ctx.stroke();
+                    }
                 },
 
                 touchend(event) {
@@ -75,6 +124,7 @@ export default {
                         };
 
                     } else if (event.touches.length == 1) {
+                        if (this.touch.scale == 1) return;
                         this.touch.type = 1;
                         const { x1, y1 } = this.getPosition(event);
                         this.touch.lastTouch.x1 = x1;
@@ -102,7 +152,7 @@ export default {
 
                         this.touch.updated = true;
                     } else if (event.touches.length == 1) {
-                        if (this.touch.type != 1) return;
+                        if (this.touch.type != 1 || this.touch.scale == 1) return;
                         const { x1, y1 } = this.getPosition(event);
 
                         const distX = x1 - this.touch.lastTouch.x1;
@@ -222,36 +272,40 @@ export default {
             const item = devices[i];
             if (!item.canvas) {
                 item.canvas = document.getElementById(`canvas-${item.MachineName}`);
-                if (item.canvas) {
-                    item.ctx = item.canvas.getContext('2d');
-                }
+                item.ctx = item.canvas.getContext('2d');
+            }
+            if (!item.infoCanvas) {
+                item.infoCanvas = document.createElement('canvas');
+                item.infoCanvas.width = item.canvas.width;
+                item.infoCanvas.height = item.canvas.height;
+                item.infoCtx = item.infoCanvas.getContext('2d');
             }
             if (item.ctx) {
+                item.infoCtx.clearRect(0, 0, item.infoCanvas.width, item.infoCanvas.height);
+
                 const img = item.Screen.img;
-                item.ctx.clearRect(0, 0, item.canvas.width, item.canvas.height);
                 if (img) {
                     item.ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, item.canvas.width, item.canvas.height);
-                } else {
-                    //screenUpdateFull(this.globalData.value.reportNames);
                 }
+
                 const regions = item.Screen.regions;
                 for (let i = 0; i < regions.length; i++) {
                     const { x, y, w, h } = regions[i].param;
-                    item.ctx.drawImage(regions[i], 0, 0, regions[i].width, regions[i].height, x, y, w, h);
+                    item.infoCtx.drawImage(regions[i], 0, 0, regions[i].width, regions[i].height, x, y, w, h);
                 }
-
-                this.drawFps(item);
 
                 for (let j in item) {
                     try {
                         if (item[j] && item[j].draw) {
-                            item[j].draw(item.canvas, item.ctx);
+
+                            item[j].draw(item.infoCanvas, item.infoCtx);
                         }
                     } catch (e) {
                         console.log(e);
                     }
                 }
 
+                item.ctx.drawImage(item.infoCanvas, 0, 0, item.infoCanvas.width, item.infoCanvas.height, 0, 0, item.canvas.width, item.canvas.height);
             }
         }
         requestAnimationFrame(() => {
@@ -267,42 +321,6 @@ export default {
         setTimeout(() => {
             this.fpsInterval();
         }, 1000)
-    },
-    drawFps(item) {
-        item.ctx.lineWidth = 5;
-        item.ctx.font = 'bold 60px Arial';
-        item.ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        item.ctx.fillText(`FPS : ${item.Screen.fps} 、LT : ${item.Screen.LastInput}ms`, 50, 70);
-        item.ctx.lineWidth = 2;
-        item.ctx.strokeStyle = '#fff';
-        item.ctx.strokeText(`FPS : ${item.Screen.fps} 、LT : ${item.Screen.LastInput}ms`, 50, 70);
-
-        if (item.Screen.rectangles.length > 0) {
-            item.ctx.lineWidth = 5;
-            for (let i = 0; i < item.Screen.rectangles.length; i++) {
-                item.ctx.strokeStyle = 'rgba(255,0,0,0.5)';
-                const rectangle = item.Screen.rectangles[i];
-                item.ctx.rect(rectangle.X / 0.2, rectangle.Y / 0.2, rectangle.Width / 0.2, rectangle.Height / 0.2);
-                item.ctx.stroke();
-
-                item.ctx.font = 'bold 100px Arial';
-                item.ctx.fillStyle = 'rgba(0,0,0,1)';
-                item.ctx.fillText(i, rectangle.X / 0.2, rectangle.Y / 0.2);
-            }
-        }
-
-        if (item.Screen.touch.type == 2) {
-            item.ctx.fillStyle = 'red';
-            item.ctx.strokeStyle = 'yellow';
-            item.ctx.rect(item.Screen.touch.origin.x - 50, item.Screen.touch.origin.y - 50, 100, 100);
-            item.ctx.fill();
-
-            item.ctx.lineWidth = 5;
-            item.ctx.strokeStyle = 'yellow';
-            item.ctx.moveTo(item.Screen.touch.lastTouch.x1, item.Screen.touch.lastTouch.y1);
-            item.ctx.lineTo(item.Screen.touch.lastTouch.x2, item.Screen.touch.lastTouch.y2);
-            item.ctx.stroke();
-        }
     },
 
     clipTimer: 0,
@@ -326,7 +344,9 @@ export default {
     reportInterval() {
         if (this.reported) {
             this.reported = false;
-            screenUpdateFull(this.globalData.value.reportNames).then(() => {
+
+            const names = this.globalData.value.reportNames;
+            screenUpdateFull(names, 0).then(() => {
                 this.reported = true;
                 this.reportTimer = setTimeout(() => {
                     this.reportInterval();
@@ -347,6 +367,6 @@ export default {
     update(item, report) {
         if (!report.Screen) return;
 
-        item.Screen.LastInput = report.Screen.LT || 0;
+        item.Screen.lastInput = report.Screen.LT || 0;
     }
 }

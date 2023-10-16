@@ -81,7 +81,7 @@ namespace llock.win
                 while (true)
                 {
                     WriteLLock();
-                    Thread.Sleep(100);
+                    Thread.Sleep(30);
                 }
             }).Start();
         }
@@ -89,10 +89,16 @@ namespace llock.win
         MemoryMappedViewAccessor accessor2;
         DateTime startTime = new DateTime(1970, 1, 1);
         byte[] keyBytes = Encoding.UTF8.GetBytes("LLock");
+
+        long lastTime = 0;
         private void WriteLLock()
         {
             long time = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
-            WriteMemory(this.shareIndex, keyBytes, Encoding.UTF8.GetBytes(time.ToString()));
+            if(time - lastTime >= 300)
+            {
+                WriteMemory(this.shareIndex, keyBytes, Encoding.UTF8.GetBytes(time.ToString()));
+                lastTime = time;
+            }
         }
         private void WriteMemory(int index, byte[] key, byte[] value)
         {

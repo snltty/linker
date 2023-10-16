@@ -3,12 +3,14 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace notify.win
 {
     public partial class Form1 : Form
     {
 
+        protected override bool ShowWithoutActivation => true;
         protected override CreateParams CreateParams
         {
             get
@@ -24,10 +26,12 @@ namespace notify.win
 
         private int speed;
         private string msg;
-        public Form1(int speed, string msg)
+        private int star;
+        public Form1(int speed, string msg,int star)
         {
             this.speed = speed;
             this.msg = msg;
+            this.star = Math.Min(star,5);
 
             InitializeComponent();
             this.AllowTransparency = true;
@@ -37,12 +41,24 @@ namespace notify.win
             this.TopMost = true;
             this.ShowInTaskbar = false;
 
-            label1.BackColor = Color.FromArgb(255, 248, 153);
-            label1.ForeColor = Color.Green;
+            //username.BackColor = Color.FromArgb(255, 248, 153);
+            //username.ForeColor = Color.LightGreen;
         }
 
         private void OnLoad(object sender, EventArgs e)
         {
+            PictureBox[] stars = new PictureBox[] { star1, star2, star3, star4, star5 };
+            for (int i = 0; i < 5; i++)
+            {
+                stars[i].Image = global::notify.win.Properties.Resources.star2;
+            }
+            for (int i = 0; i < star; i++)
+            {
+                stars[i].Image = global::notify.win.Properties.Resources.star1;
+            }
+            Bitmap[] images = new Bitmap[] { Properties.Resources._0, Properties.Resources._1, Properties.Resources._2, Properties.Resources._3, Properties.Resources._4, Properties.Resources._5 };
+            pictureBox1.Image = images[new Random().Next(0,6)];
+
             this.FormBorderStyle = FormBorderStyle.None;
             //将窗口置顶
             SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
@@ -62,7 +78,7 @@ namespace notify.win
             int width = this.Width;
             int height = this.Height;
 
-            label1.Text = this.msg;
+            username.Text = this.msg;
 
             Task.Run(() =>
             {

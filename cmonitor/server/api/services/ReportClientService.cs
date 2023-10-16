@@ -1,4 +1,5 @@
-﻿using cmonitor.server.service;
+﻿using cmonitor.server.client.reports;
+using cmonitor.server.service;
 using cmonitor.server.service.messengers.command;
 using cmonitor.server.service.messengers.sign;
 using common.libs;
@@ -22,15 +23,14 @@ namespace cmonitor.server.api.services
         }
         public bool Update(ClientServiceParamsInfo param)
         {
-            string[] names = param.Content.DeJson<string[]>();
-            for (int i = 0; i < names.Length; i++)
+            UpdateInfo updateinfo = param.Content.DeJson<UpdateInfo>();
+            byte[] bytes = new byte[] { (byte)updateinfo.ReportType };
+            for (int i = 0; i < updateinfo.Names.Length; i++)
             {
-                bool res = signCaching.Get(names[i], out SignCacheInfo cache)
-                    && cache.Connected
-                    && cache.GetReport(config.ReportDelay)
-                    && Interlocked.CompareExchange(ref cache.ReportFlag, 0, 1) == 1;
+                bool connectionRes = (signCaching.Get(updateinfo.Names[i], out SignCacheInfo cache) && cache.Connected);
+                bool reportTimeRes = cache.GetReport(config.ReportDelay) && Interlocked.CompareExchange(ref cache.ReportFlag, 0, 1) == 1;
 
-                if (res)
+                if (connectionRes && (reportTimeRes || updateinfo.ReportType == ReportType.Full))
                 {
                     cache.UpdateReport();
                     _ = messengerSender.SendOnly(new MessageRequestWrap
@@ -38,6 +38,7 @@ namespace cmonitor.server.api.services
                         Connection = cache.Connection,
                         MessengerId = (ushort)ReportMessengerIds.Update,
                         Timeout = 1000,
+                        Payload = bytes,
                     }).ContinueWith((result) =>
                     {
                         Interlocked.Exchange(ref cache.ReportFlag, 1);
@@ -80,5 +81,12 @@ namespace cmonitor.server.api.services
 
             return true;
         }
+
+        sealed class UpdateInfo
+        {
+            public string[] Names { get; set; }
+            public ReportType ReportType { get; set; }
+        }
     }
+
 }

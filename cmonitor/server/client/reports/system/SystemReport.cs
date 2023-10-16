@@ -14,9 +14,9 @@
             ReportTask();
         }
 
-        public object GetReports()
+        public object GetReports(ReportType reportType)
         {
-            if(systemReportInfo.Cpu != lastCpu || systemReportInfo.Memory != lastMemory)
+            if(reportType == ReportType.Full || systemReportInfo.Cpu != lastCpu || systemReportInfo.Memory != lastMemory)
             {
                 lastCpu = systemReportInfo.Cpu;
                 lastMemory = systemReportInfo.Memory;

@@ -14,10 +14,17 @@ namespace notify.win
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            int speed = int.Parse(args[0]);
-            string msg = args[1];
+            int speed = 1;
+            string msg = "少年郎秃头呀";
+            int star = 1;
+            if(args.Length > 1)
+            {
+                speed = int.Parse(args[0]);
+                msg = args[1];
+                star = int.Parse(args[2]);
+            }
 
-            Application.Run(new Form1(speed,msg));
+            Application.Run(new Form1(speed,msg, star));
         }
     }
 }

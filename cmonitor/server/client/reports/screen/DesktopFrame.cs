@@ -1,6 +1,6 @@
 ﻿using MemoryPack;
 
-namespace cmonitor.server.client.reports.screen.sharpDX
+namespace cmonitor.server.client.reports.screen
 {
     public class DesktopFrame
     {
@@ -8,12 +8,8 @@ namespace cmonitor.server.client.reports.screen.sharpDX
         public Rectangle[] UpdatedRegions { get; internal set; }
         public Memory<byte> RegionImage { get; internal set; }
 
-        public int Width { get; internal set; }
-        public int Height { get; internal set; }
 
-        public float ScaleX { get; internal set; }
-        public float ScaleY { get; internal set; }
-        //public MovedRegion[] MovedRegions { get; internal set; }
+        public MovedRegion[] MovedRegions { get; internal set; }
         //public Rectangle[] Updateds { get; internal set; }
 
     }
@@ -23,6 +19,31 @@ namespace cmonitor.server.client.reports.screen.sharpDX
         public System.Drawing.Point Source { get; internal set; }
 
         public Rectangle Destination { get; internal set; }
+    }
+
+    public struct Scale
+    {
+        public Scale(int x, int y,float scale)
+        {
+            X = x;
+            Y = y;
+            Value = scale;
+        }
+        public int X { get; set; }
+        public int Y { get; set; }
+        public float Value { get; set; }
+    }
+
+
+    public struct Rect
+    {
+        public Rect(int width, int height)
+        {
+            Width = width;
+            Height = height;
+        }
+        public int Width { get; set; }
+        public int Height { get; set; }
     }
 
     [MemoryPackable]

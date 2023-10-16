@@ -1,7 +1,9 @@
 import { sendWebsocketMsg } from './request'
 
-export const screenUpdateFull = (names) => {
-    return sendWebsocketMsg('screen/full', names);
+export const screenUpdateFull = (names, type) => {
+    return sendWebsocketMsg('screen/full', {
+        names, type
+    });
 }
 export const screenUpdateRegion = (names) => {
     return sendWebsocketMsg('screen/region', names);

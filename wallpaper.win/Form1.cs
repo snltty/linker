@@ -96,13 +96,14 @@ namespace wallpaper.win
             pictureBox1.ImageLocation = imgUrl;
             this.Dock = DockStyle.Fill;
             this.ShowInTaskbar = false;
-            this.WindowState = FormWindowState.Maximized;
             this.FormBorderStyle = FormBorderStyle.None;
 
             hook.Start();
 
             Find();
             Init();
+
+            this.WindowState = FormWindowState.Maximized;
 
             IntPtr oldprogramIntPtr = programIntPtr;
             new Thread(() =>
@@ -120,6 +121,7 @@ namespace wallpaper.win
                     Thread.Sleep(1000);
                 }
             }).Start();
+            
 
 
             mmf2 = MemoryMappedFile.CreateOrOpen(this.shareMkey, this.shareMLength);
@@ -168,10 +170,16 @@ namespace wallpaper.win
         {
             WriteMemory(this.shareKeyBoardIndex, keyBytes, emptyArray);
         }
+
+        long lastTime = 0;
         private void WriteWallpaper()
         {
             long time = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
-            WriteMemory(this.shareWallpaperIndex, wallpaperBytes, Encoding.UTF8.GetBytes(time.ToString()));
+            if(time- lastTime >= 300)
+            {
+                WriteMemory(this.shareWallpaperIndex, wallpaperBytes, Encoding.UTF8.GetBytes(time.ToString()));
+                lastTime = time;
+            }
         }
         private void WriteMemory(int index, byte[] key, byte[] value)
         {

@@ -21,9 +21,9 @@ namespace cmonitor.server.client.reports.llock
             }
         }
 
-        public object GetReports()
+        public object GetReports(ReportType reportType)
         {
-            if (report.Value != lastValue)
+            if (reportType == ReportType.Full || report.Value != lastValue)
             {
                 lastValue = report.Value;
                 return report;
