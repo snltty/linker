@@ -9,6 +9,7 @@ using System.Drawing.Imaging;
 using SharpDX.Mathematics.Interop;
 using common.libs;
 using Factory1 = SharpDX.DXGI.Factory1;
+using common.libs.extends;
 
 namespace cmonitor.server.client.reports.screen
 {
@@ -76,19 +77,20 @@ namespace cmonitor.server.client.reports.screen
                     mDevice.Dispose();
                     mDevice = null;
                 }
-
+                mDevice = new Device(adapter);
             }
             catch (Exception ex)
             {
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     Logger.Instance.Error(ex);
             }
-            mDevice = new Device(adapter);
+
         }
         private void InitOutput()
         {
             try
             {
+
                 try
                 {
                     if (output != null)
@@ -108,6 +110,7 @@ namespace cmonitor.server.client.reports.screen
             {
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     Logger.Instance.Error(ex);
+
             }
             try
             {
@@ -127,6 +130,7 @@ namespace cmonitor.server.client.reports.screen
         }
         private void InitTexture()
         {
+            if (output1 == null) return;
             int width = output1.Description.DesktopBounds.Right - output1.Description.DesktopBounds.Left;
             int height = output1.Description.DesktopBounds.Bottom - output1.Description.DesktopBounds.Top;
 
@@ -138,23 +142,24 @@ namespace cmonitor.server.client.reports.screen
                     desktopImageTexture.Dispose();
                     desktopImageTexture = null;
                 }
+                desktopImageTexture = new Texture2D(mDevice, new Texture2DDescription()
+                {
+                    CpuAccessFlags = CpuAccessFlags.Read,
+                    BindFlags = BindFlags.None,
+                    Format = Format.B8G8R8A8_UNorm,
+                    Width = width,
+                    Height = height,
+                    OptionFlags = ResourceOptionFlags.None,
+                    MipLevels = 1,
+                    ArraySize = 1,
+                    SampleDescription = { Count = 1, Quality = 0 },
+                    Usage = ResourceUsage.Staging
+                });
             }
             catch (Exception)
             {
             }
-            desktopImageTexture = new Texture2D(mDevice, new Texture2DDescription()
-            {
-                CpuAccessFlags = CpuAccessFlags.Read,
-                BindFlags = BindFlags.None,
-                Format = Format.B8G8R8A8_UNorm,
-                Width = width,
-                Height = height,
-                OptionFlags = ResourceOptionFlags.None,
-                MipLevels = 1,
-                ArraySize = 1,
-                SampleDescription = { Count = 1, Quality = 0 },
-                Usage = ResourceUsage.Staging
-            });
+
 
             try
             {
@@ -163,23 +168,24 @@ namespace cmonitor.server.client.reports.screen
                     smallerTexture.Dispose();
                     smallerTexture = null;
                 }
+                smallerTexture = new Texture2D(mDevice, new Texture2DDescription
+                {
+                    CpuAccessFlags = CpuAccessFlags.None,
+                    BindFlags = BindFlags.RenderTarget | BindFlags.ShaderResource,
+                    Format = Format.B8G8R8A8_UNorm,
+                    Width = width,
+                    Height = height,
+                    OptionFlags = ResourceOptionFlags.GenerateMipMaps,
+                    MipLevels = 4,
+                    ArraySize = 1,
+                    SampleDescription = { Count = 1, Quality = 0 },
+                    Usage = ResourceUsage.Default
+                });
             }
             catch (Exception)
             {
             }
-            smallerTexture = new Texture2D(mDevice, new Texture2DDescription
-            {
-                CpuAccessFlags = CpuAccessFlags.None,
-                BindFlags = BindFlags.RenderTarget | BindFlags.ShaderResource,
-                Format = Format.B8G8R8A8_UNorm,
-                Width = width,
-                Height = height,
-                OptionFlags = ResourceOptionFlags.GenerateMipMaps,
-                MipLevels = 4,
-                ArraySize = 1,
-                SampleDescription = { Count = 1, Quality = 0 },
-                Usage = ResourceUsage.Default
-            });
+
 
             try
             {
@@ -188,11 +194,12 @@ namespace cmonitor.server.client.reports.screen
                     smallerTextureView.Dispose();
                     smallerTextureView = null;
                 }
+                smallerTextureView = new ShaderResourceView(mDevice, smallerTexture);
             }
             catch (Exception)
             {
             }
-            smallerTextureView = new ShaderResourceView(mDevice, smallerTexture);
+
         }
         private void InitDesk()
         {
@@ -277,9 +284,9 @@ namespace cmonitor.server.client.reports.screen
             if (frameInfo.TotalMetadataBufferSize > 0)
             {
 
-                OutputDuplicateMoveRectangle[] movedRectangles = new OutputDuplicateMoveRectangle[frameInfo.TotalMetadataBufferSize];
+                OutputDuplicateMoveRectangle[] movedRectangles = new OutputDuplicateMoveRectangle[frameInfo.TotalMetadataBufferSize*2];
                 mDeskDupl.GetFrameMoveRects(movedRectangles.Length, movedRectangles, out int movedRegionsLength);
-                //Console.WriteLine($"movedRegionsLength:{movedRegionsLength}");
+                //Console.WriteLine($"movedRegionsLength:{movedRegionsLength}->");
                 frame.MovedRegions = new MovedRegion[movedRegionsLength / Marshal.SizeOf(typeof(OutputDuplicateMoveRectangle))];
                 for (int i = 0; i < frame.MovedRegions.Length; i++)
                 {
@@ -329,19 +336,29 @@ namespace cmonitor.server.client.reports.screen
         }
 
 
-        byte[] fullImageBytes = Helper.EmptyArray;
-        public DesktopFrame GetLatestFullFrame(float configScale)
+        private byte[] fullImageBytes = Helper.EmptyArray;
+        private Memory<byte> fullImageMemory = Helper.EmptyArray;
+        public DesktopFrame GetLatestFullFrame(ScreenReportFullType screenReportFullType, float configScale)
         {
             DesktopFrame frame = new DesktopFrame() { FullImage = Helper.EmptyArray, RegionImage = Helper.EmptyArray };
             bool success = RetrieveFrame();
             if (success == false)
             {
+                if (screenReportFullType == ScreenReportFullType.Full && fullImageMemory.Length > 0)
+                {
+                    frame.FullImage = fullImageMemory;
+                    return frame;
+                }
                 return null;
             }
 
             try
             {
                 RetrieveFrameMetadata(frame);
+                if (frame.UpdatedRegions.Length > 0)
+                {
+                    frame.UpdatedRegions = Rectangle.UnionRectangles(frame.UpdatedRegions);
+                }
                 ProcessFrameFull(frame, configScale);
             }
             catch
@@ -431,7 +448,7 @@ namespace cmonitor.server.client.reports.screen
                     }
 
                     using Graphics g = Graphics.FromImage(bmp);
-                    WinApi.DrawCursorIcon(g, bmp.Width*1.0f/sourceRect.Width, bmp.Height*1.0f/sourceRect.Height);
+                    WinApi.DrawCursorIcon(g, bmp.Width * 1.0f / sourceRect.Width, bmp.Height * 1.0f / sourceRect.Height);
 
                     //转字节数组
                     using Image image1 = bmp;
@@ -445,7 +462,8 @@ namespace cmonitor.server.client.reports.screen
                         fullImageBytes = new byte[length];
                     }
                     ms.Read(fullImageBytes.AsSpan(0, length));
-                    frame.FullImage = fullImageBytes.AsMemory(0, length);
+                    fullImageMemory = fullImageBytes.AsMemory(0, length);
+                    frame.FullImage = fullImageMemory;
                 }
                 catch (Exception ex)
                 {
@@ -532,6 +550,7 @@ namespace cmonitor.server.client.reports.screen
             {
                 try
                 {
+                    /*
                     var mapSource = mDevice.ImmediateContext.MapSubresource(desktopImageTexture, 0, MapMode.Read, MapFlags.None);
                     int sourceWidth = mOutputDesc.DesktopBounds.Right - mOutputDesc.DesktopBounds.Left;
                     int sourceHeight = mOutputDesc.DesktopBounds.Bottom - mOutputDesc.DesktopBounds.Top;
@@ -550,55 +569,53 @@ namespace cmonitor.server.client.reports.screen
                     }
                     image.UnlockBits(mapDest);
                     mDevice.ImmediateContext.UnmapSubresource(desktopImageTexture, 0);
-
-                    Rectangle[] updatedRegions = frame.UpdatedRegions;
-
-
-                    /*
-                    if (diffFilter.OverlayImage == null)
-                    {
-
-                        diffFilter.OverlayImage = image;
-                        blobCounter = new BlobCounter();
-                        blobCounter.FilterBlobs = true;
-                        blobCounter.MinHeight = 10;
-                        blobCounter.MinWidth = 10;
-                        blobCounter.ObjectsOrder = ObjectsOrder.Area;
-                    }
-                    else
-                    {
-                        var sw = new Stopwatch();
-                        sw.Start();
-
-                        // 获取差异图像
-                        Bitmap diffImage = diffFilter.Apply(image);
-                        blobCounter.ProcessImage(diffImage);
-                        Blob[] blobs = blobCounter.GetObjectsInformation();
-
-                        frame.Updateds = new Rectangle[blobs.Length];
-
-                        sw.Stop();
-                        Console.WriteLine($"========================================{sw.ElapsedMilliseconds}->{blobs.Length}");
-                        for (int i = 0; i < blobs.Length; i++)
-                        {
-                            frame.Updateds[i] = new Rectangle(blobs[i].Rectangle.X, blobs[i].Rectangle.Y, blobs[i].Rectangle.Width, blobs[i].Rectangle.Height);
-                            Console.WriteLine($"{blobs[i].Rectangle.X}->{blobs[i].Rectangle.Y}->{blobs[i].Rectangle.Width}->{blobs[i].Rectangle.Height}");
-                        }
-
-                        diffFilter.OverlayImage.Dispose();
-                        diffFilter.OverlayImage = image;
-
-                    }
-                    Rectangle[] updatedRegions = frame.Updateds;
                     */
-                    /*
+                    Rectangle[] updatedRegions = frame.UpdatedRegions;
+                    
                     int index = 0;
                     for (int i = 0; i < updatedRegions.Length; i++)
                     {
                         Rectangle region = updatedRegions[i];
 
+                        //拷贝画布
+                        Texture2DDescription desc = desktopImageTexture.Description;
+                        desc.Width = region.Width;
+                        desc.Height = region.Height;
+                        using Texture2D texture = new Texture2D(mDevice, desc);
+                        mDevice.ImmediateContext.CopySubresourceRegion(smallerTexture, 0, new ResourceRegion
+                        {
+                            Left = region.X,
+                            Right = region.X + region.Width,
+                            Top = region.Y,
+                            Bottom = region.Y + region.Height,
+                            Back = 1
+                        }, texture, 0, 0, 0);
+
+                        //拷贝到图像
+                        DataBox mapSource = mDevice.ImmediateContext.MapSubresource(texture, 0, MapMode.Read, MapFlags.None);
+                        using Bitmap image = new Bitmap(desc.Width, desc.Height, PixelFormat.Format32bppArgb);
+                        System.Drawing.Rectangle boundsRect = new System.Drawing.Rectangle(0, 0, desc.Width, desc.Height);
+                        BitmapData mapDest = image.LockBits(boundsRect, ImageLockMode.WriteOnly, image.PixelFormat);
+                        nint sourcePtr = mapSource.DataPointer;
+                        nint destPtr = mapDest.Scan0;
+                        for (int y = 0; y < desc.Height; y++)
+                        {
+                            Utilities.CopyMemory(destPtr, sourcePtr, desc.Width * 4);
+                            sourcePtr = IntPtr.Add(sourcePtr, mapSource.RowPitch);
+                            destPtr = IntPtr.Add(destPtr, mapDest.Stride);
+                        }
+                        image.UnlockBits(mapDest);
+                        mDevice.ImmediateContext.UnmapSubresource(texture, 0);
+
+
                         int width = (int)(region.Width * configScale);
                         int height = (int)(region.Height * configScale);
+                        if (width <= 0 || height <= 0) continue;
+
+                        using Bitmap bmp = new Bitmap(width, height);
+                        using Graphics graphic = Graphics.FromImage(bmp);
+                        graphic.DrawImage(image, new System.Drawing.Rectangle(0, 0, width, height), 0, 0, desc.Width, desc.Height, GraphicsUnit.Pixel);
+
 
                         using System.Drawing.Image image1 = bmp;
                         using MemoryStream ms = new MemoryStream();
@@ -625,7 +642,7 @@ namespace cmonitor.server.client.reports.screen
                         index += msLength;
                     }
                     frame.RegionImage = regionImageBytes.AsMemory(0, index);
-                    */
+                    
                 }
                 catch (Exception ex)
                 {

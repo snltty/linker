@@ -45,12 +45,14 @@ namespace cmonitor.server.client.reports.screen
         }
 
 
-        private ScreenReportType screenReportType = ScreenReportType.None;
+        private ScreenReportType screenReportType = ScreenReportType.Full;
+        private ScreenReportFullType screenReportFullType = ScreenReportFullType.Trim;
         private long ticks = 0;
-        public void Full()
+        public void Full(ScreenReportFullType screenReportFullType)
         {
             ticks = DateTime.UtcNow.Ticks;
             screenReportType = ScreenReportType.Full;
+            this.screenReportFullType = screenReportFullType;
         }
         public void Clip(ScreenClipInfo screenClipInfo)
         {
@@ -111,7 +113,7 @@ namespace cmonitor.server.client.reports.screen
             {
                 //var sw = new Stopwatch();
                 //sw.Start();
-                frame = dxgiDesktop.GetLatestFullFrame(config.ScreenScale);
+                frame = dxgiDesktop.GetLatestFullFrame(screenReportFullType,config.ScreenScale);
                 //sw.Stop();
                 //Console.WriteLine(sw.ElapsedMilliseconds);
             }
@@ -140,15 +142,12 @@ namespace cmonitor.server.client.reports.screen
                         Payload = frame.RegionImage,
                     });
                 }
-                if (frame.UpdatedRegions.Length > 0)
+                await messengerSender.SendOnly(new MessageRequestWrap
                 {
-                    await messengerSender.SendOnly(new MessageRequestWrap
-                    {
-                        Connection = clientSignInState.Connection,
-                        MessengerId = (ushort)ScreenMessengerIds.Rectangles,
-                        Payload = MemoryPackSerializer.Serialize(frame.UpdatedRegions),
-                    });
-                }
+                    Connection = clientSignInState.Connection,
+                    MessengerId = (ushort)ScreenMessengerIds.Rectangles,
+                    Payload = MemoryPackSerializer.Serialize(frame.UpdatedRegions),
+                });
             }
 
         }
@@ -161,9 +160,13 @@ namespace cmonitor.server.client.reports.screen
 
     public enum ScreenReportType : byte
     {
-        None = 0,
-        Full = 1,
-        Region = 2
+        Full = 0,
+        Region = 1
+    };
+    public enum ScreenReportFullType : byte
+    {
+        Full = 0,
+        Trim = 1
     };
 
     [MemoryPackable]

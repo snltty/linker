@@ -186,7 +186,7 @@ export default {
     reported: true,
     init() {
         this.globalData = injectGlobalData();
-        this.reportInterval();
+        this.reportInterval(0);
         this.subMessage();
         this.fpsInterval();
         this.clipInterver();
@@ -285,6 +285,7 @@ export default {
 
                 const img = item.Screen.img;
                 if (img) {
+                    //item.Screen.img = null;
                     item.ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, item.canvas.width, item.canvas.height);
                 }
 
@@ -341,25 +342,38 @@ export default {
 
     reported: true,
     reportTimer: 0,
-    reportInterval() {
+    updateFull() {
+        const names = this.globalData.value.reportNames;
+        let reportType = 1;
+        this.globalData.value.devices.filter(c => names.indexOf(c.MachineName) >= 0).forEach(item => {
+            reportType &&= Number(item.Screen.fullUpdated);
+            item.Screen.fullUpdated = true;
+        });
+        return screenUpdateFull(names, reportType);
+    },
+    updateRegion() {
+        const names = this.globalData.value.reportNames;
+        return screenUpdateRegion(names);
+    },
+    reportInterval(times) {
         if (this.reported) {
             this.reported = false;
-
-            const names = this.globalData.value.reportNames;
-            screenUpdateFull(names, 0).then(() => {
+            // const fn = times < 2 ? this.updateFull() : this.updateRegion();
+            const fn = this.updateFull();
+            fn.then(() => {
                 this.reported = true;
                 this.reportTimer = setTimeout(() => {
-                    this.reportInterval();
+                    this.reportInterval(++times);
                 }, 300);
             }).catch(() => {
                 this.reported = true;
                 this.reportTimer = setTimeout(() => {
-                    this.reportInterval();
+                    this.reportInterval(++times);
                 }, 300);
             });
         } else {
             this.reportTimer = setTimeout(() => {
-                this.reportInterval();
+                this.reportInterval(++times);
             }, 300);
         }
     },

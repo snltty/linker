@@ -23,7 +23,12 @@ namespace cmonitor.server.service.messengers.screen
         [MessengerId((ushort)ScreenMessengerIds.Full)]
         public void Full(IConnection connection)
         {
-            screenReport.Full();
+            ScreenReportFullType screenReportFullType = ScreenReportFullType.Trim;
+            if(connection.ReceiveRequestWrap.Payload.Length > 0)
+            {
+                screenReportFullType = (ScreenReportFullType)connection.ReceiveRequestWrap.Payload.Span[0];
+            }
+            screenReport.Full(screenReportFullType);
         }
         [MessengerId((ushort)ScreenMessengerIds.FullReport)]
         public void FullReport(IConnection connection)

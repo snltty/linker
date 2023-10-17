@@ -21,6 +21,7 @@ namespace cmonitor.server.api.services
         public bool Full(ClientServiceParamsInfo param)
         {
             ScreenReportInfo report = param.Content.DeJson<ScreenReportInfo>();
+            byte[] bytes = new byte[] {(byte)report.Type };
             for (int i = 0; i < report.Names.Length; i++)
             {
                 bool connectionRes = signCaching.Get(report.Names[i], out SignCacheInfo cache) && cache.Connected;
@@ -32,7 +33,8 @@ namespace cmonitor.server.api.services
                     {
                         Connection = cache.Connection,
                         MessengerId = (ushort)ScreenMessengerIds.Full,
-                        Timeout = 1000
+                        Timeout = 1000,
+                         Payload= bytes
                     }).ContinueWith((result) =>
                     {
                         Interlocked.Exchange(ref cache.ScreenFlag, 1);
@@ -89,7 +91,7 @@ namespace cmonitor.server.api.services
     public sealed class ScreenReportInfo
     {
         public string[] Names { get; set; }
-        public byte Type { get; set; }
+        public ScreenReportFullType Type { get; set; }
     }
     public sealed class ScreenClipParamInfo
     {

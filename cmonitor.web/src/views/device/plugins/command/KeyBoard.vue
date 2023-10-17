@@ -20,7 +20,7 @@
     </div>
 </template>
 <script>
-import { computed, reactive } from 'vue'
+import { computed, onMounted, reactive } from 'vue'
 import { injectPluginState } from '../../provide';
 import { keyboard } from '@/apis/command';
 export default {
@@ -59,6 +59,13 @@ export default {
         const handleClose = () => {
             pluginState.value.command.showKeyBoard = false;
         }
+        /*
+        onMounted(() => {
+            keyboard(state.names, 0xA2, 0);
+            keyboard(state.names, 0x12, 0);
+            keyboard(state.names, 46, 0);
+        });
+        */
 
         return { state, handleKeyDown, handleKeyUp, handleClose }
     }

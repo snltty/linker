@@ -20,7 +20,6 @@ namespace cmonitor.server.client.reports.command
         {
             keybd_event(inputInfo.Key, 0, inputInfo.Type, 0);
         }
-
         public const int KEYEVENTF_KEYDOWN = 0x0000;
         public const int KEYEVENTF_KEYUP = 0x0002;
         [DllImport("user32.dll")]
