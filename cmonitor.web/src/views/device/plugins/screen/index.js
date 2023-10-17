@@ -280,6 +280,8 @@ export default {
                     }
                 }
             }
+            if (!item.canvas) continue;
+
             if (!item.infoCanvas) {
                 item.infoCanvas = document.createElement('canvas');
                 item.infoCanvas.width = item.canvas.width;
