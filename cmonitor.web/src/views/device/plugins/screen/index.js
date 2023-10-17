@@ -272,7 +272,14 @@ export default {
             const item = devices[i];
             if (!item.canvas) {
                 item.canvas = document.getElementById(`canvas-${item.MachineName}`);
-                item.ctx = item.canvas.getContext('2d');
+                try {
+                    item.ctx = item.canvas.getContext('2d')
+                } catch (e) {
+                    item.canvas = null;
+                }
+            }
+            if (!item.canvas) {
+                continue;
             }
             if (!item.infoCanvas) {
                 item.infoCanvas = document.createElement('canvas');
