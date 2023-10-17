@@ -214,8 +214,6 @@ namespace cmonitor.server.client.reports.screen
             }
             catch (SharpDXException ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Error(ex);
                 if (ex.ResultCode.Code == SharpDX.DXGI.ResultCode.NotCurrentlyAvailable.Result.Code)
                 {
                     if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -227,6 +225,7 @@ namespace cmonitor.server.client.reports.screen
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     Logger.Instance.Error(ex);
             }
+            //GCHelper.FlushMemory();
         }
         private void InitCapture()
         {
@@ -254,21 +253,20 @@ namespace cmonitor.server.client.reports.screen
                 if (desktopResource == null)
                 {
                     uint code = (uint)result.Code;
-                    //超时、GPU繁忙、暂时不可用
-                    if (code == 0x887A0027 || code == 0x887A000A || code == 0x887A0022)
-                    {
-                        //不需操作
-                    }
-                    //复制接口无效，比如切换了桌面
-                    else if (code == 0x887A0026)
+                    //https://learn.microsoft.com/zh-cn/windows/win32/direct3ddxgi/dxgi-error
+                    if (code == 0x887A0026 || code == 0x887A0001 || code == 0x887A0007)
                     {
                         InitDesk();
                     }
                     return false;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    Logger.Instance.Error(ex);
+                }
                 InitDesk();
                 return false;
             }
@@ -361,8 +359,12 @@ namespace cmonitor.server.client.reports.screen
                 }
                 ProcessFrameFull(frame, configScale);
             }
-            catch
+            catch(Exception ex)
             {
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    Logger.Instance.Error(ex);
+                }
                 ReleaseFrame();
             }
             finally
@@ -471,7 +473,6 @@ namespace cmonitor.server.client.reports.screen
                     {
                         Logger.Instance.Error(ex);
                     }
-
                 }
             }
         }
