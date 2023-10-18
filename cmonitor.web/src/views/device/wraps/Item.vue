@@ -114,7 +114,7 @@ export default {
     // background-color: #fff;
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
     width: 100%;
-    margin: 0 auto 1rem auto;
+    margin: 0 auto .6rem auto;
     position: relative;
     transition: 0.3s;
     background-color: rgba(255, 255, 255, 0.5);

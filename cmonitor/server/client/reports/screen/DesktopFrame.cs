@@ -23,7 +23,7 @@ namespace cmonitor.server.client.reports.screen
 
     public struct Scale
     {
-        public Scale(int x, int y,float scale)
+        public Scale(int x, int y, float scale)
         {
             X = x;
             Y = y;
@@ -55,6 +55,7 @@ namespace cmonitor.server.client.reports.screen
             Y = y;
             Width = width;
             Height = height;
+            Remove = false;
         }
         public int X { get; set; }
         public int Y { get; set; }
@@ -62,9 +63,14 @@ namespace cmonitor.server.client.reports.screen
         public int Height { get; set; }
         public bool Remove { get; set; }
 
-        public readonly bool IntersectsWith(Rectangle rect) =>
-        (rect.X < X + Width) && (X < rect.X + rect.Width) &&
-        (rect.Y < Y + Height) && (Y < rect.Y + rect.Height);
+        public readonly bool IntersectsWith(Rectangle rect) => IntersectsWithX(rect) && IntersectsWithY(rect);
+        public readonly bool IntersectsWithX(Rectangle rect) => (rect.X < X + Width) && (X < rect.X + rect.Width);
+        public readonly bool IntersectsWithY(Rectangle rect) => (rect.Y < Y + Height) && (Y < rect.Y + rect.Height);
+
+        public readonly bool NearWith(Rectangle rect, int dist) => (NearWithX(rect, dist) && IntersectsWithY(rect)) || (NearWithY(rect, dist) && IntersectsWithX(rect));
+        public readonly bool NearWithX(Rectangle rect, int dist) => Math.Min(Math.Abs(X + Width - rect.X), Math.Abs(rect.X + rect.Width - X)) <= dist;
+        public readonly bool NearWithY(Rectangle rect, int dist) => Math.Min(Math.Abs(Y + Height - rect.Y), Math.Abs(rect.Y + rect.Height - Y)) <= dist;
+
 
         public readonly Rectangle Union(Rectangle b)
         {
@@ -86,7 +92,7 @@ namespace cmonitor.server.client.reports.screen
                 for (int j = i + 1; j < rects.Length; j++)
                 {
                     if (rects[j].Remove) continue;
-                    if (rects[i].IntersectsWith(rects[j]))
+                    if (rects[i].IntersectsWith(rects[j]) || rects[i].NearWith(rects[j], 5))
                     {
                         rects[i] = rects[i].Union(rects[j]);
                         rects[j].Remove = true;
@@ -105,6 +111,7 @@ namespace cmonitor.server.client.reports.screen
                     index++;
                 }
             }
+
             return result;
         }
     }

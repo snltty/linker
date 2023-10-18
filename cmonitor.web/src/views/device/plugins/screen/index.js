@@ -16,16 +16,17 @@ export default {
                 },
 
                 lastInput: 0,
+                captureTime: 0,
                 fps: 0,
                 fpsTimes: 0,
                 drawFps(canvas, ctx) {
                     ctx.lineWidth = 5;
                     ctx.font = 'bold 60px Arial';
                     ctx.fillStyle = 'rgba(0,0,0,0.5)';
-                    ctx.fillText(`FPS : ${this.fps} 、LT : ${this.lastInput}ms`, 50, 70);
+                    ctx.fillText(`FPS : ${this.fps} 、${this.captureTime}ms、LT : ${this.lastInput}ms`, 50, 70);
                     ctx.lineWidth = 2;
                     ctx.strokeStyle = '#fff';
-                    ctx.strokeText(`FPS : ${this.fps} 、LT : ${this.lastInput}ms`, 50, 70);
+                    ctx.strokeText(`FPS : ${this.fps} 、${this.captureTime}ms 、LT : ${this.lastInput}ms`, 50, 70);
                 },
 
                 rectangles: [],
@@ -306,7 +307,6 @@ export default {
                 for (let j in item) {
                     try {
                         if (item[j] && item[j].draw) {
-
                             item[j].draw(item.infoCanvas, item.infoCtx);
                         }
                     } catch (e) {
@@ -366,7 +366,7 @@ export default {
     reportInterval(times) {
         if (this.reported) {
             this.reported = false;
-            // const fn = times < 2 ? this.updateFull() : this.updateRegion();
+            //const fn = times < 2 ? this.updateFull() : this.updateRegion();
             const fn = this.updateFull();
             fn.then(() => {
                 this.reported = true;
@@ -390,5 +390,6 @@ export default {
         if (!report.Screen) return;
 
         item.Screen.lastInput = report.Screen.LT || 0;
+        item.Screen.captureTime = report.Screen.CT || 0;
     }
 }

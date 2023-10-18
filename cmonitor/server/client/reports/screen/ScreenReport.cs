@@ -16,6 +16,7 @@ namespace cmonitor.server.client.reports.screen
 
         private ScreenReportInfo report = new ScreenReportInfo();
         private uint lastInput;
+        private uint captureTime;
         private readonly DxgiDesktop dxgiDesktop;
         private readonly GdiDesktop gdiDesktop;
 
@@ -39,6 +40,7 @@ namespace cmonitor.server.client.reports.screen
             if (report.LT < lastInput || report.LT - lastInput > 1000)
             {
                 lastInput = report.LT;
+                captureTime = report.CT;
                 return report;
             }
             return null;
@@ -105,22 +107,20 @@ namespace cmonitor.server.client.reports.screen
         private async Task SendScreenCapture()
         {
             DesktopFrame frame = null;
-            if (gdiDesktop.IsClip()/*|| gdiDesktop.IsLockScreen()*/)
+            long ticks = DateTime.UtcNow.Ticks;
+            if (gdiDesktop.IsClip())
             {
                 frame = gdiDesktop.GetLatestFrame(config.ScreenScale);
             }
             else if (screenReportType == ScreenReportType.Full)
             {
-                //var sw = new Stopwatch();
-                //sw.Start();
-                frame = dxgiDesktop.GetLatestFullFrame(screenReportFullType,config.ScreenScale);
-                //sw.Stop();
-                //Console.WriteLine(sw.ElapsedMilliseconds);
+                frame = dxgiDesktop.GetLatestFullFrame(screenReportFullType, config.ScreenScale);
             }
             else if (screenReportType == ScreenReportType.Region)
             {
                 frame = dxgiDesktop.GetLatestRegionFrame(config.ScreenScale);
             }
+            report.CT = (uint)((DateTime.UtcNow.Ticks - ticks) / TimeSpan.TicksPerMillisecond);
 
             if (frame != null)
             {
@@ -155,6 +155,7 @@ namespace cmonitor.server.client.reports.screen
 
     public sealed class ScreenReportInfo
     {
+        public uint CT { get; set; }
         public uint LT { get; set; }
     }
 

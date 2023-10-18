@@ -345,9 +345,8 @@ namespace cmonitor.server.client.reports.screen
                 if (screenReportFullType == ScreenReportFullType.Full && fullImageMemory.Length > 0)
                 {
                     frame.FullImage = fullImageMemory;
-                    return frame;
                 }
-                return null;
+                return frame;
             }
 
             try
@@ -514,7 +513,7 @@ namespace cmonitor.server.client.reports.screen
             bool success = RetrieveFrame();
             if (success == false)
             {
-                return null;
+                return frame;
             }
 
             try
