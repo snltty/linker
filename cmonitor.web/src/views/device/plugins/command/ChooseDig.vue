@@ -66,7 +66,9 @@ export default {
                 { label: '设置静音', func: setVolumeMute, value: true },
                 { label: '取消静音', func: setVolumeMute, value: false },
                 { label: '开任务管理器', value: 'reg add HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /v DisableTaskMgr  /t REG_DWORD /f /d 0' },
-                { label: '禁资源管理器', value: 'reg add HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /v DisableTaskMgr  /t REG_DWORD /f /d 1' },
+                { label: '禁任务管理器', value: 'reg add HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /v DisableTaskMgr  /t REG_DWORD /f /d 1' },
+                //{ label: '开图标拖拽', value: 'reg add HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer /v NoSaveSettings  /t REG_DWORD /f /d 0' },
+                //{ label: '禁图标拖拽', value: 'reg add HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer /v NoSaveSettings  /t REG_DWORD /f /d 1' },
             ],
             loading: false
         });

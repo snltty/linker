@@ -12,11 +12,15 @@ namespace cmonitor.server.client.reports.llock
 
         private readonly Config config;
         private readonly ShareReport shareReport;
+        private readonly ClientConfig clientConfig;
 
-        public LLockReport(Config config, ShareReport shareReport)
+        public LLockReport(Config config, ShareReport shareReport, ClientConfig clientConfig)
         {
             this.config = config;
             this.shareReport = shareReport;
+            this.clientConfig = clientConfig;
+
+            Update(clientConfig.LLock);
         }
 
         DateTime startTime = new DateTime(1970, 1, 1);
@@ -26,7 +30,7 @@ namespace cmonitor.server.client.reports.llock
             {
                 report.Value = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds - time < 1000;
             }
-            if(reportType == ReportType.Full || report.Value != lastValue)
+            if (reportType == ReportType.Full || report.Value != lastValue)
             {
                 lastValue = report.Value;
                 return report;
@@ -36,6 +40,7 @@ namespace cmonitor.server.client.reports.llock
 
         public void Update(bool open)
         {
+            clientConfig.LLock = open;
             Task.Run(() =>
             {
                 CommandHelper.Windows(string.Empty, new string[] { "taskkill /f /t /im \"llock.win.exe\"" });

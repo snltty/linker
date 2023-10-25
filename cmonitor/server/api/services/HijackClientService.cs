@@ -1,4 +1,5 @@
-﻿using cmonitor.server.service;
+﻿using cmonitor.server.client.reports.hijack;
+using cmonitor.server.service;
 using cmonitor.server.service.messengers.hijack;
 using cmonitor.server.service.messengers.sign;
 using common.libs.extends;

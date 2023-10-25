@@ -1,18 +1,35 @@
 import { ElMessage } from 'element-plus'
 
-let requestId = 0, ws = null, wsUrl = '';
+let requestId = 0, ws = null, wsUrl = '', index = 1;
 //请求缓存，等待回调
 const requests = {};
 const queues = [];
 export const websocketState = { connected: false };
 
 const sendQueueMsg = () => {
-    if (queues.length > 0 && websocketState.connected) {
-        ws.send(queues.shift());
+    if (queues.length > 0 && websocketState.connected && ws && ws.readyState == 1) {
+        try {
+            ws.send(queues.shift());
+        } catch (e) { }
     }
     setTimeout(sendQueueMsg, 1000 / 60);
 }
-sendQueueMsg();
+//sendQueueMsg();
+
+
+const sendTimeout = () => {
+    const time = Date.now();
+    for (let j in requests) {
+        const item = requests[j];
+        if (time - item.time > item.timeout) {
+            item.reject('超时~');
+            delete requests[j];
+        }
+    }
+    setTimeout(sendTimeout, 1000);
+}
+sendTimeout();
+
 
 //发布订阅
 export const pushListener = {
@@ -100,6 +117,7 @@ export const initWebsocket = (url = wsUrl) => {
     }
     wsUrl = url;
     ws = new WebSocket(wsUrl);
+    ws.iddd = ++index;
     ws.onopen = onWebsocketOpen;
     ws.onclose = onWebsocketClose
     ws.onmessage = onWebsocketMsg
@@ -107,24 +125,24 @@ export const initWebsocket = (url = wsUrl) => {
 
 
 //发送消息
-export const sendWebsocketMsg = (path, msg = {}, errHandle = false) => {
+export const sendWebsocketMsg = (path, msg = {}, errHandle = false, timeout = 15000) => {
     return new Promise((resolve, reject) => {
         let id = ++requestId;
         try {
-            requests[id] = { resolve, reject, errHandle, path };
+            requests[id] = { resolve, reject, errHandle, path, time: Date.now(), timeout: timeout };
             let str = JSON.stringify({
                 Path: path,
                 RequestId: id,
                 Content: typeof msg == 'string' ? msg : JSON.stringify(msg)
             });
-            if (websocketState.connected) {
+            if (websocketState.connected && ws.readyState == 1) {
                 ws.send(str);
             } else {
-                queues.push(str);
+                reject('网络错误~');
+                //queues.push(str);
             }
         } catch (e) {
             reject('网络错误~');
-            ElMessage.error('网络错误~');
             delete requests[id];
         }
     });
@@ -140,4 +158,11 @@ export const subNotifyMsg = (path, callback) => {
 }
 export const unsubNotifyMsg = (path, callback) => {
     pushListener.remove(path, callback);
+}
+
+
+export const closeWebsocket = () => {
+    if (ws) {
+        ws.close();
+    }
 }

@@ -42,6 +42,22 @@ namespace cmonitor.server.client.reports.screen
                 }
             }
         }
+        public static bool GetCursorPosition(out int x, out int y)
+        {
+            x = 0;
+            y = 0;
+
+            CURSORINFO pci;
+            pci.cbSize = Marshal.SizeOf(typeof(CURSORINFO));
+            bool res = GetCursorInfo(out pci);
+            if (res)
+            {
+                x = pci.ptScreenPos.x;
+                y = pci.ptScreenPos.y;
+            }
+            return res;
+        }
+
 
         [StructLayout(LayoutKind.Sequential)]
         private struct CURSORINFO

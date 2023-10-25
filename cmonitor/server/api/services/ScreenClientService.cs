@@ -26,6 +26,7 @@ namespace cmonitor.server.api.services
             {
                 bool connectionRes = signCaching.Get(report.Names[i], out SignCacheInfo cache) && cache.Connected;
                 bool reportRes = cache.GetScreen(config.ScreenDelay) && Interlocked.CompareExchange(ref cache.ScreenFlag, 0, 1) == 1;
+
                 if (connectionRes && reportRes)
                 {
                     cache.UpdateScreen();
@@ -86,6 +87,7 @@ namespace cmonitor.server.api.services
 
             return true;
         }
+
     }
 
     public sealed class ScreenReportInfo

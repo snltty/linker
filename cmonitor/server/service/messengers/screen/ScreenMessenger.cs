@@ -1,4 +1,5 @@
 ﻿using cmonitor.server.api;
+using cmonitor.server.client.reports;
 using cmonitor.server.client.reports.screen;
 using cmonitor.server.service.messengers.sign;
 using MemoryPack;
@@ -23,12 +24,12 @@ namespace cmonitor.server.service.messengers.screen
         [MessengerId((ushort)ScreenMessengerIds.Full)]
         public void Full(IConnection connection)
         {
-            ScreenReportFullType screenReportFullType = ScreenReportFullType.Trim;
-            if(connection.ReceiveRequestWrap.Payload.Length > 0)
+            ScreenReportFullType reportType = ScreenReportFullType.Trim;
+            if (connection.ReceiveRequestWrap.Payload.Length > 0)
             {
-                screenReportFullType = (ScreenReportFullType)connection.ReceiveRequestWrap.Payload.Span[0];
+                reportType = (ScreenReportFullType)connection.ReceiveRequestWrap.Payload.Span[0];
             }
-            screenReport.Full(screenReportFullType);
+            screenReport.Full(reportType);
         }
         [MessengerId((ushort)ScreenMessengerIds.FullReport)]
         public void FullReport(IConnection connection)

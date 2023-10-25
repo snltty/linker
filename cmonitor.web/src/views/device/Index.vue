@@ -21,7 +21,6 @@ import FootMenu from './wraps/FootMenu.vue'
 import FootOptions from './wraps/FootOptions.vue'
 import Items from './wraps/Items.vue'
 import { providePluginState } from './provide'
-import { provide, ref, watch } from 'vue'
 export default {
     components: { Items, FootMenu, FootOptions },
     setup() {

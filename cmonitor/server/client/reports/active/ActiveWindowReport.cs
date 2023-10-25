@@ -14,28 +14,37 @@ namespace cmonitor.server.client.reports.active
     {
         public string Name => "ActiveWindow";
 
+        private readonly ClientConfig clientConfig;
         private readonly ActiveWindowTimeManager activeWindowTimeManager = new ActiveWindowTimeManager();
         private ActiveReportInfo report = new ActiveReportInfo();
+
         private uint lastPid = 0;
         private string lastTitle = string.Empty;
-        public ActiveWindowReport(Config config)
+        private int count = 0;
+        public ActiveWindowReport(Config config, ClientConfig clientConfig)
         {
+            this.clientConfig = clientConfig;
             if (config.IsCLient)
             {
                 Timers();
                 DisallowInit();
 
+                DisallowRun(clientConfig.WindowNames);
+
                 AppDomain.CurrentDomain.ProcessExit += (s, e) => DisallowRun(Array.Empty<string>());
                 Console.CancelKeyPress += (s, e) => DisallowRun(Array.Empty<string>());
             }
+
+           
         }
 
         public object GetReports(ReportType reportType)
         {
-            if (reportType == ReportType.Full || report.Pid != lastPid || report.Title != lastTitle)
+            if (reportType == ReportType.Full || report.Pid != lastPid || report.Title != lastTitle || report.Count != count)
             {
                 lastPid = report.Pid;
                 lastTitle = report.Title;
+                count = report.Count;
                 return report;
             }
             return null;
@@ -73,7 +82,6 @@ namespace cmonitor.server.client.reports.active
                 }
             }, TaskCreationOptions.LongRunning);
         }
-
 
 
         const int nChars = 256;
@@ -118,17 +126,19 @@ namespace cmonitor.server.client.reports.active
         private string[] disallowNames = Array.Empty<string>();
         public void DisallowRun(string[] names)
         {
+            clientConfig.WindowNames = names;
             DisallowRun(false);
             DisallowRunClear();
             report.Count = names.Length;
             disallowNames = names;
-            if (names.Length > 0)
-            {
-                DisallowRun(true);
-                DisallowRunFileNames(names);
-            }
+            
             Task.Run(() =>
             {
+                if (names.Length > 0)
+                {
+                    DisallowRun(true);
+                    DisallowRunFileNames(names);
+                }
                 CommandHelper.Windows(string.Empty, new string[] { "gpupdate /force" });
             });
         }

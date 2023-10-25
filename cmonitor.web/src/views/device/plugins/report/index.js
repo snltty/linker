@@ -27,6 +27,10 @@ export default {
         });
         this.fpsInterval();
     },
+    uninit() {
+        clearTimeout(this.reportTimer);
+        clearTimeout(this.reportPingTimer);
+    },
 
     reportTimer: 0,
     reported: true,
@@ -35,9 +39,10 @@ export default {
             this.reported = false;
 
             const names = this.globalData.value.reportNames;
-            let reportType = 1;
-            this.globalData.value.devices.filter(c => names.indexOf(c.MachineName) >= 0).forEach(item => {
-                reportType &&= Number(item.Report.updated);
+            const devices = this.globalData.value.devices;
+            let reportType = 2;
+            devices.filter(c => names.indexOf(c.MachineName) >= 0).forEach(item => {
+                reportType &&= (Number(item.Report.updated) + 1);
                 item.Report.updated = true;
             });
             reportUpdate(names, reportType).then(() => {

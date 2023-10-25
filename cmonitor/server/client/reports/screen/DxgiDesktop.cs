@@ -24,6 +24,7 @@ namespace cmonitor.server.client.reports.screen
 
         private Texture2D desktopImageTexture = null;
         private Texture2D smallerTexture = null;
+        private Texture2D tempTexture;
         private ShaderResourceView smallerTextureView = null;
         private OutputDuplicateFrameInformation frameInfo = new OutputDuplicateFrameInformation();
 
@@ -248,6 +249,14 @@ namespace cmonitor.server.client.reports.screen
             SharpDX.DXGI.Resource desktopResource = null;
             try
             {
+                if (mDeskDupl == null)
+                {
+                    InitDesk();
+                }
+                if (mDeskDupl == null)
+                {
+                    return false;
+                }
 
                 Result result = mDeskDupl.TryAcquireNextFrame(100, out frameInfo, out desktopResource);
                 if (desktopResource == null)
@@ -271,7 +280,12 @@ namespace cmonitor.server.client.reports.screen
                 return false;
             }
 
-            using Texture2D tempTexture = desktopResource.QueryInterface<Texture2D>();
+            if (tempTexture != null)
+            {
+                tempTexture.Dispose();
+                tempTexture = null;
+            }
+            tempTexture = desktopResource.QueryInterface<Texture2D>();
             mDevice.ImmediateContext.CopySubresourceRegion(tempTexture, 0, null, smallerTexture, 0);
 
             desktopResource.Dispose();
@@ -282,9 +296,9 @@ namespace cmonitor.server.client.reports.screen
             if (frameInfo.TotalMetadataBufferSize > 0)
             {
 
-                OutputDuplicateMoveRectangle[] movedRectangles = new OutputDuplicateMoveRectangle[frameInfo.TotalMetadataBufferSize*2];
+                OutputDuplicateMoveRectangle[] movedRectangles = new OutputDuplicateMoveRectangle[frameInfo.TotalMetadataBufferSize];
                 mDeskDupl.GetFrameMoveRects(movedRectangles.Length, movedRectangles, out int movedRegionsLength);
-                //Console.WriteLine($"movedRegionsLength:{movedRegionsLength}->");
+                //Console.WriteLine($"TotalMetadataBufferSize:{frameInfo.TotalMetadataBufferSize}->movedRegionsLength:{movedRegionsLength}->");
                 frame.MovedRegions = new MovedRegion[movedRegionsLength / Marshal.SizeOf(typeof(OutputDuplicateMoveRectangle))];
                 for (int i = 0; i < frame.MovedRegions.Length; i++)
                 {
@@ -335,17 +349,13 @@ namespace cmonitor.server.client.reports.screen
 
 
         private byte[] fullImageBytes = Helper.EmptyArray;
-        private Memory<byte> fullImageMemory = Helper.EmptyArray;
-        public DesktopFrame GetLatestFullFrame(ScreenReportFullType screenReportFullType, float configScale)
+
+        public DesktopFrame GetLatestFullFrame(float configScale)
         {
             DesktopFrame frame = new DesktopFrame() { FullImage = Helper.EmptyArray, RegionImage = Helper.EmptyArray };
             bool success = RetrieveFrame();
             if (success == false)
             {
-                if (screenReportFullType == ScreenReportFullType.Full && fullImageMemory.Length > 0)
-                {
-                    frame.FullImage = fullImageMemory;
-                }
                 return frame;
             }
 
@@ -358,7 +368,7 @@ namespace cmonitor.server.client.reports.screen
                 }
                 ProcessFrameFull(frame, configScale);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
@@ -463,8 +473,7 @@ namespace cmonitor.server.client.reports.screen
                         fullImageBytes = new byte[length];
                     }
                     ms.Read(fullImageBytes.AsSpan(0, length));
-                    fullImageMemory = fullImageBytes.AsMemory(0, length);
-                    frame.FullImage = fullImageMemory;
+                    frame.FullImage = fullImageBytes.AsMemory(0, length);
                 }
                 catch (Exception ex)
                 {
@@ -571,7 +580,7 @@ namespace cmonitor.server.client.reports.screen
                     mDevice.ImmediateContext.UnmapSubresource(desktopImageTexture, 0);
                     */
                     Rectangle[] updatedRegions = frame.UpdatedRegions;
-                    
+
                     int index = 0;
                     for (int i = 0; i < updatedRegions.Length; i++)
                     {
@@ -642,7 +651,7 @@ namespace cmonitor.server.client.reports.screen
                         index += msLength;
                     }
                     frame.RegionImage = regionImageBytes.AsMemory(0, index);
-                    
+
                 }
                 catch (Exception ex)
                 {

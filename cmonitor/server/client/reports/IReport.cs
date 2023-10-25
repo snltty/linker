@@ -27,7 +27,7 @@ namespace cmonitor.server.client.reports
 
         private List<IReport> reports;
         private Dictionary<string, object> reportObj;
-        private ReportType reportType = ReportType.Full;
+        private ReportType reportType = ReportType.Full | ReportType.Trim;
 
         public ReportTransfer(ClientSignInState clientSignInState, MessengerSender messengerSender, ServiceProvider serviceProvider, Config config)
         {
@@ -57,7 +57,7 @@ namespace cmonitor.server.client.reports
         private long ticks = 0;
         public void Update(ReportType reportType)
         {
-            this.reportType = reportType;
+            this.reportType |= reportType;
             ticks = DateTime.UtcNow.Ticks;
             Interlocked.CompareExchange(ref reportFlag, 1, 0);
         }
@@ -93,13 +93,15 @@ namespace cmonitor.server.client.reports
             {
                 if (string.IsNullOrWhiteSpace(item.Name) == false)
                 {
-                    object val = item.GetReports(reportType);
+                    object val = item.GetReports(reportType & ReportType.Full);
                     if (val != null)
                     {
                         reportObj[item.Name] = val;
                     }
                 }
             }
+            reportType &= ~reportType;
+
             if (reportObj.Count > 0)
             {
 
@@ -117,6 +119,6 @@ namespace cmonitor.server.client.reports
 
     public enum ReportType : byte
     {
-        Full = 0, Trim = 1
+        Full = 1, Trim = 2
     }
 }

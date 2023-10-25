@@ -15,7 +15,7 @@ namespace cmonitor.server.api.services
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
         }
-        public async Task<bool> Update(ClientServiceParamsInfo param)
+        public bool Update(ClientServiceParamsInfo param)
         {
             WallpaperLockInfo info = param.Content.DeJson<WallpaperLockInfo>();
             byte[] bytes = MemoryPackSerializer.Serialize(new WallpaperUpdateInfo
@@ -27,7 +27,7 @@ namespace cmonitor.server.api.services
             {
                 if (signCaching.Get(info.Names[i], out SignCacheInfo cache) && cache.Connected)
                 {
-                    await messengerSender.SendOnly(new MessageRequestWrap
+                    _ = messengerSender.SendOnly(new MessageRequestWrap
                     {
                         Connection = cache.Connection,
                         MessengerId = (ushort)WallpaperMessengerIds.Update,

@@ -3,16 +3,14 @@ import { sendWebsocketMsg } from './request'
 export const screenUpdateFull = (names, type) => {
     return sendWebsocketMsg('screen/full', {
         names, type
-    });
+    }, false, 1000);
 }
 export const screenUpdateRegion = (names) => {
-    return sendWebsocketMsg('screen/region', names);
+    return sendWebsocketMsg('screen/region', names, false, 1000);
 }
-export const screenClip = (name, x, y, scale) => {
+export const screenClip = (name, data) => {
     return sendWebsocketMsg('screen/clip', {
         name,
-        clip: {
-            x, y, scale
-        }
-    });
+        clip: data
+    }, false, 1000);
 }

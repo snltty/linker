@@ -11,10 +11,15 @@ namespace cmonitor.server.client.reports.llock
         private bool lastValue;
         private readonly Config config;
         private readonly ShareReport shareReport;
-        public WallpaperReport(Config config, ShareReport shareReport)
+        private readonly ClientConfig clientConfig;
+
+        public WallpaperReport(Config config, ShareReport shareReport, ClientConfig clientConfig)
         {
             this.config = config;
             this.shareReport = shareReport;
+            this.clientConfig = clientConfig;
+
+            Update(clientConfig.Wallpaper, clientConfig.WallpaperUrl);
         }
 
         DateTime startTime = new DateTime(1970, 1, 1);
@@ -34,6 +39,8 @@ namespace cmonitor.server.client.reports.llock
 
         public void Update(bool open, string url)
         {
+            clientConfig.Wallpaper = open;
+            clientConfig.WallpaperUrl = url;
             Task.Run(() =>
             {
                 CommandHelper.Windows(string.Empty, new string[] { "taskkill /f /t /im \"wallpaper.win.exe\"" });

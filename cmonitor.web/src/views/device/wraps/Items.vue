@@ -23,7 +23,11 @@ export default {
         const files = require.context('../plugins/', true, /index\.js/);
         const pluginSettings = files.keys().map(c => files(c).default);
         pluginSettings.forEach((item) => {
-            item.init && item.init();
+            try {
+                item.init && item.init();
+            } catch (e) {
+                console.log(e);
+            }
         });
 
         const globalData = injectGlobalData();
@@ -119,6 +123,7 @@ export default {
             }
         }
 
+        let getListTimer = 0;
         const updateListInterver = () => {
             if (websocketState.connected) {
                 getList().then((res) => {
@@ -132,7 +137,7 @@ export default {
                 });
             }
 
-            setTimeout(() => {
+            getListTimer = setTimeout(() => {
                 updateListInterver();
             }, 1000);
         }
@@ -146,6 +151,11 @@ export default {
         });
         onUnmounted(() => {
             listWrapRemoveScrollListener();
+            clearTimeout(getListTimer);
+
+            pluginSettings.forEach((item) => {
+                item.uninit && item.uninit();
+            });
         });
 
         return {

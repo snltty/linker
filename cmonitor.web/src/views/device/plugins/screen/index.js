@@ -5,9 +5,10 @@ export default {
     field() {
         return {
             Screen: {
-                regions: [],
-                img: null,
-                fullUpdated: false,
+                regionImgs: [], //局部图
+                fullImg: null, //全图
+                fullUpdated: false, //第一次进来先获取一次全图
+                width: 0, height: 0, //系统宽高
 
                 draw(canvas, ctx) {
                     this.drawFps(canvas, ctx);
@@ -15,28 +16,28 @@ export default {
                     this.drawTouch(canvas, ctx);
                 },
 
-                lastInput: 0,
-                captureTime: 0,
-                fps: 0,
-                fpsTimes: 0,
+                lastInput: 0, //最后活动时间 ms
+                captureTime: 0, //截图花费时间 ms
+                fps: { value: 0, temp: 0 }, //帧数累计
                 drawFps(canvas, ctx) {
                     ctx.lineWidth = 5;
                     ctx.font = 'bold 60px Arial';
                     ctx.fillStyle = 'rgba(0,0,0,0.5)';
-                    ctx.fillText(`FPS : ${this.fps} 、${this.captureTime}ms、LT : ${this.lastInput}ms`, 50, 70);
+                    ctx.fillText(`FPS : ${this.fps.value} 、${this.captureTime}ms、LT : ${this.lastInput}ms`, 50, 70);
                     ctx.lineWidth = 2;
                     ctx.strokeStyle = '#fff';
-                    ctx.strokeText(`FPS : ${this.fps} 、${this.captureTime}ms 、LT : ${this.lastInput}ms`, 50, 70);
+                    ctx.strokeText(`FPS : ${this.fps.value} 、${this.captureTime}ms 、LT : ${this.lastInput}ms`, 50, 70);
                 },
 
                 rectangles: [],
                 drawRectangle(canvas, ctx) {
+                    const rectangles = this.rectangles;
                     if (this.rectangles.length > 0 && this.touch.scale == 1) {
                         ctx.lineWidth = 5;
                         ctx.strokeStyle = 'rgba(255,0,0,1)';
-                        for (let i = 0; i < this.rectangles.length; i++) {
+                        for (let i = 0; i < rectangles.length; i++) {
 
-                            const rectangle = this.rectangles[i];
+                            const rectangle = rectangles[i];
                             ctx.rect(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height);
                             ctx.stroke();
 
@@ -50,18 +51,20 @@ export default {
                 touch: {
                     //上次位置
                     lastTouch: { x1: 0, y1: 0, x2: 0, y2: 0, dist: 0, },
+                    clip: { x: 0, y: 0, w: 0, h: 0 },
+                    //原点（缩放点，位置不变，四周扩散）
+                    origin: { x: 0, y: 0, x1: 0, y1: 0 },
+                    updated: false,
                     //缩放比例
                     scale: 1,
-                    //原点（缩放点，位置不变，四周扩散）
-                    origin: { x: 0, y: 0, x1: 0, y1: 0, distX: 0, distY: 0 },
-                    updated: false,
                     type: 0
                 },
                 drawTouch(canvas, ctx) {
                     if (this.touch.type == 2) {
-                        ctx.fillStyle = 'red';
+
+                        ctx.fillStyle = 'yellow';
                         ctx.strokeStyle = 'yellow';
-                        ctx.rect(this.touch.origin.x - 50, this.touch.origin.y - 50, 100, 100);
+                        ctx.arc(this.touch.origin.x, this.touch.origin.y, 50, 0, Math.PI * 2);
                         ctx.fill();
 
                         ctx.lineWidth = 5;
@@ -78,13 +81,18 @@ export default {
                 reset() {
                     this.touch.origin.x = 0;
                     this.touch.origin.y = 0;
-                    this.touch.origin.x1 = 0;
-                    this.touch.origin.y1 = 0;
-                    this.touch.origin.distX = 0;
-                    this.touch.origin.distY = 0;
 
                     this.touch.scale = 1;
+
+                    this.touch.clip.x = 0;
+                    this.touch.clip.y = 0;
+                    this.touch.clip.w = 0;
+                    this.touch.clip.h = 0;
+
+                    this.touch.type = 0;
+
                     this.touch.updated = true;
+                    this.fullUpdated = false;
                 },
                 getScalePosition(event) {
                     const bound = event.srcElement.getBoundingClientRect();
@@ -106,23 +114,31 @@ export default {
                         y1: (event.touches[0].clientY - top) / event.srcElement.offsetHeight * event.srcElement.height,
                     };
                 },
+                getDist(x1, y1, x2, y2) {
+                    const distX = Math.abs(x1 - x2);
+                    const distY = Math.abs(y1 - y2);
+                    return Math.sqrt(distX * distX + distY * distY);
+                },
+                transPosition() {
+                    this.touch.origin.x1 = this.touch.clip.x + parseInt(this.touch.origin.x / this.width * (this.touch.clip.w || this.width));
+                    this.touch.origin.y1 = this.touch.clip.y + parseInt(this.touch.origin.y / this.height * (this.touch.clip.h || this.height));
+                },
                 touchstart(event) {
                     if (event.touches.length == 2) {
                         this.touch.type = 2;
+
                         const { x1, y1, x2, y2 } = this.getScalePosition(event);
+                        const dist = this.getDist(x1, y1, x2, y2);
+
+                        this.touch.origin.x = parseInt((x1 + x2) / 2);
+                        this.touch.origin.y = parseInt((y1 + y2) / 2);
+                        this.transPosition();
+
                         this.touch.lastTouch.x1 = x1;
                         this.touch.lastTouch.y1 = y1;
                         this.touch.lastTouch.x2 = x2;
                         this.touch.lastTouch.y2 = y2;
-
-                        const distX = Math.abs(this.touch.lastTouch.x1 - this.touch.lastTouch.x2);
-                        const distY = Math.abs(this.touch.lastTouch.y1 - this.touch.lastTouch.y2);
-                        const dist = Math.sqrt(distX * distX + distY * distY);
                         this.touch.lastTouch.dist = dist;
-                        if (this.touch.origin.x == 0) {
-                            this.touch.origin.x1 = this.touch.origin.x = parseInt((this.touch.lastTouch.x1 + this.touch.lastTouch.x2) / 2);
-                            this.touch.origin.y1 = this.touch.origin.y = parseInt((this.touch.lastTouch.y1 + this.touch.lastTouch.y2) / 2);
-                        };
 
                     } else if (event.touches.length == 1) {
                         if (this.touch.scale == 1) return;
@@ -135,43 +151,31 @@ export default {
                 touchmove(event) {
                     if (event.touches.length == 2) {
                         if (this.touch.type != 2) return;
+
                         const { x1, y1, x2, y2 } = this.getScalePosition(event);
+                        const dist = this.getDist(x1, y1, x2, y2);
 
-                        const distX = Math.abs(x1 - x2);
-                        const distY = Math.abs(y1 - y2);
-                        const dist = Math.sqrt(distX * distX + distY * distY);
-
-                        this.touch.scale += parseInt((dist - this.touch.lastTouch.dist) / 500 * 100) / 100;
-                        if (this.touch.scale <= 1) this.touch.scale = 1;
-
-                        this.touch.lastTouch.dist = dist;
+                        this.touch.scale += (dist - this.touch.lastTouch.dist) / 500;
+                        this.touch.scale = Math.max(this.touch.scale, 1);
 
                         this.touch.lastTouch.x1 = x1;
                         this.touch.lastTouch.y1 = y1;
                         this.touch.lastTouch.x2 = x2;
                         this.touch.lastTouch.y2 = y2;
+                        this.touch.lastTouch.dist = dist;
 
+                        this.calcClip();
                         this.touch.updated = true;
+
                     } else if (event.touches.length == 1) {
-                        if (this.touch.type != 1 || this.touch.scale == 1) return;
+                        if (this.touch.type != 1 || this.touch.scale == 1) {
+                            return;
+                        }
+
                         const { x1, y1 } = this.getPosition(event);
 
-                        const distX = x1 - this.touch.lastTouch.x1;
-                        const distY = y1 - this.touch.lastTouch.y1;
-                        this.touch.origin.distX = distX;
-                        this.touch.origin.distY = distY;
-
-                        this.touch.origin.x1 -= distX;
-                        if (this.touch.origin.x1 <= 0) this.touch.origin.x1 = 0;
-                        else if (this.touch.origin.x1 >= event.srcElement.width) this.touch.origin.x1 = event.srcElement.width;
-
-                        this.touch.origin.x = parseInt(this.touch.origin.x1);
-
-                        this.touch.origin.y1 -= distY;
-                        if (this.touch.origin.y1 <= 0) this.touch.origin.y1 = 0;
-                        else if (this.touch.origin.y1 >= event.srcElement.height) this.touch.origin.y1 = event.srcElement.height;
-
-                        this.touch.origin.y = parseInt(this.touch.origin.y1);
+                        this.touch.clip.x -= (x1 - this.touch.lastTouch.x1) / this.touch.scale;
+                        this.touch.clip.y -= (y1 - this.touch.lastTouch.y1) / this.touch.scale;
 
                         this.touch.lastTouch.x1 = x1;
                         this.touch.lastTouch.y1 = y1;
@@ -179,91 +183,113 @@ export default {
                         this.touch.updated = true;
                     }
                 },
+                calcClip() {
+                    const width = this.width, height = this.height, scale = this.touch.scale, origin = this.touch.origin;
+                    if (width == 0 || height == 0) {
+                        return;
+                    }
+
+                    const clipWidth = (width * scale - width) / scale;
+                    const clipHeight = (height * scale - height) / scale;
+
+                    const x = clipWidth * (origin.x1 / width);
+                    const y = clipHeight * (origin.y1 / height);
+
+                    this.touch.clip.x = x;
+                    this.touch.clip.y = y;
+                    this.touch.clip.w = width - clipWidth;
+                    this.touch.clip.h = height - clipHeight;
+                }
+
             }
         };
     },
 
     globalData: null,
-    reported: true,
     init() {
         this.globalData = injectGlobalData();
-        this.reportInterval(0);
         this.subMessage();
+        this.reportInterval();
         this.fpsInterval();
         this.clipInterver();
         this.draw();
     },
+    uninit() {
+        clearTimeout(this.reportTimer);
+        clearTimeout(this.clipTimer);
+    },
 
-    subMessage() {
-        const imgOnload = (url, param) => {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.param = param;
-                img.src = url;
-                img.onload = function () {
-                    resolve(img);
-                };
-            });
-        }
-        subNotifyMsg('/notify/report/screen/full', (res, param) => {
-            const name = res.Name;
-            if (this.globalData.value.reportNames.indexOf(name) == -1) return;
-            let item = this.globalData.value.devices.filter(c => c.MachineName == name)[0];
-            if (item) {
-                item.Screen.fpsTimes++;
-                if (typeof res.Img == 'string') {
-                    imgOnload(`data:image/jpg;base64,${res.Img}`).then((img) => {
-                        item.Screen.img = img;
-                    });
-                } else {
-                    imgOnload(URL.createObjectURL(res.Img)).then((img) => {
-                        item.Screen.img = img;
-                    });
-                }
-            }
+    imgOnload(url, param) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.param = param;
+            img.src = url;
+            img.onload = function () {
+                resolve(img);
+            };
         });
-
-        subNotifyMsg('/notify/report/screen/region', (res, param) => {
-            const name = res.Name;
-            if (this.globalData.value.reportNames.indexOf(name) == -1) return;
-            let item = this.globalData.value.devices.filter(c => c.MachineName == name)[0];
-            if (item) {
-                item.Screen.fpsTimes++;
-                res.Img.arrayBuffer().then((arrayBuffer) => {
-                    const dataView = new DataView(arrayBuffer);
-                    let index = 0;
-                    const images = [];
-                    while (index < arrayBuffer.byteLength) {
-
-                        const length = dataView.getUint32(index, true);
-                        index += 4;
-                        const x = dataView.getUint32(index, true);
-                        index += 4;
-                        const w = dataView.getUint32(index, true);
-                        index += 4;
-                        const y = dataView.getUint32(index, true);
-                        index += 4;
-                        const h = dataView.getUint32(index, true);
-                        index += 4;
-                        images.push(imgOnload(URL.createObjectURL(res.Img.slice(index, index + length)), { x: x, y: y, w: w, h: h }));
-                        index += length;
-                    }
-
-                    Promise.all(images).then((images) => {
-                        item.Screen.regions = images;
-                    });
+    },
+    handleScreenFull(res, param) {
+        const name = res.Name;
+        if (this.globalData.value.reportNames.indexOf(name) == -1) return;
+        let item = this.globalData.value.devices.filter(c => c.MachineName == name)[0];
+        if (item) {
+            item.Screen.fps.temp++;
+            if (typeof res.Img == 'string') {
+                this.imgOnload(`data:image/jpg;base64,${res.Img}`).then((img) => {
+                    item.Screen.fullImg = img;
+                });
+            } else {
+                this.imgOnload(URL.createObjectURL(res.Img)).then((img) => {
+                    item.Screen.fullImg = img;
                 });
             }
-        });
-        subNotifyMsg('/notify/report/screen/rectangles', (res, param) => {
-            const name = res.Name;
-            if (this.globalData.value.reportNames.indexOf(name) == -1) return;
-            let item = this.globalData.value.devices.filter(c => c.MachineName == name)[0];
-            if (item) {
-                item.Screen.rectangles = res.Rectangles;
+        }
+    },
+    handleScreenRegion(res, param) {
+        const name = res.Name;
+        if (this.globalData.value.reportNames.indexOf(name) == -1) return;
+        let item = this.globalData.value.devices.filter(c => c.MachineName == name)[0];
+        if (item) {
+            item.Screen.fps.temp++;
+            res.Img.arrayBuffer().then((arrayBuffer) => {
+                const dataView = new DataView(arrayBuffer);
+                let index = 0;
+                const images = [];
+                while (index < arrayBuffer.byteLength) {
 
-            }
-        });
+                    const length = dataView.getUint32(index, true);
+                    index += 4;
+                    const x = dataView.getUint32(index, true);
+                    index += 4;
+                    const w = dataView.getUint32(index, true);
+                    index += 4;
+                    const y = dataView.getUint32(index, true);
+                    index += 4;
+                    const h = dataView.getUint32(index, true);
+                    index += 4;
+                    images.push(this.imgOnload(URL.createObjectURL(res.Img.slice(index, index + length)), { x: x, y: y, w: w, h: h }));
+                    index += length;
+                }
+
+                Promise.all(images).then((images) => {
+                    item.Screen.regionImgs = images;
+                });
+            });
+        }
+    },
+    handleScreenRectangles(res, param) {
+        const name = res.Name;
+        if (this.globalData.value.reportNames.indexOf(name) == -1) return;
+        let item = this.globalData.value.devices.filter(c => c.MachineName == name)[0];
+        if (item) {
+            item.Screen.rectangles = res.Rectangles;
+        }
+    },
+    subMessage() {
+        subNotifyMsg('/notify/report/screen/full', (res, param) => this.handleScreenFull(res, param));
+        subNotifyMsg('/notify/report/screen/region', (res, param) => this.handleScreenRegion(res, param));
+        subNotifyMsg('/notify/report/screen/rectangles', (res, param) => this.handleScreenRectangles(res, param));
     },
 
     draw() {
@@ -292,13 +318,13 @@ export default {
             if (item.ctx) {
                 item.infoCtx.clearRect(0, 0, item.infoCanvas.width, item.infoCanvas.height);
 
-                const img = item.Screen.img;
+                const img = item.Screen.fullImg;
                 if (img) {
                     //item.Screen.img = null;
                     item.ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, item.canvas.width, item.canvas.height);
                 }
 
-                const regions = item.Screen.regions;
+                const regions = item.Screen.regionImgs;
                 for (let i = 0; i < regions.length; i++) {
                     const { x, y, w, h } = regions[i].param;
                     item.infoCtx.drawImage(regions[i], 0, 0, regions[i].width, regions[i].height, x, y, w, h);
@@ -324,8 +350,8 @@ export default {
 
     fpsInterval() {
         this.globalData.value.devices.forEach(item => {
-            item.Screen.fps = item.Screen.fpsTimes;
-            item.Screen.fpsTimes = 0;
+            item.Screen.fps.value = item.Screen.fps.temp;
+            item.Screen.fps.temp = 0;
         });
         setTimeout(() => {
             this.fpsInterval();
@@ -336,7 +362,12 @@ export default {
     clipInterver() {
         this.globalData.value.devices.forEach(item => {
             if (item.Screen.touch.updated) {
-                screenClip(item.MachineName, item.Screen.touch.origin.x, item.Screen.touch.origin.y, item.Screen.touch.scale).then(() => {
+                screenClip(item.MachineName, {
+                    x: parseInt(item.Screen.touch.clip.x),
+                    y: parseInt(item.Screen.touch.clip.y),
+                    w: parseInt(item.Screen.touch.clip.w),
+                    h: parseInt(item.Screen.touch.clip.h),
+                }).then(() => {
                     item.Screen.touch.updated = false;
                 }).catch(() => {
                     item.Screen.touch.updated = false;
@@ -352,9 +383,10 @@ export default {
     reportTimer: 0,
     updateFull() {
         const names = this.globalData.value.reportNames;
-        let reportType = 1;
-        this.globalData.value.devices.filter(c => names.indexOf(c.MachineName) >= 0).forEach(item => {
-            reportType &&= Number(item.Screen.fullUpdated);
+        const devices = this.globalData.value.devices;
+        let reportType = 2;
+        devices.filter(c => names.indexOf(c.MachineName) >= 0).forEach(item => {
+            reportType &&= (Number(item.Screen.fullUpdated) + 1);
             item.Screen.fullUpdated = true;
         });
         return screenUpdateFull(names, reportType);
@@ -363,17 +395,17 @@ export default {
         const names = this.globalData.value.reportNames;
         return screenUpdateRegion(names);
     },
-    reportInterval(times) {
+    reportInterval(times = 0) {
         if (this.reported) {
             this.reported = false;
-            //const fn = times < 2 ? this.updateFull() : this.updateRegion();
             const fn = this.updateFull();
             fn.then(() => {
                 this.reported = true;
                 this.reportTimer = setTimeout(() => {
                     this.reportInterval(++times);
                 }, 300);
-            }).catch(() => {
+            }).catch((e) => {
+                console.log(e);
                 this.reported = true;
                 this.reportTimer = setTimeout(() => {
                     this.reportInterval(++times);
@@ -391,5 +423,7 @@ export default {
 
         item.Screen.lastInput = report.Screen.LT || 0;
         item.Screen.captureTime = report.Screen.CT || 0;
+        item.Screen.width = report.Screen.W || 0;
+        item.Screen.height = report.Screen.H || 0;
     }
 }

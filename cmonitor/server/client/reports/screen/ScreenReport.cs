@@ -3,6 +3,7 @@ using common.libs;
 using cmonitor.server.service.messengers.screen;
 using MemoryPack;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace cmonitor.server.client.reports.screen
 {
@@ -16,7 +17,6 @@ namespace cmonitor.server.client.reports.screen
 
         private ScreenReportInfo report = new ScreenReportInfo();
         private uint lastInput;
-        private uint captureTime;
         private readonly DxgiDesktop dxgiDesktop;
         private readonly GdiDesktop gdiDesktop;
 
@@ -31,16 +31,24 @@ namespace cmonitor.server.client.reports.screen
                 WinApi.InitLastInputInfo();
                 dxgiDesktop = new DxgiDesktop(0);
                 gdiDesktop = new GdiDesktop();
+                InitSise();
             }
 
+        }
+        private void InitSise()
+        {
+            if (gdiDesktop.GetSystemScale(out _, out _, out int w, out int h))
+            {
+                report.W = w;
+                report.H = h;
+            }
         }
         public object GetReports(ReportType reportType)
         {
             report.LT = WinApi.GetLastInputInfo();
-            if (report.LT < lastInput || report.LT - lastInput > 1000)
+            if (reportType == ReportType.Full || report.LT < lastInput || report.LT - lastInput > 1000)
             {
                 lastInput = report.LT;
-                captureTime = report.CT;
                 return report;
             }
             return null;
@@ -48,13 +56,13 @@ namespace cmonitor.server.client.reports.screen
 
 
         private ScreenReportType screenReportType = ScreenReportType.Full;
-        private ScreenReportFullType screenReportFullType = ScreenReportFullType.Trim;
+        private ScreenReportFullType screenReportFullType = ScreenReportFullType.Full | ScreenReportFullType.Trim;
         private long ticks = 0;
         public void Full(ScreenReportFullType screenReportFullType)
         {
             ticks = DateTime.UtcNow.Ticks;
             screenReportType = ScreenReportType.Full;
-            this.screenReportFullType = screenReportFullType;
+            this.screenReportFullType |= screenReportFullType;
         }
         public void Clip(ScreenClipInfo screenClipInfo)
         {
@@ -84,7 +92,7 @@ namespace cmonitor.server.client.reports.screen
                         try
                         {
                             long start = DateTime.UtcNow.Ticks;
-                            await SendScreenCapture();
+                            await ScreenCapture();
                             delayms = (int)((DateTime.UtcNow.Ticks - start) / TimeSpan.TicksPerMillisecond);
                         }
                         catch (Exception ex)
@@ -104,9 +112,17 @@ namespace cmonitor.server.client.reports.screen
                 }
             }, TaskCreationOptions.LongRunning);
         }
-        private async Task SendScreenCapture()
+
+        private Memory<byte> fullImageMemory = Helper.EmptyArray;
+        private async Task ScreenCapture()
+        {
+            DesktopFrame frame = GetFrame();
+            await SendFrame(frame);
+        }
+        private DesktopFrame GetFrame()
         {
             DesktopFrame frame = null;
+
             long ticks = DateTime.UtcNow.Ticks;
             if (gdiDesktop.IsClip())
             {
@@ -114,7 +130,20 @@ namespace cmonitor.server.client.reports.screen
             }
             else if (screenReportType == ScreenReportType.Full)
             {
-                frame = dxgiDesktop.GetLatestFullFrame(screenReportFullType, config.ScreenScale);
+                frame = dxgiDesktop.GetLatestFullFrame(config.ScreenScale);
+                if (frame.FullImage.Length > 0)
+                {
+                    fullImageMemory = frame.FullImage;
+                }
+                else if ((screenReportFullType & ScreenReportFullType.Full) == ScreenReportFullType.Full)
+                {
+                    if (fullImageMemory.Length > 0)
+                    {
+                        frame.FullImage = fullImageMemory;
+                    }
+                    RandomCursorPos();
+                }
+                screenReportFullType &= ~ScreenReportFullType.Full;
             }
             else if (screenReportType == ScreenReportType.Region)
             {
@@ -122,52 +151,83 @@ namespace cmonitor.server.client.reports.screen
             }
             report.CT = (uint)((DateTime.UtcNow.Ticks - ticks) / TimeSpan.TicksPerMillisecond);
 
-            if (frame != null)
+            return frame;
+        }
+        private async Task SendFrame(DesktopFrame frame)
+        {
+            if (frame == null)
             {
-                if (frame.FullImage.Length > 0)
-                {
-                    await messengerSender.SendOnly(new MessageRequestWrap
-                    {
-                        Connection = clientSignInState.Connection,
-                        MessengerId = (ushort)ScreenMessengerIds.FullReport,
-                        Payload = frame.FullImage,
-                    });
-                }
-                else if (frame.RegionImage.Length > 0)
-                {
-                    await messengerSender.SendOnly(new MessageRequestWrap
-                    {
-                        Connection = clientSignInState.Connection,
-                        MessengerId = (ushort)ScreenMessengerIds.RegionReport,
-                        Payload = frame.RegionImage,
-                    });
-                }
+                return;
+            }
+
+            if (frame.FullImage.Length > 0)
+            {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = clientSignInState.Connection,
-                    MessengerId = (ushort)ScreenMessengerIds.Rectangles,
-                    Payload = MemoryPackSerializer.Serialize(frame.UpdatedRegions),
+                    MessengerId = (ushort)ScreenMessengerIds.FullReport,
+                    Payload = frame.FullImage,
                 });
             }
-
+            else if (frame.RegionImage.Length > 0)
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = clientSignInState.Connection,
+                    MessengerId = (ushort)ScreenMessengerIds.RegionReport,
+                    Payload = frame.RegionImage,
+                });
+            }
+            await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)ScreenMessengerIds.Rectangles,
+                Payload = MemoryPackSerializer.Serialize(frame.UpdatedRegions),
+            });
         }
+
+
+        private void RandomCursorPos()
+        {
+            try
+            {
+                if (WinApi.GetCursorPosition(out int x, out int y))
+                {
+                    x = x <= 0 ? x + 1 : x - 1;
+                    y = y <= 0 ? y + 1 : y - 1;
+
+                    SetCursorPos(x, y);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    Logger.Instance.Error(ex);
+                }
+            }
+        }
+        [DllImport("user32.dll")]
+        private static extern bool SetCursorPos(int X, int Y);
     }
 
     public sealed class ScreenReportInfo
     {
         public uint CT { get; set; }
         public uint LT { get; set; }
+        public int W { get; set; }
+        public int H { get; set; }
     }
 
     public enum ScreenReportType : byte
     {
-        Full = 0,
-        Region = 1
+        Full = 1,
+        Region = 2
     };
     public enum ScreenReportFullType : byte
     {
-        Full = 0,
-        Trim = 1
+        Full = 1,
+        Trim = 2
     };
 
     [MemoryPackable]
@@ -175,7 +235,7 @@ namespace cmonitor.server.client.reports.screen
     {
         public int X { get; set; }
         public int Y { get; set; }
-        public float Scale { get; set; }
-
+        public int W { get; set; }
+        public int H { get; set; }
     }
 }

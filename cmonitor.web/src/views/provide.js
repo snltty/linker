@@ -17,6 +17,7 @@ export const provideGlobalData = () => {
             }
             return [];
         }),
+        latestReportNames: [],
         reportNames: []
     });
     provide(globalDataSymbol, globalData);

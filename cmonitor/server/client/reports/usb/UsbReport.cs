@@ -14,10 +14,10 @@ namespace cmonitor.server.client.reports.llock
         {
             if (config.IsCLient)
             {
-                UnLockUsb();
+                //UnLockUsb();
                 report.Value = GetHasUSBDisabled();
-                AppDomain.CurrentDomain.ProcessExit += (s, e) => UnLockUsb();
-                Console.CancelKeyPress += (s, e) => UnLockUsb();
+                //AppDomain.CurrentDomain.ProcessExit += (s, e) => UnLockUsb();
+                //Console.CancelKeyPress += (s, e) => UnLockUsb();
             }
         }
 

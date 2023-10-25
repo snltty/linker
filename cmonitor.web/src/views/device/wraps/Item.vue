@@ -18,7 +18,7 @@
             </dt>
             <dd class="img">
                 <div class="inner">
-                    <canvas v-if="data.Connected" width="1920" height="1080" :id="`canvas-${data.MachineName}`" @dblclick="handleCanvasReset" @touchstart="handleCanvasTouchstart" @touchend="handleCanvasTouchend" @touchmove="handleCanvasTouchmove"></canvas>
+                    <canvas v-if="data.Connected && data.Screen.width>0 && data.Screen.height>0" :width="data.Screen.width" :height="data.Screen.height" :id="`canvas-${data.MachineName}`" @dblclick="handleCanvasReset" @touchstart="handleCanvasTouchstart" @touchend="handleCanvasTouchend" @touchmove="handleCanvasTouchmove"></canvas>
                     <template v-for="(item,index) in screenModules" :key="index">
                         <component :is="item" :data="data"></component>
                     </template>
@@ -114,7 +114,7 @@ export default {
     // background-color: #fff;
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
     width: 100%;
-    margin: 0 auto .6rem auto;
+    margin: 0 auto 0.6rem auto;
     position: relative;
     transition: 0.3s;
     background-color: rgba(255, 255, 255, 0.5);
