@@ -28,7 +28,7 @@ namespace cmonitor.server.api.services
                 ReportDelay = config.ReportDelay,
                 ScreenDelay = config.ScreenDelay,
                 ScreenScale = config.ScreenScale,
-
+                SaveSetting = config.SaveSetting
             };
         }
 
@@ -38,6 +38,7 @@ namespace cmonitor.server.api.services
             config.ReportDelay = settingInfo.ReportDelay;
             config.ScreenDelay = settingInfo.ScreenDelay;
             config.ScreenScale = settingInfo.ScreenScale;
+            config.SaveSetting = settingInfo.SaveSetting;
 
             byte[] bytes = MemoryPackSerializer.Serialize(settingInfo);
             foreach (var item in signCaching.Get())

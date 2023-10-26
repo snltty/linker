@@ -10,16 +10,20 @@ namespace cmonitor.server.client
     public sealed class ClientConfig
     {
         private readonly IConfigDataProvider<ClientConfig> configDataProvider;
+        private readonly Config config;
+
         public ClientConfig() { }
-        public ClientConfig(IConfigDataProvider<ClientConfig> configDataProvider)
+        public ClientConfig(IConfigDataProvider<ClientConfig> configDataProvider, Config config)
         {
             this.configDataProvider = configDataProvider;
-            ClientConfig config = configDataProvider.Load().Result ?? new ClientConfig();
-            LLock = config.LLock;
-            Wallpaper = config.Wallpaper;
-            WallpaperUrl = config.WallpaperUrl;
-            HijackConfig = config.HijackConfig;
-            WindowNames = config.WindowNames;
+            this.config = config;
+
+            ClientConfig clientConfig   = configDataProvider.Load().Result ?? new ClientConfig();
+            LLock = clientConfig.LLock;
+            Wallpaper = clientConfig.Wallpaper;
+            WallpaperUrl = clientConfig.WallpaperUrl;
+            HijackConfig = clientConfig.HijackConfig;
+            WindowNames = clientConfig.WindowNames;
             SaveTask();
         }
 
@@ -31,7 +35,7 @@ namespace cmonitor.server.client
                 {
                     try
                     {
-                        if (updated)
+                        if (updated && config.SaveSetting)
                         {
                             Save();
                         }

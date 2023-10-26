@@ -270,6 +270,8 @@ namespace cmonitor
 
         public float ScreenScale { get; set; } = 0.2f;
         public int ScreenDelay { get; set; } = 30;
+        public bool SaveSetting { get; set; } = true;
+        
 
         public string Version { get; set; } = "1.0.0.1";
         public bool IsCLient { get; set; }

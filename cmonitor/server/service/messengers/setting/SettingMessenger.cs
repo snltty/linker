@@ -17,6 +17,7 @@ namespace cmonitor.server.service.messengers.setting
             config.ReportDelay = settingInfo.ReportDelay;
             config.ScreenDelay = settingInfo.ScreenDelay;
             config.ScreenScale = settingInfo.ScreenScale;
+            config.SaveSetting = settingInfo.SaveSetting;
         }
 
     }
@@ -27,5 +28,8 @@ namespace cmonitor.server.service.messengers.setting
         public int ReportDelay { get; set; } = 30;
         public float ScreenScale { get; set; } = 0.2f;
         public int ScreenDelay { get; set; } = 30;
+        public bool SaveSetting { get; set; } = true;
+
+
     }
 }

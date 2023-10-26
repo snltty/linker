@@ -11,6 +11,9 @@
                 <el-form-item label="截屏缩放" prop="ScreenScale">
                     <el-input-number size="large" v-model="state.form.ScreenScale" :min="0.1" :max="1" :step="0.1" controls-position="right" />
                 </el-form-item>
+                <el-form-item label="保存配置" prop="SaveSetting">
+                    <el-checkbox v-model="state.form.SaveSetting">保存限制配置</el-checkbox>
+                </el-form-item>
             </el-form>
         </div>
         <template #footer>
@@ -40,6 +43,7 @@ export default {
                 ReportDelay: 0,
                 ScreenDelay: 0,
                 ScreenScale: 0,
+                SaveSetting: true,
             }
         });
         watch(() => state.show, (val) => {
@@ -55,6 +59,7 @@ export default {
                 state.form.ReportDelay = res.ReportDelay;
                 state.form.ScreenDelay = res.ScreenDelay;
                 state.form.ScreenScale = res.ScreenScale;
+                state.form.SaveSetting = res.SaveSetting;
             }).catch(() => {
             });
         }

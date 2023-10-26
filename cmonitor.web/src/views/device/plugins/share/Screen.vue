@@ -7,9 +7,17 @@
                     <el-checkbox v-model="data.Share.Lock.Value.notify" size="small">广播</el-checkbox>
                 </template>
             </h5>
-            <div>
+            <div class="stars">
                 <template v-if="data.Share.Lock.Value.type == 'remark-block' || data.Share.Lock.Value.type == 'remark-cpp'">
-                    <el-rate @change="handleStarChange" v-model="data.Share.Lock.Value.star" size="large" />
+                    <div class="line flex flex-nowrap"><span>读题分析</span>
+                        <el-rate @change="handleStarChange" v-model="data.Share.Lock.Value.star1" size="large" />
+                    </div>
+                    <div class="line flex flex-nowrap"><span>程序设计</span>
+                        <el-rate @change="handleStarChange" v-model="data.Share.Lock.Value.star2" size="large" />
+                    </div>
+                    <div class="line flex flex-nowrap"><span>数据校验</span>
+                        <el-rate @change="handleStarChange" v-model="data.Share.Lock.Value.star3" size="large" />
+                    </div>
                 </template>
             </div>
             <div>
@@ -72,7 +80,7 @@ export default {
                 if (res) {
                     ElMessage.success('操作成功！');
                     if (value.notify) {
-                        notifyUpdate(2, props.data.Share.UserName.Value, value.star);
+                        notifyUpdate(2, props.data.Share.UserName.Value, value.star1, value.star2, value.star3);
                     }
                 } else {
                     ElMessage.error('操作失败！');
@@ -116,7 +124,7 @@ export default {
         position: absolute;
         left: 50%;
         top: 50%;
-        transform: translateX(-50%) translateY(-70%);
+        transform: translateX(-50%) translateY(-50%);
         text-align: center;
         border: 1px solid rgba(255, 255, 255, 0.5);
         background-color: rgba(0, 0, 0, 0.3);
@@ -136,9 +144,22 @@ export default {
             }
         }
 
+        .stars {
+            padding: 0.2rem 0 1rem 0;
+            font-size: 1.2rem;
+            color: #fff;
+
+            .line {
+                padding: 0.6rem 0 0.4rem 0;
+
+                &>span {
+                    white-space: nowrap;
+                }
+            }
+        }
+
         .el-rate.el-rate--large {
             height: inherit;
-            padding: 0.6rem 0 1.6rem 0;
         }
     }
 }

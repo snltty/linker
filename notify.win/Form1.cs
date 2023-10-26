@@ -3,7 +3,6 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace notify.win
 {
@@ -26,12 +25,16 @@ namespace notify.win
 
         private int speed;
         private string msg;
-        private int star;
-        public Form1(int speed, string msg,int star)
+        private int star1;
+        private int star2;
+        private int star3;
+        public Form1(int speed, string msg, int star1, int star2, int star3)
         {
             this.speed = speed;
             this.msg = msg;
-            this.star = Math.Min(star,5);
+            this.star1 = Math.Min(star1, 5);
+            this.star2 = Math.Min(star2, 5);
+            this.star3 = Math.Min(star3, 5);
 
             InitializeComponent();
             this.AllowTransparency = true;
@@ -47,17 +50,26 @@ namespace notify.win
 
         private void OnLoad(object sender, EventArgs e)
         {
-            PictureBox[] stars = new PictureBox[] { star1, star2, star3, star4, star5 };
-            for (int i = 0; i < 5; i++)
+            PictureBox[][] starPics = new PictureBox[][] {
+              new PictureBox[]{  star11, star12, star13, star14, star15 }
+                , new PictureBox[]{ star21, star22, star23, star24, star25 }
+                , new PictureBox[]{ star31, star32, star33, star34, star35 }
+            };
+            int[] stars = new int[] { star1, star2, star3 };
+            for (int i = 0; i < starPics.Length; i++)
             {
-                stars[i].Image = global::notify.win.Properties.Resources.star2;
+                for (int j = 0; j < starPics[i].Length; j++)
+                {
+                    starPics[i][j].Image = global::notify.win.Properties.Resources.star2;
+                }
+                for (int j = 0; j < stars[i]; j++)
+                {
+                    starPics[i][j].Image = global::notify.win.Properties.Resources.star1;
+                }
             }
-            for (int i = 0; i < star; i++)
-            {
-                stars[i].Image = global::notify.win.Properties.Resources.star1;
-            }
+
             Bitmap[] images = new Bitmap[] { Properties.Resources._0, Properties.Resources._1, Properties.Resources._2, Properties.Resources._3, Properties.Resources._4, Properties.Resources._5 };
-            pictureBox1.Image = images[new Random().Next(0,6)];
+            pictureBox1.Image = images[new Random().Next(0, 6)];
 
             this.FormBorderStyle = FormBorderStyle.None;
             //将窗口置顶

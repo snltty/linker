@@ -4,7 +4,7 @@ export default {
             Share: {
                 KeyBoard: { Index: 0, Value: '' },
                 UserName: { Index: 1, Value: '' },
-                Lock: { Index: 2, Value: { type: 'list', val: 'none', star: 0, notify: false }, TypeText: '' },
+                Lock: { Index: 2, Value: { type: 'list', val: 'none', star1: 0, star2: 0, star3: 0, notify: false }, TypeText: '' },
 
                 draw(canvas, ctx) {
                     if (this.KeyBoard.Value) {
@@ -33,7 +33,9 @@ export default {
                         ctx.strokeText(str, left, top);
 
                         str = '';
-                        str = str.padEnd(this.Lock.Value.star, '☆');
+                        const value = this.Lock.Value;
+                        const star = parseInt((value.star1 + value.star2 + value.star3) / 3);
+                        str = str.padEnd(star, '☆');
                         ctx.lineWidth = 2;
                         ctx.strokeStyle = 'yellow';
                         ctx.strokeText(str, left, top);
@@ -59,7 +61,9 @@ export default {
                 const json = JSON.parse(report.Share.Lock.Value);
                 item.Share.Lock.Value.type = json.type;
                 item.Share.Lock.Value.val = json.val;
-                item.Share.Lock.Value.star = json.star || 0;
+                item.Share.Lock.Value.star1 = json.star1 || 0;
+                item.Share.Lock.Value.star2 = json.star2 || 0;
+                item.Share.Lock.Value.star3 = json.star3 || 0;
                 item.Share.Lock.TypeText = this.lockTypes[json.type];
             }
         }
