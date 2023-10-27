@@ -399,7 +399,7 @@ namespace cmonitor.server.client.reports.screen
 
                     Rect sourceRect = new Rect(smallerTexture.Description.Width, smallerTexture.Description.Height);
                     Rectangle sourceRectangle = new Rectangle(0, 0, sourceRect.Width, sourceRect.Height);
-                    GetSystemScale(out float scaleX, out float scaleY, out int sourceWidth, out int sourceHeight);
+                    WinApi.GetSystemScale(out float scaleX, out float scaleY, out int sourceWidth, out int sourceHeight);
                     //画布尺寸
                     GetNewSize(sourceRect, scaleX, scaleY, configScale, out Rect textureRect);
                     //最终尺寸 
@@ -484,29 +484,7 @@ namespace cmonitor.server.client.reports.screen
                 }
             }
         }
-        private bool GetSystemScale(out float x, out float y, out int sourceWidth, out int sourceHeight)
-        {
-            x = 1;
-            y = 1;
-            sourceWidth = 0;
-            sourceHeight = 0;
-            IntPtr hdc = WinApi.GetDC(IntPtr.Zero);
-            if (hdc != IntPtr.Zero)
-            {
-                sourceWidth = WinApi.GetDeviceCaps(hdc, WinApi.DESKTOPHORZRES);
-                sourceHeight = WinApi.GetDeviceCaps(hdc, WinApi.DESKTOPVERTRES);
-                int screenWidth = WinApi.GetSystemMetrics(WinApi.SM_CXSCREEN);
-                int screenHeight = WinApi.GetSystemMetrics(WinApi.SM_CYSCREEN);
 
-                x = (sourceWidth * 1.0f / screenWidth);
-                y = (sourceHeight * 1.0f / screenHeight);
-
-                WinApi.ReleaseDC(IntPtr.Zero, hdc);
-
-                return true;
-            }
-            return false;
-        }
         private bool GetNewSize(Rect sourceRect, float scaleX, float scaleY, float configScale, out Rect rect)
         {
             int width = (int)(sourceRect.Width * 1.0 / scaleX * configScale);

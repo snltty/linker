@@ -23,7 +23,7 @@
 
 <script>
 import { computed, onMounted, reactive, watch } from 'vue';
-import { initWebsocket } from '../apis/request'
+import { initWebsocket, subWebsocketState } from '../apis/request'
 import { getRules, addName } from '../apis/hijack'
 import { useRoute } from 'vue-router';
 import { injectGlobalData } from './provide';
@@ -63,6 +63,12 @@ export default {
             setTimeout(() => {
                 state.showPort = true;
             }, 100);
+
+            subWebsocketState((state) => {
+                if (state) {
+                    _getRules();
+                }
+            });
         });
 
         const handleConnect = () => {

@@ -6,6 +6,7 @@ namespace cmonitor.server.client.reports.screen
     public sealed class WinApi
     {
 
+        #region 光标
         public static void DrawCursorIcon(Graphics g, int sourceWidth, float scaleX, float scaleY, float configScale)
         {
             if (OperatingSystem.IsWindows())
@@ -24,7 +25,6 @@ namespace cmonitor.server.client.reports.screen
                 }
             }
         }
-
         public static void DrawCursorIcon(Graphics g, float scaleX, float scaleY)
         {
             if (OperatingSystem.IsWindows())
@@ -89,12 +89,90 @@ namespace cmonitor.server.client.reports.screen
         private static extern bool GetCursorInfo(out CURSORINFO pci);
         [DllImport("user32.dll")]
         public static extern bool GetIconInfo(IntPtr hIcon, out IconInfo piconinfo);
-
-
         [DllImport("user32.dll", SetLastError = true)]
         static extern bool DrawIconEx(IntPtr hdc, int xLeft, int yTop, IntPtr hIcon, int cxWidth, int cyHeight, int istepIfAniCur, IntPtr hbrFlickerFreeDraw, int diFlags);
+        #endregion
 
 
+        #region 鼠标
+
+        public static bool MouseMove(int x, int y)
+        {
+            // 创建输入事件数组
+            INPUT[] inputs = new INPUT[1];
+            inputs[0].type = 0; // 鼠标事件类型
+            inputs[0].mi.dx = x; // 水平移动距离
+            inputs[0].mi.dy = y; // 垂直移动距离
+            inputs[0].mi.dwFlags = MOUSEEVENTF_MOVE; // 鼠标事件标志
+
+            // 调用SendInput发送输入事件
+            uint result = SendInput(1, inputs, Marshal.SizeOf(typeof(INPUT)));
+
+            return result != 0;
+        }
+
+        [DllImport("user32.dll")]
+        public static extern bool SetCursorPos(int X, int Y);
+
+        // 鼠标事件标志
+        const uint MOUSEEVENTF_MOVE = 0x0001;
+
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
+
+        struct INPUT
+        {
+            public int type; // 输入事件类型（0为鼠标事件）
+            public MOUSEINPUT mi; // 鼠标事件结构
+        }
+
+        // 鼠标事件结构
+        struct MOUSEINPUT
+        {
+            public int dx; // 鼠标光标的水平位置
+            public int dy; // 鼠标光标的垂直位置
+            public uint mouseData; // 鼠标滚轮信息
+            public uint dwFlags; // 鼠标事件标志
+            public uint time; // 事件时间戳
+            public IntPtr dwExtraInfo; // 额外信息
+        }
+
+
+        #endregion
+
+        #region 键盘
+
+        public const int KEYEVENTF_KEYDOWN = 0x0000;
+        public const int KEYEVENTF_KEYUP = 0x0002;
+        [DllImport("user32.dll")]
+        public static extern void keybd_event(byte key, byte bscan, int dwFlags, int dwExtraInfo);
+
+        #endregion
+
+
+        public static bool GetSystemScale(out float x, out float y, out int sourceWidth, out int sourceHeight)
+        {
+            x = 1;
+            y = 1;
+            sourceWidth = 0;
+            sourceHeight = 0;
+            IntPtr hdc = GetDC(IntPtr.Zero);
+            if (hdc != IntPtr.Zero)
+            {
+                sourceWidth = GetDeviceCaps(hdc, DESKTOPHORZRES);
+                sourceHeight = GetDeviceCaps(hdc, DESKTOPVERTRES);
+                int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+                int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+                x = (sourceWidth * 1.0f / screenWidth);
+                y = (sourceHeight * 1.0f / screenHeight);
+
+                ReleaseDC(IntPtr.Zero, hdc);
+
+                return true;
+            }
+            return false;
+        }
         public const int DESKTOPVERTRES = 117;
         public const int DESKTOPHORZRES = 118;
         public const int SM_CXSCREEN = 0;
@@ -112,9 +190,6 @@ namespace cmonitor.server.client.reports.screen
 
         [DllImport("user32.dll", EntryPoint = "GetSystemMetrics")]
         public static extern int GetSystemMetrics(int mVal);
-
-
-
 
 
         #region 最后活动时间
@@ -143,6 +218,7 @@ namespace cmonitor.server.client.reports.screen
         #endregion
 
 
+        #region 锁定
         [DllImport("wtsapi32.dll")]
         static extern bool WTSQuerySessionInformation(IntPtr hServer, int sessionId, WTS_INFO_CLASS wtsInfoClass, out IntPtr ppBuffer, out uint pBytesReturned);
         [DllImport("wtsapi32.dll")]
@@ -216,5 +292,6 @@ namespace cmonitor.server.client.reports.screen
             }
             return false;
         }
+        #endregion
     }
 }

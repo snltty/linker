@@ -14,6 +14,9 @@
                 <el-form-item label="保存配置" prop="SaveSetting">
                     <el-checkbox v-model="state.form.SaveSetting">保存限制配置</el-checkbox>
                 </el-form-item>
+                <el-form-item label="黑屏唤醒" prop="WakeUp">
+                    <el-checkbox v-model="state.form.WakeUp">黑屏时唤醒</el-checkbox>
+                </el-form-item>
             </el-form>
         </div>
         <template #footer>
@@ -44,6 +47,7 @@ export default {
                 ScreenDelay: 0,
                 ScreenScale: 0,
                 SaveSetting: true,
+                WakeUp: true
             }
         });
         watch(() => state.show, (val) => {
@@ -60,6 +64,7 @@ export default {
                 state.form.ScreenDelay = res.ScreenDelay;
                 state.form.ScreenScale = res.ScreenScale;
                 state.form.SaveSetting = res.SaveSetting;
+                state.form.WakeUp = res.WakeUp;
             }).catch(() => {
             });
         }

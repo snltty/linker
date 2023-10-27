@@ -2,8 +2,6 @@
 using common.libs;
 using cmonitor.server.service.messengers.screen;
 using MemoryPack;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
 
 namespace cmonitor.server.client.reports.screen
 {
@@ -37,7 +35,7 @@ namespace cmonitor.server.client.reports.screen
         }
         private void InitSise()
         {
-            if (gdiDesktop.GetSystemScale(out _, out _, out int w, out int h))
+            if (WinApi.GetSystemScale(out _, out _, out int w, out int h))
             {
                 report.W = w;
                 report.H = h;
@@ -189,6 +187,7 @@ namespace cmonitor.server.client.reports.screen
 
         private void RandomCursorPos()
         {
+            if (config.WakeUp == false) return;
             try
             {
                 if (WinApi.GetCursorPosition(out int x, out int y))
@@ -196,7 +195,8 @@ namespace cmonitor.server.client.reports.screen
                     x = x <= 0 ? x + 1 : x - 1;
                     y = y <= 0 ? y + 1 : y - 1;
 
-                    SetCursorPos(x, y);
+                    WinApi.SetCursorPos(x, y);
+                    WinApi.MouseMove(x, y);
                 }
             }
             catch (Exception ex)
@@ -207,8 +207,7 @@ namespace cmonitor.server.client.reports.screen
                 }
             }
         }
-        [DllImport("user32.dll")]
-        private static extern bool SetCursorPos(int X, int Y);
+
     }
 
     public sealed class ScreenReportInfo

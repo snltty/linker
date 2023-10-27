@@ -1,9 +1,6 @@
-﻿using cmonitor.server.client.reports.active;
-using cmonitor.server.service;
-using cmonitor.server.service.messengers.active;
+﻿using cmonitor.server.service;
 using cmonitor.server.service.messengers.setting;
 using cmonitor.server.service.messengers.sign;
-using common.libs;
 using common.libs.extends;
 using MemoryPack;
 
@@ -28,7 +25,8 @@ namespace cmonitor.server.api.services
                 ReportDelay = config.ReportDelay,
                 ScreenDelay = config.ScreenDelay,
                 ScreenScale = config.ScreenScale,
-                SaveSetting = config.SaveSetting
+                SaveSetting = config.SaveSetting,
+                WakeUp = config.WakeUp,
             };
         }
 
@@ -39,6 +37,7 @@ namespace cmonitor.server.api.services
             config.ScreenDelay = settingInfo.ScreenDelay;
             config.ScreenScale = settingInfo.ScreenScale;
             config.SaveSetting = settingInfo.SaveSetting;
+            config.WakeUp = settingInfo.WakeUp;
 
             byte[] bytes = MemoryPackSerializer.Serialize(settingInfo);
             foreach (var item in signCaching.Get())
