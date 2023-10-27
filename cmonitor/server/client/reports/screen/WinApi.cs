@@ -149,6 +149,23 @@ namespace cmonitor.server.client.reports.screen
 
         #endregion
 
+        #region 发送消息
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
+
+        public static void WakeUpSystem()
+        {
+            try
+            {
+                SendMessage(new IntPtr(0xFFFF), 0x0112, new IntPtr(0xF170), new IntPtr(2));
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        #endregion
 
         public static bool GetSystemScale(out float x, out float y, out int sourceWidth, out int sourceHeight)
         {

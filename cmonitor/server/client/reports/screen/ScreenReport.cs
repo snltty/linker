@@ -192,11 +192,23 @@ namespace cmonitor.server.client.reports.screen
             {
                 if (WinApi.GetCursorPosition(out int x, out int y))
                 {
-                    x = x <= 0 ? x + 1 : x - 1;
-                    y = y <= 0 ? y + 1 : y - 1;
+                    int mx = 1, my = 1;
+                    x -= 2;
+                    y -= 2;
+                    if (x <= 0)
+                    {
+                        x += 4;
+                        mx = -1;
+                    }
+                    if (y <= 0)
+                    {
+                        y += 4;
+                        my = -1;
+                    }
 
                     WinApi.SetCursorPos(x, y);
-                    WinApi.MouseMove(x, y);
+                    WinApi.MouseMove(mx, my);
+                    WinApi.WakeUpSystem();
                 }
             }
             catch (Exception ex)
