@@ -79,7 +79,8 @@ export const onWebsocketMsg = (msg) => {
                 let json = JSON.parse(reader.result);
                 json.Content = {
                     Name: json.Content,
-                    Img: msg.data.slice(4 + length, msg.data.length)
+                    Img: msg.data.slice(4 + length, msg.data.length),
+                    ArrayBuffer: res
                 };
                 pushMessage(json);
             }

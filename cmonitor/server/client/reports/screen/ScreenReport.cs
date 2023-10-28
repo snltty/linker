@@ -2,6 +2,8 @@
 using common.libs;
 using cmonitor.server.service.messengers.screen;
 using MemoryPack;
+using System.Runtime.InteropServices;
+using static cmonitor.server.client.reports.screen.WinApi;
 
 namespace cmonitor.server.client.reports.screen
 {
@@ -30,6 +32,7 @@ namespace cmonitor.server.client.reports.screen
                 dxgiDesktop = new DxgiDesktop(0);
                 gdiDesktop = new GdiDesktop();
                 InitSise();
+                //InitMOnitors();
             }
 
         }
@@ -41,6 +44,33 @@ namespace cmonitor.server.client.reports.screen
                 report.H = h;
             }
         }
+        private void InitMOnitors()
+        {
+            MonitorEnumProc callback = new MonitorEnumProc(MonitorEnumCallback);
+           WinApi.EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, callback, IntPtr.Zero);
+        }
+        private bool MonitorEnumCallback(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData)
+        {
+            MONITORINFO mi = new MONITORINFO();
+            mi.cbSize = (uint)Marshal.SizeOf(mi);
+
+            if (GetMonitorInfo(hMonitor, ref mi))
+            {
+                // 检查显示器状态
+                if ((mi.dwFlags & 1) == 0) // 1表示显示器已关闭
+                {
+                    Console.WriteLine("Display is closed.");
+                }
+                else
+                {
+                    Console.WriteLine("Display is not closed.");
+                }
+            }
+
+            return true;
+        }
+
+
         public object GetReports(ReportType reportType)
         {
             report.LT = WinApi.GetLastInputInfo();
@@ -110,7 +140,6 @@ namespace cmonitor.server.client.reports.screen
                 }
             }, TaskCreationOptions.LongRunning);
         }
-
         private Memory<byte> fullImageMemory = Helper.EmptyArray;
         private async Task ScreenCapture()
         {
@@ -192,23 +221,8 @@ namespace cmonitor.server.client.reports.screen
             {
                 if (WinApi.GetCursorPosition(out int x, out int y))
                 {
-                    int mx = 1, my = 1;
-                    x -= 2;
-                    y -= 2;
-                    if (x <= 0)
-                    {
-                        x += 4;
-                        mx = -1;
-                    }
-                    if (y <= 0)
-                    {
-                        y += 4;
-                        my = -1;
-                    }
-
-                    WinApi.SetCursorPos(x, y);
-                    WinApi.MouseMove(mx, my);
-                    WinApi.WakeUpSystem();
+                    WinApi.SetCursorPos(x + 1, y + 1);
+                    WinApi.MouseMove(1, 1);
                 }
             }
             catch (Exception ex)

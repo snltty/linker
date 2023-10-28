@@ -240,7 +240,7 @@ export default {
                     item.Screen.fullImg = img;
                 });
             } else {
-                this.imgOnload(URL.createObjectURL(res.Img)).then((img) => {
+                createImageBitmap(res.Img).then((img) => {
                     item.Screen.fullImg = img;
                 });
             }
@@ -268,7 +268,7 @@ export default {
                     index += 4;
                     const h = dataView.getUint32(index, true);
                     index += 4;
-                    images.push(this.imgOnload(URL.createObjectURL(res.Img.slice(index, index + length)), { x: x, y: y, w: w, h: h }));
+                    images.push(createImageBitmap(res.Img.slice(index, index + length), { x: x, y: y, w: w, h: h }));
                     index += length;
                 }
 

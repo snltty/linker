@@ -69,7 +69,7 @@
             // username
             // 
             this.username.Font = new System.Drawing.Font("宋体", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.username.ForeColor = System.Drawing.Color.Red;
+            this.username.ForeColor = System.Drawing.Color.Gold;
             this.username.Location = new System.Drawing.Point(4, 3);
             this.username.Name = "username";
             this.username.Size = new System.Drawing.Size(166, 22);

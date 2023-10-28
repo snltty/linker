@@ -154,17 +154,6 @@ namespace cmonitor.server.client.reports.screen
         [DllImport("user32.dll")]
         private static extern IntPtr SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
 
-        public static void WakeUpSystem()
-        {
-            try
-            {
-                SendMessage(new IntPtr(0xFFFF), 0x0112, new IntPtr(0xF170), new IntPtr(2));
-            }
-            catch (Exception)
-            {
-            }
-        }
-
         #endregion
 
         public static bool GetSystemScale(out float x, out float y, out int sourceWidth, out int sourceHeight)
@@ -309,6 +298,41 @@ namespace cmonitor.server.client.reports.screen
             }
             return false;
         }
+        #endregion
+
+
+        #region 显示器
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct MONITORINFO
+        {
+            public uint cbSize;
+            public RECT rcMonitor;
+            public RECT rcWork;
+            public uint dwFlags;
+        }
+
+        // 矩形结构
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT
+        {
+            public int left;
+            public int top;
+            public int right;
+            public int bottom;
+        }
+
+        // 导入EnumDisplayMonitors函数
+        [DllImport("user32.dll")]
+        public static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, MonitorEnumProc lpfnEnum, IntPtr dwData);
+
+        // 导入GetMonitorInfo函数
+        [DllImport("user32.dll")]
+        public static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+
+        // 委托类型定义
+        public delegate bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData);
+
         #endregion
     }
 }
