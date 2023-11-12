@@ -2,14 +2,14 @@
 {
     public static class WindowsDrive
     {
-        public static List<ReportDriveInfo> GetAllDrives()
+        public static ReportDriveInfo[] GetAllDrives()
         {
             return DriveInfo.GetDrives().Select(c => new ReportDriveInfo
             {
                 Name = c.Name,
                 Free = c.TotalFreeSpace,
                 Total = c.TotalSize
-            }).ToList();
+            }).ToArray();
         }
         /*
         static PerformanceCounter diskTimeCounter;

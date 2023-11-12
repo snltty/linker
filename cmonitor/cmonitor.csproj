@@ -44,6 +44,9 @@
 		<None Update="nfdriver.sys">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="ntrights.exe">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 	<ItemGroup>
 		<Content Include="./web/**">

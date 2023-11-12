@@ -17,7 +17,7 @@ namespace cmonitor.server.client.reports.hijack
         private ulong[] lastArray = new ulong[3];
         private long ticks = DateTime.UtcNow.Ticks;
 
-        public HijackReport(HijackEventHandler hijackEventHandler, HijackController hijackController, HijackConfig hijackConfig, ClientConfig clientConfig,Config config)
+        public HijackReport(HijackEventHandler hijackEventHandler, HijackController hijackController, HijackConfig hijackConfig, ClientConfig clientConfig, Config config)
         {
             this.hijackEventHandler = hijackEventHandler;
             this.hijackController = hijackController;
@@ -65,7 +65,7 @@ namespace cmonitor.server.client.reports.hijack
             array[2] = count;
 
             long _ticks = DateTime.UtcNow.Ticks;
-            if (((_ticks - ticks) / TimeSpan.TicksPerMillisecond >= 300 && array.SequenceEqual(lastArray) == false))
+            if (((_ticks - ticks) / TimeSpan.TicksPerMillisecond >= 300 && array.SequenceEqual(lastArray) == false) || reportType == ReportType.Full)
             {
                 ticks = _ticks;
                 lastArray[0] = array[0];

@@ -23,7 +23,7 @@ export default {
         volume: {
             showVolume: false,
             showVolumeSingle: false,
-            items: []
+            devices: []
         }
     },
     init() {

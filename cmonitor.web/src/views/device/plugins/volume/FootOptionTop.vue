@@ -13,7 +13,7 @@ export default {
         const pluginState = injectPluginState();
         const globalData = injectGlobalData();
         const handleVolume = () => {
-            pluginState.value.volume.items = globalData.value.devices;
+            pluginState.value.volume.devices = globalData.value.devices;
             pluginState.value.volume.showVolume = true;
         }
 

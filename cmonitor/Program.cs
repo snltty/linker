@@ -1,5 +1,4 @@
-﻿using cmonitor.hijack;
-using cmonitor.server.api;
+﻿using cmonitor.server.api;
 using cmonitor.server.api.services;
 using cmonitor.server.client;
 using cmonitor.server.client.reports.active;
@@ -8,6 +7,11 @@ using cmonitor.server.client.reports.hijack;
 using cmonitor.server.client.reports.llock;
 using cmonitor.server.client.reports.screen;
 using cmonitor.server.client.reports.volume;
+using cmonitor.server.client.reports.notify;
+using cmonitor.server.client.reports.command;
+using cmonitor.server.client.reports;
+using cmonitor.server.client.reports.share;
+using cmonitor.server.client.reports.system;
 using cmonitor.server.service;
 using cmonitor.server.service.messengers.active;
 using cmonitor.server.service.messengers.hijack;
@@ -15,25 +19,24 @@ using cmonitor.server.service.messengers.llock;
 using cmonitor.server.service.messengers.report;
 using cmonitor.server.service.messengers.screen;
 using cmonitor.server.service.messengers.sign;
-using cmonitor.server.service.messengers.usb;
 using cmonitor.server.service.messengers.volume;
 using cmonitor.server.service.messengers.wallpaper;
+using cmonitor.server.service.messengers.keyboard;
+using cmonitor.server.service.messengers.system;
+using cmonitor.server.service.messengers.light;
+using cmonitor.server.service.messengers.share;
+using cmonitor.server.service.messengers.notify;
+using cmonitor.server.service.messengers.setting;
 using cmonitor.server.web;
+using cmonitor.hijack;
 using common.libs;
 using common.libs.database;
+using common.libs.extends;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
-using cmonitor.server.client.reports;
-using common.libs.extends;
-using cmonitor.server.service.messengers.light;
 using System.Reflection;
-using cmonitor.server.client.reports.share;
-using cmonitor.server.service.messengers.share;
-using cmonitor.server.client.reports.system;
-using cmonitor.server.service.messengers.notify;
-using cmonitor.server.client.reports.notify;
-using cmonitor.server.client.reports.command;
-using cmonitor.server.service.messengers.setting;
+using System.Text.Json.Serialization;
+
 
 namespace cmonitor
 {
@@ -41,6 +44,22 @@ namespace cmonitor
     {
         static async Task Main(string[] args)
         {
+            //日志输出
+            LoggerConsole();
+
+            //读取参数
+            Dictionary<string, string> dic = ArgumentParser.Parse(args, out string error);
+//#if RELEASE
+            //提权
+            if (dic.ContainsKey("elevated") == false)
+            {
+                Win32Interop.RelaunchElevated();
+            }
+//#endif
+            //初始化配置文件
+            Config config = new Config();
+            InitConfig(config, dic);
+
             //单服务
             Mutex mutex = new Mutex(true, System.Diagnostics.Process.GetCurrentProcess().ProcessName, out bool isAppRunning);
             if (isAppRunning == false)
@@ -55,13 +74,7 @@ namespace cmonitor
             //线程数
             ThreadPool.SetMinThreads(1024, 1024);
             ThreadPool.SetMaxThreads(65535, 65535);
-            //日志输出
-            LoggerConsole();
 
-            //初始化配置文件
-            Config config = new Config();
-            Dictionary<string, string> dic = ArgumentParser.Parse(args, out string error);
-            InitConfig(config, dic);
 
             //注入对象
             ServiceProvider serviceProvider = null;
@@ -138,7 +151,6 @@ namespace cmonitor
             serviceCollection.AddSingleton<HijackReport>();
             serviceCollection.AddSingleton<LLockReport>();
             serviceCollection.AddSingleton<ScreenReport>();
-            serviceCollection.AddSingleton<UsbReport>();
             serviceCollection.AddSingleton<VolumeReport>();
             serviceCollection.AddSingleton<WallpaperReport>();
             serviceCollection.AddSingleton<LightReport>();
@@ -146,6 +158,7 @@ namespace cmonitor
             serviceCollection.AddSingleton<SystemReport>();
             serviceCollection.AddSingleton<NotifyReport>();
             serviceCollection.AddSingleton<CommandReport>();
+            serviceCollection.AddSingleton<KeyboardReport>();
 
 
             //服务
@@ -161,13 +174,14 @@ namespace cmonitor
             serviceCollection.AddSingleton<ActiveMessenger>();
             serviceCollection.AddSingleton<LLockMessenger>();
             serviceCollection.AddSingleton<ScreenMessenger>();
-            serviceCollection.AddSingleton<UsbMessenger>();
             serviceCollection.AddSingleton<VolumeMessenger>();
             serviceCollection.AddSingleton<WallpaperMessenger>();
             serviceCollection.AddSingleton<LightMessenger>();
             serviceCollection.AddSingleton<ShareMessenger>();
             serviceCollection.AddSingleton<NotifyMessenger>();
             serviceCollection.AddSingleton<SettingMessenger>();
+            serviceCollection.AddSingleton<KeyboardMessenger>();
+            serviceCollection.AddSingleton<SystemMessenger>();
 
             //api
             serviceCollection.AddSingleton<RuleConfig>();
@@ -179,13 +193,14 @@ namespace cmonitor
             serviceCollection.AddSingleton<ActiveClientService>();
             serviceCollection.AddSingleton<LLockClientService>();
             serviceCollection.AddSingleton<ScreenClientService>();
-            serviceCollection.AddSingleton<UsbClientService>();
             serviceCollection.AddSingleton<VolumeClientService>();
             serviceCollection.AddSingleton<WallpaperClientService>();
             serviceCollection.AddSingleton<LightClientService>();
             serviceCollection.AddSingleton<ShareClientService>();
             serviceCollection.AddSingleton<NotifyClientService>();
             serviceCollection.AddSingleton<SettingClientService>();
+            serviceCollection.AddSingleton<SystemClientService>();
+            serviceCollection.AddSingleton<KeyboardClientService>();
 
 
             //web
@@ -203,6 +218,7 @@ namespace cmonitor
             config.ReportDelay = int.Parse(dic["report-delay"]);
             config.ScreenScale = float.Parse(dic["screen-scale"]);
             config.ScreenDelay = int.Parse(dic["screen-delay"]);
+            config.Elevated = dic.ContainsKey("elevated");
 
             Logger.Instance.Debug($"config:{config.ToJson()}");
             //Logger.Instance.Debug($"args:{string.Join(" ", args)}");
@@ -270,22 +286,37 @@ namespace cmonitor
 
         public float ScreenScale { get; set; } = 0.2f;
         public int ScreenDelay { get; set; } = 30;
+
+        [JsonIgnore]
         public bool SaveSetting { get; set; } = true;
+        [JsonIgnore]
         public bool WakeUp { get; set; } = true;
-        
+        [JsonIgnore]
+        public bool VolumeMasterPeak { get; set; } = true;
 
 
+        [JsonIgnore]
         public string Version { get; set; } = "1.0.0.1";
+        [JsonIgnore]
         public bool IsCLient { get; set; }
+        [JsonIgnore]
         public bool IsServer { get; set; }
 
+        [JsonIgnore]
+        public bool Elevated { get; set; }
+
         public string ShareMemoryKey { get; set; } = "cmonitor/share";
-        public int ShareMemoryLength { get; set; } = ShareMemoryItemLength * 10;
+        public int ShareMemoryLength { get; set; } = 10;
 
         public const int ShareMemoryItemLength = 255;
+        //键盘
         public const int ShareMemoryKeyBoardIndex = 0;
+        //壁纸
         public const int ShareMemoryWallpaperIndex = 1;
+        //锁屏
         public const int ShareMemoryLLockIndex = 2;
+        //SAS
+        public const int ShareMemorySASIndex = 3;
 
     }
 
@@ -324,7 +355,8 @@ namespace cmonitor
              && ValidatePort(dic, out error)
              && ValidateMemoryKey(dic, out error)
              && ValidateScreenScale(dic, out error)
-             && ValidateReport(dic, out error);
+             && ValidateReport(dic, out error)
+             && ValidateElevated(dic, out error);
         }
         static bool ValidateMode(Dictionary<string, string> dic)
         {
@@ -390,7 +422,7 @@ namespace cmonitor
             }
             if (dic.ContainsKey("share-len") == false || string.IsNullOrWhiteSpace(dic["share-len"]))
             {
-                dic["share-len"] = "2550";
+                dic["share-len"] = "10";
             }
             return true;
         }
@@ -417,6 +449,18 @@ namespace cmonitor
             }
             return true;
         }
+
+        static bool ValidateElevated(Dictionary<string, string> dic, out string error)
+        {
+            error = string.Empty;
+            if (dic.ContainsKey("elevated"))
+            {
+                dic["elevated"] = "1";
+            }
+            return true;
+        }
+
+
 
     }
 }

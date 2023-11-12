@@ -26,9 +26,9 @@ export default {
         const pluginState = injectPluginState();
         const state = reactive({
             show: props.modelValue,
-            items: computed(() => pluginState.value.light.items),
+            items: computed(() => pluginState.value.light.devices),
             loading: false,
-            light: pluginState.value.light.items[0].Light.Value
+            light: pluginState.value.light.devices[0].Light.Value
         });
         watch(() => state.show, (val) => {
             if (!val) {

@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace wallpaper.win
 {
@@ -17,6 +18,8 @@ namespace wallpaper.win
         private string imgUrl;
         private string shareMkey;
         private int shareMLength;
+        private int shareItemMLength = 255;
+
         private int shareKeyBoardIndex;
         private int shareWallpaperIndex;
 
@@ -40,7 +43,7 @@ namespace wallpaper.win
             this.shareKeyBoardIndex = shareKeyBoardIndex;
             this.shareWallpaperIndex = shareWallpaperIndex;
 
-            
+
             InitializeComponent();
 
             hook = new Hook();
@@ -121,12 +124,12 @@ namespace wallpaper.win
                     Thread.Sleep(1000);
                 }
             }).Start();
-            
 
 
-            mmf2 = MemoryMappedFile.CreateOrOpen(this.shareMkey, this.shareMLength);
+            mmf2 = MemoryMappedFile.CreateOrOpen($"{this.shareMkey}", this.shareMLength);
             accessor2 = mmf2.CreateViewAccessor();
             WriteKeyBoard("init");
+            WriteMemory(this.shareWallpaperIndex, wallpaperBytes, Encoding.UTF8.GetBytes("init"));
             new Thread(() =>
             {
                 StringBuilder sb = new StringBuilder();
@@ -175,15 +178,20 @@ namespace wallpaper.win
         private void WriteWallpaper()
         {
             long time = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
-            if(time- lastTime >= 300)
+            if (time - lastTime >= 300)
             {
+                bool close = ReadCloseMemory(this.shareWallpaperIndex);
                 WriteMemory(this.shareWallpaperIndex, wallpaperBytes, Encoding.UTF8.GetBytes(time.ToString()));
+                if (close)
+                {
+                    Environment.Exit(0);
+                }
                 lastTime = time;
             }
         }
         private void WriteMemory(int index, byte[] key, byte[] value)
         {
-            int keyIndex = index * 255;
+            int keyIndex = index * shareItemMLength;
             if (value.Length > 0)
                 accessor2.Write(keyIndex, (byte)key.Length);
             keyIndex++;
@@ -198,6 +206,33 @@ namespace wallpaper.win
                 accessor2.WriteArray(keyIndex, value, 0, value.Length);
                 keyIndex += value.Length;
             }
+            UpdatedState(index);
+        }
+        private void UpdatedState(int updatedOffset)
+        {
+            accessor2.Write((shareMLength - 1) * shareItemMLength, (byte)1);
+        }
+
+
+        private bool ReadCloseMemory(int index)
+        {
+            int keyIndex = index * shareItemMLength;
+            int keyLength = accessor2.ReadByte(keyIndex);
+            keyIndex += 1 + keyLength;
+            int valueLength = accessor2.ReadByte(keyIndex);
+            keyIndex += 1;
+
+            byte[] valueBytes = new byte[valueLength];
+            if (valueBytes.Length > 0)
+            {
+                accessor2.ReadArray(keyIndex, valueBytes, 0, valueLength);
+                string value = Encoding.UTF8.GetString(valueBytes, 0, valueLength);
+                if (value == "close")
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 

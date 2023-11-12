@@ -12,7 +12,7 @@ export default {
         light: {
             showLight: false,
             showLightSingle: false,
-            items: []
+            devices: []
         }
     },
     globalData: null,

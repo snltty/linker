@@ -16,7 +16,7 @@ export default {
         const pluginState = injectPluginState();
         const handleRule = () => {
 
-            pluginState.value.hijack.showRulesItems = [props.data];
+            pluginState.value.hijack.devices = [props.data];
             pluginState.value.hijack.showRules = true;
         }
 

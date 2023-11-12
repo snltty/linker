@@ -14,7 +14,7 @@ export default {
     state: {
         hijack: {
             showRules: false,
-            showRulesItems: [],
+            devices: [],
             showRuleSetting: false,
             showProcessSetting: false,
         }
@@ -27,7 +27,7 @@ export default {
         while ((unit = unites.shift()) && size.toFixed(2) >= 1024) {
             size /= 1024;
         }
-        return unit == 'B' ? [size, unit] : [size.toFixed(2), unit];
+        return unit == 'B' ? [size, unit] : [parseInt(size), unit];
     },
     globalData: null,
     init() {

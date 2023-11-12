@@ -13,7 +13,7 @@ export default {
         const pluginState = injectPluginState();
         const globalData = injectGlobalData();
         const handleCommand = () => {
-            pluginState.value.command.items = globalData.value.devices;
+            pluginState.value.command.devices = globalData.value.devices;
             pluginState.value.command.showCommand = true;
         }
 

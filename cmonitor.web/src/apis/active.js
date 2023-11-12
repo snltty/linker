@@ -3,6 +3,10 @@ import { sendWebsocketMsg } from './request'
 export const getActiveTimes = (name) => {
     return sendWebsocketMsg('active/get', name);
 }
+export const getActiveWindows = (name) => {
+    return sendWebsocketMsg('active/windows', name);
+}
+
 export const activeTimesClear = (name) => {
     return sendWebsocketMsg('active/clear', name);
 }

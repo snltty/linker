@@ -19,6 +19,8 @@ namespace cmonitor.server.service.messengers.setting
             config.ScreenScale = settingInfo.ScreenScale;
             config.SaveSetting = settingInfo.SaveSetting;
             config.WakeUp = settingInfo.WakeUp;
+            config.VolumeMasterPeak = settingInfo.VolumeMasterPeak;
+            
         }
 
     }
@@ -31,5 +33,7 @@ namespace cmonitor.server.service.messengers.setting
         public int ScreenDelay { get; set; } = 30;
         public bool SaveSetting { get; set; } = true;
         public bool WakeUp { get; set; } = true;
+        public bool VolumeMasterPeak { get; set; } = true;
+        
     }
 }

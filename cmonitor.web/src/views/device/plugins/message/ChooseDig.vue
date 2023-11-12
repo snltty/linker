@@ -2,7 +2,7 @@
     <el-dialog class="options" title="发送提醒" destroy-on-close v-model="state.show" center align-center width="94%">
         <div class="command-wrap flex">
             <div class="items">
-                <CheckBoxWrap ref="items" :data="globalData.devices" :items="state.items" label="MachineName" title="选择设备"></CheckBoxWrap>
+                <CheckBoxWrap ref="devices" :data="globalData.devices" :items="state.items" label="MachineName" title="选择设备"></CheckBoxWrap>
             </div>
             <div class="flex-1"></div>
             <div class="prevs-wrap flex flex-column flex-nowrap">
@@ -48,7 +48,7 @@ export default {
         const pluginState = injectPluginState();
         const state = reactive({
             show: props.modelValue,
-            items: computed(() => pluginState.value.message.items),
+            items: computed(() => pluginState.value.message.devices),
             prevs: [
                 '请注意上课纪律!',
                 '请勿玩游戏!',
@@ -59,8 +59,8 @@ export default {
             loading: false
         });
         try {
-            if (pluginState.value.message.items.length == 1 && pluginState.value.message.items[0].Share.UserName.Value) {
-                state.prevs.push(`【${pluginState.value.message.items[0].Share.UserName.Value}】请注意上课纪律!`);
+            if (pluginState.value.message.devices.length == 1 && pluginState.value.message.devices[0].Share.UserName.Value) {
+                state.prevs.push(`【${pluginState.value.message.devices[0].Share.UserName.Value}】请注意上课纪律!`);
             }
         } catch (e) {
         }
@@ -76,11 +76,11 @@ export default {
             state.prev = item;
         }
 
-        const items = ref(null);
+        const devices = ref(null);
         const prevs = ref(null);
         const handleSubmit = () => {
-            let _items = items.value.getData();
-            if (_items.length == 0) {
+            let _devices = devices.value.getData();
+            if (_devices.length == 0) {
                 ElMessage.error('未选择任何设备');
                 return;
             }
@@ -95,7 +95,7 @@ export default {
                 type: 'warning',
             }).then(() => {
                 state.loading = true;
-                exec(_items, [`start message.win.exe "${state.prev}" ${state.sec}`]).then((res) => {
+                exec(_devices.map(c => c.MachineName), [`start message.win.exe "${state.prev}" ${state.sec}`]).then((res) => {
                     if (res) {
                         ElMessage.success('操作成功');
                     } else {
@@ -114,24 +114,24 @@ export default {
         }
 
         return {
-            state, globalData, items, prevs, handleSubmit, handleCancel, handlePrev
+            state, globalData, devices, prevs, handleSubmit, handleCancel, handlePrev
         }
     }
 }
 </script>
 <style lang="stylus" scoped>
 .command-wrap {
-    height: 60vh;
+    height: 70vh;
 
     .items {
         height: 100%;
-        width: 48%;
+        width: 36%;
         position: relative;
     }
 
     .prevs-wrap {
         height: 100%;
-        width: 48%;
+        width: 62%;
         position: relative;
 
         .times {

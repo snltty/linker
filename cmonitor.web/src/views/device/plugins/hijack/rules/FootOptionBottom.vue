@@ -12,7 +12,7 @@ export default {
         const pluginState = injectPluginState();
         const globalData = injectGlobalData();
         const handleRule = () => {
-            pluginState.value.hijack.showRulesItems = globalData.value.devices;
+            pluginState.value.hijack.devices = globalData.value.devices;
             pluginState.value.hijack.showRules = true;
         }
         return {

@@ -1,12 +1,19 @@
 ﻿using System.Drawing.Imaging;
 using System.Drawing;
 using common.libs;
+using cmonitor.server.client.reports.screen.helpers;
+using cmonitor.server.client.reports.screen.winapiss;
+using System.Runtime.InteropServices;
 
 namespace cmonitor.server.client.reports.screen
 {
     public sealed class GdiDesktop
     {
-        public GdiDesktop() { }
+        private readonly Config config;
+        public GdiDesktop(Config config)
+        {
+            this.config = config;
+        }
 
         ScreenClipInfo screenClipInfo = new ScreenClipInfo { X = 0, Y = 0, W = 0, H = 0 };
         public void Clip(ScreenClipInfo _screenClipInfo)
@@ -17,13 +24,9 @@ namespace cmonitor.server.client.reports.screen
         {
             return screenClipInfo.W > 0 && screenClipInfo.H > 0;
         }
-        public bool IsLockScreen()
-        {
-            return WinApi.Locked();
-        }
 
         byte[] fullImageBytes = new byte[0];
-        public DesktopFrame GetLatestFrame(float configScale)
+        public DesktopFrame GetLatestFrame()
         {
             DesktopFrame frame = new DesktopFrame { FullImage = Helper.EmptyArray, MovedRegions = new MovedRegion[0], RegionImage = Helper.EmptyArray, UpdatedRegions = new Rectangle[0] };
 
@@ -32,10 +35,18 @@ namespace cmonitor.server.client.reports.screen
             {
                 try
                 {
-                    IntPtr hdc = WinApi.GetDC(IntPtr.Zero);
+                    if (config.Elevated == true && !Win32Interop.SwitchToInputDesktop())
+                    {
+                        var errCode = Marshal.GetLastWin32Error();
+                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            Logger.Instance.Error("Failed to switch to input desktop. Last Win32 error code: {errCode}", errCode);
+                    }
+
+
+                    IntPtr hdc = User32.GetDC(IntPtr.Zero);
                     if (hdc == IntPtr.Zero) return frame;
 
-                    WinApi.GetSystemScale(out float scaleX, out float scaleY, out int sourceWidth, out int sourceHeight);
+                    DisplayHelper.GetSystemScale(out float scaleX, out float scaleY, out int sourceWidth, out int sourceHeight);
                     Rect sourceRect = new Rect(sourceWidth, sourceHeight);
                     CalcClip(out Rectangle clipRectangle);
                     if (screenClipInfo.W == 0 || screenClipInfo.H == 0)
@@ -43,7 +54,7 @@ namespace cmonitor.server.client.reports.screen
                         clipRectangle.Width = sourceWidth;
                         clipRectangle.Height = sourceHeight;
                     }
-                    GetNewSize(sourceRect, scaleX, scaleY, configScale, out Rect distRect);
+                    GetNewSize(sourceRect, scaleX, scaleY, out Rect distRect);
 
                     using Bitmap image = new Bitmap(clipRectangle.Width, clipRectangle.Height);
                     using (Graphics g = Graphics.FromImage(image))
@@ -51,7 +62,7 @@ namespace cmonitor.server.client.reports.screen
                         g.CopyFromScreen(clipRectangle.X, clipRectangle.Y, 0, 0, image.Size, CopyPixelOperation.SourceCopy);
                         g.Dispose();
                     }
-                    WinApi.ReleaseDC(IntPtr.Zero, hdc);
+                    User32.ReleaseDC(IntPtr.Zero, hdc);
 
                     Bitmap bmp = image;
                     if (clipRectangle.Width - distRect.Width > 50)
@@ -95,10 +106,10 @@ namespace cmonitor.server.client.reports.screen
 
         }
 
-        private bool GetNewSize(Rect sourceRect, float scaleX, float scaleY, float configScale, out Rect rect)
+        private bool GetNewSize(Rect sourceRect, float scaleX, float scaleY,  out Rect rect)
         {
-            int width = (int)(sourceRect.Width * 1.0 / scaleX * configScale);
-            int height = (int)(sourceRect.Height * 1.0 / scaleY * configScale);
+            int width = (int)(sourceRect.Width * 1.0 / scaleX * config.ScreenScale);
+            int height = (int)(sourceRect.Height * 1.0 / scaleY * config.ScreenScale);
             rect = new Rect(width, height);
             return true;
         }

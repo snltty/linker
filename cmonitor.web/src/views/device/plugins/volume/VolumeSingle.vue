@@ -32,9 +32,9 @@ export default {
         const pluginState = injectPluginState();
         const state = reactive({
             show: props.modelValue,
-            items: computed(() => pluginState.value.volume.items),
+            items: computed(() => pluginState.value.volume.devices),
             loading: false,
-            volume: pluginState.value.volume.items[0].Volume.Value,
+            volume: pluginState.value.volume.devices[0].Volume.Value,
             showRecord: false
         });
         watch(() => state.show, (val) => {

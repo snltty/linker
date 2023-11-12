@@ -21,17 +21,11 @@ namespace cmonitor.server.service.messengers.report
             string[] commands = MemoryPackSerializer.Deserialize<string[]>(connection.ReceiveRequestWrap.Payload.Span);
             Task.Run(() =>
             {
-                CommandHelper.Windows(string.Empty, commands);
+                
+                string result = CommandHelper.Windows(string.Empty, commands);
             });
 
             connection.Write(Helper.TrueArray);
-        }
-
-        [MessengerId((ushort)CommandMessengerIds.KeyBoard)]
-        public void KeyBoard(IConnection connection)
-        {
-            KeyBoardInputInfo command = MemoryPackSerializer.Deserialize<KeyBoardInputInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            commandReport.KeyBoard(command);
         }
     }
 

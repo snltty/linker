@@ -35,6 +35,23 @@ namespace cmonitor.server.api.services
             }
             return new ActiveWindowTimeReportInfo();
         }
+        public async Task<Dictionary<uint, string>> Windows(ClientServiceParamsInfo param)
+        {
+            if (signCaching.Get(param.Content, out SignCacheInfo cache) && cache.Connected)
+            {
+                MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = cache.Connection,
+                    MessengerId = (ushort)ActiveMessengerIds.Windows
+                });
+                if (resp.Code == MessageResponeCodes.OK)
+                {
+                    return MemoryPackSerializer.Deserialize<Dictionary<uint, string>>(resp.Data.Span);
+                }
+            }
+            return new Dictionary<uint, string>();
+        }
+
 
         public async Task<bool> Clear(ClientServiceParamsInfo param)
         {

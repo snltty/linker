@@ -38,7 +38,7 @@ export default {
     .main-wrap {
         border: 2px solid #d0d7de;
         height: 90% !important;
-        width: 390px !important;
+        width: 394px !important;
     }
 }
 

@@ -14,7 +14,7 @@ export default {
         const pluginState = injectPluginState();
         const globalData = injectGlobalData();
         const handleMessage = () => {
-            pluginState.value.message.items = globalData.value.devices;
+            pluginState.value.message.devices = globalData.value.devices;
             pluginState.value.message.showMessage = true;
         }
 

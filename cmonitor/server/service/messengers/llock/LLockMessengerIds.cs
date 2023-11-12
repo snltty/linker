@@ -2,7 +2,8 @@
 {
     public enum LLockMessengerIds : ushort
     {
-        Update = 500,
+        LockScreen = 500,
+        LockSystem = 501,
 
         None = 599
     }

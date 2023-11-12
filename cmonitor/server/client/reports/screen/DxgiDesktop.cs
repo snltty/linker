@@ -10,6 +10,8 @@ using SharpDX.Mathematics.Interop;
 using common.libs;
 using Factory1 = SharpDX.DXGI.Factory1;
 using common.libs.extends;
+using cmonitor.server.client.reports.screen.helpers;
+using System.Diagnostics;
 
 namespace cmonitor.server.client.reports.screen
 {
@@ -31,13 +33,18 @@ namespace cmonitor.server.client.reports.screen
         private int whichGraphicsCardAdapter;
         private int whichOutputDevice;
 
-        public DxgiDesktop(int whichMonitor)
-            : this(0, whichMonitor) { }
+        private bool needInit = false;
 
-        public DxgiDesktop(int whichGraphicsCardAdapter, int whichOutputDevice)
+        private readonly Config config;
+
+        public DxgiDesktop(int whichMonitor, Config config)
+            : this(0, whichMonitor, config) { }
+
+        public DxgiDesktop(int whichGraphicsCardAdapter, int whichOutputDevice, Config config)
         {
             this.whichGraphicsCardAdapter = whichGraphicsCardAdapter;
             this.whichOutputDevice = whichOutputDevice;
+            this.config = config;
             if (OperatingSystem.IsWindows())
             {
                 InitCapture();
@@ -232,6 +239,10 @@ namespace cmonitor.server.client.reports.screen
         {
             try
             {
+                if (config.Elevated)
+                {
+                    Win32Interop.SwitchToInputDesktop();
+                }
                 InitAdapter();
                 InitDevice();
                 InitOutput();
@@ -258,7 +269,7 @@ namespace cmonitor.server.client.reports.screen
                     return false;
                 }
 
-                Result result = mDeskDupl.TryAcquireNextFrame(100, out frameInfo, out desktopResource);
+                Result result = mDeskDupl.TryAcquireNextFrame(30, out frameInfo, out desktopResource);
                 if (desktopResource == null)
                 {
                     uint code = (uint)result.Code;
@@ -341,7 +352,7 @@ namespace cmonitor.server.client.reports.screen
                 {
                     if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        Logger.Instance.Error("Failed to release frame.");
+                        Logger.Instance.Error($"Failed to release frame.{ex.ResultCode.Code}");
                     }
                 }
             }
@@ -350,23 +361,37 @@ namespace cmonitor.server.client.reports.screen
 
         private byte[] fullImageBytes = Helper.EmptyArray;
 
-        public DesktopFrame GetLatestFullFrame(float configScale)
+        public DesktopFrame GetLatestFullFrame()
         {
             DesktopFrame frame = new DesktopFrame() { FullImage = Helper.EmptyArray, RegionImage = Helper.EmptyArray };
-            bool success = RetrieveFrame();
-            if (success == false)
-            {
-                return frame;
-            }
-
+            bool result = false;
             try
             {
+                if (config.Elevated == true && !Win32Interop.SwitchToInputDesktop())
+                {
+                    var errCode = Marshal.GetLastWin32Error();
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        Logger.Instance.Error($"Failed to switch to input desktop. Last Win32 error code: {errCode}");
+                }
+
+                if (needInit)
+                {
+                    InitCapture();
+                }
+
+
+                result = RetrieveFrame();
+                if (result == false)
+                {
+                    return frame;
+                }
+
                 RetrieveFrameMetadata(frame);
                 if (frame.UpdatedRegions.Length > 0)
                 {
                     frame.UpdatedRegions = Rectangle.UnionRectangles(frame.UpdatedRegions);
                 }
-                ProcessFrameFull(frame, configScale);
+                ProcessFrameFull(frame);
             }
             catch (Exception ex)
             {
@@ -374,13 +399,15 @@ namespace cmonitor.server.client.reports.screen
                 {
                     Logger.Instance.Error(ex);
                 }
-                ReleaseFrame();
+                if (result)
+                    ReleaseFrame();
             }
             finally
             {
                 try
                 {
-                    ReleaseFrame();
+                    if (result)
+                        ReleaseFrame();
                 }
                 catch
                 {
@@ -389,19 +416,20 @@ namespace cmonitor.server.client.reports.screen
 
             return frame;
         }
-        private unsafe void ProcessFrameFull(DesktopFrame frame, float configScale)
+        private unsafe void ProcessFrameFull(DesktopFrame frame)
         {
             if (OperatingSystem.IsWindows())
             {
                 try
                 {
+
                     mDevice.ImmediateContext.GenerateMips(smallerTextureView);
 
                     Rect sourceRect = new Rect(smallerTexture.Description.Width, smallerTexture.Description.Height);
                     Rectangle sourceRectangle = new Rectangle(0, 0, sourceRect.Width, sourceRect.Height);
-                    WinApi.GetSystemScale(out float scaleX, out float scaleY, out int sourceWidth, out int sourceHeight);
+                    DisplayHelper.GetSystemScale(out float scaleX, out float scaleY, out int sourceWidth, out int sourceHeight);
                     //画布尺寸
-                    GetNewSize(sourceRect, scaleX, scaleY, configScale, out Rect textureRect);
+                    GetNewSize(sourceRect, scaleX, scaleY, out Rect textureRect);
                     //最终尺寸 
                     Rect distRect = textureRect;
 
@@ -459,7 +487,7 @@ namespace cmonitor.server.client.reports.screen
                     }
 
                     using Graphics g = Graphics.FromImage(bmp);
-                    WinApi.DrawCursorIcon(g, bmp.Width * 1.0f / sourceRect.Width, bmp.Height * 1.0f / sourceRect.Height);
+                    CursorHelper.DrawCursorIcon(g, bmp.Width * 1.0f / sourceRect.Width, bmp.Height * 1.0f / sourceRect.Height);
 
                     //转字节数组
                     using Image image1 = bmp;
@@ -477,6 +505,7 @@ namespace cmonitor.server.client.reports.screen
                 }
                 catch (Exception ex)
                 {
+                    needInit = true;
                     if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
                         Logger.Instance.Error(ex);
@@ -485,16 +514,16 @@ namespace cmonitor.server.client.reports.screen
             }
         }
 
-        private bool GetNewSize(Rect sourceRect, float scaleX, float scaleY, float configScale, out Rect rect)
+        private bool GetNewSize(Rect sourceRect, float scaleX, float scaleY, out Rect rect)
         {
-            int width = (int)(sourceRect.Width * 1.0 / scaleX * configScale);
-            int height = (int)(sourceRect.Height * 1.0 / scaleY * configScale);
+            int width = (int)(sourceRect.Width * 1.0 / scaleX * config.ScreenScale);
+            int height = (int)(sourceRect.Height * 1.0 / scaleY * config.ScreenScale);
             rect = new Rect(width, height);
             return true;
         }
 
 
-        public DesktopFrame GetLatestRegionFrame(float configScale)
+        public DesktopFrame GetLatestRegionFrame()
         {
             DesktopFrame frame = new DesktopFrame() { FullImage = Helper.EmptyArray, RegionImage = Helper.EmptyArray };
             bool success = RetrieveFrame();
@@ -510,7 +539,7 @@ namespace cmonitor.server.client.reports.screen
                 if (frame.UpdatedRegions.Length > 0)
                 {
                     frame.UpdatedRegions = Rectangle.UnionRectangles(frame.UpdatedRegions);
-                    ProcessFrameRegion(frame, configScale);
+                    ProcessFrameRegion(frame);
                 }
             }
             catch
@@ -531,7 +560,7 @@ namespace cmonitor.server.client.reports.screen
             return frame;
         }
         byte[] regionImageBytes = Helper.EmptyArray;
-        private unsafe void ProcessFrameRegion(DesktopFrame frame, float configScale)
+        private unsafe void ProcessFrameRegion(DesktopFrame frame)
         {
             if (OperatingSystem.IsWindows())
             {
@@ -595,8 +624,8 @@ namespace cmonitor.server.client.reports.screen
                         mDevice.ImmediateContext.UnmapSubresource(texture, 0);
 
 
-                        int width = (int)(region.Width * configScale);
-                        int height = (int)(region.Height * configScale);
+                        int width = (int)(region.Width * config.ScreenScale);
+                        int height = (int)(region.Height * config.ScreenScale);
                         if (width <= 0 || height <= 0) continue;
 
                         using Bitmap bmp = new Bitmap(width, height);

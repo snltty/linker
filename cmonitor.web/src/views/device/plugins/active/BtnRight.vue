@@ -5,7 +5,7 @@
                 <Monitor />
             </el-icon>
         </span>
-        <p class="window-value">{{data.ActiveWindow.Count}}</p>
+        <p class="window-value">{{data.ActiveWindow.DisallowCount}}</p>
     </a>
 </template>
 

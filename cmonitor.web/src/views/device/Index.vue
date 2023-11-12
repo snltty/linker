@@ -60,7 +60,7 @@ export default {
         padding: 0.6rem;
         transform-style: preserve-3d;
         perspective: 600px;
-        padding-bottom: 11rem;
+        padding-bottom: 11.6rem;
     }
 
     .foot {

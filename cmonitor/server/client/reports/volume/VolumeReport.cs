@@ -11,8 +11,10 @@ namespace cmonitor.server.client.reports.volume
         private bool lastMute;
         private float lastMasterPeak;
 
-        public VolumeReport()
+        private readonly Config config;
+        public VolumeReport(Config config)
         {
+            this.config = config;
             Init();
         }
 
@@ -22,7 +24,10 @@ namespace cmonitor.server.client.reports.volume
             {
                 report.Value = GetVolume();
                 report.Mute = GetVolumeMute();
-                report.MasterPeak = GetMasterPeakValue();
+                if (config.VolumeMasterPeak)
+                {
+                    report.MasterPeak = GetMasterPeakValue();
+                }
             }
             if (reportType == ReportType.Full || report.Value != lastValue || report.Mute != lastMute || report.MasterPeak != lastMasterPeak)
             {

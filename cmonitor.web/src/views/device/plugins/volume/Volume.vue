@@ -2,7 +2,7 @@
     <el-dialog class="options" title="调节音量" destroy-on-close v-model="state.show" center align-center width="94%">
         <div class="command-wrap flex">
             <div class="items">
-                <CheckBoxWrap ref="items" :data="globalData.devices" :items="state.items" label="MachineName" title="全选">
+                <CheckBoxWrap ref="devices" :data="globalData.devices" :items="state.items" label="MachineName" title="全选">
                     <template #title>
                         <div>
                             <el-button size="small" @click="handleSelectMute">状态选择</el-button>
@@ -53,7 +53,7 @@
         </div>
         <template #footer>
             <el-button @click="handleCancel">取 消</el-button>
-            <el-button type="success" plain @click="handleCancel">确 定</el-button>
+            <!-- <el-button type="success" plain @click="handleCancel">确 定</el-button> -->
         </template>
     </el-dialog>
 </template>
@@ -77,7 +77,7 @@ export default {
         const pluginState = injectPluginState();
         const state = reactive({
             show: props.modelValue,
-            items: computed(() => pluginState.value.volume.items),
+            items: computed(() => pluginState.value.volume.devices),
             mute: false,
             loading: false,
             volume: 0
@@ -94,39 +94,39 @@ export default {
         }
 
         const handleSelectMute = () => {
-            state.items = globalData.value.devices.filter(c => c.VolumeMute == state.mute);
+            state.items = globalData.value.devices.filter(c => c.Volume.Mute == state.mute);
             ElMessage.success(`已选中${state.mute ? '静音' : '未静音'}设备`)
             state.mute = !state.mute;
         }
 
-        const items = ref(null);
+        const devices = ref(null);
         const handleMute = (mute) => {
-            let _items = items.value.getData();
+            let _devices = devices.value.getData();
             if (_items.length == 0) {
                 ElMessage.error('未选择任何设备');
                 return;
             }
-            setVolumeMute(_items, mute);
+            setVolumeMute(_devices.map(c => c.MachineName), mute);
         }
         const handleChangeVolume = () => {
-            let _items = items.value.getData();
+            let _devices = devices.value.getData();
             if (_items.length == 0) {
                 ElMessage.error('未选择任何设备');
                 return;
             }
-            setVolume(_items, state.volume / 100);
+            setVolume(_devices.map(c => c.MachineName), state.volume / 100);
         }
 
 
         return {
-            state, globalData, items, handleCancel, handleSelectMute, handleMute, handleChangeVolume
+            state, globalData, devices, handleCancel, handleSelectMute, handleMute, handleChangeVolume
         }
     }
 }
 </script>
 <style lang="stylus" scoped>
 .command-wrap {
-    height: 60vh;
+    height: 70vh;
 
     .items {
         height: 100%;

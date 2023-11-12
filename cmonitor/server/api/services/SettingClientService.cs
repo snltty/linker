@@ -27,6 +27,7 @@ namespace cmonitor.server.api.services
                 ScreenScale = config.ScreenScale,
                 SaveSetting = config.SaveSetting,
                 WakeUp = config.WakeUp,
+                VolumeMasterPeak = config.VolumeMasterPeak,
             };
         }
 
@@ -38,6 +39,7 @@ namespace cmonitor.server.api.services
             config.ScreenScale = settingInfo.ScreenScale;
             config.SaveSetting = settingInfo.SaveSetting;
             config.WakeUp = settingInfo.WakeUp;
+            config.VolumeMasterPeak = settingInfo.VolumeMasterPeak;
 
             byte[] bytes = MemoryPackSerializer.Serialize(settingInfo);
             foreach (var item in signCaching.Get())

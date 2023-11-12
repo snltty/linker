@@ -36,26 +36,6 @@ namespace cmonitor.server.api.services
             return true;
         }
 
-        public async Task<bool> KeyBoard(ClientServiceParamsInfo param)
-        {
-            KeyBoardInfo info = param.Content.DeJson<KeyBoardInfo>();
-            byte[] bytes = MemoryPackSerializer.Serialize(info.Input);
-            for (int i = 0; i < info.Names.Length; i++)
-            {
-                if (signCaching.Get(info.Names[i], out SignCacheInfo cache) && cache.Connected)
-                {
-                    await messengerSender.SendOnly(new MessageRequestWrap
-                    {
-                        Connection = cache.Connection,
-                        MessengerId = (ushort)CommandMessengerIds.KeyBoard,
-                        Payload = bytes
-                    });
-                }
-            }
-
-            return true;
-        }
-
     }
 
     public sealed class ExecInfo
@@ -64,9 +44,4 @@ namespace cmonitor.server.api.services
         public string[] Commands { get; set; }
     }
 
-    public sealed class KeyBoardInfo
-    {
-        public string[] Names { get; set; }
-        public KeyBoardInputInfo Input { get; set; }
-    }
 }

@@ -1,15 +1,18 @@
 export default {
     field() {
-        return {}
+        return {
+            Command: {
+            }
+        }
     },
     state: {
         command: {
             showCommand: false,
-            showCloseSystem: false,
-            showKeyBoard: false,
-            items: []
+            devices: [],
         }
     },
     init() {
+    },
+    update(item, report) {
     }
 }

@@ -22,7 +22,7 @@ export default {
 
         const pluginState = injectPluginState();
         const handleLight = () => {
-            pluginState.value.light.items = [props.data];
+            pluginState.value.light.devices = [props.data];
             pluginState.value.light.showLightSingle = true;
         }
 

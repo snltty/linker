@@ -45,7 +45,7 @@ export default {
 
         const state = reactive({
             show: props.modelValue,
-            items: computed(() => pluginState.value.hijack.showRulesItems),
+            items: computed(() => pluginState.value.hijack.devices),
             privateRules: computed(() => user.value ? user.value.Rules : []),
             publicRules: computed(() => usePublic ? publicUser.value.Rules : []),
             loading: false,
@@ -71,8 +71,8 @@ export default {
         const privateRules = ref(null);
         const publicRules = ref(null);
         const parseRule = () => {
-            const _privateRules = privateRules.value.getData();
-            const _publicRules = publicRules.value.getData();
+            const _privateRules = privateRules.value.getData().map(c => c.ID);
+            const _publicRules = publicRules.value.getData().map(c => c.ID);
             const _user = user.value;
             const _publicUser = publicUser.value;
 
@@ -125,7 +125,7 @@ export default {
                 state.loading = true;
                 const rules = parseRule();
                 setRules({
-                    Devices: _devices,
+                    Devices: _devices.map(c => c.MachineName),
                     Rules: rules.list,
                     ids: rules.ids
                 }).then((errorDevices) => {
@@ -157,7 +157,7 @@ export default {
 </script>
 <style lang="stylus" scoped>
 .rule-wrap {
-    height: 60vh;
+    height: 70vh;
 
     .items {
         height: 100%;

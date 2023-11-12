@@ -32,6 +32,7 @@
 import { computed, onMounted, reactive, watch } from 'vue'
 export default {
     props: ['title', 'items', 'data', 'label', 'text'],
+    emits: ['change'],
     setup(props, { emit }) {
 
         const state = reactive({
@@ -43,10 +44,12 @@ export default {
             checkAll: false,
             isIndeterminate: false
         });
+        /*
         watch(() => props.items, () => {
             state.checkList = props.items.map(c => c[props.label]);
             updateCheckAll(state.checkList);
         })
+        */
 
         const handleCheckAllChange = (value) => {
             if (value) {
@@ -63,13 +66,14 @@ export default {
             const checkedCount = values.length;
             state.isIndeterminate = checkedCount > 0 && checkedCount < state.data.length;
             state.checkAll = checkedCount > 0 && checkedCount == state.data.length;
+            emit('change', state.data.filter(c => state.checkList.indexOf(c[state.label]) >= 0));
         }
         onMounted(() => {
             updateCheckAll(state.checkList);
         });
 
         const getData = () => {
-            return state.checkList;
+            return state.data.filter(c => state.checkList.indexOf(c[state.label]) >= 0);
         }
 
 

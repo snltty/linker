@@ -12,6 +12,8 @@
 
         Rectangles = 805,
 
+        MonitorState = 806,
+
         None = 899
     }
 }

@@ -5,6 +5,7 @@
         Get = 400,
         Clear = 401,
         Disallow = 402,
+        Windows = 403,
 
         None = 499
     }

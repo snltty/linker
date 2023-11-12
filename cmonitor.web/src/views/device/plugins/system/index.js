@@ -2,6 +2,10 @@ export default {
     field() {
         return {
             System: {
+                RegistryValues: [],
+                RegistryKeys: {},
+                RegistrysCount: 0,
+
                 Cpu: 0,
                 Memory: 0,
                 Disk: 0,
@@ -65,19 +69,32 @@ export default {
             }
         };
     },
+    state: {
+        system: {
+            showSystemOptions: false,
+            devices: []
+        }
+    },
     init() {
     },
 
     update(item, report) {
         if (!report.System) return;
 
-        // if (report.System.Cpu > item.System.Cpu)
         item.System.Cpu = report.System.Cpu;
-        //if (report.System.Memory > item.System.Memory)
         item.System.Memory = report.System.Memory;
-        // if (report.System.Disk > item.System.Disk)
         item.System.Disk = report.System.Disk;
-        item.System.Drives = report.System.Drives || [];
+        if (report.System.Drives) {
+            item.System.Drives = report.System.Drives || [];
+        }
+
+        if (report.System.RegValues) {
+            item.System.RegistryValues = report.System.RegValues.split('').map(c => +c);
+            item.System.RegistrysCount = item.System.RegistryValues.filter(c => c == '1').length;
+        }
+        if (report.System.RegKeys) {
+            item.System.RegistryKeys = report.System.RegKeys;
+        }
 
     }
 }

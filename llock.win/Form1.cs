@@ -4,6 +4,7 @@ using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace llock.win
@@ -13,6 +14,7 @@ namespace llock.win
         Hook hook = new Hook();
         private string shareMkey;
         private int shareMLength;
+        private int shareItemMLength = 255;
         private int shareIndex;
 
         protected override CreateParams CreateParams
@@ -62,6 +64,10 @@ namespace llock.win
         public static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
         public static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
 
+        [DllImport("user32.dll", EntryPoint = "BlockInput")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool BlockInput([MarshalAs(UnmanagedType.Bool)] bool fBlockIt);
+
         private void OnLoad(object sender, EventArgs e)
         {
             hook.Start();
@@ -73,13 +79,18 @@ namespace llock.win
 
             groupBox1.Location = new System.Drawing.Point((this.Width - groupBox1.Width) / 2, (this.Height - groupBox1.Height) / 2);
 
-
-            mmf2 = MemoryMappedFile.CreateOrOpen(this.shareMkey, this.shareMLength);
+            mmf2 = MemoryMappedFile.CreateOrOpen($"{this.shareMkey}", this.shareMLength);
             accessor2 = mmf2.CreateViewAccessor();
+            WriteLLock();
             new Thread(() =>
             {
                 while (true)
                 {
+                    if (ReadCloseMemory())
+                    {
+                        hook.Close();
+                        Environment.Exit(0);
+                    }
                     WriteLLock();
                     Thread.Sleep(30);
                 }
@@ -94,7 +105,7 @@ namespace llock.win
         private void WriteLLock()
         {
             long time = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
-            if(time - lastTime >= 300)
+            if (time - lastTime >= 300)
             {
                 WriteMemory(this.shareIndex, keyBytes, Encoding.UTF8.GetBytes(time.ToString()));
                 lastTime = time;
@@ -102,7 +113,7 @@ namespace llock.win
         }
         private void WriteMemory(int index, byte[] key, byte[] value)
         {
-            int keyIndex = index * 255;
+            int keyIndex = index * shareItemMLength;
             accessor2.Write(keyIndex, (byte)key.Length);
             keyIndex++;
             accessor2.WriteArray(keyIndex, key, 0, key.Length);
@@ -112,11 +123,38 @@ namespace llock.win
             keyIndex++;
             accessor2.WriteArray(keyIndex, value, 0, value.Length);
             keyIndex += value.Length;
+
+            UpdatedState(index);
+        }
+        private void UpdatedState(int updatedOffset)
+        {
+            accessor2.Write((shareMLength - 1) * shareItemMLength, (byte)1);
+        }
+        private bool ReadCloseMemory()
+        {
+            int keyIndex = this.shareIndex * shareItemMLength;
+            int keyLength = accessor2.ReadByte(keyIndex);
+            keyIndex += 1 + keyLength;
+            int valueLength = accessor2.ReadByte(keyIndex);
+            keyIndex += 1;
+
+            byte[] valueBytes = new byte[valueLength];
+            if (valueBytes.Length > 0)
+            {
+                accessor2.ReadArray(keyIndex, valueBytes, 0, valueLength);
+                string value = Encoding.UTF8.GetString(valueBytes, 0, valueLength);
+                if (value == "close")
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private void OnClose(object sender, FormClosingEventArgs e)
         {
             hook.Close();
+            Environment.Exit(0);
         }
 
         bool loading = false;
@@ -131,20 +169,22 @@ namespace llock.win
             try
             {
                 DateTime dt = DateTime.Now;
-                string psd = $"{dt.Hour / 10 % 10}{dt.Minute / 10 % 10}{dt.Hour % 10}{dt.Minute % 10}{dt.Month}{dt.Date}";
+                string psd = $"{dt.Hour / 10 % 10}{dt.Minute / 10 % 10}{dt.Hour % 10}{dt.Minute % 10}{dt.Month}{dt.Day}";
                 if (psd == textBox1.Text)
                 {
+                    hook.Close();
                     this.Close();
+                    Environment.Exit(0);
                 }
             }
             catch (Exception)
             {
-                
+
             }
             loading = false;
             button1.Text = "解锁";
         }
-
+        
 
     }
 
@@ -186,30 +226,71 @@ namespace llock.win
                 {
                     try
                     {
-                        RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Policies\System", true);
-                        if (key == null)
-                            key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Policies\System");
-                        //任务管理器
-                        key.SetValue("DisableTaskMgr", 1, RegistryValueKind.DWord);
-                        //锁定
-                        key.SetValue("DisableLockWorkstation", 1, RegistryValueKind.DWord);
-                        //切换用户
-                        key.SetValue("HideFastUserSwitching", 1, RegistryValueKind.DWord);
-                        //修改密码
-                        key.SetValue("DisableChangePassword", 1, RegistryValueKind.DWord);
+                        foreach (string user in Registry.Users.GetSubKeyNames())
+                        {
+                            RegistryKey key = Registry.Users.OpenSubKey(user, true).OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Policies\System", true);
+                            if (key == null)
+                                key = Registry.Users.OpenSubKey(user, true).CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Policies\System");
 
-                        key.Close();
+                            RegistryKey key1 = Registry.LocalMachine.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Policies\System", true);
+                            if (key1 == null)
+                                key1 = Registry.LocalMachine.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Policies\System");
 
-                        //注销
-                        RegistryKey zxKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Policies\Explorer", true);
-                        if (zxKey == null)
-                            zxKey = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Policies\Explorer");
-                        zxKey.SetValue("NoLogOff", 1, RegistryValueKind.DWord);
-                        zxKey.Close();
+                            //任务管理器
+                            key.SetValue("DisableTaskMgr", 1, RegistryValueKind.DWord);
+                            key1.SetValue("DisableTaskMgr", 1, RegistryValueKind.DWord);
+                            //锁定
+                            key.SetValue("DisableLockWorkstation", 1, RegistryValueKind.DWord);
+                            key1.SetValue("DisableLockWorkstation", 1, RegistryValueKind.DWord);
+                            //切换用户
+                            key.SetValue("HideFastUserSwitching", 1, RegistryValueKind.DWord);
+                            key1.SetValue("HideFastUserSwitching", 1, RegistryValueKind.DWord);
+                            //修改密码
+                            key.SetValue("DisableChangePassword", 1, RegistryValueKind.DWord);
+                            key1.SetValue("DisableChangePassword", 1, RegistryValueKind.DWord);
+                            //关机
+                            key.SetValue("ShutdownWithoutLogon", 0, RegistryValueKind.DWord);
+                            key1.SetValue("ShutdownWithoutLogon", 0, RegistryValueKind.DWord);
+                            //注销
+                            key.SetValue("StartMenuLogOff", 1, RegistryValueKind.DWord);
+                            key1.SetValue("StartMenuLogOff", 1, RegistryValueKind.DWord);
+
+
+
+                            key.Close();
+                            key1.Close();
+
+                            //注销
+                            RegistryKey zxKey = Registry.Users.OpenSubKey(user, true).OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Policies\Explorer", true);
+                            if (zxKey == null)
+                                zxKey = Registry.Users.OpenSubKey(user, true).CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Policies\Explorer");
+                            zxKey.SetValue("NoLogOff", 1, RegistryValueKind.DWord);
+                            zxKey.SetValue("NoClose", 1, RegistryValueKind.DWord);
+                            zxKey.SetValue("StartMenuLogOff", 1, RegistryValueKind.DWord);
+                            zxKey.Close();
+                        }
                     }
                     catch (Exception)
                     {
                     }
+                    /*
+                    Guid activePolicyGuid;
+                    IntPtr ptr;
+                    if (PowerGetActiveScheme(IntPtr.Zero, out ptr) == 0)
+                    {
+                        activePolicyGuid = (Guid)Marshal.PtrToStructure(ptr, typeof(Guid));
+                        if (ptr != IntPtr.Zero)
+                        {
+                            Marshal.FreeHGlobal(ptr);
+                        }
+                        uint resultPowerButton = PowerWriteACValueIndex(IntPtr.Zero, ref activePolicyGuid, ref powerButtonGuid, ref powerButtonGuid, 0);
+                        uint resultSleepButton = PowerWriteACValueIndex(IntPtr.Zero, ref activePolicyGuid, ref sleepButtonGuid, ref sleepButtonGuid, 0);
+                    }
+                    */
+                    Task.Run(() =>
+                    {
+                        CommandHelper.Windows(string.Empty, new string[] { "gpupdate /force" });
+                    });
                 }
             }
         }
@@ -225,27 +306,44 @@ namespace llock.win
             //if (!retKeyboard) throw new Exception("UnhookWindowsHookEx failed.");
             try
             {
-                RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Policies\System", true);
-                if (key != null)
+                foreach (string user in Registry.Users.GetSubKeyNames())
                 {
-                    key.DeleteValue("DisableTaskMgr", false);
-                    key.DeleteValue("DisableLockWorkstation", false);
-                    key.DeleteValue("HideFastUserSwitching", false);
-                    key.DeleteValue("DisableChangePassword", false);
+                    RegistryKey key = Registry.Users.OpenSubKey(user, true).OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Policies\System", true);
+                    RegistryKey key1 = Registry.LocalMachine.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Policies\System", true);
+                    if (key != null)
+                    {
+                        key.DeleteValue("DisableTaskMgr", false);
+                        key1.DeleteValue("DisableTaskMgr", false);
+                        key.DeleteValue("DisableLockWorkstation", false);
+                        key1.DeleteValue("DisableLockWorkstation", false);
+                        key.DeleteValue("HideFastUserSwitching", false);
+                        key1.DeleteValue("HideFastUserSwitching", false);
+                        key.DeleteValue("DisableChangePassword", false);
+                        key1.DeleteValue("DisableChangePassword", false);
+                        key.DeleteValue("ShutdownWithoutLogon", false);
+                        key1.DeleteValue("ShutdownWithoutLogon", false);
+                        key.DeleteValue("StartMenuLogoff", false);
+                        key1.DeleteValue("StartMenuLogoff", false);
+                       
 
-                    key.Close();
-                }
+                        key.Close();
+                        key1.Close();
+                    }
 
-                RegistryKey zxKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Policies\Explorer", true);
-                if (zxKey != null)
-                {
-                    zxKey.DeleteValue("NoLogOff", false);
-                    zxKey.Close();
+                    RegistryKey zxKey = Registry.Users.OpenSubKey(user, true).OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Policies\Explorer", true);
+                    if (zxKey != null)
+                    {
+                        zxKey.DeleteValue("NoLogOff", false);
+                        zxKey.DeleteValue("NoClose", false);
+                        zxKey.DeleteValue("StartMenuLogoff", false);
+                        zxKey.Close();
+                    }
                 }
             }
             catch (Exception)
             {
             }
+            CommandHelper.Windows(string.Empty, new string[] { "gpupdate /force" });
         }
         public static int KeyBoardHookProc(int nCode, int wParam, IntPtr lParam)
         {
@@ -266,6 +364,23 @@ namespace llock.win
             }
             return CallNextHookEx(hHook, nCode, wParam, lParam);
         }
+
+
+        [DllImport("powrprof.dll")]
+        public static extern uint GetActivePwrScheme(out IntPtr pActivePolicy);
+        [DllImport("powrprof.dll", SetLastError = true)]
+        public static extern UInt32 PowerGetActiveScheme(IntPtr UserRootPowerKey, out IntPtr ActivePolicyGuid);
+
+        [DllImport("powrprof.dll")]
+        public static extern uint PowerWriteACValueIndex(IntPtr RootPowerKey, ref Guid SchemeGuid, ref Guid SubGroupOfPowerSettingsGuid,
+    ref Guid PowerSettingGuid, uint AcValueIndex);
+
+        Guid powerButtonGuid = new Guid("4f971e89-eebd-4455-a8de-9e59040e7347"); // 电源按钮设置的GUID
+        Guid sleepButtonGuid = new Guid("96996bc0-ad50-47ec-923b-6f418386bca1"); // 睡眠按钮设置的GUID
+
+
+
+
         #region IDisposable 成员
         public void Dispose()
         {

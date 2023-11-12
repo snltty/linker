@@ -1,11 +1,11 @@
 <template>
-    <el-col :span="4">
-        <el-switch class="llock" size="small" @click="handleLock" :model-value="data.LLock.Value" inline-prompt active-text="锁屏" inactive-text="锁屏" />
+    <el-col :span="3">
+        <el-switch class="llock" size="small" @click="handleLock" :model-value="data.LLock.LockScreen" inline-prompt active-text="锁屏" inactive-text="锁屏" />
     </el-col>
 </template>
 
 <script>
-import { llockUpdate } from '@/apis/llock';
+import { llockScreen } from '@/apis/llock';
 import { injectPluginState } from '../../provide'
 import { ElMessage, ElMessageBox } from 'element-plus';
 export default {
@@ -15,13 +15,13 @@ export default {
 
         const pluginState = injectPluginState();
         const handleLock = () => {
-            let desc = props.data.LLock.Value ? '确定解除锁屏吗？' : '确定开启锁屏吗？';
+            let desc = props.data.LLock.LockScreen ? '确定解除锁屏吗？' : '确定开启锁屏吗？';
             ElMessageBox.confirm(desc, '提示', {
                 confirmButtonText: '确定',
                 cancelButtonText: '取消',
                 type: 'warning',
             }).then(() => {
-                llockUpdate([props.data.MachineName], !props.data.LLock.Value).then((res) => {
+                llockScreen([props.data.MachineName], !props.data.LLock.LockScreen).then((res) => {
                     if (res) {
                         ElMessage.success('操作成功');
                     } else {

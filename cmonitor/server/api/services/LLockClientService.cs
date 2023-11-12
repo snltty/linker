@@ -1,4 +1,5 @@
 ﻿using cmonitor.server.service;
+using cmonitor.server.service.messengers.command;
 using cmonitor.server.service.messengers.llock;
 using cmonitor.server.service.messengers.sign;
 using common.libs.extends;
@@ -15,7 +16,7 @@ namespace cmonitor.server.api.services
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
         }
-        public async Task<bool> Update(ClientServiceParamsInfo param)
+        public async Task<bool> LockScreen(ClientServiceParamsInfo param)
         {
             LLockUpdateInfo info = param.Content.DeJson<LLockUpdateInfo>();
             byte[] bytes = MemoryPackSerializer.Serialize(info.Value);
@@ -26,15 +27,41 @@ namespace cmonitor.server.api.services
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
                         Connection = cache.Connection,
-                        MessengerId = (ushort)LLockMessengerIds.Update,
+                        MessengerId = (ushort)LLockMessengerIds.LockScreen,
                         Payload = bytes
                     });
                 }
             }
             return true;
         }
+
+
+        public async Task<bool> LockSystem(ClientServiceParamsInfo param)
+        {
+            string[] names = param.Content.DeJson<string[]>();
+            for (int i = 0; i < names.Length; i++)
+            {
+                if (signCaching.Get(names[i], out SignCacheInfo cache) && cache.Connected)
+                {
+                    await messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = cache.Connection,
+                        MessengerId = (ushort)LLockMessengerIds.LockSystem
+                    });
+                }
+            }
+
+            return true;
+        }
+
     }
     public sealed class LLockUpdateInfo
+    {
+        public string[] Names { get; set; }
+        public bool Value { get; set; }
+    }
+
+    public sealed class LLockAutoLockSystemInfo
     {
         public string[] Names { get; set; }
         public bool Value { get; set; }

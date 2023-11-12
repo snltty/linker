@@ -6,7 +6,8 @@ export default {
                 FileName: '',
                 Desc: '',
                 Pid: 0,
-                Count: 0
+                DisallowCount: 0,
+                WindowCount: 0,
             }
         }
     },
@@ -14,10 +15,11 @@ export default {
         activeWindow: [
             {
                 showTimes: false,
-                items: [],
                 showWindows: false,
                 showChoose: false,
-                devices: []
+                devices: [],
+                showAddWindow: false,
+                showActiveWindows: false,
             }
         ]
     },
@@ -27,6 +29,7 @@ export default {
         item.ActiveWindow.FileName = report.ActiveWindow.FileName;
         item.ActiveWindow.Desc = report.ActiveWindow.Desc;
         item.ActiveWindow.Pid = report.ActiveWindow.Pid;
-        item.ActiveWindow.Count = report.ActiveWindow.Count;
+        item.ActiveWindow.DisallowCount = report.ActiveWindow.DisallowCount;
+        item.ActiveWindow.WindowCount = report.ActiveWindow.WindowCount || 0;
     }
 }

@@ -46,6 +46,7 @@ namespace notify.win
 
             //username.BackColor = Color.FromArgb(255, 248, 153);
             //username.ForeColor = Color.LightGreen;
+            SetWindowPos(this.Handle, IntPtr.Zero, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
         }
 
         private void OnLoad(object sender, EventArgs e)
@@ -73,13 +74,13 @@ namespace notify.win
 
             this.FormBorderStyle = FormBorderStyle.None;
             //将窗口置顶
-            SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+            SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
 
             int style = GetWindowLong(this.Handle, GWL_STYLE);
             SetWindowLong(this.Handle, GWL_STYLE, style & ~WS_SYSMENU);
 
             // 添加窗体阴影
-            SetWindowPos(this.Handle, IntPtr.Zero, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE);
+            SetWindowPos(this.Handle, IntPtr.Zero, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
 
 
             RECT workAreaRect;
@@ -102,6 +103,7 @@ namespace notify.win
                     if (this.Left < -width)
                     {
                         Application.Exit();
+                        Environment.Exit(0);
                     }
 
                     System.Threading.Thread.Sleep(10);
@@ -141,5 +143,6 @@ namespace notify.win
         private const int GWL_STYLE = -16;
         private const int WS_SYSMENU = 0x80000;
         private const uint SWP_FRAMECHANGED = 0x20;
+        private const uint SWP_NOACTIVATE = 0x10;
     }
 }

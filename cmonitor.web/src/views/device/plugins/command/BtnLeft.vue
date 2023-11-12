@@ -1,13 +1,5 @@
 <template>
     <div>
-        <a href="javascript:;" @click="handleCloseSystem">
-            <el-icon>
-                <SwitchButton />
-            </el-icon>
-        </a>
-        <a href="javascript:;" @click="handleKeyBoard">
-            <img src="../../../../assets/keyboard.svg" width="20">
-        </a>
         <a href="javascript:;" @click="handleCommand">
             <el-icon>
                 <ScaleToOriginal />
@@ -24,21 +16,11 @@ export default {
 
         const pluginState = injectPluginState();
         const handleCommand = () => {
-            pluginState.value.command.items = [props.data];
+            pluginState.value.command.devices = [props.data];
             pluginState.value.command.showCommand = true;
         }
-
-        const handleCloseSystem = () => {
-            pluginState.value.command.items = [props.data];
-            pluginState.value.command.showCloseSystem = true;
-        }
-        const handleKeyBoard = () => {
-            pluginState.value.command.items = [props.data];
-            pluginState.value.command.showKeyBoard = true;
-        }
-
         return {
-            handleCommand, handleCloseSystem, handleKeyBoard
+            handleCommand
         }
     }
 }

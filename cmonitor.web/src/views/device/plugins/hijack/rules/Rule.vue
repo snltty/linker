@@ -88,8 +88,8 @@ export default {
                 ElMessage.error('未选择任何限制分组');
                 return;
             }
-            rule.PrivateProcesss = privateProcess.value.getData();
-            rule.PublicProcesss = publicProcess.value.getData();
+            rule.PrivateProcesss = privateProcess.value.getData().map(c => c.ID);
+            rule.PublicProcesss = publicProcess.value.getData().map(c => c.ID);
 
             state.loading = true;
             addRule({

@@ -77,7 +77,7 @@ export default {
             }
         });
         const getData = () => {
-            getActiveTimes(pluginState.value.activeWindow.items[0].MachineName).then((res) => {
+            getActiveTimes(pluginState.value.activeWindow.devices[0].MachineName).then((res) => {
                 state.startTime = res.StartTime;
                 state.totalTime = res.List.reduce((val, item, index) => {
                     item.titleLength = Object.keys(item.Titles).length;
@@ -118,7 +118,7 @@ export default {
 </script>
 <style lang="stylus" scoped>
 .wrap {
-    height: 60vh;
+    height: 70vh;
 
     .inner {
         border: 1px solid #ddd;

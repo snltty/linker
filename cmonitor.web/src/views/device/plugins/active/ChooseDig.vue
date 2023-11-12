@@ -33,7 +33,7 @@ import { activeDisallow } from '@/apis/active'
 import { injectGlobalData } from '@/views/provide';
 import { injectPluginState } from '../../provide';
 export default {
-    props: ['modelValue', 'items'],
+    props: ['modelValue'],
     emits: ['update:modelValue'],
     components: { CheckBoxWrap },
     setup(props, { emit }) {
@@ -75,9 +75,9 @@ export default {
         const privateExes = ref(null);
         const publicExes = ref(null);
         const parseRule = () => {
-            const _privateIds = privateExes.value.getData();
+            const _privateIds = privateExes.value.getData().map(c => c.ID);
             const _privateExes = state.privateExes.filter(c => _privateIds.indexOf(c.ID) >= 0);
-            const _publicIds = publicExes.value.getData();
+            const _publicIds = publicExes.value.getData().map(c => c.ID);
             const _publicExes = state.publicExes.filter(c => _publicIds.indexOf(c.ID) >= 0);
             const exes = _privateExes.concat(_publicExes).reduce((data, item, index) => {
                 let arr = item.List.reduce((val, item, index) => {
@@ -91,9 +91,7 @@ export default {
                 }
                 return data;
             }, []);
-            if (exes.length == 0) {
-                exes.push('snltty');
-            }
+
             return {
                 ids: _privateIds.concat(_publicIds),
                 exes: exes
@@ -113,7 +111,7 @@ export default {
             }).then(() => {
                 state.loading = true;
                 const exes = parseRule();
-                activeDisallow(_devices, exes.exes, exes.ids).then((res) => {
+                activeDisallow(_devices.map(c => c.MachineName), exes.exes, exes.ids).then((res) => {
                     state.loading = false;
                     ElMessage.success('操作成功！');
                     globalData.value.devices.filter(c => _devices.indexOf(c.MachineName) >= 0).forEach(device => {
@@ -141,7 +139,7 @@ export default {
 </script>
 <style lang="stylus" scoped>
 .rule-wrap {
-    height: 60vh;
+    height: 70vh;
 
     .items {
         height: 100%;

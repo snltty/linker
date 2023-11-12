@@ -29,7 +29,7 @@ export default {
 
         const pluginState = injectPluginState();
         const handleVolume = () => {
-            pluginState.value.volume.items = [props.data];
+            pluginState.value.volume.devices = [props.data];
             pluginState.value.volume.showVolumeSingle = true;
         }
 

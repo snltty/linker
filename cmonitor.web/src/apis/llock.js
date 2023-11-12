@@ -1,8 +1,11 @@
 import { sendWebsocketMsg } from './request'
 
 
-export const llockUpdate = (names, value) => {
-    return sendWebsocketMsg('llock/update', {
-        names, value
+export const llockScreen = (names, open) => {
+    return sendWebsocketMsg('llock/LockScreen', {
+        names, value: open
     });
+}
+export const lockSystem = (names) => {
+    return sendWebsocketMsg('llock/LockSystem', names);
 }

@@ -13,7 +13,7 @@ export default {
     setup(props) {
         const pluginState = injectPluginState();
         const handleMessage = () => {
-            pluginState.value.message.items = [props.data];
+            pluginState.value.message.devices = [props.data];
             pluginState.value.message.showMessage = true;
         }
         return {

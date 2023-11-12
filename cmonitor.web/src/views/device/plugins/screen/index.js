@@ -5,6 +5,8 @@ export default {
     field() {
         return {
             Screen: {
+                displays: [],
+
                 regionImgs: [], //局部图
                 fullImg: null, //全图
                 fullUpdated: false, //第一次进来先获取一次全图
@@ -31,8 +33,8 @@ export default {
 
                 rectangles: [],
                 drawRectangle(canvas, ctx) {
-                    const rectangles = this.rectangles;
-                    if (this.rectangles.length > 0 && this.touch.scale == 1) {
+                    const rectangles = this.rectangles || [];
+                    if (rectangles.length > 0 && this.touch.scale == 1) {
                         ctx.lineWidth = 5;
                         ctx.strokeStyle = 'rgba(255,0,0,1)';
                         for (let i = 0; i < rectangles.length; i++) {
@@ -283,7 +285,7 @@ export default {
         if (this.globalData.value.reportNames.indexOf(name) == -1) return;
         let item = this.globalData.value.devices.filter(c => c.MachineName == name)[0];
         if (item) {
-            item.Screen.rectangles = res.Rectangles;
+            item.Screen.rectangles = res.Rectangles || [];
         }
     },
     subMessage() {
@@ -425,5 +427,8 @@ export default {
         item.Screen.captureTime = report.Screen.CT || 0;
         item.Screen.width = report.Screen.W || 0;
         item.Screen.height = report.Screen.H || 0;
+        //item.Screen.displays = report.Screen.Displays || [];
+
+        //console.log(item.Screen.displays);
     }
 }

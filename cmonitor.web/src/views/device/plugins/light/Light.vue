@@ -35,7 +35,7 @@
         </div>
         <template #footer>
             <el-button @click="handleCancel">取 消</el-button>
-            <el-button type="success" plain @click="handleCancel">确 定</el-button>
+            <!-- <el-button type="success" plain @click="handleCancel">确 定</el-button> -->
         </template>
     </el-dialog>
 </template>
@@ -59,7 +59,7 @@ export default {
         const pluginState = injectPluginState();
         const state = reactive({
             show: props.modelValue,
-            items: computed(() => pluginState.value.light.items),
+            items: computed(() => pluginState.value.light.devices),
             mute: false,
             loading: false,
             light: 0
@@ -75,26 +75,26 @@ export default {
             state.show = false;
         }
 
-        const items = ref(null);
+        const devices = ref(null);
         const handleChangeLight = () => {
-            let _items = items.value.getData();
-            if (_items.length == 0) {
+            let _devices = devices.value.getData();
+            if (_devices.length == 0) {
                 ElMessage.error('未选择任何设备');
                 return;
             }
-            setLight(_items, state.light);
+            setLight(_devices.map(c => c.MachineName), state.light);
         }
 
 
         return {
-            state, globalData, items, handleCancel, handleChangeLight
+            state, globalData, devices, handleCancel, handleChangeLight
         }
     }
 }
 </script>
 <style lang="stylus" scoped>
 .command-wrap {
-    height: 60vh;
+    height: 70vh;
 
     .items {
         height: 100%;

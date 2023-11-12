@@ -47,8 +47,6 @@ namespace cmonitor.server.service.messengers.screen
                 }
             }
         }
-
-
         [MessengerId((ushort)ScreenMessengerIds.Clip)]
         public void Clip(IConnection connection)
         {
@@ -61,18 +59,29 @@ namespace cmonitor.server.service.messengers.screen
         {
             screenReport.Region();
         }
-
         [MessengerId((ushort)ScreenMessengerIds.RegionReport)]
         public void RegionReport(IConnection connection)
         {
             clientServer.Notify("/notify/report/screen/region", connection.Name, connection.ReceiveRequestWrap.Payload);
         }
 
+
         [MessengerId((ushort)ScreenMessengerIds.Rectangles)]
         public void Rectangles(IConnection connection)
         {
             Rectangle[] rectangles = MemoryPackSerializer.Deserialize<Rectangle[]>(connection.ReceiveRequestWrap.Payload.Span);
             clientServer.Notify("/notify/report/screen/rectangles", new { Name = connection.Name, Rectangles = rectangles });
+        }
+
+
+        [MessengerId((ushort)ScreenMessengerIds.MonitorState)]
+        public void MonitorState(IConnection connection)
+        {
+            if (connection.ReceiveRequestWrap.Payload.Length == 1)
+            {
+                byte state = connection.ReceiveRequestWrap.Payload.Span[0];
+                screenReport.MonitorState(state == 1);
+            }
         }
     }
 

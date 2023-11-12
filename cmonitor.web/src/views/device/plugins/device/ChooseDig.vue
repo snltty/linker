@@ -75,7 +75,7 @@ export default {
             state.loading = true;
             updateDevices({
                 username: globalData.value.username,
-                devices: _devices
+                devices: _devices.map(c => c.MachineName)
             }).then((error) => {
                 state.loading = false;
                 globalData.value.updateFlag = Date.now();
@@ -83,6 +83,7 @@ export default {
                     ElMessage.error(error);
                 } else {
                     ElMessage.success('操作成功！');
+                    state.show = false;
                 }
             }).catch(() => {
                 state.loading = false;
@@ -102,7 +103,7 @@ export default {
 </script>
 <style lang="stylus" scoped>
 .devices-wrap {
-    height: 60vh;
+    height: 70vh;
     position: relative;
 
     .del-btn {

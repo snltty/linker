@@ -1,5 +1,5 @@
 <template>
-    <el-col :span="4">
+    <el-col :span="3">
         <el-switch class="volume" size="small" @click="handleVolumeMute" :model-value="data.Volume.Mute" inline-prompt active-text="静音" inactive-text="静音" />
     </el-col>
 </template>

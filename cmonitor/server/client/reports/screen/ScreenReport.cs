@@ -2,8 +2,10 @@
 using common.libs;
 using cmonitor.server.service.messengers.screen;
 using MemoryPack;
+using cmonitor.server.client.reports.screen.helpers;
+using cmonitor.server.client.reports.screen.winapiss;
+using Microsoft.Win32;
 using System.Runtime.InteropServices;
-using static cmonitor.server.client.reports.screen.WinApi;
 
 namespace cmonitor.server.client.reports.screen
 {
@@ -20,6 +22,8 @@ namespace cmonitor.server.client.reports.screen
         private readonly DxgiDesktop dxgiDesktop;
         private readonly GdiDesktop gdiDesktop;
 
+        private DisplayInfo[] displays;
+
         public ScreenReport(ClientSignInState clientSignInState, MessengerSender messengerSender, Config config)
         {
             this.clientSignInState = clientSignInState;
@@ -28,58 +32,52 @@ namespace cmonitor.server.client.reports.screen
             if (config.IsCLient)
             {
                 ScreenCaptureTask();
-                WinApi.InitLastInputInfo();
-                dxgiDesktop = new DxgiDesktop(0);
-                gdiDesktop = new GdiDesktop();
+                dxgiDesktop = new DxgiDesktop(0, config);
+                gdiDesktop = new GdiDesktop(config);
                 InitSise();
-                //InitMOnitors();
             }
 
         }
         private void InitSise()
         {
-            if (WinApi.GetSystemScale(out _, out _, out int w, out int h))
+            displays = DisplaysEnumerationHelper.GetDisplays();
+            if (DisplayHelper.GetSystemScale(out _, out _, out int w, out int h))
             {
                 report.W = w;
                 report.H = h;
             }
         }
-        private void InitMOnitors()
-        {
-            MonitorEnumProc callback = new MonitorEnumProc(MonitorEnumCallback);
-           WinApi.EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, callback, IntPtr.Zero);
-        }
-        private bool MonitorEnumCallback(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData)
-        {
-            MONITORINFO mi = new MONITORINFO();
-            mi.cbSize = (uint)Marshal.SizeOf(mi);
-
-            if (GetMonitorInfo(hMonitor, ref mi))
-            {
-                // 检查显示器状态
-                if ((mi.dwFlags & 1) == 0) // 1表示显示器已关闭
-                {
-                    Console.WriteLine("Display is closed.");
-                }
-                else
-                {
-                    Console.WriteLine("Display is not closed.");
-                }
-            }
-
-            return true;
-        }
-
 
         public object GetReports(ReportType reportType)
         {
-            report.LT = WinApi.GetLastInputInfo();
+            if (reportType == ReportType.Full)
+            {
+                report.Displays = displays;
+            }
+            else
+            {
+                report.Displays = Array.Empty<DisplayInfo>();
+            }
+
+            report.LT = LastInputHelper.GetLastInputInfo();
             if (reportType == ReportType.Full || report.LT < lastInput || report.LT - lastInput > 1000)
             {
                 lastInput = report.LT;
                 return report;
             }
             return null;
+        }
+        public void MonitorState(bool onState)
+        {
+            if (onState)
+            {
+                DisplayHelper.On();
+            }
+            else
+            {
+                DisplayHelper.Off();
+            }
+
         }
 
 
@@ -131,11 +129,11 @@ namespace cmonitor.server.client.reports.screen
                     }
                     if (delayms < config.ScreenDelay)
                     {
-                        Thread.Sleep(config.ScreenDelay - delayms);
+                        await Task.Delay(config.ScreenDelay - delayms);
                     }
                     else
                     {
-                        Thread.Sleep(config.ScreenDelay);
+                        await Task.Delay(config.ScreenDelay);
                     }
                 }
             }, TaskCreationOptions.LongRunning);
@@ -153,11 +151,11 @@ namespace cmonitor.server.client.reports.screen
             long ticks = DateTime.UtcNow.Ticks;
             if (gdiDesktop.IsClip())
             {
-                frame = gdiDesktop.GetLatestFrame(config.ScreenScale);
+                frame = gdiDesktop.GetLatestFrame();
             }
             else if (screenReportType == ScreenReportType.Full)
             {
-                frame = dxgiDesktop.GetLatestFullFrame(config.ScreenScale);
+                frame = dxgiDesktop.GetLatestFullFrame();
                 if (frame.FullImage.Length > 0)
                 {
                     fullImageMemory = frame.FullImage;
@@ -168,13 +166,16 @@ namespace cmonitor.server.client.reports.screen
                     {
                         frame.FullImage = fullImageMemory;
                     }
-                    RandomCursorPos();
+                    else
+                    {
+                        RandomCursorPos();
+                    }
                 }
                 screenReportFullType &= ~ScreenReportFullType.Full;
             }
             else if (screenReportType == ScreenReportType.Region)
             {
-                frame = dxgiDesktop.GetLatestRegionFrame(config.ScreenScale);
+                frame = dxgiDesktop.GetLatestRegionFrame();
             }
             report.CT = (uint)((DateTime.UtcNow.Ticks - ticks) / TimeSpan.TicksPerMillisecond);
 
@@ -205,12 +206,15 @@ namespace cmonitor.server.client.reports.screen
                     Payload = frame.RegionImage,
                 });
             }
-            await messengerSender.SendOnly(new MessageRequestWrap
+            if (frame.UpdatedRegions != null)
             {
-                Connection = clientSignInState.Connection,
-                MessengerId = (ushort)ScreenMessengerIds.Rectangles,
-                Payload = MemoryPackSerializer.Serialize(frame.UpdatedRegions),
-            });
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = clientSignInState.Connection,
+                    MessengerId = (ushort)ScreenMessengerIds.Rectangles,
+                    Payload = MemoryPackSerializer.Serialize(frame.UpdatedRegions),
+                });
+            }
         }
 
 
@@ -219,10 +223,10 @@ namespace cmonitor.server.client.reports.screen
             if (config.WakeUp == false) return;
             try
             {
-                if (WinApi.GetCursorPosition(out int x, out int y))
+                if (CursorHelper.GetCursorPosition(out int x, out int y))
                 {
-                    WinApi.SetCursorPos(x + 1, y + 1);
-                    WinApi.MouseMove(1, 1);
+                    User32.SetCursorPos(x + 1, y + 1);
+                    MouseHelper.MouseMove(1, 1);
                 }
             }
             catch (Exception ex)
@@ -234,6 +238,67 @@ namespace cmonitor.server.client.reports.screen
             }
         }
 
+
+        private Thread messageLoopThread;
+        private void MessageLoop()
+        {
+            if (messageLoopThread is not null)
+            {
+                return;
+            }
+            messageLoopThread = new Thread(() =>
+            {
+                //SystemEvents.SessionSwitch += SystemEvents_SessionSwitch;
+                // SystemEvents.SessionEnding += SystemEvents_SessionEnding;
+                // SystemEvents.DisplaySettingsChanged += SystemEvents_DisplaySettingsChanged;
+
+                while (true)
+                {
+                    try
+                    {
+                        while (GetMessage(out var msg, IntPtr.Zero, 0, 0) > 0)
+                        {
+                            //DispatchMessage(ref msg);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Instance.Error(ex);
+                    }
+                }
+            });
+            if (OperatingSystem.IsWindows())
+            {
+                messageLoopThread.SetApartmentState(ApartmentState.STA);
+            }
+            messageLoopThread.Start();
+        }
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MSG
+        {
+            public IntPtr hwnd;
+            public uint message;
+            public IntPtr wParam;
+            public IntPtr lParam;
+            public uint time;
+            public POINT pt;
+        }
+        [StructLayout(LayoutKind.Sequential)]
+        private struct POINT
+        {
+            public int X;
+            public int Y;
+
+            public POINT(int x, int y)
+            {
+                X = x;
+                Y = y;
+            }
+        }
+        [DllImport("user32.dll")]
+        private static extern bool DispatchMessage([In] ref MSG lpmsg);
+        [DllImport("user32.dll")]
+        private static extern int GetMessage(out MSG lpMsg, IntPtr hWnd, uint wMsgFilterMin, uint wMsgFilterMax);
     }
 
     public sealed class ScreenReportInfo
@@ -242,6 +307,8 @@ namespace cmonitor.server.client.reports.screen
         public uint LT { get; set; }
         public int W { get; set; }
         public int H { get; set; }
+
+        public DisplayInfo[] Displays { get; set; } = Array.Empty<DisplayInfo>();
     }
 
     public enum ScreenReportType : byte

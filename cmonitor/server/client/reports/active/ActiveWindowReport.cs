@@ -1,4 +1,5 @@
-﻿using common.libs;
+﻿using cmonitor.server.client.reports.system;
+using common.libs;
 using MemoryPack;
 #if DEBUG || RELEASE
 using Microsoft.Win32;
@@ -35,16 +36,18 @@ namespace cmonitor.server.client.reports.active
                 Console.CancelKeyPress += (s, e) => DisallowRun(Array.Empty<string>());
             }
 
-           
+
         }
 
+        long ticks = DateTime.UtcNow.Ticks;
         public object GetReports(ReportType reportType)
         {
-            if (reportType == ReportType.Full || report.Pid != lastPid || report.Title != lastTitle || report.Count != count)
+            ticks = DateTime.UtcNow.Ticks;
+            if (reportType == ReportType.Full || report.Pid != lastPid || report.Title != lastTitle || report.DisallowCount != count)
             {
                 lastPid = report.Pid;
                 lastTitle = report.Title;
-                count = report.Count;
+                count = report.DisallowCount;
                 return report;
             }
             return null;
@@ -65,19 +68,25 @@ namespace cmonitor.server.client.reports.active
             {
                 while (true)
                 {
-                    try
+                    if ((DateTime.UtcNow.Ticks - ticks) / TimeSpan.TicksPerMillisecond < 1000 || disallowNames.Length > 0)
                     {
-                        GetActiveWindow();
-                        if (Disallow() == false)
+                        try
                         {
-                            activeWindowTimeManager.Update(report);
+
+                            GetActiveWindow();
+                            report.WindowCount = GetWindowCount();
+                            if (Disallow() == false)
+                            {
+                                //activeWindowTimeManager.Update(report);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                Logger.Instance.Error(ex);
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                            Logger.Instance.Error(ex);
-                    }
+
                     await Task.Delay(500);
                 }
             }, TaskCreationOptions.LongRunning);
@@ -129,9 +138,9 @@ namespace cmonitor.server.client.reports.active
             clientConfig.WindowNames = names;
             DisallowRun(false);
             DisallowRunClear();
-            report.Count = names.Length;
+            report.DisallowCount = names.Length;
             disallowNames = names;
-            
+
             Task.Run(() =>
             {
                 if (names.Length > 0)
@@ -274,16 +283,68 @@ namespace cmonitor.server.client.reports.active
 #endif
         }
 
+        private int GetWindowCount()
+        {
+            int length = 0;
+            EnumWindows((IntPtr hWnd, IntPtr lParam) =>
+            {
+                try
+                {
+                    if (IsWindowVisible(hWnd) && GetWindowTextLength(hWnd) > 0)
+                    {
+                        length++;
+                    }
+                }
+                catch (Exception)
+                {
+                }
+
+                return true;
+            }, IntPtr.Zero);
+            return length;
+        }
+        public Dictionary<uint, string> GetWIndows()
+        {
+            Dictionary<uint, string> dic = new Dictionary<uint, string>();
+            StringBuilder lpString = new StringBuilder(256);
+            EnumWindows((IntPtr hWnd, IntPtr lParam) =>
+            {
+                try
+                {
+                    if (IsWindowVisible(hWnd) && GetWindowTextLength(hWnd) > 0)
+                    {
+                        GetWindowText(hWnd, lpString, 256);
+                        GetWindowThreadProcessId(hWnd, out uint id);
+
+                        dic[id] = lpString.ToString();
+                    }
+                }
+                catch (Exception)
+                {
+                }
+
+                return true;
+            }, IntPtr.Zero);
+
+            return dic;
+        }
 
         [DllImport("user32.dll")]
         static extern IntPtr GetForegroundWindow();
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern int GetWindowTextLength(IntPtr hWnd);
         [DllImport("user32.dll")]
         static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
         [DllImport("user32.dll")]
         static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-        [DllImport("psapi.dll")]
-        static extern int GetProcessImageFileName(IntPtr hProcess, StringBuilder lpImageFileName, int nSize);
 
+        public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+        [DllImport("user32.dll")]
+        static extern bool IsWindowVisible(IntPtr hWnd);
     }
 
     public sealed class ActiveReportInfo
@@ -292,7 +353,8 @@ namespace cmonitor.server.client.reports.active
         public string FileName { get; set; } = string.Empty;
         public string Desc { get; set; } = string.Empty;
         public uint Pid { get; set; }
-        public int Count { get; set; }
+        public int DisallowCount { get; set; }
+        public int WindowCount { get; set; }
     }
 
     public sealed class ActiveWindow

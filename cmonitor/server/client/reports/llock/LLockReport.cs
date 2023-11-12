@@ -1,5 +1,8 @@
-﻿using cmonitor.server.client.reports.share;
+﻿using cmonitor.server.client.reports.command;
+using cmonitor.server.client.reports.screen.winapiss;
+using cmonitor.server.client.reports.share;
 using common.libs;
+using System.Drawing;
 
 namespace cmonitor.server.client.reports.llock
 {
@@ -9,6 +12,7 @@ namespace cmonitor.server.client.reports.llock
 
         private LLockReportInfo report = new LLockReportInfo();
         bool lastValue = false;
+        bool update = false;
 
         private readonly Config config;
         private readonly ShareReport shareReport;
@@ -19,44 +23,66 @@ namespace cmonitor.server.client.reports.llock
             this.config = config;
             this.shareReport = shareReport;
             this.clientConfig = clientConfig;
-
-            Update(clientConfig.LLock);
+            if (OperatingSystem.IsWindows() && config.IsCLient)
+            {
+                LockScreen(clientConfig.LLock);
+                //EnableLockSystem(EnableLock.Disabled);
+            }
         }
 
         DateTime startTime = new DateTime(1970, 1, 1);
         public object GetReports(ReportType reportType)
         {
-            if (shareReport.GetShare(Name, out ShareItemInfo share) && string.IsNullOrWhiteSpace(share.Value) == false && long.TryParse(share.Value, out long time))
+            clientConfig.LLock = report.LockScreen = shareReport.GetShare(Name, out ShareItemInfo share)
+                && string.IsNullOrWhiteSpace(share.Value) == false
+                && long.TryParse(share.Value, out long time) && (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds - time < 1000;
+
+            if (reportType == ReportType.Full || update || report.LockScreen != lastValue)
             {
-                report.Value = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds - time < 1000;
-            }
-            if (reportType == ReportType.Full || report.Value != lastValue)
-            {
-                lastValue = report.Value;
+                update = false;
+                lastValue = report.LockScreen;
                 return report;
             }
             return null;
         }
 
-        public void Update(bool open)
+        public void LockScreen(bool open)
         {
             clientConfig.LLock = open;
-            Task.Run(() =>
+            Task.Run(async () =>
             {
-                CommandHelper.Windows(string.Empty, new string[] { "taskkill /f /t /im \"llock.win.exe\"" });
+                shareReport.Update(new ShareItemInfo
+                {
+                    Index = Config.ShareMemoryLLockIndex,
+                    Value = "close"
+                });
+                await Task.Delay(100);
+                //CommandHelper.Windows(string.Empty, new string[] { "taskkill /f /t /im \"llock.win.exe\"" });
                 if (open)
                 {
                     CommandHelper.Windows(string.Empty, new string[] {
-                        $"start llock.win.exe {config.ShareMemoryKey} {config.ShareMemoryLength} {Config.ShareMemoryLLockIndex}"
+                        $"start llock.win.exe {config.ShareMemoryKey} {config.ShareMemoryLength * Config.ShareMemoryItemLength} {Config.ShareMemoryLLockIndex}"
                     });
                 }
             });
         }
+
+        public void LockSystem()
+        {
+            User32.LockWorkStation();
+        }
+
+    }
+
+    public enum EnableLock : byte
+    {
+        Disabled = 0,
+        Enables = 1
     }
 
     public sealed class LLockReportInfo
     {
-        public bool Value { get; set; }
+        public bool LockScreen { get; set; }
     }
 }
 

@@ -1,4 +1,5 @@
 ﻿using MemoryPack;
+using System.Text.Json.Serialization;
 
 namespace cmonitor.server.client.reports.screen
 {
@@ -7,7 +8,6 @@ namespace cmonitor.server.client.reports.screen
         public Memory<byte> FullImage { get; internal set; }
         public Rectangle[] UpdatedRegions { get; internal set; }
         public Memory<byte> RegionImage { get; internal set; }
-
 
         public MovedRegion[] MovedRegions { get; internal set; }
         //public Rectangle[] Updateds { get; internal set; }
@@ -35,7 +35,8 @@ namespace cmonitor.server.client.reports.screen
     }
 
 
-    public struct Rect
+    [MemoryPackable]
+    public partial struct Rect
     {
         public Rect(int width, int height)
         {
@@ -61,6 +62,7 @@ namespace cmonitor.server.client.reports.screen
         public int Y { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
+        [MemoryPackIgnore, JsonIgnore]
         public bool Remove { get; set; }
 
         public readonly bool IntersectsWith(Rectangle rect) => IntersectsWithX(rect) && IntersectsWithY(rect);

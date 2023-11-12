@@ -17,6 +17,9 @@
                 <el-form-item label="黑屏唤醒" prop="WakeUp">
                     <el-checkbox v-model="state.form.WakeUp">黑屏时唤醒</el-checkbox>
                 </el-form-item>
+                <el-form-item label="声音峰值" prop="VolumeMasterPeak">
+                    <el-checkbox v-model="state.form.VolumeMasterPeak">报告声音峰值</el-checkbox>
+                </el-form-item>
             </el-form>
         </div>
         <template #footer>
@@ -47,7 +50,8 @@ export default {
                 ScreenDelay: 0,
                 ScreenScale: 0,
                 SaveSetting: true,
-                WakeUp: true
+                WakeUp: true,
+                VolumeMasterPeak: true,
             }
         });
         watch(() => state.show, (val) => {
@@ -65,6 +69,7 @@ export default {
                 state.form.ScreenScale = res.ScreenScale;
                 state.form.SaveSetting = res.SaveSetting;
                 state.form.WakeUp = res.WakeUp;
+                state.form.VolumeMasterPeak = res.VolumeMasterPeak;
             }).catch(() => {
             });
         }

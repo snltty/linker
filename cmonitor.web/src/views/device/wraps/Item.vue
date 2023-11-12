@@ -11,6 +11,10 @@
                         </template>
                     </span>
                     <span class="flex-1"></span>
+                    <template v-for="(item,index) in titleCenterModules" :key="index">
+                        <component :is="item" :data="data"></component>
+                    </template>
+                    <span class="flex-1"></span>
                     <template v-for="(item,index) in titleRightModules" :key="index">
                         <component :is="item" :data="data"></component>
                     </template>
@@ -62,6 +66,9 @@ export default {
         const titleLeftFiles = require.context('../plugins/', true, /TitleLeft\.vue/);
         const titleLeftModules = titleLeftFiles.keys().map(c => titleLeftFiles(c).default);
 
+        const titleCenterFiles = require.context('../plugins/', true, /TitleCenter\.vue/);
+        const titleCenterModules = titleCenterFiles.keys().map(c => titleCenterFiles(c).default);
+
         const titleRightFiles = require.context('../plugins/', true, /TitleRight\.vue/);
         const titleRightModules = titleRightFiles.keys().map(c => titleRightFiles(c).default);
 
@@ -100,7 +107,7 @@ export default {
         }
 
         return {
-            data, titleLeftModules, titleRightModules, screenModules, btnLeftModules, btnRightModules, optionModules
+            data, titleLeftModules, titleCenterModules, titleRightModules, screenModules, btnLeftModules, btnRightModules, optionModules
             , handleCanvasTouchstart, handleCanvasTouchend, handleCanvasTouchmove, handleCanvasReset
         }
     }

@@ -88,6 +88,7 @@ namespace cmonitor.server.client.reports
         private async Task SendReport()
         {
             reportObj.Clear();
+            
             foreach (IReport item in reports)
             {
                 if (string.IsNullOrWhiteSpace(item.Name) == false)

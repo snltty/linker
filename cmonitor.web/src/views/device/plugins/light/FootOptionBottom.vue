@@ -13,7 +13,7 @@ export default {
         const pluginState = injectPluginState();
         const globalData = injectGlobalData();
         const handleLight = () => {
-            pluginState.value.light.items = globalData.value.devices;
+            pluginState.value.light.devices = globalData.value.devices;
             pluginState.value.light.showLight = true;
         }
 
