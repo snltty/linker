@@ -104,6 +104,7 @@
 
 ## 安装示例
 ##### windows计划任务，客户端、服务端
+也可以运行 comitor.install.win.exe 进行安装操作
 ```
 params = " --report-delay 30 --screen-delay 200 --screen-scale 0.2";
 //client
@@ -151,6 +152,37 @@ docker run -it -d --name="cmonitor" \
 snltty/cmonitor-alpine-x64 \
 --entrypoint ./cmonitor.run  --mode server --web 1800 --api 1801 --service 1802
 ```
+
+##### Ctrl+Alt+Delete 服务
+由于使用**SendSAS**模拟**Ctrl+Alt+Delete**，需要以windows service方式运行，所以需要将 cmonitor.sas.service.exe 安装到服务中，可以使用 sc create创建服务，不需要此功能可以不安装
+``` 
+sc create "cmonitor.sas.service" 
+binpath="xx\xx\cmonitor.sas.service.exe {--share-key} {--share-len} 3" 
+start=AUTO 
+```
+
+## 发布项目
+1. 进入 **cmonitor.web** 
+```
+npm install
+npm build
+```
+2. 以release生成一下项目
+
+    1. wallpaper.win
+    2. notify.win
+    3. message.win
+    4. llock.win
+    5. cmonitor.sas.service
+    6. cmonitor.install.win
+    7. cmonitor.win
+
+3. 在根目录下执行以下命令进行发布 
+```
+./publish
+```
+
+4. 在 /public/publish 目录下查看已发布程序
 
 ## 支持作者
 

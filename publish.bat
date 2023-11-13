@@ -18,6 +18,7 @@ for %%f in (win-x64,win-x64-any) do (
 	echo F|xcopy "cmonitor\\web\\cmonitor.win.exe" "public\\publish\\%%f\\cmonitor.win.exe"  /s /f /h /y
 	echo F|xcopy "cmonitor\\web\\notify.win.exe" "public\\publish\\%%f\\notify.win.exe"  /s /f /h /y
 	echo F|xcopy "cmonitor\\web\\cmonitor.sas.service.exe" "public\\publish\\%%f\\cmonitor.sas.service.exe"  /s /f /h /y
+	echo F|xcopy "cmonitor\\web\\cmonitor.install.win.exe" "public\\publish\\%%f\\cmonitor.install.win.exe"  /s /f /h /y
 )
 
 for %%r in (linux-x64,linux-x64-any) do (

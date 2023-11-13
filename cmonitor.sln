@@ -19,7 +19,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cmonitor.volume", "cmonitor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "notify.win", "notify.win\notify.win.csproj", "{CED6A505-AD7E-4F61-AB40-8D3973F431AB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cmonitor.sas.service", "keyboard.service\cmonitor.sas.service.csproj", "{7CD26A2A-90EE-4176-8949-8FD1CF17B5FB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cmonitor.sas.service", "cmonitor.sas.service\cmonitor.sas.service.csproj", "{7CD26A2A-90EE-4176-8949-8FD1CF17B5FB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cmonitor.install.win", "cmonitor.install.win\cmonitor.install.win.csproj", "{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -196,6 +198,24 @@ Global
 		{7CD26A2A-90EE-4176-8949-8FD1CF17B5FB}.ReleaseLinux|x64.Build.0 = Release|Any CPU
 		{7CD26A2A-90EE-4176-8949-8FD1CF17B5FB}.ReleaseLinux|x86.ActiveCfg = Release|Any CPU
 		{7CD26A2A-90EE-4176-8949-8FD1CF17B5FB}.ReleaseLinux|x86.Build.0 = Release|Any CPU
+		{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}.Debug|x64.Build.0 = Debug|Any CPU
+		{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}.Debug|x86.Build.0 = Debug|Any CPU
+		{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}.Release|x64.ActiveCfg = Release|Any CPU
+		{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}.Release|x64.Build.0 = Release|Any CPU
+		{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}.Release|x86.ActiveCfg = Release|Any CPU
+		{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}.Release|x86.Build.0 = Release|Any CPU
+		{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}.ReleaseLinux|Any CPU.ActiveCfg = Release|Any CPU
+		{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}.ReleaseLinux|Any CPU.Build.0 = Release|Any CPU
+		{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}.ReleaseLinux|x64.ActiveCfg = Release|Any CPU
+		{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}.ReleaseLinux|x64.Build.0 = Release|Any CPU
+		{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}.ReleaseLinux|x86.ActiveCfg = Release|Any CPU
+		{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}.ReleaseLinux|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
