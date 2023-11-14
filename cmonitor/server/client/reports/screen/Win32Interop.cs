@@ -7,7 +7,6 @@ using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Security.Principal;
 using System.Text;
-using System.Xml.Linq;
 using static cmonitor.server.client.reports.screen.winapis.ADVAPI32;
 using static cmonitor.server.client.reports.screen.winapiss.User32;
 
@@ -16,58 +15,6 @@ namespace cmonitor.server.client.reports.screen
     public class Win32Interop
     {
         private static nint _lastInputDesktop;
-
-        public static List<WindowsSession> GetActiveSessions()
-        {
-            var sessions = new List<WindowsSession>();
-            var consoleSessionId = Kernel32.WTSGetActiveConsoleSessionId();
-            sessions.Add(new WindowsSession()
-            {
-                Id = consoleSessionId,
-                Type = WindowsSessionType.Console,
-                Name = "Console",
-                Username = GetUsernameFromSessionId(consoleSessionId)
-            });
-
-            nint ppSessionInfo = nint.Zero;
-            var count = 0;
-            var enumSessionResult = WTSAPI32.WTSEnumerateSessions(WTSAPI32.WTS_CURRENT_SERVER_HANDLE, 0, 1, ref ppSessionInfo, ref count);
-            var dataSize = Marshal.SizeOf(typeof(WTSAPI32.WTS_SESSION_INFO));
-            var current = ppSessionInfo;
-
-            if (enumSessionResult != 0)
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    var wtsInfo = Marshal.PtrToStructure(current, typeof(WTSAPI32.WTS_SESSION_INFO));
-                    if (wtsInfo is null)
-                    {
-                        continue;
-                    }
-                    var sessionInfo = (WTSAPI32.WTS_SESSION_INFO)wtsInfo;
-                    current += dataSize;
-                    if (sessionInfo.State == WTSAPI32.WTS_CONNECTSTATE_CLASS.WTSActive && sessionInfo.SessionID != consoleSessionId)
-                    {
-
-                        sessions.Add(new WindowsSession()
-                        {
-                            Id = sessionInfo.SessionID,
-                            Name = sessionInfo.pWinStationName,
-                            Type = WindowsSessionType.RDP,
-                            Username = GetUsernameFromSessionId(sessionInfo.SessionID)
-                        });
-                    }
-                }
-            }
-
-            return sessions;
-        }
-
-        public static string GetCommandLine()
-        {
-            var commandLinePtr = Kernel32.GetCommandLine();
-            return Marshal.PtrToStringAuto(commandLinePtr) ?? string.Empty;
-        }
 
         public static bool GetCurrentDesktop(out string desktopName)
         {
@@ -89,7 +36,51 @@ namespace cmonitor.server.client.reports.screen
                 CloseDesktop(inputDesktop);
             }
         }
+        public static List<WindowsSession> GetActiveSessions()
+        {
+            List<WindowsSession> sessions = new List<WindowsSession>();
+            uint consoleSessionId = Kernel32.WTSGetActiveConsoleSessionId();
+            sessions.Add(new WindowsSession()
+            {
+                Id = consoleSessionId,
+                Type = WindowsSessionType.Console,
+                Name = "Console",
+                Username = GetUsernameFromSessionId(consoleSessionId)
+            });
 
+            nint ppSessionInfo = nint.Zero;
+            int count = 0;
+            int enumSessionResult = WTSAPI32.WTSEnumerateSessions(WTSAPI32.WTS_CURRENT_SERVER_HANDLE, 0, 1, ref ppSessionInfo, ref count);
+            int dataSize = Marshal.SizeOf(typeof(WTSAPI32.WTS_SESSION_INFO));
+            nint current = ppSessionInfo;
+
+            if (enumSessionResult != 0)
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    object wtsInfo = Marshal.PtrToStructure(current, typeof(WTSAPI32.WTS_SESSION_INFO));
+                    if (wtsInfo is null)
+                    {
+                        continue;
+                    }
+                    WTSAPI32.WTS_SESSION_INFO sessionInfo = (WTSAPI32.WTS_SESSION_INFO)wtsInfo;
+                    current += dataSize;
+                    if (sessionInfo.State == WTSAPI32.WTS_CONNECTSTATE_CLASS.WTSActive && sessionInfo.SessionID != consoleSessionId)
+                    {
+
+                        sessions.Add(new WindowsSession()
+                        {
+                            Id = sessionInfo.SessionID,
+                            Name = sessionInfo.pWinStationName,
+                            Type = WindowsSessionType.RDP,
+                            Username = GetUsernameFromSessionId(sessionInfo.SessionID)
+                        });
+                    }
+                }
+            }
+
+            return sessions;
+        }
         public static string GetUsernameFromSessionId(uint sessionId)
         {
             var username = string.Empty;
@@ -107,123 +98,6 @@ namespace cmonitor.server.client.reports.screen
         {
             return User32.OpenInputDesktop(0, true, ACCESS_MASK.GENERIC_ALL);
         }
-
-        public static bool CreateInteractiveSystemProcess(
-            string commandLine,
-             int targetSessionId,
-             bool forceConsoleSession,
-             string desktopName,
-             bool hiddenWindow,
-             out PROCESS_INFORMATION procInfo)
-        {
-            uint winlogonPid = 0;
-            var hUserTokenDup = nint.Zero;
-            var hPToken = nint.Zero;
-            var hProcess = nint.Zero;
-
-            procInfo = new PROCESS_INFORMATION();
-
-            // If not force console, find target session.  If not present,
-            // use last active session.
-            var dwSessionId = Kernel32.WTSGetActiveConsoleSessionId();
-            if (!forceConsoleSession)
-            {
-                var activeSessions = GetActiveSessions();
-                if (activeSessions.Any(x => x.Id == targetSessionId))
-                {
-                    dwSessionId = (uint)targetSessionId;
-                }
-                else
-                {
-                    dwSessionId = activeSessions.Last().Id;
-                }
-            }
-
-            // Obtain the process ID of the winlogon process that is running within the currently active session.
-            var processes = Process.GetProcessesByName("winlogon");
-            foreach (Process p in processes)
-            {
-                if ((uint)p.SessionId == dwSessionId)
-                {
-                    winlogonPid = (uint)p.Id;
-                }
-            }
-            // Obtain a handle to the winlogon process.
-            hProcess = Kernel32.OpenProcess(MAXIMUM_ALLOWED, false, winlogonPid);
-
-            // Obtain a handle to the access token of the winlogon process.
-            if (!OpenProcessToken(hProcess, TOKEN_DUPLICATE, ref hPToken))
-            {
-                Kernel32.CloseHandle(hProcess);
-                return false;
-            }
-
-            // Security attibute structure used in DuplicateTokenEx and CreateProcessAsUser.
-            var sa = new SECURITY_ATTRIBUTES();
-            sa.Length = Marshal.SizeOf(sa);
-
-            // Copy the access token of the winlogon process; the newly created token will be a primary token.
-            if (!DuplicateTokenEx(hPToken, MAXIMUM_ALLOWED, ref sa, SECURITY_IMPERSONATION_LEVEL.SecurityIdentification, TOKEN_TYPE.TokenPrimary, out hUserTokenDup))
-            {
-                Kernel32.CloseHandle(hProcess);
-                Kernel32.CloseHandle(hPToken);
-                return false;
-            }
-
-            // By default, CreateProcessAsUser creates a process on a non-interactive window station, meaning
-            // the window station has a desktop that is invisible and the process is incapable of receiving
-            // user input. To remedy this we set the lpDesktop parameter to indicate we want to enable user 
-            // interaction with the new process.
-            var si = new STARTUPINFO();
-            si.cb = Marshal.SizeOf(si);
-            si.lpDesktop = @"winsta0\" + desktopName;
-
-            // Flags that specify the priority and creation method of the process.
-            uint dwCreationFlags;
-            if (hiddenWindow)
-            {
-                dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_UNICODE_ENVIRONMENT | CREATE_NO_WINDOW;
-                si.dwFlags = STARTF_USESHOWWINDOW;
-                si.wShowWindow = 0;
-            }
-            else
-            {
-                dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_UNICODE_ENVIRONMENT | CREATE_NEW_CONSOLE;
-            }
-
-            // Create a new process in the current user's logon session.
-            var result = CreateProcessAsUser(
-                hUserTokenDup,
-                null,
-                commandLine,
-                ref sa,
-                ref sa,
-                false,
-                dwCreationFlags,
-                nint.Zero,
-                null,
-                ref si,
-                out procInfo);
-            uint code = Kernel32.GetLastError();
-
-            // Invalidate the handles.
-            Kernel32.CloseHandle(hProcess);
-            Kernel32.CloseHandle(hPToken);
-            Kernel32.CloseHandle(hUserTokenDup);
-
-            return result;
-        }
-
-        public static void SetMonitorState(MonitorState state)
-        {
-            SendMessage(0xFFFF, 0x112, 0xF170, (int)state);
-        }
-
-        public static MessageBoxResult ShowMessageBox(nint owner, string message, string caption, MessageBoxType messageBoxType)
-        {
-            return (MessageBoxResult)MessageBox(owner, message, caption, (long)messageBoxType);
-        }
-
         public static bool SwitchToInputDesktop()
         {
             try
@@ -264,23 +138,93 @@ namespace cmonitor.server.client.reports.screen
             }
         }
 
-        public static void SetConsoleWindowVisibility(bool isVisible)
-        {
-            var handle = Kernel32.GetConsoleWindow();
 
-            if (isVisible)
+        private static uint GetWinLogonPid(uint dwSessionId)
+        {
+            uint winlogonPid = 0;
+            Process[] processes = Process.GetProcessesByName("winlogon");
+            foreach (Process p in processes)
             {
-                ShowWindow(handle, (int)SW.SW_SHOW);
+                if ((uint)p.SessionId == dwSessionId)
+                {
+                    winlogonPid = (uint)p.Id;
+                }
+            }
+            return winlogonPid;
+        }
+        private static uint GetDwSessionId(int targetSessionId, bool forceConsoleSession)
+        {
+            uint dwSessionId = Kernel32.WTSGetActiveConsoleSessionId();
+            if (forceConsoleSession == false)
+            {
+                List<WindowsSession> activeSessions = GetActiveSessions();
+                if (activeSessions.Any(x => x.Id == targetSessionId))
+                {
+                    dwSessionId = (uint)targetSessionId;
+                }
+                else
+                {
+                    dwSessionId = activeSessions.Last().Id;
+                }
+            }
+            return dwSessionId;
+        }
+        private static STARTUPINFO GetStartUpInfo(bool hiddenWindow, string desktopName, out uint dwCreationFlags)
+        {
+            STARTUPINFO si = new STARTUPINFO();
+            si.cb = Marshal.SizeOf(si);
+            si.lpDesktop = @"winsta0\" + desktopName;
+            if (hiddenWindow)
+            {
+                dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_UNICODE_ENVIRONMENT | CREATE_NO_WINDOW;
+                si.dwFlags = STARTF_USESHOWWINDOW;
+                si.wShowWindow = 0;
             }
             else
             {
-                ShowWindow(handle, (int)SW.SW_HIDE);
+                dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_UNICODE_ENVIRONMENT | CREATE_NEW_CONSOLE;
+            }
+            return si;
+        }
+        public static bool CreateInteractiveSystemProcess(string commandLine, int targetSessionId, bool forceConsoleSession, string desktopName, bool hiddenWindow, out PROCESS_INFORMATION procInfo)
+        {
+            nint hPToken = nint.Zero;
+            procInfo = new PROCESS_INFORMATION();
+
+            uint dwSessionId = GetDwSessionId(targetSessionId, forceConsoleSession);
+            uint winlogonPid = GetWinLogonPid(dwSessionId);
+
+            nint hProcess = Kernel32.OpenProcess(MAXIMUM_ALLOWED, false, winlogonPid);
+            if (OpenProcessToken(hProcess, TOKEN_DUPLICATE, ref hPToken) == false)
+            {
+                Kernel32.CloseHandle(hProcess);
+                return false;
             }
 
-            Kernel32.CloseHandle(handle);
+            SECURITY_ATTRIBUTES sa = new SECURITY_ATTRIBUTES();
+            sa.Length = Marshal.SizeOf(sa);
+            if (DuplicateTokenEx(hPToken, MAXIMUM_ALLOWED, ref sa, SECURITY_IMPERSONATION_LEVEL.SecurityIdentification, TOKEN_TYPE.TokenPrimary, out nint hUserTokenDup) == false)
+            {
+                Kernel32.CloseHandle(hProcess);
+                Kernel32.CloseHandle(hPToken);
+                return false;
+            }
+
+            STARTUPINFO si = GetStartUpInfo(hiddenWindow, desktopName, out uint dwCreationFlags);
+            bool result = CreateProcessAsUser(hUserTokenDup, null, commandLine, ref sa, ref sa, false, dwCreationFlags, nint.Zero, null, ref si, out procInfo);
+
+            Kernel32.CloseHandle(hProcess);
+            Kernel32.CloseHandle(hPToken);
+            Kernel32.CloseHandle(hUserTokenDup);
+
+            return result;
         }
 
-
+        public static string GetCommandLine()
+        {
+            nint commandLinePtr = Kernel32.GetCommandLine();
+            return Marshal.PtrToStringAuto(commandLinePtr) ?? string.Empty;
+        }
         public static void RelaunchElevated()
         {
             if (OperatingSystem.IsWindows() == false) return;
@@ -294,8 +238,8 @@ namespace cmonitor.server.client.reports.screen
             }
             try
             {
-                string commandLine = Win32Interop.GetCommandLine();
-                bool result = Win32Interop.CreateInteractiveSystemProcess($"{commandLine} --elevated", -1, false, "default", true, out PROCESS_INFORMATION procInfo);
+                string commandLine = GetCommandLine();
+                bool result = CreateInteractiveSystemProcess($"{commandLine} --elevated", -1, false, "default", true, out PROCESS_INFORMATION procInfo);
                 uint code = Kernel32.GetLastError();
                 if (result)
                 {
@@ -306,7 +250,6 @@ namespace cmonitor.server.client.reports.screen
             {
             }
         }
-
         public static void AddTokenPrivilege()
         {
             if (OperatingSystem.IsWindows())
@@ -316,12 +259,11 @@ namespace cmonitor.server.client.reports.screen
                     $"ntrights +r SeAssignPrimaryTokenPrivilege -u {windowsIdentity.Name}"
                 });
             }
-
         }
 
 
         private static string currentUsername = string.Empty;
-        public static string GetCurrentUserSid() 
+        public static string GetCurrentUserSid()
         {
             if (OperatingSystem.IsWindows() == false)
             {
@@ -347,13 +289,13 @@ namespace cmonitor.server.client.reports.screen
                     int returnLength;
                     if (GetTokenInformation(hToken, TOKEN_INFORMATION_CLASS.TokenUser, IntPtr.Zero, 0, out returnLength) || returnLength == 0)
                     {
-                        throw new Win32Exception(Marshal.GetLastWin32Error());
+                        return string.Empty;
                     }
 
                     tokenInformation = Marshal.AllocHGlobal(returnLength);
                     try
                     {
-                        if (!GetTokenInformation(hToken, TOKEN_INFORMATION_CLASS.TokenUser, tokenInformation, returnLength, out returnLength))
+                        if (GetTokenInformation(hToken, TOKEN_INFORMATION_CLASS.TokenUser, tokenInformation, returnLength, out returnLength) == false)
                         {
                             return string.Empty;
                         }

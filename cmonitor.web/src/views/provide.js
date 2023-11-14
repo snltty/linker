@@ -8,7 +8,8 @@ export const provideGlobalData = () => {
         publicUserName: 'snltty',
         usernames: {},
         connected: false,
-        updateFlag: 0,
+        updateRuleFlag: 0,
+        updateDeviceFlag: 0,
         allDevices: [],
         devices: computed(() => {
             const user = globalData.value.usernames[globalData.value.username];
@@ -17,7 +18,6 @@ export const provideGlobalData = () => {
             }
             return [];
         }),
-        latestReportNames: [],
         reportNames: []
     });
     provide(globalDataSymbol, globalData);

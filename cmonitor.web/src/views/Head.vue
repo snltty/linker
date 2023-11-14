@@ -45,7 +45,7 @@ export default {
         const showSelectUsername = computed(() => !!!globalData.value.username && globalData.value.connected);
         const showPort = computed(() => globalData.value.connected == false && state.showPort);
 
-        watch(() => globalData.value.updateFlag, () => {
+        watch(() => globalData.value.updateRuleFlag, () => {
             _getRules();
         });
 
@@ -65,9 +65,7 @@ export default {
             }, 100);
 
             subWebsocketState((state) => {
-                if (state) {
-                    _getRules();
-                }
+                if (state) globalData.value.updateRuleFlag = Date.now();
             });
         });
 
@@ -83,9 +81,9 @@ export default {
         }
         const handleChange = (value) => {
             addName(value).then(() => {
-                globalData.value.updateFlag = Date.now();
+                globalData.value.updateRuleFlag = Date.now();
             }).catch(() => {
-                globalData.value.updateFlag = Date.now();
+                globalData.value.updateRuleFlag = Date.now();
             })
         }
 

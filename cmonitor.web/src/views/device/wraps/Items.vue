@@ -31,6 +31,9 @@ export default {
         });
 
         const globalData = injectGlobalData();
+        watch(() => globalData.value.updateDeviceFlag, () => {
+            getData();
+        })
 
         const getData = () => {
             getList().then((res) => {

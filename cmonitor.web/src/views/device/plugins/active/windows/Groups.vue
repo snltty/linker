@@ -82,7 +82,7 @@ export default {
                     ElMessage.error(error);
                 } else {
                     ElMessage.success('操作成功!');
-                    globalData.value.updateFlag = Date.now();
+                    globalData.value.updateRuleFlag = Date.now();
                 }
             }).catch((e) => {
                 state.loading = false;
@@ -108,7 +108,7 @@ export default {
                 } else {
                     ElMessage.success('操作成功!');
                     state.showEdit = false;
-                    globalData.value.updateFlag = Date.now();
+                    globalData.value.updateRuleFlag = Date.now();
                 }
             }).catch((e) => {
                 state.loading = false;

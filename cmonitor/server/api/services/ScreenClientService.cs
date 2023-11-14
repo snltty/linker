@@ -25,6 +25,7 @@ namespace cmonitor.server.api.services
             for (int i = 0; i < report.Names.Length; i++)
             {
                 bool connectionRes = signCaching.Get(report.Names[i], out SignCacheInfo cache) && cache.Connected;
+                if (connectionRes == false) continue;
                 bool reportRes = cache.GetScreen(config.ScreenDelay) && Interlocked.CompareExchange(ref cache.ScreenFlag, 0, 1) == 1;
 
                 if (connectionRes && reportRes)

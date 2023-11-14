@@ -157,7 +157,7 @@ namespace cmonitor.install.win
                         CheckRunning();
                     }
                     string resultStr = CommandHelper.Windows(string.Empty, new string[] {
-                        "schtasks /delete  /TN \"cmonitorService\" /f",
+                        "schtasks /delete /TN \"cmonitorService\" /f",
                         "net stop cmonitor.sas.service",
                         "sc delete cmonitor.sas.service",
                     });

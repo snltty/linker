@@ -38,10 +38,7 @@ export default {
             }
         });
 
-        const globalData = injectGlobalData();;
-        onMounted(() => {
-            globalData.value.updateFlag = Date.now();
-        });
+        const globalData = injectGlobalData();
 
         const handleCancel = () => {
             state.show = false;

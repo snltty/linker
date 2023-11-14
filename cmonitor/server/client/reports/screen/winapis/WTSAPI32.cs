@@ -69,14 +69,14 @@ public static class WTSAPI32
     [DllImport("wtsapi32.dll", SetLastError = true)]
     static extern nint WTSOpenServer(string pServerName);
 
-    [StructLayout(LayoutKind.Sequential)]
-    public struct WTS_SESSION_INFO
-    {
-        public uint SessionID;
-        [MarshalAs(UnmanagedType.LPStr)]
-        public string pWinStationName;
-        public WTS_CONNECTSTATE_CLASS State;
-    }
+[StructLayout(LayoutKind.Sequential)]
+public struct WTS_SESSION_INFO
+{
+    public uint SessionID;
+    [MarshalAs(UnmanagedType.LPStr)]
+    public string pWinStationName;
+    public WTS_CONNECTSTATE_CLASS State;
+}
 
     [DllImport("Wtsapi32.dll")]
    public static extern bool WTSQueryUserToken(int sessionId, out IntPtr token);

@@ -100,8 +100,8 @@ export default {
                 if (error) {
                     ElMessage.error(error);
                 } else {
-                    globalData.value.updateFlag = Date.now();
                     ElMessage.success('操作成功');
+                    globalData.value.updateRuleFlag = Date.now();
                 }
             }).catch(() => {
                 state.loading = false;

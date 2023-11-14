@@ -89,10 +89,10 @@ export default {
                     Desc: state.desc
                 }
             }).then((error) => {
-                globalData.value.updateFlag = Date.now();
                 if (!error) {
                     ElMessage.success('操作成功');
                     state.show = false;
+                    globalData.value.updateRuleFlag = Date.now();
                 } else {
                     ElMessage.error(`操作失败:${error}`);
                 }

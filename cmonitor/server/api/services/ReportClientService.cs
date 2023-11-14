@@ -28,6 +28,7 @@ namespace cmonitor.server.api.services
             for (int i = 0; i < updateinfo.Names.Length; i++)
             {
                 bool connectionRes = (signCaching.Get(updateinfo.Names[i], out SignCacheInfo cache) && cache.Connected);
+                if (connectionRes == false) continue;
                 bool reportTimeRes = cache.GetReport(config.ReportDelay) && Interlocked.CompareExchange(ref cache.ReportFlag, 0, 1) == 1;
 
                 if (connectionRes && (reportTimeRes || updateinfo.ReportType == ReportType.Full))

@@ -63,7 +63,6 @@ export default {
         });
 
         onMounted(() => {
-            globalData.value.updateFlag = Date.now();
             if (state.items.length == 1) {
                 let item = state.items[0];
                 state.currentPrivate = state.privateExes.filter(c => item.DisallowRunIds.indexOf(c.ID) >= 0);

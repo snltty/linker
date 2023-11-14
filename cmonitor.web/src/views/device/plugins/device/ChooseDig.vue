@@ -56,13 +56,13 @@ export default {
 
         const handleCancel = () => {
             state.show = false;
-            globalData.value.updateFlag = Date.now();
+            globalData.value.updateDeviceFlag = Date.now();
         }
         const handleDel = (name) => {
             state.loading = true;
             delDevice(name).then(() => {
                 state.loading = false;
-                globalData.value.updateFlag = Date.now();
+                globalData.value.updateDeviceFlag = Date.now();
             }).catch(() => {
                 state.loading = false;
             });
@@ -78,7 +78,7 @@ export default {
                 devices: _devices.map(c => c.MachineName)
             }).then((error) => {
                 state.loading = false;
-                globalData.value.updateFlag = Date.now();
+                globalData.value.updateDeviceFlag = Date.now();
                 if (error) {
                     ElMessage.error(error);
                 } else {
@@ -92,7 +92,7 @@ export default {
         }
 
         onMounted(() => {
-            globalData.value.updateFlag = Date.now();
+            globalData.value.updateDeviceFlag = Date.now();
         });
 
         return {
