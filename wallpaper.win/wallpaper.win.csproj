@@ -42,7 +42,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>embedded</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\cmonitor\web\</OutputPath>
+    <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE;RELEASE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>

@@ -418,7 +418,7 @@ namespace cmonitor.server.client.reports.screen
         }
         private unsafe void ProcessFrameFull(DesktopFrame frame)
         {
-            if (OperatingSystem.IsWindows())
+            if (OperatingSystem.IsWindows() )
             {
                 try
                 {

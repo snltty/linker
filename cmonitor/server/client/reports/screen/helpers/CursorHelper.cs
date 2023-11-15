@@ -18,7 +18,7 @@ namespace cmonitor.server.client.reports.screen.helpers
                 {
                     if (pci.flags == CURSOR_SHOWING)
                     {
-                        var hdc1 = g.GetHdc();
+                        nint hdc1 = g.GetHdc();
                         User32.DrawIconEx(hdc1, (int)(pci.ptScreenPos.x * scaleX), (int)(pci.ptScreenPos.y * scaleY), pci.hCursor, curWidth, curWidth, 0, IntPtr.Zero, User32.DI_NORMAL);
                         g.ReleaseHdc();
                     }

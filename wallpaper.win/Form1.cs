@@ -96,7 +96,9 @@ namespace wallpaper.win
 
         private void OnLoad(object sender, EventArgs e)
         {
+            pictureBox1.LoadCompleted += PictureBox1_LoadCompleted;
             pictureBox1.ImageLocation = imgUrl;
+
             this.Dock = DockStyle.Fill;
             this.ShowInTaskbar = false;
             this.FormBorderStyle = FormBorderStyle.None;
@@ -163,6 +165,14 @@ namespace wallpaper.win
                     Thread.Sleep(30);
                 }
             }).Start();
+        }
+
+        private void PictureBox1_LoadCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
+        {
+            if (e.Error != null)
+            {
+                pictureBox1.ImageLocation = "./bg.jpg";
+            }
         }
 
         private void WriteKeyBoard(string value)

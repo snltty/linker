@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net7.0</TargetFramework>
+		<TargetFrameworks>net7.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>disable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -49,12 +49,6 @@
 		</None>
 	</ItemGroup>
 	<ItemGroup>
-		<Content Include="./web/**">
-			<CopyToPublishDirectory>Always</CopyToPublishDirectory>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-	</ItemGroup>
-	<ItemGroup>
 	  <Compile Remove="Properties\**" />
 	  <Content Remove="Properties\**" />
 	  <EmbeddedResource Remove="Properties\**" />
@@ -63,10 +57,10 @@
 
 
 	<ItemGroup>
-		<PackageReference Include="MemoryPack" Version="1.9.16" />
+		<PackageReference Include="MemoryPack" Version="1.10.0" />
 		<PackageReference Include="NAudio" Version="2.2.1" />
 		<PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
-		<PackageReference Include="System.Management" Version="7.0.2" />
+		<PackageReference Include="System.Management" Version="8.0.0" />
 		<TrimmerRootAssembly Include="System.Management" />
 		<TrimmerRootAssembly Include="NAudio" />
 		<TrimmerRootAssembly Include="SharpDX" />

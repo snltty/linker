@@ -18,7 +18,7 @@ namespace wallpaper.win
                 Environment.Exit(1);
             }
 
-            string imgUrl = string.Empty;
+            string imgUrl = "./bg.jpg";
             string shareMkey = "test";
             int shareMLength = 2550;
             int shareKeyBoardIndex = 0;

@@ -14,7 +14,7 @@ namespace cmonitor.server.client.reports.screen
 {
     public class Win32Interop
     {
-        private static nint _lastInputDesktop;
+        private static nint lastInputDesktop;
 
         public static bool GetCurrentDesktop(out string desktopName)
         {
@@ -102,7 +102,7 @@ namespace cmonitor.server.client.reports.screen
         {
             try
             {
-                CloseDesktop(_lastInputDesktop);
+                CloseDesktop(lastInputDesktop);
 
                 nint inputDesktop = OpenInputDesktop();
                 if (inputDesktop == nint.Zero)
@@ -125,7 +125,7 @@ namespace cmonitor.server.client.reports.screen
                         Logger.Instance.Error($"SwitchDesktop fail");
                 }
 
-                _lastInputDesktop = inputDesktop;
+                lastInputDesktop = inputDesktop;
                 return result;
             }
             catch (Exception ex)
