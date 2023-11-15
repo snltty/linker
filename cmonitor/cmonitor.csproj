@@ -55,7 +55,7 @@
 	  <None Remove="Properties\**" />
 	</ItemGroup>
 
-
+	
 	<ItemGroup>
 		<PackageReference Include="MemoryPack" Version="1.10.0" />
 		<PackageReference Include="NAudio" Version="2.2.1" />
@@ -66,5 +66,10 @@
 		<TrimmerRootAssembly Include="SharpDX" />
 		
 	</ItemGroup>
+
+	
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+	  <Exec Command="call copy.bat &quot;$(OutDir)&quot;" />
+	</Target>
 
 </Project>
