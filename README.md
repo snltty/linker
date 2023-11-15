@@ -162,27 +162,14 @@ start=AUTO
 ```
 
 ## 发布项目
-1. 进入 **cmonitor.web** 
-```
-npm install
-npm build
-```
-2. 以release生成一下项目
-
-    1. wallpaper.win
-    2. notify.win
-    3. message.win
-    4. llock.win
-    5. cmonitor.sas.service
-    6. cmonitor.install.win
-    7. cmonitor.win
-
-3. 在根目录下执行以下命令进行发布 
+1. nodejs 16.17.0
+2. netframework 4.5 加入环境变量，以能够使用msbuild，应该是 **C:\Windows\Microsoft.NET\Framework\v4.0.30319** 目录
+3. NET7.0 SDK
+4. 进入根目执行
 ```
 ./publish
 ```
-
-4. 在 /public/publish 目录下查看已发布程序
+5. 在 /public/publish 目录下查看已发布程序
 
 ## 支持作者
 

@@ -15,6 +15,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    - name: setup node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+
     - name: setup dotnet7
       uses: actions/setup-dotnet@v2
       env:
