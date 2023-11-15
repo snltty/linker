@@ -15,7 +15,7 @@ jobs:
     - name: setup MSBuild
       uses: microsoft/setup-msbuild@v1.0.2
       with:
-        msbuild-version: '4.5'
+        msbuild-version: '4.0'
 
     - name: setup node.js
       uses: actions/setup-node@v2
