@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFrameworks>net7.0</TargetFrameworks>
+		<TargetFrameworks>net7.0;net8.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>disable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -11,6 +11,7 @@
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 		<Configurations>Debug;Release;ReleaseLinux</Configurations>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+		<PublishAot>false</PublishAot>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

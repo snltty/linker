@@ -1,8 +1,6 @@
-﻿using cmonitor.server.client.reports.command;
-using cmonitor.server.client.reports.screen.winapiss;
+﻿using cmonitor.server.client.reports.screen.winapiss;
 using cmonitor.server.client.reports.share;
 using common.libs;
-using System.Drawing;
 
 namespace cmonitor.server.client.reports.llock
 {
@@ -26,7 +24,6 @@ namespace cmonitor.server.client.reports.llock
             if (OperatingSystem.IsWindows() && config.IsCLient)
             {
                 LockScreen(clientConfig.LLock);
-                //EnableLockSystem(EnableLock.Disabled);
             }
         }
 

@@ -1,6 +1,5 @@
 ﻿using cmonitor.server.client.reports.command;
 using cmonitor.server.service;
-using cmonitor.server.service.messengers.command;
 using cmonitor.server.service.messengers.keyboard;
 using cmonitor.server.service.messengers.sign;
 using common.libs.extends;
@@ -55,6 +54,46 @@ namespace cmonitor.server.api.services
 
             return true;
         }
+
+
+        public async Task<bool> MouseSet(ClientServiceParamsInfo param)
+        {
+            MouseSetInfo info = param.Content.DeJson<MouseSetInfo>();
+            byte[] bytes = MemoryPackSerializer.Serialize(info.Input);
+            for (int i = 0; i < info.Names.Length; i++)
+            {
+                if (signCaching.Get(info.Names[i], out SignCacheInfo cache) && cache.Connected)
+                {
+                    await messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = cache.Connection,
+                        MessengerId = (ushort)KeyboardMessengerIds.MouseSet,
+                        Payload = bytes
+                    });
+                }
+            }
+
+            return true;
+        }
+        public async Task<bool> MouseClick(ClientServiceParamsInfo param)
+        {
+            MouseClickInfo info = param.Content.DeJson<MouseClickInfo>();
+            byte[] bytes = MemoryPackSerializer.Serialize(info.Input);
+            for (int i = 0; i < info.Names.Length; i++)
+            {
+                if (signCaching.Get(info.Names[i], out SignCacheInfo cache) && cache.Connected)
+                {
+                    await messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = cache.Connection,
+                        MessengerId = (ushort)KeyboardMessengerIds.MouseClick,
+                        Payload = bytes
+                    });
+                }
+            }
+
+            return true;
+        }
     }
 
     public sealed class KeyBoardInfo
@@ -62,5 +101,14 @@ namespace cmonitor.server.api.services
         public string[] Names { get; set; }
         public KeyBoardInputInfo Input { get; set; }
     }
-
+    public sealed class MouseSetInfo
+    {
+        public string[] Names { get; set; }
+        public MouseSetInfo Input { get; set; }
+    }
+    public sealed class MouseClickInfo
+    {
+        public string[] Names { get; set; }
+        public MouseClickInfo Input { get; set; }
+    }
 }

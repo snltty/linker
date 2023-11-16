@@ -1,4 +1,5 @@
 ﻿using cmonitor.hijack;
+using cmonitor.server.client.reports.screen;
 using common.libs.database;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -43,7 +44,7 @@ namespace cmonitor.server.client
                     catch (Exception)
                     {
                     }
-                    System.Threading.Thread.Sleep(5000);
+                    Thread.Sleep(5000);
                 }
             }, TaskCreationOptions.LongRunning);
         }
@@ -100,6 +101,15 @@ namespace cmonitor.server.client
             }
         }
 
+        private ScreenShareState _screenShareState;
+        public ScreenShareState ScreenShareState
+        {
+            get => _screenShareState; set
+            {
+                _screenShareState = value;
+                updated = true;
+            }
+        }
 
         public void Save()
         {

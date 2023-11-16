@@ -31,6 +31,7 @@ namespace cmonitor.server.service.messengers.screen
             }
             screenReport.Full(reportType);
         }
+
         [MessengerId((ushort)ScreenMessengerIds.FullReport)]
         public void FullReport(IConnection connection)
         {
@@ -47,6 +48,13 @@ namespace cmonitor.server.service.messengers.screen
                 }
             }
         }
+
+        [MessengerId((ushort)ScreenMessengerIds.Share)]
+        public void Share(IConnection connection)
+        {
+            
+        }
+
         [MessengerId((ushort)ScreenMessengerIds.Clip)]
         public void Clip(IConnection connection)
         {

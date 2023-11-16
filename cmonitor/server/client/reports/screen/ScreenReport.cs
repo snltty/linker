@@ -4,8 +4,6 @@ using cmonitor.server.service.messengers.screen;
 using MemoryPack;
 using cmonitor.server.client.reports.screen.helpers;
 using cmonitor.server.client.reports.screen.winapiss;
-using Microsoft.Win32;
-using System.Runtime.InteropServices;
 
 namespace cmonitor.server.client.reports.screen
 {
@@ -16,6 +14,7 @@ namespace cmonitor.server.client.reports.screen
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
         private readonly Config config;
+        private readonly ClientConfig clientConfig;
 
         private ScreenReportInfo report = new ScreenReportInfo();
         private uint lastInput;
@@ -24,11 +23,12 @@ namespace cmonitor.server.client.reports.screen
 
         private DisplayInfo[] displays;
 
-        public ScreenReport(ClientSignInState clientSignInState, MessengerSender messengerSender, Config config)
+        public ScreenReport(ClientSignInState clientSignInState, MessengerSender messengerSender, Config config, ClientConfig clientConfig)
         {
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
             this.config = config;
+            this.clientConfig = clientConfig;
             if (config.IsCLient)
             {
                 ScreenCaptureTask();
@@ -36,7 +36,6 @@ namespace cmonitor.server.client.reports.screen
                 gdiDesktop = new GdiDesktop(config);
                 InitSise();
             }
-
         }
         private void InitSise()
         {
@@ -81,6 +80,11 @@ namespace cmonitor.server.client.reports.screen
         }
 
 
+        public void ShareState(ScreenShareState screenShareState)
+        {
+            clientConfig.ScreenShareState = screenShareState;
+        }
+
         private ScreenReportType screenReportType = ScreenReportType.Full;
         private ScreenReportFullType screenReportFullType = ScreenReportFullType.Full | ScreenReportFullType.Trim;
         private long ticks = 0;
@@ -113,7 +117,10 @@ namespace cmonitor.server.client.reports.screen
                 while (true)
                 {
                     int delayms = 0;
-                    if (clientSignInState.Connected == true && ((DateTime.UtcNow.Ticks - ticks) / TimeSpan.TicksPerMillisecond < 1000))
+                    bool connected = clientSignInState.Connected == true;
+                    bool shareState = (clientConfig.ScreenShareState & ScreenShareState.Sender) == ScreenShareState.Sender;
+                    bool time = (DateTime.UtcNow.Ticks - ticks) / TimeSpan.TicksPerMillisecond < 1000;
+                    if (connected && (shareState || time))
                     {
                         try
                         {
@@ -216,8 +223,6 @@ namespace cmonitor.server.client.reports.screen
                 });
             }
         }
-
-
         private void RandomCursorPos()
         {
             if (config.WakeUp == false) return;
@@ -237,68 +242,6 @@ namespace cmonitor.server.client.reports.screen
                 }
             }
         }
-
-
-        private Thread messageLoopThread;
-        private void MessageLoop()
-        {
-            if (messageLoopThread is not null)
-            {
-                return;
-            }
-            messageLoopThread = new Thread(() =>
-            {
-                //SystemEvents.SessionSwitch += SystemEvents_SessionSwitch;
-                // SystemEvents.SessionEnding += SystemEvents_SessionEnding;
-                // SystemEvents.DisplaySettingsChanged += SystemEvents_DisplaySettingsChanged;
-
-                while (true)
-                {
-                    try
-                    {
-                        while (GetMessage(out var msg, IntPtr.Zero, 0, 0) > 0)
-                        {
-                            //DispatchMessage(ref msg);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Instance.Error(ex);
-                    }
-                }
-            });
-            if (OperatingSystem.IsWindows())
-            {
-                messageLoopThread.SetApartmentState(ApartmentState.STA);
-            }
-            messageLoopThread.Start();
-        }
-        [StructLayout(LayoutKind.Sequential)]
-        private struct MSG
-        {
-            public IntPtr hwnd;
-            public uint message;
-            public IntPtr wParam;
-            public IntPtr lParam;
-            public uint time;
-            public POINT pt;
-        }
-        [StructLayout(LayoutKind.Sequential)]
-        private struct POINT
-        {
-            public int X;
-            public int Y;
-
-            public POINT(int x, int y)
-            {
-                X = x;
-                Y = y;
-            }
-        }
-        [DllImport("user32.dll")]
-        private static extern bool DispatchMessage([In] ref MSG lpmsg);
-        [DllImport("user32.dll")]
-        private static extern int GetMessage(out MSG lpMsg, IntPtr hWnd, uint wMsgFilterMin, uint wMsgFilterMax);
     }
 
     public sealed class ScreenReportInfo
@@ -310,7 +253,6 @@ namespace cmonitor.server.client.reports.screen
 
         public DisplayInfo[] Displays { get; set; } = Array.Empty<DisplayInfo>();
     }
-
     public enum ScreenReportType : byte
     {
         Full = 1,
@@ -329,5 +271,12 @@ namespace cmonitor.server.client.reports.screen
         public int Y { get; set; }
         public int W { get; set; }
         public int H { get; set; }
+    }
+
+    public enum ScreenShareState : byte
+    {
+        None = 0,
+        Sender = 1,
+        Receiver = 2
     }
 }

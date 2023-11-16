@@ -10,9 +10,9 @@
                 <el-button type="success" @click="handleUsername" plain>确 定</el-button>
             </template>
         </el-dialog>
-        <el-dialog title="管理端口" destroy-on-close v-model="showPort" center :show-close="false" :close-on-click-modal="false" align-center width="70%">
+        <el-dialog title="管理接口" destroy-on-close v-model="showPort" center :show-close="false" :close-on-click-modal="false" align-center width="70%">
             <div class="port-wrap t-c">
-                <el-input v-model="state.port" style="width:auto"></el-input>
+                <el-input v-model="state.api" style="width:auto"></el-input>
             </div>
             <template #footer>
                 <el-button type="success" @click="handleConnect" plain>确 定</el-button>
@@ -32,22 +32,27 @@ export default {
 
         const globalData = injectGlobalData();
         const route = useRoute();
-        const port = +(route.query.api || localStorage.getItem('port') || 1801);
-        localStorage.setItem('port', port);
 
-        globalData.value.username = globalData.value.username || localStorage.getItem('username') || '';
         const state = reactive({
-            port: port,
+            api: route.query.api
+                ? `${window.location.hostname}:${route.query.api}`
+                : (localStorage.getItem('api') || `${window.location.hostname}:1801`),
             usernames: [],
-            username: globalData.value.username,
+            username: globalData.value.username || localStorage.getItem('username') || '',
             showPort: false
         });
+        localStorage.setItem('api', state.api);
+        globalData.value.username = state.username;
         const showSelectUsername = computed(() => !!!globalData.value.username && globalData.value.connected);
         const showPort = computed(() => globalData.value.connected == false && state.showPort);
 
         watch(() => globalData.value.updateRuleFlag, () => {
             _getRules();
         });
+        watch(() => globalData.value.updateDeviceFlag, () => {
+            _getRules();
+        });
+
 
         const _getRules = () => {
             getRules().then((res) => {
@@ -55,24 +60,10 @@ export default {
                 state.usernames = Object.keys(res);
             }).catch(() => { });
         }
-        onMounted(() => {
-            handleUsername();
-            handleConnect();
-            _getRules();
-
-            setTimeout(() => {
-                state.showPort = true;
-            }, 100);
-
-            subWebsocketState((state) => {
-                if (state) globalData.value.updateRuleFlag = Date.now();
-            });
-        });
-
         const handleConnect = () => {
-            initWebsocket(`ws://${window.location.hostname}:${state.port}`);
-            //initWebsocket(`ws://192.168.1.18:${state.port}`);
-            localStorage.setItem('port', state.port);
+            //initWebsocket(`ws://192.168.1.18:1801`);
+            initWebsocket(`ws://${state.api}`);
+            localStorage.setItem('api', state.api);
         }
         const handleUsername = () => {
             globalData.value.username = state.username || '';
@@ -86,6 +77,16 @@ export default {
                 globalData.value.updateRuleFlag = Date.now();
             })
         }
+
+        onMounted(() => {
+            handleUsername();
+            handleConnect();
+            _getRules();
+
+            setTimeout(() => { state.showPort = true; }, 100);
+
+            subWebsocketState((state) => { if (state) globalData.value.updateRuleFlag = Date.now(); });
+        });
 
         return {
             state, showSelectUsername, showPort, handleUsername, handleConnect, handleChange

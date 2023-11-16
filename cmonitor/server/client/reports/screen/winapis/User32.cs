@@ -32,17 +32,26 @@ public static class User32
     [Flags]
     public enum MouseEventFlags : uint
     {
-        LEFTDOWN = 0x00000002,
-        LEFTUP = 0x00000004,
-        MIDDLEDOWN = 0x00000020,
-        MIDDLEUP = 0x00000040,
-        MOVE = 0x00000001,
-        ABSOLUTE = 0x00008000,
-        RIGHTDOWN = 0x00000008,
-        RIGHTUP = 0x00000010,
-        WHEEL = 0x00000800,
-        XDOWN = 0x00000080,
-        XUP = 0x00000100
+        MOVE = 0x0001,
+
+        LEFTDOWN = 0x0002,
+        LEFTUP = 0x0004,
+
+        RIGHTDOWN = 0x0008,
+        RIGHTUP = 0x0010,
+
+        MIDDLEDOWN = 0x0020,
+        MIDDLEUP = 0x0040,
+
+        XDOWN = 0x0080,
+        XUP = 0x0100,
+
+        VIRTUALDESK = 0x4000,
+        ABSOLUTE = 0x8000,
+
+        WHEEL = 0x0800,
+        HWHEEL = 0x1000,
+
     }
     [Flags]
     public enum MOUSEEVENTF : uint

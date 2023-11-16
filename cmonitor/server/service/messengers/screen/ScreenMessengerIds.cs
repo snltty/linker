@@ -14,6 +14,9 @@
 
         MonitorState = 806,
 
+        ShareState = 807,
+        Share = 808,
+
         None = 899
     }
 }

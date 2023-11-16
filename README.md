@@ -162,9 +162,9 @@ start=AUTO
 ```
 
 ## 发布项目
-1. nodejs 16.17.0
+1. nodejs 16.17.0 vue3.0 web
 2. netframework 4.5 加入环境变量，以使用msbuild，应该是 **C:\Windows\Microsoft.NET\Framework\v4.0.30319** 目录
-3. NET7.0 SDK
+3. NET7.0 SDK 主程序
 4. 进入根目执行
 ```
 ./publish-extends  rem 生成web和netframework

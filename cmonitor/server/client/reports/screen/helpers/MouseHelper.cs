@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
 using static cmonitor.server.client.reports.screen.winapiss.User32;
 
 namespace cmonitor.server.client.reports.screen.helpers
@@ -21,6 +16,31 @@ namespace cmonitor.server.client.reports.screen.helpers
             // 调用SendInput发送输入事件
             uint result = SendInput(1, inputs, Marshal.SizeOf(typeof(INPUT)));
 
+            return result != 0;
+        }
+        public static bool MouseSet(int x, int y)
+        {
+            INPUT[] inputs = new INPUT[1];
+            inputs[0].type = InputType.MOUSE;
+            inputs[0].U.mi.dx = x;
+            inputs[0].U.mi.dy = y;
+            inputs[0].U.mi.dwFlags = MOUSEEVENTF.ABSOLUTE;
+
+            // 调用SendInput发送输入事件
+            uint result = SendInput(1, inputs, Marshal.SizeOf(typeof(INPUT)));
+
+            return result != 0;
+        }
+        public static bool MouseClick(uint flag,int mouseData)
+        {
+            INPUT[] inputs = new INPUT[1];
+            inputs[0].type = InputType.MOUSE;
+            inputs[0].U.mi.dx = 0;
+            inputs[0].U.mi.dy = 0;
+            inputs[0].U.mi.dwFlags = (MOUSEEVENTF)flag;
+            inputs[0].U.mi.mouseData = mouseData;
+            // 调用SendInput发送输入事件
+            uint result = SendInput(1, inputs, Marshal.SizeOf(typeof(INPUT)));
             return result != 0;
         }
     }

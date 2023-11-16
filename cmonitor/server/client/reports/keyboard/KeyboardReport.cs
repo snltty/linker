@@ -1,9 +1,9 @@
 ﻿using cmonitor.server.client.reports.screen;
+using cmonitor.server.client.reports.screen.helpers;
 using cmonitor.server.client.reports.screen.winapis;
 using cmonitor.server.client.reports.screen.winapiss;
 using cmonitor.server.client.reports.share;
 using common.libs;
-using common.libs.extends;
 using MemoryPack;
 using System.Collections.Concurrent;
 
@@ -39,6 +39,23 @@ namespace cmonitor.server.client.reports.command
             TryOnInputDesktop(() =>
             {
                 User32.keybd_event(_inputInfo.Key, (byte)User32.MapVirtualKey(_inputInfo.Key, 0), _inputInfo.Type, 0);
+            });
+        }
+        public void MouseSet(MouseSetInfo setInfo)
+        {
+            MouseSetInfo _setInfo = setInfo;
+            TryOnInputDesktop(() =>
+            {
+                User32.SetCursorPos(_setInfo.X, _setInfo.Y);
+                MouseHelper.MouseSet(_setInfo.X, _setInfo.Y);
+            });
+        }
+        public void MouseClick(MouseClickInfo clickInfo)
+        {
+            MouseClickInfo _clickInfo = clickInfo;
+            TryOnInputDesktop(() =>
+            {
+                MouseHelper.MouseClick(_clickInfo.Flag, _clickInfo.Data);
             });
         }
 
@@ -128,4 +145,16 @@ namespace cmonitor.server.client.reports.command
         public int Type { get; set; }
     }
 
+    [MemoryPackable]
+    public partial struct MouseSetInfo
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+    }
+    [MemoryPackable]
+    public partial struct MouseClickInfo
+    {
+        public uint Flag { get; set; }
+        public int Data { get; set; }
+    }
 }

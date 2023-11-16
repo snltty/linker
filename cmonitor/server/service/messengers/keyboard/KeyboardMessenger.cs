@@ -5,11 +5,9 @@ namespace cmonitor.server.service.messengers.keyboard
 {
     public sealed class KeyboardMessenger : IMessenger
     {
-        private Config config;
         private readonly KeyboardReport report;
-        public KeyboardMessenger(Config config, KeyboardReport report)
+        public KeyboardMessenger(KeyboardReport report)
         {
-            this.config = config;
             this.report = report;
         }
 
@@ -26,5 +24,19 @@ namespace cmonitor.server.service.messengers.keyboard
             report.CtrlAltDelete();
         }
 
+
+        [MessengerId((ushort)KeyboardMessengerIds.MouseSet)]
+        public void MouseSet(IConnection connection)
+        {
+            MouseSetInfo mouseSetInfo = MemoryPackSerializer.Deserialize<MouseSetInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            report.MouseSet(mouseSetInfo);
+        }
+
+        [MessengerId((ushort)KeyboardMessengerIds.MouseClick)]
+        public void MouseClick(IConnection connection)
+        {
+            MouseClickInfo mouseClickInfo = MemoryPackSerializer.Deserialize<MouseClickInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            report.MouseClick(mouseClickInfo);
+        }
     }
 }
