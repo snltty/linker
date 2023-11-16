@@ -12,7 +12,7 @@
 <p><img src="./readme/logo.png" height="150"></p> 
 
 # class monitor
-#### Visual Studio 2022 LTSC 17.4.1
+#### Visual Studio 2022 LTSC 17.8
 <a href="https://jq.qq.com/?_wv=1027&k=ucoIVfz4" target="_blank">QQ 群：1121552990</a>
 
 ![GitHub Repo stars](https://img.shields.io/github/stars/snltty/cmonitor?style=social)
