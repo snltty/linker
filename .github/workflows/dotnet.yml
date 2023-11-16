@@ -18,6 +18,13 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
         dotnet-version: 7.0.x
+
+    - name: setup dotnet8
+      uses: actions/setup-dotnet@v2
+      env:
+          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
+      with:
+        dotnet-version: 8.0.x
         
     - name: publish projects
       run: ./publish.bat
