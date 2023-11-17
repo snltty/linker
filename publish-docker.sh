@@ -17,7 +17,7 @@ do
 			cp -rf public/publish/docker/linux-${p}-${r}/${f}/${f} public/publish/docker/linux-${p}-${r}/${f}/${f}.run
 			rm -rf public/publish/docker/linux-${p}-${r}/${f}/${f}
 			cp -rf cmonitor/Dockerfile-${p} public/publish/docker/linux-${p}-${r}/${f}/Dockerfile-${p}
-			cp -rf cmonitor/publish/web public/publish/docker/linux-${p}-${r}/${f}
+			cp -rf cmonitor/publish/web/* public/publish/docker/linux-${p}-${r}/${f}/web/*
 		done
 
 		cd public/publish/docker/linux-${p}-x64/${f}

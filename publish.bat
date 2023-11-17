@@ -18,7 +18,7 @@ for %%r in (win-x64,win-x64-any) do (
 )
 
 for %%r in (linux-x64,linux-x64-any) do (
-	echo F|xcopy "cmonitor\\publish\\web" "public\\publish\\%%r\\web"  /s /f /h /y
+	echo F|xcopy "cmonitor\\publish\\web\\*" "public\\publish\\%%r\\web\\*"  /s /f /h /y
 	for %%f in (nfapi.dll,nfdriver.sys,ntrights.exe) do (
 		del  "public\\publish\\%%r\\%%f"
 	)
