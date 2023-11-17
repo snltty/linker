@@ -208,23 +208,30 @@ namespace cmonitor
         }
         private static void InitConfig(Config config, Dictionary<string, string> dic)
         {
-            config.Server = IPAddress.Parse(dic["server"]);
-            config.Name = dic["name"];
-            config.WebPort = int.Parse(dic["web"]);
-            config.ApiPort = int.Parse(dic["api"]);
-            config.ServicePort = int.Parse(dic["service"]);
-            config.ShareMemoryKey = dic["share-key"];
-            config.ShareMemoryLength = int.Parse(dic["share-len"]);
-            config.ReportDelay = int.Parse(dic["report-delay"]);
-            config.ScreenScale = float.Parse(dic["screen-scale"]);
-            config.ScreenDelay = int.Parse(dic["screen-delay"]);
-            config.Elevated = dic.ContainsKey("elevated");
+            try
+            {
+                config.Server = IPAddress.Parse(dic["server"]);
+                config.Name = dic["name"];
+                config.WebPort = int.Parse(dic["web"]);
+                config.ApiPort = int.Parse(dic["api"]);
+                config.ServicePort = int.Parse(dic["service"]);
+                config.ShareMemoryKey = dic["share-key"];
+                config.ShareMemoryLength = int.Parse(dic["share-len"]);
+                config.ReportDelay = int.Parse(dic["report-delay"]);
+                config.ScreenScale = float.Parse(dic["screen-scale"]);
+                config.ScreenDelay = int.Parse(dic["screen-delay"]);
+                config.Elevated = dic.ContainsKey("elevated");
 
-            Logger.Instance.Debug($"config:{config.ToJson()}");
-            //Logger.Instance.Debug($"args:{string.Join(" ", args)}");
+                Logger.Instance.Debug($"config:{config.ToJson()}");
+                //Logger.Instance.Debug($"args:{string.Join(" ", args)}");
 
-            config.IsCLient = dic.ContainsKey("mode") && dic["mode"].Contains("client");
-            config.IsServer = dic.ContainsKey("mode") && dic["mode"].Contains("server");
+                config.IsCLient = dic.ContainsKey("mode") && dic["mode"].Contains("client");
+                config.IsServer = dic.ContainsKey("mode") && dic["mode"].Contains("server");
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error(ex);
+            }
         }
 
         private static void LoggerConsole()

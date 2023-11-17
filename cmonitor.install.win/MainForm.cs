@@ -138,7 +138,7 @@ namespace cmonitor.install.win
                 if (installed == false)
                 {
                     string str = CommandHelper.Windows(string.Empty, new string[] {
-                        $"schtasks.exe /create /tn \"cmonitorService\" /rl highest /sc ONLOGON /delay 0000:30 /tr \"\"{exePath}\" {paramStr}\" "
+                        $"schtasks.exe /create /tn \"cmonitorService\" /rl highest /sc ONSTART /delay 0000:30 /tr \"\"{exePath}\" {paramStr}\" "
                     });
                     if (installSas)
                     {

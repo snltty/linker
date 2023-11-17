@@ -12,6 +12,7 @@
 		<Configurations>Debug;Release;ReleaseLinux</Configurations>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<PublishAot>false</PublishAot>
+		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -114,7 +114,7 @@ params += " --share-key cmonitor/share --share-len 2550";
 //server
 params = " --mode server --web 1800 --api 1801 --service 1802";
 
-schtasks.exe /create /tn "cmonitor" /rl highest /sc ONLOGON /delay 0000:30 /tr "\"{exePath}\"{params}" /f
+schtasks.exe /create /tn "cmonitor" /rl highest /sc ONSTART /delay 0000:30 /tr "\"{exePath}\"{params}" /f
 ```
 ##### linux服务端 systemd
 ```
