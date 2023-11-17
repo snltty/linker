@@ -128,7 +128,7 @@ namespace wallpaper.win
             }).Start();
 
 
-            mmf2 = MemoryMappedFile.CreateOrOpen($"{this.shareMkey}", this.shareMLength);
+            mmf2 = MemoryMappedFile.CreateOrOpen($"{this.shareMkey}", this.shareMLength * shareItemMLength);
             accessor2 = mmf2.CreateViewAccessor();
             WriteKeyBoard("init");
             WriteMemory(this.shareWallpaperIndex, wallpaperBytes, Encoding.UTF8.GetBytes("init"));

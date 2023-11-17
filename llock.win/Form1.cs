@@ -79,7 +79,7 @@ namespace llock.win
 
             groupBox1.Location = new System.Drawing.Point((this.Width - groupBox1.Width) / 2, (this.Height - groupBox1.Height) / 2);
 
-            mmf2 = MemoryMappedFile.CreateOrOpen($"{this.shareMkey}", this.shareMLength);
+            mmf2 = MemoryMappedFile.CreateOrOpen($"{this.shareMkey}", this.shareMLength * shareItemMLength);
             accessor2 = mmf2.CreateViewAccessor();
             WriteLLock();
             new Thread(() =>
@@ -184,7 +184,7 @@ namespace llock.win
             loading = false;
             button1.Text = "解锁";
         }
-        
+
 
     }
 
@@ -324,7 +324,7 @@ namespace llock.win
                         key1.DeleteValue("ShutdownWithoutLogon", false);
                         key.DeleteValue("StartMenuLogoff", false);
                         key1.DeleteValue("StartMenuLogoff", false);
-                       
+
 
                         key.Close();
                         key1.Close();
