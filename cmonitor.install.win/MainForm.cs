@@ -16,7 +16,7 @@ namespace cmonitor.install.win
         {
             InitializeComponent();
 
-            this.FormBorderStyle =  FormBorderStyle.FixedSingle;
+            this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
         }
 
@@ -127,23 +127,32 @@ namespace cmonitor.install.win
 
             string paramStr = string.Join(" ", installParams);
             bool installSas = sasService.Checked;
+            bool _sasStart = sasStart.Checked;
 
             string filename = Process.GetCurrentProcess().MainModule.FileName;
             string dir = Path.GetDirectoryName(filename);
             string exePath = Path.Combine(dir, "cmonitor.win.exe");
             string sasPath = Path.Combine(dir, "cmonitor.sas.service.exe");
 
+            string sasIndexStr = sasIndex.Text;
+
             Task.Run(() =>
             {
                 if (installed == false)
                 {
+
                     string str = CommandHelper.Windows(string.Empty, new string[] {
                         $"schtasks.exe /create /tn \"cmonitorService\" /rl highest /sc ONSTART /delay 0000:30 /tr \"\"{exePath}\" {paramStr}\" "
                     });
                     if (installSas)
                     {
+                        string taskStr = $"sc create \"cmonitor.sas.service\" binpath=\"{sasPath} {shareKey} {shareLen} {sasIndexStr} \\\"{paramStr}\\\"\" start=AUTO";
+                        if (_sasStart == false)
+                        {
+                            taskStr = $"sc create \"cmonitor.sas.service\" binpath=\"{sasPath} {shareKey} {shareLen} {sasIndexStr}\" start=AUTO";
+                        }
                         str = CommandHelper.Windows(string.Empty, new string[] {
-                        $"sc create \"cmonitor.sas.service\" binpath=\"{sasPath}\" start=AUTO",
+                        taskStr,
                         "net start cmonitor.sas.service",
                         });
                     }
@@ -167,6 +176,7 @@ namespace cmonitor.install.win
                 CheckInstall();
             });
         }
+
         private bool CheckMode(List<string> installParams)
         {
             if (modeClient.Checked == false && modeServer.Checked == false)
@@ -345,7 +355,7 @@ namespace cmonitor.install.win
                 else
                 {
                     Run();
-                    for (int i = 0; i < 15 && running==false; i++)
+                    for (int i = 0; i < 15 && running == false; i++)
                     {
                         CheckRunning();
                         System.Threading.Thread.Sleep(1000);
@@ -378,6 +388,19 @@ namespace cmonitor.install.win
         {
             running = Process.GetProcessesByName("cmonitor").Length > 0;
             CheckLoading(loading);
+        }
+
+        private void sasStart_CheckedChanged(object sender, EventArgs e)
+        {
+            if (sasStart.Checked)
+            {
+                sasService.Checked = true;
+                sasService.Enabled = false;
+            }
+            else
+            {
+                sasService.Enabled = true;
+            }
         }
     }
 }

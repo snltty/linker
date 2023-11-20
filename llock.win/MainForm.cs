@@ -9,7 +9,7 @@ using System.Windows.Forms;
 
 namespace llock.win
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
         Hook hook = new Hook();
         private string shareMkey;
@@ -30,7 +30,7 @@ namespace llock.win
             }
         }
 
-        public Form1(string shareMkey, int shareMLength, int shareIndex)
+        public MainForm(string shareMkey, int shareMLength, int shareIndex)
         {
             this.shareMkey = shareMkey;
             this.shareMLength = shareMLength;
@@ -273,20 +273,6 @@ namespace llock.win
                     catch (Exception)
                     {
                     }
-                    /*
-                    Guid activePolicyGuid;
-                    IntPtr ptr;
-                    if (PowerGetActiveScheme(IntPtr.Zero, out ptr) == 0)
-                    {
-                        activePolicyGuid = (Guid)Marshal.PtrToStructure(ptr, typeof(Guid));
-                        if (ptr != IntPtr.Zero)
-                        {
-                            Marshal.FreeHGlobal(ptr);
-                        }
-                        uint resultPowerButton = PowerWriteACValueIndex(IntPtr.Zero, ref activePolicyGuid, ref powerButtonGuid, ref powerButtonGuid, 0);
-                        uint resultSleepButton = PowerWriteACValueIndex(IntPtr.Zero, ref activePolicyGuid, ref sleepButtonGuid, ref sleepButtonGuid, 0);
-                    }
-                    */
                     Task.Run(() =>
                     {
                         CommandHelper.Windows(string.Empty, new string[] { "gpupdate /force" });
@@ -296,14 +282,11 @@ namespace llock.win
         }
         public void Close()
         {
-            bool retKeyboard = true;
             if (hHook != 0)
             {
-                retKeyboard = UnhookWindowsHookEx(hHook);
+                UnhookWindowsHookEx(hHook);
                 hHook = 0;
             }
-            //如果去掉钩子失败. 
-            //if (!retKeyboard) throw new Exception("UnhookWindowsHookEx failed.");
             try
             {
                 foreach (string user in Registry.Users.GetSubKeyNames())
@@ -350,36 +333,9 @@ namespace llock.win
             if (nCode >= 0)
             {
                 return 1;
-                /*
-                KeyBoardHookStruct kbh = (KeyBoardHookStruct)Marshal.PtrToStructure(lParam, typeof(KeyBoardHookStruct));
-                bool res = (kbh.vkCode >= (int)Keys.D0 && kbh.vkCode <= (int)Keys.D9)
-                    || (kbh.vkCode >= (int)Keys.NumPad0 && kbh.vkCode <= (int)Keys.NumPad9)
-                    || (kbh.vkCode >= (int)Keys.A && kbh.vkCode <= (int)Keys.Z);
-
-                if (res == false)
-                {
-                    return 1;
-                }
-                */
             }
             return CallNextHookEx(hHook, nCode, wParam, lParam);
         }
-
-
-        [DllImport("powrprof.dll")]
-        public static extern uint GetActivePwrScheme(out IntPtr pActivePolicy);
-        [DllImport("powrprof.dll", SetLastError = true)]
-        public static extern UInt32 PowerGetActiveScheme(IntPtr UserRootPowerKey, out IntPtr ActivePolicyGuid);
-
-        [DllImport("powrprof.dll")]
-        public static extern uint PowerWriteACValueIndex(IntPtr RootPowerKey, ref Guid SchemeGuid, ref Guid SubGroupOfPowerSettingsGuid,
-    ref Guid PowerSettingGuid, uint AcValueIndex);
-
-        Guid powerButtonGuid = new Guid("4f971e89-eebd-4455-a8de-9e59040e7347"); // 电源按钮设置的GUID
-        Guid sleepButtonGuid = new Guid("96996bc0-ad50-47ec-923b-6f418386bca1"); // 睡眠按钮设置的GUID
-
-
-
 
         #region IDisposable 成员
         public void Dispose()

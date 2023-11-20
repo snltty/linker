@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
+using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace wallpaper.win
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
 
         private IntPtr programIntPtr = IntPtr.Zero;
@@ -35,7 +35,8 @@ namespace wallpaper.win
                 return cp;
             }
         }
-        public Form1(string imgUrl, string shareMkey, int shareMLength, int shareKeyBoardIndex, int shareWallpaperIndex)
+
+        public MainForm(string imgUrl, string shareMkey, int shareMLength, int shareKeyBoardIndex, int shareWallpaperIndex)
         {
             this.imgUrl = imgUrl;
             this.shareMkey = shareMkey;
@@ -52,6 +53,32 @@ namespace wallpaper.win
 
         }
 
+
+        private void OnLoad(object sender, EventArgs e)
+        {
+            pictureBox1.LoadCompleted += PictureBox1_LoadCompleted;
+            pictureBox1.ImageLocation = imgUrl;
+
+            this.Dock = DockStyle.Fill;
+            this.ShowInTaskbar = false;
+            this.FormBorderStyle = FormBorderStyle.None;
+
+            Rectangle bound = Screen.PrimaryScreen.Bounds;
+            this.Width = bound.Width;
+            this.Height = bound.Height;
+            this.Left = 0;
+            this.Top = 0;
+
+            Find();
+            Init();
+            this.WindowState = FormWindowState.Maximized;
+
+            WatchParent();
+            WatchMemory();
+
+            hook.Start();
+        }
+
         private void Find()
         {
             // 通过类名查找一个窗口，返回窗口句柄。
@@ -59,16 +86,15 @@ namespace wallpaper.win
         }
         private void Init()
         {
-
             // 窗口句柄有效
             if (programIntPtr != IntPtr.Zero)
             {
                 IntPtr result = IntPtr.Zero;
-                // 向 Program Manager 窗口发送 0x52c 的一个消息，超时设置为0x3e8（1秒）。
-                Win32.SendMessageTimeout(programIntPtr, 0x52c, IntPtr.Zero, IntPtr.Zero, 0, 0x3e8, result);
+                // 向 Program Manager 窗口发送 0x52c 的一个消息，超时设置为0x3e8（1秒）。
+                Win32.SendMessageTimeout(programIntPtr, 0x52c, IntPtr.Zero, IntPtr.Zero, 0, 0x3e8, result);
 
-                // 遍历顶级窗口
-                Win32.EnumWindows((hwnd, lParam) =>
+                // 遍历顶级窗口
+                Win32.EnumWindows((hwnd, lParam) =>
                 {
                     // 找到包含 SHELLDLL_DefView 这个窗口句柄的 WorkerW
                     if (Win32.FindWindowEx(hwnd, IntPtr.Zero, "SHELLDLL_DefView", null) != IntPtr.Zero)
@@ -86,30 +112,8 @@ namespace wallpaper.win
                 Win32.SetParent(this.Handle, programIntPtr);
             }
         }
-
-        MemoryMappedFile mmf2;
-        MemoryMappedViewAccessor accessor2;
-        byte[] keyBytes = Encoding.UTF8.GetBytes("KeyBoard");
-        byte[] wallpaperBytes = Encoding.UTF8.GetBytes("Wallpaper");
-        DateTime startTime = new DateTime(1970, 1, 1);
-        byte[] emptyArray = new byte[0];
-
-        private void OnLoad(object sender, EventArgs e)
+        private void WatchParent()
         {
-            pictureBox1.LoadCompleted += PictureBox1_LoadCompleted;
-            pictureBox1.ImageLocation = imgUrl;
-
-            this.Dock = DockStyle.Fill;
-            this.ShowInTaskbar = false;
-            this.FormBorderStyle = FormBorderStyle.None;
-
-            hook.Start();
-
-            Find();
-            Init();
-
-            this.WindowState = FormWindowState.Maximized;
-
             IntPtr oldprogramIntPtr = programIntPtr;
             new Thread(() =>
             {
@@ -123,11 +127,49 @@ namespace wallpaper.win
                         Application.Restart();
                         Process.GetCurrentProcess().Kill();
                     }
+
+                    bool hasChild = false;
+                    Win32.EnumChildWindows(programIntPtr, (IntPtr hwnd, IntPtr lParam) =>
+                    {
+                        hasChild |= hwnd == this.Handle;
+                        return true;
+                    }, IntPtr.Zero);
+                    if (hasChild == false)
+                    {
+                        Init();
+                    }
                     Thread.Sleep(1000);
                 }
             }).Start();
+        }
+        private void PictureBox1_LoadCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
+        {
+            if (e.Error != null)
+            {
+                pictureBox1.ImageLocation = "./bg.jpg";
+                try
+                {
+                    string filename = Process.GetCurrentProcess().MainModule.FileName;
+                    string dir = Path.GetDirectoryName(filename);
+                    string file = Path.Combine(dir, "bg.jpg");
+                    Win32.SystemParametersInfo(Win32.SPI_SETDESKWALLPAPER, 0, file, Win32.SPIF_UPDATEINIFILE | Win32.SPIF_SENDCHANGE);
+
+                }
+                catch (Exception)
+                {
+                }
+            }
+        }
 
 
+        MemoryMappedFile mmf2;
+        MemoryMappedViewAccessor accessor2;
+        byte[] keyBytes = Encoding.UTF8.GetBytes("KeyBoard");
+        byte[] wallpaperBytes = Encoding.UTF8.GetBytes("Wallpaper");
+        DateTime startTime = new DateTime(1970, 1, 1);
+        byte[] emptyArray = new byte[0];
+        private void WatchMemory()
+        {
             mmf2 = MemoryMappedFile.CreateOrOpen($"{this.shareMkey}", this.shareMLength * shareItemMLength);
             accessor2 = mmf2.CreateViewAccessor();
             WriteKeyBoard("init");
@@ -166,15 +208,6 @@ namespace wallpaper.win
                 }
             }).Start();
         }
-
-        private void PictureBox1_LoadCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
-        {
-            if (e.Error != null)
-            {
-                pictureBox1.ImageLocation = "./bg.jpg";
-            }
-        }
-
         private void WriteKeyBoard(string value)
         {
             WriteMemory(this.shareKeyBoardIndex, keyBytes, Encoding.UTF8.GetBytes(value));
@@ -223,7 +256,6 @@ namespace wallpaper.win
             accessor2.Write((shareMLength - 1) * shareItemMLength, (byte)1);
         }
 
-
         private bool ReadCloseMemory(int index)
         {
             int keyIndex = index * shareItemMLength;
@@ -249,6 +281,11 @@ namespace wallpaper.win
     public static class Win32
     {
         [DllImport("user32.dll")]
+        public static extern bool EnumChildWindows(IntPtr hWndParent, EnumChildCallback lpEnumFunc, IntPtr lParam);
+        public delegate bool EnumChildCallback(IntPtr hwnd, IntPtr lParam);
+
+     
+        [DllImport("user32.dll")]
         public static extern IntPtr FindWindow(string className, string winName);
 
         [DllImport("user32.dll")]
@@ -266,6 +303,13 @@ namespace wallpaper.win
 
         [DllImport("user32.dll")]
         public static extern IntPtr SetParent(IntPtr hwnd, IntPtr parentHwnd);
+
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
+        public const int SPI_SETDESKWALLPAPER = 20;
+        public const int SPIF_UPDATEINIFILE = 0x01;
+        public const int SPIF_SENDCHANGE = 0x02;
     }
 
 
@@ -329,11 +373,19 @@ namespace wallpaper.win
         public static DateTime DateTime = DateTime.Now;
         public static int KeyBoardHookProc(int nCode, int wParam, IntPtr lParam)
         {
+
             if (nCode >= 0)
             {
                 KeyBoardHookStruct kbh = (KeyBoardHookStruct)Marshal.PtrToStructure(lParam, typeof(KeyBoardHookStruct));
                 CurrentKeys = (Keys)kbh.vkCode;
                 DateTime = DateTime.Now;
+
+                /*
+                if ((Control.ModifierKeys & Keys.LWin) == Keys.LWin && (Keys)kbh.vkCode == Keys.Tab)
+                {
+                    return 1;
+                }
+                */
             }
             return CallNextHookEx(hHook, nCode, wParam, lParam);
         }

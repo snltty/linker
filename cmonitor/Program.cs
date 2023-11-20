@@ -44,6 +44,13 @@ namespace cmonitor
     {
         static async Task Main(string[] args)
         {
+            //单服务
+            Mutex mutex = new Mutex(true, System.Diagnostics.Process.GetCurrentProcess().ProcessName, out bool isAppRunning);
+            if (isAppRunning == false)
+            {
+                Environment.Exit(1);
+            }
+
             //日志输出
             LoggerConsole();
 
@@ -60,12 +67,7 @@ namespace cmonitor
             Config config = new Config();
             InitConfig(config, dic);
 
-            //单服务
-            Mutex mutex = new Mutex(true, System.Diagnostics.Process.GetCurrentProcess().ProcessName, out bool isAppRunning);
-            if (isAppRunning == false)
-            {
-                Environment.Exit(1);
-            }
+            
             //全局异常
             AppDomain.CurrentDomain.UnhandledException += (a, b) =>
             {

@@ -1,6 +1,6 @@
 <template>
     <el-col :span="6" class="time">
-        <span>fps : {{data.Report.fps}} 、 {{data.Report.ping}}ms</span>
+        <span>fps:{{data.Report.fps}}、{{data.Report.ping}}ms</span>
     </el-col>
 </template>
 

@@ -28,7 +28,7 @@ namespace notify.win
                 star3 = int.Parse(args[4]);
             }
 
-            Application.Run(new Form1(speed,msg, star1, star2, star3));
+            Application.Run(new MainForm(speed,msg, star1, star2, star3));
         }
     }
 }

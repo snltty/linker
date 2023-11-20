@@ -4,6 +4,7 @@ using cmonitor.server.service.messengers.screen;
 using MemoryPack;
 using cmonitor.server.client.reports.screen.helpers;
 using cmonitor.server.client.reports.screen.winapiss;
+using System.IO.MemoryMappedFiles;
 
 namespace cmonitor.server.client.reports.screen
 {
@@ -31,19 +32,11 @@ namespace cmonitor.server.client.reports.screen
             this.clientConfig = clientConfig;
             if (config.IsCLient)
             {
-                ScreenCaptureTask();
                 dxgiDesktop = new DxgiDesktop(0, config);
                 gdiDesktop = new GdiDesktop(config);
-                InitSise();
-            }
-        }
-        private void InitSise()
-        {
-            displays = DisplaysEnumerationHelper.GetDisplays();
-            if (DisplayHelper.GetSystemScale(out _, out _, out int w, out int h))
-            {
-                report.W = w;
-                report.H = h;
+                CaptureTask();
+                DisplaysInit();
+                ScreenShareInit();
             }
         }
 
@@ -66,7 +59,18 @@ namespace cmonitor.server.client.reports.screen
             }
             return null;
         }
-        public void MonitorState(bool onState)
+
+
+        private void DisplaysInit()
+        {
+            displays = DisplaysEnumerationHelper.GetDisplays();
+            if (DisplayHelper.GetSystemScale(out _, out _, out int w, out int h))
+            {
+                report.W = w;
+                report.H = h;
+            }
+        }
+        public void DisplayState(bool onState)
         {
             if (onState)
             {
@@ -80,33 +84,55 @@ namespace cmonitor.server.client.reports.screen
         }
 
 
-        public void ShareState(ScreenShareState screenShareState)
+        MemoryMappedFile mmf;
+        MemoryMappedViewAccessor accessor;
+        byte[] shareScreenBytes = new byte[1 * 1024 * 1024];
+        private void ScreenShareInit()
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                mmf = MemoryMappedFile.CreateOrOpen($"{config.ShareMemoryKey}/screen", shareScreenBytes.Length);
+                accessor = mmf.CreateViewAccessor();
+            }
+        }
+        public void ScreenShareState(ScreenShareStates screenShareState)
         {
             clientConfig.ScreenShareState = screenShareState;
         }
+        public void ScreenShare(Memory<byte> data)
+        {
+            if (data.Length > 0 && data.Length <= shareScreenBytes.Length && accessor != null)
+            {
+                data.CopyTo(shareScreenBytes);
+                accessor.WriteArray(0, shareScreenBytes, 0, data.Length);
+            }
+        }
+
 
         private ScreenReportType screenReportType = ScreenReportType.Full;
         private ScreenReportFullType screenReportFullType = ScreenReportFullType.Full | ScreenReportFullType.Trim;
         private long ticks = 0;
-        public void Full(ScreenReportFullType screenReportFullType)
+        public void CaptureFull(ScreenReportFullType screenReportFullType)
         {
             ticks = DateTime.UtcNow.Ticks;
             screenReportType = ScreenReportType.Full;
             this.screenReportFullType |= screenReportFullType;
         }
-        public void Clip(ScreenClipInfo screenClipInfo)
+        public void CaptureClip(ScreenClipInfo screenClipInfo)
         {
             ticks = DateTime.UtcNow.Ticks;
             screenReportType = ScreenReportType.Full;
             gdiDesktop.Clip(screenClipInfo);
         }
-        public void Region()
+        public void CaptureRegion()
         {
             ticks = DateTime.UtcNow.Ticks;
             screenReportType = ScreenReportType.Region;
         }
 
-        private void ScreenCaptureTask()
+
+        private Memory<byte> fullImageMemory = Helper.EmptyArray;
+        private void CaptureTask()
         {
             if (OperatingSystem.IsWindows() == false)
             {
@@ -118,14 +144,14 @@ namespace cmonitor.server.client.reports.screen
                 {
                     int delayms = 0;
                     bool connected = clientSignInState.Connected == true;
-                    bool shareState = (clientConfig.ScreenShareState & ScreenShareState.Sender) == ScreenShareState.Sender;
+                    bool shareState = (clientConfig.ScreenShareState & ScreenShareStates.Sender) == ScreenShareStates.Sender;
                     bool time = (DateTime.UtcNow.Ticks - ticks) / TimeSpan.TicksPerMillisecond < 1000;
                     if (connected && (shareState || time))
                     {
                         try
                         {
                             long start = DateTime.UtcNow.Ticks;
-                            await ScreenCapture();
+                            await CaptureFrame();
                             delayms = (int)((DateTime.UtcNow.Ticks - start) / TimeSpan.TicksPerMillisecond);
                         }
                         catch (Exception ex)
@@ -145,13 +171,12 @@ namespace cmonitor.server.client.reports.screen
                 }
             }, TaskCreationOptions.LongRunning);
         }
-        private Memory<byte> fullImageMemory = Helper.EmptyArray;
-        private async Task ScreenCapture()
+        private async Task CaptureFrame()
         {
-            DesktopFrame frame = GetFrame();
-            await SendFrame(frame);
+            DesktopFrame frame = CaptureGetFrame();
+            await CaptureSendFrame(frame);
         }
-        private DesktopFrame GetFrame()
+        private DesktopFrame CaptureGetFrame()
         {
             DesktopFrame frame = null;
 
@@ -188,7 +213,7 @@ namespace cmonitor.server.client.reports.screen
 
             return frame;
         }
-        private async Task SendFrame(DesktopFrame frame)
+        private async Task CaptureSendFrame(DesktopFrame frame)
         {
             if (frame == null)
             {
@@ -200,7 +225,7 @@ namespace cmonitor.server.client.reports.screen
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = clientSignInState.Connection,
-                    MessengerId = (ushort)ScreenMessengerIds.FullReport,
+                    MessengerId = (ushort)ScreenMessengerIds.CaptureFullReport,
                     Payload = frame.FullImage,
                 });
             }
@@ -209,7 +234,7 @@ namespace cmonitor.server.client.reports.screen
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = clientSignInState.Connection,
-                    MessengerId = (ushort)ScreenMessengerIds.RegionReport,
+                    MessengerId = (ushort)ScreenMessengerIds.CaptureRegionReport,
                     Payload = frame.RegionImage,
                 });
             }
@@ -218,7 +243,7 @@ namespace cmonitor.server.client.reports.screen
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = clientSignInState.Connection,
-                    MessengerId = (ushort)ScreenMessengerIds.Rectangles,
+                    MessengerId = (ushort)ScreenMessengerIds.CaptureRectangles,
                     Payload = MemoryPackSerializer.Serialize(frame.UpdatedRegions),
                 });
             }
@@ -273,7 +298,7 @@ namespace cmonitor.server.client.reports.screen
         public int H { get; set; }
     }
 
-    public enum ScreenShareState : byte
+    public enum ScreenShareStates : byte
     {
         None = 0,
         Sender = 1,

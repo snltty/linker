@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cmonitor.sas.service", "cmo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cmonitor.install.win", "cmonitor.install.win\cmonitor.install.win.csproj", "{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cmonitor.share.receiver.win", "cmonitor.share.receiver.win\cmonitor.share.receiver.win.csproj", "{59FCFFA4-AAB7-423A-AE01-DCDE47B2C9C1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -216,6 +218,24 @@ Global
 		{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}.ReleaseLinux|x64.Build.0 = Release|Any CPU
 		{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}.ReleaseLinux|x86.ActiveCfg = Release|Any CPU
 		{2193D588-05D2-4FE3-BBE7-CC44D2C5D4CC}.ReleaseLinux|x86.Build.0 = Release|Any CPU
+		{59FCFFA4-AAB7-423A-AE01-DCDE47B2C9C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59FCFFA4-AAB7-423A-AE01-DCDE47B2C9C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59FCFFA4-AAB7-423A-AE01-DCDE47B2C9C1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{59FCFFA4-AAB7-423A-AE01-DCDE47B2C9C1}.Debug|x64.Build.0 = Debug|Any CPU
+		{59FCFFA4-AAB7-423A-AE01-DCDE47B2C9C1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{59FCFFA4-AAB7-423A-AE01-DCDE47B2C9C1}.Debug|x86.Build.0 = Debug|Any CPU
+		{59FCFFA4-AAB7-423A-AE01-DCDE47B2C9C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59FCFFA4-AAB7-423A-AE01-DCDE47B2C9C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59FCFFA4-AAB7-423A-AE01-DCDE47B2C9C1}.Release|x64.ActiveCfg = Release|Any CPU
+		{59FCFFA4-AAB7-423A-AE01-DCDE47B2C9C1}.Release|x64.Build.0 = Release|Any CPU
+		{59FCFFA4-AAB7-423A-AE01-DCDE47B2C9C1}.Release|x86.ActiveCfg = Release|Any CPU
+		{59FCFFA4-AAB7-423A-AE01-DCDE47B2C9C1}.Release|x86.Build.0 = Release|Any CPU
+		{59FCFFA4-AAB7-423A-AE01-DCDE47B2C9C1}.ReleaseLinux|Any CPU.ActiveCfg = Release|Any CPU
+		{59FCFFA4-AAB7-423A-AE01-DCDE47B2C9C1}.ReleaseLinux|Any CPU.Build.0 = Release|Any CPU
+		{59FCFFA4-AAB7-423A-AE01-DCDE47B2C9C1}.ReleaseLinux|x64.ActiveCfg = Release|Any CPU
+		{59FCFFA4-AAB7-423A-AE01-DCDE47B2C9C1}.ReleaseLinux|x64.Build.0 = Release|Any CPU
+		{59FCFFA4-AAB7-423A-AE01-DCDE47B2C9C1}.ReleaseLinux|x86.ActiveCfg = Release|Any CPU
+		{59FCFFA4-AAB7-423A-AE01-DCDE47B2C9C1}.ReleaseLinux|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

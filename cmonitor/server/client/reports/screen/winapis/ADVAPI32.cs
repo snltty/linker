@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Security;
+using System.Text;
 
 namespace cmonitor.server.client.reports.screen.winapis;
 
@@ -377,4 +378,15 @@ public static class ADVAPI32
         public IntPtr Sid;
         public int Attributes;
     }
+
+    [DllImport("Advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    public static extern bool LookupAccountName(
+        string lpSystemName,
+        string lpAccountName,
+        IntPtr Sid,
+        ref int cbSid,
+        StringBuilder ReferencedDomainName,
+        ref int cchReferencedDomainName,
+        out int peUse
+    );
 }

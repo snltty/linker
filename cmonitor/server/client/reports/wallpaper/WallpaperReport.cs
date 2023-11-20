@@ -54,7 +54,7 @@ namespace cmonitor.server.client.reports.llock
                 if (open)
                 {
                     CommandHelper.Windows(string.Empty, new string[] {
-                        $"start wallpaper.win.exe \"{url}\" {config.ShareMemoryKey} {config.ShareMemoryLength* Config.ShareMemoryItemLength} {Config.ShareMemoryKeyBoardIndex} {Config.ShareMemoryWallpaperIndex}"
+                        $"start wallpaper.win.exe \"{url}\" {config.ShareMemoryKey} {config.ShareMemoryLength} {Config.ShareMemoryKeyBoardIndex} {Config.ShareMemoryWallpaperIndex}"
                     });
                 }
             });

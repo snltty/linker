@@ -24,7 +24,7 @@ namespace llock.win
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1(shareMkey, shareMLength, shareIndex));
+            Application.Run(new MainForm(shareMkey, shareMLength, shareIndex));
         }
     }
 }

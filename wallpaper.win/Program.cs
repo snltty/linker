@@ -33,7 +33,7 @@ namespace wallpaper.win
             }
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1(imgUrl, shareMkey, shareMLength, shareKeyBoardIndex, shareWallpaperIndex));
+            Application.Run(new MainForm(imgUrl, shareMkey, shareMLength, shareKeyBoardIndex, shareWallpaperIndex));
         }
     }
 }

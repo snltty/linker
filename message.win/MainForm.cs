@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace message.win
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
         private readonly int times = 10;
 
@@ -22,7 +22,7 @@ namespace message.win
             }
         }
 
-        public Form1(string msg, int times)
+        public MainForm(string msg, int times)
         {
             InitializeComponent();
             ShowInTaskbar = false;

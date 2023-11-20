@@ -92,6 +92,7 @@
 4. **【--screen-scale】** 屏幕图片缩放比例 **0.2** 默认1/5
 
 ###### 客户端
+1. **【--name】** 机器名
 1. **【--server】** 服务器ip  **192.168.1.18**
 2. **【--service】** 服务端口 **1802**
 3. **【--share-key】** 自定数据共享 **cmonitor/share**，每项数据长度255,klen+key+vlen+value
@@ -104,7 +105,8 @@
 
 ## 安装示例
 ##### windows计划任务，客户端、服务端
-也可以运行 comitor.install.win.exe 进行安装操作
+1. 也可以运行 comitor.install.win.exe 进行安装操作
+2. 计划任务可以用ONLOGON以在用户登录系统后运行任务，但是有时候需要在登录前就启动程序，以远程操作解锁系统，那就需要以ONSTART创建任务，但是某些系统下，ONSTART无法运行，因此，在 **Ctrl+Alt+Delete 服务**中有第四参数，填入主程序启动参数，可以在此服务中启动主程序
 ```
 params = " --report-delay 30 --screen-delay 200 --screen-scale 0.2";
 //client
@@ -116,6 +118,16 @@ params = " --mode server --web 1800 --api 1801 --service 1802";
 
 schtasks.exe /create /tn "cmonitor" /rl highest /sc ONSTART /delay 0000:30 /tr "\"{exePath}\"{params}" /f
 ```
+
+##### Ctrl+Alt+Delete 服务
+必须以windows service方式运行cmonitor.sas.service.exe 才能使用**SendSAS**模拟**Ctrl+Alt+Delete**，{params}为主程序启动参数，不填则不在此服务内启动主程序
+``` 
+sc create "cmonitor.sas.service" 
+binpath="xx\xx\cmonitor.sas.service.exe {--share-key} {--share-len} 3 {params}" 
+start=AUTO 
+```
+
+
 ##### linux服务端 systemd
 ```
 //1、下载linux版本程序，放到 /usr/local/cmonitor 文件夹，并在文件夹下创建一个 log 目录
@@ -153,13 +165,6 @@ snltty/cmonitor-alpine-x64 \
 --entrypoint ./cmonitor.run  --mode server --web 1800 --api 1801 --service 1802
 ```
 
-##### Ctrl+Alt+Delete 服务
-由于使用**SendSAS**模拟**Ctrl+Alt+Delete**，需要以windows service方式运行，所以需要将 cmonitor.sas.service.exe 安装到服务中，可以使用 sc create创建服务，不需要此功能可以不安装
-``` 
-sc create "cmonitor.sas.service" 
-binpath="xx\xx\cmonitor.sas.service.exe {--share-key} {--share-len} 3" 
-start=AUTO 
-```
 
 ## 发布项目
 1. nodejs 16.17.0 vue3.0 web

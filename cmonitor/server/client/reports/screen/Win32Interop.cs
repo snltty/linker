@@ -1,6 +1,7 @@
 ﻿using cmonitor.server.client.reports.screen.winapis;
 using cmonitor.server.client.reports.screen.winapiss;
 using common.libs;
+using Microsoft.Win32;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -322,6 +323,71 @@ namespace cmonitor.server.client.reports.screen
             }
             return string.Empty;
         }
+        public static string GetDefaultUserSid()
+        {
+            if (OperatingSystem.IsWindows() == false)
+            {
+                return string.Empty;
+            }
+
+            List<string> registrySids = Registry.Users.GetSubKeyNames().ToList();
+            List<string> sids = new List<string>();
+            int resumeHandle = 0;
+            int result = NetApi32.NetUserEnum(null, 0, 2, out IntPtr bufPtr, -1, out int entriesRead, out int totalEntries, ref resumeHandle);
+            if (result == 0)
+            {
+                try
+                {
+                    for (int i = 0; i < entriesRead; i++)
+                    {
+                        USER_INFO_0 userInfo = (USER_INFO_0)Marshal.PtrToStructure(bufPtr + (Marshal.SizeOf(typeof(USER_INFO_0)) * i), typeof(USER_INFO_0));
+
+                        int cbSid = 0;
+                        int cchReferencedDomainName = 0;
+                        int peUse;
+                        StringBuilder referencedDomainName = new StringBuilder();
+                        IntPtr pSid = IntPtr.Zero;
+
+                        bool bSuccess = LookupAccountName(null, userInfo.usri0_name, pSid, ref cbSid, referencedDomainName, ref cchReferencedDomainName, out peUse);
+                        if (!bSuccess && cbSid > 0)
+                        {
+                            pSid = Marshal.AllocHGlobal(cbSid);
+                            referencedDomainName.EnsureCapacity(cchReferencedDomainName);
+                            bSuccess = LookupAccountName(null, userInfo.usri0_name, pSid, ref cbSid, referencedDomainName, ref cchReferencedDomainName, out peUse);
+                        }
+
+                        if (bSuccess)
+                        {
+                            if (ConvertSidToStringSid(pSid, out string stringSid))
+                            {
+                                if (registrySids.Contains(stringSid))
+                                {
+                                    sids.Add(stringSid);
+                                }
+                            }
+                        }
+
+                        if (pSid != IntPtr.Zero)
+                        {
+                            Marshal.FreeHGlobal(pSid);
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                }
+                finally
+                {
+                    NetApi32.NetApiBufferFree(bufPtr);
+                }
+            }
+
+            if (sids.Count == 1)
+            {
+                return sids[0];
+            }
+            return string.Empty;
+        }
         public static bool IsSystemUser()
         {
             return currentUsername == "NT AUTHORITY\\SYSTEM";
@@ -351,4 +417,9 @@ namespace cmonitor.server.client.reports.screen
     }
 
 
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public struct USER_INFO_0
+    {
+        public string usri0_name;
+    }
 }

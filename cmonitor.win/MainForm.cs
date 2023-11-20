@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace cmonitor.win
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
         private Process proc;
         private string[] args;
@@ -21,7 +21,7 @@ namespace cmonitor.win
                 return cp;
             }
         }
-        public Form1(string[] args)
+        public MainForm(string[] args)
         {
             this.args = args;
             InitializeComponent();

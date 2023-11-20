@@ -2,20 +2,20 @@
 {
     public enum ScreenMessengerIds : ushort
     {
-        Full = 800,
-        FullReport = 801,
+        CaptureFull = 800,
+        CaptureFullReport = 801,
 
-        Clip = 802,
+        CaptureClip = 802,
 
-        Region = 803,
-        RegionReport = 804,
+        CaptureRegion = 803,
+        CaptureRegionReport = 804,
 
-        Rectangles = 805,
+        CaptureRectangles = 805,
 
-        MonitorState = 806,
+        DisplayState = 806,
 
-        ShareState = 807,
-        Share = 808,
+        ScreenShareState = 807,
+        ScreenShare = 808,
 
         None = 899
     }

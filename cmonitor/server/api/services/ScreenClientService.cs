@@ -34,7 +34,7 @@ namespace cmonitor.server.api.services
                     _ = messengerSender.SendOnly(new MessageRequestWrap
                     {
                         Connection = cache.Connection,
-                        MessengerId = (ushort)ScreenMessengerIds.Full,
+                        MessengerId = (ushort)ScreenMessengerIds.CaptureFull,
                         Timeout = 1000,
                          Payload= bytes
                     }).ContinueWith((result) =>
@@ -54,7 +54,7 @@ namespace cmonitor.server.api.services
                 _ = messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = cache.Connection,
-                    MessengerId = (ushort)ScreenMessengerIds.Clip,
+                    MessengerId = (ushort)ScreenMessengerIds.CaptureClip,
                     Timeout = 1000,
                     Payload = MemoryPackSerializer.Serialize(screenClipParamInfo.Clip)
                 });
@@ -77,7 +77,7 @@ namespace cmonitor.server.api.services
                     _ = messengerSender.SendOnly(new MessageRequestWrap
                     {
                         Connection = cache.Connection,
-                        MessengerId = (ushort)ScreenMessengerIds.Region,
+                        MessengerId = (ushort)ScreenMessengerIds.CaptureRegion,
                         Timeout = 1000,
                     }).ContinueWith((result) =>
                     {

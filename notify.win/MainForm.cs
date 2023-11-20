@@ -6,7 +6,7 @@ using System.Windows.Forms;
 
 namespace notify.win
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
 
         protected override bool ShowWithoutActivation => true;
@@ -28,7 +28,7 @@ namespace notify.win
         private int star1;
         private int star2;
         private int star3;
-        public Form1(int speed, string msg, int star1, int star2, int star3)
+        public MainForm(int speed, string msg, int star1, int star2, int star3)
         {
             this.speed = speed;
             this.msg = msg;

@@ -101,12 +101,23 @@ namespace cmonitor.server.client
             }
         }
 
-        private ScreenShareState _screenShareState;
-        public ScreenShareState ScreenShareState
+        private ScreenShareStates _screenShareState;
+        public ScreenShareStates ScreenShareState
         {
             get => _screenShareState; set
             {
                 _screenShareState = value;
+                updated = true;
+            }
+        }
+
+
+        private string _userSid = string.Empty;
+        public string UserSid
+        {
+            get => _userSid; set
+            {
+                _userSid = value;
                 updated = true;
             }
         }

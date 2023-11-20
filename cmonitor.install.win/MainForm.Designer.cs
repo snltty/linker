@@ -63,6 +63,7 @@
             this.installBtn = new System.Windows.Forms.Button();
             this.label15 = new System.Windows.Forms.Label();
             this.runBtn = new System.Windows.Forms.Button();
+            this.sasStart = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // serverIP
@@ -152,11 +153,11 @@
             // sasService
             // 
             this.sasService.AutoSize = true;
-            this.sasService.Location = new System.Drawing.Point(234, 51);
+            this.sasService.Location = new System.Drawing.Point(261, 53);
             this.sasService.Name = "sasService";
-            this.sasService.Size = new System.Drawing.Size(168, 16);
+            this.sasService.Size = new System.Drawing.Size(66, 16);
             this.sasService.TabIndex = 10;
-            this.sasService.Text = "ctrl+alt+delete(SAS)服务";
+            this.sasService.Text = "SAS服务";
             this.sasService.UseVisualStyleBackColor = true;
             // 
             // label5
@@ -348,11 +349,23 @@
             this.runBtn.UseVisualStyleBackColor = true;
             this.runBtn.Click += new System.EventHandler(this.RunClick);
             // 
+            // sasStart
+            // 
+            this.sasStart.AutoSize = true;
+            this.sasStart.Location = new System.Drawing.Point(328, 53);
+            this.sasStart.Name = "sasStart";
+            this.sasStart.Size = new System.Drawing.Size(66, 16);
+            this.sasStart.TabIndex = 34;
+            this.sasStart.Text = "SAS启动";
+            this.sasStart.UseVisualStyleBackColor = true;
+            this.sasStart.CheckedChanged += new System.EventHandler(this.sasStart_CheckedChanged);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(416, 401);
+            this.ClientSize = new System.Drawing.Size(411, 401);
+            this.Controls.Add(this.sasStart);
             this.Controls.Add(this.runBtn);
             this.Controls.Add(this.label15);
             this.Controls.Add(this.installBtn);
@@ -432,6 +445,7 @@
         private System.Windows.Forms.Button installBtn;
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.Button runBtn;
+        private System.Windows.Forms.CheckBox sasStart;
     }
 }
 

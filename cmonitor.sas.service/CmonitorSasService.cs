@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using System.Threading;
 using System;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
+using System.IO;
 
 namespace cmonitor.sas.service
 {
@@ -22,6 +24,8 @@ namespace cmonitor.sas.service
         int shareMLength = 10;
         int shareItemMLength = 255;
         int shareIndex = 3;
+        string mainArgs = string.Empty;
+        string mainExeName = "cmonitor";
         byte[] keyBytes = Encoding.UTF8.GetBytes("cmonitor.sas.service");
         MemoryMappedFile mmf2;
         MemoryMappedViewAccessor accessor2;
@@ -36,6 +40,11 @@ namespace cmonitor.sas.service
                     shareMkey = args[0];
                     shareMLength = int.Parse(args[1]);
                     shareIndex = int.Parse(args[2]);
+
+                    if (args.Length >= 4)
+                    {
+                        mainArgs = args[3];
+                    }
                 }
                 mmf2 = MemoryMappedFile.CreateOrOpen($"Global\\{shareMkey}", shareMLength * shareItemMLength);
                 accessor2 = mmf2.CreateViewAccessor();
@@ -44,8 +53,8 @@ namespace cmonitor.sas.service
             catch (Exception)
             {
             }
+            CheckMainProcess();
         }
-
         protected override void OnStop()
         {
             cancellationTokenSource?.Cancel();
@@ -118,7 +127,6 @@ namespace cmonitor.sas.service
 
             UpdatedState(index);
         }
-
         private void UpdatedState(int updatedOffset)
         {
             accessor2.Write((shareMLength - 1) * shareItemMLength, (byte)1);
@@ -126,5 +134,85 @@ namespace cmonitor.sas.service
 
         [DllImport("sas.dll")]
         public static extern void SendSAS(bool asUser);
+
+
+        Process proc;
+        private void CheckMainProcess()
+        {
+            if (string.IsNullOrWhiteSpace(mainArgs))
+            {
+                return;
+            }
+            Task.Factory.StartNew(() =>
+            {
+                while (true)
+                {
+                    try
+                    {
+                        if (Process.GetProcessesByName(mainExeName).Length <= 0)
+                        {
+                            KillExe();
+                            OpenExe();
+                        }
+                    }
+                    catch (Exception)
+                    {
+                    }
+                    Thread.Sleep(30000);
+                }
+            }, TaskCreationOptions.LongRunning);
+        }
+        private bool OpenExe()
+        {
+            try
+            {
+                string filename = Process.GetCurrentProcess().MainModule.FileName;
+                string dir = Path.GetDirectoryName(filename);
+                string file = Path.Combine(dir, mainExeName);
+                ProcessStartInfo processStartInfo = new ProcessStartInfo()
+                {
+                    WorkingDirectory = dir,
+                    FileName = file,
+                    CreateNoWindow = false,
+                    ErrorDialog = false,
+                    UseShellExecute = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    Arguments = string.Join(" ", this.args),
+                    Verb = "runas",
+                };
+                proc = Process.Start(processStartInfo);
+
+                return true;
+            }
+            catch (Exception)
+            {
+                try
+                {
+                    proc.Kill();
+                    proc.Dispose();
+                }
+                catch (Exception)
+                {
+                }
+                proc = null;
+            }
+            return false;
+        }
+        private void KillExe()
+        {
+            try
+            {
+                proc?.Close();
+                proc?.Dispose();
+
+            }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                proc = null;
+            }
+        }
     }
 }
