@@ -1,7 +1,4 @@
-ï»¿using System;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Windows.Forms;
 
 namespace message.win
 {
@@ -80,16 +77,16 @@ namespace message.win
         {
             Countdown();
 
-            //å°†çª—å£ç½®é¡¶
+            //½«´°¿ÚÖÃ¶¥
             SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
             int style = GetWindowLong(this.Handle, GWL_STYLE);
             SetWindowLong(this.Handle, GWL_STYLE, style & ~WS_SYSMENU);
 
-            // æ·»åŠ çª—ä½“é˜´å½±
+            // Ìí¼Ó´°ÌåÒõÓ°
             SetWindowPos(this.Handle, IntPtr.Zero, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE);
 
-            //å°†çª—å£ç½®åº•
+            //½«´°¿ÚÖÃµ×
             //SetWindowPos(this.Handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
         }
     }

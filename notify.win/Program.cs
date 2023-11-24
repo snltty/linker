@@ -1,21 +1,19 @@
-﻿using System;
-using System.Windows.Forms;
-
 namespace notify.win
 {
     internal static class Program
     {
         /// <summary>
-        /// 应用程序的主入口点。
+        ///  The main entry point for the application.
         /// </summary>
         [STAThread]
         static void Main(string[] args)
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
+            AppDomain.CurrentDomain.UnhandledException += (a, b) =>
+            {
+            };
 
             int speed = 1;
-            string msg = "少年郎秃头呀";
+            string msg = "������ͺͷѽ";
             int star1 = 1;
             int star2 = 1;
             int star3 = 1;
@@ -28,7 +26,9 @@ namespace notify.win
                 star3 = int.Parse(args[4]);
             }
 
-            Application.Run(new MainForm(speed,msg, star1, star2, star3));
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new MainForm(speed, msg, star1, star2, star3));
         }
     }
 }

@@ -1,13 +1,9 @@
-﻿using System;
-using System.Threading;
-using System.Windows.Forms;
-
 namespace message.win
 {
     internal static class Program
     {
         /// <summary>
-        /// 应用程序的主入口点。
+        ///  The main entry point for the application.
         /// </summary>
         [STAThread]
         static void Main(string[] args)
@@ -23,7 +19,7 @@ namespace message.win
             };
 
 
-            string msg = "上课时间，请注意课堂纪律！";
+            string msg = "�Ͽ�ʱ�䣬��ע����ü��ɣ�";
             int times = 10;
             if (args.Length > 0)
             {
@@ -37,9 +33,9 @@ namespace message.win
                 }
             }
 
-
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
+            // To customize application configuration such as set high DPI settings or default font,
+            // see https://aka.ms/applicationconfiguration.
+            ApplicationConfiguration.Initialize();
             Application.Run(new MainForm(msg, times));
         }
     }

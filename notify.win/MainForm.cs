@@ -1,8 +1,5 @@
-Ôªøusing System;
-using System.Drawing;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace notify.win
 {
@@ -51,6 +48,9 @@ namespace notify.win
 
         private void OnLoad(object sender, EventArgs e)
         {
+            this.Width = 169;
+            this.Height = 215;
+
             PictureBox[][] starPics = new PictureBox[][] {
               new PictureBox[]{  star11, star12, star13, star14, star15 }
                 , new PictureBox[]{ star21, star22, star23, star24, star25 }
@@ -73,13 +73,13 @@ namespace notify.win
             pictureBox1.Image = images[new Random().Next(0, 6)];
 
             this.FormBorderStyle = FormBorderStyle.None;
-            //Â∞ÜÁ™óÂè£ÁΩÆÈ°∂
+            //Ω´¥∞ø⁄÷√∂•
             SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
 
             int style = GetWindowLong(this.Handle, GWL_STYLE);
             SetWindowLong(this.Handle, GWL_STYLE, style & ~WS_SYSMENU);
 
-            // Ê∑ªÂä†Á™ó‰ΩìÈò¥ÂΩ±
+            // ÃÌº”¥∞ÃÂ“ı”∞
             SetWindowPos(this.Handle, IntPtr.Zero, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
 
 
@@ -102,14 +102,17 @@ namespace notify.win
                     this.Left -= this.speed;
                     if (this.Left < -width)
                     {
+                        Application.ExitThread();
                         Application.Exit();
-                        Environment.Exit(0);
+                        Process.GetCurrentProcess().Kill();
+                        return;
                     }
 
                     System.Threading.Thread.Sleep(10);
                 }
 
             });
+
         }
 
         private const int SPI_GETWORKAREA = 0x0030;

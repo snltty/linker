@@ -1,13 +1,9 @@
-﻿using System;
-using System.Threading;
-using System.Windows.Forms;
-
 namespace llock.win
 {
     internal static class Program
     {
         /// <summary>
-        /// 应用程序的主入口点。
+        ///  The main entry point for the application.
         /// </summary>
         [STAThread]
         static void Main(string[] arg)
@@ -18,13 +14,26 @@ namespace llock.win
                 Environment.Exit(1);
             }
 
+            AppDomain.CurrentDomain.UnhandledException += (a, b) =>
+            {
+            };
+
             string shareMkey = arg[0];
             int shareMLength = int.Parse(arg[1]);
-            int shareIndex= int.Parse(arg[2]);
+            int shareItemMLength = int.Parse(arg[2]);
+            int shareIndex = int.Parse(arg[3]);
+
+            if (arg.Length > 0)
+            {
+                shareMkey = arg[0];
+                shareMLength = int.Parse(arg[1]);
+                shareItemMLength = int.Parse(arg[2]);
+                shareIndex = int.Parse(arg[3]);
+            }
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm(shareMkey, shareMLength, shareIndex));
+            Application.Run(new MainForm(shareMkey, shareMLength, shareItemMLength, shareIndex));
         }
     }
 }

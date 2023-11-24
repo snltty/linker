@@ -1,16 +1,13 @@
-﻿using System.IO.MemoryMappedFiles;
+﻿using cmonitor.libs;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
-using System;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
-using System.IO;
+using System.Text.Json;
 
 namespace cmonitor.sas.service
 {
-    public partial class CmonitorSasService : ServiceBase
+    partial class CmonitorSasService : ServiceBase
     {
         private readonly string[] args;
         public CmonitorSasService(string[] args)
@@ -23,13 +20,16 @@ namespace cmonitor.sas.service
         string shareMkey = "cmonitor/share";
         int shareMLength = 10;
         int shareItemMLength = 255;
-        int shareIndex = 3;
+        int shareIndex = 4;
         string mainArgs = string.Empty;
         string mainExeName = "cmonitor";
         byte[] keyBytes = Encoding.UTF8.GetBytes("cmonitor.sas.service");
-        MemoryMappedFile mmf2;
-        MemoryMappedViewAccessor accessor2;
+        ShareMemory shareMemory;
+
         CancellationTokenSource cancellationTokenSource;
+
+        [DllImport("sas.dll")]
+        public static extern void SendSAS(bool asUser);
 
         protected override void OnStart(string[] _args)
         {
@@ -39,15 +39,16 @@ namespace cmonitor.sas.service
                 {
                     shareMkey = args[0];
                     shareMLength = int.Parse(args[1]);
-                    shareIndex = int.Parse(args[2]);
-
-                    if (args.Length >= 4)
+                    shareItemMLength = int.Parse(args[2]);
+                    shareIndex = int.Parse(args[3]);
+                    if (args.Length >= 5)
                     {
-                        mainArgs = args[3];
+                        mainArgs = args[4];
                     }
                 }
-                mmf2 = MemoryMappedFile.CreateOrOpen($"Global\\{shareMkey}", shareMLength * shareItemMLength);
-                accessor2 = mmf2.CreateViewAccessor();
+
+                shareMemory = new ShareMemory(shareMkey, shareMLength, shareItemMLength);
+                shareMemory.InitGlobal();
                 CheckMemory();
             }
             catch (Exception)
@@ -57,7 +58,17 @@ namespace cmonitor.sas.service
         }
         protected override void OnStop()
         {
+            WriteAllCloseState(true);
+            WaitClose();
             cancellationTokenSource?.Cancel();
+        }
+        private void WaitClose()
+        {
+            while (Process.GetProcessesByName(mainExeName).Any())
+            {
+                WriteAllCloseState(true);
+                Thread.Sleep(1000);
+            }
         }
 
         private void CheckMemory()
@@ -70,7 +81,7 @@ namespace cmonitor.sas.service
                 {
                     try
                     {
-                        string value = ReadMemory(shareIndex);
+                        string value = shareMemory.GetItemValue(shareIndex);
                         if (value == "ctrl+alt+delete")
                         {
                             try
@@ -80,7 +91,7 @@ namespace cmonitor.sas.service
                             catch (Exception)
                             {
                             }
-                            WriteMemory(shareIndex, keyBytes, new byte[0]);
+                            shareMemory.Update(shareIndex, keyBytes, Array.Empty<byte>());
                         }
                     }
                     finally
@@ -91,51 +102,15 @@ namespace cmonitor.sas.service
                 }
             }, cancellationTokenSource, TaskCreationOptions.LongRunning);
         }
-        private string ReadMemory(int index)
+      
+        private void WriteAllCloseState(bool state)
         {
-            int keyIndex = index * shareItemMLength;
-            int keyLength = accessor2.ReadByte(keyIndex);
-            keyIndex += 1 + keyLength;
-            int valueLength = accessor2.ReadByte(keyIndex);
-            keyIndex += 1;
-
-            byte[] valueBytes = new byte[valueLength];
-            if (valueBytes.Length > 0)
+            for (int i = 0; i <= 255; i++)
             {
-                accessor2.ReadArray(keyIndex, valueBytes, 0, valueLength);
-                return Encoding.UTF8.GetString(valueBytes, 0, valueLength);
+                shareMemory.WriteClosed(i, state);
             }
-            return string.Empty;
         }
-        private void WriteMemory(int index, byte[] key, byte[] value)
-        {
-            int keyIndex = index * shareItemMLength;
-            if (value.Length > 0)
-                accessor2.Write(keyIndex, (byte)key.Length);
-            keyIndex++;
-            if (value.Length > 0)
-                accessor2.WriteArray(keyIndex, key, 0, key.Length);
-            keyIndex += key.Length;
-
-            accessor2.Write(keyIndex, (byte)value.Length);
-            if (value.Length > 0)
-            {
-                keyIndex++;
-                accessor2.WriteArray(keyIndex, value, 0, value.Length);
-                keyIndex += value.Length;
-            }
-
-            UpdatedState(index);
-        }
-        private void UpdatedState(int updatedOffset)
-        {
-            accessor2.Write((shareMLength - 1) * shareItemMLength, (byte)1);
-        }
-
-        [DllImport("sas.dll")]
-        public static extern void SendSAS(bool asUser);
-
-
+       
         Process proc;
         private void CheckMainProcess()
         {
@@ -149,7 +124,7 @@ namespace cmonitor.sas.service
                 {
                     try
                     {
-                        if (Process.GetProcessesByName(mainExeName).Length <= 0)
+                        if (Process.GetProcessesByName(mainExeName).Any() == false)
                         {
                             KillExe();
                             OpenExe();
@@ -168,7 +143,7 @@ namespace cmonitor.sas.service
             {
                 string filename = Process.GetCurrentProcess().MainModule.FileName;
                 string dir = Path.GetDirectoryName(filename);
-                string file = Path.Combine(dir, mainExeName);
+                string file = Path.Combine(dir, $"{mainExeName}.exe");
                 ProcessStartInfo processStartInfo = new ProcessStartInfo()
                 {
                     WorkingDirectory = dir,
@@ -214,5 +189,6 @@ namespace cmonitor.sas.service
                 proc = null;
             }
         }
+
     }
 }

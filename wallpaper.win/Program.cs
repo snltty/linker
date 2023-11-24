@@ -1,13 +1,9 @@
-﻿using System;
-using System.Threading;
-using System.Windows.Forms;
-
 namespace wallpaper.win
 {
     internal static class Program
     {
         /// <summary>
-        /// 应用程序的主入口点。
+        ///  The main entry point for the application.
         /// </summary>
         [STAThread]
         static void Main(string[] arg)
@@ -18,22 +14,30 @@ namespace wallpaper.win
                 Environment.Exit(1);
             }
 
+            AppDomain.CurrentDomain.UnhandledException += (a, b) =>
+            {
+            };
+
             string imgUrl = "./bg.jpg";
-            string shareMkey = "test";
-            int shareMLength = 2550;
-            int shareKeyBoardIndex = 0;
-            int shareWallpaperIndex = 1;
+            string shareMkey = "cmonitor/share";
+            int shareMLength = 10;
+            int shareItemMLength = 1024;
+            int shareKeyBoardIndex = 1;
+            int shareWallpaperIndex = 2;
             if (arg.Length > 0)
             {
                 imgUrl = arg[0];
                 shareMkey = arg[1];
                 shareMLength = int.Parse(arg[2]);
-                shareKeyBoardIndex = int.Parse(arg[3]);
-                shareWallpaperIndex = int.Parse(arg[4]);
+                shareItemMLength = int.Parse(arg[3]);
+                shareKeyBoardIndex = int.Parse(arg[4]);
+                shareWallpaperIndex = int.Parse(arg[5]);
             }
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm(imgUrl, shareMkey, shareMLength, shareKeyBoardIndex, shareWallpaperIndex));
+
+            // To customize application configuration such as set high DPI settings or default font,
+            // see https://aka.ms/applicationconfiguration.
+            ApplicationConfiguration.Initialize();
+            Application.Run(new MainForm(imgUrl, shareMkey, shareMLength, shareItemMLength, shareKeyBoardIndex, shareWallpaperIndex));
         }
     }
 }

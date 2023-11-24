@@ -67,7 +67,7 @@ namespace cmonitor
             Config config = new Config();
             InitConfig(config, dic);
 
-            
+
             //全局异常
             AppDomain.CurrentDomain.UnhandledException += (a, b) =>
             {
@@ -219,6 +219,7 @@ namespace cmonitor
                 config.ServicePort = int.Parse(dic["service"]);
                 config.ShareMemoryKey = dic["share-key"];
                 config.ShareMemoryLength = int.Parse(dic["share-len"]);
+                config.ShareMemoryItemLength = int.Parse(dic["share-item-len"]);
                 config.ReportDelay = int.Parse(dic["report-delay"]);
                 config.ScreenScale = float.Parse(dic["screen-scale"]);
                 config.ScreenDelay = int.Parse(dic["screen-delay"]);
@@ -314,18 +315,21 @@ namespace cmonitor
         [JsonIgnore]
         public bool Elevated { get; set; }
 
+        /// <summary>
+        /// 0项保留给各个功能的状态信息，每个一个字节为状态信息，看ShareMemoryState
+        /// </summary>
         public string ShareMemoryKey { get; set; } = "cmonitor/share";
         public int ShareMemoryLength { get; set; } = 10;
+        public int ShareMemoryItemLength { get; set; } = 1024;
 
-        public const int ShareMemoryItemLength = 255;
         //键盘
-        public const int ShareMemoryKeyBoardIndex = 0;
+        public const int ShareMemoryKeyBoardIndex = 1;
         //壁纸
-        public const int ShareMemoryWallpaperIndex = 1;
+        public const int ShareMemoryWallpaperIndex = 2;
         //锁屏
-        public const int ShareMemoryLLockIndex = 2;
+        public const int ShareMemoryLLockIndex = 3;
         //SAS
-        public const int ShareMemorySASIndex = 3;
+        public const int ShareMemorySASIndex = 4;
 
     }
 
@@ -432,6 +436,10 @@ namespace cmonitor
             if (dic.ContainsKey("share-len") == false || string.IsNullOrWhiteSpace(dic["share-len"]))
             {
                 dic["share-len"] = "10";
+            }
+            if (dic.ContainsKey("share-item-len") == false || string.IsNullOrWhiteSpace(dic["share-item-len"]))
+            {
+                dic["share-item-len"] = "1024";
             }
             return true;
         }

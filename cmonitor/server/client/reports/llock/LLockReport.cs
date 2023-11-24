@@ -30,7 +30,7 @@ namespace cmonitor.server.client.reports.llock
         DateTime startTime = new DateTime(1970, 1, 1);
         public object GetReports(ReportType reportType)
         {
-            clientConfig.LLock = report.LockScreen = shareReport.GetShare(Name, out ShareItemInfo share)
+            clientConfig.LLock = report.LockScreen = shareReport.GetShare(Name, out cmonitor.libs.ShareItemInfo share)
                 && string.IsNullOrWhiteSpace(share.Value) == false
                 && long.TryParse(share.Value, out long time) && (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds - time < 1000;
 
@@ -48,17 +48,12 @@ namespace cmonitor.server.client.reports.llock
             clientConfig.LLock = open;
             Task.Run(async () =>
             {
-                shareReport.Update(new ShareItemInfo
-                {
-                    Index = Config.ShareMemoryLLockIndex,
-                    Value = "close"
-                });
+                shareReport.WriteClose(Config.ShareMemoryLLockIndex);
                 await Task.Delay(100);
-                //CommandHelper.Windows(string.Empty, new string[] { "taskkill /f /t /im \"llock.win.exe\"" });
                 if (open)
                 {
                     CommandHelper.Windows(string.Empty, new string[] {
-                        $"start llock.win.exe {config.ShareMemoryKey} {config.ShareMemoryLength} {Config.ShareMemoryLLockIndex}"
+                        $"start llock.win.exe {config.ShareMemoryKey} {config.ShareMemoryLength} {config.ShareMemoryItemLength} {Config.ShareMemoryLLockIndex}"
                     });
                 }
             });

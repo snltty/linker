@@ -6,6 +6,10 @@ fs=('cmonitor')
 ps=('alpine')
 rs=('x64' 'arm64')
 
+cd cmonitor.web 
+npm install &&
+npm run build &&
+cd ../
 
 for f in ${fs[@]} 
 do
@@ -17,7 +21,7 @@ do
 			cp -rf public/publish/docker/linux-${p}-${r}/${f}/${f} public/publish/docker/linux-${p}-${r}/${f}/${f}.run
 			rm -rf public/publish/docker/linux-${p}-${r}/${f}/${f}
 			cp -rf cmonitor/Dockerfile-${p} public/publish/docker/linux-${p}-${r}/${f}/Dockerfile-${p}
-			cp -rf cmonitor/publish/web/* public/publish/docker/linux-${p}-${r}/${f}/web/*
+			cp -rf public/extends/web/* public/publish/docker/linux-${p}-${r}/${f}/web/*
 		done
 
 		cd public/publish/docker/linux-${p}-x64/${f}

@@ -16,7 +16,7 @@ namespace cmonitor.server.service.messengers.share
         public void Update(IConnection connection)
         {
             ShareItemInfo shareItemInfo = MemoryPackSerializer.Deserialize<ShareItemInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            shareReport.Update(shareItemInfo);
+            shareReport.UpdateShare(shareItemInfo);
         }
     }
 

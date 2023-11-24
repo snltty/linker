@@ -36,6 +36,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\cmonitor.libs\cmonitor.libs.csproj" />
 		<ProjectReference Include="..\common.libs\common.libs.csproj" />
 	</ItemGroup>
 
@@ -70,8 +71,8 @@
 	</ItemGroup>
 
 	
-	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+	<!--<Target Name="PostBuild" AfterTargets="PostBuildEvent">
 	  <Exec Command="call copy.bat &quot;$(OutDir)&quot;" />
-	</Target>
+	</Target>-->
 
 </Project>

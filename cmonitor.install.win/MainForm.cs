@@ -1,12 +1,7 @@
-Ôªøusing Microsoft.Win32;
-using System;
-using System.Collections.Generic;
+using common.libs;
+using Microsoft.Win32;
 using System.Diagnostics;
-using System.Drawing;
-using System.IO;
 using System.Net;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace cmonitor.install.win
 {
@@ -41,7 +36,6 @@ namespace cmonitor.install.win
             key.SetValue("modeServer", modeServer.Checked ? "1" : "0");
 
             key.SetValue("machineName", machineName.Text);
-            key.SetValue("sasService", sasService.Checked ? "1" : "0");
 
             key.SetValue("serverIP", serverIP.Text);
             key.SetValue("serverPort", serverPort.Text);
@@ -54,6 +48,7 @@ namespace cmonitor.install.win
 
             key.SetValue("shareKey", shareKey.Text);
             key.SetValue("shareLen", shareLen.Text);
+            key.SetValue("shareItemLen", shareItemLen.Text);
 
             key.SetValue("keyboardIndex", keyboardIndex.Text);
             key.SetValue("wallpaperIndex", wallpaperIndex.Text);
@@ -72,7 +67,6 @@ namespace cmonitor.install.win
             modeServer.Checked = key.GetValue("modeServer", "0").ToString() == "1";
 
             machineName.Text = key.GetValue("machineName", hostname).ToString();
-            sasService.Checked = key.GetValue("sasService", "0").ToString() == "1";
 
             serverIP.Text = key.GetValue("serverIP", "127.0.0.1").ToString();
             serverPort.Text = key.GetValue("serverPort", "1802").ToString();
@@ -85,16 +79,17 @@ namespace cmonitor.install.win
 
             shareKey.Text = key.GetValue("shareKey", "cmonitor/share").ToString();
             shareLen.Text = key.GetValue("shareLen", "10").ToString();
+            shareItemLen.Text = key.GetValue("shareItemLen", "1024").ToString();
 
-            keyboardIndex.Text = key.GetValue("keyboardIndex", "0").ToString();
-            wallpaperIndex.Text = key.GetValue("wallpaperIndex", "1").ToString();
-            llockIndex.Text = key.GetValue("llockIndex", "2").ToString();
-            sasIndex.Text = key.GetValue("sasIndex", "3").ToString();
+            keyboardIndex.Text = "1";
+            wallpaperIndex.Text = "2";
+            llockIndex.Text = "3";
+            sasIndex.Text = "4";
         }
 
         private RegistryKey CheckRegistryKey()
         {
-            Registry.SetValue("HKEY_CURRENT_USER\\SOFTWARE\\Cmonitor", "test", 1);
+            Registry.SetValue("HKEY_CURRENT_USER\\SOFTWARE\\cmonitor", "test", 1);
 
             RegistryKey key = Registry.CurrentUser.OpenSubKey("Software");
             return key.OpenSubKey("cmonitor", true);
@@ -104,6 +99,8 @@ namespace cmonitor.install.win
         bool loading = false;
         bool installed = false;
         bool running = false;
+        string serviceName = "cmonitor.sas.service";
+        string exeName = "cmonitor.sas.service.exe";
         private void OnInstallClick(object sender, EventArgs e)
         {
             if (loading)
@@ -126,36 +123,25 @@ namespace cmonitor.install.win
             SaveConfig();
 
             string paramStr = string.Join(" ", installParams);
-            bool installSas = sasService.Checked;
-            bool _sasStart = sasStart.Checked;
 
             string filename = Process.GetCurrentProcess().MainModule.FileName;
             string dir = Path.GetDirectoryName(filename);
-            string exePath = Path.Combine(dir, "cmonitor.win.exe");
-            string sasPath = Path.Combine(dir, "cmonitor.sas.service.exe");
+            string sasPath = Path.Combine(dir, exeName);
 
             string sasIndexStr = sasIndex.Text;
+
+            string shareKeyStr = shareKey.Text;
+            string shareLenStr = shareLen.Text;
 
             Task.Run(() =>
             {
                 if (installed == false)
                 {
-
-                    string str = CommandHelper.Windows(string.Empty, new string[] {
-                        $"schtasks.exe /create /tn \"cmonitorService\" /rl highest /sc ONSTART /delay 0000:30 /tr \"\"{exePath}\" {paramStr}\" "
-                    });
-                    if (installSas)
-                    {
-                        string taskStr = $"sc create \"cmonitor.sas.service\" binpath=\"{sasPath} {shareKey} {shareLen} {sasIndexStr} \\\"{paramStr}\\\"\" start=AUTO";
-                        if (_sasStart == false)
-                        {
-                            taskStr = $"sc create \"cmonitor.sas.service\" binpath=\"{sasPath} {shareKey} {shareLen} {sasIndexStr}\" start=AUTO";
-                        }
-                        str = CommandHelper.Windows(string.Empty, new string[] {
+                    string taskStr = $"sc create \"{serviceName}\" binpath=\"{sasPath} {shareKeyStr} {shareLenStr} 255 {sasIndexStr} \\\"{paramStr}\\\"\" start=AUTO";
+                    CommandHelper.Windows(string.Empty, new string[] {
                         taskStr,
-                        "net start cmonitor.sas.service",
-                        });
-                    }
+                        $"net start {serviceName}",
+                    });
                 }
                 else
                 {
@@ -167,13 +153,14 @@ namespace cmonitor.install.win
                     }
                     string resultStr = CommandHelper.Windows(string.Empty, new string[] {
                         "schtasks /delete /TN \"cmonitorService\" /f",
-                        "net stop cmonitor.sas.service",
-                        "sc delete cmonitor.sas.service",
+                        $"net stop {serviceName}",
+                        $"sc delete {serviceName}",
                     });
                 }
 
                 CheckLoading(false);
                 CheckInstall();
+                CheckRunning();
             });
         }
 
@@ -181,7 +168,7 @@ namespace cmonitor.install.win
         {
             if (modeClient.Checked == false && modeServer.Checked == false)
             {
-                MessageBox.Show("ÂÆ¢Êà∑Á´ØÂíåÊúçÂä°Á´ØÂøÖÈ°ªÈÄâÊã©‰∏ÄÊ†∑ÔºÅ");
+                MessageBox.Show("øÕªß∂À∫Õ∑˛ŒÒ∂À±ÿ–Î—°‘Ò“ª—˘£°");
                 return false;
             }
             List<string> modeStr = new List<string>();
@@ -201,22 +188,22 @@ namespace cmonitor.install.win
         {
             if (string.IsNullOrWhiteSpace(serverIP.Text))
             {
-                MessageBox.Show("ÊúçÂä°Âô®ipÂøÖÂ°´");
+                MessageBox.Show("∑˛ŒÒ∆˜ip±ÿÃÓ");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(serverPort.Text))
             {
-                MessageBox.Show("ÊúçÂä°Âô®Á´ØÂè£ÂøÖÂ°´");
+                MessageBox.Show("∑˛ŒÒ∆˜∂Àø⁄±ÿÃÓ");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(apiPort.Text))
             {
-                MessageBox.Show("ÁÆ°ÁêÜÁ´ØÂè£ÂøÖÂ°´");
+                MessageBox.Show("π‹¿Ì∂Àø⁄±ÿÃÓ");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(webPort.Text))
             {
-                MessageBox.Show("webÁ´ØÂè£ÂøÖÂ°´");
+                MessageBox.Show("web∂Àø⁄±ÿÃÓ");
                 return false;
             }
             installParams.Add($"--server {serverIP.Text}");
@@ -230,17 +217,17 @@ namespace cmonitor.install.win
         {
             if (string.IsNullOrWhiteSpace(reportDelay.Text))
             {
-                MessageBox.Show("Êä•ÂëäÈó¥ÈöîÊó∂Èó¥ÂøÖÂ°´");
+                MessageBox.Show("±®∏Êº‰∏Ù ±º‰±ÿÃÓ");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(screenDelay.Text))
             {
-                MessageBox.Show("Êà™Â±èÈó¥ÈöîÊó∂Èó¥ÂøÖÂ°´");
+                MessageBox.Show("Ωÿ∆¡º‰∏Ù ±º‰±ÿÃÓ");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(screenScale.Text))
             {
-                MessageBox.Show("Êà™Â±èÁº©ÊîæÊØî‰æãÂøÖÂ°´");
+                MessageBox.Show("Ωÿ∆¡Àı∑≈±»¿˝±ÿÃÓ");
                 return false;
             }
             installParams.Add($"--report-delay {reportDelay.Text}");
@@ -253,36 +240,42 @@ namespace cmonitor.install.win
         {
             if (string.IsNullOrWhiteSpace(shareKey.Text))
             {
-                MessageBox.Show("ÂÖ±‰∫´Êï∞ÊçÆÈîÆÂøÖÂ°´");
+                MessageBox.Show("π≤œÌ ˝æ›º¸±ÿÃÓ");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(shareLen.Text))
             {
-                MessageBox.Show("ÂÖ±‰∫´Êï∞ÈáèÂøÖÂ°´");
+                MessageBox.Show("π≤œÌ ˝¡ø±ÿÃÓ");
+                return false;
+            }
+            if (string.IsNullOrWhiteSpace(shareItemLen.Text))
+            {
+                MessageBox.Show("π≤œÌ√øœÓ ˝æ›≥§∂»±ÿÃÓ");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(keyboardIndex.Text))
             {
-                MessageBox.Show("ÈîÆÁõòÈîÆ‰∏ãÊ†áÂøÖÂ°´");
+                MessageBox.Show("º¸≈Ãº¸œ¬±Í±ÿÃÓ");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(wallpaperIndex.Text))
             {
-                MessageBox.Show("Â£ÅÁ∫∏ÈîÆ‰∏ãÊ†áÂøÖÂ°´");
+                MessageBox.Show("±⁄÷Ωº¸œ¬±Í±ÿÃÓ");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(llockIndex.Text))
             {
-                MessageBox.Show("ÈîÅÂ±èÈîÆ‰∏ãÊ†áÂøÖÂ°´");
+                MessageBox.Show("À¯∆¡º¸œ¬±Í±ÿÃÓ");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(sasIndex.Text))
             {
-                MessageBox.Show("sasÈîÆ‰∏ãÊ†áÂøÖÂ°´");
+                MessageBox.Show("sasº¸œ¬±Í±ÿÃÓ");
                 return false;
             }
             installParams.Add($"--share-key {shareKey.Text}");
             installParams.Add($"--share-len {shareLen.Text}");
+            installParams.Add($"--share-item-len {shareItemLen.Text}");
 
             return true;
         }
@@ -294,33 +287,35 @@ namespace cmonitor.install.win
             {
                 if (loading)
                 {
-                    installBtn.Text = "Êìç‰Ωú‰∏≠..";
-                    runBtn.Text = "Êìç‰Ωú‰∏≠..";
+                    installBtn.Text = "≤Ÿ◊˜÷–..";
+                    runBtn.Text = "≤Ÿ◊˜÷–..";
+                    checkStateBtn.Text = "≤Ÿ◊˜÷–..";
                 }
                 else
                 {
+                    checkStateBtn.Text = "ºÏ≤È◊¥Ã¨";
                     if (installed)
                     {
                         installBtn.ForeColor = Color.Red;
-                        installBtn.Text = "Ëß£Èô§Ëá™ÂêØÂä®";
+                        installBtn.Text = "Ω‚≥˝◊‘∆Ù∂Ø";
                         runBtn.Enabled = true;
                     }
                     else
                     {
                         installBtn.ForeColor = Color.Black;
-                        installBtn.Text = "ÂÆâË£ÖËá™ÂêØÂä®";
+                        installBtn.Text = "∞≤◊∞◊‘∆Ù∂Ø";
                         runBtn.Enabled = false;
                     }
 
                     if (running)
                     {
                         runBtn.ForeColor = Color.Red;
-                        runBtn.Text = "ÂÅúÊ≠¢ËøêË°å";
+                        runBtn.Text = "Õ£÷π‘À––";
                     }
                     else
                     {
                         runBtn.ForeColor = Color.Black;
-                        runBtn.Text = "ÂêØÂä®";
+                        runBtn.Text = "∆Ù∂Ø";
                     }
                 }
             }));
@@ -329,8 +324,8 @@ namespace cmonitor.install.win
         {
             Task.Run(() =>
             {
-                string result = CommandHelper.Windows(string.Empty, new string[] { "schtasks.exe /query /fo TABLE|findstr \"cmonitor\"" });
-                installed = result.Contains("cmonitorService");
+                string result = CommandHelper.Windows(string.Empty, new string[] { $"sc query {serviceName}" });
+                installed = result.Contains($"SERVICE_NAME: {serviceName}");
                 CheckLoading(loading);
             });
         }
@@ -368,39 +363,32 @@ namespace cmonitor.install.win
         {
             CommandHelper.Windows(string.Empty, new string[] {
                     "schtasks /run /I /TN \"cmonitorService\"",
-                    "net start cmonitor.sas.service",
+                    $"net stop {serviceName}",
+                    $"net start {serviceName}",
             });
         }
         private void Stop()
         {
-            CommandHelper.Windows(string.Empty, new string[] {
-                    "taskkill /f /im \"cmonitor.win.exe\"",
-                    "taskkill /f /im \"cmonitor.exe\"",
-                    "taskkill /f /im \"wallpaper.win.exe\"",
-                    "taskkill /f /im \"llock.win.exe\"",
-                    "taskkill /f /im \"message.win.exe\"",
-                    "taskkill /f /im \"notify.win.exe\"",
-                    "net stop \"cmonitor.sas.service\"",
-            });
+            CommandHelper.Windows(string.Empty, new string[] { $"net stop \"{serviceName}\"", });
         }
 
         private void CheckRunning()
         {
-            running = Process.GetProcessesByName("cmonitor").Length > 0;
-            CheckLoading(loading);
+            Task.Run(() =>
+            {
+                string result = CommandHelper.Windows(string.Empty, new string[] { $"sc query {serviceName}" });
+                running = result.Contains(": 4  RUNNING");
+                CheckLoading(loading);
+            });
         }
 
-        private void sasStart_CheckedChanged(object sender, EventArgs e)
+        private void checkStateBtn_Click(object sender, EventArgs e)
         {
-            if (sasStart.Checked)
-            {
-                sasService.Checked = true;
-                sasService.Enabled = false;
-            }
-            else
-            {
-                sasService.Enabled = true;
-            }
+            if (loading) return;
+
+            CheckLoading(loading);
+            CheckInstall();
+            CheckRunning();
         }
     }
 }

@@ -5,19 +5,19 @@ namespace common.libs
 {
     public sealed class CommandHelper
     {
-        public static string Windows(string arg, string[] commands)
+        public static string Windows(string arg, string[] commands, bool readResult = true)
         {
-            return Execute("cmd.exe", arg, commands);
+            return Execute("cmd.exe", arg, commands, readResult);
         }
-        public static string Linux(string arg, string[] commands)
+        public static string Linux(string arg, string[] commands, bool readResult = true)
         {
-            return Execute("/bin/bash", arg, commands);
+            return Execute("/bin/bash", arg, commands, readResult);
         }
-        public static string Osx(string arg, string[] commands)
+        public static string Osx(string arg, string[] commands, bool readResult = true)
         {
-            return Execute("/bin/bash", arg, commands);
+            return Execute("/bin/bash", arg, commands, readResult);
         }
-        public static Process Execute(string fileName, string arg)
+        public static Process Execute(string fileName, string arg, bool readResult = true)
         {
             Process proc = new Process();
             proc.StartInfo.CreateNoWindow = true;
@@ -33,7 +33,7 @@ namespace common.libs
             //Process proc = Process.Start(fileName, arg);
             return proc;
         }
-        public static string Execute(string fileName, string arg, string[] commands)
+        public static string Execute(string fileName, string arg, string[] commands, bool readResult = true)
         {
             Process proc = new Process();
             proc.StartInfo.WorkingDirectory = Path.GetFullPath(Path.Join("./"));
@@ -58,13 +58,18 @@ namespace common.libs
             proc.StandardInput.AutoFlush = true;
             proc.StandardInput.WriteLine("exit");
             proc.StandardInput.Close();
-            string output = proc.StandardOutput.ReadToEnd();
-            string error = proc.StandardError.ReadToEnd();
-            proc.WaitForExit();
-            proc.Close();
-            proc.Dispose();
 
-            return output;
+            if (readResult)
+            {
+                string output = proc.StandardOutput.ReadToEnd();
+                string error = proc.StandardError.ReadToEnd();
+                proc.WaitForExit();
+                proc.Close();
+                proc.Dispose();
+
+                return output;
+            }
+            return string.Empty;
         }
     }
 }

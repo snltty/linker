@@ -95,8 +95,9 @@
 1. **【--name】** 机器名
 1. **【--server】** 服务器ip  **192.168.1.18**
 2. **【--service】** 服务端口 **1802**
-3. **【--share-key】** 自定数据共享 **cmonitor/share**，每项数据长度255,klen+key+vlen+value
-4. **【--share-len】** 数量 **10**，默认10项位置，0键盘、1壁纸、2锁屏，3 SendSAS，-1项保留自用不可动
+3. **【--share-key】** 自定数据共享 **cmonitor/share**
+4. **【--share-len】** 数量 **10**，默认10项位置，0保留，1键盘、2壁纸、3锁屏，4 SendSAS，0项保留自用不可动
+4. **【--share-item-len】** 每项数据长度 **1024**，klen+key+vlen+value
 
 ###### 服务端
 1. **【--web】** 管理UI端口 **1800**
@@ -104,29 +105,11 @@
 3. **【--service】** 服务端口 **1802**
 
 ## 安装示例
+
+##### 由于winform不支持裁剪程序集，所以客户端需要安装NET8.0 SDK(sdk包含runtime，最简单)
+
 ##### windows计划任务，客户端、服务端
-1. 也可以运行 comitor.install.win.exe 进行安装操作
-2. 计划任务可以用ONLOGON以在用户登录系统后运行任务，但是有时候需要在登录前就启动程序，以远程操作解锁系统，那就需要以ONSTART创建任务，但是某些系统下，ONSTART无法运行，因此，在 **Ctrl+Alt+Delete 服务**中有第四参数，填入主程序启动参数，可以在此服务中启动主程序
-```
-params = " --report-delay 30 --screen-delay 200 --screen-scale 0.2";
-//client
-params += " --mode client --name cmonitor --server 192.168.1.18 --service 1802";
-params += " --share-key cmonitor/share --share-len 2550";
-
-//server
-params = " --mode server --web 1800 --api 1801 --service 1802";
-
-schtasks.exe /create /tn "cmonitor" /rl highest /sc ONSTART /delay 0000:30 /tr "\"{exePath}\"{params}" /f
-```
-
-##### Ctrl+Alt+Delete 服务
-必须以windows service方式运行cmonitor.sas.service.exe 才能使用**SendSAS**模拟**Ctrl+Alt+Delete**，{params}为主程序启动参数，不填则不在此服务内启动主程序
-``` 
-sc create "cmonitor.sas.service" 
-binpath="xx\xx\cmonitor.sas.service.exe {--share-key} {--share-len} 3 {params}" 
-start=AUTO 
-```
-
+1. 可以运行 comitor.install.win.exe 进行安装操作
 
 ##### linux服务端 systemd
 ```
@@ -168,14 +151,13 @@ snltty/cmonitor-alpine-x64 \
 
 ## 发布项目
 1. nodejs 16.17.0 vue3.0 web
-2. netframework 4.5 加入环境变量，以使用msbuild，应该是 **C:\Windows\Microsoft.NET\Framework\v4.0.30319** 目录
-3. NET7.0 SDK 主程序
-4. 进入根目执行
+2. NET8.0 SDK 主程序
+3. 进入根目执行
 ```
-./publish-extends  rem 生成web和netframework
-./publish rem 发布主程序
+./publish-extends   生成web和winform
+./publish  发布主程序
 ```
-5. 在 /public/publish 目录下查看已发布程序
+4. 在 /public/publish 目录下查看已发布程序
 
 ## 支持作者
 

@@ -1,12 +1,7 @@
-﻿using System;
+﻿using cmonitor.libs;
 using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
-using System.Windows.Forms;
 
 namespace wallpaper.win
 {
@@ -16,12 +11,12 @@ namespace wallpaper.win
         private IntPtr programIntPtr = IntPtr.Zero;
         private Hook hook;
         private string imgUrl;
-        private string shareMkey;
-        private int shareMLength;
-        private int shareItemMLength = 255;
 
         private int shareKeyBoardIndex;
         private int shareWallpaperIndex;
+
+        private readonly ShareMemory shareMemory;
+        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
         protected override CreateParams CreateParams
         {
@@ -36,20 +31,19 @@ namespace wallpaper.win
             }
         }
 
-        public MainForm(string imgUrl, string shareMkey, int shareMLength, int shareKeyBoardIndex, int shareWallpaperIndex)
+        public MainForm(string imgUrl, string shareMkey, int shareMLength, int shareItemMLength, int shareKeyBoardIndex, int shareWallpaperIndex)
         {
             this.imgUrl = imgUrl;
-            this.shareMkey = shareMkey;
-            this.shareMLength = shareMLength;
             this.shareKeyBoardIndex = shareKeyBoardIndex;
             this.shareWallpaperIndex = shareWallpaperIndex;
 
+            shareMemory = new ShareMemory(shareMkey, shareMLength, shareItemMLength);
 
             InitializeComponent();
 
             hook = new Hook();
-            AppDomain.CurrentDomain.ProcessExit += (s, e) => hook.Close();
-            Application.ApplicationExit += (s, e) => hook.Close();
+            AppDomain.CurrentDomain.ProcessExit += (s, e) => CloseClear();
+            Application.ApplicationExit += (s, e) => CloseClear();
 
         }
 
@@ -68,10 +62,12 @@ namespace wallpaper.win
             this.Height = bound.Height;
             this.Left = 0;
             this.Top = 0;
-
+            //this.WindowState = FormWindowState.Maximized;
             Find();
             Init();
             this.WindowState = FormWindowState.Maximized;
+
+            shareMemory.InitLocal();
 
             WatchParent();
             WatchMemory();
@@ -117,26 +113,33 @@ namespace wallpaper.win
             IntPtr oldprogramIntPtr = programIntPtr;
             new Thread(() =>
             {
-                while (true)
+                while (cancellationTokenSource.Token.IsCancellationRequested == false)
                 {
-                    Find();
-                    if (programIntPtr != oldprogramIntPtr)
+                    try
                     {
-                        Application.ExitThread();
-                        Application.Exit();
-                        Application.Restart();
-                        Process.GetCurrentProcess().Kill();
-                    }
+                        Find();
+                        if (programIntPtr != oldprogramIntPtr)
+                        {
+                            cancellationTokenSource.Cancel();
+                            Application.ExitThread();
+                            Application.Exit();
+                            Application.Restart();
+                            Process.GetCurrentProcess().Kill();
+                        }
 
-                    bool hasChild = false;
-                    Win32.EnumChildWindows(programIntPtr, (IntPtr hwnd, IntPtr lParam) =>
+                        bool hasChild = false;
+                        Win32.EnumChildWindows(programIntPtr, (IntPtr hwnd, IntPtr lParam) =>
+                        {
+                            hasChild |= hwnd == this.Handle;
+                            return true;
+                        }, IntPtr.Zero);
+                        if (hasChild == false)
+                        {
+                            Init();
+                        }
+                    }
+                    catch (Exception)
                     {
-                        hasChild |= hwnd == this.Handle;
-                        return true;
-                    }, IntPtr.Zero);
-                    if (hasChild == false)
-                    {
-                        Init();
                     }
                     Thread.Sleep(1000);
                 }
@@ -160,61 +163,70 @@ namespace wallpaper.win
                 }
             }
         }
+        private void CloseClear()
+        {
+            shareMemory.WriteRunning(shareWallpaperIndex, false);
+            shareMemory.WriteRunning(shareKeyBoardIndex, false);
 
+            cancellationTokenSource.Cancel();
+            hook.Close();
 
-        MemoryMappedFile mmf2;
-        MemoryMappedViewAccessor accessor2;
+            Application.ExitThread();
+            Application.Exit();
+            Process.GetCurrentProcess().Kill();
+
+            //shareMemory.Disponse();
+        }
+
         byte[] keyBytes = Encoding.UTF8.GetBytes("KeyBoard");
         byte[] wallpaperBytes = Encoding.UTF8.GetBytes("Wallpaper");
         DateTime startTime = new DateTime(1970, 1, 1);
         byte[] emptyArray = new byte[0];
         private void WatchMemory()
         {
-            mmf2 = MemoryMappedFile.CreateOrOpen($"{this.shareMkey}", this.shareMLength * shareItemMLength);
-            accessor2 = mmf2.CreateViewAccessor();
-            WriteKeyBoard("init");
-            WriteMemory(this.shareWallpaperIndex, wallpaperBytes, Encoding.UTF8.GetBytes("init"));
+            shareMemory.WriteClosed(shareWallpaperIndex, false);
+            shareMemory.WriteClosed(shareKeyBoardIndex, false);
+            shareMemory.WriteRunning(shareWallpaperIndex, true);
+            shareMemory.WriteRunning(shareKeyBoardIndex, true);
             new Thread(() =>
             {
                 StringBuilder sb = new StringBuilder();
-                while (true)
+                while (cancellationTokenSource.Token.IsCancellationRequested == false)
                 {
-                    if (Hook.CurrentKeys == Keys.None)
+                    try
                     {
-                        ClearKeyBoard();
-                    }
-                    else
-                    {
-                        sb.Clear();
-                        if ((Control.ModifierKeys & Keys.Control) == Keys.Control)
+                        if (Hook.CurrentKeys == Keys.None)
                         {
-                            sb.Append("Ctrl+");
+                            shareMemory.Update(shareKeyBoardIndex, keyBytes, emptyArray);
                         }
-                        if ((Control.ModifierKeys & Keys.Shift) == Keys.Shift)
+                        else
                         {
-                            sb.Append("Shift+");
-                        }
-                        if ((Control.ModifierKeys & Keys.Alt) == Keys.Alt)
-                        {
-                            sb.Append("Alt+");
-                        }
-                        sb.Append(Hook.CurrentKeys.ToString());
+                            sb.Clear();
+                            if ((Control.ModifierKeys & Keys.Control) == Keys.Control)
+                            {
+                                sb.Append("Ctrl+");
+                            }
+                            if ((Control.ModifierKeys & Keys.Shift) == Keys.Shift)
+                            {
+                                sb.Append("Shift+");
+                            }
+                            if ((Control.ModifierKeys & Keys.Alt) == Keys.Alt)
+                            {
+                                sb.Append("Alt+");
+                            }
+                            sb.Append(Hook.CurrentKeys.ToString());
 
-                        WriteKeyBoard(sb.ToString());
+                            shareMemory.Update(shareKeyBoardIndex, keyBytes, Encoding.UTF8.GetBytes(sb.ToString()));
+                        }
+                        WriteWallpaper();
                     }
-                    WriteWallpaper();
+                    catch (Exception)
+                    {
+                    }
 
                     Thread.Sleep(30);
                 }
             }).Start();
-        }
-        private void WriteKeyBoard(string value)
-        {
-            WriteMemory(this.shareKeyBoardIndex, keyBytes, Encoding.UTF8.GetBytes(value));
-        }
-        private void ClearKeyBoard()
-        {
-            WriteMemory(this.shareKeyBoardIndex, keyBytes, emptyArray);
         }
 
         long lastTime = 0;
@@ -223,58 +235,13 @@ namespace wallpaper.win
             long time = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
             if (time - lastTime >= 300)
             {
-                bool close = ReadCloseMemory(this.shareWallpaperIndex);
-                WriteMemory(this.shareWallpaperIndex, wallpaperBytes, Encoding.UTF8.GetBytes(time.ToString()));
-                if (close)
+                shareMemory.Update(shareWallpaperIndex, wallpaperBytes, Encoding.UTF8.GetBytes(time.ToString()));
+                if (shareMemory.ReadClosed(shareWallpaperIndex))
                 {
-                    Environment.Exit(0);
+                    CloseClear();
                 }
                 lastTime = time;
             }
-        }
-        private void WriteMemory(int index, byte[] key, byte[] value)
-        {
-            int keyIndex = index * shareItemMLength;
-            if (value.Length > 0)
-                accessor2.Write(keyIndex, (byte)key.Length);
-            keyIndex++;
-            if (value.Length > 0)
-                accessor2.WriteArray(keyIndex, key, 0, key.Length);
-            keyIndex += key.Length;
-
-            accessor2.Write(keyIndex, (byte)value.Length);
-            if (value.Length > 0)
-            {
-                keyIndex++;
-                accessor2.WriteArray(keyIndex, value, 0, value.Length);
-                keyIndex += value.Length;
-            }
-            UpdatedState(index);
-        }
-        private void UpdatedState(int updatedOffset)
-        {
-            accessor2.Write((shareMLength - 1) * shareItemMLength, (byte)1);
-        }
-
-        private bool ReadCloseMemory(int index)
-        {
-            int keyIndex = index * shareItemMLength;
-            int keyLength = accessor2.ReadByte(keyIndex);
-            keyIndex += 1 + keyLength;
-            int valueLength = accessor2.ReadByte(keyIndex);
-            keyIndex += 1;
-
-            byte[] valueBytes = new byte[valueLength];
-            if (valueBytes.Length > 0)
-            {
-                accessor2.ReadArray(keyIndex, valueBytes, 0, valueLength);
-                string value = Encoding.UTF8.GetString(valueBytes, 0, valueLength);
-                if (value == "close")
-                {
-                    return true;
-                }
-            }
-            return false;
         }
     }
 
@@ -284,7 +251,7 @@ namespace wallpaper.win
         public static extern bool EnumChildWindows(IntPtr hWndParent, EnumChildCallback lpEnumFunc, IntPtr lParam);
         public delegate bool EnumChildCallback(IntPtr hwnd, IntPtr lParam);
 
-     
+
         [DllImport("user32.dll")]
         public static extern IntPtr FindWindow(string className, string winName);
 

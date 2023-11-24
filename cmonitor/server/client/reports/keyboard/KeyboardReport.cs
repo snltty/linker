@@ -65,7 +65,7 @@ namespace cmonitor.server.client.reports.command
         {
             try
             {
-                shareReport.Update(new ShareItemInfo
+                shareReport.UpdateShare(new ShareItemInfo
                 {
                     Index = Config.ShareMemorySASIndex,
                     Key = "cmonitor.sas.service",

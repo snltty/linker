@@ -1,21 +1,19 @@
-ï»¿using Microsoft.Win32;
-using System;
-using System.IO.MemoryMappedFiles;
+using cmonitor.libs;
+using common.libs;
+using Microsoft.Win32;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace llock.win
 {
     public partial class MainForm : Form
     {
         Hook hook = new Hook();
-        private string shareMkey;
-        private int shareMLength;
-        private int shareItemMLength = 255;
         private int shareIndex;
+        private readonly ShareMemory shareMemory;
+        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
         protected override CreateParams CreateParams
         {
@@ -30,18 +28,18 @@ namespace llock.win
             }
         }
 
-        public MainForm(string shareMkey, int shareMLength, int shareIndex)
+        public MainForm(string shareMkey, int shareMLength, int shareItemMLength, int shareIndex)
         {
-            this.shareMkey = shareMkey;
-            this.shareMLength = shareMLength;
             this.shareIndex = shareIndex;
+            shareMemory = new ShareMemory(shareMkey, shareMLength, shareItemMLength);
+            shareMemory.InitLocal();
 
             InitializeComponent();
             this.FormBorderStyle = FormBorderStyle.None;
             this.StartPosition = FormStartPosition.CenterScreen;
 
-            AppDomain.CurrentDomain.ProcessExit += (s, e) => hook.Close();
-            Application.ApplicationExit += (s, e) => hook.Close();
+            AppDomain.CurrentDomain.ProcessExit += (s, e) => CloseClear();
+            Application.ApplicationExit += (s, e) => CloseClear();
 
             btn1.Click += (s, e) => textBox1.Text += "1";
             btn2.Click += (s, e) => textBox1.Text += "2";
@@ -64,97 +62,36 @@ namespace llock.win
         public static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
         public static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
 
-        [DllImport("user32.dll", EntryPoint = "BlockInput")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool BlockInput([MarshalAs(UnmanagedType.Bool)] bool fBlockIt);
-
         private void OnLoad(object sender, EventArgs e)
         {
             hook.Start();
 #if RELEASE
             this.WindowState = FormWindowState.Maximized;
 #endif
-            //å°†çª—å£ç½®é¡¶
+            //½«´°¿ÚÖÃ¶¥
             SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
             groupBox1.Location = new System.Drawing.Point((this.Width - groupBox1.Width) / 2, (this.Height - groupBox1.Height) / 2);
 
-            mmf2 = MemoryMappedFile.CreateOrOpen($"{this.shareMkey}", this.shareMLength * shareItemMLength);
-            accessor2 = mmf2.CreateViewAccessor();
             WriteLLock();
+            shareMemory.WriteClosed(shareIndex, false);
+            shareMemory.WriteRunning(shareIndex, true);
             new Thread(() =>
             {
-                while (true)
+                while (cancellationTokenSource.Token.IsCancellationRequested == false)
                 {
-                    if (ReadCloseMemory())
+                    if (shareMemory.ReadClosed(shareIndex))
                     {
-                        hook.Close();
-                        Environment.Exit(0);
+                        CloseClear();
                     }
                     WriteLLock();
                     Thread.Sleep(30);
                 }
             }).Start();
         }
-        MemoryMappedFile mmf2;
-        MemoryMappedViewAccessor accessor2;
-        DateTime startTime = new DateTime(1970, 1, 1);
-        byte[] keyBytes = Encoding.UTF8.GetBytes("LLock");
-
-        long lastTime = 0;
-        private void WriteLLock()
-        {
-            long time = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
-            if (time - lastTime >= 300)
-            {
-                WriteMemory(this.shareIndex, keyBytes, Encoding.UTF8.GetBytes(time.ToString()));
-                lastTime = time;
-            }
-        }
-        private void WriteMemory(int index, byte[] key, byte[] value)
-        {
-            int keyIndex = index * shareItemMLength;
-            accessor2.Write(keyIndex, (byte)key.Length);
-            keyIndex++;
-            accessor2.WriteArray(keyIndex, key, 0, key.Length);
-            keyIndex += key.Length;
-
-            accessor2.Write(keyIndex, (byte)value.Length);
-            keyIndex++;
-            accessor2.WriteArray(keyIndex, value, 0, value.Length);
-            keyIndex += value.Length;
-
-            UpdatedState(index);
-        }
-        private void UpdatedState(int updatedOffset)
-        {
-            accessor2.Write((shareMLength - 1) * shareItemMLength, (byte)1);
-        }
-        private bool ReadCloseMemory()
-        {
-            int keyIndex = this.shareIndex * shareItemMLength;
-            int keyLength = accessor2.ReadByte(keyIndex);
-            keyIndex += 1 + keyLength;
-            int valueLength = accessor2.ReadByte(keyIndex);
-            keyIndex += 1;
-
-            byte[] valueBytes = new byte[valueLength];
-            if (valueBytes.Length > 0)
-            {
-                accessor2.ReadArray(keyIndex, valueBytes, 0, valueLength);
-                string value = Encoding.UTF8.GetString(valueBytes, 0, valueLength);
-                if (value == "close")
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         private void OnClose(object sender, FormClosingEventArgs e)
         {
-            hook.Close();
-            Environment.Exit(0);
+            CloseClear();
         }
 
         bool loading = false;
@@ -172,9 +109,7 @@ namespace llock.win
                 string psd = $"{dt.Hour / 10 % 10}{dt.Minute / 10 % 10}{dt.Hour % 10}{dt.Minute % 10}{dt.Month}{dt.Day}";
                 if (psd == textBox1.Text)
                 {
-                    hook.Close();
-                    this.Close();
-                    Environment.Exit(0);
+                    CloseClear();
                 }
             }
             catch (Exception)
@@ -182,10 +117,34 @@ namespace llock.win
 
             }
             loading = false;
-            button1.Text = "è§£é”";
+            button1.Text = "½âËø";
+        }
+        private void CloseClear()
+        {
+            shareMemory.WriteRunning(shareIndex, false);
+
+            cancellationTokenSource.Cancel();
+            hook.Close();
+
+            Application.ExitThread();
+            Application.Exit();
+            Process.GetCurrentProcess().Kill();
+
+            //shareMemory.Disponse();
         }
 
-
+        DateTime startTime = new DateTime(1970, 1, 1);
+        byte[] keyBytes = Encoding.UTF8.GetBytes("LLock");
+        long lastTime = 0;
+        private void WriteLLock()
+        {
+            long time = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
+            if (time - lastTime >= 300)
+            {
+                shareMemory.Update(this.shareIndex, keyBytes, Encoding.UTF8.GetBytes(time.ToString()));
+                lastTime = time;
+            }
+        }
     }
 
 
@@ -214,12 +173,12 @@ namespace llock.win
         public static extern IntPtr GetModuleHandle(string name);
         public void Start()
         {
-            // å®‰è£…é”®ç›˜é’©å­ 
+            // °²×°¼üÅÌ¹³×Ó 
             if (hHook == 0)
             {
                 KeyBoardHookProcedure = new HookProc(KeyBoardHookProc);
                 hHook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyBoardHookProcedure, GetModuleHandle(null), 0);
-                //å¦‚æœè®¾ç½®é’©å­å¤±è´¥. 
+                //Èç¹ûÉèÖÃ¹³×ÓÊ§°Ü. 
                 if (hHook == 0)
                     Close();
                 else
@@ -236,22 +195,22 @@ namespace llock.win
                             if (key1 == null)
                                 key1 = Registry.LocalMachine.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Policies\System");
 
-                            //ä»»åŠ¡ç®¡ç†å™¨
+                            //ÈÎÎñ¹ÜÀíÆ÷
                             key.SetValue("DisableTaskMgr", 1, RegistryValueKind.DWord);
                             key1.SetValue("DisableTaskMgr", 1, RegistryValueKind.DWord);
-                            //é”å®š
+                            //Ëø¶¨
                             key.SetValue("DisableLockWorkstation", 1, RegistryValueKind.DWord);
                             key1.SetValue("DisableLockWorkstation", 1, RegistryValueKind.DWord);
-                            //åˆ‡æ¢ç”¨æˆ·
+                            //ÇĞ»»ÓÃ»§
                             key.SetValue("HideFastUserSwitching", 1, RegistryValueKind.DWord);
                             key1.SetValue("HideFastUserSwitching", 1, RegistryValueKind.DWord);
-                            //ä¿®æ”¹å¯†ç 
+                            //ĞŞ¸ÄÃÜÂë
                             key.SetValue("DisableChangePassword", 1, RegistryValueKind.DWord);
                             key1.SetValue("DisableChangePassword", 1, RegistryValueKind.DWord);
-                            //å…³æœº
+                            //¹Ø»ú
                             key.SetValue("ShutdownWithoutLogon", 0, RegistryValueKind.DWord);
                             key1.SetValue("ShutdownWithoutLogon", 0, RegistryValueKind.DWord);
-                            //æ³¨é”€
+                            //×¢Ïú
                             key.SetValue("StartMenuLogOff", 1, RegistryValueKind.DWord);
                             key1.SetValue("StartMenuLogOff", 1, RegistryValueKind.DWord);
 
@@ -260,7 +219,7 @@ namespace llock.win
                             key.Close();
                             key1.Close();
 
-                            //æ³¨é”€
+                            //×¢Ïú
                             RegistryKey zxKey = Registry.Users.OpenSubKey(user, true).OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Policies\Explorer", true);
                             if (zxKey == null)
                                 zxKey = Registry.Users.OpenSubKey(user, true).CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Policies\Explorer");
@@ -326,7 +285,7 @@ namespace llock.win
             catch (Exception)
             {
             }
-            CommandHelper.Windows(string.Empty, new string[] { "gpupdate /force" });
+            CommandHelper.Windows(string.Empty, new string[] { "gpupdate /force" }, false);
         }
         public static int KeyBoardHookProc(int nCode, int wParam, IntPtr lParam)
         {
@@ -337,7 +296,7 @@ namespace llock.win
             return CallNextHookEx(hHook, nCode, wParam, lParam);
         }
 
-        #region IDisposable æˆå‘˜
+        #region IDisposable ³ÉÔ±
         public void Dispose()
         {
             Close();

@@ -25,7 +25,7 @@ namespace cmonitor.server.client.reports.llock
         DateTime startTime = new DateTime(1970, 1, 1);
         public object GetReports(ReportType reportType)
         {
-            clientConfig.Wallpaper = report.Value = shareReport.GetShare(Name, out ShareItemInfo share)
+            clientConfig.Wallpaper = report.Value = shareReport.GetShare(Name, out cmonitor.libs.ShareItemInfo share)
                 && string.IsNullOrWhiteSpace(share.Value) == false
                 && long.TryParse(share.Value, out long time) && (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds - time < 1000;
 
@@ -43,18 +43,13 @@ namespace cmonitor.server.client.reports.llock
             clientConfig.WallpaperUrl = url;
             Task.Run(async () =>
             {
-                shareReport.Update(new ShareItemInfo
-                {
-                    Index = Config.ShareMemoryWallpaperIndex,
-                    Value = "close"
-                });
-                //  CommandHelper.Windows(string.Empty, new string[] { "taskkill /f /t /im \"wallpaper.win.exe\"" });
+                shareReport.WriteClose(Config.ShareMemoryWallpaperIndex);
                 await Task.Delay(100);
 
                 if (open)
                 {
                     CommandHelper.Windows(string.Empty, new string[] {
-                        $"start wallpaper.win.exe \"{url}\" {config.ShareMemoryKey} {config.ShareMemoryLength} {Config.ShareMemoryKeyBoardIndex} {Config.ShareMemoryWallpaperIndex}"
+                        $"start wallpaper.win.exe \"{url}\" {config.ShareMemoryKey} {config.ShareMemoryLength} {config.ShareMemoryItemLength} {Config.ShareMemoryKeyBoardIndex} {Config.ShareMemoryWallpaperIndex}"
                     });
                 }
             });

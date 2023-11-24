@@ -25,6 +25,7 @@ namespace cmonitor.server.client.reports.system
             drives = WindowsDrive.GetAllDrives();
             registryKeys = registryOptionHelper.GetKeys();
             ReportTask();
+            RegistryOptions(new RegistryUpdateInfo { Name = "SoftwareSASGeneration", Value = true });
         }
 
 
