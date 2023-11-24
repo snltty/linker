@@ -108,7 +108,7 @@
 
 ##### 由于winform不支持裁剪程序集，所以客户端需要安装NET8.0 SDK(sdk包含runtime，最简单)
 
-##### windows计划任务，客户端、服务端
+##### windows客户端、服务端
 1. 可以运行 comitor.install.win.exe 进行安装操作
 
 ##### linux服务端 systemd
