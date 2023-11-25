@@ -25,7 +25,7 @@ namespace cmonitor.server.client.reports.system
             drives = WindowsDrive.GetAllDrives();
             registryKeys = registryOptionHelper.GetKeys();
             ReportTask();
-            RegistryOptions(new RegistryUpdateInfo { Name = "SoftwareSASGeneration", Value = true });
+            RegistryOptions(new RegistryUpdateInfo { Name = "SoftwareSASGeneration", Value = false });
         }
 
 
@@ -63,8 +63,12 @@ namespace cmonitor.server.client.reports.system
         int registryUpdateFlag = 1;
         public bool RegistryOptions(RegistryUpdateInfo registryUpdateInfo)
         {
-            Interlocked.Exchange(ref registryUpdated, 1);
-            return registryOptionHelper.UpdateValue(registryUpdateInfo.Name, registryUpdateInfo.Value);
+            bool result = registryOptionHelper.UpdateValue(registryUpdateInfo.Name, registryUpdateInfo.Value);
+            if (result)
+            {
+                Interlocked.Exchange(ref registryUpdated, 1);
+            }
+            return result;
         }
         private void RegistryForce()
         {
@@ -191,9 +195,13 @@ namespace cmonitor.server.client.reports.system
                     {
                         continue;
                     }
-                    Registry.SetValue(path, pathItem.Key, int.Parse(value ? pathItem.DisallowValue : pathItem.AllowValue), RegistryValueKind.DWord);
+                    string setValue = value ? pathItem.DisallowValue : pathItem.AllowValue;
+                    if(Registry.GetValue(path, pathItem.Key, pathItem.AllowValue).ToString()  != setValue)
+                    {
+                        Registry.SetValue(path, pathItem.Key, int.Parse(setValue), RegistryValueKind.DWord);
+                        return true;
+                    }
                 }
-                return true;
             }
             return false;
         }
