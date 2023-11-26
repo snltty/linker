@@ -53,7 +53,7 @@ namespace cmonitor.server.client.reports.llock
                 if (open)
                 {
                     CommandHelper.Windows(string.Empty, new string[] {
-                        $"start llock.win.exe {config.ShareMemoryKey} {config.ShareMemoryLength} {config.ShareMemoryItemLength} {Config.ShareMemoryLLockIndex}"
+                        $"start llock.win.exe {config.ShareMemoryKey} {config.ShareMemoryLength} {config.ShareMemoryItemSize} {Config.ShareMemoryLLockIndex}"
                     });
                 }
             });

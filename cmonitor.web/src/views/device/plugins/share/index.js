@@ -51,7 +51,6 @@ export default {
     update(item, report) {
         if (!report.Share) return;
 
-        console.log(report.Share);
         if (report.Share.UserName) {
             item.Share.UserName.Index = report.Share.UserName.Index;
             item.Share.UserName.Value = report.Share.UserName.Value;

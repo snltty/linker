@@ -19,7 +19,7 @@ namespace cmonitor.sas.service
 
         string shareMkey = "cmonitor/share";
         int shareMLength = 10;
-        int shareItemMLength = 255;
+        int shareItemMLength = 1024;
         int shareIndex = 4;
         string mainArgs = string.Empty;
         string mainExeName = "cmonitor";
@@ -105,7 +105,7 @@ namespace cmonitor.sas.service
       
         private void WriteAllCloseState(bool state)
         {
-            for (int i = 0; i <= 255; i++)
+            for (int i = 0; i < shareMLength; i++)
             {
                 shareMemory.WriteClosed(i, state);
             }

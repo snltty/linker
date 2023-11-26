@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO.MemoryMappedFiles;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +13,8 @@ namespace cmonitor.libs
     /// </summary>
     public sealed class ShareMemory
     {
+        private const int shareMemoryStateSize = 1;
+
         private string key;
         private int length;
         private int itemSize;
@@ -133,26 +131,26 @@ namespace cmonitor.libs
         {
             if (accessorGlobal != null && accessorLocal != null)
             {
-                //检查更新状态
-                if (ReadState(accessorGlobal, 0, ShareMemoryState.Updated) == false)
-                {
-                    return;
-                }
-                WriteState(accessorGlobal, 0, ShareMemoryState.Updated, false);
                 lock (lockObj)
                 {
                     accessorGlobal.ReadArray(0, gloablBytes, 0, gloablBytes.Length);
                     accessorLocal.WriteArray(0, gloablBytes, 0, itemSize);
-                    for (int i = 1; i < length; i++)
+                    for (int index = 0; index < length; index++)
                     {
-                        int index = i * itemSize;
-                        int keyLen = BitConverter.ToInt32(gloablBytes, index);
+                        //检查更新状态
+                        if (ReadState(accessorGlobal, index, ShareMemoryState.Updated) == false)
+                        {
+                            continue;
+                        }
+
+                        int _index = index * itemSize;
+                        int keyLen = BitConverter.ToInt32(gloablBytes, _index + shareMemoryStateSize);
                         if (keyLen > 0)
                         {
-                            accessorLocal.WriteArray(index, gloablBytes, index, itemSize);
+                            accessorLocal.WriteArray(_index, gloablBytes, _index, itemSize);
                         }
+                        WriteState(accessorGlobal, index, ShareMemoryState.Updated, false);
                     }
-                    WriteState(accessorLocal, 0, ShareMemoryState.Updated, true);
                 }
             }
 
@@ -164,37 +162,40 @@ namespace cmonitor.libs
             if (accessorLocal == null) return dic;
             try
             {
-                updated = ReadState(accessorLocal, 0, ShareMemoryState.Updated);
-                if (updated == false)
-                {
-                    return dic;
-                }
                 lock (lockObj)
                 {
-                    WriteState(accessorLocal, 0, ShareMemoryState.Updated, false);
-
                     accessorLocal.ReadArray(0, bytes, 0, bytes.Length);
-
-                    for (int i = 1; i < length; i++)
+                    for (int index = 0; index < length; index++)
                     {
-                        int index = i * itemSize;
-                        int keyLen = BitConverter.ToInt32(bytes, index);
-                        index += 4;
-                        if (keyLen > 0)
-                        {
-                            string key = Encoding.UTF8.GetString(bytes, index, keyLen);
-                            index += keyLen;
+                        //state
+                        bool _updated = ReadState(accessorLocal, index, ShareMemoryState.Updated);
+                        if (_updated == false) continue;
+                        WriteState(accessorLocal, index, ShareMemoryState.Updated, false);
+                        updated |= _updated;
 
+                        //key length
+                        int _index = index * itemSize + shareMemoryStateSize;
+                        int keyLen = BitConverter.ToInt32(bytes, _index);
+                        _index += 4;
+                        if (keyLen > 0 && keyLen + 8 + shareMemoryStateSize < itemSize)
+                        {
+                            //key
+                            string key = Encoding.UTF8.GetString(bytes, _index, keyLen);
+                            _index += keyLen;
+
+                            //val length
                             string val = string.Empty;
-                            int valLen = BitConverter.ToInt32(bytes, index);
-                            index += 4;
-                            if (keyLen + 8 + valLen <= itemSize)
+                            int valLen = BitConverter.ToInt32(bytes, _index);
+                            _index += 4;
+                            //value
+                            if (keyLen + 8 + shareMemoryStateSize + valLen <= itemSize)
                             {
-                                val = Encoding.UTF8.GetString(bytes, index, valLen);
+                                val = Encoding.UTF8.GetString(bytes, _index, valLen);
                             }
+
                             dic[key] = new ShareItemInfo
                             {
-                                Index = i,
+                                Index = index,
                                 Value = val
                             };
                         }
@@ -212,7 +213,7 @@ namespace cmonitor.libs
             MemoryMappedViewAccessor accessor = accessorLocal ?? accessorGlobal;
             if (accessor == null) return string.Empty;
 
-            index *= itemSize;
+            index = index * itemSize + shareMemoryStateSize;
 
             accessor.Read(index, out int keylen);
             index += 4 + keylen;
@@ -220,7 +221,7 @@ namespace cmonitor.libs
 
             accessor.Read(index, out int vallen);
             index += 4;
-            if (vallen == 0 || keylen + 8 + vallen > itemSize) return string.Empty;
+            if (vallen == 0 || keylen + 8 + shareMemoryStateSize + vallen > itemSize) return string.Empty;
 
             byte[] bytes = new byte[vallen];
             accessor.ReadArray(index, bytes, 0, bytes.Length);
@@ -228,28 +229,28 @@ namespace cmonitor.libs
             return Encoding.UTF8.GetString(bytes);
         }
 
-        public void Update(int index, string key, string value)
+        public bool Update(int index, string key, string value)
         {
             if (string.IsNullOrWhiteSpace(key))
             {
-                Update(index,Array.Empty<byte>(), Encoding.UTF8.GetBytes(value));
+                return Update(index, Array.Empty<byte>(), Encoding.UTF8.GetBytes(value));
             }
             else
             {
-                Update(index, Encoding.UTF8.GetBytes(key), Encoding.UTF8.GetBytes(value));
+                return Update(index, Encoding.UTF8.GetBytes(key), Encoding.UTF8.GetBytes(value));
             }
         }
-        public void Update(int index, byte[] key, byte[] value)
+        public bool Update(int index, byte[] key, byte[] value)
         {
             try
             {
-                if (accessorLocal == null && accessorGlobal == null) return;
-                if (index == 0) return;
-                if (key.Length + 8 + value.Length > itemSize) return;
+                if (accessorLocal == null && accessorGlobal == null) return false;
+                if (index == 0) return false;
+                if (key.Length + 8 + shareMemoryStateSize + value.Length > itemSize) return false;
 
                 lock (lockObj)
                 {
-                    int valIndex = index * itemSize;
+                    int valIndex = index * itemSize + shareMemoryStateSize;
                     int startIndex = valIndex;
                     int keylen = key.Length;
                     int vallen = value.Length;
@@ -293,17 +294,19 @@ namespace cmonitor.libs
                     }
                 }
                 WriteUpdated(index, true);
+                return true;
             }
             catch (Exception)
             {
             }
+            return false;
         }
 
         private bool ReadState(MemoryMappedViewAccessor accessor, int index, ShareMemoryState state)
         {
             if (accessor == null) return false;
 
-            ShareMemoryState stateByte = (ShareMemoryState)accessor.ReadByte(index);
+            ShareMemoryState stateByte = (ShareMemoryState)accessor.ReadByte(index * itemSize);
             return (stateByte & state) == state;
         }
         public bool ReadUpdated(int index)
@@ -334,7 +337,7 @@ namespace cmonitor.libs
         private void WriteState(MemoryMappedViewAccessor accessor, int index, ShareMemoryState state, bool value)
         {
             if (accessor == null) return;
-            byte stateValue = accessor.ReadByte(index);
+            byte stateValue = accessor.ReadByte(index * itemSize);
             byte stateByte = (byte)state;
             if (value)
             {
@@ -344,14 +347,12 @@ namespace cmonitor.libs
             {
                 stateValue &= (byte)(~stateByte);
             }
-            accessor.Write(index, stateValue);
+            accessor.Write(index * itemSize, stateValue);
         }
         public void WriteUpdated(int index, bool updated = true)
         {
             WriteState(accessorLocal, index, ShareMemoryState.Updated, updated);
             WriteState(accessorGlobal, index, ShareMemoryState.Updated, updated);
-            WriteState(accessorLocal, 0, ShareMemoryState.Updated, updated);
-            WriteState(accessorGlobal, 0, ShareMemoryState.Updated, updated);
         }
         public void WriteClosed(int index, bool closed = true)
         {
@@ -375,11 +376,21 @@ namespace cmonitor.libs
         }
     }
 
+    public struct ShareMemoryStruct
+    {
+        public ShareMemoryState State;
+        public int KeyLength;
+        public byte[] Key;
+        public int ValueLength;
+        public byte[] Value;
+    };
+
     public enum ShareMemoryState : byte
     {
         Updated = 0b0000_0001,
         Closed = 0b0000_0010,
         Running = 0b0000_0100,
+        All = 0b1111_1111
     }
 
     public sealed partial class ShareItemInfo

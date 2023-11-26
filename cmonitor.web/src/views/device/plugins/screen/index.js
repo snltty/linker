@@ -236,6 +236,7 @@ export default {
         if (this.globalData.value.reportNames.indexOf(name) == -1) return;
         let item = this.globalData.value.devices.filter(c => c.MachineName == name)[0];
         if (item) {
+            item.lastUpdated = Date.now();
             item.Screen.fps.temp++;
             if (typeof res.Img == 'string') {
                 this.imgOnload(`data:image/jpg;base64,${res.Img}`).then((img) => {
@@ -253,6 +254,7 @@ export default {
         if (this.globalData.value.reportNames.indexOf(name) == -1) return;
         let item = this.globalData.value.devices.filter(c => c.MachineName == name)[0];
         if (item) {
+            item.lastUpdated = Date.now();
             item.Screen.fps.temp++;
             res.Img.arrayBuffer().then((arrayBuffer) => {
                 const dataView = new DataView(arrayBuffer);
@@ -285,6 +287,7 @@ export default {
         if (this.globalData.value.reportNames.indexOf(name) == -1) return;
         let item = this.globalData.value.devices.filter(c => c.MachineName == name)[0];
         if (item) {
+            item.lastUpdated = Date.now();
             item.Screen.rectangles = res.Rectangles || [];
         }
     },
@@ -294,56 +297,68 @@ export default {
         subNotifyMsg('/notify/report/screen/rectangles', (res, param) => this.handleScreenRectangles(res, param));
     },
 
+
+    getCtx(item) {
+        if (!item.canvas) {
+            item.canvas = document.getElementById(`canvas-${item.MachineName}`);
+            if (item.canvas) {
+                try {
+                    item.ctx = item.canvas.getContext('2d')
+                } catch (e) {
+                    item.canvas = null;
+                }
+                if (!item.infoCanvas) {
+                    item.infoCanvas = document.createElement('canvas');
+                    item.infoCanvas.width = item.canvas.width;
+                    item.infoCanvas.height = item.canvas.height;
+                    item.infoCtx = item.infoCanvas.getContext('2d');
+                }
+            }
+        }
+
+    },
+    drawRegionImgs(item) {
+        const regions = item.Screen.regionImgs;
+        for (let i = 0; i < regions.length; i++) {
+            const { x, y, w, h } = regions[i].param;
+            item.infoCtx.drawImage(regions[i], 0, 0, regions[i].width, regions[i].height, x, y, w, h);
+        }
+    },
+    drawInfo(item) {
+        this.drawRegionImgs(item);
+        for (let j in item) {
+            try {
+                if (item[j] && item[j].draw) {
+                    item[j].draw(item.infoCanvas, item.infoCtx);
+                }
+            } catch (e) {
+                console.log(e);
+            }
+        }
+    },
     draw() {
         const devices = this.globalData.value.devices.filter(c => this.globalData.value.reportNames.indexOf(c.MachineName) >= 0);
 
         for (let i = 0; i < devices.length; i++) {
             const item = devices[i];
+
+            this.getCtx(item);
             if (!item.canvas) {
-                item.canvas = document.getElementById(`canvas-${item.MachineName}`);
-                if (item.canvas) {
-                    try {
-                        item.ctx = item.canvas.getContext('2d')
-                    } catch (e) {
-                        item.canvas = null;
-                    }
-                }
+                continue;
             }
-            if (!item.canvas) continue;
 
-            if (!item.infoCanvas) {
-                item.infoCanvas = document.createElement('canvas');
-                item.infoCanvas.width = item.canvas.width;
-                item.infoCanvas.height = item.canvas.height;
-                item.infoCtx = item.infoCanvas.getContext('2d');
+            if (item.lastUpdated == item.lastUpdatedOld) {
+                continue;
             }
-            if (item.ctx) {
-                item.infoCtx.clearRect(0, 0, item.infoCanvas.width, item.infoCanvas.height);
+            item.lastUpdatedOld = item.lastUpdated;
 
-                const img = item.Screen.fullImg;
-                if (img) {
-                    //item.Screen.img = null;
-                    item.ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, item.canvas.width, item.canvas.height);
-                }
-
-                const regions = item.Screen.regionImgs;
-                for (let i = 0; i < regions.length; i++) {
-                    const { x, y, w, h } = regions[i].param;
-                    item.infoCtx.drawImage(regions[i], 0, 0, regions[i].width, regions[i].height, x, y, w, h);
-                }
-
-                for (let j in item) {
-                    try {
-                        if (item[j] && item[j].draw) {
-                            item[j].draw(item.infoCanvas, item.infoCtx);
-                        }
-                    } catch (e) {
-                        console.log(e);
-                    }
-                }
-
-                item.ctx.drawImage(item.infoCanvas, 0, 0, item.infoCanvas.width, item.infoCanvas.height, 0, 0, item.canvas.width, item.canvas.height);
+            const img = item.Screen.fullImg;
+            if (img) {
+                item.ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, item.canvas.width, item.canvas.height);
             }
+            item.infoCtx.clearRect(0, 0, item.infoCanvas.width, item.infoCanvas.height);
+            this.drawInfo(item);
+            item.ctx.drawImage(item.infoCanvas, 0, 0, item.infoCanvas.width, item.infoCanvas.height, 0, 0, item.canvas.width, item.canvas.height);
         }
         requestAnimationFrame(() => {
             this.draw();
@@ -353,6 +368,7 @@ export default {
     fpsInterval() {
         this.globalData.value.devices.forEach(item => {
             item.Screen.fps.value = item.Screen.fps.temp;
+            item.lastUpdated = Date.now();
             item.Screen.fps.temp = 0;
         });
         setTimeout(() => {
@@ -423,6 +439,7 @@ export default {
     update(item, report) {
         if (!report.Screen) return;
 
+        item.lastUpdated = Date.now();
         item.Screen.lastInput = report.Screen.LT || 0;
         item.Screen.captureTime = report.Screen.CT || 0;
         item.Screen.width = report.Screen.W || 0;

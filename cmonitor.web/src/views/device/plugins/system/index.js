@@ -85,6 +85,7 @@ export default {
         item.System.Memory = report.System.Memory;
         item.System.Disk = report.System.Disk;
         if (report.System.Drives) {
+            item.lastUpdated = Date.now();
             item.System.Drives = report.System.Drives || [];
         }
 

@@ -34,7 +34,7 @@ namespace cmonitor.server.client.reports.share
         {
             if (OperatingSystem.IsWindows())
             {
-                shareMemory = new ShareMemory(config.ShareMemoryKey, config.ShareMemoryLength, config.ShareMemoryItemLength);
+                shareMemory = new ShareMemory(config.ShareMemoryKey, config.ShareMemoryLength, config.ShareMemoryItemSize);
                 shareMemory.InitLocal();
                 shareMemory.InitGlobal();
                 shareMemory.WriteRunning(0, true);

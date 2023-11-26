@@ -96,8 +96,8 @@
 1. **【--server】** 服务器ip  **192.168.1.18**
 2. **【--service】** 服务端口 **1802**
 3. **【--share-key】** 自定数据共享 **cmonitor/share**
-4. **【--share-len】** 数量 **10**，默认10项位置，0保留，1键盘、2壁纸、3锁屏，4 SendSAS，0项保留自用不可动
-4. **【--share-item-len】** 每项数据长度 **1024**，klen+key+vlen+value
+4. **【--share-len】** 数量 **10**，默认10项位置，0保留，1键盘、2壁纸、3锁屏，4 SendSAS
+4. **【--share-item-len】** 每项数据长度 **1024**，state(1)+klen(4)+key(klen)+vlen(4)+value(vallen)
 
 ###### 服务端
 1. **【--web】** 管理UI端口 **1800**

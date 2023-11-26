@@ -219,7 +219,7 @@ namespace cmonitor
                 config.ServicePort = int.Parse(dic["service"]);
                 config.ShareMemoryKey = dic["share-key"];
                 config.ShareMemoryLength = int.Parse(dic["share-len"]);
-                config.ShareMemoryItemLength = int.Parse(dic["share-item-len"]);
+                config.ShareMemoryItemSize = int.Parse(dic["share-item-len"]);
                 config.ReportDelay = int.Parse(dic["report-delay"]);
                 config.ScreenScale = float.Parse(dic["screen-scale"]);
                 config.ScreenDelay = int.Parse(dic["screen-delay"]);
@@ -297,12 +297,20 @@ namespace cmonitor
         public float ScreenScale { get; set; } = 0.2f;
         public int ScreenDelay { get; set; } = 30;
 
+        /// <summary>
+        /// 0项保留给各个功能的状态信息，每个一个字节为状态信息，看ShareMemoryState
+        /// </summary>
+        public string ShareMemoryKey { get; set; } = "cmonitor/share";
+        public int ShareMemoryLength { get; set; } = 10;
+        public int ShareMemoryItemSize { get; set; } = 1024;
+
+
         [JsonIgnore]
         public bool SaveSetting { get; set; } = true;
         [JsonIgnore]
         public bool WakeUp { get; set; } = true;
         [JsonIgnore]
-        public bool VolumeMasterPeak { get; set; } = true;
+        public bool VolumeMasterPeak { get; set; } = false;
 
 
         [JsonIgnore]
@@ -311,16 +319,9 @@ namespace cmonitor
         public bool IsCLient { get; set; }
         [JsonIgnore]
         public bool IsServer { get; set; }
-
         [JsonIgnore]
         public bool Elevated { get; set; }
 
-        /// <summary>
-        /// 0项保留给各个功能的状态信息，每个一个字节为状态信息，看ShareMemoryState
-        /// </summary>
-        public string ShareMemoryKey { get; set; } = "cmonitor/share";
-        public int ShareMemoryLength { get; set; } = 10;
-        public int ShareMemoryItemLength { get; set; } = 1024;
 
         //键盘
         public const int ShareMemoryKeyBoardIndex = 1;
@@ -371,6 +372,7 @@ namespace cmonitor
              && ValidateReport(dic, out error)
              && ValidateElevated(dic, out error);
         }
+        
         static bool ValidateMode(Dictionary<string, string> dic)
         {
             //模式
@@ -380,6 +382,7 @@ namespace cmonitor
             }
             return true;
         }
+       
         static bool ValidateServer(Dictionary<string, string> dic, out string error)
         {
             error = string.Empty;
@@ -390,6 +393,7 @@ namespace cmonitor
             }
             return true;
         }
+        
         static bool ValidateName(Dictionary<string, string> dic, out string error)
         {
             error = string.Empty;
@@ -457,6 +461,7 @@ namespace cmonitor
             }
             return true;
         }
+       
         static bool ValidateReport(Dictionary<string, string> dic, out string error)
         {
             error = string.Empty;
@@ -476,8 +481,6 @@ namespace cmonitor
             }
             return true;
         }
-
-
 
     }
 }
