@@ -1,4 +1,5 @@
 ﻿using cmonitor.libs;
+using common.libs.extends;
 using MemoryPack;
 
 namespace cmonitor.server.client.reports.share
@@ -47,7 +48,10 @@ namespace cmonitor.server.client.reports.share
                 if (OperatingSystem.IsWindows())
                 {
                     if (shareMemory != null)
+                    {
                         dic = shareMemory.GetItems(out updated);
+                    }
+                      
                 }
             }
             catch (Exception)

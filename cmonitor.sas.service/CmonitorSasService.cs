@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Text;
-using System.Text.Json;
 
 namespace cmonitor.sas.service
 {
@@ -102,7 +101,7 @@ namespace cmonitor.sas.service
                 }
             }, cancellationTokenSource, TaskCreationOptions.LongRunning);
         }
-      
+
         private void WriteAllCloseState(bool state)
         {
             for (int i = 0; i < shareMLength; i++)
@@ -110,7 +109,7 @@ namespace cmonitor.sas.service
                 shareMemory.WriteClosed(i, state);
             }
         }
-       
+
         Process proc;
         private void CheckMainProcess()
         {

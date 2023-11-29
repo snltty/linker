@@ -57,7 +57,7 @@ namespace cmonitor.libs
             {
                 if (OperatingSystem.IsWindows() && accessorGlobal == null)
                 {
-                    accessorGlobal = ShareMemoryFactory.Create(key, length, itemSize);
+                    accessorGlobal = ShareMemoryFactory.Create($"Global\\{key}", length, itemSize);
                     if (accessorGlobal.Init() == false)
                     {
                         accessorGlobal = null;
@@ -168,11 +168,16 @@ namespace cmonitor.libs
                 lock (lockObj)
                 {
                     accessorLocal.ReadArray(0, bytes, 0, bytes.Length);
+
                     for (int index = 0; index < length; index++)
                     {
                         //state
                         bool _updated = ReadState(accessorLocal, index, ShareMemoryState.Updated);
-                        if (_updated == false) continue;
+                        if (_updated == false)
+                        {
+                            continue;
+                        }
+
                         WriteState(accessorLocal, index, ShareMemoryState.Updated, false);
                         updated |= _updated;
 
