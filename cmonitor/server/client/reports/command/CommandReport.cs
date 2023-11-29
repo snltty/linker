@@ -4,7 +4,6 @@
     {
         public string Name => "Command";
 
-        private readonly CommandReportInfo commandReportInfo = new CommandReportInfo();
         public CommandReport()
         {
         }
@@ -14,11 +13,5 @@
             return null;
         }
     }
-
-    public sealed class CommandReportInfo
-    {
-        //public string[] RegeditUsers { get; set; } = Array.Empty<string>();
-    }
-
 
 }

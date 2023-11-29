@@ -1,5 +1,4 @@
 ﻿using cmonitor.libs;
-using common.libs.extends;
 using MemoryPack;
 
 namespace cmonitor.server.client.reports.share
@@ -10,7 +9,7 @@ namespace cmonitor.server.client.reports.share
         private readonly Config config;
         private ShareMemory shareMemory;
 
-        Dictionary<string, libs.ShareItemInfo> dic = new Dictionary<string, cmonitor.libs.ShareItemInfo>();
+        Dictionary<string, libs.ShareItemInfo> dic = new Dictionary<string, libs.ShareItemInfo>();
 
         public ShareReport(Config config)
         {
@@ -32,16 +31,13 @@ namespace cmonitor.server.client.reports.share
 
         private void InitShare()
         {
-            if (OperatingSystem.IsWindows())
-            {
-                shareMemory = new ShareMemory(config.ShareMemoryKey, config.ShareMemoryLength, config.ShareMemoryItemSize);
-                shareMemory.InitLocal();
-                shareMemory.InitGlobal();
-                shareMemory.WriteRunning(0, true);
-                shareMemory.WriteClosed(0, false);
-                shareMemory.StateAction(ShareMemoryStateChanged);
-                shareMemory.Loop();
-            }
+            shareMemory = new ShareMemory(config.ShareMemoryKey, config.ShareMemoryLength, config.ShareMemoryItemSize);
+            shareMemory.InitLocal();
+            shareMemory.InitGlobal();
+            shareMemory.WriteRunning(0, true);
+            shareMemory.WriteClosed(0, false);
+            shareMemory.StateAction(ShareMemoryStateChanged);
+            shareMemory.Loop();
         }
         private bool GetShare()
         {

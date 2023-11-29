@@ -61,7 +61,7 @@ namespace cmonitor.server.api.services
     public sealed class RegistryInfo
     {
         public string[] Names { get; set; }
-        public RegistryUpdateInfo Registry { get; set; }
+        public SystemOptionUpdateInfo Registry { get; set; }
     }
 
     public sealed class PasswordInfo

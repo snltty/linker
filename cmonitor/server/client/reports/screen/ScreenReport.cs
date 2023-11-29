@@ -2,9 +2,7 @@
 using common.libs;
 using cmonitor.server.service.messengers.screen;
 using MemoryPack;
-using cmonitor.server.client.reports.screen.helpers;
-using cmonitor.server.client.reports.screen.winapiss;
-using System.IO.MemoryMappedFiles;
+using common.libs.helpers;
 
 namespace cmonitor.server.client.reports.screen
 {
@@ -16,27 +14,26 @@ namespace cmonitor.server.client.reports.screen
         private readonly MessengerSender messengerSender;
         private readonly Config config;
         private readonly ClientConfig clientConfig;
+        private readonly IScreen screen;
 
         private ScreenReportInfo report = new ScreenReportInfo();
         private uint lastInput;
-        private readonly DxgiDesktop dxgiDesktop;
-        private readonly GdiDesktop gdiDesktop;
-
         private DisplayInfo[] displays;
 
-        public ScreenReport(ClientSignInState clientSignInState, MessengerSender messengerSender, Config config, ClientConfig clientConfig)
+        public ScreenReport(ClientSignInState clientSignInState, MessengerSender messengerSender, Config config, ClientConfig clientConfig, IScreen screen)
         {
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
             this.config = config;
             this.clientConfig = clientConfig;
+            this.screen = screen;
+
             if (config.IsCLient)
             {
-                dxgiDesktop = new DxgiDesktop(0, config);
-                gdiDesktop = new GdiDesktop(config);
                 CaptureTask();
-                DisplaysInit();
-                ScreenShareInit();
+                displays = screen.GetDisplays(out int w,out int h);
+                report.W = w;
+                report.H = h;
             }
         }
 
@@ -50,8 +47,7 @@ namespace cmonitor.server.client.reports.screen
             {
                 report.Displays = Array.Empty<DisplayInfo>();
             }
-
-            report.LT = LastInputHelper.GetLastInputInfo();
+            report.LT = screen.GetLastInputTime();
             if (reportType == ReportType.Full || report.LT < lastInput || report.LT - lastInput > 1000)
             {
                 lastInput = report.LT;
@@ -61,70 +57,36 @@ namespace cmonitor.server.client.reports.screen
         }
 
 
-        private void DisplaysInit()
+        public void SetDisplayState(bool onState)
         {
-            displays = DisplaysEnumerationHelper.GetDisplays();
-            if (DisplayHelper.GetSystemScale(out _, out _, out int w, out int h))
-            {
-                report.W = w;
-                report.H = h;
-            }
-        }
-        public void DisplayState(bool onState)
-        {
-            if (onState)
-            {
-                DisplayHelper.On();
-            }
-            else
-            {
-                DisplayHelper.Off();
-            }
-
+            screen.SetDisplayState(onState);
         }
 
-
-        MemoryMappedFile mmf;
-        MemoryMappedViewAccessor accessor;
-        byte[] shareScreenBytes = new byte[1 * 1024 * 1024];
-        private void ScreenShareInit()
+        public void SetScreenShareState(ScreenShareStates screenShareState)
         {
-            if (OperatingSystem.IsWindows())
-            {
-                mmf = MemoryMappedFile.CreateOrOpen($"{config.ShareMemoryKey}/screen", shareScreenBytes.Length);
-                accessor = mmf.CreateViewAccessor();
-            }
+            screen.ScreenShareState(screenShareState);
         }
-        public void ScreenShareState(ScreenShareStates screenShareState)
+        public void SetScreenShareData(Memory<byte> data)
         {
-            clientConfig.ScreenShareState = screenShareState;
+            screen.ScreenShare(data);
         }
-        public void ScreenShare(Memory<byte> data)
-        {
-            if (data.Length > 0 && data.Length <= shareScreenBytes.Length && accessor != null)
-            {
-                data.CopyTo(shareScreenBytes);
-                accessor.WriteArray(0, shareScreenBytes, 0, data.Length);
-            }
-        }
-
 
         private ScreenReportType screenReportType = ScreenReportType.Full;
         private ScreenReportFullType screenReportFullType = ScreenReportFullType.Full | ScreenReportFullType.Trim;
         private long ticks = 0;
-        public void CaptureFull(ScreenReportFullType screenReportFullType)
+        public void SetCaptureFull(ScreenReportFullType screenReportFullType)
         {
             ticks = DateTime.UtcNow.Ticks;
             screenReportType = ScreenReportType.Full;
             this.screenReportFullType |= screenReportFullType;
         }
-        public void CaptureClip(ScreenClipInfo screenClipInfo)
+        public void SetCaptureClip(ScreenClipInfo screenClipInfo)
         {
             ticks = DateTime.UtcNow.Ticks;
             screenReportType = ScreenReportType.Full;
-            gdiDesktop.Clip(screenClipInfo);
+            screen.Clip(screenClipInfo);
         }
-        public void CaptureRegion()
+        public void SetCaptureRegion()
         {
             ticks = DateTime.UtcNow.Ticks;
             screenReportType = ScreenReportType.Region;
@@ -134,10 +96,6 @@ namespace cmonitor.server.client.reports.screen
         private Memory<byte> fullImageMemory = Helper.EmptyArray;
         private void CaptureTask()
         {
-            if (OperatingSystem.IsWindows() == false)
-            {
-                return;
-            }
             Task.Factory.StartNew(async () =>
             {
                 while (true)
@@ -181,13 +139,13 @@ namespace cmonitor.server.client.reports.screen
             DesktopFrame frame = null;
 
             long ticks = DateTime.UtcNow.Ticks;
-            if (gdiDesktop.IsClip())
+            if (screen.IsClip())
             {
-                frame = gdiDesktop.GetLatestFrame();
+                frame = screen.GetClipFrame();
             }
             else if (screenReportType == ScreenReportType.Full)
             {
-                frame = dxgiDesktop.GetLatestFullFrame();
+                frame = screen.GetFullFrame();
                 if (frame.FullImage.Length > 0)
                 {
                     fullImageMemory = frame.FullImage;
@@ -207,7 +165,7 @@ namespace cmonitor.server.client.reports.screen
             }
             else if (screenReportType == ScreenReportType.Region)
             {
-                frame = dxgiDesktop.GetLatestRegionFrame();
+                frame = screen.GetRegionFrame();
             }
             report.CT = (uint)((DateTime.UtcNow.Ticks - ticks) / TimeSpan.TicksPerMillisecond);
 
@@ -251,21 +209,7 @@ namespace cmonitor.server.client.reports.screen
         private void RandomCursorPos()
         {
             if (config.WakeUp == false) return;
-            try
-            {
-                if (CursorHelper.GetCursorPosition(out int x, out int y))
-                {
-                    User32.SetCursorPos(x + 1, y + 1);
-                    MouseHelper.MouseMove(1, 1);
-                }
-            }
-            catch (Exception ex)
-            {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    Logger.Instance.Error(ex);
-                }
-            }
+            screen.WakeUp();
         }
     }
 

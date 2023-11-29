@@ -1,5 +1,5 @@
 <template>
-    <el-dialog title="调节亮度" destroy-on-close v-model="state.show" center align-center width="94%">
+    <el-dialog class="options-center" title="调节亮度" destroy-on-close v-model="state.show" center align-center width="94%">
         <div class="slider-wrap flex flex-column">
             <div class="silder flex flex-1">
                 <div class="flex-1">

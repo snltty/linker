@@ -23,8 +23,8 @@ namespace cmonitor.server.service.messengers.system
         [MessengerId((ushort)SystemMessengerIds.RegistryOptions)]
         public void RegistryOptions(IConnection connection)
         {
-            RegistryUpdateInfo registryUpdateInfo = MemoryPackSerializer.Deserialize<RegistryUpdateInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            report.RegistryOptions(registryUpdateInfo);
+            SystemOptionUpdateInfo registryUpdateInfo = MemoryPackSerializer.Deserialize<SystemOptionUpdateInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            report.OptionUpdate(registryUpdateInfo);
         }
 
 

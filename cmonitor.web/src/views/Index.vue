@@ -36,9 +36,7 @@ export default {
 <style lang="stylus" scoped>
 @media (min-width: 768px) {
     .main-wrap {
-        border: 2px solid #d0d7de;
-        height: 90% !important;
-        width: 394px !important;
+        background-image: url('../assets/bg.jpg') !important;
     }
 }
 

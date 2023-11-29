@@ -77,16 +77,16 @@ namespace message.win
         {
             Countdown();
 
-            //½«´°¿ÚÖÃ¶¥
+            //å°†çª—å£ç½®é¡¶
             SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
             int style = GetWindowLong(this.Handle, GWL_STYLE);
             SetWindowLong(this.Handle, GWL_STYLE, style & ~WS_SYSMENU);
 
-            // Ìí¼Ó´°ÌåÒõÓ°
+            // æ·»åŠ çª—ä½“é˜´å½±
             SetWindowPos(this.Handle, IntPtr.Zero, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE);
 
-            //½«´°¿ÚÖÃµ×
+            //å°†çª—å£ç½®åº•
             //SetWindowPos(this.Handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
         }
     }

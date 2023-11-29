@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO.MemoryMappedFiles;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,10 +19,8 @@ namespace cmonitor.libs
         private int itemSize;
         private byte[] bytes;
         private object lockObj = new object();
-        MemoryMappedFile mmfLocal = null;
-        MemoryMappedViewAccessor accessorLocal = null;
-        MemoryMappedFile mmfGlobal = null;
-        MemoryMappedViewAccessor accessorGlobal = null;
+        IShareMemory accessorLocal = null;
+        IShareMemory accessorGlobal = null;
 
         Action<int, ShareMemoryState> stateAction;
 
@@ -41,10 +38,13 @@ namespace cmonitor.libs
         {
             try
             {
-                if (OperatingSystem.IsWindows() && accessorLocal == null)
+                if (accessorLocal == null)
                 {
-                    mmfLocal = MemoryMappedFile.CreateOrOpen($"{key}", bytes.Length);
-                    accessorLocal = mmfLocal.CreateViewAccessor();
+                    accessorLocal = ShareMemoryFactory.Create(key, length, itemSize);
+                    if (accessorLocal.Init() == false)
+                    {
+                        accessorLocal = null;
+                    }
                 }
             }
             catch (Exception)
@@ -57,8 +57,11 @@ namespace cmonitor.libs
             {
                 if (OperatingSystem.IsWindows() && accessorGlobal == null)
                 {
-                    mmfGlobal = MemoryMappedFile.CreateOrOpen($"Global\\{key}", bytes.Length);
-                    accessorGlobal = mmfGlobal.CreateViewAccessor();
+                    accessorGlobal = ShareMemoryFactory.Create(key, length, itemSize);
+                    if (accessorGlobal.Init() == false)
+                    {
+                        accessorGlobal = null;
+                    }
                 }
             }
             catch (Exception)
@@ -210,16 +213,16 @@ namespace cmonitor.libs
         }
         public string GetItemValue(int index)
         {
-            MemoryMappedViewAccessor accessor = accessorLocal ?? accessorGlobal;
+            IShareMemory accessor = accessorLocal ?? accessorGlobal;
             if (accessor == null) return string.Empty;
 
             index = index * itemSize + shareMemoryStateSize;
 
-            accessor.Read(index, out int keylen);
+            int keylen = accessor.ReadInt(index);
             index += 4 + keylen;
             if (keylen == 0) return string.Empty;
 
-            accessor.Read(index, out int vallen);
+            int vallen = accessor.ReadInt(index);
             index += 4;
             if (vallen == 0 || keylen + 8 + shareMemoryStateSize + vallen > itemSize) return string.Empty;
 
@@ -258,12 +261,12 @@ namespace cmonitor.libs
                     {
                         if (accessorLocal != null)
                         {
-                            accessorLocal.Write(valIndex, ref keylen);
+                            accessorLocal.WriteInt(valIndex, keylen);
                             accessorLocal.WriteArray(valIndex + 4, key, 0, key.Length);
                         }
                         if (accessorGlobal != null)
                         {
-                            accessorGlobal.Write(valIndex, ref keylen);
+                            accessorGlobal.WriteInt(valIndex, keylen);
                             accessorGlobal.WriteArray(valIndex + 4, key, 0, key.Length);
                         }
                         valIndex += 4 + key.Length;
@@ -273,23 +276,23 @@ namespace cmonitor.libs
                         int keyLen = 0;
                         if (accessorLocal != null)
                         {
-                            accessorLocal.Read(valIndex, out keyLen);
+                            keyLen = accessorLocal.ReadInt(valIndex);
                         }
                         if (keyLen == 0 && accessorGlobal != null)
                         {
-                            accessorGlobal.Read(valIndex, out keyLen);
+                            keyLen = accessorGlobal.ReadInt(valIndex);
                         }
                         valIndex += 4 + keyLen;
                     }
 
                     if (accessorLocal != null)
                     {
-                        accessorLocal.Write(valIndex, vallen);
+                        accessorLocal.WriteInt(valIndex, vallen);
                         accessorLocal.WriteArray(valIndex + 4, value, 0, value.Length);
                     }
                     if (accessorGlobal != null)
                     {
-                        accessorGlobal.Write(valIndex, vallen);
+                        accessorGlobal.WriteInt(valIndex, vallen);
                         accessorGlobal.WriteArray(valIndex + 4, value, 0, value.Length);
                     }
                 }
@@ -302,7 +305,7 @@ namespace cmonitor.libs
             return false;
         }
 
-        private bool ReadState(MemoryMappedViewAccessor accessor, int index, ShareMemoryState state)
+        private bool ReadState(IShareMemory accessor, int index, ShareMemoryState state)
         {
             if (accessor == null) return false;
 
@@ -334,7 +337,7 @@ namespace cmonitor.libs
             return false;
         }
 
-        private void WriteState(MemoryMappedViewAccessor accessor, int index, ShareMemoryState state, bool value)
+        private void WriteState(IShareMemory accessor, int index, ShareMemoryState state, bool value)
         {
             if (accessor == null) return;
             byte stateValue = accessor.ReadByte(index * itemSize);
@@ -347,7 +350,7 @@ namespace cmonitor.libs
             {
                 stateValue &= (byte)(~stateByte);
             }
-            accessor.Write(index * itemSize, stateValue);
+            accessor.WriteByte(index * itemSize, stateValue);
         }
         public void WriteUpdated(int index, bool updated = true)
         {
@@ -365,14 +368,6 @@ namespace cmonitor.libs
             WriteState(accessorLocal, index, ShareMemoryState.Running, running);
             WriteState(accessorGlobal, index, ShareMemoryState.Running, running);
             WriteUpdated(index, true);
-        }
-
-        public void Disponse()
-        {
-            accessorLocal?.Dispose();
-            mmfLocal?.Dispose();
-            accessorGlobal?.Dispose();
-            mmfGlobal?.Dispose();
         }
     }
 

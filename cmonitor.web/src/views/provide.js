@@ -18,8 +18,14 @@ export const provideGlobalData = () => {
             }
             return [];
         }),
-        reportNames: []
+        currentDevice: { MachineName: '' },
+        reportNames: [],
+        pc: window.innerWidth > 768
     });
+    window.addEventListener('resize', () => {
+        globalData.value.pc = window.innerWidth > 768;
+    });
+
     provide(globalDataSymbol, globalData);
     return globalData;
 }

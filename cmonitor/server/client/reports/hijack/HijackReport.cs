@@ -1,5 +1,4 @@
-﻿using cmonitor.hijack;
-using common.libs;
+﻿using common.libs;
 using MemoryPack;
 
 namespace cmonitor.server.client.reports.hijack
@@ -8,22 +7,20 @@ namespace cmonitor.server.client.reports.hijack
     {
         public string Name => "Hijack";
 
-        private readonly HijackEventHandler hijackEventHandler;
         private readonly HijackConfig hijackConfig;
         private readonly ClientConfig clientConfig;
-        private readonly HijackController hijackController;
+        private readonly IHijack hijack;
 
         private ulong[] array = new ulong[3];
         private ulong[] lastArray = new ulong[3];
         private long ticks = DateTime.UtcNow.Ticks;
 
-        public HijackReport(HijackEventHandler hijackEventHandler, HijackController hijackController, HijackConfig hijackConfig, ClientConfig clientConfig, Config config)
+        public HijackReport(IHijack hijack, HijackConfig hijackConfig, ClientConfig clientConfig, Config config)
         {
-            this.hijackEventHandler = hijackEventHandler;
-            this.hijackController = hijackController;
+            this.hijack = hijack;
             this.hijackConfig = hijackConfig;
             this.clientConfig = clientConfig;
-            if (OperatingSystem.IsWindows() && config.IsCLient)
+            if (config.IsCLient)
             {
                 try
                 {
@@ -34,7 +31,7 @@ namespace cmonitor.server.client.reports.hijack
                     hijackConfig.DeniedIPs = clientConfig.HijackConfig.DeniedIPs;
                     hijackConfig.AllowIPs = clientConfig.HijackConfig.AllowIPs;
 
-                    hijackController.Start();
+                    hijack.Start();
                 }
                 catch (Exception ex)
                 {
@@ -54,13 +51,13 @@ namespace cmonitor.server.client.reports.hijack
 
             clientConfig.HijackConfig = hijackConfig;
 
-            hijackController.SetRules();
+            hijack.SetRules();
         }
 
         public object GetReports(ReportType reportType)
         {
-            array[0] = hijackEventHandler.UdpSend + hijackEventHandler.TcpSend;
-            array[1] = hijackEventHandler.TcpReceive + hijackEventHandler.UdpReceive;
+            array[0] = hijack.UdpSend + hijack.TcpSend;
+            array[1] = hijack.TcpReceive + hijack.UdpReceive;
             ulong count = (ulong)(hijackConfig.AllowIPs.Length + hijackConfig.DeniedIPs.Length + hijackConfig.AllowDomains.Length + hijackConfig.DeniedDomains.Length + hijackConfig.AllowProcesss.Length + hijackConfig.DeniedProcesss.Length);
             array[2] = count;
 

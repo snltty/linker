@@ -1,7 +1,6 @@
 ﻿using cmonitor.server.client.reports.share;
-using common.libs;
 
-namespace cmonitor.server.client.reports.llock
+namespace cmonitor.server.client.reports.wallpaper
 {
     public sealed class WallpaperReport : IReport
     {
@@ -9,15 +8,15 @@ namespace cmonitor.server.client.reports.llock
 
         private WallpaperReportInfo report = new WallpaperReportInfo();
         private bool lastValue;
-        private readonly Config config;
         private readonly ShareReport shareReport;
         private readonly ClientConfig clientConfig;
+        private readonly IWallpaper wallpaper;
 
-        public WallpaperReport(Config config, ShareReport shareReport, ClientConfig clientConfig)
+        public WallpaperReport(ShareReport shareReport, ClientConfig clientConfig, IWallpaper wallpaper)
         {
-            this.config = config;
             this.shareReport = shareReport;
             this.clientConfig = clientConfig;
+            this.wallpaper = wallpaper;
 
             Update(clientConfig.Wallpaper, clientConfig.WallpaperUrl);
         }
@@ -25,7 +24,7 @@ namespace cmonitor.server.client.reports.llock
         DateTime startTime = new DateTime(1970, 1, 1);
         public object GetReports(ReportType reportType)
         {
-            clientConfig.Wallpaper = report.Value = shareReport.GetShare(Name, out cmonitor.libs.ShareItemInfo share)
+            clientConfig.Wallpaper = report.Value = shareReport.GetShare(Name, out libs.ShareItemInfo share)
                 && string.IsNullOrWhiteSpace(share.Value) == false
                 && long.TryParse(share.Value, out long time) && (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds - time < 1000;
 
@@ -45,13 +44,7 @@ namespace cmonitor.server.client.reports.llock
             {
                 shareReport.WriteClose(Config.ShareMemoryWallpaperIndex);
                 await Task.Delay(100);
-
-                if (open)
-                {
-                    CommandHelper.Windows(string.Empty, new string[] {
-                        $"start wallpaper.win.exe \"{url}\" {config.ShareMemoryKey} {config.ShareMemoryLength} {config.ShareMemoryItemSize} {Config.ShareMemoryKeyBoardIndex} {Config.ShareMemoryWallpaperIndex}"
-                    });
-                }
+                wallpaper.Set(open,url);
             });
 
         }

@@ -28,7 +28,7 @@ namespace cmonitor.server.service.messengers.screen
             {
                 reportType = (ScreenReportFullType)connection.ReceiveRequestWrap.Payload.Span[0];
             }
-            screenReport.CaptureFull(reportType);
+            screenReport.SetCaptureFull(reportType);
         }
 
         [MessengerId((ushort)ScreenMessengerIds.CaptureFullReport)]
@@ -51,13 +51,13 @@ namespace cmonitor.server.service.messengers.screen
         [MessengerId((ushort)ScreenMessengerIds.CaptureClip)]
         public void CaptureClip(IConnection connection)
         {
-            screenReport.CaptureClip(MemoryPackSerializer.Deserialize<ScreenClipInfo>(connection.ReceiveRequestWrap.Payload.Span));
+            screenReport.SetCaptureClip(MemoryPackSerializer.Deserialize<ScreenClipInfo>(connection.ReceiveRequestWrap.Payload.Span));
         }
 
         [MessengerId((ushort)ScreenMessengerIds.CaptureRegion)]
         public void CaptureRegion(IConnection connection)
         {
-            screenReport.CaptureRegion();
+            screenReport.SetCaptureRegion();
         }
         [MessengerId((ushort)ScreenMessengerIds.CaptureRegionReport)]
         public void CaptureRegionReport(IConnection connection)
@@ -79,7 +79,7 @@ namespace cmonitor.server.service.messengers.screen
             if (connection.ReceiveRequestWrap.Payload.Length == 1)
             {
                 byte state = connection.ReceiveRequestWrap.Payload.Span[0];
-                screenReport.DisplayState(state == 1);
+                screenReport.SetDisplayState(state == 1);
             }
         }
 
@@ -87,13 +87,13 @@ namespace cmonitor.server.service.messengers.screen
         [MessengerId((ushort)ScreenMessengerIds.ScreenShare)]
         public void ScreenShare(IConnection connection)
         {
-            screenReport.ScreenShare(connection.ReceiveRequestWrap.Payload);
+            screenReport.SetScreenShareData(connection.ReceiveRequestWrap.Payload);
         }
 
         [MessengerId((ushort)ScreenMessengerIds.ScreenShareState)]
         public void ScreenShareState(IConnection connection)
         {
-            screenReport.ScreenShareState((ScreenShareStates)connection.ReceiveRequestWrap.Payload.Span[0]);
+            screenReport.SetScreenShareState((ScreenShareStates)connection.ReceiveRequestWrap.Payload.Span[0]);
         }
     }
 

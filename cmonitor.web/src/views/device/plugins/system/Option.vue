@@ -67,11 +67,11 @@ export default {
         }
 
         const handleUSB = () => {
-            handleChange('USBSTOR', usb.value ? '确定启用USB吗？' : '确定禁用USB吗？', !usb.value);
+            handleChange('USBSTOR', usb.value ? '确定启用USB吗？' : '确定禁用USB吗？', !usb.value).then(() => { }).catch(() => { });
 
         }
         const handleSetting = () => {
-            handleChange('NoControlPanel', setting.value ? '确定启用设置吗？' : '确定禁用设置吗？', !setting.value);
+            handleChange('NoControlPanel', setting.value ? '确定启用设置吗？' : '确定禁用设置吗？', !setting.value).then(() => { }).catch(() => { });
         }
         const handleShutdown = () => {
             const newValue = !shutdown.value;
@@ -80,7 +80,7 @@ export default {
                 updateRegistryOptions([props.data.MachineName], 'DisableLockWorkstation', newValue);
                 updateRegistryOptions([props.data.MachineName], 'HideFastUserSwitching', newValue);
                 updateRegistryOptions([props.data.MachineName], 'DisableChangePassword', newValue);
-            });
+            }).catch(() => { });
         }
 
         return {

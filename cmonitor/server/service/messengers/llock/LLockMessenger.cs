@@ -24,7 +24,7 @@ namespace cmonitor.server.service.messengers.llock
         [MessengerId((ushort)LLockMessengerIds.LockSystem)]
         public void LockSystem(IConnection connection)
         {
-            lLockReport.LockSystem();
+            //lLockReport.LockSystem();
         }
 
     }

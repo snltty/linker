@@ -1,13 +1,6 @@
-﻿using cmonitor.server.client.reports.system;
-using common.libs;
+﻿using common.libs;
 using MemoryPack;
-#if DEBUG || RELEASE
-using Microsoft.Win32;
-#endif
 using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace cmonitor.server.client.reports.active
 {
@@ -16,27 +9,25 @@ namespace cmonitor.server.client.reports.active
         public string Name => "ActiveWindow";
 
         private readonly ClientConfig clientConfig;
+        private readonly IActiveWindow activeWindow;
         private readonly ActiveWindowTimeManager activeWindowTimeManager = new ActiveWindowTimeManager();
         private ActiveReportInfo report = new ActiveReportInfo();
 
         private uint lastPid = 0;
         private string lastTitle = string.Empty;
         private int count = 0;
-        public ActiveWindowReport(Config config, ClientConfig clientConfig)
+        public ActiveWindowReport(Config config, ClientConfig clientConfig, IActiveWindow activeWindow)
         {
             this.clientConfig = clientConfig;
+            this.activeWindow = activeWindow;
             if (config.IsCLient)
             {
-                Timers();
-                DisallowInit();
-
                 DisallowRun(clientConfig.WindowNames);
+                Loop();
 
                 AppDomain.CurrentDomain.ProcessExit += (s, e) => DisallowRun(Array.Empty<string>());
                 Console.CancelKeyPress += (s, e) => DisallowRun(Array.Empty<string>());
             }
-
-
         }
 
         long ticks = DateTime.UtcNow.Ticks;
@@ -52,6 +43,14 @@ namespace cmonitor.server.client.reports.active
             }
             return null;
         }
+
+        public void DisallowRun(string[] names)
+        {
+            clientConfig.WindowNames = names;
+            report.DisallowCount = names.Length;
+            activeWindow.DisallowRun(names);
+        }
+
         public ActiveWindowTimeReportInfo GetActiveWindowTimes()
         {
             return activeWindowTimeManager.GetActiveWindowTimes();
@@ -60,25 +59,28 @@ namespace cmonitor.server.client.reports.active
         {
             activeWindowTimeManager.Clear();
         }
+        public Dictionary<uint, string> GetWindows()
+        {
+            return activeWindow.GetWindows();
+        }
 
-
-        private void Timers()
+        private void Loop()
         {
             Task.Factory.StartNew(async () =>
             {
                 while (true)
                 {
-                    if ((DateTime.UtcNow.Ticks - ticks) / TimeSpan.TicksPerMillisecond < 1000 || disallowNames.Length > 0)
+                    if ((DateTime.UtcNow.Ticks - ticks) / TimeSpan.TicksPerMillisecond < 1000 || report.DisallowCount > 0)
                     {
                         try
                         {
 
-                            GetActiveWindow();
-                            report.WindowCount = GetWindowCount();
-                            if (Disallow() == false)
-                            {
-                                //activeWindowTimeManager.Update(report);
-                            }
+                            ActiveWindowInfo info = activeWindow.GetActiveWindow();
+                            report.Title = info.Title;
+                            report.FileName = info.FileName;
+                            report.Desc = info.Desc;
+                            report.Pid = info.Pid;
+                            report.WindowCount = activeWindow.GetWindowCount();
                         }
                         catch (Exception ex)
                         {
@@ -91,260 +93,6 @@ namespace cmonitor.server.client.reports.active
                 }
             }, TaskCreationOptions.LongRunning);
         }
-
-
-        const int nChars = 256;
-        private StringBuilder buff = new StringBuilder(nChars);
-        private void GetActiveWindow()
-        {
-            IntPtr handle = GetForegroundWindow();
-            GetWindowThreadProcessId(handle, out uint id);
-            if (GetWindowText(handle, buff, nChars) > 0)
-            {
-                Process p = Process.GetProcessById((int)id);
-                string desc = string.Empty;
-                string filename = string.Empty;
-
-                try
-                {
-                    ProcessModule main = p.MainModule;
-                    if (main != null)
-                    {
-                        filename = main.FileName;
-                        desc = main.FileVersionInfo.FileDescription;
-                    }
-                }
-
-                catch (Exception)
-                {
-                }
-
-                report.Title = buff.ToString();
-                report.FileName = filename;
-                report.Desc = desc;
-                report.Pid = id;
-                return;
-            }
-            report.Title = string.Empty;
-            report.FileName = string.Empty;
-            report.Desc = string.Empty;
-            report.Pid = 0;
-        }
-
-
-        private string[] disallowNames = Array.Empty<string>();
-        public void DisallowRun(string[] names)
-        {
-            clientConfig.WindowNames = names;
-            DisallowRun(false);
-            DisallowRunClear();
-            report.DisallowCount = names.Length;
-            disallowNames = names;
-
-            Task.Run(() =>
-            {
-                if (names.Length > 0)
-                {
-                    DisallowRun(true);
-                    DisallowRunFileNames(names);
-                }
-                CommandHelper.Windows(string.Empty, new string[] { "gpupdate /force" });
-            });
-        }
-        private bool Disallow()
-        {
-            if (disallowNames.Length > 0)
-            {
-                try
-                {
-                    ReadOnlySpan<char> filenameSpan = report.FileName.AsSpan();
-                    uint pid = report.Pid;
-                    foreach (string item in disallowNames)
-                    {
-                        ReadOnlySpan<char> nameSpan = item.AsSpan();
-                        bool result = item == report.Title
-                            || (filenameSpan.Length >= nameSpan.Length && filenameSpan.Slice(filenameSpan.Length - nameSpan.Length, nameSpan.Length).SequenceEqual(nameSpan));
-                        if (result)
-                        {
-                            Task.Run(() =>
-                            {
-                                CommandHelper.Windows(string.Empty, new string[] { $"taskkill /f /pid {pid}" });
-                            });
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                }
-                return true;
-            }
-            return false;
-        }
-        private void DisallowInit()
-        {
-            CreateKey();
-            DisallowRunClear();
-            DisallowRun(false);
-            Task.Run(() =>
-            {
-                CommandHelper.Windows(string.Empty, new string[] { "gpupdate /force" });
-            });
-        }
-        private void DisallowRunClear()
-        {
-#if DEBUG || RELEASE
-            try
-            {
-
-                if (OperatingSystem.IsWindows())
-                {
-                    RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun", true);
-                    if (key != null)
-                    {
-                        string[] names = key.GetValueNames();
-                        if (names != null)
-                        {
-                            foreach (string name in names)
-                            {
-                                key.DeleteValue(name, false);
-                            }
-                        }
-                    }
-                }
-
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Error($"application disallow clear {ex}");
-            }
-#endif
-        }
-        private void DisallowRunFileNames(string[] filenames)
-        {
-#if DEBUG || RELEASE
-            try
-            {
-                if (OperatingSystem.IsWindows())
-                {
-
-                    RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun", true);
-                    if (key != null)
-                    {
-                        foreach (string filename in filenames)
-                        {
-                            key.SetValue(filename, filename, RegistryValueKind.String);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Error($"application disallow {string.Join(",", filenames)} {ex}");
-            }
-#endif
-        }
-        private void DisallowRun(bool value)
-        {
-#if DEBUG || RELEASE
-            try
-            {
-                if (OperatingSystem.IsWindows())
-                {
-                    RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer", true);
-                    if (key != null)
-                    {
-                        key.SetValue("DisallowRun", value ? 1 : 0, RegistryValueKind.DWord);
-                    }
-                }
-            }
-            catch (Exception)
-            {
-            }
-#endif
-        }
-        private void CreateKey()
-        {
-#if DEBUG || RELEASE
-            try
-            {
-                if (OperatingSystem.IsWindows())
-                {
-                    RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer", true);
-                    RegistryKey disallowRun = key.OpenSubKey("DisallowRun");
-                    if (disallowRun == null)
-                    {
-                        key.CreateSubKey("DisallowRun");
-                    }
-                }
-            }
-            catch (Exception)
-            {
-            }
-#endif
-        }
-
-        private int GetWindowCount()
-        {
-            int length = 0;
-            EnumWindows((IntPtr hWnd, IntPtr lParam) =>
-            {
-                try
-                {
-                    if (IsWindowVisible(hWnd) && GetWindowTextLength(hWnd) > 0)
-                    {
-                        length++;
-                    }
-                }
-                catch (Exception)
-                {
-                }
-
-                return true;
-            }, IntPtr.Zero);
-            return length;
-        }
-        public Dictionary<uint, string> GetWIndows()
-        {
-            Dictionary<uint, string> dic = new Dictionary<uint, string>();
-            StringBuilder lpString = new StringBuilder(256);
-            EnumWindows((IntPtr hWnd, IntPtr lParam) =>
-            {
-                try
-                {
-                    if (IsWindowVisible(hWnd) && GetWindowTextLength(hWnd) > 0)
-                    {
-                        GetWindowText(hWnd, lpString, 256);
-                        GetWindowThreadProcessId(hWnd, out uint id);
-
-                        dic[id] = lpString.ToString();
-                    }
-                }
-                catch (Exception)
-                {
-                }
-
-                return true;
-            }, IntPtr.Zero);
-
-            return dic;
-        }
-
-        [DllImport("user32.dll")]
-        static extern IntPtr GetForegroundWindow();
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        public static extern int GetWindowTextLength(IntPtr hWnd);
-        [DllImport("user32.dll")]
-        static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
-        [DllImport("user32.dll")]
-        static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-
-        public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
-
-        [DllImport("user32.dll")]
-        static extern bool IsWindowVisible(IntPtr hWnd);
     }
 
     public sealed class ActiveReportInfo
@@ -357,14 +105,6 @@ namespace cmonitor.server.client.reports.active
         public int WindowCount { get; set; }
     }
 
-    public sealed class ActiveWindow
-    {
-        public string Title { get; set; } = string.Empty;
-        public string FileName { get; set; } = string.Empty;
-        public string Desc { get; set; } = string.Empty;
-
-        public uint Pid = 0;
-    }
     public sealed class ActiveWindowTimeManager
     {
         private ConcurrentDictionary<string, ActiveWindowTimeInfo> dic = new ConcurrentDictionary<string, ActiveWindowTimeInfo>();
@@ -431,7 +171,6 @@ namespace cmonitor.server.client.reports.active
 
         }
     }
-
 
     [MemoryPackable]
     public sealed partial class ActiveWindowTimeReportInfo

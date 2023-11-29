@@ -3,26 +3,19 @@
     public sealed class LightReport : IReport
     {
         public string Name => "Light";
+
         LightReportInfo report = new LightReportInfo();
         int lastValue = 0;
 
-        private readonly LightWatcher lightWatcher;
-        public LightReport()
+        private readonly ILight light;
+        public LightReport(ILight light)
         {
-
-            if (OperatingSystem.IsWindows())
-            {
-                lightWatcher = new LightWatcher();
-                lightWatcher.BrightnessChanged += (e, value) =>
-                {
-                    report.Value = (int)value.newBrightness;
-                };
-                report.Value = LightWmiHelper.GetBrightnessLevel();
-            }
+            this.light = light;
         }
 
         public object GetReports(ReportType reportType)
         {
+            report.Value = light.Get();
             if (reportType == ReportType.Full || report.Value != lastValue)
             {
                 lastValue = report.Value;
@@ -33,7 +26,7 @@
 
         public void SetLight(int value)
         {
-            LightWmiHelper.SetBrightnessLevel(value);
+            light.Set(value);
         }
     }
 

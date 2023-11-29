@@ -9,6 +9,10 @@ a {
     color: #6f9ccd;
 }
 
+:root {
+    --foot-menu-dropdown-color: #f5f5f5;
+}
+
 .flex {
     display: flex;
     display: -webkit-flex;

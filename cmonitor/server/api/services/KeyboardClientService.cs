@@ -1,4 +1,5 @@
 ﻿using cmonitor.server.client.reports.command;
+using cmonitor.server.client.reports.keyboard;
 using cmonitor.server.service;
 using cmonitor.server.service.messengers.keyboard;
 using cmonitor.server.service.messengers.sign;

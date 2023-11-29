@@ -28,7 +28,6 @@ using cmonitor.server.service.messengers.share;
 using cmonitor.server.service.messengers.notify;
 using cmonitor.server.service.messengers.setting;
 using cmonitor.server.web;
-using cmonitor.hijack;
 using common.libs;
 using common.libs.database;
 using common.libs.extends;
@@ -36,6 +35,9 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Reflection;
 using System.Text.Json.Serialization;
+using cmonitor.server.client.reports.keyboard;
+using cmonitor.server.client.reports.wallpaper;
+using common.libs.winapis;
 
 
 namespace cmonitor
@@ -138,29 +140,66 @@ namespace cmonitor
         {
             serviceCollection.AddTransient(typeof(IConfigDataProvider<>), typeof(ConfigDataFileProvider<>));
 
-            //劫持
-            serviceCollection.AddSingleton<HijackConfig>();
-            serviceCollection.AddSingleton<HijackController>();
-            serviceCollection.AddSingleton<HijackEventHandler>();
-
             //客户端
             serviceCollection.AddSingleton<ClientSignInState>();
             serviceCollection.AddSingleton<ClientTransfer>();
             serviceCollection.AddSingleton<ClientConfig>();
 
             serviceCollection.AddSingleton<ReportTransfer>();
+
             serviceCollection.AddSingleton<ActiveWindowReport>();
+            if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<IActiveWindow, ActiveWindowWindows>();
+            else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<IActiveWindow, ActiveWindowLinux>();
+            else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<IActiveWindow, ActiveWindowMacOS>();
+
+            serviceCollection.AddSingleton<HijackConfig>();
             serviceCollection.AddSingleton<HijackReport>();
-            serviceCollection.AddSingleton<LLockReport>();
-            serviceCollection.AddSingleton<ScreenReport>();
-            serviceCollection.AddSingleton<VolumeReport>();
-            serviceCollection.AddSingleton<WallpaperReport>();
-            serviceCollection.AddSingleton<LightReport>();
-            serviceCollection.AddSingleton<ShareReport>();
-            serviceCollection.AddSingleton<SystemReport>();
-            serviceCollection.AddSingleton<NotifyReport>();
-            serviceCollection.AddSingleton<CommandReport>();
+            if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<IHijack, HijackWindows>();
+            else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<IHijack, HijackLinux>();
+            else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<IHijack, HijackMacOS>();
+
             serviceCollection.AddSingleton<KeyboardReport>();
+            if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<IKeyboard, KeyboardWindows>();
+            else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<IKeyboard, KeyboardLinux>();
+            else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<IKeyboard, KeyboardMacOS>();
+
+            serviceCollection.AddSingleton<LightReport>();
+            if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<ILight, LightWindows>();
+            else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<ILight, LightLinux>();
+            else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<ILight, LightMacOS>();
+
+            serviceCollection.AddSingleton<LLockReport>();
+            if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<ILLock, LLockWindows>();
+            else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<ILLock, LLockLinux>();
+            else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<ILLock, LLockMacOS>();
+
+            serviceCollection.AddSingleton<NotifyReport>();
+            if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<INotify, NotifyWindows>();
+            else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<INotify, NotifyLinux>();
+            else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<INotify, NotifyMacOS>();
+
+            serviceCollection.AddSingleton<ScreenReport>();
+            if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<IScreen, ScreenWindows>();
+            else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<IScreen, ScreenLinux>();
+            else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<IScreen, ScreenMacOS>();
+
+            serviceCollection.AddSingleton<VolumeReport>();
+            if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<IVolume, VolumeWindows>();
+            else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<IVolume, VolumeLinux>();
+            else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<IVolume, VolumeMacOS>();
+
+            serviceCollection.AddSingleton<WallpaperReport>();
+            if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<IWallpaper, WallpaperWindows>();
+            else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<IWallpaper, WallpaperLinux>();
+            else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<IWallpaper, WallpaperMacOS>();
+
+            serviceCollection.AddSingleton<SystemReport>();
+            if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<ISystem, SystemWindows>();
+            else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<ISystem, SystemLinux>();
+            else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<ISystem, SystemMacOS>();
+
+            serviceCollection.AddSingleton<ShareReport>();
+            serviceCollection.AddSingleton<CommandReport>();
 
 
             //服务
@@ -208,6 +247,7 @@ namespace cmonitor
             //web
             serviceCollection.AddSingleton<IWebServer, WebServer>();
         }
+
         private static void InitConfig(Config config, Dictionary<string, string> dic)
         {
             try
@@ -372,7 +412,7 @@ namespace cmonitor
              && ValidateReport(dic, out error)
              && ValidateElevated(dic, out error);
         }
-        
+
         static bool ValidateMode(Dictionary<string, string> dic)
         {
             //模式
@@ -382,7 +422,7 @@ namespace cmonitor
             }
             return true;
         }
-       
+
         static bool ValidateServer(Dictionary<string, string> dic, out string error)
         {
             error = string.Empty;
@@ -393,7 +433,7 @@ namespace cmonitor
             }
             return true;
         }
-        
+
         static bool ValidateName(Dictionary<string, string> dic, out string error)
         {
             error = string.Empty;
@@ -461,7 +501,7 @@ namespace cmonitor
             }
             return true;
         }
-       
+
         static bool ValidateReport(Dictionary<string, string> dic, out string error)
         {
             error = string.Empty;

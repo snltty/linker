@@ -1,7 +1,6 @@
-﻿using cmonitor.hijack;
+﻿using cmonitor.server.client.reports.hijack;
 using cmonitor.server.client.reports.screen;
 using common.libs.database;
-using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace cmonitor.server.client

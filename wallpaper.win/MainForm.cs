@@ -1,4 +1,4 @@
-﻿using cmonitor.libs;
+using cmonitor.libs;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;

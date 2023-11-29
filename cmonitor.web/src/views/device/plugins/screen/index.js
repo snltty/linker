@@ -11,6 +11,8 @@ export default {
                 fullImg: null, //全图
                 fullUpdated: false, //第一次进来先获取一次全图
                 width: 0, height: 0, //系统宽高
+                prevCanvas: null,
+                prevCtx: null,
 
                 draw(canvas, ctx) {
                     this.drawFps(canvas, ctx);
@@ -315,7 +317,12 @@ export default {
                 }
             }
         }
-
+        if (!this.prevCanvas || !this.prevCtx) {
+            this.prevCanvas = document.getElementById(`prev-canvas`);
+            if (this.prevCanvas) {
+                this.prevCtx = this.prevCanvas.getContext('2d')
+            }
+        }
     },
     drawRegionImgs(item) {
         const regions = item.Screen.regionImgs;
@@ -338,6 +345,7 @@ export default {
     },
     draw() {
         const devices = this.globalData.value.devices.filter(c => this.globalData.value.reportNames.indexOf(c.MachineName) >= 0);
+        const current = this.globalData.value.currentDevice;
 
         for (let i = 0; i < devices.length; i++) {
             const item = devices[i];
@@ -355,6 +363,11 @@ export default {
             const img = item.Screen.fullImg;
             if (img) {
                 item.ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, item.canvas.width, item.canvas.height);
+                if (this.prevCtx) {
+                    if (current && current.MachineName == item.MachineName) {
+                        this.prevCtx.drawImage(img, 0, 0, img.width, img.height, 0, 0, this.prevCanvas.width, this.prevCanvas.height);
+                    }
+                }
             }
             item.infoCtx.clearRect(0, 0, item.infoCanvas.width, item.infoCanvas.height);
             this.drawInfo(item);

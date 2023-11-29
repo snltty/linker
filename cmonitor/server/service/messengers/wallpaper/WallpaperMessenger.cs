@@ -1,4 +1,4 @@
-﻿using cmonitor.server.client.reports.llock;
+﻿using cmonitor.server.client.reports.wallpaper;
 using MemoryPack;
 
 namespace cmonitor.server.service.messengers.wallpaper

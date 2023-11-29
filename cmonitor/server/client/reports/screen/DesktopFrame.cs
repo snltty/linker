@@ -6,11 +6,10 @@ namespace cmonitor.server.client.reports.screen
     public class DesktopFrame
     {
         public Memory<byte> FullImage { get; internal set; }
-        public Rectangle[] UpdatedRegions { get; internal set; }
         public Memory<byte> RegionImage { get; internal set; }
 
+        public Rectangle[] UpdatedRegions { get; internal set; }
         public MovedRegion[] MovedRegions { get; internal set; }
-        //public Rectangle[] Updateds { get; internal set; }
 
     }
 

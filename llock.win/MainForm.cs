@@ -68,7 +68,7 @@ namespace llock.win
 #if RELEASE
             this.WindowState = FormWindowState.Maximized;
 #endif
-            //½«´°¿ÚÖÃ¶¥
+            //å°†çª—å£ç½®é¡¶
             SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
             groupBox1.Location = new System.Drawing.Point((this.Width - groupBox1.Width) / 2, (this.Height - groupBox1.Height) / 2);
@@ -117,7 +117,7 @@ namespace llock.win
 
             }
             loading = false;
-            button1.Text = "½âËø";
+            button1.Text = "è§£é”";
         }
         private void CloseClear()
         {
@@ -173,12 +173,12 @@ namespace llock.win
         public static extern IntPtr GetModuleHandle(string name);
         public void Start()
         {
-            // °²×°¼üÅÌ¹³×Ó 
+            // å®‰è£…é”®ç›˜é’©å­ 
             if (hHook == 0)
             {
                 KeyBoardHookProcedure = new HookProc(KeyBoardHookProc);
                 hHook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyBoardHookProcedure, GetModuleHandle(null), 0);
-                //Èç¹ûÉèÖÃ¹³×ÓÊ§°Ü. 
+                //å¦‚æœè®¾ç½®é’©å­å¤±è´¥. 
                 if (hHook == 0)
                     Close();
                 else
@@ -195,22 +195,22 @@ namespace llock.win
                             if (key1 == null)
                                 key1 = Registry.LocalMachine.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Policies\System");
 
-                            //ÈÎÎñ¹ÜÀíÆ÷
+                            //ä»»åŠ¡ç®¡ç†å™¨
                             key.SetValue("DisableTaskMgr", 1, RegistryValueKind.DWord);
                             key1.SetValue("DisableTaskMgr", 1, RegistryValueKind.DWord);
-                            //Ëø¶¨
+                            //é”å®š
                             key.SetValue("DisableLockWorkstation", 1, RegistryValueKind.DWord);
                             key1.SetValue("DisableLockWorkstation", 1, RegistryValueKind.DWord);
-                            //ÇĞ»»ÓÃ»§
+                            //åˆ‡æ¢ç”¨æˆ·
                             key.SetValue("HideFastUserSwitching", 1, RegistryValueKind.DWord);
                             key1.SetValue("HideFastUserSwitching", 1, RegistryValueKind.DWord);
-                            //ĞŞ¸ÄÃÜÂë
+                            //ä¿®æ”¹å¯†ç 
                             key.SetValue("DisableChangePassword", 1, RegistryValueKind.DWord);
                             key1.SetValue("DisableChangePassword", 1, RegistryValueKind.DWord);
-                            //¹Ø»ú
+                            //å…³æœº
                             key.SetValue("ShutdownWithoutLogon", 0, RegistryValueKind.DWord);
                             key1.SetValue("ShutdownWithoutLogon", 0, RegistryValueKind.DWord);
-                            //×¢Ïú
+                            //æ³¨é”€
                             key.SetValue("StartMenuLogOff", 1, RegistryValueKind.DWord);
                             key1.SetValue("StartMenuLogOff", 1, RegistryValueKind.DWord);
 
@@ -219,7 +219,7 @@ namespace llock.win
                             key.Close();
                             key1.Close();
 
-                            //×¢Ïú
+                            //æ³¨é”€
                             RegistryKey zxKey = Registry.Users.OpenSubKey(user, true).OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Policies\Explorer", true);
                             if (zxKey == null)
                                 zxKey = Registry.Users.OpenSubKey(user, true).CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Policies\Explorer");
@@ -296,7 +296,7 @@ namespace llock.win
             return CallNextHookEx(hHook, nCode, wParam, lParam);
         }
 
-        #region IDisposable ³ÉÔ±
+        #region IDisposable æˆå‘˜
         public void Dispose()
         {
             Close();

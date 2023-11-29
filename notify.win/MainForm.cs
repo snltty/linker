@@ -73,13 +73,13 @@ namespace notify.win
             pictureBox1.Image = images[new Random().Next(0, 6)];
 
             this.FormBorderStyle = FormBorderStyle.None;
-            //Ω´¥∞ø⁄÷√∂•
+            //Â∞ÜÁ™óÂè£ÁΩÆÈ°∂
             SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
 
             int style = GetWindowLong(this.Handle, GWL_STYLE);
             SetWindowLong(this.Handle, GWL_STYLE, style & ~WS_SYSMENU);
 
-            // ÃÌº”¥∞ÃÂ“ı”∞
+            // Ê∑ªÂä†Á™ó‰ΩìÈò¥ÂΩ±
             SetWindowPos(this.Handle, IntPtr.Zero, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
 
 

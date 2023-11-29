@@ -6,7 +6,6 @@
 		<PublishAot>false</PublishAot>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<Configurations>Debug;Release;ReleaseLinux</Configurations>
-		<ApplicationIcon>favicon.ico</ApplicationIcon>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -41,7 +40,4 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
 	  <DebugType>embedded</DebugType>
 	</PropertyGroup>
-	<ItemGroup>
-	  <Content Include="favicon.ico" />
-	</ItemGroup>
 </Project>

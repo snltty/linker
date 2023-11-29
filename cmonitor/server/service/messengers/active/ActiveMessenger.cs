@@ -25,7 +25,7 @@ namespace cmonitor.server.service.messengers.active
         [MessengerId((ushort)ActiveMessengerIds.Windows)]
         public void Windows(IConnection connection)
         {
-            connection.Write(MemoryPackSerializer.Serialize(activeWindowReport.GetWIndows()));
+            connection.Write(MemoryPackSerializer.Serialize(activeWindowReport.GetWindows()));
         }
 
 

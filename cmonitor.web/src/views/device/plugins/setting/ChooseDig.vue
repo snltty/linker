@@ -1,5 +1,5 @@
 <template>
-    <el-dialog title="设置" destroy-on-close v-model="state.show" center :close-on-click-modal="false" align-center width="94%">
+    <el-dialog class="options" title="设置" destroy-on-close v-model="state.show" center :close-on-click-modal="false" align-center width="94%">
         <div class="setting-wrap">
             <el-form ref="ruleFormRef" :model="state.form" :rules="state.rules" label-width="100px">
                 <el-form-item label="报告延迟(ms)" prop="ReportDelay">
@@ -11,7 +11,7 @@
                 <el-form-item label="截屏缩放" prop="ScreenScale">
                     <el-input-number size="large" v-model="state.form.ScreenScale" :min="0.1" :max="1" :step="0.1" controls-position="right" />
                 </el-form-item>
-                <el-form-item label="保存配置" prop="SaveSetting">
+                <!-- <el-form-item label="保存配置" prop="SaveSetting">
                     <el-checkbox v-model="state.form.SaveSetting">保存限制配置</el-checkbox>
                 </el-form-item>
                 <el-form-item label="黑屏唤醒" prop="WakeUp">
@@ -19,7 +19,7 @@
                 </el-form-item>
                 <el-form-item label="声音峰值" prop="VolumeMasterPeak">
                     <el-checkbox v-model="state.form.VolumeMasterPeak">报告声音峰值</el-checkbox>
-                </el-form-item>
+                </el-form-item> -->
             </el-form>
         </div>
         <template #footer>

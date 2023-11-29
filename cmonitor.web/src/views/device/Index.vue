@@ -1,9 +1,27 @@
 <template>
-    <div class="device-list-wrap absolute flex flex-column" id="device-list-wrap">
-        <div class="items flex-1 relative scrollbar-1">
-            <Items></Items>
+    <div class="device-list-wrap absolute flex flex-column flex-nowarp" id="device-list-wrap">
+        <div class="content flex-1 flex">
+            <div class="items flex-1 relative scrollbar-1">
+                <Items></Items>
+            </div>
+            <div class="active-device flex flex-column" v-if="globalData.pc">
+                <div class="head">
+
+                    <Head></Head>
+                </div>
+
+                <div class="flex-1 prev">
+
+                    <div class="prev-inner">
+                        <h3>{{globalData.currentDevice.MachineName}}</h3>
+                        <div class="inner">
+                            <canvas id="prev-canvas" width="1920" height="1080"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="foot">
+        <div class="foot" v-if="!globalData.pc">
             <div class="foot-options">
                 <FootOptions></FootOptions>
             </div>
@@ -20,10 +38,14 @@
 import FootMenu from './wraps/FootMenu.vue'
 import FootOptions from './wraps/FootOptions.vue'
 import Items from './wraps/Items.vue'
+import Head from './wraps/Head.vue'
 import { providePluginState } from './provide'
+import { injectGlobalData } from '../provide'
 export default {
-    components: { Items, FootMenu, FootOptions },
+    components: { Items, FootMenu, FootOptions, Head },
     setup() {
+
+        const globalData = injectGlobalData();
 
         const files = require.context('./plugins/', true, /index\.js/);
         const pluginSettings = files.keys().map(c => files(c).default);
@@ -39,28 +61,98 @@ export default {
         const indexModules = indexFiles.keys().map(c => indexFiles(c).default);
 
         return {
-            indexModules
+            indexModules, globalData
         }
     }
 }
 </script>
 
 <style lang="stylus" scoped>
-.device-list-wrap {
-    .head {
-        padding: 1rem 1rem 1rem 1rem;
-        border-bottom: 1px solid #ddd;
-        background-color: #f0f0f0;
-        z-index: 999;
-        position: relative;
-        box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.075);
+@media (min-width: 768px) {
+    .active-device {
+        width: calc(100% - 41rem) !important;
     }
 
     .items {
-        padding: 0.6rem;
-        transform-style: preserve-3d;
-        perspective: 600px;
-        padding-bottom: 11.6rem;
+        height: 100%;
+        padding: 1rem 0 !important;
+        box-sizing: border-box;
+        border-right: 1px solid #999;
+        background-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .foot {
+        display: none;
+    }
+}
+
+.device-list-wrap {
+    .content {
+        position: relative;
+        overflow: hidden;
+
+        .items {
+            padding: 0.6rem;
+            transform-style: preserve-3d;
+            perspective: 600px;
+            padding-bottom: 11.6rem;
+            height: 100%;
+            box-sizing: border-box;
+        }
+    }
+
+    .head {
+        width: 100%;
+        z-index: 999;
+        position: relative;
+        // display: none;
+    }
+
+    .prev {
+        overflow: hidden;
+        padding: 0.4rem 1rem 1rem 1rem;
+
+        .prev-inner {
+            position: relative;
+            box-sizing: border-box;
+            font-size: 1.6rem;
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            margin: 0 auto 0 auto;
+            position: relative;
+            transition: 0.3s;
+            background-color: rgba(255, 255, 255, 1);
+            border-radius: 4px;
+
+            h3 {
+                padding: 0.6rem 0 0.6rem 1rem;
+                color: #666;
+                font-size: 1.4rem;
+            }
+
+            .inner {
+                position: relative;
+                overflow: hidden;
+                background-color: rgba(0, 0, 0, 0.3);
+                border-radius: 0 0 4px 4px;
+                // border: 1px solid rgba(255, 255, 255, 0.2);
+                box-sizing: border-box;
+
+                &:before {
+                    content: '';
+                    display: inline-block;
+                    padding-bottom: 56.25%;
+                    width: 0.1px;
+                    vertical-align: middle;
+                }
+
+                canvas {
+                    width: 100%;
+                    height: 100%;
+                    position: absolute;
+                }
+            }
+        }
     }
 
     .foot {

@@ -1,5 +1,5 @@
 <template>
-    <el-dialog class="volume-dialog" title="调节音量" destroy-on-close v-model="state.show" center align-center width="94%">
+    <el-dialog class="volume-dialog options-center" title="调节音量" destroy-on-close v-model="state.show" center align-center width="94%">
         <div class="slider-wrap flex flex-column">
             <div class="silder flex flex-1">
                 <div class="flex-1">

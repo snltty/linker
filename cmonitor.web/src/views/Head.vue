@@ -1,6 +1,6 @@
 <template>
     <div>
-        <el-dialog title="选择角色" destroy-on-close v-model="showSelectUsername" center :show-close="false" :close-on-click-modal="false" align-center width="70%">
+        <el-dialog class="options-center" title="选择角色" destroy-on-close v-model="showSelectUsername" center :show-close="false" :close-on-click-modal="false" align-center width="70%">
             <div class="username-wrap t-c">
                 <el-select filterable allow-create default-first-option v-model="state.username" @change="handleChange" placeholder="选择角色" size="large">
                     <el-option v-for="item in state.usernames" :key="item" :label="item" :value="item" />
@@ -10,7 +10,7 @@
                 <el-button type="success" @click="handleUsername" plain>确 定</el-button>
             </template>
         </el-dialog>
-        <el-dialog title="管理接口" destroy-on-close v-model="showPort" center :show-close="false" :close-on-click-modal="false" align-center width="70%">
+        <el-dialog class="options-center" title="管理接口" destroy-on-close v-model="showPort" center :show-close="false" :close-on-click-modal="false" align-center width="70%">
             <div class="port-wrap t-c">
                 <el-input v-model="state.api" style="width:auto"></el-input>
             </div>
@@ -61,8 +61,8 @@ export default {
             }).catch(() => { });
         }
         const handleConnect = () => {
-            initWebsocket(`ws://192.168.1.18:1801`);
-            //initWebsocket(`ws://${state.api}`);
+            //initWebsocket(`ws://192.168.1.18:1801`);
+            initWebsocket(`ws://${state.api}`);
             localStorage.setItem('api', state.api);
         }
         const handleUsername = () => {

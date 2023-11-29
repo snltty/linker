@@ -92,15 +92,26 @@ export default {
                 if (items.length == 0) return;
                 const wrapHeight = itemsWrap.offsetHeight;
 
-                const doms = [...items].map((item, index) => {
+                let totalHeight = 0;
+                let doms = [...items].map((item, index) => {
                     const topLine = item.offsetTop - scrollTop;
                     const middleLine = topLine + item.offsetHeight / 2;
                     const offset = Math.abs(middleLine - wrapHeight / 2);
-                    return { dom: item, index: index, offset: offset };
+                    totalHeight += item.offsetHeight + 6;
+                    return { dom: item, index: index, top: item.offsetTop, offset: offset, height: item.offsetHeight };
                 });
 
                 //哪个是在最中间的
-                const middleItem = doms.sort((a, b) => a.offset - b.offset)[0];
+                const sorted = doms.sort((a, b) => a.offset - b.offset);
+                const middleItem = sorted[0];
+                if (scrollTop < doms[0].height / 2) {
+                    globalData.value.currentDevice = globalData.value.devices[0];
+                } else if (scrollTop + wrapHeight >= totalHeight) {
+                    globalData.value.currentDevice = globalData.value.devices[globalData.value.devices.length - 1];
+                } else {
+                    globalData.value.currentDevice = globalData.value.devices[middleItem.index];
+                }
+
                 for (let i = 0; i < items.length; i++) {
                     let style = 'z-index:9;background-color:rgba(255,255,255,1);';
                     const dist = Math.abs((middleItem.index - i));

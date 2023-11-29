@@ -1,4 +1,4 @@
-﻿using cmonitor.server.client.reports.command;
+﻿using cmonitor.server.client.reports.keyboard;
 using MemoryPack;
 
 namespace cmonitor.server.service.messengers.keyboard

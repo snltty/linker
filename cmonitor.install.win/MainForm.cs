@@ -2,6 +2,7 @@ using common.libs;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Net;
+using System.Text;
 
 namespace cmonitor.install.win
 {
@@ -132,12 +133,13 @@ namespace cmonitor.install.win
 
             string shareKeyStr = shareKey.Text;
             string shareLenStr = shareLen.Text;
+            string shareItemLenStr = shareItemLen.Text;
 
             Task.Run(() =>
             {
                 if (installed == false)
                 {
-                    string taskStr = $"sc create \"{serviceName}\" binpath=\"{sasPath} {shareKeyStr} {shareLenStr} 255 {sasIndexStr} \\\"{paramStr}\\\"\" start=AUTO";
+                    string taskStr = $"sc create \"{serviceName}\" binpath=\"{sasPath} {shareKeyStr} {shareLenStr} {shareItemLenStr} {sasIndexStr} \\\"{paramStr}\\\"\" start=AUTO";
                     CommandHelper.Windows(string.Empty, new string[] {
                         taskStr,
                         $"net start {serviceName}",
@@ -168,7 +170,7 @@ namespace cmonitor.install.win
         {
             if (modeClient.Checked == false && modeServer.Checked == false)
             {
-                MessageBox.Show("¿Í»§¶ËºÍ·şÎñ¶Ë±ØĞëÑ¡ÔñÒ»Ñù£¡");
+                MessageBox.Show("å®¢æˆ·ç«¯å’ŒæœåŠ¡ç«¯å¿…é¡»é€‰æ‹©ä¸€æ ·ï¼");
                 return false;
             }
             List<string> modeStr = new List<string>();
@@ -188,22 +190,22 @@ namespace cmonitor.install.win
         {
             if (string.IsNullOrWhiteSpace(serverIP.Text))
             {
-                MessageBox.Show("·şÎñÆ÷ip±ØÌî");
+                MessageBox.Show("æœåŠ¡å™¨ipå¿…å¡«");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(serverPort.Text))
             {
-                MessageBox.Show("·şÎñÆ÷¶Ë¿Ú±ØÌî");
+                MessageBox.Show("æœåŠ¡å™¨ç«¯å£å¿…å¡«");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(apiPort.Text))
             {
-                MessageBox.Show("¹ÜÀí¶Ë¿Ú±ØÌî");
+                MessageBox.Show("ç®¡ç†ç«¯å£å¿…å¡«");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(webPort.Text))
             {
-                MessageBox.Show("web¶Ë¿Ú±ØÌî");
+                MessageBox.Show("webç«¯å£å¿…å¡«");
                 return false;
             }
             installParams.Add($"--server {serverIP.Text}");
@@ -217,17 +219,17 @@ namespace cmonitor.install.win
         {
             if (string.IsNullOrWhiteSpace(reportDelay.Text))
             {
-                MessageBox.Show("±¨¸æ¼ä¸ôÊ±¼ä±ØÌî");
+                MessageBox.Show("æŠ¥å‘Šé—´éš”æ—¶é—´å¿…å¡«");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(screenDelay.Text))
             {
-                MessageBox.Show("½ØÆÁ¼ä¸ôÊ±¼ä±ØÌî");
+                MessageBox.Show("æˆªå±é—´éš”æ—¶é—´å¿…å¡«");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(screenScale.Text))
             {
-                MessageBox.Show("½ØÆÁËõ·Å±ÈÀı±ØÌî");
+                MessageBox.Show("æˆªå±ç¼©æ”¾æ¯”ä¾‹å¿…å¡«");
                 return false;
             }
             installParams.Add($"--report-delay {reportDelay.Text}");
@@ -240,37 +242,37 @@ namespace cmonitor.install.win
         {
             if (string.IsNullOrWhiteSpace(shareKey.Text))
             {
-                MessageBox.Show("¹²ÏíÊı¾İ¼ü±ØÌî");
+                MessageBox.Show("å…±äº«æ•°æ®é”®å¿…å¡«");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(shareLen.Text))
             {
-                MessageBox.Show("¹²ÏíÊıÁ¿±ØÌî");
+                MessageBox.Show("å…±äº«æ•°é‡å¿…å¡«");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(shareItemLen.Text))
             {
-                MessageBox.Show("¹²ÏíÃ¿ÏîÊı¾İ³¤¶È±ØÌî");
+                MessageBox.Show("å…±äº«æ¯é¡¹æ•°æ®é•¿åº¦å¿…å¡«");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(keyboardIndex.Text))
             {
-                MessageBox.Show("¼üÅÌ¼üÏÂ±ê±ØÌî");
+                MessageBox.Show("é”®ç›˜é”®ä¸‹æ ‡å¿…å¡«");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(wallpaperIndex.Text))
             {
-                MessageBox.Show("±ÚÖ½¼üÏÂ±ê±ØÌî");
+                MessageBox.Show("å£çº¸é”®ä¸‹æ ‡å¿…å¡«");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(llockIndex.Text))
             {
-                MessageBox.Show("ËøÆÁ¼üÏÂ±ê±ØÌî");
+                MessageBox.Show("é”å±é”®ä¸‹æ ‡å¿…å¡«");
                 return false;
             }
             if (string.IsNullOrWhiteSpace(sasIndex.Text))
             {
-                MessageBox.Show("sas¼üÏÂ±ê±ØÌî");
+                MessageBox.Show("sasé”®ä¸‹æ ‡å¿…å¡«");
                 return false;
             }
             installParams.Add($"--share-key {shareKey.Text}");
@@ -287,35 +289,35 @@ namespace cmonitor.install.win
             {
                 if (loading)
                 {
-                    installBtn.Text = "²Ù×÷ÖĞ..";
-                    runBtn.Text = "²Ù×÷ÖĞ..";
-                    checkStateBtn.Text = "²Ù×÷ÖĞ..";
+                    installBtn.Text = "æ“ä½œä¸­..";
+                    runBtn.Text = "æ“ä½œä¸­..";
+                    checkStateBtn.Text = "æ“ä½œä¸­..";
                 }
                 else
                 {
-                    checkStateBtn.Text = "¼ì²é×´Ì¬";
+                    checkStateBtn.Text = "æ£€æŸ¥çŠ¶æ€";
                     if (installed)
                     {
                         installBtn.ForeColor = Color.Red;
-                        installBtn.Text = "½â³ı×ÔÆô¶¯";
+                        installBtn.Text = "è§£é™¤è‡ªå¯åŠ¨";
                         runBtn.Enabled = true;
                     }
                     else
                     {
                         installBtn.ForeColor = Color.Black;
-                        installBtn.Text = "°²×°×ÔÆô¶¯";
+                        installBtn.Text = "å®‰è£…è‡ªå¯åŠ¨";
                         runBtn.Enabled = false;
                     }
 
                     if (running)
                     {
                         runBtn.ForeColor = Color.Red;
-                        runBtn.Text = "Í£Ö¹ÔËĞĞ";
+                        runBtn.Text = "åœæ­¢è¿è¡Œ";
                     }
                     else
                     {
                         runBtn.ForeColor = Color.Black;
-                        runBtn.Text = "Æô¶¯";
+                        runBtn.Text = "å¯åŠ¨";
                     }
                 }
             }));

@@ -115,6 +115,13 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+@media (min-width: 768px) {
+    .device-item {
+        width: 39rem !important;
+        background-color: rgba(255, 255, 255, 1) !important;
+    }
+}
+
 .device-item {
     // border: 1px solid #ddd;
     font-size: 1.6rem;

@@ -48,7 +48,7 @@ export default {
 }
 
 .el-dropdown {
-    color: #f5f5f5;
+    color: var(--foot-menu-dropdown-color);
     font-size: 1.6rem;
 
     .el-dropdown-link {

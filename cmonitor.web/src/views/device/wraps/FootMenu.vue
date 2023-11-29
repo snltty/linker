@@ -24,6 +24,11 @@ export default {
 <style lang="stylus">
 .el-dialog.is-align-center.options {
     margin-top: 1vh;
+    max-width: 40rem;
+}
+
+.el-dialog.is-align-center.options-center {
+    max-width: 40rem;
 }
 </style>
 
