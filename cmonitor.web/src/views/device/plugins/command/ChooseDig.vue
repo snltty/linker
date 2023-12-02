@@ -80,6 +80,14 @@ export default {
                 }
             }
         }
+
+        .inner {
+            padding: 0.6rem;
+
+            &>div {
+                padding: 0.6rem 0;
+            }
+        }
     }
 }
 </style>

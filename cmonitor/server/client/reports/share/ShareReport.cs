@@ -51,7 +51,7 @@ namespace cmonitor.server.client.reports.share
                     {
                         dic = shareMemory.GetItems(out updated);
                     }
-                      
+
                 }
             }
             catch (Exception)
@@ -63,6 +63,10 @@ namespace cmonitor.server.client.reports.share
         public bool GetShare(string key, out cmonitor.libs.ShareItemInfo item)
         {
             return dic.TryGetValue(key, out item);
+        }
+        public bool GetShareRunning(int index)
+        {
+            return shareMemory.ReadRunning(index);
         }
         public void UpdateShare(ShareItemInfo shareItemInfo)
         {
@@ -78,7 +82,7 @@ namespace cmonitor.server.client.reports.share
 
         private void ShareMemoryStateChanged(int index, ShareMemoryState state)
         {
-            if (index == 0 && state == ShareMemoryState.Closed)
+            if (index == 0 && (state & ShareMemoryState.Closed) == ShareMemoryState.Closed)
             {
                 shareMemory.WriteClosed(0, false);
                 shareMemory.WriteRunning(0, false);

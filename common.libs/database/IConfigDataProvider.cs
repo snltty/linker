@@ -85,7 +85,7 @@ namespace common.libs.database
                 //Logger.Instance.Error($"save:{fileName}");
                 //Logger.Instance.Error(model.ToJsonIndented());
 
-                await File.WriteAllTextAsync(fileName, model.ToJsonIndented(), Encoding.UTF8).ConfigureAwait(false);
+                await File.WriteAllTextAsync(fileName, model.ToJsonFormat(), Encoding.UTF8).ConfigureAwait(false);
             }
             catch (Exception)
             {

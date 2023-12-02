@@ -43,7 +43,7 @@ export default {
             loading: false,
             group: 0,
             groups: computed(() => {
-                if (user.value) {
+                if (user.value && user.value.Rules) {
                     if (state.group == 0 && user.value.Rules.length > 0) {
                         state.group = user.value.Rules[0].ID;
                     }
@@ -52,7 +52,7 @@ export default {
                 return [];
             }),
             rule: computed(() => {
-                if (user) {
+                if (user && user.value.Rules) {
                     let rule = user.value.Rules.filter(c => c.ID == state.group)[0];
                     if (rule) {
                         return rule;

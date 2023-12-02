@@ -18,25 +18,29 @@ namespace cmonitor.server.api.services
         }
         public async Task<bool> Update(ClientServiceParamsInfo param)
         {
-            ShareUpdateInfo info   = param.Content.DeJson<ShareUpdateInfo>();
-            if(signCaching.Get(info.Name,out SignCacheInfo cache))
+            ShareUpdateInfo info = param.Content.DeJson<ShareUpdateInfo>();
+            byte[] bytes = MemoryPackSerializer.Serialize(info.Item);
+            for (int i = 0; i < info.Names.Length; i++)
             {
-                return await messengerSender.SendOnly(new MessageRequestWrap
+                if (signCaching.Get(info.Names[i], out SignCacheInfo cache))
                 {
-                    Connection = cache.Connection,
-                    MessengerId = (ushort)ShareMessengerIds.Update,
-                     Payload = MemoryPackSerializer.Serialize(info.Item)
-                });
+                    await messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = cache.Connection,
+                        MessengerId = (ushort)ShareMessengerIds.Update,
+                        Payload = bytes
+                    });
+                }
             }
-            
-            return false;
+
+            return true;
         }
 
     }
 
     public sealed class ShareUpdateInfo
     {
-        public string Name { get; set; }
+        public string[] Names { get; set; }
         public ShareItemInfo Item { get; set; }
     }
 }

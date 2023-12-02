@@ -34,9 +34,16 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+// @media (min-width: 768px) {
+// .main-wrap {
+// background-color: #1c77ac !important;
+// background-image: none !important;
+// // background-image: url('../assets/bg.jpg') !important;
+// }
+// }
 @media (min-width: 768px) {
     .main-wrap {
-        background-image: url('../assets/bg.jpg') !important;
+        max-width: 39rem;
     }
 }
 

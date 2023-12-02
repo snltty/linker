@@ -55,7 +55,7 @@ namespace cmonitor.server.client
             IPAddress[] ips = new IPAddress[] { config.Server };
 
             if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                Logger.Instance.Info($"get ip:{ips.ToJson()}");
+                Logger.Instance.Info($"get ip:{ips.ToJsonFormat()}");
 
             if (ips.Length == 0) return;
             foreach (IPAddress ip in ips)

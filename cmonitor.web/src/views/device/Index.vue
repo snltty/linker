@@ -1,14 +1,15 @@
 <template>
     <div class="device-list-wrap absolute flex flex-column flex-nowarp" id="device-list-wrap">
-        <div class="content flex-1 flex">
+        <div class="content flex-1 flex flex-column">
+            <div class="head" v-if="globalData.pc">
+
+                <Head></Head>
+            </div>
             <div class="items flex-1 relative scrollbar-1">
                 <Items></Items>
             </div>
-            <div class="active-device flex flex-column" v-if="globalData.pc">
-                <div class="head">
-
-                    <Head></Head>
-                </div>
+            <!-- <div class="active-device flex flex-column" v-if="globalData.pc">
+               
 
                 <div class="flex-1 prev">
 
@@ -19,7 +20,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
         </div>
         <div class="foot" v-if="!globalData.pc">
             <div class="foot-options">
@@ -68,24 +69,35 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-@media (min-width: 768px) {
-    .active-device {
-        width: calc(100% - 41rem) !important;
-    }
+// @media (min-width: 768px) {
+// .active-device {
+// // width: calc(100% - 41rem) !important;
+// }
 
-    .items {
-        height: 100%;
-        padding: 1rem 0 !important;
-        box-sizing: border-box;
-        border-right: 1px solid #999;
-        background-color: rgba(255, 255, 255, 0.3);
-    }
+// .items {
+// padding: 1rem 1rem 0 1rem !important;
+// height: auto;
+// width: 80.6rem;
+// // padding: 1rem 0 !important;
+// box-sizing: border-box;
+// // border-right: 1px solid #999;
+// // background-color: rgba(255, 255, 255, 0.3);
+// display: flex;
+// display: -ms-flex;
+// display: -o-flex;
+// flex-wrap: wrap;
+// justify-content: space-between;
+// }
 
-    .foot {
-        display: none;
-    }
-}
-
+// .foot {
+// display: none;
+// }
+// }
+// @media (min-width: 768px) {
+// .items {
+// max-width: 39rem;
+// }
+// }
 .device-list-wrap {
     .content {
         position: relative;

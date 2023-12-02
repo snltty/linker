@@ -24,17 +24,13 @@ namespace common.libs.extends
             WriteIndented = true,
             Converters = { new IPAddressJsonConverter(), new IPEndpointJsonConverter(), new DateTimeConverter() }
         };
-        public static string ToJsonDefault(this object obj)
+        public static string ToJson(this object obj)
         {
             return JsonSerializer.Serialize(obj);
         }
-        public static string ToJson(this object obj)
+        public static string ToJsonFormat(this object obj)
         {
             return JsonSerializer.Serialize(obj, jsonSerializerOptions);
-        }
-        public static string ToJsonIndented(this object obj)
-        {
-            return JsonSerializer.Serialize(obj, jsonSerializerOptionsIndented);
         }
         public static T DeJson<T>(this string json)
         {

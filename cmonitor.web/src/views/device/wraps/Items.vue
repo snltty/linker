@@ -112,20 +112,25 @@ export default {
                     globalData.value.currentDevice = globalData.value.devices[middleItem.index];
                 }
 
-                for (let i = 0; i < items.length; i++) {
-                    let style = 'z-index:9;background-color:rgba(255,255,255,1);';
-                    const dist = Math.abs((middleItem.index - i));
-                    const opacity = 1 - Math.abs((middleItem.index - i)) / 10 * 2;
-                    const translateZ = 100 + (dist * 100);
-                    if (i < middleItem.index && middleItem.index > 1) {
-                        style = `background-color:rgba(255,255,255,${opacity});z-index:8;transform: translateZ(-${translateZ}px) `;
-                        style += `translateY(30px);`;
-                    } else if (i > middleItem.index && middleItem.index < items.length - 2) {
-                        style = `background-color:rgba(255,255,255,${opacity});z-index:8;transform: translateZ(-${translateZ}px) `;
-                        style += `translateY(-30px);`;
+                if (globalData.value.pc) {
+
+                } else {
+                    for (let i = 0; i < items.length; i++) {
+                        let style = 'z-index:9;background-color:rgba(255,255,255,1);';
+                        const dist = Math.abs((middleItem.index - i));
+                        const opacity = 1 - Math.abs((middleItem.index - i)) / 10 * 2;
+                        const translateZ = 100 + (dist * 100);
+                        if (i < middleItem.index && middleItem.index > 1) {
+                            style = `background-color:rgba(255,255,255,${opacity});z-index:8;transform: translateZ(-${translateZ}px) `;
+                            style += `translateY(30px);`;
+                        } else if (i > middleItem.index && middleItem.index < items.length - 2) {
+                            style = `background-color:rgba(255,255,255,${opacity});z-index:8;transform: translateZ(-${translateZ}px) `;
+                            style += `translateY(-30px);`;
+                        }
+                        items[i].style = style;
                     }
-                    items[i].style = style;
                 }
+
 
                 //有哪些需要报告
                 const reportDoms = doms.filter(item => item.index >= middleItem.index - 2 && item.index <= middleItem.index + 2).map(c => c.index);

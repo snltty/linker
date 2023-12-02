@@ -182,7 +182,7 @@ namespace cmonitor.server.client.reports.active
                 }
 
                 activeWindowInfo.Title = buff.ToString();
-                activeWindowInfo.FileName = filename;
+                activeWindowInfo.FileName = Path.GetFileName(filename);
                 activeWindowInfo.Desc = desc;
                 activeWindowInfo.Pid = id;
 

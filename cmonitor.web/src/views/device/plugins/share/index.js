@@ -47,7 +47,6 @@ export default {
     },
     init() {
     },
-    lockTypes: { code: '代码', lock: '锁屏', cmonitor: '班长', flag: '学习目标', class: '课程', 'remark-block': '图形化点评', 'remark-cpp': 'C++点评' },
     update(item, report) {
         if (!report.Share) return;
 
@@ -64,7 +63,7 @@ export default {
                 item.Share.Lock.Value.star1 = json.star1 || 0;
                 item.Share.Lock.Value.star2 = json.star2 || 0;
                 item.Share.Lock.Value.star3 = json.star3 || 0;
-                item.Share.Lock.TypeText = this.lockTypes[json.type];
+                item.Share.Lock.TypeText = json.typeText;
             }
         }
         if (report.Share.KeyBoard) {

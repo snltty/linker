@@ -81,7 +81,7 @@ export default {
             showEdit: false,
             groups: computed(() => {
                 let user = globalData.value.usernames[globalData.value.username];
-                if (user) {
+                if (user && user.Processs) {
                     if (state.group == 0 && user.Processs.length > 0) {
                         state.group = user.Processs[0].ID;
                     }

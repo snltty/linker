@@ -38,6 +38,8 @@ using System.Text.Json.Serialization;
 using cmonitor.server.client.reports.keyboard;
 using cmonitor.server.client.reports.wallpaper;
 using common.libs.winapis;
+using cmonitor.server.client.reports.snatch;
+using cmonitor.server.service.messengers.snatch;
 
 
 namespace cmonitor
@@ -198,6 +200,11 @@ namespace cmonitor
             else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<ISystem, SystemLinux>();
             else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<ISystem, SystemMacOS>();
 
+            serviceCollection.AddSingleton<SnatchReport>();
+            if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<ISnatch, SnatchWindows>();
+            else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<ISnatch, SnatchLinux>();
+            else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<ISnatch, SnatchMacOS>();
+
             serviceCollection.AddSingleton<ShareReport>();
             serviceCollection.AddSingleton<CommandReport>();
 
@@ -223,6 +230,7 @@ namespace cmonitor
             serviceCollection.AddSingleton<SettingMessenger>();
             serviceCollection.AddSingleton<KeyboardMessenger>();
             serviceCollection.AddSingleton<SystemMessenger>();
+            serviceCollection.AddSingleton<SnatchMessenger>();
 
             //api
             serviceCollection.AddSingleton<RuleConfig>();
@@ -242,6 +250,7 @@ namespace cmonitor
             serviceCollection.AddSingleton<SettingClientService>();
             serviceCollection.AddSingleton<SystemClientService>();
             serviceCollection.AddSingleton<KeyboardClientService>();
+            serviceCollection.AddSingleton<SnatchClientService>();
 
 
             //web
@@ -265,7 +274,7 @@ namespace cmonitor
                 config.ScreenDelay = int.Parse(dic["screen-delay"]);
                 config.Elevated = dic.ContainsKey("elevated");
 
-                Logger.Instance.Debug($"config:{config.ToJson()}");
+                Logger.Instance.Debug($"config:{config.ToJsonFormat()}");
                 //Logger.Instance.Debug($"args:{string.Join(" ", args)}");
 
                 config.IsCLient = dic.ContainsKey("mode") && dic["mode"].Contains("client");
@@ -371,6 +380,9 @@ namespace cmonitor
         public const int ShareMemoryLLockIndex = 3;
         //SAS
         public const int ShareMemorySASIndex = 4;
+        //抢答，问题，和回答分开存，为了保证数据安全性
+        public const int ShareSnatchQuestionIndex = 5;
+        public const int ShareSnatchAnswerIndex = 6;
 
     }
 

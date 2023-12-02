@@ -1,5 +1,5 @@
 <template>
-    <el-dialog class="options" title="设置" destroy-on-close v-model="state.show" center :close-on-click-modal="false" align-center width="94%">
+    <el-dialog class="options-center" title="设置" destroy-on-close v-model="state.show" center :close-on-click-modal="false" align-center width="94%">
         <div class="setting-wrap">
             <el-form ref="ruleFormRef" :model="state.form" :rules="state.rules" label-width="100px">
                 <el-form-item label="报告延迟(ms)" prop="ReportDelay">

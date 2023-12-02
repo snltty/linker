@@ -105,7 +105,7 @@ namespace cmonitor.server.client.reports
             if (reportObj.Count > 0)
             {
 
-                string json = reportObj.ToJsonDefault();
+                string json = reportObj.ToJson();
                 byte[] res = MemoryPackSerializer.Serialize(json);
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {

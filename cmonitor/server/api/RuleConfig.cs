@@ -1,4 +1,6 @@
-﻿using common.libs.database;
+﻿using cmonitor.server.client.reports.snatch;
+using common.libs.database;
+using MemoryPack;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace cmonitor.server.api
@@ -16,8 +18,9 @@ namespace cmonitor.server.api
             {
                 UserNames = new Dictionary<string, UserNameInfo> { { "snltty", new UserNameInfo {
                      Rules = new List<RulesInfo>{ new RulesInfo { ID = 1, Name = "默认" } },
-                     Processs = new  List<GroupInfo>{ new GroupInfo { ID = 1, Name = "默认" } },
-                      Windows = new List<WindowGroupInfo> { new WindowGroupInfo { ID = 1, Name = "默认" } },
+                     Processs = new  List<GroupInfo>{ new GroupInfo { ID = 2, Name = "默认" } },
+                      Windows = new List<WindowGroupInfo> { new WindowGroupInfo { ID = 3, Name = "默认" } },
+                       Snatchs = new List<SnatchGroupInfo>{ new SnatchGroupInfo { ID=4, Name="默认" } }
                 } } }
             };
             UserNames = config.UserNames;
@@ -26,7 +29,7 @@ namespace cmonitor.server.api
         }
 
         public Dictionary<string, UserNameInfo> UserNames { get; set; } = new Dictionary<string, UserNameInfo>();
-        private uint maxid = 0;
+        private uint maxid = 100;
         public uint MaxID
         {
             get => maxid; set
@@ -341,6 +344,122 @@ namespace cmonitor.server.api
             return string.Empty;
         }
 
+
+        public string AddSnatchGroup(UpdateSnatchGroupInfo updateGroupInfo)
+        {
+            lock (lockObj)
+            {
+                if (UserNames.TryGetValue(updateGroupInfo.UserName, out UserNameInfo userNameInfo) == false)
+                {
+                    return "不存在此管理用户";
+                }
+                if (userNameInfo.Windows.FirstOrDefault(c => c.Name == updateGroupInfo.Group.Name && c.ID != updateGroupInfo.Group.ID) != null)
+                {
+                    return "已存在同名记录";
+                }
+
+                //添加
+                if (updateGroupInfo.Group.ID == 0)
+                {
+                    updateGroupInfo.Group.ID = Interlocked.Increment(ref maxid);
+                    userNameInfo.Snatchs.Add(updateGroupInfo.Group);
+                    Save();
+                    return string.Empty;
+                }
+
+                //修改
+                SnatchGroupInfo old = userNameInfo.Snatchs.FirstOrDefault(c => c.ID == updateGroupInfo.Group.ID);
+                if (old == null)
+                {
+                    return "不存在记录，无法修改";
+                }
+                old.Name = updateGroupInfo.Group.Name;
+                Save();
+            }
+
+            return string.Empty;
+        }
+        public string DeleteSnatchGroup(DeleteSnatchGroupInfo deleteGroupInfo)
+        {
+            lock (lockObj)
+            {
+                if (UserNames.TryGetValue(deleteGroupInfo.UserName, out UserNameInfo userNameInfo) == false)
+                {
+                    return "不存在此管理用户";
+                }
+
+                userNameInfo.Snatchs.Remove(userNameInfo.Snatchs.FirstOrDefault(c => c.ID == deleteGroupInfo.ID));
+
+                Save();
+            }
+
+            return string.Empty;
+        }
+        public string AddSnatch(AddSnatchItemInfo updateItem)
+        {
+            lock (lockObj)
+            {
+                if (UserNames.TryGetValue(updateItem.UserName, out UserNameInfo userNameInfo) == false)
+                {
+                    return "不存在此管理用户";
+                }
+                SnatchGroupInfo group = userNameInfo.Snatchs.FirstOrDefault(c => c.ID == updateItem.GroupID);
+                if (group == null)
+                {
+                    return "不存在此分组";
+                }
+                if (group.List.FirstOrDefault(c => c.Name == updateItem.Item.Name && c.ID != updateItem.Item.ID) != null)
+                {
+                    return "已存在同名记录";
+                }
+
+                //添加
+                if (updateItem.Item.ID == 0)
+                {
+                    updateItem.Item.ID = Interlocked.Increment(ref maxid);
+                    group.List.Add(updateItem.Item);
+                    Save();
+                    return string.Empty;
+                }
+
+                //修改
+                SnatchItemInfo old = group.List.FirstOrDefault(c => c.ID == updateItem.Item.ID);
+                if (old == null)
+                {
+                    return "不存在记录，无法修改";
+                }
+                old.Type = updateItem.Item.Type;
+                old.Name = updateItem.Item.Name;
+                old.Question = updateItem.Item.Question;
+                old.Options = updateItem.Item.Options;
+                old.Correct = updateItem.Item.Correct;
+                old.Max = updateItem.Item.Max;
+                old.Repeat = updateItem.Item.Repeat;
+             
+                Save();
+            }
+            return string.Empty;
+        }
+        public string DelSnatch(DeletedSnatchItemInfo deletedFileNameInfo)
+        {
+            lock (lockObj)
+            {
+                if (UserNames.TryGetValue(deletedFileNameInfo.UserName, out UserNameInfo userNameInfo) == false)
+                {
+                    return "不存在此管理用户";
+                }
+                SnatchGroupInfo group = userNameInfo.Snatchs.FirstOrDefault(c => c.ID == deletedFileNameInfo.GroupID);
+                if (group == null)
+                {
+                    return "不存在此分组";
+                }
+
+                group.List.Remove(group.List.FirstOrDefault(c => c.ID == deletedFileNameInfo.ID));
+                Save();
+            }
+            return string.Empty;
+        }
+
         public void Save()
         {
             configDataProvider.Save(this).Wait();
@@ -353,6 +472,7 @@ namespace cmonitor.server.api
         public List<GroupInfo> Processs { get; set; } = new List<GroupInfo>();
         public List<string> Devices { get; set; } = new List<string>();
         public List<WindowGroupInfo> Windows { get; set; } = new List<WindowGroupInfo>();
+        public List<SnatchGroupInfo> Snatchs { get; set; } = new List<SnatchGroupInfo>();
     }
     public sealed class UpdateDevicesInfo
     {
@@ -463,5 +583,70 @@ namespace cmonitor.server.api
         public string UserName { get; set; }
         public uint GroupID { get; set; }
         public uint ID { get; set; }
+    }
+
+
+
+    public sealed class SnatchGroupInfo
+    {
+        public uint ID { get; set; }
+        public string Name { get; set; }
+        public List<SnatchItemInfo> List { get; set; } = new List<SnatchItemInfo>();
+    }
+    public sealed class UpdateSnatchGroupInfo
+    {
+        public string UserName { get; set; }
+        public SnatchGroupInfo Group { get; set; }
+    }
+    public sealed class DeleteSnatchGroupInfo
+    {
+        public string UserName { get; set; }
+        public uint ID { get; set; }
+    }
+    public sealed class AddSnatchItemInfo
+    {
+        public string UserName { get; set; }
+        public uint GroupID { get; set; }
+        public SnatchItemInfo Item { get; set; }
+    }
+    public sealed class DeletedSnatchItemInfo
+    {
+        public string UserName { get; set; }
+        public uint GroupID { get; set; }
+        public uint ID { get; set; }
+    }
+
+
+    public sealed class SnatchItemInfo
+    {
+        public uint ID { get; set; }
+        public string Name { get; set; }
+
+        public SnatchType Type { get; set; }
+        /// <summary>
+        /// 问题
+        /// </summary>
+        public string Question { get; set; }
+        /// <summary>
+        /// 选项数
+        /// </summary>
+        public List<SnatchItemOptionInfo> Options { get; set; }
+        /// <summary>
+        /// 答案
+        /// </summary>
+        public string Correct { get; set; }
+        /// <summary>
+        /// 最多答题次数
+        /// </summary>
+        public int Max { get; set; }
+        /// <summary>
+        /// 重复答题
+        /// </summary>
+        public bool Repeat { get; set; }
+    }
+    public sealed class SnatchItemOptionInfo
+    {
+        public string Text { get; set;}
+        public bool Value { get; set; }
     }
 }

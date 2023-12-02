@@ -7,11 +7,11 @@ namespace cmonitor.server.client.reports.screen
 {
     public sealed class ScreenWindows : IScreen
     {
-        private readonly ScreenWIndowsDxgi dxgiDesktop;
+        private readonly ScreenWindowsDxgi dxgiDesktop;
         private readonly ScreenWindowsGdi gdiDesktop;
         public ScreenWindows(Config config)
         {
-            dxgiDesktop = new ScreenWIndowsDxgi(0, config);
+            dxgiDesktop = new ScreenWindowsDxgi(0, config);
             gdiDesktop = new ScreenWindowsGdi(config);
         }
 

@@ -62,7 +62,7 @@ export default {
             showEdit: false,
             groups: computed(() => {
                 let user = globalData.value.usernames[globalData.value.username];
-                if (user) {
+                if (user && user.Windows) {
                     if (state.group == 0 && user.Windows.length > 0) {
                         state.group = user.Windows[0].ID;
                     }

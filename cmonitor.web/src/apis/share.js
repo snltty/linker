@@ -1,7 +1,7 @@
 import { sendWebsocketMsg } from './request'
 
-export const shareUpdate = (name, item) => {
+export const shareUpdate = (names, item) => {
     return sendWebsocketMsg('share/update', {
-        name, item
+        names, item
     });
 }

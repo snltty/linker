@@ -15,7 +15,7 @@ using common.libs.helpers;
 
 namespace cmonitor.server.client.reports.screen
 {
-    public sealed class ScreenWIndowsDxgi
+    public sealed class ScreenWindowsDxgi
     {
         private Adapter1 adapter;
         private Device mDevice;
@@ -37,10 +37,10 @@ namespace cmonitor.server.client.reports.screen
 
         private readonly Config config;
 
-        public ScreenWIndowsDxgi(int whichMonitor, Config config)
+        public ScreenWindowsDxgi(int whichMonitor, Config config)
             : this(0, whichMonitor, config) { }
 
-        public ScreenWIndowsDxgi(int whichGraphicsCardAdapter, int whichOutputDevice, Config config)
+        public ScreenWindowsDxgi(int whichGraphicsCardAdapter, int whichOutputDevice, Config config)
         {
             this.whichGraphicsCardAdapter = whichGraphicsCardAdapter;
             this.whichOutputDevice = whichOutputDevice;

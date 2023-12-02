@@ -32,6 +32,7 @@ namespace cmonitor.libs
             this.length = length;
             this.itemSize = itemSize;
             bytes = new byte[length * itemSize];
+            states = new ShareMemoryState[length];
         }
 
         public void InitLocal()
@@ -100,6 +101,7 @@ namespace cmonitor.libs
 
         byte[] valuesBytes;
         byte[] gloablBytes;
+        ShareMemoryState[] states = Array.Empty<ShareMemoryState>();
         private void InitStateValues()
         {
             gloablBytes = new byte[bytes.Length];
@@ -118,14 +120,11 @@ namespace cmonitor.libs
             {
                 for (int index = 0; index < length; index++)
                 {
-                    for (int i = 0; i < valuesBytes.Length; i++)
+                    ShareMemoryState state = ReadState(accessorLocal, index);
+                    if (state != states[index])
                     {
-                        ShareMemoryState state = (ShareMemoryState)valuesBytes[i];
-                        bool result = ReadState(accessorLocal, index, state);
-                        if (result)
-                        {
-                            stateAction(index, state);
-                        }
+                        states[index] = state;
+                        stateAction(index, state);
                     }
                 }
             }
@@ -141,7 +140,7 @@ namespace cmonitor.libs
                     for (int index = 0; index < length; index++)
                     {
                         //检查更新状态
-                        if (ReadState(accessorGlobal, index, ShareMemoryState.Updated) == false)
+                        if (ReadStateIf(accessorGlobal, index, ShareMemoryState.Updated) == false)
                         {
                             continue;
                         }
@@ -152,7 +151,7 @@ namespace cmonitor.libs
                         {
                             accessorLocal.WriteArray(_index, gloablBytes, _index, itemSize);
                         }
-                        WriteState(accessorGlobal, index, ShareMemoryState.Updated, false);
+                        WriteStateIf(accessorGlobal, index, ShareMemoryState.Updated, false);
                     }
                 }
             }
@@ -172,13 +171,13 @@ namespace cmonitor.libs
                     for (int index = 0; index < length; index++)
                     {
                         //state
-                        bool _updated = ReadState(accessorLocal, index, ShareMemoryState.Updated);
+                        bool _updated = ReadStateIf(accessorLocal, index, ShareMemoryState.Updated);
                         if (_updated == false)
                         {
                             continue;
                         }
 
-                        WriteState(accessorLocal, index, ShareMemoryState.Updated, false);
+                        WriteStateIf(accessorLocal, index, ShareMemoryState.Updated, false);
                         updated |= _updated;
 
                         //key length
@@ -310,7 +309,14 @@ namespace cmonitor.libs
             return false;
         }
 
-        private bool ReadState(IShareMemory accessor, int index, ShareMemoryState state)
+        private ShareMemoryState ReadState(IShareMemory accessor, int index)
+        {
+            if (accessor == null) return ShareMemoryState.None;
+
+            ShareMemoryState stateByte = (ShareMemoryState)accessor.ReadByte(index * itemSize);
+            return stateByte;
+        }
+        private bool ReadStateIf(IShareMemory accessor, int index, ShareMemoryState state)
         {
             if (accessor == null) return false;
 
@@ -320,29 +326,35 @@ namespace cmonitor.libs
         public bool ReadUpdated(int index)
         {
             if (accessorLocal != null)
-                return ReadState(accessorLocal, index, ShareMemoryState.Updated);
+                return ReadStateIf(accessorLocal, index, ShareMemoryState.Updated);
             if (accessorGlobal != null)
-                return ReadState(accessorGlobal, index, ShareMemoryState.Updated);
+                return ReadStateIf(accessorGlobal, index, ShareMemoryState.Updated);
             return false;
         }
         public bool ReadClosed(int index)
         {
             if (accessorLocal != null)
-                return ReadState(accessorLocal, index, ShareMemoryState.Closed);
+                return ReadStateIf(accessorLocal, index, ShareMemoryState.Closed);
             if (accessorGlobal != null)
-                return ReadState(accessorGlobal, index, ShareMemoryState.Closed);
+                return ReadStateIf(accessorGlobal, index, ShareMemoryState.Closed);
             return false;
         }
         public bool ReadRunning(int index)
         {
             if (accessorLocal != null)
-                return ReadState(accessorLocal, index, ShareMemoryState.Running);
+                return ReadStateIf(accessorLocal, index, ShareMemoryState.Running);
             if (accessorGlobal != null)
-                return ReadState(accessorGlobal, index, ShareMemoryState.Running);
+                return ReadStateIf(accessorGlobal, index, ShareMemoryState.Running);
             return false;
         }
 
-        private void WriteState(IShareMemory accessor, int index, ShareMemoryState state, bool value)
+        private void WriteState(IShareMemory accessor, int index, ShareMemoryState state)
+        {
+            if (accessor == null) return;
+            byte stateByte = (byte)state;
+            accessor.WriteByte(index * itemSize, stateByte);
+        }
+        private void WriteStateIf(IShareMemory accessor, int index, ShareMemoryState state, bool value)
         {
             if (accessor == null) return;
             byte stateValue = accessor.ReadByte(index * itemSize);
@@ -359,19 +371,19 @@ namespace cmonitor.libs
         }
         public void WriteUpdated(int index, bool updated = true)
         {
-            WriteState(accessorLocal, index, ShareMemoryState.Updated, updated);
-            WriteState(accessorGlobal, index, ShareMemoryState.Updated, updated);
+            WriteStateIf(accessorLocal, index, ShareMemoryState.Updated, updated);
+            WriteStateIf(accessorGlobal, index, ShareMemoryState.Updated, updated);
         }
         public void WriteClosed(int index, bool closed = true)
         {
-            WriteState(accessorLocal, index, ShareMemoryState.Closed, closed);
-            WriteState(accessorGlobal, index, ShareMemoryState.Closed, closed);
+            WriteStateIf(accessorLocal, index, ShareMemoryState.Closed, closed);
+            WriteStateIf(accessorGlobal, index, ShareMemoryState.Closed, closed);
             WriteUpdated(index, true);
         }
         public void WriteRunning(int index, bool running = true)
         {
-            WriteState(accessorLocal, index, ShareMemoryState.Running, running);
-            WriteState(accessorGlobal, index, ShareMemoryState.Running, running);
+            WriteStateIf(accessorLocal, index, ShareMemoryState.Running, running);
+            WriteStateIf(accessorGlobal, index, ShareMemoryState.Running, running);
             WriteUpdated(index, true);
         }
     }
@@ -387,6 +399,7 @@ namespace cmonitor.libs
 
     public enum ShareMemoryState : byte
     {
+        None = 0,
         Updated = 0b0000_0001,
         Closed = 0b0000_0010,
         Running = 0b0000_0100,

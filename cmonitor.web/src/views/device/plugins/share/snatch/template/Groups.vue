@@ -1,5 +1,5 @@
 <template>
-    <div class="window-items-wrap flex flex-nowrap flex-column">
+    <div class="snatchs-items-wrap flex flex-nowrap flex-column">
         <div class="head t-c flex">
             <el-button @click="handleAdd()">添加项</el-button>
         </div>
@@ -46,7 +46,7 @@
 import { reactive } from '@vue/reactivity';
 import { computed } from '@vue/runtime-core';
 import { ElMessage } from 'element-plus';
-import { activeAddGroup, activeDelGroup } from '@/apis/active'
+import { addGroup, delGroup } from '@/apis/snatch'
 import { injectGlobalData } from '@/views/provide';
 export default {
     setup() {
@@ -58,11 +58,11 @@ export default {
             showEdit: false,
             list: computed(() => {
                 let user = globalData.value.usernames[globalData.value.username];
-                if (user && user.Windows) {
-                    if (state.group == 0 && user.Windows.length > 0) {
-                        state.group = user.Windows[0].ID;
+                if (user && user.Snatchs) {
+                    if (state.group == 0 && user.Snatchs.length > 0) {
+                        state.group = user.Snatchs[0].ID;
                     }
-                    return user.Windows;
+                    return user.Snatchs;
                 }
                 return [];
             })
@@ -76,7 +76,7 @@ export default {
         }
         const handleDel = (item) => {
             state.loading = true;
-            activeDelGroup(globalData.value.username, item.ID).then((error) => {
+            delGroup(globalData.value.username, item.ID).then((error) => {
                 state.loading = false;
                 if (error) {
                     ElMessage.error(error);
@@ -98,7 +98,7 @@ export default {
                 return;
             }
             state.loading = true;
-            activeAddGroup({
+            addGroup({
                 UserName: globalData.value.username,
                 Group: state.currentItem
             }).then((error) => {
@@ -121,7 +121,7 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-.window-items-wrap {
+.snatchs-items-wrap {
     .head {
         width: 100%;
         padding-bottom: 1rem;

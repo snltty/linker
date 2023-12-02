@@ -52,7 +52,7 @@ export default {
             state.loading = true;
             let value = JSON.parse(JSON.stringify(props.data.Share.Lock.Value));
             value.val = 'reject';
-            shareUpdate(props.data.MachineName, {
+            shareUpdate([props.data.MachineName], {
                 index: props.data.Share.Lock.Index,
                 value: JSON.stringify(value)
             }).then((res) => {
@@ -72,7 +72,7 @@ export default {
             let value = JSON.parse(JSON.stringify(props.data.Share.Lock.Value));
             value.val = 'confirm';
             props.data.Share.Lock.Value.notify = false;
-            shareUpdate(props.data.MachineName, {
+            shareUpdate([props.data.MachineName], {
                 index: props.data.Share.Lock.Index,
                 value: JSON.stringify(value)
             }).then((res) => {
@@ -94,7 +94,7 @@ export default {
         const handleStarChange = () => {
             state.loading = true;
             let value = JSON.parse(JSON.stringify(props.data.Share.Lock.Value));
-            shareUpdate(props.data.MachineName, {
+            shareUpdate([props.data.MachineName], {
                 index: props.data.Share.Lock.Index,
                 value: JSON.stringify(value)
             }).then((res) => {

@@ -20,10 +20,10 @@ export const provideGlobalData = () => {
         }),
         currentDevice: { MachineName: '' },
         reportNames: [],
-        pc: window.innerWidth > 768
+        pc: false,//window.innerWidth > 768
     });
     window.addEventListener('resize', () => {
-        globalData.value.pc = window.innerWidth > 768;
+        globalData.value.pc = false;// window.innerWidth > 768;
     });
 
     provide(globalDataSymbol, globalData);
