@@ -82,5 +82,21 @@ namespace cmonitor.libs
                 accessorLocal.Write(position, value);
             }
         }
+
+        public long ReadInt64(int position)
+        {
+            if (accessorLocal != null)
+            {
+                return accessorLocal.ReadInt64(position);
+            }
+            return 0;
+        }
+        public void WriteInt64(int position, long value)
+        {
+            if (accessorLocal != null)
+            {
+                accessorLocal.Write(position, value);
+            }
+        }
     }
 }

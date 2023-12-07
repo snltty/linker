@@ -1,33 +1,33 @@
-﻿using cmonitor.server.api;
-using cmonitor.server.api.services;
-using cmonitor.server.client;
-using cmonitor.server.client.reports.active;
-using cmonitor.server.client.reports.light;
-using cmonitor.server.client.reports.hijack;
-using cmonitor.server.client.reports.llock;
-using cmonitor.server.client.reports.screen;
-using cmonitor.server.client.reports.volume;
-using cmonitor.server.client.reports.notify;
-using cmonitor.server.client.reports.command;
-using cmonitor.server.client.reports;
-using cmonitor.server.client.reports.share;
-using cmonitor.server.client.reports.system;
-using cmonitor.server.service;
-using cmonitor.server.service.messengers.active;
-using cmonitor.server.service.messengers.hijack;
-using cmonitor.server.service.messengers.llock;
-using cmonitor.server.service.messengers.report;
-using cmonitor.server.service.messengers.screen;
-using cmonitor.server.service.messengers.sign;
-using cmonitor.server.service.messengers.volume;
-using cmonitor.server.service.messengers.wallpaper;
-using cmonitor.server.service.messengers.keyboard;
-using cmonitor.server.service.messengers.system;
-using cmonitor.server.service.messengers.light;
-using cmonitor.server.service.messengers.share;
-using cmonitor.server.service.messengers.notify;
-using cmonitor.server.service.messengers.setting;
-using cmonitor.server.web;
+﻿using cmonitor.api;
+using cmonitor.api.services;
+using cmonitor.client;
+using cmonitor.client.reports.active;
+using cmonitor.client.reports.light;
+using cmonitor.client.reports.hijack;
+using cmonitor.client.reports.llock;
+using cmonitor.client.reports.screen;
+using cmonitor.client.reports.volume;
+using cmonitor.client.reports.notify;
+using cmonitor.client.reports.command;
+using cmonitor.client.reports;
+using cmonitor.client.reports.share;
+using cmonitor.client.reports.system;
+using cmonitor.service;
+using cmonitor.service.messengers.active;
+using cmonitor.service.messengers.hijack;
+using cmonitor.service.messengers.llock;
+using cmonitor.service.messengers.report;
+using cmonitor.service.messengers.screen;
+using cmonitor.service.messengers.sign;
+using cmonitor.service.messengers.volume;
+using cmonitor.service.messengers.wallpaper;
+using cmonitor.service.messengers.keyboard;
+using cmonitor.service.messengers.system;
+using cmonitor.service.messengers.light;
+using cmonitor.service.messengers.share;
+using cmonitor.service.messengers.notify;
+using cmonitor.service.messengers.setting;
+using cmonitor.web;
 using common.libs;
 using common.libs.database;
 using common.libs.extends;
@@ -35,11 +35,13 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Reflection;
 using System.Text.Json.Serialization;
-using cmonitor.server.client.reports.keyboard;
-using cmonitor.server.client.reports.wallpaper;
+using cmonitor.client.reports.keyboard;
+using cmonitor.client.reports.wallpaper;
 using common.libs.winapis;
-using cmonitor.server.client.reports.snatch;
-using cmonitor.server.service.messengers.snatch;
+using cmonitor.client.reports.snatch;
+using cmonitor.service.messengers.snatch;
+using cmonitor.libs;
+using System.Text;
 
 
 namespace cmonitor
@@ -89,7 +91,7 @@ namespace cmonitor
             serviceCollection.AddSingleton((e) => serviceProvider);
             //注入
             serviceCollection.AddSingleton<Config>((a) => config);
-            AddSingleton(serviceCollection);
+            AddSingleton(serviceCollection, config);
 
             serviceProvider = serviceCollection.BuildServiceProvider();
             //运行服务
@@ -135,10 +137,15 @@ namespace cmonitor
                 report.LoadPlugins(assemblies);
 
                 ClientTransfer clientTransfer = serviceProvider.GetService<ClientTransfer>();
+
+                ShareMemory shareMemory = serviceProvider.GetService<ShareMemory>();
+                shareMemory.InitLocal();
+                shareMemory.InitGlobal();
+                shareMemory.StartLoop();
             }
         }
 
-        private static void AddSingleton(ServiceCollection serviceCollection)
+        private static void AddSingleton(ServiceCollection serviceCollection, Config config)
         {
             serviceCollection.AddTransient(typeof(IConfigDataProvider<>), typeof(ConfigDataFileProvider<>));
 
@@ -146,6 +153,11 @@ namespace cmonitor
             serviceCollection.AddSingleton<ClientSignInState>();
             serviceCollection.AddSingleton<ClientTransfer>();
             serviceCollection.AddSingleton<ClientConfig>();
+
+            //内存共享
+            ShareMemory shareMemory = new ShareMemory(config.ShareMemoryKey, config.ShareMemoryLength, config.ShareMemoryItemSize);
+            serviceCollection.AddSingleton<ShareMemory>((a) => shareMemory);
+
 
             serviceCollection.AddSingleton<ReportTransfer>();
 
@@ -250,7 +262,9 @@ namespace cmonitor
             serviceCollection.AddSingleton<SettingClientService>();
             serviceCollection.AddSingleton<SystemClientService>();
             serviceCollection.AddSingleton<KeyboardClientService>();
+
             serviceCollection.AddSingleton<SnatchClientService>();
+            serviceCollection.AddSingleton<ISnatachCaching, SnatachCachingMemory>();
 
 
             //web
@@ -316,7 +330,6 @@ namespace cmonitor
                 string line = $"[{model.Type,-7}][{model.Time:yyyy-MM-dd HH:mm:ss}]:{model.Content}";
                 Console.WriteLine(line);
                 Console.ForegroundColor = currentForeColor;
-
                 try
                 {
                     using StreamWriter sw = File.AppendText(Path.Combine("log", $"{DateTime.Now:yyyy-MM-dd}.log"));

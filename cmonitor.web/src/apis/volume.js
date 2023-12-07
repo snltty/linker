@@ -11,3 +11,8 @@ export const setVolumeMute = (names, value) => {
         names, value
     });
 }
+export const play = (names, base64) => {
+    return sendWebsocketMsg('volume/play', {
+        names, base64
+    });
+}

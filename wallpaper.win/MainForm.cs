@@ -165,8 +165,8 @@ namespace wallpaper.win
         }
         private void CloseClear()
         {
-            shareMemory.WriteRunning(shareWallpaperIndex, false);
-            shareMemory.WriteRunning(shareKeyBoardIndex, false);
+            shareMemory.RemoveAttribute(shareWallpaperIndex,  ShareMemoryAttribute.Running);
+            shareMemory.RemoveAttribute(shareKeyBoardIndex,  ShareMemoryAttribute.Running);
 
             cancellationTokenSource.Cancel();
             hook.Close();
@@ -184,20 +184,24 @@ namespace wallpaper.win
         byte[] emptyArray = new byte[0];
         private void WatchMemory()
         {
-            shareMemory.WriteClosed(shareWallpaperIndex, false);
-            shareMemory.WriteClosed(shareKeyBoardIndex, false);
-            shareMemory.WriteRunning(shareWallpaperIndex, true);
-            shareMemory.WriteRunning(shareKeyBoardIndex, true);
+            shareMemory.RemoveAttribute(shareWallpaperIndex,  ShareMemoryAttribute.Closed);
+            shareMemory.RemoveAttribute(shareKeyBoardIndex,  ShareMemoryAttribute.Closed);
+            shareMemory.AddAttribute(shareWallpaperIndex,  ShareMemoryAttribute.Running | ShareMemoryAttribute.HiddenForList);
+            shareMemory.AddAttribute(shareKeyBoardIndex,  ShareMemoryAttribute.Running);
             new Thread(() =>
             {
                 StringBuilder sb = new StringBuilder();
+                Keys lastKey = Keys.None;
                 while (cancellationTokenSource.Token.IsCancellationRequested == false)
                 {
                     try
                     {
                         if (Hook.CurrentKeys == Keys.None)
                         {
-                            shareMemory.Update(shareKeyBoardIndex, keyBytes, emptyArray);
+                            if(lastKey != Keys.None)
+                            {
+                                shareMemory.Update(shareKeyBoardIndex, keyBytes, emptyArray);
+                            }
                         }
                         else
                         {
@@ -218,6 +222,7 @@ namespace wallpaper.win
 
                             shareMemory.Update(shareKeyBoardIndex, keyBytes, Encoding.UTF8.GetBytes(sb.ToString()));
                         }
+                        lastKey = Hook.CurrentKeys;
                         WriteWallpaper();
                     }
                     catch (Exception)
@@ -235,8 +240,8 @@ namespace wallpaper.win
             long time = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
             if (time - lastTime >= 300)
             {
-                shareMemory.Update(shareWallpaperIndex, wallpaperBytes, Encoding.UTF8.GetBytes(time.ToString()));
-                if (shareMemory.ReadClosed(shareWallpaperIndex))
+                shareMemory.Update(shareWallpaperIndex, wallpaperBytes,BitConverter.GetBytes(time));
+                if (shareMemory.ReadAttributeEqual(shareWallpaperIndex, ShareMemoryAttribute.Closed))
                 {
                     CloseClear();
                 }

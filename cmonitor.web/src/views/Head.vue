@@ -34,9 +34,7 @@ export default {
         const route = useRoute();
 
         const state = reactive({
-            api: route.query.api
-                ? `${window.location.hostname}:${route.query.api}`
-                : (localStorage.getItem('api') || `${window.location.hostname}:1801`),
+            api: route.query.api ? `${window.location.hostname}:${route.query.api}` : (localStorage.getItem('api') || `${window.location.hostname}:1801`),
             usernames: [],
             username: globalData.value.username || localStorage.getItem('username') || '',
             showPort: false

@@ -13,7 +13,6 @@
 <script>
 import Head from './Head.vue'
 import Device from './device/Index.vue'
-import { subWebsocketState } from '../apis/request'
 import { computed } from 'vue'
 import { provideGlobalData } from './provide'
 export default {
@@ -21,9 +20,6 @@ export default {
     setup() {
 
         const globalData = provideGlobalData();
-        subWebsocketState((state) => {
-            globalData.value.connected = state;
-        })
         const showList = computed(() => !!globalData.value.username && globalData.value.connected);
 
         return {

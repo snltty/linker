@@ -57,7 +57,7 @@ namespace cmonitor.sas.service
         }
         protected override void OnStop()
         {
-            WriteAllCloseState(true);
+            WriteAllCloseState();
             WaitClose();
             cancellationTokenSource?.Cancel();
         }
@@ -65,7 +65,7 @@ namespace cmonitor.sas.service
         {
             while (Process.GetProcessesByName(mainExeName).Any())
             {
-                WriteAllCloseState(true);
+                WriteAllCloseState();
                 Thread.Sleep(1000);
             }
         }
@@ -80,7 +80,7 @@ namespace cmonitor.sas.service
                 {
                     try
                     {
-                        string value = shareMemory.GetItemValue(shareIndex);
+                        string value = shareMemory.ReadValueString(shareIndex);
                         if (value == "ctrl+alt+delete")
                         {
                             try
@@ -102,11 +102,11 @@ namespace cmonitor.sas.service
             }, cancellationTokenSource, TaskCreationOptions.LongRunning);
         }
 
-        private void WriteAllCloseState(bool state)
+        private void WriteAllCloseState()
         {
             for (int i = 0; i < shareMLength; i++)
             {
-                shareMemory.WriteClosed(i, state);
+                shareMemory.AddAttribute(i,  ShareMemoryAttribute.Closed);
             }
         }
 

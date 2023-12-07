@@ -31,10 +31,12 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             groupTypeQuestion = new GroupBox();
             groupResult = new GroupBox();
+            inputChance = new TextBox();
+            label4 = new Label();
             inputWrong = new TextBox();
-            label3 = new Label();
+            labelWrong = new Label();
             inputRight = new TextBox();
-            label2 = new Label();
+            labelRight = new Label();
             inputJoin = new TextBox();
             label1 = new Label();
             groupTypeInput = new GroupBox();
@@ -72,10 +74,12 @@
             // 
             // groupResult
             // 
+            groupResult.Controls.Add(inputChance);
+            groupResult.Controls.Add(label4);
             groupResult.Controls.Add(inputWrong);
-            groupResult.Controls.Add(label3);
+            groupResult.Controls.Add(labelWrong);
             groupResult.Controls.Add(inputRight);
-            groupResult.Controls.Add(label2);
+            groupResult.Controls.Add(labelRight);
             groupResult.Controls.Add(inputJoin);
             groupResult.Controls.Add(label1);
             groupResult.Location = new Point(15, 252);
@@ -85,47 +89,69 @@
             groupResult.TabStop = false;
             groupResult.Text = "答题结果";
             // 
+            // inputChance
+            // 
+            inputChance.ForeColor = Color.Red;
+            inputChance.Location = new Point(265, 24);
+            inputChance.Name = "inputChance";
+            inputChance.ReadOnly = true;
+            inputChance.Size = new Size(45, 23);
+            inputChance.TabIndex = 7;
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.ForeColor = Color.Black;
+            label4.Location = new Point(231, 27);
+            label4.Name = "label4";
+            label4.Size = new Size(32, 17);
+            label4.TabIndex = 6;
+            label4.Text = "机会";
+            // 
             // inputWrong
             // 
             inputWrong.ForeColor = Color.Red;
-            inputWrong.Location = new Point(252, 24);
+            inputWrong.Location = new Point(193, 24);
             inputWrong.Name = "inputWrong";
-            inputWrong.Size = new Size(58, 23);
+            inputWrong.ReadOnly = true;
+            inputWrong.Size = new Size(35, 23);
             inputWrong.TabIndex = 5;
             // 
-            // label3
+            // labelWrong
             // 
-            label3.AutoSize = true;
-            label3.ForeColor = Color.Red;
-            label3.Location = new Point(218, 27);
-            label3.Name = "label3";
-            label3.Size = new Size(32, 17);
-            label3.TabIndex = 4;
-            label3.Text = "错误";
+            labelWrong.AutoSize = true;
+            labelWrong.ForeColor = Color.Red;
+            labelWrong.Location = new Point(159, 27);
+            labelWrong.Name = "labelWrong";
+            labelWrong.Size = new Size(32, 17);
+            labelWrong.TabIndex = 4;
+            labelWrong.Text = "错误";
             // 
             // inputRight
             // 
             inputRight.ForeColor = Color.Green;
-            inputRight.Location = new Point(146, 24);
+            inputRight.Location = new Point(117, 24);
             inputRight.Name = "inputRight";
-            inputRight.Size = new Size(62, 23);
+            inputRight.ReadOnly = true;
+            inputRight.Size = new Size(38, 23);
             inputRight.TabIndex = 3;
             // 
-            // label2
+            // labelRight
             // 
-            label2.AutoSize = true;
-            label2.ForeColor = Color.Green;
-            label2.Location = new Point(110, 27);
-            label2.Name = "label2";
-            label2.Size = new Size(32, 17);
-            label2.TabIndex = 2;
-            label2.Text = "正确";
+            labelRight.AutoSize = true;
+            labelRight.ForeColor = Color.Green;
+            labelRight.Location = new Point(81, 27);
+            labelRight.Name = "labelRight";
+            labelRight.Size = new Size(32, 17);
+            labelRight.TabIndex = 2;
+            labelRight.Text = "正确";
             // 
             // inputJoin
             // 
             inputJoin.Location = new Point(39, 24);
             inputJoin.Name = "inputJoin";
-            inputJoin.Size = new Size(60, 23);
+            inputJoin.ReadOnly = true;
+            inputJoin.Size = new Size(39, 23);
             inputJoin.TabIndex = 1;
             // 
             // label1
@@ -253,6 +279,7 @@
             inputQuestion.Location = new Point(0, 0);
             inputQuestion.Multiline = true;
             inputQuestion.Name = "inputQuestion";
+            inputQuestion.ReadOnly = true;
             inputQuestion.Size = new Size(320, 218);
             inputQuestion.TabIndex = 0;
             // 
@@ -295,9 +322,11 @@
         private GroupBox groupResult;
         private Label label1;
         private TextBox inputWrong;
-        private Label label3;
+        private Label labelWrong;
         private TextBox inputRight;
-        private Label label2;
+        private Label labelRight;
         private TextBox inputJoin;
+        private TextBox inputChance;
+        private Label label4;
     }
 }

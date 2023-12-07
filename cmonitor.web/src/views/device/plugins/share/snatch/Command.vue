@@ -1,9 +1,9 @@
 <template>
     <div class="item">
         <div class="subitem">
-            <span class="label">互动抢答</span>
+            <span class="label">投票答题</span>
             <el-button @click="handleSnatchUse">开始</el-button>
-            <el-button @click="handleSnatchQuestion">录题</el-button>
+            <el-button @click="handleSnatchQuestion">模板</el-button>
         </div>
     </div>
     <SnatchTemplate v-if="pluginState.shareSnatch.showTemplate" v-model="pluginState.shareSnatch.showTemplate"></SnatchTemplate>
@@ -19,7 +19,6 @@ export default {
     setup() {
 
         const pluginState = injectPluginState();
-
 
         const handleSnatchQuestion = () => {
             pluginState.value.shareSnatch.showTemplate = true;

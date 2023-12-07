@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,22 +10,31 @@ using System.Threading.Tasks;
 namespace cmonitor.libs
 {
     /// <summary>
-    /// InitLocal 和 InitGlobal 都可以初始化，都初始化时，需要启动 Loop，将InitGlobal同步数据到Local
-    /// StateAction 设置状态变化回调，需要启动 Loop，监听数据变化
+    /// InitLocal 和 InitGlobal 都可以初始化，都初始化时，需要启动 StartLoop，将InitGlobal同步数据到Local
+    /// AddAttributeAction 设置状态变化回调，需要启动 Loop，监听数据变化
     /// </summary>
     public sealed class ShareMemory
     {
-        private const int shareMemoryStateSize = 1;
+        private const int shareMemoryAttributeIndex = 0;
+        private const int shareMemoryAttributeSize = 1;
+        private const int shareMemoryVersionSize = 8;
+        private const int shareMemoryVersionIndex = 1;
+        private const int shareMemoryHeadSize = shareMemoryAttributeSize + shareMemoryVersionSize;
 
         private string key;
         private int length;
         private int itemSize;
         private byte[] bytes;
         private object lockObj = new object();
+        private long version = 0;
         IShareMemory accessorLocal = null;
         IShareMemory accessorGlobal = null;
 
-        Action<int, ShareMemoryState> stateAction;
+        private readonly ShareMemoryAttribute[] itemAttributes = Array.Empty<ShareMemoryAttribute>();
+        private readonly long[] itemVersions = Array.Empty<long>();
+        ConcurrentDictionary<int, List<Action<ShareMemoryAttribute>>> attributeActions = new ConcurrentDictionary<int, List<Action<ShareMemoryAttribute>>>();
+        private CancellationTokenSource cancellationTokenSource;
+        private ConcurrentQueue<ShareItemAttributeChanged> attributeChangeds = new ConcurrentQueue<ShareItemAttributeChanged>();
 
         private readonly Dictionary<string, ShareItemInfo> dic = new Dictionary<string, ShareItemInfo>();
 
@@ -32,7 +44,8 @@ namespace cmonitor.libs
             this.length = length;
             this.itemSize = itemSize;
             bytes = new byte[length * itemSize];
-            states = new ShareMemoryState[length];
+            itemAttributes = new ShareMemoryAttribute[length];
+            itemVersions = new long[length];
         }
 
         public void InitLocal()
@@ -52,12 +65,15 @@ namespace cmonitor.libs
             {
             }
         }
+
+        private byte[] gloablBytes;
         public void InitGlobal()
         {
             try
             {
                 if (OperatingSystem.IsWindows() && accessorGlobal == null)
                 {
+                    gloablBytes = new byte[bytes.Length];
                     accessorGlobal = ShareMemoryFactory.Create($"Global\\{key}", length, itemSize);
                     if (accessorGlobal.Init() == false)
                     {
@@ -69,64 +85,104 @@ namespace cmonitor.libs
             {
             }
         }
-        public void StateAction(Action<int, ShareMemoryState> stateAction)
+        public void AddAttributeAction(int index, Action<ShareMemoryAttribute> action)
         {
-            this.stateAction = stateAction;
+            if (attributeActions.TryGetValue(index, out List<Action<ShareMemoryAttribute>> actions) == false)
+            {
+                actions = new List<Action<ShareMemoryAttribute>>();
+                attributeActions.TryAdd(index, actions);
+            }
+            if (actions.Any(c => c == action) == false)
+            {
+                actions.Add(action);
+            }
+        }
+        public void RemoveAttributeAction(int index, Action<ShareMemoryAttribute> action)
+        {
+            if (attributeActions.TryGetValue(index, out List<Action<ShareMemoryAttribute>> actions) == false)
+            {
+                return;
+            }
+            actions.Remove(action);
         }
 
-        public void Loop()
+
+        public void StartLoop()
         {
-            InitStateValues();
+            cancellationTokenSource?.Cancel();
+            cancellationTokenSource = new CancellationTokenSource();
             Task.Factory.StartNew(() =>
             {
-                while (true)
+                while (cancellationTokenSource.IsCancellationRequested == false)
                 {
-                    if (accessorLocal != null || accessorGlobal != null)
+                    try
                     {
-                        try
-                        {
-                            SyncMemory();
-                            StateCallback();
-                        }
-                        catch (Exception)
-                        {
-                        }
+                        SyncMemory();
+                        AttributeCallback();
+                        ReadItems();
+                    }
+                    catch (Exception)
+                    {
                     }
 
                     Thread.Sleep(10);
                 }
 
             }, TaskCreationOptions.LongRunning);
-        }
 
-        byte[] valuesBytes;
-        byte[] gloablBytes;
-        ShareMemoryState[] states = Array.Empty<ShareMemoryState>();
-        private void InitStateValues()
-        {
-            gloablBytes = new byte[bytes.Length];
-
-            var values = Enum.GetValues(typeof(ShareMemoryState));
-            valuesBytes = new byte[values.Length];
-            for (int i = 0; i < values.Length; i++)
+            Task.Factory.StartNew(() =>
             {
-                valuesBytes[i] = (byte)values.GetValue(i);
-            }
-        }
-
-        private void StateCallback()
-        {
-            if (stateAction != null)
-            {
-                for (int index = 0; index < length; index++)
+                while (cancellationTokenSource.IsCancellationRequested == false)
                 {
-                    ShareMemoryState state = ReadState(accessorLocal, index);
-                    if (state != states[index])
+                    try
                     {
-                        states[index] = state;
-                        stateAction(index, state);
+                        while (attributeChangeds.TryDequeue(out ShareItemAttributeChanged result))
+                        {
+                            result.Action(result.Attribute);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+                    Thread.Sleep(30);
+                }
+
+            }, TaskCreationOptions.LongRunning);
+        }
+
+        private void AttributeCallback()
+        {
+            IShareMemory accessor = accessorLocal ?? accessorGlobal;
+            if (accessor == null) return;
+
+            bool allUpdated = false;
+            for (int index = 0; index < length; index++)
+            {
+                ShareMemoryAttribute attribute = ReadAttribute(accessorLocal, index);
+                bool updated = ReadVersionUpdated(accessorLocal, index);
+                allUpdated |= updated;
+                if (updated)
+                {
+                    itemAttributes[index] &= (~ShareMemoryAttribute.Updated);
+                    attribute |= ShareMemoryAttribute.Updated;
+                }
+                if (attribute != itemAttributes[index])
+                {
+                    itemAttributes[index] = attribute;
+                    if (attributeActions.TryGetValue(index, out List<Action<ShareMemoryAttribute>> actions) && actions.Count > 0)
+                    {
+                        foreach (var action in actions)
+                        {
+                            attributeChangeds.Enqueue(new ShareItemAttributeChanged { Action=action, Attribute= attribute });
+                        }
                     }
                 }
+
+            }
+            if (allUpdated)
+            {
+                version++;
             }
         }
         private void SyncMemory()
@@ -140,51 +196,49 @@ namespace cmonitor.libs
                     for (int index = 0; index < length; index++)
                     {
                         //检查更新状态
-                        if (ReadStateIf(accessorGlobal, index, ShareMemoryState.Updated) == false)
+                        if (ReadVersionUpdated(accessorGlobal, index) == false)
                         {
                             continue;
                         }
 
                         int _index = index * itemSize;
-                        int keyLen = BitConverter.ToInt32(gloablBytes, _index + shareMemoryStateSize);
+                        int keyLen = BitConverter.ToInt32(gloablBytes, _index + shareMemoryHeadSize);
                         if (keyLen > 0)
                         {
                             accessorLocal.WriteArray(_index, gloablBytes, _index, itemSize);
                         }
-                        WriteStateIf(accessorGlobal, index, ShareMemoryState.Updated, false);
                     }
+
                 }
             }
 
         }
-
-        public Dictionary<string, ShareItemInfo> GetItems(out bool updated)
+        private void ReadItems()
         {
-            updated = false;
-            if (accessorLocal == null) return dic;
+            IShareMemory accessor = accessorLocal ?? accessorGlobal;
+            if (accessor == null) return;
             try
             {
                 lock (lockObj)
                 {
-                    accessorLocal.ReadArray(0, bytes, 0, bytes.Length);
+                    accessor.ReadArray(0, bytes, 0, bytes.Length);
 
                     for (int index = 0; index < length; index++)
                     {
-                        //state
-                        bool _updated = ReadStateIf(accessorLocal, index, ShareMemoryState.Updated);
-                        if (_updated == false)
+                        ShareMemoryAttribute attribute = ReadAttribute(accessor, index);
+                        long itemVersion = ReadVersion(accessor, index);
+                        bool skip = (itemVersion <= itemVersions[index] || (attribute & ShareMemoryAttribute.HiddenForList) == ShareMemoryAttribute.HiddenForList);
+                        itemVersions[index] = itemVersion;
+                        if (skip)
                         {
                             continue;
                         }
 
-                        WriteStateIf(accessorLocal, index, ShareMemoryState.Updated, false);
-                        updated |= _updated;
-
                         //key length
-                        int _index = index * itemSize + shareMemoryStateSize;
+                        int _index = index * itemSize + shareMemoryHeadSize;
                         int keyLen = BitConverter.ToInt32(bytes, _index);
                         _index += 4;
-                        if (keyLen > 0 && keyLen + 8 + shareMemoryStateSize < itemSize)
+                        if (keyLen > 0 && keyLen + 8 + shareMemoryHeadSize < itemSize)
                         {
                             //key
                             string key = Encoding.UTF8.GetString(bytes, _index, keyLen);
@@ -195,7 +249,7 @@ namespace cmonitor.libs
                             int valLen = BitConverter.ToInt32(bytes, _index);
                             _index += 4;
                             //value
-                            if (keyLen + 8 + shareMemoryStateSize + valLen <= itemSize)
+                            if (keyLen + 8 + shareMemoryHeadSize + valLen <= itemSize)
                             {
                                 val = Encoding.UTF8.GetString(bytes, _index, valLen);
                             }
@@ -213,51 +267,82 @@ namespace cmonitor.libs
             catch (Exception)
             {
             }
+        }
+
+        public Dictionary<string, ShareItemInfo> ReadItems(out long version)
+        {
+            version = this.version;
             return dic;
         }
-        public string GetItemValue(int index)
+        public string ReadValueString(int index)
+        {
+            byte[] bytes = ReadValueArray(index);
+            if (bytes.Length == 0) return string.Empty;
+
+            return Encoding.UTF8.GetString(bytes);
+        }
+        public long ReadValueInt64(int index)
         {
             IShareMemory accessor = accessorLocal ?? accessorGlobal;
-            if (accessor == null) return string.Empty;
-
-            index = index * itemSize + shareMemoryStateSize;
+            if (accessor == null || index >= length) return 0;
+            index = index * itemSize + shareMemoryHeadSize;
 
             int keylen = accessor.ReadInt(index);
             index += 4 + keylen;
-            if (keylen == 0) return string.Empty;
+            if (keylen == 0) return 0;
 
             int vallen = accessor.ReadInt(index);
             index += 4;
-            if (vallen == 0 || keylen + 8 + shareMemoryStateSize + vallen > itemSize) return string.Empty;
+            if (vallen == 0 || keylen + 8 + shareMemoryHeadSize + vallen > itemSize) return 0;
+
+            return accessor.ReadInt64(index);
+        }
+        public byte[] ReadValueArray(int index)
+        {
+            IShareMemory accessor = accessorLocal ?? accessorGlobal;
+            if (accessor == null || index >= length) return Array.Empty<byte>();
+            index = index * itemSize + shareMemoryHeadSize;
+
+            int keylen = accessor.ReadInt(index);
+            index += 4 + keylen;
+            if (keylen == 0) return Array.Empty<byte>();
+
+            int vallen = accessor.ReadInt(index);
+            index += 4;
+            if (vallen == 0 || keylen + 8 + shareMemoryHeadSize + vallen > itemSize) return Array.Empty<byte>();
 
             byte[] bytes = new byte[vallen];
             accessor.ReadArray(index, bytes, 0, bytes.Length);
 
-            return Encoding.UTF8.GetString(bytes);
+            return bytes;
         }
 
-        public bool Update(int index, string key, string value)
+        public bool Update(int index, string key, string value,
+            ShareMemoryAttribute addAttri = ShareMemoryAttribute.None,
+            ShareMemoryAttribute removeAttri = ShareMemoryAttribute.None)
         {
             if (string.IsNullOrWhiteSpace(key))
             {
-                return Update(index, Array.Empty<byte>(), Encoding.UTF8.GetBytes(value));
+                return Update(index, Array.Empty<byte>(), Encoding.UTF8.GetBytes(value), addAttri, removeAttri);
             }
             else
             {
-                return Update(index, Encoding.UTF8.GetBytes(key), Encoding.UTF8.GetBytes(value));
+                return Update(index, Encoding.UTF8.GetBytes(key), Encoding.UTF8.GetBytes(value), addAttri, removeAttri);
             }
         }
-        public bool Update(int index, byte[] key, byte[] value)
+        public bool Update(int index, byte[] key, byte[] value,
+            ShareMemoryAttribute addAttri = ShareMemoryAttribute.None,
+            ShareMemoryAttribute removeAttri = ShareMemoryAttribute.None)
         {
             try
             {
                 if (accessorLocal == null && accessorGlobal == null) return false;
-                if (index == 0) return false;
-                if (key.Length + 8 + shareMemoryStateSize + value.Length > itemSize) return false;
+                if (index == 0 || index > length) return false;
+                if (key.Length + 8 + shareMemoryHeadSize + value.Length > itemSize) return false;
 
                 lock (lockObj)
                 {
-                    int valIndex = index * itemSize + shareMemoryStateSize;
+                    int valIndex = index * itemSize + shareMemoryHeadSize;
                     int startIndex = valIndex;
                     int keylen = key.Length;
                     int vallen = value.Length;
@@ -299,8 +384,17 @@ namespace cmonitor.libs
                         accessorGlobal.WriteInt(valIndex, vallen);
                         accessorGlobal.WriteArray(valIndex + 4, value, 0, value.Length);
                     }
+                    IncrementVersion(index);
+                    if (removeAttri > 0)
+                    {
+                        RemoveAttribute(index, removeAttri);
+                    }
+                    if (addAttri > 0)
+                    {
+                        AddAttribute(index, addAttri);
+                    }
                 }
-                WriteUpdated(index, true);
+
                 return true;
             }
             catch (Exception)
@@ -309,101 +403,133 @@ namespace cmonitor.libs
             return false;
         }
 
-        private ShareMemoryState ReadState(IShareMemory accessor, int index)
+        private ShareMemoryAttribute ReadAttribute(IShareMemory accessor, int index)
         {
-            if (accessor == null) return ShareMemoryState.None;
+            if (accessor == null || index >= length) return ShareMemoryAttribute.None;
 
-            ShareMemoryState stateByte = (ShareMemoryState)accessor.ReadByte(index * itemSize);
+            ShareMemoryAttribute stateByte = (ShareMemoryAttribute)accessor.ReadByte(index * itemSize + shareMemoryAttributeIndex);
             return stateByte;
         }
-        private bool ReadStateIf(IShareMemory accessor, int index, ShareMemoryState state)
+        private bool ReadAttributeEqual(IShareMemory accessor, int index, ShareMemoryAttribute attribute)
         {
+            if (accessor == null || index >= length) return false;
+
+            ShareMemoryAttribute attributeByte = (ShareMemoryAttribute)accessor.ReadByte(index * itemSize + shareMemoryAttributeIndex);
+            return (attributeByte & attribute) == attribute;
+        }
+
+        private void AddAttribute(IShareMemory accessor, int index, ShareMemoryAttribute attribute)
+        {
+            if (accessor == null || index >= length) return;
+            byte attributeValue = accessor.ReadByte(index * itemSize + shareMemoryAttributeIndex);
+            byte attributeByte = (byte)attribute;
+            attributeValue |= attributeByte;
+            accessor.WriteByte(index * itemSize + shareMemoryAttributeIndex, attributeValue);
+
+            IncrementVersion(accessor, index);
+        }
+        private void RemoveAttribute(IShareMemory accessor, int index, ShareMemoryAttribute attribute)
+        {
+            if (accessor == null || index >= length) return;
+            byte attributeValue = accessor.ReadByte(index * itemSize + shareMemoryAttributeIndex);
+            byte attributeByte = (byte)attribute;
+            attributeValue &= (byte)(~attributeByte);
+            accessor.WriteByte(index * itemSize + shareMemoryAttributeIndex, attributeValue);
+
+            IncrementVersion(accessor, index);
+        }
+
+        private void IncrementVersion(IShareMemory accessor, int index)
+        {
+            if (accessor == null || index >= length) return;
+            long version = accessor.ReadInt64(index * itemSize + shareMemoryVersionIndex);
+            accessor.WriteInt64(index * itemSize + shareMemoryVersionIndex, version + 1);
+        }
+        private long ReadVersion(IShareMemory accessor, int index)
+        {
+            if (accessor == null || index >= length) return 0;
+            long version = accessor.ReadInt64(index * itemSize + shareMemoryVersionIndex);
+            return version;
+        }
+        private bool ReadVersionUpdated(IShareMemory accessor, int index)
+        {
+            long version = ReadVersion(accessor, index);
+            return version > itemVersions[index];
+        }
+        private bool ReadVersionUpdated(IShareMemory accessor, int index, long version)
+        {
+            long _version = ReadVersion(accessor, index);
+            return _version > version;
+        }
+
+        public ShareMemoryAttribute ReadAttribute(int index)
+        {
+            IShareMemory accessor = accessorLocal ?? accessorGlobal;
+            if (accessor == null) return ShareMemoryAttribute.None;
+
+            return ReadAttribute(accessor, index);
+        }
+        public bool ReadAttributeEqual(int index, ShareMemoryAttribute attribute)
+        {
+            IShareMemory accessor = accessorLocal ?? accessorGlobal;
             if (accessor == null) return false;
 
-            ShareMemoryState stateByte = (ShareMemoryState)accessor.ReadByte(index * itemSize);
-            return (stateByte & state) == state;
-        }
-        public bool ReadUpdated(int index)
-        {
-            if (accessorLocal != null)
-                return ReadStateIf(accessorLocal, index, ShareMemoryState.Updated);
-            if (accessorGlobal != null)
-                return ReadStateIf(accessorGlobal, index, ShareMemoryState.Updated);
-            return false;
-        }
-        public bool ReadClosed(int index)
-        {
-            if (accessorLocal != null)
-                return ReadStateIf(accessorLocal, index, ShareMemoryState.Closed);
-            if (accessorGlobal != null)
-                return ReadStateIf(accessorGlobal, index, ShareMemoryState.Closed);
-            return false;
-        }
-        public bool ReadRunning(int index)
-        {
-            if (accessorLocal != null)
-                return ReadStateIf(accessorLocal, index, ShareMemoryState.Running);
-            if (accessorGlobal != null)
-                return ReadStateIf(accessorGlobal, index, ShareMemoryState.Running);
-            return false;
+            return ReadAttributeEqual(accessor, index, attribute);
         }
 
-        private void WriteState(IShareMemory accessor, int index, ShareMemoryState state)
+        public void AddAttribute(int index, ShareMemoryAttribute attribute)
         {
-            if (accessor == null) return;
-            byte stateByte = (byte)state;
-            accessor.WriteByte(index * itemSize, stateByte);
+            AddAttribute(accessorLocal, index, attribute);
+            AddAttribute(accessorGlobal, index, attribute);
         }
-        private void WriteStateIf(IShareMemory accessor, int index, ShareMemoryState state, bool value)
+        public void RemoveAttribute(int index, ShareMemoryAttribute attribute)
         {
-            if (accessor == null) return;
-            byte stateValue = accessor.ReadByte(index * itemSize);
-            byte stateByte = (byte)state;
-            if (value)
-            {
-                stateValue |= stateByte;
-            }
-            else
-            {
-                stateValue &= (byte)(~stateByte);
-            }
-            accessor.WriteByte(index * itemSize, stateValue);
+            RemoveAttribute(accessorLocal, index, attribute);
+            RemoveAttribute(accessorGlobal, index, attribute);
         }
-        public void WriteUpdated(int index, bool updated = true)
+
+        public void IncrementVersion(int index)
         {
-            WriteStateIf(accessorLocal, index, ShareMemoryState.Updated, updated);
-            WriteStateIf(accessorGlobal, index, ShareMemoryState.Updated, updated);
+            IncrementVersion(accessorLocal, index);
+            IncrementVersion(accessorGlobal, index);
         }
-        public void WriteClosed(int index, bool closed = true)
+        public long ReadVersion(int index)
         {
-            WriteStateIf(accessorLocal, index, ShareMemoryState.Closed, closed);
-            WriteStateIf(accessorGlobal, index, ShareMemoryState.Closed, closed);
-            WriteUpdated(index, true);
+            IShareMemory accessor = accessorLocal ?? accessorGlobal;
+            if (accessor == null) return 0;
+
+            return ReadVersion(accessor, index);
         }
-        public void WriteRunning(int index, bool running = true)
+        public bool ReadVersionUpdated(int index)
         {
-            WriteStateIf(accessorLocal, index, ShareMemoryState.Running, running);
-            WriteStateIf(accessorGlobal, index, ShareMemoryState.Running, running);
-            WriteUpdated(index, true);
+            IShareMemory accessor = accessorLocal ?? accessorGlobal;
+            if (accessor == null) return false;
+
+            return ReadVersionUpdated(accessor, index);
+        }
+        public bool ReadVersionUpdated(int index, long version)
+        {
+            IShareMemory accessor = accessorLocal ?? accessorGlobal;
+            if (accessor == null) return false;
+
+            return ReadVersionUpdated(accessor, index, version);
         }
     }
 
-    public struct ShareMemoryStruct
-    {
-        public ShareMemoryState State;
-        public int KeyLength;
-        public byte[] Key;
-        public int ValueLength;
-        public byte[] Value;
-    };
-
-    public enum ShareMemoryState : byte
+    public enum ShareMemoryAttribute : byte
     {
         None = 0,
         Updated = 0b0000_0001,
         Closed = 0b0000_0010,
         Running = 0b0000_0100,
+        HiddenForList = 0b0000_1000,
         All = 0b1111_1111
+    }
+
+    public sealed class ShareItemAttributeChanged
+    {
+        public Action<ShareMemoryAttribute> Action { get; set; }
+        public ShareMemoryAttribute Attribute { get; set; }
     }
 
     public sealed partial class ShareItemInfo

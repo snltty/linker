@@ -94,6 +94,23 @@ namespace cmonitor.libs
             }
         }
 
+        public long ReadInt64(int position)
+        {
+            if (shmPtr != IntPtr.Zero)
+            {
+                return Marshal.ReadInt64(shmPtr + position);
+            }
+            return 0;
+        }
+
+        public void WriteInt64(int position, long value)
+        {
+            if (shmPtr != IntPtr.Zero)
+            {
+                Marshal.WriteInt64(shmPtr + position, value);
+            }
+        }
+
 
 
         // 导入Linux的动态链接库

@@ -74,13 +74,13 @@ namespace llock.win
             groupBox1.Location = new System.Drawing.Point((this.Width - groupBox1.Width) / 2, (this.Height - groupBox1.Height) / 2);
 
             WriteLLock();
-            shareMemory.WriteClosed(shareIndex, false);
-            shareMemory.WriteRunning(shareIndex, true);
+            shareMemory.RemoveAttribute(shareIndex, ShareMemoryAttribute.Closed );
+            shareMemory.AddAttribute(shareIndex,  ShareMemoryAttribute.Running | ShareMemoryAttribute.HiddenForList);
             new Thread(() =>
             {
                 while (cancellationTokenSource.Token.IsCancellationRequested == false)
                 {
-                    if (shareMemory.ReadClosed(shareIndex))
+                    if (shareMemory.ReadAttributeEqual(shareIndex, ShareMemoryAttribute.Closed))
                     {
                         CloseClear();
                     }
@@ -121,7 +121,7 @@ namespace llock.win
         }
         private void CloseClear()
         {
-            shareMemory.WriteRunning(shareIndex, false);
+            shareMemory.RemoveAttribute(shareIndex, ShareMemoryAttribute.Running);
 
             cancellationTokenSource.Cancel();
             hook.Close();
@@ -141,7 +141,7 @@ namespace llock.win
             long time = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
             if (time - lastTime >= 300)
             {
-                shareMemory.Update(this.shareIndex, keyBytes, Encoding.UTF8.GetBytes(time.ToString()));
+                shareMemory.Update(this.shareIndex, keyBytes,BitConverter.GetBytes(time));
                 lastTime = time;
             }
         }

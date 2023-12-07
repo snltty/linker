@@ -68,7 +68,8 @@
 - [ ] 语音消息，向设备发送语音消息 **NAudio**
 ###### 命令
 - [x] 发送命令，执行cmd命令，等等
-###### 共享
+###### 互动
+- [x] 互动答题 **winform**
 - [ ] 屏幕共享，以某一设备为主机，向其它设备共享屏幕，用于演示 **sharpDX**
 ###### 壁纸
 - [x] 壁纸程序，为所有设备设置统一壁纸，以程序的方式 **winform**
@@ -97,7 +98,7 @@
 2. **【--service】** 服务端口 **1802**
 3. **【--share-key】** 自定数据共享 **cmonitor/share**
 4. **【--share-len】** 数量 **10**，默认10项位置，0保留，1键盘、2壁纸、3锁屏，4 SendSAS
-4. **【--share-item-len】** 每项数据长度 **1024**，state(1)+klen(4)+key(klen)+vlen(4)+value(vallen)
+4. **【--share-item-len】** 每项数据长度 **1024**，attr(1)+version(8)+klen(4)+key(klen)+vlen(4)+value(vallen)
 
 ###### 服务端
 1. **【--web】** 管理UI端口 **1800**

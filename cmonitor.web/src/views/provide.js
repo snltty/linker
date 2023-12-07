@@ -1,3 +1,4 @@
+import { subWebsocketState } from "@/apis/request";
 import { computed, inject, provide, ref } from "vue";
 
 const globalDataSymbol = Symbol();
@@ -19,12 +20,11 @@ export const provideGlobalData = () => {
             return [];
         }),
         currentDevice: { MachineName: '' },
-        reportNames: [],
-        pc: false,//window.innerWidth > 768
+        reportNames: []
     });
-    window.addEventListener('resize', () => {
-        globalData.value.pc = false;// window.innerWidth > 768;
-    });
+    subWebsocketState((state) => {
+        globalData.value.connected = state;
+    })
 
     provide(globalDataSymbol, globalData);
     return globalData;

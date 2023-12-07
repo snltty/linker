@@ -13,12 +13,24 @@
                 <div>
                     <div class="times">
                         <el-input v-model="state.sec" size="large">
-                            <template #append>秒钟</template>
+                            <template #append>秒钟/次</template>
                         </el-input>
                     </div>
                     <div class="prev">
                         <el-input v-model="state.prev" type="textarea" resize="none" placeholder="输入提醒消息"></el-input>
                     </div>
+                </div>
+                <div class="record flex">
+                    <div class="text">
+                        <span v-if="state.disabled">
+                            <font color="red">此环境不支持录音</font>
+                        </span>
+                        <span v-else-if="state.recoeding">正在录音</span>
+                        <span v-else-if="state.recoedData" @click="handleClearRecord">已录音({{state.duration}}s)</span>
+                        <span v-else>未录音</span>
+                    </div>
+                    <span class="flex-1"></span>
+                    <el-button plain :disabled="state.disabled" @touchstart="handleStartRecord" @touchend="handleEndRecord">录音</el-button>
                 </div>
             </div>
         </div>
@@ -38,6 +50,9 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { exec } from '../../../../apis/command'
 import { injectGlobalData } from '@/views/provide';
 import { injectPluginState } from '../../provide';
+import { play } from '@/apis/volume'
+import pako from 'pako';
+
 export default {
     props: ['modelValue'],
     emits: ['update:modelValue'],
@@ -56,7 +71,11 @@ export default {
             ],
             sec: 10,
             prev: '',
-            loading: false
+            loading: false,
+            recoeding: false,
+            recoedData: null,
+            disabled: false,
+            duration: 0
         });
         try {
             if (pluginState.value.message.devices.length == 1 && pluginState.value.message.devices[0].Share.UserName.Value) {
@@ -84,7 +103,7 @@ export default {
                 ElMessage.error('未选择任何设备');
                 return;
             }
-            if (state.prev.length == 0) {
+            if (state.prev.length == 0 && !state.recoedData) {
                 ElMessage.error('未填写消息');
                 return;
             }
@@ -95,9 +114,12 @@ export default {
                 type: 'warning',
             }).then(() => {
                 state.loading = true;
-                exec(_devices.map(c => c.MachineName), [`start message.win.exe "${state.prev}" ${state.sec}`]).then((res) => {
+                const names = _devices.map(c => c.MachineName);
+                const fn = state.recoedData ? play(names, state.recoedData) : exec(names, [`start message.win.exe "${state.prev}" ${state.sec}`]);
+                fn.then((res) => {
                     if (res) {
                         ElMessage.success('操作成功');
+                        handleClearRecord();
                     } else {
                         ElMessage.error('操作失败');
                     }
@@ -113,8 +135,51 @@ export default {
             state.show = false;
         }
 
+        let recorder = new MP3Recorder({
+            debug: false,
+            funOk: () => { },
+            funCancel: (msg) => {
+                state.disabled = true;
+                ElMessage.error(msg);
+                //recorder = null;
+            }
+        });
+        const handleClearRecord = () => {
+            state.recoedData = null;
+            state.duration = 0;
+        }
+        const handleStartRecord = () => {
+            if (recorder && recorder.start) {
+                state.loading = true;
+                state.recoeding = true;
+                recorder.start();
+            }
+
+        }
+        const handleEndRecord = () => {
+            state.loading = false;
+            state.recoeding = false;
+            if (recorder && recorder.stop) {
+                recorder.stop();
+                recorder.getMp3Blob((e, blob) => {
+                    blob.arrayBuffer().then((arrayBuffer) => {
+                        const array = new Uint8Array(arrayBuffer);
+                        if (array.length > 0) {
+                            const compressedData = pako.gzip(array);
+                            state.recoedData = btoa(String.fromCharCode(...new Uint8Array(compressedData)));
+                        }
+                    });
+                    const audioElement = new Audio(URL.createObjectURL(blob));
+                    audioElement.addEventListener('loadedmetadata', () => {
+                        state.duration = parseInt(audioElement.duration);
+                    });
+                });
+            }
+
+        }
+
         return {
-            state, globalData, devices, prevs, handleSubmit, handleCancel, handlePrev
+            state, globalData, devices, prevs, handleSubmit, handleCancel, handlePrev, handleStartRecord, handleEndRecord, handleClearRecord
         }
     }
 }
@@ -136,6 +201,14 @@ export default {
 
         .times {
             margin: 0.6rem 0;
+        }
+
+        .record {
+            padding-top: 0.6rem;
+
+            .text {
+                line-height: 3.2rem;
+            }
         }
 
         .prevs {

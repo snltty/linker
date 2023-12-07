@@ -19,8 +19,12 @@ export const del = (username, groupid, id) => {
     });
 }
 
-export const update = (names, question) => {
-    return sendWebsocketMsg('snatch/update', {
-        names, item: question
-    });
+export const getQuestion = (name) => {
+    return sendWebsocketMsg('snatch/getQuestion', name);
+}
+export const addQuestion = (question) => {
+    return sendWebsocketMsg('snatch/addQuestion', question);
+}
+export const removeQuestion = (name) => {
+    return sendWebsocketMsg('snatch/removeQuestion', name);
 }

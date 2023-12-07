@@ -1,7 +1,8 @@
 using cmonitor.libs;
+using common.libs.extends;
+using System;
 using System.Diagnostics;
 using System.Text;
-using System.Text.Json;
 
 namespace cmonitor.snatch.win
 {
@@ -35,7 +36,7 @@ namespace cmonitor.snatch.win
             MinimizeBox = false;
             ControlBox = false;
             ShowInTaskbar = false;
-            TopMost = true;
+
             InitializeComponent();
 
             this.shareQuestionIndex = shareQuestionIndex;
@@ -47,39 +48,61 @@ namespace cmonitor.snatch.win
         CheckBox[] options = Array.Empty<CheckBox>();
         private void OnLoad(object sender, EventArgs e)
         {
+            TopMost = true;
+
             options = new CheckBox[] { checkA, checkB, checkC, checkD, checkE, checkF };
+            for (int i = 0; i < options.Length; i++)
+            {
+                options[i].Click += CheckedChanged;
+            }
+
 
             shareMemory.InitLocal();
-            shareMemory.WriteRunning(shareQuestionIndex, true);
-            shareMemory.WriteClosed(shareQuestionIndex, false);
-            shareMemory.WriteRunning(shareAnswerIndex, true);
-            shareMemory.WriteClosed(shareAnswerIndex, false);
-            shareMemory.StateAction((index, state) =>
-            {
-                if (shareQuestionIndex == index)
-                {
-                    if ((state & ShareMemoryState.Updated) == ShareMemoryState.Updated)
-                    {
-                        ReadQuestionMemory();
-                        CheckState();
-                    }
-                    if ((state & ShareMemoryState.Closed) == ShareMemoryState.Closed)
-                    {
-                        WriteAnswerConfirmIfState(SnatchState.Ask, false, string.Empty);
-                    }
-                }
-                else if (shareAnswerIndex == index)
-                {
-                    if ((state & ShareMemoryState.Updated) == ShareMemoryState.Updated)
-                    {
-                        ReadAnswerMemory();
-                        CheckState();
-                    }
-                }
-            });
-            shareMemory.Loop();
+
+            shareMemory.AddAttribute(shareQuestionIndex, ShareMemoryAttribute.Running);
+            shareMemory.RemoveAttribute(shareQuestionIndex, ShareMemoryAttribute.Closed);
+            shareMemory.AddAttribute(shareAnswerIndex, ShareMemoryAttribute.Running);
+            shareMemory.RemoveAttribute(shareAnswerIndex, ShareMemoryAttribute.Closed);
+            shareMemory.AddAttributeAction(shareQuestionIndex, QuestionAttributeChange);
+            shareMemory.AddAttributeAction(shareAnswerIndex, AnswerAttributeChange);
+            shareMemory.StartLoop();
             ReadMemory();
             CheckState();
+        }
+
+        private void CheckedChanged(object sender, EventArgs e)
+        {
+            CheckBox box = sender as CheckBox;
+            if (snatchQuesionInfo.Correct.Length <= 1 && box.Checked)
+            {
+                for (int i = 0; i < options.Length; i++)
+                {
+                    options[i].Checked = false;
+                }
+                box.Checked = true;
+            }
+        }
+
+        private void QuestionAttributeChange(ShareMemoryAttribute attr)
+        {
+            if ((attr & ShareMemoryAttribute.Updated) == ShareMemoryAttribute.Updated)
+            {
+                ReadQuestionMemory();
+                CheckState();
+            }
+            if ((attr & ShareMemoryAttribute.Closed) == ShareMemoryAttribute.Closed)
+            {
+                WriteAnswerConfirmIfState(SnatchState.Ask, string.Empty);
+                CloseClear();
+            }
+        }
+        private void AnswerAttributeChange(ShareMemoryAttribute attr)
+        {
+            if ((attr & ShareMemoryAttribute.Updated) == ShareMemoryAttribute.Updated)
+            {
+                ReadAnswerMemory();
+                CheckState();
+            }
         }
 
         private string GetAnswer()
@@ -107,14 +130,9 @@ namespace cmonitor.snatch.win
                 MessageBox.Show($"答题已结束");
                 return;
             }
-            if (snatchAnswerInfo.State == SnatchState.Confirm && snatchQuesionInfo.Repeat == false)
+            if (snatchAnswerInfo.Times >= snatchQuesionInfo.Chance)
             {
-                MessageBox.Show($"已答题，不可重复作答");
-                return;
-            }
-            if (snatchAnswerInfo.Times > snatchQuesionInfo.Max)
-            {
-                MessageBox.Show($"超过重复答题次数上线");
+                MessageBox.Show($"超过重复答题机会");
                 return;
             }
 
@@ -129,7 +147,7 @@ namespace cmonitor.snatch.win
             Task.Run(() =>
             {
                 CheckBtn();
-                WriteAnswerConfirm(answer == snatchQuesionInfo.Correct, answer);
+                WriteAnswerConfirm(answer);
 
                 loading = false;
                 CheckState();
@@ -137,10 +155,10 @@ namespace cmonitor.snatch.win
         }
         private void CloseClear()
         {
-            shareMemory.WriteRunning(shareQuestionIndex, false);
-            shareMemory.WriteClosed(shareQuestionIndex, true);
-            shareMemory.WriteRunning(shareAnswerIndex, false);
-            shareMemory.WriteClosed(shareAnswerIndex, true);
+            shareMemory.RemoveAttribute(shareQuestionIndex, ShareMemoryAttribute.Running);
+            shareMemory.RemoveAttribute(shareQuestionIndex, ShareMemoryAttribute.Closed);
+            shareMemory.RemoveAttribute(shareAnswerIndex, ShareMemoryAttribute.Running);
+            shareMemory.RemoveAttribute(shareAnswerIndex, ShareMemoryAttribute.Closed);
 
             Application.ExitThread();
             Application.Exit();
@@ -151,16 +169,15 @@ namespace cmonitor.snatch.win
         {
             try
             {
-                string result = shareMemory.GetItemValue(shareQuestionIndex);
-                if (string.IsNullOrWhiteSpace(result))
+                byte[] result = shareMemory.ReadValueArray(shareQuestionIndex);
+                if (result.Length == 0)
                 {
-                    snatchQuesionInfo = new SnatchQuestionInfo { Question = "测试测试", Correct = "ABC", Option = 5, Type = SnatchType.Select };
+                    snatchQuesionInfo = new SnatchQuestionInfo { Chance = 65535, Name = "snltty", Question = "测试测试", Correct = "A", Option = 5, Cate = SnatchCate.Question, Type = SnatchType.Select };
                 }
                 else
                 {
-                    snatchQuesionInfo = JsonSerializer.Deserialize<SnatchQuestionInfo>(result);
+                    snatchQuesionInfo = SnatchQuestionInfo.DeBytes(result);
                 }
-
             }
             catch (Exception)
             {
@@ -171,14 +188,14 @@ namespace cmonitor.snatch.win
         {
             try
             {
-                string result = shareMemory.GetItemValue(shareAnswerIndex);
-                if (string.IsNullOrWhiteSpace(result))
+                byte[] result = shareMemory.ReadValueArray(shareAnswerIndex);
+                if (result.Length == 0)
                 {
-                    snatchAnswerInfo = new SnatchAnswerInfo { Result = false, ResultStr = "ABC", State = SnatchState.Ask, };
+                    snatchAnswerInfo = new SnatchAnswerInfo { Name = "snltty", Result = false, ResultStr = "ABC", State = SnatchState.Ask, };
                 }
                 else
                 {
-                    snatchAnswerInfo = JsonSerializer.Deserialize<SnatchAnswerInfo>(result);
+                    snatchAnswerInfo = SnatchAnswerInfo.DeBytes(result);
                 }
             }
             catch (Exception)
@@ -191,21 +208,21 @@ namespace cmonitor.snatch.win
             ReadQuestionMemory();
             ReadAnswerMemory();
         }
-        private void WriteAnswerConfirmIfState(SnatchState state, bool result, string resultStr)
+        private void WriteAnswerConfirmIfState(SnatchState state, string resultStr)
         {
             if (snatchAnswerInfo.State == state)
             {
-                WriteAnswerConfirm(result, resultStr);
+                WriteAnswerConfirm(resultStr);
             }
         }
-        private void WriteAnswerConfirm(bool result, string resultStr)
+        private void WriteAnswerConfirm(string resultStr)
         {
             snatchAnswerInfo.State = SnatchState.Confirm;
-            snatchAnswerInfo.Result = result;
+            snatchAnswerInfo.Result = snatchQuesionInfo.Cate == SnatchCate.Vote || resultStr == snatchQuesionInfo.Correct;
             snatchAnswerInfo.ResultStr = resultStr;
             snatchAnswerInfo.Time = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
             snatchAnswerInfo.Times++;
-            shareMemory.Update(shareAnswerIndex, key, JsonSerializer.Serialize(snatchAnswerInfo));
+            shareMemory.Update(shareAnswerIndex, Encoding.UTF8.GetBytes(key), snatchAnswerInfo.ToBytes());
         }
 
 
@@ -245,6 +262,13 @@ namespace cmonitor.snatch.win
                     }
                 }
             }
+            if(snatchAnswerInfo.Times >= snatchQuesionInfo.Chance)
+            {
+                for (int i = 0; i < options.Length; i++)
+                {
+                    options[i].Enabled = false;
+                }
+            }
         }
         private void CheckBtn()
         {
@@ -255,7 +279,14 @@ namespace cmonitor.snatch.win
             else if (snatchAnswerInfo.State == SnatchState.Confirm)
             {
                 btnConfirm.ForeColor = (snatchAnswerInfo.Result ? Color.Green : Color.Red);
-                EnableBtn(snatchAnswerInfo.Result ? "答题正确" : "答题错误");
+                if (snatchQuesionInfo.Cate == SnatchCate.Question)
+                {
+                    EnableBtn(snatchAnswerInfo.Result ? "答题正确" : "答题错误");
+                }
+                else
+                {
+                    EnableBtn("已投票");
+                }
             }
             else if (snatchQuesionInfo.End)
             {
@@ -291,11 +322,20 @@ namespace cmonitor.snatch.win
                 inputJoin.Text = snatchQuesionInfo.Join.ToString();
                 inputRight.Text = snatchQuesionInfo.Right.ToString();
                 inputWrong.Text = snatchQuesionInfo.Wrong.ToString();
+
+                labelRight.Text = snatchQuesionInfo.Cate == SnatchCate.Question ? "正确" : "已投";
+                labelWrong.Text = snatchQuesionInfo.Cate == SnatchCate.Question ? "错误" : "未投";
+                groupResult.Text = snatchQuesionInfo.Cate == SnatchCate.Question ? "答题结果" : "投票结果";
+                this.Text = snatchQuesionInfo.Cate == SnatchCate.Question ? "互动答题" : "互动投票";
+
+                inputChance.Text = (snatchQuesionInfo.Chance - snatchAnswerInfo.Times).ToString();
             });
         }
 
-        sealed class SnatchQuestionInfo
+        public sealed partial class SnatchQuestionInfo
         {
+            public string Name { get; set; }
+            public SnatchCate Cate { get; set; }
             public SnatchType Type { get; set; }
             /// <summary>
             /// 问题
@@ -306,44 +346,239 @@ namespace cmonitor.snatch.win
             /// </summary>
             public string Correct { get; set; }
             /// <summary>
-            /// 选项数
-            /// </summary>
-            public int Option { get; set; }
-            /// <summary>
-            /// 最多答题数
-            /// </summary>
-            public int Max { get; set; } = int.MaxValue;
-            /// <summary>
             /// 已结束
             /// </summary>
             public bool End { get; set; } = false;
             /// <summary>
-            /// 重复答题
+            /// 选项数
             /// </summary>
-            public bool Repeat { get; set; } = true;
+            public int Option { get; set; }
+            /// <summary>
+            /// 最多答题次数
+            /// </summary>
+            public ushort Chance { get; set; } = ushort.MaxValue;
+
             public int Join { get; set; } = 0;
             public int Right { get; set; } = 0;
             public int Wrong { get; set; } = 0;
+
+            public byte[] ToBytes()
+            {
+                ReadOnlySpan<byte> questionBytes = Question.GetUTF16Bytes();
+                ReadOnlySpan<byte> correctBytes = Correct.GetUTF16Bytes();
+                ReadOnlySpan<byte> nameBytes = Name.GetUTF16Bytes();
+
+                byte[] bytes = new byte[
+                    1
+                    + 1
+                    + 2 + 2 + questionBytes.Length + 2 + 2 + correctBytes.Length + 2 + 2 + nameBytes.Length
+                    + 1
+                    + 4
+                    + 2
+                    + 4 + 4 + 4
+                    ];
+                int index = 0;
+
+                bytes[index] = (byte)Type;
+                index += 1;
+
+                bytes[index] = (byte)Cate;
+                index += 1;
+
+                ((ushort)Question.Length).ToBytes(bytes.AsMemory(index));
+                index += 2;
+                ((ushort)questionBytes.Length).ToBytes(bytes.AsMemory(index));
+                index += 2;
+                questionBytes.CopyTo(bytes.AsSpan(index));
+                index += questionBytes.Length;
+
+                ((ushort)Correct.Length).ToBytes(bytes.AsMemory(index));
+                index += 2;
+                ((ushort)correctBytes.Length).ToBytes(bytes.AsMemory(index));
+                index += 2;
+                correctBytes.CopyTo(bytes.AsSpan(index));
+                index += correctBytes.Length;
+
+                ((ushort)Name.Length).ToBytes(bytes.AsMemory(index));
+                index += 2;
+                ((ushort)nameBytes.Length).ToBytes(bytes.AsMemory(index));
+                index += 2;
+                nameBytes.CopyTo(bytes.AsSpan(index));
+                index += nameBytes.Length;
+
+                bytes[index] = (byte)(End ? 1 : 0);
+                index += 1;
+
+
+                Option.ToBytes(bytes.AsMemory(index));
+                index += 4;
+                Chance.ToBytes(bytes.AsMemory(index));
+                index += 2;
+                Join.ToBytes(bytes.AsMemory(index));
+                index += 4;
+                Right.ToBytes(bytes.AsMemory(index));
+                index += 4;
+                Wrong.ToBytes(bytes.AsMemory(index));
+                index += 4;
+
+                return bytes;
+            }
+            public static SnatchQuestionInfo DeBytes(Memory<byte> data)
+            {
+                SnatchQuestionInfo snatchQuestionInfo = new SnatchQuestionInfo();
+
+                var span = data.Span;
+                int index = 0;
+                snatchQuestionInfo.Type = (SnatchType)span[index];
+                index += 1;
+
+                snatchQuestionInfo.Cate = (SnatchCate)span[index];
+                index += 1;
+
+                int strLength = span.Slice(index).ToUInt16();
+                index += 2;
+                int byteLength = span.Slice(index).ToUInt16();
+                index += 2;
+                snatchQuestionInfo.Question = span.Slice(index, byteLength).GetUTF16String(strLength);
+                index += byteLength;
+
+                strLength = span.Slice(index).ToUInt16();
+                index += 2;
+                byteLength = span.Slice(index).ToUInt16();
+                index += 2;
+                snatchQuestionInfo.Correct = span.Slice(index, byteLength).GetUTF16String(strLength);
+                index += byteLength;
+
+                strLength = span.Slice(index).ToUInt16();
+                index += 2;
+                byteLength = span.Slice(index).ToUInt16();
+                index += 2;
+                snatchQuestionInfo.Name = span.Slice(index, byteLength).GetUTF16String(strLength);
+                index += byteLength;
+
+                snatchQuestionInfo.End = span[index] == 1;
+                index += 1;
+
+                snatchQuestionInfo.Option = span.Slice(index).ToInt32();
+                index += 4;
+                snatchQuestionInfo.Chance = span.Slice(index).ToUInt16();
+                index += 2;
+                snatchQuestionInfo.Join = span.Slice(index).ToInt32();
+                index += 4;
+                snatchQuestionInfo.Right = span.Slice(index).ToInt32();
+                index += 4;
+                snatchQuestionInfo.Wrong = span.Slice(index).ToInt32();
+                index += 4;
+
+                return snatchQuestionInfo;
+            }
         }
-        sealed class SnatchAnswerInfo
+        public sealed class SnatchAnswerInfo
         {
+            public string Name { get; set; }
             public SnatchState State { get; set; }
             public bool Result { get; set; }
             public long Time { get; set; }
-            public int Times { get; set; }
+            public ushort Times { get; set; }
             public string ResultStr { get; set; }
+
+            public byte[] ToBytes()
+            {
+                ReadOnlySpan<byte> resultBytes = ResultStr.GetUTF16Bytes();
+                ReadOnlySpan<byte> nameBytes = Name.GetUTF16Bytes();
+
+                byte[] bytes = new byte[
+                    1
+                    + 1
+                    + 8
+                    + 2
+                    + 2 + 2 + nameBytes.Length
+                    + 2 + 2 + resultBytes.Length
+                    ];
+                int index = 0;
+
+                bytes[index] = (byte)State;
+                index += 1;
+
+                bytes[index] = (byte)(Result ? 1 : 0);
+                index += 1;
+
+                Time.ToBytes(bytes.AsMemory(index));
+                index += 8;
+                Times.ToBytes(bytes.AsMemory(index));
+                index += 2;
+
+                ((ushort)Name.Length).ToBytes(bytes.AsMemory(index));
+                index += 2;
+                ((ushort)nameBytes.Length).ToBytes(bytes.AsMemory(index));
+                index += 2;
+                nameBytes.CopyTo(bytes.AsSpan(index));
+                index += nameBytes.Length;
+
+                ((ushort)ResultStr.Length).ToBytes(bytes.AsMemory(index));
+                index += 2;
+                ((ushort)resultBytes.Length).ToBytes(bytes.AsMemory(index));
+                index += 2;
+                resultBytes.CopyTo(bytes.AsSpan(index));
+                index += resultBytes.Length;
+
+                return bytes;
+            }
+            public static SnatchAnswerInfo DeBytes(Memory<byte> data)
+            {
+                SnatchAnswerInfo snatchAnswerInfo = new SnatchAnswerInfo();
+
+                var span = data.Span;
+                int index = 0;
+                snatchAnswerInfo.State = (SnatchState)span[index];
+                index += 1;
+                snatchAnswerInfo.Result = span[index] == 1;
+                index += 1;
+
+                snatchAnswerInfo.Time = span.Slice(index).ToInt64();
+                index += 8;
+
+                snatchAnswerInfo.Times = span.Slice(index).ToUInt16();
+                index += 2;
+
+                int strLength = span.Slice(index).ToUInt16();
+                index += 2;
+                int byteLength = span.Slice(index).ToUInt16();
+                index += 2;
+                snatchAnswerInfo.Name = span.Slice(index, byteLength).GetUTF16String(strLength);
+                index += byteLength;
+
+                strLength = span.Slice(index).ToUInt16();
+                index += 2;
+                byteLength = span.Slice(index).ToUInt16();
+                index += 2;
+                snatchAnswerInfo.ResultStr = span.Slice(index, byteLength).GetUTF16String(strLength);
+                index += byteLength;
+
+
+
+                return snatchAnswerInfo;
+            }
         }
-        enum SnatchState : byte
+
+        public enum SnatchState : byte
         {
             None = 0,
             Ask = 1,
             Confirm = 2,
         }
-        enum SnatchType : byte
+        public enum SnatchType : byte
         {
             None = 0,
             Select = 1,
             Input = 2,
+        }
+
+        public enum SnatchCate : byte
+        {
+            None = 0,
+            Question = 1,
+            Vote = 2,
         }
     }
 }
