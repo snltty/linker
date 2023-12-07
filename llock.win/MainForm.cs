@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace llock.win
 {
@@ -122,6 +123,7 @@ namespace llock.win
         private void CloseClear()
         {
             shareMemory.RemoveAttribute(shareIndex, ShareMemoryAttribute.Running);
+            shareMemory.Update(this.shareIndex, keyBytes, BitConverter.GetBytes((long)0));
 
             cancellationTokenSource.Cancel();
             hook.Close();

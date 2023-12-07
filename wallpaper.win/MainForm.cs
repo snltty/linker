@@ -2,6 +2,7 @@ using cmonitor.libs;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace wallpaper.win
 {
@@ -167,6 +168,8 @@ namespace wallpaper.win
         {
             shareMemory.RemoveAttribute(shareWallpaperIndex,  ShareMemoryAttribute.Running);
             shareMemory.RemoveAttribute(shareKeyBoardIndex,  ShareMemoryAttribute.Running);
+
+            shareMemory.Update(shareWallpaperIndex, wallpaperBytes, BitConverter.GetBytes((long)0));
 
             cancellationTokenSource.Cancel();
             hook.Close();
