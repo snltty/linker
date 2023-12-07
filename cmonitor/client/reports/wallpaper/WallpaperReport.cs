@@ -10,6 +10,7 @@ namespace cmonitor.client.reports.wallpaper
         private readonly ClientConfig clientConfig;
         private readonly IWallpaper wallpaper;
         private readonly ShareMemory shareMemory;
+        private long version = 0;
 
         public WallpaperReport(ClientConfig clientConfig, IWallpaper wallpaper, ShareMemory shareMemory)
         {
@@ -23,7 +24,7 @@ namespace cmonitor.client.reports.wallpaper
         DateTime startTime = new DateTime(1970, 1, 1);
         public object GetReports(ReportType reportType)
         {
-            bool updated = shareMemory.ReadVersionUpdated(Config.ShareMemoryWallpaperIndex);
+            bool updated = shareMemory.ReadVersionUpdated(Config.ShareMemoryWallpaperIndex,ref version);
             if (reportType == ReportType.Full || updated)
             {
                 long value = shareMemory.ReadValueInt64(Config.ShareMemoryWallpaperIndex);

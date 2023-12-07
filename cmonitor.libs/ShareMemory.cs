@@ -26,7 +26,7 @@ namespace cmonitor.libs
         private int itemSize;
         private byte[] bytes;
         private object lockObj = new object();
-        private long version = 0;
+        private long mainVersion = 0;
         IShareMemory accessorLocal = null;
         IShareMemory accessorGlobal = null;
 
@@ -182,7 +182,7 @@ namespace cmonitor.libs
             }
             if (allUpdated)
             {
-                version++;
+                mainVersion++;
             }
         }
         private void SyncMemory()
@@ -271,7 +271,7 @@ namespace cmonitor.libs
 
         public Dictionary<string, ShareItemInfo> ReadItems(out long version)
         {
-            version = this.version;
+            version = mainVersion;
             return dic;
         }
         public string ReadValueString(int index)
@@ -456,10 +456,12 @@ namespace cmonitor.libs
             long version = ReadVersion(accessor, index);
             return version > itemVersions[index];
         }
-        private bool ReadVersionUpdated(IShareMemory accessor, int index, long version)
+        private bool ReadVersionUpdated(IShareMemory accessor, int index,ref long version)
         {
             long _version = ReadVersion(accessor, index);
-            return _version > version;
+            bool res = _version > version;
+            version = _version;
+            return res;
         }
 
         public ShareMemoryAttribute ReadAttribute(int index)
@@ -507,12 +509,12 @@ namespace cmonitor.libs
 
             return ReadVersionUpdated(accessor, index);
         }
-        public bool ReadVersionUpdated(int index, long version)
+        public bool ReadVersionUpdated(int index,ref long version)
         {
             IShareMemory accessor = accessorLocal ?? accessorGlobal;
             if (accessor == null) return false;
 
-            return ReadVersionUpdated(accessor, index, version);
+            return ReadVersionUpdated(accessor, index,ref version);
         }
     }
 

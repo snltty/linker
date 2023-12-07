@@ -1,5 +1,4 @@
-﻿using cmonitor.client.reports.share;
-using cmonitor.libs;
+﻿using cmonitor.libs;
 
 namespace cmonitor.client.reports.llock
 {
@@ -12,6 +11,7 @@ namespace cmonitor.client.reports.llock
         private readonly ClientConfig clientConfig;
         private readonly ILLock lLock;
         private readonly ShareMemory shareMemory;
+        private long version = 0;
 
         public LLockReport(Config config, ClientConfig clientConfig, ILLock lLock, ShareMemory shareMemory)
         {
@@ -28,9 +28,7 @@ namespace cmonitor.client.reports.llock
         DateTime startTime = new DateTime(1970, 1, 1);
         public object GetReports(ReportType reportType)
         {
-            bool updated = shareMemory.ReadVersionUpdated(Config.ShareMemoryLLockIndex);
-
-
+            bool updated = shareMemory.ReadVersionUpdated(Config.ShareMemoryLLockIndex,ref version);
             if (reportType == ReportType.Full || updated)
             {
                 long value = shareMemory.ReadValueInt64(Config.ShareMemoryLLockIndex);
