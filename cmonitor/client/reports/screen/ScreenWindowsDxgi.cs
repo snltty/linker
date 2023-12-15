@@ -418,7 +418,7 @@ namespace cmonitor.client.reports.screen
         }
         private unsafe void ProcessFrameFull(DesktopFrame frame)
         {
-            if (OperatingSystem.IsWindows() )
+            if (OperatingSystem.IsWindows())
             {
                 try
                 {
@@ -478,6 +478,7 @@ namespace cmonitor.client.reports.screen
                     mDevice.ImmediateContext.UnmapSubresource(texture, 0);
 
                     //弥补到最终尺寸
+
                     Bitmap bmp = image;
                     if (desc.Width - distRect.Width > 50)
                     {

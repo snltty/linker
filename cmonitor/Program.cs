@@ -136,12 +136,13 @@ namespace cmonitor
                 ReportTransfer report = serviceProvider.GetService<ReportTransfer>();
                 report.LoadPlugins(assemblies);
 
-                ClientTransfer clientTransfer = serviceProvider.GetService<ClientTransfer>();
-
                 ShareMemory shareMemory = serviceProvider.GetService<ShareMemory>();
                 shareMemory.InitLocal();
                 shareMemory.InitGlobal();
                 shareMemory.StartLoop();
+
+
+                ClientTransfer clientTransfer = serviceProvider.GetService<ClientTransfer>();
             }
         }
 

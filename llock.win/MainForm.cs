@@ -141,7 +141,7 @@ namespace llock.win
         private void WriteLLock()
         {
             long time = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
-            if (time - lastTime >= 300)
+            if (time - lastTime >= 800)
             {
                 shareMemory.Update(this.shareIndex, keyBytes,BitConverter.GetBytes(time));
                 lastTime = time;

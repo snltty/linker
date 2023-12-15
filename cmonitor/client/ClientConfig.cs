@@ -2,6 +2,7 @@
 using cmonitor.client.reports.screen;
 using common.libs.database;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace cmonitor.client
 {
@@ -126,7 +127,4 @@ namespace cmonitor.client
             configDataProvider.Save(this).Wait();
         }
     }
-
-
-
 }

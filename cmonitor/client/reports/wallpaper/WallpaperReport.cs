@@ -12,13 +12,22 @@ namespace cmonitor.client.reports.wallpaper
         private readonly ShareMemory shareMemory;
         private long version = 0;
 
-        public WallpaperReport(ClientConfig clientConfig, IWallpaper wallpaper, ShareMemory shareMemory)
+        public WallpaperReport(Config config,ClientConfig clientConfig, IWallpaper wallpaper, ShareMemory shareMemory,ClientSignInState clientSignInState)
         {
             this.clientConfig = clientConfig;
             this.wallpaper = wallpaper;
             this.shareMemory = shareMemory;
 
-            Update(clientConfig.Wallpaper, clientConfig.WallpaperUrl);
+            if (config.IsCLient)
+            {
+                clientSignInState.NetworkEnabledHandle += (times) =>
+                {
+                    if(times == 0)
+                    {
+                        Update(clientConfig.Wallpaper, clientConfig.WallpaperUrl);
+                    }
+                };
+            }
         }
 
         DateTime startTime = new DateTime(1970, 1, 1);

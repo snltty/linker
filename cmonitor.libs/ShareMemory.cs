@@ -55,6 +55,7 @@ namespace cmonitor.libs
                 if (accessorLocal == null)
                 {
                     accessorLocal = ShareMemoryFactory.Create(key, length, itemSize);
+
                     if (accessorLocal.Init() == false)
                     {
                         accessorLocal = null;
@@ -337,7 +338,7 @@ namespace cmonitor.libs
             try
             {
                 if (accessorLocal == null && accessorGlobal == null) return false;
-                if (index == 0 || index > length) return false;
+                if (index > length) return false;
                 if (key.Length + 8 + shareMemoryHeadSize + value.Length > itemSize) return false;
 
                 lock (lockObj)

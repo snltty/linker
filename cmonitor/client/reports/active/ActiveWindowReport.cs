@@ -16,14 +16,20 @@ namespace cmonitor.client.reports.active
         private uint lastPid = 0;
         private string lastTitle = string.Empty;
         private int count = 0;
-        public ActiveWindowReport(Config config, ClientConfig clientConfig, IActiveWindow activeWindow)
+        public ActiveWindowReport(Config config, ClientConfig clientConfig, IActiveWindow activeWindow,ClientSignInState clientSignInState)
         {
             this.clientConfig = clientConfig;
             this.activeWindow = activeWindow;
             if (config.IsCLient)
             {
-                DisallowRun(clientConfig.WindowNames);
-                Loop();
+                clientSignInState.NetworkEnabledHandle += (times) =>
+                {
+                    if(times == 0)
+                    {
+                        DisallowRun(clientConfig.WindowNames);
+                        Loop();
+                    }
+                };
 
                 AppDomain.CurrentDomain.ProcessExit += (s, e) => DisallowRun(Array.Empty<string>());
                 Console.CancelKeyPress += (s, e) => DisallowRun(Array.Empty<string>());

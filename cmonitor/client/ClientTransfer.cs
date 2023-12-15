@@ -32,8 +32,10 @@ namespace cmonitor.client
         {
             Task.Factory.StartNew(async () =>
             {
+                await Task.Delay(10000);
                 while (true)
                 {
+                    
                     if (clientSignInState.Connected == false)
                     {
                         try
@@ -90,6 +92,7 @@ namespace cmonitor.client
                         continue;
                     }
                     GCHelper.FlushMemory();
+                    clientSignInState.PushNetworkEnabled();
                     break;
                 }
                 catch (Exception ex)

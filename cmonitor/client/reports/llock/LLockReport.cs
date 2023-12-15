@@ -13,7 +13,7 @@ namespace cmonitor.client.reports.llock
         private readonly ShareMemory shareMemory;
         private long version = 0;
 
-        public LLockReport(Config config, ClientConfig clientConfig, ILLock lLock, ShareMemory shareMemory)
+        public LLockReport(Config config, ClientConfig clientConfig, ILLock lLock, ShareMemory shareMemory,ClientSignInState clientSignInState)
         {
             this.clientConfig = clientConfig;
             this.lLock = lLock;
@@ -21,7 +21,13 @@ namespace cmonitor.client.reports.llock
 
             if (config.IsCLient)
             {
-                LockScreen(clientConfig.LLock);
+                clientSignInState.NetworkEnabledHandle += (times) =>
+                {
+                    if(times == 0)
+                    {
+                        LockScreen(clientConfig.LLock);
+                    }
+                };
             }
         }
 

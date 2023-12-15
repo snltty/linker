@@ -15,7 +15,7 @@ namespace cmonitor.client.reports.hijack
         private ulong[] lastArray = new ulong[3];
         private long ticks = DateTime.UtcNow.Ticks;
 
-        public HijackReport(IHijack hijack, HijackConfig hijackConfig, ClientConfig clientConfig, Config config)
+        public HijackReport(IHijack hijack, HijackConfig hijackConfig, ClientConfig clientConfig, Config config, ClientSignInState clientSignInState)
         {
             this.hijack = hijack;
             this.hijackConfig = hijackConfig;
@@ -31,13 +31,21 @@ namespace cmonitor.client.reports.hijack
                     hijackConfig.DeniedIPs = clientConfig.HijackConfig.DeniedIPs;
                     hijackConfig.AllowIPs = clientConfig.HijackConfig.AllowIPs;
 
-                    hijack.Start();
+                    clientSignInState.NetworkEnabledHandle += (times) =>
+                    {
+                        if (times == 0)
+                        {
+                            hijack.Start();
+                        }
+                    };
                 }
                 catch (Exception ex)
                 {
                     Logger.Instance.Error(ex);
                 }
             }
+
+           
         }
 
         public void Update(SetRuleInfo info)

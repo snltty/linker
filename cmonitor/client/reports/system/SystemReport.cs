@@ -100,7 +100,7 @@ namespace cmonitor.client.reports.system
     [MemoryPackable]
     public sealed partial class SystemOptionUpdateInfo
     {
-        public string Name { get; set; }
+        public string[] Keys { get; set; }
         public bool Value { get; set; }
     }
 

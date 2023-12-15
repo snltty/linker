@@ -3,6 +3,7 @@ using common.libs;
 using cmonitor.service.messengers.screen;
 using MemoryPack;
 using common.libs.helpers;
+using System.Threading.Tasks;
 
 namespace cmonitor.client.reports.screen
 {
@@ -31,7 +32,7 @@ namespace cmonitor.client.reports.screen
             if (config.IsCLient)
             {
                 CaptureTask();
-                displays = screen.GetDisplays(out int w,out int h);
+                displays = screen.GetDisplays(out int w, out int h);
                 report.W = w;
                 report.H = h;
             }
@@ -94,23 +95,21 @@ namespace cmonitor.client.reports.screen
 
 
         private Memory<byte> fullImageMemory = Helper.EmptyArray;
+        private Task task;
         private void CaptureTask()
         {
-            Task.Factory.StartNew(async () =>
+            Task.Factory.StartNew(() =>
             {
                 while (true)
                 {
-                    int delayms = 0;
                     bool connected = clientSignInState.Connected == true;
                     bool shareState = (clientConfig.ScreenShareState & ScreenShareStates.Sender) == ScreenShareStates.Sender;
                     bool time = (DateTime.UtcNow.Ticks - ticks) / TimeSpan.TicksPerMillisecond < 1000;
-                    if (connected && (shareState || time))
+                    if (connected && (shareState || time) && (task == null || task.IsCompleted))
                     {
                         try
                         {
-                            long start = DateTime.UtcNow.Ticks;
-                            await CaptureFrame();
-                            delayms = (int)((DateTime.UtcNow.Ticks - start) / TimeSpan.TicksPerMillisecond);
+                            task = CaptureFrame();
                         }
                         catch (Exception ex)
                         {
@@ -118,14 +117,8 @@ namespace cmonitor.client.reports.screen
                                 Logger.Instance.Error(ex);
                         }
                     }
-                    if (delayms < config.ScreenDelay)
-                    {
-                        await Task.Delay(config.ScreenDelay - delayms);
-                    }
-                    else
-                    {
-                        await Task.Delay(config.ScreenDelay);
-                    }
+
+                    Thread.Sleep(config.ScreenDelay);
                 }
             }, TaskCreationOptions.LongRunning);
         }

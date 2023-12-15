@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.IO.MemoryMappedFiles;
+using System.Runtime.InteropServices;
 
 namespace cmonitor.libs
 {
@@ -22,18 +24,24 @@ namespace cmonitor.libs
         {
             try
             {
-                if (accessorLocal == null)
+                if (accessorLocal == null && OperatingSystem.IsWindows())
                 {
-                    mmfLocal = MemoryMappedFile.CreateOrOpen($"{key}", length * itemSize);
+                    mmfLocal = MemoryMappedFile.CreateOrOpen($"{key}", length * itemSize, MemoryMappedFileAccess.ReadWriteExecute, MemoryMappedFileOptions.None, HandleInheritability.None);
+
+                    SetSecurityInfoByHandle(mmfLocal.SafeMemoryMappedFileHandle, 1, 4, null, null, null, null);
+
                     accessorLocal = mmfLocal.CreateViewAccessor();
                     return true;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
             }
             return false;
         }
+        [DllImport("advapi32.dll", EntryPoint = "SetSecurityInfo", CallingConvention = CallingConvention.Winapi, SetLastError = true, ExactSpelling = true, CharSet = CharSet.Unicode)]
+        static extern uint SetSecurityInfoByHandle(SafeHandle handle, uint objectType, uint securityInformation, byte[] owner, byte[] group, byte[] dacl, byte[] sacl);
 
         public void ReadArray(int position, byte[] bytes, int offset, int length)
         {
@@ -99,4 +107,5 @@ namespace cmonitor.libs
             }
         }
     }
+
 }

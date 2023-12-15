@@ -47,7 +47,7 @@ export default {
                     cancelButtonText: '取消',
                     type: 'warning',
                 }).then(() => {
-                    updateRegistryOptions([props.data.MachineName], key, value).then((res) => {
+                    updateRegistryOptions([props.data.MachineName], [key], value).then((res) => {
                         if (res) {
                             ElMessage.success('操作成功');
                             resolve();
@@ -76,10 +76,9 @@ export default {
         const handleShutdown = () => {
             const newValue = !shutdown.value;
             handleChange('NoClose', shutdown.value ? '确定启用关机按钮吗？' : '确定禁用关机按钮吗？', newValue).then(() => {
-                updateRegistryOptions([props.data.MachineName], 'NoLogOff', newValue);
-                updateRegistryOptions([props.data.MachineName], 'DisableLockWorkstation', newValue);
-                updateRegistryOptions([props.data.MachineName], 'HideFastUserSwitching', newValue);
-                updateRegistryOptions([props.data.MachineName], 'DisableChangePassword', newValue);
+                updateRegistryOptions([props.data.MachineName], [
+                    'NoLogOff', 'DisableLockWorkstation', 'HideFastUserSwitching', 'DisableChangePassword'
+                ], newValue);
             }).catch(() => { });
         }
 

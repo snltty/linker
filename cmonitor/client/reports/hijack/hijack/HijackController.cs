@@ -1,10 +1,8 @@
-﻿using cmonitor.client.reports.hijack;
-using common.libs;
+﻿using common.libs;
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 
 namespace cmonitor.client.reports.hijack.hijack;
 
@@ -15,6 +13,7 @@ public sealed class HijackController
     public const string Name = "netfilter2";
     private readonly HijackConfig hijackConfig;
     private readonly HijackEventHandler hijackEventHandler;
+    private bool running = false;
 
     public HijackController(HijackConfig hijackConfig, HijackEventHandler hijackEventHandler)
     {
@@ -27,6 +26,7 @@ public sealed class HijackController
 
     public bool Start()
     {
+        if (running) return false;
         Stop();
 
         //检查安装驱动
@@ -40,12 +40,14 @@ public sealed class HijackController
         {
             throw new Exception($"{Name} start failed.{nF_STATUS}");
         }
+        running = true;
         SetRules();
 
         return true;
     }
     public void Stop()
     {
+        if (running == false) return;
         try
         {
             NFAPI.nf_deleteRules();
@@ -54,10 +56,13 @@ public sealed class HijackController
         catch (Exception)
         {
         }
+        running = false;
     }
 
     public void SetRules()
     {
+        if (running == false) return;
+
         List<NF_RULE> rules = new List<NF_RULE>();
 
         Filter53(rules);
