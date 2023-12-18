@@ -267,7 +267,7 @@ namespace cmonitor.client.reports.system
             {
                 return result;
             }
-
+             
             if (OperatingSystem.IsWindows())
             {
                 IEnumerable<RegistryOptionInfo> info = Infos.Where(c => keys.Contains(c.Key));
