@@ -22,13 +22,10 @@ namespace cmonitor.client.reports.active
             this.activeWindow = activeWindow;
             if (config.IsCLient)
             {
-                clientSignInState.NetworkEnabledHandle += (times) =>
+                clientSignInState.NetworkFirstEnabledHandle += () =>
                 {
-                    if(times == 0)
-                    {
-                        DisallowRun(clientConfig.WindowNames);
-                        Loop();
-                    }
+                    DisallowRun(clientConfig.WindowNames);
+                    Loop();
                 };
 
                 AppDomain.CurrentDomain.ProcessExit += (s, e) => DisallowRun(Array.Empty<string>());

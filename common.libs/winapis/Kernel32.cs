@@ -1,4 +1,5 @@
 using System;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 
 namespace common.libs.winapis;
@@ -89,4 +90,13 @@ public static class Kernel32
             dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX));
         }
     }
+
+
+    [DllImport("kernel32.dll")]
+    public static extern bool SetHandleInformation(IntPtr hObject, int dwMask, int dwFlags);
+
+    
+
+    // 将进程句柄标记为不可被终止
+  
 }

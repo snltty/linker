@@ -21,13 +21,7 @@ namespace cmonitor.client.reports.llock
 
             if (config.IsCLient)
             {
-                clientSignInState.NetworkEnabledHandle += (times) =>
-                {
-                    if(times == 0)
-                    {
-                        LockScreen(clientConfig.LLock);
-                    }
-                };
+                clientSignInState.NetworkFirstEnabledHandle +=()=> { LockScreen(clientConfig.LLock); };
             }
         }
 

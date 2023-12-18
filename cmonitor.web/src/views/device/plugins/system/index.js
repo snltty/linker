@@ -2,9 +2,9 @@ export default {
     field() {
         return {
             System: {
-                RegistryValues: [],
-                RegistryKeys: {},
-                RegistrysCount: 0,
+                OptionValues: [],
+                OptionKeys: {},
+                OptionCount: 0,
 
                 Cpu: 0,
                 Memory: 0,
@@ -89,12 +89,12 @@ export default {
             item.System.Drives = report.System.Drives || [];
         }
 
-        if (report.System.RegValues) {
-            item.System.RegistryValues = report.System.RegValues.split('').map(c => +c);
-            item.System.RegistrysCount = item.System.RegistryValues.filter(c => c == '1').length;
+        if (report.System.OptionValues) {
+            item.System.OptionValues = report.System.OptionValues.split('').map(c => +c);
+            item.System.OptionCount = item.System.OptionValues.filter(c => c == '1').length;
         }
-        if (report.System.RegKeys) {
-            item.System.RegistryKeys = report.System.RegKeys;
+        if (report.System.OptionKeys) {
+            item.System.OptionKeys = report.System.OptionKeys;
         }
 
     }

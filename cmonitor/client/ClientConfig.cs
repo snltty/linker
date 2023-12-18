@@ -25,6 +25,8 @@ namespace cmonitor.client
             WallpaperUrl = clientConfig.WallpaperUrl;
             HijackConfig = clientConfig.HijackConfig;
             WindowNames = clientConfig.WindowNames;
+            ScreenShareState = clientConfig.ScreenShareState;
+            UserSid = clientConfig.UserSid;
             SaveTask();
         }
 

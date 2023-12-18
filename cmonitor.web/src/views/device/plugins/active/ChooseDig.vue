@@ -1,5 +1,6 @@
 <template>
     <el-dialog class="options" title="阻止窗口" destroy-on-close v-model="state.show" center align-center width="94%">
+        <el-alert style="margin-bottom:.6rem" type="error" title="无法上网与窗口无关" :closable="false" show-icon />
         <div class="rule-wrap flex">
             <div class="items">
                 <CheckBoxWrap ref="devices" :data="globalData.devices" :items="state.items" label="MachineName" title="选择设备"></CheckBoxWrap>
@@ -47,7 +48,16 @@ export default {
 
         const state = reactive({
             show: props.modelValue,
-            items: computed(() => pluginState.value.activeWindow.devices),
+            items: computed(() => {
+                const devices = pluginState.value.activeWindow.devices;
+                let ids = devices.reduce((arr, value) => {
+                    arr.push(...value.DisallowRunIds);
+                    return arr;
+                }, []);
+                state.currentPrivate = state.privateExes.filter(c => ids.indexOf(c.ID) >= 0);
+                state.currentPublic = state.publicExes.filter(c => ids.indexOf(c.ID) >= 0);
+                return devices;
+            }),
             privateExes: computed(() => user.value ? user.value.Windows : []),
             publicExes: computed(() => usePublic ? publicUser.value.Windows : []),
             loading: false,
@@ -59,14 +69,6 @@ export default {
                 setTimeout(() => {
                     emit('update:modelValue', val);
                 }, 300);
-            }
-        });
-
-        onMounted(() => {
-            if (state.items.length == 1) {
-                let item = state.items[0];
-                state.currentPrivate = state.privateExes.filter(c => item.DisallowRunIds.indexOf(c.ID) >= 0);
-                state.currentPublic = state.publicExes.filter(c => item.DisallowRunIds.indexOf(c.ID) >= 0);
             }
         });
 

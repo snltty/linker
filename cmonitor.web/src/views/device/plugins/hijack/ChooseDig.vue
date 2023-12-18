@@ -1,5 +1,6 @@
 <template>
     <el-dialog class="options" title="网络限制" destroy-on-close v-model="state.show" center align-center width="94%">
+        <el-alert style="margin-bottom:.6rem" type="error" title="打开不了软件与网络无关" :closable="false" show-icon />
         <div class="rule-wrap flex">
             <div class="items">
                 <CheckBoxWrap ref="devices" :data="globalData.devices" :items="state.items" label="MachineName" title="选择设备"></CheckBoxWrap>
@@ -45,7 +46,16 @@ export default {
 
         const state = reactive({
             show: props.modelValue,
-            items: computed(() => pluginState.value.hijack.devices),
+            items: computed(() => {
+                const devices = pluginState.value.hijack.devices;
+                let ids = devices.reduce((arr, value) => {
+                    arr.push(...value.RuleIds);
+                    return arr;
+                }, []);
+                state.currentPrivate = state.privateRules.filter(c => ids.indexOf(c.ID) >= 0);
+                state.currentPublic = state.publicRules.filter(c => ids.indexOf(c.ID) >= 0);
+                return devices;
+            }),
             privateRules: computed(() => user.value ? user.value.Rules : []),
             publicRules: computed(() => usePublic ? publicUser.value.Rules : []),
             loading: false,
@@ -57,13 +67,6 @@ export default {
                 setTimeout(() => {
                     emit('update:modelValue', val);
                 }, 300);
-            }
-        });
-        onMounted(() => {
-            if (state.items.length == 1) {
-                let item = state.items[0];
-                state.currentPrivate = state.privateRules.filter(c => item.RuleIds.indexOf(c.ID) >= 0);
-                state.currentPublic = state.publicRules.filter(c => item.RuleIds.indexOf(c.ID) >= 0);
             }
         });
 

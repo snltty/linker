@@ -1,25 +1,22 @@
 ﻿using common.libs;
 using common.libs.winapis;
 using Microsoft.Win32;
+using System.Collections.Concurrent;
 
 namespace cmonitor.client.reports.system
 {
     public sealed class SystemWindows : ISystem
     {
         private readonly SystemOptionHelper registryOptionHelper;
+        private readonly ClientSignInState clientSignInState;
+        private ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
         public SystemWindows(ClientConfig clientConfig, Config config, ClientSignInState clientSignInState)
         {
+            this.clientSignInState = clientSignInState;
             if (config.IsCLient)
             {
                 registryOptionHelper = new SystemOptionHelper(clientConfig);
-                clientSignInState.NetworkEnabledHandle += (times) =>
-                {
-                    if (times == 0)
-                    {
-                        registryOptionHelper.Reuse();
-                        OptionUpdate(new SystemOptionUpdateInfo { Keys = new string[] { "SoftwareSASGeneration" }, Value = false });
-                    }
-                };
+                OptionsInit();
             }
         }
 
@@ -33,43 +30,62 @@ namespace cmonitor.client.reports.system
             }).ToArray();
         }
 
-        public Dictionary<string, SystemOptionKeyInfo> GetOptionKeys()
+        private void OptionsInit()
+        {
+            LoopTask();
+            actions.Enqueue(() =>
+            {
+                registryOptionHelper.Restore();
+            });
+            clientSignInState.NetworkFirstEnabledHandle += () =>
+            {
+                actions.Enqueue(() =>
+                {
+                    registryOptionHelper.Reuse();
+                    OptionUpdate(new SystemOptionUpdateInfo { Keys = new string[] { "SoftwareSASGeneration" }, Value = false });
+                });
+            };
+        }
+        public Dictionary<string, SystemOptionKeyInfo> OptionKeys()
         {
             return registryOptionHelper.GetKeys();
         }
-        public string GetOptionValues()
+        public string OptionValues()
         {
             return registryOptionHelper.GetValues();
         }
-        public bool OptionUpdate(SystemOptionUpdateInfo registryUpdateInfo)
+        public void OptionUpdate(SystemOptionUpdateInfo registryUpdateInfo)
         {
-            bool result = registryOptionHelper.UpdateValue(registryUpdateInfo.Keys, registryUpdateInfo.Value);
-            if (result)
+            actions.Enqueue(() =>
             {
-                Interlocked.Exchange(ref registryUpdated, 1);
-            }
-            return result;
+                registryOptionHelper.UpdateValue(registryUpdateInfo.Keys, registryUpdateInfo.Value);
+            });
         }
-        int registryUpdated = 0;
-        int registryUpdateFlag = 1;
-        public void OptionRefresh()
+        private void LoopTask()
         {
-            if (registryUpdated == 1 && registryUpdated == 1)
+            Task.Factory.StartNew(() =>
             {
-                Interlocked.CompareExchange(ref registryUpdated, 0, 1);
-                Interlocked.CompareExchange(ref registryUpdateFlag, 0, 1);
-                Task.Run(() =>
+                while (true)
                 {
-                    CommandHelper.Windows(string.Empty, new string[] { "gpupdate /force" });
-                    Interlocked.CompareExchange(ref registryUpdateFlag, 1, 0);
-                });
-            }
+                    if (registryOptionHelper.CanWrite && actions.Count > 0)
+                    {
+                        while (actions.TryDequeue(out Action action))
+                        {
+                            action();
+                        }
+                        registryOptionHelper.Refresh();
+                    }
+                    Thread.Sleep(30);
+                }
+            }, TaskCreationOptions.LongRunning);
+
         }
 
         public bool Password(PasswordInputInfo command)
         {
             return NetApi32.ChangePassword(null, Environment.UserName, command.OldPassword, command.NewPassword);
         }
+
 
         CPUTime oldTime = new CPUTime(0, 0);
         public double GetCpu()
@@ -92,72 +108,20 @@ namespace cmonitor.client.reports.system
         private readonly ClientConfig clientConfig;
         char[] values;
 
+        public bool CanWrite => string.IsNullOrWhiteSpace(currentUserSid) == false;
+
         public SystemOptionHelper(ClientConfig clientConfig)
         {
             this.clientConfig = clientConfig;
             values = string.Empty.PadLeft(Infos.Length, '0').ToCharArray();
             GetSid();
-            BackUp();
-            AppDomain.CurrentDomain.ProcessExit += (sender, e) => Restore();
-            Console.CancelKeyPress += (sender, e) => Restore();
         }
 
-        bool backuped = false;
         string backupPath = "HKEY_LOCAL_MACHINE\\SOFTWARE\\cmonitorBackup";
         string backupKey = "cmonitorBackup";
-        private void BackUp()
+        public void Restore()
         {
-            GetSid();
-            if (string.IsNullOrWhiteSpace(currentUserSid))
-            {
-                return;
-            }
-            if (OperatingSystem.IsWindows())
-            {
-                try
-                {
-                    Registry.SetValue(backupPath, "test", 1);
-                    RegistryKey key = Registry.LocalMachine.OpenSubKey("Software");
-                    key = key.OpenSubKey(backupKey, true);
-                    backuped = key.GetValue("backuped", "0").ToString() == "1";
-                    if (backuped)
-                    {
-                        return;
-                    }
-
-                    foreach (RegistryOptionInfo option in Infos)
-                    {
-                        foreach (RegistryOptionPathInfo path in option.Paths)
-                        {
-                            string pathStr = ReplaceRegistryPath(path.Path);
-                            if (string.IsNullOrWhiteSpace(pathStr))
-                            {
-                                continue;
-                            }
-                            object value = Registry.GetValue(pathStr, path.Key, null);
-                            if (value != null)
-                            {
-                                Registry.SetValue(backupPath, $"{option.Key}_{path.Key}", value);
-                            }
-                        }
-                    }
-
-                    Registry.SetValue(backupPath, "backuped", 1);
-                }
-                catch (Exception)
-                {
-                }
-            }
-        }
-        private void Restore()
-        {
-            if (backuped == false) return;
-            GetSid();
-            if (string.IsNullOrWhiteSpace(currentUserSid))
-            {
-                return;
-            }
-            if (OperatingSystem.IsWindows())
+            if (OperatingSystem.IsWindows() && GetSid())
             {
                 try
                 {
@@ -172,39 +136,33 @@ namespace cmonitor.client.reports.system
                             {
                                 continue;
                             }
+                            //备份已经设置的
                             object setValue = Registry.GetValue(pathStr, path.Key, null);
                             if (setValue != null)
                             {
                                 Registry.SetValue(backupPath, $"{option.Key}_{path.Key}_old", setValue);
                             }
-
-                            object value = Registry.GetValue(backupPath, $"{option.Key}_{path.Key}", null);
-                            if (value != null)
+                            //删除设置
+                            string delPathStr = pathStr.Replace("HKEY_CURRENT_USER\\", "").Replace("HKEY_LOCAL_MACHINE\\", "");
+                            try
                             {
-                                Registry.SetValue(pathStr, path.Key, value);
+                                RegistryKey _key = Registry.LocalMachine.OpenSubKey(delPathStr);
+                                _key?.DeleteValue(path.Key);
                             }
-                            else
+                            catch (Exception)
                             {
-                                string delPathStr = pathStr.Replace("HKEY_CURRENT_USER\\", "").Replace("HKEY_LOCAL_MACHINE\\", "");
-                                try
-                                {
-                                    RegistryKey _key = Registry.LocalMachine.OpenSubKey(delPathStr);
-                                    _key?.DeleteValue(path.Key);
-                                }
-                                catch (Exception)
-                                {
-                                }
-                                try
-                                {
-                                    RegistryKey _key = Registry.CurrentUser.OpenSubKey(delPathStr);
-                                    _key?.DeleteValue(path.Key);
-                                }
-                                catch (Exception)
-                                {
-                                }
+                            }
+                            try
+                            {
+                                RegistryKey _key = Registry.CurrentUser.OpenSubKey(delPathStr);
+                                _key?.DeleteValue(path.Key);
+                            }
+                            catch (Exception)
+                            {
                             }
                         }
                     }
+                    Updated();
                 }
                 catch (Exception)
                 {
@@ -213,12 +171,7 @@ namespace cmonitor.client.reports.system
         }
         public void Reuse()
         {
-            GetSid();
-            if (string.IsNullOrWhiteSpace(currentUserSid))
-            {
-                return;
-            }
-            if (OperatingSystem.IsWindows())
+            if (OperatingSystem.IsWindows() && GetSid())
             {
                 try
                 {
@@ -240,6 +193,7 @@ namespace cmonitor.client.reports.system
                             }
                         }
                     }
+                    Updated();
                 }
                 catch (Exception)
                 {
@@ -247,11 +201,41 @@ namespace cmonitor.client.reports.system
             }
         }
 
+        int registryUpdated = 0;
+        int registryUpdateFlag = 1;
+        private void Updated()
+        {
+            Interlocked.Exchange(ref registryUpdated, 1);
+        }
+        public void Refresh()
+        {
+            if (registryUpdated == 1 && registryUpdated == 1)
+            {
+                Interlocked.CompareExchange(ref registryUpdated, 0, 1);
+                Interlocked.CompareExchange(ref registryUpdateFlag, 0, 1);
+                Task.Run(() =>
+                {
+                    CommandHelper.Windows(string.Empty, new string[] { "gpupdate /force" });
+                    Interlocked.CompareExchange(ref registryUpdateFlag, 1, 0);
+                });
+            }
+        }
+
+        public Dictionary<string, SystemOptionKeyInfo> GetKeys()
+        {
+            Dictionary<string, SystemOptionKeyInfo> keys = new Dictionary<string, SystemOptionKeyInfo>();
+
+            for (int i = 0; i < Infos.Length; i++)
+            {
+                RegistryOptionInfo item = Infos[i];
+                keys[item.Key] = new SystemOptionKeyInfo { Desc = item.Desc, Index = (ushort)i };
+            }
+
+            return keys;
+        }
         public string GetValues()
         {
-            GetSid();
-
-            if (OperatingSystem.IsWindows())
+            if (OperatingSystem.IsWindows() && GetSid())
             {
                 for (int i = 0; i < Infos.Length; i++)
                 {
@@ -284,14 +268,13 @@ namespace cmonitor.client.reports.system
                 return result;
             }
 
-            IEnumerable<RegistryOptionInfo> info = Infos.Where(c => keys.Contains(c.Key));
-            if (info.Any() == false)
-            {
-                return result;
-            }
-
             if (OperatingSystem.IsWindows())
             {
+                IEnumerable<RegistryOptionInfo> info = Infos.Where(c => keys.Contains(c.Key));
+                if (info.Any() == false)
+                {
+                    return result;
+                }
                 foreach (RegistryOptionInfo item in info)
                 {
                     foreach (RegistryOptionPathInfo pathItem in item.Paths)
@@ -302,8 +285,8 @@ namespace cmonitor.client.reports.system
                             continue;
                         }
                         string setValue = value ? pathItem.DisallowValue : pathItem.AllowValue;
-                        string oldValue = Registry.GetValue(path, pathItem.Key, pathItem.AllowValue).ToString();
-                        if (oldValue != setValue)
+                        object oldValue = Registry.GetValue(path, pathItem.Key, null);
+                        if (oldValue == null || oldValue.ToString() != setValue)
                         {
                             Registry.SetValue(path, pathItem.Key, int.Parse(setValue), RegistryValueKind.DWord);
                             result |= true;
@@ -312,8 +295,13 @@ namespace cmonitor.client.reports.system
                 }
 
             }
+            if (result)
+            {
+                Updated();
+            }
             return result;
         }
+
         private string ReplaceRegistryPath(string path)
         {
             if (!string.IsNullOrWhiteSpace(currentUserSid))
@@ -322,36 +310,32 @@ namespace cmonitor.client.reports.system
             }
             return string.Empty;
         }
-        private void GetSid()
+        private bool GetSid()
         {
-            if (string.IsNullOrWhiteSpace(currentUserSid))
+            if (string.IsNullOrWhiteSpace(currentUserSid) == false)
             {
-                currentUserSid = clientConfig.UserSid;
+                return true;
             }
-            if (string.IsNullOrWhiteSpace(currentUserSid))
+
+            currentUserSid = Win32Interop.GetCurrentUserSid();
+            clientConfig.UserSid = currentUserSid;
+            if (string.IsNullOrWhiteSpace(currentUserSid) == false)
             {
-                currentUserSid = Win32Interop.GetCurrentUserSid();
-                clientConfig.UserSid = currentUserSid;
+                return true;
             }
-            if (string.IsNullOrWhiteSpace(currentUserSid))
+
+            currentUserSid = Win32Interop.GetDefaultUserSid();
+            clientConfig.UserSid = currentUserSid;
+            if (string.IsNullOrWhiteSpace(currentUserSid) == false)
             {
-                currentUserSid = Win32Interop.GetDefaultUserSid();
-                clientConfig.UserSid = currentUserSid;
+                return true;
             }
+
+
+            return string.IsNullOrWhiteSpace(currentUserSid) == false;
         }
 
-        public Dictionary<string, SystemOptionKeyInfo> GetKeys()
-        {
-            Dictionary<string, SystemOptionKeyInfo> keys = new Dictionary<string, SystemOptionKeyInfo>();
 
-            for (int i = 0; i < Infos.Length; i++)
-            {
-                RegistryOptionInfo item = Infos[i];
-                keys[item.Key] = new SystemOptionKeyInfo { Desc = item.Desc, Index = (ushort)i };
-            }
-
-            return keys;
-        }
         //Desc为空则不显示
         private RegistryOptionInfo[] Infos = new RegistryOptionInfo[] {
             new RegistryOptionInfo{

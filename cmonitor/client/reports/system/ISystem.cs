@@ -1,10 +1,4 @@
 ﻿using MemoryPack;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static cmonitor.client.reports.system.SystemOptionHelper;
 
 namespace cmonitor.client.reports.system
 {
@@ -12,10 +6,9 @@ namespace cmonitor.client.reports.system
     {
         public ReportDriveInfo[] GetAllDrives();
 
-        public Dictionary<string, SystemOptionKeyInfo> GetOptionKeys();
-        public string GetOptionValues();
-        public bool OptionUpdate(SystemOptionUpdateInfo optionUpdateInfo);
-        public void OptionRefresh();
+        public Dictionary<string, SystemOptionKeyInfo> OptionKeys();
+        public string OptionValues();
+        public void OptionUpdate(SystemOptionUpdateInfo optionUpdateInfo);
 
         public bool Password(PasswordInputInfo command);
 

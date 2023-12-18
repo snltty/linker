@@ -4,11 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Security.Principal;
 using System.Text;
 using static common.libs.winapis.ADVAPI32;
+using static common.libs.winapis.NetApi32;
 using static common.libs.winapis.User32;
 
 namespace common.libs.winapis
@@ -330,10 +332,9 @@ namespace common.libs.winapis
                 return string.Empty;
             }
 
-            List<string> registrySids = Registry.Users.GetSubKeyNames().ToList();
-            List<string> sids = new List<string>();
+            List<WindowUserInfo> users = new List<WindowUserInfo>();
             int resumeHandle = 0;
-            int result = NetApi32.NetUserEnum(null, 0, 2, out IntPtr bufPtr, -1, out int entriesRead, out int totalEntries, ref resumeHandle);
+            int result = NetUserEnum(null, 0, 2, out IntPtr bufPtr, -1, out int entriesRead, out int totalEntries, ref resumeHandle);
             if (result == 0)
             {
                 try
@@ -342,35 +343,33 @@ namespace common.libs.winapis
                     {
                         USER_INFO_0 userInfo = (USER_INFO_0)Marshal.PtrToStructure(bufPtr + (Marshal.SizeOf(typeof(USER_INFO_0)) * i), typeof(USER_INFO_0));
 
-                        int cbSid = 0;
-                        int cchReferencedDomainName = 0;
-                        int peUse;
+                        int cbSid = 0, cchReferencedDomainName = 0;
                         StringBuilder referencedDomainName = new StringBuilder();
                         IntPtr pSid = IntPtr.Zero;
-
-                        bool bSuccess = LookupAccountName(null, userInfo.usri0_name, pSid, ref cbSid, referencedDomainName, ref cchReferencedDomainName, out peUse);
-                        if (!bSuccess && cbSid > 0)
+                        bool bSuccess = LookupAccountName(null, userInfo.usri0_name, pSid, ref cbSid, referencedDomainName, ref cchReferencedDomainName, out int peUse);
+                        if (bSuccess == false && cbSid > 0)
                         {
                             pSid = Marshal.AllocHGlobal(cbSid);
                             referencedDomainName.EnsureCapacity(cchReferencedDomainName);
                             bSuccess = LookupAccountName(null, userInfo.usri0_name, pSid, ref cbSid, referencedDomainName, ref cchReferencedDomainName, out peUse);
                         }
-
-                        if (bSuccess)
-                        {
-                            if (ConvertSidToStringSid(pSid, out string stringSid))
-                            {
-                                if (registrySids.Contains(stringSid))
-                                {
-                                    sids.Add(stringSid);
-                                }
-                            }
-                        }
-
+                        if (bSuccess == false || ConvertSidToStringSid(pSid, out string stringSid) == false) continue;
                         if (pSid != IntPtr.Zero)
                         {
                             Marshal.FreeHGlobal(pSid);
                         }
+
+
+                        if (NetUserGetInfo(null, userInfo.usri0_name, 3, out IntPtr bufptr) != NERR_Success)
+                        {
+                            continue;
+                        }
+                        USER_INFO_3 info = (USER_INFO_3)Marshal.PtrToStructure(bufptr, typeof(USER_INFO_3));
+                        if (info.LastLogon > 0)
+                        {
+                            users.Add(new WindowUserInfo { LastLogon = info.LastLogon, Sid = stringSid });
+                        }
+                        NetApiBufferFree(bufptr);
                     }
                 }
                 catch (Exception)
@@ -378,19 +377,26 @@ namespace common.libs.winapis
                 }
                 finally
                 {
-                    NetApi32.NetApiBufferFree(bufPtr);
+                    NetApiBufferFree(bufPtr);
                 }
             }
 
-            if (sids.Count == 1)
+            if (users.Count > 0)
             {
-                return sids[0];
+                return users.OrderByDescending(c => c.LastLogon).FirstOrDefault().Sid;
             }
             return string.Empty;
         }
         public static bool IsSystemUser()
         {
             return currentUsername == "NT AUTHORITY\\SYSTEM";
+        }
+
+
+        public static void SetHandleBlockKill(IntPtr handle)
+        {
+            const int HANDLE_FLAG_PROTECT_FROM_CLOSE = 0x1;
+            Kernel32.SetHandleInformation(handle, HANDLE_FLAG_PROTECT_FROM_CLOSE, HANDLE_FLAG_PROTECT_FROM_CLOSE);
         }
 
     }
@@ -416,10 +422,9 @@ namespace common.libs.winapis
         public string Username { get; set; } = string.Empty;
     }
 
-
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    public struct USER_INFO_0
+    public struct WindowUserInfo
     {
-        public string usri0_name;
+        public int LastLogon;
+        public string Sid;
     }
 }

@@ -31,13 +31,7 @@ namespace cmonitor.client.reports.hijack
                     hijackConfig.DeniedIPs = clientConfig.HijackConfig.DeniedIPs;
                     hijackConfig.AllowIPs = clientConfig.HijackConfig.AllowIPs;
 
-                    clientSignInState.NetworkEnabledHandle += (times) =>
-                    {
-                        if (times == 0)
-                        {
-                            hijack.Start();
-                        }
-                    };
+                    clientSignInState.NetworkFirstEnabledHandle += hijack.Start;
                 }
                 catch (Exception ex)
                 {

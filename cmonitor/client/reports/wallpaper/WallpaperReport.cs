@@ -20,13 +20,7 @@ namespace cmonitor.client.reports.wallpaper
 
             if (config.IsCLient)
             {
-                clientSignInState.NetworkEnabledHandle += (times) =>
-                {
-                    if(times == 0)
-                    {
-                        Update(clientConfig.Wallpaper, clientConfig.WallpaperUrl);
-                    }
-                };
+                clientSignInState.NetworkFirstEnabledHandle += () => { Update(clientConfig.Wallpaper, clientConfig.WallpaperUrl); };
             }
         }
 

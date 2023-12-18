@@ -17,24 +17,16 @@
             return 0;
         }
 
-        public Dictionary<string, SystemOptionKeyInfo> GetOptionKeys()
+        public Dictionary<string, SystemOptionKeyInfo> OptionKeys()
         {
             return new Dictionary<string, SystemOptionKeyInfo>();
         }
-
-        public string GetOptionValues()
+        public string OptionValues()
         {
             return string.Empty;
         }
-
-        public void OptionRefresh()
+        public void OptionUpdate(SystemOptionUpdateInfo registryUpdateInfo)
         {
-           
-        }
-
-        public bool OptionUpdate(SystemOptionUpdateInfo registryUpdateInfo)
-        {
-            return true;
         }
 
         public bool Password(PasswordInputInfo command)

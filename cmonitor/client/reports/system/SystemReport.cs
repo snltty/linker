@@ -1,4 +1,6 @@
-﻿using MemoryPack;
+﻿using common.libs.winapis;
+using MemoryPack;
+using System.Diagnostics;
 
 namespace cmonitor.client.reports.system
 {
@@ -21,7 +23,7 @@ namespace cmonitor.client.reports.system
             if (config.IsCLient)
             {
                 drives = system.GetAllDrives();
-                registryKeys = system.GetOptionKeys();
+                registryKeys = system.OptionKeys();
                 ReportTask();
             }
         }
@@ -34,12 +36,12 @@ namespace cmonitor.client.reports.system
             if (reportType == ReportType.Full)
             {
                 systemReportInfo.Drives = drives;
-                systemReportInfo.RegKeys = registryKeys;
+                systemReportInfo.OptionKeys = registryKeys;
             }
             else
             {
                 systemReportInfo.Drives = null;
-                systemReportInfo.RegKeys = null;
+                systemReportInfo.OptionKeys = null;
             }
 
             if (reportType == ReportType.Full || systemReportInfo.Cpu != lastCpu || systemReportInfo.Memory != lastMemory)
@@ -51,15 +53,16 @@ namespace cmonitor.client.reports.system
             return null;
         }
 
+        public void OptionUpdate(SystemOptionUpdateInfo registryUpdateInfo)
+        {
+            system.OptionUpdate(registryUpdateInfo);
+        }
+
         public bool Password(PasswordInputInfo info)
         {
             return system.Password(info);
         }
 
-        public bool OptionUpdate(SystemOptionUpdateInfo registryUpdateInfo)
-        {
-            return system.OptionUpdate(registryUpdateInfo);
-        }
 
         private void ReportTask()
         {
@@ -71,12 +74,9 @@ namespace cmonitor.client.reports.system
                     {
                         systemReportInfo.Cpu = system.GetCpu();
                         systemReportInfo.Memory = system.GetMemory();
-                        systemReportInfo.RegValues = system.GetOptionValues();
+                        systemReportInfo.OptionValues = system.OptionValues();
                         //systemReportInfo.Disk = WindowsDrive.GetDiskUsage();
                     }
-                    system.OptionRefresh();
-
-
                     Thread.Sleep(1000);
                 }
             }, TaskCreationOptions.LongRunning);
@@ -91,11 +91,9 @@ namespace cmonitor.client.reports.system
         public float Disk { get; set; }
         public ReportDriveInfo[] Drives { get; set; }
 
-        public string RegValues { get; set; }
-        public Dictionary<string, SystemOptionKeyInfo> RegKeys { get; set; }
+        public string OptionValues { get; set; }
+        public Dictionary<string, SystemOptionKeyInfo> OptionKeys { get; set; }
     }
-
-
 
     [MemoryPackable]
     public sealed partial class SystemOptionUpdateInfo

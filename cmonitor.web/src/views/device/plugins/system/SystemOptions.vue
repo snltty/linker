@@ -74,7 +74,7 @@ export default {
         const initOptions = () => {
             const devices = pluginState.value.system.devices.map(c => c.MachineName);
             const optionJson = globalData.value.allDevices.filter(c => devices.indexOf(c.MachineName) >= 0).reduce((json, value, index) => {
-                json = Object.assign(json, value.System.RegistryKeys);
+                json = Object.assign(json, value.System.OptionKeys);
                 return json;
             }, {});
             const keys = Object.keys(optionJson);
@@ -93,7 +93,7 @@ export default {
                 const device = globalData.value.allDevices.filter(c => c.MachineName == name)[0];
                 if (device) {
 
-                    const registrys = device.System.RegistryValues;
+                    const registrys = device.System.OptionValues;
                     const options = state.options;
                     if (registrys && registrys.length == options.length) {
                         for (let i = 0; i < registrys.length; i++) {

@@ -23,20 +23,20 @@ export default {
         const data = props.data;
         const pluginState = injectPluginState();
         const usb = computed(() => {
-            if (data.System.RegistryValues && data.System.RegistryKeys.USBSTOR) {
-                return data.System.RegistryValues[data.System.RegistryKeys.USBSTOR.Index] == '1';
+            if (data.System.OptionValues && data.System.OptionKeys.USBSTOR) {
+                return data.System.OptionValues[data.System.OptionKeys.USBSTOR.Index] == '1';
             }
             return false;
         });
         const setting = computed(() => {
-            if (data.System.RegistryValues && data.System.RegistryKeys.NoControlPanel) {
-                return data.System.RegistryValues[data.System.RegistryKeys.NoControlPanel.Index] == '1';
+            if (data.System.OptionValues && data.System.OptionKeys.NoControlPanel) {
+                return data.System.OptionValues[data.System.OptionKeys.NoControlPanel.Index] == '1';
             }
             return false;
         });
         const shutdown = computed(() => {
-            if (data.System.RegistryValues && data.System.RegistryKeys.NoClose) {
-                return data.System.RegistryValues[data.System.RegistryKeys.NoClose.Index] == '1';
+            if (data.System.OptionValues && data.System.OptionKeys.NoClose) {
+                return data.System.OptionValues[data.System.OptionKeys.NoClose.Index] == '1';
             }
             return false;
         });

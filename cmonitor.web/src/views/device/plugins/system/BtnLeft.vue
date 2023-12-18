@@ -4,7 +4,7 @@
             <el-icon>
                 <Tools />
             </el-icon>
-            <span class="value">{{data.System.RegistrysCount}}</span>
+            <span class="value">{{data.System.OptionCount}}</span>
         </a>
     </div>
 </template>
