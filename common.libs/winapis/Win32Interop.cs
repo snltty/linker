@@ -403,25 +403,44 @@ namespace common.libs.winapis
 
         public static async Task<DateTime> GetNetworkTime()
         {
+            // 定义 NTP 服务器地址
             string ntpServer = "time.windows.com";
+
+            // 创建 UDP 客户端
+            using UdpClient client = new UdpClient();
+
+            // 连接到 NTP 服务器
+            IPAddress ntpServerAddress = Dns.GetHostEntry(ntpServer).AddressList[0];
+            IPEndPoint endPoint = new IPEndPoint(ntpServerAddress, 123);
+            client.Connect(endPoint);
+
+            // 构造 NTP 请求包
             byte[] ntpData = new byte[48];
             ntpData[0] = 0x1B;
-            IPAddress address = Dns.GetHostEntry(ntpServer).AddressList[0];
-            IPEndPoint ep = new IPEndPoint(address, 123);
-            using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
-            {
-                await socket.ConnectAsync(ep);
-                await socket.SendAsync(ntpData);
-                await socket.ReceiveAsync(ntpData);
-            }
 
-            ulong intPart = (ulong)ntpData[40] << 24 | (ulong)ntpData[41] << 16 | (ulong)ntpData[42] << 8 | (ulong)ntpData[43];
-            ulong fractPart = (ulong)ntpData[44] << 24 | (ulong)ntpData[45] << 16 | (ulong)ntpData[46] << 8 | (ulong)ntpData[47];
-            ulong milliseconds = (intPart * 1000) + ((fractPart * 1000) / 0x100000000L);
+            // 发送请求包并接收响应
+            client.Send(ntpData, ntpData.Length);
+            byte[] responseData = client.Receive(ref endPoint);
 
-            DateTime networkDateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMilliseconds((long)milliseconds);
+            // 关闭 UDP 客户端
+            client.Close();
 
-            return networkDateTime;
+            // 解析 NTP 响应包，提取时间信息
+            ulong seconds = (ulong)responseData[40] << 24 | (ulong)responseData[41] << 16 | (ulong)responseData[42] << 8 | (ulong)responseData[43];
+            ulong fraction = (ulong)responseData[44] << 24 | (ulong)responseData[45] << 16 | (ulong)responseData[46] << 8 | (ulong)responseData[47];
+
+            // NTP 时间戳的起始时间是 1900 年 1 月 1 日
+            DateTime ntpEpoch = new DateTime(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+            // 计算 NTP 响应时间
+            ulong milliseconds = (seconds * 1000 + (fraction * 1000) / 0x100000000L);
+            DateTime networkTime = ntpEpoch.AddMilliseconds((long)milliseconds);
+
+            // 转换为本地时间
+            DateTime localTime = networkTime.ToLocalTime();
+
+            return localTime;
+
         }
         public static void SetSystemTime(DateTime dateTime)
         {
