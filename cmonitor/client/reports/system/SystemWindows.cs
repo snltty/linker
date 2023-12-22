@@ -101,8 +101,14 @@ namespace cmonitor.client.reports.system
         {
             if (registryOptionHelper.GetValue("TimeSync", true))
             {
-                DateTime dt = await Win32Interop.GetNetworkTime();
-                Win32Interop.SetSystemTime(dt);
+                try
+                {
+                    DateTime dt = await Win32Interop.GetNetworkTime();
+                    Win32Interop.SetSystemTime(dt);
+                }
+                catch (Exception)
+                {
+                }
             }
         }
 
