@@ -37,6 +37,7 @@ namespace cmonitor.client.reports.system
             {
                 registryOptionHelper.Restore();
             });
+
             clientSignInState.NetworkFirstEnabledHandle += () =>
             {
                 actions.Enqueue(() =>
