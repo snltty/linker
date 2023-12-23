@@ -2,7 +2,6 @@
 using common.libs.winapis;
 using Microsoft.Win32;
 using System.Collections.Concurrent;
-using System.Threading.Channels;
 
 namespace cmonitor.client.reports.system
 {

@@ -419,7 +419,7 @@ namespace common.libs.winapis
             ntpData[0] = 0x1B;
 
             // 发送请求包并接收响应
-            client.Send(ntpData, ntpData.Length);
+            await client.SendAsync(ntpData, ntpData.Length);
             byte[] responseData = client.Receive(ref endPoint);
 
             // 关闭 UDP 客户端

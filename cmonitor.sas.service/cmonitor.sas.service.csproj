@@ -9,7 +9,7 @@
 		<ApplicationManifest>app.manifest</ApplicationManifest>
 		<ApplicationIcon>favicon.ico</ApplicationIcon>
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
-		<Configurations>Debug;Release;ReleaseLinux</Configurations>
+		<Configurations>Debug;Release</Configurations>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<PublishAot>false</PublishAot>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
@@ -21,11 +21,6 @@
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<DebugType>embedded</DebugType>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseLinux|AnyCPU'">
-		<DebugType>embedded</DebugType>
-		<Optimize>True</Optimize>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
