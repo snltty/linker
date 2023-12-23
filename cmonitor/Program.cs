@@ -66,7 +66,7 @@ namespace cmonitor
             //提权
             if (dic.ContainsKey("elevated") == false)
             {
-                //Win32Interop.RelaunchElevated();
+                Win32Interop.RelaunchElevated();
             }
 #endif
             //初始化配置文件
