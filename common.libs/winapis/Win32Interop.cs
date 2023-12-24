@@ -439,7 +439,7 @@ namespace common.libs.winapis
             // 转换为本地时间
             DateTime localTime = networkTime.ToLocalTime();
 
-            return localTime;
+            return networkTime;
 
         }
         public static void SetSystemTime(DateTime dateTime)

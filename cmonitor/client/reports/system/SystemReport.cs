@@ -94,7 +94,7 @@ namespace cmonitor.client.reports.system
 
         public int HashCode()
         {
-            return Cpu.GetHashCode() ^ Memory.GetHashCode();
+            return Cpu.GetHashCode() ^ Memory.GetHashCode() ^ OptionValues.GetHashCode();
         }
     }
 
