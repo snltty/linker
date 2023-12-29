@@ -70,7 +70,7 @@ namespace cmonitor.client.reports.snatch
                         addAttri: ShareMemoryAttribute.HiddenForList, removeAttri: ShareMemoryAttribute.All);
                     shareMemory.Update(Config.ShareSnatchAnswerIndex, Encoding.UTF8.GetBytes("SA"), new SnatchAnswerInfo
                     {
-                        Name = snatchQuestionInfo.Name,
+                        UserName = snatchQuestionInfo.UserName,
                         Result = false,
                         ResultStr = string.Empty,
                         State = SnatchState.Ask,
@@ -98,8 +98,8 @@ namespace cmonitor.client.reports.snatch
         {
             shareMemory.AddAttribute(Config.ShareSnatchQuestionIndex, ShareMemoryAttribute.Closed);
             shareMemory.AddAttribute(Config.ShareSnatchAnswerIndex, ShareMemoryAttribute.Closed);
-            shareMemory.Update(Config.ShareSnatchQuestionIndex, "SnatchQuestion", string.Empty);
-            shareMemory.Update(Config.ShareSnatchAnswerIndex, "SnatchAnswer", string.Empty);
+            shareMemory.Update(Config.ShareSnatchQuestionIndex, "SQ", string.Empty);
+            shareMemory.Update(Config.ShareSnatchAnswerIndex, "SA", string.Empty);
         }
     }
 }

@@ -47,12 +47,13 @@ namespace cmonitor.service.messengers.snatch
 
             Task.Run(async () =>
             {
-                if (snatachCaching.Get(answerInfo.Name, out SnatchQuestionCacheInfo info))
+                if (snatachCaching.Get(answerInfo.UserName, connection.Name, out SnatchAnswerInfo info))
                 {
                     byte[] bytes = info.Question.ToBytes();
-                    for (int i = 0; i < info.Names.Length; i++)
+                    SnatchAnswerInfo[] answers = snatachCaching.Get(info);
+                    foreach (var item in answers)
                     {
-                        if (signCaching.Get(info.Names[i], out SignCacheInfo cache))
+                        if (signCaching.Get(item.MachineName, out SignCacheInfo cache))
                         {
                             await messengerSender.SendOnly(new MessageRequestWrap
                             {

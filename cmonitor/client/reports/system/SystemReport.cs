@@ -42,7 +42,7 @@ namespace cmonitor.client.reports.system
                 systemReportInfo.Drives = null;
                 systemReportInfo.OptionKeys = null;
             }
-            int hashcode = systemReportInfo.GetHashCode();
+            int hashcode = systemReportInfo.HashCode();
             if (reportType == ReportType.Full || hashcode != hashCode)
             {
                 hashCode = hashcode;

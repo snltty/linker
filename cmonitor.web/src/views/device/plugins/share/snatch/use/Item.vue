@@ -76,6 +76,7 @@
                     <el-form-item>
                         <div class="t-c w-100">
                             <el-button type="success" :loading="state.loading" @click="handleEditSubmit">确定开始</el-button>
+                            <el-button type="warning" :loading="state.loading" @click="handleRandomSubmit">随机开始</el-button>
                         </div>
                     </el-form-item>
                 </el-form>
@@ -88,7 +89,7 @@
 import { reactive, ref } from '@vue/reactivity';
 import { computed, onMounted } from '@vue/runtime-core';
 import { ElMessage } from 'element-plus';
-import { addQuestion } from '@/apis/snatch'
+import { addQuestion, randomQuestion, updateQuestion } from '@/apis/snatch'
 import { injectGlobalData } from '@/views/provide';
 import { injectPluginState } from '@/views/device/provide';
 export default {
@@ -160,11 +161,18 @@ export default {
         });
 
         const formDom = ref(null);
+        const parseCorrect = (json) => {
+            return json.Type == 1 ? json.Options.reduce((arr, value, index) => {
+                if (value.Value) arr.push(String.fromCharCode(index + 65));
+                return arr;
+            }, []).join('') : json.Correct.replace(/^\s|\s$/g, '');
+        }
         const handleEditSubmit = () => {
             formDom.value.validate((valid) => {
                 if (!valid) {
                     return;
                 }
+
                 const names = pluginState.value.command.devices.map(c => c.MachineName);
                 if (names.length == 0) {
                     ElMessage.error('请至少选择一个设备');
@@ -172,42 +180,34 @@ export default {
                 }
 
                 const json = JSON.parse(JSON.stringify(state.currentItem));
-                json.Chance = +json.Chance;
-                json.Type = +json.Type;
-                json.Cate = +json.Cate;
-                json.Correct = json.Correct.replace(/^\s|\s$/g, '');
-                const corrects = json.Options.reduce((arr, value, index) => {
-                    if (value.Value) arr.push(String.fromCharCode(index + 65));
-                    return arr;
-                }, []).join('');
-
-                if (json.Cate == 1 && json.Type == 1 && corrects.length <= 0) {
-                    ElMessage.error('至少有一个正确答案');
-                    return;
-                } else if (json.Type == 2 && !json.Correct) {
-                    ElMessage.error('请输入正确答案');
-                    return;
-                }
-                if (json.Cate == 2) {
-                    json.Chance = 1;
-                }
+                const chance = +json.Chance;
+                const type = +json.Type;
+                const cate = +json.Cate;
+                const corrects = parseCorrect(json);
                 const options = json.Options.map((value, index) => `${String.fromCharCode(index + 65)}、${value.Text}`).join('\r\n');
+                const optionLength = json.Options.length;
+                const questionCont = type == 1 ? `${json.Question}\r\n${options}` : json.Question;
+                const username = globalData.value.username;
+
+                if (cate == 1 && !corrects) {
+                    ElMessage.error('没有正确答案');
+                    return;
+                }
 
                 const question = {
-                    question: {
-                        Type: json.Type,
-                        Cate: json.Cate,
-                        Question: `${json.Question}\r\n${options}`,
-                        Correct: json.Type == 1 ? corrects : json.Correct,
-                        Option: json.Options.length,
-                        Chance: json.Chance,
-                        End: false,
-                        Join: names.length,
-                        Right: 0,
-                        Wrong: 0,
+                    cache: {
+                        UserName: username,
+                        MachineNames: names,
                     },
-                    Name: globalData.value.username,
-                    Names: names,
+                    question: {
+                        Type: type,
+                        Cate: cate,
+                        Question: questionCont,
+                        Correct: corrects,
+                        Option: optionLength,
+                        Chance: chance,
+                        UserName: username,
+                    }
                 }
                 state.loading = true;
                 addQuestion(question).then((res) => {
@@ -224,6 +224,55 @@ export default {
 
             });
         }
+        const handleRandomSubmit = () => {
+            const names = pluginState.value.command.devices.map(c => c.MachineName);
+            state.loading = true;
+            randomQuestion(names.length).then((questions) => {
+                state.loading = false;
+                if (questions.length == 0) {
+                    ElMessage.error('没有可用题目');
+                    return;
+                }
+
+                const username = globalData.value.username;
+                const arr = names.map(name => {
+                    const question = questions[parseInt(Math.random() * questions.length)];
+
+                    const corrects = parseCorrect(question);
+                    const options = question.Options.map((value, index) => `${String.fromCharCode(index + 65)}、${value.Text}`).join('\r\n');
+                    const questionCont = question.Type == 1 ? `${question.Question}\r\n${options}` : question.Question;
+                    return {
+                        MachineName: name,
+                        Question: {
+                            UserName: username,
+                            Cate: question.Cate,
+                            Type: question.Type,
+                            Chance: question.Chance,
+                            Option: question.Options.length,
+                            Question: questionCont,
+                            Correct: corrects,
+                        }
+                    }
+                });
+
+                state.loading = true;
+                addQuestion({
+                    cache: {
+                        UserName: username,
+                        MachineNames: names,
+                    },
+                }).then(() => {
+                    state.loading = false;
+                    updateQuestion(username, arr);
+                }).catch((e) => {
+                    state.loading = false;
+                    ElMessage.error('操作失败!' + e);
+                })
+            }).catch((e) => {
+                state.loading = false;
+                ElMessage.error('操作失败!' + e);
+            })
+        }
 
         const handleAddOption = (index) => {
             if (state.currentItem.Options.length >= 6) return;
@@ -233,13 +282,17 @@ export default {
             if (state.currentItem.Options.length <= 1) return;
             state.currentItem.Options.splice(index, 1);
         }
-        return { state, formDom, handleEditSubmit, handleItemChange, handleAddOption, handleDelOption, handleCateChange }
+        return { state, formDom, handleEditSubmit, handleRandomSubmit, handleItemChange, handleAddOption, handleDelOption, handleCateChange }
     }
 }
 </script>
 
 <style lang="stylus" scoped>
 .snatchs-items-wrap {
+    border: 1px solid #ddd;
+    padding: 0.6rem;
+    border-radius: 0.4rem;
+
     .head {
         width: 100%;
         padding-bottom: 1rem;

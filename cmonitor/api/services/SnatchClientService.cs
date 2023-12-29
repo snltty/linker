@@ -3,7 +3,6 @@ using cmonitor.service;
 using cmonitor.service.messengers.sign;
 using cmonitor.service.messengers.snatch;
 using common.libs.extends;
-using MemoryPack;
 
 namespace cmonitor.api.services
 {
@@ -40,28 +39,69 @@ namespace cmonitor.api.services
         }
 
 
-        public SnatchQuestionCacheInfo GetQuestion(ClientServiceParamsInfo param)
+        public AnswerGroupInfo[] GetQuestion(ClientServiceParamsInfo param)
         {
-            snatachCaching.Get(param.Content, out SnatchQuestionCacheInfo info);
-            return info;
+            if(snatachCaching.Get(param.Content, out SnatchQuestionCacheInfo info))
+            {
+                return info.Answers.GroupBy(c => c.Question).Select(c => new AnswerGroupInfo
+                {
+                    Question = c.Key,
+                    Answers = c.ToArray()
+                }).ToArray();
+            }
+
+            return Array.Empty<AnswerGroupInfo>();
         }
         public async Task<bool> AddQuestion(ClientServiceParamsInfo param)
         {
-            SnatchQuestionCacheInfo info = param.Content.DeJson<SnatchQuestionCacheInfo>();
-            if (snatachCaching.Add(info) && snatachCaching.Get(info.Name, out info))
+            SnatchQuestionCacheParamInfo info = param.Content.DeJson<SnatchQuestionCacheParamInfo>();
+            if (snatachCaching.Add(info.Cache, info.Question) && snatachCaching.Get(info.Cache.UserName, out SnatchQuestionCacheInfo cache))
             {
-                byte[] bytes = info.Question.ToBytes();
-                for (int i = 0; i < info.Names.Length; i++)
+                if (info.Question != null)
                 {
-                    if (signCaching.Get(info.Names[i], out SignCacheInfo cache))
+                    byte[] bytes = info.Question.ToBytes();
+                    for (int i = 0; i < info.Cache.MachineNames.Length; i++)
                     {
-                        await messengerSender.SendOnly(new MessageRequestWrap
+                        if (signCaching.Get(info.Cache.MachineNames[i], out SignCacheInfo signCache))
                         {
-                            Connection = cache.Connection,
-                            MessengerId = (ushort)SnatchMessengerIds.AddQuestion,
-                            Payload = bytes
-                        });
+                            await messengerSender.SendOnly(new MessageRequestWrap
+                            {
+                                Connection = signCache.Connection,
+                                MessengerId = (ushort)SnatchMessengerIds.AddQuestion,
+                                Payload = bytes
+                            });
+                        }
                     }
+                }
+            }
+            return true;
+        }
+        public SnatchItemInfo[] RandomQuestion(ClientServiceParamsInfo param)
+        {
+            return ruleConfig.SnatchRandom(int.Parse(param.Content));
+        }
+        public async Task<bool> UpdateQuestion(ClientServiceParamsInfo param)
+        {
+            UpdateQuestionCacheParamInfo info = param.Content.DeJson<UpdateQuestionCacheParamInfo>();
+            foreach (UpdateQuestionCacheParamItemInfo item in info.Items)
+            {
+                SnatchAnswerInfo answer = null;
+                bool conti = snatachCaching.Update(info.UserName, item.MachineName, item.Question) == false
+                    || snatachCaching.Get(info.UserName, item.MachineName, out answer) == false
+                    || answer == null || answer.Question == null;
+                if (conti)
+                {
+                    continue;
+                }
+                byte[] bytes = answer.Question.ToBytes();
+                if (signCaching.Get(answer.MachineName, out SignCacheInfo signCache))
+                {
+                    await messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = signCache.Connection,
+                        MessengerId = (ushort)SnatchMessengerIds.AddQuestion,
+                        Payload = bytes
+                    });
                 }
             }
             return true;
@@ -70,9 +110,9 @@ namespace cmonitor.api.services
         {
             if (snatachCaching.Remove(param.Content, out SnatchQuestionCacheInfo info))
             {
-                for (int i = 0; i < info.Names.Length; i++)
+                for (int i = 0; i < info.MachineNames.Length; i++)
                 {
-                    if (signCaching.Get(info.Names[i], out SignCacheInfo cache))
+                    if (signCaching.Get(info.MachineNames[i], out SignCacheInfo cache))
                     {
                         await messengerSender.SendOnly(new MessageRequestWrap
                         {
@@ -83,6 +123,31 @@ namespace cmonitor.api.services
                 }
             }
             return true;
+        }
+
+
+        public sealed class UpdateQuestionCacheParamInfo
+        {
+            public string UserName { get; set; }
+            public UpdateQuestionCacheParamItemInfo[] Items { get; set; }
+        }
+
+        public sealed class UpdateQuestionCacheParamItemInfo
+        {
+            public string MachineName { get; set; }
+            public SnatchQuestionInfo Question { get; set; }
+        }
+
+        public sealed class SnatchQuestionCacheParamInfo
+        {
+            public SnatchQuestionCacheInfo Cache { get; set; }
+            public SnatchQuestionInfo Question { get; set; }
+        }
+
+        public sealed class AnswerGroupInfo
+        {
+            public SnatchQuestionInfo Question { get; set; }
+            public SnatchAnswerInfo[] Answers { get; set; }
         }
     }
 

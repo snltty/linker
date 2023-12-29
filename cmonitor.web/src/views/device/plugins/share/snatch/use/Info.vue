@@ -1,88 +1,65 @@
 <template>
-    <div class="snatchs-items-wrap flex flex-nowrap flex-column">
+    <div class="snatchs-items-wrap-info flex flex-nowrap flex-column">
         <div class="flex-1">
             <div class="prevs-wrap">
-                <el-form ref="formDom" label-width="0">
-
-                    <el-form-item prop="Question">
-                        <el-input readonly type="textarea" resize="none" rows="8" :value="state.currentItem.Question.Question" placeholder="题目内容" maxlength="250" show-word-limit />
-                    </el-form-item>
-
-                    <el-form-item style="border:1px solid #ddd;padding:.6rem">
-                        <el-row class="w-100">
-                            <el-col :span="8">
-                                <el-form-item label="类型" label-width="4rem">
-                                    <span>{{state.cates[state.currentItem.Question.Cate]}}</span>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="8">
-                                <el-form-item label="类别" label-width="4rem">
-                                    <span>{{state.types[state.currentItem.Question.Type]}}</span>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="8">
-                                <el-form-item label="机会" label-width="4rem">
-                                    <span>{{state.currentItem.Question.Chance}}</span>
-                                </el-form-item>
-                            </el-col>
-                        </el-row>
-                        <el-row class="w-100">
-                            <el-col :span="8">
-                                <el-form-item class="t-c" label="参与" label-width="4rem">{{state.currentItem.Question.Join}}</el-form-item>
-                            </el-col>
-                            <template v-if="state.currentItem.Question.Cate ==1">
-                                <el-col :span="8">
-                                    <el-form-item class="t-c" label="正确" label-width="4rem">{{state.currentItem.Question.Right}}</el-form-item>
-                                </el-col>
-                                <el-col :span="8">
-                                    <el-form-item class="t-c" label="错误" label-width="4rem">{{state.currentItem.Question.Wrong}}</el-form-item>
-                                </el-col>
-                            </template>
-                            <template v-else>
-                                <el-col :span="8">
-                                    <el-form-item class="t-c" label="已选" label-width="4rem">{{state.currentItem.Question.Right}}</el-form-item>
-                                </el-col>
-                                <el-col :span="8">
-                                    <el-form-item class="t-c" label="未选" label-width="4rem">{{state.currentItem.Question.Wrong}}</el-form-item>
-                                </el-col>
-                            </template>
-                        </el-row>
-                        <el-row class="w-100" v-if="state.currentItem.Question.Cate ==2">
-                            <el-col :span="24">
-                                <ul class="vote-statis">
-                                    <template v-for="(item,index) in state.voteStatis" :key="index">
-                                        <li>
-                                            <el-progress :percentage="item.percent" striped striped-flow>
-                                                <span style="width:130px;display:block;" class="t-r">{{item.text}}、{{item.len}}、{{item.percent.toFixed(2)}}%</span>
-                                            </el-progress>
-                                        </li>
-                                    </template>
-                                </ul>
-                            </el-col>
-                        </el-row>
-                    </el-form-item>
-                    <el-form-item label="" label-width="0">
-                        <el-table :data="state.currentItem.Answers" max-height="30vh" border style="width: 100%">
-                            <el-table-column prop="Name" label="设备" />
-                            <el-table-column prop="ResultStr" label="答案">
-                                <template #default="scope">
-                                    <template v-if="state.currentItem.Question.Cate == 1 && state.currentItem.Question.Type == 1">
-                                        <span :class="`result-${scope.row.Result?'green':'red'} answer-${scope.row.State==1?'ask':'confirm'}`">{{scope.row.ResultStr}}</span>
-                                    </template>
-                                    <template v-else>
-                                        <span>{{scope.row.ResultStr}}</span>
-                                    </template>
-                                </template>
-                            </el-table-column>
-                        </el-table>
-                    </el-form-item>
-                    <el-form-item>
-                        <div class="t-c w-100">
-                            <el-button type="danger" :loading="state.loading" @click="handleRemove">结束互动</el-button>
-                        </div>
-                    </el-form-item>
-                </el-form>
+                <ul>
+                    <template v-for="(group,index) in state.answers" :key="index">
+                        <li>
+                            <dl>
+                                <dt>
+                                    <el-input :value="group.Question.Question" :rows="4" type="textarea" resize="none" readonly />
+                                </dt>
+                                <dd class="right">
+                                    <el-row class="w-100">
+                                        <el-col :span="8">
+                                            <el-form-item class="t-c" label="参与" label-width="4rem">{{group.Question.Join}}</el-form-item>
+                                        </el-col>
+                                        <template v-if="group.Question.Cate ==1">
+                                            <el-col :span="8">
+                                                <el-form-item class="t-c" label="正确" label-width="4rem">{{group.Question.Right}}</el-form-item>
+                                            </el-col>
+                                            <el-col :span="8">
+                                                <el-form-item class="t-c" label="错误" label-width="4rem">{{group.Question.Wrong}}</el-form-item>
+                                            </el-col>
+                                        </template>
+                                        <template v-else>
+                                            <el-col :span="8">
+                                                <el-form-item class="t-c" label="已选" label-width="4rem">{{group.Question.Right}}</el-form-item>
+                                            </el-col>
+                                            <el-col :span="8">
+                                                <el-form-item class="t-c" label="未选" label-width="4rem">{{group.Question.Wrong}}</el-form-item>
+                                            </el-col>
+                                        </template>
+                                    </el-row>
+                                </dd>
+                                <dd v-if="group.statis" class="padding statis">
+                                    <ul>
+                                        <template v-for="(item,index) in group.statis" :key="index">
+                                            <li>
+                                                <el-progress :percentage="item.percent" striped striped-flow>
+                                                    <span style="width:130px;display:block;" class="t-r">{{item.text}}、{{item.len}}、{{item.percent.toFixed(2)}}%</span>
+                                                </el-progress>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </dd>
+                                <dd class="padding">
+                                    <ul class="machine">
+                                        <template v-for="(answer,aindex) in group.Answers" :key="aindex">
+                                            <li :class="`flex answer-${group.Question.Cate} result-${answer.Result?'green':'red'} answer-${answer.State==1?'ask':'confirm'}`">
+                                                <span class="name">{{answer.MachineName}}</span><span class="flex-1 t-r">{{answer.ResultStr}}</span>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </dd>
+                            </dl>
+                        </li>
+                    </template>
+                </ul>
             </div>
+        </div>
+        <div class="t-c w-100">
+            <el-button type="danger" :loading="state.loading" @click="handleRemove">结束互动</el-button>
         </div>
     </div>
 </template>
@@ -100,23 +77,28 @@ export default {
         const pluginState = injectPluginState();
         const state = reactive({
             loading: false,
-            currentItem: computed(() => pluginState.value.shareSnatch.question),
-            voteStatis: computed(() => {
-                const arr = [];
-                const answers = pluginState.value.shareSnatch.question.Answers;
-                const question = pluginState.value.shareSnatch.question.Question;
-                for (let index = 0; index < question.Option; index++) {
-                    const optionText = String.fromCharCode(65 + index);
-                    const len = answers.filter(c => c.ResultStr == optionText).length;
-                    arr.push({
-                        text: optionText,
-                        percent: len / question.Join * 100,
-                        len: len
-                    });
+            answers: computed(() => {
+                const groups = pluginState.value.shareSnatch.answers;
+
+                for (let i = 0; i < groups.length; i++) {
+                    const answers = groups[i].Answers;
+                    const question = groups[i].Question;
+
+                    if (question.Cate == 2) {
+                        const arr = new Array(question.Option);
+                        arr.fill(0);
+                        groups[i].statis = arr.map((value, index) => {
+                            const optionText = String.fromCharCode(65 + index);
+                            const len = answers.filter(c => c.ResultStr == optionText).length;
+                            return { text: optionText, percent: len / answers.length * 100, len: len };
+                        });
+                    }
+                    if (answers.length > 1) {
+                        groups[i].Answers = answers.filter(c => c.Time > 0).sort((a, b) => a.Time - b.Time).concat(answers.filter(c => c.Time == 0));
+                    }
                 }
-                return arr.sort((a, b) => b.len - a.len);
+                return groups;
             }),
-            rules: {},
             types: [
                 '',
                 '选择题',
@@ -154,14 +136,60 @@ export default {
     }
 }
 </script>
+<style lang="stylus">
+.snatchs-items-wrap-info textarea {
+    box-shadow: none !important;
+}
+</style>
 
 <style lang="stylus" scoped>
-.snatchs-items-wrap {
-    .result-green {
+.snatchs-items-wrap-info {
+    .prevs-wrap {
+        height: 70vh;
+
+        &>ul>li {
+            border: 1px solid #ddd;
+            border-radius: 0.4rem;
+
+            dd {
+                border-top: 1px solid #ddd;
+
+                &.padding {
+                    padding: 0.6rem;
+                }
+
+                &.right {
+                    padding: 0 0.6rem;
+                    background-color: #f5f5f5;
+                }
+
+                &.statis {
+                    background-color: #fafafa;
+                }
+            }
+        }
+
+        ul.machine {
+            li {
+                border-top: 1px solid #ddd;
+                padding: 0.4rem;
+
+                &:first-child {
+                    border-top: 0;
+                }
+
+                span.name {
+                    padding-right: 0.6rem;
+                }
+            }
+        }
+    }
+
+    .result-green.answer-confirm.answer-1 {
         color: green;
     }
 
-    .result-red {
+    .result-red.answer-confirm.answer-1 {
         color: red;
     }
 

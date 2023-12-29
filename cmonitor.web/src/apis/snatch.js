@@ -28,3 +28,15 @@ export const addQuestion = (question) => {
 export const removeQuestion = (name) => {
     return sendWebsocketMsg('snatch/removeQuestion', name);
 }
+
+
+export const randomQuestion = (length) => {
+    return sendWebsocketMsg('snatch/RandomQuestion', length);
+}
+
+export const updateQuestion = (userName, items) => {
+    return sendWebsocketMsg('snatch/UpdateQuestion', {
+        userName, items
+    });
+}
+

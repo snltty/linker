@@ -1,6 +1,5 @@
 ﻿using cmonitor.client.reports.snatch;
 using common.libs.database;
-using MemoryPack;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace cmonitor.api
@@ -457,6 +456,16 @@ namespace cmonitor.api
                 Save();
             }
             return string.Empty;
+        }
+
+        public SnatchItemInfo[] SnatchRandom(int length)
+        {
+            return UserNames.Values
+                .SelectMany(c => c.Snatchs)
+                .SelectMany(c => c.List).OrderBy(c => Guid.NewGuid())
+                .Where(c => c.Cate == SnatchCate.Question)
+                .Where(c => (c.Type == SnatchType.Select && c.Options.Any(c => c.Value)) || (c.Type == SnatchType.Input && string.IsNullOrWhiteSpace(c.Correct) == false))
+                .Take(length).ToArray();
         }
 
         public void Save()

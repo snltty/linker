@@ -1,4 +1,5 @@
 ﻿using common.libs.extends;
+using System.Text.Json.Serialization;
 
 namespace cmonitor.client.reports.snatch
 {
@@ -7,11 +8,18 @@ namespace cmonitor.client.reports.snatch
         public void StartUp(SnatchQuestionInfo snatchQuestionInfo);
     }
 
+    public sealed partial class SnatchRandomInfo
+    {
+        public bool End { get; set; }
+        public int Join { get; set; }
+        public int Right { get; set; }
+        public int Wrong { get; set; }
 
+    }
 
     public sealed partial class SnatchQuestionInfo
     {
-        public string Name { get; set; }
+        public string UserName { get; set; }
         public SnatchCate Cate { get; set; }
         public SnatchType Type { get; set; }
         /// <summary>
@@ -25,7 +33,7 @@ namespace cmonitor.client.reports.snatch
         /// <summary>
         /// 已结束
         /// </summary>
-        public bool End { get; set; } = false;
+        public bool End { get; set; }
         /// <summary>
         /// 选项数
         /// </summary>
@@ -35,15 +43,15 @@ namespace cmonitor.client.reports.snatch
         /// </summary>
         public ushort Chance { get; set; } = ushort.MaxValue;
 
-        public int Join { get; set; } = 0;
-        public int Right { get; set; } = 0;
-        public int Wrong { get; set; } = 0;
+        public int Join { get; set; }
+        public int Right { get; set; }
+        public int Wrong { get; set; }
 
         public byte[] ToBytes()
         {
             ReadOnlySpan<byte> questionBytes = Question.GetUTF16Bytes();
             ReadOnlySpan<byte> correctBytes = Correct.GetUTF16Bytes();
-            ReadOnlySpan<byte> nameBytes = Name.GetUTF16Bytes();
+            ReadOnlySpan<byte> nameBytes = UserName.GetUTF16Bytes();
 
             byte[] bytes = new byte[
                 1
@@ -76,7 +84,7 @@ namespace cmonitor.client.reports.snatch
             correctBytes.CopyTo(bytes.AsSpan(index));
             index += correctBytes.Length;
 
-            ((ushort)Name.Length).ToBytes(bytes.AsMemory(index));
+            ((ushort)UserName.Length).ToBytes(bytes.AsMemory(index));
             index += 2;
             ((ushort)nameBytes.Length).ToBytes(bytes.AsMemory(index));
             index += 2;
@@ -130,7 +138,7 @@ namespace cmonitor.client.reports.snatch
             index += 2;
             byteLength = span.Slice(index).ToUInt16();
             index += 2;
-            snatchQuestionInfo.Name = span.Slice(index, byteLength).GetUTF16String(strLength);
+            snatchQuestionInfo.UserName = span.Slice(index, byteLength).GetUTF16String(strLength);
             index += byteLength;
 
             snatchQuestionInfo.End = span[index] == 1;
@@ -152,17 +160,21 @@ namespace cmonitor.client.reports.snatch
     }
     public sealed class SnatchAnswerInfo
     {
-        public string Name { get; set; }
+        public string UserName { get; set; }
+        public string MachineName { get; set; }
         public SnatchState State { get; set; }
         public bool Result { get; set; }
         public long Time { get; set; }
         public ushort Times { get; set; }
         public string ResultStr { get; set; }
 
+        [JsonIgnore]
+        public SnatchQuestionInfo Question { get; set; }
+
         public byte[] ToBytes()
         {
             ReadOnlySpan<byte> resultBytes = ResultStr.GetUTF16Bytes();
-            ReadOnlySpan<byte> nameBytes = Name.GetUTF16Bytes();
+            ReadOnlySpan<byte> nameBytes = UserName.GetUTF16Bytes();
 
             byte[] bytes = new byte[
                 1
@@ -177,6 +189,7 @@ namespace cmonitor.client.reports.snatch
             bytes[index] = (byte)State;
             index += 1;
 
+
             bytes[index] = (byte)(Result ? 1 : 0);
             index += 1;
 
@@ -185,7 +198,7 @@ namespace cmonitor.client.reports.snatch
             Times.ToBytes(bytes.AsMemory(index));
             index += 2;
 
-            ((ushort)Name.Length).ToBytes(bytes.AsMemory(index));
+            ((ushort)UserName.Length).ToBytes(bytes.AsMemory(index));
             index += 2;
             ((ushort)nameBytes.Length).ToBytes(bytes.AsMemory(index));
             index += 2;
@@ -222,7 +235,7 @@ namespace cmonitor.client.reports.snatch
             index += 2;
             int byteLength = span.Slice(index).ToUInt16();
             index += 2;
-            snatchAnswerInfo.Name = span.Slice(index, byteLength).GetUTF16String(strLength);
+            snatchAnswerInfo.UserName = span.Slice(index, byteLength).GetUTF16String(strLength);
             index += byteLength;
 
             strLength = span.Slice(index).ToUInt16();

@@ -26,7 +26,7 @@ namespace cmonitor.snatch.win
         private readonly ShareMemory shareMemory;
         private int shareQuestionIndex;
         private int shareAnswerIndex;
-        private string key = "SnatchAnswer";
+        private string key = "SA";
         private DateTime startTime = new DateTime(1970, 1, 1);
 
         public MainForm(string shareMkey, int shareMLength, int shareItemMLength, int shareQuestionIndex, int shareAnswerIndex)
@@ -172,7 +172,7 @@ namespace cmonitor.snatch.win
                 byte[] result = shareMemory.ReadValueArray(shareQuestionIndex);
                 if (result.Length == 0)
                 {
-                    snatchQuesionInfo = new SnatchQuestionInfo { Chance = 65535, Name = "snltty", Question = "测试测试", Correct = "A", Option = 5, Cate = SnatchCate.Question, Type = SnatchType.Select };
+                    snatchQuesionInfo = new SnatchQuestionInfo { Chance = 65535, UserName = "snltty", Question = "测试测试", Correct = "A", Option = 5, Cate = SnatchCate.Question, Type = SnatchType.Select };
                 }
                 else
                 {
@@ -191,7 +191,7 @@ namespace cmonitor.snatch.win
                 byte[] result = shareMemory.ReadValueArray(shareAnswerIndex);
                 if (result.Length == 0)
                 {
-                    snatchAnswerInfo = new SnatchAnswerInfo { Name = "snltty", Result = false, ResultStr = "ABC", State = SnatchState.Ask, };
+                    snatchAnswerInfo = new SnatchAnswerInfo { UserName = "snltty", Result = false, ResultStr = "ABC", State = SnatchState.Ask, };
                 }
                 else
                 {
@@ -317,6 +317,7 @@ namespace cmonitor.snatch.win
                 }
 
                 inputQuestion.Text = snatchQuesionInfo.Question;
+                
 
 
                 inputJoin.Text = snatchQuesionInfo.Join.ToString();
@@ -329,12 +330,15 @@ namespace cmonitor.snatch.win
                 this.Text = snatchQuesionInfo.Cate == SnatchCate.Question ? "互动答题" : "互动投票";
 
                 inputChance.Text = (snatchQuesionInfo.Chance - snatchAnswerInfo.Times).ToString();
+
+                btnConfirm.Focus();
             });
         }
 
         public sealed partial class SnatchQuestionInfo
         {
-            public string Name { get; set; }
+
+            public string UserName { get; set; }
             public SnatchCate Cate { get; set; }
             public SnatchType Type { get; set; }
             /// <summary>
@@ -348,7 +352,7 @@ namespace cmonitor.snatch.win
             /// <summary>
             /// 已结束
             /// </summary>
-            public bool End { get; set; } = false;
+            public bool End { get; set; }
             /// <summary>
             /// 选项数
             /// </summary>
@@ -358,15 +362,15 @@ namespace cmonitor.snatch.win
             /// </summary>
             public ushort Chance { get; set; } = ushort.MaxValue;
 
-            public int Join { get; set; } = 0;
-            public int Right { get; set; } = 0;
-            public int Wrong { get; set; } = 0;
+            public int Join { get; set; }
+            public int Right { get; set; }
+            public int Wrong { get; set; }
 
             public byte[] ToBytes()
             {
                 ReadOnlySpan<byte> questionBytes = Question.GetUTF16Bytes();
                 ReadOnlySpan<byte> correctBytes = Correct.GetUTF16Bytes();
-                ReadOnlySpan<byte> nameBytes = Name.GetUTF16Bytes();
+                ReadOnlySpan<byte> nameBytes = UserName.GetUTF16Bytes();
 
                 byte[] bytes = new byte[
                     1
@@ -399,7 +403,7 @@ namespace cmonitor.snatch.win
                 correctBytes.CopyTo(bytes.AsSpan(index));
                 index += correctBytes.Length;
 
-                ((ushort)Name.Length).ToBytes(bytes.AsMemory(index));
+                ((ushort)UserName.Length).ToBytes(bytes.AsMemory(index));
                 index += 2;
                 ((ushort)nameBytes.Length).ToBytes(bytes.AsMemory(index));
                 index += 2;
@@ -432,6 +436,7 @@ namespace cmonitor.snatch.win
                 snatchQuestionInfo.Type = (SnatchType)span[index];
                 index += 1;
 
+
                 snatchQuestionInfo.Cate = (SnatchCate)span[index];
                 index += 1;
 
@@ -453,7 +458,7 @@ namespace cmonitor.snatch.win
                 index += 2;
                 byteLength = span.Slice(index).ToUInt16();
                 index += 2;
-                snatchQuestionInfo.Name = span.Slice(index, byteLength).GetUTF16String(strLength);
+                snatchQuestionInfo.UserName = span.Slice(index, byteLength).GetUTF16String(strLength);
                 index += byteLength;
 
                 snatchQuestionInfo.End = span[index] == 1;
@@ -475,7 +480,7 @@ namespace cmonitor.snatch.win
         }
         public sealed class SnatchAnswerInfo
         {
-            public string Name { get; set; }
+            public string UserName { get; set; }
             public SnatchState State { get; set; }
             public bool Result { get; set; }
             public long Time { get; set; }
@@ -485,7 +490,7 @@ namespace cmonitor.snatch.win
             public byte[] ToBytes()
             {
                 ReadOnlySpan<byte> resultBytes = ResultStr.GetUTF16Bytes();
-                ReadOnlySpan<byte> nameBytes = Name.GetUTF16Bytes();
+                ReadOnlySpan<byte> nameBytes = UserName.GetUTF16Bytes();
 
                 byte[] bytes = new byte[
                     1
@@ -508,7 +513,7 @@ namespace cmonitor.snatch.win
                 Times.ToBytes(bytes.AsMemory(index));
                 index += 2;
 
-                ((ushort)Name.Length).ToBytes(bytes.AsMemory(index));
+                ((ushort)UserName.Length).ToBytes(bytes.AsMemory(index));
                 index += 2;
                 ((ushort)nameBytes.Length).ToBytes(bytes.AsMemory(index));
                 index += 2;
@@ -545,7 +550,7 @@ namespace cmonitor.snatch.win
                 index += 2;
                 int byteLength = span.Slice(index).ToUInt16();
                 index += 2;
-                snatchAnswerInfo.Name = span.Slice(index, byteLength).GetUTF16String(strLength);
+                snatchAnswerInfo.UserName = span.Slice(index, byteLength).GetUTF16String(strLength);
                 index += byteLength;
 
                 strLength = span.Slice(index).ToUInt16();
