@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace wallpaper.win
+namespace cmonitor.wallpaper.win
 {
     internal sealed class Hook : IDisposable
     {

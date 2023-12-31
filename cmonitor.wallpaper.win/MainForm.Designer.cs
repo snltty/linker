@@ -1,4 +1,4 @@
-﻿namespace wallpaper.win
+﻿namespace cmonitor.wallpaper.win
 {
     partial class MainForm
     {

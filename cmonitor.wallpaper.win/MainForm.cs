@@ -2,7 +2,7 @@ using cmonitor.libs;
 using System.Diagnostics;
 using System.Text;
 
-namespace wallpaper.win
+namespace cmonitor.wallpaper.win
 {
     public partial class MainForm : Form
     {

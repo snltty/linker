@@ -19,8 +19,5 @@ namespace cmonitor.client.reports.screen
         public void WakeUp();
 
 
-        public void ScreenShareState(ScreenShareStates screenShareState);
-        public void ScreenShare(Memory<byte> data);
-
     }
 }

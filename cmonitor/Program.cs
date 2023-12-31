@@ -194,6 +194,7 @@ namespace cmonitor
             else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<INotify, NotifyMacOS>();
 
             serviceCollection.AddSingleton<ScreenReport>();
+            serviceCollection.AddSingleton<ScreenShare>();
             if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<IScreen, ScreenWindows>();
             else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<IScreen, ScreenLinux>();
             else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<IScreen, ScreenMacOS>();

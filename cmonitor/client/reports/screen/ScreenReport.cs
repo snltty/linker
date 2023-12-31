@@ -3,7 +3,6 @@ using common.libs;
 using cmonitor.service.messengers.screen;
 using MemoryPack;
 using common.libs.helpers;
-using System.Threading.Tasks;
 
 namespace cmonitor.client.reports.screen
 {
@@ -57,20 +56,11 @@ namespace cmonitor.client.reports.screen
             return null;
         }
 
-
         public void SetDisplayState(bool onState)
         {
             screen.SetDisplayState(onState);
         }
 
-        public void SetScreenShareState(ScreenShareStates screenShareState)
-        {
-            screen.ScreenShareState(screenShareState);
-        }
-        public void SetScreenShareData(Memory<byte> data)
-        {
-            screen.ScreenShare(data);
-        }
 
         private ScreenReportType screenReportType = ScreenReportType.Full;
         private ScreenReportFullType screenReportFullType = ScreenReportFullType.Full | ScreenReportFullType.Trim;
@@ -235,10 +225,5 @@ namespace cmonitor.client.reports.screen
         public int H { get; set; }
     }
 
-    public enum ScreenShareStates : byte
-    {
-        None = 0,
-        Sender = 1,
-        Receiver = 2
-    }
+   
 }

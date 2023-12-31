@@ -2,6 +2,7 @@
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace cmonitor.libs
 {
@@ -57,6 +58,13 @@ namespace cmonitor.libs
                 accessorLocal.WriteArray(position, data, offset, length);
             }
         }
+        public void WritSpan(int position, Span<byte> span)
+        {
+            if (accessorLocal != null)
+            {
+                accessorLocal.SafeMemoryMappedViewHandle.WriteSpan<byte>((ulong)position, span);
+            }
+        }
 
         public byte ReadByte(int position)
         {
@@ -106,6 +114,8 @@ namespace cmonitor.libs
                 accessorLocal.Write(position, value);
             }
         }
+
+
     }
 
 }

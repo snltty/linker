@@ -2,7 +2,7 @@
 using Microsoft.Win32;
 using System.Runtime.InteropServices;
 
-namespace llock.win
+namespace cmonitor.llock.win
 {
     internal class Hook : IDisposable
     {

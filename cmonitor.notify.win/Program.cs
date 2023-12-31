@@ -1,4 +1,4 @@
-namespace notify.win
+namespace cmonitor.notify.win
 {
     internal static class Program
     {

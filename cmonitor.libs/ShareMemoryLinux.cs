@@ -60,6 +60,13 @@ namespace cmonitor.libs
                 Marshal.Copy(bytes, offset, shmPtr + position, length);
             }
         }
+        public unsafe void WritSpan(int position, Span<byte> span)
+        {
+            if (shmPtr != IntPtr.Zero)
+            {
+                span.CopyTo(new Span<byte>((void*)(shmPtr + position), span.Length));
+            }
+        }
 
         public byte ReadByte(int position)
         {
@@ -131,5 +138,7 @@ namespace cmonitor.libs
 
         [DllImport(LIBC_LIBRARY, EntryPoint = "shm_unlink", SetLastError = true)]
         public static extern int ShmUnlink(string name);
+
+
     }
 }

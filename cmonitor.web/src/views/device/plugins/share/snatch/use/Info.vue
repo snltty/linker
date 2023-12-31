@@ -1,7 +1,7 @@
 <template>
     <div class="snatchs-items-wrap-info flex flex-nowrap flex-column">
         <div class="flex-1">
-            <div class="prevs-wrap">
+            <div class="prevs-wrap scrollbar-1">
                 <ul>
                     <template v-for="(group,index) in state.answers" :key="index">
                         <li>
@@ -11,22 +11,32 @@
                                 </dt>
                                 <dd class="right">
                                     <el-row class="w-100">
-                                        <el-col :span="8">
+                                        <el-col :span="6">
+                                            <el-form-item class="t-c" label-width="0">
+                                                <template v-if="group.Question.Cate == 1">
+                                                    {{state.types[group.Question.Type]}}
+                                                </template>
+                                                <template v-else>
+                                                    {{ state.cates[group.Question.Cate]}}
+                                                </template>
+                                            </el-form-item>
+                                        </el-col>
+                                        <el-col :span="6">
                                             <el-form-item class="t-c" label="参与" label-width="4rem">{{group.Question.Join}}</el-form-item>
                                         </el-col>
                                         <template v-if="group.Question.Cate ==1">
-                                            <el-col :span="8">
+                                            <el-col :span="6">
                                                 <el-form-item class="t-c" label="正确" label-width="4rem">{{group.Question.Right}}</el-form-item>
                                             </el-col>
-                                            <el-col :span="8">
+                                            <el-col :span="6">
                                                 <el-form-item class="t-c" label="错误" label-width="4rem">{{group.Question.Wrong}}</el-form-item>
                                             </el-col>
                                         </template>
                                         <template v-else>
-                                            <el-col :span="8">
+                                            <el-col :span="6">
                                                 <el-form-item class="t-c" label="已选" label-width="4rem">{{group.Question.Right}}</el-form-item>
                                             </el-col>
-                                            <el-col :span="8">
+                                            <el-col :span="6">
                                                 <el-form-item class="t-c" label="未选" label-width="4rem">{{group.Question.Wrong}}</el-form-item>
                                             </el-col>
                                         </template>
@@ -150,6 +160,7 @@ export default {
         &>ul>li {
             border: 1px solid #ddd;
             border-radius: 0.4rem;
+            margin-bottom: 0.6rem;
 
             dd {
                 border-top: 1px solid #ddd;

@@ -6,7 +6,7 @@ export default {
     state: {
         shareSnatch: {
             showTemplate: false,
-            showUse: true,
+            showUse: false,
             answers: []
         }
     },

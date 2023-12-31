@@ -1,4 +1,4 @@
-﻿namespace llock.win
+﻿namespace cmonitor.llock.win
 {
     partial class MainForm
     {

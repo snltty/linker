@@ -1,7 +1,6 @@
 ﻿using common.libs;
 using common.libs.helpers;
 using common.libs.winapis;
-using System.IO.MemoryMappedFiles;
 
 namespace cmonitor.client.reports.screen
 {
@@ -80,29 +79,5 @@ namespace cmonitor.client.reports.screen
             }
         }
 
-
-        MemoryMappedFile mmf;
-        MemoryMappedViewAccessor accessor;
-        byte[] shareScreenBytes = new byte[1 * 1024 * 1024];
-        private void ScreenShareInit()
-        {
-            if (OperatingSystem.IsWindows())
-            {
-               // mmf = MemoryMappedFile.CreateOrOpen($"{config.ShareMemoryKey}/screen", shareScreenBytes.Length);
-               // accessor = mmf.CreateViewAccessor();
-            }
-        }
-        public void ScreenShareState(ScreenShareStates screenShareState)
-        {
-            //clientConfig.ScreenShareState = screenShareState;
-        }
-        public void ScreenShare(Memory<byte> data)
-        {
-            if (data.Length > 0 && data.Length <= shareScreenBytes.Length && accessor != null)
-            {
-                data.CopyTo(shareScreenBytes);
-                accessor.WriteArray(0, shareScreenBytes, 0, data.Length);
-            }
-        }
     }
 }

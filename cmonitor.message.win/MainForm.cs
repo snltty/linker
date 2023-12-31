@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace message.win
+namespace cmonitor.message.win
 {
     public partial class MainForm : Form
     {

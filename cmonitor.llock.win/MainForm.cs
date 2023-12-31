@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace llock.win
+namespace cmonitor.llock.win
 {
     public partial class MainForm : Form
     {

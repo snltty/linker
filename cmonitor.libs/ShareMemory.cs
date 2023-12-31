@@ -404,6 +404,38 @@ namespace cmonitor.libs
             return false;
         }
 
+        public bool Update(int index, Span<byte> span, ShareMemoryAttribute addAttri = ShareMemoryAttribute.None,
+            ShareMemoryAttribute removeAttri = ShareMemoryAttribute.None)
+        {
+            if (accessorLocal == null && accessorGlobal == null) return false;
+            if (span.Length > shareMemoryHeadSize + itemSize) return false;
+
+            lock (lockObj)
+            {
+                int valIndex = index * itemSize + 8 + shareMemoryHeadSize;
+                if (accessorLocal != null)
+                {
+                    accessorLocal.WriteInt(valIndex, span.Length);
+                    accessorLocal.WritSpan(valIndex+4, span);
+                }
+                if (accessorGlobal != null)
+                {
+                    accessorGlobal.WriteInt(valIndex, span.Length);
+                    accessorGlobal.WritSpan(valIndex, span);
+                }
+                IncrementVersion(index);
+                if (removeAttri > 0)
+                {
+                    RemoveAttribute(index, removeAttri);
+                }
+                if (addAttri > 0)
+                {
+                    AddAttribute(index, addAttri);
+                }
+            }
+            return true;
+        }
+
         private ShareMemoryAttribute ReadAttribute(IShareMemory accessor, int index)
         {
             if (accessor == null || index >= length) return ShareMemoryAttribute.None;

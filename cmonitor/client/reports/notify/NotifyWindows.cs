@@ -14,7 +14,7 @@ namespace cmonitor.client.reports.notify
             Task.Run(() =>
             {
                 CommandHelper.Windows(string.Empty, new string[] {
-                        $"start notify.win.exe {notify.Speed} \"{notify.Msg}\" {notify.Star1} {notify.Star2} {notify.Star3}"
+                        $"start cmonitor.notify.win.exe {notify.Speed} \"{notify.Msg}\" {notify.Star1} {notify.Star2} {notify.Star3}"
                     });
             });
         }

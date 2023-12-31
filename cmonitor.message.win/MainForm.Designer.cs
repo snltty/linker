@@ -1,4 +1,4 @@
-﻿namespace message.win
+﻿namespace cmonitor.message.win
 {
     partial class MainForm
     {

@@ -88,7 +88,7 @@
 <script>
 import { reactive, ref } from '@vue/reactivity';
 import { computed, onMounted } from '@vue/runtime-core';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { addQuestion, randomQuestion, updateQuestion } from '@/apis/snatch'
 import { injectGlobalData } from '@/views/provide';
 import { injectPluginState } from '@/views/device/provide';
@@ -167,7 +167,17 @@ export default {
                 return arr;
             }, []).join('') : json.Correct.replace(/^\s|\s$/g, '');
         }
+
         const handleEditSubmit = () => {
+            ElMessageBox.confirm('确定以当前编辑好的题目开始吗？', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning',
+            }).then(() => {
+                handleEdit();
+            }).catch(() => { });
+        }
+        const handleEdit = () => {
             formDom.value.validate((valid) => {
                 if (!valid) {
                     return;
@@ -224,7 +234,17 @@ export default {
 
             });
         }
+
         const handleRandomSubmit = () => {
+            ElMessageBox.confirm('随机开始，则每台设备都以随机题目方式启动，确定以随机方式开始吗？', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning',
+            }).then(() => {
+                handleRandom();
+            }).catch(() => { });
+        }
+        const handleRandom = () => {
             const names = pluginState.value.command.devices.map(c => c.MachineName);
             state.loading = true;
             randomQuestion(names.length).then((questions) => {

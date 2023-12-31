@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace notify.win
+namespace cmonitor.notify.win
 {
     public partial class MainForm : Form
     {

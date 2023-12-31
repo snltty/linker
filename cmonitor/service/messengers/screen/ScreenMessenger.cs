@@ -11,13 +11,16 @@ namespace cmonitor.service.messengers.screen
         private readonly IClientServer clientServer;
         private readonly Config config;
         private readonly SignCaching signCaching;
+        private readonly ScreenShare screenShare;
 
-        public ScreenMessenger(ScreenReport screenReport, IClientServer clientServer, Config config, SignCaching signCaching)
+
+        public ScreenMessenger(ScreenReport screenReport, IClientServer clientServer, Config config, SignCaching signCaching, ScreenShare screenShare)
         {
             this.screenReport = screenReport;
             this.clientServer = clientServer;
             this.config = config;
             this.signCaching = signCaching;
+            this.screenShare = screenShare;
         }
 
         [MessengerId((ushort)ScreenMessengerIds.CaptureFull)]
@@ -32,8 +35,12 @@ namespace cmonitor.service.messengers.screen
         }
 
         [MessengerId((ushort)ScreenMessengerIds.CaptureFullReport)]
-        public void CaptureFullReport(IConnection connection)
+        public async Task CaptureFullReport(IConnection connection)
         {
+            if (await screenShare.SendData(connection.Name, connection.ReceiveRequestWrap.Payload))
+            {
+                return;
+            }
             if (signCaching.Get(connection.Name, out SignCacheInfo cache))
             {
                 if (cache.Version == config.Version)
@@ -59,6 +66,7 @@ namespace cmonitor.service.messengers.screen
         {
             screenReport.SetCaptureRegion();
         }
+
         [MessengerId((ushort)ScreenMessengerIds.CaptureRegionReport)]
         public void CaptureRegionReport(IConnection connection)
         {
@@ -87,14 +95,16 @@ namespace cmonitor.service.messengers.screen
         [MessengerId((ushort)ScreenMessengerIds.ScreenShare)]
         public void ScreenShare(IConnection connection)
         {
-            screenReport.SetScreenShareData(connection.ReceiveRequestWrap.Payload);
+            screenShare.SetData(connection.ReceiveRequestWrap.Payload);
         }
 
         [MessengerId((ushort)ScreenMessengerIds.ScreenShareState)]
-        public void ScreenShareState(IConnection connection)
+        public async Task ScreenShareState(IConnection connection)
         {
-            screenReport.SetScreenShareState((ScreenShareStates)connection.ReceiveRequestWrap.Payload.Span[0]);
+            ScreenShareSetupInfo screenShareSetupInfo = MemoryPackSerializer.Deserialize<ScreenShareSetupInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            await screenShare.SetState(connection.Name, screenShareSetupInfo);
         }
+
     }
 
 }

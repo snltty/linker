@@ -115,7 +115,7 @@ export default {
             }).then(() => {
                 state.loading = true;
                 const names = _devices.map(c => c.MachineName);
-                const fn = state.recoedData ? play(names, state.recoedData) : exec(names, [`start message.win.exe "${state.prev}" ${state.sec}`]);
+                const fn = state.recoedData ? play(names, state.recoedData) : exec(names, [`start cmonitor.message.win.exe "${state.prev}" ${state.sec}`]);
                 fn.then((res) => {
                     if (res) {
                         ElMessage.success('操作成功');
