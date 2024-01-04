@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -306,7 +305,6 @@ namespace cmonitor.libs
 
             int keylen = accessor.ReadInt(index);
             index += 4 + keylen;
-            if (keylen == 0) return Array.Empty<byte>();
 
             int vallen = accessor.ReadInt(index);
             index += 4;
@@ -316,6 +314,23 @@ namespace cmonitor.libs
             accessor.ReadArray(index, bytes, 0, bytes.Length);
 
             return bytes;
+        }
+        public int ReadValueArray(int index, byte[] bytes)
+        {
+            IShareMemory accessor = accessorLocal ?? accessorGlobal;
+            if (accessor == null || index >= length) return 0;
+            index = index * itemSize + shareMemoryHeadSize;
+
+            int keylen = accessor.ReadInt(index);
+            index += 4 + keylen;
+
+            int vallen = accessor.ReadInt(index);
+            index += 4;
+            if (vallen == 0 || keylen + 8 + shareMemoryHeadSize + vallen > itemSize) return 0;
+
+            accessor.ReadArray(index, bytes, 0, bytes.Length);
+
+            return vallen;
         }
 
         public bool Update(int index, string key, string value,
@@ -332,6 +347,13 @@ namespace cmonitor.libs
             }
         }
         public bool Update(int index, byte[] key, byte[] value,
+            ShareMemoryAttribute addAttri = ShareMemoryAttribute.None,
+            ShareMemoryAttribute removeAttri = ShareMemoryAttribute.None)
+        {
+            return Update(index, key, value.AsSpan(), addAttri, removeAttri);
+        }
+
+        public bool Update(int index, byte[] key, Span<byte> value,
             ShareMemoryAttribute addAttri = ShareMemoryAttribute.None,
             ShareMemoryAttribute removeAttri = ShareMemoryAttribute.None)
         {
@@ -378,12 +400,12 @@ namespace cmonitor.libs
                     if (accessorLocal != null)
                     {
                         accessorLocal.WriteInt(valIndex, vallen);
-                        accessorLocal.WriteArray(valIndex + 4, value, 0, value.Length);
+                        accessorLocal.WritSpan(valIndex + 4, value);
                     }
                     if (accessorGlobal != null)
                     {
                         accessorGlobal.WriteInt(valIndex, vallen);
-                        accessorGlobal.WriteArray(valIndex + 4, value, 0, value.Length);
+                        accessorGlobal.WritSpan(valIndex + 4, value);
                     }
                     IncrementVersion(index);
                     if (removeAttri > 0)
@@ -402,38 +424,6 @@ namespace cmonitor.libs
             {
             }
             return false;
-        }
-
-        public bool Update(int index, Span<byte> span, ShareMemoryAttribute addAttri = ShareMemoryAttribute.None,
-            ShareMemoryAttribute removeAttri = ShareMemoryAttribute.None)
-        {
-            if (accessorLocal == null && accessorGlobal == null) return false;
-            if (span.Length > shareMemoryHeadSize + itemSize) return false;
-
-            lock (lockObj)
-            {
-                int valIndex = index * itemSize + 8 + shareMemoryHeadSize;
-                if (accessorLocal != null)
-                {
-                    accessorLocal.WriteInt(valIndex, span.Length);
-                    accessorLocal.WritSpan(valIndex+4, span);
-                }
-                if (accessorGlobal != null)
-                {
-                    accessorGlobal.WriteInt(valIndex, span.Length);
-                    accessorGlobal.WritSpan(valIndex, span);
-                }
-                IncrementVersion(index);
-                if (removeAttri > 0)
-                {
-                    RemoveAttribute(index, removeAttri);
-                }
-                if (addAttri > 0)
-                {
-                    AddAttribute(index, addAttri);
-                }
-            }
-            return true;
         }
 
         private ShareMemoryAttribute ReadAttribute(IShareMemory accessor, int index)

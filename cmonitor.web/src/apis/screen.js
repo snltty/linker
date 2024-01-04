@@ -14,3 +14,21 @@ export const screenClip = (name, data) => {
         clip: data
     }, false, 1000);
 }
+
+export const screenDisplay = (names, state) => {
+    return sendWebsocketMsg('screen/display', {
+        names, state
+    }, false, 1000);
+}
+
+export const screenShare = (name, names) => {
+    return sendWebsocketMsg('screen/share', {
+        names, name
+    }, false, 1000);
+}
+export const screenCloseShare = (name) => {
+    return sendWebsocketMsg('screen/closeShare', name, false, 1000);
+}
+export const screenGetShare = () => {
+    return sendWebsocketMsg('screen/getshare', {}, false, 1000);
+}

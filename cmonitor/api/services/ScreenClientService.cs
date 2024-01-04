@@ -12,16 +12,18 @@ namespace cmonitor.api.services
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;
         private readonly Config config;
-        public ScreenClientService(MessengerSender messengerSender, SignCaching signCaching, Config config)
+        private readonly ScreenShare screenShare;
+        public ScreenClientService(MessengerSender messengerSender, SignCaching signCaching, Config config, ScreenShare screenShare)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
             this.config = config;
+            this.screenShare = screenShare;
         }
         public bool Full(ClientServiceParamsInfo param)
         {
             ScreenReportInfo report = param.Content.DeJson<ScreenReportInfo>();
-            byte[] bytes = new byte[] {(byte)report.Type };
+            byte[] bytes = new byte[] { (byte)report.Type };
             for (int i = 0; i < report.Names.Length; i++)
             {
                 bool connectionRes = signCaching.Get(report.Names[i], out SignCacheInfo cache) && cache.Connected;
@@ -36,7 +38,7 @@ namespace cmonitor.api.services
                         Connection = cache.Connection,
                         MessengerId = (ushort)ScreenMessengerIds.CaptureFull,
                         Timeout = 1000,
-                         Payload= bytes
+                        Payload = bytes
                     }).ContinueWith((result) =>
                     {
                         Interlocked.Exchange(ref cache.ScreenFlag, 1);
@@ -89,6 +91,55 @@ namespace cmonitor.api.services
             return true;
         }
 
+
+        public async Task<bool> Display(ClientServiceParamsInfo param)
+        {
+            ScreenDisplayInfo display = param.Content.DeJson<ScreenDisplayInfo>();
+            byte[] state = new byte[] { (byte)(display.State ? 1 : 0) };
+
+            for (int i = 0; i < display.Names.Length; i++)
+            {
+                bool res = signCaching.Get(display.Names[i], out SignCacheInfo cache) && cache.Connected;
+                if (res)
+                {
+                    await messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = cache.Connection,
+                        MessengerId = (ushort)ScreenMessengerIds.DisplayState,
+                        Payload = state
+                    });
+                }
+            }
+
+            return true;
+        }
+        public async Task<bool> Share(ClientServiceParamsInfo param)
+        {
+            ScreenShareParamInfo share = param.Content.DeJson<ScreenShareParamInfo>();
+            await screenShare.Start(share.Name, share.Names);
+            return true;
+        }
+        public async Task<bool> CloseShare(ClientServiceParamsInfo param)
+        {
+            await screenShare.Close(param.Content);
+            return true;
+        }
+        public string[] GetShare(ClientServiceParamsInfo param)
+        {
+            return screenShare.GetHostNames();
+        }
+    }
+
+    public sealed class ScreenShareParamInfo
+    {
+        public string Name { get; set; }
+        public string[] Names { get; set; }
+    }
+
+    public sealed class ScreenDisplayInfo
+    {
+        public string[] Names { get; set; }
+        public bool State { get; set; }
     }
 
     public sealed class ScreenReportInfo

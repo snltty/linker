@@ -93,9 +93,8 @@ namespace cmonitor.client.reports.screen
                 while (true)
                 {
                     bool connected = clientSignInState.Connected == true;
-                    bool shareState = (clientConfig.ScreenShareState & ScreenShareStates.Sender) == ScreenShareStates.Sender;
                     bool time = (DateTime.UtcNow.Ticks - ticks) / TimeSpan.TicksPerMillisecond < 1000;
-                    if (connected && (shareState || time) && (task == null || task.IsCompleted))
+                    if (connected && time && (task == null || task.IsCompleted))
                     {
                         try
                         {

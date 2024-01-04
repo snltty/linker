@@ -8,7 +8,7 @@ export default {
     state: {
         command: {
             showCommand: false,
-            showTerm: true,
+            showTerm: false,
             devices: [],
         }
     },

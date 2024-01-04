@@ -7,6 +7,8 @@ export default {
             Screen: {
                 displays: [],
 
+                share: false,
+
                 regionImgs: [], //局部图
                 fullImg: null, //全图
                 fullUpdated: false, //第一次进来先获取一次全图
@@ -207,6 +209,14 @@ export default {
 
             }
         };
+    },
+    state: {
+        screen: {
+            showShare: false,
+            device: '',
+            devices: [],
+            shareUpdateFlag: 0
+        }
     },
 
     globalData: null,

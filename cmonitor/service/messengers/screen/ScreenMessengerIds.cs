@@ -14,8 +14,9 @@
 
         DisplayState = 806,
 
-        ScreenShareState = 807,
-        ScreenShare = 808,
+        ShareStart = 807,
+        ShareData = 808,
+        ShareClose = 809,
 
         None = 899
     }

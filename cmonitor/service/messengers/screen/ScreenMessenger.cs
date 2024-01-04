@@ -37,10 +37,8 @@ namespace cmonitor.service.messengers.screen
         [MessengerId((ushort)ScreenMessengerIds.CaptureFullReport)]
         public async Task CaptureFullReport(IConnection connection)
         {
-            if (await screenShare.SendData(connection.Name, connection.ReceiveRequestWrap.Payload))
-            {
-                return;
-            }
+            await screenShare.ShareData(connection.Name, connection.ReceiveRequestWrap.Payload);
+
             if (signCaching.Get(connection.Name, out SignCacheInfo cache))
             {
                 if (cache.Version == config.Version)
@@ -92,19 +90,28 @@ namespace cmonitor.service.messengers.screen
         }
 
 
-        [MessengerId((ushort)ScreenMessengerIds.ScreenShare)]
-        public void ScreenShare(IConnection connection)
+        [MessengerId((ushort)ScreenMessengerIds.ShareData)]
+        public void ShareData(IConnection connection)
         {
             screenShare.SetData(connection.ReceiveRequestWrap.Payload);
         }
 
-        [MessengerId((ushort)ScreenMessengerIds.ScreenShareState)]
-        public async Task ScreenShareState(IConnection connection)
+        [MessengerId((ushort)ScreenMessengerIds.ShareStart)]
+        public async Task ShareStart(IConnection connection)
         {
-            ScreenShareSetupInfo screenShareSetupInfo = MemoryPackSerializer.Deserialize<ScreenShareSetupInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            await screenShare.SetState(connection.Name, screenShareSetupInfo);
+            string[] names = Array.Empty<string>();
+            if (connection.ReceiveRequestWrap.Payload.Length > 0)
+            {
+                names = MemoryPackSerializer.Deserialize<string[]>(connection.ReceiveRequestWrap.Payload.Span);
+            }
+            await screenShare.Start(connection.Name, names);
         }
 
+        [MessengerId((ushort)ScreenMessengerIds.ShareClose)]
+        public async Task ShareClose(IConnection connection)
+        {
+            await screenShare.Close(connection.Name);
+        }
     }
 
 }

@@ -2,25 +2,22 @@
 using cmonitor.service;
 using cmonitor.service.messengers.screen;
 using cmonitor.service.messengers.sign;
-using MemoryPack;
+using common.libs;
 using System.Collections.Concurrent;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace cmonitor.client.reports.screen
 {
     public sealed class ScreenShare
     {
         private readonly Config config;
-        private readonly ClientConfig clientConfig;
         private readonly SignCaching signCaching;
         private readonly MessengerSender messengerSender;
 
         private readonly ConcurrentDictionary<string, string[]> shareMap = new ConcurrentDictionary<string, string[]>();
 
-        public ScreenShare(Config config, ClientConfig clientConfig, SignCaching signCaching, MessengerSender messengerSender)
+        public ScreenShare(Config config, SignCaching signCaching, MessengerSender messengerSender)
         {
             this.config = config;
-            this.clientConfig = clientConfig;
             this.signCaching = signCaching;
             this.messengerSender = messengerSender;
 
@@ -35,40 +32,74 @@ namespace cmonitor.client.reports.screen
         private void Init()
         {
             shareMemory = new ShareMemory($"{config.ShareMemoryKey}/screen", 1, 2 * 1024 * 1024);
-            shareMemory.InitGlobal();
+            shareMemory.InitLocal();
         }
-        public async Task SetState(string machineName, ScreenShareSetupInfo screenShareSetupInfo)
+        public async Task Start(string machineName, string[] names)
         {
             if (config.IsCLient)
             {
-                clientConfig.ScreenShareState = screenShareSetupInfo.State;
-            }
-            else
-            {
-                if (screenShareSetupInfo.MachineNames.Length > 0)
+                _ = Task.Run(() =>
                 {
-                    shareMap.AddOrUpdate(machineName, screenShareSetupInfo.MachineNames, (a, b) => screenShareSetupInfo.MachineNames);
-                    byte[] bytes = MemoryPackSerializer.Serialize(new ScreenShareSetupInfo { State = ScreenShareStates.Receiver });
-                    foreach (string name in screenShareSetupInfo.MachineNames)
+                    CommandHelper.Windows(string.Empty, new string[] {
+                        $"start cmonitor.share.win.exe {config.ShareMemoryKey}/screen {2 * 1024 * 1024}"
+                    });
+                });
+            }
+
+            if (names.Length > 0)
+            {
+                shareMap.AddOrUpdate(machineName, names, (a, b) => names);
+                foreach (string name in names)
+                {
+                    if (signCaching.Get(name, out SignCacheInfo sign) && sign.Connected)
                     {
-                        if (signCaching.Get(name, out SignCacheInfo sign) && sign.Connected)
+                        await messengerSender.SendOnly(new MessageRequestWrap
                         {
-                            await messengerSender.SendOnly(new MessageRequestWrap
-                            {
-                                Connection = sign.Connection,
-                                MessengerId = (ushort)ScreenMessengerIds.ScreenShareState,
-                                Payload = bytes,
-                            });
-                        }
+                            Connection = sign.Connection,
+                            MessengerId = (ushort)ScreenMessengerIds.ShareStart
+                        });
                     }
                 }
             }
         }
+        public async Task Close(string machineName)
+        {
+            if (config.IsCLient)
+            {
+                shareMemory.AddAttribute(0, ShareMemoryAttribute.Closed);
+            }
+
+            if (string.IsNullOrWhiteSpace(machineName)) return;
+            if (shareMap.TryRemove(machineName, out string[] names))
+            {
+                foreach (string name in names)
+                {
+                    if (signCaching.Get(name, out SignCacheInfo sign) && sign.Connected)
+                    {
+                        await messengerSender.SendOnly(new MessageRequestWrap
+                        {
+                            Connection = sign.Connection,
+                            MessengerId = (ushort)ScreenMessengerIds.ShareClose
+                        });
+                    }
+                }
+            }
+        }
+
+        public string[] GetHostNames()
+        {
+            return shareMap.Keys.ToArray();
+        }
+
         public void SetData(Memory<byte> data)
         {
-            shareMemory.Update(0, data.Span);
+            shareMemory.Update(0, Helper.EmptyArray, data.Span);
+            if (shareMemory.ReadAttributeEqual(0, ShareMemoryAttribute.Running) == false)
+            {
+
+            }
         }
-        public async Task<bool> SendData(string machineName, Memory<byte> data)
+        public async ValueTask<bool> ShareData(string machineName, Memory<byte> data)
         {
             if (shareMap.TryGetValue(machineName, out string[] names))
             {
@@ -79,7 +110,7 @@ namespace cmonitor.client.reports.screen
                         await messengerSender.SendOnly(new MessageRequestWrap
                         {
                             Connection = sign.Connection,
-                            MessengerId = (ushort)ScreenMessengerIds.ScreenShare,
+                            MessengerId = (ushort)ScreenMessengerIds.ShareData,
                             Payload = data,
                         });
                     }
@@ -92,17 +123,4 @@ namespace cmonitor.client.reports.screen
         }
     }
 
-    public enum ScreenShareStates : byte
-    {
-        None = 0,
-        Sender = 1,
-        Receiver = 2
-    }
-
-    [MemoryPackable]
-    public sealed partial class ScreenShareSetupInfo
-    {
-        public ScreenShareStates State { get; set; }
-        public string[] MachineNames { get; set; }
-    }
 }

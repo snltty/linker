@@ -99,7 +99,6 @@ export default {
         const handleStarChange = () => {
             state.loading = true;
             let value = JSON.parse(JSON.stringify(props.data.Share.Lock.Value));
-            console.log(value);
             shareUpdate([props.data.MachineName], {
                 index: props.data.Share.Lock.Index,
                 value: JSON.stringify(value)

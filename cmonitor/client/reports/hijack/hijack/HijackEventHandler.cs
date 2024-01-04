@@ -149,7 +149,7 @@ namespace cmonitor.client.reports.hijack.hijack
                         while (span[0] > 0)
                         {
                             sb.Append(span.Slice(1, span[0]).GetString());
-                            sb.Append(".");
+                            sb.Append('.');
                             span = span.Slice(1 + span[0]);
                         }
                         string domain = sb.ToString(0, sb.Length - 1);

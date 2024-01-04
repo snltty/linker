@@ -26,7 +26,6 @@ namespace cmonitor.client
             HijackIds = clientConfig.HijackIds;
             WindowNames = clientConfig.WindowNames;
             WindowIds = clientConfig.WindowIds;
-            ScreenShareState = clientConfig.ScreenShareState;
             UserSid = clientConfig.UserSid;
             SaveTask();
         }
@@ -125,16 +124,7 @@ namespace cmonitor.client
             }
         }
 
-        private ScreenShareStates _screenShareState;
-        public ScreenShareStates ScreenShareState
-        {
-            get => _screenShareState; set
-            {
-                _screenShareState = value;
-                updated = true;
-            }
-        }
-
+       
 
         private string _userSid = string.Empty;
         public string UserSid
