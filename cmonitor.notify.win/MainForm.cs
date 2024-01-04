@@ -59,11 +59,11 @@ namespace cmonitor.notify.win
             {
                 for (int j = 0; j < starPics[i].Length; j++)
                 {
-                    starPics[i][j].Image = global::notify.win.Properties.Resources.star2;
+                    starPics[i][j].Image = global::cmonitor.notify.win.Properties.Resources.star2;
                 }
                 for (int j = 0; j < stars[i]; j++)
                 {
-                    starPics[i][j].Image = global::notify.win.Properties.Resources.star1;
+                    starPics[i][j].Image = global::cmonitor.notify.win.Properties.Resources.star1;
                 }
             }
 
