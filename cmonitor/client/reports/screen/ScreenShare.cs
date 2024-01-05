@@ -1,8 +1,10 @@
 ﻿using cmonitor.libs;
 using cmonitor.service;
 using cmonitor.service.messengers.screen;
+using cmonitor.service.messengers.setting;
 using cmonitor.service.messengers.sign;
 using common.libs;
+using MemoryPack;
 using System.Collections.Concurrent;
 
 namespace cmonitor.client.reports.screen
@@ -49,9 +51,19 @@ namespace cmonitor.client.reports.screen
             if (names.Length > 0)
             {
                 shareMap.AddOrUpdate(machineName, names, (a, b) => names);
+
+                if (signCaching.Get(machineName, out SignCacheInfo sign) && sign.Connected)
+                {
+                    await messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = sign.Connection,
+                        MessengerId = (ushort)SettingMessengerIds.Share,
+                        Payload = MemoryPackSerializer.Serialize(new SettingShareInfo { ScreenDelay = 30, ScreenScale = 1f })
+                    });
+                }
                 foreach (string name in names)
                 {
-                    if (signCaching.Get(name, out SignCacheInfo sign) && sign.Connected)
+                    if (signCaching.Get(name, out sign) && sign.Connected)
                     {
                         await messengerSender.SendOnly(new MessageRequestWrap
                         {
@@ -69,12 +81,25 @@ namespace cmonitor.client.reports.screen
                 shareMemory.AddAttribute(0, ShareMemoryAttribute.Closed);
             }
 
-            if (string.IsNullOrWhiteSpace(machineName)) return;
+            if (string.IsNullOrWhiteSpace(machineName))
+            {
+                return;
+            }
             if (shareMap.TryRemove(machineName, out string[] names))
             {
+                if (signCaching.Get(machineName, out SignCacheInfo sign) && sign.Connected)
+                {
+                    await messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = sign.Connection,
+                        MessengerId = (ushort)SettingMessengerIds.Share,
+                        Payload = MemoryPackSerializer.Serialize(new SettingShareInfo { ScreenDelay = config.ScreenDelay, ScreenScale = config.ScreenScale })
+                    });
+                }
+
                 foreach (string name in names)
                 {
-                    if (signCaching.Get(name, out SignCacheInfo sign) && sign.Connected)
+                    if (signCaching.Get(name, out sign) && sign.Connected)
                     {
                         await messengerSender.SendOnly(new MessageRequestWrap
                         {

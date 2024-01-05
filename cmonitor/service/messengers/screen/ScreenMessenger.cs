@@ -37,7 +37,8 @@ namespace cmonitor.service.messengers.screen
         [MessengerId((ushort)ScreenMessengerIds.CaptureFullReport)]
         public async Task CaptureFullReport(IConnection connection)
         {
-            await screenShare.ShareData(connection.Name, connection.ReceiveRequestWrap.Payload);
+            bool shared = await screenShare.ShareData(connection.Name, connection.ReceiveRequestWrap.Payload);
+            if (shared) return;
 
             if (signCaching.Get(connection.Name, out SignCacheInfo cache))
             {

@@ -682,4 +682,5 @@ namespace cmonitor.client.reports.screen
 
 
     }
+
 }

@@ -55,6 +55,7 @@
 
 	
 	<ItemGroup>
+		<PackageReference Include="FFmpeg.AutoGen" Version="6.1.0" />
 		<PackageReference Include="MemoryPack" Version="1.10.0" />
 		<PackageReference Include="NAudio" Version="2.2.1" />
 		<PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
@@ -62,6 +63,7 @@
 		<TrimmerRootAssembly Include="System.Management" />
 		<TrimmerRootAssembly Include="NAudio" />
 		<TrimmerRootAssembly Include="SharpDX" />
+		<TrimmerRootAssembly Include="FFmpeg.AutoGen" />
 		
 	</ItemGroup>
 

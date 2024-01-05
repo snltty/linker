@@ -23,6 +23,21 @@ namespace cmonitor.service.messengers.setting
             
         }
 
+
+        [MessengerId((ushort)SettingMessengerIds.Share)]
+        public void Share(IConnection connection)
+        {
+            SettingShareInfo settingInfo = MemoryPackSerializer.Deserialize<SettingShareInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            config.ScreenDelay = settingInfo.ScreenDelay;
+            config.ScreenScale = settingInfo.ScreenScale;
+        }
+    }
+    [MemoryPackable]
+    public sealed partial class SettingShareInfo
+    {
+        public float ScreenScale { get; set; } = 0.2f;
+        public int ScreenDelay { get; set; } = 30;
+
     }
 
     [MemoryPackable]

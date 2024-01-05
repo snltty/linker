@@ -5,16 +5,12 @@ export default {
     field() {
         return {
             Screen: {
-                displays: [],
-
                 share: false,
 
                 regionImgs: [], //局部图
                 fullImg: null, //全图
                 fullUpdated: false, //第一次进来先获取一次全图
                 width: 0, height: 0, //系统宽高
-                prevCanvas: null,
-                prevCtx: null,
 
                 draw(canvas, ctx) {
                     this.drawFps(canvas, ctx);
@@ -231,6 +227,7 @@ export default {
     uninit() {
         clearTimeout(this.reportTimer);
         clearTimeout(this.clipTimer);
+        clearTimeout(this.fpsTimer);
     },
 
     imgOnload(url, param) {
@@ -241,6 +238,14 @@ export default {
             img.onload = function () {
                 resolve(img);
             };
+        });
+    },
+    createImageBitmap(img, param) {
+        return new Promise((resolve, reject) => {
+            createImageBitmap(img).then((image) => {
+                image.param = param;
+                resolve(image);
+            })
         });
     },
     handleScreenFull(res, param) {
@@ -284,7 +289,7 @@ export default {
                     index += 4;
                     const h = dataView.getUint32(index, true);
                     index += 4;
-                    images.push(createImageBitmap(res.Img.slice(index, index + length), { x: x, y: y, w: w, h: h }));
+                    images.push(this.createImageBitmap(res.Img.slice(index, index + length), { x: x, y: y, w: w, h: h }));
                     index += length;
                 }
 
@@ -325,20 +330,26 @@ export default {
                     item.infoCanvas.height = item.canvas.height;
                     item.infoCtx = item.infoCanvas.getContext('2d');
                 }
+                if (!item.imgCanvas) {
+                    item.imgCanvas = document.createElement('canvas');
+                    item.imgCanvas.width = item.canvas.width;
+                    item.imgCanvas.height = item.canvas.height;
+                    item.imgCtx = item.imgCanvas.getContext('2d');
+                }
             }
         }
-        if (!this.prevCanvas || !this.prevCtx) {
-            this.prevCanvas = document.getElementById(`prev-canvas`);
-            if (this.prevCanvas) {
-                this.prevCtx = this.prevCanvas.getContext('2d')
-            }
-        }
+        // if (!item.prevCanvas || !item.prevCtx) {
+        //     item.prevCanvas = document.getElementById(`prev-canvas`);
+        //     if (item.prevCanvas) {
+        //         item.prevCtx = item.prevCanvas.getContext('2d')
+        //     }
+        // }
     },
     drawRegionImgs(item) {
         const regions = item.Screen.regionImgs;
         for (let i = 0; i < regions.length; i++) {
             const { x, y, w, h } = regions[i].param;
-            item.infoCtx.drawImage(regions[i], 0, 0, regions[i].width, regions[i].height, x, y, w, h);
+            item.imgCtx.drawImage(regions[i], 0, 0, regions[i].width, regions[i].height, x, y, w, h);
         }
     },
     drawInfo(item) {
@@ -372,15 +383,17 @@ export default {
 
             const img = item.Screen.fullImg;
             if (img) {
-                item.ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, item.canvas.width, item.canvas.height);
-                if (this.prevCtx) {
-                    if (current && current.MachineName == item.MachineName) {
-                        this.prevCtx.drawImage(img, 0, 0, img.width, img.height, 0, 0, this.prevCanvas.width, this.prevCanvas.height);
-                    }
-                }
+                item.imgCtx.drawImage(img, 0, 0, img.width, img.height, 0, 0, item.canvas.width, item.canvas.height);
+                // if (item.prevCtx) {
+                //     if (current && current.MachineName == item.MachineName) {
+                //         item.prevCtx.drawImage(img, 0, 0, img.width, img.height, 0, 0, this.prevCanvas.width, this.prevCanvas.height);
+                //     }
+                // }
+                item.Screen.fullImg = null;
             }
             item.infoCtx.clearRect(0, 0, item.infoCanvas.width, item.infoCanvas.height);
             this.drawInfo(item);
+            item.ctx.drawImage(item.imgCanvas, 0, 0, item.imgCanvas.width, item.imgCanvas.height, 0, 0, item.canvas.width, item.canvas.height);
             item.ctx.drawImage(item.infoCanvas, 0, 0, item.infoCanvas.width, item.infoCanvas.height, 0, 0, item.canvas.width, item.canvas.height);
         }
         requestAnimationFrame(() => {
@@ -388,13 +401,14 @@ export default {
         });
     },
 
+    fpsTimer: 0,
     fpsInterval() {
         this.globalData.value.devices.forEach(item => {
             item.Screen.fps.value = item.Screen.fps.temp;
             item.lastUpdated = Date.now();
             item.Screen.fps.temp = 0;
         });
-        setTimeout(() => {
+        this.fpsTimer = setTimeout(() => {
             this.fpsInterval();
         }, 1000)
     },
@@ -440,6 +454,7 @@ export default {
         if (this.reported) {
             this.reported = false;
             const fn = this.updateFull();
+            // const fn = times > 5 ? this.updateRegion() : this.updateFull();
             fn.then(() => {
                 this.reported = true;
                 this.reportTimer = setTimeout(() => {
@@ -467,8 +482,5 @@ export default {
         item.Screen.captureTime = report.Screen.CT || 0;
         item.Screen.width = report.Screen.W || 0;
         item.Screen.height = report.Screen.H || 0;
-        //item.Screen.displays = report.Screen.Displays || [];
-
-        //console.log(item.Screen.displays);
     }
 }
