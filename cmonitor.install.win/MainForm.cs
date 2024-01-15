@@ -139,7 +139,7 @@ namespace cmonitor.install.win
             {
                 if (installed == false)
                 {
-                    string taskStr = $"sc create \"{serviceName}\" binpath= \"{sasPath} {shareKeyStr} {shareLenStr} {shareItemLenStr} {sasIndexStr} \\\"{paramStr}\\\"\" start=AUTO";
+                    string taskStr = $"sc create \"{serviceName}\" binpath= \"{sasPath} {shareKeyStr} {shareLenStr} {shareItemLenStr} {sasIndexStr} \\\"{paramStr}\\\"\" start= AUTO";
                     CommandHelper.Windows(string.Empty, new string[] {
                         taskStr,
                         $"net start {serviceName}",
