@@ -59,7 +59,7 @@ export default {
             }).catch(() => { });
         }
         const handleConnect = () => {
-            //initWebsocket(`ws://192.168.1.18:1801`);
+            // initWebsocket(`ws://192.168.1.18:1801`);
             initWebsocket(`ws://${state.api}`);
             localStorage.setItem('api', state.api);
         }

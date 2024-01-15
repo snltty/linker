@@ -22,12 +22,14 @@ export default {
                 type: 'warning',
             }).then(() => {
                 setVolumeMute([props.data.MachineName], !props.data.Volume.Mute).then((res) => {
+                    console.log(res);
                     if (res) {
                         ElMessage.success('操作成功');
                     } else {
                         ElMessage.error('操作失败');
                     }
-                }).catch(() => {
+                }).catch((e) => {
+                    console.log(e);
                     ElMessage.error('操作失败');
                 });
 

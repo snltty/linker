@@ -37,6 +37,26 @@ namespace cmonitor.api.services
             return true;
         }
 
+        public async Task<bool> Mute(ClientServiceParamsInfo param)
+        {
+            VolumeMuteInfo info = param.Content.DeJson<VolumeMuteInfo>();
+            byte[] bytes = MemoryPackSerializer.Serialize(info.Value);
+            for (int i = 0; i < info.Names.Length; i++)
+            {
+                if (signCaching.Get(info.Names[i], out SignCacheInfo cache) && cache.Connected)
+                {
+                    await messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = cache.Connection,
+                        MessengerId = (ushort)VolumeMessengerIds.Mute,
+                        Payload = bytes
+                    });
+                }
+            }
+
+            return true;
+        }
+
         public async Task<bool> Play(ClientServiceParamsInfo param)
         {
             VolumePlayInfo info = param.Content.DeJson<VolumePlayInfo>();

@@ -8,6 +8,13 @@ namespace cmonitor.snatch.win
         [STAThread]
         static void Main(string[] arg)
         {
+            Mutex mutex = new Mutex(true, System.Diagnostics.Process.GetCurrentProcess().ProcessName, out bool isAppRunning);
+            if (isAppRunning == false)
+            {
+                Environment.Exit(1);
+            }
+
+
             string shareMkey = "cmonitor/share";
             int shareMLength = 10;
             int shareItemMLength = 1024;

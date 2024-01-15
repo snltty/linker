@@ -19,7 +19,7 @@ for %%r in (win-x64,win-x64-any) do (
 
 for %%r in (linux-x64,linux-x64-any) do (
 	echo F|xcopy "public\\extends\\web\\*" "public\\publish\\%%r\\web\\*"  /s /f /h /y
-	for %%f in (nfapi.dll,nfdriver.sys,ntrights.exe) do (
+	for %%f in (nfapi.dll,nfdriver.sys,ntrights.exe,avcodec-60.dll,avdevice-60.dll,avfilter-9.dll,avformat-60.dll,avutil-58.dll,postproc-57.dll,swresample-4.dll,swscale-7.dll) do (
 		del  "public\\publish\\%%r\\%%f"
 	)
 )

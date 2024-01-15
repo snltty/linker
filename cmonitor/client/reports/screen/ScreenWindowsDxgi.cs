@@ -12,6 +12,7 @@ using Factory1 = SharpDX.DXGI.Factory1;
 using common.libs.extends;
 using common.libs.winapis;
 using common.libs.helpers;
+using FFmpeg.AutoGen;
 
 namespace cmonitor.client.reports.screen
 {
@@ -47,6 +48,7 @@ namespace cmonitor.client.reports.screen
             this.config = config;
             if (OperatingSystem.IsWindows())
             {
+                DynamicallyLoadedBindings.Initialize();
                 InitCapture();
             }
         }
@@ -360,7 +362,6 @@ namespace cmonitor.client.reports.screen
 
 
         private byte[] fullImageBytes = Helper.EmptyArray;
-
         public DesktopFrame GetLatestFullFrame()
         {
             DesktopFrame frame = new DesktopFrame() { FullImage = Helper.EmptyArray, RegionImage = Helper.EmptyArray };
@@ -416,93 +417,41 @@ namespace cmonitor.client.reports.screen
 
             return frame;
         }
+
         private unsafe void ProcessFrameFull(DesktopFrame frame)
         {
             if (OperatingSystem.IsWindows())
             {
                 try
                 {
-
                     mDevice.ImmediateContext.GenerateMips(smallerTextureView);
 
                     Rect sourceRect = new Rect(smallerTexture.Description.Width, smallerTexture.Description.Height);
                     Rectangle sourceRectangle = new Rectangle(0, 0, sourceRect.Width, sourceRect.Height);
                     DisplayHelper.GetSystemScale(out float scaleX, out float scaleY, out int sourceWidth, out int sourceHeight);
-                    //画布尺寸
-                    GetNewSize(sourceRect, scaleX, scaleY, out Rect textureRect);
-                    //最终尺寸 
-                    Rect distRect = textureRect;
 
+                    //计算出最终尺寸
+                    ScalingSize(sourceRect, scaleX, scaleY, out Rect distRect);
+
+                    //复制一份画布尺寸，用于画布复制
+                    Rect textureRect = distRect;
                     //由于画布只能缩小2次方尺寸，需要计算一下
-                    int sourceSubresource = sourceRectangle.Width / textureRect.Width;
-                    if (sourceSubresource >= 0)
-                    {
-                        while (sourceSubresource > 0 && sourceRect.Width / (1 << sourceSubresource) < textureRect.Width)
-                        {
-                            sourceSubresource--;
-                        }
-                        if (sourceSubresource >= 3) sourceSubresource = 3;
-
-                        textureRect.Width = sourceRect.Width / (1 << sourceSubresource);
-                        textureRect.Height = sourceRect.Height / (1 << sourceSubresource);
-                    }
-
-                    //拷贝画布
-                    Texture2DDescription desc = desktopImageTexture.Description;
-                    desc.Width = textureRect.Width;
-                    desc.Height = textureRect.Height;
-                    using Texture2D texture = new Texture2D(mDevice, desc);
-                    mDevice.ImmediateContext.CopySubresourceRegion(smallerTexture, sourceSubresource, new ResourceRegion
-                    {
-                        Left = sourceRectangle.X,
-                        Right = sourceRectangle.X + sourceRectangle.Width,
-                        Top = sourceRectangle.Y,
-                        Bottom = sourceRectangle.Y + sourceRectangle.Height,
-                        Back = 1
-                    }, texture, 0, 0, 0);
+                    int sourceSubresource = ResizeRect(sourceRect, textureRect, sourceRectangle);
+                    //拷贝画布,原始画布按2的次方缩小到小画布
+                    Texture2DDescription desc = CopyTexture(textureRect, sourceRectangle, sourceSubresource, out Texture2D texture1);
+                    using Texture2D texture = texture1;
 
                     //拷贝到图像
-                    DataBox mapSource = mDevice.ImmediateContext.MapSubresource(texture, 0, MapMode.Read, MapFlags.None);
-                    using Bitmap image = new Bitmap(desc.Width, desc.Height, PixelFormat.Format32bppArgb);
-                    System.Drawing.Rectangle boundsRect = new System.Drawing.Rectangle(0, 0, desc.Width, desc.Height);
-                    BitmapData mapDest = image.LockBits(boundsRect, ImageLockMode.WriteOnly, image.PixelFormat);
-                    nint sourcePtr = mapSource.DataPointer;
-                    nint destPtr = mapDest.Scan0;
-                    for (int y = 0; y < desc.Height; y++)
-                    {
-                        Utilities.CopyMemory(destPtr, sourcePtr, desc.Width * 4);
-                        sourcePtr = IntPtr.Add(sourcePtr, mapSource.RowPitch);
-                        destPtr = IntPtr.Add(destPtr, mapDest.Stride);
-                    }
-                    image.UnlockBits(mapDest);
-                    mDevice.ImmediateContext.UnmapSubresource(texture, 0);
+                    using Bitmap image = CopyImage(texture, desc);
+                    //弥补尺寸，2的次方缩小很快，但是不一定能直接到最终尺寸，弥补一下
+                    using Bitmap bmp = FinalSize(image, distRect, desc);
 
-                    //弥补到最终尺寸
-
-                    Bitmap bmp = image;
-                    if (desc.Width - distRect.Width > 50)
-                    {
-                        bmp = new Bitmap(distRect.Width, distRect.Height);
-                        using Graphics graphic = Graphics.FromImage(bmp);
-                        graphic.DrawImage(image, new System.Drawing.Rectangle(0, 0, distRect.Width, distRect.Height), 0, 0, desc.Width, desc.Height, GraphicsUnit.Pixel);
-                    }
-
+                    //画鼠标
                     using Graphics g = Graphics.FromImage(bmp);
                     CursorHelper.DrawCursorIcon(g, bmp.Width * 1.0f / sourceRect.Width, bmp.Height * 1.0f / sourceRect.Height);
 
                     //转字节数组
-                    using Image image1 = bmp;
-                    using MemoryStream ms = new MemoryStream();
-                    image1.Save(ms, ImageFormat.Jpeg);
-                    ms.Seek(0, SeekOrigin.Begin);
-
-                    int length = (int)ms.Length;
-                    if (length > fullImageBytes.Length)
-                    {
-                        fullImageBytes = new byte[length];
-                    }
-                    ms.Read(fullImageBytes.AsSpan(0, length));
-                    frame.FullImage = fullImageBytes.AsMemory(0, length);
+                    ToBytes(frame, bmp);
                 }
                 catch (Exception ex)
                 {
@@ -515,7 +464,93 @@ namespace cmonitor.client.reports.screen
             }
         }
 
-        private bool GetNewSize(Rect sourceRect, float scaleX, float scaleY, out Rect rect)
+        private void ToBytes(DesktopFrame frame, System.Drawing.Image image)
+        {
+            using MemoryStream ms = new MemoryStream();
+            image.Save(ms, ImageFormat.Jpeg);
+            ms.Seek(0, SeekOrigin.Begin);
+
+            int length = (int)ms.Length;
+            if (length > fullImageBytes.Length)
+            {
+                fullImageBytes = new byte[length];
+            }
+            ms.Read(fullImageBytes.AsSpan(0, length));
+            frame.FullImage = fullImageBytes.AsMemory(0, length);
+        }
+        private Bitmap FinalSize(Bitmap image, Rect distRect, Texture2DDescription desc)
+        {
+            Bitmap bmp = image;
+            if (desc.Width - distRect.Width > 50)
+            {
+                bmp = new Bitmap(distRect.Width, distRect.Height);
+                using Graphics graphic = Graphics.FromImage(bmp);
+                graphic.DrawImage(image, new System.Drawing.Rectangle(0, 0, distRect.Width, distRect.Height), 0, 0, desc.Width, desc.Height, GraphicsUnit.Pixel);
+            }
+            return bmp;
+        }
+        private Bitmap CopyImage(Texture2D texture, Texture2DDescription desc)
+        {
+            DataBox mapSource = mDevice.ImmediateContext.MapSubresource(texture, 0, MapMode.Read, MapFlags.None);
+            Bitmap image = new Bitmap(desc.Width, desc.Height, PixelFormat.Format32bppArgb);
+            System.Drawing.Rectangle boundsRect = new System.Drawing.Rectangle(0, 0, desc.Width, desc.Height);
+            BitmapData mapDest = image.LockBits(boundsRect, ImageLockMode.WriteOnly, image.PixelFormat);
+            nint sourcePtr = mapSource.DataPointer;
+            nint destPtr = mapDest.Scan0;
+            for (int y = 0; y < desc.Height; y++)
+            {
+                Utilities.CopyMemory(destPtr, sourcePtr, desc.Width * 4);
+                sourcePtr = IntPtr.Add(sourcePtr, mapSource.RowPitch);
+                destPtr = IntPtr.Add(destPtr, mapDest.Stride);
+            }
+            image.UnlockBits(mapDest);
+            mDevice.ImmediateContext.UnmapSubresource(texture, 0);
+
+            return image;
+        }
+        private Texture2DDescription CopyTexture(Rect textureRect, Rectangle sourceRectangle, int sourceSubresource, out Texture2D texture)
+        {
+            Texture2DDescription desc = desktopImageTexture.Description;
+            desc.Width = textureRect.Width;
+            desc.Height = textureRect.Height;
+            texture = new Texture2D(mDevice, desc);
+            mDevice.ImmediateContext.CopySubresourceRegion(smallerTexture, sourceSubresource, new ResourceRegion
+            {
+                Left = sourceRectangle.X,
+                Right = sourceRectangle.X + sourceRectangle.Width,
+                Top = sourceRectangle.Y,
+                Bottom = sourceRectangle.Y + sourceRectangle.Height,
+                Back = 1
+            }, texture, 0, 0, 0);
+
+            return desc;
+        }
+        private int ResizeRect(Rect sourceRect, Rect textureRect, Rectangle sourceRectangle)
+        {
+            int sourceSubresource = sourceRectangle.Width / textureRect.Width;
+            if (sourceSubresource >= 0)
+            {
+                while (sourceSubresource > 0 && sourceRect.Width / (1 << sourceSubresource) < textureRect.Width)
+                {
+                    sourceSubresource--;
+                }
+                if (sourceSubresource >= 3) sourceSubresource = 3;
+
+                textureRect.Width = sourceRect.Width / (1 << sourceSubresource);
+                textureRect.Height = sourceRect.Height / (1 << sourceSubresource);
+            }
+            return sourceSubresource;
+        }
+
+        /// <summary>
+        /// 缩放尺寸
+        /// </summary>
+        /// <param name="sourceRect">原尺寸</param>
+        /// <param name="scaleX">显示缩放</param>
+        /// <param name="scaleY">显示缩放</param>
+        /// <param name="rect">目标尺寸</param>
+        /// <returns></returns>
+        private bool ScalingSize(Rect sourceRect, float scaleX, float scaleY, out Rect rect)
         {
             int width = (int)(sourceRect.Width * 1.0 / scaleX * config.ScreenScale);
             int height = (int)(sourceRect.Height * 1.0 / scaleY * config.ScreenScale);

@@ -12,14 +12,21 @@ namespace cmonitor.client.reports.volume
         {
             if (config.IsCLient)
             {
-                deviceEnumerator = new MMDeviceEnumerator();
-                defaultDevice = deviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
-                information = defaultDevice.AudioMeterInformation;
+                try
+                {
+                    deviceEnumerator = new MMDeviceEnumerator();
+                    defaultDevice = deviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+                    information = defaultDevice.AudioMeterInformation;
+                }
+                catch (Exception)
+                {
+                }
             }
         }
 
         public float GetMasterPeak()
         {
+            if (information == null) return 0;
             try
             {
                 return information.MasterPeakValue * 100;
@@ -32,6 +39,7 @@ namespace cmonitor.client.reports.volume
 
         public bool GetMute()
         {
+            if (defaultDevice == null) return false;
             try
             {
                 return defaultDevice.AudioEndpointVolume.Mute;
@@ -43,6 +51,7 @@ namespace cmonitor.client.reports.volume
         }
         public void SetMute(bool value)
         {
+            if (defaultDevice == null) return;
             try
             {
                 defaultDevice.AudioEndpointVolume.Mute = value;
@@ -54,6 +63,7 @@ namespace cmonitor.client.reports.volume
 
         public float GetVolume()
         {
+            if (defaultDevice == null) return 0;
             try
             {
                 return defaultDevice.AudioEndpointVolume.MasterVolumeLevelScalar * 100;
@@ -66,6 +76,7 @@ namespace cmonitor.client.reports.volume
 
         public void SetVolume(float value)
         {
+            if (defaultDevice == null) return;
             try
             {
                 value = Math.Max(0, Math.Min(value, 1));
