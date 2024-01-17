@@ -367,18 +367,18 @@ namespace cmonitor.client.reports.system
             }
 
             currentUserSid = Win32Interop.GetCurrentUserSid();
-            Logger.Instance.Error($"current user sid {currentUserSid}");
             clientConfig.UserSid = currentUserSid;
             if (string.IsNullOrWhiteSpace(currentUserSid) == false)
             {
+                Logger.Instance.Error($"current user sid {currentUserSid}");
                 return true;
             }
 
             currentUserSid = Win32Interop.GetDefaultUserSid();
-            Logger.Instance.Error($"default user sid {currentUserSid}");
             clientConfig.UserSid = currentUserSid;
             if (string.IsNullOrWhiteSpace(currentUserSid) == false)
             {
+                Logger.Instance.Error($"default user sid {currentUserSid}");
                 return true;
             }
 
