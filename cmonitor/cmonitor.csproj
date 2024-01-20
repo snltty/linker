@@ -36,19 +36,19 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="avcodec-60.dll">
+		<None Update="ffmpeg\avcodec-60.dll">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="avdevice-60.dll">
+		<None Update="ffmpeg\avdevice-60.dll">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="avfilter-9.dll">
+		<None Update="ffmpeg\avfilter-9.dll">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="avformat-60.dll">
+		<None Update="ffmpeg\avformat-60.dll">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="avutil-58.dll">
+		<None Update="ffmpeg\avutil-58.dll">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="nfapi.dll">
@@ -60,13 +60,13 @@
 		<None Update="ntrights.exe">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="postproc-57.dll">
+		<None Update="ffmpeg\postproc-57.dll">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="swresample-4.dll">
+		<None Update="ffmpeg\swresample-4.dll">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="swscale-7.dll">
+		<None Update="ffmpeg\swscale-7.dll">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
@@ -80,6 +80,7 @@
 	
 	<ItemGroup>
 		<PackageReference Include="FFmpeg.AutoGen" Version="6.1.0" />
+		<PackageReference Include="FFmpeg.AutoGen.Abstractions" Version="6.1.0" />
 		<PackageReference Include="FFmpeg.AutoGen.Bindings.DynamicallyLoaded" Version="6.1.0" />
 		<PackageReference Include="MemoryPack" Version="1.10.0" />
 		<PackageReference Include="NAudio" Version="2.2.1" />

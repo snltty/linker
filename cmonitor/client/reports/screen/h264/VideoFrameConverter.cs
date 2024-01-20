@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using FFmpeg.AutoGen;
+using FFmpeg.AutoGen.Abstractions;
+
 
 namespace cmonitor.client.reports.screen.h264;
 
@@ -9,8 +10,8 @@ public sealed unsafe class VideoFrameConverter : IDisposable
 {
     private readonly IntPtr _convertedFrameBufferPtr;
     private readonly Size _destinationSize;
-    private readonly byte_ptrArray4 _dstData;
-    private readonly int_array4 _dstLinesize;
+    private readonly byte_ptr4 _dstData;
+    private readonly int4 _dstLinesize;
     private readonly SwsContext* _pConvertContext;
 
     public VideoFrameConverter(Size sourceSize, AVPixelFormat sourcePixelFormat,
@@ -36,8 +37,8 @@ public sealed unsafe class VideoFrameConverter : IDisposable
             destinationSize.Height,
             1);
         _convertedFrameBufferPtr = Marshal.AllocHGlobal(convertedFrameBufferSize);
-        _dstData = new byte_ptrArray4();
-        _dstLinesize = new int_array4();
+        _dstData = new byte_ptr4();
+        _dstLinesize = new int4();
 
         ffmpeg.av_image_fill_arrays(ref _dstData,
             ref _dstLinesize,
@@ -54,7 +55,7 @@ public sealed unsafe class VideoFrameConverter : IDisposable
         ffmpeg.sws_freeContext(_pConvertContext);
     }
 
-    public AVFrame Convert(AVFrame sourceFrame)
+    public FFmpeg.AutoGen.Abstractions.AVFrame Convert(FFmpeg.AutoGen.Abstractions.AVFrame sourceFrame)
     {
         ffmpeg.sws_scale(_pConvertContext,
             sourceFrame.data,
@@ -64,12 +65,14 @@ public sealed unsafe class VideoFrameConverter : IDisposable
             _dstData,
             _dstLinesize);
 
-        var data = new byte_ptrArray8();
+        var data = new byte_ptr8();
         data.UpdateFrom(_dstData);
-        var linesize = new int_array8();
+        var linesize = new int8();
         linesize.UpdateFrom(_dstLinesize);
 
-        return new AVFrame
+        ffmpeg.av_frame_unref(&sourceFrame);
+
+        return new FFmpeg.AutoGen.Abstractions.AVFrame
         {
             data = data,
             linesize = linesize,

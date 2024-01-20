@@ -35,6 +35,7 @@ namespace cmonitor.client.reports.system
             LoopTask();
             actions.Enqueue(() =>
             {
+                Logger.Instance.Error($"regedit restore");
                 registryOptionHelper.Restore();
             });
 
@@ -42,6 +43,7 @@ namespace cmonitor.client.reports.system
             {
                 actions.Enqueue(() =>
                 {
+                    Logger.Instance.Error($"regedit reuse");
                     registryOptionHelper.Reuse();
                     OptionUpdate(new SystemOptionUpdateInfo { Keys = new string[] { "SoftwareSASGeneration" }, Value = false });
                 });
@@ -267,6 +269,7 @@ namespace cmonitor.client.reports.system
         {
             if (OperatingSystem.IsWindows() && GetSid() && changed)
             {
+                Logger.Instance.Error($"regedit GetValues");
                 changed = false;
                 for (int i = 0; i < Infos.Length; i++)
                 {

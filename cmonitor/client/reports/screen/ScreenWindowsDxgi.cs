@@ -12,7 +12,8 @@ using Factory1 = SharpDX.DXGI.Factory1;
 using common.libs.extends;
 using common.libs.winapis;
 using common.libs.helpers;
-using FFmpeg.AutoGen;
+using cmonitor.client.reports.screen.h264;
+using FFmpeg.AutoGen.Abstractions;
 
 namespace cmonitor.client.reports.screen
 {
@@ -48,8 +49,9 @@ namespace cmonitor.client.reports.screen
             this.config = config;
             if (OperatingSystem.IsWindows())
             {
-                DynamicallyLoadedBindings.Initialize();
+                FFmpegHelper.Initialize();
                 InitCapture();
+                InitEncoder();
             }
         }
 
@@ -450,6 +452,20 @@ namespace cmonitor.client.reports.screen
                     using Graphics g = Graphics.FromImage(bmp);
                     CursorHelper.DrawCursorIcon(g, bmp.Width * 1.0f / sourceRect.Width, bmp.Height * 1.0f / sourceRect.Height);
 
+                    /*
+                    try
+                    {
+                        SendFrame(bmp);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        {
+                            Logger.Instance.Error(ex);
+                        }
+                    }
+                    */
+
                     //转字节数组
                     ToBytes(frame, bmp);
                 }
@@ -464,6 +480,82 @@ namespace cmonitor.client.reports.screen
             }
         }
 
+
+        private void InitEncoder()
+        {
+            Task.Factory.StartNew(async () =>
+            {
+                while (true)
+                {
+                    try
+                    {
+                        if (h264VideoStreamEncoder != null)
+                        {
+                            byte[] bytes = h264VideoStreamEncoder.ReceivePacket();
+                            if (bytes.Length > 0)
+                            {
+                                Console.WriteLine($"encode {bytes.Length}");
+                                continue;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        {
+                            Logger.Instance.Error(ex);
+                        }
+                    }
+                    await Task.Delay(15);
+                }
+
+            }, TaskCreationOptions.LongRunning);
+        }
+
+        VideoFrameConverter videoFrameConverter;
+        H264VideoStreamEncoder h264VideoStreamEncoder;
+        private unsafe void SendFrame(Bitmap image)
+        {
+            if (h264VideoStreamEncoder == null)
+            {
+                Size sourceSize = new Size(image.Width, image.Height);
+                FFmpeg.AutoGen.Abstractions.AVPixelFormat sourcePixelFormat = FFmpeg.AutoGen.Abstractions.AVPixelFormat.@AV_PIX_FMT_BGRA;
+                Size destinationSize = sourceSize;
+                FFmpeg.AutoGen.Abstractions.AVPixelFormat destinationPixelFormat = FFmpeg.AutoGen.Abstractions.AVPixelFormat.AV_PIX_FMT_YUV420P;
+                videoFrameConverter = new VideoFrameConverter(sourceSize, sourcePixelFormat, destinationSize, destinationPixelFormat);
+                h264VideoStreamEncoder = new H264VideoStreamEncoder(30, destinationSize);
+            }
+
+            byte[] sourceBitmapData = default;
+            BitmapData bitmapData = image.LockBits(new System.Drawing.Rectangle(Point.Empty, image.Size), ImageLockMode.ReadOnly, image.PixelFormat);
+            try
+            {
+                int length = bitmapData.Stride * bitmapData.Height;
+                sourceBitmapData = new byte[length];
+                Marshal.Copy(bitmapData.Scan0, sourceBitmapData, 0, length);
+            }
+            finally
+            {
+                image.UnlockBits(bitmapData);
+            }
+
+            fixed (byte* pBitmapData = sourceBitmapData)
+            {
+                var data = new byte_ptr8 { [0] = pBitmapData };
+                var linesize = new int8 { [0] = sourceBitmapData.Length / image.Height };
+                var avframe = new FFmpeg.AutoGen.Abstractions.AVFrame
+                {
+                    data = data,
+                    linesize = linesize,
+                    height = image.Height
+                };
+                FFmpeg.AutoGen.Abstractions.AVFrame convertedFrame = videoFrameConverter.Convert(avframe);
+                h264VideoStreamEncoder.SendFrame(convertedFrame);
+
+            }
+        }
+
+
         private void ToBytes(DesktopFrame frame, System.Drawing.Image image)
         {
             using MemoryStream ms = new MemoryStream();
@@ -475,6 +567,7 @@ namespace cmonitor.client.reports.screen
             {
                 fullImageBytes = new byte[length];
             }
+            Console.WriteLine($"image {length}");
             ms.Read(fullImageBytes.AsSpan(0, length));
             frame.FullImage = fullImageBytes.AsMemory(0, length);
         }
