@@ -195,8 +195,9 @@ namespace cmonitor.client.reports.system
                     }
                     Updated();
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Logger.Instance.Error(ex);
                 }
             }
         }
@@ -226,8 +227,9 @@ namespace cmonitor.client.reports.system
                     }
                     Updated();
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Logger.Instance.Error(ex);
                 }
             }
         }
@@ -238,6 +240,7 @@ namespace cmonitor.client.reports.system
         {
             changed = true;
             Interlocked.Exchange(ref registryUpdated, 1);
+            Logger.Instance.Error($"regedit updated");
         }
         public void Refresh()
         {
