@@ -218,10 +218,19 @@ namespace cmonitor.client.reports.system
                             {
                                 continue;
                             }
-                            object value = Registry.GetValue(backupPath, $"{option.Key}_{path.Key}_old", null);
-                            if (value != null)
+                            object value = null;
+                            try
                             {
-                                Registry.SetValue(pathStr, path.Key, value);
+                                value = Registry.GetValue(backupPath, $"{option.Key}_{path.Key}_old", null);
+                                if (value != null)
+                                {
+                                    Registry.SetValue(pathStr, path.Key, value);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Instance.Error($"{pathStr}->{path.Key}:{value}");
+                                Logger.Instance.Error(ex);
                             }
                         }
                     }
