@@ -180,16 +180,18 @@ namespace cmonitor.client.reports.system
                                 RegistryKey _key = Registry.LocalMachine.OpenSubKey(delPathStr);
                                 _key?.DeleteValue(path.Key);
                             }
-                            catch (Exception)
+                            catch (Exception ex)
                             {
+                                Logger.Instance.Error(ex);
                             }
                             try
                             {
                                 RegistryKey _key = Registry.CurrentUser.OpenSubKey(delPathStr);
                                 _key?.DeleteValue(path.Key);
                             }
-                            catch (Exception)
+                            catch (Exception ex)
                             {
+                                Logger.Instance.Error(ex);
                             }
                         }
                     }
@@ -289,18 +291,26 @@ namespace cmonitor.client.reports.system
                     foreach (RegistryOptionPathInfo pathItem in item.Paths)
                     {
                         string path = ReplaceRegistryPath(pathItem.Path);
-
                         if (string.IsNullOrWhiteSpace(path))
                         {
                             continue;
                         }
-                        object obj = Registry.GetValue(path, pathItem.Key, null);
-
-                        values[i] = '0';
-                        if (obj != null)
+                        try
                         {
-                            values[i] = (obj.ToString() == pathItem.DisallowValue ? '1' : '0');
-                            break;
+                            
+                            object obj = Registry.GetValue(path, pathItem.Key, null);
+
+                            values[i] = '0';
+                            if (obj != null)
+                            {
+                                values[i] = (obj.ToString() == pathItem.DisallowValue ? '1' : '0');
+                                break;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Instance.Error($"get values {path}->{pathItem.Key}");
+                            Logger.Instance.Error(ex);
                         }
                     }
                 }
@@ -349,11 +359,19 @@ namespace cmonitor.client.reports.system
                             continue;
                         }
                         string setValue = value ? pathItem.DisallowValue : pathItem.AllowValue;
-                        object oldValue = Registry.GetValue(path, pathItem.Key, null);
-                        if (oldValue == null || oldValue.ToString() != setValue)
+                        try
                         {
-                            Registry.SetValue(path, pathItem.Key, int.Parse(setValue), RegistryValueKind.DWord);
-                            result |= true;
+                            object oldValue = Registry.GetValue(path, pathItem.Key, null);
+                            if (oldValue == null || oldValue.ToString() != setValue)
+                            {
+                                Registry.SetValue(path, pathItem.Key, int.Parse(setValue), RegistryValueKind.DWord);
+                                result |= true;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Instance.Error($"update value {path}->{pathItem.Key}");
+                            Logger.Instance.Error(ex);
                         }
                     }
                 }
