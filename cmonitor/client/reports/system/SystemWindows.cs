@@ -183,8 +183,8 @@ namespace cmonitor.client.reports.system
                             string delPathStr = pathStr.Replace("HKEY_CURRENT_USER\\", "").Replace("HKEY_LOCAL_MACHINE\\", "");
                             try
                             {
-                                RegistryKey _key = Registry.LocalMachine.OpenSubKey(delPathStr);
-                                _key?.DeleteValue(path.Key);
+                                RegistryKey _key = Registry.LocalMachine.OpenSubKey(delPathStr,true);
+                                _key?.DeleteValue(path.Key,false);
                             }
                             catch (Exception ex)
                             {
@@ -192,8 +192,8 @@ namespace cmonitor.client.reports.system
                             }
                             try
                             {
-                                RegistryKey _key = Registry.CurrentUser.OpenSubKey(delPathStr);
-                                _key?.DeleteValue(path.Key);
+                                RegistryKey _key = Registry.CurrentUser.OpenSubKey(delPathStr,true);
+                                _key?.DeleteValue(path.Key,false);
                             }
                             catch (Exception ex)
                             {
