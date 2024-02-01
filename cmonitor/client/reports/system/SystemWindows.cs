@@ -10,8 +10,10 @@ namespace cmonitor.client.reports.system
         private readonly SystemOptionHelper registryOptionHelper;
         private readonly ClientSignInState clientSignInState;
         private ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
+        private readonly Config config;
         public SystemWindows(ClientConfig clientConfig, Config config, ClientSignInState clientSignInState)
         {
+            this.config = config;
             this.clientSignInState = clientSignInState;
             if (config.IsCLient)
             {
@@ -35,6 +37,10 @@ namespace cmonitor.client.reports.system
             LoopTask();
             actions.Enqueue(() =>
             {
+                if (config.Elevated)
+                {
+                    Win32Interop.SwitchToInputDesktop();
+                }
                 Logger.Instance.Error($"regedit restore");
                 registryOptionHelper.Restore();
             });
@@ -43,6 +49,10 @@ namespace cmonitor.client.reports.system
             {
                 actions.Enqueue(() =>
                 {
+                    if (config.Elevated)
+                    {
+                        Win32Interop.SwitchToInputDesktop();
+                    }
                     Logger.Instance.Error($"regedit reuse");
                     registryOptionHelper.Reuse();
                     OptionUpdate(new SystemOptionUpdateInfo { Keys = new string[] { "SoftwareSASGeneration" }, Value = false });
@@ -61,6 +71,10 @@ namespace cmonitor.client.reports.system
         {
             actions.Enqueue(() =>
             {
+                if (config.Elevated)
+                {
+                    Win32Interop.SwitchToInputDesktop();
+                }
                 registryOptionHelper.UpdateValue(registryUpdateInfo.Keys, registryUpdateInfo.Value);
             });
         }
