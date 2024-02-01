@@ -37,10 +37,6 @@ namespace cmonitor.client.reports.system
             LoopTask();
             actions.Enqueue(() =>
             {
-                if (config.Elevated)
-                {
-                    Win32Interop.SwitchToInputDesktop();
-                }
                 Logger.Instance.Error($"regedit restore");
                 registryOptionHelper.Restore();
             });
@@ -49,10 +45,6 @@ namespace cmonitor.client.reports.system
             {
                 actions.Enqueue(() =>
                 {
-                    if (config.Elevated)
-                    {
-                        Win32Interop.SwitchToInputDesktop();
-                    }
                     Logger.Instance.Error($"regedit reuse");
                     registryOptionHelper.Reuse();
                     OptionUpdate(new SystemOptionUpdateInfo { Keys = new string[] { "SoftwareSASGeneration" }, Value = false });
@@ -71,10 +63,6 @@ namespace cmonitor.client.reports.system
         {
             actions.Enqueue(() =>
             {
-                if (config.Elevated)
-                {
-                    Win32Interop.SwitchToInputDesktop();
-                }
                 registryOptionHelper.UpdateValue(registryUpdateInfo.Keys, registryUpdateInfo.Value);
             });
         }
@@ -94,6 +82,10 @@ namespace cmonitor.client.reports.system
                         {
                             while (actions.TryDequeue(out Action action))
                             {
+                                if (config.Elevated)
+                                {
+                                    Win32Interop.SwitchToInputDesktop();
+                                }
                                 action();
                             }
                             registryOptionHelper.Refresh();
