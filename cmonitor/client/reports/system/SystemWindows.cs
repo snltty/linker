@@ -32,22 +32,42 @@ namespace cmonitor.client.reports.system
             }).ToArray();
         }
 
+        bool restored = false;
+        bool reused = false;
         private void OptionsInit()
         {
             LoopTask();
             actions.Enqueue(() =>
             {
-                Logger.Instance.Error($"regedit restore");
-                registryOptionHelper.Restore();
+                Task.Run(async () =>
+                {
+                    Logger.Instance.Info($"regedit restore");
+                    while (restored == false)
+                    {
+                        restored |= registryOptionHelper.Restore();
+                        await Task.Delay(5000);
+                    }
+                });
+
             });
 
             clientSignInState.NetworkFirstEnabledHandle += () =>
             {
                 actions.Enqueue(() =>
                 {
-                    Logger.Instance.Error($"regedit reuse");
-                    registryOptionHelper.Reuse();
-                    OptionUpdate(new SystemOptionUpdateInfo { Keys = new string[] { "SoftwareSASGeneration" }, Value = false });
+                    Task.Run(async () =>
+                    {
+                        Logger.Instance.Info($"regedit reuse");
+                        while ( reused == false)
+                        {
+                            if(restored )
+                            {
+                                reused |= registryOptionHelper.Reuse();
+                                OptionUpdate(new SystemOptionUpdateInfo { Keys = new string[] { "SoftwareSASGeneration" }, Value = false });
+                            }
+                            await Task.Delay(5000);
+                        }
+                    });
                 });
             };
         }
@@ -156,7 +176,7 @@ namespace cmonitor.client.reports.system
 
         private string backupPath = "HKEY_LOCAL_MACHINE\\SOFTWARE\\cmonitorBackup";
         private string backupKey = "cmonitorBackup";
-        public void Restore()
+        public bool Restore()
         {
             if (OperatingSystem.IsWindows() && GetSid())
             {
@@ -183,21 +203,23 @@ namespace cmonitor.client.reports.system
                             string delPathStr = pathStr.Replace("HKEY_CURRENT_USER\\", "").Replace("HKEY_LOCAL_MACHINE\\", "");
                             try
                             {
-                                RegistryKey _key = Registry.LocalMachine.OpenSubKey(delPathStr,true);
-                                _key?.DeleteValue(path.Key,false);
+                                RegistryKey _key = Registry.LocalMachine.OpenSubKey(delPathStr, true);
+                                _key?.DeleteValue(path.Key, false);
                             }
                             catch (Exception ex)
                             {
                                 Logger.Instance.Error(ex);
+                                return false;
                             }
                             try
                             {
-                                RegistryKey _key = Registry.CurrentUser.OpenSubKey(delPathStr,true);
-                                _key?.DeleteValue(path.Key,false);
+                                RegistryKey _key = Registry.CurrentUser.OpenSubKey(delPathStr, true);
+                                _key?.DeleteValue(path.Key, false);
                             }
                             catch (Exception ex)
                             {
                                 Logger.Instance.Error(ex);
+                                return false;
                             }
                         }
                     }
@@ -206,10 +228,12 @@ namespace cmonitor.client.reports.system
                 catch (Exception ex)
                 {
                     Logger.Instance.Error(ex);
+                    return false;
                 }
             }
+            return true;
         }
-        public void Reuse()
+        public bool Reuse()
         {
             if (OperatingSystem.IsWindows() && GetSid())
             {
@@ -239,6 +263,7 @@ namespace cmonitor.client.reports.system
                             {
                                 Logger.Instance.Error($"{pathStr}->{path.Key}:{value}");
                                 Logger.Instance.Error(ex);
+                                return false;
                             }
                         }
                     }
@@ -247,8 +272,10 @@ namespace cmonitor.client.reports.system
                 catch (Exception ex)
                 {
                     Logger.Instance.Error(ex);
+                    return false;
                 }
             }
+            return true;
         }
 
         private int registryUpdated = 0;
@@ -257,7 +284,6 @@ namespace cmonitor.client.reports.system
         {
             changed = true;
             Interlocked.Exchange(ref registryUpdated, 1);
-            Logger.Instance.Error($"regedit updated");
         }
         public void Refresh()
         {
@@ -289,7 +315,6 @@ namespace cmonitor.client.reports.system
         {
             if (OperatingSystem.IsWindows() && GetSid() && changed)
             {
-                Logger.Instance.Error($"regedit GetValues");
                 changed = false;
                 for (int i = 0; i < Infos.Length; i++)
                 {
@@ -303,7 +328,7 @@ namespace cmonitor.client.reports.system
                         }
                         try
                         {
-                            
+
                             object obj = Registry.GetValue(path, pathItem.Key, null);
 
                             values[i] = '0';
