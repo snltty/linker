@@ -34,3 +34,7 @@ export const activeDel = (username, groupid, id) => {
         username, groupid, id
     });
 }
+
+export const activeKill = (username, pid) => {
+    return sendWebsocketMsg('active/kill', { username, pid });
+}

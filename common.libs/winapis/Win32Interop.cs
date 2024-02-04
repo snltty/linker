@@ -1,12 +1,14 @@
 ﻿using cmonitor.libs.winapis;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
@@ -455,6 +457,68 @@ namespace common.libs.winapis
                 wMilliseconds = (ushort)dateTime.Millisecond
             };
             Kernel32.SetSystemTime(ref st);
+        }
+
+
+
+        private static RawSecurityDescriptor GetProcessSecurityDescriptor(IntPtr processHandle)
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                const int DACL_SECURITY_INFORMATION = 0x00000004;
+                byte[] psd = new byte[0];
+                uint bufSizeNeeded;
+                // Call with 0 size to obtain the actual size needed in bufSizeNeeded
+                GetKernelObjectSecurity(processHandle, DACL_SECURITY_INFORMATION, psd, 0, out bufSizeNeeded);
+                if (bufSizeNeeded < 0 || bufSizeNeeded > short.MaxValue)
+                    throw new Win32Exception();
+                // Allocate the required bytes and obtain the DACL
+                if (!GetKernelObjectSecurity(processHandle, DACL_SECURITY_INFORMATION,
+                psd = new byte[bufSizeNeeded], bufSizeNeeded, out bufSizeNeeded))
+                    throw new Win32Exception();
+                // Use the RawSecurityDescriptor class from System.Security.AccessControl to parse the bytes:
+                return new RawSecurityDescriptor(psd, 0);
+            }
+            return null;
+        }
+        private static void SetProcessSecurityDescriptor(IntPtr processHandle, RawSecurityDescriptor dacl)
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                const int DACL_SECURITY_INFORMATION = 0x00000004;
+                byte[] rawsd = new byte[dacl.BinaryLength];
+                dacl.GetBinaryForm(rawsd, 0);
+                if (!SetKernelObjectSecurity(processHandle, DACL_SECURITY_INFORMATION, rawsd))
+                    throw new Win32Exception();
+
+            }
+        }
+        public static void ProcessElevated()
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                // Get the current process handle
+                IntPtr hProcess = GetCurrentProcess();
+                // Read the DACL
+                RawSecurityDescriptor dacl = GetProcessSecurityDescriptor(hProcess);
+                if (dacl != null)
+                {
+                    // Insert the new ACE
+                    dacl.DiscretionaryAcl.InsertAce(
+                    0,
+                    new CommonAce(
+                    AceFlags.None,
+                    AceQualifier.AccessDenied,
+                    (int)ProcessAccessRights.PROCESS_ALL_ACCESS,
+                    new SecurityIdentifier(WellKnownSidType.WorldSid, null),
+                    false,
+                    null)
+                    );
+                    // Save the DACL
+                    SetProcessSecurityDescriptor(hProcess, dacl);
+                }
+
+            }
         }
     }
 

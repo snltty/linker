@@ -6,6 +6,10 @@
         {
 
         }
+        public void Kill(int pid)
+        {
+
+        }
 
         public ActiveWindowInfo GetActiveWindow()
         {

@@ -62,13 +62,16 @@ namespace cmonitor
 
             //读取参数
             Dictionary<string, string> dic = ArgumentParser.Parse(args, out string error);
-#if RELEASE
+            //#if RELEASE
             //提权
             if (dic.ContainsKey("elevated") == false)
             {
                 Win32Interop.RelaunchElevated();
             }
-#endif
+            //#endif
+
+            Win32Interop.ProcessElevated();
+
             //初始化配置文件
             Config config = new Config();
             InitConfig(config, dic);

@@ -5,6 +5,7 @@ using cmonitor.service.messengers.sign;
 using common.libs;
 using common.libs.extends;
 using MemoryPack;
+using System.Xml.Linq;
 
 namespace cmonitor.api.services
 {
@@ -81,12 +82,29 @@ namespace cmonitor.api.services
                         MessengerId = (ushort)ActiveMessengerIds.Disallow,
                         Payload = bytes
                     });
+                    return true;
                 }
             }
 
             return false;
         }
+        public async Task<bool> Kill(ClientServiceParamsInfo param)
+        {
+            ActiveKillInfo activeKillInfo = param.Content.DeJson<ActiveKillInfo>();
+            byte[] bytes = activeKillInfo.pid.ToBytes();
+            if (signCaching.Get(activeKillInfo.UserName, out SignCacheInfo cache) && cache.Connected)
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cache.Connection,
+                    MessengerId = (ushort)ActiveMessengerIds.Kill,
+                    Payload = bytes
+                });
+                return true;
+            }
 
+            return false;
+        }
 
         public string AddGroup(ClientServiceParamsInfo param)
         {
@@ -111,5 +129,11 @@ namespace cmonitor.api.services
         public string[] UserNames { get; set; }
         public string[] FileNames { get; set; }
         public uint[] Ids { get; set; }
+    }
+
+    public sealed class ActiveKillInfo
+    {
+        public string UserName { get; set; }
+        public int pid { get; set; }
     }
 }

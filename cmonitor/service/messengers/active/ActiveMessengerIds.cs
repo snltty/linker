@@ -6,7 +6,7 @@
         Clear = 401,
         Disallow = 402,
         Windows = 403,
-
+        Kill = 404,
         None = 499
     }
 }

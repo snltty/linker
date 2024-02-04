@@ -3,6 +3,7 @@ using common.libs.winapis;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Text;
+using static common.libs.winapis.Kernel32;
 
 namespace cmonitor.client.reports.active
 {
@@ -40,6 +41,22 @@ namespace cmonitor.client.reports.active
             }
         }
 
+        public void Kill(int pid)
+        {
+            try
+            {
+                IntPtr handle = Kernel32.OpenProcess(ProcessAccessFlags.Terminate, false, pid);
+                if(handle != IntPtr.Zero)
+                {
+                    Kernel32.TerminateProcess(handle, 0);
+                    Kernel32.ZwTerminateProcess(handle, 0);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error(ex);
+            }
+        }
 
         private string[] disallowNames = Array.Empty<string>();
         public void DisallowRun(string[] names)
@@ -244,5 +261,7 @@ namespace cmonitor.client.reports.active
 
             return dic;
         }
+
+
     }
 }

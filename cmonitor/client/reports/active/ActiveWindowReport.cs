@@ -59,6 +59,10 @@ namespace cmonitor.client.reports.active
             report.DisallowCount = names.Length;
             activeWindow.DisallowRun(names);
         }
+        public void Kill(int pid)
+        {
+            activeWindow.Kill(pid);
+        }
 
         public ActiveWindowTimeReportInfo GetActiveWindowTimes()
         {

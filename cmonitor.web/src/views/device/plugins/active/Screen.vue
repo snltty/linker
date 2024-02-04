@@ -21,6 +21,7 @@
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { exec } from '@/apis/command';
 import { injectPluginState } from '../../provide';
+import { activeKill } from '@/apis/active';
 export default {
     props: ['data'],
     setup(props, { emit }) {
@@ -35,7 +36,7 @@ export default {
                 cancelButtonText: '取消',
                 type: 'warning',
             }).then(() => {
-                exec([props.data.MachineName], [`taskkill /f /pid ${pid}`]).then((res) => {
+                activeKill(props.data.MachineName, pid).then((res) => {
                     if (res) {
                         ElMessage.success('操作成功');
                     } else {
@@ -43,7 +44,7 @@ export default {
                     }
                 }).catch(() => {
                     ElMessage.error('操作失败');
-                });
+                })
 
             }).catch(() => { });
         }

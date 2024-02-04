@@ -3,6 +3,7 @@ using cmonitor.client;
 using cmonitor.client.reports.active;
 using cmonitor.service.messengers.sign;
 using common.libs;
+using common.libs.extends;
 using MemoryPack;
 
 namespace cmonitor.service.messengers.active
@@ -41,6 +42,12 @@ namespace cmonitor.service.messengers.active
         {
             activeWindowReport.DisallowRun(MemoryPackSerializer.Deserialize<ActiveDisallowInfo>(connection.ReceiveRequestWrap.Payload.Span));
             connection.Write(Helper.TrueArray);
+        }
+
+        [MessengerId((ushort)ActiveMessengerIds.Kill)]
+        public void Kill(IConnection connection)
+        {
+            activeWindowReport.Kill(connection.ReceiveRequestWrap.Payload.Span.ToInt32());
         }
     }
 

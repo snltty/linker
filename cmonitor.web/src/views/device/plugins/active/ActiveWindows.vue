@@ -28,7 +28,7 @@
 <script>
 import { reactive } from '@vue/reactivity';
 import { onMounted, watch } from '@vue/runtime-core';
-import { getActiveWindows } from '../../../../apis/active'
+import { activeKill, getActiveWindows } from '../../../../apis/active'
 import { injectPluginState } from '../../provide'
 import { exec } from '@/apis/command';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -78,7 +78,7 @@ export default {
                 cancelButtonText: '取消',
                 type: 'warning',
             }).then(() => {
-                exec([pluginState.value.activeWindow.devices[0].MachineName], [`taskkill /f /pid ${pid}`]).then((res) => {
+                activeKill(pluginState.value.activeWindow.devices[0].MachineName, pid).then((res) => {
                     if (res) {
                         ElMessage.success('操作成功');
                         setTimeout(() => {
@@ -90,7 +90,6 @@ export default {
                 }).catch(() => {
                     ElMessage.error('操作失败');
                 });
-
             }).catch(() => { });
         }
 
