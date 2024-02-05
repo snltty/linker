@@ -129,7 +129,7 @@ namespace cmonitor.sas.service
                     catch (Exception)
                     {
                     }
-                    await Task.Delay(30000);
+                    await Task.Delay(3000);
                 }
             }, TaskCreationOptions.LongRunning);
         }
