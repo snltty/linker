@@ -1,1 +1,0 @@
-echo F|xcopy "publish\\*" "%1"  /s /f /h /y

@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace common.libs.winapis;
 
-public static class Kernel32
+public static unsafe class Kernel32
 {
     [DllImport("kernel32.dll", SetLastError = true)]
     public static extern bool CloseHandle(nint hSnapshot);
@@ -93,32 +93,20 @@ public static class Kernel32
     [DllImport("kernel32.dll")]
     public static extern bool SetHandleInformation(IntPtr hObject, int dwMask, int dwFlags);
 
-    [DllImport("kernel32.dll", SetLastError = true)]
-    public static extern bool TerminateProcess(IntPtr hProcess, uint uExitCode);
 
-    [DllImport("ntdll.dll", SetLastError = true)]
-    public static extern uint ZwTerminateProcess(IntPtr ProcessHandle, uint ExitStatus);
+    [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
+    public static extern nint CreateFileA(
+            string lpFileName,
+            uint dwDesiredAccess,
+            uint dwShareMode,
+           nint lpSecurityAttributes,
+           uint dwCreationDisposition,
+           uint dwFlagsAndAttributes,
+           nint hTemplateFile);
 
-    [DllImport("kernel32.dll", SetLastError = true)]
-    public static extern IntPtr OpenProcess(ProcessAccessFlags processAccess, bool bInheritHandle, int processId);
-    [Flags]
-    public enum ProcessAccessFlags : uint
-    {
-        Terminate = 0x0001,
-        CreateThread = 0x0002,
-        VirtualMemoryOperation = 0x0008,
-        VirtualMemoryRead = 0x0010,
-        VirtualMemoryWrite = 0x0020,
-        DuplicateHandle = 0x0040,
-        CreateProcess = 0x0080,
-        SetQuota = 0x0100,
-        SetInformation = 0x0200,
-        QueryInformation = 0x0400,
-        QueryLimitedInformation = 0x1000,
-        Synchronize = 0x100000
-    }
-    [DllImport("ntdll.dll", SetLastError = true)]
-    public static extern uint NtTerminateProcess(IntPtr ProcessHandle, uint ExitStatus);
+    [DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true, CharSet = CharSet.Auto)]
+    public static extern bool DeviceIoControl(nint hDevice, uint dwIoControlCode, nint lpInBuffer, uint nInBufferSize, nint lpOutBuffer, uint nOutBufferSize, ulong* lpBytesReturned, uint lpOverlapped);
+
 
     public struct SYSTEMTIME
     {
@@ -133,7 +121,4 @@ public static class Kernel32
     }
     [DllImport("kernel32.dll", SetLastError = true)]
     public static extern bool SetSystemTime(ref SYSTEMTIME time);
-
-    [DllImport("kernel32.dll")]
-    public static extern IntPtr GetCurrentProcess();
 }

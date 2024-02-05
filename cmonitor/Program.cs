@@ -37,11 +37,9 @@ using System.Reflection;
 using System.Text.Json.Serialization;
 using cmonitor.client.reports.keyboard;
 using cmonitor.client.reports.wallpaper;
-using common.libs.winapis;
 using cmonitor.client.reports.snatch;
 using cmonitor.service.messengers.snatch;
 using cmonitor.libs;
-using System.Text;
 
 
 namespace cmonitor
@@ -62,15 +60,13 @@ namespace cmonitor
 
             //读取参数
             Dictionary<string, string> dic = ArgumentParser.Parse(args, out string error);
-            //#if RELEASE
+#if RELEASE
             //提权
             if (dic.ContainsKey("elevated") == false)
             {
                 Win32Interop.RelaunchElevated();
             }
-            //#endif
-
-            Win32Interop.ProcessElevated();
+#endif
 
             //初始化配置文件
             Config config = new Config();

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace common.libs.winapis;
 
-public static class ADVAPI32
+public static unsafe class ADVAPI32
 {
     #region Structs
     public struct TOKEN_PRIVILEGES
@@ -390,33 +390,349 @@ public static class ADVAPI32
         out int peUse
     );
 
-    [DllImport("advapi32.dll", SetLastError = true)]
-    public static extern bool GetKernelObjectSecurity(IntPtr Handle, int securityInformation, [Out] byte[] pSecurityDescriptor, uint nLength, out uint lpnLengthNeeded);
-    [DllImport("advapi32.dll", SetLastError = true)]
-    public static extern bool SetKernelObjectSecurity(IntPtr Handle, int securityInformation, [In] byte[] pSecurityDescriptor);
 
+
+    [DllImport("advapi32.dll", EntryPoint = "OpenSCManagerW", ExactSpelling = true, CharSet = CharSet.Unicode, SetLastError = true)]
+    public static extern nint OpenSCManager(uint machineName, uint databaseName, uint dwAccess);
+
+    [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+    public static extern nint OpenService(nint hSCManager, string lpServiceName, uint dwDesiredAccess);
+    [DllImport("advapi32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool CloseServiceHandle(nint hSCObject);
+
+    [DllImport("advapi32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool ControlService(nint hService, SERVICE_CONTROL dwControl, ref SERVICE_STATUS lpServiceStatus);
+
+    [DllImport("advapi32", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool StartService(
+        nint hService,
+        int dwNumServiceArgs,
+        string[] lpServiceArgVectors
+    );
+
+    [DllImport("advapi32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool DeleteService(nint hService);
     [Flags]
-    public enum ProcessAccessRights
+    public enum SERVICE_TYPE : int
     {
-        PROCESS_CREATE_PROCESS = 0x0080, //  Required to create a process.
-        PROCESS_CREATE_THREAD = 0x0002, //  Required to create a thread.
-        PROCESS_DUP_HANDLE = 0x0040, // Required to duplicate a handle using DuplicateHandle.
-        PROCESS_QUERY_INFORMATION = 0x0400, //  Required to retrieve certain information about a process, such as its token, exit code, and priority class (see OpenProcessToken, GetExitCodeProcess, GetPriorityClass, and IsProcessInJob).
-        PROCESS_QUERY_LIMITED_INFORMATION = 0x1000, //  Required to retrieve certain information about a process (see QueryFullProcessImageName). A handle that has the PROCESS_QUERY_INFORMATION access right is automatically granted PROCESS_QUERY_LIMITED_INFORMATION. Windows Server 2003 and Windows XP/2000:  This access right is not supported.
-        PROCESS_SET_INFORMATION = 0x0200, //    Required to set certain information about a process, such as its priority class (see SetPriorityClass).
-        PROCESS_SET_QUOTA = 0x0100, //  Required to set memory limits using SetProcessWorkingSetSize.
-        PROCESS_SUSPEND_RESUME = 0x0800, // Required to suspend or resume a process.
-        PROCESS_TERMINATE = 0x0001, //  Required to terminate a process using TerminateProcess.
-        PROCESS_VM_OPERATION = 0x0008, //   Required to perform an operation on the address space of a process (see VirtualProtectEx and WriteProcessMemory).
-        PROCESS_VM_READ = 0x0010, //    Required to read memory in a process using ReadProcessMemory.
-        PROCESS_VM_WRITE = 0x0020, //   Required to write to memory in a process using WriteProcessMemory.
-        DELETE = 0x00010000, // Required to delete the object.
-        READ_CONTROL = 0x00020000, //   Required to read information in the security descriptor for the object, not including the information in the SACL. To read or write the SACL, you must request the ACCESS_SYSTEM_SECURITY access right. For more information, see SACL Access Right.
-        SYNCHRONIZE = 0x00100000, //    The right to use the object for synchronization. This enables a thread to wait until the object is in the signaled state.
-        WRITE_DAC = 0x00040000, //  Required to modify the DACL in the security descriptor for the object.
-        WRITE_OWNER = 0x00080000, //    Required to change the owner in the security descriptor for the object.
-        STANDARD_RIGHTS_REQUIRED = 0x000f0000,
-        PROCESS_ALL_ACCESS = (STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | 0xFFF),//    All possible access rights for a process object.
+        SERVICE_KERNEL_DRIVER = 0x00000001,
+        SERVICE_FILE_SYSTEM_DRIVER = 0x00000002,
+        SERVICE_WIN32_OWN_PROCESS = 0x00000010,
+        SERVICE_WIN32_SHARE_PROCESS = 0x00000020,
+        SERVICE_INTERACTIVE_PROCESS = 0x00000100
+    }
+    [Flags]
+    public enum SERVICE_CONTROL : uint
+    {
+        STOP = 0x00000001,
+        PAUSE = 0x00000002,
+        CONTINUE = 0x00000003,
+        INTERROGATE = 0x00000004,
+        SHUTDOWN = 0x00000005,
+        PARAMCHANGE = 0x00000006,
+        NETBINDADD = 0x00000007,
+        NETBINDREMOVE = 0x00000008,
+        NETBINDENABLE = 0x00000009,
+        NETBINDDISABLE = 0x0000000A,
+        DEVICEEVENT = 0x0000000B,
+        HARDWAREPROFILECHANGE = 0x0000000C,
+        POWEREVENT = 0x0000000D,
+        SESSIONCHANGE = 0x0000000E
+    }
+    public enum SERVICE_STATE : uint
+    {
+        SERVICE_STOPPED = 0x00000001,
+        SERVICE_START_PENDING = 0x00000002,
+        SERVICE_STOP_PENDING = 0x00000003,
+        SERVICE_RUNNING = 0x00000004,
+        SERVICE_CONTINUE_PENDING = 0x00000005,
+        SERVICE_PAUSE_PENDING = 0x00000006,
+        SERVICE_PAUSED = 0x00000007
+    }
+    public enum SERVICE_ACCESS : uint
+    {
+        /// <summary>
+        /// Required to call the QueryServiceConfig and 
+        /// QueryServiceConfig2 functions to query the service configuration.
+        /// </summary>
+        SERVICE_QUERY_CONFIG = 0x00001,
+
+        /// <summary>
+        /// Required to call the ChangeServiceConfig or ChangeServiceConfig2 function 
+        /// to change the service configuration. Because this grants the caller 
+        /// the right to change the executable file that the system runs, 
+        /// it should be granted only to administrators.
+        /// </summary>
+        SERVICE_CHANGE_CONFIG = 0x00002,
+
+        /// <summary>
+        /// Required to call the QueryServiceStatusEx function to ask the service 
+        /// control manager about the status of the service.
+        /// </summary>
+        SERVICE_QUERY_STATUS = 0x00004,
+
+        /// <summary>
+        /// Required to call the EnumDependentServices function to enumerate all 
+        /// the services dependent on the service.
+        /// </summary>
+        SERVICE_ENUMERATE_DEPENDENTS = 0x00008,
+
+        /// <summary>
+        /// Required to call the StartService function to start the service.
+        /// </summary>
+        SERVICE_START = 0x00010,
+
+        /// <summary>
+        ///     Required to call the ControlService function to stop the service.
+        /// </summary>
+        SERVICE_STOP = 0x00020,
+
+        /// <summary>
+        /// Required to call the ControlService function to pause or continue 
+        /// the service.
+        /// </summary>
+        SERVICE_PAUSE_CONTINUE = 0x00040,
+
+        /// <summary>
+        /// Required to call the EnumDependentServices function to enumerate all
+        /// the services dependent on the service.
+        /// </summary>
+        SERVICE_INTERROGATE = 0x00080,
+
+        /// <summary>
+        /// Required to call the ControlService function to specify a user-defined
+        /// control code.
+        /// </summary>
+        SERVICE_USER_DEFINED_CONTROL = 0x00100,
+
+        /// <summary>
+        /// Includes STANDARD_RIGHTS_REQUIRED in addition to all access rights in this table.
+        /// </summary>
+        SERVICE_ALL_ACCESS = ACCESS_MASK.STANDARD_RIGHTS_REQUIRED |
+            SERVICE_QUERY_CONFIG |
+            SERVICE_CHANGE_CONFIG |
+            SERVICE_QUERY_STATUS |
+            SERVICE_ENUMERATE_DEPENDENTS |
+            SERVICE_START |
+            SERVICE_STOP |
+            SERVICE_PAUSE_CONTINUE |
+            SERVICE_INTERROGATE |
+            SERVICE_USER_DEFINED_CONTROL,
+
+        GENERIC_READ = ACCESS_MASK.STANDARD_RIGHTS_READ |
+            SERVICE_QUERY_CONFIG |
+            SERVICE_QUERY_STATUS |
+            SERVICE_INTERROGATE |
+            SERVICE_ENUMERATE_DEPENDENTS,
+
+        GENERIC_WRITE = ACCESS_MASK.STANDARD_RIGHTS_WRITE |
+            SERVICE_CHANGE_CONFIG,
+
+        GENERIC_EXECUTE = ACCESS_MASK.STANDARD_RIGHTS_EXECUTE |
+            SERVICE_START |
+            SERVICE_STOP |
+            SERVICE_PAUSE_CONTINUE |
+            SERVICE_USER_DEFINED_CONTROL,
+
+        /// <summary>
+        /// Required to call the QueryServiceObjectSecurity or 
+        /// SetServiceObjectSecurity function to access the SACL. The proper
+        /// way to obtain this access is to enable the SE_SECURITY_NAME 
+        /// privilege in the caller's current access token, open the handle 
+        /// for ACCESS_SYSTEM_SECURITY access, and then disable the privilege.
+        /// </summary>
+        ACCESS_SYSTEM_SECURITY = ACCESS_MASK.ACCESS_SYSTEM_SECURITY,
+
+        /// <summary>
+        /// Required to call the DeleteService function to delete the service.
+        /// </summary>
+        DELETE = ACCESS_MASK.DELETE,
+
+        /// <summary>
+        /// Required to call the QueryServiceObjectSecurity function to query
+        /// the security descriptor of the service object.
+        /// </summary>
+        READ_CONTROL = ACCESS_MASK.READ_CONTROL,
+
+        /// <summary>
+        /// Required to call the SetServiceObjectSecurity function to modify
+        /// the Dacl member of the service object's security descriptor.
+        /// </summary>
+        WRITE_DAC = ACCESS_MASK.WRITE_DAC,
+
+        /// <summary>
+        /// Required to call the SetServiceObjectSecurity function to modify 
+        /// the Owner and Group members of the service object's security 
+        /// descriptor.
+        /// </summary>
+        WRITE_OWNER = ACCESS_MASK.WRITE_OWNER,
+    }
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct SERVICE_STATUS
+    {
+        public SERVICE_TYPE dwServiceType;
+        public SERVICE_STATE dwCurrentState;
+        public uint dwControlsAccepted;
+        public uint dwWin32ExitCode;
+        public uint dwServiceSpecificExitCode;
+        public uint dwCheckPoint;
+        public uint dwWaitHint;
     }
 
+    [Flags]
+    public enum ACCESS_MASK : uint
+    {
+        DELETE = 0x00010000,
+        READ_CONTROL = 0x00020000,
+        WRITE_DAC = 0x00040000,
+        WRITE_OWNER = 0x00080000,
+        SYNCHRONIZE = 0x00100000,
+
+        STANDARD_RIGHTS_REQUIRED = 0x000F0000,
+
+        STANDARD_RIGHTS_READ = 0x00020000,
+        STANDARD_RIGHTS_WRITE = 0x00020000,
+        STANDARD_RIGHTS_EXECUTE = 0x00020000,
+
+        STANDARD_RIGHTS_ALL = 0x001F0000,
+
+        SPECIFIC_RIGHTS_ALL = 0x0000FFFF,
+
+        ACCESS_SYSTEM_SECURITY = 0x01000000,
+
+        MAXIMUM_ALLOWED = 0x02000000,
+
+        GENERIC_READ = 0x80000000,
+        GENERIC_WRITE = 0x40000000,
+        GENERIC_EXECUTE = 0x20000000,
+        GENERIC_ALL = 0x10000000,
+
+        DESKTOP_READOBJECTS = 0x00000001,
+        DESKTOP_CREATEWINDOW = 0x00000002,
+        DESKTOP_CREATEMENU = 0x00000004,
+        DESKTOP_HOOKCONTROL = 0x00000008,
+        DESKTOP_JOURNALRECORD = 0x00000010,
+        DESKTOP_JOURNALPLAYBACK = 0x00000020,
+        DESKTOP_ENUMERATE = 0x00000040,
+        DESKTOP_WRITEOBJECTS = 0x00000080,
+        DESKTOP_SWITCHDESKTOP = 0x00000100,
+
+        WINSTA_ENUMDESKTOPS = 0x00000001,
+        WINSTA_READATTRIBUTES = 0x00000002,
+        WINSTA_ACCESSCLIPBOARD = 0x00000004,
+        WINSTA_CREATEDESKTOP = 0x00000008,
+        WINSTA_WRITEATTRIBUTES = 0x00000010,
+        WINSTA_ACCESSGLOBALATOMS = 0x00000020,
+        WINSTA_EXITWINDOWS = 0x00000040,
+        WINSTA_ENUMERATE = 0x00000100,
+        WINSTA_READSCREEN = 0x00000200,
+
+        WINSTA_ALL_ACCESS = 0x0000037F
+    }
+
+    public enum SERVICE_START : uint
+    {
+        /// <summary>
+        /// A device driver started by the system loader. This value is valid
+        /// only for driver services.
+        /// </summary>
+        SERVICE_BOOT_START = 0x00000000,
+
+        /// <summary>
+        /// A device driver started by the IoInitSystem function. This value 
+        /// is valid only for driver services.
+        /// </summary>
+        SERVICE_SYSTEM_START = 0x00000001,
+
+        /// <summary>
+        /// A service started automatically by the service control manager 
+        /// during system startup. For more information, see Automatically 
+        /// Starting Services.
+        /// </summary>         
+        SERVICE_AUTO_START = 0x00000002,
+
+        /// <summary>
+        /// A service started by the service control manager when a process 
+        /// calls the StartService function. For more information, see 
+        /// Starting Services on Demand.
+        /// </summary>
+        SERVICE_DEMAND_START = 0x00000003,
+
+        /// <summary>
+        /// A service that cannot be started. Attempts to start the service
+        /// result in the error code ERROR_SERVICE_DISABLED.
+        /// </summary>
+        SERVICE_DISABLED = 0x00000004,
+    }
+
+
+
+    [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+    public static extern nint CreateServiceW(
+        nint hSCManager,
+        string lpServiceName,
+        string lpDisplayName,
+        uint dwDesiredAccess,
+        uint dwServiceType,
+        uint dwStartType,
+        uint dwErrorControl,
+        string lpBinaryPathName,
+        uint lpLoadOrderGroup,
+        uint lpdwTagId,
+        uint lpdwTagId1,
+        uint lpDependencies,
+        uint lpServiceStartName,
+        uint lpPassword);
+
+
+
+    [DllImport("ntdll.dll", CharSet = CharSet.Auto)]
+    public static extern uint NtOpenFile(nint* FileHandle, uint DesiredAccess, OBJECT_ATTRIBUTES* ObjectAttributes, IO_STATUS_BLOCK* IoStatusBlock, uint ShareAccess, uint OpenOptions);
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    public struct IO_STATUS_BLOCK
+    {
+        public uint status;
+        public nint information;
+    }
+    [StructLayout(LayoutKind.Sequential)]
+    public struct UNICODE_STRING : IDisposable
+    {
+        public ushort Length;
+        public ushort MaximumLength;
+        private nint buffer;
+
+        public UNICODE_STRING(string s)
+        {
+            Length = (ushort)(s.Length * 2);
+            MaximumLength = (ushort)(Length + 2);
+            buffer = Marshal.StringToHGlobalUni(s);
+        }
+
+        public void Dispose()
+        {
+            Marshal.FreeHGlobal(buffer);
+            buffer = nint.Zero;
+        }
+
+        public override string ToString()
+        {
+            return Marshal.PtrToStringUni(buffer);
+        }
+    }
+
+    public struct OBJECT_ATTRIBUTES
+    {
+        public int Length;
+        public nint RootDirectory;
+        public nint ObjectName;
+        public uint Attributes;
+        public nint SecurityDescriptor;
+        public nint SecurityQualityOfService;
+
+    }
 }

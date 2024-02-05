@@ -5,4 +5,5 @@ obj
 node_modules
 /public/*
 /cmonitor.volume/x64/*
+/cmonitor.killer/x64/*
 /x64/*

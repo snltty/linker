@@ -2,8 +2,8 @@
 using common.libs.winapis;
 using Microsoft.Win32;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
-using static common.libs.winapis.Kernel32;
 
 namespace cmonitor.client.reports.active
 {
@@ -20,8 +20,10 @@ namespace cmonitor.client.reports.active
                 {
                     CommandHelper.Windows(string.Empty, new string[] { "gpupdate /force" });
                 });
+                InitDriver();
             }
         }
+
         private void CreateKey()
         {
             try
@@ -40,24 +42,6 @@ namespace cmonitor.client.reports.active
             {
             }
         }
-
-        public void Kill(int pid)
-        {
-            try
-            {
-                IntPtr handle = Kernel32.OpenProcess(ProcessAccessFlags.Terminate, false, pid);
-                if(handle != IntPtr.Zero)
-                {
-                    Kernel32.TerminateProcess(handle, 0);
-                    Kernel32.ZwTerminateProcess(handle, 0);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Error(ex);
-            }
-        }
-
         private string[] disallowNames = Array.Empty<string>();
         public void DisallowRun(string[] names)
         {
@@ -156,6 +140,7 @@ namespace cmonitor.client.reports.active
                             || (filenameSpan.Length >= nameSpan.Length && filenameSpan.Slice(filenameSpan.Length - nameSpan.Length, nameSpan.Length).SequenceEqual(nameSpan));
                         if (result)
                         {
+                            ProcessKiller((uint)pid);
                             Task.Run(() =>
                             {
                                 CommandHelper.Windows(string.Empty, new string[] { $"taskkill /f /pid {pid}" });
@@ -214,7 +199,6 @@ namespace cmonitor.client.reports.active
             }
             return activeWindowInfo;
         }
-
         public int GetWindowCount()
         {
             int length = 0;
@@ -235,7 +219,6 @@ namespace cmonitor.client.reports.active
             }, IntPtr.Zero);
             return length;
         }
-
         public Dictionary<uint, string> GetWindows()
         {
             Dictionary<uint, string> dic = new Dictionary<uint, string>();
@@ -262,6 +245,34 @@ namespace cmonitor.client.reports.active
             return dic;
         }
 
+        private void InitDriver()
+        {
+            try
+            {
+                LoadDriver("cmonitor.killer", Path.GetFullPath(Path.Join("./", "killer.sys")));
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error(ex);
+            }
+        }
+        public void Kill(int pid)
+        {
+            try
+            {
+                ProcessKiller((uint)pid);
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error(ex);
+            }
+        }
 
+
+        [DllImport("cmonitor.killer.dll")]
+        public static extern int LoadDriver(string serviceName, string driverPath);
+
+        [DllImport("cmonitor.killer.dll")]
+        public static extern int ProcessKiller(uint pid);
     }
 }

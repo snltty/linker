@@ -36,6 +36,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Update="cmonitor.killer.dll">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="ffmpeg\avcodec-60.dll">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
@@ -69,6 +72,9 @@
 		<None Update="ffmpeg\swscale-7.dll">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="killer.sys">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 	<ItemGroup>
 	  <Compile Remove="Properties\**" />
@@ -92,10 +98,4 @@
 		<TrimmerRootAssembly Include="FFmpeg.AutoGen" />
 		
 	</ItemGroup>
-
-	
-	<!--<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-	  <Exec Command="call copy.bat &quot;$(OutDir)&quot;" />
-	</Target>-->
-
 </Project>
