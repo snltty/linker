@@ -168,15 +168,15 @@ namespace cmonitor.client.reports.hijack.hijack
         }
         private bool checkDomain(string domain)
         {
-            //黑名单
-            if (hijackConfig.DeniedDomains.Length > 0 && checkName(hijackConfig.DeniedDomains, domain))
-            {
-                return true;
-            }
             //白名单
-            if (hijackConfig.AllowDomains.Length > 0)
+            if (hijackConfig.AllowDomains.Length > 0 && checkName(hijackConfig.AllowDomains, domain))
             {
-                return checkName(hijackConfig.AllowDomains, domain) == false;
+                return false;
+            }
+            //黑名单
+            if (hijackConfig.DeniedDomains.Length > 0)
+            {
+                return checkName(hijackConfig.DeniedDomains, domain);
             }
             return false;
         }
@@ -195,15 +195,15 @@ namespace cmonitor.client.reports.hijack.hijack
                 return false;
             }
             processName = NFAPI.nf_getProcessName(processId);
-            //黑名单
-            if (hijackConfig.DeniedProcesss.Length > 0 && checkName(hijackConfig.DeniedProcesss, processName))
-            {
-                return true;
-            }
             //白名单
-            if (hijackConfig.AllowProcesss.Length > 0)
+            if (hijackConfig.AllowProcesss.Length > 0 && checkName(hijackConfig.AllowProcesss, processName))
             {
-                return checkName(hijackConfig.AllowProcesss, processName) == false;
+                return false;
+            }
+            //黑名单
+            if (hijackConfig.DeniedProcesss.Length > 0)
+            {
+                return checkName(hijackConfig.DeniedProcesss, processName);
             }
 
             return false;
