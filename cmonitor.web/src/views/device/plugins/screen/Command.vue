@@ -27,7 +27,7 @@
 <script>
 import { ElMessage } from 'element-plus';
 import { injectPluginState } from '../../provide'
-import { screenDisplay, screenShare } from '../../../../apis/screen'
+import { screenDisplay } from '../../../../apis/screen'
 import { injectGlobalData } from '@/views/provide';
 export default {
     setup() {
@@ -54,14 +54,7 @@ export default {
             pluginState.value.screen.showShare = false;
         }
         const handleConfirm = () => {
-            screenShare(pluginState.value.screen.device, pluginState.value.command.devices.map(c => c.MachineName)).then(() => {
-                handleCancel();
-                ElMessage.success('操作成功');
-                pluginState.value.screen.shareUpdateFlag = Date.now();
-            }).catch((e) => {
-                console.log(e);
-                ElMessage.error('操作失败');
-            });
+            ElMessage.success('操作成功');
         }
 
         return { pluginState, globalState, handleDisplay, handleShare, handleCancel, handleConfirm }

@@ -49,9 +49,9 @@ namespace cmonitor.client.reports.screen
             this.config = config;
             if (OperatingSystem.IsWindows())
             {
-                FFmpegHelper.Initialize();
+                //FFmpegHelper.Initialize();
                 InitCapture();
-                InitEncoder();
+                //InitEncoder();
             }
         }
 
@@ -567,7 +567,7 @@ namespace cmonitor.client.reports.screen
             {
                 fullImageBytes = new byte[length];
             }
-            Console.WriteLine($"image {length}");
+            //Console.WriteLine($"image {length}");
             ms.Read(fullImageBytes.AsSpan(0, length));
             frame.FullImage = fullImageBytes.AsMemory(0, length);
         }

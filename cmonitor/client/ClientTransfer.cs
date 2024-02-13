@@ -25,6 +25,10 @@ namespace cmonitor.client
             if (config.IsCLient)
             {
                 SignInTask();
+                tcpServer.OnDisconnected += (hashcode) =>
+                {
+                    clientSignInState.PushNetworkDisabled();
+                };
             }
         }
 
@@ -102,8 +106,6 @@ namespace cmonitor.client
                 }
             }
         }
-
-
 
     }
 }

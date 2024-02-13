@@ -51,12 +51,16 @@ export default {
             }
         });
 
-        const excludeArr = ['Microsoft Text Input Application', 'DragFileWindowTitle', 'TrafficMonitor', '安装', 'Program Manager'];
+        const excludeArr = ['CTF 加载程序', 'COM Surrogate', 'Windows 登录应用程序', 'Runtime Broker', 'Windows 模块安装程序',
+            'Windows 主进程 (Rundll32)', '控制台窗口主机', 'Host Process for Windows Services', 'Windows 音频设备图形隔离',
+            '后台处理程序子系统应用', '桌面窗口管理器', 'Local Security Authority Process', 'Windows 任务的主机进程',
+            'Microsoft Text Input Application', 'DragFileWindowTitle', 'TrafficMonitor', '安装', 'Program Manager',
+            'Windows 服务主进程'];
         const getData = () => {
             getActiveWindows(pluginState.value.activeWindow.devices[0].MachineName).then((res) => {
                 const arr = Object.keys(res).map(c => {
                     return {
-                        pid: c,
+                        pid: +c,
                         title: res[c]
                     }
                 }).filter(c => excludeArr.indexOf(c.title) == -1);

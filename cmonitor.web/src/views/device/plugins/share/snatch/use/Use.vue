@@ -48,7 +48,6 @@ export default {
                 pluginState.value.shareSnatch.answers = answers;
                 timer = setTimeout(loadQuestion, 1000);
             }).catch((e) => {
-                console.log(e);
                 timer = setTimeout(loadQuestion, 1000);
             });
         }

@@ -58,6 +58,12 @@ namespace cmonitor
             //日志输出
             LoggerConsole();
 
+            /*
+            foreach (var arg in Dns.GetHostByName(Dns.GetHostName()).AddressList)
+            {
+                Console.WriteLine(arg.Address.ToString());
+            }*/
+
             //读取参数
             Dictionary<string, string> dic = ArgumentParser.Parse(args, out string error);
 #if RELEASE
@@ -193,7 +199,6 @@ namespace cmonitor
             else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<INotify, NotifyMacOS>();
 
             serviceCollection.AddSingleton<ScreenReport>();
-            serviceCollection.AddSingleton<ScreenShare>();
             if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<IScreen, ScreenWindows>();
             else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<IScreen, ScreenLinux>();
             else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<IScreen, ScreenMacOS>();
@@ -353,7 +358,7 @@ namespace cmonitor
         public int WebPort { get; set; } = 1800;
         public int ApiPort { get; set; } = 1801;
         public int ServicePort { get; set; } = 1802;
-        public IPAddress Server { get; set; } = IPAddress.Parse("192.168.1.18");
+        public IPAddress Server { get; set; } = IPAddress.Loopback;
         public string WebRoot { get; set; } = "./web/";
         public string Name { get; set; } = Dns.GetHostName();
 
@@ -363,7 +368,7 @@ namespace cmonitor
         public int ScreenDelay { get; set; } = 30;
 
         /// <summary>
-        /// 0项保留给各个功能的状态信息，每个一个字节为状态信息，看ShareMemoryState
+        /// 0项保留
         /// </summary>
         public string ShareMemoryKey { get; set; } = "cmonitor/share";
         public int ShareMemoryLength { get; set; } = 10;
@@ -400,6 +405,7 @@ namespace cmonitor
         public const int ShareSnatchQuestionIndex = 5;
         public const int ShareSnatchAnswerIndex = 6;
 
+        public const int ShareScreenShareIndex = 7;
     }
 
     public class ArgumentParser
@@ -457,7 +463,7 @@ namespace cmonitor
             //服务器地址
             if (dic.ContainsKey("server") == false || string.IsNullOrWhiteSpace(dic["server"]))
             {
-                dic["server"] = "192.168.1.35";
+                dic["server"] = IPAddress.Loopback.ToString();
             }
             return true;
         }
@@ -549,6 +555,5 @@ namespace cmonitor
             }
             return true;
         }
-
     }
 }

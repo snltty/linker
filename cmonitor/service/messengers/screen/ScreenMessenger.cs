@@ -11,16 +11,14 @@ namespace cmonitor.service.messengers.screen
         private readonly IClientServer clientServer;
         private readonly Config config;
         private readonly SignCaching signCaching;
-        private readonly ScreenShare screenShare;
 
 
-        public ScreenMessenger(ScreenReport screenReport, IClientServer clientServer, Config config, SignCaching signCaching, ScreenShare screenShare)
+        public ScreenMessenger(ScreenReport screenReport, IClientServer clientServer, Config config, SignCaching signCaching)
         {
             this.screenReport = screenReport;
             this.clientServer = clientServer;
             this.config = config;
             this.signCaching = signCaching;
-            this.screenShare = screenShare;
         }
 
         [MessengerId((ushort)ScreenMessengerIds.CaptureFull)]
@@ -35,11 +33,8 @@ namespace cmonitor.service.messengers.screen
         }
 
         [MessengerId((ushort)ScreenMessengerIds.CaptureFullReport)]
-        public async Task CaptureFullReport(IConnection connection)
+        public void CaptureFullReport(IConnection connection)
         {
-            bool shared = await screenShare.ShareData(connection.Name, connection.ReceiveRequestWrap.Payload);
-            if (shared) return;
-
             if (signCaching.Get(connection.Name, out SignCacheInfo cache))
             {
                 if (cache.Version == config.Version)
@@ -88,30 +83,6 @@ namespace cmonitor.service.messengers.screen
                 byte state = connection.ReceiveRequestWrap.Payload.Span[0];
                 screenReport.SetDisplayState(state == 1);
             }
-        }
-
-
-        [MessengerId((ushort)ScreenMessengerIds.ShareData)]
-        public void ShareData(IConnection connection)
-        {
-            screenShare.SetData(connection.ReceiveRequestWrap.Payload);
-        }
-
-        [MessengerId((ushort)ScreenMessengerIds.ShareStart)]
-        public async Task ShareStart(IConnection connection)
-        {
-            string[] names = Array.Empty<string>();
-            if (connection.ReceiveRequestWrap.Payload.Length > 0)
-            {
-                names = MemoryPackSerializer.Deserialize<string[]>(connection.ReceiveRequestWrap.Payload.Span);
-            }
-            await screenShare.Start(connection.Name, names);
-        }
-
-        [MessengerId((ushort)ScreenMessengerIds.ShareClose)]
-        public async Task ShareClose(IConnection connection)
-        {
-            await screenShare.Close(connection.Name);
         }
     }
 

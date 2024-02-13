@@ -9,6 +9,12 @@
 #define IOCTL_REGISTER_PROCESS 0x80002010
 #define IOCTL_TERMINATE_PROCESS 0x80002048
 
+struct FileDeleteArgs {
+	wchar_t file_path[256];
+};
+
+#define FILE_DELETE_IOCTL CTL_CODE(FILE_DEVICE_UNKNOWN, 0x1337, METHOD_BUFFERED, FILE_WRITE_DATA)
+
 
 extern "C" __declspec(dllexport) int LoadDriver(char* g_serviceName,char* driverPath)
 {

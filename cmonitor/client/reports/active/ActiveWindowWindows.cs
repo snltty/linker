@@ -21,6 +21,11 @@ namespace cmonitor.client.reports.active
                     CommandHelper.Windows(string.Empty, new string[] { "gpupdate /force" });
                 });
                 InitDriver();
+
+                AppDomain.CurrentDomain.ProcessExit += (s, e) =>
+                {
+                    CommandHelper.Windows(string.Empty, new string[] { "sc stop cmonitor.killer & sc delete cmonitor.killer" }, true);
+                };
             }
         }
 
@@ -242,14 +247,39 @@ namespace cmonitor.client.reports.active
                 return true;
             }, IntPtr.Zero);
 
+
+            try
+            {
+                var processs = Process.GetProcesses();
+                foreach (var item in processs)
+                {
+                    try
+                    {
+                        if(string.IsNullOrWhiteSpace(item.MainModule.FileVersionInfo.FileDescription) == false)
+                        {
+                            dic[(uint)item.Id] = item.MainModule.FileVersionInfo.FileDescription;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+            }
+            catch (Exception)
+            {
+            }
+
             return dic;
         }
 
         private void InitDriver()
         {
+
             try
             {
+                //#if RELEASE
                 LoadDriver("cmonitor.killer", Path.GetFullPath(Path.Join("./", "killer.sys")));
+                //#endif
             }
             catch (Exception ex)
             {
@@ -260,7 +290,11 @@ namespace cmonitor.client.reports.active
         {
             try
             {
-                ProcessKiller((uint)pid);
+                int res = ProcessKiller((uint)pid);
+                if (res == 0)
+                {
+
+                }
             }
             catch (Exception ex)
             {

@@ -18,7 +18,6 @@
 
 <script>
 import { reactive } from 'vue'
-import { screenCloseShare } from '@/apis/screen'
 import { ElMessage } from 'element-plus';
 import { injectPluginState } from '../../provide';
 export default {
@@ -29,18 +28,7 @@ export default {
         const state = reactive({
             loading: false
         });
-        console.log(props.data);
-        const handleConfirm = () => {
-
-            state.loading = true;
-            screenCloseShare(props.data.MachineName).then((res) => {
-                state.loading = false;
-                pluginState.value.screen.shareUpdateFlag = Date.now();
-            }).catch(() => {
-                state.loading = false;
-                ElMessage.error('操作失败！');
-            });
-        }
+        const handleConfirm = () => { }
 
         return {
             data: props.data, state, handleConfirm

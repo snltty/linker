@@ -12,13 +12,11 @@ namespace cmonitor.api.services
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;
         private readonly Config config;
-        private readonly ScreenShare screenShare;
-        public ScreenClientService(MessengerSender messengerSender, SignCaching signCaching, Config config, ScreenShare screenShare)
+        public ScreenClientService(MessengerSender messengerSender, SignCaching signCaching, Config config)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
             this.config = config;
-            this.screenShare = screenShare;
         }
         public bool Full(ClientServiceParamsInfo param)
         {
@@ -112,21 +110,6 @@ namespace cmonitor.api.services
             }
 
             return true;
-        }
-        public async Task<bool> Share(ClientServiceParamsInfo param)
-        {
-            ScreenShareParamInfo share = param.Content.DeJson<ScreenShareParamInfo>();
-            await screenShare.Start(share.Name, share.Names);
-            return true;
-        }
-        public async Task<bool> CloseShare(ClientServiceParamsInfo param)
-        {
-            await screenShare.Close(param.Content);
-            return true;
-        }
-        public string[] GetShare(ClientServiceParamsInfo param)
-        {
-            return screenShare.GetHostNames();
         }
     }
 

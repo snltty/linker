@@ -12,6 +12,7 @@ namespace cmonitor.service
         private UdpClient socketUdp;
         private CancellationTokenSource cancellationTokenSource;
         public Func<IConnection, Task> OnPacket { get; set; } = async (connection) => { await Task.CompletedTask; };
+        public Action<int> OnDisconnected { get; set; }
 
         private readonly Config config;
         public TcpServer(Config config)
@@ -90,9 +91,6 @@ namespace cmonitor.service
             {
             }
         }
-
-
-
 
         private void StartAccept(SocketAsyncEventArgs acceptEventArg)
         {
@@ -262,6 +260,7 @@ namespace cmonitor.service
                 token.Clear();
                 e.Dispose();
             }
+            OnDisconnected?.Invoke(token.Socket.GetHashCode());
         }
 
         public IConnection CreateConnection(Socket socket)
