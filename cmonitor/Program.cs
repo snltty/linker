@@ -444,7 +444,7 @@ namespace cmonitor
              && ValidateMemoryKey(dic, out error)
              && ValidateScreenScale(dic, out error)
              && ValidateReport(dic, out error)
-             && ValidateElevated(dic, out error);
+             && ValidateElevated(dic, out error); 
         }
 
         static bool ValidateMode(Dictionary<string, string> dic)
