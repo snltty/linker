@@ -39,7 +39,7 @@ namespace cmonitor.client
                 await Task.Delay(10000);
                 while (true)
                 {
-                    
+
                     if (clientSignInState.Connected == false)
                     {
                         try
@@ -69,7 +69,7 @@ namespace cmonitor.client
                 try
                 {
                     IPEndPoint remote = new IPEndPoint(ip, config.ServicePort);
-
+                    //Logger.Instance.Info($"connect server {remote}");
                     Socket socket = new Socket(ip.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                     socket.KeepAlive();
                     IAsyncResult result = socket.BeginConnect(remote, null, null);

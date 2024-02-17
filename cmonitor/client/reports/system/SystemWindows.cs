@@ -24,12 +24,23 @@ namespace cmonitor.client.reports.system
 
         public ReportDriveInfo[] GetAllDrives()
         {
-            return DriveInfo.GetDrives().Select(c => new ReportDriveInfo
+            List<ReportDriveInfo> result = new List<ReportDriveInfo>();
+            foreach (DriveInfo item in DriveInfo.GetDrives())
             {
-                Name = c.Name,
-                Free = c.TotalFreeSpace,
-                Total = c.TotalSize
-            }).ToArray();
+                try
+                {
+                    result.Add(new ReportDriveInfo
+                    {
+                        Name = item.Name,
+                        Free = item.TotalFreeSpace,
+                        Total = item.TotalSize
+                    });
+                }
+                catch (Exception)
+                {
+                }
+            }
+            return result.ToArray();
         }
 
         bool restored = false;
@@ -58,9 +69,9 @@ namespace cmonitor.client.reports.system
                     Task.Run(async () =>
                     {
                         Logger.Instance.Info($"regedit reuse");
-                        while ( reused == false)
+                        while (reused == false)
                         {
-                            if(restored )
+                            if (restored)
                             {
                                 reused |= registryOptionHelper.Reuse();
                                 OptionUpdate(new SystemOptionUpdateInfo { Keys = new string[] { "SoftwareSASGeneration" }, Value = false });

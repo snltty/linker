@@ -40,6 +40,7 @@ using cmonitor.client.reports.wallpaper;
 using cmonitor.client.reports.snatch;
 using cmonitor.service.messengers.snatch;
 using cmonitor.libs;
+using common.libs.winapis;
 
 
 namespace cmonitor
@@ -57,12 +58,6 @@ namespace cmonitor
 
             //日志输出
             LoggerConsole();
-
-            /*
-            foreach (var arg in Dns.GetHostByName(Dns.GetHostName()).AddressList)
-            {
-                Console.WriteLine(arg.Address.ToString());
-            }*/
 
             //读取参数
             Dictionary<string, string> dic = ArgumentParser.Parse(args, out string error);
@@ -223,6 +218,9 @@ namespace cmonitor
             else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<ISnatch, SnatchLinux>();
             else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<ISnatch, SnatchMacOS>();
 
+            
+
+            serviceCollection.AddSingleton<WlanReport>();
             serviceCollection.AddSingleton<ShareReport>();
 
             serviceCollection.AddSingleton<CommandReport>();
