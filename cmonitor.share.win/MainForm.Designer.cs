@@ -40,7 +40,6 @@
             Name = "MainForm";
             Text = "共享桌面";
             Load += OnLoad;
-            Paint += OnPaint;
             ResumeLayout(false);
         }
 

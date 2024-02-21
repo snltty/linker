@@ -1,4 +1,5 @@
 using cmonitor.libs;
+using RDPCOMAPILib;
 using System.Diagnostics;
 
 namespace cmonitor.share.win
@@ -26,11 +27,6 @@ namespace cmonitor.share.win
         {
             InitializeComponent();
 
-            this.DoubleBuffered = true;
-
-            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
-            UpdateStyles();
-
             bytes = new byte[size];
             shareMemory = new ShareMemory(key, 1, size);
             shareMemory.InitLocal();
@@ -44,9 +40,12 @@ namespace cmonitor.share.win
             this.WindowState = FormWindowState.Maximized;
 #endif
             TopMost = true;
+            CheckRunning();
+        }
 
+        private void CheckRunning()
+        {
             hook.Start();
-
             shareMemory.AddAttribute(0, ShareMemoryAttribute.Running);
             Task.Run(async () =>
             {
@@ -54,14 +53,6 @@ namespace cmonitor.share.win
                 {
                     try
                     {
-                        if (shareMemory.ReadVersionUpdated(0, ref version))
-                        {
-                            this.Invoke(() =>
-                            {
-                                this.Invalidate();
-                            });
-                        }
-
                         if (shareMemory.ReadAttributeEqual(0, ShareMemoryAttribute.Closed))
                         {
                             shareMemory.RemoveAttribute(0, ShareMemoryAttribute.Running);
@@ -74,26 +65,36 @@ namespace cmonitor.share.win
                     catch (Exception)
                     {
                     }
-                    await Task.Delay(15);
+                    await Task.Delay(1000);
                 }
 
             });
         }
 
-
-        private void OnPaint(object sender, PaintEventArgs e)
+        private void OpenShareDesktop()
         {
-            int length = shareMemory.ReadValueArray(0, bytes);
-            if (length > 0)
-            {
-                using MemoryStream stream = new MemoryStream(bytes, 0, length);
-                using Bitmap bitmap = new Bitmap(stream);
+            RDPSession session = new RDPSession();
+            session.OnAttendeeConnected += Session_OnAttendeeConnected;
+            // 启用桌面共享
+            session.Open();
 
-                e.Graphics.Clear(Color.Black);
-                e.Graphics.DrawImage(bitmap, 0, 0, this.ClientSize.Width, this.ClientSize.Height);
-            }
+            IRDPSRAPIInvitation invitation = session.Invitations.CreateInvitation("分享桌面控制权", "我的共享会话", "123", 1024);
+            string invitationString = invitation.ConnectionString;
 
-            //base.OnPaint(e);
+            Console.WriteLine("请将以下连接字符串提供给远程客户端：");
+            Console.WriteLine(invitationString);
+
+            // 等待关闭窗口
+            Console.WriteLine("按任意键关闭...");
+            Console.ReadKey();
+
+            session.Close();
+        }
+        private void Session_OnAttendeeConnected(object pAttendee)
+        {
+            IRDPSRAPIAttendee attendee = (IRDPSRAPIAttendee)pAttendee;
+            // 设置客户端访问权限为 ViewOnly
+            attendee.ControlLevel = CTRL_LEVEL.CTRL_LEVEL_VIEW;
         }
     }
 }
