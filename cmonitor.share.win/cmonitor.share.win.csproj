@@ -40,4 +40,10 @@
     <ProjectReference Include="..\common.libs\common.libs.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Interop.RDPCOMAPILib">
+      <HintPath>Interop.RDPCOMAPILib.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
