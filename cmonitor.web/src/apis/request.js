@@ -4,7 +4,7 @@ let requestId = 0, ws = null, wsUrl = '', index = 1;
 //请求缓存，等待回调
 const requests = {};
 const queues = [];
-export const websocketState = { connected: false };
+export const websocketState = { connected: false, connecting: false };
 
 const sendQueueMsg = () => {
     if (queues.length > 0 && websocketState.connected && ws && ws.readyState == 1) {
@@ -62,12 +62,16 @@ export const pushListener = {
 //消息处理
 const onWebsocketOpen = () => {
     websocketState.connected = true;
+    websocketState.connecting = false;
     pushListener.push(websocketStateChangeKey, websocketState.connected);
 }
 const onWebsocketClose = (e) => {
     websocketState.connected = false;
+    websocketState.connecting = false;
     pushListener.push(websocketStateChangeKey, websocketState.connected);
-    initWebsocket();
+    setTimeout(() => {
+        initWebsocket();
+    }, 1000);
 }
 export const onWebsocketMsg = (msg) => {
     if (typeof msg.data != 'string') {
@@ -111,19 +115,26 @@ const pushMessage = (json) => {
         pushListener.push(json.Path, json.Content);
     }
 }
-
 export const initWebsocket = (url = wsUrl) => {
+    wsUrl = url;
+    if (websocketState.connecting) {
+        return;
+    }
     if (ws != null) {
         ws.close();
     }
-    wsUrl = url;
+    websocketState.connecting = true;
     ws = new WebSocket(wsUrl);
     ws.iddd = ++index;
     ws.onopen = onWebsocketOpen;
     ws.onclose = onWebsocketClose
-    ws.onmessage = onWebsocketMsg
+    ws.onmessage = onWebsocketMsg;
 }
-
+export const closeWebsocket = () => {
+    if (ws) {
+        ws.close();
+    }
+}
 
 //发送消息
 export const sendWebsocketMsg = (path, msg = {}, errHandle = false, timeout = 15000) => {
@@ -162,8 +173,3 @@ export const unsubNotifyMsg = (path, callback) => {
 }
 
 
-export const closeWebsocket = () => {
-    if (ws) {
-        ws.close();
-    }
-}

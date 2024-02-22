@@ -36,7 +36,12 @@
         <el-dialog :title="`${state.currentItem.ID==0?'添加项':'修改项'}`" destroy-on-close v-model="state.showEdit" center :close-on-click-modal="false" align-center width="80%">
             <div>
                 <p><el-input v-model="state.currentItem.Desc" size="large" placeholder="名称" /></p>
-                <p style="padding-top:1rem"><el-input v-model="state.currentItem.Name" size="large" placeholder="文件,多个逗号间隔，无后缀则按标题处理" /></p>
+                <p style="padding-top:1rem"><el-input v-model="state.currentItem.Name" size="large" placeholder="规则" /></p>
+                <div style="padding-top:1rem">
+                    <p>1、带后缀的文件名</p>
+                    <p>2、无后缀的标题</p>
+                    <p>3、/xxx/格式的正则</p>
+                </div>
             </div>
             <template #footer>
                 <el-button @click="handleEditCancel">取 消</el-button>

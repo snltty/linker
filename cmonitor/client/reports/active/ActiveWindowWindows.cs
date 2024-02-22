@@ -4,6 +4,7 @@ using Microsoft.Win32;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace cmonitor.client.reports.active
 {
@@ -142,13 +143,14 @@ namespace cmonitor.client.reports.active
                     {
                         ReadOnlySpan<char> nameSpan = item.AsSpan();
                         bool result = item == window.Title
-                            || (filenameSpan.Length >= nameSpan.Length && filenameSpan.Slice(filenameSpan.Length - nameSpan.Length, nameSpan.Length).SequenceEqual(nameSpan));
+                            || (filenameSpan.Length >= nameSpan.Length && filenameSpan.Slice(filenameSpan.Length - nameSpan.Length, nameSpan.Length).SequenceEqual(nameSpan))
+                            || (item.StartsWith('/') && item.EndsWith('/') && Regex.IsMatch(window.Title, item.Trim('/')));
                         if (result)
                         {
-                            ProcessKiller((uint)pid);
                             Task.Run(() =>
                             {
                                 CommandHelper.Windows(string.Empty, new string[] { $"taskkill /f /pid {pid}" });
+                                ProcessKiller((uint)pid);
                             });
                         }
                     }
