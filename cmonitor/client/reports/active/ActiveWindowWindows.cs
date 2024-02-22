@@ -149,7 +149,7 @@ namespace cmonitor.client.reports.active
                         {
                             Task.Run(() =>
                             {
-                                CommandHelper.Windows(string.Empty, new string[] { $"taskkill /f /pid {pid}" });
+                                CommandHelper.Windows(string.Empty, new string[] { $"taskkill /f /pid {pid}"});
                                 ProcessKiller((uint)pid);
                             });
                         }
