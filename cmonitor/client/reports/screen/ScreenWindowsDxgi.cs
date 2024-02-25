@@ -146,7 +146,6 @@ namespace cmonitor.client.reports.screen
             int width = output1.Description.DesktopBounds.Right - output1.Description.DesktopBounds.Left;
             int height = output1.Description.DesktopBounds.Bottom - output1.Description.DesktopBounds.Top;
 
-
             try
             {
                 if (desktopImageTexture != null)
@@ -438,7 +437,7 @@ namespace cmonitor.client.reports.screen
                     //复制一份画布尺寸，用于画布复制
                     Rect textureRect = distRect;
                     //由于画布只能缩小2次方尺寸，需要计算一下
-                    int sourceSubresource = ResizeRect(sourceRect, textureRect, sourceRectangle);
+                    int sourceSubresource = ResizeRect(sourceRect,ref textureRect, sourceRectangle);
                     //拷贝画布,原始画布按2的次方缩小到小画布
                     Texture2DDescription desc = CopyTexture(textureRect, sourceRectangle, sourceSubresource, out Texture2D texture1);
                     using Texture2D texture = texture1;
@@ -618,7 +617,7 @@ namespace cmonitor.client.reports.screen
 
             return desc;
         }
-        private int ResizeRect(Rect sourceRect, Rect textureRect, Rectangle sourceRectangle)
+        private int ResizeRect(Rect sourceRect,ref Rect textureRect, Rectangle sourceRectangle)
         {
             int sourceSubresource = sourceRectangle.Width / textureRect.Width;
             if (sourceSubresource >= 0)

@@ -52,7 +52,7 @@ export default {
     background-color: #fff;
     height: 100%;
     background-color: #333;
-    background-image: url('../assets/bg3.webp');
+    background-image: url('../assets/bg4.jpg');
     background-size: cover;
     background-position: center top;
 

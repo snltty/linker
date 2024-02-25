@@ -34,7 +34,7 @@ export default {
 
 <style lang="stylus" scoped>
 .foot-wrap {
-    border-top: 1px solid rgba(18, 63, 76, 0.8);
+    border-top: 1px solid rgba(18, 46, 79, 0.8);
     position: relative;
     z-index: 999;
 }

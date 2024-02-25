@@ -184,9 +184,9 @@ export default {
             right: 0;
             bottom: 0;
             z-index: -1;
-            border: 1px solid rgba(18, 63, 76, 0.8);
+            border: 1px solid rgba(18, 76, 32, 0.8);
             border-radius: 4px;
-            background-color: rgba(19, 67, 89, 0.5);
+            background-color: rgba(18, 89, 38, 0.5);
             // background-color: rgba(219, 234, 255, 0.5);
             // border: 1px solid rgba(18, 63, 76, 0.8);
             backdrop-filter: blur(2px);
