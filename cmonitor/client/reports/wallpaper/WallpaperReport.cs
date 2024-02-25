@@ -11,8 +11,9 @@ namespace cmonitor.client.reports.wallpaper
         private readonly IWallpaper wallpaper;
         private readonly ShareMemory shareMemory;
         private long version = 0;
+        private bool opened = false;
 
-        public WallpaperReport(Config config,ClientConfig clientConfig, IWallpaper wallpaper, ShareMemory shareMemory,ClientSignInState clientSignInState)
+        public WallpaperReport(Config config, ClientConfig clientConfig, IWallpaper wallpaper, ShareMemory shareMemory, ClientSignInState clientSignInState)
         {
             this.clientConfig = clientConfig;
             this.wallpaper = wallpaper;
@@ -21,17 +22,16 @@ namespace cmonitor.client.reports.wallpaper
             if (config.IsCLient)
             {
                 clientSignInState.NetworkFirstEnabledHandle += () => { Update(clientConfig.Wallpaper, clientConfig.WallpaperUrl); };
+                WallpaperTask();
             }
         }
 
         DateTime startTime = new DateTime(1970, 1, 1);
         public object GetReports(ReportType reportType)
         {
-            bool updated = shareMemory.ReadVersionUpdated(Config.ShareMemoryWallpaperIndex,ref version);
-            if (reportType == ReportType.Full || updated)
+            if (reportType == ReportType.Full || shareMemory.ReadVersionUpdated(Config.ShareMemoryWallpaperIndex, ref version))
             {
-                long value = shareMemory.ReadValueInt64(Config.ShareMemoryWallpaperIndex);
-                clientConfig.Wallpaper = report.Value = value > 0 && (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds - value < 1000;
+                report.Value = Running();
                 return report;
             }
             return null;
@@ -39,6 +39,7 @@ namespace cmonitor.client.reports.wallpaper
 
         public void Update(bool open, string url)
         {
+            opened = open;
             clientConfig.Wallpaper = open;
             clientConfig.WallpaperUrl = url;
             Task.Run(async () =>
@@ -47,7 +48,29 @@ namespace cmonitor.client.reports.wallpaper
                 await Task.Delay(100);
                 wallpaper.Set(open, url);
             });
+        }
 
+        private void WallpaperTask()
+        {
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    if (opened)
+                    {
+                        if (Running() == false)
+                        {
+                            Update(clientConfig.Wallpaper, clientConfig.WallpaperUrl);
+                        }
+                    }
+                    await Task.Delay(5000);
+                }
+            });
+        }
+        private bool Running()
+        {
+            long value = shareMemory.ReadValueInt64(Config.ShareMemoryWallpaperIndex);
+            return value > 0 && (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds - value < 1000;
         }
     }
 

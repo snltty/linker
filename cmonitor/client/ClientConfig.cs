@@ -28,6 +28,7 @@ namespace cmonitor.client
             WindowIds = clientConfig.WindowIds;
             UserSid = clientConfig.UserSid;
             Wlan = clientConfig.Wlan;
+            WlanAuto = clientConfig.WlanAuto;
             SaveTask();
         }
 
@@ -144,6 +145,15 @@ namespace cmonitor.client
             get => _wlan; set
             {
                 _wlan = value;
+                updated = true;
+            }
+        }
+        private bool _wlanAuto;
+        public bool WlanAuto
+        {
+            get => _wlanAuto; set
+            {
+                _wlanAuto = value;
                 updated = true;
             }
         }

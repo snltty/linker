@@ -249,7 +249,7 @@ namespace cmonitor.client.reports.active
                 return true;
             }, IntPtr.Zero);
 
-
+            /*
             try
             {
                 var processs = Process.GetProcesses();
@@ -270,7 +270,7 @@ namespace cmonitor.client.reports.active
             catch (Exception)
             {
             }
-
+            */
             return dic;
         }
 

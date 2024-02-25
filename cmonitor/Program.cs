@@ -40,7 +40,8 @@ using cmonitor.client.reports.wallpaper;
 using cmonitor.client.reports.snatch;
 using cmonitor.service.messengers.snatch;
 using cmonitor.libs;
-using common.libs.winapis;
+using cmonitor.client.reports.wlan;
+using cmonitor.service.messengers.wlan;
 
 
 namespace cmonitor
@@ -141,7 +142,6 @@ namespace cmonitor
                 shareMemory.InitGlobal();
                 shareMemory.StartLoop();
 
-
                 ClientTransfer clientTransfer = serviceProvider.GetService<ClientTransfer>();
             }
         }
@@ -159,6 +159,7 @@ namespace cmonitor
             ShareMemory shareMemory = new ShareMemory(config.ShareMemoryKey, config.ShareMemoryLength, config.ShareMemoryItemSize);
             serviceCollection.AddSingleton<ShareMemory>((a) => shareMemory);
 
+            #region 功能
 
             serviceCollection.AddSingleton<ReportTransfer>();
 
@@ -166,6 +167,9 @@ namespace cmonitor
             if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<IActiveWindow, ActiveWindowWindows>();
             else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<IActiveWindow, ActiveWindowLinux>();
             else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<IActiveWindow, ActiveWindowMacOS>();
+
+            serviceCollection.AddSingleton<CommandReport>();
+            serviceCollection.AddSingleton<ICommandLine, CommandLineWindows>();
 
             serviceCollection.AddSingleton<HijackConfig>();
             serviceCollection.AddSingleton<HijackReport>();
@@ -218,16 +222,16 @@ namespace cmonitor
             else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<ISnatch, SnatchLinux>();
             else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<ISnatch, SnatchMacOS>();
 
-            
-
             serviceCollection.AddSingleton<WlanReport>();
+            if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<IWlan, WlanWindows>();
+            else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<IWlan, WlanLinux>();
+            else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<IWlan, WlanMacOS>();
+
             serviceCollection.AddSingleton<ShareReport>();
 
-            serviceCollection.AddSingleton<CommandReport>();
-            serviceCollection.AddSingleton<ICommandLine, CommandLineWindows>();
+            #endregion
 
-
-            //服务
+            #region 服务
             serviceCollection.AddSingleton<TcpServer>();
             serviceCollection.AddSingleton<MessengerSender>();
             serviceCollection.AddSingleton<MessengerResolver>();
@@ -249,8 +253,10 @@ namespace cmonitor
             serviceCollection.AddSingleton<KeyboardMessenger>();
             serviceCollection.AddSingleton<SystemMessenger>();
             serviceCollection.AddSingleton<SnatchMessenger>();
+            serviceCollection.AddSingleton<WlanMessenger>();
+            #endregion
 
-            //api
+            #region api
             serviceCollection.AddSingleton<RuleConfig>();
             serviceCollection.AddSingleton<IClientServer, ClientServer>();
             serviceCollection.AddSingleton<SignInClientService>();
@@ -272,6 +278,8 @@ namespace cmonitor
             serviceCollection.AddSingleton<SnatchClientService>();
             serviceCollection.AddSingleton<ISnatachCaching, SnatachCachingMemory>();
 
+            serviceCollection.AddSingleton<WlanClientService>();
+            #endregion
 
             //web
             serviceCollection.AddSingleton<IWebServer, WebServer>();

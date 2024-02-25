@@ -88,6 +88,7 @@
 		<PackageReference Include="FFmpeg.AutoGen" Version="6.1.0" />
 		<PackageReference Include="FFmpeg.AutoGen.Abstractions" Version="6.1.0" />
 		<PackageReference Include="FFmpeg.AutoGen.Bindings.DynamicallyLoaded" Version="6.1.0" />
+		<PackageReference Include="ManagedNativeWifi" Version="2.5.0" />
 		<PackageReference Include="MemoryPack" Version="1.10.0" />
 		<PackageReference Include="NAudio" Version="2.2.1" />
 		<PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
