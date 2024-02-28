@@ -1,6 +1,4 @@
 ﻿using common.libs.winapis;
-using ManagedNativeWifi;
-using System.Xml.Linq;
 
 namespace cmonitor.client.reports.wlan
 {
@@ -55,9 +53,17 @@ namespace cmonitor.client.reports.wlan
             {
                 while (true)
                 {
-                    if (Wininet.InternetGetConnectedState(out int desc, 0) == false && string.IsNullOrWhiteSpace(clientConfig.Wlan) == false && clientConfig.WlanAuto)
+                    if (wlan.Connected() == false && string.IsNullOrWhiteSpace(clientConfig.Wlan) == false && clientConfig.WlanAuto)
                     {
-                        await wlan.WlanConnect(clientConfig.Wlan);
+                        var wafis = wlan.WlanEnums();
+                        foreach (var wifi in wafis)
+                        {
+                            bool res = await wlan.WlanConnect(clientConfig.Wlan);
+                            if (res)
+                            {
+                                break;
+                            }
+                        }
                     }
                     await Task.Delay(3000);
                 }

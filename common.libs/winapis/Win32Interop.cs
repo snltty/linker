@@ -21,7 +21,7 @@ namespace common.libs.winapis
     {
         private static nint lastInputDesktop;
 
-        public static bool GetCurrentDesktop(out string desktopName)
+        private static bool GetCurrentDesktop(out string desktopName)
         {
             var inputDesktop = OpenInputDesktop();
             try
@@ -41,7 +41,7 @@ namespace common.libs.winapis
                 CloseDesktop(inputDesktop);
             }
         }
-        public static List<WindowsSession> GetActiveSessions()
+        private static List<WindowsSession> GetActiveSessions()
         {
             List<WindowsSession> sessions = new List<WindowsSession>();
             uint consoleSessionId = Kernel32.WTSGetActiveConsoleSessionId();
@@ -86,7 +86,7 @@ namespace common.libs.winapis
 
             return sessions;
         }
-        public static string GetUsernameFromSessionId(uint sessionId)
+        private static string GetUsernameFromSessionId(uint sessionId)
         {
             var username = string.Empty;
 
@@ -99,7 +99,7 @@ namespace common.libs.winapis
             return username ?? string.Empty;
         }
 
-        public static nint OpenInputDesktop()
+        private static nint OpenInputDesktop()
         {
             return User32.OpenInputDesktop(0, true, User32.ACCESS_MASK.GENERIC_ALL);
         }
@@ -191,7 +191,7 @@ namespace common.libs.winapis
             }
             return si;
         }
-        public static bool CreateInteractiveSystemProcess(string commandLine, int targetSessionId, bool forceConsoleSession, string desktopName, bool hiddenWindow, out PROCESS_INFORMATION procInfo)
+        private static bool CreateInteractiveSystemProcess(string commandLine, int targetSessionId, bool forceConsoleSession, string desktopName, bool hiddenWindow, out PROCESS_INFORMATION procInfo)
         {
             nint hPToken = nint.Zero;
             procInfo = new PROCESS_INFORMATION();
@@ -225,10 +225,20 @@ namespace common.libs.winapis
             return result;
         }
 
-        public static string GetCommandLine()
+        private static string GetCommandLine()
         {
             nint commandLinePtr = Kernel32.GetCommandLine();
             return Marshal.PtrToStringAuto(commandLinePtr) ?? string.Empty;
+        }
+        private static void AddTokenPrivilege()
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                WindowsIdentity windowsIdentity = WindowsIdentity.GetCurrent();
+                CommandHelper.Windows(string.Empty, new string[] {
+                    $"ntrights +r SeAssignPrimaryTokenPrivilege -u {windowsIdentity.Name}"
+                });
+            }
         }
         public static void RelaunchElevated()
         {
@@ -255,16 +265,7 @@ namespace common.libs.winapis
             {
             }
         }
-        public static void AddTokenPrivilege()
-        {
-            if (OperatingSystem.IsWindows())
-            {
-                WindowsIdentity windowsIdentity = WindowsIdentity.GetCurrent();
-                CommandHelper.Windows(string.Empty, new string[] {
-                    $"ntrights +r SeAssignPrimaryTokenPrivilege -u {windowsIdentity.Name}"
-                });
-            }
-        }
+        
 
 
         private static string currentUsername = string.Empty;

@@ -1,9 +1,5 @@
-﻿using ManagedNativeWifi;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using common.libs.winapis;
+using ManagedNativeWifi;
 
 namespace cmonitor.client.reports.wlan
 {
@@ -22,6 +18,11 @@ namespace cmonitor.client.reports.wlan
                 return false;
             }
             return await NativeWifi.ConnectNetworkAsync(wifi.Interface.Id, wifi.ProfileName, wifi.BssType, TimeSpan.FromSeconds(5));
+        }
+
+        public bool Connected()
+        {
+            return Wininet.InternetGetConnectedState(out int desc, 0);
         }
     }
 }

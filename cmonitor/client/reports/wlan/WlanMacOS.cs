@@ -11,5 +11,10 @@
         {
             return await Task.FromResult(false);
         }
+
+        public bool Connected()
+        {
+            return false;
+        }
     }
 }
