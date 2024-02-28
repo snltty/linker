@@ -53,7 +53,7 @@ namespace cmonitor.client.reports.wlan
             {
                 while (true)
                 {
-                    if (wlan.Connected() == false && /*string.IsNullOrWhiteSpace(clientConfig.Wlan) == false && clientConfig.WlanAuto*/)
+                    if (wlan.Connected() == false /*&& string.IsNullOrWhiteSpace(clientConfig.Wlan) == false && clientConfig.WlanAuto*/)
                     {
                         var wafis = wlan.WlanEnums();
                         foreach (var wifi in wafis)
