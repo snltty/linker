@@ -42,6 +42,7 @@ using cmonitor.service.messengers.snatch;
 using cmonitor.libs;
 using cmonitor.client.reports.wlan;
 using cmonitor.service.messengers.wlan;
+using common.libs.winapis;
 
 
 namespace cmonitor
