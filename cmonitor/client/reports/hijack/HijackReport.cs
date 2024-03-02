@@ -31,7 +31,7 @@ namespace cmonitor.client.reports.hijack
                     hijackConfig.AllowDomains = clientConfig.HijackConfig.AllowDomains;
                     hijackConfig.DeniedIPs = clientConfig.HijackConfig.DeniedIPs;
                     hijackConfig.AllowIPs = clientConfig.HijackConfig.AllowIPs;
-
+                    hijackConfig.UpdateTask();
                     clientSignInState.NetworkFirstEnabledHandle += hijack.Start;
                 }
                 catch (Exception ex)
@@ -39,8 +39,6 @@ namespace cmonitor.client.reports.hijack
                     Logger.Instance.Error(ex);
                 }
             }
-
-
         }
 
         public void Update(HijackSetRuleInfo info)
@@ -56,6 +54,8 @@ namespace cmonitor.client.reports.hijack
             clientConfig.HijackIds = info.Ids;
 
             hijack.SetRules();
+
+            hijackConfig.Update();
         }
 
         public object GetReports(ReportType reportType)

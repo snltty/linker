@@ -340,7 +340,7 @@ namespace cmonitor.client.reports.hijack.hijack
         void threadStart();
         void threadEnd();
         void tcpConnectRequest(ulong id, ref NF_TCP_CONN_INFO pConnInfo);
-        void tcpConnected(ulong id, NF_TCP_CONN_INFO pConnInfo);
+        void tcpConnected(ulong id,ref NF_TCP_CONN_INFO pConnInfo);
         void tcpClosed(ulong id, NF_TCP_CONN_INFO pConnInfo);
         void tcpReceive(ulong id, nint buf, int len);
         void tcpSend(ulong id, nint buf, int len);
@@ -385,7 +385,7 @@ namespace cmonitor.client.reports.hijack.hijack
         }
         public static void tcpConnected(ulong id, ref NF_TCP_CONN_INFO pConnInfo)
         {
-            m_pEventHandler.tcpConnected(id, pConnInfo);
+            m_pEventHandler.tcpConnected(id,ref pConnInfo);
         }
         public static void tcpClosed(ulong id, ref NF_TCP_CONN_INFO pConnInfo)
         {

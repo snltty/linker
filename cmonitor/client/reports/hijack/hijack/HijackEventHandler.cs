@@ -2,8 +2,9 @@
 using System.Collections.Concurrent;
 using System.Text;
 using common.libs.extends;
-using System.IO;
-using cmonitor.client.reports.hijack;
+using System.Runtime.InteropServices;
+using System.Net.Sockets;
+using System.Net;
 
 namespace cmonitor.client.reports.hijack.hijack
 {
@@ -32,27 +33,37 @@ namespace cmonitor.client.reports.hijack.hijack
         public void tcpCanSend(ulong id)
         {
         }
-        public void tcpConnectRequest(ulong id, ref NF_TCP_CONN_INFO pConnInfo)
+        public unsafe void tcpConnectRequest(ulong id, ref NF_TCP_CONN_INFO pConnInfo)
         {
 
         }
-        public void tcpConnected(ulong id, NF_TCP_CONN_INFO pConnInfo)
+        public unsafe void tcpConnected(ulong id, ref NF_TCP_CONN_INFO pConnInfo)
         {
             //是阻止进程
-            if (checkProcess(pConnInfo.processId, out string processName))
+            if (deniedProcess(pConnInfo.processId, out string processName))
             {
+                NFAPI.nf_tcpClose(id);
                 return;
+            }
+            fixed (void* p = pConnInfo.remoteAddress)
+            {
+                if (deniedIP(new IntPtr(p)))
+                {
+                    NFAPI.nf_tcpClose(id);
+                    return;
+                }
             }
             tcpConnections.TryAdd(id, true);
             return;
         }
         public void tcpSend(ulong id, nint buf, int len)
         {
-            if (tcpConnections.ContainsKey(id))
+            if (tcpConnections.TryGetValue(id, out _) == false)
             {
-                TcpSend += (ulong)len;
-                NFAPI.nf_tcpPostSend(id, buf, len);
+                return;
             }
+            TcpSend += (ulong)len;
+            NFAPI.nf_tcpPostSend(id, buf, len);
         }
         public void tcpReceive(ulong id, nint buf, int len)
         {
@@ -72,7 +83,7 @@ namespace cmonitor.client.reports.hijack.hijack
         public void udpCanSend(ulong id)
         {
         }
-        public void udpConnectRequest(ulong id, ref NF_UDP_CONN_REQUEST pConnReq)
+        public unsafe void udpConnectRequest(ulong id, ref NF_UDP_CONN_REQUEST pConnReq)
         {
         }
         public void threadEnd()
@@ -90,12 +101,11 @@ namespace cmonitor.client.reports.hijack.hijack
         public void udpClosed(ulong id, NF_UDP_CONN_INFO pConnInfo)
         {
             udpConnections.TryRemove(id, out _);
-            //删除udp对象缓存
         }
         public void udpCreated(ulong id, NF_UDP_CONN_INFO pConnInfo)
         {
-            //是阻止进程
-            if (checkProcess(pConnInfo.processId, out string processName))
+            // 是阻止进程
+            if (deniedProcess(pConnInfo.processId, out string processName))
             {
                 return;
             }
@@ -103,19 +113,48 @@ namespace cmonitor.client.reports.hijack.hijack
         }
         public unsafe void udpSend(ulong id, nint remoteAddress, nint buf, int len, nint options, int optionsLen)
         {
-            //丢弃进程包
+            //丢包
             if (udpConnections.TryGetValue(id, out _) == false)
             {
                 return;
             }
-            //丢弃域名包
-            if (checkDomain(remoteAddress, buf, len))
+            // 丢弃ip包
+            if (deniedIP(remoteAddress))
             {
                 return;
             }
-
             UdpSend += (ulong)len;
             NFAPI.nf_udpPostSend(id, remoteAddress, buf, len, options);
+        }
+
+        private unsafe bool deniedIP(nint remoteAddress)
+        {
+            IPAddress ip = readIPAddress(remoteAddress);
+            if (ip != null && hijackConfig.DomainIPs.TryGetValue(ip, out bool type))
+            {
+                return type == false;
+            }
+            return false;
+        }
+        private unsafe IPAddress readIPAddress(nint remoteAddress)
+        {
+            //地址数据指针
+            byte* p = (byte*)remoteAddress;
+            //端口
+            ushort port = (ushort)((*(p + 2) << 8 & 0xFF00) | *(p + 3));
+            //ip
+            IPAddress ip = null;
+            AddressFamily addressFamily = (AddressFamily)Marshal.ReadByte(remoteAddress);
+            if (addressFamily == AddressFamily.InterNetwork)
+            {
+                ip = new IPAddress(new Span<byte>(p + 4, 4));
+            }
+            else if (addressFamily == AddressFamily.InterNetworkV6)
+            {
+                ip = new IPAddress(new Span<byte>(p + 8, 16));
+            }
+            //Console.WriteLine($"read ip->{ip}");
+            return ip;
         }
 
         /// <summary>
@@ -125,7 +164,7 @@ namespace cmonitor.client.reports.hijack.hijack
         /// <param name="buf"></param>
         /// <param name="len"></param>
         /// <returns></returns>
-        private unsafe bool checkDomain(nint remoteAddress, nint buf, int len)
+        private unsafe bool deniedDomain(nint remoteAddress, nint buf, int len)
         {
             if (hijackConfig.AllowDomains.Length == 0 && hijackConfig.DeniedDomains.Length == 0)
             {
@@ -153,7 +192,7 @@ namespace cmonitor.client.reports.hijack.hijack
                             span = span.Slice(1 + span[0]);
                         }
                         string domain = sb.ToString(0, sb.Length - 1);
-                        if (checkDomain(domain))
+                        if (deniedDomain(domain))
                         {
                             return true;
                         }
@@ -166,7 +205,7 @@ namespace cmonitor.client.reports.hijack.hijack
             }
             return false;
         }
-        private bool checkDomain(string domain)
+        private bool deniedDomain(string domain)
         {
             //白名单
             if (hijackConfig.AllowDomains.Length > 0 && checkName(hijackConfig.AllowDomains, domain))
@@ -187,7 +226,7 @@ namespace cmonitor.client.reports.hijack.hijack
         /// <param name="processId"></param>
         /// <param name="processName"></param>
         /// <returns></returns>
-        private bool checkProcess(uint processId, out string processName)
+        private bool deniedProcess(uint processId, out string processName)
         {
             processName = string.Empty;
             if (currentProcessId == processId)
@@ -208,8 +247,6 @@ namespace cmonitor.client.reports.hijack.hijack
 
             return false;
         }
-
-
         private bool checkName(string[] names, string path)
         {
             for (int i = 0; i < names.Length; i++)
