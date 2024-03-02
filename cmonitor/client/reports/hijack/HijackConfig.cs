@@ -84,11 +84,14 @@ namespace cmonitor.client.reports.hijack
                         DomainIPs[item] = false;
                 }
             }
-            List<int> adapters = Wininet.GetAdaptersIndex();
-            List<IPAddress> ips = DomainIPs.Where(c => c.Value == false).Select(c=>c.Key).ToList();
-            if(ips.Any() && adapters.Any())
+            if (OperatingSystem.IsWindows())
             {
-                Wininet.DeleteConnection(adapters, ips);
+                List<int> adapters = Wininet.GetAdaptersIndex();
+                List<IPAddress> ips = DomainIPs.Where(c => c.Value == false).Select(c => c.Key).ToList();
+                if (ips.Any() && adapters.Any())
+                {
+                    Wininet.DeleteConnection(adapters, ips);
+                }
             }
         }
 
