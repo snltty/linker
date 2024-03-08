@@ -9,7 +9,7 @@
         public int GetWindowCount();
         public Dictionary<uint, string> GetWindows();
 
-        public void Kill(int pid);
+        public void Kill(uint pid);
     }
 
     public sealed class ActiveWindowInfo

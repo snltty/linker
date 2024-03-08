@@ -10,7 +10,7 @@ namespace cmonitor.client.reports.hijack
         private readonly HijackConfig hijackConfig;
         private readonly ClientConfig clientConfig;
         private readonly IHijack hijack;
-
+        private readonly ClientSignInState clientSignInState;
 
         private HijackReportInfo hijackReportInfo = new HijackReportInfo();
         private int hashCode = 0;
@@ -21,23 +21,31 @@ namespace cmonitor.client.reports.hijack
             this.hijack = hijack;
             this.hijackConfig = hijackConfig;
             this.clientConfig = clientConfig;
+            this.clientSignInState = clientSignInState;
             if (config.IsCLient)
             {
-                try
-                {
-                    hijackConfig.DeniedProcesss = clientConfig.HijackConfig.DeniedProcesss;
-                    hijackConfig.AllowProcesss = clientConfig.HijackConfig.AllowProcesss;
-                    hijackConfig.DeniedDomains = clientConfig.HijackConfig.DeniedDomains;
-                    hijackConfig.AllowDomains = clientConfig.HijackConfig.AllowDomains;
-                    hijackConfig.DeniedIPs = clientConfig.HijackConfig.DeniedIPs;
-                    hijackConfig.AllowIPs = clientConfig.HijackConfig.AllowIPs;
-                    hijackConfig.UpdateTask();
-                    clientSignInState.NetworkFirstEnabledHandle += hijack.Start;
-                }
-                catch (Exception ex)
-                {
-                    Logger.Instance.Error(ex);
-                }
+                Init();
+            }
+        }
+
+        private void Init()
+        {
+            try
+            {
+                clientSignInState.NetworkFirstEnabledHandle += hijack.Start;
+
+                hijackConfig.DeniedProcesss = clientConfig.HijackConfig.DeniedProcesss;
+                hijackConfig.AllowProcesss = clientConfig.HijackConfig.AllowProcesss;
+                hijackConfig.DeniedDomains = clientConfig.HijackConfig.DeniedDomains;
+                hijackConfig.AllowDomains = clientConfig.HijackConfig.AllowDomains;
+                hijackConfig.DeniedIPs = clientConfig.HijackConfig.DeniedIPs;
+                hijackConfig.AllowIPs = clientConfig.HijackConfig.AllowIPs;
+                hijackConfig.DomainKill = clientConfig.HijackConfig.DomainKill;
+                UpdateRules();
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error(ex);
             }
         }
 
@@ -49,13 +57,20 @@ namespace cmonitor.client.reports.hijack
             hijackConfig.DeniedProcesss = info.Rules.DeniedProcesss;
             hijackConfig.AllowIPs = info.Rules.AllowIPs;
             hijackConfig.DeniedIPs = info.Rules.DeniedIPs;
+            hijackConfig.DomainKill = info.Rules.DomainKill;
 
             clientConfig.HijackConfig = hijackConfig;
             clientConfig.HijackIds = info.Ids;
 
-            hijack.SetRules();
+            UpdateRules();
+        }
 
-            hijackConfig.Update();
+        private void UpdateRules()
+        {
+            hijack.SetProcess(hijackConfig.AllowProcesss, hijackConfig.DeniedProcesss);
+            hijack.SetDomain(hijackConfig.AllowDomains, hijackConfig.DeniedDomains, hijackConfig.DomainKill);
+            hijack.SetIP(hijackConfig.AllowIPs, hijackConfig.DeniedIPs);
+            hijack.UpdateRules();
         }
 
         public object GetReports(ReportType reportType)
@@ -64,6 +79,7 @@ namespace cmonitor.client.reports.hijack
             hijackReportInfo.Download = hijack.TcpReceive + hijack.UdpReceive;
             hijackReportInfo.Count = (ulong)(hijackConfig.AllowIPs.Length + hijackConfig.DeniedIPs.Length + hijackConfig.AllowDomains.Length + hijackConfig.DeniedDomains.Length + hijackConfig.AllowProcesss.Length + hijackConfig.DeniedProcesss.Length);
             hijackReportInfo.Ids = clientConfig.HijackIds;
+            hijackReportInfo.DomainKill = clientConfig.HijackConfig.DomainKill;
 
             long _ticks = DateTime.UtcNow.Ticks;
             int hashcode = hijackReportInfo.HashCode();
@@ -84,7 +100,7 @@ namespace cmonitor.client.reports.hijack
         public ulong Count { get; set; }
 
         public uint[] Ids { get; set; }
-
+        public bool DomainKill { get; set; }
 
         public int HashCode()
         {
@@ -130,5 +146,7 @@ namespace cmonitor.client.reports.hijack
         /// ip黑名单
         /// </summary>
         public string[] DeniedIPs { get; set; } = Array.Empty<string>();
+
+        public bool DomainKill { get; set; }
     }
 }

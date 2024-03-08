@@ -1,9 +1,15 @@
 <template>
     <el-dialog class="options" title="网络限制" destroy-on-close v-model="state.show" center align-center width="94%">
-        <el-alert style="margin-bottom:.6rem" type="error" title="打开不了软件与网络无关" :closable="false" show-icon />
+        <div class="flex">
+            <div><el-alert style="margin-bottom:.6rem" type="error" title="打开不了软件与网络无关" :closable="false" show-icon /></div>
+            <div class="flex-1"></div>
+            <div>
+                <el-checkbox v-model="state.domainKill">暴力强杀</el-checkbox>
+            </div>
+        </div>
         <div class="rule-wrap flex">
             <div class="items">
-                <CheckBoxWrap ref="devices" :data="globalData.devices" :items="state.items" label="MachineName" title="选择设备"></CheckBoxWrap>
+                <CheckBoxWrap ref="devices" @change="handleDevicesChange" :data="globalData.devices" :items="state.items" label="MachineName" title="选择设备"></CheckBoxWrap>
             </div>
             <div class="flex-1"></div>
             <div class="rules flex flex-column">
@@ -61,6 +67,7 @@ export default {
             loading: false,
             currentPrivate: [],
             currentPublic: [],
+            domainKill: false
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -109,6 +116,7 @@ export default {
                     DeniedDomains: res.filter(c => c.DataType == 1 && c.AllowType == 1).map(c => c.Name),
                     AllowIPs: res.filter(c => c.DataType == 2 && c.AllowType == 0).map(c => c.Name),
                     DeniedIPs: res.filter(c => c.DataType == 2 && c.AllowType == 1).map(c => c.Name),
+                    DomainKill: state.domainKill
                 }
             }
         }
@@ -130,7 +138,7 @@ export default {
                 setRules({
                     Devices: _devices.map(c => c.MachineName),
                     Rules: rules.list,
-                    ids: rules.ids
+                    ids: rules.ids,
                 }).then((errorDevices) => {
                     state.loading = false;
                     if (errorDevices && errorDevices.length > 0) {
@@ -151,9 +159,18 @@ export default {
         const handleCancel = () => {
             state.show = false;
         }
+        const parseDomainKill = () => {
+            state.domainKill = pluginState.value.hijack.devices.filter(c => c.Hijack.DomainKill === true).length > 0;
+        }
+        const handleDevicesChange = (devices) => {
+            parseDomainKill();
+        }
+        onMounted(() => {
+            parseDomainKill();
+        });
 
         return {
-            state, globalData, devices, privateRules, publicRules, handleSubmit, handleCancel
+            state, globalData, devices, privateRules, publicRules, handleSubmit, handleCancel, handleDevicesChange
         }
     }
 }

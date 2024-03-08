@@ -1,6 +1,7 @@
 ﻿using common.libs;
 using MemoryPack;
 using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
 
 namespace cmonitor.client.reports.active
 {
@@ -59,11 +60,11 @@ namespace cmonitor.client.reports.active
             report.DisallowCount = names.Length;
             activeWindow.DisallowRun(names);
         }
-        public void Kill(int pid)
+
+        public void Kill(uint pid)
         {
             activeWindow.Kill(pid);
         }
-
         public ActiveWindowTimeReportInfo GetActiveWindowTimes()
         {
             return activeWindowTimeManager.GetActiveWindowTimes();
@@ -94,6 +95,8 @@ namespace cmonitor.client.reports.active
                             report.Desc = info.Desc;
                             report.Pid = info.Pid;
                             report.WindowCount = activeWindow.GetWindowCount();
+
+                            Disallow(info);
                         }
                         catch (Exception ex)
                         {
@@ -105,6 +108,34 @@ namespace cmonitor.client.reports.active
                     await Task.Delay(500);
                 }
             }, TaskCreationOptions.LongRunning);
+        }
+
+        private bool Disallow(ActiveWindowInfo window)
+        {
+            if (clientConfig.WindowNames.Length > 0)
+            {
+                try
+                {
+                    ReadOnlySpan<char> filenameSpan = window.FileName.AsSpan();
+                    uint pid = window.Pid;
+                    foreach (string item in clientConfig.WindowNames)
+                    {
+                        ReadOnlySpan<char> nameSpan = item.AsSpan();
+                        bool result = item == window.Title
+                            || (filenameSpan.Length >= nameSpan.Length && filenameSpan.Slice(filenameSpan.Length - nameSpan.Length, nameSpan.Length).SequenceEqual(nameSpan))
+                            || (item.StartsWith('/') && item.EndsWith('/') && Regex.IsMatch(window.Title, item.Trim('/')));
+                        if (result)
+                        {
+                            activeWindow.Kill(pid);
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                }
+                return true;
+            }
+            return false;
         }
     }
 

@@ -69,6 +69,7 @@ namespace cmonitor.api.services
                 {
                     Rules = setRuleParamInfo.Rules,
                     Ids = setRuleParamInfo.Ids,
+                    
                 });
                 for (int i = 0; i < setRuleParamInfo.Devices.Length; i++)
                 {

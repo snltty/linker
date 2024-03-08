@@ -4,7 +4,6 @@ using Microsoft.Win32;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace cmonitor.client.reports.active
 {
@@ -25,7 +24,9 @@ namespace cmonitor.client.reports.active
 
                 AppDomain.CurrentDomain.ProcessExit += (s, e) =>
                 {
+                    Logger.Instance.Info($"killer stoping");
                     CommandHelper.Windows(string.Empty, new string[] { "sc stop cmonitor.killer & sc delete cmonitor.killer" }, true);
+                    Logger.Instance.Info($"killer stop");
                 };
             }
         }
@@ -48,28 +49,22 @@ namespace cmonitor.client.reports.active
             {
             }
         }
-        private string[] disallowNames = Array.Empty<string>();
         public void DisallowRun(string[] names)
         {
             DisallowRun(false);
             DisallowRunClear();
-            disallowNames = names;
 
-            Task.Run(() =>
+            if (names.Length > 0)
             {
-                if (names.Length > 0)
-                {
-                    DisallowRun(true);
-                    DisallowRunFileNames(names);
-                }
-                CommandHelper.Windows(string.Empty, new string[] { "gpupdate /force" });
-            });
+                DisallowRun(true);
+                DisallowRunFileNames(names);
+            }
+            CommandHelper.Windows(string.Empty, new string[] { "gpupdate /force" }, false);
         }
         private void DisallowRunClear()
         {
             try
             {
-
                 if (OperatingSystem.IsWindows())
                 {
                     RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun", true);
@@ -131,37 +126,7 @@ namespace cmonitor.client.reports.active
                 Logger.Instance.Error($"application disallow {string.Join(",", filenames)} {ex}");
             }
         }
-        private bool Disallow(ActiveWindowInfo window)
-        {
-            if (disallowNames.Length > 0)
-            {
-                try
-                {
-                    ReadOnlySpan<char> filenameSpan = window.FileName.AsSpan();
-                    uint pid = window.Pid;
-                    foreach (string item in disallowNames)
-                    {
-                        ReadOnlySpan<char> nameSpan = item.AsSpan();
-                        bool result = item == window.Title
-                            || (filenameSpan.Length >= nameSpan.Length && filenameSpan.Slice(filenameSpan.Length - nameSpan.Length, nameSpan.Length).SequenceEqual(nameSpan))
-                            || (item.StartsWith('/') && item.EndsWith('/') && Regex.IsMatch(window.Title, item.Trim('/')));
-                        if (result)
-                        {
-                            Task.Run(() =>
-                            {
-                                CommandHelper.Windows(string.Empty, new string[] { $"taskkill /f /pid {pid}"});
-                                ProcessKiller((uint)pid);
-                            });
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                }
-                return true;
-            }
-            return false;
-        }
+
 
         const int nChars = 256;
         private StringBuilder buff = new StringBuilder(nChars);
@@ -194,8 +159,6 @@ namespace cmonitor.client.reports.active
                 activeWindowInfo.FileName = Path.GetFileName(filename);
                 activeWindowInfo.Desc = desc;
                 activeWindowInfo.Pid = id;
-
-                Disallow(activeWindowInfo);
             }
             else
             {
@@ -288,20 +251,20 @@ namespace cmonitor.client.reports.active
                 Logger.Instance.Error(ex);
             }
         }
-        public void Kill(int pid)
+        public void Kill(uint pid)
         {
-            try
+            Task.Run(() =>
             {
-                int res = ProcessKiller((uint)pid);
-                if (res == 0)
+                try
                 {
-
+                    Kernel32.Kill(pid);
+                    int res = ProcessKiller(pid);
                 }
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Error(ex);
-            }
+                catch (Exception ex)
+                {
+                    Logger.Instance.Error(ex);
+                }
+            });
         }
 
 

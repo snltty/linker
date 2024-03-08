@@ -23,6 +23,8 @@ public static unsafe class Kernel32
 
     [DllImport("kernel32.dll")]
     public static extern nint OpenProcess(uint dwDesiredAccess, bool bInheritHandle, uint dwProcessId);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern bool TerminateProcess(IntPtr hProcess, uint uExitCode);
 
     [DllImport("kernel32.dll")]
     public static extern bool ProcessIdToSessionId(uint dwProcessId, ref uint pSessionId);
@@ -121,4 +123,17 @@ public static unsafe class Kernel32
     }
     [DllImport("kernel32.dll", SetLastError = true)]
     public static extern bool SetSystemTime(ref SYSTEMTIME time);
+
+    public static bool Kill(uint pid)
+    {
+        IntPtr hProcess = OpenProcess(0x0001, false, pid);
+        if (hProcess == IntPtr.Zero)
+        {
+            return false;
+        }
+        bool res = TerminateProcess(hProcess, 0);
+
+        CloseHandle(hProcess);
+        return res;
+    }
 }

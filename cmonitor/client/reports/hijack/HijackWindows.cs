@@ -7,10 +7,10 @@ namespace cmonitor.client.reports.hijack
         private readonly HijackEventHandler hijackEventHandler;
         private readonly HijackController hijackController;
 
-        public HijackWindows(HijackConfig hijackConfig)
+        public HijackWindows()
         {
-            hijackEventHandler = new HijackEventHandler(hijackConfig);
-            hijackController = new HijackController(hijackConfig, hijackEventHandler);
+            hijackEventHandler = new HijackEventHandler();
+            hijackController = new HijackController(hijackEventHandler);
         }
 
         public ulong UdpSend => hijackEventHandler.UdpSend;
@@ -18,19 +18,30 @@ namespace cmonitor.client.reports.hijack
         public ulong TcpSend => hijackEventHandler.TcpSend;
         public ulong TcpReceive => hijackEventHandler.TcpReceive;
 
-        public void SetRules()
-        {
-            hijackController.SetRules();
-        }
-
         public void Start()
         {
             hijackController.Start();
         }
-
         public void Stop()
         {
             hijackController.Stop();
+        }
+
+        public void SetProcess(string[] white, string[] black)
+        {
+            hijackController.SetProcess(white, black);
+        }
+        public void SetDomain(string[] white, string[] black, bool kill)
+        {
+            hijackController.SetDomain(white, black, kill);
+        }
+        public void SetIP(string[] white, string[] black)
+        {
+            hijackController.SetIP(white, black);
+        }
+        public void UpdateRules()
+        {
+            hijackController.UpdateRules();
         }
     }
 }

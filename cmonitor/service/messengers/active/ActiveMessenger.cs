@@ -1,7 +1,4 @@
-﻿using cmonitor.api;
-using cmonitor.client;
-using cmonitor.client.reports.active;
-using cmonitor.service.messengers.sign;
+﻿using cmonitor.client.reports.active;
 using common.libs;
 using common.libs.extends;
 using MemoryPack;
@@ -47,7 +44,7 @@ namespace cmonitor.service.messengers.active
         [MessengerId((ushort)ActiveMessengerIds.Kill)]
         public void Kill(IConnection connection)
         {
-            activeWindowReport.Kill(connection.ReceiveRequestWrap.Payload.Span.ToInt32());
+            activeWindowReport.Kill(connection.ReceiveRequestWrap.Payload.Span.ToUInt32());
         }
     }
 

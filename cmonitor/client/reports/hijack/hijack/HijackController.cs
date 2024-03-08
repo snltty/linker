@@ -11,13 +11,13 @@ public sealed class HijackController
     private static readonly string SystemDriver = $"{Environment.SystemDirectory}\\drivers\\netfilter2.sys";
     public const string NFDriver = "nfdriver.sys";
     public const string Name = "netfilter2";
-    private readonly HijackConfig hijackConfig;
     private readonly HijackEventHandler hijackEventHandler;
     private bool running = false;
+    private string[] ipWhite = Array.Empty<string>();
+    private string[] ipBlack = Array.Empty<string>();
 
-    public HijackController(HijackConfig hijackConfig, HijackEventHandler hijackEventHandler)
+    public HijackController(HijackEventHandler hijackEventHandler)
     {
-        this.hijackConfig = hijackConfig;
         this.hijackEventHandler = hijackEventHandler;
 
         AppDomain.CurrentDomain.ProcessExit += (sender, e) => Stop();
@@ -41,13 +41,17 @@ public sealed class HijackController
             throw new Exception($"{Name} start failed.{nF_STATUS}");
         }
         running = true;
-        SetRules();
+        UpdateRules();
+
+        Logger.Instance.Info("network filter start");
 
         return true;
     }
     public void Stop()
     {
         if (running == false) return;
+
+        Logger.Instance.Info($"network filter stoping");
         try
         {
             NFAPI.nf_deleteRules();
@@ -56,10 +60,25 @@ public sealed class HijackController
         catch (Exception)
         {
         }
+        Logger.Instance.Info("network filter stop");
         running = false;
     }
 
-    public void SetRules()
+
+    public void SetProcess(string[] white, string[] black)
+    {
+        hijackEventHandler.SetProcess(white, black);
+    }
+    public void SetDomain(string[] white, string[] black,bool kill)
+    {
+        hijackEventHandler.SetDomain(white, black, kill);
+    }
+    public void SetIP(string[] white, string[] black)
+    {
+        ipWhite = white;
+        ipBlack = black;
+    }
+    public void UpdateRules()
     {
         if (running == false) return;
 
@@ -70,7 +89,6 @@ public sealed class HijackController
         FilterIPV4Lan(rules);
         FilterConfigIPs(rules);
         FilterWan(rules);
-
         NFAPI.nf_setRules(rules.ToArray());
     }
 
@@ -81,7 +99,7 @@ public sealed class HijackController
             new NF_RULE
             {
                 direction = (byte)NF_DIRECTION.NF_D_OUT,
-                filteringFlag = (uint)NF_FILTERING_FLAG.NF_INDICATE_CONNECT_REQUESTS,
+                filteringFlag = (uint)NF_FILTERING_FLAG.NF_FILTER,
                 protocol = (int)ProtocolType.Tcp,
                 remotePort = BinaryPrimitives.ReverseEndianness((ushort)53),
                 ip_family = (ushort)AddressFamily.InterNetwork
@@ -89,7 +107,7 @@ public sealed class HijackController
             new NF_RULE
             {
                 direction = (byte)NF_DIRECTION.NF_D_OUT,
-                filteringFlag = (uint)NF_FILTERING_FLAG.NF_INDICATE_CONNECT_REQUESTS,
+                filteringFlag = (uint)NF_FILTERING_FLAG.NF_FILTER,
                 protocol = (int)ProtocolType.Tcp,
                 remotePort = BinaryPrimitives.ReverseEndianness((ushort)53),
                 ip_family = (ushort)AddressFamily.InterNetworkV6
@@ -97,7 +115,7 @@ public sealed class HijackController
              //UDP 53
             new NF_RULE
             {
-                direction = (byte)NF_DIRECTION.NF_D_OUT,
+                direction = (byte)NF_DIRECTION.NF_D_BOTH,
                 filteringFlag = (uint)NF_FILTERING_FLAG.NF_FILTER,
                 protocol = (int)ProtocolType.Udp,
                 remotePort = BinaryPrimitives.ReverseEndianness((ushort)53),
@@ -105,7 +123,7 @@ public sealed class HijackController
             },
             new NF_RULE
             {
-                direction = (byte)NF_DIRECTION.NF_D_OUT,
+                direction = (byte)NF_DIRECTION.NF_D_BOTH,
                 filteringFlag = (uint)NF_FILTERING_FLAG.NF_FILTER,
                 protocol = (int)ProtocolType.Udp,
                 remotePort = BinaryPrimitives.ReverseEndianness((ushort)53),
@@ -120,7 +138,7 @@ public sealed class HijackController
             //IPV6 环回 ::1/128
             new NF_RULE
             {
-                direction = (byte)NF_DIRECTION.NF_D_OUT,
+                //direction = (byte)NF_DIRECTION.NF_D_OUT,
                 filteringFlag = (uint)NF_FILTERING_FLAG.NF_ALLOW,
                 ip_family = (ushort)AddressFamily.InterNetworkV6,
                 remoteIpAddress = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
@@ -129,7 +147,7 @@ public sealed class HijackController
             //IPV6 组播 FF00::/8
             new NF_RULE
             {
-                direction = (byte)NF_DIRECTION.NF_D_OUT,
+                //direction = (byte)NF_DIRECTION.NF_D_OUT,
                 filteringFlag = (uint)NF_FILTERING_FLAG.NF_ALLOW,
                 ip_family = (ushort)AddressFamily.InterNetworkV6,
                 remoteIpAddress = new byte[] { 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -138,7 +156,7 @@ public sealed class HijackController
             //本地链路 FE80::/10
             new NF_RULE
             {
-                direction = (byte)NF_DIRECTION.NF_D_OUT,
+                //direction = (byte)NF_DIRECTION.NF_D_OUT,
                 filteringFlag = (uint)NF_FILTERING_FLAG.NF_ALLOW,
                 ip_family = (ushort)AddressFamily.InterNetworkV6,
                 remoteIpAddress = new byte[] { 0xFE, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -147,7 +165,7 @@ public sealed class HijackController
             //本地站点 FEC0::/10
             new NF_RULE
             {
-                direction = (byte)NF_DIRECTION.NF_D_OUT,
+                //direction = (byte)NF_DIRECTION.NF_D_OUT,
                 filteringFlag = (uint)NF_FILTERING_FLAG.NF_ALLOW,
                 ip_family = (ushort)AddressFamily.InterNetworkV6,
                 remoteIpAddress = new byte[] { 0xFE, 0xC0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -177,33 +195,33 @@ public sealed class HijackController
             });
         }
     }
-
     private void FilterConfigIPs(List<NF_RULE> rules)
     {
-        foreach (string item in hijackConfig.DeniedIPs)
+        foreach (string item in ipWhite)
         {
             string[] arr = item.Split('/');
             rules.Add(new NF_RULE
             {
-                filteringFlag = (uint)NF_FILTERING_FLAG.NF_BLOCK,
-                ip_family = (ushort)AddressFamily.InterNetwork,
-                remoteIpAddress = IPAddress.Parse(arr[0]).GetAddressBytes(),
-                remoteIpAddressMask = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(0xffffffff << 32 - byte.Parse(arr[1]))),
-            });
-        }
-        foreach (string item in hijackConfig.AllowIPs)
-        {
-            string[] arr = item.Split('/');
-            rules.Add(new NF_RULE
-            {
+                direction = (byte)NF_DIRECTION.NF_D_OUT,
                 filteringFlag = (uint)NF_FILTERING_FLAG.NF_ALLOW,
                 ip_family = (ushort)AddressFamily.InterNetwork,
                 remoteIpAddress = IPAddress.Parse(arr[0]).GetAddressBytes(),
                 remoteIpAddressMask = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(0xffffffff << 32 - byte.Parse(arr[1]))),
             });
         }
+        foreach (string item in ipBlack)
+        {
+            string[] arr = item.Split('/');
+            rules.Add(new NF_RULE
+            {
+                direction = (byte)NF_DIRECTION.NF_D_OUT,
+                filteringFlag = (uint)NF_FILTERING_FLAG.NF_BLOCK,
+                ip_family = (ushort)AddressFamily.InterNetwork,
+                remoteIpAddress = IPAddress.Parse(arr[0]).GetAddressBytes(),
+                remoteIpAddressMask = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(0xffffffff << 32 - byte.Parse(arr[1]))),
+            });
+        }
     }
-
     private void FilterWan(List<NF_RULE> rules)
     {
         rules.AddRange(new List<NF_RULE> { 
@@ -240,7 +258,6 @@ public sealed class HijackController
 
         });
     }
-
 
     private string GetFileVersion(string file)
     {

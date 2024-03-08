@@ -6,7 +6,7 @@
         {
 
         }
-        public void Kill(int pid)
+        public void Kill(uint pid)
         {
 
         }

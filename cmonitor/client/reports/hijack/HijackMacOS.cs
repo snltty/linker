@@ -10,7 +10,7 @@
 
         public ulong TcpReceive => 0;
 
-        public void SetRules()
+        public void UpdateRules()
         {
         }
 
@@ -19,6 +19,18 @@
         }
 
         public void Stop()
+        {
+        }
+
+        public void SetProcess(string[] white, string[] black)
+        {
+        }
+
+        public void SetDomain(string[] white, string[] black, bool kill)
+        {
+        }
+
+        public void SetIP(string[] white, string[] black)
         {
         }
     }
