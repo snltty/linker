@@ -3,7 +3,7 @@ using common.libs.extends;
 using System.Net;
 using System.Text.Json.Serialization;
 
-namespace cmonitor.config
+namespace cmonitor.install.win
 {
     public sealed class Config
     {
@@ -46,7 +46,6 @@ namespace cmonitor.config
         {
             InitFileConfig();
             ReadJson();
-            Logger.Instance.Debug($"config:{JsonDic.ToJson()}");
             Save();
         }
         private void InitFileConfig()
@@ -112,11 +111,6 @@ namespace cmonitor.config
                 Logger.Instance.Error(ex);
             }
         }
-
-        [JsonIgnore]
-        public string Version { get; set; } = "1.0.0.1";
-        [JsonIgnore]
-        public bool Elevated { get; set; }
     }
 
     public sealed class ConfigCommonInfo
@@ -167,6 +161,4 @@ namespace cmonitor.config
         public int ServicePort { get; set; } = 1802;
 
     }
-
-
 }

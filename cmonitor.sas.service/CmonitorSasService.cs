@@ -20,7 +20,6 @@ namespace cmonitor.sas.service
         private int shareMLength = 10;
         private int shareItemMLength = 1024;
         private int shareIndex = 4;
-        private string mainArgs = string.Empty;
         private string mainExeName = "cmonitor";
         private byte[] keyBytes = Encoding.UTF8.GetBytes("cmonitor.sas.service");
         private ShareMemory shareMemory;
@@ -37,10 +36,6 @@ namespace cmonitor.sas.service
                     shareMLength = int.Parse(args[1]);
                     shareItemMLength = int.Parse(args[2]);
                     shareIndex = int.Parse(args[3]);
-                    if (args.Length >= 5)
-                    {
-                        mainArgs = args[4];
-                    }
                 }
 
                 shareMemory = new ShareMemory(shareMkey, shareMLength, shareItemMLength);
@@ -110,10 +105,6 @@ namespace cmonitor.sas.service
         private Process proc;
         private void CheckMainProcess()
         {
-            if (string.IsNullOrWhiteSpace(mainArgs))
-            {
-                return;
-            }
             Task.Factory.StartNew(async () =>
             {
                 while (true)
@@ -148,7 +139,7 @@ namespace cmonitor.sas.service
                     ErrorDialog = false,
                     UseShellExecute = true,
                     WindowStyle = ProcessWindowStyle.Hidden,
-                    Arguments = string.Join(" ", this.args),
+                    //Arguments = string.Join(" ", this.args),
                     Verb = "runas",
                 };
                 proc = Process.Start(processStartInfo);

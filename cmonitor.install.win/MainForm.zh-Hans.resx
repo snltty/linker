@@ -118,17 +118,101 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="serverIP.Location" type="System.Drawing.Point, System.Drawing">
+    <value>93, 52</value>
+  </data>
+  <data name="label1.Location" type="System.Drawing.Point, System.Drawing">
+    <value>17, 55</value>
+  </data>
+  <data name="label1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>68, 17</value>
+  </data>
+  <data name="label1.Text" xml:space="preserve">
+    <value>服务端地址</value>
+  </data>
+  <data name="label2.Location" type="System.Drawing.Point, System.Drawing">
+    <value>17, 85</value>
+  </data>
+  <data name="label2.Size" type="System.Drawing.Size, System.Drawing">
+    <value>56, 17</value>
+  </data>
+  <data name="label2.Text" xml:space="preserve">
+    <value>服务端口</value>
+  </data>
+  <data name="serverPort.Location" type="System.Drawing.Point, System.Drawing">
+    <value>79, 82</value>
+  </data>
+  <data name="label3.Location" type="System.Drawing.Point, System.Drawing">
+    <value>17, 28</value>
+  </data>
+  <data name="webPort.Location" type="System.Drawing.Point, System.Drawing">
+    <value>79, 24</value>
+  </data>
+  <data name="label4.Location" type="System.Drawing.Point, System.Drawing">
+    <value>17, 56</value>
+  </data>
+  <data name="label4.Size" type="System.Drawing.Size, System.Drawing">
+    <value>56, 17</value>
+  </data>
+  <data name="label4.Text" xml:space="preserve">
+    <value>管理端口</value>
+  </data>
+  <data name="apiPort.Location" type="System.Drawing.Point, System.Drawing">
+    <value>79, 53</value>
+  </data>
+  <data name="modeClient.Location" type="System.Drawing.Point, System.Drawing">
+    <value>105, 21</value>
+  </data>
+  <data name="modeServer.Location" type="System.Drawing.Point, System.Drawing">
+    <value>298, 21</value>
+  </data>
+  <data name="label5.Location" type="System.Drawing.Point, System.Drawing">
+    <value>19, 130</value>
+  </data>
+  <data name="shareLen.Location" type="System.Drawing.Point, System.Drawing">
+    <value>93, 127</value>
+  </data>
+  <data name="label6.Location" type="System.Drawing.Point, System.Drawing">
+    <value>14, 104</value>
+  </data>
+  <data name="shareKey.Location" type="System.Drawing.Point, System.Drawing">
+    <value>93, 100</value>
+  </data>
+  <data name="label11.Location" type="System.Drawing.Point, System.Drawing">
+    <value>26, 29</value>
+  </data>
+  <data name="machineName.Location" type="System.Drawing.Point, System.Drawing">
+    <value>93, 25</value>
+  </data>
   <data name="installBtn.Location" type="System.Drawing.Point, System.Drawing">
-    <value>193, 290</value>
+    <value>175, 244</value>
   </data>
   <data name="runBtn.Location" type="System.Drawing.Point, System.Drawing">
-    <value>106, 290</value>
+    <value>88, 244</value>
   </data>
   <data name="checkStateBtn.Location" type="System.Drawing.Point, System.Drawing">
-    <value>323, 296</value>
+    <value>305, 250</value>
+  </data>
+  <data name="label16.Location" type="System.Drawing.Point, System.Drawing">
+    <value>7, 159</value>
+  </data>
+  <data name="shareItemLen.Location" type="System.Drawing.Point, System.Drawing">
+    <value>93, 156</value>
+  </data>
+  <data name="gbClient.Size" type="System.Drawing.Size, System.Drawing">
+    <value>200, 190</value>
+  </data>
+  <data name="gbClient.Text" xml:space="preserve">
+    <value>客户端参数</value>
+  </data>
+  <data name="gbServer.Size" type="System.Drawing.Size, System.Drawing">
+    <value>187, 189</value>
+  </data>
+  <data name="gbServer.Text" xml:space="preserve">
+    <value>服务端参数</value>
   </data>
   <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing">
-    <value>418, 334</value>
+    <value>418, 290</value>
   </data>
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>

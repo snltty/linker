@@ -45,17 +45,15 @@
             shareKey = new TextBox();
             label11 = new Label();
             machineName = new TextBox();
-            label12 = new Label();
-            screenDelay = new TextBox();
-            label13 = new Label();
-            reportDelay = new TextBox();
-            label14 = new Label();
-            screenScale = new TextBox();
             installBtn = new Button();
             runBtn = new Button();
             checkStateBtn = new Button();
             label16 = new Label();
             shareItemLen = new TextBox();
+            gbClient = new GroupBox();
+            gbServer = new GroupBox();
+            gbClient.SuspendLayout();
+            gbServer.SuspendLayout();
             SuspendLayout();
             // 
             // serverIP
@@ -140,36 +138,6 @@
             resources.ApplyResources(machineName, "machineName");
             machineName.Name = "machineName";
             // 
-            // label12
-            // 
-            resources.ApplyResources(label12, "label12");
-            label12.Name = "label12";
-            // 
-            // screenDelay
-            // 
-            resources.ApplyResources(screenDelay, "screenDelay");
-            screenDelay.Name = "screenDelay";
-            // 
-            // label13
-            // 
-            resources.ApplyResources(label13, "label13");
-            label13.Name = "label13";
-            // 
-            // reportDelay
-            // 
-            resources.ApplyResources(reportDelay, "reportDelay");
-            reportDelay.Name = "reportDelay";
-            // 
-            // label14
-            // 
-            resources.ApplyResources(label14, "label14");
-            label14.Name = "label14";
-            // 
-            // screenScale
-            // 
-            resources.ApplyResources(screenScale, "screenScale");
-            screenScale.Name = "screenScale";
-            // 
             // installBtn
             // 
             resources.ApplyResources(installBtn, "installBtn");
@@ -201,39 +169,51 @@
             resources.ApplyResources(shareItemLen, "shareItemLen");
             shareItemLen.Name = "shareItemLen";
             // 
+            // gbClient
+            // 
+            resources.ApplyResources(gbClient, "gbClient");
+            gbClient.Controls.Add(machineName);
+            gbClient.Controls.Add(label16);
+            gbClient.Controls.Add(serverIP);
+            gbClient.Controls.Add(shareItemLen);
+            gbClient.Controls.Add(label1);
+            gbClient.Controls.Add(label11);
+            gbClient.Controls.Add(shareLen);
+            gbClient.Controls.Add(shareKey);
+            gbClient.Controls.Add(label5);
+            gbClient.Controls.Add(label6);
+            gbClient.Name = "gbClient";
+            gbClient.TabStop = false;
+            // 
+            // gbServer
+            // 
+            resources.ApplyResources(gbServer, "gbServer");
+            gbServer.Controls.Add(apiPort);
+            gbServer.Controls.Add(serverPort);
+            gbServer.Controls.Add(label2);
+            gbServer.Controls.Add(label4);
+            gbServer.Controls.Add(webPort);
+            gbServer.Controls.Add(label3);
+            gbServer.Name = "gbServer";
+            gbServer.TabStop = false;
+            // 
             // MainForm
             // 
             resources.ApplyResources(this, "$this");
             AutoScaleMode = AutoScaleMode.Font;
-            Controls.Add(label16);
-            Controls.Add(shareItemLen);
+            Controls.Add(gbServer);
+            Controls.Add(gbClient);
             Controls.Add(checkStateBtn);
             Controls.Add(runBtn);
             Controls.Add(installBtn);
-            Controls.Add(label14);
-            Controls.Add(screenScale);
-            Controls.Add(label12);
-            Controls.Add(screenDelay);
-            Controls.Add(label13);
-            Controls.Add(reportDelay);
-            Controls.Add(label11);
-            Controls.Add(machineName);
-            Controls.Add(label5);
-            Controls.Add(shareLen);
-            Controls.Add(label6);
-            Controls.Add(shareKey);
             Controls.Add(modeServer);
             Controls.Add(modeClient);
-            Controls.Add(label3);
-            Controls.Add(webPort);
-            Controls.Add(label4);
-            Controls.Add(apiPort);
-            Controls.Add(label2);
-            Controls.Add(serverPort);
-            Controls.Add(label1);
-            Controls.Add(serverIP);
             Name = "MainForm";
             Load += OnLoad;
+            gbClient.ResumeLayout(false);
+            gbClient.PerformLayout();
+            gbServer.ResumeLayout(false);
+            gbServer.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -254,12 +234,6 @@
         private System.Windows.Forms.TextBox shareKey;
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.TextBox machineName;
-        private System.Windows.Forms.Label label12;
-        private System.Windows.Forms.TextBox screenDelay;
-        private System.Windows.Forms.Label label13;
-        private System.Windows.Forms.TextBox reportDelay;
-        private System.Windows.Forms.Label label14;
-        private System.Windows.Forms.TextBox screenScale;
         private System.Windows.Forms.Button installBtn;
         private System.Windows.Forms.Button runBtn;
         private System.Windows.Forms.Button checkStateBtn;
@@ -268,5 +242,7 @@
 
         private Label label16;
         private TextBox shareItemLen;
+        private GroupBox gbClient;
+        private GroupBox gbServer;
     }
 }

@@ -1,13 +1,12 @@
 using common.libs;
-using common.libs.extends;
-using Microsoft.Win32;
 using System.Diagnostics;
-using System.Net;
 
 namespace cmonitor.install.win
 {
     public partial class MainForm : Form
     {
+
+        Config config = new Config();
         public MainForm()
         {
             InitializeComponent();
@@ -27,59 +26,25 @@ namespace cmonitor.install.win
 
         private void SaveConfig()
         {
-            RegistryKey key = CheckRegistryKey();
-            key.SetValue("installParams", new ConfigInfo
-            {
-                Client = modeClient.Checked,
-                Server = modeServer.Checked,
-                MachineName = machineName.Text,
-                ServerEndpoint = new IPEndPoint(IPAddress.Parse(serverIP.Text), int.Parse(serverPort.Text)).ToString(),
-                ApiPort = int.Parse(apiPort.Text),
-                WebPort = int.Parse(webPort.Text),
-                ReportDelay = int.Parse(reportDelay.Text),
-                ScreenDelay = int.Parse(screenDelay.Text),
-                ScreenScale = double.Parse(screenScale.Text),
-                ShareKey = shareKey.Text,
-                ShareLen = int.Parse(shareLen.Text),
-                ShareSize = int.Parse(shareItemLen.Text),
-            }.ToJson());
+            config.Save();
 
         }
         private void LoadConfig()
         {
-            RegistryKey key = CheckRegistryKey();
+            modeClient.Checked = config.Common.Modes.Contains("client");
+            modeServer.Checked = config.Common.Modes.Contains("server");
 
+            machineName.Text = config.Client.Name;
+            serverIP.Text = config.Client.Server;
 
-            ConfigInfo config = key.GetValue("installParams", "{}").ToString().DeJson<ConfigInfo>();
+            shareKey.Text = config.Client.ShareMemoryKey;
+            shareLen.Text = config.Client.ShareMemoryCount.ToString();
+            shareItemLen.Text = config.Client.ShareMemorySize.ToString();
 
-            modeClient.Checked = config.Client;
-            modeServer.Checked = config.Server;
-
-            machineName.Text = config.MachineName;
-
-            IPEndPoint ep = IPEndPoint.Parse(config.ServerEndpoint);
-            serverIP.Text = ep.Address.ToString();
-            serverPort.Text = ep.Port.ToString();
-            apiPort.Text = config.ApiPort.ToString();
-            webPort.Text = config.WebPort.ToString();
-
-            reportDelay.Text = config.ReportDelay.ToString();
-            screenDelay.Text = config.ScreenDelay.ToString();
-            screenScale.Text = config.ScreenScale.ToString();
-
-            shareKey.Text = config.ShareKey;
-            shareLen.Text = config.ShareLen.ToString();
-            shareItemLen.Text = config.ShareSize.ToString();
-
+            serverPort.Text = config.Server.ServicePort.ToString();
+            apiPort.Text = config.Server.ApiPort.ToString();
+            webPort.Text = config.Server.WebPort.ToString();
         }
-        private RegistryKey CheckRegistryKey()
-        {
-            Registry.SetValue("HKEY_CURRENT_USER\\SOFTWARE\\cmonitor", "test", 1);
-
-            RegistryKey key = Registry.CurrentUser.OpenSubKey("Software");
-            return key.OpenSubKey("cmonitor", true);
-        }
-
 
         private bool loading = false;
         private bool installed = false;
@@ -93,21 +58,15 @@ namespace cmonitor.install.win
                 return;
             }
 
-            List<string> installParams = new List<string>();
-
-            bool result = CheckMode(installParams);
+            bool result = CheckMode();
             if (result == false) return;
-            result = CheckIPAndPort(installParams);
+            result = CheckIPAndPort();
             if (result == false) return;
-            result = CheckDelay(installParams);
-            if (result == false) return;
-            result = CheckShare(installParams);
+            result = CheckShare();
             if (result == false) return;
 
             CheckLoading(true);
             SaveConfig();
-
-            string paramStr = string.Join(" ", installParams);
 
             string filename = Process.GetCurrentProcess().MainModule.FileName;
             string dir = Path.GetDirectoryName(filename);
@@ -123,7 +82,7 @@ namespace cmonitor.install.win
             {
                 if (installed == false)
                 {
-                    string taskStr = $"sc create \"{serviceName}\" binpath= \"{sasPath} {shareKeyStr} {shareLenStr} {shareItemLenStr} {sasIndexStr} \\\"{paramStr}\\\"\" start= AUTO";
+                    string taskStr = $"sc create \"{serviceName}\" binpath= \"{sasPath} {shareKeyStr} {shareLenStr} {shareItemLenStr} {sasIndexStr} \" start= AUTO";
                     CommandHelper.Windows(string.Empty, new string[] {
                         taskStr,
                         $"net start {serviceName}",
@@ -150,7 +109,7 @@ namespace cmonitor.install.win
             });
         }
 
-        private bool CheckMode(List<string> installParams)
+        private bool CheckMode()
         {
             if (modeClient.Checked == false && modeServer.Checked == false)
             {
@@ -166,11 +125,11 @@ namespace cmonitor.install.win
             {
                 modeStr.Add("server");
             }
-            installParams.Add($"--mode {string.Join(",", modeStr)}");
+            config.Common.Modes = modeStr.ToArray();
 
             return true;
         }
-        private bool CheckIPAndPort(List<string> installParams)
+        private bool CheckIPAndPort()
         {
             if (string.IsNullOrWhiteSpace(serverIP.Text))
             {
@@ -192,37 +151,14 @@ namespace cmonitor.install.win
                 MessageBox.Show("web端口必填");
                 return false;
             }
-            installParams.Add($"--server {serverIP.Text}");
-            installParams.Add($"--service {serverPort.Text}");
-            installParams.Add($"--api {apiPort.Text}");
-            installParams.Add($"--web {webPort.Text}");
-
+            config.Client.Server = serverIP.Text;
+            config.Server.WebPort = int.Parse(webPort.Text);
+            config.Server.ApiPort = int.Parse(apiPort.Text);
+            config.Server.ServicePort = int.Parse(serverPort.Text);
             return true;
         }
-        private bool CheckDelay(List<string> installParams)
-        {
-            if (string.IsNullOrWhiteSpace(reportDelay.Text))
-            {
-                MessageBox.Show("报告间隔时间必填");
-                return false;
-            }
-            if (string.IsNullOrWhiteSpace(screenDelay.Text))
-            {
-                MessageBox.Show("截屏间隔时间必填");
-                return false;
-            }
-            if (string.IsNullOrWhiteSpace(screenScale.Text))
-            {
-                MessageBox.Show("截屏缩放比例必填");
-                return false;
-            }
-            installParams.Add($"--report-delay {reportDelay.Text}");
-            installParams.Add($"--screen-delay {screenDelay.Text}");
-            installParams.Add($"--screen-scale {screenScale.Text}");
-
-            return true;
-        }
-        private bool CheckShare(List<string> installParams)
+       
+        private bool CheckShare()
         {
             if (string.IsNullOrWhiteSpace(shareKey.Text))
             {
@@ -239,11 +175,9 @@ namespace cmonitor.install.win
                 MessageBox.Show("共享每项数据长度必填");
                 return false;
             }
-
-            installParams.Add($"--share-key {shareKey.Text}");
-            installParams.Add($"--share-len {shareLen.Text}");
-            installParams.Add($"--share-item-len {shareItemLen.Text}");
-
+            config.Client.ShareMemoryKey = shareKey.Text;
+            config.Client.ShareMemoryCount = int.Parse(shareLen.Text);
+            config.Client.ShareMemorySize = int.Parse(shareItemLen.Text);
             return true;
         }
 
@@ -358,21 +292,5 @@ namespace cmonitor.install.win
             CheckRunning();
         }
 
-        public sealed class ConfigInfo
-        {
-            public bool Client { get; set; }
-            public bool Server { get; set; }
-            public string MachineName { get; set; } = Dns.GetHostName();
-            public string ServerEndpoint { get; set; } = new IPEndPoint(IPAddress.Loopback, 1802).ToString();
-            public int ApiPort { get; set; } = 1801;
-            public int WebPort { get; set; } = 1800;
-            public int ReportDelay { get; set; } = 30;
-            public int ScreenDelay { get; set; } = 200;
-            public double ScreenScale { get; set; } = 0.2;
-            public string ShareKey { get; set; } = "cmonitor/share";
-            public int ShareLen { get; set; } = 100;
-            public int ShareSize { get; set; } = 1024;
-
-        }
     }
 }
