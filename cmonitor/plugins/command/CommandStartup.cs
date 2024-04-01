@@ -18,6 +18,7 @@ namespace cmonitor.plugins.command
 
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
+            serviceCollection.AddSingleton<CommandServerMessenger>();
             serviceCollection.AddSingleton<CommandApiController>();
         }
 

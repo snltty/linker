@@ -33,6 +33,7 @@ namespace cmonitor.client
 
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
+            serviceCollection.AddSingleton<RuleConfig>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)

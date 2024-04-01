@@ -16,6 +16,7 @@ namespace cmonitor.plugins.report
 
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
+            serviceCollection.AddSingleton<ReportServerMessenger>();
             serviceCollection.AddSingleton<ReportApiController>();
         }
 

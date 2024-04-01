@@ -37,7 +37,7 @@ namespace cmonitor.client.report
             reports = types.Select(c => (IClientReport)serviceProvider.GetService(c)).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
             reportObj = new Dictionary<string, object>(reports.Count);
 
-            Logger.Instance.Info($"load reports:{string.Join(",", reports.Select(c => c.Name))}");
+            Logger.Instance.Warning($"load reports:{string.Join(",", reports.Select(c => c.Name))}");
         }
 
         private uint reportFlag = 0;

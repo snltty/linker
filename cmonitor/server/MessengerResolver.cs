@@ -35,10 +35,14 @@ namespace cmonitor.server
             Type voidType = typeof(void);
             Type midType = typeof(MessengerIdAttribute);
             var types = ReflectionHelper.GetInterfaceSchieves(assemblys, typeof(IMessenger)).Distinct();
-            Logger.Instance.Warning($"load messengers:{string.Join(",", types.Select(c => c.Name))}");
             foreach (Type type in types)
             {
                 object obj = serviceProvider.GetService(type);
+                if(obj == null)
+                {
+                    continue;
+                }
+                Logger.Instance.Warning($"load messenger:{type.Name}");
 
                 foreach (var method in type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
                 {

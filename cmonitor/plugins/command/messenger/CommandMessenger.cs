@@ -10,11 +10,9 @@ namespace cmonitor.plugins.command.messenger
     {
 
         private readonly CommandReport commandReport;
-        private readonly IApiServer clientServer;
-        public CommandClientMessenger(CommandReport commandReport, IApiServer clientServer)
+        public CommandClientMessenger(CommandReport commandReport)
         {
             this.commandReport = commandReport;
-            this.clientServer = clientServer;
         }
 
 
@@ -55,6 +53,17 @@ namespace cmonitor.plugins.command.messenger
         {
             commandReport.CommandAlive(BitConverter.ToInt32(connection.ReceiveRequestWrap.Payload.Span));
         }
+    }
+
+
+    public sealed class CommandServerMessenger : IMessenger
+    {
+
+        private readonly IApiServer clientServer;
+        public CommandServerMessenger(IApiServer clientServer)
+        {
+            this.clientServer = clientServer;
+        }
 
         [MessengerId((ushort)CommandMessengerIds.CommandData)]
         public void CommandData(IConnection connection)
@@ -63,5 +72,4 @@ namespace cmonitor.plugins.command.messenger
             clientServer.Notify("/notify/command/data", commandLineDataInfo);
         }
     }
-
 }

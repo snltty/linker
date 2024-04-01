@@ -8,12 +8,10 @@ namespace cmonitor.plugins.report.messenger
 {
     public sealed class ReportClientMessenger : IMessenger
     {
-        private readonly IApiServer clientServer;
         private readonly ClientReportTransfer reportTransfer;
 
-        public ReportClientMessenger(IApiServer clientServer, ClientReportTransfer reportTransfer)
+        public ReportClientMessenger(ClientReportTransfer reportTransfer)
         {
-            this.clientServer = clientServer;
             this.reportTransfer = reportTransfer;
         }
 
@@ -30,14 +28,6 @@ namespace cmonitor.plugins.report.messenger
             connection.Write(Helper.TrueArray);
         }
 
-        [MessengerId((ushort)ReportMessengerIds.Report)]
-        public void Report(IConnection connection)
-        {
-            string report = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            clientServer.Notify("/notify/report/report", new { connection.Name, Report = report });
-        }
-
-
         [MessengerId((ushort)ReportMessengerIds.Ping)]
         public void Ping(IConnection connection)
         {
@@ -45,5 +35,20 @@ namespace cmonitor.plugins.report.messenger
         }
 
     }
+    public sealed class ReportServerMessenger : IMessenger
+    {
+        private readonly IApiServer clientServer;
 
+        public ReportServerMessenger(IApiServer clientServer)
+        {
+            this.clientServer = clientServer;
+        }
+
+        [MessengerId((ushort)ReportMessengerIds.Report)]
+        public void Report(IConnection connection)
+        {
+            string report = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            clientServer.Notify("/notify/report/report", new { connection.Name, Report = report });
+        }
+    }
 }

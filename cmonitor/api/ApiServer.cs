@@ -35,16 +35,20 @@ namespace cmonitor.api
         /// <param name="assemblys"></param>
         public void LoadPlugins(Assembly[] assemblys)
         {
-
             Type voidType = typeof(void);
 
             IEnumerable<Type> types = assemblys.SelectMany(c => c.GetTypes()).Where(c => c.GetInterfaces().Contains(typeof(IApiController)));
-            Logger.Instance.Warning($"load server apis:{string.Join(",", types.Select(c => c.Name))}");
-
+           
             foreach (Type item in types)
             {
-                string path = item.Name.Replace("ApiController", "");
                 object obj = serviceProvider.GetService(item);
+                if(obj == null)
+                {
+                    continue;
+                }
+                Logger.Instance.Warning($"load server api:{item.Name}");
+
+                string path = item.Name.Replace("ApiController", "");
                 foreach (MethodInfo method in item.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
                 {
                     string key = $"{path}/{method.Name}".ToLower();
