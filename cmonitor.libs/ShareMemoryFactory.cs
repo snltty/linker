@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace cmonitor.libs
 {
@@ -6,15 +7,15 @@ namespace cmonitor.libs
     {
         public static IShareMemory Create(string key, int length, int itemSize)
         {
-            if (OperatingSystem.IsWindows())
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 return new ShareMemoryWindows(key, length, itemSize);
             }
-            else if (OperatingSystem.IsLinux())
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 return new ShareMemoryLinux(key, length, itemSize);
             }
-            else if (OperatingSystem.IsMacOS())
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 return new ShareMemoryMacOS(key, length, itemSize);
             }

@@ -1,14 +1,14 @@
 <template>
     <div class="checkbox-wrap absolute flex flex-column">
         <div class="head flex">
-            <span>
+            <span v-if="!state.single">
                 <el-checkbox :indeterminate="state.isIndeterminate" v-model="state.checkAll" @change="handleCheckAllChange" :label="state.title" />
             </span>
             <span class="flex-1"></span>
             <slot name="title"></slot>
         </div>
         <div class="body flex-1 scrollbar">
-            <el-checkbox-group v-model="state.checkList" @change="handleChange">
+            <el-checkbox-group :max="state.single?1:65535" v-model="state.checkList" @change="handleChange">
                 <ul>
                     <template v-for="(item,index) in state.data" :key="index">
                         <li class="flex">
@@ -31,7 +31,7 @@
 <script>
 import { computed, onMounted, reactive, watch } from 'vue'
 export default {
-    props: ['title', 'items', 'data', 'label', 'text'],
+    props: ['title', 'items', 'data', 'label', 'text', 'single'],
     emits: ['change'],
     setup(props, { emit }) {
 
@@ -39,6 +39,7 @@ export default {
             title: props.title,
             label: props.label,
             text: props.text || props.label,
+            single: props.single,
             data: computed(() => props.data),
             checkList: props.items.map(c => c[props.label]),
             checkAll: false,

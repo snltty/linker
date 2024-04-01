@@ -1,4 +1,5 @@
 using cmonitor.libs;
+using common.libs;
 using System.Diagnostics;
 using System.Text;
 
@@ -129,7 +130,8 @@ namespace cmonitor.wallpaper.win
                 {
                     try
                     {
-                        if (hook.CurrentKeys == Keys.None)
+                        Keys currentKeys = (Keys)hook.CurrentKeys;
+                        if (currentKeys == Keys.None)
                         {
                             if (lastKey != Keys.None)
                             {
@@ -151,11 +153,11 @@ namespace cmonitor.wallpaper.win
                             {
                                 sb.Append("Alt+");
                             }
-                            sb.Append(hook.CurrentKeys.ToString());
+                            sb.Append(currentKeys.ToString());
 
                             shareMemory.Update(shareKeyBoardIndex, keyBytes, Encoding.UTF8.GetBytes(sb.ToString()));
                         }
-                        lastKey = hook.CurrentKeys;
+                        lastKey = currentKeys;
                         WriteWallpaper();
                     }
                     catch (Exception)
@@ -165,13 +167,26 @@ namespace cmonitor.wallpaper.win
                     await Task.Delay(30);
                 }
             });
+
+            Task.Run(async () =>
+            {
+                while (cancellationTokenSource.Token.IsCancellationRequested == false)
+                {
+                    if ((DateTime.Now - hook.LastDateTime).TotalMilliseconds > 1000)
+                    {
+                        hook.CurrentKeys = 0;
+                    }
+
+                    await Task.Delay(1000);
+                }
+            });
         }
         private void WriteWallpaper()
         {
             long time = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
             if (time - lastTime >= 800)
             {
-                shareMemory.Update(shareWallpaperIndex, wallpaperBytes, BitConverter.GetBytes(time));
+                shareMemory.IncrementVersion(shareWallpaperIndex);
                 lastTime = time;
             }
             if (shareMemory.ReadAttributeEqual(shareWallpaperIndex, ShareMemoryAttribute.Closed))

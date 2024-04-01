@@ -1,4 +1,4 @@
-﻿using cmonitor.service;
+﻿using cmonitor.server;
 
 namespace cmonitor.client
 {

@@ -314,14 +314,14 @@ public static unsafe class ADVAPI32
     [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
     public static extern bool CreateProcessAsUser(
         nint hToken,
-        string? lpApplicationName,
+        string lpApplicationName,
         string lpCommandLine,
         ref SECURITY_ATTRIBUTES lpProcessAttributes,
         ref SECURITY_ATTRIBUTES lpThreadAttributes,
         bool bInheritHandles,
         uint dwCreationFlags,
         nint lpEnvironment,
-        string? lpCurrentDirectory,
+        string lpCurrentDirectory,
         ref STARTUPINFO lpStartupInfo,
         out PROCESS_INFORMATION lpProcessInformation);
 

@@ -2,10 +2,12 @@
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using static common.libs.winapis.User32;
 
 namespace common.libs.helpers
 {
+    [SupportedOSPlatform("windows")]
     public class CursorHelper
     {
         public static void DrawCursorIcon(Graphics g, int sourceWidth, float scaleX, float scaleY, float configScale)

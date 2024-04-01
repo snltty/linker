@@ -117,10 +117,19 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="label15.Text" xml:space="preserve">
-    <value>每项1024长度，0项保留不可用</value>
-  </data>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="installBtn.Location" type="System.Drawing.Point, System.Drawing">
+    <value>193, 290</value>
+  </data>
+  <data name="runBtn.Location" type="System.Drawing.Point, System.Drawing">
+    <value>106, 290</value>
+  </data>
+  <data name="checkStateBtn.Location" type="System.Drawing.Point, System.Drawing">
+    <value>323, 296</value>
+  </data>
+  <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing">
+    <value>418, 334</value>
+  </data>
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         AAABAAEAAAAAAAEAIABdQAAAFgAAAIlQTkcNChoKAAAADUlIRFIAAAEAAAABAAgGAAAAXHKoZgAAQCRJ

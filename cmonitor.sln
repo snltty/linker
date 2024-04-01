@@ -23,9 +23,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cmonitor.message.win", "cmo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cmonitor.snatch.win", "cmonitor.snatch.win\cmonitor.snatch.win.csproj", "{5267B401-6818-407C-8323-E6C8A3CC01D6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cmonitor.share.win", "cmonitor.share.win\cmonitor.share.win.csproj", "{AB10024E-9307-4231-872E-3564A57BA035}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cmonitor.viewer.server.win", "cmonitor.viewer.server.win\cmonitor.viewer.server.win.csproj", "{AB10024E-9307-4231-872E-3564A57BA035}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cmonitor.killer", "cmonitor.killer\cmonitor.killer.vcxproj", "{E19B86AC-AC42-417A-8536-C2FFF1FB7FDC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cmonitor.clipboard.win", "cmonitor.clipboard.win\cmonitor.clipboard.win.csproj", "{2A23EA37-3EAC-4B60-8576-84607ADB0256}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -181,6 +183,18 @@ Global
 		{E19B86AC-AC42-417A-8536-C2FFF1FB7FDC}.Release|x64.Build.0 = Release|x64
 		{E19B86AC-AC42-417A-8536-C2FFF1FB7FDC}.Release|x86.ActiveCfg = Release|Win32
 		{E19B86AC-AC42-417A-8536-C2FFF1FB7FDC}.Release|x86.Build.0 = Release|Win32
+		{2A23EA37-3EAC-4B60-8576-84607ADB0256}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A23EA37-3EAC-4B60-8576-84607ADB0256}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A23EA37-3EAC-4B60-8576-84607ADB0256}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2A23EA37-3EAC-4B60-8576-84607ADB0256}.Debug|x64.Build.0 = Debug|Any CPU
+		{2A23EA37-3EAC-4B60-8576-84607ADB0256}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2A23EA37-3EAC-4B60-8576-84607ADB0256}.Debug|x86.Build.0 = Debug|Any CPU
+		{2A23EA37-3EAC-4B60-8576-84607ADB0256}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A23EA37-3EAC-4B60-8576-84607ADB0256}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A23EA37-3EAC-4B60-8576-84607ADB0256}.Release|x64.ActiveCfg = Release|Any CPU
+		{2A23EA37-3EAC-4B60-8576-84607ADB0256}.Release|x64.Build.0 = Release|Any CPU
+		{2A23EA37-3EAC-4B60-8576-84607ADB0256}.Release|x86.ActiveCfg = Release|Any CPU
+		{2A23EA37-3EAC-4B60-8576-84607ADB0256}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

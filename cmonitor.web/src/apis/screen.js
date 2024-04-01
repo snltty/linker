@@ -14,9 +14,3 @@ export const screenClip = (name, data) => {
         clip: data
     }, false, 1000);
 }
-
-export const screenDisplay = (names, state) => {
-    return sendWebsocketMsg('screen/display', {
-        names, state
-    }, false, 1000);
-}

@@ -1,4 +1,5 @@
 using cmonitor.libs;
+using common.libs;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -24,7 +25,7 @@ namespace cmonitor.llock.win
                 return cp;
             }
         }
-
+        
         public MainForm(string shareMkey, int shareMLength, int shareItemMLength, int shareIndex)
         {
             this.shareIndex = shareIndex;
@@ -61,7 +62,7 @@ namespace cmonitor.llock.win
 
         private void OnLoad(object sender, EventArgs e)
         {
-            hook.Start();
+            hook.Start((code) => { return true; });
 #if RELEASE
             this.WindowState = FormWindowState.Maximized;
 #endif
@@ -119,7 +120,6 @@ namespace cmonitor.llock.win
         private void CloseClear()
         {
             shareMemory.RemoveAttribute(shareIndex, ShareMemoryAttribute.Running);
-            shareMemory.Update(this.shareIndex, keyBytes, BitConverter.GetBytes((long)0));
 
             cancellationTokenSource.Cancel();
             hook.Close();
@@ -132,14 +132,13 @@ namespace cmonitor.llock.win
         }
 
         private DateTime startTime = new DateTime(1970, 1, 1);
-        private byte[] keyBytes = Encoding.UTF8.GetBytes("LLock");
         private long lastTime = 0;
         private void WriteLLock()
         {
             long time = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
             if (time - lastTime >= 800)
             {
-                shareMemory.Update(this.shareIndex, keyBytes, BitConverter.GetBytes(time));
+                shareMemory.IncrementVersion(shareIndex);
                 lastTime = time;
             }
         }

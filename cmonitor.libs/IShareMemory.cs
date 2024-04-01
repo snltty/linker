@@ -2,6 +2,7 @@
 
 namespace cmonitor.libs
 {
+    //1 attr + 8 version + 4 klen + key + 4 vlen + val
     internal interface IShareMemory
     {
         public bool Init();

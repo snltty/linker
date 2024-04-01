@@ -2,7 +2,6 @@
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace cmonitor.libs
 {
@@ -25,7 +24,7 @@ namespace cmonitor.libs
         {
             try
             {
-                if (accessorLocal == null && OperatingSystem.IsWindows())
+                if (accessorLocal == null && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     mmfLocal = MemoryMappedFile.CreateOrOpen($"{key}", length * itemSize, MemoryMappedFileAccess.ReadWriteExecute, MemoryMappedFileOptions.None, HandleInheritability.None);
 

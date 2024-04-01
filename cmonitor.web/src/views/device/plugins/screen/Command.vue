@@ -5,29 +5,13 @@
             <el-button @click="handleDisplay(true)">亮屏</el-button>
             <el-button @click="handleDisplay(false)">息屏</el-button>
         </div>
-        <div class="subitem">
-            <span class="label">屏幕共享</span>
-            <el-button @click="handleShare">开始</el-button>
-        </div>
     </div>
-    <el-dialog title="选择分享设备" destroy-on-close v-model="pluginState.screen.showShare" center align-center width="94%">
-        <div class="t-c">
-            <el-select v-model="pluginState.screen.device" placeholder="选择分享设备" size="large">
-                <el-option v-for="item in globalState.devices" :key="item.MachineName" :label="item.MachineName" :value="item.MachineName" />
-            </el-select>
-        </div>
-        <template #footer>
-            <el-button @click="handleCancel">取 消</el-button>
-            <el-button type="success" plain @click="handleConfirm">确 定</el-button>
-        </template>
-    </el-dialog>
-
 </template>
 
 <script>
 import { ElMessage } from 'element-plus';
 import { injectPluginState } from '../../provide'
-import { screenDisplay } from '../../../../apis/screen'
+import { screenDisplay } from '../../../../apis/display'
 import { injectGlobalData } from '@/views/provide';
 export default {
     setup() {
@@ -47,17 +31,7 @@ export default {
             });
         }
 
-        const handleShare = () => {
-            pluginState.value.screen.showShare = true;
-        }
-        const handleCancel = () => {
-            pluginState.value.screen.showShare = false;
-        }
-        const handleConfirm = () => {
-            ElMessage.success('操作成功');
-        }
-
-        return { pluginState, globalState, handleDisplay, handleShare, handleCancel, handleConfirm }
+        return { pluginState, globalState, handleDisplay }
     }
 }
 </script>

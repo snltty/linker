@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -71,7 +72,7 @@ namespace cmonitor.libs
         {
             try
             {
-                if (OperatingSystem.IsWindows() && accessorGlobal == null)
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && accessorGlobal == null)
                 {
                     gloablBytes = new byte[bytes.Length];
                     accessorGlobal = ShareMemoryFactory.Create($"Global\\{key}", length, itemSize);
@@ -462,11 +463,13 @@ namespace cmonitor.libs
             IncrementVersion(accessor, index);
         }
 
+        private DateTime startTime = new DateTime(1970, 1, 1);
         private void IncrementVersion(IShareMemory accessor, int index)
         {
             if (accessor == null || index >= length) return;
-            long version = accessor.ReadInt64(index * itemSize + shareMemoryVersionIndex);
-            accessor.WriteInt64(index * itemSize + shareMemoryVersionIndex, version + 1);
+
+            long version = (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
+            accessor.WriteInt64(index * itemSize + shareMemoryVersionIndex, version);
         }
         private long ReadVersion(IShareMemory accessor, int index)
         {
@@ -548,7 +551,34 @@ namespace cmonitor.libs
         Closed = 0b0000_0010,
         Running = 0b0000_0100,
         HiddenForList = 0b0000_1000,
+        Error = 0b0001_0000,
         All = 0b1111_1111
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct ShareItem
+    {
+        public byte Attr;
+
+        public ulong Version;
+
+        public ulong Time;
+
+        public byte KeyLength;
+
+        /// <summary>
+        /// 255长度
+        /// </summary>
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 255)]
+        public byte[] Key;
+
+        public byte ValLength;
+
+        /// <summary>
+        /// 9966长度
+        /// </summary>
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 9966)]
+        public byte[] Value;
     }
 
     public sealed class ShareItemAttributeChanged

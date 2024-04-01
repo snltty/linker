@@ -43,14 +43,6 @@
             shareLen = new TextBox();
             label6 = new Label();
             shareKey = new TextBox();
-            label7 = new Label();
-            wallpaperIndex = new TextBox();
-            label8 = new Label();
-            keyboardIndex = new TextBox();
-            label9 = new Label();
-            llockIndex = new TextBox();
-            label10 = new Label();
-            sasIndex = new TextBox();
             label11 = new Label();
             machineName = new TextBox();
             label12 = new Label();
@@ -60,7 +52,6 @@
             label14 = new Label();
             screenScale = new TextBox();
             installBtn = new Button();
-            label15 = new Label();
             runBtn = new Button();
             checkStateBtn = new Button();
             label16 = new Label();
@@ -139,46 +130,6 @@
             resources.ApplyResources(shareKey, "shareKey");
             shareKey.Name = "shareKey";
             // 
-            // label7
-            // 
-            resources.ApplyResources(label7, "label7");
-            label7.Name = "label7";
-            // 
-            // wallpaperIndex
-            // 
-            resources.ApplyResources(wallpaperIndex, "wallpaperIndex");
-            wallpaperIndex.Name = "wallpaperIndex";
-            // 
-            // label8
-            // 
-            resources.ApplyResources(label8, "label8");
-            label8.Name = "label8";
-            // 
-            // keyboardIndex
-            // 
-            resources.ApplyResources(keyboardIndex, "keyboardIndex");
-            keyboardIndex.Name = "keyboardIndex";
-            // 
-            // label9
-            // 
-            resources.ApplyResources(label9, "label9");
-            label9.Name = "label9";
-            // 
-            // llockIndex
-            // 
-            resources.ApplyResources(llockIndex, "llockIndex");
-            llockIndex.Name = "llockIndex";
-            // 
-            // label10
-            // 
-            resources.ApplyResources(label10, "label10");
-            label10.Name = "label10";
-            // 
-            // sasIndex
-            // 
-            resources.ApplyResources(sasIndex, "sasIndex");
-            sasIndex.Name = "sasIndex";
-            // 
             // label11
             // 
             resources.ApplyResources(label11, "label11");
@@ -226,11 +177,6 @@
             installBtn.UseVisualStyleBackColor = true;
             installBtn.Click += OnInstallClick;
             // 
-            // label15
-            // 
-            resources.ApplyResources(label15, "label15");
-            label15.Name = "label15";
-            // 
             // runBtn
             // 
             resources.ApplyResources(runBtn, "runBtn");
@@ -263,7 +209,6 @@
             Controls.Add(shareItemLen);
             Controls.Add(checkStateBtn);
             Controls.Add(runBtn);
-            Controls.Add(label15);
             Controls.Add(installBtn);
             Controls.Add(label14);
             Controls.Add(screenScale);
@@ -273,14 +218,6 @@
             Controls.Add(reportDelay);
             Controls.Add(label11);
             Controls.Add(machineName);
-            Controls.Add(label10);
-            Controls.Add(sasIndex);
-            Controls.Add(label9);
-            Controls.Add(llockIndex);
-            Controls.Add(label7);
-            Controls.Add(wallpaperIndex);
-            Controls.Add(label8);
-            Controls.Add(keyboardIndex);
             Controls.Add(label5);
             Controls.Add(shareLen);
             Controls.Add(label6);
@@ -315,14 +252,6 @@
         private System.Windows.Forms.TextBox shareLen;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox shareKey;
-        private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.TextBox wallpaperIndex;
-        private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.TextBox keyboardIndex;
-        private System.Windows.Forms.Label label9;
-        private System.Windows.Forms.TextBox llockIndex;
-        private System.Windows.Forms.Label label10;
-        private System.Windows.Forms.TextBox sasIndex;
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.TextBox machineName;
         private System.Windows.Forms.Label label12;
@@ -332,7 +261,6 @@
         private System.Windows.Forms.Label label14;
         private System.Windows.Forms.TextBox screenScale;
         private System.Windows.Forms.Button installBtn;
-        private System.Windows.Forms.Label label15;
         private System.Windows.Forms.Button runBtn;
         private System.Windows.Forms.Button checkStateBtn;
 

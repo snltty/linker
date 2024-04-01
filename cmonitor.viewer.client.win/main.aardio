@@ -1,0 +1,63 @@
+import win.ui;
+/*DSG{{*/
+mainForm = win.form(text="cmonitor.viewer.client.win";right=757;bottom=467;border="thin";max=false;min=false;mode="popup";sysmenu=false;title=false)
+mainForm.add()
+/*}}*/
+
+import win.ui.atom;
+var atom,hwndConflict = mainForm.atom("C71CEE67-B4CA-4759-8608-8B2B917B0D54");
+if(!atom){
+	win.quitMessage();	return;
+};
+
+mainForm.connecting = false;
+
+import com.lite;
+import thread;
+var dll = com.lite("rdpviewerax.dll");
+mainForm.tsc = dll.createEmbedEx(mainForm,"{32be5ed2-5c86-480f-a914-0ff8885a1b3f}");
+mainForm.tsc.SmartSizing = true;
+mainForm.tsc.DisconnectedText = "正在连接至共享桌面....";
+
+mainForm.tsc.OnConnectionFailed = function(){
+	mainForm.connecting = false;
+}
+mainForm.tsc.OnConnectionTerminated = function(){
+	mainForm.connecting = false;
+}
+mainForm.connect = function(){
+	import win.reg;
+	import console;
+	if(mainForm.connecting === false){
+		try{
+			var reg = win.reg("HKEY_CURRENT_USER\Software\Cmonitor");
+			mainForm.connecting = true;
+			var invitationString = reg.queryValue("viewerConnectStr");
+			if(string.len(invitationString)>0)
+			{
+				mainForm.tsc.Connect(invitationString,"snltty","snltty");
+			}else{
+				mainForm.connecting = false;
+			}
+		}catch(e){
+			console.log(e);
+		}
+	}
+	
+}
+
+mainForm.show();
+if(!_STUDIO_INVOKED)
+{
+	mainForm.fullscreen();
+	mainForm.modifyStyleEx(0x40000/*_WS_EX_APPWINDOW*/,0x80/*_WS_EX_TOOLWINDOW*/);
+	::SetWindowPos(mainForm.hwnd,-1/*_HWND_TOPMOST*/,0,0,0,0,0x2/*_SWP_NOMOVE*/ + 0x1/*_SWP_NOSIZE*/);	
+}
+
+mainForm.setInterval( 
+	function(){	
+		mainForm.connect();
+	},1000
+);
+
+return win.loopMessage();

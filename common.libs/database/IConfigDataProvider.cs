@@ -51,8 +51,6 @@ namespace common.libs.database
                 if (File.Exists(fileName))
                 {
                     string str = (await File.ReadAllTextAsync(fileName).ConfigureAwait(false));
-                    //Logger.Instance.Error($"read:{fileName}");
-                   // Logger.Instance.Error(str);
                     return str.DeJson<T>();
                 }
                 else
@@ -81,10 +79,6 @@ namespace common.libs.database
             try
             {
                 string fileName = GetTableName(typeof(T));
-
-                //Logger.Instance.Error($"save:{fileName}");
-                //Logger.Instance.Error(model.ToJsonIndented());
-
                 await File.WriteAllTextAsync(fileName, model.ToJsonFormat(), Encoding.UTF8).ConfigureAwait(false);
             }
             catch (Exception)
@@ -106,11 +100,18 @@ namespace common.libs.database
         private string GetTableName(Type type)
         {
             var attrs = type.GetCustomAttributes(typeof(TableAttribute), false);
+            string file = $"./configs/{type.Name}.json";
             if (attrs.Length > 0)
             {
-                return $"{(attrs[0] as TableAttribute).Name}.json";
+                file = $"./configs/{(attrs[0] as TableAttribute).Name}.json";
             }
-            return $"{type.Name}.json";
+            string path = Path.GetDirectoryName(file);
+            if (Directory.Exists(path) == false)
+            {
+                Directory.CreateDirectory(path);
+            }
+
+            return file;
         }
     }
 }

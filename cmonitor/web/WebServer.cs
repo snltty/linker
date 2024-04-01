@@ -1,4 +1,5 @@
-﻿using common.libs;
+﻿using cmonitor.config;
+using common.libs;
 using System.Net;
 
 namespace cmonitor.web
@@ -25,7 +26,7 @@ namespace cmonitor.web
                 {
                     HttpListener http = new HttpListener();
                     http.IgnoreWriteExceptions = true;
-                    http.Prefixes.Add($"http://+:{config.WebPort}/");
+                    http.Prefixes.Add($"http://+:{config.Server.WebPort}/");
                     http.Start();
 
                     http.BeginGetContext(Callback, http);
@@ -52,7 +53,7 @@ namespace cmonitor.web
                 if (path == "/") path = "index.html";
 
 
-                path = Path.Join(config.WebRoot, path);
+                path = Path.Join(config.Server.WebRoot, path);
                 if (File.Exists(path))
                 {
                     byte[] bytes = File.ReadAllBytes(path);

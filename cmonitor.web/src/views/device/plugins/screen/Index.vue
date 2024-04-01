@@ -4,20 +4,11 @@
 </template>
 
 <script>
-import { onMounted, watch } from 'vue';
-import { injectPluginState } from '../../provide'
-import { injectGlobalData } from '@/views/provide';
 export default {
     components: {},
     setup() {
 
-        const pluginState = injectPluginState();
-        const globalState = injectGlobalData();
-        watch(() => pluginState.value.screen.shareUpdateFlag, () => { });
-
-        onMounted(() => { })
-
-        return { pluginState }
+        return {}
     }
 }
 </script>

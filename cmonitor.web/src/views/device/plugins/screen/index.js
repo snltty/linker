@@ -5,7 +5,6 @@ export default {
     field() {
         return {
             Screen: {
-                share: false,
 
                 regionImgs: [], //局部图
                 fullImg: null, //全图
@@ -208,10 +207,8 @@ export default {
     },
     state: {
         screen: {
-            showShare: false,
             device: '',
-            devices: [],
-            shareUpdateFlag: 0
+            devices: []
         }
     },
 
