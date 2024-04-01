@@ -5,6 +5,7 @@ using Microsoft.Win32;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 
 namespace cmonitor.plugins.active.report
 {
@@ -211,6 +212,12 @@ namespace cmonitor.plugins.active.report
 
         private void InitDriver()
         {
+            AppDomain.CurrentDomain.ProcessExit += (sender, e) => {
+                CommandHelper.Windows(string.Empty, new string[] { "sc stop cmonitor.killer & sc delete cmonitor.killer" }, true);
+            };
+            Console.CancelKeyPress += (sender, e) => {
+                CommandHelper.Windows(string.Empty, new string[] { "sc stop cmonitor.killer & sc delete cmonitor.killer" }, true);
+            };
             Task.Run(() =>
             {
                 try
