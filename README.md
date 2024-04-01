@@ -86,7 +86,8 @@
 
 ## 运行参数
 ```
-第一次运行后，在 configs/  文件夹下，会生成配置文件，可以根据需要进行修改，然后再次运行
+第一次运行【cmonitor.exe】后，在 configs/  文件夹下，会生成配置文件，可以根据需要进行修改，然后再次运行
+
 ```
 
 ## 安装示例
@@ -108,7 +109,7 @@ Description=cmonitor
 
 [Service]
 WorkingDirectory=/usr/local/cmonitor
-ExecStart=/usr/local/cmonitor/cmonitor --mode server --web 1800 --api 1801 --service 1802
+ExecStart=/usr/local/cmonitor/cmonitor
 ExecStop=/bin/kill $MAINPID
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
@@ -129,6 +130,7 @@ docker镜像 snltty/cmonitor-alpine-x64 or snltty/cmonitor-alpine-arm64
 ```
 docker run -it -d --name="cmonitor" \ 
 -p 1800:1800/tcp -p 1801:1801/tcp -p 1802:1802/tcp -p 1802:1802/udp \ 
+-v /usr/local/cmonitor/configs:/app/configs \
 snltty/cmonitor-alpine-x64
 ```
 
