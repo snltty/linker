@@ -93,7 +93,6 @@
 		<TrimmerRootAssembly Include="System.Management" />
 		<TrimmerRootAssembly Include="NAudio" />
 		<TrimmerRootAssembly Include="SharpDX" />
-		<TrimmerRootAssembly Include="FFmpeg.AutoGen" />
 		
 	</ItemGroup>
 </Project>
