@@ -85,25 +85,9 @@
 <p><img src="./readme/cmonitor.jpg"></p> 
 
 ## 运行参数
-
-###### 公共的
-1. **【--mode】** 运行模式 **client,server**
-2. **【--report-delay】** 数据报告间隔ms **30**
-3. **【--screen-delay】** 屏幕报告间隔ms **200**
-4. **【--screen-scale】** 屏幕图片缩放比例 **0.2** 默认1/5
-
-###### 客户端
-1. **【--name】** 机器名
-1. **【--server】** 服务器ip  **192.168.1.18**
-2. **【--service】** 服务端口 **1802**
-3. **【--share-key】** 自定数据共享 **cmonitor/share**
-4. **【--share-len】** 数量 **100**，默认100项位置，0保留，1键盘、2壁纸、3锁屏，4 SendSAS， 5 抢答问题， 6 抢答答案， 7 屏幕共享， 8 剪贴板
-4. **【--share-item-len】** 每项数据长度 **1024**，attr(1)+version(8)+klen(4)+key(klen)+vlen(4)+value(vallen)
-
-###### 服务端
-1. **【--web】** 管理UI端口 **1800**
-2. **【--api】** 管理接口端口 **1801**
-3. **【--service】** 服务端口 **1802**
+```
+第一次运行后，在 configs/  文件夹下，会生成配置文件，可以根据需要进行修改，然后再次运行
+```
 
 ## 安装示例
 
@@ -145,8 +129,7 @@ docker镜像 snltty/cmonitor-alpine-x64 or snltty/cmonitor-alpine-arm64
 ```
 docker run -it -d --name="cmonitor" \ 
 -p 1800:1800/tcp -p 1801:1801/tcp -p 1802:1802/tcp -p 1802:1802/udp \ 
-snltty/cmonitor-alpine-x64 \
---entrypoint ./cmonitor.run  --mode server --web 1800 --api 1801 --service 1802
+snltty/cmonitor-alpine-x64
 ```
 
 
