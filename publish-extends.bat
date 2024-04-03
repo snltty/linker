@@ -14,3 +14,4 @@ dotnet publish ./cmonitor.llock.win -c release -f net8.0-windows -r win-x64 -o p
 dotnet publish ./cmonitor.message.win -c release -f net8.0-windows -r win-x64 -o public/extends/  -p:PublishSingleFile=true --self-contained false
 dotnet publish ./cmonitor.notify.win -c release -f net8.0-windows -r win-x64 -o public/extends/  -p:PublishSingleFile=true --self-contained false
 dotnet publish ./cmonitor.wallpaper.win -c release -f net8.0-windows -r win-x64 -o public/extends/  -p:PublishSingleFile=true --self-contained false
+MSBuild.exe cmonitor.viewer.server.win /t:Publish /p:Configuration=Release /p:TargetFramework=net8.0-windows /p:PublishSingleFile=true /p:RuntimeIdentifier=win-x64 /p:PublishDir=../public/extends/

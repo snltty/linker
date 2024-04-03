@@ -2,7 +2,7 @@
     <div class="windows-items-wrap flex flex-nowrap flex-column">
         <div class="head t-c flex">
             <el-select v-model="state.group" placeholder="选择一个分组" style="width:13rem">
-                <el-option v-for="item in state.groups" :key="item.ID" :label="item.Name" :value="item.ID" />
+                <el-option v-for="item in state.groups" :key="item.Name" :label="item.Name" :value="item.Name" />
             </el-select>
             <span class="flex-1"></span>
             <el-button @click="handleAdd()">添加项</el-button>
@@ -33,7 +33,7 @@
                 </el-table>
             </div>
         </div>
-        <el-dialog :title="`${state.currentItem.ID==0?'添加项':'修改项'}`" destroy-on-close v-model="state.showEdit" center :close-on-click-modal="false" align-center width="80%">
+        <el-dialog :title="`${state.currentItem.Name1==0?'修改项':'添加项'}`" destroy-on-close v-model="state.showEdit" center :close-on-click-modal="false" align-center width="80%">
             <div>
                 <p><el-input v-model="state.currentItem.Desc" size="large" placeholder="名称" /></p>
                 <p style="padding-top:1rem"><el-input v-model="state.currentItem.Name" size="large" placeholder="规则" /></p>
@@ -55,81 +55,102 @@
 import { reactive } from '@vue/reactivity';
 import { computed } from '@vue/runtime-core';
 import { ElMessage } from 'element-plus';
-import { activeAdd, activeDel } from '@/apis/active'
+import { activeUpdate } from '@/apis/active'
 import { injectGlobalData } from '@/views/provide';
 export default {
     setup() {
         const globalData = injectGlobalData();;
         const state = reactive({
             loading: false,
-            group: 0,
-            currentItem: { ID: 0, Name: '', Desc: '' },
+            group: '',
+            currentItem: { Name: '', Name1: '', Desc: '' },
             showEdit: false,
             groups: computed(() => {
                 let user = globalData.value.usernames[globalData.value.username];
                 if (user && user.Windows) {
-                    if (state.group == 0 && user.Windows.length > 0) {
-                        state.group = user.Windows[0].ID;
+                    if (state.group == '' && user.Windows.length > 0) {
+                        state.group = user.Windows[0].Name;
                     }
                     return user.Windows;
                 }
                 return [];
             }),
             list: computed(() => {
-                let group = state.groups.filter(c => c.ID == state.group)[0];
+                let group = state.groups.filter(c => c.Name == state.group)[0];
                 if (group) return group.List;
                 return [];
             })
         });
 
         const handleAdd = (item) => {
-            item = item || { Name: '', ID: 0, Desc: '' };
+            item = item || { Name: '', Name1: '', Desc: '' };
             state.currentItem.Name = item.Name;
+            state.currentItem.Name1 = item.Name;
             state.currentItem.Desc = item.Desc;
-            state.currentItem.ID = item.ID;
             state.showEdit = true;
-        }
-        const handleDel = (item) => {
-            state.loading = true;
-            activeDel(globalData.value.username, state.group, item.ID).then((error) => {
-                state.loading = false;
-                if (error) {
-                    ElMessage.error(error);
-                } else {
-                    ElMessage.success('操作成功!');
-                    globalData.value.updateRuleFlag = Date.now();
-                }
-            }).catch((e) => {
-                state.loading = false;
-                ElMessage.error('操作失败!');
-            })
         }
         const handleEditCancel = () => {
             state.showEdit = false;
         }
-        const handleEditSubmit = () => {
-            state.currentItem.Name = state.currentItem.Name.replace(/^\s|\s$/g, '');
-            if (!state.currentItem.Name) {
-                return;
-            }
+
+        const updateActiveGroup = () => {
+            const windows = globalData.value.usernames[globalData.value.username].Windows || [];
             state.loading = true;
-            activeAdd({
-                UserName: globalData.value.username,
-                GroupID: state.group,
-                Item: state.currentItem
+            activeUpdate({
+                username: globalData.value.username,
+                Data: windows
             }).then((error) => {
                 state.loading = false;
                 if (error) {
                     ElMessage.error(error);
                 } else {
-                    ElMessage.success('操作成功!');
                     state.showEdit = false;
+                    ElMessage.success('操作成功!');
                     globalData.value.updateRuleFlag = Date.now();
                 }
             }).catch((e) => {
                 state.loading = false;
                 ElMessage.error('操作失败!');
             })
+        }
+
+        const handleDel = (item) => {
+            const windows = globalData.value.usernames[globalData.value.username].Windows || [];
+            const group = windows.filter(c => c.Name == state.group)[0];
+            const items = group.List;
+
+            const names = items.map(c => c.Name);
+            items.splice(names.indexOf(item.Name), 1);
+
+            globalData.value.usernames[globalData.value.username].Windows = windows;
+
+            updateActiveGroup();
+        }
+
+        const handleEditSubmit = () => {
+            state.currentItem.Name = state.currentItem.Name.replace(/^\s|\s$/g, '');
+            if (!state.currentItem.Name) {
+                return;
+            }
+
+            const windows = globalData.value.usernames[globalData.value.username].Windows || [];
+            const group = windows.filter(c => c.Name == state.group)[0];
+            const items = group.List;
+            const names = items.map(c => c.Name);
+
+            let index = names.indexOf(state.currentItem.Name1);
+            if (index == -1) {
+                if (names.indexOf(state.currentItem.Name) >= 0) {
+                    ElMessage.error('已存在同名');
+                    return;
+                }
+                items.push({ Name: state.currentItem.Name, Desc: state.currentItem.Desc })
+            } else {
+                items[index].Name = state.currentItem.Name;
+                items[index].Desc = state.currentItem.Desc;
+            }
+            globalData.value.usernames[globalData.value.username].Windows = windows;
+            updateActiveGroup();
         }
         return { state, handleAdd, handleDel, handleEditCancel, handleEditSubmit }
     }

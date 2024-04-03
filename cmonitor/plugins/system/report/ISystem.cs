@@ -8,7 +8,7 @@ namespace cmonitor.plugins.system.report
 
         public Dictionary<string, SystemOptionKeyInfo> OptionKeys();
         public string OptionValues();
-        public void OptionUpdate(SystemOptionUpdateInfo optionUpdateInfo);
+        public void OptionUpdate(SystemOptionUpdateInfo[] optionUpdateInfo);
 
         public bool Password(PasswordInputInfo command);
 

@@ -2,7 +2,7 @@
     <div class="process-items-wrap flex flex-nowrap flex-column">
         <div class="head t-c flex">
             <el-select v-model="state.group" placeholder="选择一个分组" style="width:13rem">
-                <el-option v-for="item in state.groups" :key="item.ID" :label="item.Name" :value="item.ID" />
+                <el-option v-for="item in state.groups" :key="item.Name" :label="item.Name" :value="item.Name" />
             </el-select>
             <span class="flex-1"></span>
             <el-button @click="handleAdd()">添加项</el-button>
@@ -36,7 +36,7 @@
                 </el-table>
             </div>
         </div>
-        <el-dialog :title="`${state.currentItem.ID==0?'添加项':'修改项'}`" destroy-on-close v-model="state.showEdit" center :close-on-click-modal="false" align-center width="80%">
+        <el-dialog :title="`${state.currentItem.Name1?'修改项':'添加项'}`" destroy-on-close v-model="state.showEdit" center :close-on-click-modal="false" align-center width="80%">
             <div>
                 <div class="alert">
                     <p>1、黑名单优先</p>
@@ -69,28 +69,28 @@
 import { reactive } from '@vue/reactivity';
 import { computed, watch } from '@vue/runtime-core';
 import { ElMessage } from 'element-plus';
-import { addProcess, deleteProcess } from '../../../../../apis/hijack'
+import { updateProcess } from '../../../../../apis/hijack'
 import { injectGlobalData } from '@/views/provide';
 export default {
     setup() {
         const globalData = injectGlobalData();;
         const state = reactive({
             loading: false,
-            group: 0,
-            currentItem: { ID: 0, Name: '', AllowType: 1, DataType: 0 },
+            group: '',
+            currentItem: { Name: '', Name1: '', AllowType: 1, DataType: 0 },
             showEdit: false,
             groups: computed(() => {
                 let user = globalData.value.usernames[globalData.value.username];
                 if (user && user.Processs) {
                     if (state.group == 0 && user.Processs.length > 0) {
-                        state.group = user.Processs[0].ID;
+                        state.group = user.Processs[0].Name;
                     }
                     return user.Processs;
                 }
                 return [];
             }),
             list: computed(() => {
-                let group = state.groups.filter(c => c.ID == state.group)[0];
+                let group = state.groups.filter(c => c.Name == state.group)[0];
                 if (group) return group.List;
                 return [];
             })
@@ -108,23 +108,29 @@ export default {
             }
         }
         const handleAdd = (item) => {
-            item = item || { Name: '', ID: 0, AllowType: 1, DataType: 0 };
+            item = item || { Name: '', Name1: '', AllowType: 1, DataType: 0 };
             state.currentItem.Name = item.Name;
-            state.currentItem.ID = item.ID;
+            state.currentItem.Name1 = item.Name;
             state.currentItem.AllowType = item.AllowType;
+            state.currentItem.DataType = item.DataType;
             state.showEdit = true;
         }
-        const handleDel = (item) => {
+
+        const handleEditCancel = () => {
+            state.showEdit = false;
+        }
+        const updateProcessGroup = () => {
+            const processs = globalData.value.usernames[globalData.value.username].Processs || [];
             state.loading = true;
-            deleteProcess({
-                UserName: globalData.value.username,
-                GroupID: state.group,
-                ID: item.ID
+            updateProcess({
+                username: globalData.value.username,
+                Data: processs
             }).then((error) => {
                 state.loading = false;
                 if (error) {
                     ElMessage.error(error);
                 } else {
+                    state.showEdit = false;
                     ElMessage.success('操作成功!');
                     globalData.value.updateRuleFlag = Date.now();
                 }
@@ -133,32 +139,51 @@ export default {
                 ElMessage.error('操作失败!');
             })
         }
-        const handleEditCancel = () => {
-            state.showEdit = false;
+
+        const handleDel = (item) => {
+            const processs = globalData.value.usernames[globalData.value.username].Processs || [];
+            const group = processs.filter(c => c.Name == state.group)[0];
+            const items = group.List;
+
+            const names = items.map(c => c.Name);
+            items.splice(names.indexOf(item.Name), 1);
+
+            globalData.value.usernames[globalData.value.username].Processs = processs;
+
+            updateProcessGroup();
         }
+
         const handleEditSubmit = () => {
             state.currentItem.Name = state.currentItem.Name.replace(/^\s|\s$/g, '');
             if (!state.currentItem.Name) {
                 return;
             }
-            state.loading = true;
-            addProcess({
-                UserName: globalData.value.username,
-                GroupID: state.group,
-                Item: state.currentItem
-            }).then((error) => {
-                state.loading = false;
-                if (error) {
-                    ElMessage.error(error);
-                } else {
-                    ElMessage.success('操作成功!');
-                    state.showEdit = false;
-                    globalData.value.updateRuleFlag = Date.now();
+
+            const processs = globalData.value.usernames[globalData.value.username].Processs || [];
+            const group = processs.filter(c => c.Name == state.group)[0];
+            const items = group.List;
+            const names = items.map(c => c.Name);
+
+            let index = names.indexOf(state.currentItem.Name1);
+            if (index == -1) {
+                if (names.indexOf(state.currentItem.Name) >= 0) {
+                    ElMessage.error('已存在同名');
+                    return;
                 }
-            }).catch((e) => {
-                state.loading = false;
-                ElMessage.error('操作失败!');
-            })
+                items.push({
+                    Name: state.currentItem.Name,
+                    Desc: state.currentItem.Desc,
+                    AllowType: state.currentItem.AllowType,
+                    DataType: state.currentItem.DataType,
+                })
+            } else {
+                items[index].Name = state.currentItem.Name;
+                items[index].Desc = state.currentItem.Desc;
+                items[index].AllowType = state.currentItem.AllowType;
+                items[index].DataType = state.currentItem.DataType;
+            }
+            globalData.value.usernames[globalData.value.username].Processs = processs;
+            updateProcessGroup();
         }
         return { state, handleNameChange, handleAdd, handleDel, handleEditCancel, handleEditSubmit }
     }

@@ -6,7 +6,7 @@
             <p>文件:【{{state.filename}}】</p>
             <p class="t-c">
                 <el-select v-model="state.group" placeholder="选择一个分组" style="width:13rem">
-                    <el-option v-for="item in state.groups" :key="item.ID" :label="item.Name" :value="item.ID" />
+                    <el-option v-for="item in state.groups" :key="item.Name" :label="item.Name" :value="item.Name" />
                 </el-select>
             </p>
         </div>
@@ -23,7 +23,7 @@ import { computed, onMounted, watch } from '@vue/runtime-core';
 import { injectPluginState } from '../../provide'
 import { injectGlobalData } from '@/views/provide';
 import { ElMessage } from 'element-plus';
-import { activeAdd } from '@/apis/active';
+import { activeUpdate } from '@/apis/active';
 export default {
     props: ['modelValue'],
     emits: ['update:modelValue'],
@@ -34,15 +34,15 @@ export default {
         const globalData = injectGlobalData();
         const state = reactive({
             show: props.modelValue,
-            group: 0,
+            group: '',
             title: '',
             desc: '',
             filename: '',
             groups: computed(() => {
                 let user = globalData.value.usernames[globalData.value.username];
                 if (user) {
-                    if (user.Windows.length > 0 && state.group == 0) {
-                        state.group = user.Windows[0].ID;
+                    if (user.Windows.length > 0 && state.group == '') {
+                        state.group = user.Windows[0].Name;
                     }
                     return user.Windows;
                 }
@@ -80,25 +80,33 @@ export default {
             state.show = false;
         }
         const handleSubmit = () => {
-            activeAdd({
+
+            const windows = globalData.value.usernames[globalData.value.username].Windows || [];
+            const group = windows.filter(c => c.Name == state.group)[0];
+            const items = group.List;
+            const names = items.map(c => c.Name);
+
+            if (names.indexOf(state.filename) >= 0) {
+                ElMessage.error('已存在同名');
+                return;
+            }
+            items.push({ Name: state.filename, Desc: state.desc });
+            globalData.value.usernames[globalData.value.username].Windows = windows;
+
+            activeUpdate({
                 username: globalData.value.username,
-                GroupID: state.group,
-                Item: {
-                    ID: 0,
-                    Name: state.filename,
-                    Desc: state.desc
-                }
+                Data: windows
             }).then((error) => {
-                if (!error) {
-                    ElMessage.success('操作成功');
-                    state.show = false;
-                    globalData.value.updateRuleFlag = Date.now();
+                state.show = false;
+                if (error) {
+                    ElMessage.error(error);
                 } else {
-                    ElMessage.error(`操作失败:${error}`);
+                    ElMessage.success('操作成功!');
+                    globalData.value.updateRuleFlag = Date.now();
                 }
-            }).catch(() => {
-                ElMessage.error('操作失败');
-            });
+            }).catch((e) => {
+                ElMessage.error('操作失败!');
+            })
         }
 
         return {

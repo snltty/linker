@@ -1,9 +1,9 @@
 ﻿using cmonitor.api;
-using cmonitor.client.ruleConfig;
 using cmonitor.plugins.active.messenger;
 using cmonitor.plugins.active.report;
 using cmonitor.plugins.signIn.messenger;
 using cmonitor.server;
+using cmonitor.server.ruleConfig;
 using common.libs;
 using common.libs.extends;
 using MemoryPack;
@@ -14,8 +14,8 @@ namespace cmonitor.plugins.active
     {
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;
-        private readonly RuleConfig ruleConfig;
-        public ActiveApiController(MessengerSender messengerSender, SignCaching signCaching, RuleConfig ruleConfig)
+        private readonly IRuleConfig ruleConfig;
+        public ActiveApiController(MessengerSender messengerSender, SignCaching signCaching, IRuleConfig ruleConfig)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
@@ -72,8 +72,8 @@ namespace cmonitor.plugins.active
         public async Task<bool> Disallow(ApiControllerParamsInfo param)
         {
             DisallowInfo disallowInfo = param.Content.DeJson<DisallowInfo>();
-            byte[] bytes = MemoryPackSerializer.Serialize(new ActiveDisallowInfo { FileNames = disallowInfo.FileNames, Ids = disallowInfo.Ids });
-            foreach (string name in disallowInfo.UserNames)
+            byte[] bytes = MemoryPackSerializer.Serialize(new ActiveDisallowInfo { FileNames = disallowInfo.Data, Ids1 = disallowInfo.Ids1, Ids2 = disallowInfo.Ids2 });
+            foreach (string name in disallowInfo.Devices)
             {
                 if (signCaching.Get(name, out SignCacheInfo cache) && cache.Connected)
                 {
@@ -92,7 +92,7 @@ namespace cmonitor.plugins.active
         public async Task<bool> Kill(ApiControllerParamsInfo param)
         {
             ActiveKillInfo activeKillInfo = param.Content.DeJson<ActiveKillInfo>();
-            byte[] bytes = activeKillInfo.pid.ToBytes();
+            byte[] bytes = activeKillInfo.Pid.ToBytes();
             if (signCaching.Get(activeKillInfo.UserName, out SignCacheInfo cache) && cache.Connected)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
@@ -107,34 +107,42 @@ namespace cmonitor.plugins.active
             return false;
         }
 
-        public string AddGroup(ApiControllerParamsInfo param)
+        public string Update(ApiControllerParamsInfo param)
         {
-            return ruleConfig.AddWindowGroup(param.Content.DeJson<UpdateWindowGroupInfo>());
-        }
-        public string DeleteGroup(ApiControllerParamsInfo param)
-        {
-            return ruleConfig.DeleteWindowGroup(param.Content.DeJson<DeleteWindowGroupInfo>());
-        }
-        public string Add(ApiControllerParamsInfo param)
-        {
-            return ruleConfig.AddWindow(param.Content.DeJson<AddWindowItemInfo>());
-        }
-        public string Del(ApiControllerParamsInfo param)
-        {
-            return ruleConfig.DelWindow(param.Content.DeJson<DeletedWindowItemInfo>());
+            UpdateWindowGroupInfo model = param.Content.DeJson<UpdateWindowGroupInfo>();
+            ruleConfig.Set(model.UserName,"Windows", model.Data);
+            return string.Empty;
         }
     }
 
+    public sealed class UpdateWindowGroupInfo
+    {
+        public string UserName { get; set; }
+        public List<WindowGroupInfo> Data { get; set; } = new List<WindowGroupInfo>();
+    }
+    public sealed class WindowGroupInfo
+    {
+        public string Name { get; set; }
+        public List<WindowItemInfo> List { get; set; } = new List<WindowItemInfo>();
+    }
+    public sealed class WindowItemInfo
+    {
+        public string Name { get; set; }
+        public string Desc { get; set; }
+    }
+
+
     public sealed class DisallowInfo
     {
-        public string[] UserNames { get; set; }
-        public string[] FileNames { get; set; }
-        public uint[] Ids { get; set; }
+        public string[] Devices { get; set; }
+        public string[] Data { get; set; }
+        public string[] Ids1 { get; set; }
+        public string[] Ids2 { get; set; }
     }
 
     public sealed class ActiveKillInfo
     {
         public string UserName { get; set; }
-        public int pid { get; set; }
+        public int Pid { get; set; }
     }
 }

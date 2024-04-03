@@ -14,11 +14,11 @@
             <div class="flex-1"></div>
             <div class="rules flex flex-column">
                 <div class="private">
-                    <CheckBoxWrap ref="privateRules" :data="state.privateRules" :items="state.currentPrivate" label="ID" text="Name" title="私有限制"></CheckBoxWrap>
+                    <CheckBoxWrap ref="privateRules" :data="state.privateRules" :items="state.currentPrivate" label="Name" text="Name" title="私有限制"></CheckBoxWrap>
                 </div>
                 <div class="flex-1"></div>
                 <div class="public">
-                    <CheckBoxWrap ref="publicRules" :data="state.publicRules" :items="state.currentPublic" label="ID" text="Name" title="公共限制"></CheckBoxWrap>
+                    <CheckBoxWrap ref="publicRules" :data="state.publicRules" :items="state.currentPublic" label="Name" text="Name" title="公共限制"></CheckBoxWrap>
                 </div>
             </div>
         </div>
@@ -31,7 +31,7 @@
 
 <script>
 import { reactive, ref } from '@vue/reactivity';
-import { computed, inject, onMounted, watch } from '@vue/runtime-core';
+import { computed, onMounted, watch } from '@vue/runtime-core';
 import CheckBoxWrap from '../../boxs/CheckBoxWrap.vue'
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { setRules } from '../../../../apis/hijack'
@@ -49,21 +49,24 @@ export default {
         const publicUserName = globalData.value.publicUserName;
         const publicUser = computed(() => globalData.value.usernames[publicUserName]);
         const usePublic = publicUser.value && globalData.value.username != publicUserName;
-
         const state = reactive({
             show: props.modelValue,
             items: computed(() => {
                 const devices = pluginState.value.hijack.devices;
-                let ids = devices.reduce((arr, value) => {
-                    arr.push(...value.Hijack.RuleIds);
+                let ids1 = devices.reduce((arr, value) => {
+                    arr.push(...value.Hijack.RuleIds1);
                     return arr;
                 }, []);
-                state.currentPrivate = state.privateRules.filter(c => ids.indexOf(c.ID) >= 0);
-                state.currentPublic = state.publicRules.filter(c => ids.indexOf(c.ID) >= 0);
+                let ids2 = devices.reduce((arr, value) => {
+                    arr.push(...value.Hijack.RuleIds2);
+                    return arr;
+                }, []);
+                state.currentPrivate = state.privateRules.filter(c => ids1.indexOf(c.Name) >= 0);
+                state.currentPublic = state.publicRules.filter(c => ids2.indexOf(c.Name) >= 0);
                 return devices;
             }),
-            privateRules: computed(() => user.value ? user.value.Rules : []),
-            publicRules: computed(() => usePublic ? publicUser.value.Rules : []),
+            privateRules: computed(() => user.value ? user.value.Processs : []),
+            publicRules: computed(() => usePublic ? publicUser.value.Processs : []),
             loading: false,
             currentPrivate: [],
             currentPublic: [],
@@ -81,23 +84,16 @@ export default {
         const privateRules = ref(null);
         const publicRules = ref(null);
         const parseRule = () => {
-            const _privateRules = privateRules.value.getData().map(c => c.ID);
-            const _publicRules = publicRules.value.getData().map(c => c.ID);
+            const _privateRules = privateRules.value.getData().map(c => c.Name);
+            const _publicRules = publicRules.value.getData().map(c => c.Name);
             const _user = user.value;
             const _publicUser = publicUser.value;
 
-            const publicList = _user.Rules.filter(c => _privateRules.indexOf(c.ID) >= 0).map(rule => {
-                return _user.Processs.filter(c => rule.PrivateProcesss.indexOf(c.ID) >= 0);
-            });
-            const privateList = _publicUser.Rules.filter(c => _publicRules.indexOf(c.ID) >= 0).map(rule => {
-                return _publicUser.Processs.filter(c => rule.PublicProcesss.indexOf(c.ID) >= 0);
-            });
+            const publicList = _user.Processs.filter(c => _privateRules.indexOf(c.Name) >= 0);
+            const privateList = _publicUser.Processs.filter(c => _publicRules.indexOf(c.Name) >= 0);
 
             const origin = publicList.concat(privateList).reduce((arr, value, index) => {
-                arr = arr.concat(value.reduce((arr, value, index) => {
-                    arr = arr.concat(value.List);
-                    return arr;
-                }, []));
+                arr = arr.concat(value.List);
                 return arr;
             }, []);
             const res = [];
@@ -108,7 +104,8 @@ export default {
             });
 
             return {
-                ids: _privateRules.concat(_publicRules),
+                ids1: _privateRules,
+                ids2: _publicRules,
                 list: {
                     AllowProcesss: res.filter(c => c.DataType == 0 && c.AllowType == 0).map(c => c.Name),
                     DeniedProcesss: res.filter(c => c.DataType == 0 && c.AllowType == 1).map(c => c.Name),
@@ -136,9 +133,10 @@ export default {
                 state.loading = true;
                 const rules = parseRule();
                 setRules({
-                    Devices: _devices.map(c => c.MachineName),
-                    Rules: rules.list,
-                    ids: rules.ids,
+                    devices: _devices.map(c => c.MachineName),
+                    data: rules.list,
+                    ids1: rules.ids1,
+                    ids2: rules.ids2,
                 }).then((errorDevices) => {
                     state.loading = false;
                     if (errorDevices && errorDevices.length > 0) {
@@ -146,7 +144,8 @@ export default {
                     } else {
                         ElMessage.success('操作成功！');
                         globalData.value.devices.filter(c => _devices.indexOf(c.MachineName) >= 0).forEach(device => {
-                            device.Hijack.RuleIds = rules.ids;
+                            device.Hijack.RuleIds1 = rules.ids1;
+                            device.Hijack.RuleIds2 = rules.ids2;
                         });
                     }
                 }).catch((e) => {

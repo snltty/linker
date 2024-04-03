@@ -9,8 +9,6 @@ namespace cmonitor.plugins.wlan.messenger
         public WlanClientMessenger(WlanReport wlanReport)
         {
             this.wlanReport = wlanReport;
-
-            Console.WriteLine(wlanReport == null);
         }
 
 

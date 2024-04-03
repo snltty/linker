@@ -16,10 +16,9 @@
 
 <script>
 import { reactive } from '@vue/reactivity';
-import { onMounted, watch } from '@vue/runtime-core';
+import { watch } from '@vue/runtime-core';
 import Groups from './Groups.vue'
 import Items from './Items.vue'
-import { injectGlobalData } from '@/views/provide';
 export default {
     props: ['modelValue'],
     emits: ['update:modelValue'],
@@ -38,12 +37,9 @@ export default {
             }
         });
 
-        const globalData = injectGlobalData();
-
         const handleCancel = () => {
             state.show = false;
         }
-
 
         return {
             state, handleCancel

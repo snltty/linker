@@ -3,10 +3,12 @@ using cmonitor.viewer.server.win.Properties;
 using common.libs;
 using Microsoft.Win32;
 using RDPCOMAPILib;
+using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Resources;
 using System.Text;
 using System.Windows.Forms;
+using System.Xml;
 
 namespace cmonitor.viewer.server.win
 {
@@ -151,6 +153,16 @@ namespace cmonitor.viewer.server.win
                     session.Open();
                     IRDPSRAPIInvitation invitation = session.Invitations.CreateInvitation(Guid.NewGuid().ToString(), "snltty", "snltty", 1024);
                     string invitationString = invitation.ConnectionString;
+
+                    /*
+                    XmlDocument xmlDoc = new XmlDocument();
+                    xmlDoc.LoadXml(invitationString);
+                    XmlElement newLNode = xmlDoc.CreateElement("L");
+                    newLNode.SetAttribute("P", "12345");
+                    newLNode.SetAttribute("N", "192.168.1.35");
+                    xmlDoc.DocumentElement["C"]["T"].AppendChild(newLNode);
+                    Debug.WriteLine(xmlDoc.OuterXml);
+                    */
 
                     Registry.SetValue("HKEY_CURRENT_USER\\SOFTWARE\\Cmonitor", "viewerConnectStr", invitationString);
 

@@ -34,7 +34,8 @@
         /// </summary>
         public string[] DeniedIPs { get; set; } = Array.Empty<string>();
 
-        public uint[] HijackIds { get; set; } = Array.Empty<uint>();
+        public string[] HijackIds1 { get; set; } = Array.Empty<string>();
+        public string[] HijackIds2 { get; set; } = Array.Empty<string>();
 
         public bool DomainKill { get; set; }
 

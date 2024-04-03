@@ -3,7 +3,7 @@
         <div class="head t-c flex">
             <div>
                 <el-select v-model="state.group" placeholder="选择一个分组" style="width:13rem">
-                    <el-option v-for="item in state.groups" :key="item.ID" :label="item.Name" :value="item.ID" />
+                    <el-option v-for="item in state.groups" :key="item.Name" :label="item.Name" :value="item.Name" />
                 </el-select>
             </div>
             <div class="flex-1"></div>
@@ -13,11 +13,11 @@
         </div>
         <div class="body flex flex-1">
             <div class="private">
-                <CheckBoxWrap ref="privateProcess" :data="state.privateProcess" :items="state.privateProcessItems" label="ID" text="Name" title="私有程序组"></CheckBoxWrap>
+                <CheckBoxWrap ref="privateProcess" :data="state.privateProcess" :items="state.privateProcessItems" label="Name" text="Name" title="私有程序组"></CheckBoxWrap>
             </div>
             <div class="flex-1"></div>
             <div class="public">
-                <CheckBoxWrap ref="publicProcess" :data="state.publicProcess" :items="state.publicProcessItems" label="ID" text="Name" title="公共程序组"></CheckBoxWrap>
+                <CheckBoxWrap ref="publicProcess" :data="state.publicProcess" :items="state.publicProcessItems" label="Name" text="Name" title="公共程序组"></CheckBoxWrap>
             </div>
         </div>
     </div>
@@ -27,7 +27,7 @@
 import { computed, reactive, ref, watch } from 'vue';
 import CheckBoxWrap from '../../../boxs/CheckBoxWrap.vue'
 import { ElMessage } from 'element-plus';
-import { addRule } from '../../../../../apis/hijack'
+import { updateRule } from '../../../../../apis/hijack'
 import { injectGlobalData } from '@/views/provide';
 export default {
     components: { CheckBoxWrap },
@@ -41,11 +41,11 @@ export default {
 
         const state = reactive({
             loading: false,
-            group: 0,
+            group: '',
             groups: computed(() => {
                 if (user.value && user.value.Rules) {
-                    if (state.group == 0 && user.value.Rules.length > 0) {
-                        state.group = user.value.Rules[0].ID;
+                    if (state.group == '' && user.value.Rules.length > 0) {
+                        state.group = user.value.Rules[0].Name;
                     }
                     return user.value.Rules;
                 }
@@ -53,22 +53,23 @@ export default {
             }),
             rule: computed(() => {
                 if (user && user.value.Rules) {
-                    let rule = user.value.Rules.filter(c => c.ID == state.group)[0];
+                    let rule = user.value.Rules.filter(c => c.Name == state.group)[0];
                     if (rule) {
+                        console.log(rule);
+                        console.log(user.value.Processs.filter(c => rule.PrivateProcesss.indexOf(c.Name) >= 0));
                         return rule;
                     }
                 }
                 return {
-                    ID: 0,
                     Name: '',
                     PrivateProcesss: [],
                     PublicProcesss: [],
                 }
             }),
             privateProcess: computed(() => user.value ? user.value.Processs : []),
-            privateProcessItems: computed(() => user.value ? user.value.Processs.filter(c => state.rule.PrivateProcesss.indexOf(c.ID) >= 0) : []),
+            privateProcessItems: computed(() => user.value ? user.value.Processs.filter(c => state.rule.PrivateProcesss.indexOf(c.Name) >= 0) : []),
             publicProcess: computed(() => usePublic ? publicUser.value.Processs : []),
-            publicProcessItems: computed(() => usePublic ? publicUser.value.Processs.filter(c => state.rule.PublicProcesss.indexOf(c.ID) >= 0) : []),
+            publicProcessItems: computed(() => usePublic ? publicUser.value.Processs.filter(c => state.rule.PublicProcesss.indexOf(c.Name) >= 0) : []),
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -78,35 +79,42 @@ export default {
             }
         });
 
-
         const privateProcess = ref(null);
         const publicProcess = ref(null);
 
-        const handleSave = () => {
-            let rule = user.value.Rules.filter(c => c.ID == state.group)[0];
-            if (!rule) {
-                ElMessage.error('未选择任何限制分组');
-                return;
-            }
-            rule.PrivateProcesss = privateProcess.value.getData().map(c => c.ID);
-            rule.PublicProcesss = publicProcess.value.getData().map(c => c.ID);
-
+        const _updateRule = () => {
+            const rules = globalData.value.usernames[globalData.value.username].Rules || [];
+            rules.forEach(element => {
+                element.PrivateProcesss = element.PrivateProcesss.filter(c => typeof (c) != 'number');
+                element.PublicProcesss = element.PublicProcesss.filter(c => typeof (c) != 'number');
+            });
             state.loading = true;
-            addRule({
-                UserName: globalData.value.username,
-                Rule: rule
+            updateRule({
+                username: globalData.value.username,
+                Data: rules
             }).then((error) => {
                 state.loading = false;
                 if (error) {
                     ElMessage.error(error);
                 } else {
-                    ElMessage.success('操作成功');
+                    state.showEdit = false;
+                    ElMessage.success('操作成功!');
                     globalData.value.updateRuleFlag = Date.now();
                 }
-            }).catch(() => {
+            }).catch((e) => {
                 state.loading = false;
-                ElMessage.error('操作失败');
+                ElMessage.error('操作失败!');
             })
+        }
+        const handleSave = () => {
+            let rule = user.value.Rules.filter(c => c.Name == state.group)[0];
+            if (!rule) {
+                ElMessage.error('未选择任何限制分组');
+                return;
+            }
+            rule.PrivateProcesss = privateProcess.value.getData().map(c => c.Name);
+            rule.PublicProcesss = publicProcess.value.getData().map(c => c.Name);
+            _updateRule();
         }
 
         return {

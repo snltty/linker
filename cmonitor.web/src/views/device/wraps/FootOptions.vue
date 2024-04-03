@@ -1,6 +1,6 @@
 <template>
     <div class="foot-options-wrap flex">
-        <el-button size="default" plain dark @click="handleRefresh">
+        <el-button size="small" plain dark @click="handleRefresh">
             <el-icon>
                 <Refresh />
             </el-icon>
@@ -19,7 +19,7 @@
             </p>
         </div>
         <span class="flex-1"></span>
-        <el-button size="default" plain dark @click="handleUpdate">{{username}}</el-button>
+        <el-button size="small" plain dark @click="handleUpdate">{{username}}</el-button>
     </div>
 </template>
 
@@ -76,11 +76,11 @@ export default {
 
     .options-btn {
         .el-button+.el-button {
-            margin-left: 0.6rem;
+            margin-left: 0.4rem;
         }
 
         p {
-            padding-top: 0.6rem;
+            padding-top: 0.4rem;
 
             &:nth-child(1) {
                 padding: 0;

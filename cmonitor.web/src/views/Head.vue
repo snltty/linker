@@ -24,7 +24,7 @@
 <script>
 import { computed, onMounted, reactive, watch } from 'vue';
 import { initWebsocket, subWebsocketState } from '../apis/request'
-import { getRules, addName } from '../apis/hijack'
+import { getRules, addName } from '../apis/rule'
 import { useRoute } from 'vue-router';
 import { injectGlobalData } from './provide';
 export default {
@@ -41,6 +41,7 @@ export default {
         });
         localStorage.setItem('api', state.api);
         globalData.value.username = state.username;
+
         const showSelectUsername = computed(() => !!!globalData.value.username && globalData.value.connected);
         const showPort = computed(() => globalData.value.connected == false && state.showPort);
 
@@ -54,8 +55,13 @@ export default {
 
         const _getRules = () => {
             getRules().then((res) => {
-                globalData.value.usernames = res;
-                state.usernames = Object.keys(res);
+                for (let j in res.Data) {
+                    for (let jj in res.Data[j]) {
+                        res.Data[j][jj] = JSON.parse(res.Data[j][jj]);
+                    }
+                }
+                globalData.value.usernames = res.Data;
+                state.usernames = Object.keys(res.Data);
             }).catch(() => { });
         }
         const handleConnect = () => {

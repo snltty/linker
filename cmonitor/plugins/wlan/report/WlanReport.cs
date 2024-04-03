@@ -1,5 +1,6 @@
 ﻿using cmonitor.client.report;
 using cmonitor.config;
+using common.libs;
 
 namespace cmonitor.plugins.wlan.report
 {
@@ -28,9 +29,11 @@ namespace cmonitor.plugins.wlan.report
                 {
                     if (wlan.Connected() == false)
                     {
+                        Logger.Instance.Warning($"network offline  reconnect it~");
                         var wafis = wlan.WlanEnums();
                         foreach (var wifi in wafis)
                         {
+                            Logger.Instance.Warning($"network offline  reconnect {wifi}~");
                             bool res = await wlan.WlanConnect(wifi);
                             if (res)
                             {

@@ -114,6 +114,18 @@ export default {
             &>div {
                 padding: 0.6rem 0;
             }
+
+            .item {
+                padding: 0.6rem;
+
+                .subitem {
+                    padding: 0.2rem;
+
+                    .label {
+                        margin-right: 0.6rem;
+                    }
+                }
+            }
         }
     }
 

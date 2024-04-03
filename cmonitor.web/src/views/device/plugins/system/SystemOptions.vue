@@ -107,7 +107,7 @@ export default {
         }
 
         const handleOptionChange = (item) => {
-            updateRegistryOptions(pluginState.value.system.devices.map(c => c.MachineName), [item.key], item.value).then(() => {
+            updateRegistryOptions(pluginState.value.system.devices.map(c => c.MachineName), [{ key: item.key, value: item.value }]).then(() => {
                 ElMessage.success('已执行');
             }).catch(() => {
                 ElMessage.error('执行失败');
@@ -119,7 +119,7 @@ export default {
                 ElMessage.error('请选择一个设备');
                 return;
             }
-            updateRegistryOptions(pluginState.value.system.devices.map(c => c.MachineName), [item.key], value).then(() => {
+            updateRegistryOptions(pluginState.value.system.devices.map(c => c.MachineName), [{ key: item.key, value: value }]).then(() => {
                 ElMessage.success('已执行');
             }).catch(() => {
                 ElMessage.error('执行失败');

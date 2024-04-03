@@ -37,7 +37,8 @@ namespace cmonitor.plugins.active.report
         public object GetReports(ReportType reportType)
         {
             ticks = DateTime.UtcNow.Ticks;
-            report.Ids = activeConfig.Ids;
+            report.Ids1 = activeConfig.Ids1;
+            report.Ids2 = activeConfig.Ids2;
             if (reportType == ReportType.Full || report.Updated())
             {
                 return report;
@@ -141,7 +142,8 @@ namespace cmonitor.plugins.active.report
     public sealed partial class ActiveDisallowInfo
     {
         public string[] FileNames { get; set; } = Array.Empty<string>();
-        public uint[] Ids { get; set; } = Array.Empty<uint>();
+        public string[] Ids1 { get; set; } = Array.Empty<string>();
+        public string[] Ids2 { get; set; } = Array.Empty<string>();
     }
 
     public sealed class ActiveReportInfo : ReportInfo
@@ -153,10 +155,11 @@ namespace cmonitor.plugins.active.report
         public int DisallowCount { get; set; }
         public int WindowCount { get; set; }
 
-        public uint[] Ids { get; set; }
+        public string[] Ids1 { get; set; }
+        public string[] Ids2 { get; set; }
         public override int HashCode()
         {
-            return Title.GetHashCode() ^ Pid.GetHashCode() ^ DisallowCount.GetHashCode() ^ Ids.GetHashCode();
+            return Title.GetHashCode() ^ Pid.GetHashCode() ^ DisallowCount.GetHashCode() ^ Ids1.GetHashCode() ^ Ids2.GetHashCode();
         }
 
     }

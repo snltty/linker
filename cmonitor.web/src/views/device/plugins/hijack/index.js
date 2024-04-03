@@ -8,7 +8,8 @@ export default {
                 Download: 0,
                 DownloadText: '',
                 Count: 0,
-                RuleIds: [],
+                RuleIds1: [],
+                RuleIds2: [],
                 DomainKill: false,
             }
         }
@@ -73,7 +74,8 @@ export default {
             item.Hijack.Upload = report.Hijack.Upload;
             item.Hijack.Download = report.Hijack.Download;
             item.Hijack.Count = report.Hijack.Count;
-            item.Hijack.RuleIds = report.Hijack.Ids;
+            item.Hijack.RuleIds1 = report.Hijack.Ids1 || [];
+            item.Hijack.RuleIds2 = report.Hijack.Ids2 || [];
         }
 
         item.Hijack.DomainKill = report.Hijack.DomainKill || false;

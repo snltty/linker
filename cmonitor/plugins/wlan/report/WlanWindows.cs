@@ -1,5 +1,5 @@
-﻿using common.libs.winapis;
-using ManagedNativeWifi;
+﻿using ManagedNativeWifi;
+using System.Net.NetworkInformation;
 
 namespace cmonitor.plugins.wlan.report
 {
@@ -22,7 +22,10 @@ namespace cmonitor.plugins.wlan.report
 
         public bool Connected()
         {
-            return Wininet.InternetGetConnectedState(out int desc, 0);
+            using Ping ping = new Ping();
+            var replay = ping.Send("www.baidu.com", 1000);
+            return replay.Status == IPStatus.Success;
+            //return Wininet.InternetGetConnectedState(out int desc, 0);
         }
     }
 }

@@ -45,7 +45,7 @@ namespace cmonitor.plugins.system.report
             return null;
         }
 
-        public void OptionUpdate(SystemOptionUpdateInfo registryUpdateInfo)
+        public void OptionUpdate(SystemOptionUpdateInfo[] registryUpdateInfo)
         {
             system.OptionUpdate(registryUpdateInfo);
         }
@@ -95,7 +95,7 @@ namespace cmonitor.plugins.system.report
     [MemoryPackable]
     public sealed partial class SystemOptionUpdateInfo
     {
-        public string[] Keys { get; set; }
+        public string Keys { get; set; }
         public bool Value { get; set; }
     }
 

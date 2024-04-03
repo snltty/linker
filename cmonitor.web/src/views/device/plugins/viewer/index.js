@@ -23,6 +23,8 @@ export default {
 
     update(item, report) {
         if (!report.Viewer) return;
+
+
         item.Viewer.share = report.Viewer.Value;
         item.Viewer.mode = ['client', 'server'][report.Viewer.Mode];
     }

@@ -21,9 +21,9 @@ namespace cmonitor.plugins.system
         {
             PasswordInfo info = param.Content.DeJson<PasswordInfo>();
             byte[] bytes = MemoryPackSerializer.Serialize(info.Input);
-            for (int i = 0; i < info.Names.Length; i++)
+            for (int i = 0; i < info.Devices.Length; i++)
             {
-                if (signCaching.Get(info.Names[i], out SignCacheInfo cache) && cache.Connected)
+                if (signCaching.Get(info.Devices[i], out SignCacheInfo cache) && cache.Connected)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
@@ -40,10 +40,10 @@ namespace cmonitor.plugins.system
         public async Task<bool> RegistryOptions(ApiControllerParamsInfo param)
         {
             RegistryInfo info = param.Content.DeJson<RegistryInfo>();
-            byte[] bytes = MemoryPackSerializer.Serialize(info.Registry);
-            for (int i = 0; i < info.Names.Length; i++)
+            byte[] bytes = MemoryPackSerializer.Serialize(info.Data);
+            for (int i = 0; i < info.Devices.Length; i++)
             {
-                if (signCaching.Get(info.Names[i], out SignCacheInfo cache) && cache.Connected)
+                if (signCaching.Get(info.Devices[i], out SignCacheInfo cache) && cache.Connected)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
@@ -61,13 +61,13 @@ namespace cmonitor.plugins.system
 
     public sealed class RegistryInfo
     {
-        public string[] Names { get; set; }
-        public SystemOptionUpdateInfo Registry { get; set; }
+        public string[] Devices { get; set; }
+        public SystemOptionUpdateInfo[] Data { get; set; }
     }
 
     public sealed class PasswordInfo
     {
-        public string[] Names { get; set; }
+        public string[] Devices { get; set; }
         public PasswordInputInfo Input { get; set; }
     }
 }

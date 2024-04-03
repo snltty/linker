@@ -1,9 +1,7 @@
 import { sendWebsocketMsg } from './request'
 
-export const updateRegistryOptions = (names, keys, value) => {
+export const updateRegistryOptions = (names, keys) => {
     return sendWebsocketMsg('system/RegistryOptions', {
-        names, registry: {
-            keys: keys, value: value
-        }
+        devices: names, data: keys
     });
 }

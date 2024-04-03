@@ -1,12 +1,12 @@
 ﻿using cmonitor.client.runningConfig;
 using cmonitor.client.report;
-using cmonitor.client.ruleConfig;
 using cmonitor.config;
 using cmonitor.libs;
 using cmonitor.startup;
 using common.libs;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using cmonitor.server.ruleConfig;
 
 namespace cmonitor.client
 {
@@ -14,8 +14,6 @@ namespace cmonitor.client
     {
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
-            serviceCollection.AddSingleton<RuleConfig>();
-
             serviceCollection.AddSingleton<ClientReportTransfer>();
 
             serviceCollection.AddSingleton<ClientSignInState>();
@@ -33,13 +31,13 @@ namespace cmonitor.client
 
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
-            serviceCollection.AddSingleton<RuleConfig>();
+            
         }
 
         public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
         {
             Logger.Instance.Info($"start client");
-            Logger.Instance.Info($"server ip {config.Server}");
+            Logger.Instance.Info($"server ip {config.Client.ServerEP}");
 
             Logger.Instance.Info($"start client report transfer");
             ClientReportTransfer report = serviceProvider.GetService<ClientReportTransfer>();

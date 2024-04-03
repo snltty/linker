@@ -9,28 +9,26 @@
                     <el-table-column prop="Name" label="名称" />
                     <el-table-column label="操作" width="110">
                         <template #default="scope">
-                            <template v-if="scope.row.ID > 1">
-                                <el-button size="small" @click="handleAdd(scope.row)">
-                                    <el-icon>
-                                        <EditPen />
-                                    </el-icon>
-                                </el-button>
-                                <el-popconfirm title="删除不可逆，是否确定?" @confirm="handleDel(scope.row)">
-                                    <template #reference>
-                                        <el-button size="small" type="danger">
-                                            <el-icon>
-                                                <Delete />
-                                            </el-icon>
-                                        </el-button>
-                                    </template>
-                                </el-popconfirm>
-                            </template>
+                            <el-button size="small" @click="handleAdd(scope.row)">
+                                <el-icon>
+                                    <EditPen />
+                                </el-icon>
+                            </el-button>
+                            <el-popconfirm title="删除不可逆，是否确定?" @confirm="handleDel(scope.row)">
+                                <template #reference>
+                                    <el-button size="small" type="danger">
+                                        <el-icon>
+                                            <Delete />
+                                        </el-icon>
+                                    </el-button>
+                                </template>
+                            </el-popconfirm>
                         </template>
                     </el-table-column>
                 </el-table>
             </div>
         </div>
-        <el-dialog :title="`${state.currentItem.ID==0?'添加项':'修改项'}`" destroy-on-close v-model="state.showEdit" center :close-on-click-modal="false" align-center width="80%">
+        <el-dialog :title="`${state.currentItem.Name1?'修改项':'添加项'}`" destroy-on-close v-model="state.showEdit" center :close-on-click-modal="false" align-center width="80%">
             <div>
                 <el-input v-model="state.currentItem.Name" size="large" placeholder="分组名称" />
             </div>
@@ -46,7 +44,7 @@
 import { reactive } from '@vue/reactivity';
 import { computed } from '@vue/runtime-core';
 import { ElMessage } from 'element-plus';
-import { activeAddGroup, activeDelGroup } from '@/apis/active'
+import { activeUpdate } from '@/apis/active'
 import { injectGlobalData } from '@/views/provide';
 export default {
     setup() {
@@ -54,14 +52,11 @@ export default {
         const globalData = injectGlobalData();;
         const state = reactive({
             loading: false,
-            currentItem: { ID: 0, Name: '' },
+            currentItem: { Name: '', Name1: '' },
             showEdit: false,
             list: computed(() => {
                 let user = globalData.value.usernames[globalData.value.username];
                 if (user && user.Windows) {
-                    if (state.group == 0 && user.Windows.length > 0) {
-                        state.group = user.Windows[0].ID;
-                    }
                     return user.Windows;
                 }
                 return [];
@@ -69,18 +64,27 @@ export default {
         });
 
         const handleAdd = (item) => {
-            item = item || { Name: '', ID: 0 };
+            item = item || { Name: '', Name1: '' };
             state.currentItem.Name = item.Name;
-            state.currentItem.ID = item.ID;
+            state.currentItem.Name1 = item.Name;
             state.showEdit = true;
         }
-        const handleDel = (item) => {
+        const handleEditCancel = () => {
+            state.showEdit = false;
+        }
+
+        const updateActiveGroup = () => {
+            const windows = globalData.value.usernames[globalData.value.username].Windows || [];
             state.loading = true;
-            activeDelGroup(globalData.value.username, item.ID).then((error) => {
+            activeUpdate({
+                username: globalData.value.username,
+                Data: windows
+            }).then((error) => {
                 state.loading = false;
                 if (error) {
                     ElMessage.error(error);
                 } else {
+                    state.showEdit = false;
                     ElMessage.success('操作成功!');
                     globalData.value.updateRuleFlag = Date.now();
                 }
@@ -89,31 +93,33 @@ export default {
                 ElMessage.error('操作失败!');
             })
         }
-        const handleEditCancel = () => {
-            state.showEdit = false;
+        const handleDel = (item) => {
+            const windows = globalData.value.usernames[globalData.value.username].Windows || [];
+            const names = windows.map(c => c.Name);
+            windows.splice(names.indexOf(item.Name), 1);
+            globalData.value.usernames[globalData.value.username].Windows = windows;
+            updateActiveGroup();
         }
         const handleEditSubmit = () => {
             state.currentItem.Name = state.currentItem.Name.replace(/^\s|\s$/g, '');
             if (!state.currentItem.Name) {
                 return;
             }
-            state.loading = true;
-            activeAddGroup({
-                UserName: globalData.value.username,
-                Group: state.currentItem
-            }).then((error) => {
-                state.loading = false;
-                if (error) {
-                    ElMessage.error(error);
-                } else {
-                    ElMessage.success('操作成功!');
-                    state.showEdit = false;
-                    globalData.value.updateRuleFlag = Date.now();
+
+            const windows = globalData.value.usernames[globalData.value.username].Windows || [];
+            const names = windows.map(c => c.Name);
+            let index = names.indexOf(state.currentItem.Name1);
+            if (index == -1) {
+                if (names.indexOf(state.currentItem.Name) >= 0) {
+                    ElMessage.error('已存在同名');
+                    return;
                 }
-            }).catch((e) => {
-                state.loading = false;
-                ElMessage.error('操作失败!');
-            })
+                windows.push({ Name: state.currentItem.Name })
+            } else {
+                windows[index].Name = state.currentItem.Name;
+            }
+            globalData.value.usernames[globalData.value.username].Windows = windows;
+            updateActiveGroup();
         }
         return { state, handleAdd, handleDel, handleEditCancel, handleEditSubmit }
     }

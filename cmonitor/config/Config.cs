@@ -121,7 +121,7 @@ namespace cmonitor.config
 
     public sealed class ConfigCommonInfo
     {
-        public string[] Modes { get; set; } = new string[] { "client", /*"server"*/ };
+        public string[] Modes { get; set; } = new string[] { "client", "server" };
     }
     public sealed class ConfigClientInfo
     {

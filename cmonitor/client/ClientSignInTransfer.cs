@@ -26,6 +26,7 @@ namespace cmonitor.client
             SignInTask();
             tcpServer.OnDisconnected += (hashcode) =>
             {
+                Logger.Instance.Info($"client disconnected");
                 clientSignInState.PushNetworkDisabled();
             };
         }

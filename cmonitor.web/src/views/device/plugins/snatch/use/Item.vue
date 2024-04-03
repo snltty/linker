@@ -8,14 +8,14 @@
                             <el-col :span="12">
                                 <el-form-item>
                                     <el-select v-model="state.group" placeholder="选择一个分组" style="width:13rem">
-                                        <el-option v-for="item in state.groups" :key="item.ID" :label="item.Name" :value="item.ID" />
+                                        <el-option v-for="item in state.groups" :key="item.Name" :label="item.Name" :value="item.Name" />
                                     </el-select>
                                 </el-form-item>
                             </el-col>
                             <el-col :span="12">
                                 <el-form-item>
                                     <el-select @change="handleItemChange" v-model="state.item" placeholder="选择一个模板" style="width:13rem">
-                                        <el-option v-for="item in state.list" :key="item.ID" :label="item.Title" :value="item.ID" />
+                                        <el-option v-for="item in state.list" :key="item.Title" :label="item.Title" :value="item.Title" />
                                     </el-select>
                                 </el-form-item>
                             </el-col>
@@ -98,9 +98,9 @@ export default {
         const pluginState = injectPluginState();
         const state = reactive({
             loading: false,
-            group: 0,
-            item: 0,
-            currentItem: { ID: 0, Cate: 1, Type: 1, Question: '', Options: [{ Text: '', Value: false }], Correct: '', Chance: 65535 },
+            group: '',
+            item: '',
+            currentItem: { Cate: 1, Type: 1, Question: '', Options: [{ Text: '', Value: false }], Correct: '', Chance: 65535 },
             rules: {
                 Question: [
                     { required: true, message: '内容必填', trigger: 'blur' }
@@ -123,17 +123,17 @@ export default {
                 let user = globalData.value.usernames[globalData.value.username];
                 if (user && user.Snatchs) {
                     if (state.group == 0 && user.Snatchs.length > 0) {
-                        state.group = user.Snatchs[0].ID;
+                        state.group = user.Snatchs[0].Name;
                     }
                     return user.Snatchs;
                 }
                 return [];
             }),
             list: computed(() => {
-                let group = state.groups.filter(c => c.ID == state.group)[0];
+                let group = state.groups.filter(c => c.Name == state.group)[0];
                 if (group) {
                     if (state.item == 0 && group.List.length > 0) {
-                        state.item = group.List[0].ID;
+                        state.item = group.List[0].Title;
                     }
                     return group.List;
                 }
@@ -147,10 +147,10 @@ export default {
             }
         }
         const handleItemChange = () => {
-            const item = state.list.filter(c => c.ID == state.item)[0] || { ID: 0, Cate: 1, Type: 1, Question: '', Options: [{ Text: '', Value: false }], Correct: '', Chance: 65535 };
+            const item = state.list.filter(c => c.Title == state.item)[0] || { Cate: 1, Type: 1, Question: '', Options: [{ Text: '', Value: false }], Correct: '', Chance: 65535 };
             state.currentItem.Cate = item.Cate;
             state.currentItem.Type = item.Type;
-            state.currentItem.ID = item.ID;
+            state.currentItem.Title = item.Title;
             state.currentItem.Question = item.Question;
             state.currentItem.Options = item.Options;
             state.currentItem.Correct = item.Correct;
@@ -243,6 +243,16 @@ export default {
             }).then(() => {
                 handleRandom();
             }).catch(() => { });
+        }
+        const randomQuestion = (length) => {
+            return new Promise((resolve, reject) => {
+                const snatchs = globalData.value.usernames[globalData.value.username].Snatchs || [];
+                const questions = snatchs.reduce((arr, current) => {
+                    arr = arr.concat(current.List);
+                    return arr;
+                }, []).sort((a, b) => Math.random() - 0.5);
+                resolve(questions.filter((value, index) => index < length));
+            });
         }
         const handleRandom = () => {
             const names = pluginState.value.command.devices.map(c => c.MachineName);

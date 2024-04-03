@@ -161,6 +161,9 @@ namespace cmonitor.plugins.hijack.report.hijack
             NFAPI.nf_udpPostSend(id, remoteAddress, buf, len, options);
         }
 
+
+        private bool processWhiteAny = false;
+        private bool processBlackAny = false;
         /// <summary>
         /// 设置进程列表
         /// </summary>
@@ -169,7 +172,10 @@ namespace cmonitor.plugins.hijack.report.hijack
         public void SetProcess(string[] white, string[] black)
         {
             processWhite = white;
+            processWhiteAny = white.Any(c => c == "*");
+
             processBlack = black;
+            processBlackAny = black.Any(c => c == "*");
         }
         /// <summary>
         /// 设置域名列表
@@ -205,20 +211,44 @@ namespace cmonitor.plugins.hijack.report.hijack
             domainIPs.Clear();
             foreach (string domain in domainWhite)
             {
-                IPHostEntry entry = Dns.GetHostEntry(domain);
-                foreach (var item in entry.AddressList)
+                if (domain == "*")
                 {
-                    domainIPs[item] = AllowType.Allow;
+                    domainIPs[IPAddress.Any] = AllowType.Allow;
+                    continue;
+                }
+                try
+                {
+
+                    IPHostEntry entry = Dns.GetHostEntry(domain);
+                    foreach (var item in entry.AddressList)
+                    {
+                        domainIPs[item] = AllowType.Allow;
+                    }
+                }
+                catch (Exception)
+                {
                 }
             }
             foreach (string domain in domainBlack)
             {
-                IPHostEntry entry = Dns.GetHostEntry(domain);
-                foreach (IPAddress item in entry.AddressList)
+                if (domain == "*")
                 {
+                    domainIPs[IPAddress.Any] = AllowType.Denied;
+                    continue;
+                }
 
-                    if (domainIPs.ContainsKey(item) == false)
-                        domainIPs[item] = AllowType.Denied;
+                try
+                {
+                    IPHostEntry entry = Dns.GetHostEntry(domain);
+                    foreach (IPAddress item in entry.AddressList)
+                    {
+
+                        if (domainIPs.ContainsKey(item) == false)
+                            domainIPs[item] = AllowType.Denied;
+                    }
+                }
+                catch (Exception)
+                {
                 }
             }
             KillProcessWithDomainBlack();
@@ -292,14 +322,14 @@ namespace cmonitor.plugins.hijack.report.hijack
             {
                 index += 2;
             }
-            index += 2;//transID
+            index += 2;//跳过transID
             ushort flag = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(index));
             index += 2;
             ushort quesions = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(index));
             index += 2;
             ushort answers = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(index));
             index += 2;
-            index += 4; // au2 + ad2
+            index += 4; //跳过 au 2字节 + ad 2字节
 
             byte rcode = (byte)(flag & 0b1111);
             byte tc = (byte)(flag >> 9 & 0x01);
@@ -332,22 +362,22 @@ namespace cmonitor.plugins.hijack.report.hijack
             {
                 return null; //不是A查询
             }
-            index += 2; //class 
+            index += 2; //跳过class 
 
             string domain = Encoding.UTF8.GetString(domainCache.Span.Slice(0, domainPosition));
             IPAddress[] ips = new IPAddress[answers];
             //answers
             for (int i = 0; i < answers; i++)
             {
-                index += 2; //指针
+                index += 2; //跳过指针
                 type = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(index));
                 index += 2;
-                index += 2;//class
-                index += 4;//timeLive
+                index += 2;//跳过class
+                index += 4;//跳过timeLive
                 int dataLength = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(index));
                 index += 2;
 
-                if (type == 1)
+                if (type == 1) //是A回应，其它的不要
                 {
                     ips[i] = new IPAddress(span.Slice(index, dataLength));
                 }
@@ -394,7 +424,9 @@ namespace cmonitor.plugins.hijack.report.hijack
         }
         private unsafe bool DeniedIP(uint processId, IPAddress ip)
         {
-            if (ip != null && domainIPs.TryGetValue(ip, out AllowType type))
+            bool res = domainIPs.TryGetValue(IPAddress.Any, out AllowType type) && type == AllowType.Denied;
+
+            if (ip != null && domainIPs.TryGetValue(ip, out type))
             {
                 if (type == AllowType.Denied && domainKill)
                 {
@@ -414,7 +446,7 @@ namespace cmonitor.plugins.hijack.report.hijack
                 }
                 return type == AllowType.Denied;
             }
-            return false;
+            return res;
         }
         private unsafe IPAddress ReadIPAddress(nint remoteAddress)
         {
@@ -449,6 +481,9 @@ namespace cmonitor.plugins.hijack.report.hijack
             {
                 return false;
             }
+
+            bool res = processBlackAny;
+
             processName = NFAPI.nf_getProcessName(processId);
             //白名单
             if (processWhite.Length > 0 && CheckName(processWhite, processName))
@@ -456,17 +491,19 @@ namespace cmonitor.plugins.hijack.report.hijack
                 return false;
             }
             //黑名单
-            if (processBlack.Length > 0)
+            if (processBlack.Length > 0 && CheckName(processBlack, processName))
             {
-                return CheckName(processBlack, processName);
+                return true;
             }
 
-            return false;
+            return res;
         }
 
 
         private bool CheckName(string[] names, string path)
         {
+            bool res = false;
+
             for (int i = 0; i < names.Length; i++)
             {
                 if (names[i].Length > path.Length) continue;
@@ -484,7 +521,7 @@ namespace cmonitor.plugins.hijack.report.hijack
                 {
                 }
             }
-            return false;
+            return res;
         }
 
 

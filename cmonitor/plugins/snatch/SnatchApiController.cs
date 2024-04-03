@@ -1,9 +1,9 @@
 ﻿using cmonitor.api;
-using cmonitor.client.ruleConfig;
 using cmonitor.plugins.signIn.messenger;
 using cmonitor.plugins.snatch.messenger;
 using cmonitor.plugins.snatch.report;
 using cmonitor.server;
+using cmonitor.server.ruleConfig;
 using common.libs.extends;
 
 namespace cmonitor.plugins.snatch
@@ -11,11 +11,11 @@ namespace cmonitor.plugins.snatch
     public sealed class SnatchApiController : IApiController
     {
         private readonly MessengerSender messengerSender;
-        private readonly RuleConfig ruleConfig;
+        private readonly IRuleConfig ruleConfig;
         private readonly SignCaching signCaching;
         private readonly ISnatachCaching snatachCaching;
 
-        public SnatchApiController(RuleConfig ruleConfig, MessengerSender messengerSender, SignCaching signCaching, ISnatachCaching snatachCaching)
+        public SnatchApiController(IRuleConfig ruleConfig, MessengerSender messengerSender, SignCaching signCaching, ISnatachCaching snatachCaching)
         {
             this.ruleConfig = ruleConfig;
             this.messengerSender = messengerSender;
@@ -23,24 +23,13 @@ namespace cmonitor.plugins.snatch
             this.snatachCaching = snatachCaching;
         }
 
-        public string AddGroup(ApiControllerParamsInfo param)
+        public string Update(ApiControllerParamsInfo param)
         {
-            return ruleConfig.AddSnatchGroup(param.Content.DeJson<UpdateSnatchGroupInfo>());
+            UpdateSnatchGroupInfo model = param.Content.DeJson<UpdateSnatchGroupInfo>();
+            ruleConfig.Set(model.UserName,"Snatchs", model.Data);
+            return string.Empty;
         }
-        public string DeleteGroup(ApiControllerParamsInfo param)
-        {
-            return ruleConfig.DeleteSnatchGroup(param.Content.DeJson<DeleteSnatchGroupInfo>());
-        }
-        public string Add(ApiControllerParamsInfo param)
-        {
-            return ruleConfig.AddSnatch(param.Content.DeJson<AddSnatchItemInfo>());
-        }
-        public string Del(ApiControllerParamsInfo param)
-        {
-            return ruleConfig.DelSnatch(param.Content.DeJson<DeletedSnatchItemInfo>());
-        }
-
-
+       
         public AnswerGroupInfo[] GetQuestion(ApiControllerParamsInfo param)
         {
             if (snatachCaching.Get(param.Content, out SnatchQuestionCacheInfo info))
@@ -54,6 +43,7 @@ namespace cmonitor.plugins.snatch
 
             return Array.Empty<AnswerGroupInfo>();
         }
+
         public async Task<bool> AddQuestion(ApiControllerParamsInfo param)
         {
             SnatchQuestionCacheParamInfo info = param.Content.DeJson<SnatchQuestionCacheParamInfo>();
@@ -77,10 +67,6 @@ namespace cmonitor.plugins.snatch
                 }
             }
             return true;
-        }
-        public SnatchItemInfo[] RandomQuestion(ApiControllerParamsInfo param)
-        {
-            return ruleConfig.SnatchRandom(int.Parse(param.Content));
         }
         public async Task<bool> UpdateQuestion(ApiControllerParamsInfo param)
         {
@@ -133,23 +119,61 @@ namespace cmonitor.plugins.snatch
             public string UserName { get; set; }
             public UpdateQuestionCacheParamItemInfo[] Items { get; set; }
         }
-
         public sealed class UpdateQuestionCacheParamItemInfo
         {
             public string MachineName { get; set; }
             public SnatchQuestionInfo Question { get; set; }
         }
-
         public sealed class SnatchQuestionCacheParamInfo
         {
             public SnatchQuestionCacheInfo Cache { get; set; }
             public SnatchQuestionInfo Question { get; set; }
         }
-
         public sealed class AnswerGroupInfo
         {
             public SnatchQuestionInfo Question { get; set; }
             public SnatchAnswerInfo[] Answers { get; set; }
+        }
+
+
+        public sealed class SnatchGroupInfo
+        {
+            public string Name { get; set; }
+            public List<SnatchItemInfo> List { get; set; } = new List<SnatchItemInfo>();
+        }
+        public sealed class UpdateSnatchGroupInfo
+        {
+            public string UserName { get; set; }
+            public List<SnatchGroupInfo> Data { get; set; }
+        }
+        public sealed class SnatchItemInfo
+        {
+            public uint ID { get; set; }
+            public string Title { get; set; }
+
+            public SnatchCate Cate { get; set; } = SnatchCate.Question;
+            public SnatchType Type { get; set; } = SnatchType.Select;
+            /// <summary>
+            /// 问题
+            /// </summary>
+            public string Question { get; set; }
+            /// <summary>
+            /// 选项数
+            /// </summary>
+            public List<SnatchItemOptionInfo> Options { get; set; }
+            /// <summary>
+            /// 答案
+            /// </summary>
+            public string Correct { get; set; }
+            /// <summary>
+            /// 最多答题次数
+            /// </summary>
+            public int Chance { get; set; }
+        }
+        public sealed class SnatchItemOptionInfo
+        {
+            public string Text { get; set; }
+            public bool Value { get; set; }
         }
     }
 

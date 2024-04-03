@@ -5,6 +5,7 @@ using common.libs.winapis;
 using Microsoft.Win32;
 using monitor.plugins.system.report;
 using System.Collections.Concurrent;
+using System.Linq;
 
 namespace cmonitor.plugins.system.report
 {
@@ -74,7 +75,7 @@ namespace cmonitor.plugins.system.report
                             if (restored)
                             {
                                 reused |= registryOptionHelper.Reuse();
-                                OptionUpdate(new SystemOptionUpdateInfo { Keys = new string[] { "SoftwareSASGeneration" }, Value = false });
+                                OptionUpdate(new SystemOptionUpdateInfo[] { new SystemOptionUpdateInfo { Keys = "SoftwareSASGeneration", Value = false } });
                             }
                             await Task.Delay(5000);
                         }
@@ -90,11 +91,11 @@ namespace cmonitor.plugins.system.report
         {
             return registryOptionHelper.GetValues();
         }
-        public void OptionUpdate(SystemOptionUpdateInfo registryUpdateInfo)
+        public void OptionUpdate(SystemOptionUpdateInfo[] registryUpdateInfo)
         {
             actions.Enqueue(() =>
             {
-                registryOptionHelper.UpdateValue(registryUpdateInfo.Keys, registryUpdateInfo.Value);
+                registryOptionHelper.UpdateValue(registryUpdateInfo);
             });
         }
         private void LoopTask()
@@ -374,7 +375,7 @@ namespace cmonitor.plugins.system.report
             }
             return _allow;
         }
-        public bool UpdateValue(string[] keys, bool value)
+        public bool UpdateValue(SystemOptionUpdateInfo[] keys)
         {
             bool result = false;
             if (GetSid() == false)
@@ -384,21 +385,23 @@ namespace cmonitor.plugins.system.report
 
             if (OperatingSystem.IsWindows())
             {
-                IEnumerable<RegistryOptionInfo> info = Infos.Where(c => keys.Contains(c.Key));
-                if (info.Any() == false)
+                
+                foreach (SystemOptionUpdateInfo item in keys)
                 {
-                    return result;
-                }
-                foreach (RegistryOptionInfo item in info)
-                {
-                    foreach (RegistryOptionPathInfo pathItem in item.Paths)
+                    RegistryOptionInfo info = Infos.FirstOrDefault(c => c.Key == item.Keys);
+                    if (info == null)
+                    {
+                        continue;
+                    }
+
+                    foreach (RegistryOptionPathInfo pathItem in info.Paths)
                     {
                         string path = ReplaceRegistryPath(pathItem.Path);
                         if (string.IsNullOrWhiteSpace(path))
                         {
                             continue;
                         }
-                        string setValue = value ? pathItem.DisallowValue : pathItem.AllowValue;
+                        string setValue = item.Value ? pathItem.DisallowValue : pathItem.AllowValue;
                         try
                         {
                             object oldValue = Registry.GetValue(path, pathItem.Key, null);

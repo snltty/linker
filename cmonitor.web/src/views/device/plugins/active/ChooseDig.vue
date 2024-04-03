@@ -8,12 +8,12 @@
             <div class="flex-1"></div>
             <div class="Exes flex flex-column">
                 <div class="private">
-                    <CheckBoxWrap ref="privateExes" :data="state.privateExes" :items="state.currentPrivate" label="ID" text="Name" title="私有窗口">
+                    <CheckBoxWrap ref="privateExes" :data="state.privateExes" :items="state.currentPrivate" label="Name" text="Name" title="私有窗口">
                     </CheckBoxWrap>
                 </div>
                 <div class="flex-1"></div>
                 <div class="public">
-                    <CheckBoxWrap ref="publicExes" :data="state.publicExes" :items="state.currentPublic" label="ID" text="Name" title="公共窗口">
+                    <CheckBoxWrap ref="publicExes" :data="state.publicExes" :items="state.currentPublic" label="Name" text="Name" title="公共窗口">
                     </CheckBoxWrap>
                 </div>
             </div>
@@ -27,7 +27,7 @@
 
 <script>
 import { reactive, ref } from '@vue/reactivity';
-import { computed, onMounted, watch } from '@vue/runtime-core';
+import { computed, watch } from '@vue/runtime-core';
 import CheckBoxWrap from '../../boxs/CheckBoxWrap.vue'
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { activeDisallow } from '@/apis/active'
@@ -50,12 +50,16 @@ export default {
             show: props.modelValue,
             items: computed(() => {
                 const devices = pluginState.value.activeWindow.devices;
-                let ids = devices.reduce((arr, value) => {
-                    arr.push(...value.ActiveWindow.DisallowRunIds);
+                let ids1 = devices.reduce((arr, value) => {
+                    arr.push(...value.ActiveWindow.DisallowRunIds1);
                     return arr;
                 }, []);
-                state.currentPrivate = state.privateExes.filter(c => ids.indexOf(c.ID) >= 0);
-                state.currentPublic = state.publicExes.filter(c => ids.indexOf(c.ID) >= 0);
+                let ids2 = devices.reduce((arr, value) => {
+                    arr.push(...value.ActiveWindow.DisallowRunIds2);
+                    return arr;
+                }, []);
+                state.currentPrivate = state.privateExes.filter(c => ids1.indexOf(c.Name) >= 0);
+                state.currentPublic = state.publicExes.filter(c => ids2.indexOf(c.Name) >= 0);
                 return devices;
             }),
             privateExes: computed(() => user.value ? user.value.Windows : []),
@@ -76,10 +80,10 @@ export default {
         const privateExes = ref(null);
         const publicExes = ref(null);
         const parseRule = () => {
-            const _privateIds = privateExes.value.getData().map(c => c.ID);
-            const _privateExes = state.privateExes.filter(c => _privateIds.indexOf(c.ID) >= 0);
-            const _publicIds = publicExes.value.getData().map(c => c.ID);
-            const _publicExes = state.publicExes.filter(c => _publicIds.indexOf(c.ID) >= 0);
+            const _privateIds = privateExes.value.getData().map(c => c.Name);
+            const _privateExes = state.privateExes.filter(c => _privateIds.indexOf(c.Name) >= 0);
+            const _publicIds = publicExes.value.getData().map(c => c.Name);
+            const _publicExes = state.publicExes.filter(c => _publicIds.indexOf(c.Name) >= 0);
             const exes = _privateExes.concat(_publicExes).reduce((data, item, index) => {
                 let arr = item.List.reduce((val, item, index) => {
                     val = val.concat(item.Name.split(','));
@@ -94,7 +98,8 @@ export default {
             }, []);
 
             return {
-                ids: _privateIds.concat(_publicIds),
+                ids1: _privateIds,
+                ids2: _publicIds,
                 exes: exes
             };
         }
@@ -112,11 +117,12 @@ export default {
             }).then(() => {
                 state.loading = true;
                 const exes = parseRule();
-                activeDisallow(_devices.map(c => c.MachineName), exes.exes, exes.ids).then((res) => {
+                activeDisallow(_devices.map(c => c.MachineName), exes.exes, exes.ids1, exes.ids2).then((res) => {
                     state.loading = false;
                     ElMessage.success('操作成功！');
                     globalData.value.devices.filter(c => _devices.indexOf(c.MachineName) >= 0).forEach(device => {
-                        device.ActiveWindow.DisallowRunIds = exes.ids;
+                        device.ActiveWindow.DisallowRunIds1 = exes.ids1;
+                        device.ActiveWindow.DisallowRunIds2 = exes.ids2;
                     });
                 }).catch((e) => {
                     state.loading = false;

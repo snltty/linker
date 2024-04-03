@@ -6,31 +6,16 @@ export const getRules = () => {
 export const addName = (data) => {
     return sendWebsocketMsg('hijack/addName', data);
 }
-
-export const addProcessGroup = (data) => {
-    return sendWebsocketMsg('hijack/addProcessGroup', data);
-}
-export const deleteProcessGroup = (data) => {
-    return sendWebsocketMsg('hijack/deleteProcessGroup', data);
-}
-export const addProcess = (data) => {
-    return sendWebsocketMsg('hijack/addProcess', data);
-}
-export const deleteProcess = (data) => {
-    return sendWebsocketMsg('hijack/deleteProcess', data);
+export const updateProcess = (data) => {
+    return sendWebsocketMsg('hijack/UpdateProcess', data);
 }
 
-export const addRule = (data) => {
-    return sendWebsocketMsg('hijack/AddRule', data);
-}
-export const deleteRule = (data) => {
-    return sendWebsocketMsg('hijack/deleteRule', data);
+export const updateRule = (data) => {
+    return sendWebsocketMsg('hijack/UpdateRule', data);
 }
 
-export const updateDevices = (data) => {
-    return sendWebsocketMsg('hijack/UpdateDevices', data);
-}
+
 
 export const setRules = (data) => {
-    return sendWebsocketMsg('hijack/setRules', data);
+    return sendWebsocketMsg('hijack/UseHijackRules', data);
 }

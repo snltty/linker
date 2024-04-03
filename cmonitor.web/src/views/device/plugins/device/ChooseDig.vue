@@ -28,7 +28,7 @@
 import { reactive, ref } from '@vue/reactivity';
 import { computed, onMounted, watch } from '@vue/runtime-core';
 import CheckBoxWrap from '../../boxs/CheckBoxWrap.vue'
-import { updateDevices } from '../../../../apis/hijack'
+import { updateDevices } from '../../../../apis/devices'
 import { delDevice } from '../../../../apis/signin'
 import { ElMessage } from 'element-plus';
 import { injectGlobalData } from '@/views/provide';
@@ -75,7 +75,7 @@ export default {
             state.loading = true;
             updateDevices({
                 username: globalData.value.username,
-                devices: _devices.map(c => c.MachineName)
+                data: _devices.map(c => c.MachineName)
             }).then((error) => {
                 state.loading = false;
                 globalData.value.updateDeviceFlag = Date.now();

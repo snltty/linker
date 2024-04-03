@@ -51,9 +51,9 @@ export default {
                 Server: pluginState.value.viewer.device,
                 Clients: clients,
             }).then(() => {
-                pluginState.viewer.showShare = false;
+                pluginState.value.viewer.showShare = false;
                 ElMessage.success('操作成功');
-            }).catch(() => {
+            }).catch((e) => {
                 ElMessage.error('操作失败');
             });
         }

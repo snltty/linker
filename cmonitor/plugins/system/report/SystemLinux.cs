@@ -25,7 +25,7 @@
         {
             return string.Empty;
         }
-        public void OptionUpdate(SystemOptionUpdateInfo registryUpdateInfo)
+        public void OptionUpdate(SystemOptionUpdateInfo[] registryUpdateInfo)
         {
         }
 

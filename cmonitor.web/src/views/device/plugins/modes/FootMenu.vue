@@ -3,7 +3,7 @@
         <el-icon>
             <Help />
         </el-icon>
-        <span>设置</span>
+        <span>模式</span>
     </a>
 </template>
 
@@ -15,7 +15,7 @@ export default {
 
         const pluginState = injectPluginState();
         const handleSetting = () => {
-            pluginState.value.setting.showSetting = true;
+            pluginState.value.modes.showModesSetting = true;
         }
 
         return {

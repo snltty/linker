@@ -7,7 +7,8 @@ export default {
                 Desc: '',
                 Pid: 0,
                 DisallowCount: 0,
-                DisallowRunIds: [],
+                DisallowRunIds1: [],
+                DisallowRunIds2: [],
                 WindowCount: 0,
             }
         }
@@ -32,6 +33,7 @@ export default {
         item.ActiveWindow.Pid = report.ActiveWindow.Pid;
         item.ActiveWindow.DisallowCount = report.ActiveWindow.DisallowCount;
         item.ActiveWindow.WindowCount = report.ActiveWindow.WindowCount || 0;
-        item.ActiveWindow.DisallowRunIds = report.ActiveWindow.Ids || [];
+        item.ActiveWindow.DisallowRunIds1 = report.ActiveWindow.Ids1 || [];
+        item.ActiveWindow.DisallowRunIds2 = report.ActiveWindow.Ids2 || [];
     }
 }

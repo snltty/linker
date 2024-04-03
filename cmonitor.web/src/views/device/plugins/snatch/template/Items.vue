@@ -2,7 +2,7 @@
     <div class="snatchs-items-wrap flex flex-nowrap flex-column">
         <div class="head t-c flex">
             <el-select v-model="state.group" placeholder="选择一个分组" style="width:13rem">
-                <el-option v-for="item in state.groups" :key="item.ID" :label="item.Name" :value="item.ID" />
+                <el-option v-for="item in state.groups" :key="item.Name" :label="item.Name" :value="item.Name" />
             </el-select>
             <span class="flex-1"></span>
             <el-button @click="handleAdd()">添加项</el-button>
@@ -32,7 +32,7 @@
                 </el-table>
             </div>
         </div>
-        <el-dialog :title="`${state.currentItem.ID==0?'添加项':'修改项'}`" destroy-on-close v-model="state.showEdit" center :close-on-click-modal="false" align-center width="94%">
+        <el-dialog :title="`${state.currentItem.Title1?'修改项':'添加项'}`" destroy-on-close v-model="state.showEdit" center :close-on-click-modal="false" align-center width="94%">
             <div>
                 <el-form ref="formDom" :rules="state.rules" :model="state.currentItem" label-width="0">
                     <el-form-item prop="Title">
@@ -112,8 +112,8 @@ export default {
         const globalData = injectGlobalData();;
         const state = reactive({
             loading: false,
-            group: 0,
-            currentItem: { ID: 0, Title: '', Cate: 1, Type: 1, Question: '', Options: [{ Text: '', Value: false }], Correct: '', Chance: 65535 },
+            group: '',
+            currentItem: { Title: '', Title1: '', Cate: 1, Type: 1, Question: '', Options: [{ Text: '', Value: false }], Correct: '', Chance: 65535 },
             rules: {
                 Title: [
                     { required: true, message: '名称必填', trigger: 'blur' }
@@ -139,15 +139,15 @@ export default {
             groups: computed(() => {
                 let user = globalData.value.usernames[globalData.value.username];
                 if (user && user.Snatchs) {
-                    if (state.group == 0 && user.Snatchs.length > 0) {
-                        state.group = user.Snatchs[0].ID;
+                    if (state.group == '' && user.Snatchs.length > 0) {
+                        state.group = user.Snatchs[0].Name;
                     }
                     return user.Snatchs;
                 }
                 return [];
             }),
             list: computed(() => {
-                let group = state.groups.filter(c => c.ID == state.group)[0];
+                let group = state.groups.filter(c => c.Name == state.group)[0];
                 if (group) return group.List;
                 return [];
             })
@@ -159,23 +159,33 @@ export default {
             }
         }
         const handleAdd = (item) => {
-            item = item || { ID: 0, Title: '', Type: 1, Question: '', Options: [{ Text: '', Value: false }], Correct: '', Chance: 65535 };
+            item = item || { Title: '', Type: 1, Question: '', Options: [{ Text: '', Value: false }], Correct: '', Chance: 65535 };
             state.currentItem.Title = item.Title;
+            state.currentItem.Title1 = item.Title;
             state.currentItem.Type = item.Type;
-            state.currentItem.ID = item.ID;
             state.currentItem.Question = item.Question;
             state.currentItem.Options = item.Options;
             state.currentItem.Correct = item.Correct;
             state.currentItem.Chance = item.Chance;
             state.showEdit = true;
         }
-        const handleDel = (item) => {
+
+        const handleEditCancel = () => {
+            state.showEdit = false;
+        }
+
+        const updateSnatchGroup = () => {
+            const processs = globalData.value.usernames[globalData.value.username].Processs || [];
             state.loading = true;
-            del(globalData.value.username, state.group, item.ID).then((error) => {
+            updateProcess({
+                username: globalData.value.username,
+                Data: processs
+            }).then((error) => {
                 state.loading = false;
                 if (error) {
                     ElMessage.error(error);
                 } else {
+                    state.showEdit = false;
                     ElMessage.success('操作成功!');
                     globalData.value.updateRuleFlag = Date.now();
                 }
@@ -184,38 +194,46 @@ export default {
                 ElMessage.error('操作失败!');
             })
         }
-        const handleEditCancel = () => {
-            state.showEdit = false;
-        }
 
+        const handleDel = (item) => {
+            const snatchs = globalData.value.usernames[globalData.value.username].Snatchs || [];
+            const group = snatchs.filter(c => c.Name == state.group)[0];
+            const items = group.List;
+
+            const names = items.map(c => c.Title);
+            items.splice(names.indexOf(item.Title), 1);
+
+            globalData.value.usernames[globalData.value.username].Snatchs = snatchs;
+
+            updateSnatchGroup();
+        }
         const formDom = ref(null);
         const handleEditSubmit = () => {
             formDom.value.validate((valid) => {
                 if (!valid) return;
 
-                state.loading = true;
+                const snatchs = globalData.value.usernames[globalData.value.username].Snatchs || [];
+                const group = snatchs.filter(c => c.Name == state.group)[0];
+                const items = group.List;
+                const names = items.map(c => c.Title);
+
+                let index = names.indexOf(state.currentItem.Title1);
                 const json = JSON.parse(JSON.stringify(state.currentItem));
-                json.Chance = +json.Chance;
-                json.Type = +json.Type;
-                json.Title = json.Title.replace(/^\s|\s$/g, '');
-                json.Correct = json.Correct.replace(/^\s|\s$/g, '');
-                add({
-                    UserName: globalData.value.username,
-                    GroupID: state.group,
-                    Item: json
-                }).then((error) => {
-                    state.loading = false;
-                    if (error) {
-                        ElMessage.error(error);
-                    } else {
-                        ElMessage.success('操作成功!');
-                        state.showEdit = false;
-                        globalData.value.updateRuleFlag = Date.now();
+
+                if (index == -1) {
+                    if (names.indexOf(state.currentItem.Title) >= 0) {
+                        ElMessage.error('已存在同名');
+                        return;
                     }
-                }).catch((e) => {
-                    state.loading = false;
-                    ElMessage.error('操作失败!');
-                });
+                    items.push({ Chance: +json.Chance, Type: +json.Type, Title: json.Title.replace(/^\s|\s$/g, ''), Correct: json.Correct.replace(/^\s|\s$/g, '') })
+                } else {
+                    items[index].Chance = +json.Chance;
+                    items[index].Type = +json.Type;
+                    items[index].Title = json.Title.replace(/^\s|\s$/g, '');
+                    items[index].Correct = json.Correct.replace(/^\s|\s$/g, '');
+                }
+                globalData.value.usernames[globalData.value.username].Snatchs = snatchs;
+                updateSnatchGroup();
             });
         }
 

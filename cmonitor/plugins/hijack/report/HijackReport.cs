@@ -43,7 +43,8 @@ namespace cmonitor.plugins.hijack.report
                 hijackConfig.DeniedIPs = config.DeniedIPs;
                 hijackConfig.AllowIPs = config.AllowIPs;
                 hijackConfig.DomainKill = config.DomainKill;
-                hijackConfig.HijackIds = config.HijackIds;
+                hijackConfig.HijackIds1 = config.HijackIds1;
+                hijackConfig.HijackIds2 = config.HijackIds2;
                 UpdateRules();
             }
             catch (Exception ex)
@@ -61,7 +62,8 @@ namespace cmonitor.plugins.hijack.report
             hijackConfig.AllowIPs = info.Rules.AllowIPs;
             hijackConfig.DeniedIPs = info.Rules.DeniedIPs;
             hijackConfig.DomainKill = info.Rules.DomainKill;
-            hijackConfig.HijackIds = info.Ids;
+            hijackConfig.HijackIds1 = info.Ids1;
+            hijackConfig.HijackIds2 = info.Ids2;
 
             clientConfig.Set(hijackConfig);
 
@@ -81,7 +83,8 @@ namespace cmonitor.plugins.hijack.report
             hijackReportInfo.Upload = hijack.UdpSend + hijack.TcpSend;
             hijackReportInfo.Download = hijack.TcpReceive + hijack.UdpReceive;
             hijackReportInfo.Count = (ulong)(hijackConfig.AllowIPs.Length + hijackConfig.DeniedIPs.Length + hijackConfig.AllowDomains.Length + hijackConfig.DeniedDomains.Length + hijackConfig.AllowProcesss.Length + hijackConfig.DeniedProcesss.Length);
-            hijackReportInfo.Ids = hijackConfig.HijackIds;
+            hijackReportInfo.Ids1 = hijackConfig.HijackIds1;
+            hijackReportInfo.Ids2 = hijackConfig.HijackIds2;
             hijackReportInfo.DomainKill = hijackConfig.DomainKill;
 
             long _ticks = DateTime.UtcNow.Ticks;
@@ -100,12 +103,13 @@ namespace cmonitor.plugins.hijack.report
         public ulong Download { get; set; }
         public ulong Count { get; set; }
 
-        public uint[] Ids { get; set; }
+        public string[] Ids1 { get; set; }
+        public string[] Ids2 { get; set; }
         public bool DomainKill { get; set; }
 
         public override int HashCode()
         {
-            return Upload.GetHashCode() ^ Download.GetHashCode() ^ Count.GetHashCode() ^ Ids.GetHashCode();
+            return Upload.GetHashCode() ^ Download.GetHashCode() ^ Count.GetHashCode() ^ Ids1.GetHashCode() ^ Ids2.GetHashCode();
         }
 
     }
@@ -114,7 +118,8 @@ namespace cmonitor.plugins.hijack.report
     public sealed partial class HijackSetRuleInfo
     {
         public HijackRuleUpdateInfo Rules { get; set; }
-        public uint[] Ids { get; set; }
+        public string[] Ids1 { get; set; }
+        public string[] Ids2 { get; set; }
     }
 
 
