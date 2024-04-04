@@ -35,8 +35,8 @@ export default {
         const modeState = inject('mode-state');
         const state = reactive({
             use: false,
-            privateRules: computed(() => user.value ? user.value.Processs : []),
-            publicRules: computed(() => usePublic ? publicUser.value.Processs : []),
+            privateRules: computed(() => user.value ? user.value.Processs || [] : []),
+            publicRules: computed(() => usePublic ? publicUser.value.Processs || [] : []),
             ids1: [],
             ids2: [],
             domainKill: false

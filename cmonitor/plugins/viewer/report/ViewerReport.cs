@@ -45,10 +45,10 @@ namespace cmonitor.plugins.viewer.report
 
         public object GetReports(ReportType reportType)
         {
-            if (reportType == ReportType.Full || shareMemory.ReadVersionUpdated((int)ShareMemoryIndexs.Viewer))
+            report.Value = Running();
+            report.Mode = viewerConfigInfo.Mode;
+            if (reportType == ReportType.Full || report.Updated() || shareMemory.ReadVersionUpdated((int)ShareMemoryIndexs.Viewer))
             {
-                report.Value = Running();
-                report.Mode = viewerConfigInfo.Mode;
                 return report;
             }
             return null;

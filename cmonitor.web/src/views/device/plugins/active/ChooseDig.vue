@@ -62,8 +62,8 @@ export default {
                 state.currentPublic = state.publicExes.filter(c => ids2.indexOf(c.Name) >= 0);
                 return devices;
             }),
-            privateExes: computed(() => user.value ? user.value.Windows : []),
-            publicExes: computed(() => usePublic ? publicUser.value.Windows : []),
+            privateExes: computed(() => user.value ? user.value.Windows || [] : []),
+            publicExes: computed(() => usePublic ? publicUser.value.Windows || [] : []),
             loading: false,
             currentPrivate: [],
             currentPublic: [],

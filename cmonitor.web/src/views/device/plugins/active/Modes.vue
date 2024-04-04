@@ -36,8 +36,8 @@ export default {
         const modeState = inject('mode-state');
         const state = reactive({
             use: false,
-            privateExes: computed(() => user.value ? user.value.Windows : []),
-            publicExes: computed(() => usePublic ? publicUser.value.Windows : []),
+            privateExes: computed(() => user.value ? user.value.Windows || [] : []),
+            publicExes: computed(() => usePublic ? publicUser.value.Windows || [] : []),
             ids1: [],
             ids2: [],
         });

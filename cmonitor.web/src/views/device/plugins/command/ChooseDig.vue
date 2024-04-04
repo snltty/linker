@@ -71,6 +71,7 @@ export default {
     .commands {
         .item {
             padding: 0.6rem;
+            font-size: 1.2rem;
 
             .subitem {
                 padding: 0.2rem;
@@ -78,15 +79,15 @@ export default {
                 .label {
                     margin-right: 0.6rem;
                 }
+
+                .el-button+.el-button {
+                    margin-left: 0.6rem;
+                }
             }
         }
 
         .inner {
             padding: 0.6rem;
-
-            &>div {
-                padding: 0.6rem 0;
-            }
         }
     }
 }

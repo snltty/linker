@@ -65,8 +65,8 @@ export default {
                 state.currentPublic = state.publicRules.filter(c => ids2.indexOf(c.Name) >= 0);
                 return devices;
             }),
-            privateRules: computed(() => user.value ? user.value.Processs : []),
-            publicRules: computed(() => usePublic ? publicUser.value.Processs : []),
+            privateRules: computed(() => user.value ? user.value.Processs || [] : []),
+            publicRules: computed(() => usePublic ? publicUser.value.Processs || [] : []),
             loading: false,
             currentPrivate: [],
             currentPublic: [],
