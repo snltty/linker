@@ -248,8 +248,9 @@ namespace common.libs.winapis
             {
                 AddTokenPrivilege();
             }
-            catch
+            catch(Exception ex)
             {
+                Logger.Instance.Debug($"AddTokenPrivilege {ex}");
             }
             try
             {
@@ -261,8 +262,9 @@ namespace common.libs.winapis
                     Environment.Exit(0);
                 }
             }
-            catch
+            catch(Exception ex)
             {
+                Logger.Instance.Debug($"CreateInteractiveSystemProcess {ex}");
             }
         }
         

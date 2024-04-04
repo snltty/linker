@@ -147,6 +147,8 @@ namespace cmonitor.plugins.screen.report
             int width = output1.Description.DesktopBounds.Right - output1.Description.DesktopBounds.Left;
             int height = output1.Description.DesktopBounds.Bottom - output1.Description.DesktopBounds.Top;
 
+            Logger.Instance.Debug($"dxgi width:{width},height:{height}");
+
             try
             {
                 if (desktopImageTexture != null)

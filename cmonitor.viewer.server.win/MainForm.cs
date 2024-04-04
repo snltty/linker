@@ -110,7 +110,7 @@ namespace cmonitor.viewer.server.win
         {
             hook.Start((code) => { return true; });
 
-            CommandHelper.Windows(string.Empty, new string[] { $"start {shareClientExe}.exe" },false);
+            CommandHelper.Windows(string.Empty, new string[] { $"start {shareClientExe}.exe" }, false);
         }
         private void CloseShareClient()
         {
@@ -147,11 +147,13 @@ namespace cmonitor.viewer.server.win
             {
                 try
                 {
+                    string guid = Guid.NewGuid().ToString();
                     CloseShareDesktop();
                     session = new RDPSession();
+                    session.SetDesktopSharedRect(0, 0, Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
                     session.OnAttendeeConnected += Session_OnAttendeeConnected;
                     session.Open();
-                    IRDPSRAPIInvitation invitation = session.Invitations.CreateInvitation(Guid.NewGuid().ToString(), "snltty", "snltty", 1024);
+                    IRDPSRAPIInvitation invitation = session.Invitations.CreateInvitation(guid, "snltty", "snltty", 1024);
                     string invitationString = invitation.ConnectionString;
 
                     /*
@@ -169,8 +171,9 @@ namespace cmonitor.viewer.server.win
                     notifyIcon.Icon = Icon.FromHandle(Resources.logo_share_green.GetHicon());
                     notifyIcon.Text = "正在共享桌面";
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Debug.WriteLine(ex + "");
                     notifyIcon.Icon = Icon.FromHandle(Resources.logo_share_gray.GetHicon());
                     notifyIcon.Text = "共享失败";
                 }

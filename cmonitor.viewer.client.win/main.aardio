@@ -17,6 +17,8 @@ import thread;
 var dll = com.lite("rdpviewerax.dll");
 mainForm.tsc = dll.createEmbedEx(mainForm,"{32be5ed2-5c86-480f-a914-0ff8885a1b3f}");
 mainForm.tsc.SmartSizing = true;
+mainForm.tsc.Properties.DesktopWidth = 1920;
+mainForm.tsc.Properties.DesktopHeight = 1080;
 mainForm.tsc.DisconnectedText = "正在连接至共享桌面....";
 
 mainForm.tsc.OnConnectionFailed = function(){

@@ -116,6 +116,13 @@ namespace cmonitor.install.win
                 MessageBox.Show("客户端和服务端必须选择一样！");
                 return false;
             }
+            if (string.IsNullOrWhiteSpace(machineName.Text))
+            {
+                MessageBox.Show("机器名必填！");
+                return false;
+            }
+            config.Client.Name = machineName.Text;
+
             List<string> modeStr = new List<string>();
             if (modeClient.Checked)
             {
