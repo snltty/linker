@@ -106,6 +106,7 @@ namespace common.libs.database
             {
 
                 fs.Seek(0, SeekOrigin.Begin);
+                fs.SetLength(0);
                 await writer.WriteAsync(model.ToJsonFormat()).ConfigureAwait(false);
                 await writer.FlushAsync();
             }
@@ -123,6 +124,7 @@ namespace common.libs.database
             try
             {
                 fs.Seek(0, SeekOrigin.Begin);
+                fs.SetLength(0);
                 await writer.WriteAsync(jsonStr).ConfigureAwait(false);
                 await writer.FlushAsync();
             }

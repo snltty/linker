@@ -111,6 +111,7 @@ namespace cmonitor.install.win
                 JsonDic["Common"] = Common.ToJson().DeJson<Dictionary<string, object>>();
 
                 fs.Seek(0, SeekOrigin.Begin);
+                fs.SetLength(0);
                 writer.Write(JsonDic.ToJsonFormat());
                 writer.Flush();
             }
