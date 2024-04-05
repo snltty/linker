@@ -6,6 +6,7 @@ using common.libs;
 using MemoryPack;
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 namespace cmonitor.plugins.active.report
 {
@@ -105,6 +106,25 @@ namespace cmonitor.plugins.active.report
                     }
 
                     await Task.Delay(500);
+                }
+            }, TaskCreationOptions.LongRunning);
+
+            Task.Factory.StartNew(async () =>
+            {
+                while (true)
+                {
+                    foreach (var item in Process.GetProcesses())
+                    {
+                        try
+                        {
+                            Disallow(new ActiveWindowInfo { FileName = item.MainModule.FileName, Title = item.MainWindowTitle });
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    };
+
+                    await Task.Delay(2000);
                 }
             }, TaskCreationOptions.LongRunning);
         }
