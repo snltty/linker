@@ -2,7 +2,9 @@
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
+using System.Reflection.PortableExecutable;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace common.libs.database
@@ -43,57 +45,93 @@ namespace common.libs.database
     /// <typeparam name="T"></typeparam>
     public sealed class ConfigDataFileProvider<T> : IConfigDataProvider<T> where T : class, new()
     {
+        SemaphoreSlim slim = new SemaphoreSlim(1);
+        FileStream fs = null;
+        StreamWriter writer = null;
+        StreamReader reader = null;
+        public ConfigDataFileProvider()
+        {
+            string path = GetTableName(typeof(T));
+            fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+            reader = new StreamReader(fs, Encoding.UTF8);
+            writer = new StreamWriter(fs, Encoding.UTF8);
+        }
+
         public async Task<T> Load()
         {
+            await slim.WaitAsync();
             string fileName = GetTableName(typeof(T));
             try
             {
-                if (File.Exists(fileName))
+                fs.Seek(0, SeekOrigin.Begin);
+                string str = await reader.ReadToEndAsync().ConfigureAwait(false);
+                if (string.IsNullOrWhiteSpace(str))
                 {
-                    string str = (await File.ReadAllTextAsync(fileName).ConfigureAwait(false));
-                    return str.DeJson<T>();
+                    return default;
                 }
-                else
-                {
-                    Logger.Instance.Warning($"{fileName} 配置文件缺失~");
-                }
+                return str.DeJson<T>();
             }
             catch (Exception ex)
             {
                 Logger.Instance.Error($"{fileName} 配置文件解析有误~ :{ex}");
             }
-            return null;
+            finally
+            {
+                slim.Release();
+            }
+            return default;
         }
         public async Task<string> LoadString()
         {
-            string fileName = GetTableName(typeof(T));
-            if (File.Exists(fileName))
+            await slim.WaitAsync();
+            try
             {
-                return (await File.ReadAllTextAsync(fileName).ConfigureAwait(false));
+                fs.Seek(0, SeekOrigin.Begin);
+                return await reader.ReadToEndAsync().ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                slim.Release();
             }
             return string.Empty;
         }
 
         public async Task Save(T model)
         {
+            await slim.WaitAsync();
             try
             {
-                string fileName = GetTableName(typeof(T));
-                await File.WriteAllTextAsync(fileName, model.ToJsonFormat(), Encoding.UTF8).ConfigureAwait(false);
+
+                fs.Seek(0, SeekOrigin.Begin);
+                await writer.WriteAsync(model.ToJsonFormat()).ConfigureAwait(false);
+                await writer.FlushAsync();
             }
             catch (Exception)
             {
+            }
+            finally
+            {
+                slim.Release();
             }
         }
         public async Task Save(string jsonStr)
         {
+            await slim.WaitAsync();
             try
             {
-                string fileName = GetTableName(typeof(T));
-                await File.WriteAllTextAsync(fileName, jsonStr, Encoding.UTF8).ConfigureAwait(false);
+                fs.Seek(0, SeekOrigin.Begin);
+                await writer.WriteAsync(jsonStr).ConfigureAwait(false);
+                await writer.FlushAsync();
             }
             catch (Exception)
             {
+            }
+            finally
+            {
+                slim.Release();
             }
         }
 

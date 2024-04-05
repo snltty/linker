@@ -52,6 +52,7 @@
             shareItemLen = new TextBox();
             gbClient = new GroupBox();
             gbServer = new GroupBox();
+            cbBlueProtect = new CheckBox();
             gbClient.SuspendLayout();
             gbServer.SuspendLayout();
             SuspendLayout();
@@ -197,10 +198,17 @@
             gbServer.Name = "gbServer";
             gbServer.TabStop = false;
             // 
+            // cbBlueProtect
+            // 
+            resources.ApplyResources(cbBlueProtect, "cbBlueProtect");
+            cbBlueProtect.Name = "cbBlueProtect";
+            cbBlueProtect.UseVisualStyleBackColor = true;
+            // 
             // MainForm
             // 
             resources.ApplyResources(this, "$this");
             AutoScaleMode = AutoScaleMode.Font;
+            Controls.Add(cbBlueProtect);
             Controls.Add(gbServer);
             Controls.Add(gbClient);
             Controls.Add(checkStateBtn);
@@ -244,5 +252,6 @@
         private TextBox shareItemLen;
         private GroupBox gbClient;
         private GroupBox gbServer;
+        private CheckBox cbBlueProtect;
     }
 }

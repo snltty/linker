@@ -161,10 +161,10 @@
     <value>79, 53</value>
   </data>
   <data name="modeClient.Location" type="System.Drawing.Point, System.Drawing">
-    <value>105, 21</value>
+    <value>105, 45</value>
   </data>
   <data name="modeServer.Location" type="System.Drawing.Point, System.Drawing">
-    <value>298, 21</value>
+    <value>298, 45</value>
   </data>
   <data name="label5.Location" type="System.Drawing.Point, System.Drawing">
     <value>19, 130</value>
@@ -185,13 +185,13 @@
     <value>93, 25</value>
   </data>
   <data name="installBtn.Location" type="System.Drawing.Point, System.Drawing">
-    <value>175, 244</value>
+    <value>175, 268</value>
   </data>
   <data name="runBtn.Location" type="System.Drawing.Point, System.Drawing">
-    <value>88, 244</value>
+    <value>88, 268</value>
   </data>
   <data name="checkStateBtn.Location" type="System.Drawing.Point, System.Drawing">
-    <value>305, 250</value>
+    <value>305, 274</value>
   </data>
   <data name="label16.Location" type="System.Drawing.Point, System.Drawing">
     <value>7, 159</value>
@@ -199,11 +199,17 @@
   <data name="shareItemLen.Location" type="System.Drawing.Point, System.Drawing">
     <value>93, 156</value>
   </data>
+  <data name="gbClient.Location" type="System.Drawing.Point, System.Drawing">
+    <value>12, 72</value>
+  </data>
   <data name="gbClient.Size" type="System.Drawing.Size, System.Drawing">
     <value>200, 190</value>
   </data>
   <data name="gbClient.Text" xml:space="preserve">
     <value>客户端参数</value>
+  </data>
+  <data name="gbServer.Location" type="System.Drawing.Point, System.Drawing">
+    <value>219, 73</value>
   </data>
   <data name="gbServer.Size" type="System.Drawing.Size, System.Drawing">
     <value>187, 189</value>
@@ -211,8 +217,24 @@
   <data name="gbServer.Text" xml:space="preserve">
     <value>服务端参数</value>
   </data>
+  <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="cbBlueProtect.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="cbBlueProtect.Location" type="System.Drawing.Point, System.Drawing">
+    <value>174, 12</value>
+  </data>
+  <data name="cbBlueProtect.Size" type="System.Drawing.Size, System.Drawing">
+    <value>111, 21</value>
+  </data>
+  <data name="cbBlueProtect.TabIndex" type="System.Int32, mscorlib">
+    <value>39</value>
+  </data>
+  <data name="cbBlueProtect.Text" xml:space="preserve">
+    <value>异常关闭则蓝屏</value>
+  </data>
   <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing">
-    <value>418, 290</value>
+    <value>418, 315</value>
   </data>
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>

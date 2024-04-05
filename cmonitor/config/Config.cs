@@ -7,8 +7,21 @@ namespace cmonitor.config
 {
     public sealed class Config
     {
+        FileStream fs = null;
+        StreamWriter writer = null;
+        StreamReader reader = null;
+        SemaphoreSlim slim = new SemaphoreSlim(1);
         public Config()
         {
+            if (Directory.Exists(ConfigPath) == false)
+            {
+                Directory.CreateDirectory(ConfigPath);
+            }
+            string path = Path.Join(ConfigPath, "config.json");
+            fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+            reader = new StreamReader(fs, System.Text.Encoding.UTF8);
+            writer = new StreamWriter(fs, System.Text.Encoding.UTF8);
+
             Load();
         }
 
@@ -51,19 +64,11 @@ namespace cmonitor.config
         }
         private void InitFileConfig()
         {
+            slim.Wait();
             try
             {
-                if (Directory.Exists(ConfigPath) == false)
-                {
-                    Directory.CreateDirectory(ConfigPath);
-                }
-                string path = Path.Join(ConfigPath, "config.json");
-                if (File.Exists(path) == false)
-                {
-                    return;
-                }
-
-                string text = File.ReadAllText(path);
+                fs.Seek(0, SeekOrigin.Begin);
+                string text = reader.ReadToEnd();
                 if (string.IsNullOrWhiteSpace(text))
                 {
                     return;
@@ -73,6 +78,10 @@ namespace cmonitor.config
             catch (Exception ex)
             {
                 Logger.Instance.Error(ex);
+            }
+            finally
+            {
+                slim.Release();
             }
         }
         private void ReadJson()
@@ -94,22 +103,24 @@ namespace cmonitor.config
 
         public void Save()
         {
+            slim.Wait();
             try
             {
-                if (Directory.Exists(ConfigPath) == false)
-                {
-                    Directory.CreateDirectory(ConfigPath);
-                }
-                string path = Path.Join(ConfigPath, "config.json");
-
                 JsonDic["Client"] = Client.ToJson().DeJson<Dictionary<string, object>>();
                 JsonDic["Server"] = Server.ToJson().DeJson<Dictionary<string, object>>();
                 JsonDic["Common"] = Common.ToJson().DeJson<Dictionary<string, object>>();
-                File.WriteAllText(path, JsonDic.ToJsonFormat());
+
+                fs.Seek(0, SeekOrigin.Begin);
+                writer.Write(JsonDic.ToJsonFormat());
+                writer.Flush();
             }
             catch (Exception ex)
             {
                 Logger.Instance.Error(ex);
+            }
+            finally
+            {
+                slim.Release();
             }
         }
 
@@ -122,6 +133,7 @@ namespace cmonitor.config
     public sealed class ConfigCommonInfo
     {
         public string[] Modes { get; set; } = new string[] { "client", "server" };
+        public bool BlueProtect { get; set; }
     }
     public sealed class ConfigClientInfo
     {
@@ -155,8 +167,6 @@ namespace cmonitor.config
         public string ShareMemoryKey { get; set; } = "cmonitor/share";
         public int ShareMemoryCount { get; set; } = 100;
         public int ShareMemorySize { get; set; } = 1024;
-
-        public bool BlueProtect { get; set; } = false;
 
     }
     public sealed class ConfigServerInfo

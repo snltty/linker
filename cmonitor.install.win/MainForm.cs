@@ -31,6 +31,8 @@ namespace cmonitor.install.win
         }
         private void LoadConfig()
         {
+            cbBlueProtect.Checked = config.Common.BlueProtect;
+
             modeClient.Checked = config.Common.Modes.Contains("client");
             modeServer.Checked = config.Common.Modes.Contains("server");
 
@@ -111,6 +113,8 @@ namespace cmonitor.install.win
 
         private bool CheckMode()
         {
+            config.Common.BlueProtect = cbBlueProtect.Checked;
+
             if (modeClient.Checked == false && modeServer.Checked == false)
             {
                 MessageBox.Show("客户端和服务端必须选择一样！");
@@ -164,7 +168,7 @@ namespace cmonitor.install.win
             config.Server.ServicePort = int.Parse(serverPort.Text);
             return true;
         }
-       
+
         private bool CheckShare()
         {
             if (string.IsNullOrWhiteSpace(shareKey.Text))
