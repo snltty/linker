@@ -6,11 +6,11 @@
         </div>
         <div class="rules flex-1 flex">
             <div class="private">
-                <CheckBoxWrap ref="privateRules" :data="state.privateRules" :items="state.ids1" label="Name" text="Name" title="私有限制"></CheckBoxWrap>
+                <CheckBoxWrap v-if="state.showids1" ref="privateRules" :data="state.privateRules" :items="state.ids1" label="Name" text="Name" title="私有限制"></CheckBoxWrap>
             </div>
             <div class="flex-1"></div>
             <div class="public">
-                <CheckBoxWrap ref="publicRules" :data="state.publicRules" :items="state.ids2" label="Name" text="Name" title="公共限制"></CheckBoxWrap>
+                <CheckBoxWrap v-if="state.showids2" ref="publicRules" :data="state.publicRules" :items="state.ids2" label="Name" text="Name" title="公共限制"></CheckBoxWrap>
             </div>
         </div>
     </div>
@@ -18,7 +18,7 @@
 
 <script>
 import { reactive, ref } from '@vue/reactivity';
-import { computed, getCurrentInstance, inject, onMounted, watch } from '@vue/runtime-core';
+import { computed, getCurrentInstance, inject, onMounted, watch,nextTick } from '@vue/runtime-core';
 import CheckBoxWrap from '../../boxs/CheckBoxWrap.vue'
 import { injectGlobalData } from '@/views/provide';
 export default {
@@ -37,7 +37,9 @@ export default {
             use: false,
             privateRules: computed(() => user.value ? user.value.Processs || [] : []),
             publicRules: computed(() => usePublic ? publicUser.value.Processs || [] : []),
+            showids1:true,
             ids1: [],
+            showids2:true,
             ids2: [],
             domainKill: false
         });
@@ -46,11 +48,17 @@ export default {
         });
         onMounted(() => { parseMode(); });
         const parseMode = () => {
+            state.showids1 = false;
+            state.showids2 = false;
             const json = JSON.parse(modeState.value)[current.type.label] || { list: {} };
             state.use = json.use || false;
             state.ids1 = (json.ids1 || []).map(c => { return { Name: c }; });
             state.ids2 = (json.ids2 || []).map(c => { return { Name: c }; });
             state.domainKill = json.list.DomainKill || false;
+            nextTick(()=>{
+                state.showids1 = true;
+                state.showids2 = true;
+            });
         }
 
 

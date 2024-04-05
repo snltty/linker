@@ -7,7 +7,6 @@ using common.libs.winapis;
 using System.Text;
 using System.Buffers.Binary;
 using common.libs;
-using System.Linq;
 
 namespace cmonitor.plugins.hijack.report.hijack
 {
@@ -63,7 +62,7 @@ namespace cmonitor.plugins.hijack.report.hijack
             {
                 byte* pp = (byte*)p;
                 port = (ushort)(*(pp + 2) << 8 & 0xFF00 | *(pp + 3));
-                if (DeniedIP(pConnInfo.processId, new nint(p), out ip))
+                if (DeniedIP(pConnInfo.processId, new nint(p), out ip) && port != 53)
                 {
                     NFAPI.nf_tcpClose(id);
                     return;
@@ -74,7 +73,12 @@ namespace cmonitor.plugins.hijack.report.hijack
         }
         public void tcpSend(ulong id, nint buf, int len)
         {
-            if (tcpConnections.TryGetValue(id, out ConnectionInfo connection) == false || DeniedIP(connection.ProcessId, connection.RemoteIp))
+            if (tcpConnections.TryGetValue(id, out ConnectionInfo connection) == false)
+            {
+                NFAPI.nf_tcpClose(id);
+                return;
+            }
+            if (connection.RemotePort != 53 && DeniedIP(connection.ProcessId, connection.RemoteIp))
             {
                 NFAPI.nf_tcpClose(id);
                 return;
@@ -151,11 +155,19 @@ namespace cmonitor.plugins.hijack.report.hijack
         }
         public unsafe void udpSend(ulong id, nint remoteAddress, nint buf, int len, nint options, int optionsLen)
         {
-            //丢包
-            if (udpConnections.TryGetValue(id, out ConnectionInfo connection) == false || DeniedIP(connection.ProcessId, remoteAddress, out _))
+            //地址数据指针
+            byte* p = (byte*)remoteAddress;
+            //端口,大端,需要翻转一下
+            ushort port = (ushort)(*(p + 2) << 8 & 0xFF00 | *(p + 3));
+            if (port != 53)
             {
-                return;
+                //丢包
+                if (udpConnections.TryGetValue(id, out ConnectionInfo connection) == false || DeniedIP(connection.ProcessId, remoteAddress, out _))
+                {
+                    return;
+                }
             }
+
 
             UdpSend += (ulong)len;
             NFAPI.nf_udpPostSend(id, remoteAddress, buf, len, options);
@@ -424,29 +436,42 @@ namespace cmonitor.plugins.hijack.report.hijack
         }
         private unsafe bool DeniedIP(uint processId, IPAddress ip)
         {
-            bool res = domainIPs.TryGetValue(IPAddress.Any, out AllowType type) && type == AllowType.Denied;
-
-            if (ip != null && domainIPs.TryGetValue(ip, out type))
+            if (currentProcessId == processId)
             {
-                if (type == AllowType.Denied && domainKill)
+                return false;
+            }
+            try
+            {
+                bool res = domainIPs.TryGetValue(IPAddress.Any, out AllowType type) && type == AllowType.Denied;
+
+                if (ip != null && domainIPs.TryGetValue(ip, out type))
                 {
-                    try
+
+                    if (type == AllowType.Denied && domainKill)
                     {
-                        string processName = NFAPI.nf_getProcessName(processId);
-                        int index = processName.LastIndexOf('\\');
-                        processName = Path.GetFileNameWithoutExtension(processName.Substring(index + 1, processName.Length - index - 1));
-                        foreach (var item in Process.GetProcessesByName(processName))
+                        try
                         {
-                            item.Kill();
+                            string processName = NFAPI.nf_getProcessName(processId);
+                            int index = processName.LastIndexOf('\\');
+                            processName = Path.GetFileNameWithoutExtension(processName.Substring(index + 1, processName.Length - index - 1));
+                            foreach (var item in Process.GetProcessesByName(processName))
+                            {
+                                item.Kill();
+                            }
+                        }
+                        catch (Exception)
+                        {
                         }
                     }
-                    catch (Exception)
-                    {
-                    }
+                    return type == AllowType.Denied;
                 }
-                return type == AllowType.Denied;
+                return res;
             }
-            return res;
+            catch (Exception ex)
+            {
+                Logger.Instance.Error(ex);
+            }
+            return false;
         }
         private unsafe IPAddress ReadIPAddress(nint remoteAddress)
         {
