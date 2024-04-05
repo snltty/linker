@@ -95,7 +95,7 @@ namespace cmonitor.plugins.system.report
     [MemoryPackable]
     public sealed partial class SystemOptionUpdateInfo
     {
-        public string Keys { get; set; }
+        public string Key { get; set; }
         public bool Value { get; set; }
     }
 

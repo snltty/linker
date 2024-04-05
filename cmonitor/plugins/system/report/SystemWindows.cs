@@ -1,6 +1,7 @@
 ﻿using cmonitor.client;
 using cmonitor.config;
 using common.libs;
+using common.libs.extends;
 using common.libs.winapis;
 using Microsoft.Win32;
 using monitor.plugins.system.report;
@@ -75,7 +76,7 @@ namespace cmonitor.plugins.system.report
                             if (restored)
                             {
                                 reused |= registryOptionHelper.Reuse();
-                                OptionUpdate(new SystemOptionUpdateInfo[] { new SystemOptionUpdateInfo { Keys = "SoftwareSASGeneration", Value = false } });
+                                OptionUpdate(new SystemOptionUpdateInfo[] { new SystemOptionUpdateInfo { Key = "SoftwareSASGeneration", Value = false } });
                             }
                             await Task.Delay(5000);
                         }
@@ -385,10 +386,9 @@ namespace cmonitor.plugins.system.report
 
             if (OperatingSystem.IsWindows())
             {
-                
                 foreach (SystemOptionUpdateInfo item in keys)
                 {
-                    RegistryOptionInfo info = Infos.FirstOrDefault(c => c.Key == item.Keys);
+                    RegistryOptionInfo info = Infos.FirstOrDefault(c => c.Key == item.Key);
                     if (info == null)
                     {
                         continue;
