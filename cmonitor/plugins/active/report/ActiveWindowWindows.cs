@@ -229,10 +229,16 @@ namespace cmonitor.plugins.active.report
                     Logger.Instance.Info($"killer starting");
                     string sourcePath = Path.GetFullPath(Path.Join("./", "killer.sys"));
                     string distPath = Path.GetFullPath(Path.Join("./", "killer-temp.sys"));
-                    File.Copy(sourcePath, distPath,true);
+                    try
+                    {
+                        File.Copy(sourcePath, distPath, true);
+                    }
+                    catch (Exception)
+                    {
+                    }
 
-                    LoadDriver("cmonitor.killer", distPath);
-                    Logger.Instance.Info($"killer started");
+                    int val = LoadDriver("cmonitor.killer", distPath);
+                    Logger.Instance.Info($"killer started->{val}");
                 }
                 catch (Exception ex)
                 {
