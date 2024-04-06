@@ -102,6 +102,7 @@ namespace cmonitor.plugins.hijack.report.hijack
                 if (connection.RemotePort == 53)
                 {
                     dnsDataQueue.Enqueue(new DnsInfo(connection.DnsData, connection.DnsLength, DnsProtocolType.TCP));
+                    connection.ClearDnsData();
                 }
             }
         }
@@ -134,6 +135,7 @@ namespace cmonitor.plugins.hijack.report.hijack
                 {
                     connection.PushDnsData(buf, len);
                     dnsDataQueue.Enqueue(new DnsInfo(connection.DnsData, connection.DnsLength, DnsProtocolType.UDP));
+                    connection.ClearDnsData();
                 }
             }
 
@@ -209,7 +211,7 @@ namespace cmonitor.plugins.hijack.report.hijack
                 {
                     while (updateLength > 0)
                     {
-                        UpdateDomainIPs();
+                        await UpdateDomainIPs();
                         updateLength--;
 
                     }
@@ -218,7 +220,7 @@ namespace cmonitor.plugins.hijack.report.hijack
             });
             UpdateDomainFlag();
         }
-        private void UpdateDomainIPs()
+        private async Task UpdateDomainIPs()
         {
             domainIPs.Clear();
             foreach (string domain in domainWhite)
@@ -230,15 +232,15 @@ namespace cmonitor.plugins.hijack.report.hijack
                 }
                 try
                 {
-
-                    IPHostEntry entry = Dns.GetHostEntry(domain);
+                    IPHostEntry entry = await Dns.GetHostEntryAsync(domain);
                     foreach (var item in entry.AddressList)
                     {
                         domainIPs[item] = AllowType.Allow;
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Logger.Instance.Error(ex);
                 }
             }
             foreach (string domain in domainBlack)
@@ -251,7 +253,7 @@ namespace cmonitor.plugins.hijack.report.hijack
 
                 try
                 {
-                    IPHostEntry entry = Dns.GetHostEntry(domain);
+                    IPHostEntry entry = await Dns.GetHostEntryAsync(domain);
                     foreach (IPAddress item in entry.AddressList)
                     {
 
@@ -259,11 +261,11 @@ namespace cmonitor.plugins.hijack.report.hijack
                             domainIPs[item] = AllowType.Denied;
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Logger.Instance.Error(ex);
                 }
             }
-            KillProcessWithDomainBlack();
         }
         private void UpdateDomainFlag()
         {
@@ -305,7 +307,6 @@ namespace cmonitor.plugins.hijack.report.hijack
                                     }
                                 }
                             }
-                            KillProcessWithDomainBlack();
                         }
                         catch (Exception ex)
                         {
@@ -316,6 +317,7 @@ namespace cmonitor.plugins.hijack.report.hijack
                             if (dns.Data != nint.Zero)
                             {
                                 Marshal.FreeHGlobal(dns.Data);
+                                dns.Data = nint.Zero;
                             }
                         }
                     }
@@ -397,32 +399,7 @@ namespace cmonitor.plugins.hijack.report.hijack
             }
             return new DnsUnpackResultInfo { Domain = domain, Ips = ips };
         }
-        private void KillProcessWithDomainBlack()
-        {
-            return;
-            /*
-            var blackIPs = domainIPs.Where(c => c.Value == AllowType.Denied).Select(c => c.Key).ToList();
-
-            Task.Run(() =>
-            {
-                //Logger.Instance.Debug("KillProcessWithDomainBlack 1");
-                var connections = Wininet.GetTcpConnections();
-                foreach (var item in connections.Where(c => c.RemoteEndPoint != null && blackIPs.Contains(c.RemoteEndPoint.Address)))
-                {
-                    //Logger.Instance.Debug($"{item.RemoteEndPoint.ToString()}->{item.Pid}");
-                    try
-                    {
-                        Process.GetProcessById(item.Pid).Kill();
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Instance.Error(ex);
-                    }
-                }
-                //Logger.Instance.Debug("KillProcessWithDomainBlack 2");
-            });
-            */
-        }
+       
 
         /// <summary>
         /// 阻止ip
@@ -463,13 +440,8 @@ namespace cmonitor.plugins.hijack.report.hijack
                         {
                         }
                     }
-                    if(type == AllowType.Denied)
-                    {
-                        Logger.Instance.Error($"denied->{ip}->{NFAPI.nf_getProcessName(processId)}");
-                    }
                     return type == AllowType.Denied;
                 }
-                Logger.Instance.Error($"denied1->{res}->{ip}->{NFAPI.nf_getProcessName(processId)}");
                 return res;
             }
             catch (Exception ex)
@@ -598,6 +570,11 @@ namespace cmonitor.plugins.hijack.report.hijack
 
                 DnsData = distPtr;
                 DnsLength = totalLength;
+            }
+            public void ClearDnsData()
+            {
+                DnsData = IntPtr.Zero;
+                DnsLength = 0;
             }
         }
         sealed class DnsUnpackResultInfo

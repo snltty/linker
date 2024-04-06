@@ -16,12 +16,6 @@ namespace cmonitor.plugins.share.report
 
         public ShareReport(Config config, ShareMemory shareMemory)
         {
-#if RELEASE
-            if (config.Common.BlueProtect && OperatingSystem.IsWindows())
-            {
-                //ProcessBlueProtection.Protect();
-            }
-#endif
             this.shareMemory = shareMemory;
             InitShare();
         }
@@ -68,10 +62,6 @@ namespace cmonitor.plugins.share.report
             {
                 shareMemory.RemoveAttribute(0, ShareMemoryAttribute.Closed);
                 shareMemory.RemoveAttribute(0, ShareMemoryAttribute.Running);
-                if (OperatingSystem.IsWindows())
-                {
-                    //ProcessBlueProtection.Unprotect();
-                }
                 Environment.Exit(0);
             }
         }
