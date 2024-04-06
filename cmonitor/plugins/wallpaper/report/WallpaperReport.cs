@@ -33,10 +33,9 @@ namespace cmonitor.plugins.wallpaper.report
 
         public object GetReports(ReportType reportType)
         {
-            if (reportType == ReportType.Full || shareMemory.ReadVersionUpdated((int)ShareMemoryIndexs.Wallpaper))
+            report.Value = Running();
+            if (reportType == ReportType.Full || report.Updated() || shareMemory.ReadVersionUpdated((int)ShareMemoryIndexs.Wallpaper))
             {
-                report.Value = Running();
-
                 return report;
             }
             return null;

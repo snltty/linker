@@ -20,7 +20,7 @@ namespace cmonitor.wallpaper.win
 
             string imgUrl = "./bg.jpg";
             string shareMkey = "cmonitor/share";
-            int shareMLength = 10;
+            int shareMLength = 100;
             int shareItemMLength = 1024;
             int shareKeyBoardIndex = 1;
             int shareWallpaperIndex = 2;

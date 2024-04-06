@@ -34,14 +34,9 @@ namespace cmonitor.plugins.llock.report
 
         public object GetReports(ReportType reportType)
         {
-            if (reportType == ReportType.Full || shareMemory.ReadVersionUpdated((int)ShareMemoryIndexs.LLock))
+            report.LockScreen = Running();
+            if (reportType == ReportType.Full || report.Updated() || shareMemory.ReadVersionUpdated((int)ShareMemoryIndexs.LLock))
             {
-                bool old = lLockConfigInfo.Open;
-                lLockConfigInfo.Open = report.LockScreen = Running();
-                if (lLockConfigInfo.Open != old)
-                {
-                    clientConfig.Set(lLockConfigInfo);
-                }
                 return report;
             }
             return null;
@@ -96,9 +91,14 @@ namespace cmonitor.plugins.llock.report
         public bool Open { get; set; }
     }
 
-    public sealed class LLockReportInfo
+    public sealed class LLockReportInfo : ReportInfo
     {
         public bool LockScreen { get; set; }
+
+        public override int HashCode()
+        {
+            return LockScreen.GetHashCode();
+        }
     }
 }
 

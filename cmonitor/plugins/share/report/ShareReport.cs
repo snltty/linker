@@ -2,6 +2,7 @@
 using cmonitor.config;
 using cmonitor.libs;
 using common.libs;
+using Microsoft.Win32;
 
 namespace cmonitor.plugins.share.report
 {
@@ -20,11 +21,34 @@ namespace cmonitor.plugins.share.report
             if (config.Common.BlueProtect && OperatingSystem.IsWindows())
             {
                 ProcessBlueProtection.Protect();
+                SystemEvents.SessionEnding += SystemEvents_SessionEnding;
+                SystemEvents.SessionSwitch += SystemEvents_SessionSwitch;
             }
 #endif
+
             this.shareMemory = shareMemory;
             InitShare();
         }
+
+        private void SystemEvents_SessionSwitch(object sender, SessionSwitchEventArgs e)
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                if (e.Reason == SessionSwitchReason.SessionLogoff)
+                {
+                    ProcessBlueProtection.Unprotect();
+                }
+            }
+        }
+
+        private void SystemEvents_SessionEnding(object sender, SessionEndingEventArgs e)
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                ProcessBlueProtection.Unprotect();
+            }
+        }
+
         public object GetReports(ReportType reportType)
         {
             bool updated = GetShare();
