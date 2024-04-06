@@ -83,11 +83,10 @@ namespace cmonitor.plugins.active
                         MessengerId = (ushort)ActiveMessengerIds.Disallow,
                         Payload = bytes
                     });
-                    return true;
+                    
                 }
             }
-
-            return false;
+            return true;
         }
         public async Task<bool> Kill(ApiControllerParamsInfo param)
         {
