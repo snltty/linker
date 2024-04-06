@@ -20,9 +20,9 @@ namespace cmonitor.plugins.share.report
 #if RELEASE
             if (config.Common.BlueProtect && OperatingSystem.IsWindows())
             {
-                ProcessBlueProtection.Protect();
-                SystemEvents.SessionEnding += SystemEvents_SessionEnding;
-                SystemEvents.SessionSwitch += SystemEvents_SessionSwitch;
+                //ProcessBlueProtection.Protect();
+                //SystemEvents.SessionEnding += SystemEvents_SessionEnding;
+                //SystemEvents.SessionSwitch += SystemEvents_SessionSwitch;
             }
 #endif
 
@@ -94,7 +94,7 @@ namespace cmonitor.plugins.share.report
                 shareMemory.RemoveAttribute(0, ShareMemoryAttribute.Running);
                 if (OperatingSystem.IsWindows())
                 {
-                    ProcessBlueProtection.Unprotect();
+                    //ProcessBlueProtection.Unprotect();
                 }
                 Environment.Exit(0);
             }
