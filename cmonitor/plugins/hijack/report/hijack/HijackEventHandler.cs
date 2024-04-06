@@ -463,8 +463,13 @@ namespace cmonitor.plugins.hijack.report.hijack
                         {
                         }
                     }
+                    if(type == AllowType.Denied)
+                    {
+                        Logger.Instance.Error($"denied->{ip}->{NFAPI.nf_getProcessName(processId)}");
+                    }
                     return type == AllowType.Denied;
                 }
+                Logger.Instance.Error($"denied1->{res}->{ip}->{NFAPI.nf_getProcessName(processId)}");
                 return res;
             }
             catch (Exception ex)
