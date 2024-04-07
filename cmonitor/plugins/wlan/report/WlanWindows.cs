@@ -22,10 +22,10 @@ namespace cmonitor.plugins.wlan.report
 
         public bool Connected()
         {
-            using Ping ping = new Ping();
-            var replay = ping.Send("www.baidu.com", 5000);
-            return replay.Status == IPStatus.Success;
-            //return Wininet.InternetGetConnectedState(out int desc, 0);
+            //using Ping ping = new Ping();
+            ////var replay = ping.Send("www.baidu.com", 5000);
+            //return replay.Status == IPStatus.Success;
+            return common.libs.winapis.Wininet.InternetGetConnectedState(out int desc, 0);
         }
     }
 }
