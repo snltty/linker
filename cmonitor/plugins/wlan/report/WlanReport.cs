@@ -23,23 +23,31 @@ namespace cmonitor.plugins.wlan.report
 
         private void WlanTask()
         {
+            Logger.Instance.Warning($"network task started");
             Task.Run(async () =>
             {
                 while (true)
                 {
-                    if (wlan.Connected() == false)
+                    try
                     {
-                        Logger.Instance.Warning($"network offline  reconnect it~");
-                        var wafis = wlan.WlanEnums();
-                        foreach (var wifi in wafis)
+                        if (wlan.Connected() == false)
                         {
-                            Logger.Instance.Warning($"network offline  reconnect {wifi}~");
-                            bool res = await wlan.WlanConnect(wifi);
-                            if (res)
+                            Logger.Instance.Warning($"network offline  reconnect it~");
+                            var wafis = wlan.WlanEnums();
+                            foreach (var wifi in wafis)
                             {
-                                break;
+                                Logger.Instance.Warning($"network offline  reconnect {wifi}~");
+                                bool res = await wlan.WlanConnect(wifi);
+                                if (res)
+                                {
+                                    break;
+                                }
                             }
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Instance.Error(ex);
                     }
                     await Task.Delay(3000);
                 }
