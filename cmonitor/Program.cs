@@ -34,6 +34,8 @@ namespace cmonitor
             StartupTransfer.Use(serviceProvider, config, assemblies);
 
 
+            FireWallHelper.Write(Path.GetFileNameWithoutExtension(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName));
+
             GCHelper.FlushMemory();
             await Helper.Await();
         }

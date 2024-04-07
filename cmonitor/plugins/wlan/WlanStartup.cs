@@ -28,6 +28,7 @@ namespace cmonitor.plugins.wlan
 
         public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
         {
+            serviceProvider.GetServices<WlanReport>();
         }
 
         public void UseServer(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)

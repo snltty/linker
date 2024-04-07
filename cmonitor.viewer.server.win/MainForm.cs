@@ -53,6 +53,7 @@ namespace cmonitor.viewer.server.win
             this.Visible = false;
 #endif
 
+            FireWallHelper.Write(Path.GetFileNameWithoutExtension(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName));
             CheckRunning();
 
             if (shareMode == Mode.Client)
@@ -119,24 +120,31 @@ namespace cmonitor.viewer.server.win
         }
 
 
-        RDPSession session;
+        private RDPSession session;
         private NotifyIcon notifyIcon;
+        private string invitationString;
         private void OpenShareDesktop()
         {
             notifyIcon = new NotifyIcon();
             notifyIcon.Visible = true;
             notifyIcon.ContextMenuStrip = new ContextMenuStrip();
-            notifyIcon.ContextMenuStrip.Items.Add("À¢–¬π≤œÌ");
-            notifyIcon.ContextMenuStrip.Items.Add("ÕÀ≥ˆ");
+            //notifyIcon.ContextMenuStrip.Items.Add("ËøûÊé•‰∏≤");
+            notifyIcon.ContextMenuStrip.Items.Add("Âà∑Êñ∞ÂÖ±‰∫´");
+            notifyIcon.ContextMenuStrip.Items.Add("ÈÄÄÂá∫");
             notifyIcon.ContextMenuStrip.ItemClicked += (object sender, ToolStripItemClickedEventArgs e) =>
             {
-                if (e.ClickedItem.Text == "ÕÀ≥ˆ")
+
+                if (e.ClickedItem.Text == "ÈÄÄÂá∫")
                 {
                     CloseServer();
                 }
-                else if (e.ClickedItem.Text == "À¢–¬π≤œÌ")
+                else if (e.ClickedItem.Text == "Âà∑Êñ∞ÂÖ±‰∫´")
                 {
                     NewShare();
+                }
+                else if (e.ClickedItem.Text == "ËøûÊé•‰∏≤")
+                {
+                    //MessageBox.Show(invitationString);
                 }
             };
             NewShare();
@@ -154,7 +162,7 @@ namespace cmonitor.viewer.server.win
                     session.OnAttendeeConnected += Session_OnAttendeeConnected;
                     session.Open();
                     IRDPSRAPIInvitation invitation = session.Invitations.CreateInvitation(guid, "snltty", "snltty", 1024);
-                    string invitationString = invitation.ConnectionString;
+                    invitationString = invitation.ConnectionString;
 
                     /*
                     XmlDocument xmlDoc = new XmlDocument();
@@ -169,13 +177,14 @@ namespace cmonitor.viewer.server.win
                     Registry.SetValue("HKEY_CURRENT_USER\\SOFTWARE\\Cmonitor", "viewerConnectStr", invitationString);
 
                     notifyIcon.Icon = Icon.FromHandle(Resources.logo_share_green.GetHicon());
-                    notifyIcon.Text = "’˝‘⁄π≤œÌ◊¿√Ê";
+                    notifyIcon.Text = "Ê≠£Âú®ÂÖ±‰∫´Ê°åÈù¢";
                 }
                 catch (Exception ex)
                 {
                     Debug.WriteLine(ex + "");
+                    //MessageBox.Show(ex.Message);
                     notifyIcon.Icon = Icon.FromHandle(Resources.logo_share_gray.GetHicon());
-                    notifyIcon.Text = "π≤œÌ ß∞‹";
+                    notifyIcon.Text = "ÂÖ±‰∫´Â§±Ë¥•";
                 }
             });
         }
