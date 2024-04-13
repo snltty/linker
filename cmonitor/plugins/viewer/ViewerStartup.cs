@@ -36,13 +36,13 @@ namespace cmonitor.plugins.viewer
 
         public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
         {
-            Logger.Instance.Info($"use viewer proxy server in client mode");
+            Logger.Instance.Info($"use viewer proxy server in client mode.");
             ViewerProxyClient viewerProxyServer = serviceProvider.GetService<ViewerProxyClient>();
         }
 
         public void UseServer(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
         {
-            Logger.Instance.Info($"use viewer proxy server in server mode");
+            Logger.Instance.Info($"use viewer proxy server in server mode.");
             ViewerProxyServer viewerProxyServer = serviceProvider.GetService<ViewerProxyServer>();
         }
     }
