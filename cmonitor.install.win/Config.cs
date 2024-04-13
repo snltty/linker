@@ -126,12 +126,12 @@ namespace cmonitor.install.win
         }
     }
 
-    public sealed class ConfigCommonInfo
+    public sealed partial class ConfigCommonInfo
     {
         public string[] Modes { get; set; } = new string[] { "client", "server" };
         public bool BlueProtect { get; set; }
     }
-    public sealed class ConfigClientInfo
+    public sealed partial class ConfigClientInfo
     {
         private string server = new IPEndPoint(IPAddress.Loopback, 1802).ToString();
         public string Server
@@ -165,12 +165,34 @@ namespace cmonitor.install.win
         public int ShareMemorySize { get; set; } = 1024;
 
     }
-    public sealed class ConfigServerInfo
+    public sealed partial class ConfigServerInfo
     {
         public int WebPort { get; set; } = 1800;
         public string WebRoot { get; set; } = "./web/";
         public int ApiPort { get; set; } = 1801;
         public int ServicePort { get; set; } = 1802;
 
+    }
+}
+
+
+namespace cmonitor.install.win
+{
+    public sealed class ViewerConfigInfo
+    {
+        [JsonIgnore]
+        public const string userNameKey = "viewer-username";
+
+        public int ProxyPort { get; set; } = 1803;
+    }
+
+    public sealed partial class ConfigClientInfo
+    {
+        public ViewerConfigInfo Viewer { get; set; } = new ViewerConfigInfo();
+    }
+
+    public sealed partial class ConfigServerInfo
+    {
+        public ViewerConfigInfo Viewer { get; set; } = new ViewerConfigInfo();
     }
 }

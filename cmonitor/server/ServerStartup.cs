@@ -35,7 +35,7 @@ namespace cmonitor.server
             if (loaded == false)
             {
                 MessengerResolver messengerResolver = serviceProvider.GetService<MessengerResolver>();
-                messengerResolver.LoadMessenger(assemblies);
+                messengerResolver.LoadMessenger(assemblies, config.Data.Common.PluginNames);
                 loaded = true;
             }
         }
@@ -45,7 +45,7 @@ namespace cmonitor.server
             if (loaded == false)
             {
                 MessengerResolver messengerResolver = serviceProvider.GetService<MessengerResolver>();
-                messengerResolver.LoadMessenger(assemblies);
+                messengerResolver.LoadMessenger(assemblies, config.Data.Common.PluginNames);
                 loaded = true;
             }
 
@@ -53,7 +53,7 @@ namespace cmonitor.server
             //服务
             TcpServer tcpServer = serviceProvider.GetService<TcpServer>();
             tcpServer.Start();
-            Logger.Instance.Info($"server listen:{config.Server.ServicePort}");
+            Logger.Instance.Info($"server listen:{config.Data.Server.ServicePort}");
         }
     }
 }

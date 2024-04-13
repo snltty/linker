@@ -26,7 +26,7 @@ namespace cmonitor.web
                 {
                     HttpListener http = new HttpListener();
                     http.IgnoreWriteExceptions = true;
-                    http.Prefixes.Add($"http://+:{config.Server.WebPort}/");
+                    http.Prefixes.Add($"http://+:{config.Data.Server.WebPort}/");
                     http.Start();
 
                     http.BeginGetContext(Callback, http);
@@ -53,7 +53,7 @@ namespace cmonitor.web
                 if (path == "/") path = "index.html";
 
 
-                path = Path.Join(config.Server.WebRoot, path);
+                path = Path.Join(config.Data.Server.WebRoot, path);
                 if (File.Exists(path))
                 {
                     byte[] bytes = File.ReadAllBytes(path);

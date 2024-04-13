@@ -27,7 +27,7 @@ namespace cmonitor.api
             IApiServer clientServer = serviceProvider.GetService<IApiServer>();
             clientServer.LoadPlugins(assemblies);
             clientServer.Websocket();
-            Logger.Instance.Info($"api listen:{config.Server.ApiPort}");
+            Logger.Instance.Info($"api listen:{config.Data.Server.ApiPort}");
         }
     }
 }

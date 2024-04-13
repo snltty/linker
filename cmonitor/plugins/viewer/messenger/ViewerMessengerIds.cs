@@ -3,10 +3,13 @@
     public enum ViewerMessengerIds : ushort
     {
         Server = 1800,
-        Client = 1801,
-        NotifyClient = 1802,
-        Heart = 1803,
-        NotifyHeart = 1804,
+        Heart = 1801,
+        HeartNotify = 1802,
+
+        ProxyFromClient = 1803,
+        ProxyFromServer = 1804,
+        ProxyNotify = 1805,
+
         None = 1899
     }
 }

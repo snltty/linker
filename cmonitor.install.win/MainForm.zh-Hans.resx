@@ -131,7 +131,7 @@
     <value>服务端地址</value>
   </data>
   <data name="label2.Location" type="System.Drawing.Point, System.Drawing">
-    <value>17, 85</value>
+    <value>17, 80</value>
   </data>
   <data name="label2.Size" type="System.Drawing.Size, System.Drawing">
     <value>56, 17</value>
@@ -140,7 +140,7 @@
     <value>服务端口</value>
   </data>
   <data name="serverPort.Location" type="System.Drawing.Point, System.Drawing">
-    <value>79, 82</value>
+    <value>79, 77</value>
   </data>
   <data name="label3.Location" type="System.Drawing.Point, System.Drawing">
     <value>17, 28</value>
@@ -149,7 +149,7 @@
     <value>79, 24</value>
   </data>
   <data name="label4.Location" type="System.Drawing.Point, System.Drawing">
-    <value>17, 56</value>
+    <value>17, 54</value>
   </data>
   <data name="label4.Size" type="System.Drawing.Size, System.Drawing">
     <value>56, 17</value>
@@ -158,7 +158,7 @@
     <value>管理端口</value>
   </data>
   <data name="apiPort.Location" type="System.Drawing.Point, System.Drawing">
-    <value>79, 53</value>
+    <value>79, 51</value>
   </data>
   <data name="modeClient.Location" type="System.Drawing.Point, System.Drawing">
     <value>105, 45</value>
@@ -167,16 +167,16 @@
     <value>298, 45</value>
   </data>
   <data name="label5.Location" type="System.Drawing.Point, System.Drawing">
-    <value>19, 130</value>
+    <value>19, 150</value>
   </data>
   <data name="shareLen.Location" type="System.Drawing.Point, System.Drawing">
-    <value>93, 127</value>
+    <value>93, 147</value>
   </data>
   <data name="label6.Location" type="System.Drawing.Point, System.Drawing">
-    <value>14, 104</value>
+    <value>14, 124</value>
   </data>
   <data name="shareKey.Location" type="System.Drawing.Point, System.Drawing">
-    <value>93, 100</value>
+    <value>93, 120</value>
   </data>
   <data name="label11.Location" type="System.Drawing.Point, System.Drawing">
     <value>26, 29</value>
@@ -185,25 +185,25 @@
     <value>93, 25</value>
   </data>
   <data name="installBtn.Location" type="System.Drawing.Point, System.Drawing">
-    <value>175, 268</value>
+    <value>175, 299</value>
   </data>
   <data name="runBtn.Location" type="System.Drawing.Point, System.Drawing">
-    <value>88, 268</value>
+    <value>88, 299</value>
   </data>
   <data name="checkStateBtn.Location" type="System.Drawing.Point, System.Drawing">
-    <value>305, 274</value>
+    <value>305, 305</value>
   </data>
   <data name="label16.Location" type="System.Drawing.Point, System.Drawing">
-    <value>7, 159</value>
+    <value>7, 179</value>
   </data>
   <data name="shareItemLen.Location" type="System.Drawing.Point, System.Drawing">
-    <value>93, 156</value>
+    <value>93, 176</value>
   </data>
   <data name="gbClient.Location" type="System.Drawing.Point, System.Drawing">
     <value>12, 72</value>
   </data>
   <data name="gbClient.Size" type="System.Drawing.Size, System.Drawing">
-    <value>200, 190</value>
+    <value>200, 212</value>
   </data>
   <data name="gbClient.Text" xml:space="preserve">
     <value>客户端参数</value>
@@ -212,7 +212,7 @@
     <value>219, 73</value>
   </data>
   <data name="gbServer.Size" type="System.Drawing.Size, System.Drawing">
-    <value>187, 189</value>
+    <value>187, 211</value>
   </data>
   <data name="gbServer.Text" xml:space="preserve">
     <value>服务端参数</value>
@@ -221,20 +221,63 @@
   <data name="cbBlueProtect.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="cbBlueProtect.Location" type="System.Drawing.Point, System.Drawing">
-    <value>174, 12</value>
-  </data>
   <data name="cbBlueProtect.Size" type="System.Drawing.Size, System.Drawing">
     <value>111, 21</value>
-  </data>
-  <data name="cbBlueProtect.TabIndex" type="System.Int32, mscorlib">
-    <value>39</value>
   </data>
   <data name="cbBlueProtect.Text" xml:space="preserve">
     <value>异常关闭则蓝屏</value>
   </data>
+  <data name="tbViewerPortClient.Location" type="System.Drawing.Point, System.Drawing">
+    <value>93, 80</value>
+  </data>
+  <data name="tbViewerPortClient.Size" type="System.Drawing.Size, System.Drawing">
+    <value>100, 23</value>
+  </data>
+  <data name="tbViewerPortClient.TabIndex" type="System.Int32, mscorlib">
+    <value>37</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="label7.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="label7.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 83</value>
+  </data>
+  <data name="label7.Size" type="System.Drawing.Size, System.Drawing">
+    <value>80, 17</value>
+  </data>
+  <data name="label7.TabIndex" type="System.Int32, mscorlib">
+    <value>38</value>
+  </data>
+  <data name="label7.Text" xml:space="preserve">
+    <value>共享桌面端口</value>
+  </data>
+  <data name="tbViewerPortServer.Location" type="System.Drawing.Point, System.Drawing">
+    <value>79, 104</value>
+  </data>
+  <data name="tbViewerPortServer.Size" type="System.Drawing.Size, System.Drawing">
+    <value>100, 23</value>
+  </data>
+  <data name="tbViewerPortServer.TabIndex" type="System.Int32, mscorlib">
+    <value>39</value>
+  </data>
+  <data name="label8.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="label8.Location" type="System.Drawing.Point, System.Drawing">
+    <value>-3, 107</value>
+  </data>
+  <data name="label8.Size" type="System.Drawing.Size, System.Drawing">
+    <value>80, 17</value>
+  </data>
+  <data name="label8.TabIndex" type="System.Int32, mscorlib">
+    <value>40</value>
+  </data>
+  <data name="label8.Text" xml:space="preserve">
+    <value>共享桌面端口</value>
+  </data>
   <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing">
-    <value>418, 315</value>
+    <value>418, 346</value>
   </data>
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>

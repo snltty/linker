@@ -1,4 +1,6 @@
-﻿namespace cmonitor.plugins.hijack.report
+﻿using cmonitor.plugins.hijack.report;
+
+namespace cmonitor.plugins.hijack.report
 {
     public sealed class HijackConfig
     {
@@ -41,4 +43,20 @@
 
     }
 
+}
+
+namespace cmonitor.client.running
+{
+    public sealed partial class RunningConfigInfo
+    {
+        private HijackConfig hijack = new HijackConfig();
+        public HijackConfig Hijack
+        {
+            get => hijack; set
+            {
+                Updated++;
+                hijack = value;
+            }
+        }
+    }
 }

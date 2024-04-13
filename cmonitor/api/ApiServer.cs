@@ -38,7 +38,11 @@ namespace cmonitor.api
             Type voidType = typeof(void);
 
             IEnumerable<Type> types = assemblys.SelectMany(c => c.GetTypes()).Where(c => c.GetInterfaces().Contains(typeof(IApiController)));
-           
+            if (config.Data.Common.PluginNames.Length > 0)
+            {
+                types = types.Where(c => config.Data.Common.PluginNames.Any(d => c.FullName.Contains(d)));
+            }
+
             foreach (Type item in types)
             {
                 object obj = serviceProvider.GetService(item);
@@ -76,7 +80,7 @@ namespace cmonitor.api
             server = new WebSocketServer();
             try
             {
-                server.Start(System.Net.IPAddress.Any, config.Server.ApiPort);
+                server.Start(System.Net.IPAddress.Any, config.Data.Server.ApiPort);
             }
             catch (Exception ex)
             {

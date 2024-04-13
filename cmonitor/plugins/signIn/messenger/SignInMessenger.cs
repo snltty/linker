@@ -19,7 +19,7 @@ namespace cmonitor.plugins.signIn.messenger
         public void SignIn(IConnection connection)
         {
             SignInfo info = MemoryPackSerializer.Deserialize<SignInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (info.Version == config.Version)
+            if (info.Version == config.Data.Version)
             {
                 signCaching.Sign(connection, info);
                 connection.Write(Helper.TrueArray);

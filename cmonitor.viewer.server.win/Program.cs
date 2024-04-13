@@ -1,3 +1,6 @@
+using System.Net;
+using System.Text.Json;
+
 namespace cmonitor.viewer.server.win
 {
     internal static class Program
@@ -19,22 +22,26 @@ namespace cmonitor.viewer.server.win
                 MessageBox.Show(b.ExceptionObject.ToString());
             };
 
-            string shareMkey = "cmonitor/share";
-            int shareMLength = 10;
-            int shareItemMLength = 1024;
-            int shareIndex = 5;
-            Mode mode = Mode.Server;
+            ParamInfo paramInfo = new ParamInfo();
             if (arg.Length > 0)
             {
-                shareMkey = arg[0];
-                shareMLength = int.Parse(arg[1]);
-                shareItemMLength = int.Parse(arg[2]);
-                shareIndex = int.Parse(arg[3]);
-                mode = (Mode)byte.Parse(arg[4]);
+                paramInfo = JsonSerializer.Deserialize<ParamInfo>(arg[0]);
             }
-
             ApplicationConfiguration.Initialize();
-            Application.Run(new MainForm(shareMkey, shareMLength, shareItemMLength, shareIndex, mode));
+            Application.Run(new MainForm(paramInfo));
         }
+
+        
+    }
+
+    public sealed class ParamInfo
+    {
+        public string ShareMkey { get; set; } = "cmonitor/share";
+        public int ShareMLength { get; set; } = 10;
+        public int ShareItemMLength { get; set; } = 1024;
+        public int ShareIndex { get; set; } = 5;
+        public Mode Mode { get; set; } = Mode.Server;
+        public string GroupName { get; set; } = "snltty";
+        public string ProxyServers { get; set; } = "127.0.0.1:1803";
     }
 }

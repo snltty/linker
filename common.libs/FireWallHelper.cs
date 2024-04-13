@@ -31,7 +31,9 @@ namespace common.libs
 
         private static void Windows(string fileName)
         {
-            string content = $@"@echo off
+            try
+            {
+                string content = $@"@echo off
 cd  ""%CD%""
 for /f ""tokens=4,5 delims=. "" %%a in ('ver') do if %%a%%b geq 60 goto new
 
@@ -49,9 +51,13 @@ cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=all
 cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=tcp enable=yes profile=private
 cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=udp enable=yes profile=private
 :end";
-            System.IO.File.WriteAllText("firewall.bat", content);
-            CommandHelper.Execute("firewall.bat", string.Empty, new string[0]);
-            System.IO.File.Delete("firewall.bat");
+                System.IO.File.WriteAllText("firewall.bat", content);
+                CommandHelper.Execute("firewall.bat", string.Empty, new string[0]);
+                System.IO.File.Delete("firewall.bat");
+            }
+            catch (Exception)
+            {
+            }
         }
     }
 }

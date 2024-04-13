@@ -15,7 +15,7 @@ namespace cmonitor.plugins.wallpaper.report
             if (info.Open)
             {
                 CommandHelper.Windows(string.Empty, new string[] {
-                        $"start cmonitor.wallpaper.win.exe \"{info.ImgUrl}\" {config.Client.ShareMemoryKey} {config.Client.ShareMemoryCount} {config.Client.ShareMemorySize} {(int)ShareMemoryIndexs.Keyboard} {(int)ShareMemoryIndexs.Wallpaper}"
+                        $"start cmonitor.wallpaper.win.exe \"{info.ImgUrl}\" {config.Data.Client.ShareMemoryKey} {config.Data.Client.ShareMemoryCount} {config.Data.Client.ShareMemorySize} {(int)ShareMemoryIndexs.Keyboard} {(int)ShareMemoryIndexs.Wallpaper}"
                     },false);
             }
         }

@@ -1,9 +1,10 @@
 ﻿using cmonitor.client;
-using cmonitor.client.runningConfig;
 using cmonitor.client.report;
 using cmonitor.config;
 using cmonitor.libs;
 using common.libs;
+using cmonitor.client.running;
+using cmonitor.plugins.llock.report;
 
 namespace cmonitor.plugins.llock.report
 {
@@ -13,21 +14,19 @@ namespace cmonitor.plugins.llock.report
 
         private LLockReportInfo report = new LLockReportInfo();
 
-        private readonly IRunningConfig clientConfig;
+        private readonly RunningConfig runningConfig;
         private readonly ILLock lLock;
         private readonly ShareMemory shareMemory;
-        private readonly LLockConfigInfo lLockConfigInfo = new LLockConfigInfo();
 
-        public LLockReport(Config config, IRunningConfig clientConfig, ILLock lLock, ShareMemory shareMemory, ClientSignInState clientSignInState)
+        public LLockReport(Config config, RunningConfig runningConfig, ILLock lLock, ShareMemory shareMemory, ClientSignInState clientSignInState)
         {
-            this.clientConfig = clientConfig;
+            this.runningConfig = runningConfig;
             this.lLock = lLock;
             this.shareMemory = shareMemory;
 
-            lLockConfigInfo = clientConfig.Get(new LLockConfigInfo { });
             clientSignInState.NetworkFirstEnabledHandle += () =>
             {
-                LockScreen(lLockConfigInfo.Open);
+                LockScreen(runningConfig.Data.LLock.Open);
                 WallpaperTask();
             };
         }
@@ -44,10 +43,10 @@ namespace cmonitor.plugins.llock.report
 
         public void LockScreen(bool open)
         {
-            lLockConfigInfo.Open = open;
+            runningConfig.Data.LLock.Open = open;
+            runningConfig.Data.Update();
             Task.Run(async () =>
             {
-                clientConfig.Set(lLockConfigInfo);
                 shareMemory.AddAttribute((int)ShareMemoryIndexs.LLock, ShareMemoryAttribute.Closed);
                 await Task.Delay(100);
                 lLock.Set(open);
@@ -72,11 +71,11 @@ namespace cmonitor.plugins.llock.report
             {
                 while (true)
                 {
-                    if (lLockConfigInfo.Open)
+                    if (runningConfig.Data.LLock.Open)
                     {
                         if (Running() == false)
                         {
-                            LockScreen(lLockConfigInfo.Open);
+                            LockScreen(runningConfig.Data.LLock.Open);
                         }
                     }
                     await Task.Delay(5000);
@@ -101,4 +100,22 @@ namespace cmonitor.plugins.llock.report
         }
     }
 }
+
+
+namespace cmonitor.client.running
+{
+    public sealed partial class RunningConfigInfo
+    {
+        private LLockConfigInfo llock = new LLockConfigInfo();
+        public LLockConfigInfo LLock
+        {
+            get => llock; set
+            {
+                Updated++;
+                llock = value;
+            }
+        }
+    }
+}
+
 

@@ -1,6 +1,7 @@
 ﻿using cmonitor.api;
 using cmonitor.plugins.signIn.messenger;
 using cmonitor.plugins.viewer.messenger;
+using cmonitor.plugins.viewer.proxy;
 using cmonitor.plugins.viewer.report;
 using cmonitor.server;
 using common.libs.extends;
@@ -12,28 +13,39 @@ namespace cmonitor.plugins.viewer
     {
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;
-        public ViewerApiController(MessengerSender messengerSender, SignCaching signCaching)
+        private readonly ViewerProxyCaching viewerProxyCaching;
+
+        public ViewerApiController(MessengerSender messengerSender, SignCaching signCaching, ViewerProxyCaching viewerProxyCaching)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
+            this.viewerProxyCaching = viewerProxyCaching;
         }
         public bool Update(ApiControllerParamsInfo param)
         {
             ViewerUpdateParamInfo viewer = param.Content.DeJson<ViewerUpdateParamInfo>();
-            //去掉服务端
+            //去掉服务端,
             var list = viewer.Clients.ToList();
             list.Remove(viewer.Server);
             viewer.Clients = list.ToArray();
+            viewerProxyCaching.Remove(viewer.ShareId);
 
             if (signCaching.Get(viewer.Server, out SignCacheInfo cache) && cache.Connected)
             {
-                byte[] serverBytes = MemoryPackSerializer.Serialize(new ViewerConfigInfo
+                ViewerRunningConfigInfo info = new ViewerRunningConfigInfo
                 {
-                    Clients = viewer.Clients,
+                    ServerMachine = viewer.Server,
+                    ClientMachines = viewer.Clients,
                     ConnectStr = string.Empty,
                     Mode = ViewerMode.Server,
                     Open = viewer.Open
-                });
+                };
+                if (info.Open)
+                {
+                    info.ShareId = viewerProxyCaching.Set(viewer.Server);
+                }
+
+                byte[] serverBytes = MemoryPackSerializer.Serialize(info);
                 _ = messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = cache.Connection,
@@ -48,6 +60,8 @@ namespace cmonitor.plugins.viewer
             public bool Open { get; set; }
             public string Server { get; set; } = string.Empty;
             public string[] Clients { get; set; } = Array.Empty<string>();
+
+            public string ShareId { get; set; } = string.Empty;
         }
     }
 

@@ -212,10 +212,12 @@ namespace cmonitor.plugins.active.report
 
         private void InitDriver()
         {
-            AppDomain.CurrentDomain.ProcessExit += (sender, e) => {
+            AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
+            {
                 CommandHelper.Windows(string.Empty, new string[] { "sc stop cmonitor.killer & sc delete cmonitor.killer" }, true);
             };
-            Console.CancelKeyPress += (sender, e) => {
+            Console.CancelKeyPress += (sender, e) =>
+            {
                 CommandHelper.Windows(string.Empty, new string[] { "sc stop cmonitor.killer & sc delete cmonitor.killer" }, true);
             };
             Task.Run(() =>
@@ -228,7 +230,15 @@ namespace cmonitor.plugins.active.report
 
                     Logger.Instance.Info($"killer starting");
                     string sourcePath = Path.GetFullPath(Path.Join("./", "killer.sys"));
-                    string distPath = Path.GetFullPath(Path.Join("./", "killer-temp.sys"));
+                    string distPath = $"{Environment.SystemDirectory}\\drivers\\killer.sys";
+
+                    try
+                    {
+                        File.Delete("killer-temp.sys");
+                    }
+                    catch (Exception)
+                    {
+                    }
                     try
                     {
                         File.Copy(sourcePath, distPath, true);

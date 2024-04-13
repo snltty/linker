@@ -1,5 +1,4 @@
 ﻿using cmonitor.client;
-using cmonitor.client.runningConfig;
 using cmonitor.client.report;
 using cmonitor.config;
 using cmonitor.libs;
@@ -7,6 +6,10 @@ using cmonitor.plugins.viewer.messenger;
 using cmonitor.server;
 using common.libs;
 using MemoryPack;
+using cmonitor.client.running;
+using System.Net;
+using System.Text.Json;
+using cmonitor.plugins.viewer.proxy;
 
 namespace cmonitor.plugins.viewer.report
 {
@@ -20,22 +23,24 @@ namespace cmonitor.plugins.viewer.report
         public string Name => "Viewer";
 
         private ViewerReportInfo report = new ViewerReportInfo();
-        private readonly IRunningConfig clientConfig;
+        private readonly RunningConfig runningConfig;
         private readonly IViewer viewer;
         private readonly ShareMemory shareMemory;
-        private ViewerConfigInfo viewerConfigInfo;
         private readonly MessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
+        private readonly Config config;
+        private readonly ViewerProxyClient viewerProxyClient;
 
-        public ViewerReport(Config config, IRunningConfig clientConfig, IViewer viewer, ShareMemory shareMemory, ClientSignInState clientSignInState, MessengerSender messengerSender)
+        public ViewerReport(Config config, RunningConfig runningConfig, IViewer viewer, ShareMemory shareMemory, ClientSignInState clientSignInState, MessengerSender messengerSender, ViewerProxyClient viewerProxyClient)
         {
-            this.clientConfig = clientConfig;
+            this.config = config;
+            this.runningConfig = runningConfig;
             this.viewer = viewer;
             this.shareMemory = shareMemory;
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
+            this.viewerProxyClient = viewerProxyClient;
 
-            viewerConfigInfo = clientConfig.Get(new ViewerConfigInfo { });
             clientSignInState.NetworkFirstEnabledHandle += () =>
             {
                 Update();
@@ -46,7 +51,8 @@ namespace cmonitor.plugins.viewer.report
         public object GetReports(ReportType reportType)
         {
             report.Value = Running();
-            report.Mode = viewerConfigInfo.Mode;
+            report.Mode = runningConfig.Data.Viewer.Mode;
+            report.ShareId = runningConfig.Data.Viewer.ShareId;
             if (reportType == ReportType.Full || report.Updated() || shareMemory.ReadVersionUpdated((int)ShareMemoryIndexs.Viewer))
             {
                 return report;
@@ -54,63 +60,68 @@ namespace cmonitor.plugins.viewer.report
             return null;
         }
 
-        private void Update()
-        {
-            if (viewerConfigInfo.Mode == ViewerMode.Server && viewerConfigInfo.Open && Running() == false)
-            {
-                Server(viewerConfigInfo);
-            }
-        }
-        public void Server(ViewerConfigInfo info)
+        public void Server(ViewerRunningConfigInfo info)
         {
             if (info.Open)
             {
-                viewerConfigInfo = info;
+                runningConfig.Data.Viewer = info;
             }
             else
             {
-                viewerConfigInfo.Open = info.Open;
+                runningConfig.Data.Viewer.Open = info.Open;
             }
+            runningConfig.Data.Update();
 
-            clientConfig.Set(viewerConfigInfo);
-            viewerConfigInfo.ConnectStr = string.Empty;
-            viewer.SetConnectString(viewerConfigInfo.ConnectStr);
 
             Task.Run(async () =>
             {
-                shareMemory.AddAttribute((int)ShareMemoryIndexs.Viewer, ShareMemoryAttribute.Closed);
-                shareMemory.RemoveAttribute((int)ShareMemoryIndexs.Viewer, ShareMemoryAttribute.Running);
-                await Task.Delay(200);
+                Close();
+                await HeartNotify(false);
+                await Task.Delay(500);
+                Open();
 
-                viewer.Open(viewerConfigInfo.Open, viewerConfigInfo.Mode);
-                if (viewerConfigInfo.Open)
+                if (runningConfig.Data.Viewer.Open)
                 {
-                    try
+                    runningConfig.Data.Viewer.ConnectStr = await GetNewConnectStr();
+                    if (string.IsNullOrWhiteSpace(runningConfig.Data.Viewer.ConnectStr) == false)
                     {
-                        for (int i = 0; i < 300; i++)
-                        {
-                            var attr = shareMemory.ReadAttribute((int)ShareMemoryIndexs.Viewer);
-                            if (shareMemory.ReadAttributeEqual((int)ShareMemoryIndexs.Viewer, ShareMemoryAttribute.Running))
-                            {
-                                viewerConfigInfo.ConnectStr = viewer.GetConnectString();
-                                if (string.IsNullOrWhiteSpace(viewerConfigInfo.ConnectStr) == false)
-                                {
-                                    NotifyHeart();
-                                    break;
-                                }
-                            }
-                            await Task.Delay(100);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Instance.Error(ex);
+                        UpdateConnectEP();
+                        await HeartNotify(runningConfig.Data.Viewer.Open);
                     }
                 }
-                else
-                {
-                    NotifyClient();
-                }
+            });
+        }
+        public void Heart(ViewerRunningConfigInfo info)
+        {
+            if (info.ConnectStr != runningConfig.Data.Viewer.ConnectStr)
+            {
+                viewer.SetConnectString(ReplaceProxy(info.ConnectStr));
+            }
+
+            //未运行，或者不是client模式，或者状态不对，都需要重启一下
+            bool restart = Running() != true
+                || runningConfig.Data.Viewer.Mode != ViewerMode.Client
+                || runningConfig.Data.Viewer.Open != info.Open;
+
+            runningConfig.Data.Viewer = info;
+            runningConfig.Data.Update();
+
+            if (restart)
+            {
+                RestartClient();
+            }
+        }
+        private async Task HeartNotify(bool open)
+        {
+            ViewerRunningConfigInfo info = JsonSerializer.Deserialize<ViewerRunningConfigInfo>(JsonSerializer.Serialize(runningConfig.Data.Viewer));
+            info.Mode = ViewerMode.Client;
+            info.Open = open;
+
+            await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)ViewerMessengerIds.HeartNotify,
+                Payload = MemoryPackSerializer.Serialize(info)
             });
         }
 
@@ -118,57 +129,86 @@ namespace cmonitor.plugins.viewer.report
         {
             Task.Run(async () =>
             {
-                shareMemory.AddAttribute((int)ShareMemoryIndexs.Viewer, ShareMemoryAttribute.Closed);
-                shareMemory.RemoveAttribute((int)ShareMemoryIndexs.Viewer, ShareMemoryAttribute.Running);
+                Close();
                 await Task.Delay(500);
-                viewer.Open(viewerConfigInfo.Open, viewerConfigInfo.Mode);
+                Open();
             });
         }
-        public void Client(ViewerConfigInfo info)
+        private void Update()
         {
-            viewerConfigInfo = info;
-            clientConfig.Set(viewerConfigInfo);
-            viewer.SetConnectString(viewerConfigInfo.ConnectStr);
-            RestartClient();
-        }
-        private void NotifyClient()
-        {
-            _ = messengerSender.SendOnly(new MessageRequestWrap
+            if (runningConfig.Data.Viewer.Mode == ViewerMode.Server && runningConfig.Data.Viewer.Open && Running() == false)
             {
-                Connection = clientSignInState.Connection,
-                MessengerId = (ushort)ViewerMessengerIds.NotifyClient,
-                Payload = MemoryPackSerializer.Serialize(viewerConfigInfo)
-            });
+                Server(runningConfig.Data.Viewer);
+            }
         }
-        public void Heart(string connectStr)
-        {
-            bool restart = Running() == false || viewerConfigInfo.Mode == ViewerMode.Server;
-            viewerConfigInfo.ConnectStr = connectStr;
-            viewerConfigInfo.Mode = ViewerMode.Client;
-            viewerConfigInfo.Open = true;
-            clientConfig.Set(viewerConfigInfo);
-            viewer.SetConnectString(viewerConfigInfo.ConnectStr);
 
-            if (restart)
-            {
-                RestartClient();
-            }
-        }
-        private void NotifyHeart()
+
+        private async Task<string> GetNewConnectStr()
         {
-            if (string.IsNullOrWhiteSpace(viewerConfigInfo.ConnectStr))
+            try
             {
-                return;
-            }
-            if (viewerConfigInfo.Open && viewerConfigInfo.Mode == ViewerMode.Server && Running())
-            {
-                _ = messengerSender.SendOnly(new MessageRequestWrap
+                for (int i = 0; i < 300; i++)
                 {
-                    Connection = clientSignInState.Connection,
-                    MessengerId = (ushort)ViewerMessengerIds.NotifyHeart,
-                    Payload = MemoryPackSerializer.Serialize(viewerConfigInfo)
+                    if (shareMemory.ReadAttributeEqual((int)ShareMemoryIndexs.Viewer, ShareMemoryAttribute.Running))
+                    {
+                        string connectStr = viewer.GetConnectString();
+                        if (string.IsNullOrWhiteSpace(connectStr) == false) return connectStr;
+                    }
+                    await Task.Delay(100);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error(ex);
+            }
+            return string.Empty;
+        }
+        private string ReplaceProxy(string connectStr)
+        {
+            if (IPAddress.IsLoopback(clientSignInState.Connection.LocalAddress.Address))
+            {
+                Logger.Instance.Warning($"use Loopback address【{clientSignInState.Connection.LocalAddress.Address}】 as  viewer proxy，may fail");
+                Logger.Instance.Warning($"connect to the local or external network address of the cmonitor server,to fix this");
+            }
+
+            return connectStr
+                .Replace("{ip}", clientSignInState.Connection.LocalAddress.Address.ToString())
+            //.Replace("{port}", "12345");
+                .Replace("{port}", viewerProxyClient.LocalEndpoint.Port.ToString());
+
+        }
+        private void UpdateConnectEP()
+        {
+            string connectEP = viewer.GetConnectEP(runningConfig.Data.Viewer.ConnectStr);
+            runningConfig.Data.Viewer.ConnectEP = connectEP;
+            runningConfig.Data.Update();
+        }
+
+        private void Open()
+        {
+            if (runningConfig.Data.Viewer.Open)
+            {
+                viewer.Open(runningConfig.Data.Viewer.Open, new ParamInfo
+                {
+                    GroupName = runningConfig.Data.Viewer.ShareId,
+                    Mode = runningConfig.Data.Viewer.Mode,
+                    ProxyServers = string.Join(",", new string[] {
+                           $"{clientSignInState.Connection.Address.Address}:{config.Data.Client.Viewer.ProxyPort}"
+                    }),
+                    ShareIndex = (int)ShareMemoryIndexs.Viewer,
+                    ShareMkey = config.Data.Client.ShareMemoryKey,
+                    ShareMLength = config.Data.Client.ShareMemoryCount,
+                    ShareItemMLength = config.Data.Client.ShareMemorySize
                 });
             }
+        }
+        private void Close()
+        {
+            shareMemory.AddAttribute((int)ShareMemoryIndexs.Viewer, ShareMemoryAttribute.Closed);
+            shareMemory.RemoveAttribute((int)ShareMemoryIndexs.Viewer, ShareMemoryAttribute.Running);
+            runningConfig.Data.Viewer.ConnectStr = string.Empty;
+            viewer.SetConnectString(runningConfig.Data.Viewer.ConnectStr);
+            runningConfig.Data.Update();
         }
 
         private bool Running()
@@ -183,20 +223,35 @@ namespace cmonitor.plugins.viewer.report
             {
                 while (true)
                 {
-                    NotifyHeart();
+                    bool heart = string.IsNullOrWhiteSpace(runningConfig.Data.Viewer.ConnectStr) == false
+                     && runningConfig.Data.Viewer.Open && runningConfig.Data.Viewer.Mode == ViewerMode.Server && Running();
+
+                    if (heart)
+                    {
+                        await HeartNotify(runningConfig.Data.Viewer.Open);
+                    }
+
                     await Task.Delay(5000);
                 }
             });
         }
     }
 
+    [MemoryPackable]
+    public sealed partial class ViewerHeartInfo
+    {
+        public string Server { get; set; }
+        public string ConnectStr { get; set; }
+    }
+
     public sealed class ViewerReportInfo : ReportInfo
     {
         public bool Value { get; set; }
         public ViewerMode Mode { get; set; }
+        public string ShareId { get; set; } = string.Empty;
         public override int HashCode()
         {
-            return Value.GetHashCode() ^ Mode.GetHashCode();
+            return Value.GetHashCode() ^ Mode.GetHashCode() ^ ShareId.GetHashCode();
         }
     }
 }

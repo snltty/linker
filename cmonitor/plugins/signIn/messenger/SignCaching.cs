@@ -31,7 +31,8 @@ namespace cmonitor.plugins.signIn.messenger
             {
                 Connection = connection,
                 MachineName = signInfo.MachineName,
-                Version = signInfo.Version
+                Version = signInfo.Version,
+                Args = signInfo.Args,
             };
             config.Clients.TryAdd(signInfo.MachineName, cache1);
             changed = true;
@@ -86,6 +87,8 @@ namespace cmonitor.plugins.signIn.messenger
         public string MachineName { get; set; }
         public string Version { get; set; } = "1.0.0.0";
 
+        public Dictionary<string, string> Args { get; set; } = new Dictionary<string, string>();
+
         [JsonIgnore]
         public int ReportFlag = 1;
         [JsonIgnore]
@@ -115,7 +118,6 @@ namespace cmonitor.plugins.signIn.messenger
             ScreenTime = Environment.TickCount;
         }
 
-
         public bool Connected
         {
             get
@@ -130,7 +132,9 @@ namespace cmonitor.plugins.signIn.messenger
     [MemoryPackable]
     public sealed partial class SignInfo
     {
-        public string MachineName { get; set; }
-        public string Version { get; set; }
+        public string MachineName { get; set; } = string.Empty;
+        public string Version { get; set; } = string.Empty;
+
+        public Dictionary<string, string> Args { get; set; } = new Dictionary<string, string>();
     }
 }

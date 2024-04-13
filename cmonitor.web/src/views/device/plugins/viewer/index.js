@@ -3,7 +3,8 @@ export default {
         return {
             Viewer: {
                 share: false,
-                mode: 'server'
+                mode: 'server',
+                id: ''
             }
         };
     },
@@ -25,6 +26,7 @@ export default {
         if (!report.Viewer) return;
 
 
+        item.Viewer.id = report.Viewer.ShareId;
         item.Viewer.share = report.Viewer.Value;
         item.Viewer.mode = ['client', 'server'][report.Viewer.Mode];
     }

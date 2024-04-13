@@ -1,9 +1,9 @@
 ﻿using cmonitor.client;
-using cmonitor.client.runningConfig;
 using cmonitor.client.report;
 using cmonitor.config;
 using cmonitor.libs;
 using common.libs;
+using cmonitor.client.running;
 
 namespace cmonitor.plugins.wallpaper.report
 {
@@ -12,21 +12,19 @@ namespace cmonitor.plugins.wallpaper.report
         public string Name => "Wallpaper";
 
         private WallpaperReportInfo report = new WallpaperReportInfo();
-        private readonly IRunningConfig clientConfig;
+        private readonly RunningConfig  runningConfig;
         private readonly IWallpaper wallpaper;
         private readonly ShareMemory shareMemory;
-        private WallpaperConfigInfo wallpaperConfig;
 
-        public WallpaperReport(Config config, IRunningConfig clientConfig, IWallpaper wallpaper, ShareMemory shareMemory, ClientSignInState clientSignInState)
+        public WallpaperReport(Config config, RunningConfig runningConfig, IWallpaper wallpaper, ShareMemory shareMemory, ClientSignInState clientSignInState)
         {
-            this.clientConfig = clientConfig;
+            this.runningConfig = runningConfig;
             this.wallpaper = wallpaper;
             this.shareMemory = shareMemory;
 
-            wallpaperConfig = clientConfig.Get(new WallpaperConfigInfo { });
             clientSignInState.NetworkFirstEnabledHandle += () =>
             {
-                Update(wallpaperConfig);
+                Update(runningConfig.Data.Wallpaper);
                 WallpaperTask();
             };
         }
@@ -43,13 +41,12 @@ namespace cmonitor.plugins.wallpaper.report
 
         public void Update(WallpaperConfigInfo info)
         {
-            wallpaperConfig = info;
+            runningConfig.Data.Wallpaper = info;
             Task.Run(async () =>
             {
-                clientConfig.Set(wallpaperConfig);
                 shareMemory.AddAttribute((int)ShareMemoryIndexs.Wallpaper, ShareMemoryAttribute.Closed);
                 await Task.Delay(100);
-                wallpaper.Set(wallpaperConfig);
+                wallpaper.Set(runningConfig.Data.Wallpaper);
             });
         }
 
@@ -65,11 +62,11 @@ namespace cmonitor.plugins.wallpaper.report
             {
                 while (true)
                 {
-                    if (wallpaperConfig.Open)
+                    if (runningConfig.Data.Wallpaper.Open)
                     {
                         if (Running() == false)
                         {
-                            Update(wallpaperConfig);
+                            Update(runningConfig.Data.Wallpaper);
                         }
                     }
                     await Task.Delay(5000);

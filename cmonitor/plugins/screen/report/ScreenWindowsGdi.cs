@@ -38,7 +38,7 @@ namespace cmonitor.plugins.screen.report
             {
                 try
                 {
-                    if (config.Elevated == true && !Win32Interop.SwitchToInputDesktop())
+                    if (config.Data.Elevated == true && !Win32Interop.SwitchToInputDesktop())
                     {
                         var errCode = Marshal.GetLastWin32Error();
                         if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)

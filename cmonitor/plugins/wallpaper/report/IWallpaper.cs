@@ -1,4 +1,5 @@
-﻿using MemoryPack;
+﻿using cmonitor.plugins.wallpaper.report;
+using MemoryPack;
 
 namespace cmonitor.plugins.wallpaper.report
 {
@@ -12,5 +13,21 @@ namespace cmonitor.plugins.wallpaper.report
     {
         public bool Open { get; set; }
         public string ImgUrl { get; set; }
+    }
+}
+
+namespace cmonitor.client.running
+{
+    public sealed partial class RunningConfigInfo
+    {
+        private WallpaperConfigInfo wallpaper = new WallpaperConfigInfo();
+        public WallpaperConfigInfo Wallpaper
+        {
+            get => wallpaper; set
+            {
+                Updated++;
+                wallpaper = value;
+            }
+        }
     }
 }

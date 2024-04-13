@@ -11,7 +11,7 @@ namespace cmonitor.server
     /// </summary>
     public interface IConnection
     {
-        public string Name{ get; set; }
+        public string Name { get; set; }
         /// <summary>
         /// <summary>
         /// 已连接
@@ -19,6 +19,7 @@ namespace cmonitor.server
         public bool Connected { get; }
 
         public IPEndPoint Address { get; }
+        public IPEndPoint LocalAddress { get; }
 
         #region 接收数据
         /// <summary>
@@ -77,10 +78,6 @@ namespace cmonitor.server
         public void Return();
         #endregion
 
-
-        public Task WaitOne();
-        public void Release();
-
     }
 
     public abstract class Connection : IConnection
@@ -98,6 +95,7 @@ namespace cmonitor.server
         /// 地址
         /// </summary>
         public IPEndPoint Address { get; protected set; }
+        public IPEndPoint LocalAddress { get; protected set; }
 
 
         #region 接收数据
@@ -210,61 +208,9 @@ namespace cmonitor.server
         /// </summary>
         public virtual void Disponse()
         {
-            try
-            {
-                if (Semaphore != null)
-                {
-                    if (locked)
-                    {
-                        locked = false;
-                        Semaphore.Release();
-                    }
-                    Semaphore.Dispose();
-                }
-                Semaphore = null;
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Error(ex);
-            }
-            //ReceiveRequestWrap = null;
-            //ReceiveResponseWrap = null;
         }
 
 
-        SemaphoreSlim Semaphore = new SemaphoreSlim(1);
-        bool locked = false;
-        public virtual async Task WaitOne()
-        {
-            try
-            {
-                if (Semaphore != null)
-                {
-                    locked = true;
-                    await Semaphore.WaitAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Error(ex);
-            }
-
-        }
-        public virtual void Release()
-        {
-            try
-            {
-                if (Semaphore != null)
-                {
-                    locked = false;
-                    Semaphore.Release();
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Error(ex);
-            }
-        }
     }
 
 
@@ -280,6 +226,13 @@ namespace cmonitor.server
                 address = new IPEndPoint(new IPAddress(address.Address.GetAddressBytes()[^4..]), address.Port);
             }
             Address = address;
+
+            IPEndPoint localaddress = TcpSocket.LocalEndPoint as IPEndPoint ?? new IPEndPoint(IPAddress.Any, 0);
+            if (localaddress.Address.AddressFamily == AddressFamily.InterNetworkV6 && localaddress.Address.IsIPv4MappedToIPv6)
+            {
+                localaddress = new IPEndPoint(new IPAddress(localaddress.Address.GetAddressBytes()[^4..]), localaddress.Port);
+            }
+            LocalAddress = localaddress;
         }
 
         /// <summary>

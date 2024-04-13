@@ -1,5 +1,4 @@
 ﻿using cmonitor.client;
-using cmonitor.client.runningConfig;
 using cmonitor.client.report;
 using cmonitor.config;
 using common.libs;
@@ -7,6 +6,8 @@ using MemoryPack;
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
+using cmonitor.client.running;
+using cmonitor.plugins.active.report;
 
 namespace cmonitor.plugins.active.report
 {
@@ -14,22 +15,20 @@ namespace cmonitor.plugins.active.report
     {
         public string Name => "ActiveWindow";
 
-        private readonly IRunningConfig clientConfig;
+        private readonly RunningConfig runningConfig;
         private readonly IActiveWindow activeWindow;
         private readonly ActiveWindowTimeManager activeWindowTimeManager = new ActiveWindowTimeManager();
         private ActiveReportInfo report = new ActiveReportInfo();
-        private ActiveDisallowInfo activeConfig;
 
-        public ActiveWindowReport(Config config, IRunningConfig clientConfig, IActiveWindow activeWindow, ClientSignInState clientSignInState)
+        public ActiveWindowReport(Config config, RunningConfig runningConfig, IActiveWindow activeWindow, ClientSignInState clientSignInState)
         {
-            this.clientConfig = clientConfig;
+            this.runningConfig = runningConfig;
             this.activeWindow = activeWindow;
 
             DisallowRun(Array.Empty<string>());
-            activeConfig = clientConfig.Get(new ActiveDisallowInfo { });
             clientSignInState.NetworkFirstEnabledHandle += () =>
             {
-                DisallowRun(activeConfig.FileNames);
+                DisallowRun(runningConfig.Data.Active.FileNames);
                 Loop();
             };
         }
@@ -38,8 +37,8 @@ namespace cmonitor.plugins.active.report
         public object GetReports(ReportType reportType)
         {
             ticks = DateTime.UtcNow.Ticks;
-            report.Ids1 = activeConfig.Ids1;
-            report.Ids2 = activeConfig.Ids2;
+            report.Ids1 = runningConfig.Data.Active.Ids1;
+            report.Ids2 = runningConfig.Data.Active.Ids2;
             if (reportType == ReportType.Full || report.Updated())
             {
                 return report;
@@ -50,8 +49,7 @@ namespace cmonitor.plugins.active.report
 
         public void DisallowRun(ActiveDisallowInfo activeDisallowInfo)
         {
-            activeConfig = activeDisallowInfo;
-            clientConfig.Set(activeConfig);
+            runningConfig.Data.Active = activeDisallowInfo;
             report.DisallowCount = activeDisallowInfo.FileNames.Length;
             activeWindow.DisallowRun(activeDisallowInfo.FileNames);
         }
@@ -131,13 +129,13 @@ namespace cmonitor.plugins.active.report
 
         private bool Disallow(ActiveWindowInfo window)
         {
-            if (activeConfig.FileNames.Length > 0)
+            if (runningConfig.Data.Active.FileNames.Length > 0)
             {
                 try
                 {
                     ReadOnlySpan<char> filenameSpan = window.FileName.AsSpan();
                     uint pid = window.Pid;
-                    foreach (string item in activeConfig.FileNames)
+                    foreach (string item in runningConfig.Data.Active.FileNames)
                     {
                         ReadOnlySpan<char> nameSpan = item.AsSpan();
                         bool result = item == window.Title
@@ -257,6 +255,7 @@ namespace cmonitor.plugins.active.report
         public DateTime StartTime { get; set; } = DateTime.Now;
         public List<ActiveWindowTimeInfo> List { get; set; } = new List<ActiveWindowTimeInfo>();
     }
+
     [MemoryPackable]
     public sealed partial class ActiveWindowTimeInfo
     {
@@ -265,5 +264,21 @@ namespace cmonitor.plugins.active.report
         public ulong Time { get; set; }
         public DateTime StartTime { get; set; }
         public Dictionary<string, uint> Titles { get; set; }
+    }
+}
+
+namespace cmonitor.client.running
+{
+    public sealed partial class RunningConfigInfo
+    {
+        private ActiveDisallowInfo active = new ActiveDisallowInfo();
+        public ActiveDisallowInfo Active
+        {
+            get => active; set
+            {
+                Updated++;
+                active = value;
+            }
+        }
     }
 }

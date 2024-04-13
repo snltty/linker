@@ -11,7 +11,6 @@ namespace cmonitor.plugins.hijack
     {
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
-            serviceCollection.AddSingleton<HijackConfig>();
             serviceCollection.AddSingleton<HijackReport>();
             if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<IHijack, HijackWindows>();
             else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<IHijack, HijackLinux>();

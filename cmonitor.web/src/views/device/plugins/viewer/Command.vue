@@ -46,10 +46,13 @@ export default {
                 ElMessage.error('请选择一个共享设备');
                 return;
             }
+            const device = globalState.value.devices.filter(c=>c.MachineName == pluginState.value.viewer.device)
+
             viewerUpdate({
                 Open: true,
                 Server: pluginState.value.viewer.device,
                 Clients: clients,
+                ShareId: device.Viewer.id,
             }).then(() => {
                 pluginState.value.viewer.showShare = false;
                 ElMessage.success('操作成功');

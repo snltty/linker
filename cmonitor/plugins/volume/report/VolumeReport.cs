@@ -1,5 +1,6 @@
 ﻿using cmonitor.client.report;
 using cmonitor.config;
+using cmonitor.plugins.volume.report;
 
 namespace cmonitor.plugins.volume.report
 {
@@ -9,13 +10,11 @@ namespace cmonitor.plugins.volume.report
         private VolumeReportInfo report = new VolumeReportInfo();
 
         private readonly IVolume volume;
-        private VolumeConfigInfo config;
+        private Config config;
 
         public VolumeReport(Config config, IVolume volume)
         {
-            this.config = config.Get(this.Name, new VolumeConfigInfo());
-            config.Set(this.Name, this.config);
-
+            this.config = config;
             this.volume = volume;
         }
 
@@ -23,7 +22,7 @@ namespace cmonitor.plugins.volume.report
         {
             report.Value = volume.GetVolume();
             report.Mute = volume.GetMute();
-            if (config.MasterPeak)
+            if (config.Data.Client.Volume.MasterPeak)
             {
                 report.MasterPeak = volume.GetMasterPeak();
             }
@@ -65,5 +64,14 @@ namespace cmonitor.plugins.volume.report
     public sealed class VolumeConfigInfo
     {
         public bool MasterPeak { get; set; }
+    }
+
+}
+
+namespace cmonitor.config
+{
+    public sealed partial class ConfigClientInfo
+    {
+        public VolumeConfigInfo Volume { get; set; } = new VolumeConfigInfo();
     }
 }

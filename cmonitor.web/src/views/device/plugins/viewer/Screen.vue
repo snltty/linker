@@ -31,7 +31,8 @@ export default {
         const handleConfirm = () => {
             viewerUpdate({
                 open: false,
-                server: props.data.MachineName
+                server: props.data.MachineName,
+                shareid:props.data.Viewer.id
             }).then(() => {
                 ElMessage.success('已操作！')
             }).catch(() => {

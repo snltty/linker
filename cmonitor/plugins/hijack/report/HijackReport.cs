@@ -1,9 +1,9 @@
 ﻿using cmonitor.client;
-using cmonitor.client.runningConfig;
 using cmonitor.client.report;
 using cmonitor.config;
 using common.libs;
 using MemoryPack;
+using cmonitor.client.running;
 
 namespace cmonitor.plugins.hijack.report
 {
@@ -11,19 +11,17 @@ namespace cmonitor.plugins.hijack.report
     {
         public string Name => "Hijack";
 
-        private readonly HijackConfig hijackConfig;
-        private readonly IRunningConfig clientConfig;
+        private readonly RunningConfig runningConfig;
         private readonly IHijack hijack;
         private readonly ClientSignInState clientSignInState;
 
         private HijackReportInfo hijackReportInfo = new HijackReportInfo();
         private long ticks = DateTime.UtcNow.Ticks;
 
-        public HijackReport(IHijack hijack, HijackConfig hijackConfig, IRunningConfig clientConfig, Config config, ClientSignInState clientSignInState)
+        public HijackReport(IHijack hijack, RunningConfig runningConfig, Config config, ClientSignInState clientSignInState)
         {
             this.hijack = hijack;
-            this.hijackConfig = hijackConfig;
-            this.clientConfig = clientConfig;
+            this.runningConfig = runningConfig;
             this.clientSignInState = clientSignInState;
             Init();
         }
@@ -33,18 +31,6 @@ namespace cmonitor.plugins.hijack.report
             try
             {
                 clientSignInState.NetworkFirstEnabledHandle += hijack.Start;
-
-                HijackConfig config = clientConfig.Get(new HijackConfig { });
-
-                hijackConfig.DeniedProcesss = config.DeniedProcesss;
-                hijackConfig.AllowProcesss = config.AllowProcesss;
-                hijackConfig.DeniedDomains = config.DeniedDomains;
-                hijackConfig.AllowDomains = config.AllowDomains;
-                hijackConfig.DeniedIPs = config.DeniedIPs;
-                hijackConfig.AllowIPs = config.AllowIPs;
-                hijackConfig.DomainKill = config.DomainKill;
-                hijackConfig.HijackIds1 = config.HijackIds1;
-                hijackConfig.HijackIds2 = config.HijackIds2;
                 UpdateRules();
             }
             catch (Exception ex)
@@ -55,26 +41,26 @@ namespace cmonitor.plugins.hijack.report
 
         public void Update(HijackSetRuleInfo info)
         {
-            hijackConfig.AllowDomains = info.Rules.AllowDomains;
-            hijackConfig.DeniedDomains = info.Rules.DeniedDomains;
-            hijackConfig.AllowProcesss = info.Rules.AllowProcesss;
-            hijackConfig.DeniedProcesss = info.Rules.DeniedProcesss;
-            hijackConfig.AllowIPs = info.Rules.AllowIPs;
-            hijackConfig.DeniedIPs = info.Rules.DeniedIPs;
-            hijackConfig.DomainKill = info.Rules.DomainKill;
-            hijackConfig.HijackIds1 = info.Ids1;
-            hijackConfig.HijackIds2 = info.Ids2;
+            runningConfig.Data.Hijack.AllowDomains = info.Rules.AllowDomains;
+            runningConfig.Data.Hijack.DeniedDomains = info.Rules.DeniedDomains;
+            runningConfig.Data.Hijack.AllowProcesss = info.Rules.AllowProcesss;
+            runningConfig.Data.Hijack.DeniedProcesss = info.Rules.DeniedProcesss;
+            runningConfig.Data.Hijack.AllowIPs = info.Rules.AllowIPs;
+            runningConfig.Data.Hijack.DeniedIPs = info.Rules.DeniedIPs;
+            runningConfig.Data.Hijack.DomainKill = info.Rules.DomainKill;
+            runningConfig.Data.Hijack.HijackIds1 = info.Ids1;
+            runningConfig.Data.Hijack.HijackIds2 = info.Ids2;
 
-            clientConfig.Set(hijackConfig);
+            runningConfig.Data.Update();
 
             UpdateRules();
         }
 
         private void UpdateRules()
         {
-            hijack.SetProcess(hijackConfig.AllowProcesss, hijackConfig.DeniedProcesss);
-            hijack.SetDomain(hijackConfig.AllowDomains, hijackConfig.DeniedDomains, hijackConfig.DomainKill);
-            hijack.SetIP(hijackConfig.AllowIPs, hijackConfig.DeniedIPs);
+            hijack.SetProcess(runningConfig.Data.Hijack.AllowProcesss, runningConfig.Data.Hijack.DeniedProcesss);
+            hijack.SetDomain(runningConfig.Data.Hijack.AllowDomains, runningConfig.Data.Hijack.DeniedDomains, runningConfig.Data.Hijack.DomainKill);
+            hijack.SetIP(runningConfig.Data.Hijack.AllowIPs, runningConfig.Data.Hijack.DeniedIPs);
             hijack.UpdateRules();
         }
 
@@ -82,10 +68,10 @@ namespace cmonitor.plugins.hijack.report
         {
             hijackReportInfo.Upload = hijack.UdpSend + hijack.TcpSend;
             hijackReportInfo.Download = hijack.TcpReceive + hijack.UdpReceive;
-            hijackReportInfo.Count = (ulong)(hijackConfig.AllowIPs.Length + hijackConfig.DeniedIPs.Length + hijackConfig.AllowDomains.Length + hijackConfig.DeniedDomains.Length + hijackConfig.AllowProcesss.Length + hijackConfig.DeniedProcesss.Length);
-            hijackReportInfo.Ids1 = hijackConfig.HijackIds1;
-            hijackReportInfo.Ids2 = hijackConfig.HijackIds2;
-            hijackReportInfo.DomainKill = hijackConfig.DomainKill;
+            hijackReportInfo.Count = (ulong)(runningConfig.Data.Hijack.AllowIPs.Length + runningConfig.Data.Hijack.DeniedIPs.Length + runningConfig.Data.Hijack.AllowDomains.Length + runningConfig.Data.Hijack.DeniedDomains.Length + runningConfig.Data.Hijack.AllowProcesss.Length + runningConfig.Data.Hijack.DeniedProcesss.Length);
+            hijackReportInfo.Ids1 = runningConfig.Data.Hijack.HijackIds1;
+            hijackReportInfo.Ids2 = runningConfig.Data.Hijack.HijackIds2;
+            hijackReportInfo.DomainKill = runningConfig.Data.Hijack.DomainKill;
 
             long _ticks = DateTime.UtcNow.Ticks;
             if (((_ticks - ticks) / TimeSpan.TicksPerMillisecond >= 300 && hijackReportInfo.Updated()) || reportType == ReportType.Full)
@@ -97,7 +83,7 @@ namespace cmonitor.plugins.hijack.report
         }
     }
 
-    public sealed class HijackReportInfo:ReportInfo
+    public sealed class HijackReportInfo : ReportInfo
     {
         public ulong Upload { get; set; }
         public ulong Download { get; set; }

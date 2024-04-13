@@ -31,7 +31,7 @@ namespace cmonitor.server
 
         private Socket BindAccept()
         {
-            IPEndPoint localEndPoint = new IPEndPoint(NetworkHelper.IPv6Support ? IPAddress.IPv6Any : IPAddress.Any, config.Server.ServicePort);
+            IPEndPoint localEndPoint = new IPEndPoint(NetworkHelper.IPv6Support ? IPAddress.IPv6Any : IPAddress.Any, config.Data.Server.ServicePort);
             Socket socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.IPv6Only(localEndPoint.AddressFamily, false);
             socket.ReuseBind(localEndPoint);
@@ -48,7 +48,7 @@ namespace cmonitor.server
             acceptEventArg.Completed += IO_Completed;
             StartAccept(acceptEventArg);
 
-            socketUdp = new UdpClient(new IPEndPoint(IPAddress.Any, config.Server.ServicePort));
+            socketUdp = new UdpClient(new IPEndPoint(IPAddress.Any, config.Data.Server.ServicePort));
             //socketUdp.JoinMulticastGroup(config.BroadcastIP);
             socketUdp.Client.EnableBroadcast = true;
             socketUdp.Client.WindowsUdpBug();
@@ -74,9 +74,9 @@ namespace cmonitor.server
                     {
                         dic.Add(item, new BroadcastEndpointInfo
                         {
-                            Web = config.Server.WebPort,
-                            Api = config.Server.ApiPort,
-                            Service = config.Server.ServicePort
+                            Web = config.Data.Server.WebPort,
+                            Api = config.Data.Server.ApiPort,
+                            Service = config.Data.Server.ServicePort
                         });
                     }
 

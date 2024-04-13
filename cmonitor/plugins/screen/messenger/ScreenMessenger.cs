@@ -63,7 +63,7 @@ namespace cmonitor.plugins.screen.messenger
         {
             if (signCaching.Get(connection.Name, out SignCacheInfo cache))
             {
-                if (cache.Version == config.Version)
+                if (cache.Version == config.Data.Version)
                 {
                     clientServer.Notify("/notify/report/screen/full", connection.Name, connection.ReceiveRequestWrap.Payload);
                 }

@@ -10,6 +10,7 @@ using System.Runtime.Serialization;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
+using static cmonitor.libs.winapis.WTSAPI32;
 using static common.libs.winapis.ADVAPI32;
 using static common.libs.winapis.Kernel32;
 using static common.libs.winapis.NetApi32;
@@ -397,6 +398,24 @@ namespace common.libs.winapis
             return currentUsername == "NT AUTHORITY\\SYSTEM";
         }
 
+        public static string GetUserName()
+        {
+            // 获取活动的控制台会话 ID
+            uint sessionId = WTSGetActiveConsoleSessionId();
+
+            IntPtr buffer;
+            uint bytesReturned;
+            string userName = "";
+
+            // 获取用户名
+            if (WTSQuerySessionInformation(IntPtr.Zero, sessionId, WTS_INFO_CLASS.WTSUserName, out buffer, out bytesReturned))
+            {
+                userName = Marshal.PtrToStringAnsi(buffer);
+                WTSFreeMemory(buffer);
+            }
+
+            return userName;
+        }
 
         public static void SetHandleBlockKill(IntPtr handle)
         {

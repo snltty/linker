@@ -115,7 +115,7 @@ namespace cmonitor.plugins.system.report
                         {
                             while (actions.TryDequeue(out Action action))
                             {
-                                if (config.Elevated)
+                                if (config.Data.Elevated)
                                 {
                                     Win32Interop.SwitchToInputDesktop();
                                 }

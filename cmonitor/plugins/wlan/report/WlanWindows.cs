@@ -1,5 +1,4 @@
 ﻿using ManagedNativeWifi;
-using System.Net.NetworkInformation;
 
 namespace cmonitor.plugins.wlan.report
 {

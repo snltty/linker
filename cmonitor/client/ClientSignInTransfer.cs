@@ -1,4 +1,5 @@
-﻿using cmonitor.config;
+﻿using cmonitor.client.args;
+using cmonitor.config;
 using cmonitor.plugins.signIn.messenger;
 using cmonitor.server;
 using common.libs;
@@ -15,13 +16,15 @@ namespace cmonitor.client
         private readonly Config config;
         private readonly TcpServer tcpServer;
         private readonly MessengerSender messengerSender;
+        private readonly SignInArgsTransfer signInArgsTransfer;
 
-        public ClientSignInTransfer(ClientSignInState clientSignInState, Config config, TcpServer tcpServer, MessengerSender messengerSender)
+        public ClientSignInTransfer(ClientSignInState clientSignInState, Config config, TcpServer tcpServer, MessengerSender messengerSender, SignInArgsTransfer signInArgsTransfer)
         {
             this.clientSignInState = clientSignInState;
             this.config = config;
             this.tcpServer = tcpServer;
             this.messengerSender = messengerSender;
+            this.signInArgsTransfer = signInArgsTransfer;
 
             SignInTask();
             tcpServer.OnDisconnected += (hashcode) =>
@@ -57,45 +60,27 @@ namespace cmonitor.client
         }
         private async Task SignIn()
         {
-            IPAddress[] ips = new IPAddress[] { config.Client.ServerEP.Address };
+            IPEndPoint[] ips = new IPEndPoint[] { config.Data.Client.ServerEP };
 
             if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 Logger.Instance.Info($"get ip:{ips.ToJsonFormat()}");
 
-            if (ips.Length == 0) return;
-            foreach (IPAddress ip in ips)
+            foreach (IPEndPoint ip in ips)
             {
                 try
                 {
-                    IPEndPoint remote = new IPEndPoint(ip, config.Client.ServerEP.Port);
-                    //Logger.Instance.Info($"connect server {remote}");
-                    Socket socket = new Socket(ip.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                    socket.KeepAlive();
-                    IAsyncResult result = socket.BeginConnect(remote, null, null);
-                    await Task.Delay(500);
-                    if (result.IsCompleted == false)
+                    if (await ConnectServer(ip) == false)
                     {
-                        socket.SafeClose();
                         continue;
                     }
-                    clientSignInState.Connection = tcpServer.BindReceive(socket);
-                    MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+                    if (await SignIn2Server() == false)
                     {
-                        Connection = clientSignInState.Connection,
-                        MessengerId = (ushort)SignInMessengerIds.SignIn,
-                        Payload = MemoryPackSerializer.Serialize(new SignInfo
-                        {
-                            MachineName = config.Client.Name,
-                            Version = config.Version
-                        })
-                    });
-                    if (resp.Code != MessageResponeCodes.OK || resp.Data.Span.SequenceEqual(Helper.TrueArray) == false)
-                    {
-                        clientSignInState.Connection?.Disponse();
                         continue;
                     }
+
                     GCHelper.FlushMemory();
                     clientSignInState.PushNetworkEnabled();
+
                     break;
                 }
                 catch (Exception ex)
@@ -106,5 +91,42 @@ namespace cmonitor.client
             }
         }
 
+        private async Task<bool> ConnectServer(IPEndPoint remote)
+        {
+            Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            socket.KeepAlive();
+            IAsyncResult result = socket.BeginConnect(remote, null, null);
+            await Task.Delay(500);
+            if (result.IsCompleted == false)
+            {
+                socket.SafeClose();
+                return false;
+            }
+            clientSignInState.Connection = tcpServer.BindReceive(socket);
+            return true;
+        }
+        private async Task<bool> SignIn2Server()
+        {
+            Dictionary<string, string> args = new Dictionary<string, string>();
+            signInArgsTransfer.Invoke(args);
+
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)SignInMessengerIds.SignIn,
+                Payload = MemoryPackSerializer.Serialize(new SignInfo
+                {
+                    MachineName = config.Data.Client.Name,
+                    Version = config.Data.Version,
+                    Args = args,
+                })
+            });
+            if (resp.Code != MessageResponeCodes.OK || resp.Data.Span.SequenceEqual(Helper.TrueArray) == false)
+            {
+                clientSignInState.Connection?.Disponse();
+                return false;
+            }
+            return true;
+        }
     }
 }

@@ -25,7 +25,7 @@ namespace cmonitor.web
         {
             IWebServer webServer = serviceProvider.GetService<IWebServer>();
             webServer.Start();
-            Logger.Instance.Info($"web listen:{config.Server.WebPort}");
+            Logger.Instance.Info($"web listen:{config.Data.Server.WebPort}");
         }
     }
 }

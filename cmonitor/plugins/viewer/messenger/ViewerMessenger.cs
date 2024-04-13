@@ -1,4 +1,8 @@
-﻿using cmonitor.plugins.signIn.messenger;
+﻿using cmonitor.client;
+using cmonitor.client.running;
+using cmonitor.config;
+using cmonitor.plugins.signIn.messenger;
+using cmonitor.plugins.viewer.proxy;
 using cmonitor.plugins.viewer.report;
 using cmonitor.server;
 using MemoryPack;
@@ -8,35 +12,53 @@ namespace cmonitor.plugins.viewer.messenger
     public sealed class ViewerClientMessenger : IMessenger
     {
         private readonly ViewerReport viewerReport;
+        private readonly ViewerProxyClient viewerProxyClient;
+        private readonly Config config;
+        private readonly ClientSignInState clientSignInState;
+        private readonly RunningConfig runningConfig;
 
-        public ViewerClientMessenger(ViewerReport viewerReport)
+        public ViewerClientMessenger(ViewerReport viewerReport, ViewerProxyClient viewerProxyClient, Config config, ClientSignInState clientSignInState, RunningConfig runningConfig)
         {
             this.viewerReport = viewerReport;
+            this.viewerProxyClient = viewerProxyClient;
+            this.config = config;
+            this.clientSignInState = clientSignInState;
+            this.runningConfig = runningConfig;
         }
 
         [MessengerId((ushort)ViewerMessengerIds.Server)]
         public void Server(IConnection connection)
         {
-            ViewerConfigInfo viewerConfigInfo = MemoryPackSerializer.Deserialize<ViewerConfigInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            ViewerRunningConfigInfo viewerConfigInfo = MemoryPackSerializer.Deserialize<ViewerRunningConfigInfo>(connection.ReceiveRequestWrap.Payload.Span);
             viewerReport.Server(viewerConfigInfo);
         }
-
-
-        [MessengerId((ushort)ViewerMessengerIds.Client)]
-        public void Client(IConnection connection)
-        {
-            ViewerConfigInfo viewerConfigInfo = MemoryPackSerializer.Deserialize<ViewerConfigInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            viewerReport.Client(viewerConfigInfo);
-        }
-
 
         [MessengerId((ushort)ViewerMessengerIds.Heart)]
         public void Heart(IConnection connection)
         {
-            string connectStr = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            viewerReport.Heart(connectStr);
+            ViewerRunningConfigInfo viewerConfigInfo = MemoryPackSerializer.Deserialize<ViewerRunningConfigInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            viewerReport.Heart(viewerConfigInfo);
+        }
+
+
+        [MessengerId((ushort)ViewerMessengerIds.ProxyFromClient)]
+        public async Task ProxyFromClient(IConnection connection)
+        {
+            ViewerProxyInfo proxy = MemoryPackSerializer.Deserialize<ViewerProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            proxy.TargetEP = runningConfig.Data.Viewer.ConnectEP;
+            await viewerProxyClient.Connect(proxy);
+        }
+
+        [MessengerId((ushort)ViewerMessengerIds.ProxyFromServer)]
+        public async Task ProxyFromServer(IConnection connection)
+        {
+            ViewerProxyInfo proxy = MemoryPackSerializer.Deserialize<ViewerProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            proxy.ProxyEP = $"{clientSignInState.Connection.Address.Address}:{config.Data.Client.Viewer.ProxyPort}";
+            proxy.TargetEP = runningConfig.Data.Viewer.ConnectEP;
+            await viewerProxyClient.Connect(proxy);
         }
     }
+
 
     public sealed class ViewerServerMessenger : IMessenger
     {
@@ -50,35 +72,12 @@ namespace cmonitor.plugins.viewer.messenger
         }
 
 
-        [MessengerId((ushort)ViewerMessengerIds.NotifyClient)]
-        public void NotifyClient(IConnection connection)
-        {
-            ViewerConfigInfo viewerConfigInfo = MemoryPackSerializer.Deserialize<ViewerConfigInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            string[] usernames = viewerConfigInfo.Clients;
-            viewerConfigInfo.Clients = Array.Empty<string>();
-            viewerConfigInfo.Mode = ViewerMode.Client;
 
-            byte[] bytes = MemoryPackSerializer.Serialize(viewerConfigInfo);
-            foreach (var item in usernames)
-            {
-                if (signCaching.Get(item, out SignCacheInfo cache) && cache.Connected)
-                {
-                    _ = messengerSender.SendOnly(new MessageRequestWrap
-                    {
-                        Connection = cache.Connection,
-                        MessengerId = (ushort)ViewerMessengerIds.Client,
-                        Payload = bytes
-                    });
-                }
-            }
-        }
-
-        [MessengerId((ushort)ViewerMessengerIds.NotifyHeart)]
-        public void NotifyHeart(IConnection connection)
+        [MessengerId((ushort)ViewerMessengerIds.HeartNotify)]
+        public void HeartNotify(IConnection connection)
         {
-            ViewerConfigInfo viewerConfigInfo = MemoryPackSerializer.Deserialize<ViewerConfigInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            string[] usernames = viewerConfigInfo.Clients;
-            byte[] bytes = MemoryPackSerializer.Serialize(viewerConfigInfo.ConnectStr);
+            ViewerRunningConfigInfo viewerConfigInfo = MemoryPackSerializer.Deserialize<ViewerRunningConfigInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            string[] usernames = viewerConfigInfo.ClientMachines;
             foreach (var item in usernames)
             {
                 if (signCaching.Get(item, out SignCacheInfo cache) && cache.Connected)
@@ -87,9 +86,24 @@ namespace cmonitor.plugins.viewer.messenger
                     {
                         Connection = cache.Connection,
                         MessengerId = (ushort)ViewerMessengerIds.Heart,
-                        Payload = bytes
+                        Payload = connection.ReceiveRequestWrap.Payload
                     });
                 }
+            }
+        }
+
+        [MessengerId((ushort)ViewerMessengerIds.ProxyNotify)]
+        public void ProxyNotify(IConnection connection)
+        {
+            ViewerProxyInfo proxy = MemoryPackSerializer.Deserialize<ViewerProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.Get(proxy.ViewerMachine, out SignCacheInfo cache) && cache.Connected)
+            {
+                _ = messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cache.Connection,
+                    MessengerId = (ushort)ViewerMessengerIds.ProxyFromClient,
+                    Payload = connection.ReceiveRequestWrap.Payload
+                });
             }
         }
     }

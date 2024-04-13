@@ -1,12 +1,12 @@
-﻿using cmonitor.client.runningConfig;
-using cmonitor.client.report;
+﻿using cmonitor.client.report;
 using cmonitor.config;
 using cmonitor.libs;
 using cmonitor.startup;
 using common.libs;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using cmonitor.server.ruleConfig;
+using cmonitor.client.args;
+using cmonitor.client.running;
 
 namespace cmonitor.client
 {
@@ -14,30 +14,24 @@ namespace cmonitor.client
     {
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
+            serviceCollection.AddSingleton<RunningConfig>();
+
+            serviceCollection.AddSingleton<SignInArgsTransfer>();
+
             serviceCollection.AddSingleton<ClientReportTransfer>();
 
             serviceCollection.AddSingleton<ClientSignInState>();
             serviceCollection.AddSingleton<ClientSignInTransfer>();
 
-
-            if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<IRunningConfig, RunningConfigWindows>();
-            else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<IRunningConfig, RunningConfigLinux>();
-            else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<IRunningConfig, RunningConfigMacOS>();
-
             //内存共享
-            ShareMemory shareMemory = new ShareMemory(config.Client.ShareMemoryKey, config.Client.ShareMemoryCount, config.Client.ShareMemorySize);
+            ShareMemory shareMemory = new ShareMemory(config.Data.Client.ShareMemoryKey, config.Data.Client.ShareMemoryCount, config.Data.Client.ShareMemorySize);
             serviceCollection.AddSingleton<ShareMemory>((a) => shareMemory);
-        }
-
-        public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
-        {
-            
         }
 
         public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
         {
             Logger.Instance.Info($"start client");
-            Logger.Instance.Info($"server ip {config.Client.ServerEP}");
+            Logger.Instance.Info($"server ip {config.Data.Client.ServerEP}");
 
             Logger.Instance.Info($"start client report transfer");
             ClientReportTransfer report = serviceProvider.GetService<ClientReportTransfer>();
@@ -53,6 +47,11 @@ namespace cmonitor.client
             ClientSignInTransfer clientTransfer = serviceProvider.GetService<ClientSignInTransfer>();
         }
 
+
+        public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        {
+
+        }
         public void UseServer(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
         {
         }

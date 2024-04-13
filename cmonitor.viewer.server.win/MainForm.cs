@@ -3,11 +3,8 @@ using cmonitor.viewer.server.win.Properties;
 using common.libs;
 using Microsoft.Win32;
 using RDPCOMAPILib;
-using System.Data.SqlTypes;
 using System.Diagnostics;
-using System.Resources;
-using System.Text;
-using System.Windows.Forms;
+using System.Net;
 using System.Xml;
 
 namespace cmonitor.viewer.server.win
@@ -29,18 +26,16 @@ namespace cmonitor.viewer.server.win
 
         private readonly Hook hook = new Hook();
         private readonly ShareMemory shareMemory;
-        private int shareIndex = 0;
-        private Mode shareMode = Mode.Client;
         private const string shareClientExe = "cmonitor.viewer.client.win";
-        private byte[] shareKeyBytes = Encoding.UTF8.GetBytes(shareClientExe);
 
-        public MainForm(string key, int length, int size, int index, Mode mode)
+        ParamInfo paramInfo;
+
+        public MainForm(ParamInfo paramInfo)
         {
-            InitializeComponent();
+            this.paramInfo = paramInfo;
 
-            shareMode = mode;
-            shareIndex = index;
-            shareMemory = new ShareMemory(key, length, size);
+            InitializeComponent();
+            shareMemory = new ShareMemory(paramInfo.ShareMkey, paramInfo.ShareMLength, paramInfo.ShareItemMLength);
             shareMemory.InitLocal();
         }
 
@@ -51,12 +46,12 @@ namespace cmonitor.viewer.server.win
             this.ShowInTaskbar = false;
             this.WindowState = FormWindowState.Minimized;
             this.Visible = false;
+            FireWallHelper.Write(Path.GetFileNameWithoutExtension(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName));
 #endif
 
-            FireWallHelper.Write(Path.GetFileNameWithoutExtension(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName));
             CheckRunning();
 
-            if (shareMode == Mode.Client)
+            if (paramInfo.Mode == Mode.Client)
             {
                 OpenShareClient();
             }
@@ -68,25 +63,25 @@ namespace cmonitor.viewer.server.win
         private void CheckRunning()
         {
             hook.Close();
-            shareMemory.AddAttribute(shareIndex, ShareMemoryAttribute.Running);
-            shareMemory.RemoveAttribute(shareIndex, ShareMemoryAttribute.Closed);
+            shareMemory.AddAttribute(paramInfo.ShareIndex, ShareMemoryAttribute.Running);
+            shareMemory.RemoveAttribute(paramInfo.ShareIndex, ShareMemoryAttribute.Closed);
             Task.Run(async () =>
             {
                 while (true)
                 {
                     try
                     {
-                        if (shareMemory.ReadAttributeEqual(shareIndex, ShareMemoryAttribute.Closed))
+                        if (shareMemory.ReadAttributeEqual(paramInfo.ShareIndex, ShareMemoryAttribute.Closed))
                         {
                             CloseServer();
                         }
                         else
                         {
-                            shareMemory.IncrementVersion(shareIndex);
+                            shareMemory.IncrementVersion(paramInfo.ShareIndex);
                         }
                         if (Process.GetProcessesByName(shareClientExe).Length == 0)
                         {
-                            shareMemory.AddAttribute(shareIndex, ShareMemoryAttribute.Error);
+                            shareMemory.AddAttribute(paramInfo.ShareIndex, ShareMemoryAttribute.Error);
                         }
                     }
                     catch (Exception)
@@ -99,7 +94,7 @@ namespace cmonitor.viewer.server.win
         }
         private void CloseServer()
         {
-            shareMemory.RemoveAttribute(shareIndex, ShareMemoryAttribute.Running);
+            shareMemory.RemoveAttribute(paramInfo.ShareIndex, ShareMemoryAttribute.Running);
             CloseShareClient();
             CloseShareDesktop();
             Application.ExitThread();
@@ -111,7 +106,7 @@ namespace cmonitor.viewer.server.win
         {
             hook.Start((code) => { return true; });
 
-            CommandHelper.Windows(string.Empty, new string[] { $"start {shareClientExe}.exe" }, false);
+            CommandHelper.Windows(string.Empty, new string[] { $"start {shareClientExe}.exe {paramInfo.GroupName}" }, false);
         }
         private void CloseShareClient()
         {
@@ -155,24 +150,43 @@ namespace cmonitor.viewer.server.win
             {
                 try
                 {
-                    string guid = Guid.NewGuid().ToString();
                     CloseShareDesktop();
                     session = new RDPSession();
                     session.SetDesktopSharedRect(0, 0, Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
                     session.OnAttendeeConnected += Session_OnAttendeeConnected;
                     session.Open();
-                    IRDPSRAPIInvitation invitation = session.Invitations.CreateInvitation(guid, "snltty", "snltty", 1024);
+                    IRDPSRAPIInvitation invitation = session.Invitations.CreateInvitation(null, paramInfo.GroupName, paramInfo.GroupName, 1024);
                     invitationString = invitation.ConnectionString;
 
-                    /*
-                    XmlDocument xmlDoc = new XmlDocument();
-                    xmlDoc.LoadXml(invitationString);
-                    XmlElement newLNode = xmlDoc.CreateElement("L");
-                    newLNode.SetAttribute("P", "12345");
-                    newLNode.SetAttribute("N", "192.168.1.35");
-                    xmlDoc.DocumentElement["C"]["T"].AppendChild(newLNode);
-                    Debug.WriteLine(xmlDoc.OuterXml);
-                    */
+                    if(string.IsNullOrWhiteSpace(paramInfo.ProxyServers) == false)
+                    {
+                        XmlDocument xmlDoc = new XmlDocument();
+                        xmlDoc.LoadXml(invitationString);
+
+                        //留给客户端自己替换为自己本地的代理地址
+                        XmlElement newLNode = xmlDoc.CreateElement("L");
+                        newLNode.SetAttribute("P", "{port}");
+                        newLNode.SetAttribute("N", "{ip}");
+                        xmlDoc.DocumentElement["C"]["T"].AppendChild(newLNode);
+
+                        //插入其它代理地址
+                        foreach (var item in paramInfo.ProxyServers.Split(','))
+                        {
+                            try
+                            {
+                                IPEndPoint ep = IPEndPoint.Parse(item);
+
+                                XmlElement newLNode1 = xmlDoc.CreateElement("L");
+                                newLNode1.SetAttribute("P", ep.Port.ToString());
+                                newLNode1.SetAttribute("N", ep.Address.ToString());
+                                xmlDoc.DocumentElement["C"]["T"].AppendChild(newLNode1);
+                            }
+                            catch (Exception)
+                            {
+                            }
+                        }
+                        invitationString = xmlDoc.OuterXml;
+                    }
 
                     Registry.SetValue("HKEY_CURRENT_USER\\SOFTWARE\\Cmonitor", "viewerConnectStr", invitationString);
 
@@ -182,14 +196,11 @@ namespace cmonitor.viewer.server.win
                 catch (Exception ex)
                 {
                     Debug.WriteLine(ex + "");
-                    //MessageBox.Show(ex.Message);
                     notifyIcon.Icon = Icon.FromHandle(Resources.logo_share_gray.GetHicon());
                     notifyIcon.Text = "共享失败";
                 }
             });
         }
-
-
         private void Session_OnAttendeeConnected(object pAttendee)
         {
             IRDPSRAPIAttendee attendee = (IRDPSRAPIAttendee)pAttendee;
@@ -200,7 +211,7 @@ namespace cmonitor.viewer.server.win
             try
             {
                 session?.Close();
-                Registry.SetValue("HKEY_CURRENT_USER\\SOFTWARE\\Cmonitor", "viewerConnectStr", string.Empty);
+                //Registry.SetValue("HKEY_CURRENT_USER\\SOFTWARE\\Cmonitor", "viewerConnectStr", string.Empty);
             }
             catch (Exception)
             {

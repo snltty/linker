@@ -1,7 +1,10 @@
 ﻿using cmonitor.config;
 using common.libs;
 using Microsoft.Win32;
+using System.Net;
 using System.Runtime.Versioning;
+using System.Text.Json;
+using System.Xml;
 
 namespace cmonitor.plugins.viewer.report
 {
@@ -13,16 +16,13 @@ namespace cmonitor.plugins.viewer.report
         {
             this.config = config;
         }
-        public void Open(bool value, ViewerMode mode)
+        public void Open(bool value, ParamInfo info)
         {
             if (value)
             {
-                string command = $"start cmonitor.viewer.server.win.exe {config.Client.ShareMemoryKey} {config.Client.ShareMemoryCount} {config.Client.ShareMemorySize} {(int)ShareMemoryIndexs.Viewer} {(byte)mode}";
+                string str = JsonSerializer.Serialize(info);
+                string command = $"start cmonitor.viewer.server.win.exe \"{str.Replace("\"","\\\"")}\"";
                 CommandHelper.Windows(string.Empty, new string[] { command }, false);
-            }
-            else
-            {
-                //CommandHelper.Windows(string.Empty, new string[] { $"taskkill /f /im cmonitor.viewer.server.win.exe" });
             }
         }
 
@@ -33,6 +33,28 @@ namespace cmonitor.plugins.viewer.report
         public void SetConnectString(string connectStr)
         {
             Registry.SetValue("HKEY_CURRENT_USER\\SOFTWARE\\Cmonitor", "viewerConnectStr", connectStr);
+        }
+
+        public string GetConnectEP(string connectStr)
+        {
+            try
+            {
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(connectStr);
+
+                var nodes = xmlDoc.DocumentElement["C"]["T"].ChildNodes;
+
+                var node = nodes[nodes.Count - 3];
+                var p = node.Attributes["P"].Value;
+                var n = node.Attributes["N"].Value;
+
+                return $"{n}:{p}";
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error(ex);
+            }
+            return string.Empty;
         }
     }
 }

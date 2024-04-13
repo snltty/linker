@@ -15,10 +15,10 @@ namespace cmonitor
 
             //初始化配置文件
             Config config = new Config();
-            config.Elevated = args.Any(c => c.Contains("elevated"));
+            config.Data.Elevated = args.Any(c => c.Contains("elevated"));
 
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            StartupTransfer.Init();
+            StartupTransfer.Init(config);
 
             //依赖注入
             ServiceProvider serviceProvider = null;
@@ -32,9 +32,6 @@ namespace cmonitor
             //运行
             serviceProvider = serviceCollection.BuildServiceProvider();
             StartupTransfer.Use(serviceProvider, config, assemblies);
-
-
-            FireWallHelper.Write(Path.GetFileNameWithoutExtension(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName));
 
             GCHelper.FlushMemory();
             await Helper.Await();
@@ -66,6 +63,7 @@ namespace cmonitor
             {
                 common.libs.winapis.Win32Interop.RelaunchElevated();
             }
+            FireWallHelper.Write(Path.GetFileNameWithoutExtension(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName));
 #endif
         }
 
@@ -116,6 +114,6 @@ namespace cmonitor
 
     }
 
-   
+
 
 }

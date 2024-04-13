@@ -37,7 +37,7 @@ mainForm.connect = function(){
 			var invitationString = reg.queryValue("viewerConnectStr");
 			if(string.len(invitationString)>0)
 			{
-				mainForm.tsc.Connect(invitationString,"snltty","snltty");
+				mainForm.tsc.Connect(invitationString,_ARGV[1],_ARGV[1]);
 			}else{
 				mainForm.connecting = false;
 			}

@@ -77,7 +77,7 @@ namespace cmonitor.plugins.keyboard.report
 
                             if (inputActions.TryDequeue(out var action))
                             {
-                                if (config.Elevated == true && !Win32Interop.SwitchToInputDesktop())
+                                if (config.Data.Elevated == true && !Win32Interop.SwitchToInputDesktop())
                                 {
                                     uint code = Kernel32.GetLastError();
                                     tks.Cancel();

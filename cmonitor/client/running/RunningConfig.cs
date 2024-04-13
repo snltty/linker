@@ -3,31 +3,33 @@ using common.libs.extends;
 using System.Net;
 using System.Text.Json.Serialization;
 
-namespace cmonitor.config
+namespace cmonitor.client.running
 {
-    public sealed class Config
+    public sealed class RunningConfig
     {
         private FileStream fs = null;
         private StreamWriter writer = null;
         private StreamReader reader = null;
         private SemaphoreSlim slim = new SemaphoreSlim(1);
-        private string configPath = "./configs/";
+        private string configPath { get; } = "./configs/";
 
-        public ConfigInfo Data { get; private set; } = new ConfigInfo();
+        public RunningConfigInfo Data { get; private set; } = new RunningConfigInfo();
 
-        public Config()
+
+        public RunningConfig()
         {
             if (Directory.Exists(configPath) == false)
             {
                 Directory.CreateDirectory(configPath);
             }
-            string path = Path.Join(configPath, "config.json");
+            string path = Path.Join(configPath, "running.json");
             fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
             reader = new StreamReader(fs, System.Text.Encoding.UTF8);
             writer = new StreamWriter(fs, System.Text.Encoding.UTF8);
 
             Load();
             Save();
+            SaveTask();
         }
 
         private void Load()
@@ -41,7 +43,7 @@ namespace cmonitor.config
                 {
                     return;
                 }
-                Data = text.DeJson<ConfigInfo>();
+                Data = text.DeJson<RunningConfigInfo>();
             }
             catch (Exception ex)
             {
@@ -51,9 +53,23 @@ namespace cmonitor.config
             {
                 slim.Release();
             }
-           
         }
-
+        private void SaveTask()
+        {
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    uint updated = Data.Updated;
+                    while (updated > 0)
+                    {
+                        Save();
+                        updated--;
+                    }
+                    await Task.Delay(1000);
+                }
+            });
+        }
         private void Save()
         {
             slim.Wait();
@@ -73,33 +89,16 @@ namespace cmonitor.config
                 slim.Release();
             }
         }
-
-        
     }
 
-    public sealed partial class ConfigInfo
+    public sealed partial class RunningConfigInfo
     {
-        public ConfigCommonInfo Common { get; set; } = new ConfigCommonInfo();
-
         [JsonIgnore]
-        public string Version { get; set; } = "1.0.0.1";
-        [JsonIgnore]
-        public bool Elevated { get; set; }
-    }
+        public uint Updated { get; set; } = 1;
 
-    public sealed partial class ConfigCommonInfo
-    {
-        public string[] Modes { get; set; } = new string[] { "client", "server" };
-
-        public string[] plugins = Array.Empty<string>();
-        public string[] Plugins
+        public void Update()
         {
-            get => plugins; set
-            {
-                PluginNames = value.Select(c => $"plugins.{c}.").ToArray();
-            }
+            Updated++;
         }
-        [JsonIgnore]
-        public string[] PluginNames = Array.Empty<string>();
     }
 }
