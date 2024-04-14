@@ -55,8 +55,8 @@ export default {
                 if (user && user.value.Rules) {
                     let rule = user.value.Rules.filter(c => c.Name == state.group)[0];
                     if (rule) {
-                        console.log(rule);
-                        console.log(user.value.Processs.filter(c => rule.PrivateProcesss.indexOf(c.Name) >= 0));
+                        rule.PrivateProcesss = rule.PrivateProcesss || [];
+                        rule.PublicProcesss = rule.PublicProcesss || [];
                         return rule;
                     }
                 }

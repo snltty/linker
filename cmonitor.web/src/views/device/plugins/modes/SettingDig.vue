@@ -96,7 +96,7 @@ export default {
                 value = value.replace(/^\s|\s$/g, '');
                 if (value) {
 
-                    const modes = globalData.value.usernames[globalData.value.username].Modes;
+                    const modes = globalData.value.usernames[globalData.value.username].Modes || [];
                     if (isEdit) {
                         const mode = modes.filter(c => c.Name == state.mode1)[0];
                         mode.Name = value;
@@ -104,6 +104,7 @@ export default {
                         modes.push({ Name: value, Data: '{}' });
                     }
                     state.mode = value;
+                    globalData.value.usernames[globalData.value.username].Modes = modes;
                     saveModes();
                 }
             }).catch(() => { })

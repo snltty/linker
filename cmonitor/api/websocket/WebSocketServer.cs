@@ -126,9 +126,9 @@ namespace cmonitor.api.websocket
                     ProcessAccept(acceptEventArg);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                Logger.Instance.Error(ex);
             }
         }
         private void ProcessAccept(SocketAsyncEventArgs e)
@@ -251,7 +251,7 @@ namespace cmonitor.api.websocket
             {
                 if (token.FrameBuffer.Size == 0 && data.Length > 6)
                 {
-                    if (WebSocketFrameInfo.TryParse(data, out token.FrameInfo))
+                    if (WebSocketFrameInfo.TryParse(data, out token.FrameInfo) && token.FrameInfo.Fin == WebSocketFrameInfo.EnumFin.Fin)
                     {
                         ExecuteHandle(token);
                         if (token.FrameInfo.TotalLength == data.Length)
@@ -272,7 +272,7 @@ namespace cmonitor.api.websocket
 
                 do
                 {
-                    if (WebSocketFrameInfo.TryParse(token.FrameBuffer.Data.Slice(token.FrameIndex), out token.FrameInfo) == false)
+                    if (WebSocketFrameInfo.TryParse(token.FrameBuffer.Data.Slice(0, token.FrameBuffer.Size), out token.FrameInfo) == false)
                     {
                         break;
                     }
@@ -280,12 +280,11 @@ namespace cmonitor.api.websocket
                     {
                         ExecuteHandle(token);
                         token.FrameBuffer.RemoveRange(0, token.FrameInfo.TotalLength);
-                        token.FrameIndex = 0;
                     }
                     else
                     {
-                        token.FrameBuffer.RemoveRange(token.FrameIndex, token.FrameInfo.TotalLength - token.FrameInfo.PayloadData.Length);
-                        token.FrameIndex += token.FrameInfo.PayloadData.Length;
+                        token.FrameBuffer.RemoveRange(0, token.FrameBuffer.Size);
+                        break;
                     }
                 } while (token.FrameBuffer.Size > 6);
             }

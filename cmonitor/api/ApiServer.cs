@@ -3,6 +3,7 @@ using cmonitor.config;
 using common.libs;
 using common.libs.extends;
 using Microsoft.Extensions.DependencyInjection;
+using SharpDX;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Reflection;

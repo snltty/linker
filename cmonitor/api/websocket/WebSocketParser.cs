@@ -392,7 +392,6 @@ namespace cmonitor.api.websocket
             //5 6 7 8 操作码
             EnumOpcode opcode = (EnumOpcode)(byte)(span[0] & (byte)EnumOpcode.Last);
 
-
             Span<byte> maskKey = Helper.EmptyArray;
             if (mask == EnumMask.Mask)
             {

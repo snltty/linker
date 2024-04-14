@@ -69,8 +69,8 @@ export default {
             const _publicRules = publicRules.value.getData().map(c => c.Name);
             const _user = user.value;
             const _publicUser = publicUser.value;
-            const publicList = _user.Processs.filter(c => _privateRules.indexOf(c.Name) >= 0);
-            const privateList = _publicUser.Processs.filter(c => _publicRules.indexOf(c.Name) >= 0);
+            const publicList = (_user.Processs||[]).filter(c => _privateRules.indexOf(c.Name) >= 0);
+            const privateList = [_publicUser.Processs || []].filter(c => _publicRules.indexOf(c.Name) >= 0);
 
             const origin = publicList.concat(privateList).reduce((arr, value, index) => {
                 arr = arr.concat(value.List);
