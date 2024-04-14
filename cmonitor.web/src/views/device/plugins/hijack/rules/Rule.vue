@@ -66,10 +66,10 @@ export default {
                     PublicProcesss: [],
                 }
             }),
-            privateProcess: computed(() => user.value ? user.value.Processs : []),
-            privateProcessItems: computed(() => user.value ? user.value.Processs.filter(c => state.rule.PrivateProcesss.indexOf(c.Name) >= 0) : []),
-            publicProcess: computed(() => usePublic ? publicUser.value.Processs : []),
-            publicProcessItems: computed(() => usePublic ? publicUser.value.Processs.filter(c => state.rule.PublicProcesss.indexOf(c.Name) >= 0) : []),
+            privateProcess: computed(() => user.value ? user.value.Processs||[] : []),
+            privateProcessItems: computed(() => user.value ? (user.value.Processs||[]).filter(c => state.rule.PrivateProcesss.indexOf(c.Name) >= 0) : []),
+            publicProcess: computed(() => usePublic ? publicUser.value.Processs||[] : []),
+            publicProcessItems: computed(() => usePublic ? (publicUser.value.Processs||[]).filter(c => state.rule.PublicProcesss.indexOf(c.Name) >= 0) : []),
         });
         watch(() => state.show, (val) => {
             if (!val) {
