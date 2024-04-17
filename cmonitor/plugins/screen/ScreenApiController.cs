@@ -2,7 +2,7 @@
 using cmonitor.config;
 using cmonitor.plugins.screen.messenger;
 using cmonitor.plugins.screen.report;
-using cmonitor.plugins.signIn.messenger;
+using cmonitor.plugins.signin.messenger;
 using cmonitor.server;
 using common.libs.extends;
 using MemoryPack;

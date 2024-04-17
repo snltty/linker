@@ -1,6 +1,6 @@
 ﻿using cmonitor.api;
 using cmonitor.plugins.light.messenger;
-using cmonitor.plugins.signIn.messenger;
+using cmonitor.plugins.signin.messenger;
 using cmonitor.server;
 using common.libs.extends;
 using MemoryPack;

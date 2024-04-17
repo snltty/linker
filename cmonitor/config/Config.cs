@@ -1,6 +1,5 @@
 ﻿using common.libs;
 using common.libs.extends;
-using System.Net;
 using System.Text.Json.Serialization;
 
 namespace cmonitor.config
@@ -51,7 +50,7 @@ namespace cmonitor.config
             {
                 slim.Release();
             }
-           
+
         }
 
         private void Save()
@@ -74,7 +73,7 @@ namespace cmonitor.config
             }
         }
 
-        
+
     }
 
     public sealed partial class ConfigInfo
@@ -96,7 +95,17 @@ namespace cmonitor.config
         {
             get => plugins; set
             {
-                PluginNames = value.Select(c => $"plugins.{c}.").ToArray();
+                plugins = value;
+
+                if (value.Length > 0)
+                {
+                    PluginNames = value.ToList().Concat(new List<string>
+                    {
+                        "client","server","api","web","plugins.signin",
+                        "plugins.watch","plugins.devices","plugins.report",
+                        "plugins.share","plugins.rule","plugins.modes",
+                    }).Select(c => $".{c}.").ToArray();
+                }
             }
         }
         [JsonIgnore]

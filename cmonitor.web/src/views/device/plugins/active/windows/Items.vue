@@ -135,6 +135,7 @@ export default {
 
             const windows = globalData.value.usernames[globalData.value.username].Windows || [];
             const group = windows.filter(c => c.Name == state.group)[0];
+            if(!group) return;
             const items = group.List;
             const names = items.map(c => c.Name);
 

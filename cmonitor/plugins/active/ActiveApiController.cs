@@ -1,7 +1,7 @@
 ﻿using cmonitor.api;
 using cmonitor.plugins.active.messenger;
 using cmonitor.plugins.active.report;
-using cmonitor.plugins.signIn.messenger;
+using cmonitor.plugins.signin.messenger;
 using cmonitor.server;
 using cmonitor.server.ruleConfig;
 using common.libs;

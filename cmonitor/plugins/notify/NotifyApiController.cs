@@ -1,7 +1,7 @@
 ﻿using cmonitor.api;
 using cmonitor.plugins.notify.messenger;
 using cmonitor.plugins.notify.report;
-using cmonitor.plugins.signIn.messenger;
+using cmonitor.plugins.signin.messenger;
 using cmonitor.server;
 using common.libs.extends;
 using MemoryPack;

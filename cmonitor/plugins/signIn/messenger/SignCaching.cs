@@ -5,7 +5,7 @@ using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
-namespace cmonitor.plugins.signIn.messenger
+namespace cmonitor.plugins.signin.messenger
 {
     public sealed class SignCaching
     {

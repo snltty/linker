@@ -3,7 +3,7 @@ using cmonitor.server;
 using common.libs;
 using MemoryPack;
 
-namespace cmonitor.plugins.signIn.messenger
+namespace cmonitor.plugins.signin.messenger
 {
     public sealed class SignInMessenger : IMessenger
     {

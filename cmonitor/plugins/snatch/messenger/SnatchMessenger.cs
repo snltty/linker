@@ -1,4 +1,4 @@
-﻿using cmonitor.plugins.signIn.messenger;
+﻿using cmonitor.plugins.signin.messenger;
 using cmonitor.plugins.snatch.report;
 using cmonitor.server;
 

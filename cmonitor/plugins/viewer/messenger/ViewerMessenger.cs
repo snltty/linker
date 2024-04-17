@@ -1,7 +1,7 @@
 ﻿using cmonitor.client;
 using cmonitor.client.running;
 using cmonitor.config;
-using cmonitor.plugins.signIn.messenger;
+using cmonitor.plugins.signin.messenger;
 using cmonitor.plugins.viewer.proxy;
 using cmonitor.plugins.viewer.report;
 using cmonitor.server;

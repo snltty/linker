@@ -1,8 +1,8 @@
 ﻿using cmonitor.api;
 using cmonitor.config;
-using cmonitor.plugins.signIn.messenger;
+using cmonitor.plugins.signin.messenger;
 
-namespace cmonitor.plugins.signIn
+namespace cmonitor.plugins.signin
 {
     public sealed class SignInApiController : IApiController
     {

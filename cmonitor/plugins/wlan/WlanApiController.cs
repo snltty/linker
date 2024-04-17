@@ -1,5 +1,5 @@
 ﻿using cmonitor.api;
-using cmonitor.plugins.signIn.messenger;
+using cmonitor.plugins.signin.messenger;
 using cmonitor.plugins.wlan.messenger;
 using cmonitor.plugins.wlan.report;
 using cmonitor.server;

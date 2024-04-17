@@ -16,7 +16,7 @@ namespace cmonitor.plugins.viewer.proxy
         private NumberSpaceUInt32 ns = new NumberSpaceUInt32();
         private SocketAsyncEventArgs acceptEventArg;
 
-        Socket socket;
+        private Socket socket;
 
         public IPEndPoint LocalEndpoint => socket?.LocalEndPoint as IPEndPoint ?? new IPEndPoint(IPAddress.Any, 0);
 

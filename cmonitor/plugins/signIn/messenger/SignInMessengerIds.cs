@@ -1,4 +1,4 @@
-﻿namespace cmonitor.plugins.signIn.messenger
+﻿namespace cmonitor.plugins.signin.messenger
 {
     public enum SignInMessengerIds : ushort
     {

@@ -1,5 +1,5 @@
 ﻿using cmonitor.api;
-using cmonitor.plugins.signIn.messenger;
+using cmonitor.plugins.signin.messenger;
 using cmonitor.plugins.wallpaper.messenger;
 using cmonitor.plugins.wallpaper.report;
 using cmonitor.server;

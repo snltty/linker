@@ -3,6 +3,7 @@ using cmonitor.client.running;
 using cmonitor.config;
 using cmonitor.plugins.viewer.messenger;
 using cmonitor.server;
+using common.libs;
 using MemoryPack;
 
 namespace cmonitor.plugins.viewer.proxy
@@ -22,6 +23,7 @@ namespace cmonitor.plugins.viewer.proxy
             this.runningConfig = runningConfig;
 
             Start(0);
+            Logger.Instance.Info($"start viewer proxy, port : {LocalEndpoint.Port}");
         }
 
         public override async Task Connect(string name, uint connectId)

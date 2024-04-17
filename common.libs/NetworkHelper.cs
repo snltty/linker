@@ -33,6 +33,19 @@ namespace common.libs
             return null;
         }
 
+        public static IPEndPoint GetEndPoint(string host, int defaultPort)
+        {
+            string[] hostArr = host.Split(':');
+            int port = defaultPort;
+            if (hostArr.Length == 2)
+            {
+                port = int.Parse(hostArr[1]);
+            }
+            IPAddress ip = GetDomainIp(hostArr[0]);
+
+            return new IPEndPoint(ip, port);
+        }
+
 
 #if DISABLE_IPV6 || (!UNITY_EDITOR && ENABLE_IL2CPP && !UNITY_2018_3_OR_NEWER)
             public static bool  IPv6Support = false;

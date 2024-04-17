@@ -1,7 +1,7 @@
 ﻿using cmonitor.api;
 using cmonitor.plugins.keyboard.messenger;
 using cmonitor.plugins.keyboard.report;
-using cmonitor.plugins.signIn.messenger;
+using cmonitor.plugins.signin.messenger;
 using cmonitor.server;
 using common.libs.extends;
 using MemoryPack;
