@@ -7,6 +7,7 @@ using common.libs.winapis;
 using System.Text;
 using System.Buffers.Binary;
 using common.libs;
+using common.libs.extends;
 
 namespace cmonitor.plugins.hijack.report.hijack
 {
@@ -256,7 +257,6 @@ namespace cmonitor.plugins.hijack.report.hijack
                     IPHostEntry entry = await Dns.GetHostEntryAsync(domain);
                     foreach (IPAddress item in entry.AddressList)
                     {
-
                         if (domainIPs.ContainsKey(item) == false)
                             domainIPs[item] = AllowType.Denied;
                     }
@@ -372,7 +372,7 @@ namespace cmonitor.plugins.hijack.report.hijack
 
             ushort type = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(index));
             index += 2; //type 
-            if (type != 1)
+            if (type != 1 && type != 28)
             {
                 return null; //不是A查询
             }
@@ -391,7 +391,7 @@ namespace cmonitor.plugins.hijack.report.hijack
                 int dataLength = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(index));
                 index += 2;
 
-                if (type == 1) //是A回应，其它的不要
+                if (type == 1 || type == 28) //是A回应，其它的不要
                 {
                     ips[i] = new IPAddress(span.Slice(index, dataLength));
                 }
@@ -423,7 +423,6 @@ namespace cmonitor.plugins.hijack.report.hijack
 
                 if (ip != null && domainIPs.TryGetValue(ip, out type))
                 {
-
                     if (type == AllowType.Denied && domainKill)
                     {
                         try

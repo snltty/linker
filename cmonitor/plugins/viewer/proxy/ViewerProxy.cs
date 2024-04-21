@@ -248,22 +248,13 @@ namespace cmonitor.plugins.viewer.proxy
             Socket targetSocket = null;
             try
             {
-                if (IPEndPoint.TryParse(viewerProxyInfo.ProxyEP, out IPEndPoint proxyEP) == false)
-                {
-                    return;
-                }
-                if (IPEndPoint.TryParse(viewerProxyInfo.TargetEP, out IPEndPoint targetEP) == false)
-                {
-                    return;
-                }
-
-                proxySocket = new Socket(proxyEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                proxySocket = new Socket(viewerProxyInfo.ProxyEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 proxySocket.KeepAlive();
-                await proxySocket.ConnectAsync(proxyEP);
+                await proxySocket.ConnectAsync(viewerProxyInfo.ProxyEP);
 
-                targetSocket = new Socket(targetEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                targetSocket = new Socket(viewerProxyInfo.TargetEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 targetSocket.KeepAlive();
-                await targetSocket.ConnectAsync(targetEP);
+                await targetSocket.ConnectAsync(viewerProxyInfo.TargetEP);
 
                 int length = responseBytes.Length + 4;
                 byte[] data = ArrayPool<byte>.Shared.Rent(length);
@@ -428,9 +419,11 @@ namespace cmonitor.plugins.viewer.proxy
 
         public string ViewerMachine { get; set; }
 
-        public string ProxyEP { get; set; }
+        [MemoryPackAllowSerialize]
+        public IPEndPoint ProxyEP { get; set; }
 
-        public string TargetEP { get; set; }
+        [MemoryPackAllowSerialize]
+        public IPEndPoint TargetEP { get; set; }
     }
 
     public sealed class ConnectServerCache

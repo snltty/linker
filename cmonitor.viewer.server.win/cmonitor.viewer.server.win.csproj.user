@@ -3,9 +3,4 @@
   <PropertyGroup>
     <_LastSelectedProfileId>D:\desktop\cmonitor\cmonitor.viewer.server.win\Properties\PublishProfiles\FolderProfile.pubxml</_LastSelectedProfileId>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Update="MainForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-  </ItemGroup>
 </Project>

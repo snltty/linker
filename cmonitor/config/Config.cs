@@ -101,7 +101,7 @@ namespace cmonitor.config
                 {
                     PluginNames = value.ToList().Concat(new List<string>
                     {
-                        "client","server","api","web","plugins.signin",
+                        "client","server","api","web","serializes","plugins.signin",
                         "plugins.watch","plugins.devices","plugins.report",
                         "plugins.share","plugins.rule","plugins.modes",
                     }).Select(c => $".{c}.").ToArray();

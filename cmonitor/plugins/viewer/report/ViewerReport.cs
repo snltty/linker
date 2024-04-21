@@ -179,7 +179,7 @@ namespace cmonitor.plugins.viewer.report
         }
         private void UpdateConnectEP()
         {
-            string connectEP = viewer.GetConnectEP(runningConfig.Data.Viewer.ConnectStr);
+            IPEndPoint connectEP = viewer.GetConnectEP(runningConfig.Data.Viewer.ConnectStr);
             runningConfig.Data.Viewer.ConnectEP = connectEP;
             runningConfig.Data.Update();
         }

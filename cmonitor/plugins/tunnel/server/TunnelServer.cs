@@ -1,6 +1,6 @@
 ﻿using common.libs;
 using common.libs.extends;
-using System.Buffers;
+using MemoryPack;
 using System.Net;
 using System.Net.Sockets;
 
@@ -88,20 +88,10 @@ namespace cmonitor.plugins.tunnel.server
             if (token.SourceSocket != null)
             {
                 IPEndPoint ep = token.SourceSocket.RemoteEndPoint as IPEndPoint;
+                Memory<byte> memory = MemoryPackSerializer.Serialize(new TunnelExternalIPInfo { ExternalIP = ep });
 
-                byte[] bytes = ArrayPool<byte>.Shared.Rent(20);
+                await token.SourceSocket.SendAsync(memory);
 
-                int index = 0;
-                bytes[index] = (byte)ep.Address.AddressFamily;
-                index++;
-                ep.Address.TryWriteBytes(bytes.AsSpan(index), out int bytesWritten);
-                index += bytesWritten;
-                ((ushort)ep.Port).ToBytes(bytes.AsMemory(index));
-                index += 2;
-
-                await token.SourceSocket.SendAsync(bytes.AsMemory(0, index));
-
-                ArrayPool<byte>.Shared.Return(bytes);
             }
         }
 
@@ -112,20 +102,9 @@ namespace cmonitor.plugins.tunnel.server
                 IPEndPoint ep = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
                 byte[] _ = socketUdp.EndReceive(result, ref ep);
 
+                Memory<byte> memory = MemoryPackSerializer.Serialize(new TunnelExternalIPInfo { ExternalIP = ep });
 
-                byte[] bytes = ArrayPool<byte>.Shared.Rent(20);
-
-                int index = 0;
-                bytes[index] = (byte)ep.Address.AddressFamily;
-                index++;
-                ep.Address.TryWriteBytes(bytes.AsSpan(index), out int bytesWritten);
-                index += bytesWritten;
-                ((ushort)ep.Port).ToBytes(bytes.AsMemory(index));
-                index += 2;
-
-                await socketUdp.SendAsync(bytes.AsMemory(0, index), ep);
-
-                ArrayPool<byte>.Shared.Return(bytes);
+                await socketUdp.SendAsync(memory, ep);
 
                 result = socketUdp.BeginReceive(ReceiveCallbackUdp, null);
             }
@@ -147,6 +126,7 @@ namespace cmonitor.plugins.tunnel.server
         public void Stop()
         {
             CloseClientSocket(acceptEventArg);
+            socketUdp?.Close();
         }
     }
 
@@ -161,5 +141,12 @@ namespace cmonitor.plugins.tunnel.server
 
             GC.Collect();
         }
+    }
+
+    [MemoryPackable]
+    public sealed partial class TunnelExternalIPInfo
+    {
+        [MemoryPackAllowSerialize]
+        public IPEndPoint ExternalIP { get; set; }
     }
 }

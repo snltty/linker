@@ -53,7 +53,7 @@ namespace cmonitor.plugins.viewer.messenger
         public async Task ProxyFromServer(IConnection connection)
         {
             ViewerProxyInfo proxy = MemoryPackSerializer.Deserialize<ViewerProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            proxy.ProxyEP = $"{clientSignInState.Connection.Address.Address}:{config.Data.Client.Viewer.ProxyPort}";
+            proxy.ProxyEP = new System.Net.IPEndPoint(clientSignInState.Connection.Address.Address,config.Data.Client.Viewer.ProxyPort);
             proxy.TargetEP = runningConfig.Data.Viewer.ConnectEP;
             await viewerProxyClient.Connect(proxy);
         }

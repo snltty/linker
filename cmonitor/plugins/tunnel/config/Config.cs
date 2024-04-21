@@ -1,4 +1,6 @@
-﻿namespace cmonitor.config
+﻿using System.Text.Json.Serialization;
+
+namespace cmonitor.config
 {
     public partial class ConfigClientInfo
     {
@@ -15,6 +17,9 @@
         {
             new TunnelCompactInfo { Type="self", Host="127.0.0.1:1804" }
         };
+
+        [JsonIgnore]
+        public int RouteLevel { get; set; }
     }
 
     public sealed class TunnelConfigServerInfo

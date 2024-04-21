@@ -13,18 +13,18 @@
         </div>
         <div class="body flex flex-1">
             <div class="private">
-                <CheckBoxWrap ref="privateProcess" :data="state.privateProcess" :items="state.privateProcessItems" label="Name" text="Name" title="私有程序组"></CheckBoxWrap>
+                <CheckBoxWrap v-if="state.showCheck" ref="privateProcess" :data="state.privateProcess" :items="state.privateProcessItems" label="Name" text="Name" title="私有程序组"></CheckBoxWrap>
             </div>
             <div class="flex-1"></div>
             <div class="public">
-                <CheckBoxWrap ref="publicProcess" :data="state.publicProcess" :items="state.publicProcessItems" label="Name" text="Name" title="公共程序组"></CheckBoxWrap>
+                <CheckBoxWrap v-if="state.showCheck" ref="publicProcess" :data="state.publicProcess" :items="state.publicProcessItems" label="Name" text="Name" title="公共程序组"></CheckBoxWrap>
             </div>
         </div>
     </div>
 </template>
 
 <script>
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, nextTick, reactive, ref, watch } from 'vue';
 import CheckBoxWrap from '../../../boxs/CheckBoxWrap.vue'
 import { ElMessage } from 'element-plus';
 import { updateRule } from '../../../../../apis/hijack'
@@ -77,6 +77,18 @@ export default {
                     emit('update:modelValue', val);
                 }, 300);
             }
+        });
+        watch(()=>state.privateProcessItems,()=>{
+            state.showCheck = false;
+            nextTick(()=>{
+                state.showCheck = true;
+            })
+        });
+        watch(()=>state.publicProcessItems,()=>{
+            state.showCheck = false;
+            nextTick(()=>{
+                state.showCheck = true;
+            })
         });
 
         const privateProcess = ref(null);

@@ -10,9 +10,9 @@ namespace cmonitor.plugins.viewer.report
         public void Open(bool value, ParamInfo info);
         public string GetConnectString();
         public void SetConnectString(string connectStr);
-        public string GetConnectEP(string connectStr)
+        public IPEndPoint GetConnectEP(string connectStr)
         {
-            return string.Empty;
+            return null;
         }
     }
 
@@ -50,7 +50,8 @@ namespace cmonitor.plugins.viewer.report
         /// 比如 B 是共享服务端，A是共享客户端
         /// 当连不上时，会需要代理，由B去连接A或者B去连接服务器，形成通道，那B这边还需要手动连接共享服务，就用这个去连
         /// </summary>
-        public string ConnectEP { get; set; } = string.Empty;
+        [MemoryPackAllowSerialize]
+        public IPEndPoint ConnectEP { get; set; }
     }
 
     public enum ViewerMode : byte

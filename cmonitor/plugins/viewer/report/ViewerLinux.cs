@@ -16,9 +16,9 @@ namespace cmonitor.plugins.viewer.report
 
         }
 
-        public string GetConnectEP(string connectStr)
+        public IPEndPoint GetConnectEP(string connectStr)
         {
-            return string.Empty;
+            return null;
         }
     }
 }

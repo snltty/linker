@@ -16,6 +16,8 @@ namespace cmonitor.startup
                 types = types.Where(c => config.Data.Common.PluginNames.Any(d => c.FullName.Contains(d)));
             }
             startups = types.Select(c => Activator.CreateInstance(c) as IStartup).ToList();
+
+            Logger.Instance.Warning($"load startup : {string.Join(",", types.Select(c=>c.Name))}");
         }
 
         public static void Add(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)

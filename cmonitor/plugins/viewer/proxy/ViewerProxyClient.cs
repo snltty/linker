@@ -35,7 +35,7 @@ namespace cmonitor.plugins.viewer.proxy
                 Payload = MemoryPackSerializer.Serialize(new ViewerProxyInfo
                 {
                     ConnectId = connectId,
-                    ProxyEP = $"{clientSignInState.Connection.LocalAddress.Address}:{LocalEndpoint.Port}",
+                    ProxyEP = new System.Net.IPEndPoint(clientSignInState.Connection.LocalAddress.Address, LocalEndpoint.Port),
                     ViewerMachine = runningConfig.Data.Viewer.ServerMachine
                 })
             });

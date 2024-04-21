@@ -35,7 +35,7 @@ namespace cmonitor.plugins.viewer.report
             Registry.SetValue("HKEY_CURRENT_USER\\SOFTWARE\\Cmonitor", "viewerConnectStr", connectStr);
         }
 
-        public string GetConnectEP(string connectStr)
+        public IPEndPoint GetConnectEP(string connectStr)
         {
             try
             {
@@ -48,13 +48,13 @@ namespace cmonitor.plugins.viewer.report
                 var p = node.Attributes["P"].Value;
                 var n = node.Attributes["N"].Value;
 
-                return $"{n}:{p}";
+                return new IPEndPoint(IPAddress.Parse(n),int.Parse(p));
             }
             catch (Exception ex)
             {
                 Logger.Instance.Error(ex);
             }
-            return string.Empty;
+            return null;
         }
     }
 }

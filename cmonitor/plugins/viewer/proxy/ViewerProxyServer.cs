@@ -31,7 +31,7 @@ namespace cmonitor.plugins.viewer.proxy
                     Payload = MemoryPackSerializer.Serialize(new ViewerProxyInfo
                     {
                         ConnectId = connectId,
-                        ProxyEP = string.Empty,
+                        ProxyEP = null,
                         ViewerMachine = string.Empty
                     })
                 });

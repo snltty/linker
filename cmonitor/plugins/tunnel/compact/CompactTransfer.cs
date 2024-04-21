@@ -31,9 +31,9 @@ namespace cmonitor.plugins.tunnel.compact
             Logger.Instance.Warning($"load tunnel compacts:{string.Join(",", compacts.Select(c => c.Type))}");
         }
 
-        public async Task<CompactIPEndPoint[]> GetExternalIPAsync(ProtocolType protocolType)
+        public async Task<TunnelCompactIPEndPoint[]> GetExternalIPAsync(ProtocolType protocolType)
         {
-            CompactIPEndPoint[] endpoints = new CompactIPEndPoint[config.Data.Client.Tunnel.Servers.Length];
+            TunnelCompactIPEndPoint[] endpoints = new TunnelCompactIPEndPoint[config.Data.Client.Tunnel.Servers.Length];
 
             for (int i = 0; i < config.Data.Client.Tunnel.Servers.Length; i++)
             {
@@ -46,12 +46,12 @@ namespace cmonitor.plugins.tunnel.compact
                     IPEndPoint server = NetworkHelper.GetEndPoint(item.Host, 3478);
                     if (protocolType == ProtocolType.Tcp)
                     {
-                        CompactIPEndPoint externalIP = await compact.GetTcpExternalIPAsync(server);
+                        TunnelCompactIPEndPoint externalIP = await compact.GetTcpExternalIPAsync(server);
                         endpoints[i] = externalIP;
                     }
                     else if (protocolType == ProtocolType.Udp)
                     {
-                        CompactIPEndPoint externalIP = await compact.GetUdpExternalIPAsync(server);
+                        TunnelCompactIPEndPoint externalIP = await compact.GetUdpExternalIPAsync(server);
                         endpoints[i] = externalIP;
                     }
                 }
