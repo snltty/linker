@@ -54,7 +54,7 @@ export default {
 
         const state = reactive({
             show: props.modelValue,
-            items: computed(() => pluginState.value.system.devices),
+            items:pluginState.value.system.devices,
             loading: false,
             options: []
         });

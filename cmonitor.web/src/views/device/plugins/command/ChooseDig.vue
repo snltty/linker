@@ -41,7 +41,7 @@ export default {
 
         const state = reactive({
             show: props.modelValue,
-            items: computed(() => pluginState.value.command.devices),
+            items:pluginState.value.command.devices,
             loading: false
         });
         watch(() => state.show, (val) => {
