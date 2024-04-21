@@ -50,9 +50,7 @@ namespace cmonitor.plugins.screen.report
             this.config = config;
             if (OperatingSystem.IsWindows())
             {
-                //FFmpegHelper.Initialize();
                 InitCapture();
-                //InitEncoder();
             }
         }
 

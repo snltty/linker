@@ -1398,6 +1398,7 @@ public static class User32
     public const int SPI_SETLOCKSCREENSAVER = 175;
     public const int SPI_GETSCREENSAVEACTIVE = 16;
     public const int SPI_GETLOCKSCREENSAVER = 174;
+    public const int SPI_SETFLIGHTMODE = 0x0124;
 
     [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     public static extern int SystemParametersInfo(

@@ -11,6 +11,14 @@ namespace cmonitor.plugins.wlan.report
 
         public async Task<bool> WlanConnect(string name)
         {
+            try
+            {
+                common.libs.winapis.User32.SystemParametersInfo(common.libs.winapis.User32.SPI_SETFLIGHTMODE, 0, IntPtr.Zero, common.libs.winapis.User32.SPIF_UPDATEINIFILE | common.libs.winapis.User32.SPIF_SENDCHANGE);
+            }
+            catch (Exception)
+            {
+            }
+
             var wifi = NativeWifi.EnumerateAvailableNetworks().FirstOrDefault(c => c.ProfileName == name);
             if (wifi == null)
             {
