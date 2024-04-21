@@ -66,6 +66,7 @@ namespace common.libs
                     }
                     else
                     {
+                        if (i == 0) return 1;
                         return i;
                     }
                 }
@@ -73,7 +74,7 @@ namespace common.libs
             catch (Exception)
             {
             }
-            return 0;
+            return 1;
         }
         public static IEnumerable<IPAddress> GetTraceRoute(string hostNameOrAddress)
         {

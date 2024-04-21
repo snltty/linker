@@ -5,12 +5,12 @@
         </div>
         <div class="flex flex-1">
             <div class="private">
-                <CheckBoxWrap v-if="state.showids1" ref="privateExes" :data="state.privateExes" :items="state.ids1" label="Name" text="Name" title="私有窗口">
+                <CheckBoxWrap  ref="privateExes" :data="state.privateExes" :items="state.ids1" label="Name" text="Name" title="私有窗口">
                 </CheckBoxWrap>
             </div>
             <div class="flex-1"></div>
             <div class="public">
-                <CheckBoxWrap v-if="state.showids2" ref="publicExes" :data="state.publicExes" :items="state.ids2" label="Name" text="Name" title="公共窗口">
+                <CheckBoxWrap ref="publicExes" :data="state.publicExes" :items="state.ids2" label="Name" text="Name" title="公共窗口">
                 </CheckBoxWrap>
             </div>
         </div>
@@ -38,9 +38,7 @@ export default {
             use: false,
             privateExes: computed(() => user.value ? user.value.Windows || [] : []),
             publicExes: computed(() => usePublic ? publicUser.value.Windows || [] : []),
-            showids1:true,
             ids1: [],
-            showids2:true,
             ids2: [],
         });
         watch(() => modeState.value, () => {
@@ -48,16 +46,10 @@ export default {
         });
         onMounted(() => { parseMode(); });
         const parseMode = () => {
-            state.showids1 = false;
-            state.showids2 = false;
             const json = JSON.parse(modeState.value)[current.type.label] || {};
             state.use = json.use || false;
             state.ids1 = (json.ids1 || []).map(c => { return { Name: c }; });
             state.ids2 = (json.ids2 || []).map(c => { return { Name: c }; });
-            nextTick(()=>{
-                state.showids1 = true;
-                state.showids2 = true;
-            });
         }
 
         const privateExes = ref(null);

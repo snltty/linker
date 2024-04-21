@@ -45,12 +45,12 @@ export default {
             checkAll: false,
             isIndeterminate: false
         });
-        /*
-                watch(() => props.items, () => {
-                    state.checkList = props.items.map(c => c[props.label]);
-                    updateCheckAll(state.checkList);
-                })
-                */
+        
+        watch(() => props.items, () => {
+            state.checkList = props.items.map(c => c[props.label]);
+            updateCheckAll(state.checkList);
+        });
+                
 
         const handleCheckAllChange = (value) => {
             if (value) {

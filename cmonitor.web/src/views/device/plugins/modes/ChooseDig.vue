@@ -42,11 +42,21 @@ export default {
 
         const globalData = injectGlobalData();
         const pluginState = injectPluginState();
+        const user = computed(() => globalData.value.usernames[globalData.value.username]);
+        const publicUserName = globalData.value.publicUserName;
+        const publicUser = computed(() => globalData.value.usernames[publicUserName]);
+        const usePublic = publicUser.value && globalData.value.username != publicUserName;
         const devices = ref(null);
         const state = reactive({
             show: props.modelValue,
             items: computed(() => pluginState.value.modes.devices),
-            modes: computed(() => (globalData.value.usernames[globalData.value.username] || {}).Modes || []),
+            modes: computed(() => {
+                let modes =  ((user.value || {}).Modes || []);
+                if(usePublic && publicUser.value && publicUser.value.Modes){
+                    modes = modes.concat(publicUser.value.Modes);
+                }
+                return modes;
+            }),
             loading: false
         });
         watch(() => state.show, (val) => {

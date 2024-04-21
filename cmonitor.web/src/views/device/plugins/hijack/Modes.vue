@@ -6,11 +6,11 @@
         </div>
         <div class="rules flex-1 flex">
             <div class="private">
-                <CheckBoxWrap v-if="state.showids1" ref="privateRules" :data="state.privateRules" :items="state.ids1" label="Name" text="Name" title="私有限制"></CheckBoxWrap>
+                <CheckBoxWrap  ref="privateRules" :data="state.privateRules" :items="state.ids1" label="Name" text="Name" title="私有限制"></CheckBoxWrap>
             </div>
             <div class="flex-1"></div>
             <div class="public">
-                <CheckBoxWrap v-if="state.showids2" ref="publicRules" :data="state.publicRules" :items="state.ids2" label="Name" text="Name" title="公共限制"></CheckBoxWrap>
+                <CheckBoxWrap ref="publicRules" :data="state.publicRules" :items="state.ids2" label="Name" text="Name" title="公共限制"></CheckBoxWrap>
             </div>
         </div>
     </div>
@@ -39,26 +39,18 @@ export default {
             publicRules: computed(() => usePublic ? publicUser.value.Processs || [] : []),
             showids1:true,
             ids1: [],
-            showids2:true,
             ids2: [],
-            domainKill: false
         });
         watch(() => modeState.value, () => {
             parseMode();
         });
         onMounted(() => { parseMode(); });
         const parseMode = () => {
-            state.showids1 = false;
-            state.showids2 = false;
             const json = JSON.parse(modeState.value)[current.type.label] || { list: {} };
             state.use = json.use || false;
             state.ids1 = (json.ids1 || []).map(c => { return { Name: c }; });
             state.ids2 = (json.ids2 || []).map(c => { return { Name: c }; });
             state.domainKill = json.list.DomainKill || false;
-            nextTick(()=>{
-                state.showids1 = true;
-                state.showids2 = true;
-            });
         }
 
 
