@@ -1,5 +1,6 @@
 ﻿using common.libs.extends;
 using MemoryPack;
+using System.Linq;
 using System.Net;
 
 namespace cmonitor.serializes
@@ -43,8 +44,8 @@ namespace cmonitor.serializes
             Span<byte> span = Array.Empty<byte>();
             reader.ReadSpan(ref span);
 
-            int length = span[4];
-            value = new IPEndPoint(new IPAddress(span.Slice(4 + 1, length)), span.Slice(4 + 1 + length).ToUInt16());
+            int length = span[0];
+            value = new IPEndPoint(new IPAddress(span.Slice(0 + 1, length)), span.Slice(0 + 1 + length).ToUInt16());
         }
     }
 }

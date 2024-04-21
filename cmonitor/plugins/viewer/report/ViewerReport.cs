@@ -10,6 +10,7 @@ using cmonitor.client.running;
 using System.Net;
 using System.Text.Json;
 using cmonitor.plugins.viewer.proxy;
+using common.libs.extends;
 
 namespace cmonitor.plugins.viewer.report
 {
@@ -72,22 +73,28 @@ namespace cmonitor.plugins.viewer.report
             }
             runningConfig.Data.Update();
 
-
             Task.Run(async () =>
             {
-                Close();
-                await HeartNotify(false);
-                await Task.Delay(500);
-                Open();
-
-                if (runningConfig.Data.Viewer.Open)
+                try
                 {
-                    runningConfig.Data.Viewer.ConnectStr = await GetNewConnectStr();
-                    if (string.IsNullOrWhiteSpace(runningConfig.Data.Viewer.ConnectStr) == false)
+                    Close();
+                    await HeartNotify(false);
+                    await Task.Delay(500);
+                    Open();
+
+                    if (runningConfig.Data.Viewer.Open)
                     {
-                        UpdateConnectEP();
-                        await HeartNotify(runningConfig.Data.Viewer.Open);
+                        runningConfig.Data.Viewer.ConnectStr = await GetNewConnectStr();
+                        if (string.IsNullOrWhiteSpace(runningConfig.Data.Viewer.ConnectStr) == false)
+                        {
+                            UpdateConnectEP();
+                            await HeartNotify(runningConfig.Data.Viewer.Open);
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.Error(ex);
                 }
             });
         }
@@ -97,7 +104,6 @@ namespace cmonitor.plugins.viewer.report
             {
                 viewer.SetConnectString(ReplaceProxy(info.ConnectStr));
             }
-
             //未运行，或者不是client模式，或者状态不对，都需要重启一下
             bool restart = Running() != true
                 || runningConfig.Data.Viewer.Mode != ViewerMode.Client
@@ -113,7 +119,7 @@ namespace cmonitor.plugins.viewer.report
         }
         private async Task HeartNotify(bool open)
         {
-            ViewerRunningConfigInfo info = JsonSerializer.Deserialize<ViewerRunningConfigInfo>(JsonSerializer.Serialize(runningConfig.Data.Viewer));
+            ViewerRunningConfigInfo info = runningConfig.Data.Viewer.ToJsonFormat().DeJson<ViewerRunningConfigInfo>();
             info.Mode = ViewerMode.Client;
             info.Open = open;
 
