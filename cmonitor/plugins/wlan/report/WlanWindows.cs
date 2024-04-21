@@ -13,7 +13,23 @@ namespace cmonitor.plugins.wlan.report
         {
             try
             {
-                common.libs.winapis.User32.SystemParametersInfo(common.libs.winapis.User32.SPI_SETFLIGHTMODE, 0, IntPtr.Zero, common.libs.winapis.User32.SPIF_UPDATEINIFILE | common.libs.winapis.User32.SPIF_SENDCHANGE);
+                var targetInterface = NativeWifi.EnumerateInterfaces()
+                 .FirstOrDefault(x =>
+                 {
+                     var radioSet = NativeWifi.GetInterfaceRadio(x.Id)?.RadioSets.FirstOrDefault();
+                     if (radioSet is null)
+                         return false;
+
+                     if (!radioSet.HardwareOn.GetValueOrDefault()) // Hardware radio state is off.
+                         return false;
+
+                     return (radioSet.SoftwareOn == false); // Software radio state is off.
+                 });
+
+                if (targetInterface != null)
+                {
+                    NativeWifi.TurnOnInterfaceRadio(targetInterface.Id);
+                }
             }
             catch (Exception)
             {
