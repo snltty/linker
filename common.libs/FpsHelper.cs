@@ -12,14 +12,16 @@ namespace common.libs
         {
             if (dic.TryGetValue(name, out FpsInfo info) == false)
             {
-                info = new FpsInfo { Flag = 0, Time = Environment.TickCount };
+                info = new FpsInfo { Flag = 1, Time = Environment.TickCount };
                 dic.TryAdd(name, info);
             }
-
-            long time = info.Time;
-            info.Time = Environment.TickCount;
-
-            return Interlocked.CompareExchange(ref info.Flag, 0, 1) == 1 && Environment.TickCount - time > 1000 / fps;
+            bool res = info.Flag == 1 && Environment.TickCount - info.Time > 1000 / fps;
+            if (res)
+            {
+                Interlocked.Exchange(ref info.Flag, 0);
+                info.Time = Environment.TickCount;
+            }
+            return res;
         }
 
         public void Release(string name)

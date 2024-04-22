@@ -32,7 +32,7 @@ namespace cmonitor.plugins.viewer.proxy
                     {
                         ConnectId = connectId,
                         ProxyEP = null,
-                        ViewerMachine = string.Empty
+                        ViewerServerMachine = connection.Name
                     })
                 });
             }

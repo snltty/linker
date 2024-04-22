@@ -15,7 +15,7 @@ namespace cmonitor.plugins.report
         private readonly SignCaching signCaching;
         private readonly IApiServer clientServer;
         private readonly Config config;
-        private readonly FpsHelper fpsHelper;
+        private readonly FpsHelper fpsHelper = new FpsHelper();
 
         public ReportApiController(MessengerSender messengerSender, SignCaching signCaching, IApiServer clientServer, Config config)
         {

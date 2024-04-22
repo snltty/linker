@@ -18,12 +18,19 @@ namespace cmonitor.config
             get => server; set
             {
                 server = value;
-                if (string.IsNullOrWhiteSpace(server) == false)
+                try
                 {
-                    string[] arr = server.Split(':');
-                    int port = arr.Length == 2 ? int.Parse(arr[1]) : 1802;
-                    IPAddress ip = NetworkHelper.GetDomainIp(arr[0]);
-                    ServerEP = new IPEndPoint(ip, port);
+                    if (string.IsNullOrWhiteSpace(server) == false)
+                    {
+                        string[] arr = server.Split(':');
+                        int port = arr.Length == 2 ? int.Parse(arr[1]) : 1802;
+                        IPAddress ip = NetworkHelper.GetDomainIp(arr[0]);
+                        ServerEP = new IPEndPoint(ip, port);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.Error($"{server}->{ex}");
                 }
             }
         }

@@ -135,6 +135,7 @@ export default {
                 //有哪些需要报告
                 const reportDoms = doms.filter(item => item.index >= middleItem.index - 2 && item.index <= middleItem.index + 2).map(c => c.index);
                 globalData.value.reportNames = globalData.value.devices
+                    .filter(c => c.Connected)
                     .filter((value, index) => reportDoms.indexOf(index) >= 0)
                     .map(c => c.MachineName);
             } catch (e) {

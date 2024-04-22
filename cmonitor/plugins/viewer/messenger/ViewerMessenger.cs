@@ -42,20 +42,20 @@ namespace cmonitor.plugins.viewer.messenger
 
 
         [MessengerId((ushort)ViewerMessengerIds.ProxyFromClient)]
-        public async Task ProxyFromClient(IConnection connection)
+        public void ProxyFromClient(IConnection connection)
         {
             ViewerProxyInfo proxy = MemoryPackSerializer.Deserialize<ViewerProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
             proxy.TargetEP = runningConfig.Data.Viewer.ConnectEP;
-            await viewerProxyClient.Connect(proxy);
+            _ = viewerProxyClient.Connect(proxy);
         }
 
         [MessengerId((ushort)ViewerMessengerIds.ProxyFromServer)]
-        public async Task ProxyFromServer(IConnection connection)
+        public void ProxyFromServer(IConnection connection)
         {
             ViewerProxyInfo proxy = MemoryPackSerializer.Deserialize<ViewerProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            proxy.ProxyEP = new System.Net.IPEndPoint(clientSignInState.Connection.Address.Address,config.Data.Client.Viewer.ProxyPort);
+            proxy.ProxyEP = new System.Net.IPEndPoint(clientSignInState.Connection.Address.Address, config.Data.Client.Viewer.ProxyPort);
             proxy.TargetEP = runningConfig.Data.Viewer.ConnectEP;
-            await viewerProxyClient.Connect(proxy);
+            _ = viewerProxyClient.Connect(proxy);
         }
     }
 
@@ -96,7 +96,7 @@ namespace cmonitor.plugins.viewer.messenger
         public void ProxyNotify(IConnection connection)
         {
             ViewerProxyInfo proxy = MemoryPackSerializer.Deserialize<ViewerProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.Get(proxy.ViewerMachine, out SignCacheInfo cache) && cache.Connected)
+            if (signCaching.Get(proxy.ViewerServerMachine, out SignCacheInfo cache) && cache.Connected)
             {
                 _ = messengerSender.SendOnly(new MessageRequestWrap
                 {

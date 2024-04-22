@@ -23,7 +23,7 @@ export const provideGlobalData = () => {
         devices: computed(() => {
             const user = globalData.value.usernames[globalData.value.username];
             if (user) {
-                return globalData.value.allDevices.filter(c => user.Devices.indexOf(c.MachineName) >= 0);
+                return globalData.value.allDevices.filter(c => (user.Devices || []).indexOf(c.MachineName) >= 0);
             }
             return [];
         }),

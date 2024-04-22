@@ -21,7 +21,7 @@ namespace cmonitor.plugins.viewer.report
             if (value)
             {
                 string str = JsonSerializer.Serialize(info);
-                string command = $"start cmonitor.viewer.server.win.exe \"{str.Replace("\"","\\\"")}\"";
+                string command = $"start cmonitor.viewer.server.win.exe \"{str.Replace("\"", "\\\"")}\"";
                 CommandHelper.Windows(string.Empty, new string[] { command }, false);
             }
         }
@@ -43,12 +43,18 @@ namespace cmonitor.plugins.viewer.report
                 xmlDoc.LoadXml(connectStr);
 
                 var nodes = xmlDoc.DocumentElement["C"]["T"].ChildNodes;
+                for (int i = 0; i < nodes.Count; i++)
+                {
+                    var node = nodes[i];
+                    var p = node.Attributes["P"].Value;
+                    var n = node.Attributes["N"].Value;
 
-                var node = nodes[nodes.Count - 3];
-                var p = node.Attributes["P"].Value;
-                var n = node.Attributes["N"].Value;
-
-                return new IPEndPoint(IPAddress.Parse(n),int.Parse(p));
+                    IPAddress ip = IPAddress.Parse(n);
+                    if(ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    {
+                        return new IPEndPoint(ip, int.Parse(p));
+                    }
+                }
             }
             catch (Exception ex)
             {

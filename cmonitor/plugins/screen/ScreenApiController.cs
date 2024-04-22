@@ -16,7 +16,7 @@ namespace cmonitor.plugins.screen
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;
         private readonly Config config;
-        private readonly FpsHelper fpsHelper;
+        private readonly FpsHelper fpsHelper = new FpsHelper();
 
         public ScreenApiController(MessengerSender messengerSender, SignCaching signCaching, Config config)
         {

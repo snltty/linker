@@ -28,6 +28,7 @@ namespace cmonitor.plugins.viewer.report
     public sealed partial class ViewerRunningConfigInfo
     {
         public ViewerMode Mode { get; set; }
+
         public bool Open { get; set; }
 
         public string ShareId { get; set; } = string.Empty;
@@ -52,6 +53,10 @@ namespace cmonitor.plugins.viewer.report
         /// </summary>
         [MemoryPackAllowSerialize]
         public IPEndPoint ConnectEP { get; set; }
+
+        [JsonIgnore]
+        [MemoryPackIgnore]
+        public int Times { get; set; }
     }
 
     public enum ViewerMode : byte

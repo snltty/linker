@@ -36,7 +36,7 @@ namespace cmonitor.plugins.viewer.proxy
                 {
                     ConnectId = connectId,
                     ProxyEP = new System.Net.IPEndPoint(clientSignInState.Connection.LocalAddress.Address, LocalEndpoint.Port),
-                    ViewerMachine = runningConfig.Data.Viewer.ServerMachine
+                    ViewerServerMachine = runningConfig.Data.Viewer.ServerMachine
                 })
             });
         }

@@ -11,6 +11,8 @@ using System.Net;
 using System.Text.Json;
 using cmonitor.plugins.viewer.proxy;
 using common.libs.extends;
+using System.Collections.Concurrent;
+using System.Linq;
 
 namespace cmonitor.plugins.viewer.report
 {
@@ -54,7 +56,7 @@ namespace cmonitor.plugins.viewer.report
             report.Value = Running();
             report.Mode = runningConfig.Data.Viewer.Mode;
             report.ShareId = runningConfig.Data.Viewer.ShareId;
-            if (reportType == ReportType.Full || report.Updated() || shareMemory.ReadVersionUpdated((int)ShareMemoryIndexs.Viewer))
+            if (reportType == ReportType.Full || shareMemory.ReadVersionUpdated((int)ShareMemoryIndexs.Viewer) || report.Updated())
             {
                 return report;
             }
@@ -102,7 +104,7 @@ namespace cmonitor.plugins.viewer.report
         {
             if (info.ConnectStr != runningConfig.Data.Viewer.ConnectStr)
             {
-                viewer.SetConnectString(ReplaceProxy(info.ConnectStr));
+                viewer.SetConnectString(ReplaceProxy2Client(info.ConnectStr));
             }
             //未运行，或者不是client模式，或者状态不对，都需要重启一下
             bool restart = Running() != true
@@ -122,6 +124,12 @@ namespace cmonitor.plugins.viewer.report
             ViewerRunningConfigInfo info = runningConfig.Data.Viewer.ToJsonFormat().DeJson<ViewerRunningConfigInfo>();
             info.Mode = ViewerMode.Client;
             info.Open = open;
+            //先尝试了客户端代理，不成功，就会自动尝试第二次，就尝试到了服务器代理
+            if (runningConfig.Data.Viewer.Times % 2 == 1)
+            {
+                info.ConnectStr = ReplaceProxy2Server(info.ConnectStr);
+            }
+            runningConfig.Data.Viewer.Times++;
 
             await messengerSender.SendOnly(new MessageRequestWrap
             {
@@ -148,7 +156,6 @@ namespace cmonitor.plugins.viewer.report
             }
         }
 
-
         private async Task<string> GetNewConnectStr()
         {
             try
@@ -169,7 +176,13 @@ namespace cmonitor.plugins.viewer.report
             }
             return string.Empty;
         }
-        private string ReplaceProxy(string connectStr)
+        private void UpdateConnectEP()
+        {
+            IPEndPoint connectEP = viewer.GetConnectEP(runningConfig.Data.Viewer.ConnectStr);
+            runningConfig.Data.Viewer.ConnectEP = connectEP;
+            runningConfig.Data.Update();
+        }
+        private string ReplaceProxy2Client(string connectStr)
         {
             if (IPAddress.IsLoopback(clientSignInState.Connection.LocalAddress.Address))
             {
@@ -179,17 +192,17 @@ namespace cmonitor.plugins.viewer.report
 
             return connectStr
                 .Replace("{ip}", clientSignInState.Connection.LocalAddress.Address.ToString())
-            //.Replace("{port}", "12345");
                 .Replace("{port}", viewerProxyClient.LocalEndpoint.Port.ToString());
 
         }
-        private void UpdateConnectEP()
+        private string ReplaceProxy2Server(string connectStr)
         {
-            IPEndPoint connectEP = viewer.GetConnectEP(runningConfig.Data.Viewer.ConnectStr);
-            runningConfig.Data.Viewer.ConnectEP = connectEP;
-            runningConfig.Data.Update();
+            return connectStr
+                .Replace("{ip}", clientSignInState.Connection.Address.Address.ToString())
+                .Replace("{port}", config.Data.Client.Viewer.ProxyPort.ToString());
         }
 
+        
         private void Open()
         {
             if (runningConfig.Data.Viewer.Open)

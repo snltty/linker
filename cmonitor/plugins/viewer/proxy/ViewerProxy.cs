@@ -242,7 +242,7 @@ namespace cmonitor.plugins.viewer.proxy
         {
             await Task.CompletedTask;
         }
-        public async Task Connect(ViewerProxyInfo viewerProxyInfo)
+        public async Task<bool> Connect(ViewerProxyInfo viewerProxyInfo)
         {
             Socket proxySocket = null;
             Socket targetSocket = null;
@@ -265,13 +265,18 @@ namespace cmonitor.plugins.viewer.proxy
 
                 BindReceiveTarget(new AsyncUserToken { SourceSocket = proxySocket, TargetSocket = targetSocket });
                 BindReceiveTarget(new AsyncUserToken { SourceSocket = targetSocket, TargetSocket = proxySocket });
+
+                return true;
             }
             catch (Exception ex)
             {
+                Logger.Instance.Error($"proxy ep:{viewerProxyInfo.ProxyEP}");
+                Logger.Instance.Error($"target ep:{viewerProxyInfo.TargetEP}");
                 Logger.Instance.Error(ex);
                 proxySocket?.SafeClose();
                 targetSocket?.SafeClose();
             }
+            return false;
         }
 
 
@@ -363,7 +368,6 @@ namespace cmonitor.plugins.viewer.proxy
             }
         }
 
-
         private void CloseClientSocket(SocketAsyncEventArgs e)
         {
             if (e == null) return;
@@ -417,7 +421,7 @@ namespace cmonitor.plugins.viewer.proxy
     {
         public uint ConnectId { get; set; }
 
-        public string ViewerMachine { get; set; }
+        public string ViewerServerMachine { get; set; }
 
         [MemoryPackAllowSerialize]
         public IPEndPoint ProxyEP { get; set; }
