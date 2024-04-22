@@ -83,7 +83,7 @@ namespace cmonitor.plugins.active
                         MessengerId = (ushort)ActiveMessengerIds.Disallow,
                         Payload = bytes
                     });
-                    
+
                 }
             }
             return true;
@@ -109,7 +109,7 @@ namespace cmonitor.plugins.active
         public string Update(ApiControllerParamsInfo param)
         {
             UpdateWindowGroupInfo model = param.Content.DeJson<UpdateWindowGroupInfo>();
-            ruleConfig.Set(model.UserName,"Windows", model.Data);
+            ruleConfig.Set(model.UserName, "Windows", model.Data);
             return string.Empty;
         }
     }

@@ -514,12 +514,14 @@ namespace cmonitor.plugins.hijack.report.hijack
         private static nint m_pIPEventHandlerRaw = (nint)null;
         private static NF_IPEventHandlerInternal m_pIPEventHandler;
 
+        private const string dllPath = "plugins\\hijack\\nfapi.dll";
+
         /**
 		* Initializes the internal data structures and starts the filtering thread.
 		* @param driverName The name of hooking driver, without ".sys" extension.
 		* @param pHandler Pointer to event handling object
 		**/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_init(string driverName, nint pHandler);
 
         public static NF_STATUS nf_init(string driverName, NF_EventHandler pHandler)
@@ -557,14 +559,14 @@ namespace cmonitor.plugins.hijack.report.hijack
 		* Stops the filtering thread, breaks all filtered connections and closes
 		* a connection with the hooking driver.
 		**/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern void nf_free();
 
         /**
 		* Registers and starts a driver with specified name (without ".sys" extension)
 		* @param driverName 
 		**/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_registerDriver(string driverName);
 
         /**
@@ -572,14 +574,14 @@ namespace cmonitor.plugins.hijack.report.hijack
         * @param driverName 
         * @param driverPath 
         **/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_registerDriverEx(string driverName, string driverPath);
 
         /**
 		* Unregisters a driver with specified name (without ".sys" extension)
 		* @param driverName 
 		**/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_unRegisterDriver(string driverName);
 
 
@@ -592,7 +594,7 @@ namespace cmonitor.plugins.hijack.report.hijack
 		* @param id Connection identifier
 		* @param suspended true for suspend, false for resume 
 		**/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_tcpSetConnectionState(ulong id, int suspended);
 
         /**
@@ -601,7 +603,7 @@ namespace cmonitor.plugins.hijack.report.hijack
 		* @param buf Pointer to data buffer
 		* @param len Buffer length
 		**/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_tcpPostSend(ulong id, nint buf, int len);
 
         /**
@@ -610,14 +612,14 @@ namespace cmonitor.plugins.hijack.report.hijack
 		* @param buf Pointer to data buffer
 		* @param len Buffer length
 		**/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_tcpPostReceive(ulong id, nint buf, int len);
 
         /**
 		* Breaks the connection with given id.
 		* @param id Connection identifier
 		**/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_tcpClose(ulong id);
 
         //
@@ -629,7 +631,7 @@ namespace cmonitor.plugins.hijack.report.hijack
 		* @param id Socket identifier
 		* @param suspended true for suspend, false for resume 
 		**/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_udpSetConnectionState(ulong id, int suspended);
 
         /**
@@ -639,7 +641,7 @@ namespace cmonitor.plugins.hijack.report.hijack
 		* @param buf Pointer to data buffer
 		* @param len Buffer length
 		**/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_udpPostSend(ulong id,
             nint remoteAddress,
             nint buf, int len,
@@ -652,7 +654,7 @@ namespace cmonitor.plugins.hijack.report.hijack
         * @param buf Pointer to data buffer
         * @param len Buffer length
         **/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_udpPostReceive(ulong id,
             nint remoteAddress,
             nint buf, int len,
@@ -664,7 +666,7 @@ namespace cmonitor.plugins.hijack.report.hijack
         * @param len Buffer length
         * @param options IP options
         **/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_ipPostReceive(
             nint buf, int len,
             ref NF_IP_PACKET_OPTIONS options);
@@ -675,7 +677,7 @@ namespace cmonitor.plugins.hijack.report.hijack
         * @param len Buffer length
         * @param options IP options
         **/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_ipPostSend(
             nint buf, int len,
             ref NF_IP_PACKET_OPTIONS options);
@@ -689,7 +691,7 @@ namespace cmonitor.plugins.hijack.report.hijack
 		* @param pRule See <tt>NF_RULE</tt>
 		* @param toHead TRUE (1) - add rule to list head, FALSE (0) - add rule to tail
 		**/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         private static extern NF_STATUS nf_addRule(ref NF_RULE pRule, int toHead);
 
         private static void updateAddressLength(ref byte[] buf)
@@ -722,7 +724,7 @@ namespace cmonitor.plugins.hijack.report.hijack
         * @param pRule See <tt>NF_RULE</tt>
         * @param toHead TRUE (1) - add rule to list head, FALSE (0) - add rule to tail
         **/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         private static extern NF_STATUS nf_addRuleEx(ref NF_RULE_EX pRule, int toHead);
 
         public static NF_STATUS nf_addRuleEx(NF_RULE_EX pRule, int toHead)
@@ -740,7 +742,7 @@ namespace cmonitor.plugins.hijack.report.hijack
         * @param pRules Array of <tt>NF_RULE</tt> structures
         * @param count Number of items in array
         **/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         private static extern NF_STATUS nf_setRules(nint pRules, int count);
 
         public static NF_STATUS nf_setRules(NF_RULE[] rules)
@@ -772,7 +774,7 @@ namespace cmonitor.plugins.hijack.report.hijack
         * @param pRules Array of <tt>NF_RULE</tt> structures
         * @param count Number of items in array
         **/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         private static extern NF_STATUS nf_setRulesEx(nint pRules, int count);
 
         public static NF_STATUS nf_setRulesEx(NF_RULE_EX[] rules)
@@ -802,34 +804,34 @@ namespace cmonitor.plugins.hijack.report.hijack
         /**
         * Removes all rules from driver.
         **/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_deleteRules();
 
         /**
 		 *	Sets the timeout for TCP connections and returns old timeout.
 		 *	@param timeout Timeout value in milliseconds. Specify zero value to disable timeouts.
 		 */
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern uint nf_setTCPTimeout(uint timeout);
 
         /**
 		 *	Disables indicating TCP packets to user mode for the specified endpoint
 		 *  @param id Socket identifier
 		 */
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_tcpDisableFiltering(ulong id);
 
         /**
 		 *	Disables indicating UDP packets to user mode for the specified endpoint
 		 *  @param id Socket identifier
 		 */
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_udpDisableFiltering(ulong id);
 
         /**
         * Returns TRUE if the specified process acts as a local proxy, accepting the redirected TCP connections.
         **/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         private static extern bool nf_tcpIsProxy(uint processId);
 
         /**
@@ -839,37 +841,37 @@ namespace cmonitor.plugins.hijack.report.hijack
         * @param nThreads Number of worker threads for NF_EventHandler events 
         * @param flags A combination of flags from <tt>NF_FLAGS</tt>
         **/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern void nf_setOptions(uint nThreads, uint flags);
 
         /**
         * Complete TCP connect request pended using flag NF_PEND_CONNECT_REQUEST.
         **/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_completeTCPConnectRequest(ulong id, ref NF_TCP_CONN_INFO pConnInfo);
 
         /**
         * Complete UDP connect request pended using flag NF_PEND_CONNECT_REQUEST.
         **/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_completeUDPConnectRequest(ulong id, ref NF_UDP_CONN_REQUEST pConnInfo);
 
         /**
         * Returns in pConnInfo the properties of TCP connection with specified id.
         **/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_getTCPConnInfo(ulong id, ref NF_TCP_CONN_INFO pConnInfo);
 
         /**
         * Returns in pConnInfo the properties of UDP socket with specified id.
         **/
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_getUDPConnInfo(ulong id, ref NF_UDP_CONN_INFO pConnInfo);
 
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         private static extern bool nf_getProcessNameW(uint processId, nint buf, int len);
 
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         private static extern bool nf_getProcessNameFromKernel(uint processId, nint buf, int len);
 
         /**
@@ -908,13 +910,13 @@ namespace cmonitor.plugins.hijack.report.hijack
             return "System";
         }
 
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern void nf_adjustProcessPriviledges();
 
         /*
         * Set the event handler for IP filtering events
         */
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         private static extern void nf_setIPEventHandler(nint pHandler);
 
         /*
@@ -938,51 +940,51 @@ namespace cmonitor.plugins.hijack.report.hijack
         /**
         * Add flow control context
         */
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_addFlowCtl(ref NF_FLOWCTL_DATA pData, ref uint pFcHandle);
 
         /**
         * Delete flow control context
         */
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_deleteFlowCtl(uint fcHandle);
 
         /**
         * Associate flow control context with TCP connection
         */
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_setTCPFlowCtl(ulong id, uint fcHandle);
 
         /**
         * Associate flow control context with UDP socket
         */
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_setUDPFlowCtl(ulong id, uint fcHandle);
 
         /**
         * Modify flow control context limits
         */
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_modifyFlowCtl(uint fcHandle, ref NF_FLOWCTL_DATA pData);
 
         /**
         * Get flow control context statistics as the numbers of in/out bytes
         */
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_getFlowCtlStat(uint fcHandle, ref NF_FLOWCTL_STAT pStat);
 
         /**
         * Get TCP connection statistics as the numbers of in/out bytes.
         * The function can be called only from tcpClosed handler!
         */
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_getTCPStat(ulong id, ref NF_FLOWCTL_STAT pStat);
 
         /**
         * Get UDP socket statistics as the numbers of in/out bytes.
         * The function can be called only from udpClosed handler!
         */
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_getUDPStat(ulong id, ref NF_FLOWCTL_STAT pStat);
 
         public enum NF_SOCKET_OPTIONS
@@ -995,10 +997,10 @@ namespace cmonitor.plugins.hijack.report.hijack
             TCP_SOCKET_WINDOW = 6
         }
 
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_tcpSetSockOpt(ulong id, NF_SOCKET_OPTIONS optname, ref int optval, int optlen);
 
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS nf_tcpSetSockOpt(ulong id, NF_SOCKET_OPTIONS optname, nint optval, int optlen);
 
         public static NF_STATUS nf_tcpSetSockOpt(ulong id, NF_SOCKET_OPTIONS optname, bool optval)
@@ -1010,7 +1012,7 @@ namespace cmonitor.plugins.hijack.report.hijack
         /**
         * Add binding rule to driver
         */
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         private static extern NF_STATUS
         nf_addBindingRule(ref NF_BINDING_RULE pRule, int toHead);
 
@@ -1027,14 +1029,14 @@ namespace cmonitor.plugins.hijack.report.hijack
         /**
         * Delete all binding rules from driver
         */
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern NF_STATUS
         nf_deleteBindingRules();
 
         /**
         * Returns the type of attached driver (DT_WFP, DT_TDI or DT_UNKNOWN)
         */
-        [DllImport("nfapi", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(dllPath, CallingConvention = CallingConvention.Cdecl)]
         public static extern uint
         nf_getDriverType();
     };

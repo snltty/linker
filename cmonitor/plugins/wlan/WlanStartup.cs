@@ -10,6 +10,7 @@ namespace cmonitor.plugins.wlan
 {
     public sealed class WlanStartup : IStartup
     {
+        public StartupLevel Level => StartupLevel.Normal;
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<WlanReport>();

@@ -9,7 +9,7 @@ namespace cmonitor.plugins.hijack.report.hijack;
 public sealed class HijackController
 {
     private static readonly string SystemDriver = $"{Environment.SystemDirectory}\\drivers\\netfilter2.sys";
-    public const string NFDriver = "nfdriver.sys";
+    public const string NFDriver = "./plugins/hijack/nfdriver.sys";
     public const string Name = "netfilter2";
     private readonly HijackEventHandler hijackEventHandler;
     private bool running = false;

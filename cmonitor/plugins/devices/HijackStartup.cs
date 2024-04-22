@@ -7,6 +7,7 @@ namespace cmonitor.plugins.devices
 {
     public sealed class DevicesStartup : IStartup
     {
+        public StartupLevel Level => StartupLevel.Normal;
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
 

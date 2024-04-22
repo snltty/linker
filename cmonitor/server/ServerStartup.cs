@@ -9,6 +9,7 @@ namespace cmonitor.server
 {
     public sealed class ServerStartup : IStartup
     {
+        public StartupLevel Level => StartupLevel.Normal;
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<MessengerSender>();

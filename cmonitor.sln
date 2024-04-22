@@ -29,6 +29,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cmonitor.killer", "cmonitor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cmonitor.clipboard.win", "cmonitor.clipboard.win\cmonitor.clipboard.win.csproj", "{2A23EA37-3EAC-4B60-8576-84607ADB0256}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cmonitor.tests", "cmonitor.tests\cmonitor.tests.csproj", "{04AA3054-5350-4D8B-97F6-31495AE0609D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -195,6 +197,18 @@ Global
 		{2A23EA37-3EAC-4B60-8576-84607ADB0256}.Release|x64.Build.0 = Release|Any CPU
 		{2A23EA37-3EAC-4B60-8576-84607ADB0256}.Release|x86.ActiveCfg = Release|Any CPU
 		{2A23EA37-3EAC-4B60-8576-84607ADB0256}.Release|x86.Build.0 = Release|Any CPU
+		{04AA3054-5350-4D8B-97F6-31495AE0609D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04AA3054-5350-4D8B-97F6-31495AE0609D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04AA3054-5350-4D8B-97F6-31495AE0609D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{04AA3054-5350-4D8B-97F6-31495AE0609D}.Debug|x64.Build.0 = Debug|Any CPU
+		{04AA3054-5350-4D8B-97F6-31495AE0609D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{04AA3054-5350-4D8B-97F6-31495AE0609D}.Debug|x86.Build.0 = Debug|Any CPU
+		{04AA3054-5350-4D8B-97F6-31495AE0609D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04AA3054-5350-4D8B-97F6-31495AE0609D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04AA3054-5350-4D8B-97F6-31495AE0609D}.Release|x64.ActiveCfg = Release|Any CPU
+		{04AA3054-5350-4D8B-97F6-31495AE0609D}.Release|x64.Build.0 = Release|Any CPU
+		{04AA3054-5350-4D8B-97F6-31495AE0609D}.Release|x86.ActiveCfg = Release|Any CPU
+		{04AA3054-5350-4D8B-97F6-31495AE0609D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

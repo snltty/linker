@@ -8,6 +8,7 @@ namespace cmonitor.plugins.watch
 {
     public sealed class WatchStartup : IStartup
     {
+        public StartupLevel Level => StartupLevel.Low9;
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<WatchReport>();

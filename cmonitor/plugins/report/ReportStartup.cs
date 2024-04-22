@@ -8,6 +8,8 @@ namespace cmonitor.plugins.report
 {
     public sealed class ReportStartup : IStartup
     {
+        public StartupLevel Level => StartupLevel.Normal;
+
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<ReportClientMessenger>();

@@ -3,20 +3,24 @@ using cmonitor.startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace cmonitor.plugins.rule
+namespace cmonitor.plugins.elevated
 {
-    public sealed class RuleStartup : IStartup
+    public sealed class ElevatedStartup : IStartup
     {
-        public StartupLevel Level => StartupLevel.Normal;
+        public StartupLevel Level => StartupLevel.Hight9;
 
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
-
+#if RELEASE
+            if (common.libs.winapis.Win32Interop.GetCommandLine().Contains("--elevated") == false)
+            {
+                common.libs.winapis.Win32Interop.RelaunchElevated();
+            }
+#endif
         }
 
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
-            serviceCollection.AddSingleton<RuleApiController>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)

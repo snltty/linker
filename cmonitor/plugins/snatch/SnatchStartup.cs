@@ -9,6 +9,7 @@ namespace cmonitor.plugins.snatch
 {
     public sealed class SnatchStartup : IStartup
     {
+        public StartupLevel Level => StartupLevel.Normal;
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<SnatchReport>();

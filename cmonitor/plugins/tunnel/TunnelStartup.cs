@@ -13,6 +13,7 @@ namespace cmonitor.plugins.tunnel
 {
     public sealed class TunnelStartup : IStartup
     {
+        public StartupLevel Level => StartupLevel.Normal;
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<CompactTransfer>();

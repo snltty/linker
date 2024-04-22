@@ -9,6 +9,8 @@ namespace cmonitor.plugins.light
 {
     public sealed class LightStartup : IStartup
     {
+        public StartupLevel Level => StartupLevel.Normal;
+
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<LightReport>();

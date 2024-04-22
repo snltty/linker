@@ -20,10 +20,8 @@ for %%r in (win-x64,win-x64-any) do (
 
 for %%r in (linux-x64,linux-x64-any) do (
 	echo F|xcopy "public\\extends\\web\\*" "public\\publish\\%%r\\web\\*"  /s /f /h /y
-	for %%f in (nfapi.dll,nfdriver.sys,ntrights.exe,killer.sys,cmonitor.killer.dll) do (
-		echo F|del  "public\\publish\\%%r\\%%f"
-		rd /s /q "public\\publish\\%%r\\%%f"
-	)
+	echo F|del  "public\\publish\\%%r\\plugins"
+	rd /s /q "public\\publish\\%%r\\plugins"
 )
 
 

@@ -89,35 +89,6 @@ namespace cmonitor.plugins.signin.messenger
 
         public Dictionary<string, string> Args { get; set; } = new Dictionary<string, string>();
 
-        [JsonIgnore]
-        public int ReportFlag = 1;
-        [JsonIgnore]
-        public int ReportTime = Environment.TickCount;
-        [JsonIgnore]
-        public int PingFlag = 1;
-        [JsonIgnore]
-        public int ScreenFlag = 1;
-        [JsonIgnore]
-        public int ScreenTime = Environment.TickCount;
-
-        public bool GetReport(int delay)
-        {
-            return Environment.TickCount - ReportTime > delay;
-        }
-        public void UpdateReport()
-        {
-            ReportTime = Environment.TickCount;
-        }
-
-        public bool GetScreen(int delay)
-        {
-            return Environment.TickCount - ScreenTime > delay;
-        }
-        public void UpdateScreen()
-        {
-            ScreenTime = Environment.TickCount;
-        }
-
         public bool Connected
         {
             get

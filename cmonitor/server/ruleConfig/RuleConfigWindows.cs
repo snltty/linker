@@ -18,7 +18,11 @@ namespace cmonitor.server.ruleConfig
         public RuleConfigWindows(IConfigDataProvider<RuleConfigInfo> configDataProvider)
         {
             this.configDataProvider = configDataProvider;
-            RuleConfigInfo = configDataProvider.Load().Result ?? new RuleConfigInfo();
+            RuleConfigInfo = configDataProvider.Load().Result ?? new RuleConfigInfo { };
+            if (RuleConfigInfo.Data.Keys.Count == 0)
+            {
+                RuleConfigInfo.Data.Add("snltty", new Dictionary<string, string>());
+            }
         }
 
         public void AddUser(string username)
@@ -27,7 +31,7 @@ namespace cmonitor.server.ruleConfig
             {
                 return;
             }
-            RuleConfigInfo.Data.Add(username,new Dictionary<string, string>());
+            RuleConfigInfo.Data.Add(username, new Dictionary<string, string>());
         }
 
         public T Get<T>(string username, string key, T defaultValue)

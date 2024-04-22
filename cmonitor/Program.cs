@@ -11,14 +11,14 @@ namespace cmonitor
     {
         static async Task Main(string[] args)
         {
-            Init(args);
+            Init();
 
             //初始化配置文件
             Config config = new Config();
-            config.Data.Elevated = args.Any(c => c.Contains("elevated"));
+            config.Data.Elevated = args.Any(c => c.Contains("--elevated"));
 
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            StartupTransfer.Init(config);
+            StartupTransfer.Init(config, assemblies);
 
             //依赖注入
             ServiceProvider serviceProvider = null;
@@ -37,7 +37,7 @@ namespace cmonitor
             await Helper.Await();
         }
 
-        private static void Init(string[] args)
+        private static void Init()
         {
             //单服务
             Mutex mutex = new Mutex(true, System.Diagnostics.Process.GetCurrentProcess().ProcessName, out bool isAppRunning);
@@ -56,15 +56,6 @@ namespace cmonitor
 
             //日志输出
             LoggerConsole();
-
-#if RELEASE
-            //提权
-            if (args.Any(c=>c.Contains("elevated")) == false)
-            {
-                common.libs.winapis.Win32Interop.RelaunchElevated();
-            }
-            FireWallHelper.Write(Path.GetFileNameWithoutExtension(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName));
-#endif
         }
 
         private static void LoggerConsole()

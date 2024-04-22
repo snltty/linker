@@ -9,6 +9,8 @@ namespace cmonitor.plugins.hijack
 {
     public sealed class HijackStartup : IStartup
     {
+        public StartupLevel Level => StartupLevel.Normal;
+
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<HijackReport>();

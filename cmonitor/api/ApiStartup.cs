@@ -8,6 +8,7 @@ namespace cmonitor.api
 {
     public sealed class ApiStartup : IStartup
     {
+        public StartupLevel Level => StartupLevel.Normal;
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
         }

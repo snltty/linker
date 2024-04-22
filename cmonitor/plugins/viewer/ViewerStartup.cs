@@ -11,8 +11,11 @@ namespace cmonitor.plugins.viewer
 {
     public sealed class ViewerStartup : IStartup
     {
+        public StartupLevel Level => StartupLevel.Normal;
+
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
+
             serviceCollection.AddSingleton<ViewerReport>();
             if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<IViewer, ViewerWindows>();
             else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<IViewer, ViewerLinux>();

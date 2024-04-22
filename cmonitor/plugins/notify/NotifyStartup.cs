@@ -9,6 +9,8 @@ namespace cmonitor.plugins.notify
 {
     public sealed class NotifyStartup : IStartup
     {
+        public StartupLevel Level => StartupLevel.Normal;
+
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<NotifyReport>();

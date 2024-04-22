@@ -226,33 +226,16 @@ namespace common.libs.winapis
             return result;
         }
 
-        private static string GetCommandLine()
+        public static string GetCommandLine()
         {
             nint commandLinePtr = Kernel32.GetCommandLine();
             return Marshal.PtrToStringAuto(commandLinePtr) ?? string.Empty;
         }
-        private static void AddTokenPrivilege()
-        {
-            if (OperatingSystem.IsWindows())
-            {
-                WindowsIdentity windowsIdentity = WindowsIdentity.GetCurrent();
-                CommandHelper.Windows(string.Empty, new string[] {
-                    $"ntrights +r SeAssignPrimaryTokenPrivilege -u {windowsIdentity.Name}"
-                });
-            }
-        }
+        
         public static void RelaunchElevated()
         {
             if (OperatingSystem.IsWindows() == false) return;
 
-            try
-            {
-                AddTokenPrivilege();
-            }
-            catch(Exception ex)
-            {
-                Logger.Instance.Debug($"AddTokenPrivilege {ex}");
-            }
             try
             {
                 string commandLine = GetCommandLine();

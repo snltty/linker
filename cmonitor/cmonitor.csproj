@@ -13,6 +13,8 @@
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<PublishAot>false</PublishAot>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+		<SignAssembly>true</SignAssembly>
+		<AssemblyOriginatorKeyFile>cmonitor.snk</AssemblyOriginatorKeyFile>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -36,43 +38,19 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="cmonitor.killer.dll">
+		<None Update="plugins\active\cmonitor.killer.dll">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="ffmpeg\avcodec-60.dll">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="ffmpeg\avdevice-60.dll">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="ffmpeg\avfilter-9.dll">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="ffmpeg\avformat-60.dll">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="ffmpeg\avutil-58.dll">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="nfapi.dll">
+		<None Update="plugins\active\killer.sys">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="nfdriver.sys">
+		<None Update="plugins\hijack\nfapi.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="ntrights.exe">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<None Update="plugins\hijack\nfdriver.sys">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="ffmpeg\postproc-57.dll">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="ffmpeg\swresample-4.dll">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="ffmpeg\swscale-7.dll">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="killer.sys">
+		<None Update="plugins\ntrights\ntrights.exe">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
@@ -82,7 +60,6 @@
 	  <EmbeddedResource Remove="Properties\**" />
 	  <None Remove="Properties\**" />
 	</ItemGroup>
-
 	
 	<ItemGroup>
 		<PackageReference Include="ManagedNativeWifi" Version="2.5.0" />

@@ -8,6 +8,7 @@ namespace cmonitor.web
 {
     public sealed class WebStartup : IStartup
     {
+        public StartupLevel Level => StartupLevel.Normal;
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
         }

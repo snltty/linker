@@ -8,6 +8,8 @@ namespace cmonitor.plugins.signin
 {
     public sealed class SignInStartup : IStartup
     {
+        public StartupLevel Level => StartupLevel.Normal;
+
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
         }

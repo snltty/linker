@@ -9,6 +9,7 @@ namespace cmonitor.plugins.wallpaper
 {
     public sealed class WallpaperStartup : IStartup
     {
+        public StartupLevel Level => StartupLevel.Normal;
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<WallpaperReport>();

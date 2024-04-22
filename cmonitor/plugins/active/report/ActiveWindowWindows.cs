@@ -5,7 +5,6 @@ using Microsoft.Win32;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 
 namespace cmonitor.plugins.active.report
 {
@@ -229,7 +228,7 @@ namespace cmonitor.plugins.active.report
                     Logger.Instance.Info($"killer stoped");
 
                     Logger.Instance.Info($"killer starting");
-                    string sourcePath = Path.GetFullPath(Path.Join("./", "killer.sys"));
+                    string sourcePath = Path.GetFullPath(Path.Join("./plugins/active", "killer.sys"));
                     string distPath = $"{Environment.SystemDirectory}\\drivers\\killer.sys";
 
                     try
@@ -239,13 +238,17 @@ namespace cmonitor.plugins.active.report
                     catch (Exception)
                     {
                     }
-                    try
+                    if (File.Exists(distPath) == false)
                     {
-                        File.Copy(sourcePath, distPath, true);
+                        try
+                        {
+                            File.Copy(sourcePath, distPath, true);
+                        }
+                        catch (Exception)
+                        {
+                        }
                     }
-                    catch (Exception)
-                    {
-                    }
+
 
                     int val = LoadDriver("cmonitor.killer", distPath);
                     Logger.Instance.Info($"killer started->{val}");
@@ -273,10 +276,11 @@ namespace cmonitor.plugins.active.report
         }
 
 
-        [DllImport("cmonitor.killer.dll")]
+        private const string dllPath = "plugins\\active\\cmonitor.killer.dll";
+        [DllImport(dllPath)]
         public static extern int LoadDriver(string serviceName, string driverPath);
 
-        [DllImport("cmonitor.killer.dll")]
+        [DllImport(dllPath)]
         public static extern int ProcessKiller(uint pid);
     }
 }

@@ -9,6 +9,7 @@ namespace cmonitor.plugins.share
 {
     public sealed class ShareStartup : IStartup
     {
+        public StartupLevel Level => StartupLevel.Normal;
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<ShareReport>();

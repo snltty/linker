@@ -4,8 +4,10 @@ using cmonitor.plugins.screen.messenger;
 using cmonitor.plugins.screen.report;
 using cmonitor.plugins.signin.messenger;
 using cmonitor.server;
+using common.libs;
 using common.libs.extends;
 using MemoryPack;
+using System.Xml.Linq;
 
 namespace cmonitor.plugins.screen
 {
@@ -14,6 +16,8 @@ namespace cmonitor.plugins.screen
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;
         private readonly Config config;
+        private readonly FpsHelper fpsHelper;
+
         public ScreenApiController(MessengerSender messengerSender, SignCaching signCaching, Config config)
         {
             this.messengerSender = messengerSender;
@@ -26,13 +30,9 @@ namespace cmonitor.plugins.screen
             byte[] bytes = new byte[] { (byte)report.Type };
             for (int i = 0; i < report.Names.Length; i++)
             {
-                bool connectionRes = signCaching.Get(report.Names[i], out SignCacheInfo cache) && cache.Connected;
-                if (connectionRes == false) continue;
-                bool reportRes = cache.GetScreen(200) && Interlocked.CompareExchange(ref cache.ScreenFlag, 0, 1) == 1;
-
-                if (connectionRes && reportRes)
+                string name = report.Names[i];
+                if (signCaching.Get(name, out SignCacheInfo cache) && cache.Connected && fpsHelper.Acquire(name, 5))
                 {
-                    cache.UpdateScreen();
                     _ = messengerSender.SendOnly(new MessageRequestWrap
                     {
                         Connection = cache.Connection,
@@ -41,7 +41,7 @@ namespace cmonitor.plugins.screen
                         Payload = bytes
                     }).ContinueWith((result) =>
                     {
-                        Interlocked.Exchange(ref cache.ScreenFlag, 1);
+                        fpsHelper.Release(name);
                     });
                 }
             }
@@ -69,13 +69,9 @@ namespace cmonitor.plugins.screen
             string[] names = param.Content.DeJson<string[]>();
             for (int i = 0; i < names.Length; i++)
             {
-                bool res = signCaching.Get(names[i], out SignCacheInfo cache)
-                    && cache.Connected
-                    && cache.GetScreen(200)
-                    && Interlocked.CompareExchange(ref cache.ScreenFlag, 0, 1) == 1;
-                if (res)
+                string name = names[i];
+                if (signCaching.Get(names[i], out SignCacheInfo cache) && cache.Connected && fpsHelper.Acquire(name, 5))
                 {
-                    cache.UpdateScreen();
                     _ = messengerSender.SendOnly(new MessageRequestWrap
                     {
                         Connection = cache.Connection,
@@ -83,7 +79,7 @@ namespace cmonitor.plugins.screen
                         Timeout = 1000,
                     }).ContinueWith((result) =>
                     {
-                        Interlocked.Exchange(ref cache.ScreenFlag, 1);
+                        fpsHelper.Release(name);
                     });
                 }
             }

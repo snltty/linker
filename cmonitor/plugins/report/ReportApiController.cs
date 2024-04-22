@@ -15,6 +15,8 @@ namespace cmonitor.plugins.report
         private readonly SignCaching signCaching;
         private readonly IApiServer clientServer;
         private readonly Config config;
+        private readonly FpsHelper fpsHelper;
+
         public ReportApiController(MessengerSender messengerSender, SignCaching signCaching, IApiServer clientServer, Config config)
         {
             this.messengerSender = messengerSender;
@@ -28,13 +30,13 @@ namespace cmonitor.plugins.report
             byte[] bytes = new byte[] { (byte)updateinfo.ReportType };
             for (int i = 0; i < updateinfo.Names.Length; i++)
             {
-                bool connectionRes = signCaching.Get(updateinfo.Names[i], out SignCacheInfo cache) && cache.Connected;
+                string name = updateinfo.Names[i];
+                bool connectionRes = signCaching.Get(name, out SignCacheInfo cache) && cache.Connected;
                 if (connectionRes == false) continue;
-                bool reportTimeRes = cache.GetReport(30) && Interlocked.CompareExchange(ref cache.ReportFlag, 0, 1) == 1;
+                bool reportTimeRes = fpsHelper.Acquire(name, 30);
 
                 if (connectionRes && (reportTimeRes || updateinfo.ReportType == ReportType.Full))
                 {
-                    cache.UpdateReport();
                     _ = messengerSender.SendOnly(new MessageRequestWrap
                     {
                         Connection = cache.Connection,
@@ -43,7 +45,7 @@ namespace cmonitor.plugins.report
                         Payload = bytes,
                     }).ContinueWith((result) =>
                     {
-                        Interlocked.Exchange(ref cache.ReportFlag, 1);
+                        fpsHelper.Release(name);
                     });
                 }
             }
@@ -56,9 +58,9 @@ namespace cmonitor.plugins.report
             string[] names = param.Content.DeJson<string[]>();
             for (int i = 0; i < names.Length; i++)
             {
-                if (signCaching.Get(names[i], out SignCacheInfo cache) && cache.Connected && Interlocked.CompareExchange(ref cache.PingFlag, 0, 1) == 1)
+                string name = names[i];
+                if (signCaching.Get(names[i], out SignCacheInfo cache) && cache.Connected && fpsHelper.Acquire(name, 30))
                 {
-                    string name = names[i];
                     DateTime starTime = DateTime.Now;
                     _ = messengerSender.SendReply(new MessageRequestWrap
                     {
@@ -76,7 +78,7 @@ namespace cmonitor.plugins.report
                         {
                             clientServer.Notify("/notify/report/pong", new { Name = name, Time = -1 }, param.Connection);
                         }
-                        Interlocked.Exchange(ref cache.PingFlag, 1);
+                        fpsHelper.Release(name);
                     });
                 }
             }

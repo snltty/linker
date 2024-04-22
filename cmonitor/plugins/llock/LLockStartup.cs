@@ -9,6 +9,8 @@ namespace cmonitor.plugins.llock
 {
     public sealed class LLockStartup : IStartup
     {
+        public StartupLevel Level => StartupLevel.Normal;
+
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<LLockReport>();
