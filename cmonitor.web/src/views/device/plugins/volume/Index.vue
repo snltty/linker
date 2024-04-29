@@ -10,6 +10,7 @@ import { injectPluginState } from '../../provide';
 import Volume from './Volume.vue'
 import VolumeSingle from './VolumeSingle.vue'
 export default {
+    pluginName:'cmonitor.plugin.volume.',
     components: { Volume, VolumeSingle },
     setup() {
         const pluginState = injectPluginState();

@@ -1,10 +1,11 @@
-﻿using cmonitor.api;
+﻿using cmonitor.server.api;
 using cmonitor.server.ruleConfig;
+using common.libs.api;
 using common.libs.extends;
 
 namespace cmonitor.plugins.modes
 {
-    public sealed class ModesApiController : IApiController
+    public sealed class ModesApiController : IApiServerController
     {
 
         private readonly IRuleConfig ruleConfig;

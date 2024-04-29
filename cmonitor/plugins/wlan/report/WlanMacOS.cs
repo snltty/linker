@@ -2,19 +2,18 @@
 {
     public class WlanMacOS : IWlan
     {
-        public List<string> WlanEnums()
+        public List<string> Enums()
         {
             return Array.Empty<string>().ToList();
         }
 
-        public async Task<bool> WlanConnect(string name)
+        public async Task<bool> Connect()
         {
             return await Task.FromResult(false);
         }
 
-        public bool Connected()
+        public void Init()
         {
-            return false;
         }
     }
 }

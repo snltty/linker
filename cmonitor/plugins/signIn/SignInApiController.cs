@@ -1,10 +1,11 @@
-﻿using cmonitor.api;
+﻿using cmonitor.server.api;
 using cmonitor.config;
 using cmonitor.plugins.signin.messenger;
+using common.libs.api;
 
 namespace cmonitor.plugins.signin
 {
-    public sealed class SignInApiController : IApiController
+    public sealed class SignInApiController : IApiServerController
     {
         private readonly SignCaching signCaching;
         private readonly Config config;
@@ -15,7 +16,7 @@ namespace cmonitor.plugins.signin
         }
         public List<SignCacheInfo> List(ApiControllerParamsInfo param)
         {
-            List<SignCacheInfo> caches = signCaching.Get();
+            List<SignCacheInfo> caches = signCaching.Get(param.Content);
             return caches;
         }
         public bool Del(ApiControllerParamsInfo param)

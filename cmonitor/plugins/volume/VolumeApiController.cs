@@ -1,13 +1,14 @@
-﻿using cmonitor.api;
+﻿using cmonitor.server.api;
 using cmonitor.plugins.signin.messenger;
 using cmonitor.plugins.volume.messenger;
 using cmonitor.server;
 using common.libs.extends;
 using MemoryPack;
+using common.libs.api;
 
 namespace cmonitor.plugins.volume
 {
-    public sealed class VolumeApiController : IApiController
+    public sealed class VolumeApiController : IApiServerController
     {
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;

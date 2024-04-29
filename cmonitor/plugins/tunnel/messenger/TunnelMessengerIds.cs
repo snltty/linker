@@ -3,10 +3,14 @@
     public enum TunnelMessengerIds : ushort
     {
         Update = 2000,
-        Begin = 2001,
-        BeginForward = 2002,
-        Reverse = 2003,
-        ReverseForward = 2004,
-        None = 2001
+        Info = 2001,
+        InfoForward = 2002,
+        Begin = 2003,
+        BeginForward = 2004,
+
+        Fail = 2005,
+        FailForward = 2006,
+
+        None = 2099
     }
 }

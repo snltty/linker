@@ -15,7 +15,15 @@
         <el-dialog class="options-center" title="管理接口" destroy-on-close v-model="showPort" center :show-close="false"
             :close-on-click-modal="false" align-center width="70%">
             <div class="port-wrap t-c">
-                <el-input v-model="state.api" style="width:auto"></el-input>
+                <div>
+                    接口 : <el-input v-model="state.api" style="width:70%"></el-input>
+                </div>
+                <div style="padding-top:1rem ;">
+                    秘钥 : <el-input type="password" v-model="state.apipsd" style="width:70%"></el-input>
+                </div>
+                <div style="padding-top:1rem ;">
+                    分组 : <el-input v-model="state.groupid" style="width:70%"></el-input>
+                </div>
             </div>
             <template #footer>
                 <el-button type="success" @click="handleConnect" plain>确 定</el-button>
@@ -28,6 +36,7 @@
 import { computed, onMounted, reactive, watch } from 'vue';
 import { initWebsocket, subWebsocketState } from '../apis/request'
 import { getRules, addName } from '../apis/rule'
+import { getConfig } from '../apis/signin'
 import { useRoute } from 'vue-router';
 import { injectGlobalData } from './provide';
 export default {
@@ -38,23 +47,36 @@ export default {
 
         const state = reactive({
             api: route.query.api ? `${window.location.hostname}:${route.query.api}` : (localStorage.getItem('api') || `${window.location.hostname}:1801`),
+            apipsd: route.query.apipsd ? `${route.query.apipsd}` : (localStorage.getItem('apipsd') || `snltty`),
+            groupid: route.query.groupid ? `${route.query.groupid}` : (localStorage.getItem('groupid') || `snltty`),
             usernames: [],
             username: globalData.value.username || localStorage.getItem('username') || '',
             showPort: false
         });
         localStorage.setItem('api', state.api);
+        localStorage.setItem('apipsd', state.apipsd);
+        localStorage.setItem('groupid', state.groupid);
         globalData.value.username = state.username;
+        globalData.value.groupid = state.groupid;
 
         const showSelectUsername = computed(() => !!!globalData.value.username && globalData.value.connected);
         const showPort = computed(() => globalData.value.connected == false && state.showPort);
 
         watch(() => globalData.value.updateRuleFlag, () => {
             _getRules();
+            _getConfig();
         });
         watch(() => globalData.value.updateDeviceFlag, () => {
             _getRules();
+            _getConfig();
         });
 
+        const _getConfig = ()=>{
+            getConfig().then((res)=>{
+                globalData.value.config.Common = res.Data.Common;
+                globalData.value.config.Server = res.Data.Server;
+            }).catch((err)=>{});
+        }
 
         const _getRules = () => {
             getRules().then((res) => {
@@ -68,13 +90,17 @@ export default {
             }).catch(() => { });
         }
         const handleConnect = () => {
-            //initWebsocket(`ws://hk.cmonitor.snltty.com:1801`);
-            initWebsocket(`ws://${state.api}`);
+            //initWebsocket(`ws://hk.cmonitor.snltty.com:1801`,state.apipsd);
+            initWebsocket(`ws://${state.api}`,state.apipsd);
             localStorage.setItem('api', state.api);
+            localStorage.setItem('apipsd', state.apipsd);
+            localStorage.setItem('groupid', state.groupid);
         }
         const handleUsername = () => {
             globalData.value.username = state.username || '';
+            globalData.value.groupid = state.groupid || '';
             localStorage.setItem('username', globalData.value.username);
+            localStorage.setItem('groupid', globalData.value.groupid);
             document.title = `班长-${globalData.value.username}`
         }
         const handleChange = (value) => {
@@ -90,6 +116,8 @@ export default {
             handleConnect();
             _getRules();
 
+            _getConfig();
+
             setTimeout(() => { state.showPort = true; }, 100);
 
             subWebsocketState((state) => { if (state) globalData.value.updateRuleFlag = Date.now(); });
@@ -103,22 +131,4 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-.head-wrap {
-    text-align: center;
-    padding: 0.5rem 0;
-    line-height: 4rem;
-    border-bottom: 1px solid #ddd;
-    background-color: #f0f0f0;
-    font-size: 1.5rem;
-    font-weight: bold;
-    z-index: 999;
-    position: relative;
-    box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.075);
-}
-
-img {
-    height: 4rem;
-    vertical-align: middle;
-    margin-right: 0.6rem;
-}
 </style>

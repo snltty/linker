@@ -13,6 +13,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { injectPluginState } from '../../provide'
 import { ctrlAltDelete } from '@/apis/keyboard';
 export default {
+    pluginName:'cmonitor.plugin.keyboard.',
     setup() {
 
         const pluginState = injectPluginState();

@@ -1,4 +1,5 @@
 export default {
+    pluginName: 'cmonitor.plugin.active.',
     field() {
         return {
             ActiveWindow: {

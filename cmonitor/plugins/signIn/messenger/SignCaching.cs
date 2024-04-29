@@ -33,6 +33,7 @@ namespace cmonitor.plugins.signin.messenger
                 MachineName = signInfo.MachineName,
                 Version = signInfo.Version,
                 Args = signInfo.Args,
+                GroupId = signInfo.GroupId,
             };
             config.Clients.TryAdd(signInfo.MachineName, cache1);
             changed = true;
@@ -41,9 +42,9 @@ namespace cmonitor.plugins.signin.messenger
         {
             return config.Clients.TryGetValue(machineName, out cache);
         }
-        public List<SignCacheInfo> Get()
+        public List<SignCacheInfo> Get(string groupId)
         {
-            return config.Clients.Values.ToList();
+            return config.Clients.Values.Where(c=>c.GroupId == groupId).ToList();
         }
 
         public bool Del(string machineName)
@@ -86,6 +87,8 @@ namespace cmonitor.plugins.signin.messenger
     {
         public string MachineName { get; set; }
         public string Version { get; set; } = "1.0.0.0";
+        public string GroupId { get; set; } = "snltty";
+        public DateTime LastSignIn { get; set; } = DateTime.Now;
 
         public Dictionary<string, string> Args { get; set; } = new Dictionary<string, string>();
 
@@ -104,6 +107,7 @@ namespace cmonitor.plugins.signin.messenger
     public sealed partial class SignInfo
     {
         public string MachineName { get; set; } = string.Empty;
+        public string GroupId { get; set; } = string.Empty;
         public string Version { get; set; } = string.Empty;
 
         public Dictionary<string, string> Args { get; set; } = new Dictionary<string, string>();

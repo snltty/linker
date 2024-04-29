@@ -1,4 +1,4 @@
-﻿using cmonitor.api;
+﻿using cmonitor.server.api;
 using cmonitor.config;
 using cmonitor.plugins.screen.report;
 using cmonitor.plugins.signin.messenger;
@@ -45,12 +45,12 @@ namespace cmonitor.plugins.screen.messenger
 
     public sealed class ScreenServerMessenger : IMessenger
     {
-        private readonly IApiServer clientServer;
+        private readonly IApiServerServer clientServer;
         private readonly Config config;
         private readonly SignCaching signCaching;
 
 
-        public ScreenServerMessenger( IApiServer clientServer, Config config, SignCaching signCaching)
+        public ScreenServerMessenger(IApiServerServer clientServer, Config config, SignCaching signCaching)
         {
             this.clientServer = clientServer;
             this.config = config;

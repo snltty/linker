@@ -1,4 +1,4 @@
-﻿using cmonitor.api;
+﻿using cmonitor.server.api;
 using cmonitor.plugins.active.messenger;
 using cmonitor.plugins.active.report;
 using cmonitor.plugins.signin.messenger;
@@ -7,10 +7,11 @@ using cmonitor.server.ruleConfig;
 using common.libs;
 using common.libs.extends;
 using MemoryPack;
+using common.libs.api;
 
 namespace cmonitor.plugins.active
 {
-    public sealed class ActiveApiController : IApiController
+    public sealed class ActiveApiController : IApiServerController
     {
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;

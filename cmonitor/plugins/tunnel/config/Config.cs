@@ -31,5 +31,6 @@ namespace cmonitor.config
     {
         public string Type { get; set; }
         public string Host { get; set; }
+        public bool Disabled { get; set; }
     }
 }

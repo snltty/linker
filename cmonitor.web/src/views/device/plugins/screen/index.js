@@ -2,6 +2,7 @@ import { injectGlobalData } from '@/views/provide';
 import { screenClip, screenUpdateFull, screenUpdateRegion } from '../../../../apis/screen'
 import { subNotifyMsg } from '@/apis/request';
 export default {
+    pluginName: 'cmonitor.plugin.screen.',
     field() {
         return {
             Screen: {

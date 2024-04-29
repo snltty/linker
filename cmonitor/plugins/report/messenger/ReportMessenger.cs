@@ -1,4 +1,4 @@
-﻿using cmonitor.api;
+﻿using cmonitor.server.api;
 using cmonitor.client.report;
 using cmonitor.server;
 using common.libs;
@@ -37,9 +37,9 @@ namespace cmonitor.plugins.report.messenger
     }
     public sealed class ReportServerMessenger : IMessenger
     {
-        private readonly IApiServer clientServer;
+        private readonly IApiServerServer clientServer;
 
-        public ReportServerMessenger(IApiServer clientServer)
+        public ReportServerMessenger(IApiServerServer clientServer)
         {
             this.clientServer = clientServer;
         }

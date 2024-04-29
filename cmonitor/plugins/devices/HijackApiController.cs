@@ -1,10 +1,11 @@
-﻿using cmonitor.api;
+﻿using cmonitor.server.api;
 using cmonitor.server.ruleConfig;
+using common.libs.api;
 using common.libs.extends;
 
 namespace cmonitor.plugins.devices
 {
-    public sealed class DevicesApiController : IApiController
+    public sealed class DevicesApiController : IApiServerController
     {
         private readonly IRuleConfig ruleConfig;
         public DevicesApiController(IRuleConfig ruleConfig)

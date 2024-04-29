@@ -9,6 +9,7 @@
 <script>
 import { injectPluginState } from '../../provide'
 export default {
+    pluginName:'cmonitor.plugin.message.',
     props: ['data'],
     setup(props) {
         const pluginState = injectPluginState();

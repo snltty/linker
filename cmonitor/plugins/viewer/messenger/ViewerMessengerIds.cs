@@ -4,11 +4,11 @@
     {
         Server = 1800,
         Heart = 1801,
-        HeartNotify = 1802,
+        HeartForward = 1802,
 
         ProxyFromClient = 1803,
         ProxyFromServer = 1804,
-        ProxyNotify = 1805,
+        ProxyFromClientForward = 1805,
 
         None = 1899
     }

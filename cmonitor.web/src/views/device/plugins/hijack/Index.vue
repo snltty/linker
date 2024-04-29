@@ -12,6 +12,7 @@ import ChooseDig from './ChooseDig.vue'
 import RuleSetting from './rules/Index.vue'
 import ProcessSetting from './process/Index.vue'
 export default {
+    pluginName:'cmonitor.plugin.hijack.',
     components: { ChooseDig, RuleSetting, ProcessSetting },
     setup() {
         const pluginState = injectPluginState();

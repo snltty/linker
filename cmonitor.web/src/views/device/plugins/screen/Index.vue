@@ -5,6 +5,7 @@
 
 <script>
 export default {
+    pluginName:'cmonitor.plugin.screen.',
     components: {},
     setup() {
 

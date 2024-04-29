@@ -38,6 +38,7 @@ import { setRules } from '../../../../apis/hijack'
 import { injectGlobalData } from '@/views/provide';
 import { injectPluginState } from '../../provide';
 export default {
+    pluginName:'cmonitor.plugin.hijack.',
     props: ['modelValue', 'items'],
     emits: ['update:modelValue'],
     components: { CheckBoxWrap },
@@ -51,20 +52,7 @@ export default {
         const usePublic = publicUser.value && globalData.value.username != publicUserName;
         const state = reactive({
             show: props.modelValue,
-            items: computed(() => {
-                const devices = pluginState.value.hijack.devices;
-                let ids1 = devices.reduce((arr, value) => {
-                    arr.push(...value.Hijack.RuleIds1);
-                    return arr;
-                }, []);
-                let ids2 = devices.reduce((arr, value) => {
-                    arr.push(...value.Hijack.RuleIds2);
-                    return arr;
-                }, []);
-                state.currentPrivate = state.privateRules.filter(c => ids1.indexOf(c.Name) >= 0);
-                state.currentPublic = state.publicRules.filter(c => ids2.indexOf(c.Name) >= 0);
-                return devices;
-            }),
+            items:[],
             privateRules: computed(() => user.value ? user.value.Processs || [] : []),
             publicRules: computed(() => usePublic ? publicUser.value.Processs || [] : []),
             loading: false,
@@ -72,6 +60,7 @@ export default {
             currentPublic: [],
             domainKill: false
         });
+        
         watch(() => state.show, (val) => {
             if (!val) {
                 setTimeout(() => {
@@ -161,11 +150,26 @@ export default {
         const parseDomainKill = () => {
             state.domainKill = pluginState.value.hijack.devices.filter(c => c.Hijack.DomainKill === true).length > 0;
         }
+        const parseItems = (devices)=>{
+            let ids1 = devices.reduce((arr, value) => {
+                arr.push(...value.Hijack.RuleIds1);
+                return arr;
+            }, []);
+            let ids2 = devices.reduce((arr, value) => {
+                arr.push(...value.Hijack.RuleIds2);
+                return arr;
+            }, []);
+            state.currentPrivate = state.privateRules.filter(c => ids1.indexOf(c.Name) >= 0);
+            state.currentPublic = state.publicRules.filter(c => ids2.indexOf(c.Name) >= 0);
+            state.items = devices;
+        }
         const handleDevicesChange = (devices) => {
             parseDomainKill();
+            parseItems(devices);
         }
         onMounted(() => {
             parseDomainKill();
+            parseItems( pluginState.value.hijack.devices);
         });
 
         return {

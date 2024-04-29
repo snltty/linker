@@ -2,10 +2,10 @@
 {
     public interface IWlan
     {
-        public List<string> WlanEnums();
-        public Task<bool> WlanConnect(string name);
+        public void Init();
 
-        public bool Connected();
+        public List<string> Enums();
+        public Task<bool> Connect();
     }
 
 

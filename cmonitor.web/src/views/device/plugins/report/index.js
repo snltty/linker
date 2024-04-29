@@ -2,6 +2,7 @@ import { subNotifyMsg } from '@/apis/request';
 import { reportPing, reportUpdate } from '../../../../apis/report'
 import { injectGlobalData } from '@/views/provide';
 export default {
+    pluginName: 'cmonitor.plugin.report.',
     field() {
         return {
             Report: {

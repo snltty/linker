@@ -9,6 +9,7 @@ import { llockScreen } from '@/apis/llock';
 import { injectPluginState } from '../../provide'
 import { ElMessage, ElMessageBox } from 'element-plus';
 export default {
+    pluginName:'cmonitor.plugin.llock.',
     sort: 2,
     props: ['data'],
     setup(props) {

@@ -1,14 +1,15 @@
-﻿using cmonitor.api;
+﻿using cmonitor.server.api;
 using cmonitor.plugins.notify.messenger;
 using cmonitor.plugins.notify.report;
 using cmonitor.plugins.signin.messenger;
 using cmonitor.server;
 using common.libs.extends;
 using MemoryPack;
+using common.libs.api;
 
 namespace cmonitor.plugins.notify
 {
-    public sealed class NotifyApiController : IApiController
+    public sealed class NotifyApiController : IApiServerController
     {
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;
@@ -21,7 +22,7 @@ namespace cmonitor.plugins.notify
         {
             NotifyInfo info = param.Content.DeJson<NotifyInfo>();
             byte[] bytes = MemoryPackSerializer.Serialize(info);
-            foreach (SignCacheInfo cache in signCaching.Get())
+            foreach (SignCacheInfo cache in signCaching.Get(info.GroupId))
             {
                 if (cache.Connected)
                 {

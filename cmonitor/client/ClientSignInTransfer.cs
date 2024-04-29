@@ -58,8 +58,15 @@ namespace cmonitor.client
                 }
             }, TaskCreationOptions.LongRunning);
         }
-        private async Task SignIn()
+
+        public async Task SignIn()
         {
+            if (clientSignInState.Connecting)
+            {
+                return;
+            }
+            clientSignInState.Connecting = true;
+
             IPEndPoint[] ips = new IPEndPoint[] { config.Data.Client.ServerEP };
 
             if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -89,6 +96,12 @@ namespace cmonitor.client
                         Logger.Instance.Error(ex);
                 }
             }
+            clientSignInState.Connecting = false;
+        }
+        public void SignOut()
+        {
+            if (clientSignInState.Connected)
+                clientSignInState.Connection.Disponse();
         }
 
         private async Task<bool> ConnectServer(IPEndPoint remote)
@@ -119,6 +132,7 @@ namespace cmonitor.client
                     MachineName = config.Data.Client.Name,
                     Version = config.Data.Version,
                     Args = args,
+                    GroupId = config.Data.Client.GroupId,
                 })
             });
             if (resp.Code != MessageResponeCodes.OK || resp.Data.Span.SequenceEqual(Helper.TrueArray) == false)

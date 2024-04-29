@@ -24,6 +24,7 @@ import { computed, onMounted, reactive } from 'vue'
 import { injectPluginState } from '../../provide';
 import { keyboard } from '@/apis/keyboard';
 export default {
+    pluginName:'cmonitor.plugin.keyboard.',
     setup() {
 
         const pluginState = injectPluginState();

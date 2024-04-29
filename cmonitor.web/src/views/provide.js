@@ -30,7 +30,8 @@ export const provideGlobalData = () => {
         //当前设备
         currentDevice: { MachineName: '' },
         //需要报告数据的设备
-        reportNames: []
+        reportNames: [],
+        config: { Common: {}, Server: {} }
     });
     subWebsocketState((state) => {
         globalData.value.connected = state;

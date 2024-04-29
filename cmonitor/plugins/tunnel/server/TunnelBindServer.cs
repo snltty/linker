@@ -1,5 +1,6 @@
 ﻿using common.libs;
 using common.libs.extends;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 
@@ -8,19 +9,21 @@ namespace cmonitor.plugins.tunnel.server
     public sealed class TunnelBindServer
     {
         private SocketAsyncEventArgs acceptEventArg;
-        private Socket socket;
         private UdpClient socketUdp;
 
         public Action<object, Socket> OnTcpConnected { get; set; } = (state, socket) => { };
         public Action<object, UdpClient> OnUdpConnected { get; set; } = (state, udpClient) => { };
+        public Action<object> OnDisConnected { get; set; } = (state) => { };
+
+        private ConcurrentDictionary<int, SocketAsyncEventArgs> acceptBinds = new ConcurrentDictionary<int, SocketAsyncEventArgs>();
 
         public void Bind(IPEndPoint local, object state)
         {
             try
             {
-                socket = new Socket(local.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                Socket socket = new Socket(local.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 socket.IPv6Only(local.AddressFamily, false);
-                socket.ReuseBind(local);
+                socket.ReuseBind(new IPEndPoint(IPAddress.Any, local.Port));
                 socket.Listen(int.MaxValue);
 
                 acceptEventArg = new SocketAsyncEventArgs
@@ -28,17 +31,19 @@ namespace cmonitor.plugins.tunnel.server
                     UserToken = new AsyncUserToken
                     {
                         SourceSocket = socket,
-                        State = state
+                        State = state,
+                        Saea = acceptEventArg
                     },
                     SocketFlags = SocketFlags.None,
                 };
+                acceptBinds.AddOrUpdate(local.Port, acceptEventArg, (a, b) => acceptEventArg);
 
                 acceptEventArg.Completed += IO_Completed;
                 StartAccept(acceptEventArg);
 
 
                 socketUdp = new UdpClient();
-                socketUdp.Client.ReuseBind(local);
+                socketUdp.Client.ReuseBind(new IPEndPoint(IPAddress.Any, local.Port));
                 socketUdp.Client.EnableBroadcast = true;
                 socketUdp.Client.WindowsUdpBug();
                 IAsyncResult result = socketUdp.BeginReceive(ReceiveCallbackUdp, state);
@@ -48,6 +53,14 @@ namespace cmonitor.plugins.tunnel.server
                 Logger.Instance.Error(ex);
             }
         }
+        public void RemoveBind(int localPort)
+        {
+            if (acceptBinds.TryRemove(localPort, out SocketAsyncEventArgs saea))
+            {
+                CloseClientSocket(saea);
+            }
+        }
+
         private void StartAccept(SocketAsyncEventArgs acceptEventArg)
         {
             acceptEventArg.AcceptSocket = null;
@@ -80,8 +93,11 @@ namespace cmonitor.plugins.tunnel.server
             if (e.AcceptSocket != null)
             {
                 AsyncUserToken token = e.UserToken as AsyncUserToken;
+
+                acceptBinds.AddOrUpdate(e.AcceptSocket.GetHashCode(), e, (a, b) => e);
+                acceptBinds.TryRemove((token.SourceSocket.LocalEndPoint as IPEndPoint).Port, out _);
+
                 OnTcpConnected(token.State, e.AcceptSocket);
-                //BindReceive(e);
                 StartAccept(e);
             }
         }
@@ -124,21 +140,6 @@ namespace cmonitor.plugins.tunnel.server
             if (socket.ReceiveAsync(readEventArgs) == false)
             {
                 ProcessReceive(readEventArgs);
-            }
-        }
-        private void BindReceive(SocketAsyncEventArgs e)
-        {
-            try
-            {
-                AsyncUserToken token = (AsyncUserToken)e.UserToken;
-                var socket = e.AcceptSocket;
-
-                BindReceive(socket, token.State, token.OnData);
-            }
-            catch (Exception ex)
-            {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Error(ex);
             }
         }
         private async void ProcessReceive(SocketAsyncEventArgs e)
@@ -196,20 +197,30 @@ namespace cmonitor.plugins.tunnel.server
         }
         private void CloseClientSocket(SocketAsyncEventArgs e)
         {
-            if (e == null) return;
+            if (e == null || e.UserToken == null) return;
+
             AsyncUserToken token = e.UserToken as AsyncUserToken;
+            e.UserToken = null;
             if (token.SourceSocket != null)
             {
                 token.Clear();
                 e.Dispose();
+
+                if (acceptBinds.TryRemove(token.SourceSocket.GetHashCode(), out SocketAsyncEventArgs saea))
+                {
+                    CloseClientSocket(saea);
+                    OnDisConnected(token.State);
+                }
             }
         }
 
 
         public delegate Task OnTunnelData(AsyncUserToken token, Memory<byte> data);
+        public delegate Task OnTunnelUdpData(AsyncUserUdpToken token, IPEndPoint remote, Memory<byte> data);
         public sealed class AsyncUserToken
         {
             public Socket SourceSocket { get; set; }
+            public SocketAsyncEventArgs Saea { get; set; }
             public object State { get; set; }
             public OnTunnelData OnData { get; set; }
 
@@ -217,6 +228,21 @@ namespace cmonitor.plugins.tunnel.server
             public void Clear()
             {
                 SourceSocket?.SafeClose();
+                SourceSocket = null;
+
+                GC.Collect();
+            }
+        }
+        public sealed class AsyncUserUdpToken
+        {
+            public UdpClient SourceSocket { get; set; }
+            public object State { get; set; }
+            public OnTunnelUdpData OnData { get; set; }
+
+
+            public void Clear()
+            {
+                SourceSocket?.Close();
                 SourceSocket = null;
 
                 GC.Collect();

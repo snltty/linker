@@ -1,13 +1,14 @@
-﻿using cmonitor.api;
+﻿using cmonitor.server.api;
 using cmonitor.plugins.light.messenger;
 using cmonitor.plugins.signin.messenger;
 using cmonitor.server;
 using common.libs.extends;
 using MemoryPack;
+using common.libs.api;
 
 namespace cmonitor.plugins.light
 {
-    public sealed class LightApiController : IApiController
+    public sealed class LightApiController : IApiServerController
     {
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;

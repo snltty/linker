@@ -1,9 +1,11 @@
 ﻿using common.libs;
 using common.libs.extends;
+using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 
-namespace cmonitor.api.websocket
+namespace common.libs.websocket
 {
     /// <summary>
     /// wensocket客户端

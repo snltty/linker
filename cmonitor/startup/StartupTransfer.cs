@@ -11,10 +11,7 @@ namespace cmonitor.startup
         public static void Init(Config config, Assembly[] assemblies)
         {
             var types = ReflectionHelper.GetInterfaceSchieves(assemblies, typeof(IStartup));
-            if (config.Data.Common.PluginNames.Length > 0)
-            {
-                types = types.Where(c => config.Data.Common.PluginNames.Any(d => c.FullName.Contains(d)));
-            }
+            types = config.Data.Common.PluginContains(types);
             startups = types.Select(c => Activator.CreateInstance(c) as IStartup).OrderByDescending(c => c.Level).ToList();
 
             Logger.Instance.Warning($"load startup : {string.Join(",", types.Select(c => c.Name))}");

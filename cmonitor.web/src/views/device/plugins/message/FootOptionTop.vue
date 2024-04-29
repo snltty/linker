@@ -9,6 +9,7 @@
 import { injectGlobalData } from '@/views/provide';
 import { injectPluginState } from '../../provide';
 export default {
+    pluginName:'cmonitor.plugin.message.',
     setup() {
 
         const pluginState = injectPluginState();

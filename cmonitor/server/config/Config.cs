@@ -10,5 +10,7 @@
         public string WebRoot { get; set; } = "./web/";
         public int ApiPort { get; set; } = 1801;
         public int ServicePort { get; set; } = 1802;
+
+        public string ApiPassword { get; set; } = "snltty";
     }
 }

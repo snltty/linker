@@ -1,14 +1,15 @@
-﻿using cmonitor.api;
+﻿using cmonitor.server.api;
 using cmonitor.plugins.signin.messenger;
 using cmonitor.plugins.wallpaper.messenger;
 using cmonitor.plugins.wallpaper.report;
 using cmonitor.server;
 using common.libs.extends;
 using MemoryPack;
+using common.libs.api;
 
 namespace cmonitor.plugins.wallpaper
 {
-    public sealed class WallpaperApiController : IApiController
+    public sealed class WallpaperApiController : IApiServerController
     {
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;

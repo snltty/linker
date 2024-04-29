@@ -1,14 +1,15 @@
-﻿using cmonitor.api;
+﻿using cmonitor.server.api;
 using cmonitor.plugins.signin.messenger;
 using cmonitor.plugins.snatch.messenger;
 using cmonitor.plugins.snatch.report;
 using cmonitor.server;
 using cmonitor.server.ruleConfig;
 using common.libs.extends;
+using common.libs.api;
 
 namespace cmonitor.plugins.snatch
 {
-    public sealed class SnatchApiController : IApiController
+    public sealed class SnatchApiController : IApiServerController
     {
         private readonly MessengerSender messengerSender;
         private readonly IRuleConfig ruleConfig;

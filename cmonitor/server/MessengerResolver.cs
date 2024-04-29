@@ -28,15 +28,12 @@ namespace cmonitor.server
             this.serviceProvider = serviceProvider;
         }
 
-        public void LoadMessenger(Assembly[] assemblys, string[] pluginNames)
+        public void LoadMessenger(Assembly[] assemblys, Func<IEnumerable<Type>,IEnumerable<Type>> pluginNames)
         {
             Type voidType = typeof(void);
             Type midType = typeof(MessengerIdAttribute);
             var types = ReflectionHelper.GetInterfaceSchieves(assemblys, typeof(IMessenger)).Distinct();
-            if (pluginNames.Length > 0)
-            {
-                types = types.Where(c => pluginNames.Any(d => c.FullName.Contains(d)));
-            }
+            types = pluginNames(types);
 
             foreach (Type type in types)
             {

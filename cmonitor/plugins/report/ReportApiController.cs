@@ -1,4 +1,4 @@
-﻿using cmonitor.api;
+﻿using cmonitor.server.api;
 using cmonitor.client.report;
 using cmonitor.config;
 using cmonitor.plugins.report.messenger;
@@ -6,18 +6,19 @@ using cmonitor.plugins.signin.messenger;
 using cmonitor.server;
 using common.libs;
 using common.libs.extends;
+using common.libs.api;
 
 namespace cmonitor.plugins.report
 {
-    public sealed class ReportApiController : IApiController
+    public sealed class ReportApiController : IApiServerController
     {
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;
-        private readonly IApiServer clientServer;
+        private readonly IApiServerServer clientServer;
         private readonly Config config;
         private readonly FpsHelper fpsHelper = new FpsHelper();
 
-        public ReportApiController(MessengerSender messengerSender, SignCaching signCaching, IApiServer clientServer, Config config)
+        public ReportApiController(MessengerSender messengerSender, SignCaching signCaching, IApiServerServer clientServer, Config config)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;

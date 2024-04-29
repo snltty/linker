@@ -36,7 +36,7 @@ namespace cmonitor.server
             if (loaded == false)
             {
                 MessengerResolver messengerResolver = serviceProvider.GetService<MessengerResolver>();
-                messengerResolver.LoadMessenger(assemblies, config.Data.Common.PluginNames);
+                messengerResolver.LoadMessenger(assemblies, config.Data.Common.PluginContains);
                 loaded = true;
             }
         }
@@ -46,7 +46,7 @@ namespace cmonitor.server
             if (loaded == false)
             {
                 MessengerResolver messengerResolver = serviceProvider.GetService<MessengerResolver>();
-                messengerResolver.LoadMessenger(assemblies, config.Data.Common.PluginNames);
+                messengerResolver.LoadMessenger(assemblies, config.Data.Common.PluginContains);
                 loaded = true;
             }
 

@@ -22,10 +22,7 @@ namespace cmonitor.plugins.tunnel.compact
         public void Load(Assembly[] assembs)
         {
             IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs, typeof(ICompact));
-            if (config.Data.Common.PluginNames.Length > 0)
-            {
-                types = types.Where(c => config.Data.Common.PluginNames.Any(d => c.FullName.Contains(d)));
-            }
+            types = config.Data.Common.PluginContains(types);
             compacts = types.Select(c => (ICompact)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Type) == false).ToList();
 
             Logger.Instance.Warning($"load tunnel compacts:{string.Join(",", compacts.Select(c => c.Type))}");
@@ -38,6 +35,7 @@ namespace cmonitor.plugins.tunnel.compact
             for (int i = 0; i < config.Data.Client.Tunnel.Servers.Length; i++)
             {
                 TunnelCompactInfo item = config.Data.Client.Tunnel.Servers[i];
+                if (item.Disabled) continue;
                 ICompact compact = compacts.FirstOrDefault(c => c.Type == item.Type);
                 if (compact == null) continue;
 

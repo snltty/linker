@@ -8,11 +8,8 @@ using common.libs;
 using MemoryPack;
 using cmonitor.client.running;
 using System.Net;
-using System.Text.Json;
 using cmonitor.plugins.viewer.proxy;
 using common.libs.extends;
-using System.Collections.Concurrent;
-using System.Linq;
 
 namespace cmonitor.plugins.viewer.report
 {
@@ -134,7 +131,7 @@ namespace cmonitor.plugins.viewer.report
             await messengerSender.SendOnly(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,
-                MessengerId = (ushort)ViewerMessengerIds.HeartNotify,
+                MessengerId = (ushort)ViewerMessengerIds.HeartForward,
                 Payload = MemoryPackSerializer.Serialize(info)
             });
         }

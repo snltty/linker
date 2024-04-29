@@ -1,92 +1,54 @@
-﻿using cmonitor.api.websocket;
-using cmonitor.config;
-using common.libs;
-using common.libs.extends;
-using Microsoft.Extensions.DependencyInjection;
-using SharpDX;
+﻿using common.libs.extends;
+using common.libs.websocket;
+using System;
 using System.Buffers;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace cmonitor.api
+namespace common.libs.api
 {
     /// <summary>
     /// 前段接口服务
     /// </summary>
-    public sealed class ApiServer : IApiServer
+    public class ApiServer : IApiServer
     {
-        private readonly Dictionary<string, PluginPathCacheInfo> plugins = new();
-        private readonly ConcurrentDictionary<uint, ConnectionTimeInfo> connectionTimes = new();
+        protected readonly Dictionary<string, PluginPathCacheInfo> plugins = new();
+        protected readonly ConcurrentDictionary<uint, ConnectionTimeInfo> connectionTimes = new();
         public uint OnlineNum = 0;
+        private Memory<byte> password = Helper.EmptyArray;
 
-        private readonly ServiceProvider serviceProvider;
         private WebSocketServer server;
-        private readonly Config config;
 
-        public ApiServer(ServiceProvider serviceProvider, Config config)
+        public ApiServer()
         {
-            this.serviceProvider = serviceProvider;
-            this.config = config;
         }
 
-        /// <summary>
-        /// 加载插件
-        /// </summary>
-        /// <param name="assemblys"></param>
-        public void LoadPlugins(Assembly[] assemblys)
-        {
-            Type voidType = typeof(void);
-
-            IEnumerable<Type> types = assemblys.SelectMany(c => c.GetTypes()).Where(c => c.GetInterfaces().Contains(typeof(IApiController)));
-            if (config.Data.Common.PluginNames.Length > 0)
-            {
-                types = types.Where(c => config.Data.Common.PluginNames.Any(d => c.FullName.Contains(d)));
-            }
-
-            foreach (Type item in types)
-            {
-                object obj = serviceProvider.GetService(item);
-                if(obj == null)
-                {
-                    continue;
-                }
-                Logger.Instance.Warning($"load server api:{item.Name}");
-
-                string path = item.Name.Replace("ApiController", "");
-                foreach (MethodInfo method in item.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
-                {
-                    string key = $"{path}/{method.Name}".ToLower();
-                    if (!plugins.ContainsKey(key))
-                    {
-                        bool istask = method.ReturnType.GetProperty("IsCompleted") != null && method.ReturnType.GetMethod("GetAwaiter") != null;
-                        bool isTaskResult = method.ReturnType.GetProperty("Result") != null;
-                        plugins.TryAdd(key, new PluginPathCacheInfo
-                        {
-                            IsVoid = method.ReturnType == voidType,
-                            Method = method,
-                            Target = obj,
-                            IsTask = istask,
-                            IsTaskResult = isTaskResult
-                        });
-                    }
-                }
-            }
-        }
         /// <summary>
         /// 开启websockt
         /// </summary>
-        public void Websocket()
+        public void Websocket(int port, string password = "")
         {
+            this.password = Encoding.UTF8.GetBytes(password);
             server = new WebSocketServer();
             try
             {
-                server.Start(System.Net.IPAddress.Any, config.Data.Server.ApiPort);
+                server.Start(System.Net.IPAddress.Any, port);
             }
             catch (Exception ex)
             {
                 Logger.Instance.Error(ex);
             }
+            server.OnConnecting = (connection, header) =>
+            {
+                header.SecWebSocketExtensions = Helper.EmptyArray;
+                return this.password.Length == 0 || this.password.Span.SequenceEqual(header.SecWebSocketProtocol.Span);
+            };
             server.OnOpen = (connection) =>
             {
                 Interlocked.Increment(ref OnlineNum);

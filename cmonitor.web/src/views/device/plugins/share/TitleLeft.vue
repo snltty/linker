@@ -4,6 +4,7 @@
 
 <script>
 export default {
+    pluginName:'cmonitor.plugin.share.',
     props: ['data'],
     setup(props) {
 

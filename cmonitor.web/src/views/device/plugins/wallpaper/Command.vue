@@ -14,6 +14,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { injectPluginState } from '../../provide'
 import { wallpaperUpdate } from '@/apis/wallpaper';
 export default {
+    pluginName:'cmonitor.plugin.wallpaper.',
     setup() {
 
         const pluginState = injectPluginState();

@@ -29,7 +29,46 @@ namespace cmonitor.plugins.signin.messenger
                 connection.Write(Helper.FalseArray);
             }
         }
+
+
+        [MessengerId((ushort)SignInMessengerIds.List)]
+        public void List(IConnection connection)
+        {
+            SignInListRequestInfo request = MemoryPackSerializer.Deserialize<SignInListRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+
+            List<SignCacheInfo> list = signCaching.Get(request.GroupId);
+            int count = list.Count;
+            list = list.Skip((request.Page - 1) * request.Size).Take(request.Size).ToList();
+
+            SignInListResponseInfo response = new SignInListResponseInfo { Request = request, Count = count, List = list };
+
+            connection.Write(MemoryPackSerializer.Serialize(response));
+        }
+
+        [MessengerId((ushort)SignInMessengerIds.Delete)]
+        public void Delete(IConnection connection)
+        {
+            string name = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.Get(name, out SignCacheInfo cache) && signCaching.Get(connection.Name, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            {
+                signCaching.Del(name);
+            }
+        }
     }
 
+    [MemoryPackable]
+    public sealed partial class SignInListRequestInfo
+    {
+        public int Page { get; set; } = 1;
+        public int Size { get; set; } = 10;
+        public string GroupId { get; set; }
+    }
 
+    [MemoryPackable]
+    public sealed partial class SignInListResponseInfo
+    {
+        public SignInListRequestInfo Request { get; set; } = new SignInListRequestInfo();
+        public int Count { get; set; }
+        public List<SignCacheInfo> List { get; set; } = new List<SignCacheInfo>();
+    }
 }

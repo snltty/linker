@@ -16,6 +16,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed } from 'vue';
 import { updateRegistryOptions } from '@/apis/system';
 export default {
+    pluginName:'cmonitor.plugin.system.',
     sort: 4,
     props: ['data'],
     setup(props) {

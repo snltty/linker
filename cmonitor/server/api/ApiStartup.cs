@@ -4,7 +4,7 @@ using common.libs;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace cmonitor.api
+namespace cmonitor.server.api
 {
     public sealed class ApiStartup : IStartup
     {
@@ -15,7 +15,7 @@ namespace cmonitor.api
 
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
-            serviceCollection.AddSingleton<IApiServer, ApiServer>();
+            serviceCollection.AddSingleton<IApiServerServer, ApiServerServer>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
@@ -24,11 +24,12 @@ namespace cmonitor.api
 
         public void UseServer(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
         {
-            Logger.Instance.Info($"start api server");
-            IApiServer clientServer = serviceProvider.GetService<IApiServer>();
+            Logger.Instance.Info($"start client api server");
+            IApiServerServer clientServer = serviceProvider.GetService<IApiServerServer>();
             clientServer.LoadPlugins(assemblies);
-            clientServer.Websocket();
-            Logger.Instance.Info($"api listen:{config.Data.Server.ApiPort}");
+            clientServer.Websocket(config.Data.Server.ApiPort, config.Data.Server.ApiPassword);
+            Logger.Instance.Info($"client api listen:{config.Data.Server.ApiPort}");
+            Logger.Instance.Info($"client api password:{config.Data.Server.ApiPassword}");
         }
     }
 }

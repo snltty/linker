@@ -10,6 +10,7 @@ import { injectPluginState } from '../../provide';
 import Light from './Light.vue'
 import LightSingle from './LightSingle.vue'
 export default {
+    pluginName:'cmonitor.plugin.light.',
     components: { Light, LightSingle },
     setup() {
         const pluginState = injectPluginState();

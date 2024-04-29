@@ -11,11 +11,19 @@
 </template>
 
 <script>
+import { injectGlobalData } from '@/views/provide';
+import { computed } from 'vue';
+
 export default {
     components: {},
     setup() {
+
+        const globalData = injectGlobalData();
+
         const footMenuFiles = require.context('../plugins/', true, /FootMenu\.vue/);
-        const footMenuModules = footMenuFiles.keys().map(c => footMenuFiles(c).default).sort((a, b) => a.sort - b.sort);
+        const _footMenuModules = footMenuFiles.keys().map(c => footMenuFiles(c).default).sort((a, b) => a.sort - b.sort);
+        const plugins = computed(()=>globalData.value.config.Common.Plugins||[]);
+        const footMenuModules = computed(()=>_footMenuModules.filter(c=>plugins.value.length == 0 || plugins.value.indexOf(c.pluginName)>=0));
         return { footMenuModules }
     }
 }

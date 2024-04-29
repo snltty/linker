@@ -68,6 +68,7 @@ import { setVolumeMute, setVolume } from '../../../../apis/volume'
 import { injectGlobalData } from '@/views/provide';
 import { injectPluginState } from '../../provide';
 export default {
+    pluginName:'cmonitor.plugin.volume.',
     props: ['modelValue'],
     emits: ['update:modelValue'],
     components: { CheckBoxWrap, PrevBoxWrap },

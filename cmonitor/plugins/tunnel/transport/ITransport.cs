@@ -1,18 +1,20 @@
 ﻿using MemoryPack;
 using System.Net;
 using System.Net.Sockets;
+using System.Text.Json.Serialization;
 
 namespace cmonitor.plugins.tunnel.transport
 {
     public interface ITransport
     {
         public string Name { get; }
-        public ProtocolType TypeFlag { get; }
+        public ProtocolType Type { get; }
 
         /// <summary>
         /// 发送连接信息
         /// </summary>
-        public Func<TunnelTransportInfo, Task<TunnelTransportInfo>> OnSendConnectBegin { get; set; }
+        public Func<TunnelTransportInfo, Task> OnSendConnectBegin { get; set; }
+        public Func<TunnelTransportInfo, Task> OnSendConnectFail { get; set; }
         /// <summary>
         /// 收到连接信息
         /// </summary>
@@ -24,49 +26,93 @@ namespace cmonitor.plugins.tunnel.transport
         /// <summary>
         /// 收到连接
         /// </summary>
-        public Action<TransportState> OnConnected { get; set; }
+        public Action<TunnelTransportState> OnConnected { get; set; }
+        /// <summary>
+        /// 断开连接
+        /// </summary>
+        public Action<TunnelTransportState> OnDisConnected { get; set; }
+
+        public Action<string> OnConnectFail { get; set; }
 
         /// <summary>
         /// 连接对方
         /// </summary>
-        /// <param name="fromMachineName">你的名字</param>
-        /// <param name="toMachineName">对方的名字</param>
-        /// <param name="flagName">唯一值</param>
+        /// <param name="tunnelTransportInfo">你的名字</param>
         /// <returns></returns>
-        public Task<Socket> ConnectAsync(string fromMachineName, string toMachineName, string flagName);
+        public Task<TunnelTransportState> ConnectAsync(TunnelTransportInfo tunnelTransportInfo);
         /// <summary>
         /// 收到开始连接
         /// </summary>
-        /// <param name="tunnelTransportNoticeInfo"></param>
+        /// <param name="tunnelTransportInfo"></param>
         /// <returns></returns>
-        public Task<TunnelTransportInfo> OnBegin(TunnelTransportInfo tunnelTransportNoticeInfo);
+        public void OnBegin(TunnelTransportInfo tunnelTransportInfo);
+        /// <summary>
+        /// 对白
+        /// </summary>
+        /// <param name="tunnelTransportInfo"></param>
+        public void OnFail(TunnelTransportInfo tunnelTransportInfo);
     }
+
+    [MemoryPackable]
+    public sealed partial class TunnelTransportExternalIPRequestInfo
+    {
+        public string RemoteMachineName { get; set; }
+        public ProtocolType TransportType { get; set; }
+    }
+
+    [MemoryPackable]
+    public sealed partial class TunnelTransportExternalIPInfo
+    {
+        [MemoryPackAllowSerialize]
+        public IPEndPoint Local { get; set; }
+
+        [MemoryPackAllowSerialize]
+        public IPEndPoint Remote { get; set; }
+
+        public int RouteLevel { get; set; }
+
+        public string MachineName { get; set; }
+    }
+
 
     [MemoryPackable]
     public sealed partial class TunnelTransportInfo
     {
-        [MemoryPackAllowSerialize]
-        public IPEndPoint FromLocal { get; set; }
+        public TunnelTransportExternalIPInfo Local { get; set; }
+        public TunnelTransportExternalIPInfo Remote { get; set; }
 
-        [MemoryPackAllowSerialize]
-        public IPEndPoint FromRemote { get; set; }
+        public string TransactionId { get; set; }
 
-        public string FromMachineName { get; set; }
-        public string ToMachineName { get; set; }
-        public string FromFlagName { get; set; }
+        public ProtocolType TransportType { get; set; }
+        public string TransportName { get; set; }
 
-        public ProtocolType TypeFlag { get; set; }
+        public TunnelTransportDirection Direction { get; set; }
 
-        public int RouteLevel { get; set; }
+        [JsonIgnore]
+        [MemoryPackIgnore]
+        public string FromMachineName => Direction == TunnelTransportDirection.Forward ? Remote.MachineName : Local.MachineName;
+        [JsonIgnore]
+        [MemoryPackIgnore]
+        public IPEndPoint BindEP => Direction == TunnelTransportDirection.Forward ? Remote.Local : Local.Local;
     }
 
-    public sealed class TransportState
-    {
-        public string FromMachineName { get; set; }
-        public string FromFlagName { get; set; }
-        public string FromTypeName { get; set; }
-        public ProtocolType TypeFlag { get; set; }
 
+
+
+    public enum TunnelTransportDirection : byte
+    {
+        Forward = 0,
+        Reverse = 1
+    }
+
+    public sealed class TunnelTransportState
+    {
+        public string RemoteMachineName { get; set; }
+        public string TransactionId { get; set; }
+        public string TransportName { get; set; }
+        public ProtocolType TransportType { get; set; }
+
+        [JsonIgnore]
         public object ConnectedObject { get; set; }
     }
 

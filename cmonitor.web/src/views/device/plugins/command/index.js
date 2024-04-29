@@ -1,4 +1,5 @@
 export default {
+    pluginName: 'cmonitor.plugin.command.',
     field() {
         return {
             Command: {

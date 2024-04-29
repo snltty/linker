@@ -12,10 +12,7 @@ namespace cmonitor.client.args
         public SignInArgsTransfer(ServiceProvider serviceProvider, Config config)
         {
             var types = ReflectionHelper.GetInterfaceSchieves(typeof(ISignInArgs));
-            if (config.Data.Common.PluginNames.Length > 0)
-            {
-                types = types.Where(c => config.Data.Common.PluginNames.Any(d => c.FullName.Contains(d)));
-            }
+            types = config.Data.Common.PluginContains(types);
             startups = types.Select(c => serviceProvider.GetService(c) as ISignInArgs).Where(c=>c != null).ToList();
         }
 

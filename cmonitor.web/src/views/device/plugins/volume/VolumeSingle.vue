@@ -24,6 +24,7 @@ import { injectGlobalData } from '@/views/provide';
 import { injectPluginState } from '../../provide';
 import { Mic } from '@element-plus/icons-vue'
 export default {
+    pluginName:'cmonitor.plugin.volume.',
     props: ['modelValue', 'items'],
     emits: ['update:modelValue'],
     setup(props, { emit }) {

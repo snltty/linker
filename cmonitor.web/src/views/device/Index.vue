@@ -8,19 +8,6 @@
             <div class="items flex-1 relative scrollbar-1">
                 <Items></Items>
             </div>
-            <!-- <div class="active-device flex flex-column" v-if="globalData.pc">
-               
-
-                <div class="flex-1 prev">
-
-                    <div class="prev-inner">
-                        <h3>{{globalData.currentDevice.MachineName}}</h3>
-                        <div class="inner">
-                            <canvas id="prev-canvas" width="1920" height="1080"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div> -->
         </div>
         <div class="foot" v-if="!globalData.pc">
             <div class="foot-options">
@@ -42,15 +29,19 @@ import Items from './wraps/Items.vue'
 import Head from './wraps/Head.vue'
 import { providePluginState } from './provide'
 import { injectGlobalData } from '../provide'
+import { computed } from 'vue'
 export default {
     components: { Items, FootMenu, FootOptions, Head },
     setup() {
 
         const globalData = injectGlobalData();
+        const plugins = computed(()=>globalData.value.config.Common.Plugins||[]);
 
         const files = require.context('./plugins/', true, /index\.js/);
-        const pluginSettings = files.keys().map(c => files(c).default);
-        const pluginState = pluginSettings.reduce((data, item, index) => {
+        const _pluginSettings = files.keys().map(c => files(c).default);
+        const pluginSettings = computed(()=>_pluginSettings.filter(c=>plugins.value.length == 0 || plugins.value.indexOf(c.pluginName)>=0));
+
+        const pluginState = pluginSettings.value.reduce((data, item, index) => {
             if (item.state) {
                 data = Object.assign(data, item.state);
             }
@@ -59,7 +50,8 @@ export default {
         const state = providePluginState(pluginState);
 
         const indexFiles = require.context('./plugins/', true, /Index\.vue/);
-        const indexModules = indexFiles.keys().map(c => indexFiles(c).default);
+        const _indexModules = indexFiles.keys().map(c => indexFiles(c).default);
+        const indexModules = computed(()=>_indexModules.filter(c=>plugins.value.length == 0 || plugins.value.indexOf(c.pluginName)>=0));
 
         return {
             indexModules, globalData
@@ -69,35 +61,6 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-// @media (min-width: 768px) {
-// .active-device {
-// // width: calc(100% - 41rem) !important;
-// }
-
-// .items {
-// padding: 1rem 1rem 0 1rem !important;
-// height: auto;
-// width: 80.6rem;
-// // padding: 1rem 0 !important;
-// box-sizing: border-box;
-// // border-right: 1px solid #999;
-// // background-color: rgba(255, 255, 255, 0.3);
-// display: flex;
-// display: -ms-flex;
-// display: -o-flex;
-// flex-wrap: wrap;
-// justify-content: space-between;
-// }
-
-// .foot {
-// display: none;
-// }
-// }
-// @media (min-width: 768px) {
-// .items {
-// max-width: 39rem;
-// }
-// }
 .device-list-wrap {
     .content {
         position: relative;

@@ -11,6 +11,7 @@
 <script>
 import { injectPluginState } from '../../provide'
 export default {
+    pluginName:'cmonitor.plugin.command.',
     props: ['data'],
     setup(props) {
 

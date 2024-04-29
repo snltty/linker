@@ -1,5 +1,5 @@
-﻿using cmonitor.client.report;
-using cmonitor.config;
+﻿using cmonitor.client;
+using cmonitor.client.report;
 using common.libs;
 
 namespace cmonitor.plugins.wlan.report
@@ -9,9 +9,10 @@ namespace cmonitor.plugins.wlan.report
         public string Name => "Wlan";
         private readonly IWlan wlan;
 
-        public WlanReport(Config config, IWlan wlan)
+        public WlanReport(IWlan wlan, ClientSignInState clientSignInState)
         {
             this.wlan = wlan;
+            clientSignInState.NetworkFirstEnabledHandle += () => { wlan.Init(); };
 
             WlanTask();
         }
@@ -30,19 +31,9 @@ namespace cmonitor.plugins.wlan.report
                 {
                     try
                     {
-                        if (wlan.Connected() == false)
+                        if (await wlan.Connect())
                         {
-                            Logger.Instance.Warning($"network offline  reconnect it~");
-                            var wafis = wlan.WlanEnums();
-                            foreach (var wifi in wafis)
-                            {
-                                Logger.Instance.Warning($"network offline  reconnect {wifi}~");
-                                bool res = await wlan.WlanConnect(wifi);
-                                if (res)
-                                {
-                                    break;
-                                }
-                            }
+                            await Task.Delay(10000);
                         }
                     }
                     catch (Exception ex)

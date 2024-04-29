@@ -53,6 +53,9 @@
 </template>
 
 <script>
+import { injectGlobalData } from '@/views/provide';
+import { computed } from 'vue';
+
 export default {
     props: {
         data: {
@@ -63,27 +66,36 @@ export default {
     setup(props, { emit }) {
         const data = props.data;
 
+        const globalData = injectGlobalData();
+        const plugins = computed(()=>globalData.value.config.Common.Plugins||[]);
+
         const titleLeftFiles = require.context('../plugins/', true, /TitleLeft\.vue/);
-        const titleLeftModules = titleLeftFiles.keys().map(c => titleLeftFiles(c).default);
+        const _titleLeftModules = titleLeftFiles.keys().map(c => titleLeftFiles(c).default);
+        const titleLeftModules = computed(()=>_titleLeftModules.filter(c=>plugins.value.length == 0 || plugins.value.indexOf(c.pluginName)>=0));
 
         const titleCenterFiles = require.context('../plugins/', true, /TitleCenter\.vue/);
-        const titleCenterModules = titleCenterFiles.keys().map(c => titleCenterFiles(c).default);
+        const _titleCenterModules = titleCenterFiles.keys().map(c => titleCenterFiles(c).default);
+        const titleCenterModules = computed(()=>_titleCenterModules.filter(c=>plugins.value.length == 0 || plugins.value.indexOf(c.pluginName)>=0));
 
         const titleRightFiles = require.context('../plugins/', true, /TitleRight\.vue/);
-        const titleRightModules = titleRightFiles.keys().map(c => titleRightFiles(c).default);
+        const _titleRightModules = titleRightFiles.keys().map(c => titleRightFiles(c).default);
+        const titleRightModules = computed(()=>_titleRightModules.filter(c=>plugins.value.length == 0 || plugins.value.indexOf(c.pluginName)>=0));
 
         const screenFiles = require.context('../plugins/', true, /Screen\.vue/);
-        const screenModules = screenFiles.keys().map(c => screenFiles(c).default);
+        const _screenModules = screenFiles.keys().map(c => screenFiles(c).default);
+        const screenModules = computed(()=>_screenModules.filter(c=>plugins.value.length == 0 || plugins.value.indexOf(c.pluginName)>=0));
 
         const btnLeftFiles = require.context('../plugins/', true, /BtnLeft\.vue/);
-        const btnLeftModules = btnLeftFiles.keys().map(c => btnLeftFiles(c).default);
+        const _btnLeftModules = btnLeftFiles.keys().map(c => btnLeftFiles(c).default);
+        const btnLeftModules = computed(()=>_btnLeftModules.filter(c=>plugins.value.length == 0 || plugins.value.indexOf(c.pluginName)>=0));
 
         const btnRightFiles = require.context('../plugins/', true, /BtnRight\.vue/);
-        const btnRightModules = btnRightFiles.keys().map(c => btnRightFiles(c).default);
+        const _btnRightModules = btnRightFiles.keys().map(c => btnRightFiles(c).default);
+        const btnRightModules = computed(()=>_btnRightModules.filter(c=>plugins.value.length == 0 || plugins.value.indexOf(c.pluginName)>=0));
 
         const optionFiles = require.context('../plugins/', true, /\/Option\.vue/);
-        const optionModules = optionFiles.keys().map(c => optionFiles(c).default).sort((a, b) => (a.sort || 0) - (b.sort || 0));
-
+        const _optionModules = optionFiles.keys().map(c => optionFiles(c).default).sort((a, b) => (a.sort || 0) - (b.sort || 0));
+        const optionModules = computed(()=>_optionModules.filter(c=>plugins.value.length == 0 || plugins.value.indexOf(c.pluginName)>=0));
 
         const handleCanvasTouchstart = (event) => {
             if (data.Screen.touchstart) {

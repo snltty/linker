@@ -42,6 +42,7 @@ import { injectGlobalData } from '@/views/provide';
 import { updateModes } from '../../../../apis/modes';
 
 export default {
+    pluginName:'cmonitor.plugin.modes.',
     props: ['modelValue'],
     emits: ['update:modelValue'],
     components: {},

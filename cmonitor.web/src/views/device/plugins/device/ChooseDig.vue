@@ -34,6 +34,7 @@ import { ElMessage } from 'element-plus';
 import { injectGlobalData } from '@/views/provide';
 
 export default {
+    pluginName:'cmonitor.plugin.device.',
     props: ['modelValue'],
     emits: ['update:modelValue'],
     components: { CheckBoxWrap },

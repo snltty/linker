@@ -1,11 +1,14 @@
 ﻿using common.libs;
 using common.libs.extends;
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace cmonitor.api.websocket
+namespace common.libs.websocket
 {
     /// <summary>
     /// websocket服务端
@@ -118,7 +121,7 @@ namespace cmonitor.api.websocket
         private void StartAccept(SocketAsyncEventArgs acceptEventArg)
         {
             acceptEventArg.AcceptSocket = null;
-            Socket listenSocket = ((Socket)acceptEventArg.UserToken);
+            Socket listenSocket = (Socket)acceptEventArg.UserToken;
             try
             {
                 if (!listenSocket.AcceptAsync(acceptEventArg))
@@ -138,7 +141,7 @@ namespace cmonitor.api.websocket
         }
         private void BindReceive(Socket socket)
         {
-            socket.KeepAlive(10,5);
+            socket.KeepAlive(10, 5);
             AsyncUserToken token = new AsyncUserToken
             {
                 Connectrion = new WebsocketConnection { Socket = socket, Id = numberSpace.Increment() }
@@ -377,7 +380,7 @@ namespace cmonitor.api.websocket
         public uint Id { get; set; }
         public Socket Socket { get; init; }
         public bool Connected { get; set; } = false;
-        public bool SocketConnected=> Socket != null && Socket.Connected;
+        public bool SocketConnected => Socket != null && Socket.Connected;
 
         private bool Closed = false;
         public int ConnectResponse(WebsocketHeaderInfo header)

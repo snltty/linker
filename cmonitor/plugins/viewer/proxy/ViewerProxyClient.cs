@@ -31,7 +31,7 @@ namespace cmonitor.plugins.viewer.proxy
             await messengerSender.SendOnly(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,
-                MessengerId = (ushort)ViewerMessengerIds.ProxyNotify,
+                MessengerId = (ushort)ViewerMessengerIds.ProxyFromClientForward,
                 Payload = MemoryPackSerializer.Serialize(new ViewerProxyInfo
                 {
                     ConnectId = connectId,

@@ -6,7 +6,7 @@ using System.Net.Sockets;
 
 namespace cmonitor.plugins.tunnel.server
 {
-    public sealed class TunnelServer
+    public sealed class TunnelExternalIPServer
     {
         private SocketAsyncEventArgs acceptEventArg;
         private Socket socket;

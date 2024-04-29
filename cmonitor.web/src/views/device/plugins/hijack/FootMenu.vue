@@ -23,6 +23,7 @@
 <script>
 import { injectPluginState } from '@/views/device/provide'
 export default {
+    pluginName:'cmonitor.plugin.hijack.',
     sort: 2,
     setup() {
 

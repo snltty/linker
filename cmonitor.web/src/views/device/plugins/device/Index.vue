@@ -8,6 +8,7 @@
 import { injectPluginState } from '../../provide';
 import ChooseDig from './ChooseDig.vue'
 export default {
+    pluginName:'cmonitor.plugin.device.',
     components: { ChooseDig },
     setup() {
         const pluginState = injectPluginState();

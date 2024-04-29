@@ -1,7 +1,7 @@
-﻿using cmonitor.api.websocket;
-using System.Reflection;
+﻿using common.libs.websocket;
+using System;
 
-namespace cmonitor.api
+namespace common.libs.api
 {
     /// <summary>
     /// 前端接口服务
@@ -11,12 +11,7 @@ namespace cmonitor.api
         /// <summary>
         /// websocket
         /// </summary>
-        public void Websocket();
-        /// <summary>
-        /// 加载插件
-        /// </summary>
-        /// <param name="assemblys"></param>
-        public void LoadPlugins(Assembly[] assemblys);
+        public void Websocket(int port,string password);
         public void Notify(string path, object content);
         public void Notify(string path,string name, Memory<byte> content);
         public void Notify(string path, object content,WebsocketConnection connection);

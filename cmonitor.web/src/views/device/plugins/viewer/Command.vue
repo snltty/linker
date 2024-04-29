@@ -25,6 +25,7 @@ import { injectPluginState } from '../../provide'
 import { injectGlobalData } from '@/views/provide';
 import { viewerUpdate } from '@/apis/viewer';
 export default {
+    pluginName:'cmonitor.plugin.viewer.',
     setup() {
 
         const pluginState = injectPluginState();

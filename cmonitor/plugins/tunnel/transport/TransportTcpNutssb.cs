@@ -1,7 +1,7 @@
-﻿using cmonitor.plugins.tunnel.compact;
-using cmonitor.plugins.tunnel.server;
+﻿using cmonitor.plugins.tunnel.server;
 using common.libs;
 using common.libs.extends;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 
@@ -10,107 +10,141 @@ namespace cmonitor.plugins.tunnel.transport
     public sealed class TransportTcpNutssb : ITransport
     {
         public string Name => "TcpNutssb";
-        public ProtocolType TypeFlag => ProtocolType.Tcp;
+        public ProtocolType Type => ProtocolType.Tcp;
 
-        public Func<TunnelTransportInfo, Task<TunnelTransportInfo>> OnSendConnectBegin { get; set; } = async (info) => { return await Task.FromResult<TunnelTransportInfo>(null); };
+        public Func<TunnelTransportInfo, Task> OnSendConnectBegin { get; set; } = async (info) => { await Task.CompletedTask; };
+        public Func<TunnelTransportInfo, Task> OnSendConnectFail { get; set; } = async (info) => { await Task.CompletedTask; };
         public Action<TunnelTransportInfo> OnConnectBegin { get; set; } = (info) => { };
         public Action<TunnelTransportInfo> OnConnecting { get; set; }
-        public Action<TransportState> OnConnected { get; set; } = (state) => { };
+        public Action<TunnelTransportState> OnConnected { get; set; } = (state) => { };
+        public Action<TunnelTransportState> OnDisConnected { get; set; } = (state) => { };
+        public Action<string> OnConnectFail { get; set; } = (machineName) => { };
 
 
         private readonly TunnelBindServer tunnelBindServer;
-        private readonly CompactTransfer compactTransfer;
 
-        public TransportTcpNutssb(TunnelBindServer tunnelBindServer, CompactTransfer compactTransfer)
+        public TransportTcpNutssb(TunnelBindServer tunnelBindServer)
         {
             this.tunnelBindServer = tunnelBindServer;
             tunnelBindServer.OnTcpConnected += OnTcpConnected;
-
-            this.compactTransfer = compactTransfer;
+            tunnelBindServer.OnDisConnected += OnTcpDisConnected;
         }
 
-        public async Task<Socket> ConnectAsync(string fromMachineName, string toMachineName, string flagName)
+        public async Task<TunnelTransportState> ConnectAsync(TunnelTransportInfo tunnelTransportInfo)
         {
-            //获取自己的外网IP
-            TunnelCompactIPEndPoint[] ips = await compactTransfer.GetExternalIPAsync(TypeFlag);
-            if (ips.Length == 0)
+            OnConnecting(tunnelTransportInfo);
+
+            tunnelTransportInfo.Direction = TunnelTransportDirection.Forward;
+            await OnSendConnectBegin(tunnelTransportInfo);
+            TunnelTransportState state = await ConnectForward(tunnelTransportInfo.Local, tunnelTransportInfo.Remote, tunnelTransportInfo);
+            if (state != null)
             {
-                return null;
+                //OnConnected(state);
+                return state;
             }
 
-            //告诉对方，我要连你，你需要给我发送一下 低TTL，并且对方要返回它的外网地址过来，给我去连接
-            TunnelTransportInfo tunnelTransportInfo = new TunnelTransportInfo
+            TunnelTransportInfo tunnelTransportInfo1 = tunnelTransportInfo.ToJsonFormat().DeJson<TunnelTransportInfo>();
+            tunnelTransportInfo1.Direction = TunnelTransportDirection.Reverse;
+            BindAndTTL(tunnelTransportInfo1.Local, tunnelTransportInfo1.Remote, tunnelTransportInfo1);
+            _ = OnSendConnectBegin(tunnelTransportInfo1);
+
+            state = await WaitReverse(tunnelTransportInfo1);
+            if (state != null)
             {
-                FromMachineName = fromMachineName,
-                ToMachineName = toMachineName,
-                FromFlagName = flagName,
-                FromLocal = ips[0].Local,
-                FromRemote = ips[0].Remote,
-            };
+                //OnConnected(state);
+                return state;
+            }
 
+            await OnSendConnectFail(tunnelTransportInfo);
+            OnConnectFail(tunnelTransportInfo1.Remote.MachineName);
+            return null;
+        }
 
-            TunnelTransportInfo remoteInfo = await OnSendConnectBegin(tunnelTransportInfo);
-            OnConnecting(remoteInfo);
+        public void OnBegin(TunnelTransportInfo tunnelTransportInfo)
+        {
+            OnConnectBegin(tunnelTransportInfo);
+            Task.Run(async () =>
+            {
+                if (tunnelTransportInfo.Direction == TunnelTransportDirection.Forward)
+                {
+                    BindAndTTL(tunnelTransportInfo.Remote, tunnelTransportInfo.Local, tunnelTransportInfo);
+                }
+                else
+                {
+                    TunnelTransportState state = await ConnectForward(tunnelTransportInfo.Remote, tunnelTransportInfo.Local, tunnelTransportInfo);
+                    if (state != null)
+                    {
+                        OnConnected(state);
+                    }
+                    else
+                    {
+                        await OnSendConnectFail(tunnelTransportInfo);
+                        OnConnectFail(tunnelTransportInfo.Local.MachineName);
+                    }
+                }
+            });
+        }
 
+        public void OnFail(TunnelTransportInfo tunnelTransportInfo)
+        {
+            tunnelBindServer.RemoveBind(tunnelTransportInfo.BindEP.Port);
+        }
+
+        private async Task<TunnelTransportState> ConnectForward(TunnelTransportExternalIPInfo local, TunnelTransportExternalIPInfo remote, TunnelTransportInfo tunnelTransportInfo)
+        {
             //要连接哪些IP
             IPEndPoint[] eps = new IPEndPoint[] {
-                new IPEndPoint(remoteInfo.FromLocal.Address,remoteInfo.FromLocal.Port),
-                new IPEndPoint(remoteInfo.FromLocal.Address,remoteInfo.FromRemote.Port),
-                new IPEndPoint(remoteInfo.FromLocal.Address,remoteInfo.FromRemote.Port+1),
-                new IPEndPoint(remoteInfo.FromRemote.Address,remoteInfo.FromRemote.Port),
-                new IPEndPoint(remoteInfo.FromRemote.Address,remoteInfo.FromRemote.Port+1),
+                new IPEndPoint(remote.Local.Address,remote.Local.Port),
+                new IPEndPoint(remote.Local.Address,remote.Remote.Port),
+                new IPEndPoint(remote.Local.Address,remote.Remote.Port+1),
+                new IPEndPoint(remote.Remote.Address,remote.Remote.Port),
+                new IPEndPoint(remote.Remote.Address,remote.Remote.Port+1),
             };
             //过滤掉不支持IPV6的情况，去尝试连接
             IEnumerable<IAsyncResult> results = eps.Where(c => NotIPv6Support(c.Address) == false).Select(ip =>
             {
                 using Socket targetSocket = new(ip.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 targetSocket.IPv6Only(ip.Address.AddressFamily, false);
-                targetSocket.ReuseBind(new IPEndPoint(ip.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.FromLocal.Port));
+                targetSocket.ReuseBind(new IPEndPoint(ip.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, local.Local.Port));
                 IAsyncResult result = targetSocket.BeginConnect(ip, null, targetSocket);
                 return result;
             });
             //检查一下是否连接成功
             for (int i = 0; i < 10; i++)
             {
-                IAsyncResult result = results.FirstOrDefault(c => c.IsCompleted);
+                //全部完成，但是没有连接成功的
+                if (results.Count(c => c.IsCompleted && (c.AsyncState as Socket).Connected == false) == results.Count())
+                {
+                    return null;
+                }
+
+                IAsyncResult result = results.FirstOrDefault(c => c.IsCompleted && (c.AsyncState as Socket).Connected);
                 if (result != null)
                 {
-                    return result.AsyncState as Socket;
+                    return new TunnelTransportState
+                    {
+                        ConnectedObject = result.AsyncState as Socket,
+                        TransactionId = tunnelTransportInfo.TransactionId,
+                        RemoteMachineName = remote.MachineName,
+                        TransportName = Name,
+                        TransportType = Type
+                    };
                 }
                 await Task.Delay(10);
             }
             return null;
         }
-        public async Task<TunnelTransportInfo> OnBegin(TunnelTransportInfo tunnelTransportInfo)
+        private void BindAndTTL(TunnelTransportExternalIPInfo local, TunnelTransportExternalIPInfo remote, TunnelTransportInfo tunnelTransportInfo)
         {
-            //获取自己的外网IP
-            TunnelCompactIPEndPoint[] ips = await compactTransfer.GetExternalIPAsync(ProtocolType.Tcp);
-            if (ips.Length == 0)
-            {
-                return null;
-            }
-            OnConnectBegin(tunnelTransportInfo);
-
-            //监听，等对方来连
-            TunnelTransportInfo info = new TunnelTransportInfo
-            {
-                ToMachineName = tunnelTransportInfo.FromMachineName,
-                FromMachineName = tunnelTransportInfo.ToMachineName,
-                FromFlagName = tunnelTransportInfo.FromFlagName,
-                FromLocal = ips[0].Local,
-                FromRemote = ips[0].Remote,
-                RouteLevel = tunnelTransportInfo.RouteLevel
-            };
-            TransportTcpNutssbState state = new TransportTcpNutssbState { FromMachineName = tunnelTransportInfo.FromMachineName, FromFlagName = tunnelTransportInfo.FromFlagName };
-            tunnelBindServer.Bind(info.FromLocal, state);
+            tunnelBindServer.Bind(local.Local, tunnelTransportInfo);
 
             //给对方发送TTL消息
             IPEndPoint[] eps = new IPEndPoint[] {
-                new IPEndPoint(tunnelTransportInfo.FromLocal.Address,tunnelTransportInfo.FromLocal.Port),
-                new IPEndPoint(tunnelTransportInfo.FromLocal.Address,tunnelTransportInfo.FromRemote.Port),
-                new IPEndPoint(tunnelTransportInfo.FromLocal.Address,tunnelTransportInfo.FromRemote.Port+1),
-                new IPEndPoint(tunnelTransportInfo.FromRemote.Address,tunnelTransportInfo.FromRemote.Port),
-                new IPEndPoint(tunnelTransportInfo.FromRemote.Address,tunnelTransportInfo.FromRemote.Port+1),
+                new IPEndPoint(remote.Local.Address,remote.Local.Port),
+                new IPEndPoint(remote.Local.Address,remote.Remote.Port),
+                new IPEndPoint(remote.Local.Address,remote.Remote.Port+1),
+                new IPEndPoint(remote.Remote.Address,remote.Remote.Port),
+                new IPEndPoint(remote.Remote.Address,remote.Remote.Port+1),
             };
             //过滤掉不支持IPV6的情况
             IEnumerable<Socket> sockets = eps.Where(c => NotIPv6Support(c.Address) == false).Select(ip =>
@@ -119,8 +153,8 @@ namespace cmonitor.plugins.tunnel.transport
                 try
                 {
                     targetSocket.IPv6Only(ip.Address.AddressFamily, false);
-                    targetSocket.Ttl = (short)(info.RouteLevel);
-                    targetSocket.ReuseBind(new IPEndPoint(ip.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, info.FromLocal.Port));
+                    targetSocket.Ttl = (short)(local.RouteLevel);
+                    targetSocket.ReuseBind(new IPEndPoint(ip.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, local.Local.Port));
                     _ = targetSocket.ConnectAsync(ip);
                     return targetSocket;
                 }
@@ -133,22 +167,57 @@ namespace cmonitor.plugins.tunnel.transport
             {
                 item.SafeClose();
             }
-
-            return info;
         }
+
+
+        private ConcurrentDictionary<string, TaskCompletionSource<TunnelTransportState>> reverseDic = new ConcurrentDictionary<string, TaskCompletionSource<TunnelTransportState>>();
+        private async Task<TunnelTransportState> WaitReverse(TunnelTransportInfo tunnelTransportInfo)
+        {
+            TaskCompletionSource<TunnelTransportState> tcs = new TaskCompletionSource<TunnelTransportState>();
+            reverseDic.TryAdd(tunnelTransportInfo.Remote.MachineName, tcs);
+
+            TunnelTransportState state = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(3));
+
+            reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineName, out _);
+
+            return state;
+        }
+
 
         private void OnTcpConnected(object state, Socket socket)
         {
-            if (state is TransportTcpNutssbState _state)
+            if (state is TunnelTransportInfo _state && _state.TransportName == Name)
             {
-                OnConnected(new TransportState
+                TunnelTransportState result = new TunnelTransportState
                 {
-                    FromMachineName = _state.FromMachineName,
-                    TypeFlag = ProtocolType.Tcp,
+                    RemoteMachineName = _state.FromMachineName,
+                    TransportType = ProtocolType.Tcp,
                     ConnectedObject = socket,
-                    FromFlagName = _state.FromFlagName,
-                    FromTypeName = Name,
-                });
+                    TransactionId = _state.TransactionId,
+                    TransportName = _state.TransportName,
+                };
+
+                if (reverseDic.TryRemove(_state.FromMachineName, out TaskCompletionSource<TunnelTransportState> tcs))
+                {
+                    tcs.SetResult(result);
+                    return;
+                }
+
+                OnConnected(result);
+            }
+        }
+        private void OnTcpDisConnected(object state)
+        {
+            if (state is TunnelTransportInfo _state && _state.TransportName == Name)
+            {
+                TunnelTransportState result = new TunnelTransportState
+                {
+                    RemoteMachineName = _state.FromMachineName,
+                    TransportType = ProtocolType.Tcp,
+                    TransactionId = _state.TransactionId,
+                    TransportName = _state.TransportName,
+                };
+                OnConnected(result);
             }
         }
 
@@ -157,10 +226,5 @@ namespace cmonitor.plugins.tunnel.transport
             return ip.AddressFamily == AddressFamily.InterNetworkV6 && (NetworkHelper.IPv6Support == false);
         }
 
-        public sealed class TransportTcpNutssbState
-        {
-            public string FromMachineName { get; set; }
-            public string FromFlagName { get; set; }
-        }
     }
 }

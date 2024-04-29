@@ -14,6 +14,7 @@ import { injectPluginState } from '../../provide'
 import { screenDisplay } from '../../../../apis/display'
 import { injectGlobalData } from '@/views/provide';
 export default {
+    pluginName:'cmonitor.plugin.screen.',
     setup() {
 
         const pluginState = injectPluginState();

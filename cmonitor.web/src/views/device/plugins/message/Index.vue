@@ -8,6 +8,7 @@
 import { injectPluginState } from '../../provide'
 import ChooseDig from './ChooseDig.vue'
 export default {
+    pluginName:'cmonitor.plugin.message.',
     components: { ChooseDig },
     setup() {
 

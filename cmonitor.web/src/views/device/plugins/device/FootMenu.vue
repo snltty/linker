@@ -10,6 +10,7 @@
 <script>
 import { injectPluginState } from '../../provide'
 export default {
+    pluginName:'cmonitor.plugin.device.',
     sort: 0,
     setup() {
 

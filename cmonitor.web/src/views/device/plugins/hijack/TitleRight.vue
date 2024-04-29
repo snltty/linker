@@ -17,6 +17,7 @@
 
 <script>
 export default {
+    pluginName:'cmonitor.plugin.hijack.',
     props: ['data'],
     setup(props) {
 

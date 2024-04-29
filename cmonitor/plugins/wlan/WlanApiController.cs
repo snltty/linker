@@ -1,14 +1,15 @@
-﻿using cmonitor.api;
+﻿using cmonitor.server.api;
 using cmonitor.plugins.signin.messenger;
 using cmonitor.plugins.wlan.messenger;
 using cmonitor.plugins.wlan.report;
 using cmonitor.server;
 using common.libs.extends;
 using MemoryPack;
+using common.libs.api;
 
 namespace cmonitor.plugins.wlan
 {
-    public sealed class WlanApiController : IApiController
+    public sealed class WlanApiController : IApiServerController
     {
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;

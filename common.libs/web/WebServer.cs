@@ -1,32 +1,34 @@
-﻿using cmonitor.config;
-using common.libs;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net;
+using System.Threading.Tasks;
 
-namespace cmonitor.web
+namespace common.libs.web
 {
     /// <summary>
     /// 本地web管理端服务器
     /// </summary>
-    public sealed class WebServer : IWebServer
+    public class WebServer : IWebServer
     {
-        private readonly Config config;
-        public WebServer(Config config)
+        private string root = "";
+        public WebServer()
         {
-            this.config = config;
         }
 
         /// <summary>
         /// 开启web
         /// </summary>
-        public void Start()
+        public void Start(int port, string root)
         {
+            this.root = root;
             Task.Factory.StartNew(() =>
             {
                 try
                 {
                     HttpListener http = new HttpListener();
                     http.IgnoreWriteExceptions = true;
-                    http.Prefixes.Add($"http://+:{config.Data.Server.WebPort}/");
+                    http.Prefixes.Add($"http://+:{port}/");
                     http.Start();
 
                     http.BeginGetContext(Callback, http);
@@ -53,7 +55,7 @@ namespace cmonitor.web
                 if (path == "/") path = "index.html";
 
 
-                path = Path.Join(config.Data.Server.WebRoot, path);
+                path = Path.Join(root, path);
                 if (File.Exists(path))
                 {
                     byte[] bytes = File.ReadAllBytes(path);

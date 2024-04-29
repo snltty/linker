@@ -46,10 +46,13 @@ import { reactive } from 'vue'
 import { shareUpdate } from '@/apis/share'
 import { notifyUpdate } from '@/apis/notify'
 import { ElMessage } from 'element-plus';
+import { injectGlobalData } from '@/views/provide';
 export default {
+    pluginName:'cmonitor.plugin.share.',
     props: ['data'],
     setup(props) {
 
+        const globalData = injectGlobalData();
         const state = reactive({
             loading: false
         });
@@ -85,7 +88,7 @@ export default {
                 if (res) {
                     ElMessage.success('操作成功！');
                     if (value.notify) {
-                        notifyUpdate(2, props.data.Share.UserName.Value, value.star1, value.star2, value.star3);
+                        notifyUpdate(globalData.value.groupid,2, props.data.Share.UserName.Value, value.star1, value.star2, value.star3);
                     }
                 } else {
                     ElMessage.error('操作失败！');

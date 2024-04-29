@@ -24,6 +24,7 @@ import { injectPluginState } from '../../provide';
 import { activeKill } from '@/apis/active';
 export default {
     props: ['data'],
+    pluginName:'cmonitor.plugin.active.',
     setup(props, { emit }) {
 
         const pluginState = injectPluginState();

@@ -1,4 +1,4 @@
-﻿namespace cmonitor.web
+﻿namespace common.libs.web
 {
     /// <summary>
     /// web服务
@@ -8,7 +8,7 @@
         /// <summary>
         /// 开始
         /// </summary>
-        public void Start();
+        public void Start(int port, string root);
     }
 
 }

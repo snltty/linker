@@ -40,7 +40,10 @@ namespace cmonitor.plugins.viewer.messenger
             viewerReport.Heart(viewerConfigInfo);
         }
 
-
+        /// <summary>
+        /// 通过客户端代理，
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)ViewerMessengerIds.ProxyFromClient)]
         public void ProxyFromClient(IConnection connection)
         {
@@ -48,7 +51,10 @@ namespace cmonitor.plugins.viewer.messenger
             proxy.TargetEP = runningConfig.Data.Viewer.ConnectEP;
             _ = viewerProxyClient.Connect(proxy);
         }
-
+        /// <summary>
+        /// 通过服务器代理
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)ViewerMessengerIds.ProxyFromServer)]
         public void ProxyFromServer(IConnection connection)
         {
@@ -73,8 +79,8 @@ namespace cmonitor.plugins.viewer.messenger
 
 
 
-        [MessengerId((ushort)ViewerMessengerIds.HeartNotify)]
-        public void HeartNotify(IConnection connection)
+        [MessengerId((ushort)ViewerMessengerIds.HeartForward)]
+        public void HeartForward(IConnection connection)
         {
             ViewerRunningConfigInfo viewerConfigInfo = MemoryPackSerializer.Deserialize<ViewerRunningConfigInfo>(connection.ReceiveRequestWrap.Payload.Span);
             string[] usernames = viewerConfigInfo.ClientMachines;
@@ -92,8 +98,8 @@ namespace cmonitor.plugins.viewer.messenger
             }
         }
 
-        [MessengerId((ushort)ViewerMessengerIds.ProxyNotify)]
-        public void ProxyNotify(IConnection connection)
+        [MessengerId((ushort)ViewerMessengerIds.ProxyFromClientForward)]
+        public void ProxyFromClientForward(IConnection connection)
         {
             ViewerProxyInfo proxy = MemoryPackSerializer.Deserialize<ViewerProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.Get(proxy.ViewerServerMachine, out SignCacheInfo cache) && cache.Connected)

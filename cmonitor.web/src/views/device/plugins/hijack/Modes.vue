@@ -22,6 +22,7 @@ import { computed, getCurrentInstance, inject, onMounted, watch,nextTick } from 
 import CheckBoxWrap from '../../boxs/CheckBoxWrap.vue'
 import { injectGlobalData } from '@/views/provide';
 export default {
+    pluginName:'cmonitor.plugin.hijack.',
     label: '网络',
     components: { CheckBoxWrap },
     setup(props, { emit }) {

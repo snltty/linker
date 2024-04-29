@@ -34,10 +34,7 @@ namespace cmonitor.client.report
         public void LoadPlugins(Assembly[] assembs)
         {
             IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs, typeof(IClientReport));
-            if (config.Data.Common.PluginNames.Length > 0)
-            {
-                types = types.Where(c => config.Data.Common.PluginNames.Any(d => c.FullName.Contains(d)));
-            }
+            types = config.Data.Common.PluginContains(types);
             reports = types.Select(c => (IClientReport)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
             reportObj = new Dictionary<string, object>(reports.Count);
 

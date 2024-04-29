@@ -1,4 +1,4 @@
-﻿using cmonitor.api;
+﻿using cmonitor.server.api;
 using cmonitor.plugins.command.report;
 using cmonitor.server;
 using common.libs;
@@ -59,8 +59,8 @@ namespace cmonitor.plugins.command.messenger
     public sealed class CommandServerMessenger : IMessenger
     {
 
-        private readonly IApiServer clientServer;
-        public CommandServerMessenger(IApiServer clientServer)
+        private readonly IApiServerServer clientServer;
+        public CommandServerMessenger(IApiServerServer clientServer)
         {
             this.clientServer = clientServer;
         }

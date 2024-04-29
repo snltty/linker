@@ -1,4 +1,4 @@
-﻿using cmonitor.api;
+﻿using cmonitor.server.api;
 using cmonitor.config;
 using cmonitor.plugins.screen.messenger;
 using cmonitor.plugins.screen.report;
@@ -7,11 +7,11 @@ using cmonitor.server;
 using common.libs;
 using common.libs.extends;
 using MemoryPack;
-using System.Xml.Linq;
+using common.libs.api;
 
 namespace cmonitor.plugins.screen
 {
-    public sealed class ScreenApiController : IApiController
+    public sealed class ScreenApiController : IApiServerController
     {
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;

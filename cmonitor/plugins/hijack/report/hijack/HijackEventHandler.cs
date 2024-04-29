@@ -241,6 +241,7 @@ namespace cmonitor.plugins.hijack.report.hijack
                 }
                 catch (Exception ex)
                 {
+                    Logger.Instance.Error(domain);
                     Logger.Instance.Error(ex);
                 }
             }
@@ -263,6 +264,7 @@ namespace cmonitor.plugins.hijack.report.hijack
                 }
                 catch (Exception ex)
                 {
+                    Logger.Instance.Error(domain);
                     Logger.Instance.Error(ex);
                 }
             }
@@ -289,6 +291,7 @@ namespace cmonitor.plugins.hijack.report.hijack
                             {
                                 continue;
                             }
+                           
                             if (CheckName(domainWhite, dnsPack.Domain))
                             {
                                 for (int i = 0; i < dnsPack.Ips.Length; i++)
@@ -299,6 +302,7 @@ namespace cmonitor.plugins.hijack.report.hijack
                             }
                             else if (CheckName(domainBlack, dnsPack.Domain))
                             {
+                                
                                 for (int i = 0; i < dnsPack.Ips.Length; i++)
                                 {
                                     if (dnsPack.Ips[i] != null)

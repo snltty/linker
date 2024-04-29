@@ -20,9 +20,14 @@ export default {
     components: { Item },
     setup() {
 
+        const globalData = injectGlobalData();
+        const plugins = computed(()=>globalData.value.config.Common.Plugins||[]);
+
         const files = require.context('../plugins/', true, /index\.js/);
-        const pluginSettings = files.keys().map(c => files(c).default);
-        pluginSettings.forEach((item) => {
+        const _pluginSettings = files.keys().map(c => files(c).default);
+        const pluginSettings = computed(()=>_pluginSettings.filter(c=>plugins.value.length == 0 || plugins.value.indexOf(c.pluginName)>=0))
+
+        pluginSettings.value.forEach((item) => {
             try {
                 item.init && item.init();
             } catch (e) {
@@ -30,15 +35,14 @@ export default {
             }
         });
 
-        const globalData = injectGlobalData();
         watch(() => globalData.value.updateDeviceFlag, () => {
             getData();
         })
 
         const getData = () => {
-            getList().then((res) => {
+            getList(globalData.value.groupid).then((res) => {
                 globalData.value.allDevices = res.map(c => {
-                    return pluginSettings.reduce((result, item, index) => {
+                    return pluginSettings.value.reduce((result, item, index) => {
                         if (item.field) {
                             result = Object.assign(result, item.field());
                         }
@@ -67,7 +71,7 @@ export default {
                 }
                 let item = globalData.value.devices.filter(c => c.MachineName == res.Name)[0];
                 if (item) {
-                    pluginSettings.forEach(plugin => {
+                    pluginSettings.value.forEach(plugin => {
                         plugin.update && plugin.update(item, res.Report);
                     });
                 }
@@ -146,7 +150,7 @@ export default {
         let getListTimer = 0;
         const updateListInterver = () => {
             if (websocketState.connected) {
-                getList().then((res) => {
+                getList(globalData.value.groupid).then((res) => {
                     globalData.value.allDevices.forEach(c => {
                         let item = res.filter(d => d.MachineName == c.MachineName)[0];
                         if (item) {
@@ -173,7 +177,7 @@ export default {
             listWrapRemoveScrollListener();
             clearTimeout(getListTimer);
 
-            pluginSettings.forEach((item) => {
+            pluginSettings.value.forEach((item) => {
                 item.uninit && item.uninit();
             });
         });

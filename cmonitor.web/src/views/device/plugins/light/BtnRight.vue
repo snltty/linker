@@ -17,6 +17,7 @@
 <script>
 import { injectPluginState } from '../../provide'
 export default {
+    pluginName:'cmonitor.plugin.light.',
     props: ['data'],
     setup(props) {
 

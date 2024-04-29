@@ -31,6 +31,7 @@ import { exec } from '@/apis/command';
 import { injectGlobalData } from '@/views/provide';
 import { reactive } from 'vue';
 export default {
+    pluginName:'cmonitor.plugin.wlan.',
     setup() {
 
         const pluginState = injectPluginState();

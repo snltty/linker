@@ -1,7 +1,7 @@
 import { sendWebsocketMsg } from './request'
 
-export const getList = () => {
-    return sendWebsocketMsg('signin/list');
+export const getList = (groupid) => {
+    return sendWebsocketMsg('signin/list', groupid);
 }
 export const getConfig = () => {
     return sendWebsocketMsg('signin/config');

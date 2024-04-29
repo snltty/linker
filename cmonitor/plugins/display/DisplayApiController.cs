@@ -1,12 +1,13 @@
-﻿using cmonitor.api;
+﻿using cmonitor.server.api;
 using cmonitor.plugins.display.messenger;
 using cmonitor.plugins.signin.messenger;
 using cmonitor.server;
 using common.libs.extends;
+using common.libs.api;
 
 namespace cmonitor.plugins.display
 {
-    public sealed class DisplayApiController : IApiController
+    public sealed class DisplayApiController : IApiServerController
     {
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;

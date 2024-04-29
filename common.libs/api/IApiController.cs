@@ -1,7 +1,8 @@
-﻿using cmonitor.api.websocket;
+﻿using common.libs.websocket;
+using System;
 using System.Text.Json.Serialization;
 
-namespace cmonitor.api
+namespace common.libs.api
 {
     /// <summary>
     /// 前段接口

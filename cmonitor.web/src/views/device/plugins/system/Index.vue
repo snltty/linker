@@ -8,6 +8,7 @@
 import { injectPluginState } from '../../provide'
 import SystemOptions from './SystemOptions.vue'
 export default {
+    pluginName:'cmonitor.plugin.system.',
     components: { SystemOptions },
     setup() {
         const pluginState = injectPluginState();

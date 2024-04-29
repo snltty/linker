@@ -11,6 +11,7 @@
 import { injectPluginState } from '../../provide';
 export default {
     sort: 1,
+    pluginName:'cmonitor.plugin.active.',
     setup() {
 
         const pluginState = injectPluginState();

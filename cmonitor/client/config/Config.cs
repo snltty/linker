@@ -34,6 +34,10 @@ namespace cmonitor.config
                 }
             }
         }
+        public ClientServerInfo[] Servers { get; set; } = new ClientServerInfo[] {
+            new ClientServerInfo{ Name="默认", Host=new IPEndPoint(IPAddress.Loopback, 1802).ToString() }
+        };
+
         [JsonIgnore]
         public IPEndPoint ServerEP { get; set; } = new IPEndPoint(IPAddress.Loopback, 1802);
 
@@ -47,9 +51,25 @@ namespace cmonitor.config
             }
         }
 
+        public string GroupId { get; set; } = "snltty";
+
         public string ShareMemoryKey { get; set; } = "cmonitor/share";
         public int ShareMemoryCount { get; set; } = 100;
         public int ShareMemorySize { get; set; } = 1024;
 
+        public int ApiPort { get; set; } = 1805;
+        public string ApiPassword { get; set; } = "snltty";
+
+        public int WebPort { get; set; } = 1806;
+        public string WebRoot { get; set; } = "./web-client/";
+
+
+
+    }
+
+    public sealed class ClientServerInfo
+    {
+        public string Name { get; set; }
+        public string Host { get; set; }
     }
 }

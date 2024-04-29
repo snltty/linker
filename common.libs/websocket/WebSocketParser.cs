@@ -1,11 +1,12 @@
 ﻿using common.libs;
+using System;
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace cmonitor.api.websocket
+namespace common.libs.websocket
 {
     /// <summary>
     /// websocket解析器
@@ -365,7 +366,7 @@ namespace cmonitor.api.websocket
             //第2字节
             //1位 是否mask
             EnumMask mask = (EnumMask)(span[1] & (byte)EnumMask.Mask);
-            int payloadLength = (span[1] & 0b01111111);
+            int payloadLength = span[1] & 0b01111111;
             if (payloadLength == 126)
             {
                 payloadLength = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(2, 2));
@@ -544,7 +545,7 @@ namespace cmonitor.api.websocket
             Encoding.ASCII.GetBytes("Sec-WebSocket-Key: "),
             Encoding.ASCII.GetBytes("Sec-WebSocket-Extensions: "),
             Encoding.ASCII.GetBytes("Sec-WebSocket-Protocol: "),
-            Encoding.ASCII.GetBytes("Sec-WebSocket-Accept: "),
+            Encoding.ASCII.GetBytes("Sec-WebSocket-Accept: ")
         };
         static byte[] httpBytes = Encoding.UTF8.GetBytes("HTTP/");
 
@@ -606,7 +607,7 @@ namespace cmonitor.api.websocket
                                 flag &= ~(bit << k);
 
 #pragma warning disable CS0675 // 对进行了带符号扩展的操作数使用了按位或运算符
-                                res[k] = ((ulong)(startIndex + bytes[k].Length) << 32) | (ulong)(index - bytes[k].Length);
+                                res[k] = (ulong)(startIndex + bytes[k].Length) << 32 | (ulong)(index - bytes[k].Length);
 #pragma warning restore CS0675 // 对进行了带符号扩展的操作数使用了按位或运算符
 
                                 i += index + 1;
