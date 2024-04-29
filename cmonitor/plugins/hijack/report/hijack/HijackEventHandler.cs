@@ -291,7 +291,7 @@ namespace cmonitor.plugins.hijack.report.hijack
                             {
                                 continue;
                             }
-                           
+
                             if (CheckName(domainWhite, dnsPack.Domain))
                             {
                                 for (int i = 0; i < dnsPack.Ips.Length; i++)
@@ -302,7 +302,7 @@ namespace cmonitor.plugins.hijack.report.hijack
                             }
                             else if (CheckName(domainBlack, dnsPack.Domain))
                             {
-                                
+
                                 for (int i = 0; i < dnsPack.Ips.Length; i++)
                                 {
                                     if (dnsPack.Ips[i] != null)
@@ -314,7 +314,8 @@ namespace cmonitor.plugins.hijack.report.hijack
                         }
                         catch (Exception ex)
                         {
-                            Logger.Instance.Error(ex);
+                            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                Logger.Instance.Error(ex);
                         }
                         finally
                         {
@@ -335,75 +336,84 @@ namespace cmonitor.plugins.hijack.report.hijack
             Span<byte> span = new Span<byte>((void*)dns.Data, dns.Len);
             int index = 0;
 
-            //tcp协议，头两个字节表示数据长度
-            if (dns.ProtocolType == DnsProtocolType.TCP)
+            try
             {
-                index += 2;
-            }
-            index += 2;//跳过transID
-            ushort flag = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(index));
-            index += 2;
-            ushort quesions = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(index));
-            index += 2;
-            ushort answers = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(index));
-            index += 2;
-            index += 4; //跳过 au 2字节 + ad 2字节
-
-            byte rcode = (byte)(flag & 0b1111);
-            byte tc = (byte)(flag >> 9 & 0x01);
-            byte qr = (byte)(flag >> 15 & 0x01);
-            if (rcode != 0 || tc != 0 || qr != 1 || quesions > 1)
-            {
-                return null; //错误，截断，非响应，大于1个查询
-            }
-
-            int domainPosition = 0;
-            byte length = span[index];
-            while (length > 0)
-            {
-                index += 1;//跳过长度字节
-
-                span.Slice(index, length).CopyTo(domainCache.Span.Slice(domainPosition, length));
-                domainPosition += length;
-                domainCache.Span[domainPosition] = 46;//加个点.
-                domainPosition += 1;
-
-                index += length;
-                length = span[index];
-            }
-            index += 1;//跳过长度字节
-            domainPosition--; //去掉最后的点.
-
-            ushort type = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(index));
-            index += 2; //type 
-            if (type != 1 && type != 28)
-            {
-                return null; //不是A查询
-            }
-            index += 2; //跳过class 
-
-            string domain = Encoding.UTF8.GetString(domainCache.Span.Slice(0, domainPosition));
-            IPAddress[] ips = new IPAddress[answers];
-            //answers
-            for (int i = 0; i < answers; i++)
-            {
-                index += 2; //跳过指针
-                type = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(index));
-                index += 2;
-                index += 2;//跳过class
-                index += 4;//跳过timeLive
-                int dataLength = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(index));
-                index += 2;
-
-                if (type == 1 || type == 28) //是A回应，其它的不要
+                //tcp协议，头两个字节表示数据长度
+                if (dns.ProtocolType == DnsProtocolType.TCP)
                 {
-                    ips[i] = new IPAddress(span.Slice(index, dataLength));
+                    index += 2;
                 }
-                index += dataLength;
+                index += 2;//跳过transID
+                ushort flag = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(index));
+                index += 2;
+                ushort quesions = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(index));
+                index += 2;
+                ushort answers = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(index));
+                index += 2;
+                index += 4; //跳过 au 2字节 + ad 2字节
+
+                byte rcode = (byte)(flag & 0b1111);
+                byte tc = (byte)(flag >> 9 & 0x01);
+                byte qr = (byte)(flag >> 15 & 0x01);
+                if (rcode != 0 || tc != 0 || qr != 1 || quesions > 1)
+                {
+                    return null; //错误，截断，非响应，大于1个查询
+                }
+
+                int domainPosition = 0;
+                byte length = span[index];
+                while (length > 0)
+                {
+                    index += 1;//跳过长度字节
+
+                    span.Slice(index, length).CopyTo(domainCache.Span.Slice(domainPosition, length));
+                    domainPosition += length;
+                    domainCache.Span[domainPosition] = 46;//加个点.
+                    domainPosition += 1;
+
+                    index += length;
+                    length = span[index];
+                }
+                index += 1;//跳过长度字节
+                domainPosition--; //去掉最后的点.
+
+                ushort type = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(index));
+                index += 2; //type 
+                if (type != 1 && type != 28)
+                {
+                    return null; //不是A查询
+                }
+                index += 2; //跳过class 
+
+                string domain = Encoding.UTF8.GetString(domainCache.Span.Slice(0, domainPosition));
+                IPAddress[] ips = new IPAddress[answers];
+                //answers
+                for (int i = 0; i < answers; i++)
+                {
+                    index += 2; //跳过指针
+                    type = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(index));
+                    index += 2;
+                    index += 2;//跳过class
+                    index += 4;//跳过timeLive
+                    int dataLength = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(index));
+                    index += 2;
+
+                    if (type == 1 || type == 28) //是A回应，其它的不要
+                    {
+                        ips[i] = new IPAddress(span.Slice(index, dataLength));
+                    }
+                    index += dataLength;
+                }
+                return new DnsUnpackResultInfo { Domain = domain, Ips = ips };
             }
-            return new DnsUnpackResultInfo { Domain = domain, Ips = ips };
+            catch (Exception)
+            {
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    Logger.Instance.Error(string.Join(",", span.ToArray()));
+            }
+            return null;
         }
-       
+
 
         /// <summary>
         /// 阻止ip

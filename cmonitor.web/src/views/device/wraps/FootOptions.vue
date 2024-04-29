@@ -27,6 +27,7 @@
 import { computed } from 'vue';
 import { ElMessageBox } from 'element-plus';
 import { injectGlobalData } from '@/views/provide';
+import {closeWebsocket} from '@/apis/request'
 export default {
     setup() {
 
@@ -57,6 +58,8 @@ export default {
                 localStorage.setItem('username', '');
                 localStorage.setItem('api', '');
                 localStorage.setItem('apipsd', '');
+                closeWebsocket();
+                handleRefresh();
             }).catch(() => { });
         }
 

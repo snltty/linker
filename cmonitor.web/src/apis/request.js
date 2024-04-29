@@ -118,14 +118,12 @@ const pushMessage = (json) => {
 export const initWebsocket = (url = wsUrl, password = apiPassword) => {
     apiPassword = password;
     wsUrl = url;
-    if (websocketState.connecting) {
+    if (websocketState.connecting || websocketState.connected) {
         return;
     }
-    if (ws != null) {
-        ws.close();
-    }
+
     websocketState.connecting = true;
-    const protocol = password || 'snltty';
+    const protocol = apiPassword || 'snltty';
     ws = new WebSocket(wsUrl, [protocol]);
     ws.iddd = ++index;
     ws.onopen = onWebsocketOpen;
@@ -135,6 +133,7 @@ export const initWebsocket = (url = wsUrl, password = apiPassword) => {
 export const closeWebsocket = () => {
     if (ws) {
         ws.close();
+        ws = null;
     }
 }
 

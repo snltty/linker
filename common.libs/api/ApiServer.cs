@@ -46,8 +46,12 @@ namespace common.libs.api
             }
             server.OnConnecting = (connection, header) =>
             {
-                header.SecWebSocketExtensions = Helper.EmptyArray;
-                return this.password.Length == 0 || this.password.Span.SequenceEqual(header.SecWebSocketProtocol.Span);
+                bool res = this.password.Length == 0 || this.password.Span.SequenceEqual(header.SecWebSocketProtocol.Span);
+                if (res)
+                {
+                    header.SecWebSocketExtensions = Helper.EmptyArray;
+                }
+                return res;
             };
             server.OnOpen = (connection) =>
             {

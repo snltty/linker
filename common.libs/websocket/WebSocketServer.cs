@@ -368,6 +368,7 @@ namespace common.libs.websocket
             }
             else
             {
+                header.StatusCode = HttpStatusCode.Unauthorized;
                 token.Connectrion.ConnectResponse(header);
                 token.Connectrion.Close();
             }

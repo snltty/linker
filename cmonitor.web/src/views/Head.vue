@@ -34,7 +34,7 @@
 
 <script>
 import { computed, onMounted, reactive, watch } from 'vue';
-import { initWebsocket, subWebsocketState } from '../apis/request'
+import { initWebsocket, subWebsocketState,closeWebsocket } from '../apis/request'
 import { getRules, addName } from '../apis/rule'
 import { getConfig } from '../apis/signin'
 import { useRoute } from 'vue-router';
@@ -90,6 +90,7 @@ export default {
             }).catch(() => { });
         }
         const handleConnect = () => {
+            closeWebsocket();
             //initWebsocket(`ws://hk.cmonitor.snltty.com:1801`,state.apipsd);
             initWebsocket(`ws://${state.api}`,state.apipsd);
             localStorage.setItem('api', state.api);
@@ -100,7 +101,8 @@ export default {
             globalData.value.username = state.username || '';
             globalData.value.groupid = state.groupid || '';
             localStorage.setItem('username', globalData.value.username);
-            localStorage.setItem('groupid', globalData.value.groupid);
+            //localStorage.setItem('groupid', globalData.value.groupid);
+            //localStorage.setItem('apipsd', globalData.value.apipsd);
             document.title = `班长-${globalData.value.username}`
         }
         const handleChange = (value) => {
