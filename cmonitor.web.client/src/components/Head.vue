@@ -46,16 +46,21 @@ export default {
         const state = reactive({
             api: route.query.api ? `${window.location.hostname}:${route.query.api}` : (localStorage.getItem('api') || `${window.location.hostname}:1805`),
             apipsd: route.query.apipsd ? `${route.query.apipsd}` : (localStorage.getItem('apipsd') || `snltty`),
+            groupid: route.query.groupid ? `${route.query.groupid}` : (localStorage.getItem('groupid') || `snltty`),
             showPort: false
         });
         localStorage.setItem('api', state.api);
         localStorage.setItem('apipsd', state.apipsd);
+        localStorage.setItem('groupid', state.groupid);
+        globalData.value.groupid = state.groupid;
         const showPort = computed(() => globalData.value.connected == false && state.showPort);
 
         const handleConnect = () => {
             initWebsocket(`ws://${state.api}`,state.apipsd);
             localStorage.setItem('api', state.api);
             localStorage.setItem('apipsd', state.apipsd);
+            localStorage.setItem('groupid', state.groupid);
+            globalData.value.groupid = state.groupid;
         }
 
         const _getConfig = ()=>{

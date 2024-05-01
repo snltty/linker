@@ -3,6 +3,7 @@ using common.libs.database;
 using MemoryPack;
 using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Net;
 using System.Text.Json.Serialization;
 
 namespace cmonitor.plugins.signin.messenger
@@ -44,7 +45,7 @@ namespace cmonitor.plugins.signin.messenger
         }
         public List<SignCacheInfo> Get(string groupId)
         {
-            return config.Clients.Values.Where(c=>c.GroupId == groupId).ToList();
+            return config.Clients.Values.Where(c => c.GroupId == groupId).ToList();
         }
 
         public bool Del(string machineName)
@@ -83,25 +84,56 @@ namespace cmonitor.plugins.signin.messenger
         public ConcurrentDictionary<string, SignCacheInfo> Clients { get; set; } = new ConcurrentDictionary<string, SignCacheInfo>();
     }
 
-    public sealed class SignCacheInfo
+    [MemoryPackable]
+    public sealed partial class SignCacheInfo
     {
         public string MachineName { get; set; }
         public string Version { get; set; } = "1.0.0.0";
         public string GroupId { get; set; } = "snltty";
         public DateTime LastSignIn { get; set; } = DateTime.Now;
-
         public Dictionary<string, string> Args { get; set; } = new Dictionary<string, string>();
 
+
+        private IPEndPoint ip = new IPEndPoint(IPAddress.Any, 0);
+        [MemoryPackAllowSerialize]
+        public IPEndPoint IP
+        {
+            get
+            {
+                if (Connection != null)
+                {
+                    ip = Connection.Address;
+                }
+                return ip;
+            }
+            set
+            {
+                ip = value;
+            }
+        }
+
+        private bool connected = false;
         public bool Connected
         {
             get
             {
-                return Connection != null && Connection.Connected == true;
+                if (Connection != null)
+                {
+                    connected =  Connection.Connected == true;
+                }
+                return connected;
+            }
+            set
+            {
+                connected = value;
             }
         }
+
         [JsonIgnore]
+        [MemoryPackIgnore]
         public IConnection Connection { get; set; }
     }
+
 
     [MemoryPackable]
     public sealed partial class SignInfo

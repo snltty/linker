@@ -1,6 +1,4 @@
-﻿using cmonitor.client;
-using cmonitor.config;
-using cmonitor.plugins.signin.messenger;
+﻿using cmonitor.plugins.signin.messenger;
 using cmonitor.plugins.tunnel.transport;
 using cmonitor.server;
 using common.libs;
@@ -21,6 +19,10 @@ namespace cmonitor.plugins.tunnel.messenger
         public void Begin(IConnection connection)
         {
             TunnelTransportInfo tunnelTransportInfo = MemoryPackSerializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            TunnelTransportExternalIPInfo local = tunnelTransportInfo.Local;
+            tunnelTransportInfo.Local = tunnelTransportInfo.Remote;
+            tunnelTransportInfo.Remote = local;
+
             tunnel.OnBegin(tunnelTransportInfo);
             connection.Write(Helper.TrueArray);
         }
@@ -40,6 +42,10 @@ namespace cmonitor.plugins.tunnel.messenger
         public void Fail(IConnection connection)
         {
             TunnelTransportInfo tunnelTransportInfo = MemoryPackSerializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            TunnelTransportExternalIPInfo local = tunnelTransportInfo.Local;
+            tunnelTransportInfo.Local = tunnelTransportInfo.Remote;
+            tunnelTransportInfo.Remote = local;
+
             tunnel.OnFail(tunnelTransportInfo);
         }
     }
@@ -86,7 +92,7 @@ namespace cmonitor.plugins.tunnel.messenger
                 });
                 if (resp.Code == MessageResponeCodes.OK)
                 {
-                    connection.Write(MemoryPackSerializer.Serialize(MemoryPackSerializer.Deserialize<TunnelTransportInfo>(resp.Data.Span)));
+                    connection.Write(MemoryPackSerializer.Serialize(MemoryPackSerializer.Deserialize<TunnelTransportExternalIPInfo>(resp.Data.Span)));
                 }
             }
         }
@@ -95,7 +101,7 @@ namespace cmonitor.plugins.tunnel.messenger
         public async Task FailForward(IConnection connection)
         {
             TunnelTransportInfo tunnelTransportInfo = MemoryPackSerializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.Get(tunnelTransportInfo.FromMachineName, out SignCacheInfo cache) && signCaching.Get(connection.Name, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            if (signCaching.Get(tunnelTransportInfo.Remote.MachineName, out SignCacheInfo cache) && signCaching.Get(connection.Name, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {

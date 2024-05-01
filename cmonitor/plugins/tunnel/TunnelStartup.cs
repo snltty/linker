@@ -28,7 +28,7 @@ namespace cmonitor.plugins.tunnel
 
             serviceCollection.AddSingleton<TunnelTransfer>();
             serviceCollection.AddSingleton<TunnelBindServer>();
-            serviceCollection.AddSingleton<ITransport, TransportTcpNutssb>();
+            serviceCollection.AddSingleton<TransportTcpNutssb>();
 
 
             Logger.Instance.Info($"tunnel route level getting.");

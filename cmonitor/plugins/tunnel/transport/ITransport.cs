@@ -87,13 +87,6 @@ namespace cmonitor.plugins.tunnel.transport
         public string TransportName { get; set; }
 
         public TunnelTransportDirection Direction { get; set; }
-
-        [JsonIgnore]
-        [MemoryPackIgnore]
-        public string FromMachineName => Direction == TunnelTransportDirection.Forward ? Remote.MachineName : Local.MachineName;
-        [JsonIgnore]
-        [MemoryPackIgnore]
-        public IPEndPoint BindEP => Direction == TunnelTransportDirection.Forward ? Remote.Local : Local.Local;
     }
 
 

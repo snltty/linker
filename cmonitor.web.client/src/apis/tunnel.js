@@ -13,6 +13,13 @@ export const updateConfigSetServers = (servers) => {
 export const getSignInfo = () => {
     return sendWebsocketMsg('tunnel/signininfo');
 }
+export const getSignList = (data) => {
+    return sendWebsocketMsg('tunnel/SignInList', data);
+}
 export const updateSignInDel = (machineName) => {
     return sendWebsocketMsg('tunnel/signindel', machineName);
+}
+
+export const updateTunnelConnect = (machineName) => {
+    return sendWebsocketMsg('tunnel/TunnelConnect', machineName);
 }

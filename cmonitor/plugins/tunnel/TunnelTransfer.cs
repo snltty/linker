@@ -5,11 +5,11 @@ using cmonitor.plugins.tunnel.messenger;
 using cmonitor.plugins.tunnel.transport;
 using cmonitor.server;
 using common.libs;
+using common.libs.extends;
 using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Sockets;
 using System.Reflection;
-using System.Transactions;
 
 namespace cmonitor.plugins.tunnel
 {
@@ -46,7 +46,6 @@ namespace cmonitor.plugins.tunnel
                 item.OnConnectBegin = OnConnectBegin;
                 item.OnConnecting = OnConnecting;
                 item.OnConnected = _OnConnected;
-                item.OnConnected += OnConnected;
                 item.OnDisConnected = OnDisConnected;
                 item.OnConnectFail = OnConnectFail;
             }
@@ -81,11 +80,10 @@ namespace cmonitor.plugins.tunnel
                     Local = localInfo,
                     Remote = remoteInfo,
                 };
-                
+
                 TunnelTransportState state = await transport.ConnectAsync(tunnelTransportInfo);
                 if (state != null)
                 {
-                   
                     _OnConnected(state);
                     return state;
                 }
@@ -106,7 +104,7 @@ namespace cmonitor.plugins.tunnel
             if (_transports != null)
             {
                 _transports.OnFail(tunnelTransportInfo);
-                OnConnectFail(tunnelTransportInfo.FromMachineName);
+                OnConnectFail(tunnelTransportInfo.Remote.MachineName);
             }
         }
         public async Task<TunnelTransportExternalIPInfo> Info(TunnelTransportExternalIPRequestInfo request)
@@ -187,7 +185,7 @@ namespace cmonitor.plugins.tunnel
         {
             if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
-                Logger.Instance.Debug($"tunnel connect from {tunnelTransportInfo.Local.MachineName}");
+                Logger.Instance.Debug($"tunnel connect from {tunnelTransportInfo.Local.MachineName}->{tunnelTransportInfo.ToJson()}");
             }
             CheckDic(tunnelTransportInfo.Local.MachineName, out TunnelConnectInfo info);
             info.Status = TunnelConnectStatus.Connecting;
@@ -203,6 +201,7 @@ namespace cmonitor.plugins.tunnel
             info.Status = TunnelConnectStatus.Connected;
             info.State = state;
             Interlocked.Exchange(ref connectionsChangeFlag, 1);
+            OnConnected(state);
         }
         private void OnDisConnected(TunnelTransportState state)
         {
@@ -214,7 +213,7 @@ namespace cmonitor.plugins.tunnel
         private void OnConnectFail(string machineName)
         {
             if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            { 
+            {
                 Logger.Instance.Error($"tunnel connect {machineName} fail");
             }
             CheckDic(machineName, out TunnelConnectInfo info);

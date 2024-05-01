@@ -2,7 +2,7 @@
     <div>
         <div class="app-wrap flex flex-column flex-nowrap">
             <div class="head"><Head></Head></div>
-            <div class="body flex-1">
+            <div class="body flex-1 relative">
                 <router-view/>
             </div>
             <div class="status">

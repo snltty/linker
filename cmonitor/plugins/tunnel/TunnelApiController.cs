@@ -5,6 +5,7 @@ using cmonitor.plugins.signin.messenger;
 using cmonitor.plugins.tunnel.server;
 using cmonitor.plugins.tunnel.transport;
 using cmonitor.server;
+using common.libs;
 using common.libs.api;
 using common.libs.extends;
 using MemoryPack;
@@ -68,7 +69,6 @@ namespace cmonitor.plugins.tunnel
                 Payload = MemoryPackSerializer.Serialize(param.Content)
             });
         }
-
         public async Task<SignInListResponseInfo> SignInList(ApiControllerParamsInfo param)
         {
             SignInListRequestInfo request = param.Content.DeJson<SignInListRequestInfo>();
@@ -84,6 +84,7 @@ namespace cmonitor.plugins.tunnel
             }
             return new SignInListResponseInfo { };
         }
+
         public Dictionary<string, TunnelConnectInfo> TunnelConnections(ApiControllerParamsInfo param)
         {
             return tunnelTransfer.Connections;
@@ -92,15 +93,24 @@ namespace cmonitor.plugins.tunnel
         {
             Task.Run(async () =>
             {
-                TunnelTransportState state = await tunnelTransfer.ConnectAsync(param.Content,"test");
-                if(state != null)
+                try
                 {
-                    var socket = state.ConnectedObject as Socket;
-                    for (int i = 0; i < 10; i++)
+                    TunnelTransportState state = await tunnelTransfer.ConnectAsync(param.Content, "test");
+                    if (state != null)
                     {
-                        socket.Send(BitConverter.GetBytes(i));
-                        await Task.Delay(10);
+                        var socket = state.ConnectedObject as Socket;
+                        for (int i = 0; i < 10; i++)
+                        {
+                            Logger.Instance.Debug($"tunnel [test] send {i}");
+                            socket.Send(BitConverter.GetBytes(i));
+                            await Task.Delay(10);
+                        }
+                        socket.SafeClose();
                     }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex+"");
                 }
             });
         }
@@ -108,11 +118,11 @@ namespace cmonitor.plugins.tunnel
         {
             tunnelTransfer.OnConnected += (TunnelTransportState state) =>
             {
-                if(state.TransactionId == "test" && state.TransportType == ProtocolType.Tcp)
+                if (state.TransactionId == "test" && state.TransportType == ProtocolType.Tcp)
                 {
                     tunnelBindServer.BindReceive(state.ConnectedObject as Socket, null, async (token,data) =>
                     {
-                        Console.WriteLine(BitConverter.ToInt32(data.Span));
+                        Logger.Instance.Debug($"tunnel [{state.TransactionId}] receive {BitConverter.ToInt32(data.Span)}");
                     });
                 }
             };

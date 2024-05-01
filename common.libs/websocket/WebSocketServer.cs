@@ -395,7 +395,14 @@ namespace common.libs.websocket
         }
         public int SendRaw(Memory<byte> buffer)
         {
-            return Socket.Send(buffer.Span, SocketFlags.None);
+            try
+            {
+                return Socket.Send(buffer.Span, SocketFlags.None);
+            }
+            catch (Exception)
+            {
+            }
+            return 0;
         }
         public int SendFrame(WebSocketFrameRemarkInfo remark)
         {

@@ -9,7 +9,8 @@ export const provideGlobalData = () => {
         connected: false,
         updateFlag: false,
         config: { Common: {}, Client: {} },
-        signin: { Connected: false, Connecting: false }
+        signin: { Connected: false, Connecting: false },
+        groupid: ''
     });
     subWebsocketState((state) => {
         globalData.value.connected = state;

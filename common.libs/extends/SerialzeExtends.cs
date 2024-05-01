@@ -6,6 +6,14 @@ namespace common.libs.extends
 {
     public static class SerialzeExtends
     {
+        private static JsonSerializerOptions jsonSerializerOptions1 = new JsonSerializerOptions
+        {
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(UnicodeRanges.All),
+            AllowTrailingCommas = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            PropertyNameCaseInsensitive = true,
+            Converters = { new IPAddressJsonConverter(), new IPEndpointJsonConverter(), new DateTimeConverter() }
+        };
         private static JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions
         {
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(UnicodeRanges.All),
@@ -26,7 +34,7 @@ namespace common.libs.extends
         };
         public static string ToJson(this object obj)
         {
-            return JsonSerializer.Serialize(obj);
+            return JsonSerializer.Serialize(obj, jsonSerializerOptions1);
         }
         public static string ToJsonFormat(this object obj)
         {

@@ -8,7 +8,6 @@ namespace cmonitor.plugins.tunnel.server
 {
     public sealed class TunnelBindServer
     {
-        private SocketAsyncEventArgs acceptEventArg;
         private UdpClient socketUdp;
 
         public Action<object, Socket> OnTcpConnected { get; set; } = (state, socket) => { };
@@ -26,16 +25,18 @@ namespace cmonitor.plugins.tunnel.server
                 socket.ReuseBind(new IPEndPoint(IPAddress.Any, local.Port));
                 socket.Listen(int.MaxValue);
 
-                acceptEventArg = new SocketAsyncEventArgs
+                AsyncUserToken token = new AsyncUserToken
                 {
-                    UserToken = new AsyncUserToken
-                    {
-                        SourceSocket = socket,
-                        State = state,
-                        Saea = acceptEventArg
-                    },
+                    SourceSocket = socket,
+                    State = state,
+                    LocalPort = local.Port
+                };
+                SocketAsyncEventArgs acceptEventArg = new SocketAsyncEventArgs
+                {
+                    UserToken = token,
                     SocketFlags = SocketFlags.None,
                 };
+                token.Saea = acceptEventArg;
                 acceptBinds.AddOrUpdate(local.Port, acceptEventArg, (a, b) => acceptEventArg);
 
                 acceptEventArg.Completed += IO_Completed;
@@ -84,6 +85,9 @@ namespace cmonitor.plugins.tunnel.server
                 case SocketAsyncOperation.Accept:
                     ProcessAccept(e);
                     break;
+                case SocketAsyncOperation.Receive:
+                    ProcessReceive(e);
+                    break;
                 default:
                     break;
             }
@@ -92,14 +96,14 @@ namespace cmonitor.plugins.tunnel.server
         {
             if (e.AcceptSocket != null)
             {
-                AsyncUserToken token = e.UserToken as AsyncUserToken;
+                if (e.AcceptSocket.RemoteEndPoint != null)
+                {
 
-                acceptBinds.AddOrUpdate(e.AcceptSocket.GetHashCode(), e, (a, b) => e);
-                acceptBinds.TryRemove((token.SourceSocket.LocalEndPoint as IPEndPoint).Port, out _);
-
-                OnTcpConnected(token.State, e.AcceptSocket);
-                StartAccept(e);
+                    AsyncUserToken token = (AsyncUserToken)e.UserToken;
+                    OnTcpConnected(token.State, e.AcceptSocket);
+                }
             }
+            StartAccept(e);
         }
         private void ReceiveCallbackUdp(IAsyncResult result)
         {
@@ -127,7 +131,8 @@ namespace cmonitor.plugins.tunnel.server
             {
                 SourceSocket = socket,
                 State = state,
-                OnData = dataCallback
+                OnData = dataCallback,
+                LocalPort = (socket.LocalEndPoint as IPEndPoint).Port,
             };
 
             SocketAsyncEventArgs readEventArgs = new SocketAsyncEventArgs
@@ -200,17 +205,16 @@ namespace cmonitor.plugins.tunnel.server
             if (e == null || e.UserToken == null) return;
 
             AsyncUserToken token = e.UserToken as AsyncUserToken;
-            e.UserToken = null;
-            if (token.SourceSocket != null)
+            Socket socket = token.SourceSocket;
+            if (socket != null)
             {
                 token.Clear();
                 e.Dispose();
-
-                if (acceptBinds.TryRemove(token.SourceSocket.GetHashCode(), out SocketAsyncEventArgs saea))
+                if (acceptBinds.TryRemove(token.LocalPort, out SocketAsyncEventArgs saea1))
                 {
-                    CloseClientSocket(saea);
-                    OnDisConnected(token.State);
+                    CloseClientSocket(saea1);
                 }
+                OnDisConnected(token.State);
             }
         }
 
@@ -222,8 +226,10 @@ namespace cmonitor.plugins.tunnel.server
             public Socket SourceSocket { get; set; }
             public SocketAsyncEventArgs Saea { get; set; }
             public object State { get; set; }
+
             public OnTunnelData OnData { get; set; }
 
+            public int LocalPort { get; set; }
 
             public void Clear()
             {

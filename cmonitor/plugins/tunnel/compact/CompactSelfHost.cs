@@ -17,16 +17,18 @@ namespace cmonitor.plugins.tunnel.compact
             socket.IPv6Only(server.AddressFamily, false);
             await socket.ConnectAsync(server).WaitAsync(TimeSpan.FromSeconds(5));
 
-            byte[] bytes = new byte[20];
+            byte[] bytes = new byte[128];
             int length = await socket.ReceiveAsync(bytes.AsMemory(), SocketFlags.None);
             if (length == 0)
             {
                 return null;
             }
 
+            IPEndPoint local = socket.LocalEndPoint as IPEndPoint;
+            socket.SafeClose();
             TunnelExternalIPInfo tunnelExternalIPInfo = MemoryPackSerializer.Deserialize<TunnelExternalIPInfo>(bytes.AsSpan(0,length));
 
-            return new TunnelCompactIPEndPoint { Local = socket.LocalEndPoint as IPEndPoint, Remote = tunnelExternalIPInfo.ExternalIP };
+            return new TunnelCompactIPEndPoint { Local = local, Remote = tunnelExternalIPInfo.ExternalIP };
         }
 
         public async Task<TunnelCompactIPEndPoint> GetUdpExternalIPAsync(IPEndPoint server)

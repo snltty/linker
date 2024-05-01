@@ -284,6 +284,7 @@ namespace cmonitor.plugins.hijack.report.hijack
                 {
                     while (dnsDataQueue.TryDequeue(out DnsInfo dns))
                     {
+                        if (dns.Len == 0) continue;
                         try
                         {
                             DnsUnpackResultInfo dnsPack = DnsUnpack(dns);

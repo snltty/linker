@@ -1,6 +1,7 @@
 ﻿using cmonitor.config;
 using cmonitor.server;
 using common.libs;
+using common.libs.extends;
 using MemoryPack;
 
 namespace cmonitor.plugins.signin.messenger

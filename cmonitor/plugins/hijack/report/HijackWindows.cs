@@ -1,4 +1,5 @@
 ﻿using cmonitor.plugins.hijack.report.hijack;
+using common.libs;
 
 namespace cmonitor.plugins.hijack.report
 {
@@ -20,7 +21,14 @@ namespace cmonitor.plugins.hijack.report
 
         public void Start()
         {
-            hijackController.Start();
+            try
+            {
+                hijackController.Start();
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error(ex);
+            }
         }
         public void Stop()
         {

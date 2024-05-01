@@ -78,7 +78,16 @@ namespace cmonitor.plugins.tunnel.server
         {
             if (e.AcceptSocket != null)
             {
-                WriteExternalIP(e);
+                SocketAsyncEventArgs receiveEventArg = new SocketAsyncEventArgs
+                {
+                    UserToken = new AsyncUserToken
+                    {
+                        SourceSocket = e.AcceptSocket
+                    },
+                    SocketFlags = SocketFlags.None,
+                };
+
+                WriteExternalIP(receiveEventArg);
                 StartAccept(e);
             }
         }
