@@ -11,6 +11,9 @@
         Fail = 2005,
         FailForward = 2006,
 
+
+        ExternalIP = 2007,
+
         None = 2099
     }
 }

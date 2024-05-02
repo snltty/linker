@@ -102,7 +102,7 @@ namespace cmonitor.config
                     {
                         "cmonitor.client.","cmonitor.server.","cmonitor.serializes.",
                         "cmonitor.plugins.signin.", "cmonitor.plugins.watch.","cmonitor.plugins.devices.","cmonitor.plugins.report.",
-                        "cmonitor.plugins.share.","cmonitor.plugins.rule.","cmonitor.plugins.modes.",
+                        "cmonitor.plugins.share.","cmonitor.plugins.rule.","cmonitor.plugins.modes.","cmonitor.plugins.tunnel.","cmonitor.plugins.relay",
                     }).Distinct().ToArray();
                 }
             }

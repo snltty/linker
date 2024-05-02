@@ -13,7 +13,7 @@ namespace cmonitor.plugins.tunnel.transport
         /// <summary>
         /// 发送连接信息
         /// </summary>
-        public Func<TunnelTransportInfo, Task> OnSendConnectBegin { get; set; }
+        public Func<TunnelTransportInfo, Task<bool>> OnSendConnectBegin { get; set; }
         public Func<TunnelTransportInfo, Task> OnSendConnectFail { get; set; }
         /// <summary>
         /// 收到连接信息

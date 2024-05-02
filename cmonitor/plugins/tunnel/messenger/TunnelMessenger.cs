@@ -2,7 +2,9 @@
 using cmonitor.plugins.tunnel.transport;
 using cmonitor.server;
 using common.libs;
+using common.libs.extends;
 using MemoryPack;
+using System.Net;
 
 namespace cmonitor.plugins.tunnel.messenger
 {
@@ -50,7 +52,6 @@ namespace cmonitor.plugins.tunnel.messenger
         }
     }
 
-
     public sealed class TunnelServerMessenger : IMessenger
     {
         private readonly MessengerSender messengerSender;
@@ -90,7 +91,7 @@ namespace cmonitor.plugins.tunnel.messenger
                     MessengerId = (ushort)TunnelMessengerIds.Info,
                     Payload = connection.ReceiveRequestWrap.Payload
                 });
-                if (resp.Code == MessageResponeCodes.OK)
+                if (resp.Code == MessageResponeCodes.OK && resp.Data.Span.Length > 0)
                 {
                     connection.Write(MemoryPackSerializer.Serialize(MemoryPackSerializer.Deserialize<TunnelTransportExternalIPInfo>(resp.Data.Span)));
                 }
@@ -111,5 +112,18 @@ namespace cmonitor.plugins.tunnel.messenger
                 });
             }
         }
+
+        [MessengerId((ushort)TunnelMessengerIds.ExternalIP)]
+        public void ExternalIP(IConnection connection)
+        {
+            connection.Write(MemoryPackSerializer.Serialize(new TunnelExternalIPInfo { ExternalIP = connection.Address }));
+        }
+    }
+
+    [MemoryPackable]
+    public sealed partial class TunnelExternalIPInfo
+    {
+        [MemoryPackAllowSerialize]
+        public IPEndPoint ExternalIP { get; set; }
     }
 }

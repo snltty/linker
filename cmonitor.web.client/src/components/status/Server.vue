@@ -75,7 +75,7 @@
     </el-dialog>
 </template>
 <script>
-import { updateConfigSet, updateConfigSetServers } from '@/apis/tunnel';
+import { updateConfigSet, updateConfigSetServers } from '@/apis/signin';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { computed, reactive } from 'vue';

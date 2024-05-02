@@ -21,6 +21,9 @@ namespace cmonitor.server
         public IPEndPoint Address { get; }
         public IPEndPoint LocalAddress { get; }
 
+        public Socket TcpSourceSocket { get; }
+        public Socket TcpTargetSocket { get; set; }
+
         #region 接收数据
         /// <summary>
         /// 请求数据包装对象
@@ -41,14 +44,14 @@ namespace cmonitor.server
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public Task<bool> Send(ReadOnlyMemory<byte> data, bool unconnectedMessage = false);
+        public Task<bool> Send(ReadOnlyMemory<byte> data);
         /// <summary>
         /// 发送
         /// </summary>
         /// <param name="data"></param>
         /// <param name="length"></param>
         /// <returns></returns>
-        public Task<bool> Send(byte[] data, int length, bool unconnectedMessage = false);
+        public Task<bool> Send(byte[] data, int length);
 
         /// <summary>
         /// 销毁
@@ -97,6 +100,9 @@ namespace cmonitor.server
         public IPEndPoint Address { get; protected set; }
         public IPEndPoint LocalAddress { get; protected set; }
 
+        public Socket TcpSourceSocket { get; protected set; }
+        public Socket TcpTargetSocket { get; set; }
+        public bool Relayed { get; set; }
 
         #region 接收数据
         /// <summary>
@@ -194,14 +200,14 @@ namespace cmonitor.server
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public abstract Task<bool> Send(ReadOnlyMemory<byte> data, bool logger = false);
+        public abstract Task<bool> Send(ReadOnlyMemory<byte> data);
         /// <summary>
         /// 发送
         /// </summary>
         /// <param name="data"></param>
         /// <param name="length"></param>
         /// <returns></returns>
-        public abstract Task<bool> Send(byte[] data, int length, bool logger = false);
+        public abstract Task<bool> Send(byte[] data, int length);
 
         /// <summary>
         /// 销毁
@@ -218,16 +224,16 @@ namespace cmonitor.server
     {
         public TcpConnection(Socket tcpSocket) : base()
         {
-            TcpSocket = tcpSocket;
+            TcpSourceSocket = tcpSocket;
 
-            IPEndPoint address = TcpSocket.RemoteEndPoint as IPEndPoint ?? new IPEndPoint(IPAddress.Any, 0);
+            IPEndPoint address = TcpSourceSocket.RemoteEndPoint as IPEndPoint ?? new IPEndPoint(IPAddress.Any, 0);
             if (address.Address.AddressFamily == AddressFamily.InterNetworkV6 && address.Address.IsIPv4MappedToIPv6)
             {
                 address = new IPEndPoint(new IPAddress(address.Address.GetAddressBytes()[^4..]), address.Port);
             }
             Address = address;
 
-            IPEndPoint localaddress = TcpSocket.LocalEndPoint as IPEndPoint ?? new IPEndPoint(IPAddress.Any, 0);
+            IPEndPoint localaddress = TcpSourceSocket.LocalEndPoint as IPEndPoint ?? new IPEndPoint(IPAddress.Any, 0);
             if (localaddress.Address.AddressFamily == AddressFamily.InterNetworkV6 && localaddress.Address.IsIPv4MappedToIPv6)
             {
                 localaddress = new IPEndPoint(new IPAddress(localaddress.Address.GetAddressBytes()[^4..]), localaddress.Port);
@@ -238,24 +244,20 @@ namespace cmonitor.server
         /// <summary>
         /// 已连接
         /// </summary>
-        public override bool Connected => TcpSocket != null && TcpSocket.Connected;
+        public override bool Connected => TcpSourceSocket != null && TcpSourceSocket.Connected;
 
-        /// <summary>
-        /// socket
-        /// </summary>
-        public Socket TcpSocket { get; private set; }
         /// <summary>
         /// 发送
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public override async Task<bool> Send(ReadOnlyMemory<byte> data, bool unconnectedMessage = false)
+        public override async Task<bool> Send(ReadOnlyMemory<byte> data)
         {
             if (Connected)
             {
                 try
                 {
-                    await TcpSocket.SendAsync(data, SocketFlags.None);
+                    await TcpSourceSocket.SendAsync(data, SocketFlags.None);
                     //SentBytes += (ulong)data.Length;
                     return true;
                 }
@@ -274,9 +276,9 @@ namespace cmonitor.server
         /// <param name="data"></param>
         /// <param name="length"></param>
         /// <returns></returns>
-        public override async Task<bool> Send(byte[] data, int length, bool unconnectedMessage = false)
+        public override async Task<bool> Send(byte[] data, int length)
         {
-            return await Send(data.AsMemory(0, length), unconnectedMessage);
+            return await Send(data.AsMemory(0, length));
         }
         /// <summary>
         /// 销毁
@@ -284,10 +286,13 @@ namespace cmonitor.server
         public override void Disponse()
         {
             base.Disponse();
-            if (TcpSocket != null)
+            if (TcpSourceSocket != null)
             {
-                TcpSocket.SafeClose();
-                TcpSocket.Dispose();
+                TcpSourceSocket.SafeClose();
+                TcpSourceSocket.Dispose();
+
+                TcpTargetSocket?.SafeClose();
+                TcpTargetSocket?.Dispose();
             }
         }
     }

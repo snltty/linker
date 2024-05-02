@@ -1,8 +1,10 @@
 ﻿using cmonitor.config;
 using common.libs;
 using common.libs.extends;
+using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 
 namespace cmonitor.server
 {
@@ -12,6 +14,8 @@ namespace cmonitor.server
         private Socket socket;
         private UdpClient socketUdp;
         private CancellationTokenSource cancellationTokenSource;
+        private Memory<byte> relayFLagData = Encoding.UTF8.GetBytes("snltty.relay");
+
         public Func<IConnection, Task> OnPacket { get; set; } = async (connection) => { await Task.CompletedTask; };
         public Action<int> OnDisconnected { get; set; }
 
@@ -148,17 +152,17 @@ namespace cmonitor.server
                     Connection = CreateConnection(socket)
                 };
 
-                SocketAsyncEventArgs readEventArgs = new SocketAsyncEventArgs
+                SocketAsyncEventArgs saea = new SocketAsyncEventArgs
                 {
                     UserToken = userToken,
                     SocketFlags = SocketFlags.None,
                 };
                 userToken.PoolBuffer = new byte[bufferSize];
-                readEventArgs.SetBuffer(userToken.PoolBuffer, 0, bufferSize);
-                readEventArgs.Completed += IO_Completed;
-                if (socket.ReceiveAsync(readEventArgs) == false)
+                saea.SetBuffer(userToken.PoolBuffer, 0, bufferSize);
+                saea.Completed += IO_Completed;
+                if (socket.ReceiveAsync(saea) == false)
                 {
-                    ProcessReceive(readEventArgs);
+                    ProcessReceive(saea);
                 }
                 return userToken.Connection;
             }
@@ -179,7 +183,9 @@ namespace cmonitor.server
                 {
                     int offset = e.Offset;
                     int length = e.BytesTransferred;
-                    await ReadPacket(token, e.Buffer, offset, length);
+
+                    bool res = await ReadPacket(token, e.Buffer, offset, length);
+                    if (res == false) return;
 
                     if (token.Socket.Available > 0)
                     {
@@ -188,7 +194,8 @@ namespace cmonitor.server
                             length = token.Socket.Receive(e.Buffer);
                             if (length > 0)
                             {
-                                await ReadPacket(token, e.Buffer, 0, length);
+                                res = await ReadPacket(token, e.Buffer, 0, length);
+                                if (res == false) return;
                             }
                             else
                             {
@@ -203,7 +210,6 @@ namespace cmonitor.server
                         CloseClientSocket(e);
                         return;
                     }
-
                     if (token.Socket.ReceiveAsync(e) == false)
                     {
                         ProcessReceive(e);
@@ -222,35 +228,53 @@ namespace cmonitor.server
                 CloseClientSocket(e);
             }
         }
-        private async Task ReadPacket(AsyncUserToken token, byte[] data, int offset, int length)
+        private async Task<bool> ReadPacket(AsyncUserToken token, byte[] data, int offset, int length)
         {
-            //是一个完整的包
-            if (token.DataBuffer.Size == 0 && length > 4)
+            if (token.Connection.TcpTargetSocket != null)
             {
-                Memory<byte> memory = data.AsMemory(offset, length);
-                int packageLen = memory.Span.ToInt32();
-                if (packageLen == length - 4)
+                if (token.DataBuffer.Size > 0)
                 {
-                    token.Connection.ReceiveData = data.AsMemory(offset, packageLen + 4);
-                    await OnPacket(token.Connection);
-                    return;
+                    await token.Connection.TcpTargetSocket.SendAsync(token.DataBuffer.Data.Slice(0, token.DataBuffer.Size), SocketFlags.None);
+                    token.DataBuffer.Clear();
                 }
+                await token.Connection.TcpTargetSocket.SendAsync(data.AsMemory(offset, length), SocketFlags.None);
+                return true;
             }
-
-            //不是完整包
-            token.DataBuffer.AddRange(data, offset, length);
-            do
+            else if (length == relayFLagData.Length && data.AsSpan(offset, length).SequenceEqual(relayFLagData.Span))
             {
-                int packageLen = token.DataBuffer.Data.Span.ToInt32();
-                if (packageLen > token.DataBuffer.Size - 4)
+                return false;
+            }
+            else
+            {
+                //是一个完整的包
+                if (token.DataBuffer.Size == 0 && length > 4)
                 {
-                    break;
+                    Memory<byte> memory = data.AsMemory(offset, length);
+                    int packageLen = memory.Span.ToInt32();
+                    if (packageLen == length - 4)
+                    {
+                        token.Connection.ReceiveData = data.AsMemory(offset, packageLen + 4);
+                        await OnPacket(token.Connection);
+                        return true;
+                    }
                 }
-                token.Connection.ReceiveData = token.DataBuffer.Data.Slice(0, packageLen + 4);
-                await OnPacket(token.Connection);
 
-                token.DataBuffer.RemoveRange(0, packageLen + 4);
-            } while (token.DataBuffer.Size > 4);
+                //不是完整包
+                token.DataBuffer.AddRange(data, offset, length);
+                do
+                {
+                    int packageLen = token.DataBuffer.Data.Span.ToInt32();
+                    if (packageLen > token.DataBuffer.Size - 4)
+                    {
+                        break;
+                    }
+                    token.Connection.ReceiveData = token.DataBuffer.Data.Slice(0, packageLen + 4);
+                    await OnPacket(token.Connection);
+
+                    token.DataBuffer.RemoveRange(0, packageLen + 4);
+                } while (token.DataBuffer.Size > 4);
+            }
+            return true;
         }
 
         private void CloseClientSocket(SocketAsyncEventArgs e)
@@ -294,10 +318,13 @@ namespace cmonitor.server
         public Socket Socket { get; set; }
         public ReceiveDataBuffer DataBuffer { get; set; } = new ReceiveDataBuffer();
         public byte[] PoolBuffer { get; set; }
+
         public void Clear()
         {
-            Socket?.SafeClose();
+            Connection?.Disponse();
             Socket = null;
+
+
 
             PoolBuffer = Helper.EmptyArray;
 

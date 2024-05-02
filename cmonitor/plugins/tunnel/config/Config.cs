@@ -13,10 +13,7 @@ namespace cmonitor.config
 
     public sealed class TunnelConfigClientInfo
     {
-        public TunnelCompactInfo[] Servers { get; set; } = new TunnelCompactInfo[]
-        {
-            new TunnelCompactInfo { Type="self", Host="127.0.0.1:1804" }
-        };
+        public TunnelCompactInfo[] Servers { get; set; } = Array.Empty<TunnelCompactInfo>();
 
         [JsonIgnore]
         public int RouteLevel { get; set; }
@@ -24,12 +21,11 @@ namespace cmonitor.config
 
     public sealed class TunnelConfigServerInfo
     {
-        public int ListenPort { get; set; } = 1804;
     }
 
     public sealed class TunnelCompactInfo
     {
-        public string Type { get; set; }
+        public string Name { get; set; }
         public string Host { get; set; }
         public bool Disabled { get; set; }
     }

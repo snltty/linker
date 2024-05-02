@@ -18,8 +18,18 @@
             <el-table-column prop="LastSignIn" label="最后登入" width="140" />
             <el-table-column label="操作">
                 <template #default="scope">
-                    <el-button size="small" @click="handleTestTunnel(scope.row.MachineName)">测试</el-button>
-                    <el-popconfirm confirm-button-text="确认" cancel-button-text="取消" title="删除不可逆，是否确认?" @confirm="handleDelTunnel(scope.row.MachineName)">
+                    <el-dropdown>
+                        <el-button size="small">
+                            测试<el-icon class="el-icon--right"><arrow-down /></el-icon>
+                        </el-button>
+                        <template #dropdown>
+                            <el-dropdown-menu>
+                            <el-dropdown-item @click="handleTestTunnel(scope.row.MachineName)">打洞</el-dropdown-item>
+                            <el-dropdown-item @click="handleTestRelay(scope.row.MachineName)">中继</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </template>
+                    </el-dropdown>
+                    <el-popconfirm confirm-button-text="确认" cancel-button-text="取消" title="删除不可逆，是否确认?" @confirm="handleDel(scope.row.MachineName)">
                         <template #reference>
                             <el-button type="danger" size="small">删除</el-button>
                         </template>
@@ -37,7 +47,9 @@
     </div>
 </template>
 <script>
-import {getSignList,updateTunnelConnect,updateSignInDel} from '@/apis/tunnel.js'
+import {getSignList,updateSignInDel} from '@/apis/signin.js'
+import {updateTunnelConnect} from '@/apis/tunnel.js'
+import {updateRelayConnect} from '@/apis/relay.js'
 import {subWebsocketState} from '@/apis/request.js'
 import {injectGlobalData} from '../provide.js'
 import {reactive,onMounted, ref, nextTick, onUnmounted} from 'vue'
@@ -73,7 +85,10 @@ export default {
         const handleTestTunnel = (name)=>{
             updateTunnelConnect(name);
         }
-        const handleDelTunnel = (name)=>{
+        const handleTestRelay = (name)=>{
+            updateRelayConnect(name);
+        }
+        const handleDel = (name)=>{
             updateSignInDel(name).then(()=>{
                 _getSignList();
             });
@@ -89,7 +104,7 @@ export default {
         });
 
         return {
-            state,wrap,handlePageChange,handleTestTunnel,handleDelTunnel
+            state,wrap,handlePageChange,handleTestTunnel,handleTestRelay,handleDel
         }
     }
 }

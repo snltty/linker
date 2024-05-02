@@ -70,7 +70,6 @@ namespace cmonitor.plugins.tunnel
                 {
                     continue;
                 }
-
                 TunnelTransportInfo tunnelTransportInfo = new TunnelTransportInfo
                 {
                     Direction = TunnelTransportDirection.Forward,
@@ -80,7 +79,6 @@ namespace cmonitor.plugins.tunnel
                     Local = localInfo,
                     Remote = remoteInfo,
                 };
-
                 TunnelTransportState state = await transport.ConnectAsync(tunnelTransportInfo);
                 if (state != null)
                 {
@@ -148,18 +146,19 @@ namespace cmonitor.plugins.tunnel
 
         }
 
-        private async Task OnSendConnectBegin(TunnelTransportInfo tunnelTransportInfo)
+        private async Task<bool> OnSendConnectBegin(TunnelTransportInfo tunnelTransportInfo)
         {
-            await messengerSender.SendReply(new MessageRequestWrap
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)TunnelMessengerIds.BeginForward,
                 Payload = MemoryPackSerializer.Serialize(tunnelTransportInfo)
             });
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
         private async Task OnSendConnectFail(TunnelTransportInfo tunnelTransportInfo)
         {
-            await messengerSender.SendReply(new MessageRequestWrap
+            await messengerSender.SendOnly(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)TunnelMessengerIds.FailForward,
@@ -185,9 +184,9 @@ namespace cmonitor.plugins.tunnel
         {
             if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
-                Logger.Instance.Debug($"tunnel connect from {tunnelTransportInfo.Local.MachineName}->{tunnelTransportInfo.ToJson()}");
+                Logger.Instance.Debug($"tunnel connect from {tunnelTransportInfo.Remote.MachineName}->{tunnelTransportInfo.ToJson()}");
             }
-            CheckDic(tunnelTransportInfo.Local.MachineName, out TunnelConnectInfo info);
+            CheckDic(tunnelTransportInfo.Remote.MachineName, out TunnelConnectInfo info);
             info.Status = TunnelConnectStatus.Connecting;
             Interlocked.Exchange(ref connectionsChangeFlag, 1);
         }

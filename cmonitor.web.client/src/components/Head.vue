@@ -34,7 +34,7 @@
 <script>
 import { computed, onMounted, reactive, watch } from 'vue';
 import { initWebsocket, subWebsocketState } from '../apis/request'
-import { getConfig,getSignInfo } from '../apis/tunnel'
+import { getConfig,getSignInfo } from '../apis/signin'
 import { useRoute } from 'vue-router';
 import { injectGlobalData } from '../provide';
 export default {
@@ -65,12 +65,14 @@ export default {
 
         const _getConfig = ()=>{
             getConfig().then((res)=>{
+                console.log(res);
                 globalData.value.config.Common = res.Data.Common;
                 globalData.value.config.Client = res.Data.Client;
                 setTimeout(()=>{
                     _getConfig();
                 },1000);
             }).catch((err)=>{
+                console.log(err);
                 setTimeout(()=>{
                     _getConfig();
                 },1000);

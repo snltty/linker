@@ -15,9 +15,9 @@ import 'element-plus/theme-chalk/display.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
 
 import {
-    ChromeFilled,
+    ArrowDown,
 } from '@element-plus/icons-vue'
-app.component(ChromeFilled.name, ChromeFilled);
+app.component(ArrowDown.name, ArrowDown);
 
 
 app.use(ElementPlus, { size: 'default' }).use(router).mount('#app');

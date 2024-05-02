@@ -16,80 +16,23 @@ namespace cmonitor.plugins.tunnel
 {
     public sealed class TunnelApiController : IApiClientController
     {
-        private readonly Config config;
-        private readonly ClientSignInState clientSignInState;
-        private readonly ClientSignInTransfer clientSignInTransfer;
-        private readonly MessengerSender messengerSender;
         private readonly TunnelTransfer tunnelTransfer;
         private readonly TunnelBindServer tunnelBindServer;
 
-        public TunnelApiController(Config config, ClientSignInState clientSignInState, ClientSignInTransfer clientSignInTransfer, MessengerSender messengerSender, TunnelTransfer tunnelTransfer,
+        public TunnelApiController(TunnelTransfer tunnelTransfer,
             TunnelBindServer tunnelBindServer)
         {
-            this.config = config;
-            this.clientSignInState = clientSignInState;
-            this.clientSignInTransfer = clientSignInTransfer;
-            this.messengerSender = messengerSender;
             this.tunnelTransfer = tunnelTransfer;
             this.tunnelBindServer = tunnelBindServer;
 
             TunnelTest();
         }
 
-        public Config Config(ApiControllerParamsInfo param)
-        {
-            return config;
-        }
-        public void ConfigSet(ApiControllerParamsInfo param)
-        {
-            ConfigSetInfo info = param.Content.DeJson<ConfigSetInfo>();
-            config.Data.Client.Name = info.Name;
-            config.Data.Client.GroupId = info.GroupId;
-            config.Data.Client.Server = info.Server;
-            config.Save();
-            clientSignInTransfer.SignOut();
-            _ = clientSignInTransfer.SignIn();
-        }
-        public void ConfigSetServers(ApiControllerParamsInfo param)
-        {
-            config.Data.Client.Servers = param.Content.DeJson<ClientServerInfo[]>();
-            config.Save();
-        }
-
-        public ClientSignInState SignInInfo(ApiControllerParamsInfo param)
-        {
-            return clientSignInState;
-        }
-        public async Task SignInDel(ApiControllerParamsInfo param)
-        {
-            await messengerSender.SendOnly(new MessageRequestWrap
-            {
-                Connection = clientSignInState.Connection,
-                MessengerId = (ushort)SignInMessengerIds.Delete,
-                Payload = MemoryPackSerializer.Serialize(param.Content)
-            });
-        }
-        public async Task<SignInListResponseInfo> SignInList(ApiControllerParamsInfo param)
-        {
-            SignInListRequestInfo request = param.Content.DeJson<SignInListRequestInfo>();
-            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
-            {
-                Connection = clientSignInState.Connection,
-                MessengerId = (ushort)SignInMessengerIds.List,
-                Payload = MemoryPackSerializer.Serialize(request)
-            });
-            if (resp.Code == MessageResponeCodes.OK)
-            {
-                return MemoryPackSerializer.Deserialize<SignInListResponseInfo>(resp.Data.Span);
-            }
-            return new SignInListResponseInfo { };
-        }
-
-        public Dictionary<string, TunnelConnectInfo> TunnelConnections(ApiControllerParamsInfo param)
+        public Dictionary<string, TunnelConnectInfo> Connections(ApiControllerParamsInfo param)
         {
             return tunnelTransfer.Connections;
         }
-        public void TunnelConnect(ApiControllerParamsInfo param)
+        public void Connect(ApiControllerParamsInfo param)
         {
             Task.Run(async () =>
             {
@@ -110,7 +53,7 @@ namespace cmonitor.plugins.tunnel
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex+"");
+                    Console.WriteLine(ex + "");
                 }
             });
         }
@@ -120,7 +63,7 @@ namespace cmonitor.plugins.tunnel
             {
                 if (state.TransactionId == "test" && state.TransportType == ProtocolType.Tcp)
                 {
-                    tunnelBindServer.BindReceive(state.ConnectedObject as Socket, null, async (token,data) =>
+                    tunnelBindServer.BindReceive(state.ConnectedObject as Socket, null, async (token, data) =>
                     {
                         Logger.Instance.Debug($"tunnel [{state.TransactionId}] receive {BitConverter.ToInt32(data.Span)}");
                     });
@@ -129,10 +72,4 @@ namespace cmonitor.plugins.tunnel
         }
     }
 
-    public sealed class ConfigSetInfo
-    {
-        public string Name { get; set; }
-        public string GroupId { get; set; }
-        public string Server { get; set; }
-    }
 }

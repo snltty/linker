@@ -20,6 +20,7 @@ for %%r in (win-x64,win-x64-any) do (
 
 for %%r in (linux-x64,linux-x64-any) do (
 	echo F|xcopy "public\\extends\\web\\*" "public\\publish\\%%r\\web\\*"  /s /f /h /y
+	echo F|xcopy "public\\extends\\web-client\\*" "public\\publish\\%%r\\web-client\\*"  /s /f /h /y
 	echo F|del  "public\\publish\\%%r\\plugins"
 	rd /s /q "public\\publish\\%%r\\plugins"
 )

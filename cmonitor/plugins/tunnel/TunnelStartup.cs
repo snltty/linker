@@ -34,11 +34,18 @@ namespace cmonitor.plugins.tunnel
             Logger.Instance.Info($"tunnel route level getting.");
             config.Data.Client.Tunnel.RouteLevel = NetworkHelper.GetRouteLevel(out List<IPAddress> ips);
             Logger.Instance.Info($"tunnel route level:{config.Data.Client.Tunnel.RouteLevel}");
+
+            if (config.Data.Client.Tunnel.Servers.Length == 0)
+            {
+                config.Data.Client.Tunnel.Servers = new TunnelCompactInfo[]
+                {
+                     new TunnelCompactInfo{ Name="self", Disabled = false, Host = config.Data.Client.Server }
+                };
+            }
         }
 
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
-            serviceCollection.AddSingleton<TunnelExternalIPServer>();
             serviceCollection.AddSingleton<TunnelServerMessenger>();
         }
 
@@ -53,10 +60,7 @@ namespace cmonitor.plugins.tunnel
 
         public void UseServer(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
         {
-            Logger.Instance.Info($"use tunnel external ip server in server mode.");
-            TunnelExternalIPServer tunnelServer = serviceProvider.GetService<TunnelExternalIPServer>();
-            tunnelServer.Start(config.Data.Server.Tunnel.ListenPort);
-            Logger.Instance.Info($"start tunnel external ip server, port : {config.Data.Server.Tunnel.ListenPort}");
+
         }
     }
 }

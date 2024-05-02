@@ -1,4 +1,6 @@
-﻿using cmonitor.plugins.tunnel.server;
+﻿using cmonitor.plugins.tunnel.messenger;
+using cmonitor.plugins.tunnel.server;
+using cmonitor.server;
 using common.libs.extends;
 using MemoryPack;
 using System.Net;
@@ -8,7 +10,16 @@ namespace cmonitor.plugins.tunnel.compact
 {
     public sealed class CompactSelfHost : ICompact
     {
-        public string Type => "self";
+        public string Name => "self";
+
+        private readonly TcpServer tcpServer;
+        private readonly MessengerSender messengerSender;
+
+        public CompactSelfHost(TcpServer tcpServer, MessengerSender messengerSender)
+        {
+            this.tcpServer = tcpServer;
+            this.messengerSender = messengerSender;
+        }
 
         public async Task<TunnelCompactIPEndPoint> GetTcpExternalIPAsync(IPEndPoint server)
         {
@@ -17,23 +28,22 @@ namespace cmonitor.plugins.tunnel.compact
             socket.IPv6Only(server.AddressFamily, false);
             await socket.ConnectAsync(server).WaitAsync(TimeSpan.FromSeconds(5));
 
-            byte[] bytes = new byte[128];
-            int length = await socket.ReceiveAsync(bytes.AsMemory(), SocketFlags.None);
-            if (length == 0)
-            {
-                return null;
-            }
+            IConnection connection = tcpServer.BindReceive(socket);
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap { Connection = connection, MessengerId = (ushort)TunnelMessengerIds.ExternalIP });
+
+            if (resp.Code != MessageResponeCodes.OK) return null;
 
             IPEndPoint local = socket.LocalEndPoint as IPEndPoint;
-            socket.SafeClose();
-            TunnelExternalIPInfo tunnelExternalIPInfo = MemoryPackSerializer.Deserialize<TunnelExternalIPInfo>(bytes.AsSpan(0,length));
+            connection.Disponse();
+            TunnelExternalIPInfo tunnelExternalIPInfo = MemoryPackSerializer.Deserialize<TunnelExternalIPInfo>(resp.Data.Span);
 
             return new TunnelCompactIPEndPoint { Local = local, Remote = tunnelExternalIPInfo.ExternalIP };
         }
 
         public async Task<TunnelCompactIPEndPoint> GetUdpExternalIPAsync(IPEndPoint server)
         {
-
+            return null;
+            /*
             using UdpClient udpClient = new UdpClient();
             udpClient.Client.Reuse(true);
             await udpClient.SendAsync(new byte[1] { 0 }, server);
@@ -46,6 +56,7 @@ namespace cmonitor.plugins.tunnel.compact
             TunnelExternalIPInfo tunnelExternalIPInfo = MemoryPackSerializer.Deserialize<TunnelExternalIPInfo>(result.Buffer);
 
             return new TunnelCompactIPEndPoint { Local = udpClient.Client.LocalEndPoint as IPEndPoint, Remote = tunnelExternalIPInfo.ExternalIP };
+            */
         }
     }
 }

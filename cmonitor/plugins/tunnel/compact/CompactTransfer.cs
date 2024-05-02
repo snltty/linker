@@ -23,9 +23,9 @@ namespace cmonitor.plugins.tunnel.compact
         {
             IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs, typeof(ICompact));
             types = config.Data.Common.PluginContains(types);
-            compacts = types.Select(c => (ICompact)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Type) == false).ToList();
+            compacts = types.Select(c => (ICompact)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
 
-            Logger.Instance.Warning($"load tunnel compacts:{string.Join(",", compacts.Select(c => c.Type))}");
+            Logger.Instance.Warning($"load tunnel compacts:{string.Join(",", compacts.Select(c => c.Name))}");
         }
 
         public async Task<TunnelCompactIPEndPoint[]> GetExternalIPAsync(ProtocolType protocolType)
@@ -36,7 +36,7 @@ namespace cmonitor.plugins.tunnel.compact
             {
                 TunnelCompactInfo item = config.Data.Client.Tunnel.Servers[i];
                 if (item.Disabled) continue;
-                ICompact compact = compacts.FirstOrDefault(c => c.Type == item.Type);
+                ICompact compact = compacts.FirstOrDefault(c => c.Name == item.Name);
                 if (compact == null) continue;
 
                 try
