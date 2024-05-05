@@ -121,12 +121,6 @@ namespace cmonitor.plugins.viewer.report
             ViewerRunningConfigInfo info = runningConfig.Data.Viewer.ToJsonFormat().DeJson<ViewerRunningConfigInfo>();
             info.Mode = ViewerMode.Client;
             info.Open = open;
-            //先尝试了客户端代理，不成功，就会自动尝试第二次，就尝试到了服务器代理
-            if (runningConfig.Data.Viewer.Times % 2 == 1)
-            {
-                info.ConnectStr = ReplaceProxy2Server(info.ConnectStr);
-            }
-            runningConfig.Data.Viewer.Times++;
 
             await messengerSender.SendOnly(new MessageRequestWrap
             {
@@ -192,13 +186,7 @@ namespace cmonitor.plugins.viewer.report
                 .Replace("{port}", viewerProxyClient.LocalEndpoint.Port.ToString());
 
         }
-        private string ReplaceProxy2Server(string connectStr)
-        {
-            return connectStr
-                .Replace("{ip}", clientSignInState.Connection.Address.Address.ToString())
-                .Replace("{port}", config.Data.Client.Viewer.ProxyPort.ToString());
-        }
-
+       
         
         private void Open()
         {
@@ -208,9 +196,6 @@ namespace cmonitor.plugins.viewer.report
                 {
                     GroupName = runningConfig.Data.Viewer.ShareId,
                     Mode = runningConfig.Data.Viewer.Mode,
-                    ProxyServers = string.Join(",", new string[] {
-                           $"{clientSignInState.Connection.Address.Address}:{config.Data.Client.Viewer.ProxyPort}"
-                    }),
                     ShareIndex = (int)ShareMemoryIndexs.Viewer,
                     ShareMkey = config.Data.Client.ShareMemoryKey,
                     ShareMLength = config.Data.Client.ShareMemoryCount,

@@ -158,35 +158,16 @@ namespace cmonitor.viewer.server.win
                     IRDPSRAPIInvitation invitation = session.Invitations.CreateInvitation(null, paramInfo.GroupName, paramInfo.GroupName, 1024);
                     invitationString = invitation.ConnectionString;
 
-                    if(string.IsNullOrWhiteSpace(paramInfo.ProxyServers) == false)
-                    {
-                        XmlDocument xmlDoc = new XmlDocument();
-                        xmlDoc.LoadXml(invitationString);
+                    XmlDocument xmlDoc = new XmlDocument();
+                    xmlDoc.LoadXml(invitationString);
 
-                        //留给客户端自己替换为自己本地的代理地址
-                        XmlElement newLNode = xmlDoc.CreateElement("L");
-                        newLNode.SetAttribute("P", "{port}");
-                        newLNode.SetAttribute("N", "{ip}");
-                        xmlDoc.DocumentElement["C"]["T"].AppendChild(newLNode);
+                    //留给客户端自己替换为自己本地的代理地址
+                    XmlElement newLNode = xmlDoc.CreateElement("L");
+                    newLNode.SetAttribute("P", "{port}");
+                    newLNode.SetAttribute("N", "{ip}");
+                    xmlDoc.DocumentElement["C"]["T"].AppendChild(newLNode);
 
-                        //插入其它代理地址
-                        foreach (var item in paramInfo.ProxyServers.Split(','))
-                        {
-                            try
-                            {
-                                IPEndPoint ep = IPEndPoint.Parse(item);
-
-                                XmlElement newLNode1 = xmlDoc.CreateElement("L");
-                                newLNode1.SetAttribute("P", ep.Port.ToString());
-                                newLNode1.SetAttribute("N", ep.Address.ToString());
-                                xmlDoc.DocumentElement["C"]["T"].AppendChild(newLNode1);
-                            }
-                            catch (Exception)
-                            {
-                            }
-                        }
-                        invitationString = xmlDoc.OuterXml;
-                    }
+                    invitationString = xmlDoc.OuterXml;
 
                     Registry.SetValue("HKEY_CURRENT_USER\\SOFTWARE\\Cmonitor", "viewerConnectStr", invitationString);
 
@@ -211,7 +192,6 @@ namespace cmonitor.viewer.server.win
             try
             {
                 session?.Close();
-                //Registry.SetValue("HKEY_CURRENT_USER\\SOFTWARE\\Cmonitor", "viewerConnectStr", string.Empty);
             }
             catch (Exception)
             {

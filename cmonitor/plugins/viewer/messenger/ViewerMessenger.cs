@@ -1,8 +1,4 @@
-﻿using cmonitor.client;
-using cmonitor.client.running;
-using cmonitor.config;
-using cmonitor.plugins.signin.messenger;
-using cmonitor.plugins.viewer.proxy;
+﻿using cmonitor.plugins.signin.messenger;
 using cmonitor.plugins.viewer.report;
 using cmonitor.server;
 using MemoryPack;
@@ -12,18 +8,10 @@ namespace cmonitor.plugins.viewer.messenger
     public sealed class ViewerClientMessenger : IMessenger
     {
         private readonly ViewerReport viewerReport;
-        private readonly ViewerProxyClient viewerProxyClient;
-        private readonly Config config;
-        private readonly ClientSignInState clientSignInState;
-        private readonly RunningConfig runningConfig;
 
-        public ViewerClientMessenger(ViewerReport viewerReport, ViewerProxyClient viewerProxyClient, Config config, ClientSignInState clientSignInState, RunningConfig runningConfig)
+        public ViewerClientMessenger(ViewerReport viewerReport)
         {
             this.viewerReport = viewerReport;
-            this.viewerProxyClient = viewerProxyClient;
-            this.config = config;
-            this.clientSignInState = clientSignInState;
-            this.runningConfig = runningConfig;
         }
 
         [MessengerId((ushort)ViewerMessengerIds.Server)]
@@ -40,29 +28,6 @@ namespace cmonitor.plugins.viewer.messenger
             viewerReport.Heart(viewerConfigInfo);
         }
 
-        /// <summary>
-        /// 通过客户端代理，
-        /// </summary>
-        /// <param name="connection"></param>
-        [MessengerId((ushort)ViewerMessengerIds.ProxyFromClient)]
-        public void ProxyFromClient(IConnection connection)
-        {
-            ViewerProxyInfo proxy = MemoryPackSerializer.Deserialize<ViewerProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            proxy.TargetEP = runningConfig.Data.Viewer.ConnectEP;
-            _ = viewerProxyClient.Connect(proxy);
-        }
-        /// <summary>
-        /// 通过服务器代理
-        /// </summary>
-        /// <param name="connection"></param>
-        [MessengerId((ushort)ViewerMessengerIds.ProxyFromServer)]
-        public void ProxyFromServer(IConnection connection)
-        {
-            ViewerProxyInfo proxy = MemoryPackSerializer.Deserialize<ViewerProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            proxy.ProxyEP = new System.Net.IPEndPoint(clientSignInState.Connection.Address.Address, config.Data.Client.Viewer.ProxyPort);
-            proxy.TargetEP = runningConfig.Data.Viewer.ConnectEP;
-            _ = viewerProxyClient.Connect(proxy);
-        }
     }
 
 
@@ -95,21 +60,6 @@ namespace cmonitor.plugins.viewer.messenger
                         Payload = connection.ReceiveRequestWrap.Payload
                     });
                 }
-            }
-        }
-
-        [MessengerId((ushort)ViewerMessengerIds.ProxyFromClientForward)]
-        public void ProxyFromClientForward(IConnection connection)
-        {
-            ViewerProxyInfo proxy = MemoryPackSerializer.Deserialize<ViewerProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.Get(proxy.ViewerServerMachine, out SignCacheInfo cache) && cache.Connected)
-            {
-                _ = messengerSender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = cache.Connection,
-                    MessengerId = (ushort)ViewerMessengerIds.ProxyFromClient,
-                    Payload = connection.ReceiveRequestWrap.Payload
-                });
             }
         }
     }

@@ -42,6 +42,5 @@ namespace cmonitor.viewer.server.win
         public int ShareIndex { get; set; } = 5;
         public Mode Mode { get; set; } = Mode.Server;
         public string GroupName { get; set; } = "snltty";
-        public string ProxyServers { get; set; } = "127.0.0.1:1803";
     }
 }

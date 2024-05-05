@@ -1,7 +1,6 @@
 ﻿using cmonitor.server.api;
 using cmonitor.plugins.signin.messenger;
 using cmonitor.plugins.viewer.messenger;
-using cmonitor.plugins.viewer.proxy;
 using cmonitor.plugins.viewer.report;
 using cmonitor.server;
 using common.libs.extends;
@@ -14,13 +13,11 @@ namespace cmonitor.plugins.viewer
     {
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;
-        private readonly ViewerProxyCaching viewerProxyCaching;
 
-        public ViewerApiController(MessengerSender messengerSender, SignCaching signCaching, ViewerProxyCaching viewerProxyCaching)
+        public ViewerApiController(MessengerSender messengerSender, SignCaching signCaching)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
-            this.viewerProxyCaching = viewerProxyCaching;
         }
         public bool Update(ApiControllerParamsInfo param)
         {
@@ -29,7 +26,6 @@ namespace cmonitor.plugins.viewer
             var list = viewer.Clients.ToList();
             list.Remove(viewer.Server);
             viewer.Clients = list.ToArray();
-            viewerProxyCaching.Remove(viewer.ShareId);
 
             if (signCaching.Get(viewer.Server, out SignCacheInfo cache) && cache.Connected)
             {
@@ -41,10 +37,6 @@ namespace cmonitor.plugins.viewer
                     Mode = ViewerMode.Server,
                     Open = viewer.Open
                 };
-                if (info.Open)
-                {
-                    info.ShareId = viewerProxyCaching.Set(viewer.Server);
-                }
 
                 byte[] serverBytes = MemoryPackSerializer.Serialize(info);
                 _ = messengerSender.SendOnly(new MessageRequestWrap
@@ -61,8 +53,6 @@ namespace cmonitor.plugins.viewer
             public bool Open { get; set; }
             public string Server { get; set; } = string.Empty;
             public string[] Clients { get; set; } = Array.Empty<string>();
-
-            public string ShareId { get; set; } = string.Empty;
         }
     }
 

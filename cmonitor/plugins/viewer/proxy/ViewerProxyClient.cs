@@ -1,44 +1,81 @@
-﻿using cmonitor.client;
-using cmonitor.client.running;
+﻿using cmonitor.client.running;
 using cmonitor.config;
-using cmonitor.plugins.viewer.messenger;
-using cmonitor.server;
+using cmonitor.plugins.relay;
+using cmonitor.plugins.relay.transport;
+using cmonitor.plugins.tunnel;
+using cmonitor.plugins.tunnel.transport;
 using common.libs;
-using MemoryPack;
+using System.Net.Sockets;
 
 namespace cmonitor.plugins.viewer.proxy
 {
     public sealed class ViewerProxyClient : ViewerProxy
     {
-        private readonly MessengerSender messengerSender;
-        private readonly ClientSignInState clientSignInState;
-        private readonly Config config;
         private readonly RunningConfig runningConfig;
+        private readonly TunnelTransfer tunnelTransfer;
+        private readonly RelayTransfer relayTransfer;
+        private readonly Config config;
 
-        public ViewerProxyClient(MessengerSender messengerSender, ClientSignInState clientSignInState, Config config, RunningConfig runningConfig)
+        private Socket tunnelSocket;
+
+        public ViewerProxyClient(RunningConfig runningConfig, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, Config config)
         {
-            this.messengerSender = messengerSender;
-            this.clientSignInState = clientSignInState;
-            this.config = config;
             this.runningConfig = runningConfig;
+            this.tunnelTransfer = tunnelTransfer;
+            this.relayTransfer = relayTransfer;
+            this.config = config;
 
             Start(0);
             Logger.Instance.Info($"start viewer proxy, port : {LocalEndpoint.Port}");
+
+            Tunnel();
         }
 
-        public override async Task Connect(string name, uint connectId)
+        protected override async Task Connect(AsyncUserToken token, ProxyInfo proxyInfo)
         {
-            await messengerSender.SendOnly(new MessageRequestWrap
+            if (tunnelSocket == null || tunnelSocket.Connected == false)
             {
-                Connection = clientSignInState.Connection,
-                MessengerId = (ushort)ViewerMessengerIds.ProxyFromClientForward,
-                Payload = MemoryPackSerializer.Serialize(new ViewerProxyInfo
+                TunnelTransportState state = await tunnelTransfer.ConnectAsync(runningConfig.Data.Viewer.ServerMachine, "viewer");
+                if (state != null)
                 {
-                    ConnectId = connectId,
-                    ProxyEP = new System.Net.IPEndPoint(clientSignInState.Connection.LocalAddress.Address, LocalEndpoint.Port),
-                    ViewerServerMachine = runningConfig.Data.Viewer.ServerMachine
-                })
-            });
+                    if (state.TransportType == ProtocolType.Tcp)
+                    {
+                        tunnelSocket = state.ConnectedObject as Socket;
+                        BindReceiveTarget(tunnelSocket, token.SourceSocket);
+                        goto exit;
+                    }
+                }
+                RelayTransportState relayState = await relayTransfer.ConnectAsync(runningConfig.Data.Viewer.ServerMachine, "viewer", config.Data.Client.Relay.SecretKey);
+                if (relayState != null)
+                {
+                    tunnelSocket = relayState.Socket;
+                    BindReceiveTarget(tunnelSocket, token.SourceSocket);
+                    goto exit;
+                }
+
+                tunnelSocket = null;
+            }
+        exit:
+            token.TargetSocket = tunnelSocket;
+            proxyInfo.TargetEP = runningConfig.Data.Viewer.ConnectEP;
+        }
+
+        private void Tunnel()
+        {
+            tunnelTransfer.OnConnected += (TunnelTransportState state) =>
+            {
+                if (state != null && state.TransportType == ProtocolType.Tcp && state.TransactionId == "viewer")
+                {
+                    BindReceiveTarget(state.ConnectedObject as Socket, null);
+                }
+            };
+            relayTransfer.OnConnected += (RelayTransportState state) =>
+            {
+                if (state != null && state.Info.TransactionId == "viewer")
+                {
+                    BindReceiveTarget(state.Socket, null);
+                }
+            };
         }
     }
 }

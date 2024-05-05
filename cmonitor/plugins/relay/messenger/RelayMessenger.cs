@@ -5,8 +5,6 @@ using cmonitor.server;
 using common.libs;
 using MemoryPack;
 using System.Collections.Concurrent;
-using System.Net.Sockets;
-using System.Text;
 
 namespace cmonitor.plugins.relay.messenger
 {

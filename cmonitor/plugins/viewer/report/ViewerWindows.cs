@@ -1,5 +1,4 @@
-﻿using cmonitor.config;
-using common.libs;
+﻿using common.libs;
 using Microsoft.Win32;
 using System.Net;
 using System.Runtime.Versioning;
@@ -11,10 +10,8 @@ namespace cmonitor.plugins.viewer.report
     [SupportedOSPlatform("windows")]
     public sealed class ViewerWindows : IViewer
     {
-        private readonly Config config;
-        public ViewerWindows(Config config)
+        public ViewerWindows()
         {
-            this.config = config;
         }
         public void Open(bool value, ParamInfo info)
         {

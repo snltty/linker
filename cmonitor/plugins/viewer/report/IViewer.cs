@@ -1,7 +1,6 @@
 ﻿using cmonitor.plugins.viewer.report;
 using MemoryPack;
 using System.Net;
-using System.Text.Json.Serialization;
 
 namespace cmonitor.plugins.viewer.report
 {
@@ -16,14 +15,6 @@ namespace cmonitor.plugins.viewer.report
         }
     }
 
-    public sealed class ViewerConfigInfo
-    {
-        [JsonIgnore]
-        public const string userNameKey = "viewer-username";
-
-        public int ProxyPort { get; set; } = 1803;
-    }
-
     [MemoryPackable]
     public sealed partial class ViewerRunningConfigInfo
     {
@@ -31,7 +22,7 @@ namespace cmonitor.plugins.viewer.report
 
         public bool Open { get; set; }
 
-        public string ShareId { get; set; } = string.Empty;
+        public string ShareId { get; set; } = "snltty";
 
         /// <summary>
         /// 共享服务端机器名，在通知消息和代理时需要
@@ -53,10 +44,6 @@ namespace cmonitor.plugins.viewer.report
         /// </summary>
         [MemoryPackAllowSerialize]
         public IPEndPoint ConnectEP { get; set; }
-
-        [JsonIgnore]
-        [MemoryPackIgnore]
-        public int Times { get; set; }
     }
 
     public enum ViewerMode : byte
@@ -73,7 +60,10 @@ namespace cmonitor.plugins.viewer.report
         public int ShareIndex { get; set; } = 5;
         public ViewerMode Mode { get; set; } = ViewerMode.Server;
         public string GroupName { get; set; } = "snltty";
-        public string ProxyServers { get; set; } = "127.0.0.1:1803";
+    }
+
+    public sealed class ViewerConfigInfo
+    {
     }
 }
 
