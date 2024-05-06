@@ -11,6 +11,7 @@ namespace cmonitor.plugins.viewer.proxy
     {
         private SocketAsyncEventArgs acceptEventArg;
         private Socket socket;
+        private UdpClient udpClient;
         private NumberSpace ns = new NumberSpace();
 
         public IPEndPoint LocalEndpoint => socket?.LocalEndPoint as IPEndPoint ?? new IPEndPoint(IPAddress.Any, 0);
@@ -43,12 +44,47 @@ namespace cmonitor.plugins.viewer.proxy
                 acceptEventArg.Completed += IO_Completed;
                 StartAccept(acceptEventArg);
 
+                udpClient = new UdpClient(new IPEndPoint(IPAddress.Any, localEndPoint.Port));
+                udpClient.Client.EnableBroadcast = true;
+                udpClient.Client.WindowsUdpBug();
+                IAsyncResult result = udpClient.BeginReceive(ReceiveCallbackUdp, null);
+
             }
             catch (Exception ex)
             {
                 Logger.Instance.Error(ex);
             }
         }
+
+        private readonly AsyncUserUdpToken asyncUserUdpToken = new AsyncUserUdpToken
+        {
+            Proxy = new ProxyInfo { Step = ProxyStep.Forward, Direction = ProxyDirection.UnPack, ConnectId = 0 }
+        };
+
+        private async void ReceiveCallbackUdp(IAsyncResult result)
+        {
+            try
+            {
+                //System.Net.Quic.QuicListener.IsSupported
+                IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
+                byte[] bytes = udpClient.EndReceive(result, ref endPoint);
+
+                asyncUserUdpToken.Proxy.Data = bytes;
+                await ConnectUdp(asyncUserUdpToken);
+
+                result = udpClient.BeginReceive(ReceiveCallbackUdp, null);
+            }
+            catch (Exception)
+            {
+            }
+        }
+        protected virtual async Task ConnectUdp(AsyncUserUdpToken token)
+        {
+            await Task.CompletedTask;
+        }
+
+
+
         private void StartAccept(SocketAsyncEventArgs acceptEventArg)
         {
             acceptEventArg.AcceptSocket = null;
@@ -181,7 +217,7 @@ namespace cmonitor.plugins.viewer.proxy
         {
             if (token.Proxy.Step == ProxyStep.Request)
             {
-                await Connect(token, token.Proxy);
+                await Connect(token);
                 if (token.TargetSocket != null)
                 {
                     //发送连接请求包
@@ -225,7 +261,7 @@ namespace cmonitor.plugins.viewer.proxy
             }
         }
 
-        protected virtual async Task Connect(AsyncUserToken token, ProxyInfo proxyInfo)
+        protected virtual async Task Connect(AsyncUserToken token)
         {
             await Task.CompletedTask;
         }
@@ -410,7 +446,7 @@ namespace cmonitor.plugins.viewer.proxy
         }
         private async Task SendToSource(SocketAsyncEventArgs e, AsyncUserToken token)
         {
-            if(token.Proxy.Direction == ProxyDirection.UnPack)
+            if (token.Proxy.Direction == ProxyDirection.UnPack)
             {
                 ConnectId connectId = new ConnectId(token.Proxy.ConnectId, token.TargetSocket.GetHashCode());
                 if (dic.TryGetValue(connectId, out Socket source))
@@ -472,6 +508,7 @@ namespace cmonitor.plugins.viewer.proxy
         public void Stop()
         {
             CloseClientSocket(acceptEventArg);
+            udpClient?.Close();
         }
 
     }
@@ -558,6 +595,23 @@ namespace cmonitor.plugins.viewer.proxy
         }
     }
 
+
+    public sealed class AsyncUserUdpToken
+    {
+        public UdpClient SourceSocket { get; set; }
+        public Socket TargetSocket { get; set; }
+        public ProxyInfo Proxy { get; set; }
+
+        public void Clear()
+        {
+            SourceSocket?.Close();
+            SourceSocket = null;
+
+            GC.Collect();
+        }
+    }
+
+
     public sealed class AsyncUserToken
     {
         public Socket SourceSocket { get; set; }
@@ -573,8 +627,6 @@ namespace cmonitor.plugins.viewer.proxy
             SourceSocket = null;
 
             Buffer?.Clear();
-            //TargetSocket?.SafeClose();
-            //TargetSocket = null;
 
             GC.Collect();
         }

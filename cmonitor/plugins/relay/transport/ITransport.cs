@@ -1,8 +1,6 @@
-﻿using cmonitor.plugins.relay.messenger;
-using MemoryPack;
+﻿using MemoryPack;
 using System.Net;
 using System.Net.Sockets;
-using System.Text.Json.Serialization;
 
 namespace cmonitor.plugins.relay.transport
 {

@@ -89,13 +89,16 @@ namespace cmonitor.plugins.tunnel.transport
         public TunnelTransportDirection Direction { get; set; }
     }
 
-
-
-
     public enum TunnelTransportDirection : byte
     {
         Forward = 0,
         Reverse = 1
+    }
+
+    public enum TunnelTransportType
+    {
+        Tcp = ProtocolType.Tcp,
+        Udp = ProtocolType.Udp,
     }
 
     public sealed class TunnelTransportState
@@ -110,5 +113,13 @@ namespace cmonitor.plugins.tunnel.transport
         [JsonIgnore]
         public object ConnectedObject { get; set; }
     }
+
+
+    public interface ITunnelConnection
+    {
+        public TunnelTransportType TransportType { get; }
+    }
+
+
 
 }

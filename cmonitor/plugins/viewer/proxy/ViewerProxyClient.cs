@@ -31,8 +31,9 @@ namespace cmonitor.plugins.viewer.proxy
             Tunnel();
         }
 
-        protected override async Task Connect(AsyncUserToken token, ProxyInfo proxyInfo)
+        protected override async Task Connect(AsyncUserToken token)
         {
+            token.Proxy.TargetEP = runningConfig.Data.Viewer.ConnectEP;
             if (tunnelSocket == null || tunnelSocket.Connected == false)
             {
                 TunnelTransportState state = await tunnelTransfer.ConnectAsync(runningConfig.Data.Viewer.ServerMachine, "viewer");
@@ -41,24 +42,23 @@ namespace cmonitor.plugins.viewer.proxy
                     if (state.TransportType == ProtocolType.Tcp)
                     {
                         tunnelSocket = state.ConnectedObject as Socket;
+                        token.TargetSocket = tunnelSocket;
                         BindReceiveTarget(tunnelSocket, token.SourceSocket);
-                        goto exit;
+                        return;
                     }
                 }
+
                 RelayTransportState relayState = await relayTransfer.ConnectAsync(runningConfig.Data.Viewer.ServerMachine, "viewer", config.Data.Client.Relay.SecretKey);
-                
                 if (relayState != null)
                 {
                     tunnelSocket = relayState.Socket;
+                    token.TargetSocket = tunnelSocket;
                     BindReceiveTarget(tunnelSocket, token.SourceSocket);
-                    goto exit;
+                    return;
                 }
 
                 tunnelSocket = null;
             }
-        exit:
-            token.TargetSocket = tunnelSocket;
-            proxyInfo.TargetEP = runningConfig.Data.Viewer.ConnectEP;
         }
 
         private void Tunnel()

@@ -251,11 +251,5 @@ namespace cmonitor.plugins.tunnel.transport
             return ip.AddressFamily == AddressFamily.InterNetworkV6 && (NetworkHelper.IPv6Support == false);
         }
 
-        public sealed class ConnectResultInfo
-        {
-            public IAsyncResult Result { get; set; }
-            public Socket Socket { get; set; }
-            public bool EndConnected { get; set; }
-        }
     }
 }
