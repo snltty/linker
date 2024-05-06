@@ -1,4 +1,5 @@
-﻿using common.libs;
+﻿using cmonitor.client.tunnel;
+using common.libs;
 using common.libs.extends;
 using System.Buffers;
 using System.Collections.Concurrent;
@@ -9,10 +10,11 @@ namespace cmonitor.plugins.viewer.proxy
 {
     public class ViewerProxy
     {
-        private SocketAsyncEventArgs acceptEventArg;
+        private AsyncUserToken userToken;
         private Socket socket;
         private UdpClient udpClient;
-        private NumberSpace ns = new NumberSpace();
+        private readonly NumberSpace ns = new NumberSpace();
+        private readonly ConcurrentDictionary<ConnectId, Socket> dic = new ConcurrentDictionary<ConnectId, Socket>();
 
         public IPEndPoint LocalEndpoint => socket?.LocalEndPoint as IPEndPoint ?? new IPEndPoint(IPAddress.Any, 0);
 
@@ -32,14 +34,16 @@ namespace cmonitor.plugins.viewer.proxy
                 socket.ReuseBind(localEndPoint);
                 socket.Listen(int.MaxValue);
 
-                acceptEventArg = new SocketAsyncEventArgs
+                userToken = new AsyncUserToken
                 {
-                    UserToken = new AsyncUserToken
-                    {
-                        SourceSocket = socket
-                    },
+                    Socket = socket
+                };
+                SocketAsyncEventArgs acceptEventArg = new SocketAsyncEventArgs
+                {
+                    UserToken = userToken,
                     SocketFlags = SocketFlags.None,
                 };
+                userToken.Saea = acceptEventArg;
 
                 acceptEventArg.Completed += IO_Completed;
                 StartAccept(acceptEventArg);
@@ -56,11 +60,11 @@ namespace cmonitor.plugins.viewer.proxy
             }
         }
 
+
         private readonly AsyncUserUdpToken asyncUserUdpToken = new AsyncUserUdpToken
         {
-            Proxy = new ProxyInfo { Step = ProxyStep.Forward, Direction = ProxyDirection.UnPack, ConnectId = 0 }
+            Proxy = new ProxyInfo { Step = ProxyStep.Forward, ConnectId = 0 }
         };
-
         private async void ReceiveCallbackUdp(IAsyncResult result)
         {
             try
@@ -83,15 +87,13 @@ namespace cmonitor.plugins.viewer.proxy
             await Task.CompletedTask;
         }
 
-
-
         private void StartAccept(SocketAsyncEventArgs acceptEventArg)
         {
             acceptEventArg.AcceptSocket = null;
             AsyncUserToken token = (AsyncUserToken)acceptEventArg.UserToken;
             try
             {
-                if (token.SourceSocket.AcceptAsync(acceptEventArg) == false)
+                if (token.Socket.AcceptAsync(acceptEventArg) == false)
                 {
                     ProcessAccept(acceptEventArg);
                 }
@@ -138,7 +140,7 @@ namespace cmonitor.plugins.viewer.proxy
                 socket.KeepAlive();
                 AsyncUserToken userToken = new AsyncUserToken
                 {
-                    SourceSocket = socket,
+                    Socket = socket,
                     Proxy = new ProxyInfo { Data = Helper.EmptyArray, Step = ProxyStep.Request, ConnectId = ns.Increment() }
                 };
 
@@ -147,6 +149,8 @@ namespace cmonitor.plugins.viewer.proxy
                     UserToken = userToken,
                     SocketFlags = SocketFlags.None,
                 };
+                userToken.Saea = readEventArgs;
+
                 readEventArgs.SetBuffer(new byte[8 * 1024], 0, 8 * 1024);
                 readEventArgs.Completed += IO_Completed;
                 if (socket.ReceiveAsync(readEventArgs) == false)
@@ -162,46 +166,45 @@ namespace cmonitor.plugins.viewer.proxy
         }
         private async void ProcessReceive(SocketAsyncEventArgs e)
         {
+            AsyncUserToken token = (AsyncUserToken)e.UserToken;
             try
             {
-                AsyncUserToken token = (AsyncUserToken)e.UserToken;
-
                 if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
                 {
                     int offset = e.Offset;
                     int length = e.BytesTransferred;
-                    await ReadPacket(e, token, e.Buffer.AsMemory(offset, length));
-                    if (token.SourceSocket.Available > 0)
+                    await ReadPacket(token, e.Buffer.AsMemory(offset, length));
+                    if (token.Socket.Available > 0)
                     {
-                        while (token.SourceSocket.Available > 0)
+                        while (token.Socket.Available > 0)
                         {
-                            length = token.SourceSocket.Receive(e.Buffer);
+                            length = token.Socket.Receive(e.Buffer);
                             if (length > 0)
                             {
-                                await ReadPacket(e, token, e.Buffer.AsMemory(0, length));
+                                await ReadPacket(token, e.Buffer.AsMemory(0, length));
                             }
                             else
                             {
-                                CloseClientSocket(e);
+                                CloseClientSocket(token);
                                 return;
                             }
                         }
                     }
 
-                    if (token.SourceSocket.Connected == false)
+                    if (token.Socket.Connected == false)
                     {
-                        CloseClientSocket(e);
+                        CloseClientSocket(token);
                         return;
                     }
 
-                    if (token.SourceSocket.ReceiveAsync(e) == false)
+                    if (token.Socket.ReceiveAsync(e) == false)
                     {
                         ProcessReceive(e);
                     }
                 }
                 else
                 {
-                    CloseClientSocket(e);
+                    CloseClientSocket(token);
                 }
             }
             catch (Exception ex)
@@ -209,55 +212,38 @@ namespace cmonitor.plugins.viewer.proxy
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     Logger.Instance.Error(ex);
 
-                CloseClientSocket(e);
+                CloseClientSocket(token);
             }
         }
-
-        private async Task ReadPacket(SocketAsyncEventArgs e, AsyncUserToken token, Memory<byte> data)
+        private async Task ReadPacket(AsyncUserToken token, Memory<byte> data)
         {
             if (token.Proxy.Step == ProxyStep.Request)
             {
                 await Connect(token);
-                if (token.TargetSocket != null)
+                if (token.Connection != null)
                 {
                     //发送连接请求包
-                    await SendToTarget(e, token).ConfigureAwait(false);
+                    await SendToConnection(token).ConfigureAwait(false);
 
                     token.Proxy.Step = ProxyStep.Forward;
                     token.Proxy.TargetEP = null;
 
                     //发送后续数据包
                     token.Proxy.Data = data;
-                    await SendToTarget(e, token).ConfigureAwait(false);
+                    await SendToConnection(token).ConfigureAwait(false);
 
                     //绑定
-                    dic.TryAdd(new ConnectId(token.Proxy.ConnectId, token.TargetSocket.GetHashCode()), token.SourceSocket);
+                    dic.TryAdd(new ConnectId(token.Proxy.ConnectId, token.Connection.GetHashCode()), token.Socket);
                 }
                 else
                 {
-                    CloseClientSocket(e);
+                    CloseClientSocket(token);
                 }
             }
             else
             {
                 token.Proxy.Data = data;
-                await SendToTarget(e, token).ConfigureAwait(false);
-            }
-        }
-        private async Task SendToTarget(SocketAsyncEventArgs e, AsyncUserToken token)
-        {
-            byte[] connectData = token.Proxy.ToBytes(out int length);
-            try
-            {
-                await token.TargetSocket.SendAsync(connectData.AsMemory(0, length), SocketFlags.None);
-            }
-            catch (Exception)
-            {
-                CloseClientSocket(e);
-            }
-            finally
-            {
-                token.Proxy.Return(connectData);
+                await SendToConnection(token).ConfigureAwait(false);
             }
         }
 
@@ -266,26 +252,115 @@ namespace cmonitor.plugins.viewer.proxy
             await Task.CompletedTask;
         }
 
-        protected bool BindReceiveTarget(Socket targetSocket, Socket sourceSocket)
+        private async Task SendToConnection(AsyncUserToken token)
         {
+            byte[] connectData = token.Proxy.ToBytes(out int length);
             try
             {
-                BindReceiveTarget(new AsyncUserToken
-                {
-                    TargetSocket = targetSocket,
-                    SourceSocket = sourceSocket,
-                    Buffer = new ReceiveDataBuffer(),
-                    Proxy = new ProxyInfo { Direction = ProxyDirection.UnPack }
-                });
-
-                return true;
+                await token.Connection.SendAsync(connectData.AsMemory(0, length)).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Logger.Instance.Error(ex);
+                CloseClientSocket(token);
             }
-            return false;
+            finally
+            {
+                token.Proxy.Return(connectData);
+            }
         }
+
+        protected void BindConnectionReceive(ITunnelConnection connection)
+        {
+            connection.BeginReceive(InputConnectionData, CloseConnection, new AsyncUserToken
+            {
+                Connection = connection,
+                Buffer = new ReceiveDataBuffer(),
+                Proxy = new ProxyInfo { }
+            });
+        }
+        protected async Task InputConnectionData(ITunnelConnection connection, Memory<byte> memory, object userToken)
+        {
+            AsyncUserToken token = userToken as AsyncUserToken;
+            //是一个完整的包
+            if (token.Buffer.Size == 0 && memory.Length > 4)
+            {
+                int packageLen = memory.ToInt32();
+                if (packageLen == memory.Length - 4)
+                {
+                    token.Proxy.DeBytes(memory.Slice(0, packageLen + 4));
+                    await ReadConnectionPack(token).ConfigureAwait(false);
+                    return;
+                }
+            }
+
+            //不是完整包
+            token.Buffer.AddRange(memory);
+            do
+            {
+                int packageLen = token.Buffer.Data.ToInt32();
+                if (packageLen > token.Buffer.Size - 4)
+                {
+                    break;
+                }
+                token.Proxy.DeBytes(token.Buffer.Data.Slice(0, packageLen + 4));
+                await ReadConnectionPack(token).ConfigureAwait(false);
+
+                token.Buffer.RemoveRange(0, packageLen + 4);
+            } while (token.Buffer.Size > 4);
+        }
+        protected async Task CloseConnection(ITunnelConnection connection, object userToken)
+        {
+            CloseClientSocket(userToken as AsyncUserToken);
+            await Task.CompletedTask;
+        }
+        private async Task ReadConnectionPack(AsyncUserToken token)
+        {
+            if (token.Proxy.Step == ProxyStep.Request)
+            {
+                await ConnectBind(token).ConfigureAwait(false);
+            }
+            else
+            {
+                await SendToSocket(token).ConfigureAwait(false);
+            }
+        }
+        private async Task ConnectBind(AsyncUserToken token)
+        {
+            Socket socket = new Socket(token.Proxy.TargetEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            socket.KeepAlive();
+            await socket.ConnectAsync(token.Proxy.TargetEP);
+
+            dic.TryAdd(new ConnectId(token.Proxy.ConnectId, token.Connection.GetHashCode()), socket);
+
+            BindReceiveTarget(new AsyncUserToken
+            {
+                Connection = token.Connection,
+                Socket = socket,
+                Proxy = new ProxyInfo
+                {
+                    ConnectId = token.Proxy.ConnectId,
+                    Step = ProxyStep.Forward
+                }
+            });
+        }
+        private async Task SendToSocket(AsyncUserToken token)
+        {
+            ConnectId connectId = new ConnectId(token.Proxy.ConnectId, token.Connection.GetHashCode());
+            if (dic.TryGetValue(connectId, out Socket source))
+            {
+                try
+                {
+                    await source.SendAsync(token.Proxy.Data);
+                }
+                catch (Exception)
+                {
+                    CloseClientSocket(token);
+
+                }
+            }
+        }
+
+
         private void IO_CompletedTarget(object sender, SocketAsyncEventArgs e)
         {
             switch (e.LastOperation)
@@ -308,7 +383,7 @@ namespace cmonitor.plugins.viewer.proxy
                 };
                 readEventArgs.SetBuffer(new byte[8 * 1024], 0, 8 * 1024);
                 readEventArgs.Completed += IO_CompletedTarget;
-                if (userToken.TargetSocket.ReceiveAsync(readEventArgs) == false)
+                if (userToken.Socket.ReceiveAsync(readEventArgs) == false)
                 {
                     ProcessReceiveTarget(readEventArgs);
                 }
@@ -321,48 +396,49 @@ namespace cmonitor.plugins.viewer.proxy
         }
         private async void ProcessReceiveTarget(SocketAsyncEventArgs e)
         {
+            AsyncUserToken token = (AsyncUserToken)e.UserToken;
             try
             {
-                AsyncUserToken token = (AsyncUserToken)e.UserToken;
-
                 if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
                 {
                     int offset = e.Offset;
                     int length = e.BytesTransferred;
 
-                    await ReadPacketTarget(e, token, e.Buffer.AsMemory(offset, length)).ConfigureAwait(false);
+                    token.Proxy.Data = e.Buffer.AsMemory(offset, length);
+                    await SendToConnection(token).ConfigureAwait(false);
 
-                    if (token.TargetSocket.Available > 0)
+                    if (token.Socket.Available > 0)
                     {
-                        while (token.TargetSocket.Available > 0)
+                        while (token.Socket.Available > 0)
                         {
-                            length = token.TargetSocket.Receive(e.Buffer);
+                            length = token.Socket.Receive(e.Buffer);
                             if (length > 0)
                             {
-                                await ReadPacketTarget(e, token, e.Buffer.AsMemory(0, length)).ConfigureAwait(false);
+                                token.Proxy.Data = e.Buffer.AsMemory(0, length);
+                                await SendToConnection(token).ConfigureAwait(false);
                             }
                             else
                             {
-                                CloseClientSocket(e);
+                                CloseClientSocket(token);
                                 return;
                             }
                         }
                     }
 
-                    if (token.TargetSocket.Connected == false)
+                    if (token.Connection.Connected == false)
                     {
-                        CloseClientSocket(e);
+                        CloseClientSocket(token);
                         return;
                     }
 
-                    if (token.TargetSocket.ReceiveAsync(e) == false)
+                    if (token.Socket.ReceiveAsync(e) == false)
                     {
                         ProcessReceiveTarget(e);
                     }
                 }
                 else
                 {
-                    CloseClientSocket(e);
+                    CloseClientSocket(token);
                 }
             }
             catch (Exception ex)
@@ -370,126 +446,19 @@ namespace cmonitor.plugins.viewer.proxy
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     Logger.Instance.Error(ex);
 
-                CloseClientSocket(e);
+                CloseClientSocket(token);
             }
         }
 
-        private readonly ConcurrentDictionary<ConnectId, Socket> dic = new ConcurrentDictionary<ConnectId, Socket>();
-        private async Task ReadPacketTarget(SocketAsyncEventArgs e, AsyncUserToken token, Memory<byte> data)
+
+        private void CloseClientSocket(AsyncUserToken token)
         {
-            //A 到 B 
-            if (token.Proxy.Direction == ProxyDirection.UnPack)
+            if (token.Connection != null)
             {
-                //是一个完整的包
-                if (token.Buffer.Size == 0 && data.Length > 4)
+                int code = token.Connection.GetHashCode();
+                if (token.Connection.Connected == false)
                 {
-                    int packageLen = data.ToInt32();
-                    if (packageLen == data.Length - 4)
-                    {
-                        token.Proxy.DeBytes(data.Slice(0, packageLen + 4));
-                        await ReadPacketTarget(e, token).ConfigureAwait(false);
-                        return;
-                    }
-                }
-
-                //不是完整包
-                token.Buffer.AddRange(data);
-                do
-                {
-                    int packageLen = token.Buffer.Data.ToInt32();
-                    if (packageLen > token.Buffer.Size - 4)
-                    {
-                        break;
-                    }
-                    token.Proxy.DeBytes(token.Buffer.Data.Slice(0, packageLen + 4));
-                    await ReadPacketTarget(e, token).ConfigureAwait(false);
-
-                    token.Buffer.RemoveRange(0, packageLen + 4);
-                } while (token.Buffer.Size > 4);
-            }
-            else
-            {
-                token.Proxy.Data = data;
-                await SendToSource(e, token).ConfigureAwait(false);
-            }
-        }
-        private async Task ReadPacketTarget(SocketAsyncEventArgs e, AsyncUserToken token)
-        {
-            if (token.Proxy.Step == ProxyStep.Request)
-            {
-                await ConnectBind(e, token).ConfigureAwait(false);
-            }
-            else
-            {
-                await SendToSource(e, token).ConfigureAwait(false);
-            }
-        }
-        private async Task ConnectBind(SocketAsyncEventArgs e, AsyncUserToken token)
-        {
-            Socket socket = new Socket(token.Proxy.TargetEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            socket.KeepAlive();
-            await socket.ConnectAsync(token.Proxy.TargetEP);
-
-            dic.TryAdd(new ConnectId(token.Proxy.ConnectId, token.TargetSocket.GetHashCode()), socket);
-
-            BindReceiveTarget(new AsyncUserToken
-            {
-                TargetSocket = socket,
-                SourceSocket = token.TargetSocket,
-                Proxy = new ProxyInfo
-                {
-                    Direction = ProxyDirection.Pack,
-                    ConnectId = token.Proxy.ConnectId,
-                    Step = ProxyStep.Forward
-                }
-            });
-        }
-        private async Task SendToSource(SocketAsyncEventArgs e, AsyncUserToken token)
-        {
-            if (token.Proxy.Direction == ProxyDirection.UnPack)
-            {
-                ConnectId connectId = new ConnectId(token.Proxy.ConnectId, token.TargetSocket.GetHashCode());
-                if (dic.TryGetValue(connectId, out Socket source))
-                {
-                    try
-                    {
-                        await source.SendAsync(token.Proxy.Data);
-                    }
-                    catch (Exception)
-                    {
-                        CloseClientSocket(e);
-
-                    }
-                }
-            }
-            else
-            {
-                byte[] connectData = token.Proxy.ToBytes(out int length);
-                try
-                {
-                    await token.SourceSocket.SendAsync(connectData.AsMemory(0, length), SocketFlags.None);
-                }
-                catch (Exception)
-                {
-                    CloseClientSocket(e);
-                }
-                finally
-                {
-                    token.Proxy.Return(connectData);
-                }
-            }
-        }
-
-        private void CloseClientSocket(SocketAsyncEventArgs e)
-        {
-            if (e == null) return;
-            AsyncUserToken token = e.UserToken as AsyncUserToken;
-            if (token.TargetSocket != null)
-            {
-                int code = token.TargetSocket.GetHashCode();
-                if (token.TargetSocket.Connected == false)
-                {
-                    foreach (ConnectId item in dic.Keys.Where(c => c.socket == code).ToList())
+                    foreach (ConnectId item in dic.Keys.Where(c => c.hashCode == code).ToList())
                     {
                         dic.TryRemove(item, out _);
                     }
@@ -499,28 +468,36 @@ namespace cmonitor.plugins.viewer.proxy
                     dic.TryRemove(new ConnectId(token.Proxy.ConnectId, code), out _);
                 }
             }
-            if (token.SourceSocket != null)
-            {
-                token.Clear();
-                e.Dispose();
-            }
+            token.Clear();
         }
         public void Stop()
         {
-            CloseClientSocket(acceptEventArg);
+            CloseClientSocket(userToken);
             udpClient?.Close();
         }
 
     }
 
+    public enum ProxyStep : byte
+    {
+        Request = 1,
+        Forward = 2
+    }
+    public record struct ConnectId
+    {
+        public ulong connectId;
+        public int hashCode;
+
+        public ConnectId(ulong connectId, int hashCode)
+        {
+            this.connectId = connectId;
+            this.hashCode = hashCode;
+        }
+    }
     public sealed class ProxyInfo
     {
         public ulong ConnectId { get; set; }
-
         public ProxyStep Step { get; set; } = ProxyStep.Request;
-
-        public ProxyDirection Direction { get; set; } = ProxyDirection.Pack;
-
         public IPEndPoint TargetEP { get; set; }
 
         public Memory<byte> Data { get; set; }
@@ -595,7 +572,6 @@ namespace cmonitor.plugins.viewer.proxy
         }
     }
 
-
     public sealed class AsyncUserUdpToken
     {
         public UdpClient SourceSocket { get; set; }
@@ -606,53 +582,31 @@ namespace cmonitor.plugins.viewer.proxy
         {
             SourceSocket?.Close();
             SourceSocket = null;
-
             GC.Collect();
         }
     }
 
-
     public sealed class AsyncUserToken
     {
-        public Socket SourceSocket { get; set; }
-        public Socket TargetSocket { get; set; }
+        public Socket Socket { get; set; }
+        public ITunnelConnection Connection { get; set; }
 
         public ProxyInfo Proxy { get; set; }
 
         public ReceiveDataBuffer Buffer { get; set; }
 
+        public SocketAsyncEventArgs Saea { get; set; }
+
         public void Clear()
         {
-            SourceSocket?.SafeClose();
-            SourceSocket = null;
+            Socket?.SafeClose();
+            Socket = null;
 
             Buffer?.Clear();
 
+            Saea?.Dispose();
+
             GC.Collect();
-        }
-    }
-
-    public enum ProxyStep : byte
-    {
-        Request = 1,
-        Forward = 2
-    }
-
-    public enum ProxyDirection
-    {
-        Pack = 0,
-        UnPack = 1,
-    }
-
-    public record struct ConnectId
-    {
-        public ulong connectId;
-        public int socket;
-
-        public ConnectId(ulong connectId, int socket)
-        {
-            this.connectId = connectId;
-            this.socket = socket;
         }
     }
 }

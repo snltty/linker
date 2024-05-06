@@ -1,14 +1,16 @@
-﻿using MemoryPack;
+﻿using cmonitor.client.tunnel;
+using MemoryPack;
 using System.Net;
-using System.Net.Sockets;
 
 namespace cmonitor.plugins.relay.transport
 {
     public interface ITransport
     {
         public string Name { get; }
-        public Task<Socket> RelayAsync(RelayInfo relayInfo);
-        public Task<Socket> OnBeginAsync(RelayInfo relayInfo);
+        public TunnelProtocolType ProtocolType { get; }
+
+        public Task<ITunnelConnection> RelayAsync(RelayInfo relayInfo);
+        public Task<ITunnelConnection> OnBeginAsync(RelayInfo relayInfo);
     }
 
     [MemoryPackable]
@@ -25,20 +27,5 @@ namespace cmonitor.plugins.relay.transport
         public IPEndPoint Server { get; set; }
 
 
-    }
-
-    public enum RelayTransportDirection : byte
-    {
-        Forward = 0,
-        Reverse = 1
-    }
-
-    public sealed class RelayTransportState
-    {
-        public RelayInfo Info { get; set; }
-
-        public RelayTransportDirection Direction { get; set; } = RelayTransportDirection.Reverse;
-
-        public Socket Socket { get; set; }
     }
 }

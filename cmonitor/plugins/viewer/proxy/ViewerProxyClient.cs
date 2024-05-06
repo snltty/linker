@@ -1,11 +1,9 @@
 ﻿using cmonitor.client.running;
+using cmonitor.client.tunnel;
 using cmonitor.config;
 using cmonitor.plugins.relay;
-using cmonitor.plugins.relay.transport;
 using cmonitor.plugins.tunnel;
-using cmonitor.plugins.tunnel.transport;
 using common.libs;
-using System.Net.Sockets;
 
 namespace cmonitor.plugins.viewer.proxy
 {
@@ -16,7 +14,7 @@ namespace cmonitor.plugins.viewer.proxy
         private readonly RelayTransfer relayTransfer;
         private readonly Config config;
 
-        private Socket tunnelSocket;
+        private ITunnelConnection connection;
 
         public ViewerProxyClient(RunningConfig runningConfig, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, Config config)
         {
@@ -28,55 +26,27 @@ namespace cmonitor.plugins.viewer.proxy
             Start(0);
             Logger.Instance.Info($"start viewer proxy, port : {LocalEndpoint.Port}");
 
-            Tunnel();
+            tunnelTransfer.SetConnectCallback("viewer", BindConnectionReceive);
+            relayTransfer.SetConnectCallback("viewer", BindConnectionReceive);
         }
 
         protected override async Task Connect(AsyncUserToken token)
         {
             token.Proxy.TargetEP = runningConfig.Data.Viewer.ConnectEP;
-            if (tunnelSocket == null || tunnelSocket.Connected == false)
+            token.Connection = connection;
+            if (connection == null || connection.Connected == false)
             {
-                TunnelTransportState state = await tunnelTransfer.ConnectAsync(runningConfig.Data.Viewer.ServerMachine, "viewer");
-                if (state != null)
+                connection = await tunnelTransfer.ConnectAsync(runningConfig.Data.Viewer.ServerMachine, "viewer");
+                if (connection == null)
                 {
-                    if (state.TransportType == ProtocolType.Tcp)
-                    {
-                        tunnelSocket = state.ConnectedObject as Socket;
-                        token.TargetSocket = tunnelSocket;
-                        BindReceiveTarget(tunnelSocket, token.SourceSocket);
-                        return;
-                    }
+                    connection = await relayTransfer.ConnectAsync(runningConfig.Data.Viewer.ServerMachine, "viewer", config.Data.Client.Relay.SecretKey);
                 }
-
-                RelayTransportState relayState = await relayTransfer.ConnectAsync(runningConfig.Data.Viewer.ServerMachine, "viewer", config.Data.Client.Relay.SecretKey);
-                if (relayState != null)
+                if (connection != null)
                 {
-                    tunnelSocket = relayState.Socket;
-                    token.TargetSocket = tunnelSocket;
-                    BindReceiveTarget(tunnelSocket, token.SourceSocket);
-                    return;
+                    BindConnectionReceive(connection);
+                    token.Connection = connection;
                 }
-
-                tunnelSocket = null;
             }
-        }
-
-        private void Tunnel()
-        {
-            tunnelTransfer.OnConnected += (TunnelTransportState state) =>
-            {
-                if (state != null && state.TransportType == ProtocolType.Tcp && state.TransactionId == "viewer" && state.Direction == TunnelTransportDirection.Reverse)
-                {
-                    BindReceiveTarget(state.ConnectedObject as Socket, null);
-                }
-            };
-            relayTransfer.OnConnected += (RelayTransportState state) =>
-            {
-                if (state != null && state.Info.TransactionId == "viewer" && state.Direction == RelayTransportDirection.Reverse)
-                {
-                    BindReceiveTarget(state.Socket, null);
-                }
-            };
         }
     }
 }

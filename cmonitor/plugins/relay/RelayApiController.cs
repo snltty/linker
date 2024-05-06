@@ -1,9 +1,8 @@
 ﻿using cmonitor.client.api;
+using cmonitor.client.tunnel;
 using cmonitor.config;
-using cmonitor.plugins.relay.transport;
 using common.libs;
 using common.libs.api;
-using common.libs.extends;
 using System.Text;
 
 namespace cmonitor.plugins.relay
@@ -27,17 +26,16 @@ namespace cmonitor.plugins.relay
             {
                 try
                 {
-                    RelayTransportState state = await relayTransfer.ConnectAsync(param.Content, "test", config.Data.Client.Relay.SecretKey);
-                    if (state != null)
+                    ITunnelConnection connection = await relayTransfer.ConnectAsync(param.Content, "test", config.Data.Client.Relay.SecretKey);
+                    if (connection != null)
                     {
-                        var socket = state.Socket;
                         for (int i = 0; i < 10; i++)
                         {
                             Logger.Instance.Debug($"relay [test] send {i}");
-                            socket.Send(Encoding.UTF8.GetBytes($"snltty.relay.{i}"));
+                            await connection.SendAsync(Encoding.UTF8.GetBytes($"snltty.relay.{i}"));
                             await Task.Delay(10);
                         }
-                        socket.SafeClose();
+                        connection.Close();
                     }
                 }
                 catch (Exception ex)
@@ -48,23 +46,21 @@ namespace cmonitor.plugins.relay
         }
         private void RelayTest()
         {
-            relayTransfer.OnConnected += (RelayTransportState state) =>
+            relayTransfer.SetConnectCallback("test", (ITunnelConnection connection) =>
             {
-                if (state.Info.TransactionId == "test")
+                Task.Run(() =>
                 {
-                    Task.Run(() =>
+                    connection.BeginReceive(async (ITunnelConnection connection, Memory<byte> data, object state) =>
                     {
-                        byte[] bytes = new byte[1024];
-                        while (true)
-                        {
-                            int length = state.Socket.Receive(bytes);
-                            if (length == 0) break;
-
-                            Logger.Instance.Debug($"relay [{state.Info.TransactionId}] receive {Encoding.UTF8.GetString(bytes.AsSpan(0,length))}");
-                        }
-                    });
-                }
-            };
+                        Logger.Instance.Debug($"relay [{connection.TransactionId}] receive {Encoding.UTF8.GetString(data.Span)}");
+                        await Task.CompletedTask;
+                    },
+                    async (ITunnelConnection connection, object state) =>
+                    {
+                        await Task.CompletedTask;
+                    }, null);
+                });
+            });
         }
     }
 

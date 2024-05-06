@@ -1,12 +1,9 @@
-﻿using cmonitor.client;
+﻿using cmonitor.client.tunnel;
 using cmonitor.config;
 using cmonitor.plugins.relay.transport;
-using cmonitor.server;
 using common.libs;
-using common.libs.extends;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
-using System.Net.Sockets;
 using System.Reflection;
 
 namespace cmonitor.plugins.relay
@@ -18,7 +15,7 @@ namespace cmonitor.plugins.relay
         private readonly Config config;
         private readonly ServiceProvider serviceProvider;
 
-        public Action<RelayTransportState> OnConnected { get; set; } = (state) => { };
+        private Dictionary<string, Action<ITunnelConnection>> OnConnected { get; } = new Dictionary<string, Action<ITunnelConnection>>();
 
         public RelayTransfer(Config config, ServiceProvider serviceProvider)
         {
@@ -35,7 +32,19 @@ namespace cmonitor.plugins.relay
             Logger.Instance.Warning($"load relay transport:{string.Join(",", transports.Select(c => c.Name))}");
         }
 
-        public async Task<RelayTransportState> ConnectAsync(string remoteMachineName, string transactionId, string secretKey)
+        public void SetConnectCallback(string transactionId, Action<ITunnelConnection> callback)
+        {
+            if (OnConnected.TryGetValue(transactionId, out Action<ITunnelConnection> _callback) == false)
+            {
+                OnConnected[transactionId] = callback;
+            }
+            else
+            {
+                OnConnected[transactionId] += callback;
+            }
+        }
+
+        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineName, string transactionId, string secretKey)
         {
             IEnumerable<ITransport> _transports = transports.OrderBy(c => c.Name);
             foreach (RelayCompactInfo item in config.Data.Client.Relay.Servers.Where(c => c.Disabled == false))
@@ -58,10 +67,10 @@ namespace cmonitor.plugins.relay
                         TransactionId = transactionId,
                         TransportName = transport.Name
                     };
-                    Socket socket = await transport.RelayAsync(relayInfo);
-                    if (socket != null)
+                    ITunnelConnection connection = await transport.RelayAsync(relayInfo);
+                    if (connection != null)
                     {
-                        return new RelayTransportState { Info = relayInfo, Socket = socket, Direction = RelayTransportDirection.Forward };
+                        return connection;
                     }
                 }
                 catch (Exception ex)
@@ -76,10 +85,13 @@ namespace cmonitor.plugins.relay
             ITransport _transports = transports.FirstOrDefault(c => c.Name == relayInfo.TransportName);
             if (_transports != null)
             {
-                Socket socket = await _transports.OnBeginAsync(relayInfo);
-                if (socket != null)
+                ITunnelConnection connection = await _transports.OnBeginAsync(relayInfo);
+                if (connection != null)
                 {
-                    OnConnected(new RelayTransportState { Info = relayInfo, Socket = socket, Direction = RelayTransportDirection.Reverse });
+                    if (OnConnected.TryGetValue(connection.TransactionId, out Action<ITunnelConnection> callback))
+                    {
+                        callback(connection);
+                    }
                     return true;
                 }
             }

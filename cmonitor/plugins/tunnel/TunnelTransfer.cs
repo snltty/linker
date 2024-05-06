@@ -1,4 +1,5 @@
 ﻿using cmonitor.client;
+using cmonitor.client.tunnel;
 using cmonitor.config;
 using cmonitor.plugins.tunnel.compact;
 using cmonitor.plugins.tunnel.messenger;
@@ -8,8 +9,8 @@ using common.libs;
 using common.libs.extends;
 using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
-using System.Net.Sockets;
 using System.Reflection;
+using System.Transactions;
 
 namespace cmonitor.plugins.tunnel
 {
@@ -23,7 +24,7 @@ namespace cmonitor.plugins.tunnel
         private readonly MessengerSender messengerSender;
         private readonly CompactTransfer compactTransfer;
 
-        public Action<TunnelTransportState> OnConnected { get; set; } = (state) => { };
+        private Dictionary<string, Action<ITunnelConnection>> OnConnected { get; } = new Dictionary<string, Action<ITunnelConnection>>();
 
         public TunnelTransfer(Config config, ServiceProvider serviceProvider, ClientSignInState clientSignInState, MessengerSender messengerSender, CompactTransfer compactTransfer)
         {
@@ -53,45 +54,44 @@ namespace cmonitor.plugins.tunnel
             Logger.Instance.Warning($"load tunnel transport:{string.Join(",", transports.Select(c => c.Name))}");
         }
 
-        public async Task<TunnelTransportState> ConnectAsync(string remoteMachineName, string transactionId)
+        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineName, string transactionId)
         {
-            IEnumerable<ITransport> _transports = transports.OrderBy(c => c.Type);
+            IEnumerable<ITransport> _transports = transports.OrderBy(c => c.ProtocolType);
             foreach (ITransport transport in _transports)
             {
                 //获取自己的外网ip
-                TunnelTransportExternalIPInfo localInfo = await GetLocalInfo(transport.Type);
+                TunnelTransportExternalIPInfo localInfo = await GetLocalInfo(transport.ProtocolType);
                 if (localInfo == null)
                 {
                     continue;
                 }
                 //获取对方的外网ip
-                TunnelTransportExternalIPInfo remoteInfo = await GetRemoteInfo(remoteMachineName, transport.Type);
+                TunnelTransportExternalIPInfo remoteInfo = await GetRemoteInfo(remoteMachineName, transport.ProtocolType);
                 if (remoteInfo == null)
                 {
                     continue;
                 }
                 TunnelTransportInfo tunnelTransportInfo = new TunnelTransportInfo
                 {
-                    Direction = TunnelTransportDirection.Forward,
+                    Direction = TunnelDirection.Forward,
                     TransactionId = transactionId,
                     TransportName = transport.Name,
-                    TransportType = transport.Type,
+                    TransportType = transport.ProtocolType,
                     Local = localInfo,
                     Remote = remoteInfo,
                 };
-                TunnelTransportState state = await transport.ConnectAsync(tunnelTransportInfo);
-                if (state != null)
+                ITunnelConnection connection = await transport.ConnectAsync(tunnelTransportInfo);
+                if (connection != null)
                 {
-                    state.Direction = TunnelTransportDirection.Forward;
-                    _OnConnected(state);
-                    return state;
+                    _OnConnected(connection);
+                    return connection;
                 }
             }
             return null;
         }
         public void OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
-            ITransport _transports = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.Type == tunnelTransportInfo.TransportType);
+            ITransport _transports = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
             if (_transports != null)
             {
                 _transports.OnBegin(tunnelTransportInfo);
@@ -99,7 +99,7 @@ namespace cmonitor.plugins.tunnel
         }
         public void OnFail(TunnelTransportInfo tunnelTransportInfo)
         {
-            ITransport _transports = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.Type == tunnelTransportInfo.TransportType);
+            ITransport _transports = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
             if (_transports != null)
             {
                 _transports.OnFail(tunnelTransportInfo);
@@ -111,7 +111,7 @@ namespace cmonitor.plugins.tunnel
             return await GetLocalInfo(request.TransportType);
         }
 
-        private async Task<TunnelTransportExternalIPInfo> GetLocalInfo(ProtocolType transportType)
+        private async Task<TunnelTransportExternalIPInfo> GetLocalInfo(TunnelProtocolType transportType)
         {
             TunnelCompactIPEndPoint[] ips = await compactTransfer.GetExternalIPAsync(transportType);
             if (ips != null && ips.Length > 0)
@@ -126,7 +126,7 @@ namespace cmonitor.plugins.tunnel
             }
             return null;
         }
-        private async Task<TunnelTransportExternalIPInfo> GetRemoteInfo(string remoteMachineName, ProtocolType transportType)
+        private async Task<TunnelTransportExternalIPInfo> GetRemoteInfo(string remoteMachineName, TunnelProtocolType transportType)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
@@ -168,6 +168,19 @@ namespace cmonitor.plugins.tunnel
         }
 
 
+        public void SetConnectCallback(string transactionId, Action<ITunnelConnection> callback)
+        {
+            if (OnConnected.TryGetValue(transactionId, out Action<ITunnelConnection> _callback) == false)
+            {
+                OnConnected[transactionId] = callback;
+            }
+            else
+            {
+                OnConnected[transactionId] += callback;
+            }
+        }
+
+
         public Dictionary<string, TunnelConnectInfo> Connections { get; } = new Dictionary<string, TunnelConnectInfo>();
         private int connectionsChangeFlag = 1;
         public bool ConnectionChanged => Interlocked.CompareExchange(ref connectionsChangeFlag, 0, 1) == 1;
@@ -191,23 +204,27 @@ namespace cmonitor.plugins.tunnel
             info.Status = TunnelConnectStatus.Connecting;
             Interlocked.Exchange(ref connectionsChangeFlag, 1);
         }
-        private void _OnConnected(TunnelTransportState state)
+        private void _OnConnected(ITunnelConnection connection)
         {
             if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
-                Logger.Instance.Debug($"tunnel connect [{state.TransactionId}]->{state.RemoteMachineName} success");
+                Logger.Instance.Debug($"tunnel connect [{connection.TransactionId}]->{connection.RemoteMachineName} success");
             }
-            CheckDic(state.RemoteMachineName, out TunnelConnectInfo info);
+            CheckDic(connection.RemoteMachineName, out TunnelConnectInfo info);
             info.Status = TunnelConnectStatus.Connected;
-            info.State = state;
+            info.Connection = connection;
             Interlocked.Exchange(ref connectionsChangeFlag, 1);
-            OnConnected(state);
+
+            if (OnConnected.TryGetValue(connection.TransactionId, out Action<ITunnelConnection> _callback) == false)
+            {
+                _callback(connection);
+            }
         }
-        private void OnDisConnected(TunnelTransportState state)
+        private void OnDisConnected(ITunnelConnection connection)
         {
-            CheckDic(state.RemoteMachineName, out TunnelConnectInfo info);
+            CheckDic(connection.RemoteMachineName, out TunnelConnectInfo info);
             info.Status = TunnelConnectStatus.None;
-            info.State = null;
+            info.Connection = null;
             Interlocked.Exchange(ref connectionsChangeFlag, 1);
         }
         private void OnConnectFail(string machineName)
@@ -218,7 +235,7 @@ namespace cmonitor.plugins.tunnel
             }
             CheckDic(machineName, out TunnelConnectInfo info);
             info.Status = TunnelConnectStatus.None;
-            info.State = null;
+            info.Connection = null;
             Interlocked.Exchange(ref connectionsChangeFlag, 1);
         }
         private void CheckDic(string name, out TunnelConnectInfo info)
@@ -233,7 +250,7 @@ namespace cmonitor.plugins.tunnel
         public sealed class TunnelConnectInfo
         {
             public TunnelConnectStatus Status { get; set; }
-            public TunnelTransportState State { get; set; }
+            public ITunnelConnection Connection { get; set; }
         }
         public enum TunnelConnectStatus
         {

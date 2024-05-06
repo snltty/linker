@@ -1,14 +1,13 @@
-﻿using MemoryPack;
+﻿using cmonitor.client.tunnel;
+using MemoryPack;
 using System.Net;
-using System.Net.Sockets;
-using System.Text.Json.Serialization;
 
 namespace cmonitor.plugins.tunnel.transport
 {
     public interface ITransport
     {
         public string Name { get; }
-        public ProtocolType Type { get; }
+        public TunnelProtocolType ProtocolType { get; }
 
         /// <summary>
         /// 发送连接信息
@@ -26,11 +25,11 @@ namespace cmonitor.plugins.tunnel.transport
         /// <summary>
         /// 收到连接
         /// </summary>
-        public Action<TunnelTransportState> OnConnected { get; set; }
+        public Action<ITunnelConnection> OnConnected { get; set; }
         /// <summary>
         /// 断开连接
         /// </summary>
-        public Action<TunnelTransportState> OnDisConnected { get; set; }
+        public Action<ITunnelConnection> OnDisConnected { get; set; }
 
         public Action<string> OnConnectFail { get; set; }
 
@@ -39,7 +38,7 @@ namespace cmonitor.plugins.tunnel.transport
         /// </summary>
         /// <param name="tunnelTransportInfo">你的名字</param>
         /// <returns></returns>
-        public Task<TunnelTransportState> ConnectAsync(TunnelTransportInfo tunnelTransportInfo);
+        public Task<ITunnelConnection> ConnectAsync(TunnelTransportInfo tunnelTransportInfo);
         /// <summary>
         /// 收到开始连接
         /// </summary>
@@ -57,7 +56,7 @@ namespace cmonitor.plugins.tunnel.transport
     public sealed partial class TunnelTransportExternalIPRequestInfo
     {
         public string RemoteMachineName { get; set; }
-        public ProtocolType TransportType { get; set; }
+        public TunnelProtocolType TransportType { get; set; }
     }
 
     [MemoryPackable]
@@ -83,43 +82,11 @@ namespace cmonitor.plugins.tunnel.transport
 
         public string TransactionId { get; set; }
 
-        public ProtocolType TransportType { get; set; }
+        public TunnelProtocolType TransportType { get; set; }
         public string TransportName { get; set; }
 
-        public TunnelTransportDirection Direction { get; set; }
+        public TunnelDirection Direction { get; set; }
     }
-
-    public enum TunnelTransportDirection : byte
-    {
-        Forward = 0,
-        Reverse = 1
-    }
-
-    public enum TunnelTransportType
-    {
-        Tcp = ProtocolType.Tcp,
-        Udp = ProtocolType.Udp,
-    }
-
-    public sealed class TunnelTransportState
-    {
-        public string RemoteMachineName { get; set; }
-        public string TransactionId { get; set; }
-        public string TransportName { get; set; }
-        public ProtocolType TransportType { get; set; }
-
-        public TunnelTransportDirection Direction { get; set; } = TunnelTransportDirection.Reverse;
-
-        [JsonIgnore]
-        public object ConnectedObject { get; set; }
-    }
-
-
-    public interface ITunnelConnection
-    {
-        public TunnelTransportType TransportType { get; }
-    }
-
 
 
 }

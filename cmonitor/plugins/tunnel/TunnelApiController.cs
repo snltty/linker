@@ -1,5 +1,6 @@
 ﻿using cmonitor.client;
 using cmonitor.client.api;
+using cmonitor.client.tunnel;
 using cmonitor.config;
 using cmonitor.plugins.signin.messenger;
 using cmonitor.plugins.tunnel.server;
@@ -38,17 +39,16 @@ namespace cmonitor.plugins.tunnel
             {
                 try
                 {
-                    TunnelTransportState state = await tunnelTransfer.ConnectAsync(param.Content, "test");
-                    if (state != null)
+                    ITunnelConnection connection = await tunnelTransfer.ConnectAsync(param.Content, "test");
+                    if (connection != null)
                     {
-                        var socket = state.ConnectedObject as Socket;
                         for (int i = 0; i < 10; i++)
                         {
                             Logger.Instance.Debug($"tunnel [test] send {i}");
-                            socket.Send(BitConverter.GetBytes(i));
+                            await connection.SendAsync(BitConverter.GetBytes(i));
                             await Task.Delay(10);
                         }
-                        socket.SafeClose();
+                        connection.Close();
                     }
                 }
                 catch (Exception ex)
@@ -59,16 +59,17 @@ namespace cmonitor.plugins.tunnel
         }
         private void TunnelTest()
         {
-            tunnelTransfer.OnConnected += (TunnelTransportState state) =>
+            tunnelTransfer.SetConnectCallback("test", (ITunnelConnection connection) =>
             {
-                if (state.TransactionId == "test" && state.TransportType == ProtocolType.Tcp)
-                {
-                    tunnelBindServer.BindReceive(state.ConnectedObject as Socket, null, async (token, data) =>
-                    {
-                        Logger.Instance.Debug($"tunnel [{state.TransactionId}] receive {BitConverter.ToInt32(data.Span)}");
-                    });
-                }
-            };
+                connection.BeginReceive(async (ITunnelConnection connection, Memory<byte> data, object state) => {
+
+                    Logger.Instance.Debug($"tunnel [{connection.TransactionId}] receive {BitConverter.ToInt32(data.Span)}");
+                    await Task.CompletedTask;
+
+                }, async (ITunnelConnection connection, object state) => {
+                    await Task.CompletedTask;
+                }, null);
+            });
         }
     }
 

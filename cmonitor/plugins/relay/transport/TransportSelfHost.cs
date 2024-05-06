@@ -1,4 +1,5 @@
-﻿using cmonitor.plugins.relay.messenger;
+﻿using cmonitor.client.tunnel;
+using cmonitor.plugins.relay.messenger;
 using cmonitor.server;
 using common.libs;
 using common.libs.extends;
@@ -11,6 +12,7 @@ namespace cmonitor.plugins.relay.transport
     public sealed class TransportSelfHost : ITransport
     {
         public string Name => "self";
+        public TunnelProtocolType ProtocolType => TunnelProtocolType.Tcp;
 
         private readonly TcpServer tcpServer;
         private readonly MessengerSender messengerSender;
@@ -22,9 +24,9 @@ namespace cmonitor.plugins.relay.transport
             this.messengerSender = messengerSender;
         }
 
-        public async Task<Socket> RelayAsync(RelayInfo relayInfo)
+        public async Task<ITunnelConnection> RelayAsync(RelayInfo relayInfo)
         {
-            Socket socket = new Socket(relayInfo.Server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            Socket socket = new Socket(relayInfo.Server.AddressFamily, SocketType.Stream,  System.Net.Sockets.ProtocolType.Tcp);
             socket.Reuse(true);
             socket.IPv6Only(relayInfo.Server.AddressFamily, false);
             await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromSeconds(5));
@@ -43,12 +45,21 @@ namespace cmonitor.plugins.relay.transport
             }
             await socket.SendAsync(relayFlagData);
             await Task.Delay(10);
-            return socket;
+            return new TunnelConnectionTcp
+            {
+                Direction = TunnelDirection.Forward,
+                ProtocolType = TunnelProtocolType.Tcp,
+                RemoteMachineName = relayInfo.RemoteMachineName,
+                Socket = socket,
+                TransactionId = relayInfo.TransactionId,
+                TransportName = Name,
+                Type = TunnelType.Relay
+            };
         }
 
-        public async Task<Socket> OnBeginAsync(RelayInfo relayInfo)
+        public async Task<ITunnelConnection> OnBeginAsync(RelayInfo relayInfo)
         {
-            Socket socket = new Socket(relayInfo.Server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            Socket socket = new Socket(relayInfo.Server.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
             socket.Reuse(true);
             socket.IPv6Only(relayInfo.Server.AddressFamily, false);
             await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromSeconds(5));
@@ -67,7 +78,16 @@ namespace cmonitor.plugins.relay.transport
             }
             await socket.SendAsync(relayFlagData);
             await Task.Delay(10);
-            return socket;
+            return new TunnelConnectionTcp
+            {
+                Direction = TunnelDirection.Reverse,
+                ProtocolType = TunnelProtocolType.Tcp,
+                RemoteMachineName = relayInfo.RemoteMachineName,
+                Socket = socket,
+                TransactionId = relayInfo.TransactionId,
+                TransportName = Name,
+                Type = TunnelType.Relay
+            };
         }
     }
 }

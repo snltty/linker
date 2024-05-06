@@ -1,10 +1,11 @@
 ﻿using common.libs.extends;
 using System.Net.Sockets;
+using System.Text.Json.Serialization;
 
 namespace cmonitor.client.tunnel
 {
-    public delegate Task TunnelReceivceCallback(Memory<byte> data, object state);
-    public delegate Task TunnelCloseCallback(object state);
+    public delegate Task TunnelReceivceCallback(ITunnelConnection connection,Memory<byte> data, object state);
+    public delegate Task TunnelCloseCallback(ITunnelConnection connection,object state);
 
     public enum TunnelProtocolType : byte
     {
@@ -57,6 +58,7 @@ namespace cmonitor.client.tunnel
 
         public bool Connected => Socket != null && Socket.Connected;
 
+        [JsonIgnore]
         public Socket Socket { get; init; }
 
 
@@ -101,7 +103,7 @@ namespace cmonitor.client.tunnel
                     int offset = e.Offset;
                     int length = e.BytesTransferred;
 
-                    await receiveCallback(e.Buffer.AsMemory(offset, length), e.UserToken).ConfigureAwait(false);
+                    await receiveCallback(this,e.Buffer.AsMemory(offset, length), e.UserToken).ConfigureAwait(false);
 
                     if (Socket.Available > 0)
                     {
@@ -110,7 +112,7 @@ namespace cmonitor.client.tunnel
                             length = Socket.Receive(e.Buffer);
                             if (length > 0)
                             {
-                                await receiveCallback(e.Buffer.AsMemory(offset, length), e.UserToken).ConfigureAwait(false);
+                                await receiveCallback(this,e.Buffer.AsMemory(offset, length), e.UserToken).ConfigureAwait(false);
                             }
                             else
                             {
@@ -143,7 +145,7 @@ namespace cmonitor.client.tunnel
         }
         private void CloseClientSocket(SocketAsyncEventArgs e)
         {
-            closeCallback(e.UserToken);
+            closeCallback(this,e.UserToken);
             e.Dispose();
             Close();
         }
