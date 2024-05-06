@@ -46,6 +46,7 @@ namespace cmonitor.plugins.viewer.proxy
                     }
                 }
                 RelayTransportState relayState = await relayTransfer.ConnectAsync(runningConfig.Data.Viewer.ServerMachine, "viewer", config.Data.Client.Relay.SecretKey);
+                
                 if (relayState != null)
                 {
                     tunnelSocket = relayState.Socket;
@@ -64,14 +65,14 @@ namespace cmonitor.plugins.viewer.proxy
         {
             tunnelTransfer.OnConnected += (TunnelTransportState state) =>
             {
-                if (state != null && state.TransportType == ProtocolType.Tcp && state.TransactionId == "viewer")
+                if (state != null && state.TransportType == ProtocolType.Tcp && state.TransactionId == "viewer" && state.Direction == TunnelTransportDirection.Reverse)
                 {
                     BindReceiveTarget(state.ConnectedObject as Socket, null);
                 }
             };
             relayTransfer.OnConnected += (RelayTransportState state) =>
             {
-                if (state != null && state.Info.TransactionId == "viewer")
+                if (state != null && state.Info.TransactionId == "viewer" && state.Direction == RelayTransportDirection.Reverse)
                 {
                     BindReceiveTarget(state.Socket, null);
                 }

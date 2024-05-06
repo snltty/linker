@@ -105,6 +105,8 @@ namespace cmonitor.plugins.tunnel.transport
         public string TransportName { get; set; }
         public ProtocolType TransportType { get; set; }
 
+        public TunnelTransportDirection Direction { get; set; } = TunnelTransportDirection.Reverse;
+
         [JsonIgnore]
         public object ConnectedObject { get; set; }
     }

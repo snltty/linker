@@ -30,9 +30,9 @@ namespace cmonitor.plugins.relay.messenger
         private readonly Config config;
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;
-        private readonly ConcurrentDictionary<ulong, TaskCompletionSource<IConnection>> dic = new ConcurrentDictionary<ulong, TaskCompletionSource<IConnection>>();
+        private readonly ConcurrentDictionary<ulong, TcsWrap> dic = new ConcurrentDictionary<ulong, TcsWrap>();
         private ulong flowingId = 0;
-        
+
 
         public RelayServerMessenger(Config config, MessengerSender messengerSender, SignCaching signCaching)
         {
@@ -59,24 +59,24 @@ namespace cmonitor.plugins.relay.messenger
                 }
 
                 info.FlowingId = Interlocked.Increment(ref flowingId);
-                TaskCompletionSource<IConnection> tcs = new TaskCompletionSource<IConnection>();
-                dic.TryAdd(info.FlowingId, tcs);
+                TcsWrap tcsWrap = new TcsWrap { Connection = connection, Tcs = new TaskCompletionSource<IConnection>() };
+                dic.TryAdd(info.FlowingId, tcsWrap);
 
                 try
                 {
-                    MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+                    bool res = await messengerSender.SendOnly(new MessageRequestWrap
                     {
                         Connection = cache.Connection,
                         MessengerId = (ushort)RelayMessengerIds.Relay,
                         Payload = MemoryPackSerializer.Serialize(info)
                     });
-                    if (resp.Code != MessageResponeCodes.OK || resp.Data.Span.SequenceEqual(Helper.TrueArray) == false)
+                    if (res == false)
                     {
                         connection.Write(Helper.FalseArray);
                         return;
                     }
 
-                    IConnection targetConnection = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(3000));
+                    IConnection targetConnection = await tcsWrap.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(3000));
                     connection.TcpTargetSocket = targetConnection.TcpSourceSocket;
                     targetConnection.TcpTargetSocket = connection.TcpSourceSocket;
                     connection.Write(Helper.TrueArray);
@@ -92,9 +92,9 @@ namespace cmonitor.plugins.relay.messenger
             }
             else
             {
-                if (dic.TryRemove(info.FlowingId, out TaskCompletionSource<IConnection> tcs))
+                if (dic.TryRemove(info.FlowingId, out TcsWrap tcsWrap))
                 {
-                    tcs.SetResult(connection);
+                    tcsWrap.Tcs.SetResult(connection);
                     connection.Write(Helper.TrueArray);
                 }
                 else
@@ -103,6 +103,12 @@ namespace cmonitor.plugins.relay.messenger
                 }
                 return;
             }
+        }
+
+        public sealed class TcsWrap
+        {
+            public TaskCompletionSource<IConnection> Tcs { get; set; }
+            public IConnection Connection { get; set; }
         }
     }
 

@@ -38,7 +38,7 @@ namespace cmonitor.plugins.relay
         public async Task<RelayTransportState> ConnectAsync(string remoteMachineName, string transactionId, string secretKey)
         {
             IEnumerable<ITransport> _transports = transports.OrderBy(c => c.Name);
-            foreach (RelayCompactInfo item in config.Data.Client.Relay.Servers.Where(c=>c.Disabled == false))
+            foreach (RelayCompactInfo item in config.Data.Client.Relay.Servers.Where(c => c.Disabled == false))
             {
                 ITransport transport = _transports.FirstOrDefault(c => c.Name == item.Name);
                 if (transport == null)
@@ -61,7 +61,7 @@ namespace cmonitor.plugins.relay
                     Socket socket = await transport.RelayAsync(relayInfo);
                     if (socket != null)
                     {
-                        return new RelayTransportState { Info = relayInfo, Socket = socket };
+                        return new RelayTransportState { Info = relayInfo, Socket = socket, Direction = RelayTransportDirection.Forward };
                     }
                 }
                 catch (Exception ex)
@@ -79,7 +79,7 @@ namespace cmonitor.plugins.relay
                 Socket socket = await _transports.OnBeginAsync(relayInfo);
                 if (socket != null)
                 {
-                    OnConnected(new RelayTransportState { Info = relayInfo, Socket = socket });
+                    OnConnected(new RelayTransportState { Info = relayInfo, Socket = socket, Direction = RelayTransportDirection.Reverse });
                     return true;
                 }
             }

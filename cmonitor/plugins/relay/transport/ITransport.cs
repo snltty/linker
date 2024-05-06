@@ -29,9 +29,17 @@ namespace cmonitor.plugins.relay.transport
 
     }
 
+    public enum RelayTransportDirection : byte
+    {
+        Forward = 0,
+        Reverse = 1
+    }
+
     public sealed class RelayTransportState
     {
         public RelayInfo Info { get; set; }
+
+        public RelayTransportDirection Direction { get; set; } = RelayTransportDirection.Reverse;
 
         public Socket Socket { get; set; }
     }

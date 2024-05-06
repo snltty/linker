@@ -14,7 +14,7 @@ namespace cmonitor.server
         private Socket socket;
         private UdpClient socketUdp;
         private CancellationTokenSource cancellationTokenSource;
-        private Memory<byte> relayFLagData = Encoding.UTF8.GetBytes("snltty.relay");
+        private Memory<byte> relayFLagCData = Encoding.UTF8.GetBytes("snltty.relay");
 
         public Func<IConnection, Task> OnPacket { get; set; } = async (connection) => { await Task.CompletedTask; };
         public Action<int> OnDisconnected { get; set; }
@@ -185,7 +185,10 @@ namespace cmonitor.server
                     int length = e.BytesTransferred;
 
                     bool res = await ReadPacket(token, e.Buffer, offset, length);
-                    if (res == false) return;
+                    if (res == false)
+                    {
+                        return;
+                    }
 
                     if (token.Socket.Available > 0)
                     {
@@ -195,7 +198,10 @@ namespace cmonitor.server
                             if (length > 0)
                             {
                                 res = await ReadPacket(token, e.Buffer, 0, length);
-                                if (res == false) return;
+                                if (res == false)
+                                {
+                                    return;
+                                }
                             }
                             else
                             {
@@ -240,7 +246,7 @@ namespace cmonitor.server
                 await token.Connection.TcpTargetSocket.SendAsync(data.AsMemory(offset, length), SocketFlags.None);
                 return true;
             }
-            else if (length == relayFLagData.Length && data.AsSpan(offset, length).SequenceEqual(relayFLagData.Span))
+            else if (length == relayFLagCData.Length && data.AsSpan(offset, relayFLagCData.Length).SequenceEqual(relayFLagCData.Span))
             {
                 return false;
             }

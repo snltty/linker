@@ -82,6 +82,7 @@ namespace cmonitor.plugins.tunnel
                 TunnelTransportState state = await transport.ConnectAsync(tunnelTransportInfo);
                 if (state != null)
                 {
+                    state.Direction = TunnelTransportDirection.Forward;
                     _OnConnected(state);
                     return state;
                 }
