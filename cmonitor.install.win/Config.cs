@@ -180,10 +180,6 @@ namespace cmonitor.install.win
 {
     public sealed class ViewerConfigInfo
     {
-        [JsonIgnore]
-        public const string userNameKey = "viewer-username";
-
-        public int ProxyPort { get; set; } = 1803;
     }
 
     public sealed partial class ConfigClientInfo

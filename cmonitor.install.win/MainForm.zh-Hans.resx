@@ -119,165 +119,239 @@
   </resheader>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="serverIP.Location" type="System.Drawing.Point, System.Drawing">
-    <value>93, 52</value>
+    <value>186, 95</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="serverIP.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 5, 6, 5</value>
+  </data>
+  <data name="serverIP.Size" type="System.Drawing.Size, System.Drawing">
+    <value>196, 38</value>
   </data>
   <data name="label1.Location" type="System.Drawing.Point, System.Drawing">
-    <value>17, 55</value>
+    <value>34, 100</value>
+  </data>
+  <data name="label1.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 0, 6, 0</value>
   </data>
   <data name="label1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>68, 17</value>
+    <value>134, 31</value>
   </data>
   <data name="label1.Text" xml:space="preserve">
     <value>服务端地址</value>
   </data>
   <data name="label2.Location" type="System.Drawing.Point, System.Drawing">
-    <value>17, 80</value>
+    <value>34, 146</value>
+  </data>
+  <data name="label2.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 0, 6, 0</value>
   </data>
   <data name="label2.Size" type="System.Drawing.Size, System.Drawing">
-    <value>56, 17</value>
+    <value>110, 31</value>
   </data>
   <data name="label2.Text" xml:space="preserve">
     <value>服务端口</value>
   </data>
   <data name="serverPort.Location" type="System.Drawing.Point, System.Drawing">
-    <value>79, 77</value>
+    <value>158, 140</value>
+  </data>
+  <data name="serverPort.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 5, 6, 5</value>
+  </data>
+  <data name="serverPort.Size" type="System.Drawing.Size, System.Drawing">
+    <value>196, 38</value>
   </data>
   <data name="label3.Location" type="System.Drawing.Point, System.Drawing">
-    <value>17, 28</value>
+    <value>34, 51</value>
+  </data>
+  <data name="label3.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 0, 6, 0</value>
+  </data>
+  <data name="label3.Size" type="System.Drawing.Size, System.Drawing">
+    <value>110, 31</value>
   </data>
   <data name="webPort.Location" type="System.Drawing.Point, System.Drawing">
-    <value>79, 24</value>
+    <value>158, 44</value>
+  </data>
+  <data name="webPort.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 5, 6, 5</value>
+  </data>
+  <data name="webPort.Size" type="System.Drawing.Size, System.Drawing">
+    <value>196, 38</value>
   </data>
   <data name="label4.Location" type="System.Drawing.Point, System.Drawing">
-    <value>17, 54</value>
+    <value>34, 98</value>
+  </data>
+  <data name="label4.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 0, 6, 0</value>
   </data>
   <data name="label4.Size" type="System.Drawing.Size, System.Drawing">
-    <value>56, 17</value>
+    <value>110, 31</value>
   </data>
   <data name="label4.Text" xml:space="preserve">
     <value>管理端口</value>
   </data>
   <data name="apiPort.Location" type="System.Drawing.Point, System.Drawing">
-    <value>79, 51</value>
+    <value>158, 93</value>
+  </data>
+  <data name="apiPort.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 5, 6, 5</value>
+  </data>
+  <data name="apiPort.Size" type="System.Drawing.Size, System.Drawing">
+    <value>196, 38</value>
   </data>
   <data name="modeClient.Location" type="System.Drawing.Point, System.Drawing">
-    <value>105, 45</value>
+    <value>210, 39</value>
+  </data>
+  <data name="modeClient.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 5, 6, 5</value>
+  </data>
+  <data name="modeClient.Size" type="System.Drawing.Size, System.Drawing">
+    <value>118, 35</value>
   </data>
   <data name="modeServer.Location" type="System.Drawing.Point, System.Drawing">
-    <value>298, 45</value>
+    <value>596, 39</value>
+  </data>
+  <data name="modeServer.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 5, 6, 5</value>
+  </data>
+  <data name="modeServer.Size" type="System.Drawing.Size, System.Drawing">
+    <value>118, 35</value>
   </data>
   <data name="label5.Location" type="System.Drawing.Point, System.Drawing">
-    <value>19, 150</value>
+    <value>38, 274</value>
+  </data>
+  <data name="label5.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 0, 6, 0</value>
+  </data>
+  <data name="label5.Size" type="System.Drawing.Size, System.Drawing">
+    <value>110, 31</value>
   </data>
   <data name="shareLen.Location" type="System.Drawing.Point, System.Drawing">
-    <value>93, 147</value>
+    <value>186, 268</value>
+  </data>
+  <data name="shareLen.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 5, 6, 5</value>
+  </data>
+  <data name="shareLen.Size" type="System.Drawing.Size, System.Drawing">
+    <value>196, 38</value>
   </data>
   <data name="label6.Location" type="System.Drawing.Point, System.Drawing">
-    <value>14, 124</value>
+    <value>28, 226</value>
+  </data>
+  <data name="label6.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 0, 6, 0</value>
+  </data>
+  <data name="label6.Size" type="System.Drawing.Size, System.Drawing">
+    <value>134, 31</value>
   </data>
   <data name="shareKey.Location" type="System.Drawing.Point, System.Drawing">
-    <value>93, 120</value>
+    <value>186, 219</value>
+  </data>
+  <data name="shareKey.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 5, 6, 5</value>
+  </data>
+  <data name="shareKey.Size" type="System.Drawing.Size, System.Drawing">
+    <value>196, 38</value>
   </data>
   <data name="label11.Location" type="System.Drawing.Point, System.Drawing">
-    <value>26, 29</value>
+    <value>52, 53</value>
+  </data>
+  <data name="label11.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 0, 6, 0</value>
+  </data>
+  <data name="label11.Size" type="System.Drawing.Size, System.Drawing">
+    <value>86, 31</value>
   </data>
   <data name="machineName.Location" type="System.Drawing.Point, System.Drawing">
-    <value>93, 25</value>
+    <value>186, 46</value>
+  </data>
+  <data name="machineName.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 5, 6, 5</value>
+  </data>
+  <data name="machineName.Size" type="System.Drawing.Size, System.Drawing">
+    <value>196, 38</value>
   </data>
   <data name="installBtn.Location" type="System.Drawing.Point, System.Drawing">
-    <value>175, 299</value>
+    <value>350, 502</value>
+  </data>
+  <data name="installBtn.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 5, 6, 5</value>
+  </data>
+  <data name="installBtn.Size" type="System.Drawing.Size, System.Drawing">
+    <value>162, 64</value>
   </data>
   <data name="runBtn.Location" type="System.Drawing.Point, System.Drawing">
-    <value>88, 299</value>
+    <value>176, 502</value>
+  </data>
+  <data name="runBtn.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 5, 6, 5</value>
+  </data>
+  <data name="runBtn.Size" type="System.Drawing.Size, System.Drawing">
+    <value>162, 64</value>
   </data>
   <data name="checkStateBtn.Location" type="System.Drawing.Point, System.Drawing">
-    <value>305, 305</value>
+    <value>610, 513</value>
+  </data>
+  <data name="checkStateBtn.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 5, 6, 5</value>
+  </data>
+  <data name="checkStateBtn.Size" type="System.Drawing.Size, System.Drawing">
+    <value>150, 42</value>
   </data>
   <data name="label16.Location" type="System.Drawing.Point, System.Drawing">
-    <value>7, 179</value>
+    <value>14, 326</value>
+  </data>
+  <data name="label16.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 0, 6, 0</value>
+  </data>
+  <data name="label16.Size" type="System.Drawing.Size, System.Drawing">
+    <value>158, 31</value>
   </data>
   <data name="shareItemLen.Location" type="System.Drawing.Point, System.Drawing">
-    <value>93, 176</value>
+    <value>186, 321</value>
+  </data>
+  <data name="shareItemLen.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 5, 6, 5</value>
+  </data>
+  <data name="shareItemLen.Size" type="System.Drawing.Size, System.Drawing">
+    <value>196, 38</value>
   </data>
   <data name="gbClient.Location" type="System.Drawing.Point, System.Drawing">
-    <value>12, 72</value>
+    <value>24, 88</value>
+  </data>
+  <data name="gbClient.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 5, 6, 5</value>
+  </data>
+  <data name="gbClient.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 5, 6, 5</value>
   </data>
   <data name="gbClient.Size" type="System.Drawing.Size, System.Drawing">
-    <value>200, 212</value>
+    <value>400, 387</value>
   </data>
   <data name="gbClient.Text" xml:space="preserve">
     <value>客户端参数</value>
   </data>
   <data name="gbServer.Location" type="System.Drawing.Point, System.Drawing">
-    <value>219, 73</value>
+    <value>438, 90</value>
+  </data>
+  <data name="gbServer.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 5, 6, 5</value>
+  </data>
+  <data name="gbServer.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 5, 6, 5</value>
   </data>
   <data name="gbServer.Size" type="System.Drawing.Size, System.Drawing">
-    <value>187, 211</value>
+    <value>374, 385</value>
   </data>
   <data name="gbServer.Text" xml:space="preserve">
     <value>服务端参数</value>
   </data>
-  <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="cbBlueProtect.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
-  </data>
-  <data name="cbBlueProtect.Size" type="System.Drawing.Size, System.Drawing">
-    <value>111, 21</value>
-  </data>
-  <data name="cbBlueProtect.Text" xml:space="preserve">
-    <value>异常关闭则蓝屏</value>
-  </data>
-  <data name="tbViewerPortClient.Location" type="System.Drawing.Point, System.Drawing">
-    <value>93, 80</value>
-  </data>
-  <data name="tbViewerPortClient.Size" type="System.Drawing.Size, System.Drawing">
-    <value>100, 23</value>
-  </data>
-  <data name="tbViewerPortClient.TabIndex" type="System.Int32, mscorlib">
-    <value>37</value>
-  </data>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="label7.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
-    <value>NoControl</value>
-  </data>
-  <data name="label7.Location" type="System.Drawing.Point, System.Drawing">
-    <value>11, 83</value>
-  </data>
-  <data name="label7.Size" type="System.Drawing.Size, System.Drawing">
-    <value>80, 17</value>
-  </data>
-  <data name="label7.TabIndex" type="System.Int32, mscorlib">
-    <value>38</value>
-  </data>
-  <data name="label7.Text" xml:space="preserve">
-    <value>共享桌面端口</value>
-  </data>
-  <data name="tbViewerPortServer.Location" type="System.Drawing.Point, System.Drawing">
-    <value>79, 104</value>
-  </data>
-  <data name="tbViewerPortServer.Size" type="System.Drawing.Size, System.Drawing">
-    <value>100, 23</value>
-  </data>
-  <data name="tbViewerPortServer.TabIndex" type="System.Int32, mscorlib">
-    <value>39</value>
-  </data>
-  <data name="label8.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
-    <value>NoControl</value>
-  </data>
-  <data name="label8.Location" type="System.Drawing.Point, System.Drawing">
-    <value>-3, 107</value>
-  </data>
-  <data name="label8.Size" type="System.Drawing.Size, System.Drawing">
-    <value>80, 17</value>
-  </data>
-  <data name="label8.TabIndex" type="System.Int32, mscorlib">
-    <value>40</value>
-  </data>
-  <data name="label8.Text" xml:space="preserve">
-    <value>共享桌面端口</value>
+  <data name="$this.AutoScaleDimensions" type="System.Drawing.SizeF, System.Drawing">
+    <value>14, 31</value>
   </data>
   <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing">
-    <value>418, 346</value>
+    <value>836, 601</value>
   </data>
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
@@ -557,5 +631,8 @@
         nGpF2SCsLTZQJasdqLm3s/Gvo3GzowZ4XePW/HUVglIk1ainfNOTvgETDZixI4EnA30jNd7QAqCvkX3x
         lbj4VzZ7T6Ce2eKyfeTF92Tj/y+1yov7XH58jUaj0Wg0Gk2v5P8D5M/bzdE8cNIAAAAASUVORK5CYII=
 </value>
+  </data>
+  <data name="$this.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 5, 6, 5</value>
   </data>
 </root>

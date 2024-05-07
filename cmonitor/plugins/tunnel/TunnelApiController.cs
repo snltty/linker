@@ -29,10 +29,6 @@ namespace cmonitor.plugins.tunnel
             TunnelTest();
         }
 
-        public Dictionary<string, TunnelConnectInfo> Connections(ApiControllerParamsInfo param)
-        {
-            return tunnelTransfer.Connections;
-        }
         public void Connect(ApiControllerParamsInfo param)
         {
             Task.Run(async () =>
@@ -49,6 +45,10 @@ namespace cmonitor.plugins.tunnel
                             await Task.Delay(10);
                         }
                         connection.Close();
+                    }
+                    else
+                    {
+                        Logger.Instance.Error($"tunnel {param.Content} fail");
                     }
                 }
                 catch (Exception ex)

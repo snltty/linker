@@ -18,6 +18,10 @@ namespace cmonitor.plugins.signin.messenger
         {
             this.configDataProvider = configDataProvider;
             config = configDataProvider.Load().Result ?? new SignCacheFileInfo();
+            foreach (var item in config.Clients.Values)
+            {
+                item.Connected = false;
+            }
             SaveConfig();
         }
 

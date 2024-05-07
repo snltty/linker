@@ -15,7 +15,7 @@ namespace cmonitor.plugins.snatch.report
         public void StartUp(SnatchQuestionInfo snatchQuestionInfo)
         {
             CommandHelper.Windows(string.Empty, new string[] {
-                        $"start cmonitor.snatch.win.exe {config.Data.Client.ShareMemoryKey} {config.Data.Client.ShareMemoryCount} {config.Data.Client.ShareMemorySize} {(int)ShareMemoryIndexs.SnatchQuestion} {(int)ShareMemoryIndexs.SnatchAnswer}"
+                        $"start ./plugins/snatch/cmonitor.snatch.win.exe {config.Data.Client.ShareMemoryKey} {config.Data.Client.ShareMemoryCount} {config.Data.Client.ShareMemorySize} {(int)ShareMemoryIndexs.SnatchQuestion} {(int)ShareMemoryIndexs.SnatchAnswer}"
                     },false);
         }
     }

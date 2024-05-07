@@ -18,7 +18,6 @@ namespace cmonitor.plugins.tunnel.transport
         public Action<TunnelTransportInfo> OnConnectBegin { get; set; } = (info) => { };
         public Action<TunnelTransportInfo> OnConnecting { get; set; }
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
-        public Action<ITunnelConnection> OnDisConnected { get; set; } = (state) => { };
         public Action<string> OnConnectFail { get; set; } = (machineName) => { };
 
 

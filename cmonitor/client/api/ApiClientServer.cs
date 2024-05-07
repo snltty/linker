@@ -53,7 +53,7 @@ namespace cmonitor.client.api
                 }
                 Logger.Instance.Warning($"load client api:{item.Name}");
 
-                string path = item.Name.Replace("ApiController", "");
+                string path = item.Name.Replace("ApiController", "").Replace("ApiController", "");
                 foreach (MethodInfo method in item.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
                 {
                     string key = $"{path}/{method.Name}".ToLower();

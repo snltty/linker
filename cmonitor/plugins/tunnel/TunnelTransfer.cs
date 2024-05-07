@@ -10,7 +10,6 @@ using common.libs.extends;
 using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using System.Transactions;
 
 namespace cmonitor.plugins.tunnel
 {
@@ -47,7 +46,6 @@ namespace cmonitor.plugins.tunnel
                 item.OnConnectBegin = OnConnectBegin;
                 item.OnConnecting = OnConnecting;
                 item.OnConnected = _OnConnected;
-                item.OnDisConnected = OnDisConnected;
                 item.OnConnectFail = OnConnectFail;
             }
 
@@ -181,82 +179,29 @@ namespace cmonitor.plugins.tunnel
         }
 
 
-        public Dictionary<string, TunnelConnectInfo> Connections { get; } = new Dictionary<string, TunnelConnectInfo>();
-        private int connectionsChangeFlag = 1;
-        public bool ConnectionChanged => Interlocked.CompareExchange(ref connectionsChangeFlag, 0, 1) == 1;
         private void OnConnecting(TunnelTransportInfo tunnelTransportInfo)
         {
-            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            {
-                Logger.Instance.Debug($"tunnel connect [{tunnelTransportInfo.TransactionId}]->{tunnelTransportInfo.Remote.MachineName}");
-            }
-            CheckDic(tunnelTransportInfo.Remote.MachineName, out TunnelConnectInfo info);
-            info.Status = TunnelConnectStatus.Connecting;
-            Interlocked.Exchange(ref connectionsChangeFlag, 1);
+            Logger.Instance.Debug($"tunnel connecting {tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
         }
         private void OnConnectBegin(TunnelTransportInfo tunnelTransportInfo)
         {
-            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            {
-                Logger.Instance.Debug($"tunnel connect from {tunnelTransportInfo.Remote.MachineName}->{tunnelTransportInfo.ToJson()}");
-            }
-            CheckDic(tunnelTransportInfo.Remote.MachineName, out TunnelConnectInfo info);
-            info.Status = TunnelConnectStatus.Connecting;
-            Interlocked.Exchange(ref connectionsChangeFlag, 1);
+            Logger.Instance.Debug($"tunnel connecting from {tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
         }
         private void _OnConnected(ITunnelConnection connection)
         {
-            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            {
-                Logger.Instance.Debug($"tunnel connect [{connection.TransactionId}]->{connection.RemoteMachineName} success");
-            }
-            CheckDic(connection.RemoteMachineName, out TunnelConnectInfo info);
-            info.Status = TunnelConnectStatus.Connected;
-            info.Connection = connection;
-            Interlocked.Exchange(ref connectionsChangeFlag, 1);
-
-            if (OnConnected.TryGetValue(connection.TransactionId, out Action<ITunnelConnection> _callback) == false)
+            Logger.Instance.Debug($"tunnel connect {connection.RemoteMachineName} success");
+            if (OnConnected.TryGetValue(connection.TransactionId, out Action<ITunnelConnection> _callback))
             {
                 _callback(connection);
             }
         }
-        private void OnDisConnected(ITunnelConnection connection)
+        public void OnDisConnected(ITunnelConnection connection)
         {
-            CheckDic(connection.RemoteMachineName, out TunnelConnectInfo info);
-            info.Status = TunnelConnectStatus.None;
-            info.Connection = null;
-            Interlocked.Exchange(ref connectionsChangeFlag, 1);
+
         }
         private void OnConnectFail(string machineName)
         {
-            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            {
-                Logger.Instance.Error($"tunnel connect {machineName} fail");
-            }
-            CheckDic(machineName, out TunnelConnectInfo info);
-            info.Status = TunnelConnectStatus.None;
-            info.Connection = null;
-            Interlocked.Exchange(ref connectionsChangeFlag, 1);
-        }
-        private void CheckDic(string name, out TunnelConnectInfo info)
-        {
-            if (Connections.TryGetValue(name, out info) == false)
-            {
-                info = new TunnelConnectInfo();
-                Connections[name] = info;
-            }
-        }
-
-        public sealed class TunnelConnectInfo
-        {
-            public TunnelConnectStatus Status { get; set; }
-            public ITunnelConnection Connection { get; set; }
-        }
-        public enum TunnelConnectStatus
-        {
-            None = 0,
-            Connecting = 1,
-            Connected = 2,
+            Logger.Instance.Error($"tunnel connect {machineName} fail");
         }
     }
 }

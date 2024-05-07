@@ -1,14 +1,15 @@
 ﻿using System;
+using System.IO;
 
 namespace common.libs
 {
     public static class FireWallHelper
     {
-        public static void Write(string fileName)
+        public static void Write(string fileName, string distPatt)
         {
             if (OperatingSystem.IsWindows())
             {
-                Windows(fileName);
+                Windows(fileName, distPatt);
             }
             else if (OperatingSystem.IsLinux())
             {
@@ -29,7 +30,7 @@ namespace common.libs
             });
         }
 
-        private static void Windows(string fileName)
+        private static void Windows(string fileName,string distPatth)
         {
             try
             {
@@ -51,9 +52,15 @@ cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=all
 cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=tcp enable=yes profile=private
 cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=udp enable=yes profile=private
 :end";
-                System.IO.File.WriteAllText("firewall.bat", content);
-                CommandHelper.Execute("firewall.bat", string.Empty, new string[0]);
-                System.IO.File.Delete("firewall.bat");
+                if(Directory.Exists(distPatth) == false)
+                {
+                    Directory.CreateDirectory(distPatth);
+                }
+                string firewall = Path.Join(distPatth, "firewall.bat");
+
+                System.IO.File.WriteAllText(firewall, content);
+                CommandHelper.Execute(firewall, string.Empty, new string[0]);
+                System.IO.File.Delete(firewall);
             }
             catch (Exception)
             {

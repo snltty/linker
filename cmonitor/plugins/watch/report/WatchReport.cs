@@ -1,5 +1,6 @@
 ﻿using cmonitor.client.report;
 using cmonitor.config;
+using common.libs;
 
 namespace cmonitor.plugins.watch.report
 {
@@ -12,6 +13,7 @@ namespace cmonitor.plugins.watch.report
 #if RELEASE
         OpenFiles();        
 #endif
+            OpenFiles();
         }
 
         public object GetReports(ReportType reportType)
@@ -27,10 +29,31 @@ namespace cmonitor.plugins.watch.report
                 try
                 {
                     fss.Add(new FileStream(item, FileMode.Open, FileAccess.Read, FileShare.Read));
+                    Logger.Instance.Warning($"watch file {item}");
                 }
                 catch (Exception)
                 {
                 }
+            }
+            OpenFiles("./plugins");
+        }
+
+        private void OpenFiles(string path)
+        {
+            foreach (var item in Directory.GetFiles(path))
+            {
+                try
+                {
+                    fss.Add(new FileStream(item, FileMode.Open, FileAccess.Read, FileShare.Read));
+                    Logger.Instance.Warning($"watch file {item}");
+                }
+                catch (Exception)
+                {
+                }
+            }
+            foreach (var item in Directory.GetDirectories(path))
+            {
+                OpenFiles(item);
             }
         }
     }

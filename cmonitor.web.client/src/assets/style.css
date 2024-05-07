@@ -87,6 +87,10 @@ a {
     margin-right: 1rem;
 }
 
+.m-l-1 {
+    margin-left: 1rem;
+}
+
 table {
     border-spacing: 0;
     border-collapse: collapse;

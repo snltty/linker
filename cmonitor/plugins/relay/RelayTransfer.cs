@@ -2,6 +2,7 @@
 using cmonitor.config;
 using cmonitor.plugins.relay.transport;
 using common.libs;
+using common.libs.extends;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Reflection;
@@ -67,10 +68,15 @@ namespace cmonitor.plugins.relay
                         TransactionId = transactionId,
                         TransportName = transport.Name
                     };
+                    Logger.Instance.Debug($"relay to {relayInfo.RemoteMachineName} {relayInfo.ToJson()}");
                     ITunnelConnection connection = await transport.RelayAsync(relayInfo);
                     if (connection != null)
                     {
                         return connection;
+                    }
+                    else
+                    {
+                        Logger.Instance.Error($"relay to {relayInfo.RemoteMachineName} fail,{relayInfo.ToJson()}");
                     }
                 }
                 catch (Exception ex)

@@ -3,17 +3,15 @@ using cmonitor.startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace cmonitor.plugins.firewall
+namespace cmonitor.plugins.viewer
 {
-    public sealed class FireWallStartup : IStartup
+    public sealed class TuntapStartup : IStartup
     {
-        public StartupLevel Level => StartupLevel.Hight9;
+        public StartupLevel Level => StartupLevel.Normal;
 
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
-#if RELEASE
-            common.libs.FireWallHelper.Write(Path.GetFileNameWithoutExtension(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName), "./plugins/firewall");
-#endif
+
         }
 
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)

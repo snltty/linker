@@ -6,10 +6,13 @@
                     <img src="../assets/logo.png" alt="">
                 </router-link>
             </div>
-            <div class="menu">
-                <ul class="flex-1">
+            <div class="menu flex-1">
+                <ul class="flex">
                     <li>
                         <router-link :to="{name:'Index'}">首页</router-link>
+                    </li>
+                    <li>
+                        <router-link :to="{name:'Logger'}">日志</router-link>
                     </li>
                 </ul>
             </div>
@@ -21,7 +24,7 @@
                    接口 : <el-input v-model="state.api" style="width:70%"></el-input>
                 </div>
                 <div class="pdt-10">
-                   秘钥 : <el-input type="password" v-model="state.apipsd" style="width:70%"></el-input>
+                   秘钥 : <el-input type="password" v-model="state.psd" style="width:70%"></el-input>
                 </div>
             </div>
             <template #footer>
@@ -35,44 +38,41 @@
 import { computed, onMounted, reactive, watch } from 'vue';
 import { initWebsocket, subWebsocketState } from '../apis/request'
 import { getConfig,getSignInfo } from '../apis/signin'
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { injectGlobalData } from '../provide';
 export default {
     setup() {
 
         const globalData = injectGlobalData();
         const route = useRoute();
+        const router = useRouter();
 
+        const queryCache = JSON.parse(localStorage.getItem('api-cache') || JSON.stringify({api:`${window.location.hostname}:1805`,psd:'snltty',groupid:'snltty'}));
         const state = reactive({
-            api: route.query.api ? `${window.location.hostname}:${route.query.api}` : (localStorage.getItem('api') || `${window.location.hostname}:1805`),
-            apipsd: route.query.apipsd ? `${route.query.apipsd}` : (localStorage.getItem('apipsd') || `snltty`),
-            groupid: route.query.groupid ? `${route.query.groupid}` : (localStorage.getItem('groupid') || `snltty`),
+            api:queryCache.api,
+            psd:queryCache.psd,
+            groupid: queryCache.groupid,
             showPort: false
         });
-        localStorage.setItem('api', state.api);
-        localStorage.setItem('apipsd', state.apipsd);
-        localStorage.setItem('groupid', state.groupid);
-        globalData.value.groupid = state.groupid;
         const showPort = computed(() => globalData.value.connected == false && state.showPort);
 
         const handleConnect = () => {
-            initWebsocket(`ws://${state.api}`,state.apipsd);
-            localStorage.setItem('api', state.api);
-            localStorage.setItem('apipsd', state.apipsd);
-            localStorage.setItem('groupid', state.groupid);
             globalData.value.groupid = state.groupid;
+            queryCache.api = state.api;
+            queryCache.psd = state.psd;
+            queryCache.groupid = state.groupid;
+            localStorage.setItem('api-cache',JSON.stringify(queryCache));
+            initWebsocket(`ws://${state.api}`,state.psd);
         }
 
         const _getConfig = ()=>{
             getConfig().then((res)=>{
-                console.log(res);
                 globalData.value.config.Common = res.Data.Common;
                 globalData.value.config.Client = res.Data.Client;
                 setTimeout(()=>{
                     _getConfig();
                 },1000);
             }).catch((err)=>{
-                console.log(err);
                 setTimeout(()=>{
                     _getConfig();
                 },1000);
@@ -93,11 +93,17 @@ export default {
         }
 
         onMounted(() => {
-            _getConfig();
-            _getSignInfoInfo();
-            handleConnect();
             setTimeout(() => { state.showPort = true; }, 100);
-            subWebsocketState((state) => { if (state) globalData.value.updateFlag = Date.now(); });
+            subWebsocketState((state) => { if (state) {
+                _getConfig();
+                _getSignInfoInfo();
+            }});
+            router.isReady().then(()=>{
+                state.api = route.query.api ?`${window.location.hostname}:${route.query.api}` :  state.api;
+                state.psd = route.query.psd || state.psd;
+                state.groupid = route.query.groupid || state.groupid;
+                handleConnect();
+            });
         });
 
         return {
@@ -120,7 +126,7 @@ export default {
     }
     .menu{
         padding-left:1rem;font-size:1.4rem;
-        li{box-sizing:border-box;padding:.5rem 0;margin-right:.5rem}
+        li{box-sizing:border-box;padding:.5rem 0;margin-right:.5rem;}
         a{
             display:block;
             color:#333;

@@ -67,7 +67,7 @@ namespace cmonitor.client.tunnel
 
         public void BeginReceive(TunnelReceivceCallback receiveCallback, TunnelCloseCallback closeCallback, object userToken)
         {
-            if (receiveCallback != null) return;
+            if (this.receiveCallback != null) return;
 
             this.receiveCallback = receiveCallback;
             this.closeCallback = closeCallback;
@@ -162,4 +162,6 @@ namespace cmonitor.client.tunnel
             Socket?.SafeClose();
         }
     }
+
+
 }

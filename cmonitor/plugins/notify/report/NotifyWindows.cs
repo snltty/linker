@@ -8,11 +8,11 @@ namespace cmonitor.plugins.notify.report
         {
             AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
             {
-                CommandHelper.Windows(string.Empty, new string[] { "taskkill /f /im \"notify.win.exe\"" }, true);
+                CommandHelper.Windows(string.Empty, new string[] { "taskkill /f /im \"cmonitor.notify.win.exe\"" }, true);
             };
             Console.CancelKeyPress += (sender, e) =>
             {
-                CommandHelper.Windows(string.Empty, new string[] { "taskkill /f /im \"notify.win.exe\"" }, true);
+                CommandHelper.Windows(string.Empty, new string[] { "taskkill /f /im \"cmonitor.notify.win.exe\"" }, true);
             };
         }
         public void Update(NotifyInfo notify)
@@ -20,7 +20,7 @@ namespace cmonitor.plugins.notify.report
             Task.Run(() =>
             {
                 CommandHelper.Windows(string.Empty, new string[] {
-                        $"start cmonitor.notify.win.exe {notify.Speed} \"{notify.Msg}\" {notify.Star1} {notify.Star2} {notify.Star3}"
+                        $"start ./plugins/notify/cmonitor.notify.win.exe {notify.Speed} \"{notify.Msg}\" {notify.Star1} {notify.Star2} {notify.Star3}"
                     }, false);
             });
         }

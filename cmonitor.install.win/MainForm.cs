@@ -31,14 +31,11 @@ namespace cmonitor.install.win
         }
         private void LoadConfig()
         {
-            cbBlueProtect.Checked = config.Common.BlueProtect;
-
             modeClient.Checked = config.Common.Modes.Contains("client");
             modeServer.Checked = config.Common.Modes.Contains("server");
 
             machineName.Text = config.Client.Name;
             serverIP.Text = config.Client.Server;
-            tbViewerPortClient.Text = config.Client.Viewer.ProxyPort.ToString();
 
             shareKey.Text = config.Client.ShareMemoryKey;
             shareLen.Text = config.Client.ShareMemoryCount.ToString();
@@ -47,7 +44,6 @@ namespace cmonitor.install.win
             serverPort.Text = config.Server.ServicePort.ToString();
             apiPort.Text = config.Server.ApiPort.ToString();
             webPort.Text = config.Server.WebPort.ToString();
-            tbViewerPortServer.Text = config.Server.Viewer.ProxyPort.ToString();
         }
 
         private bool loading = false;
@@ -115,8 +111,6 @@ namespace cmonitor.install.win
 
         private bool CheckMode()
         {
-            config.Common.BlueProtect = cbBlueProtect.Checked;
-
             if (modeClient.Checked == false && modeServer.Checked == false)
             {
                 MessageBox.Show("客户端和服务端必须选择一样！");
@@ -164,19 +158,10 @@ namespace cmonitor.install.win
                 MessageBox.Show("web端口必填");
                 return false;
             }
-            if (string.IsNullOrWhiteSpace(tbViewerPortClient.Text) || string.IsNullOrWhiteSpace(tbViewerPortServer.Text))
-            {
-                MessageBox.Show("共享桌面代理端口必填");
-                return false;
-            }
             config.Client.Server = serverIP.Text;
             config.Server.WebPort = int.Parse(webPort.Text);
             config.Server.ApiPort = int.Parse(apiPort.Text);
             config.Server.ServicePort = int.Parse(serverPort.Text);
-
-            config.Client.Viewer.ProxyPort = int.Parse(tbViewerPortClient.Text);
-            config.Server.Viewer.ProxyPort = int.Parse(tbViewerPortServer.Text);
-
 
             return true;
         }

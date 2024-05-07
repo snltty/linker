@@ -1,7 +1,6 @@
 ﻿using cmonitor.config;
 using cmonitor.plugins.tunnel.compact;
 using cmonitor.plugins.tunnel.messenger;
-using cmonitor.plugins.tunnel.report;
 using cmonitor.plugins.tunnel.server;
 using cmonitor.plugins.tunnel.transport;
 using cmonitor.startup;
@@ -18,8 +17,6 @@ namespace cmonitor.plugins.tunnel
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<TunnelApiController>();
-
-            serviceCollection.AddSingleton<TunnelReport>();
 
             serviceCollection.AddSingleton<TunnelClientMessenger>();
 

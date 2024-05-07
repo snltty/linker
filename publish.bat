@@ -15,7 +15,7 @@ dotnet publish ./cmonitor -c release -f net8.0 -r linux-x64 -o ./public/publish/
 
 for %%r in (win-x64,win-x64-any) do (
 	echo F|xcopy "public\\extends\\*" "public\\publish\\%%r\\*"  /s /f /h /y
-	echo F|xcopy "cmonitor.viewer.client.win\\dist\\*" "public\\publish\\%%r\\*"  /s /f /h /y
+	echo F|xcopy "cmonitor.viewer.client.win\\dist\\*" "public\\publish\\%%r\\plugins\\viewer\\*"  /s /f /h /y
 )
 
 for %%r in (linux-x64,linux-x64-any) do (

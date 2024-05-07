@@ -18,14 +18,14 @@
             <el-table-column prop="LastSignIn" label="最后登入" width="140" />
             <el-table-column label="操作">
                 <template #default="scope">
-                    <el-dropdown>
+                    <el-dropdown class="m-r-1">
                         <el-button size="small">
                             测试<el-icon class="el-icon--right"><arrow-down /></el-icon>
                         </el-button>
                         <template #dropdown>
                             <el-dropdown-menu>
-                            <el-dropdown-item @click="handleTestTunnel(scope.row.MachineName)">打洞</el-dropdown-item>
-                            <el-dropdown-item @click="handleTestRelay(scope.row.MachineName)">中继</el-dropdown-item>
+                                <el-dropdown-item @click="handleTestTunnel(scope.row.MachineName)">打洞</el-dropdown-item>
+                                <el-dropdown-item @click="handleTestRelay(scope.row.MachineName)">中继</el-dropdown-item>
                             </el-dropdown-menu>
                         </template>
                     </el-dropdown>
@@ -39,7 +39,7 @@
         </el-table>
         <div class="page t-c">
             <div class="page-wrap">
-                <el-pagination small background layout="prev, pager, next"  
+                <el-pagination small background layout="total,prev, pager, next"  
                 :total="state.page.Count" :page-size="state.page.Request.Size" :current-page="state.page.Request.Page"
                 @current-change="handlePageChange"/>
             </div>
@@ -51,7 +51,7 @@ import {getSignList,updateSignInDel} from '@/apis/signin.js'
 import {updateTunnelConnect} from '@/apis/tunnel.js'
 import {updateRelayConnect} from '@/apis/relay.js'
 import {subWebsocketState} from '@/apis/request.js'
-import {injectGlobalData} from '../provide.js'
+import {injectGlobalData} from '@/provide.js'
 import {reactive,onMounted, ref, nextTick, onUnmounted} from 'vue'
 export default {
     setup(props) {
@@ -68,6 +68,7 @@ export default {
         });
         
         const _getSignList = ()=>{
+            state.page.Request.GroupId = globalData.value.groupid;
             getSignList(state.page.Request).then((res)=>{
                 state.page.Request = res.Request;
                 state.page.Count = res.Count;
@@ -98,6 +99,7 @@ export default {
             subWebsocketState((state)=>{ if(state)_getSignList();});
             resizeTable();
             window.addEventListener('resize',resizeTable);
+            _getSignList();
         });
         onUnmounted(()=>{
             window.removeEventListener('resize',resizeTable);

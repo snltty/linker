@@ -52,11 +52,6 @@
             shareItemLen = new TextBox();
             gbClient = new GroupBox();
             gbServer = new GroupBox();
-            cbBlueProtect = new CheckBox();
-            tbViewerPortClient = new TextBox();
-            label7 = new Label();
-            tbViewerPortServer = new TextBox();
-            label8 = new Label();
             gbClient.SuspendLayout();
             gbServer.SuspendLayout();
             SuspendLayout();
@@ -177,8 +172,6 @@
             // gbClient
             // 
             resources.ApplyResources(gbClient, "gbClient");
-            gbClient.Controls.Add(tbViewerPortClient);
-            gbClient.Controls.Add(label7);
             gbClient.Controls.Add(machineName);
             gbClient.Controls.Add(label16);
             gbClient.Controls.Add(serverIP);
@@ -195,8 +188,6 @@
             // gbServer
             // 
             resources.ApplyResources(gbServer, "gbServer");
-            gbServer.Controls.Add(tbViewerPortServer);
-            gbServer.Controls.Add(label8);
             gbServer.Controls.Add(apiPort);
             gbServer.Controls.Add(serverPort);
             gbServer.Controls.Add(label2);
@@ -206,37 +197,10 @@
             gbServer.Name = "gbServer";
             gbServer.TabStop = false;
             // 
-            // cbBlueProtect
-            // 
-            resources.ApplyResources(cbBlueProtect, "cbBlueProtect");
-            cbBlueProtect.Name = "cbBlueProtect";
-            cbBlueProtect.UseVisualStyleBackColor = true;
-            // 
-            // tbViewerPortClient
-            // 
-            resources.ApplyResources(tbViewerPortClient, "tbViewerPortClient");
-            tbViewerPortClient.Name = "tbViewerPortClient";
-            // 
-            // label7
-            // 
-            resources.ApplyResources(label7, "label7");
-            label7.Name = "label7";
-            // 
-            // tbViewerPortServer
-            // 
-            resources.ApplyResources(tbViewerPortServer, "tbViewerPortServer");
-            tbViewerPortServer.Name = "tbViewerPortServer";
-            // 
-            // label8
-            // 
-            resources.ApplyResources(label8, "label8");
-            label8.Name = "label8";
-            // 
             // MainForm
             // 
             resources.ApplyResources(this, "$this");
             AutoScaleMode = AutoScaleMode.Font;
-            Controls.Add(cbBlueProtect);
             Controls.Add(gbServer);
             Controls.Add(gbClient);
             Controls.Add(checkStateBtn);
@@ -280,17 +244,5 @@
         private TextBox shareItemLen;
         private GroupBox gbClient;
         private GroupBox gbServer;
-        private CheckBox cbBlueProtect;
-
-/* 项目“cmonitor.install.win (net8.0-windows)”的未合并的更改
-在此之前:
-        private TextBox textBox1;
-在此之后:
-        private TextBox tbViewerPortCLient;
-*/
-        private TextBox tbViewerPortClient;
-        private Label label7;
-        private TextBox tbViewerPortServer;
-        private Label label8;
     }
 }

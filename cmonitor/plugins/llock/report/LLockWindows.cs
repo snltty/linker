@@ -17,7 +17,7 @@ namespace cmonitor.plugins.llock.report
             if (value)
             {
                 CommandHelper.Windows(string.Empty, new string[] {
-                        $"start cmonitor.llock.win.exe {config.Data.Client.ShareMemoryKey} {config.Data.Client.ShareMemoryCount} {config.Data.Client.ShareMemorySize} {(int)ShareMemoryIndexs.LLock}"
+                        $"start ./plugins/llock/cmonitor.llock.win.exe {config.Data.Client.ShareMemoryKey} {config.Data.Client.ShareMemoryCount} {config.Data.Client.ShareMemorySize} {(int)ShareMemoryIndexs.LLock}"
                     },false);
             }
         }

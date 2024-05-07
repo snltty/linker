@@ -3,7 +3,12 @@ const routes = [
     {
         path: '/',
         name: 'Index',
-        component: () => import('../views/Index.vue')
+        component: () => import('../views/devices/Index.vue')
+    },
+    {
+        path: '/logger.html',
+        name: 'Logger',
+        component: () => import('../views/logger/Index.vue')
     }
 ]
 

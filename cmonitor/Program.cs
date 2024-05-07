@@ -60,7 +60,7 @@ namespace cmonitor
 
         private static void LoggerConsole()
         {
-            Logger.Instance.LoggerLevel = LoggerTypes.DEBUG;
+            //Logger.Instance.LoggerLevel = LoggerTypes.DEBUG;
             if (Directory.Exists("logs") == false)
             {
                 Directory.CreateDirectory("logs");

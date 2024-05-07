@@ -1,7 +1,6 @@
 ﻿using cmonitor.config;
 using cmonitor.server;
 using common.libs;
-using common.libs.extends;
 using MemoryPack;
 
 namespace cmonitor.plugins.signin.messenger
@@ -37,13 +36,16 @@ namespace cmonitor.plugins.signin.messenger
         {
             SignInListRequestInfo request = MemoryPackSerializer.Deserialize<SignInListRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
 
-            List<SignCacheInfo> list = signCaching.Get(request.GroupId);
-            int count = list.Count;
-            list = list.Skip((request.Page - 1) * request.Size).Take(request.Size).ToList();
+            if (signCaching.Get(connection.Name, out SignCacheInfo cache))
+            {
+                List<SignCacheInfo> list = signCaching.Get(cache.GroupId);
+                int count = list.Count;
+                list = list.Skip((request.Page - 1) * request.Size).Take(request.Size).ToList();
 
-            SignInListResponseInfo response = new SignInListResponseInfo { Request = request, Count = count, List = list };
+                SignInListResponseInfo response = new SignInListResponseInfo { Request = request, Count = count, List = list };
 
-            connection.Write(MemoryPackSerializer.Serialize(response));
+                connection.Write(MemoryPackSerializer.Serialize(response));
+            }
         }
 
         [MessengerId((ushort)SignInMessengerIds.Delete)]

@@ -90,6 +90,21 @@ namespace cmonitor.config
     {
         public string[] Modes { get; set; } = new string[] { "client", "server" };
 
+#if DEBUG
+        private LoggerTypes loggerType { get; set; } = LoggerTypes.DEBUG;
+#else
+        private LoggerTypes loggerType { get; set; } = LoggerTypes.WARNING;
+#endif
+        public LoggerTypes LoggerType
+        {
+            get => loggerType; set
+            {
+                loggerType = value;
+                Logger.Instance.LoggerLevel = value;
+            }
+        }
+        public int LoggerSize { get; set; } = 100;
+
         private string[] includePlugins = Array.Empty<string>();
         public string[] IncludePlugins
         {
@@ -102,7 +117,7 @@ namespace cmonitor.config
                     {
                         "cmonitor.client.","cmonitor.server.","cmonitor.serializes.",
                         "cmonitor.plugins.signin.", "cmonitor.plugins.watch.","cmonitor.plugins.devices.","cmonitor.plugins.report.",
-                        "cmonitor.plugins.share.","cmonitor.plugins.rule.","cmonitor.plugins.modes.","cmonitor.plugins.tunnel.","cmonitor.plugins.relay",
+                        "cmonitor.plugins.share.","cmonitor.plugins.rule.","cmonitor.plugins.modes.","cmonitor.plugins.tunnel.","cmonitor.plugins.relay.","cmonitor.plugins.logger.",
                     }).Distinct().ToArray();
                 }
             }
@@ -115,7 +130,7 @@ namespace cmonitor.config
             {
                 types = types.Where(c => IncludePlugins.Any(d => c.FullName.Contains(d)));
             }
-            if(ExcludePlugins.Length > 0)
+            if (ExcludePlugins.Length > 0)
             {
                 types = types.Where(c => ExcludePlugins.Any(d => c.FullName.Contains(d) == false));
             }

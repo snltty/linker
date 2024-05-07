@@ -3,25 +3,25 @@ using cmonitor.startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace cmonitor.plugins.firewall
+namespace cmonitor.plugins.logger
 {
-    public sealed class FireWallStartup : IStartup
+    public sealed class LoggerStartup : IStartup
     {
-        public StartupLevel Level => StartupLevel.Hight9;
+        public StartupLevel Level => StartupLevel.Top;
 
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
-#if RELEASE
-            common.libs.FireWallHelper.Write(Path.GetFileNameWithoutExtension(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName), "./plugins/firewall");
-#endif
+            serviceCollection.AddSingleton<LoggerClientApiController>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
+
         }
 
         public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
         {
+            LoggerClientApiController logger = serviceProvider.GetService<LoggerClientApiController>();
         }
 
         public void UseServer(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)

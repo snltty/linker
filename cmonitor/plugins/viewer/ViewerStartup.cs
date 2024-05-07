@@ -24,7 +24,7 @@ namespace cmonitor.plugins.viewer
             serviceCollection.AddSingleton<ViewerClientMessenger>();
 
 
-            serviceCollection.AddSingleton<ViewerProxyClient>();
+            serviceCollection.AddSingleton<ViewerProxy>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
@@ -37,7 +37,7 @@ namespace cmonitor.plugins.viewer
         public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
         {
             Logger.Instance.Info($"use viewer proxy server in client mode.");
-            ViewerProxyClient viewerProxyServer = serviceProvider.GetService<ViewerProxyClient>();
+            ViewerProxy viewerProxyServer = serviceProvider.GetService<ViewerProxy>();
             viewerProxyServer.Start(0);
         }
 

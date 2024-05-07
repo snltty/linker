@@ -26,10 +26,6 @@ namespace cmonitor.plugins.tunnel.transport
         /// 收到连接
         /// </summary>
         public Action<ITunnelConnection> OnConnected { get; set; }
-        /// <summary>
-        /// 断开连接
-        /// </summary>
-        public Action<ITunnelConnection> OnDisConnected { get; set; }
 
         public Action<string> OnConnectFail { get; set; }
 

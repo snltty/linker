@@ -29,9 +29,9 @@ namespace cmonitor.plugins.viewer.report
         private readonly MessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
         private readonly Config config;
-        private readonly ViewerProxyClient viewerProxyClient;
+        private readonly ViewerProxy viewerProxyClient;
 
-        public ViewerReport(Config config, RunningConfig runningConfig, IViewer viewer, ShareMemory shareMemory, ClientSignInState clientSignInState, MessengerSender messengerSender, ViewerProxyClient viewerProxyClient)
+        public ViewerReport(Config config, RunningConfig runningConfig, IViewer viewer, ShareMemory shareMemory, ClientSignInState clientSignInState, MessengerSender messengerSender, ViewerProxy viewerProxyClient)
         {
             this.config = config;
             this.runningConfig = runningConfig;
