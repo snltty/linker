@@ -70,21 +70,7 @@ namespace cmonitor.server
                 byte[] bytes = socketUdp.EndReceive(result, ref endPoint);
                 try
                 {
-                    IPHostEntry entry = Dns.GetHostEntry(Dns.GetHostName());
-
-                    List<IPAddress> ips = entry.AddressList.Where(c => c.AddressFamily == AddressFamily.InterNetwork).Distinct().ToList();
-                    Dictionary<IPAddress, BroadcastEndpointInfo> dic = new Dictionary<IPAddress, BroadcastEndpointInfo>();
-                    foreach (var item in ips)
-                    {
-                        dic.Add(item, new BroadcastEndpointInfo
-                        {
-                            Web = config.Data.Server.WebPort,
-                            Api = config.Data.Server.ApiPort,
-                            Service = config.Data.Server.ServicePort
-                        });
-                    }
-
-                    await socketUdp.SendAsync(dic.ToJson().ToBytes(), endPoint);
+                    await socketUdp.SendAsync(endPoint.ToString().ToBytes(), endPoint);
                 }
                 catch (Exception)
                 {

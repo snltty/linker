@@ -1,0 +1,25 @@
+{
+    "Client":{
+        "ApiPassword":"snltty",
+        "ApiPort":1803,
+        "GroupId":"snltty",
+        "Name":"DESKTOP-1111",
+        "Server":"127.0.0.1:1802",
+        "ShareMemoryCount":100,
+        "ShareMemoryKey":"cmonitor/share",
+        "ShareMemorySize":1024,
+        "WebPort":1804
+    },
+    "Common":{
+        "Modes":[
+            "client",
+            "server"
+        ]
+    },
+    "Server":{
+        "ApiPassword":"snltty",
+        "ApiPort":1801,
+        "ServicePort":1802,
+        "WebPort":1800
+    }
+}

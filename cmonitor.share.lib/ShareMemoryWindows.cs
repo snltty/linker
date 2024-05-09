@@ -3,9 +3,9 @@ using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 
-namespace cmonitor.libs
+namespace cmonitor.share.lib
 {
-    internal sealed class ShareMemoryWindows : IShareMemory
+    public sealed class ShareMemoryWindows : IShareMemory
     {
         private string key;
         private int length;
@@ -40,6 +40,7 @@ namespace cmonitor.libs
             }
             return false;
         }
+
         [DllImport("advapi32.dll", EntryPoint = "SetSecurityInfo", CallingConvention = CallingConvention.Winapi, SetLastError = true, ExactSpelling = true, CharSet = CharSet.Unicode)]
         static extern uint SetSecurityInfoByHandle(SafeHandle handle, uint objectType, uint securityInformation, byte[] owner, byte[] group, byte[] dacl, byte[] sacl);
 
@@ -73,7 +74,6 @@ namespace cmonitor.libs
                 accessorLocal.Write(position, value);
             }
         }
-
 
         public int ReadInt(int position)
         {

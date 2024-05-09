@@ -36,7 +36,7 @@
 
 <script>
 import { computed, onMounted, reactive, watch } from 'vue';
-import { initWebsocket, subWebsocketState } from '../apis/request'
+import { initWebsocket, subWebsocketState,closeWebsocket } from '../apis/request'
 import { getConfig,getSignInfo } from '../apis/signin'
 import { useRoute, useRouter } from 'vue-router';
 import { injectGlobalData } from '../provide';
@@ -47,11 +47,11 @@ export default {
         const route = useRoute();
         const router = useRouter();
 
-        const queryCache = JSON.parse(localStorage.getItem('api-cache') || JSON.stringify({api:`${window.location.hostname}:1805`,psd:'snltty',groupid:'snltty'}));
+        const queryCache = JSON.parse(localStorage.getItem('api-cache') || JSON.stringify({api:`${window.location.hostname}:1804`,psd:'snltty',groupid:'snltty'}));
         const state = reactive({
             api:queryCache.api,
             psd:queryCache.psd,
-            groupid: queryCache.groupid,
+            groupid:globalData.value.groupid || queryCache.groupid,
             showPort: false
         });
         const showPort = computed(() => globalData.value.connected == false && state.showPort);
@@ -62,6 +62,7 @@ export default {
             queryCache.psd = state.psd;
             queryCache.groupid = state.groupid;
             localStorage.setItem('api-cache',JSON.stringify(queryCache));
+            closeWebsocket();
             initWebsocket(`ws://${state.api}`,state.psd);
         }
 

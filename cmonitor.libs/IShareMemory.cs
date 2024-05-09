@@ -17,6 +17,5 @@ namespace cmonitor.libs
 
         public void ReadArray(int position, byte[] bytes, int offset, int length);
         public void WriteArray(int position, byte[] data, int offset, int length);
-        public void WritSpan(int position, Span<byte> span);
     }
 }

@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cmonitor.sas.service", "cmo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cmonitor.libs", "cmonitor.libs\cmonitor.libs.csproj", "{9080618D-367F-474E-AACA-A3C2F294448F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cmonitor.install.win", "cmonitor.install.win\cmonitor.install.win.csproj", "{4EB9FFB0-B05C-4C4E-BD44-796715E47585}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cmonitor.install.win1", "cmonitor.install.win1\cmonitor.install.win1.csproj", "{4EB9FFB0-B05C-4C4E-BD44-796715E47585}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cmonitor.llock.win", "cmonitor.llock.win\cmonitor.llock.win.csproj", "{6F2602B3-221D-475D-B643-D54987605644}"
 EndProject
@@ -28,6 +28,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cmonitor.killer", "cmonitor.killer\cmonitor.killer.vcxproj", "{E19B86AC-AC42-417A-8536-C2FFF1FB7FDC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cmonitor.tests", "cmonitor.tests\cmonitor.tests.csproj", "{04AA3054-5350-4D8B-97F6-31495AE0609D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cmonitor.share.lib", "cmonitor.share.lib\cmonitor.share.lib.csproj", "{9A3D0EB7-B775-4BE8-A5AF-C2BAC9E5CFD0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -195,6 +197,18 @@ Global
 		{04AA3054-5350-4D8B-97F6-31495AE0609D}.Release|x64.Build.0 = Release|Any CPU
 		{04AA3054-5350-4D8B-97F6-31495AE0609D}.Release|x86.ActiveCfg = Release|Any CPU
 		{04AA3054-5350-4D8B-97F6-31495AE0609D}.Release|x86.Build.0 = Release|Any CPU
+		{9A3D0EB7-B775-4BE8-A5AF-C2BAC9E5CFD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A3D0EB7-B775-4BE8-A5AF-C2BAC9E5CFD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A3D0EB7-B775-4BE8-A5AF-C2BAC9E5CFD0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9A3D0EB7-B775-4BE8-A5AF-C2BAC9E5CFD0}.Debug|x64.Build.0 = Debug|Any CPU
+		{9A3D0EB7-B775-4BE8-A5AF-C2BAC9E5CFD0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9A3D0EB7-B775-4BE8-A5AF-C2BAC9E5CFD0}.Debug|x86.Build.0 = Debug|Any CPU
+		{9A3D0EB7-B775-4BE8-A5AF-C2BAC9E5CFD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A3D0EB7-B775-4BE8-A5AF-C2BAC9E5CFD0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A3D0EB7-B775-4BE8-A5AF-C2BAC9E5CFD0}.Release|x64.ActiveCfg = Release|Any CPU
+		{9A3D0EB7-B775-4BE8-A5AF-C2BAC9E5CFD0}.Release|x64.Build.0 = Release|Any CPU
+		{9A3D0EB7-B775-4BE8-A5AF-C2BAC9E5CFD0}.Release|x86.ActiveCfg = Release|Any CPU
+		{9A3D0EB7-B775-4BE8-A5AF-C2BAC9E5CFD0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

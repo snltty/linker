@@ -27,6 +27,9 @@
 
 	<ItemGroup>
 		<Content Include="favicon.ico" />
+		<Content Include="plugins\wallpaper\bg.jpg">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
 	</ItemGroup>
 	<ItemGroup>
 		<EmbeddedResource Include="favicon.ico" />
@@ -59,6 +62,9 @@
 	  <Content Remove="Properties\**" />
 	  <EmbeddedResource Remove="Properties\**" />
 	  <None Remove="Properties\**" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Remove="plugins\wallpaper\bg.jpg" />
 	</ItemGroup>
 	
 	<ItemGroup>

@@ -13,7 +13,7 @@ namespace cmonitor.plugins.tunnel.server
         public Action<object, Socket> OnTcpConnected { get; set; } = (state, socket) => { };
         public Action<object, UdpClient> OnUdpConnected { get; set; } = (state, udpClient) => { };
 
-        private ConcurrentDictionary<int, SocketAsyncEventArgs> acceptBinds = new ConcurrentDictionary<int, SocketAsyncEventArgs>();
+        private ConcurrentDictionary<int, AsyncUserToken> acceptBinds = new ConcurrentDictionary<int, AsyncUserToken>();
 
         public void Bind(IPEndPoint local, object state)
         {
@@ -36,7 +36,7 @@ namespace cmonitor.plugins.tunnel.server
                     SocketFlags = SocketFlags.None,
                 };
                 token.Saea = acceptEventArg;
-                acceptBinds.AddOrUpdate(local.Port, acceptEventArg, (a, b) => acceptEventArg);
+                acceptBinds.AddOrUpdate(local.Port, token, (a, b) => token);
 
                 acceptEventArg.Completed += IO_Completed;
                 StartAccept(acceptEventArg);
@@ -44,7 +44,7 @@ namespace cmonitor.plugins.tunnel.server
 
                 socketUdp = new UdpClient();
                 socketUdp.Client.ReuseBind(new IPEndPoint(IPAddress.Any, local.Port));
-                socketUdp.Client.EnableBroadcast = true;
+                //socketUdp.Client.EnableBroadcast = true;
                 socketUdp.Client.WindowsUdpBug();
                 IAsyncResult result = socketUdp.BeginReceive(ReceiveCallbackUdp, state);
             }
@@ -55,7 +55,7 @@ namespace cmonitor.plugins.tunnel.server
         }
         public void RemoveBind(int localPort)
         {
-            if (acceptBinds.TryRemove(localPort, out SocketAsyncEventArgs saea))
+            if (acceptBinds.TryRemove(localPort, out AsyncUserToken saea))
             {
                 CloseClientSocket(saea);
             }
@@ -115,26 +115,21 @@ namespace cmonitor.plugins.tunnel.server
             }
         }
 
-        private void CloseClientSocket(SocketAsyncEventArgs e)
+        private void CloseClientSocket(AsyncUserToken token)
         {
-            if (e == null || e.UserToken == null) return;
+            if (token == null) return;
 
-            AsyncUserToken token = e.UserToken as AsyncUserToken;
             Socket socket = token.SourceSocket;
             if (socket != null)
             {
                 token.Clear();
-                e.Dispose();
-                if (acceptBinds.TryRemove(token.LocalPort, out SocketAsyncEventArgs saea1))
+                if (acceptBinds.TryRemove(token.LocalPort, out AsyncUserToken tk))
                 {
-                    CloseClientSocket(saea1);
+                    CloseClientSocket(tk);
                 }
             }
         }
 
-
-        public delegate Task OnTunnelData(AsyncUserToken token, Memory<byte> data);
-        public delegate Task OnTunnelUdpData(AsyncUserUdpToken token, IPEndPoint remote, Memory<byte> data);
         public sealed class AsyncUserToken
         {
             public Socket SourceSocket { get; set; }
@@ -147,20 +142,7 @@ namespace cmonitor.plugins.tunnel.server
                 SourceSocket?.SafeClose();
                 SourceSocket = null;
 
-                GC.Collect();
-            }
-        }
-        public sealed class AsyncUserUdpToken
-        {
-            public UdpClient SourceSocket { get; set; }
-            public object State { get; set; }
-            public OnTunnelUdpData OnData { get; set; }
-
-
-            public void Clear()
-            {
-                SourceSocket?.Close();
-                SourceSocket = null;
+                Saea?.Dispose();
 
                 GC.Collect();
             }

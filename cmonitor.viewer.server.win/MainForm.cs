@@ -46,7 +46,7 @@ namespace cmonitor.viewer.server.win
             this.ShowInTaskbar = false;
             this.WindowState = FormWindowState.Minimized;
             this.Visible = false;
-            FireWallHelper.Write(Path.GetFileNameWithoutExtension(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName));
+            FireWallHelper.Write(Path.GetFileNameWithoutExtension(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName),"./plugins/viewer/");
 #endif
 
             CheckRunning();

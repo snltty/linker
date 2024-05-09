@@ -1,5 +1,4 @@
 ﻿using cmonitor.plugins.tunnel.messenger;
-using cmonitor.plugins.tunnel.server;
 using cmonitor.server;
 using common.libs.extends;
 using MemoryPack;
@@ -42,21 +41,28 @@ namespace cmonitor.plugins.tunnel.compact
 
         public async Task<TunnelCompactIPEndPoint> GetUdpExternalIPAsync(IPEndPoint server)
         {
-            return null;
-            /*
             using UdpClient udpClient = new UdpClient();
             udpClient.Client.Reuse(true);
-            await udpClient.SendAsync(new byte[1] { 0 }, server);
-            var result = await udpClient.ReceiveAsync().WaitAsync(TimeSpan.FromSeconds(5));
-            if (result.Buffer.Length == 0)
+
+            for (int i = 0; i < 10; i++)
             {
-                return null;
+                try
+                {
+                    await udpClient.SendAsync(new byte[1] { 0 }, server);
+                    UdpReceiveResult result = await udpClient.ReceiveAsync().WaitAsync(TimeSpan.FromSeconds(500));
+                    if (result.Buffer.Length == 0)
+                    {
+                        return null;
+                    }
+                    IPEndPoint remoteEP = IPEndPoint.Parse(result.Buffer.AsSpan().GetString());
+
+                    return new TunnelCompactIPEndPoint { Local = udpClient.Client.LocalEndPoint as IPEndPoint, Remote = remoteEP };
+                }
+                catch (Exception)
+                {
+                }
             }
-
-            TunnelExternalIPInfo tunnelExternalIPInfo = MemoryPackSerializer.Deserialize<TunnelExternalIPInfo>(result.Buffer);
-
-            return new TunnelCompactIPEndPoint { Local = udpClient.Client.LocalEndPoint as IPEndPoint, Remote = tunnelExternalIPInfo.ExternalIP };
-            */
+            return null;
         }
     }
 }

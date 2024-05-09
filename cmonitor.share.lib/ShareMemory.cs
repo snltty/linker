@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace cmonitor.libs
+namespace cmonitor.share.lib
 {
     /// <summary>
     /// InitLocal 和 InitGlobal 都可以初始化，都初始化时，需要启动 StartLoop，将InitGlobal同步数据到Local
@@ -347,7 +348,7 @@ namespace cmonitor.libs
                 return Update(index, Encoding.UTF8.GetBytes(key), Encoding.UTF8.GetBytes(value), addAttri, removeAttri);
             }
         }
-       
+
         public bool Update(int index, byte[] key, byte[] value,
             ShareMemoryAttribute addAttri = ShareMemoryAttribute.None,
             ShareMemoryAttribute removeAttri = ShareMemoryAttribute.None)
@@ -395,12 +396,12 @@ namespace cmonitor.libs
                     if (accessorLocal != null)
                     {
                         accessorLocal.WriteInt(valIndex, vallen);
-                        accessorLocal.WriteArray(valIndex + 4, value,0,value.Length);
+                        accessorLocal.WriteArray(valIndex + 4, value, 0, value.Length);
                     }
                     if (accessorGlobal != null)
                     {
                         accessorGlobal.WriteInt(valIndex, vallen);
-                        accessorGlobal.WriteArray(valIndex + 4, value,0,value.Length);
+                        accessorGlobal.WriteArray(valIndex + 4, value, 0, value.Length);
                     }
                     IncrementVersion(index);
                     if (removeAttri > 0)
@@ -535,6 +536,24 @@ namespace cmonitor.libs
             if (accessor == null) return false;
 
             return ReadVersionUpdated(accessor, index, ref version);
+        }
+
+        public void ListenClose(int shareIndex)
+        {
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    if (ReadAttributeEqual(shareIndex, ShareMemoryAttribute.Closed))
+                    {
+                        RemoveAttribute(shareIndex, ShareMemoryAttribute.Running);
+                        RemoveAttribute(shareIndex, ShareMemoryAttribute.Running);
+                        Environment.Exit(0);
+                        Process.GetCurrentProcess().Kill();
+                    }
+                    await Task.Delay(30);
+                }
+            });
         }
     }
 

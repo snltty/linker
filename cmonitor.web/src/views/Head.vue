@@ -19,7 +19,7 @@
                     接口 : <el-input v-model="state.api" style="width:70%"></el-input>
                 </div>
                 <div style="padding-top:1rem ;">
-                    秘钥 : <el-input type="password" v-model="state.apipsd" style="width:70%"></el-input>
+                    秘钥 : <el-input type="password" v-model="state.psd" style="width:70%"></el-input>
                 </div>
                 <div style="padding-top:1rem ;">
                     分组 : <el-input v-model="state.groupid" style="width:70%"></el-input>
@@ -37,27 +37,24 @@ import { computed, onMounted, reactive, watch } from 'vue';
 import { initWebsocket, subWebsocketState,closeWebsocket } from '../apis/request'
 import { getRules, addName } from '../apis/rule'
 import { getConfig } from '../apis/signin'
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { injectGlobalData } from './provide';
 export default {
     setup() {
 
         const globalData = injectGlobalData();
         const route = useRoute();
-
+        const router = useRouter();
+        const queryCache = JSON.parse(localStorage.getItem('api-cache') || JSON.stringify({username:'',api:`${window.location.hostname}:1801`,psd:'snltty',groupid:'snltty'}));
+        
         const state = reactive({
-            api: route.query.api ? `${window.location.hostname}:${route.query.api}` : (localStorage.getItem('api') || `${window.location.hostname}:1801`),
-            apipsd: route.query.apipsd ? `${route.query.apipsd}` : (localStorage.getItem('apipsd') || `snltty`),
-            groupid: route.query.groupid ? `${route.query.groupid}` : (localStorage.getItem('groupid') || `snltty`),
+            api:queryCache.api,
+            psd:queryCache.psd,
+            groupid: globalData.value.groupid || queryCache.groupid,
             usernames: [],
-            username: globalData.value.username || localStorage.getItem('username') || '',
+            username: globalData.value.username || queryCache.username,
             showPort: false
         });
-        localStorage.setItem('api', state.api);
-        localStorage.setItem('apipsd', state.apipsd);
-        localStorage.setItem('groupid', state.groupid);
-        globalData.value.username = state.username;
-        globalData.value.groupid = state.groupid;
 
         const showSelectUsername = computed(() => !!!globalData.value.username && globalData.value.connected);
         const showPort = computed(() => globalData.value.connected == false && state.showPort);
@@ -89,20 +86,22 @@ export default {
                 state.usernames = Object.keys(res.Data);
             }).catch(() => { });
         }
+
+        const saveCache = ()=>{
+            globalData.value.username = state.username;
+            globalData.value.groupid = state.groupid;
+            queryCache.api = state.api;
+            queryCache.psd = state.psd;
+            queryCache.groupid = state.groupid;
+        }
         const handleConnect = () => {
+            saveCache();
             closeWebsocket();
-            //initWebsocket(`ws://hk.cmonitor.snltty.com:1801`,state.apipsd);
-            initWebsocket(`ws://${state.api}`,state.apipsd);
-            localStorage.setItem('api', state.api);
-            localStorage.setItem('apipsd', state.apipsd);
-            localStorage.setItem('groupid', state.groupid);
+            //initWebsocket(`ws://hk.cmonitor.snltty.com:1801`,state.psd);
+            initWebsocket(`ws://${state.api}`,state.psd);
         }
         const handleUsername = () => {
-            globalData.value.username = state.username || '';
-            globalData.value.groupid = state.groupid || '';
-            localStorage.setItem('username', globalData.value.username);
-            //localStorage.setItem('groupid', globalData.value.groupid);
-            //localStorage.setItem('apipsd', globalData.value.apipsd);
+            saveCache();
             document.title = `班长-${globalData.value.username}`
         }
         const handleChange = (value) => {
@@ -114,8 +113,7 @@ export default {
         }
 
         onMounted(() => {
-            handleUsername();
-            handleConnect();
+            
             _getRules();
 
             _getConfig();
@@ -123,6 +121,15 @@ export default {
             setTimeout(() => { state.showPort = true; }, 100);
 
             subWebsocketState((state) => { if (state) globalData.value.updateRuleFlag = Date.now(); });
+
+            router.isReady().then(()=>{        
+                state.api = route.query.api ?`${window.location.hostname}:${route.query.api}` :  state.api;
+                state.psd = route.query.psd || state.psd;
+                state.groupid = route.query.groupid || state.groupid;
+                state.username = route.query.username || state.username;
+                handleUsername();
+                handleConnect();
+            });
         });
 
         return {

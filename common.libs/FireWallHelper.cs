@@ -30,7 +30,7 @@ namespace common.libs
             });
         }
 
-        private static void Windows(string fileName,string distPatth)
+        private static void Windows(string fileName,string distPath)
         {
             try
             {
@@ -52,11 +52,11 @@ cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=all
 cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=tcp enable=yes profile=private
 cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=udp enable=yes profile=private
 :end";
-                if(Directory.Exists(distPatth) == false)
+                if(Directory.Exists(distPath) == false)
                 {
-                    Directory.CreateDirectory(distPatth);
+                    Directory.CreateDirectory(distPath);
                 }
-                string firewall = Path.Join(distPatth, "firewall.bat");
+                string firewall = Path.Join(distPath, "firewall.bat");
 
                 System.IO.File.WriteAllText(firewall, content);
                 CommandHelper.Execute(firewall, string.Empty, new string[0]);
