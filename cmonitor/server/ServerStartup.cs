@@ -53,7 +53,7 @@ namespace cmonitor.server
             Logger.Instance.Info($"start server");
             //服务
             TcpServer tcpServer = serviceProvider.GetService<TcpServer>();
-            tcpServer.Start();
+            tcpServer.Start(config.Data.Server.ServicePort);
             Logger.Instance.Info($"server listen:{config.Data.Server.ServicePort}");
         }
     }

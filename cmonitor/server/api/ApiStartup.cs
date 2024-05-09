@@ -24,12 +24,12 @@ namespace cmonitor.server.api
 
         public void UseServer(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
         {
-            Logger.Instance.Info($"start client api server");
+            Logger.Instance.Info($"start server api ");
             IApiServerServer clientServer = serviceProvider.GetService<IApiServerServer>();
             clientServer.LoadPlugins(assemblies);
             clientServer.Websocket(config.Data.Server.ApiPort, config.Data.Server.ApiPassword);
-            Logger.Instance.Info($"client api listen:{config.Data.Server.ApiPort}");
-            Logger.Instance.Info($"client api password:{config.Data.Server.ApiPassword}");
+            Logger.Instance.Info($"server api listen:{config.Data.Server.ApiPort}");
+            Logger.Instance.Info($"server api password:{config.Data.Server.ApiPassword}");
         }
     }
 }

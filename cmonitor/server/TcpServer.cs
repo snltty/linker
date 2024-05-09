@@ -19,23 +19,21 @@ namespace cmonitor.server
         public Func<IConnection, Task> OnPacket { get; set; } = async (connection) => { await Task.CompletedTask; };
         public Action<int> OnDisconnected { get; set; }
 
-        private readonly Config config;
-        public TcpServer(Config config)
+        public TcpServer()
         {
-            this.config = config;
         }
-        public void Start()
+        public void Start(int port)
         {
             if (socket == null)
             {
                 cancellationTokenSource = new CancellationTokenSource();
-                socket = BindAccept();
+                socket = BindAccept(port);
             }
         }
 
-        private Socket BindAccept()
+        private Socket BindAccept(int port)
         {
-            IPEndPoint localEndPoint = new IPEndPoint(NetworkHelper.IPv6Support ? IPAddress.IPv6Any : IPAddress.Any, config.Data.Server.ServicePort);
+            IPEndPoint localEndPoint = new IPEndPoint(NetworkHelper.IPv6Support ? IPAddress.IPv6Any : IPAddress.Any, port);
             Socket socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.IPv6Only(localEndPoint.AddressFamily, false);
             socket.ReuseBind(localEndPoint);
@@ -52,7 +50,7 @@ namespace cmonitor.server
             acceptEventArg.Completed += IO_Completed;
             StartAccept(acceptEventArg);
 
-            socketUdp = new UdpClient(new IPEndPoint(IPAddress.Any, config.Data.Server.ServicePort));
+            socketUdp = new UdpClient(new IPEndPoint(IPAddress.Any, port));
             //socketUdp.JoinMulticastGroup(config.BroadcastIP);
             socketUdp.Client.EnableBroadcast = true;
             socketUdp.Client.WindowsUdpBug();
@@ -280,7 +278,6 @@ namespace cmonitor.server
             if (token.Socket != null)
                 OnDisconnected?.Invoke(token.Socket.GetHashCode());
         }
-
         public IConnection CreateConnection(Socket socket)
         {
             return new TcpConnection(socket)
@@ -325,12 +322,5 @@ namespace cmonitor.server
             GC.Collect();
             // GC.SuppressFinalize(this);
         }
-    }
-
-    public sealed class BroadcastEndpointInfo
-    {
-        public int Web { get; set; }
-        public int Api { get; set; }
-        public int Service { get; set; }
     }
 }
