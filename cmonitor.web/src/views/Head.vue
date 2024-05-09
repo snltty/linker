@@ -93,11 +93,13 @@ export default {
             queryCache.api = state.api;
             queryCache.psd = state.psd;
             queryCache.groupid = state.groupid;
+            queryCache.username = state.username;
+            localStorage.setItem('api-cache',JSON.stringify(queryCache));
         }
         const handleConnect = () => {
             saveCache();
             closeWebsocket();
-            //initWebsocket(`ws://hk.cmonitor.snltty.com:1801`,state.psd);
+            //initWebsocket(`ws://192.168.1.18:1801`,state.psd);
             initWebsocket(`ws://${state.api}`,state.psd);
         }
         const handleUsername = () => {
