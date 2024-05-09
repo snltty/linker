@@ -68,7 +68,8 @@ namespace cmonitor.plugins.relay
                         TransactionId = transactionId,
                         TransportName = transport.Name
                     };
-                    Logger.Instance.Debug($"relay to {relayInfo.RemoteMachineName} {relayInfo.ToJson()}");
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        Logger.Instance.Debug($"relay to {relayInfo.RemoteMachineName} {relayInfo.ToJson()}");
                     ITunnelConnection connection = await transport.RelayAsync(relayInfo);
                     if (connection != null)
                     {

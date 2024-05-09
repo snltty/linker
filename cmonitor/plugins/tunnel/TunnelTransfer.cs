@@ -181,15 +181,18 @@ namespace cmonitor.plugins.tunnel
 
         private void OnConnecting(TunnelTransportInfo tunnelTransportInfo)
         {
-            Logger.Instance.Debug($"tunnel connecting {tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
+            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                Logger.Instance.Debug($"tunnel connecting {tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
         }
         private void OnConnectBegin(TunnelTransportInfo tunnelTransportInfo)
         {
-            Logger.Instance.Debug($"tunnel connecting from {tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
+            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                Logger.Instance.Debug($"tunnel connecting from {tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
         }
         private void _OnConnected(ITunnelConnection connection)
         {
-            Logger.Instance.Debug($"tunnel connect {connection.RemoteMachineName} success");
+            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                Logger.Instance.Debug($"tunnel connect {connection.RemoteMachineName} success");
             if (OnConnected.TryGetValue(connection.TransactionId, out Action<ITunnelConnection> _callback))
             {
                 _callback(connection);
