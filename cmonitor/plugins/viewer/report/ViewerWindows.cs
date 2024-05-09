@@ -18,7 +18,7 @@ namespace cmonitor.plugins.viewer.report
             if (value)
             {
                 string str = JsonSerializer.Serialize(info);
-                string command = $"start cmonitor.viewer.server.win.exe \"{str.Replace("\"", "\\\"")}\"";
+                string command = $"start ./plugins/viewer/cmonitor.viewer.server.win.exe \"{str.Replace("\"", "\\\"")}\"";
                 CommandHelper.Windows(string.Empty, new string[] { command }, false);
             }
         }
