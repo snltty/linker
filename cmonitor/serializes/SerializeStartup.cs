@@ -9,6 +9,11 @@ namespace cmonitor.serializes
     public sealed class SerializeStartup : IStartup
     {
         public StartupLevel Level => StartupLevel.Hight9;
+        public string Name => "serialize";
+        public bool Required => false;
+        public string[] Dependent => Array.Empty<string>();
+        public StartupLoadType LoadType => StartupLoadType.Normal;
+
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             MemoryPackFormatterProvider.Register(new IPEndPointFormatter());

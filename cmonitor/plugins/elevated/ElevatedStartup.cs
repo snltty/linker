@@ -8,6 +8,10 @@ namespace cmonitor.plugins.elevated
     public sealed class ElevatedStartup : IStartup
     {
         public StartupLevel Level => StartupLevel.Hight9;
+        public string Name => "elevated";
+        public bool Required => false;
+        public string[] Dependent => new string[] { "ntrights" };
+        public StartupLoadType LoadType => StartupLoadType.Dependent;
 
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {

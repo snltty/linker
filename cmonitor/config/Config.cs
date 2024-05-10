@@ -105,36 +105,7 @@ namespace cmonitor.config
         }
         public int LoggerSize { get; set; } = 100;
 
-        private string[] includePlugins = Array.Empty<string>();
-        public string[] IncludePlugins
-        {
-            get => includePlugins; set
-            {
-                includePlugins = value;
-                if (includePlugins.Length > 0)
-                {
-                    includePlugins = includePlugins.Concat(new List<string>
-                    {
-                        "cmonitor.client.","cmonitor.server.","cmonitor.serializes.",
-                        "cmonitor.plugins.signin.", "cmonitor.plugins.watch.","cmonitor.plugins.devices.","cmonitor.plugins.report.",
-                        "cmonitor.plugins.share.","cmonitor.plugins.rule.","cmonitor.plugins.modes.","cmonitor.plugins.tunnel.","cmonitor.plugins.relay.","cmonitor.plugins.logger.",
-                    }).Distinct().ToArray();
-                }
-            }
-        }
+        public string[] IncludePlugins { get; set; } = Array.Empty<string>();
         public string[] ExcludePlugins { get; set; } = Array.Empty<string>();
-
-        public IEnumerable<Type> PluginContains(IEnumerable<Type> types)
-        {
-            if (IncludePlugins.Length > 0)
-            {
-                types = types.Where(c => IncludePlugins.Any(d => c.FullName.Contains(d)));
-            }
-            if (ExcludePlugins.Length > 0)
-            {
-                types = types.Where(c => ExcludePlugins.Any(d => c.FullName.Contains(d))==false);
-            }
-            return types;
-        }
     }
 }

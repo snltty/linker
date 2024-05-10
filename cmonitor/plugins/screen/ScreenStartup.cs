@@ -10,6 +10,13 @@ namespace cmonitor.plugins.screen
     internal class ScreenStartup : IStartup
     {
         public StartupLevel Level => StartupLevel.Normal;
+        public string Name => "screen";
+
+        public bool Required => false;
+
+        public string[] Dependent => new string[] { "elevated" };
+
+        public StartupLoadType LoadType => StartupLoadType.Normal;
 
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {

@@ -8,6 +8,10 @@ namespace cmonitor.plugins.firewall
     public sealed class FireWallStartup : IStartup
     {
         public StartupLevel Level => StartupLevel.Hight9;
+        public string Name => "firewall";
+        public bool Required => false;
+        public string[] Dependent => new string[] { };
+        public StartupLoadType LoadType => StartupLoadType.Dependent;
 
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {

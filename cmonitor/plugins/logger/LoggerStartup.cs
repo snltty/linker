@@ -8,6 +8,14 @@ namespace cmonitor.plugins.logger
     public sealed class LoggerStartup : IStartup
     {
         public StartupLevel Level => StartupLevel.Top;
+        public string Name => "logger";
+
+        public bool Required => false;
+
+        public string[] Dependent => new string[] { };
+
+        public StartupLoadType LoadType => StartupLoadType.Normal;
+
 
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {

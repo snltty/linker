@@ -42,7 +42,6 @@ namespace cmonitor.client.api
             Type voidType = typeof(void);
 
             IEnumerable<Type> types = assemblys.SelectMany(c => c.GetTypes()).Where(c => c.GetInterfaces().Contains(typeof(IApiClientController)));
-            types = config.Data.Common.PluginContains(types);
 
             foreach (Type item in types)
             {

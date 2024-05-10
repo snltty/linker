@@ -23,7 +23,6 @@ namespace cmonitor.plugins.tunnel.compact
         public void Load(Assembly[] assembs)
         {
             IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs, typeof(ICompact));
-            types = config.Data.Common.PluginContains(types);
             compacts = types.Select(c => (ICompact)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
 
             Logger.Instance.Warning($"load tunnel compacts:{string.Join(",", compacts.Select(c => c.Name))}");

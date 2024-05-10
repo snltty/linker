@@ -11,6 +11,14 @@ namespace cmonitor.plugins.keyboard
     {
         public StartupLevel Level => StartupLevel.Normal;
 
+        public string Name => "keyboard";
+
+        public bool Required => false;
+
+        public string[] Dependent => new string[] { "elevated" };
+
+        public StartupLoadType LoadType => StartupLoadType.Normal;
+
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<KeyboardReport>();
@@ -19,7 +27,7 @@ namespace cmonitor.plugins.keyboard
             else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<IKeyboard, KeyboardMacOS>();
 
             serviceCollection.AddSingleton<KeyboardClientMessenger>();
-            
+
         }
 
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)

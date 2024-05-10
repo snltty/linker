@@ -10,6 +10,13 @@ namespace cmonitor.plugins.llock
     public sealed class LLockStartup : IStartup
     {
         public StartupLevel Level => StartupLevel.Normal;
+        public string Name => "llock";
+
+        public bool Required => false;
+
+        public string[] Dependent => new string[] { };
+
+        public StartupLoadType LoadType => StartupLoadType.Normal;
 
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {

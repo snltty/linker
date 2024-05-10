@@ -14,6 +14,14 @@ namespace cmonitor.plugins.tunnel
     public sealed class TunnelStartup : IStartup
     {
         public StartupLevel Level => StartupLevel.Normal;
+        public string Name => "tunnel";
+
+        public bool Required => false;
+
+        public string[] Dependent => new string[] { };
+
+        public StartupLoadType LoadType => StartupLoadType.Normal;
+
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<TunnelApiController>();

@@ -10,6 +10,11 @@ namespace cmonitor.plugins.command
     public sealed class CommandStartup : IStartup
     {
         public StartupLevel Level => StartupLevel.Normal;
+        public string Name => "command";
+        public bool Required => false;
+        public string[] Dependent => Array.Empty<string>();
+        public StartupLoadType LoadType => StartupLoadType.Dependent;
+
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<CommandReport>();

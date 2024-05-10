@@ -37,7 +37,6 @@ namespace cmonitor.plugins.tunnel
         public void Load(Assembly[] assembs)
         {
             IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs, typeof(ITransport));
-            types = config.Data.Common.PluginContains(types);
             transports = types.Select(c => (ITransport)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
             foreach (var item in transports)
             {

@@ -10,6 +10,10 @@ namespace cmonitor.plugins.active
     public sealed class ActiveStartup : IStartup
     {
         public StartupLevel Level => StartupLevel.Normal;
+        public string Name => "active";
+        public bool Required => false;
+        public string[] Dependent => Array.Empty<string>();
+        public StartupLoadType LoadType => StartupLoadType.Normal;
 
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {

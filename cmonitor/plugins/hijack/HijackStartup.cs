@@ -10,6 +10,10 @@ namespace cmonitor.plugins.hijack
     public sealed class HijackStartup : IStartup
     {
         public StartupLevel Level => StartupLevel.Normal;
+        public string Name => "hijack";
+        public bool Required => false;
+        public string[] Dependent => new string[] { };
+        public StartupLoadType LoadType => StartupLoadType.Normal;
 
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {

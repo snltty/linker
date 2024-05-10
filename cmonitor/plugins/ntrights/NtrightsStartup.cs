@@ -8,6 +8,13 @@ namespace cmonitor.plugins.ntrights
     public sealed class NtrightsStartup : IStartup
     {
         public StartupLevel Level => StartupLevel.Top;
+        public string Name => "ntrights";
+
+        public bool Required => false;
+
+        public string[] Dependent => new string[] { };
+
+        public StartupLoadType LoadType => StartupLoadType.Dependent;
 
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
