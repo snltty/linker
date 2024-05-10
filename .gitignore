@@ -7,3 +7,5 @@ node_modules
 /cmonitor.volume/x64/*
 /cmonitor.killer/x64/*
 /x64/*
+
+TestResults
