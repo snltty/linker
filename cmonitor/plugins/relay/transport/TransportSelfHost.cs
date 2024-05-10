@@ -26,17 +26,18 @@ namespace cmonitor.plugins.relay.transport
 
         public async Task<ITunnelConnection> RelayAsync(RelayInfo relayInfo)
         {
-            Socket socket = new Socket(relayInfo.Server.AddressFamily, SocketType.Stream,  System.Net.Sockets.ProtocolType.Tcp);
+            Socket socket = new Socket(relayInfo.Server.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
             socket.Reuse(true);
             socket.IPv6Only(relayInfo.Server.AddressFamily, false);
-            await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromSeconds(5));
+            await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromSeconds(2));
 
             IConnection connection = tcpServer.BindReceive(socket);
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = connection,
                 MessengerId = (ushort)RelayMessengerIds.RelayForward,
-                Payload = MemoryPackSerializer.Serialize(relayInfo)
+                Payload = MemoryPackSerializer.Serialize(relayInfo),
+                Timeout = 2000
             });
             if (resp.Code != MessageResponeCodes.OK || resp.Data.Span.SequenceEqual(Helper.TrueArray) == false)
             {
@@ -62,14 +63,15 @@ namespace cmonitor.plugins.relay.transport
             Socket socket = new Socket(relayInfo.Server.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
             socket.Reuse(true);
             socket.IPv6Only(relayInfo.Server.AddressFamily, false);
-            await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromSeconds(5));
+            await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromSeconds(2));
 
             IConnection connection = tcpServer.BindReceive(socket);
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = connection,
                 MessengerId = (ushort)RelayMessengerIds.RelayForward,
-                Payload = MemoryPackSerializer.Serialize(relayInfo)
+                Payload = MemoryPackSerializer.Serialize(relayInfo),
+                Timeout = 2000
             });
             if (resp.Code != MessageResponeCodes.OK || resp.Data.Span.SequenceEqual(Helper.TrueArray) == false)
             {

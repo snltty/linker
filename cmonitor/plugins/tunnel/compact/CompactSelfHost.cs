@@ -1,5 +1,6 @@
 ﻿using cmonitor.plugins.tunnel.messenger;
 using cmonitor.server;
+using common.libs;
 using common.libs.extends;
 using MemoryPack;
 using System.Net;
@@ -25,7 +26,7 @@ namespace cmonitor.plugins.tunnel.compact
             Socket socket = new Socket(server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.Reuse(true);
             socket.IPv6Only(server.AddressFamily, false);
-            await socket.ConnectAsync(server).WaitAsync(TimeSpan.FromSeconds(5));
+            await socket.ConnectAsync(server).WaitAsync(TimeSpan.FromSeconds(2));
 
             IConnection connection = tcpServer.BindReceive(socket);
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap { Connection = connection, MessengerId = (ushort)TunnelMessengerIds.ExternalIP });

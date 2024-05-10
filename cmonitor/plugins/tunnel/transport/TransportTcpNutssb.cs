@@ -84,7 +84,7 @@ namespace cmonitor.plugins.tunnel.transport
                     else
                     {
                         await OnSendConnectFail(tunnelTransportInfo);
-                        OnConnectFail(tunnelTransportInfo.Local.MachineName);
+                        OnConnectFail(tunnelTransportInfo.Remote.MachineName);
                     }
                 }
             });
@@ -93,6 +93,10 @@ namespace cmonitor.plugins.tunnel.transport
         public void OnFail(TunnelTransportInfo tunnelTransportInfo)
         {
             tunnelBindServer.RemoveBind(tunnelTransportInfo.Local.Local.Port);
+            if(reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineName,out TaskCompletionSource<ITunnelConnection> tcs))
+            {
+                tcs.SetResult(null);
+            }
         }
 
         private async Task<ITunnelConnection> ConnectForward(TunnelTransportInfo tunnelTransportInfo)
@@ -121,7 +125,7 @@ namespace cmonitor.plugins.tunnel.transport
                 targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
                 IAsyncResult result = targetSocket.BeginConnect(ep, null, null);
 
-                int times = ep.Address.Equals(tunnelTransportInfo.Remote.Remote.Address) ? 25 : 5;
+                int times = ep.Address.Equals(tunnelTransportInfo.Remote.Remote.Address) ? 10 : 5;
                 for (int i = 0; i < times; i++)
                 {
                     if (result.IsCompleted)
@@ -156,7 +160,7 @@ namespace cmonitor.plugins.tunnel.transport
                 {
                     if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        Logger.Instance.Error(targetSocket.RemoteEndPoint.ToString());
+                        Logger.Instance.Error(ep.ToString());
                         Logger.Instance.Error(ex);
                     }
                     targetSocket.SafeClose();

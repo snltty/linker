@@ -60,12 +60,14 @@ namespace cmonitor.plugins.tunnel
                 TunnelTransportExternalIPInfo localInfo = await GetLocalInfo(transport.ProtocolType);
                 if (localInfo == null)
                 {
+                    Logger.Instance.Error($"get local external ip fail ");
                     continue;
                 }
                 //获取对方的外网ip
                 TunnelTransportExternalIPInfo remoteInfo = await GetRemoteInfo(remoteMachineName, transport.ProtocolType);
                 if (remoteInfo == null)
                 {
+                    Logger.Instance.Error($"get remote external ip fail ");
                     continue;
                 }
                 TunnelTransportInfo tunnelTransportInfo = new TunnelTransportInfo

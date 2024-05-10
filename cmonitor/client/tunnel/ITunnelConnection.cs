@@ -145,9 +145,12 @@ namespace cmonitor.client.tunnel
         }
         private void CloseClientSocket(SocketAsyncEventArgs e)
         {
-            closeCallback(this,e.UserToken);
-            e.Dispose();
-            Close();
+            if(closeCallback != null)
+            {
+                closeCallback(this, e.UserToken);
+                e.Dispose();
+                Close();
+            }
         }
 
         public async Task SendAsync(Memory<byte> data)

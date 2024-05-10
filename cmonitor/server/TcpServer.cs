@@ -311,8 +311,6 @@ namespace cmonitor.server
             Connection?.Disponse();
             Socket = null;
 
-
-
             PoolBuffer = Helper.EmptyArray;
 
             DataBuffer.Clear(true);

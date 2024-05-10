@@ -2,6 +2,7 @@
 using cmonitor.config;
 using common.libs;
 using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
@@ -41,7 +42,14 @@ namespace cmonitor.plugins.tunnel.compact
 
                 try
                 {
+                    Stopwatch sw = new Stopwatch();
+                    sw.Start();
                     IPEndPoint server = NetworkHelper.GetEndPoint(item.Host, 3478);
+                    sw.Stop();
+                    if (sw.ElapsedMilliseconds > 1000)
+                    {
+                        Logger.Instance.Warning($"get domain ip time:{sw.ElapsedMilliseconds}ms");
+                    }
                     if (protocolType == TunnelProtocolType.Tcp)
                     {
                         TunnelCompactIPEndPoint externalIP = await compact.GetTcpExternalIPAsync(server);

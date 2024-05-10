@@ -1,30 +1,19 @@
-﻿using cmonitor.client;
-using cmonitor.client.api;
+﻿using cmonitor.client.api;
 using cmonitor.client.tunnel;
-using cmonitor.config;
-using cmonitor.plugins.signin.messenger;
 using cmonitor.plugins.tunnel.server;
-using cmonitor.plugins.tunnel.transport;
-using cmonitor.server;
 using common.libs;
 using common.libs.api;
-using common.libs.extends;
-using MemoryPack;
-using System.Net.Sockets;
-using static cmonitor.plugins.tunnel.TunnelTransfer;
+using System.Text;
 
 namespace cmonitor.plugins.tunnel
 {
     public sealed class TunnelApiController : IApiClientController
     {
         private readonly TunnelTransfer tunnelTransfer;
-        private readonly TunnelBindServer tunnelBindServer;
 
-        public TunnelApiController(TunnelTransfer tunnelTransfer,
-            TunnelBindServer tunnelBindServer)
+        public TunnelApiController(TunnelTransfer tunnelTransfer)
         {
             this.tunnelTransfer = tunnelTransfer;
-            this.tunnelBindServer = tunnelBindServer;
 
             TunnelTest();
         }
@@ -40,9 +29,8 @@ namespace cmonitor.plugins.tunnel
                     {
                         for (int i = 0; i < 10; i++)
                         {
-                            Logger.Instance.Debug($"tunnel [test] send {i}");
-                            await connection.SendAsync(BitConverter.GetBytes(i));
-                            await Task.Delay(10);
+                            Logger.Instance.Debug($"tunnel {connection.Direction} [test] send {i}");
+                            await connection.SendAsync(Encoding.UTF8.GetBytes($"snltty.tunnel.{i}"));
                         }
                         connection.Close();
                     }
@@ -63,7 +51,7 @@ namespace cmonitor.plugins.tunnel
             {
                 connection.BeginReceive(async (ITunnelConnection connection, Memory<byte> data, object state) => {
 
-                    Logger.Instance.Debug($"tunnel [{connection.TransactionId}] receive {BitConverter.ToInt32(data.Span)}");
+                    Logger.Instance.Debug($"tunnel [{connection.TransactionId}] receive {Encoding.UTF8.GetString(data.Span)}");
                     await Task.CompletedTask;
 
                 }, async (ITunnelConnection connection, object state) => {
