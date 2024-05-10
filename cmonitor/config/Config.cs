@@ -132,7 +132,7 @@ namespace cmonitor.config
             }
             if (ExcludePlugins.Length > 0)
             {
-                types = types.Where(c => ExcludePlugins.Any(d => c.FullName.Contains(d) == false));
+                types = types.Where(c => ExcludePlugins.Any(d => c.FullName.Contains(d))==false);
             }
             return types;
         }
