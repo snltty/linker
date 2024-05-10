@@ -59,15 +59,15 @@ namespace common.libs
                 for (ushort i = 0; i < list.Count(); i++)
                 {
                     string ip = list.ElementAt(i).ToString();
-                    if (ip.StartsWith(starts[0], StringComparison.Ordinal) || ip.StartsWith(starts[1], StringComparison.Ordinal) || ip.StartsWith(starts[2], StringComparison.Ordinal) || ip.StartsWith(starts[3], StringComparison.Ordinal))
+                    if (starts.Any(c => ip.StartsWith(c)))
                     {
-                        if (ip.StartsWith(starts[2], StringComparison.Ordinal) == false)
-                            ips.Add(list.ElementAt(i));
+                        ips.Add(list.ElementAt(i));
                     }
                     else
                     {
                         if (i == 0) return 1;
-                        return i;
+                        if (i == 1) return 1;
+                        return (ushort)(i - 1);
                     }
                 }
             }
@@ -82,14 +82,16 @@ namespace common.libs
         }
         private static IEnumerable<IPAddress> GetTraceRoute(string hostNameOrAddress, int ttl)
         {
-            Ping pinger = new();
+            IPAddress target = Dns.GetHostEntry(hostNameOrAddress).AddressList.FirstOrDefault(c => c.AddressFamily == AddressFamily.InterNetwork);
+
+            using Ping pinger = new();
             // 创建PingOptions对象
             PingOptions pingerOptions = new(ttl, true);
             int timeout = 100;
             byte[] buffer = Encoding.ASCII.GetBytes("11");
             // 创建PingReply对象
             // 发送ping命令
-            PingReply reply = pinger.Send(hostNameOrAddress, timeout, buffer, pingerOptions);
+            PingReply reply = pinger.Send(target, timeout, buffer, pingerOptions);
 
             // 处理返回结果
             List<IPAddress> result = new();
@@ -117,6 +119,15 @@ namespace common.libs
                 //失败
             }
             return result;
+        }
+
+
+        private static byte[] ipv6LocalBytes = new byte[] { 254, 128, 0, 0, 0, 0, 0, 0 };
+        public static IPAddress[] GetIPV6()
+        {
+            return Dns.GetHostAddresses(Dns.GetHostName())
+                 .Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+                 .Where(c => c.GetAddressBytes().AsSpan(0, 8).SequenceEqual(ipv6LocalBytes) == false).Distinct().ToArray();
         }
 
 

@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Net;
+using System.Text.Json.Serialization;
 
 namespace cmonitor.config
 {
@@ -17,6 +18,9 @@ namespace cmonitor.config
 
         [JsonIgnore]
         public int RouteLevel { get; set; }
+
+        [JsonIgnore]
+        public IPAddress[] LocalIPs { get; set; }
     }
 
     public sealed class TunnelConfigServerInfo

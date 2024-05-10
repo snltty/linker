@@ -47,4 +47,7 @@ namespace cmonitor.serializes
             value = new IPEndPoint(new IPAddress(span.Slice(0 + 1, length)), span.Slice(0 + 1 + length).ToUInt16());
         }
     }
+
+
+
 }

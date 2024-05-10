@@ -97,16 +97,24 @@ namespace cmonitor.plugins.tunnel.transport
 
         private async Task<ITunnelConnection> ConnectForward(TunnelTransportInfo tunnelTransportInfo)
         {
-            await Task.Delay(20);
             //要连接哪些IP
-            IPEndPoint[] eps = new IPEndPoint[] {
+            IPAddress[] localIps = tunnelTransportInfo.Remote.LocalIps.Where(c => c.Equals(tunnelTransportInfo.Remote.Local.Address) == false).ToArray();
+            List<IPEndPoint> eps = new List<IPEndPoint>();
+            foreach (IPAddress item in localIps)
+            {
+                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Local.Port));
+                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port));
+                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port + 1));
+            }
+            eps.AddRange(new List<IPEndPoint>{
                 new IPEndPoint(tunnelTransportInfo.Remote.Local.Address,tunnelTransportInfo.Remote.Local.Port),
                 new IPEndPoint(tunnelTransportInfo.Remote.Local.Address,tunnelTransportInfo.Remote.Remote.Port),
                 new IPEndPoint(tunnelTransportInfo.Remote.Local.Address,tunnelTransportInfo.Remote.Remote.Port+1),
                 new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port),
                 new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port+1),
-            };
-            foreach (IPEndPoint ep in eps)
+            });
+
+            foreach (IPEndPoint ep in eps.Where(c => NotIPv6Support(c.Address) == false))
             {
                 Socket targetSocket = new(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 targetSocket.IPv6Only(ep.Address.AddressFamily, false);
@@ -159,13 +167,21 @@ namespace cmonitor.plugins.tunnel.transport
         private void BindAndTTL(TunnelTransportInfo tunnelTransportInfo)
         {
             //给对方发送TTL消息
-            IPEndPoint[] eps = new IPEndPoint[] {
-                new IPEndPoint(tunnelTransportInfo.Remote.Local.Address,tunnelTransportInfo.Local.Local.Port),
+            IPAddress[] localIps = tunnelTransportInfo.Remote.LocalIps .Where(c => c.Equals(tunnelTransportInfo.Remote.Local.Address) == false).ToArray();
+            List<IPEndPoint> eps = new List<IPEndPoint>();
+            foreach (IPAddress item in localIps)
+            {
+                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Local.Port));
+                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port));
+                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port + 1));
+            }
+            eps.AddRange(new List<IPEndPoint>{
+                new IPEndPoint(tunnelTransportInfo.Remote.Local.Address,tunnelTransportInfo.Remote.Local.Port),
                 new IPEndPoint(tunnelTransportInfo.Remote.Local.Address,tunnelTransportInfo.Remote.Remote.Port),
                 new IPEndPoint(tunnelTransportInfo.Remote.Local.Address,tunnelTransportInfo.Remote.Remote.Port+1),
                 new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port),
                 new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port+1),
-            };
+            });
             //过滤掉不支持IPV6的情况
             IEnumerable<Socket> sockets = eps.Where(c => NotIPv6Support(c.Address) == false).Select(ip =>
             {

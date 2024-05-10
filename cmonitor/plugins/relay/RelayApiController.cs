@@ -26,7 +26,7 @@ namespace cmonitor.plugins.relay
             {
                 try
                 {
-                    ITunnelConnection connection = await relayTransfer.ConnectAsync(param.Content, "test", config.Data.Client.Relay.SecretKey);
+                    ITunnelConnection connection = await relayTransfer.ConnectAsync(param.Content, "test");
                     if (connection != null)
                     {
                         for (int i = 0; i < 10; i++)

@@ -118,6 +118,7 @@ namespace cmonitor.plugins.tunnel
                 {
                     Local = ips[0].Local,
                     Remote = ips[0].Remote,
+                    LocalIps = config.Data.Client.Tunnel.LocalIPs,
                     RouteLevel = config.Data.Client.Tunnel.RouteLevel,
                     MachineName = config.Data.Client.Name
                 };

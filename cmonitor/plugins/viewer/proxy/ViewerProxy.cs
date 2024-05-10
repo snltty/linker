@@ -36,10 +36,20 @@ namespace cmonitor.plugins.viewer.proxy
             token.Connection = connection;
             if (connection == null || connection.Connected == false)
             {
+                Logger.Instance.Debug($"viewer tunnel to {runningConfig.Data.Viewer.ServerMachine}");
                 connection = await tunnelTransfer.ConnectAsync(runningConfig.Data.Viewer.ServerMachine, "viewer");
+                if(connection != null)
+                {
+                    Logger.Instance.Debug($"viewer tunnel to {runningConfig.Data.Viewer.ServerMachine} success");
+                }
                 if (connection == null)
                 {
-                    connection = await relayTransfer.ConnectAsync(runningConfig.Data.Viewer.ServerMachine, "viewer", config.Data.Client.Relay.SecretKey);
+                    Logger.Instance.Debug($"viewer relay to {runningConfig.Data.Viewer.ServerMachine}");
+                    connection = await relayTransfer.ConnectAsync(runningConfig.Data.Viewer.ServerMachine, "viewer");
+                    if(connection != null)
+                    {
+                        Logger.Instance.Debug($"viewer relay to {runningConfig.Data.Viewer.ServerMachine} success");
+                    }
                 }
                 if (connection != null)
                 {

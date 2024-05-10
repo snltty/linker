@@ -47,7 +47,7 @@ namespace cmonitor.plugins.relay.messenger
             RelayInfo info = MemoryPackSerializer.Deserialize<RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (info.FlowingId == 0)
             {
-                if (info.SecretKey != config.Data.Client.Relay.SecretKey)
+                if (info.SecretKey != config.Data.Server.Relay.SecretKey)
                 {
                     connection.Write(Helper.FalseArray);
                     return;

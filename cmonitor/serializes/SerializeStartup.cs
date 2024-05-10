@@ -12,11 +12,13 @@ namespace cmonitor.serializes
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             MemoryPackFormatterProvider.Register(new IPEndPointFormatter());
+            MemoryPackFormatterProvider.Register(new IPAddressFormatter());
         }
 
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             MemoryPackFormatterProvider.Register(new IPEndPointFormatter());
+            MemoryPackFormatterProvider.Register(new IPAddressFormatter());
         }
 
 

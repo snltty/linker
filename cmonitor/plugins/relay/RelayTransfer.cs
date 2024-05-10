@@ -45,7 +45,7 @@ namespace cmonitor.plugins.relay
             }
         }
 
-        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineName, string transactionId, string secretKey)
+        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineName, string transactionId)
         {
             IEnumerable<ITransport> _transports = transports.OrderBy(c => c.Name);
             foreach (RelayCompactInfo item in config.Data.Client.Relay.Servers.Where(c => c.Disabled == false))
@@ -63,7 +63,7 @@ namespace cmonitor.plugins.relay
                     {
                         FlowingId = 0,
                         RemoteMachineName = remoteMachineName,
-                        SecretKey = secretKey,
+                        SecretKey = item.SecretKey,
                         Server = server,
                         TransactionId = transactionId,
                         TransportName = transport.Name

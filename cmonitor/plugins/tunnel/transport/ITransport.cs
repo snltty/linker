@@ -62,6 +62,9 @@ namespace cmonitor.plugins.tunnel.transport
         public IPEndPoint Local { get; set; }
 
         [MemoryPackAllowSerialize]
+        public IPAddress[] LocalIps { get; set; }
+
+        [MemoryPackAllowSerialize]
         public IPEndPoint Remote { get; set; }
 
         public int RouteLevel { get; set; }
