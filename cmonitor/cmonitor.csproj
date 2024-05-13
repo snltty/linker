@@ -56,6 +56,12 @@
 		<None Update="plugins\ntrights\ntrights.exe">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="plugins\tuntap\tun2socks-windows.exe">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="plugins\tuntap\wintun.dll">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 	<ItemGroup>
 	  <Compile Remove="Properties\**" />

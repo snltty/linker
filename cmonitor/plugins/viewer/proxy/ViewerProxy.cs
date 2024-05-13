@@ -1,6 +1,5 @@
 ﻿using cmonitor.client.running;
 using cmonitor.client.tunnel;
-using cmonitor.config;
 using cmonitor.plugins.relay;
 using cmonitor.plugins.tunnel;
 using common.libs;
@@ -12,25 +11,23 @@ namespace cmonitor.plugins.viewer.proxy
         private readonly RunningConfig runningConfig;
         private readonly TunnelTransfer tunnelTransfer;
         private readonly RelayTransfer relayTransfer;
-        private readonly Config config;
 
         private ITunnelConnection connection;
 
-        public ViewerProxy(RunningConfig runningConfig, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, Config config)
+        public ViewerProxy(RunningConfig runningConfig, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer)
         {
             this.runningConfig = runningConfig;
             this.tunnelTransfer = tunnelTransfer;
             this.relayTransfer = relayTransfer;
-            this.config = config;
 
             Start(0);
-            Logger.Instance.Info($"start viewer proxy, port : {LocalEndpoint.Port}");
+            Logger.Instance.Info($"start viewer proxy, listen port : {LocalEndpoint}");
 
             tunnelTransfer.SetConnectCallback("viewer", BindConnectionReceive);
             relayTransfer.SetConnectCallback("viewer", BindConnectionReceive);
         }
 
-        protected override async Task Connect(AsyncUserToken token)
+        protected override async Task<bool> ConnectTcp(AsyncUserToken token)
         {
             token.Proxy.TargetEP = runningConfig.Data.Viewer.ConnectEP;
             token.Connection = connection;
@@ -38,7 +35,7 @@ namespace cmonitor.plugins.viewer.proxy
             {
                 Logger.Instance.Debug($"viewer tunnel to {runningConfig.Data.Viewer.ServerMachine}");
                 connection = await tunnelTransfer.ConnectAsync(runningConfig.Data.Viewer.ServerMachine, "viewer");
-                if(connection != null)
+                if (connection != null)
                 {
                     Logger.Instance.Debug($"viewer tunnel to {runningConfig.Data.Viewer.ServerMachine} success");
                 }
@@ -46,7 +43,7 @@ namespace cmonitor.plugins.viewer.proxy
                 {
                     Logger.Instance.Debug($"viewer relay to {runningConfig.Data.Viewer.ServerMachine}");
                     connection = await relayTransfer.ConnectAsync(runningConfig.Data.Viewer.ServerMachine, "viewer");
-                    if(connection != null)
+                    if (connection != null)
                     {
                         Logger.Instance.Debug($"viewer relay to {runningConfig.Data.Viewer.ServerMachine} success");
                     }
@@ -57,6 +54,7 @@ namespace cmonitor.plugins.viewer.proxy
                     token.Connection = connection;
                 }
             }
+            return token.Connection != null && token.Connection.Connected;
         }
     }
 }

@@ -10,6 +10,7 @@ using cmonitor.client.running;
 using System.Net;
 using cmonitor.plugins.viewer.proxy;
 using common.libs.extends;
+using cmonitor.plugins.viewer.config;
 
 namespace cmonitor.plugins.viewer.report
 {

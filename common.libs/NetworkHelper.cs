@@ -129,6 +129,30 @@ namespace common.libs
                  .Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
                  .Where(c => c.GetAddressBytes().AsSpan(0, 8).SequenceEqual(ipv6LocalBytes) == false).Distinct().ToArray();
         }
+        public static IPAddress[] GetIPV4()
+        {
+            return Dns.GetHostEntry(Dns.GetHostName()).AddressList.Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).Distinct().ToArray();
+        }
+
+        public static byte MaskLength(uint ip)
+        {
+            byte maskLength = 32;
+            for (int i = 0; i < sizeof(uint); i++)
+            {
+                if (((ip >> (i * 8)) & 0x000000ff) != 0)
+                {
+                    break;
+                }
+                maskLength -= 8;
+            }
+            return maskLength;
+        }
+        public static uint MaskValue(byte maskLength)
+        {
+            //最多<<31 所以0需要单独计算
+            if (maskLength < 1) return 0;
+            return 0xffffffff << (32 - maskLength);
+        }
 
 
 #if DISABLE_IPV6 || (!UNITY_EDITOR && ENABLE_IL2CPP && !UNITY_2018_3_OR_NEWER)

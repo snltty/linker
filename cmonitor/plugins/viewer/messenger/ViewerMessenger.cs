@@ -1,4 +1,5 @@
 ﻿using cmonitor.plugins.signin.messenger;
+using cmonitor.plugins.viewer.config;
 using cmonitor.plugins.viewer.report;
 using cmonitor.server;
 using MemoryPack;

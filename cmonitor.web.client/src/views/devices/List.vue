@@ -4,32 +4,43 @@
             <el-table-column prop="MachineName" label="设备">
                 <template #default="scope">
                     <div>
-                        <template v-if="scope.row.Connected">
-                            <strong class="green">{{ scope.row.MachineName }}</strong>
-                        </template>
-                        <template v-else>
-                            <span>{{ scope.row.MachineName }}</span>
-                        </template>
+                        <p>
+                            <template v-if="scope.row.Connected">
+                                <strong class="green">{{ scope.row.MachineName }}</strong>
+                            </template>
+                            <template v-else>
+                                <span>{{ scope.row.MachineName }}</span>
+                            </template>
+                        </p>
+                        <p>{{scope.row.IP}}</p>
                     </div>
                 </template>
             </el-table-column>
-            <el-table-column prop="IP" label="IP" width="160" />
-            <el-table-column prop="Version" label="版本" width="60" />
-            <el-table-column prop="LastSignIn" label="最后登入" width="140" />
+            <el-table-column prop="tunel" label="通道" width="90" >
+                <template #default="scope">
+                    <div v-if="machineName != scope.row.MachineName">
+                        <Tunnel :data="scope.row"></Tunnel>
+                    </div>
+                </template>
+            </el-table-column>
+            <el-table-column prop="tuntap" label="网卡"  width="180">
+                <template #default="scope">
+                    <template v-if="state.tuntapInfos[scope.row.MachineName]">
+                        <Tuntap @change="handleTuntapChange" :data="state.tuntapInfos[scope.row.MachineName]"></Tuntap>
+                    </template>
+                </template>
+            </el-table-column>
+            <el-table-column prop="LastSignIn" label="其它" width="140" >
+                <template #default="scope">
+                    <div>
+                        <p>{{scope.row.LastSignIn}}</p>
+                        <p>v{{scope.row.Version}}</p>
+                    </div>
+                </template>
+            </el-table-column>
             <el-table-column label="操作">
                 <template #default="scope">
-                    <el-dropdown class="m-r-1">
-                        <el-button size="small">
-                            测试<el-icon class="el-icon--right"><arrow-down /></el-icon>
-                        </el-button>
-                        <template #dropdown>
-                            <el-dropdown-menu>
-                                <el-dropdown-item @click="handleTestTunnel(scope.row.MachineName)">打洞</el-dropdown-item>
-                                <el-dropdown-item @click="handleTestRelay(scope.row.MachineName)">中继</el-dropdown-item>
-                            </el-dropdown-menu>
-                        </template>
-                    </el-dropdown>
-                    <el-popconfirm confirm-button-text="确认" cancel-button-text="取消" title="删除不可逆，是否确认?" @confirm="handleDel(scope.row.MachineName)">
+                    <el-popconfirm v-if="machineName != scope.row.MachineName" confirm-button-text="确认" cancel-button-text="取消" title="删除不可逆，是否确认?" @confirm="handleDel(scope.row.MachineName)">
                         <template #reference>
                             <el-button type="danger" size="small">删除</el-button>
                         </template>
@@ -48,15 +59,19 @@
 </template>
 <script>
 import {getSignList,updateSignInDel} from '@/apis/signin.js'
-import {updateTunnelConnect} from '@/apis/tunnel.js'
-import {updateRelayConnect} from '@/apis/relay.js'
 import {subWebsocketState} from '@/apis/request.js'
+import {getTuntapInfo} from '@/apis/tuntap'
 import {injectGlobalData} from '@/provide.js'
-import {reactive,onMounted, ref, nextTick, onUnmounted} from 'vue'
+import {reactive,onMounted, ref, nextTick, onUnmounted, computed} from 'vue'
+import { ElMessage } from 'element-plus'
+import Tuntap from './Tuntap.vue'
+import Tunnel from './Tunnel.vue'
 export default {
+    components:{Tuntap,Tunnel},
     setup(props) {
         
         const globalData = injectGlobalData();
+        const machineName = computed(()=>globalData.value.config.Client.Name);
         const wrap = ref(null);
         const state = reactive({
             page:{
@@ -64,9 +79,36 @@ export default {
                 Count:0,
                 List:[]
             },
+            tuntapInfos:{},
+            tuntapHashCode:0,
             height:0,
         });
-        
+
+        let tuntapTimer = 0;
+        const _getTuntapInfo = ()=>{
+            if(globalData.value.connected){
+                getTuntapInfo(state.tuntapHashCode.toString()).then((res)=>{
+                    state.tuntapHashCode = res.HashCode;
+                    if(res.List){  
+                        state.tuntapInfos = {};
+                        nextTick(()=>{
+                            state.tuntapInfos = res.List.reduce((json,value,index)=>{
+                                json[value.MachineName] = value;
+                                json[value.MachineName].running =  value.Status == 2;
+                                json[value.MachineName].loading =  value.Status == 1;
+                                return json;
+                            },{});
+                        });
+                    }
+                    tuntapTimer = setTimeout(_getTuntapInfo,200);
+                }).catch(()=>{
+                    tuntapTimer = setTimeout(_getTuntapInfo,200);
+                });
+            }else{
+                tuntapTimer = setTimeout(_getTuntapInfo,1000);
+            }
+        }
+
         const _getSignList = ()=>{
             state.page.Request.GroupId = globalData.value.groupid;
             getSignList(state.page.Request).then((res)=>{
@@ -78,35 +120,34 @@ export default {
         const handlePageChange = ()=>{
             _getSignList();
         }
-        const resizeTable = ()=>{
-            nextTick(()=>{
-                state.height = wrap.value.offsetHeight - 80;
-            });
-        }
-        const handleTestTunnel = (name)=>{
-            updateTunnelConnect(name);
-        }
-        const handleTestRelay = (name)=>{
-            updateRelayConnect(name);
-        }
         const handleDel = (name)=>{
             updateSignInDel(name).then(()=>{
                 _getSignList();
             });
         }
+        const handleTuntapChange = ()=>{
+            _getSignList();
+        }
 
+        const resizeTable = ()=>{
+            nextTick(()=>{
+                state.height = wrap.value.offsetHeight - 80;
+            });
+        }
         onMounted(()=>{
             subWebsocketState((state)=>{ if(state)_getSignList();});
             resizeTable();
             window.addEventListener('resize',resizeTable);
             _getSignList();
+            _getTuntapInfo();
         });
         onUnmounted(()=>{
+            clearTimeout(tuntapTimer);
             window.removeEventListener('resize',resizeTable);
         });
 
         return {
-            state,wrap,handlePageChange,handleTestTunnel,handleTestRelay,handleDel
+            machineName,state,wrap,handlePageChange,handleDel,handleTuntapChange
         }
     }
 }

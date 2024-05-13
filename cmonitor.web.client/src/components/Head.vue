@@ -47,7 +47,7 @@ export default {
         const route = useRoute();
         const router = useRouter();
 
-        const queryCache = JSON.parse(localStorage.getItem('api-cache') || JSON.stringify({api:`${window.location.hostname}:1804`,psd:'snltty',groupid:'snltty'}));
+        const queryCache = JSON.parse(localStorage.getItem('api-cache') || JSON.stringify({api:`${window.location.hostname}:1803`,psd:'snltty',groupid:'snltty'}));
         const state = reactive({
             api:queryCache.api,
             psd:queryCache.psd,

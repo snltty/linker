@@ -17,7 +17,24 @@ namespace common.libs
         {
             return Execute("/bin/bash", arg, commands, readResult);
         }
-       
+
+        public static Process Execute(string fileName, string arg)
+        {
+            Process proc = new Process();
+            proc.StartInfo.CreateNoWindow = true;
+            proc.StartInfo.FileName = fileName;
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.RedirectStandardError = true;
+            proc.StartInfo.RedirectStandardInput = true;
+            proc.StartInfo.RedirectStandardOutput = true;
+            proc.StartInfo.Arguments = arg;
+            proc.StartInfo.Verb = "runas";
+            proc.Start();
+
+            //Process proc = Process.Start(fileName, arg);
+            return proc;
+        }
+
         public static string Execute(string fileName, string arg, string[] commands, bool readResult = true)
         {
             using Process proc = new Process();

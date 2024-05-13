@@ -43,9 +43,7 @@ namespace cmonitor.plugins.viewer
 
         public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
         {
-            Logger.Instance.Info($"use viewer proxy server in client mode.");
             ViewerProxy viewerProxyServer = serviceProvider.GetService<ViewerProxy>();
-            viewerProxyServer.Start(0);
         }
 
         public void UseServer(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)

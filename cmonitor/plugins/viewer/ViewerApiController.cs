@@ -6,6 +6,7 @@ using cmonitor.server;
 using common.libs.extends;
 using MemoryPack;
 using common.libs.api;
+using cmonitor.plugins.viewer.config;
 
 namespace cmonitor.plugins.viewer
 {
