@@ -63,19 +63,19 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/win-x64.zip
-        asset_name: cmonitor-win-x64-single.zip
+        asset_path: ./public/publish-zip/cmonitor-win-x64.zip
+        asset_name: cmonitor-win-x64.zip
         asset_content_type: application/zip
 
-    - name: upload win x64 any
-      id: upload-win-x64-any
+    - name: upload win arm64
+      id: upload-win-arm64
       uses: actions/upload-release-asset@master
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/win-x64-any.zip
-        asset_name: cmonitor-win-x64-any.zip
+        asset_path: ./public/publish-zip/cmonitor-win-arm64.zip
+        asset_name: cmonitor-win-arm64.zip
         asset_content_type: application/zip
 
     - name: upload linux x64
@@ -85,18 +85,40 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/linux-x64.zip
-        asset_name: cmonitor-linux-x64-single.zip
+        asset_path: ./public/publish-zip/cmonitor-linux-x64.zip
+        asset_name: cmonitor-linux-x64.zip
         asset_content_type: application/zip
 
-    - name: upload linux x64 any
-      id: upload-linux-x64-any
+    - name: upload linux arm64
+      id: upload-linux-arm64
       uses: actions/upload-release-asset@master
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/linux-x64-any.zip
-        asset_name: cmonitor-linux-x64-any.zip
+        asset_path: ./public/publish-zip/cmonitor-linux-arm64.zip
+        asset_name: cmonitor-linux-arm64.zip
+        asset_content_type: application/zip
+
+    - name: upload osx x64
+      id: upload-osx-x64
+      uses: actions/upload-release-asset@master
+      env:
+          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./public/publish-zip/cmonitor-osx-x64.zip
+        asset_name: cmonitor-osx-x64.zip
+        asset_content_type: application/zip
+
+    - name: upload osx arm64
+      id: upload-osx-arm64
+      uses: actions/upload-release-asset@master
+      env:
+          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./public/publish-zip/cmonitor-osx-arm64.zip
+        asset_name: cmonitor-osx-arm64.zip
         asset_content_type: application/zip
 

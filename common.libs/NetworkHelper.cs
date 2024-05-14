@@ -28,7 +28,13 @@ namespace common.libs
                 {
                     return ip;
                 }
-                return Dns.GetHostEntry(domain).AddressList.FirstOrDefault();
+                IPAddress[] ips = Dns.GetHostEntry(domain).AddressList;
+                ip = ips.FirstOrDefault(c => c.AddressFamily == AddressFamily.InterNetwork);
+                if (ip == null)
+                {
+                    ip = ips.FirstOrDefault(c => c.AddressFamily == AddressFamily.InterNetworkV6);
+                }
+                return ip;
             }
             catch (Exception)
             {
