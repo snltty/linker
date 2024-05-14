@@ -48,7 +48,7 @@ export default {
         
         watch(() => props.items, () => {
             state.checkList = props.items.map(c => c[props.label]);
-            updateCheckAll(state.checkList);
+            updateCheckAll(state.checkList,false);
         });
                 
 
@@ -63,14 +63,16 @@ export default {
         const handleChange = (values) => {
             updateCheckAll(values);
         }
-        const updateCheckAll = (values) => {
+        const updateCheckAll = (values,change = true) => {
             const checkedCount = values.length;
             state.isIndeterminate = checkedCount > 0 && checkedCount < state.data.length;
             state.checkAll = checkedCount > 0 && checkedCount == state.data.length;
-            emit('change', state.data.filter(c => state.checkList.indexOf(c[state.label]) >= 0));
+            if(change){
+                emit('change', state.data.filter(c => state.checkList.indexOf(c[state.label]) >= 0));
+            }
         }
         onMounted(() => {
-            updateCheckAll(state.checkList);
+            updateCheckAll(state.checkList,false);
         });
 
         const getData = () => {
