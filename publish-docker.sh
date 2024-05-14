@@ -11,6 +11,11 @@ npm install &&
 npm run build &&
 cd ../
 
+cd cmonitor.web.client 
+npm install &&
+npm run build &&
+cd ../
+
 for f in ${fs[@]} 
 do
 	for p in ${ps[@]} 
@@ -21,7 +26,8 @@ do
 			cp -rf public/publish/docker/linux-${p}-${r}/${f}/${f} public/publish/docker/linux-${p}-${r}/${f}/${f}.run
 			rm -rf public/publish/docker/linux-${p}-${r}/${f}/${f}
 			cp -rf cmonitor/Dockerfile-${p} public/publish/docker/linux-${p}-${r}/${f}/Dockerfile-${p}
-			cp -rf public/extends/web/* public/publish/docker/linux-${p}-${r}/${f}/web/*
+			cp -rf public/extends/any/* public/publish/docker/linux-${p}-${r}/${f}/*
+			cp -rf cmonitor/plugins/tuntap/tun2socks-${p}-${r} public/publish/docker/linux-${p}-${r}/${f}/tun2socks
 		done
 
 		cd public/publish/docker/linux-${p}-x64/${f}

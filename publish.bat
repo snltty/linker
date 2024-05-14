@@ -5,29 +5,15 @@ rd /s /q public\\publish-zip
 mkdir public\\publish-zip
 	
 
-dotnet publish ./cmonitor -c release -f net8.0 -o ./public/publish/win-x64  -r win-x64 -p:PublishTrimmed=true  -p:TrimMode=partial  --self-contained true -p:TieredPGO=true  -p:DebugType=none -p:DebugSymbols=false -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true
+for %%r in (win-x64,win-arm64,linux-x64,linux-arm64,osx-x64,osx-arm64) do (
+	dotnet publish ./cmonitor -c release -f net8.0 -o ./public/publish/%%r/single  -r %%r -p:PublishTrimmed=true  -p:TrimMode=partial  --self-contained true -p:TieredPGO=true  -p:DebugType=none -p:DebugSymbols=false -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true
+	dotnet publish ./cmonitor -c release -f net8.0 -r %%r -o ./public/publish/%%r/any/  -p:PublishSingleFile=true --self-contained false
 
-dotnet publish ./cmonitor -c release -f net8.0 -o ./public/publish/linux-x64  -r linux-x64 -p:PublishTrimmed=true  --self-contained true -p:TieredPGO=true  -p:DebugType=none -p:DebugSymbols=false -p:PublishSingleFile=true  -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true  -p:TrimMode=partial
+	echo F|xcopy "public\\extends\\%%r\\*" "public\\publish\\%%r\\single\\*"  /s /f /h /y
+	echo F|xcopy "public\\extends\\%%r\\*" "public\\publish\\%%r\\any\\*"  /s /f /h /y	
 
-dotnet publish ./cmonitor -c release -f net8.0 -r win-x64 -o ./public/publish/win-x64-any/  -p:PublishSingleFile=true --self-contained false
-dotnet publish ./cmonitor -c release -f net8.0 -r linux-x64 -o ./public/publish/linux-x64-any/  -p:PublishSingleFile=true --self-contained false
+	echo F|xcopy "public\\extends\\any\\*" "public\\publish\\%%r\\single\\*"  /s /f /h /y
+	echo F|xcopy "public\\extends\\any\\*" "public\\publish\\%%r\\any\\*"  /s /f /h /y	
 
-
-for %%r in (win-x64,win-x64-any) do (
-	echo F|xcopy "public\\extends\\*" "public\\publish\\%%r\\*"  /s /f /h /y
-	echo F|xcopy "cmonitor.viewer.client.win\\dist\\*" "public\\publish\\%%r\\plugins\\viewer\\*"  /s /f /h /y
-	echo F|xcopy "cmonitor.install.win\\dist\\*" "public\\publish\\%%r\\*"  /s /f /h /y
+	7z a -tzip ./public/publish-zip/cmonitor-%%r.zip ./public/publish/%%r/*
 )
-
-for %%r in (linux-x64,linux-x64-any) do (
-	echo F|xcopy "public\\extends\\web\\*" "public\\publish\\%%r\\web\\*"  /s /f /h /y
-	echo F|xcopy "public\\extends\\web-client\\*" "public\\publish\\%%r\\web-client\\*"  /s /f /h /y
-	echo F|del  "public\\publish\\%%r\\plugins"
-	rd /s /q "public\\publish\\%%r\\plugins"
-)
-
-
-7z a -tzip ./public/publish-zip/win-x64.zip ./public/publish/win-x64/*
-7z a -tzip ./public/publish-zip/win-x64-any.zip ./public/publish/win-x64-any/*
-7z a -tzip ./public/publish-zip/linux-x64.zip ./public/publish/linux-x64/*
-7z a -tzip ./public/publish-zip/linux-x64-any.zip ./public/publish/linux-x64-any/*

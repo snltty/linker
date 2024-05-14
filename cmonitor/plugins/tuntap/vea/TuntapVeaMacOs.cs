@@ -24,7 +24,7 @@ namespace cmonitor.plugins.tuntap.vea
             interfaceOsx = GetOsxInterfaceNum();
             try
             {
-                Tun2SocksProcess = CommandHelper.Execute("./plugins/tuntap/tun2socks-osx", $" -device {veaNameOsx} -proxy socks5://127.0.0.1:{proxyPort} -interface {interfaceOsx} -loglevel silent");
+                Tun2SocksProcess = CommandHelper.Execute("./plugins/tuntap/tun2socks", $" -device {veaNameOsx} -proxy socks5://127.0.0.1:{proxyPort} -interface {interfaceOsx} -loglevel silent");
             }
             catch (Exception ex)
             {

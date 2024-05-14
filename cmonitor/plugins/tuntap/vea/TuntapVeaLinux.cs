@@ -39,7 +39,7 @@ namespace cmonitor.plugins.tuntap.vea
                 {
                     Logger.Instance.Warning($"vea linux ->exec:{command}");
                 }
-                Tun2SocksProcess = CommandHelper.Execute("./plugins/tuntap/tun2socks-linux", command);
+                Tun2SocksProcess = CommandHelper.Execute("./plugins/tuntap/tun2socks", command);
                 await Task.Delay(10);
             }
             catch (Exception ex)
