@@ -32,16 +32,22 @@ import { computed } from 'vue';
 export default {
     setup() {
 
+        const globalData = injectGlobalData();
+        const plugins = computed(()=>globalData.value.config.Common.Plugins||[]);
+
         const footMenuFiles = require.context('../plugins/', true, /FootMenu\.vue/);
-        const footMenuModules = footMenuFiles.keys().map(c => footMenuFiles(c).default).sort((a, b) => a.sort - b.sort);
+        const _footMenuModules = footMenuFiles.keys().map(c => footMenuFiles(c).default).sort((a, b) => a.sort - b.sort);
+        const footMenuModules = computed(()=>_footMenuModules.filter(c=>plugins.value.length == 0 || plugins.value.indexOf(c.pluginName)>=0));
+
 
         const footOptionTopFiles = require.context('../plugins/', true, /FootOptionTop\.vue/);
-        const footOptionTopModules = footOptionTopFiles.keys().map(c => footOptionTopFiles(c).default);
+        const _footOptionTopModules = footOptionTopFiles.keys().map(c => footOptionTopFiles(c).default);
+        const footOptionTopModules = computed(()=>_footOptionTopModules.filter(c=>plugins.value.length == 0 || plugins.value.indexOf(c.pluginName)>=0));
 
         const footOptionBottomFiles = require.context('../plugins/', true, /FootOptionBottom\.vue/);
-        const footOptionBottomModules = footOptionBottomFiles.keys().map(c => footOptionBottomFiles(c).default);
+        const _footOptionBottomModules = footOptionBottomFiles.keys().map(c => footOptionBottomFiles(c).default);
+        const footOptionBottomModules = computed(()=>_footOptionBottomModules.filter(c=>plugins.value.length == 0 || plugins.value.indexOf(c.pluginName)>=0));
 
-        const globalData = injectGlobalData();
         const username = computed(() => globalData.value.username);
         const handleUpdate = () => {
             ElMessageBox.confirm('是否确定重选角色？', '提示', {

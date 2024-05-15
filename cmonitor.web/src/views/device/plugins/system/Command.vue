@@ -19,7 +19,7 @@ import { injectPluginState } from '../../provide'
 import { exec } from '@/apis/command';
 import { injectGlobalData } from '@/views/provide';
 export default {
-    pluginName:'cmonitor.plugin.system.',
+    pluginName:'system',
     setup() {
 
         const pluginState = injectPluginState();

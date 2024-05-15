@@ -17,7 +17,7 @@ import ChooseDig from './ChooseDig.vue'
 import { injectPluginState } from '../../provide'
 export default {
     components: { ActiveTimes, Windows, ChooseDig, AddWindow, ActiveWindows },
-    pluginName:'cmonitor.plugin.active.',
+    pluginName:'active',
     setup() {
         const pluginState = injectPluginState();
         return {

@@ -54,7 +54,7 @@ import { play } from '@/apis/volume'
 import pako from 'pako';
 
 export default {
-    pluginName:'cmonitor.plugin.message.',
+    pluginName:'message',
     props: ['modelValue'],
     emits: ['update:modelValue'],
     components: { CheckBoxWrap, PrevBoxWrap },

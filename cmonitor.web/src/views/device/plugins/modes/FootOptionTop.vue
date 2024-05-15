@@ -8,7 +8,7 @@
 import { injectGlobalData } from '@/views/provide';
 import { injectPluginState } from '../../provide';
 export default {
-    pluginName:'cmonitor.plugin.modes.',
+    pluginName:'modes',
     setup() {
 
         const pluginState = injectPluginState();

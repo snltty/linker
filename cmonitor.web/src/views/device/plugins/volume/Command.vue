@@ -14,7 +14,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { injectPluginState } from '../../provide'
 import { setVolumeMute } from '@/apis/volume';
 export default {
-    pluginName:'cmonitor.plugin.volume.',
+    pluginName:'volume',
     setup() {
 
         const pluginState = injectPluginState();

@@ -1,5 +1,5 @@
 export default {
-    pluginName: 'cmonitor.plugin.wallpaper.',
+    pluginName: 'wallpaper',
     field() {
         return {
             Wallpaper: {

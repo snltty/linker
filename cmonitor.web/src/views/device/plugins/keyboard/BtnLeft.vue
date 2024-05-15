@@ -9,7 +9,7 @@
 <script>
 import { injectPluginState } from '../../provide'
 export default {
-    pluginName:'cmonitor.plugin.keyboard.',
+    pluginName:'keyboard',
     props: ['data'],
     setup(props) {
 

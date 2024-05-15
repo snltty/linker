@@ -6,7 +6,7 @@
 <script>
 import { injectPluginState } from '../../provide';
 export default {
-    pluginName:'cmonitor.plugin.share.',
+    pluginName:'share',
     components: {},
     setup() {
         const pluginState = injectPluginState();

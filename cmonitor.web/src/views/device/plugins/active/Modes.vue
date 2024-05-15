@@ -24,7 +24,7 @@ import CheckBoxWrap from '../../boxs/CheckBoxWrap.vue'
 import { injectGlobalData } from '@/views/provide';
 export default {
     label: '窗口',
-    pluginName:'cmonitor.plugin.active.',
+    pluginName:'active',
     components: { CheckBoxWrap },
     setup(props, { emit }) {
 

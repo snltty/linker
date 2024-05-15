@@ -30,20 +30,20 @@ namespace cmonitor.plugins.sapi
 
         public void UseServer(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
         {
-            if (config.Data.Server.WebPort > 0)
+            if (config.Data.Server.SApi.WebPort > 0)
             {
                 IWebServerServer webServer = serviceProvider.GetService<IWebServerServer>();
-                webServer.Start(config.Data.Server.WebPort, config.Data.Server.WebRoot);
-                Logger.Instance.Info($"server web listen:{config.Data.Server.WebPort}");
+                webServer.Start(config.Data.Server.SApi.WebPort, config.Data.Server.SApi.WebRoot);
+                Logger.Instance.Info($"server web listen:{config.Data.Server.SApi.WebPort}");
             }
-            if (config.Data.Server.ApiPort > 0)
+            if (config.Data.Server.SApi.ApiPort > 0)
             {
                 Logger.Instance.Info($"start server api ");
                 IApiServerServer clientServer = serviceProvider.GetService<IApiServerServer>();
                 clientServer.LoadPlugins(assemblies);
-                clientServer.Websocket(config.Data.Server.ApiPort, config.Data.Server.ApiPassword);
-                Logger.Instance.Info($"server api listen:{config.Data.Server.ApiPort}");
-                Logger.Instance.Info($"server api password:{config.Data.Server.ApiPassword}");
+                clientServer.Websocket(config.Data.Server.SApi.ApiPort, config.Data.Server.SApi.ApiPassword);
+                Logger.Instance.Info($"server api listen:{config.Data.Server.SApi.ApiPort}");
+                Logger.Instance.Info($"server api password:{config.Data.Server.SApi.ApiPassword}");
             }
         }
     }

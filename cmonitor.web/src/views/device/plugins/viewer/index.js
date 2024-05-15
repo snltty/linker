@@ -1,5 +1,5 @@
 export default {
-    pluginName: 'cmonitor.plugin.viewer.',
+    pluginName: 'viewer',
     field() {
         return {
             Viewer: {

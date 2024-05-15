@@ -1,5 +1,5 @@
 export default {
-    pluginName: 'cmonitor.plugin.share.',
+    pluginName: 'share',
     field() {
         return {
             Share: {

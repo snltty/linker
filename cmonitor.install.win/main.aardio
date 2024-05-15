@@ -40,7 +40,6 @@ static9={cls="static";text="每项长度";left=208;top=299;right=266;bottom=321;
 )
 /*}}*/
 
-
 import win.ui.atom;
 var atom,hwndConflict = mainForm.atom("36E2C876-A68F-456C-98B7-CBE08C5B8B06");
 if(!atom){
@@ -60,18 +59,23 @@ var defaultConfig = {
     "ShareMemoryKey": "cmonitor/share",
     "ShareMemoryCount": 100,
     "ShareMemorySize": 1024,
-    "ApiPort": 1803,
-    "ApiPassword": "snltty",
-    "WebPort": 1804
+    
+    "CApi":{
+    	"ApiPort": 1803,
+    	"ApiPassword": "snltty",
+    	"WebPort": 1804,
+    }
   },
   "Common": {
     "Modes": {"client","server"}
   },
   "Server": {
-    "WebPort": 1800,
-    "ApiPort": 1801,
     "ServicePort": 1802,
-    "ApiPassword": "snltty"
+    "SApi":{
+    	"WebPort": 1800,
+    	"ApiPort": 1801,
+    	"ApiPassword": "snltty",
+    }
   }
 };
 
@@ -185,18 +189,21 @@ mainForm.bindConfig2Controll = function(){
 	
 	mainForm.editMachineName.text = mainForm.configJson["Client"]["Name"] || defaultConfig["Client"]["Name"];
 	mainForm.editServer.text = mainForm.configJson["Client"]["Server"] || defaultConfig["Client"]["Server"];
-	mainForm.editWebClientPort.text = mainForm.configJson["Client"]["WebPort"] || defaultConfig["Client"]["WebPort"];
-	mainForm.editApiClientPort.text = mainForm.configJson["Client"]["ApiPort"] || defaultConfig["Client"]["ApiPort"];
-	mainForm.editApiClientPassword.text = mainForm.configJson["Client"]["ApiPassword"] || defaultConfig["Client"]["ApiPassword"];
+	
+	mainForm.configJson["Client"]["CApi"] = mainForm.configJson["Client"]["CApi"] || defaultConfig["Client"]["CApi"];
+	mainForm.editWebClientPort.text = mainForm.configJson["Client"]["CApi"]["WebPort"] || defaultConfig["Client"]["CApi"]["WebPort"];
+	mainForm.editApiClientPort.text = mainForm.configJson["Client"]["CApi"]["ApiPort"] || defaultConfig["Client"]["CApi"]["ApiPort"];
+	mainForm.editApiClientPassword.text = mainForm.configJson["Client"]["CApi"]["ApiPassword"] || defaultConfig["Client"]["CApi"]["ApiPassword"];
 	
 	mainForm.editShareKey.text = mainForm.configJson["Client"]["ShareMemoryKey"] || defaultConfig["Client"]["ShareMemoryKey"];
 	mainForm.editShareLength.text = mainForm.configJson["Client"]["ShareMemoryCount"] || defaultConfig["Client"]["ShareMemoryCount"];
 	mainForm.editShareSize.text = mainForm.configJson["Client"]["ShareMemorySize"] || defaultConfig["Client"]["ShareMemorySize"];
 	
-	mainForm.editWebPort.text = mainForm.configJson["Server"]["WebPort"] || defaultConfig["Server"]["WebPort"];
-	mainForm.editApiPort.text = mainForm.configJson["Server"]["ApiPort"] || defaultConfig["Server"]["ApiPort"];
-	mainForm.editServicePort.text = mainForm.configJson["Server"]["ServicePort"] || defaultConfig["Server"]["ServicePort"];
-	mainForm.editApiPassword.text = mainForm.configJson["Server"]["ApiPassword"] || defaultConfig["Server"]["ApiPassword"];
+	mainForm.configJson["Server"]["SApi"] = mainForm.configJson["Server"]["SApi"] || defaultConfig["Server"]["SApi"];
+	mainForm.editWebPort.text = mainForm.configJson["Server"]["SApi"]["WebPort"] || defaultConfig["Server"]["SApi"]["WebPort"];
+	mainForm.editApiPort.text = mainForm.configJson["Server"]["SApi"]["ApiPort"] || defaultConfig["Server"]["SApi"]["ApiPort"];
+	mainForm.editApiPassword.text = mainForm.configJson["Server"]["SApi"]["ApiPassword"] || defaultConfig["Server"]["SApi"]["ApiPassword"];
+	mainForm.editServicePort.text = mainForm.configJson["Server"]["ServicePort"] || defaultConfig["Server"]["ServicePort"];	
 }
 mainForm.readConfigFromControll = function(){
 	modes = {};
@@ -206,18 +213,18 @@ mainForm.readConfigFromControll = function(){
 	
 	mainForm.configJson["Client"]["Name"] = mainForm.editMachineName.text;
 	mainForm.configJson["Client"]["Server"] = mainForm.editServer.text;
-	mainForm.configJson["Client"]["WebPort"] = tonumber(mainForm.editWebClientPort.text);
-	mainForm.configJson["Client"]["ApiPort"] = tonumber(mainForm.editApiClientPort.text);
-	mainForm.configJson["Client"]["ApiPassword"] = mainForm.editApiClientPassword.text;
+	mainForm.configJson["Client"]["CApi"]["WebPort"] = tonumber(mainForm.editWebClientPort.text);
+	mainForm.configJson["Client"]["CApi"]["ApiPort"] = tonumber(mainForm.editApiClientPort.text);
+	mainForm.configJson["Client"]["CApi"]["ApiPassword"] = mainForm.editApiClientPassword.text;
 	
 	mainForm.configJson["Client"]["ShareMemoryKey"] = mainForm.editShareKey.text;
 	mainForm.configJson["Client"]["ShareMemoryCount"] = tonumber(mainForm.editShareLength.text);
 	mainForm.configJson["Client"]["ShareMemorySize"] = tonumber(mainForm.editShareSize.text);
 	
-	mainForm.configJson["Server"]["WebPort"] = tonumber(mainForm.editWebPort.text);
-	mainForm.configJson["Server"]["ApiPort"] = tonumber(mainForm.editApiPort.text);
 	mainForm.configJson["Server"]["ServicePort"] = tonumber(mainForm.editServicePort.text);
-	mainForm.configJson["Server"]["ApiPassword"] = mainForm.editApiPassword.text;
+	mainForm.configJson["Server"]["SApi"]["WebPort"] = tonumber(mainForm.editWebPort.text);
+	mainForm.configJson["Server"]["SApi"]["ApiPort"] = tonumber(mainForm.editApiPort.text);
+	mainForm.configJson["Server"]["SApi"]["ApiPassword"] = mainForm.editApiPassword.text;
 	
 }
 

@@ -24,7 +24,7 @@ import { reactive } from '@vue/reactivity';
 import { getCurrentInstance, inject, onMounted, watch } from '@vue/runtime-core';
 import { injectGlobalData } from '@/views/provide';
 export default {
-    pluginName:'cmonitor.plugin.system.',
+    pluginName:'system',
     label: '系统选项',
     setup(props, { emit }) {
 

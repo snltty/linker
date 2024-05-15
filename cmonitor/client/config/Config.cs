@@ -57,14 +57,6 @@ namespace cmonitor.config
         public int ShareMemoryCount { get; set; } = 100;
         public int ShareMemorySize { get; set; } = 1024;
 
-        public int ApiPort { get; set; } = 1803;
-        public string ApiPassword { get; set; } = "snltty";
-
-        public int WebPort { get; set; } = 1804;
-        public string WebRoot { get; set; } = "./web-client/";
-
-
-
     }
 
     public sealed class ClientServerInfo

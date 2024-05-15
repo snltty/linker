@@ -8,7 +8,7 @@
 import { injectGlobalData } from '@/views/provide';
 import { injectPluginState } from '../../provide';
 export default {
-    pluginName:'cmonitor.plugin.light.',
+    pluginName:'light',
     setup() {
 
         const pluginState = injectPluginState();

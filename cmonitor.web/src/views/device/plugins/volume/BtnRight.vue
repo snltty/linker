@@ -24,7 +24,7 @@
 <script>
 import { injectPluginState } from '../../provide'
 export default {
-    pluginName:'cmonitor.plugin.volume.',
+    pluginName:'volume',
     props: ['data'],
     setup(props) {
 

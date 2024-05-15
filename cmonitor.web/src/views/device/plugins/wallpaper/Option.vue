@@ -9,7 +9,7 @@ import { wallpaperUpdate } from '@/apis/wallpaper';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { injectPluginState } from '../../provide';
 export default {
-    pluginName:'cmonitor.plugin.wallpaper.',
+    pluginName:'wallpaper',
     sort: 3,
     props: ['data'],
     setup(props) {

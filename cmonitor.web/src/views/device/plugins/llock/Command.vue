@@ -18,7 +18,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { injectPluginState } from '../../provide'
 import { llockScreen, lockSystem } from '../../../../apis/llock'
 export default {
-    pluginName:'cmonitor.plugin.llock.',
+    pluginName:'llock',
     setup() {
 
         const pluginState = injectPluginState();

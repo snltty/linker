@@ -1,5 +1,5 @@
 export default {
-    pluginName: 'cmonitor.plugin.keyboard.',
+    pluginName: 'keyboard',
     field() {
         return {
             Keyboard: {

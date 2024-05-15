@@ -44,6 +44,8 @@ namespace cmonitor.startup
             LoadDependents(temps, temps.Select(c => c.Name));
             startups = startups.Distinct().ToList();
 
+            config.Data.Common.Plugins = startups.Select(c => c.Name).ToArray();
+
             Logger.Instance.Warning($"load startup : {string.Join(",", startups.Select(c => c.Name))}");
         }
         private static void LoadDependents(List<IStartup> all, IEnumerable<string> sependents)

@@ -10,7 +10,7 @@ import { injectPluginState } from '../../provide'
 import ChooseDig from './ChooseDig.vue'
 import Term from './Term.vue'
 export default {
-    pluginName:'cmonitor.plugin.command.',
+    pluginName:'command',
     components: { ChooseDig, Term },
     setup() {
         const pluginState = injectPluginState();

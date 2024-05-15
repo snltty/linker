@@ -1,5 +1,5 @@
 export default {
-    pluginName: 'cmonitor.plugin.system.',
+    pluginName: 'system',
     field() {
         return {
             System: {

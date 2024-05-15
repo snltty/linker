@@ -1,5 +1,5 @@
 export default {
-    pluginName: 'cmonitor.plugin.llock.',
+    pluginName: 'llock',
     field() {
         return {
             LLock: {

@@ -35,7 +35,7 @@ import { injectPluginState } from '../../provide';
 import { useModes } from '../../../../apis/modes';
 
 export default {
-    pluginName:'cmonitor.plugin.modes.',
+    pluginName:'modes',
     props: ['modelValue'],
     emits: ['update:modelValue'],
     components: { CheckBoxWrap },

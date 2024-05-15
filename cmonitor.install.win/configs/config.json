@@ -8,7 +8,12 @@
         "ShareMemoryCount":100,
         "ShareMemoryKey":"cmonitor/share",
         "ShareMemorySize":1024,
-        "WebPort":1804
+        "WebPort":1804,
+        "CApi":{
+            "ApiPassword":"snltty",
+            "ApiPort":1803,
+            "WebPort":1804
+        }
     },
     "Common":{
         "Modes":[
@@ -20,6 +25,11 @@
         "ApiPassword":"snltty",
         "ApiPort":1801,
         "ServicePort":1802,
-        "WebPort":1800
+        "WebPort":1800,
+        "SApi":{
+            "ApiPassword":"snltty",
+            "ApiPort":1801,
+            "WebPort":1800
+        }
     }
 }

@@ -10,7 +10,7 @@
 <script>
 import { injectPluginState } from '../../provide'
 export default {
-    pluginName:'cmonitor.plugin.modes.',
+    pluginName:'modes',
     sort: 0,
     setup() {
 

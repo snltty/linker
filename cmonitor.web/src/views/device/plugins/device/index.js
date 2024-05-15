@@ -1,5 +1,5 @@
 export default {
-    pluginName: 'cmonitor.plugin.device.',
+    pluginName: 'devices',
     state: {
         device: {
             showDevices: false

@@ -44,7 +44,7 @@ import { injectGlobalData } from '@/views/provide';
 import { updateRegistryOptions } from '@/apis/system';
 import { ElMessage } from 'element-plus';
 export default {
-    pluginName:'cmonitor.plugin.system.',
+    pluginName:'system',
     props: ['modelValue'],
     emits: ['update:modelValue'],
     components: { CheckBoxWrap, PrevBoxWrap },

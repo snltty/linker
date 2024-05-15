@@ -1,6 +1,6 @@
 import { injectGlobalData } from "@/views/provide";
 export default {
-    pluginName: 'cmonitor.plugin.hijack.',
+    pluginName: 'hijack',
     field() {
         return {
             Hijack: {

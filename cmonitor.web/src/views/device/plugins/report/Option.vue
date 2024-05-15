@@ -6,7 +6,7 @@
 
 <script>
 export default {
-    pluginName:'cmonitor.plugin.report.',
+    pluginName:'report',
     sort: -1,
     props: ['data'],
     setup(props) {

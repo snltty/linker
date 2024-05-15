@@ -1,5 +1,5 @@
 export default {
-    pluginName: 'cmonitor.plugin.volume.',
+    pluginName: 'volume',
     field() {
         return {
             Volume: {

@@ -15,7 +15,7 @@ import { injectPluginState } from '@/views/device/provide';
 import SnatchTemplate from './template/Template.vue'
 import SnatchUse from './use/Use.vue'
 export default {
-    pluginName:'cmonitor.plugin.snatch.',
+    pluginName:'snatch',
     components: { SnatchTemplate, SnatchUse },
     setup() {
 

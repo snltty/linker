@@ -9,7 +9,7 @@
 import { injectGlobalData } from '@/views/provide';
 import { injectPluginState } from '../../provide';
 export default {
-    pluginName:'cmonitor.plugin.active.',
+    pluginName:'active',
     setup() {
 
         const pluginState = injectPluginState();

@@ -10,7 +10,7 @@ import { injectPluginState } from '../../provide';
 import ChooseDig from './ChooseDig.vue'
 import SettingDig from './SettingDig.vue'
 export default {
-    pluginName:'cmonitor.plugin.modes.',
+    pluginName:'modes',
     components: { ChooseDig, SettingDig },
     setup() {
         const pluginState = injectPluginState();

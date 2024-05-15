@@ -1,7 +1,7 @@
 import { injectGlobalData } from "@/views/provide";
 
 export default {
-    pluginName: 'cmonitor.plugin.light.',
+    pluginName: 'light',
     field() {
         return {
             Light: {

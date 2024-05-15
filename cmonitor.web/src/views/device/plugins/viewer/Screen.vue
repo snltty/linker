@@ -21,7 +21,7 @@ import { ElMessage } from 'element-plus';
 import { injectPluginState } from '../../provide';
 import { viewerUpdate } from '../../../../apis/viewer';
 export default {
-    pluginName:'cmonitor.plugin.viewer.',
+    pluginName:'viewer',
     props: ['data'],
     setup(props) {
 

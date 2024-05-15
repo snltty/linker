@@ -1,5 +1,5 @@
 export default {
-    pluginName: 'cmonitor.plugin.modes.',
+    pluginName: 'modes',
     field() {
         return {
 

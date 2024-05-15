@@ -48,7 +48,7 @@ import { notifyUpdate } from '@/apis/notify'
 import { ElMessage } from 'element-plus';
 import { injectGlobalData } from '@/views/provide';
 export default {
-    pluginName:'cmonitor.plugin.share.',
+    pluginName:'share',
     props: ['data'],
     setup(props) {
 

@@ -28,7 +28,7 @@ import PrevBoxWrap from '../../boxs/PrevBoxWrap.vue'
 import { injectPluginState } from '../../provide';
 import { injectGlobalData } from '@/views/provide';
 export default {
-    pluginName:'cmonitor.plugin.command.',
+    pluginName:'command',
     props: ['modelValue'],
     emits: ['update:modelValue'],
     components: { CheckBoxWrap, PrevBoxWrap },

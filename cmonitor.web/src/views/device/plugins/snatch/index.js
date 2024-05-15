@@ -1,5 +1,5 @@
 export default {
-    pluginName: 'cmonitor.plugin.snatch.',
+    pluginName: 'snatch',
     field() {
         return {
         };

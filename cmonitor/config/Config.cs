@@ -95,6 +95,10 @@ namespace cmonitor.config
 #else
         private LoggerTypes loggerType { get; set; } = LoggerTypes.WARNING;
 #endif
+
+        [JsonIgnore]
+        public string[] Plugins { get; set; } = Array.Empty<string>();
+
         public LoggerTypes LoggerType
         {
             get => loggerType; set

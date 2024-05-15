@@ -1,5 +1,4 @@
-﻿using cmonitor.client.report;
-using cmonitor.config;
+﻿using cmonitor.config;
 using cmonitor.libs;
 using cmonitor.startup;
 using common.libs;
@@ -7,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using cmonitor.client.args;
 using cmonitor.client.running;
-using cmonitor.plugins.capi;
 
 namespace cmonitor.client
 {
@@ -25,17 +23,12 @@ namespace cmonitor.client
 
             serviceCollection.AddSingleton<SignInArgsTransfer>();
 
-            
-
             serviceCollection.AddSingleton<ClientSignInState>();
             serviceCollection.AddSingleton<ClientSignInTransfer>();
 
             //内存共享
             ShareMemory shareMemory = new ShareMemory(config.Data.Client.ShareMemoryKey, config.Data.Client.ShareMemoryCount, config.Data.Client.ShareMemorySize);
             serviceCollection.AddSingleton<ShareMemory>((a) => shareMemory);
-
-            serviceCollection.AddSingleton<IApiClientServer, ApiClientServer>();
-            serviceCollection.AddSingleton<IWebClientServer, WebClientServer>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
@@ -52,23 +45,6 @@ namespace cmonitor.client
             Logger.Instance.Info($"start client signin transfer");
             ClientSignInTransfer clientTransfer = serviceProvider.GetService<ClientSignInTransfer>();
 
-
-            if (config.Data.Client.ApiPort > 0)
-            {
-                Logger.Instance.Info($"start client api server");
-                IApiClientServer clientServer = serviceProvider.GetService<IApiClientServer>();
-                clientServer.LoadPlugins(assemblies);
-                clientServer.Websocket(config.Data.Client.ApiPort, config.Data.Client.ApiPassword);
-                Logger.Instance.Info($"client api listen:{config.Data.Client.ApiPort}");
-                Logger.Instance.Info($"client api password:{config.Data.Client.ApiPassword}");
-            }
-
-            if (config.Data.Client.WebPort > 0)
-            {
-                IWebClientServer webServer = serviceProvider.GetService<IWebClientServer>();
-                webServer.Start(config.Data.Client.WebPort, config.Data.Client.WebRoot);
-                Logger.Instance.Info($"client web listen:{config.Data.Client.WebPort}");
-            }
         }
 
 

@@ -26,21 +26,21 @@ namespace cmonitor.plugins.capi
             Logger.Instance.Info($"server ip {config.Data.Client.ServerEP}");
 
 
-            if (config.Data.Client.ApiPort > 0)
+            if (config.Data.Client.CApi.ApiPort > 0)
             {
                 Logger.Instance.Info($"start client api server");
                 IApiClientServer clientServer = serviceProvider.GetService<IApiClientServer>();
                 clientServer.LoadPlugins(assemblies);
-                clientServer.Websocket(config.Data.Client.ApiPort, config.Data.Client.ApiPassword);
-                Logger.Instance.Info($"client api listen:{config.Data.Client.ApiPort}");
-                Logger.Instance.Info($"client api password:{config.Data.Client.ApiPassword}");
+                clientServer.Websocket(config.Data.Client.CApi.ApiPort, config.Data.Client.CApi.ApiPassword);
+                Logger.Instance.Info($"client api listen:{config.Data.Client.CApi.ApiPort}");
+                Logger.Instance.Info($"client api password:{config.Data.Client.CApi.ApiPassword}");
             }
 
-            if (config.Data.Client.WebPort > 0)
+            if (config.Data.Client.CApi.WebPort > 0)
             {
                 IWebClientServer webServer = serviceProvider.GetService<IWebClientServer>();
-                webServer.Start(config.Data.Client.WebPort, config.Data.Client.WebRoot);
-                Logger.Instance.Info($"client web listen:{config.Data.Client.WebPort}");
+                webServer.Start(config.Data.Client.CApi.WebPort, config.Data.Client.CApi.WebRoot);
+                Logger.Instance.Info($"client web listen:{config.Data.Client.CApi.WebPort}");
             }
         }
 

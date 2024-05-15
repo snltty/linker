@@ -38,7 +38,7 @@ import { setRules } from '../../../../apis/hijack'
 import { injectGlobalData } from '@/views/provide';
 import { injectPluginState } from '../../provide';
 export default {
-    pluginName:'cmonitor.plugin.hijack.',
+    pluginName:'hijack',
     props: ['modelValue', 'items'],
     emits: ['update:modelValue'],
     components: { CheckBoxWrap },

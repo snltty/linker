@@ -1,5 +1,5 @@
 export default {
-    pluginName: 'cmonitor.plugin.message.',
+    pluginName: 'message',
     state: {
         message: {
             showMessage: false,

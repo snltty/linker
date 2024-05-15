@@ -50,7 +50,7 @@ import { setLight } from '../../../../apis/light'
 import { injectGlobalData } from '@/views/provide';
 import { injectPluginState } from '../../provide';
 export default {
-    pluginName:'cmonitor.plugin.light.',
+    pluginName:'light',
     props: ['modelValue'],
     emits: ['update:modelValue'],
     components: { CheckBoxWrap, PrevBoxWrap },

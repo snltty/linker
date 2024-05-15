@@ -8,7 +8,7 @@ import { onMounted, watch } from 'vue';
 import { injectPluginState } from '../../provide'
 import { injectGlobalData } from '@/views/provide';
 export default {
-    pluginName:'cmonitor.plugin.viewer.',
+    pluginName:'viewer',
     components: {},
     setup() {
 

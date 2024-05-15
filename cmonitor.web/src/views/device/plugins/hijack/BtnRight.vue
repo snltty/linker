@@ -10,7 +10,7 @@
 <script>
 import { injectPluginState } from '../../provide'
 export default {
-    pluginName:'cmonitor.plugin.hijack.',
+    pluginName:'hijack',
     props: ['data'],
     setup(props) {
 

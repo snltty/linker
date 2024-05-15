@@ -1,5 +1,4 @@
 ﻿using cmonitor.config;
-using cmonitor.plugins.sapi;
 using cmonitor.server.ruleConfig;
 using cmonitor.startup;
 using common.libs;
@@ -38,9 +37,6 @@ namespace cmonitor.server
             serviceCollection.AddSingleton<MessengerResolver>();
             serviceCollection.AddSingleton<TcpServer>();
 
-
-            serviceCollection.AddSingleton<IWebServerServer, WebServerServer>();
-            serviceCollection.AddSingleton<IApiServerServer, ApiServerServer>();
         }
 
 
@@ -70,21 +66,6 @@ namespace cmonitor.server
             tcpServer.Start(config.Data.Server.ServicePort);
             Logger.Instance.Info($"server listen:{config.Data.Server.ServicePort}");
 
-            if (config.Data.Server.WebPort > 0)
-            {
-                IWebServerServer webServer = serviceProvider.GetService<IWebServerServer>();
-                webServer.Start(config.Data.Server.WebPort, config.Data.Server.WebRoot);
-                Logger.Instance.Info($"server web listen:{config.Data.Server.WebPort}");
-            }
-            if (config.Data.Server.ApiPort > 0)
-            {
-                Logger.Instance.Info($"start server api ");
-                IApiServerServer clientServer = serviceProvider.GetService<IApiServerServer>();
-                clientServer.LoadPlugins(assemblies);
-                clientServer.Websocket(config.Data.Server.ApiPort, config.Data.Server.ApiPassword);
-                Logger.Instance.Info($"server api listen:{config.Data.Server.ApiPort}");
-                Logger.Instance.Info($"server api password:{config.Data.Server.ApiPassword}");
-            }
         }
     }
 }

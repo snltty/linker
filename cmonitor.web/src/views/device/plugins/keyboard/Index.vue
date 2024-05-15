@@ -8,7 +8,7 @@
 import { injectPluginState } from '../../provide'
 import KeyBoard from './KeyBoard.vue'
 export default {
-    pluginName:'cmonitor.plugin.keyboard.',
+    pluginName:'keyboard',
     components: { KeyBoard },
     setup() {
         const pluginState = injectPluginState();
