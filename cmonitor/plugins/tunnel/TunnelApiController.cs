@@ -1,6 +1,5 @@
-﻿using cmonitor.client.tunnel;
-using cmonitor.plugins.capi;
-using cmonitor.plugins.tunnel.server;
+﻿using cmonitor.client.capi;
+using cmonitor.client.tunnel;
 using common.libs;
 using common.libs.api;
 using System.Text;

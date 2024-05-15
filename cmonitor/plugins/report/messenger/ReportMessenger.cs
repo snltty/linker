@@ -3,6 +3,7 @@ using cmonitor.server;
 using common.libs;
 using MemoryPack;
 using cmonitor.plugins.sapi;
+using cmonitor.server.sapi;
 
 namespace cmonitor.plugins.report.messenger
 {

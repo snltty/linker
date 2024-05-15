@@ -1,4 +1,5 @@
-﻿using cmonitor.config;
+﻿using cmonitor.client.capi;
+using cmonitor.config;
 using common.libs;
 using common.libs.api;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,19 +7,6 @@ using System.Reflection;
 
 namespace cmonitor.plugins.capi
 {
-
-    public interface IApiClientController : IApiController
-    {
-
-    }
-
-    public interface IApiClientServer : IApiServer
-    {
-        public void LoadPlugins(Assembly[] assemblys);
-    }
-
-
-
     /// <summary>
     /// 前段接口服务
     /// </summary>

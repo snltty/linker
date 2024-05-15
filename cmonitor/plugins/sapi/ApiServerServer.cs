@@ -1,4 +1,5 @@
 ﻿using cmonitor.config;
+using cmonitor.server.sapi;
 using common.libs;
 using common.libs.api;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,17 +7,6 @@ using System.Reflection;
 
 namespace cmonitor.plugins.sapi
 {
-
-    public interface IApiServerController : IApiController
-    {
-
-    }
-
-    public interface IApiServerServer : IApiServer
-    {
-        public void LoadPlugins(Assembly[] assemblys);
-    }
-
 
 
     /// <summary>

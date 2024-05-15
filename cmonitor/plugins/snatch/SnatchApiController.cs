@@ -5,7 +5,7 @@ using cmonitor.server;
 using cmonitor.server.ruleConfig;
 using common.libs.extends;
 using common.libs.api;
-using cmonitor.plugins.sapi;
+using cmonitor.server.sapi;
 
 namespace cmonitor.plugins.snatch
 {

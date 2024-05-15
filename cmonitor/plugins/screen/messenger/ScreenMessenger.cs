@@ -4,6 +4,7 @@ using cmonitor.plugins.signin.messenger;
 using cmonitor.server;
 using MemoryPack;
 using cmonitor.plugins.sapi;
+using cmonitor.server.sapi;
 
 namespace cmonitor.plugins.screen.messenger
 {

@@ -6,7 +6,7 @@ using cmonitor.plugins.tuntap.messenger;
 using MemoryPack;
 using cmonitor.config;
 using common.libs.extends;
-using cmonitor.plugins.capi;
+using cmonitor.client.capi;
 
 namespace cmonitor.plugins.tuntap
 {

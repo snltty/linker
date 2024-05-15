@@ -2,7 +2,7 @@
 using common.libs.api;
 using common.libs;
 using cmonitor.config;
-using cmonitor.plugins.capi;
+using cmonitor.client.capi;
 
 namespace cmonitor.plugins.logger
 {

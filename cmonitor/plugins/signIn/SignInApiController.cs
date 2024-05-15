@@ -5,8 +5,8 @@ using common.libs.extends;
 using cmonitor.client;
 using cmonitor.server;
 using MemoryPack;
-using cmonitor.plugins.capi;
-using cmonitor.plugins.sapi;
+using cmonitor.server.sapi;
+using cmonitor.client.capi;
 
 namespace cmonitor.plugins.signin
 {

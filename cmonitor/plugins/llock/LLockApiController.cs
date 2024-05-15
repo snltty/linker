@@ -4,7 +4,7 @@ using cmonitor.server;
 using common.libs.extends;
 using MemoryPack;
 using common.libs.api;
-using cmonitor.plugins.sapi;
+using cmonitor.server.sapi;
 
 namespace cmonitor.plugins.llock
 {

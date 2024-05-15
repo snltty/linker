@@ -1,5 +1,5 @@
-﻿using cmonitor.plugins.sapi;
-using cmonitor.server.ruleConfig;
+﻿using cmonitor.server.ruleConfig;
+using cmonitor.server.sapi;
 using common.libs.api;
 using common.libs.extends;
 
