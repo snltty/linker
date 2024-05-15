@@ -1,5 +1,4 @@
-﻿using cmonitor.server.api;
-using cmonitor.plugins.signin.messenger;
+﻿using cmonitor.plugins.signin.messenger;
 using cmonitor.plugins.viewer.messenger;
 using cmonitor.plugins.viewer.report;
 using cmonitor.server;
@@ -7,6 +6,7 @@ using common.libs.extends;
 using MemoryPack;
 using common.libs.api;
 using cmonitor.plugins.viewer.config;
+using cmonitor.plugins.sapi;
 
 namespace cmonitor.plugins.viewer
 {

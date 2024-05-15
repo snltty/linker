@@ -194,7 +194,7 @@ namespace cmonitor.plugins.tunnel
         private void _OnConnected(ITunnelConnection connection)
         {
             if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                Logger.Instance.Debug($"tunnel connect {connection.RemoteMachineName} success");
+                Logger.Instance.Debug($"tunnel connect {connection.RemoteMachineName} success->{connection.IPEndPoint}");
             if (OnConnected.TryGetValue(connection.TransactionId, out Action<ITunnelConnection> _callback))
             {
                 _callback(connection);

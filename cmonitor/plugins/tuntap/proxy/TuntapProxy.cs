@@ -135,20 +135,23 @@ namespace cmonitor.plugins.tuntap.proxy
             {
                 return connection;
             }
-
-            Logger.Instance.Debug($"tuntap tunnel to {targetName}");
+            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                Logger.Instance.Debug($"tuntap tunnel to {targetName}");
             connection = await tunnelTransfer.ConnectAsync(targetName, "viewer");
             if (connection != null)
             {
-                Logger.Instance.Debug($"tuntap tunnel to {targetName} success");
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    Logger.Instance.Debug($"tuntap tunnel to {targetName} success");
             }
             if (connection == null)
             {
-                Logger.Instance.Debug($"tuntap relay to {targetName}");
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    Logger.Instance.Debug($"tuntap relay to {targetName}");
                 connection = await relayTransfer.ConnectAsync(targetName, "viewer");
                 if (connection != null)
                 {
-                    Logger.Instance.Debug($"tuntap relay to {targetName} success");
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        Logger.Instance.Debug($"tuntap relay to {targetName} success");
                 }
             }
             if (connection != null)

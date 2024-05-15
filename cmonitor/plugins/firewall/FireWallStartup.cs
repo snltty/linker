@@ -15,7 +15,8 @@ namespace cmonitor.plugins.firewall
 
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
-#if RELEASE
+#if DEBUG
+#else
             common.libs.FireWallHelper.Write(Path.GetFileNameWithoutExtension(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName), "./plugins/firewall");
 #endif
         }

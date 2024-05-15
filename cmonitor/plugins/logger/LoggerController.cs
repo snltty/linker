@@ -1,8 +1,8 @@
 ﻿using common.libs.extends;
 using common.libs.api;
-using cmonitor.client.api;
 using common.libs;
 using cmonitor.config;
+using cmonitor.plugins.capi;
 
 namespace cmonitor.plugins.logger
 {

@@ -1,4 +1,4 @@
-﻿using cmonitor.server.api;
+﻿using cmonitor.plugins.sapi;
 using cmonitor.server.ruleConfig;
 using common.libs.api;
 

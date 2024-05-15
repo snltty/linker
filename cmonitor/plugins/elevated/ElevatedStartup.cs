@@ -15,7 +15,8 @@ namespace cmonitor.plugins.elevated
 
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
-#if RELEASE
+#if DEBUG
+#else
             if (common.libs.winapis.Win32Interop.GetCommandLine().Contains("--elevated") == false)
             {
                 common.libs.winapis.Win32Interop.RelaunchElevated();

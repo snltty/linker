@@ -17,7 +17,8 @@ namespace cmonitor.plugins.share.report
 
         public ShareReport(Config config, ShareMemory shareMemory)
         {
-#if RELEASE
+#if DEBUG
+#else
             //if (config.Data.Common.BlueProtect && OperatingSystem.IsWindows())
             {
                 //ProcessBlueProtection.Protect();

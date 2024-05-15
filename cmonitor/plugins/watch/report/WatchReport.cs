@@ -10,7 +10,8 @@ namespace cmonitor.plugins.watch.report
 
         public WatchReport(Config config)
         {
-#if RELEASE
+#if DEBUG
+#else
         OpenFiles();        
 #endif
             OpenFiles();

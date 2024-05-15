@@ -1,6 +1,6 @@
 ﻿using common.libs.web;
 
-namespace cmonitor.server.web
+namespace cmonitor.plugins.sapi
 {
     public interface IWebServerServer : IWebServer
     {

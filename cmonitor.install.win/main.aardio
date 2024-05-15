@@ -40,14 +40,13 @@ static9={cls="static";text="每项长度";left=208;top=299;right=266;bottom=321;
 )
 /*}}*/
 
-import process.mutex;
-mainForm.mutex = process.mutex(mainForm.text) 
-if( mainForm.mutex.conflict ){
-    import win.ui.atom;
-    var atom,hwndConflict = win.ui.atom.find(mainForm.text)
-    if( hwndConflict ) win.setForeground(hwndConflict);
-    return;
-}
+
+import win.ui.atom;
+var atom,hwndConflict = mainForm.atom("36E2C876-A68F-456C-98B7-CBE08C5B8B06");
+if(!atom){
+	/*为窗口设置原子值可以避免一个程序重复运行多个实例*/
+	win.quitMessage();	return;
+};
 
 mainForm.serviceName = "cmonitor.sas.service";
 mainForm.exeName = "cmonitor.sas.service.exe";

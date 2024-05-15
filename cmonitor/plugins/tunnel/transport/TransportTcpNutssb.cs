@@ -93,7 +93,7 @@ namespace cmonitor.plugins.tunnel.transport
         public void OnFail(TunnelTransportInfo tunnelTransportInfo)
         {
             tunnelBindServer.RemoveBind(tunnelTransportInfo.Local.Local.Port);
-            if(reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineName,out TaskCompletionSource<ITunnelConnection> tcs))
+            if (reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineName, out TaskCompletionSource<ITunnelConnection> tcs))
             {
                 tcs.SetResult(null);
             }
@@ -118,12 +118,22 @@ namespace cmonitor.plugins.tunnel.transport
                 new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port+1),
             });
 
+            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            {
+                Logger.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", eps.Select(c => c.ToString()))}");
+            }
+
             foreach (IPEndPoint ep in eps.Where(c => NotIPv6Support(c.Address) == false))
             {
                 Socket targetSocket = new(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 targetSocket.IPv6Only(ep.Address.AddressFamily, false);
                 targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
                 IAsyncResult result = targetSocket.BeginConnect(ep, null, null);
+
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    Logger.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineName} {ep}");
+                }
 
                 int times = ep.Address.Equals(tunnelTransportInfo.Remote.Remote.Address) ? 10 : 5;
                 for (int i = 0; i < times; i++)
@@ -171,7 +181,7 @@ namespace cmonitor.plugins.tunnel.transport
         private void BindAndTTL(TunnelTransportInfo tunnelTransportInfo)
         {
             //给对方发送TTL消息
-            IPAddress[] localIps = tunnelTransportInfo.Remote.LocalIps .Where(c => c.Equals(tunnelTransportInfo.Remote.Local.Address) == false).ToArray();
+            IPAddress[] localIps = tunnelTransportInfo.Remote.LocalIps.Where(c => c.Equals(tunnelTransportInfo.Remote.Local.Address) == false).ToArray();
             List<IPEndPoint> eps = new List<IPEndPoint>();
             foreach (IPAddress item in localIps)
             {
@@ -193,7 +203,7 @@ namespace cmonitor.plugins.tunnel.transport
                 try
                 {
                     targetSocket.IPv6Only(ip.Address.AddressFamily, false);
-                    targetSocket.Ttl = (short)(tunnelTransportInfo.Local.RouteLevel + 1);
+                    targetSocket.Ttl = ip.Address.AddressFamily == AddressFamily.InterNetworkV6 ? (short)2 : (short)(tunnelTransportInfo.Local.RouteLevel + 1);
                     targetSocket.ReuseBind(new IPEndPoint(ip.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
                     _ = targetSocket.ConnectAsync(ip);
                     return targetSocket;

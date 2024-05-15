@@ -1,5 +1,5 @@
-﻿using cmonitor.client.api;
-using cmonitor.client.tunnel;
+﻿using cmonitor.client.tunnel;
+using cmonitor.plugins.capi;
 using cmonitor.plugins.tunnel.server;
 using common.libs;
 using common.libs.api;

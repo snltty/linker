@@ -1,12 +1,12 @@
-﻿using cmonitor.server.api;
-using cmonitor.config;
+﻿using cmonitor.config;
 using cmonitor.plugins.signin.messenger;
 using common.libs.api;
-using cmonitor.client.api;
 using common.libs.extends;
 using cmonitor.client;
 using cmonitor.server;
 using MemoryPack;
+using cmonitor.plugins.capi;
+using cmonitor.plugins.sapi;
 
 namespace cmonitor.plugins.signin
 {

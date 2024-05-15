@@ -1,11 +1,11 @@
-﻿using cmonitor.server.api;
-using cmonitor.plugins.notify.messenger;
+﻿using cmonitor.plugins.notify.messenger;
 using cmonitor.plugins.notify.report;
 using cmonitor.plugins.signin.messenger;
 using cmonitor.server;
 using common.libs.extends;
 using MemoryPack;
 using common.libs.api;
+using cmonitor.plugins.sapi;
 
 namespace cmonitor.plugins.notify
 {

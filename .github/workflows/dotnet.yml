@@ -56,69 +56,201 @@ jobs:
         draft: false
         prerelease: false
         
-    - name: upload win x64
+    - name: upload full win x64
       id: upload-win-x64
       uses: actions/upload-release-asset@master
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/cmonitor-win-x64.zip
-        asset_name: cmonitor-win-x64.zip
+        asset_path: ./public/publish-zip/release-win-x64.zip
+        asset_name: full-win-x64.zip
         asset_content_type: application/zip
 
-    - name: upload win arm64
+    - name: upload full win arm64
       id: upload-win-arm64
       uses: actions/upload-release-asset@master
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/cmonitor-win-arm64.zip
-        asset_name: cmonitor-win-arm64.zip
+        asset_path: ./public/publish-zip/release-win-arm64.zip
+        asset_name: full-win-arm64.zip
         asset_content_type: application/zip
 
-    - name: upload linux x64
+    - name: upload full linux x64
       id: upload-linux-x64
       uses: actions/upload-release-asset@master
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/cmonitor-linux-x64.zip
-        asset_name: cmonitor-linux-x64.zip
+        asset_path: ./public/publish-zip/release-linux-x64.zip
+        asset_name: full-linux-x64.zip
         asset_content_type: application/zip
 
-    - name: upload linux arm64
+    - name: upload full linux arm64
       id: upload-linux-arm64
       uses: actions/upload-release-asset@master
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/cmonitor-linux-arm64.zip
-        asset_name: cmonitor-linux-arm64.zip
+        asset_path: ./public/publish-zip/release-linux-arm64.zip
+        asset_name: full-linux-arm64.zip
         asset_content_type: application/zip
 
-    - name: upload osx x64
+    - name: upload full osx x64
       id: upload-osx-x64
       uses: actions/upload-release-asset@master
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/cmonitor-osx-x64.zip
-        asset_name: cmonitor-osx-x64.zip
+        asset_path: ./public/publish-zip/release-osx-x64.zip
+        asset_name: full-osx-x64.zip
         asset_content_type: application/zip
 
-    - name: upload osx arm64
+    - name: upload full osx arm64
       id: upload-osx-arm64
       uses: actions/upload-release-asset@master
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/cmonitor-osx-arm64.zip
-        asset_name: cmonitor-osx-arm64.zip
+        asset_path: ./public/publish-zip/release-osx-arm64.zip
+        asset_name: full-osx-arm64.zip
         asset_content_type: application/zip
 
+
+    - name: upload monitor win x64
+      id: upload-monitor-win-x64
+      uses: actions/upload-release-asset@master
+      env:
+          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./public/publish-zip/ReleaseMonitor-win-x64.zip
+        asset_name: monitor-win-x64.zip
+        asset_content_type: application/zip
+
+    - name: upload monitor win arm64
+      id: upload-monitor-win-arm64
+      uses: actions/upload-release-asset@master
+      env:
+          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./public/publish-zip/ReleaseMonitor-win-arm64.zip
+        asset_name: monitor-win-arm64.zip
+        asset_content_type: application/zip
+
+    - name: upload monitor linux x64
+      id: upload-monitor-linux-x64
+      uses: actions/upload-release-asset@master
+      env:
+          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./public/publish-zip/ReleaseMonitor-linux-x64.zip
+        asset_name: monitor-linux-x64.zip
+        asset_content_type: application/zip
+
+    - name: upload monitor linux arm64
+      id: upload-monitor-linux-arm64
+      uses: actions/upload-release-asset@master
+      env:
+          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./public/publish-zip/ReleaseMonitor-linux-arm64.zip
+        asset_name: monitor-linux-arm64.zip
+        asset_content_type: application/zip
+
+    - name: upload monitor osx x64
+      id: upload-monitor-osx-x64
+      uses: actions/upload-release-asset@master
+      env:
+          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./public/publish-zip/ReleaseMonitor-osx-x64.zip
+        asset_name: monitor-osx-x64.zip
+        asset_content_type: application/zip
+
+    - name: upload monitor osx arm64
+      id: upload-monitor-osx-arm64
+      uses: actions/upload-release-asset@master
+      env:
+          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./public/publish-zip/ReleaseMonitor-osx-arm64.zip
+        asset_name: monitor-osx-arm64.zip
+        asset_content_type: application/zip
+
+    - name: upload network win x64
+      id: upload-network-win-x64
+      uses: actions/upload-release-asset@master
+      env:
+          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./public/publish-zip/ReleaseNetwork-win-x64.zip
+        asset_name: network-win-x64.zip
+        asset_content_type: application/zip
+
+    - name: upload network win arm64
+      id: upload-network-win-arm64
+      uses: actions/upload-release-asset@master
+      env:
+          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./public/publish-zip/ReleaseNetwork-win-arm64.zip
+        asset_name: network-win-arm64.zip
+        asset_content_type: application/zip
+
+    - name: upload network linux x64
+      id: upload-network-linux-x64
+      uses: actions/upload-release-asset@master
+      env:
+          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./public/publish-zip/ReleaseNetwork-linux-x64.zip
+        asset_name: network-linux-x64.zip
+        asset_content_type: application/zip
+
+    - name: upload network linux arm64
+      id: upload-network-linux-arm64
+      uses: actions/upload-release-asset@master
+      env:
+          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./public/publish-zip/ReleaseNetwork-linux-arm64.zip
+        asset_name: network-linux-arm64.zip
+        asset_content_type: application/zip
+
+    - name: upload network osx x64
+      id: upload-network-osx-x64
+      uses: actions/upload-release-asset@master
+      env:
+          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./public/publish-zip/ReleaseNetwork-osx-x64.zip
+        asset_name: network-osx-x64.zip
+        asset_content_type: application/zip
+
+    - name: upload network osx arm64
+      id: upload-network-osx-arm64
+      uses: actions/upload-release-asset@master
+      env:
+          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./public/publish-zip/ReleaseNetwork-osx-arm64.zip
+        asset_name: network-osx-arm64.zip
+        asset_content_type: application/zip

@@ -8,6 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>favicon.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Configurations>Debug;Release;ReleaseNetwork;ReleaseMonitor</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0-windows|AnyCPU'">
@@ -22,7 +23,23 @@
     <DebugType>embedded</DebugType>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseMonitor|net7.0-windows|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseNetwork|net7.0-windows|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-windows|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseMonitor|net8.0-windows|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseNetwork|net8.0-windows|AnyCPU'">
     <DebugType>embedded</DebugType>
   </PropertyGroup>
 

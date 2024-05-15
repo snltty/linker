@@ -1,6 +1,4 @@
-﻿#if DEBUG || RELEASE
-using System.Management;
-#endif
+﻿using System.Management;
 namespace cmonitor.plugins.light.report
 {
     public class LightWindowsWatcher : IDisposable
@@ -17,7 +15,6 @@ namespace cmonitor.plugins.light.report
             }
         }
 
-#if DEBUG || RELEASE
         private void WmiEventHandler(object sender, EventArrivedEventArgs e)
         {
             if (OperatingSystem.IsWindows())
@@ -30,11 +27,9 @@ namespace cmonitor.plugins.light.report
         }
 
         private readonly ManagementEventWatcher _watcher;
-#endif
 
         public LightWindowsWatcher()
         {
-#if DEBUG || RELEASE
             if (OperatingSystem.IsWindows())
             {
                 try
@@ -50,12 +45,10 @@ namespace cmonitor.plugins.light.report
                     Console.WriteLine("Exception {0} Trace {1}", e.Message, e.StackTrace);
                 }
             }
-#endif
         }
 
         public void Dispose()
         {
-#if DEBUG || RELEASE
             if (OperatingSystem.IsWindows())
             {
                 if (_watcher != null)
@@ -65,7 +58,6 @@ namespace cmonitor.plugins.light.report
 
                 _watcher.Dispose();
             }
-#endif
         }
     }
 }

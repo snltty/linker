@@ -2,11 +2,11 @@
 using common.libs.api;
 using cmonitor.plugins.tuntap.vea;
 using cmonitor.client;
-using cmonitor.client.api;
 using cmonitor.plugins.tuntap.messenger;
 using MemoryPack;
 using cmonitor.config;
 using common.libs.extends;
+using cmonitor.plugins.capi;
 
 namespace cmonitor.plugins.tuntap
 {

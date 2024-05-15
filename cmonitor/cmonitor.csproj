@@ -9,7 +9,7 @@
 		<ApplicationManifest>app.manifest</ApplicationManifest>
 		<ApplicationIcon>favicon.ico</ApplicationIcon>
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
-		<Configurations>Debug;Release</Configurations>
+		<Configurations>Debug;Release;ReleaseNetwork;ReleaseMonitor</Configurations>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<PublishAot>false</PublishAot>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
@@ -23,6 +23,17 @@
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<DebugType>embedded</DebugType>
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseMonitor|AnyCPU'">
+		<DebugType>embedded</DebugType>
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNetwork|AnyCPU'">
+		<DebugType>embedded</DebugType>
+		<Optimize>True</Optimize>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -36,7 +47,38 @@
 		<None Remove="Properties\**" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(Configuration)'=='Debug' or ('$(Configuration)'=='Release' and ('$(RuntimeIdentifier)'=='win-x64' or '$(RuntimeIdentifier)'=='win-arm64'))">
+	<ItemGroup Condition="'$(Configuration)' == 'ReleaseNetwork'">
+		<Compile Remove="plugins\active\**\*.cs" />
+		<Compile Remove="plugins\command\**\*.cs" />
+		<Compile Remove="plugins\devices\**\*.cs" />
+		<Compile Remove="plugins\display\**\*.cs" />
+		<Compile Remove="plugins\elevated\**\*.cs" />
+		<Compile Remove="plugins\hijack\**\*.cs" />
+		<Compile Remove="plugins\keyboard\**\*.cs" />
+		<Compile Remove="plugins\light\**\*.cs" />
+		<Compile Remove="plugins\llock\**\*.cs" />
+		<Compile Remove="plugins\modes\**\*.cs" />
+		<Compile Remove="plugins\notify\**\*.cs" />
+		<Compile Remove="plugins\ntrights\**\*.cs" />
+		<Compile Remove="plugins\report\**\*.cs" />
+		<Compile Remove="plugins\rule\**\*.cs" />
+		<Compile Remove="plugins\sapi\**\*.cs" />
+		<Compile Remove="plugins\screen\**\*.cs" />
+		<Compile Remove="plugins\share\**\*.cs" />
+		<Compile Remove="plugins\snatch\**\*.cs" />
+		<Compile Remove="plugins\system\**\*.cs" />
+		<Compile Remove="plugins\viewer\**\*.cs" />
+		<Compile Remove="plugins\volume\**\*.cs" />
+		<Compile Remove="plugins\wallpaper\**\*.cs" />
+		<Compile Remove="plugins\watch\**\*.cs" />
+		<Compile Remove="plugins\wlan\**\*.cs" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(Configuration)' == 'ReleaseMonitor'">
+		<Compile Remove="plugins\capi\**\*.cs" />
+		<Compile Remove="plugins\tuntap\**\*.cs" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(Configuration)'=='Debug' or (('$(Configuration)'=='Release' or '$(Configuration)'=='ReleaseMonitor') and ('$(RuntimeIdentifier)'=='win-x64' or '$(RuntimeIdentifier)'=='win-arm64'))">
 		<None Update="plugins\active\cmonitor.killer.dll">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
@@ -52,15 +94,17 @@
 		<None Update="plugins\ntrights\ntrights.exe">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<Content Include="plugins\wallpaper\bg.jpg">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+	<ItemGroup Condition="'$(Configuration)'=='Debug' or (('$(Configuration)'=='Release' or '$(Configuration)'=='ReleaseNetwork') and ('$(RuntimeIdentifier)'=='win-x64' or '$(RuntimeIdentifier)'=='win-arm64'))">
 		<None Update="plugins\tuntap\tun2socks">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="plugins\tuntap\wintun.dll">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<Content Include="plugins\wallpaper\bg.jpg">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
+		</None>
 	</ItemGroup>
 	
 	<ItemGroup>

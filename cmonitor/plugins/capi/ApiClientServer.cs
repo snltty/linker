@@ -4,15 +4,15 @@ using common.libs.api;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace cmonitor.server.api
+namespace cmonitor.plugins.capi
 {
 
-    public interface IApiServerController : IApiController
+    public interface IApiClientController : IApiController
     {
 
     }
 
-    public interface IApiServerServer : IApiServer
+    public interface IApiClientServer : IApiServer
     {
         public void LoadPlugins(Assembly[] assemblys);
     }
@@ -22,12 +22,12 @@ namespace cmonitor.server.api
     /// <summary>
     /// 前段接口服务
     /// </summary>
-    public sealed class ApiServerServer : ApiServer, IApiServerServer
+    public sealed class ApiClientServer : ApiServer, IApiClientServer
     {
         private readonly ServiceProvider serviceProvider;
         private readonly Config config;
 
-        public ApiServerServer(ServiceProvider serviceProvider, Config config)
+        public ApiClientServer(ServiceProvider serviceProvider, Config config)
         {
             this.serviceProvider = serviceProvider;
             this.config = config;
@@ -41,7 +41,7 @@ namespace cmonitor.server.api
         {
             Type voidType = typeof(void);
 
-            IEnumerable<Type> types = assemblys.SelectMany(c => c.GetTypes()).Where(c => c.GetInterfaces().Contains(typeof(IApiServerController)));
+            IEnumerable<Type> types = assemblys.SelectMany(c => c.GetTypes()).Where(c => c.GetInterfaces().Contains(typeof(IApiClientController)));
 
             foreach (Type item in types)
             {
@@ -50,9 +50,9 @@ namespace cmonitor.server.api
                 {
                     continue;
                 }
-                Logger.Instance.Warning($"load server api:{item.Name}");
+                Logger.Instance.Warning($"load client api:{item.Name}");
 
-                string path = item.Name.Replace("ApiController", "");
+                string path = item.Name.Replace("ApiController", "").Replace("ApiController", "");
                 foreach (MethodInfo method in item.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
                 {
                     string key = $"{path}/{method.Name}".ToLower();

@@ -18,7 +18,8 @@ namespace cmonitor.plugins.ntrights
 
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
-#if RELEASE
+#if DEBUG
+#else
             NtrightsHelper.AddTokenPrivilege();
 #endif
 

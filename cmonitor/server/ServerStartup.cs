@@ -1,7 +1,6 @@
 ﻿using cmonitor.config;
-using cmonitor.server.api;
+using cmonitor.plugins.sapi;
 using cmonitor.server.ruleConfig;
-using cmonitor.server.web;
 using cmonitor.startup;
 using common.libs;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,7 +13,11 @@ namespace cmonitor.server
         public StartupLevel Level => StartupLevel.Normal;
         public string Name => "server";
         public bool Required => true;
+#if RELEASENETWORK
+        public string[] Dependent => new string[] { "serialize", "firewall", "signin"};
+#else
         public string[] Dependent => new string[] { "serialize", "firewall", "signin", "devices", "modes", "rule", "report", "share" };
+#endif
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)

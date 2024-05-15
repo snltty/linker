@@ -7,7 +7,7 @@
 		<UseWindowsForms>true</UseWindowsForms>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<ApplicationIcon>favicon.ico</ApplicationIcon>
-		<Configurations>Debug;Release</Configurations>
+		<Configurations>Debug;Release;ReleaseNetwork;ReleaseMonitor</Configurations>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
 	</PropertyGroup>
 
@@ -18,6 +18,14 @@
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseMonitor|AnyCPU'">
+	  <DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNetwork|AnyCPU'">
+	  <DebugType>embedded</DebugType>
 	</PropertyGroup>
 
 	<ItemGroup>

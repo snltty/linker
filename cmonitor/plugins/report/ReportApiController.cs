@@ -1,5 +1,4 @@
-﻿using cmonitor.server.api;
-using cmonitor.client.report;
+﻿using cmonitor.client.report;
 using cmonitor.config;
 using cmonitor.plugins.report.messenger;
 using cmonitor.plugins.signin.messenger;
@@ -7,6 +6,7 @@ using cmonitor.server;
 using common.libs;
 using common.libs.extends;
 using common.libs.api;
+using cmonitor.plugins.sapi;
 
 namespace cmonitor.plugins.report
 {

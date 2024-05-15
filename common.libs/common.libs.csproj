@@ -5,7 +5,7 @@
 		<TargetFrameworks>net7.0;net8.0</TargetFrameworks>
 		<PublishAot>false</PublishAot>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<Configurations>Debug;Release</Configurations>
+		<Configurations>Debug;Release;ReleaseNetwork;ReleaseMonitor</Configurations>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -17,6 +17,16 @@
 		<DebugType>none</DebugType>
 		<DebugSymbols>false</DebugSymbols>
 	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseMonitor|AnyCPU'">
+	  <DefineConstants>TRACE;RELEASE</DefineConstants>
+	  <DebugType>none</DebugType>
+	  <DebugSymbols>false</DebugSymbols>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNetwork|AnyCPU'">
+	  <DefineConstants>TRACE;RELEASE</DefineConstants>
+	  <DebugType>none</DebugType>
+	  <DebugSymbols>false</DebugSymbols>
+	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0|AnyCPU'">
 	  <DebugType>embedded</DebugType>
 	</PropertyGroup>
@@ -26,7 +36,19 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net7.0|AnyCPU'">
 	  <DebugType>embedded</DebugType>
 	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseMonitor|net7.0|AnyCPU'">
+	  <DebugType>embedded</DebugType>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseNetwork|net7.0|AnyCPU'">
+	  <DebugType>embedded</DebugType>
+	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
+	  <DebugType>embedded</DebugType>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseMonitor|net8.0|AnyCPU'">
+	  <DebugType>embedded</DebugType>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseNetwork|net8.0|AnyCPU'">
 	  <DebugType>embedded</DebugType>
 	</PropertyGroup>
 

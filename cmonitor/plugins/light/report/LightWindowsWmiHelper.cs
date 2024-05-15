@@ -1,7 +1,5 @@
-﻿#if DEBUG || RELEASE
+﻿
 using System.Management;
-
-#endif
 using common.libs;
 
 namespace cmonitor.plugins.light.report
@@ -10,7 +8,6 @@ namespace cmonitor.plugins.light.report
     {
         public static int GetBrightnessLevel()
         {
-#if DEBUG || RELEASE
             if (OperatingSystem.IsWindows())
             {
                 try
@@ -41,13 +38,11 @@ namespace cmonitor.plugins.light.report
                     //Logger.Instance.Error(ex);
                 }
             }
-#endif
             return 0;
         }
 
         public static void SetBrightnessLevel(int brightnessLevel)
         {
-#if DEBUG || RELEASE
             if (OperatingSystem.IsWindows())
             {
                 if (brightnessLevel < 0 ||
@@ -83,7 +78,6 @@ namespace cmonitor.plugins.light.report
                     //  Logger.Instance.Error(ex);
                 }
             }
-#endif
         }
     }
 }

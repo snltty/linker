@@ -6,8 +6,4 @@
 
         public object GetReports(ReportType reportType);
     }
-
-   
-
-    
 }

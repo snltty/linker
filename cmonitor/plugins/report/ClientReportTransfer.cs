@@ -1,4 +1,6 @@
-﻿using cmonitor.config;
+﻿using cmonitor.client;
+using cmonitor.client.report;
+using cmonitor.config;
 using cmonitor.plugins.report.messenger;
 using cmonitor.server;
 using common.libs;
@@ -7,7 +9,7 @@ using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace cmonitor.client.report
+namespace cmonitor.plugins.report
 {
     public sealed class ClientReportTransfer
     {

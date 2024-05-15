@@ -1,4 +1,5 @@
 ﻿using common.libs.extends;
+using System.Net;
 using System.Net.Sockets;
 using System.Text.Json.Serialization;
 
@@ -32,6 +33,7 @@ namespace cmonitor.client.tunnel
         public TunnelType Type { get; }
         public TunnelProtocolType ProtocolType { get; }
         public TunnelDirection Direction { get; }
+        public IPEndPoint IPEndPoint { get; }
 
         public bool Connected { get; }
 
@@ -53,8 +55,9 @@ namespace cmonitor.client.tunnel
 
         public TunnelProtocolType ProtocolType { get; init; }
         public TunnelType Type { get; init; }
-
         public TunnelDirection Direction { get; init; }
+
+        public IPEndPoint IPEndPoint => (Socket?.RemoteEndPoint ?? new IPEndPoint(IPAddress.Any, 0)) as IPEndPoint;
 
         public bool Connected => Socket != null && Socket.Connected;
 
