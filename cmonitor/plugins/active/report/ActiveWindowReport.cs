@@ -78,7 +78,7 @@ namespace cmonitor.plugins.active.report
 
         private void Loop()
         {
-            Task.Factory.StartNew(async () =>
+            Task.Run(async () =>
             {
                 while (true)
                 {
@@ -105,7 +105,7 @@ namespace cmonitor.plugins.active.report
 
                     await Task.Delay(500);
                 }
-            }, TaskCreationOptions.LongRunning);
+            });
         }
 
         private bool Disallow(ActiveWindowInfo window)

@@ -66,7 +66,7 @@ namespace cmonitor.plugins.signin.messenger
 
         private void SaveConfig()
         {
-            Task.Factory.StartNew(async () =>
+            Task.Run(async () =>
             {
                 while (true)
                 {
@@ -78,7 +78,7 @@ namespace cmonitor.plugins.signin.messenger
                     await Task.Delay(5000);
                 }
 
-            }, TaskCreationOptions.LongRunning);
+            });
         }
     }
 

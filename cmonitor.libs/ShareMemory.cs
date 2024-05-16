@@ -112,7 +112,7 @@ namespace cmonitor.libs
         {
             cancellationTokenSource?.Cancel();
             cancellationTokenSource = new CancellationTokenSource();
-            Task.Factory.StartNew(async () =>
+            Task.Run(async () =>
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
@@ -129,9 +129,9 @@ namespace cmonitor.libs
                     await Task.Delay(10);
                 }
 
-            }, TaskCreationOptions.LongRunning);
+            });
 
-            Task.Factory.StartNew(async () =>
+            Task.Run(async () =>
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
@@ -149,7 +149,7 @@ namespace cmonitor.libs
                     await Task.Delay(30);
                 }
 
-            }, TaskCreationOptions.LongRunning);
+            });
         }
 
         private void AttributeCallback()

@@ -7,11 +7,6 @@ namespace cmonitor.config
     {
         public TunnelConfigClientInfo Tunnel { get; set; } = new TunnelConfigClientInfo();
     }
-    public partial class ConfigServerInfo
-    {
-        public TunnelConfigServerInfo Tunnel { get; set; } = new TunnelConfigServerInfo();
-    }
-
     public sealed class TunnelConfigClientInfo
     {
         public TunnelCompactInfo[] Servers { get; set; } = Array.Empty<TunnelCompactInfo>();
@@ -21,10 +16,6 @@ namespace cmonitor.config
 
         [JsonIgnore]
         public IPAddress[] LocalIPs { get; set; }
-    }
-
-    public sealed class TunnelConfigServerInfo
-    {
     }
 
     public sealed class TunnelCompactInfo

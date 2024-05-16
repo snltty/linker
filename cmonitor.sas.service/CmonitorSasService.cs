@@ -105,7 +105,7 @@ namespace cmonitor.sas.service
         private Process proc;
         private void CheckMainProcess()
         {
-            Task.Factory.StartNew(async () =>
+            Task.Run(async () =>
             {
                 while (true)
                 {
@@ -122,7 +122,7 @@ namespace cmonitor.sas.service
                     }
                     await Task.Delay(3000);
                 }
-            }, TaskCreationOptions.LongRunning);
+            });
         }
         private bool OpenExe()
         {

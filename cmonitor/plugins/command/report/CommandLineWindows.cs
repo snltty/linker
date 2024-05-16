@@ -15,7 +15,7 @@ namespace cmonitor.plugins.command.report
         }
         private void TimeoutTask()
         {
-            Task.Factory.StartNew(async () =>
+            Task.Run(async () =>
             {
                 while (true)
                 {
@@ -36,7 +36,7 @@ namespace cmonitor.plugins.command.report
                     await Task.Delay(5000);
                 }
 
-            }, TaskCreationOptions.LongRunning);
+            });
         }
         public int Start()
         {

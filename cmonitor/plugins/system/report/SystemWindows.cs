@@ -101,7 +101,7 @@ namespace cmonitor.plugins.system.report
         }
         private void LoopTask()
         {
-            Task.Factory.StartNew(async () =>
+            Task.Run(async () =>
             {
                 while (true)
                 {
@@ -126,17 +126,17 @@ namespace cmonitor.plugins.system.report
                         await Task.Delay(30);
                     }
                 }
-            }, TaskCreationOptions.LongRunning);
+            });
 
 
-            Task.Factory.StartNew(async () =>
+            Task.Run(async () =>
             {
                 while (true)
                 {
                     await TimeSync();
                     await Task.Delay(30000);
                 }
-            }, TaskCreationOptions.LongRunning);
+            });
         }
         private async Task TimeSync()
         {

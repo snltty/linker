@@ -15,11 +15,8 @@ namespace cmonitor.plugins.tunnel.transport
 
         public Func<TunnelTransportInfo, Task<bool>> OnSendConnectBegin { get; set; } = async (info) => { return await Task.FromResult<bool>(false); };
         public Func<TunnelTransportInfo, Task> OnSendConnectFail { get; set; } = async (info) => { await Task.CompletedTask; };
-        public Action<TunnelTransportInfo> OnConnectBegin { get; set; } = (info) => { };
-        public Action<TunnelTransportInfo> OnConnecting { get; set; }
+        public Func<TunnelTransportInfo, Task> OnSendConnectSuccess { get; set; } = async (info) => { await Task.CompletedTask; };
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
-        public Action<string> OnConnectFail { get; set; } = (machineName) => { };
-
 
         private readonly TunnelBindServer tunnelBindServer;
         public TransportTcpNutssb(TunnelBindServer tunnelBindServer)
@@ -30,17 +27,18 @@ namespace cmonitor.plugins.tunnel.transport
 
         public async Task<ITunnelConnection> ConnectAsync(TunnelTransportInfo tunnelTransportInfo)
         {
-            OnConnecting(tunnelTransportInfo);
-
             //正向连接
             tunnelTransportInfo.Direction = TunnelDirection.Forward;
             if (await OnSendConnectBegin(tunnelTransportInfo) == false)
             {
-                OnConnectFail(tunnelTransportInfo.Remote.MachineName);
                 return null;
             }
             ITunnelConnection connection = await ConnectForward(tunnelTransportInfo);
-            if (connection != null) return connection;
+            if (connection != null)
+            {
+                await OnSendConnectSuccess(tunnelTransportInfo);
+                return connection;
+            }
 
             //反向连接
             TunnelTransportInfo tunnelTransportInfo1 = tunnelTransportInfo.ToJsonFormat().DeJson<TunnelTransportInfo>();
@@ -49,21 +47,22 @@ namespace cmonitor.plugins.tunnel.transport
             BindAndTTL(tunnelTransportInfo1);
             if (await OnSendConnectBegin(tunnelTransportInfo1) == false)
             {
-                OnConnectFail(tunnelTransportInfo.Remote.MachineName);
                 return null;
             }
             connection = await WaitReverse(tunnelTransportInfo1);
-            if (connection != null) return connection;
+            if (connection != null)
+            {
+                await OnSendConnectSuccess(tunnelTransportInfo);
+                return connection;
+            }
 
             //正向反向都失败
             await OnSendConnectFail(tunnelTransportInfo);
-            OnConnectFail(tunnelTransportInfo.Remote.MachineName);
             return null;
         }
 
         public void OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
-            OnConnectBegin(tunnelTransportInfo);
             if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
             {
                 tunnelBindServer.Bind(tunnelTransportInfo.Local.Local, tunnelTransportInfo);
@@ -80,17 +79,25 @@ namespace cmonitor.plugins.tunnel.transport
                     if (connection != null)
                     {
                         OnConnected(connection);
+                        await OnSendConnectSuccess(tunnelTransportInfo);
                     }
                     else
                     {
                         await OnSendConnectFail(tunnelTransportInfo);
-                        OnConnectFail(tunnelTransportInfo.Remote.MachineName);
                     }
                 }
             });
         }
 
         public void OnFail(TunnelTransportInfo tunnelTransportInfo)
+        {
+            tunnelBindServer.RemoveBind(tunnelTransportInfo.Local.Local.Port);
+            if (reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineName, out TaskCompletionSource<ITunnelConnection> tcs))
+            {
+                tcs.SetResult(null);
+            }
+        }
+        public void OnSuccess(TunnelTransportInfo tunnelTransportInfo)
         {
             tunnelBindServer.RemoveBind(tunnelTransportInfo.Local.Local.Port);
             if (reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineName, out TaskCompletionSource<ITunnelConnection> tcs))
@@ -241,7 +248,6 @@ namespace cmonitor.plugins.tunnel.transport
             return null;
         }
 
-
         private void OnTcpConnected(object state, Socket socket)
         {
             if (state is TunnelTransportInfo _state && _state.TransportName == Name)
@@ -272,5 +278,6 @@ namespace cmonitor.plugins.tunnel.transport
             return ip.AddressFamily == AddressFamily.InterNetworkV6 && (NetworkHelper.IPv6Support == false);
         }
 
+       
     }
 }

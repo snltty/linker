@@ -46,7 +46,7 @@ namespace cmonitor.plugins.relay
         }
         private void RelayTest()
         {
-            relayTransfer.SetConnectCallback("test", (ITunnelConnection connection) =>
+            relayTransfer.SetConnectedCallback("test", (ITunnelConnection connection) =>
             {
                 Task.Run(() =>
                 {

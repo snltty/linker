@@ -80,7 +80,7 @@ namespace cmonitor.plugins.screen.report
         private Task task;
         private void CaptureTask()
         {
-            Task.Factory.StartNew(async () =>
+            Task.Run(async () =>
             {
                 while (true)
                 {
@@ -101,7 +101,7 @@ namespace cmonitor.plugins.screen.report
 
                     await Task.Delay(200);
                 }
-            }, TaskCreationOptions.LongRunning);
+            });
         }
         private async Task CaptureFrame()
         {

@@ -10,24 +10,21 @@ namespace cmonitor.plugins.tunnel.transport
         public TunnelProtocolType ProtocolType { get; }
 
         /// <summary>
-        /// 发送连接信息
+        /// 发送连接开始信息
         /// </summary>
         public Func<TunnelTransportInfo, Task<bool>> OnSendConnectBegin { get; set; }
+        /// <summary>
+        /// 发送连接失败消息
+        /// </summary>
         public Func<TunnelTransportInfo, Task> OnSendConnectFail { get; set; }
         /// <summary>
-        /// 收到连接信息
+        /// 发送连接成功消息
         /// </summary>
-        public Action<TunnelTransportInfo> OnConnectBegin { get; set; }
-        /// <summary>
-        /// 开始连接，获得对方信息
-        /// </summary>
-        public Action<TunnelTransportInfo> OnConnecting { get; set; }
+        public Func<TunnelTransportInfo, Task> OnSendConnectSuccess { get; set; }
         /// <summary>
         /// 收到连接
         /// </summary>
         public Action<ITunnelConnection> OnConnected { get; set; }
-
-        public Action<string> OnConnectFail { get; set; }
 
         /// <summary>
         /// 连接对方
@@ -42,10 +39,15 @@ namespace cmonitor.plugins.tunnel.transport
         /// <returns></returns>
         public void OnBegin(TunnelTransportInfo tunnelTransportInfo);
         /// <summary>
-        /// 对白
+        /// 失败
         /// </summary>
         /// <param name="tunnelTransportInfo"></param>
         public void OnFail(TunnelTransportInfo tunnelTransportInfo);
+        /// <summary>
+        /// 失败
+        /// </summary>
+        /// <param name="tunnelTransportInfo"></param>
+        public void OnSuccess(TunnelTransportInfo tunnelTransportInfo);
     }
 
     [MemoryPackable]

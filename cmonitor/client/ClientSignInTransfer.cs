@@ -36,7 +36,7 @@ namespace cmonitor.client
 
         private void SignInTask()
         {
-            Task.Factory.StartNew(async () =>
+            Task.Run(async () =>
             {
                 await Task.Delay(10000);
                 while (true)
@@ -56,7 +56,7 @@ namespace cmonitor.client
                     }
                     await Task.Delay(10000);
                 }
-            }, TaskCreationOptions.LongRunning);
+            });
         }
 
         public async Task SignIn()

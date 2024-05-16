@@ -46,7 +46,7 @@ namespace cmonitor.plugins.tunnel
         }
         private void TunnelTest()
         {
-            tunnelTransfer.SetConnectCallback("test", (ITunnelConnection connection) =>
+            tunnelTransfer.SetConnectedCallback("test", (ITunnelConnection connection) =>
             {
                 connection.BeginReceive(async (ITunnelConnection connection, Memory<byte> data, object state) => {
 

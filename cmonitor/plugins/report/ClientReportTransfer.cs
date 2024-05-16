@@ -53,7 +53,7 @@ namespace cmonitor.plugins.report
 
         private void ReportTask()
         {
-            Task.Factory.StartNew(async () =>
+            Task.Run(async () =>
             {
                 while (true)
                 {
@@ -73,7 +73,7 @@ namespace cmonitor.plugins.report
                     }
                     await Task.Delay(30);
                 }
-            }, TaskCreationOptions.LongRunning);
+            });
         }
         private async Task SendReport()
         {

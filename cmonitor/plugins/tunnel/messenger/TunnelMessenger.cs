@@ -50,6 +50,17 @@ namespace cmonitor.plugins.tunnel.messenger
 
             tunnel.OnFail(tunnelTransportInfo);
         }
+
+        [MessengerId((ushort)TunnelMessengerIds.Success)]
+        public void Success(IConnection connection)
+        {
+            TunnelTransportInfo tunnelTransportInfo = MemoryPackSerializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            TunnelTransportExternalIPInfo local = tunnelTransportInfo.Local;
+            tunnelTransportInfo.Local = tunnelTransportInfo.Remote;
+            tunnelTransportInfo.Remote = local;
+
+            tunnel.OnSuccess(tunnelTransportInfo);
+        }
     }
 
     public sealed class TunnelServerMessenger : IMessenger
@@ -117,6 +128,22 @@ namespace cmonitor.plugins.tunnel.messenger
         public void ExternalIP(IConnection connection)
         {
             connection.Write(MemoryPackSerializer.Serialize(new TunnelExternalIPInfo { ExternalIP = connection.Address }));
+        }
+
+
+        [MessengerId((ushort)TunnelMessengerIds.SuccessForward)]
+        public async Task SuccessForward(IConnection connection)
+        {
+            TunnelTransportInfo tunnelTransportInfo = MemoryPackSerializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.Get(tunnelTransportInfo.Remote.MachineName, out SignCacheInfo cache) && signCaching.Get(connection.Name, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cache.Connection,
+                    MessengerId = (ushort)TunnelMessengerIds.Success,
+                    Payload = connection.ReceiveRequestWrap.Payload
+                });
+            }
         }
     }
 

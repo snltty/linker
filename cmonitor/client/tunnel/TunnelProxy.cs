@@ -9,9 +9,11 @@ namespace cmonitor.client.tunnel
 {
     public class TunnelProxy
     {
-        private AsyncUserToken userToken;
+        private ConcurrentDictionary<int, AsyncUserToken> userTokens = new ConcurrentDictionary<int, AsyncUserToken>();
+        private ConcurrentDictionary<int, AsyncUserUdpToken> udpClients = new ConcurrentDictionary<int, AsyncUserUdpToken>();
+
         private Socket socket;
-        private UdpClient udpClient;
+
         private readonly NumberSpace ns = new NumberSpace();
         private readonly ConcurrentDictionary<ConnectId, Socket> dic = new ConcurrentDictionary<ConnectId, Socket>();
         private ConcurrentDictionary<ConnectIdUdp, Socket> dicUdp = new(new ConnectIdUdpComparer());
@@ -26,7 +28,7 @@ namespace cmonitor.client.tunnel
         {
             try
             {
-                Stop();
+                //Stop();
 
                 IPEndPoint localEndPoint = new IPEndPoint(NetworkHelper.IPv6Support ? IPAddress.IPv6Any : IPAddress.Any, port);
                 socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -34,8 +36,9 @@ namespace cmonitor.client.tunnel
                 socket.ReuseBind(localEndPoint);
                 socket.Listen(int.MaxValue);
 
-                userToken = new AsyncUserToken
+                AsyncUserToken userToken = new AsyncUserToken
                 {
+                    ListenPort = port,
                     Socket = socket
                 };
                 SocketAsyncEventArgs acceptEventArg = new SocketAsyncEventArgs
@@ -48,11 +51,21 @@ namespace cmonitor.client.tunnel
                 acceptEventArg.Completed += IO_Completed;
                 StartAccept(acceptEventArg);
 
-                udpClient = new UdpClient(new IPEndPoint(IPAddress.Any, localEndPoint.Port));
+
+                UdpClient udpClient = new UdpClient(new IPEndPoint(IPAddress.Any, localEndPoint.Port));
+                AsyncUserUdpToken asyncUserUdpToken = new AsyncUserUdpToken
+                {
+                    ListenPort = port,
+                    SourceSocket = udpClient,
+                    Proxy = new ProxyInfo { Step = ProxyStep.Forward, ConnectId = 0, Protocol = ProxyProtocol.Udp, Direction = ProxyDirection.Forward }
+                };
                 udpClient.Client.EnableBroadcast = true;
                 udpClient.Client.WindowsUdpBug();
-                IAsyncResult result = udpClient.BeginReceive(ReceiveCallbackUdp, null);
+                IAsyncResult result = udpClient.BeginReceive(ReceiveCallbackUdp, asyncUserUdpToken);
 
+
+                userTokens.AddOrUpdate(port, userToken, (a, b) => userToken);
+                udpClients.AddOrUpdate(port, asyncUserUdpToken, (a, b) => asyncUserUdpToken);
             }
             catch (Exception ex)
             {
@@ -60,28 +73,25 @@ namespace cmonitor.client.tunnel
             }
         }
 
-
-        private readonly AsyncUserUdpToken asyncUserUdpToken = new AsyncUserUdpToken
-        {
-            Proxy = new ProxyInfo { Step = ProxyStep.Forward, ConnectId = 0, Protocol = ProxyProtocol.Udp, Direction = ProxyDirection.Forward }
-        };
         private async void ReceiveCallbackUdp(IAsyncResult result)
         {
             try
             {
-                IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
-                byte[] bytes = udpClient.EndReceive(result, ref endPoint);
+                AsyncUserUdpToken token = result.AsyncState as AsyncUserUdpToken;
 
-                asyncUserUdpToken.Proxy.SourceEP = endPoint;
-                asyncUserUdpToken.Proxy.Data = bytes;
-                await ConnectUdp(asyncUserUdpToken);
-                if (asyncUserUdpToken.Connection != null && asyncUserUdpToken.Proxy.TargetEP != null)
+                IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
+                byte[] bytes = token.SourceSocket.EndReceive(result, ref endPoint);
+
+                token.Proxy.SourceEP = endPoint;
+                token.Proxy.Data = bytes;
+                await ConnectUdp(token);
+                if (token.Connection != null && token.Proxy.TargetEP != null)
                 {
                     //发送连接请求包
-                    await SendToConnection(asyncUserUdpToken).ConfigureAwait(false);
+                    await SendToConnection(token).ConfigureAwait(false);
                 }
 
-                result = udpClient.BeginReceive(ReceiveCallbackUdp, null);
+                result = token.SourceSocket.BeginReceive(ReceiveCallbackUdp, null);
             }
             catch (Exception)
             {
@@ -268,7 +278,7 @@ namespace cmonitor.client.tunnel
                     //绑定
                     dic.TryAdd(new ConnectId(token.Proxy.ConnectId, token.Connection.GetHashCode()), token.Socket);
                 }
-                else if(connectResult == false)
+                else if (connectResult == false)
                 {
                     CloseClientSocket(token);
                 }
@@ -279,6 +289,11 @@ namespace cmonitor.client.tunnel
                 await SendToConnection(token).ConfigureAwait(false);
             }
         }
+        /// <summary>
+        /// 连接到TCP转发
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns>当未获得通道连接对象，是否关闭连接</returns>
         protected virtual async Task<bool> ConnectTcp(AsyncUserToken token)
         {
             return await Task.FromResult(false);
@@ -412,7 +427,7 @@ namespace cmonitor.client.tunnel
                             Proxy = new ProxyInfo
                             {
                                 ConnectId = token.Proxy.ConnectId,
-                                Direction =  ProxyDirection.Reverse,
+                                Direction = ProxyDirection.Reverse,
                                 Protocol = token.Proxy.Protocol,
                                 SourceEP = token.Proxy.SourceEP,
                                 TargetEP = token.Proxy.TargetEP,
@@ -439,20 +454,23 @@ namespace cmonitor.client.tunnel
                 }
                 else
                 {
-                    try
+                    if (udpClients.TryGetValue(token.ListenPort, out AsyncUserUdpToken asyncUserUdpToken))
                     {
-                        if (await ConnectionReceiveUdp(token, udpClient) == false)
+                        try
                         {
-                            await udpClient.SendAsync(token.Proxy.Data, token.Proxy.SourceEP);
+                            if (await ConnectionReceiveUdp(token, asyncUserUdpToken) == false)
+                            {
+                                await asyncUserUdpToken.SourceSocket.SendAsync(token.Proxy.Data, token.Proxy.SourceEP);
+                            }
                         }
-                    }
-                    catch (Exception)
-                    {
+                        catch (Exception)
+                        {
+                        }
                     }
                 }
             }
         }
-        protected virtual async Task<bool> ConnectionReceiveUdp(AsyncUserToken token, UdpClient udpClient)
+        protected virtual async Task<bool> ConnectionReceiveUdp(AsyncUserToken token, AsyncUserUdpToken asyncUserUdpToken)
         {
             return await Task.FromResult(false);
         }
@@ -625,13 +643,57 @@ namespace cmonitor.client.tunnel
             }
             token.Clear();
         }
-        public void Stop()
+        public virtual void Stop()
         {
-            CloseClientSocket(userToken);
-            userToken = null;
-            udpClient?.Close();
-            udpClient = null;
+            foreach (var item in userTokens)
+            {
+                CloseClientSocket(item.Value);
+            }
+            userTokens.Clear();
+            foreach (var item in udpClients)
+            {
+                item.Value.Clear();
+            }
+            udpClients.Clear();
+
+            foreach (var item in dic)
+            {
+                item.Value?.SafeClose();
+            }
             dic.Clear();
+
+            foreach (var item in dicUdp)
+            {
+                item.Value?.SafeClose();
+            }
+            dicUdp.Clear();
+        }
+
+        public virtual void Stop(int port)
+        {
+            if (userTokens.TryRemove(port, out AsyncUserToken userToken))
+            {
+                CloseClientSocket(userToken);
+            }
+            if (udpClients.TryRemove(port, out AsyncUserUdpToken udpClient))
+            {
+                udpClient.Clear();
+            }
+
+            if (userTokens.Count == 0 && udpClients.Count == 0)
+            {
+                foreach (var item in dic)
+                {
+                    item.Value?.SafeClose();
+                }
+                dic.Clear();
+
+                foreach (var item in dicUdp)
+                {
+                    item.Value?.SafeClose();
+                }
+                dicUdp.Clear();
+            }
         }
 
     }
@@ -784,6 +846,7 @@ namespace cmonitor.client.tunnel
 
     public sealed class AsyncUserUdpToken
     {
+        public int ListenPort { get; set; }
         public UdpClient SourceSocket { get; set; }
         public ITunnelConnection Connection { get; set; }
         public ProxyInfo Proxy { get; set; }
@@ -822,6 +885,7 @@ namespace cmonitor.client.tunnel
 
     public sealed class AsyncUserToken
     {
+        public int ListenPort { get; set; }
         public Socket Socket { get; set; }
         public ITunnelConnection Connection { get; set; }
 

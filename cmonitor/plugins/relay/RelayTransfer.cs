@@ -16,7 +16,7 @@ namespace cmonitor.plugins.relay
         private readonly Config config;
         private readonly ServiceProvider serviceProvider;
 
-        private Dictionary<string, Action<ITunnelConnection>> OnConnected { get; } = new Dictionary<string, Action<ITunnelConnection>>();
+        private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
         public RelayTransfer(Config config, ServiceProvider serviceProvider)
         {
@@ -32,15 +32,20 @@ namespace cmonitor.plugins.relay
             Logger.Instance.Warning($"load relay transport:{string.Join(",", transports.Select(c => c.Name))}");
         }
 
-        public void SetConnectCallback(string transactionId, Action<ITunnelConnection> callback)
+        public void SetConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
         {
-            if (OnConnected.TryGetValue(transactionId, out Action<ITunnelConnection> _callback) == false)
+            if (OnConnected.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks) == false)
             {
-                OnConnected[transactionId] = callback;
+                callbacks = new List<Action<ITunnelConnection>>();
+                OnConnected[transactionId] = callbacks;
             }
-            else
+            callbacks.Add(callback);
+        }
+        public void RemoveConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
+        {
+            if (OnConnected.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks))
             {
-                OnConnected[transactionId] += callback;
+                callbacks.Remove(callback);
             }
         }
 
@@ -94,9 +99,12 @@ namespace cmonitor.plugins.relay
                 ITunnelConnection connection = await _transports.OnBeginAsync(relayInfo);
                 if (connection != null)
                 {
-                    if (OnConnected.TryGetValue(connection.TransactionId, out Action<ITunnelConnection> callback))
+                    if (OnConnected.TryGetValue(connection.TransactionId, out List<Action<ITunnelConnection>> callbacks))
                     {
-                        callback(connection);
+                        foreach (var item in callbacks)
+                        {
+                            item(connection);
+                        }
                     }
                     return true;
                 }

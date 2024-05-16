@@ -65,10 +65,9 @@ namespace cmonitor.plugins.keyboard.report
         private void CheckQueue()
         {
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-            Task.Factory.StartNew(async (a) =>
+            Task.Run(async () =>
             {
-                CancellationTokenSource tks = a as CancellationTokenSource;
-                while (tks.IsCancellationRequested == false)
+                while (cancellationTokenSource.IsCancellationRequested == false)
                 {
                     if (inputActions.IsEmpty == false)
                     {
@@ -80,7 +79,7 @@ namespace cmonitor.plugins.keyboard.report
                                 if (config.Data.Elevated == true && !Win32Interop.SwitchToInputDesktop())
                                 {
                                     uint code = Kernel32.GetLastError();
-                                    tks.Cancel();
+                                    cancellationTokenSource.Cancel();
                                     CheckQueue();
                                 }
                                 action();
@@ -95,7 +94,7 @@ namespace cmonitor.plugins.keyboard.report
                         await Task.Delay(10);
                     }
                 }
-            }, cancellationTokenSource, TaskCreationOptions.LongRunning);
+            });
         }
         private void TryOnInputDesktop(Action inputAction)
         {

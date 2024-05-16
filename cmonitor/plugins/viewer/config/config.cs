@@ -1,11 +1,6 @@
 ﻿using cmonitor.plugins.viewer.config;
 using MemoryPack;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace cmonitor.plugins.viewer.config
 {
@@ -46,24 +41,9 @@ namespace cmonitor.plugins.viewer.config
         Server = 1,
     }
 
-    public sealed class ViewerConfigInfo
-    {
-    }
 }
 
 
-namespace cmonitor.config
-{
-    public sealed partial class ConfigClientInfo
-    {
-        public ViewerConfigInfo Viewer { get; set; } = new ViewerConfigInfo();
-    }
-
-    public sealed partial class ConfigServerInfo
-    {
-        public ViewerConfigInfo Viewer { get; set; } = new ViewerConfigInfo();
-    }
-}
 
 namespace cmonitor.client.running
 {

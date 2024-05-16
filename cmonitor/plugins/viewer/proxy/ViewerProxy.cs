@@ -23,14 +23,13 @@ namespace cmonitor.plugins.viewer.proxy
             Start(0);
             Logger.Instance.Info($"start viewer proxy, listen port : {LocalEndpoint}");
 
-            tunnelTransfer.SetConnectCallback("viewer", BindConnectionReceive);
-            relayTransfer.SetConnectCallback("viewer", BindConnectionReceive);
+            tunnelTransfer.SetConnectedCallback("viewer", BindConnectionReceive);
+            relayTransfer.SetConnectedCallback("viewer", BindConnectionReceive);
         }
 
         protected override async Task<bool> ConnectTcp(AsyncUserToken token)
         {
             token.Proxy.TargetEP = runningConfig.Data.Viewer.ConnectEP;
-            token.Connection = connection;
             if (connection == null || connection.Connected == false)
             {
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -52,13 +51,9 @@ namespace cmonitor.plugins.viewer.proxy
                             Logger.Instance.Debug($"viewer relay to {runningConfig.Data.Viewer.ServerMachine} success");
                     }
                 }
-                if (connection != null)
-                {
-                    BindConnectionReceive(connection);
-                    token.Connection = connection;
-                }
             }
-            return token.Connection != null && token.Connection.Connected;
+            token.Connection = connection;
+            return true;
         }
     }
 }

@@ -19,7 +19,6 @@ namespace cmonitor.plugins.tuntap
         private readonly ITuntapVea tuntapVea;
         private readonly Config config;
         private readonly TuntapProxy tuntapProxy;
-        private readonly RunningConfig runningConfig;
 
 
         private List<TuntapInfo> tuntapInfos = new List<TuntapInfo>();
@@ -30,18 +29,17 @@ namespace cmonitor.plugins.tuntap
         public TuntapStatus Status => tuntapVea.Running ? TuntapStatus.Running : (starting ? TuntapStatus.Starting : TuntapStatus.Normal);
 
 
-        public TuntapTransfer(MessengerSender messengerSender, ClientSignInState clientSignInState, ITuntapVea tuntapVea, Config config, TuntapProxy tuntapProxy, RunningConfig runningConfig)
+        public TuntapTransfer(MessengerSender messengerSender, ClientSignInState clientSignInState, ITuntapVea tuntapVea, Config config, TuntapProxy tuntapProxy)
         {
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
             this.tuntapVea = tuntapVea;
             this.config = config;
             this.tuntapProxy = tuntapProxy;
-            this.runningConfig = runningConfig;
 
             clientSignInState.NetworkFirstEnabledHandle += () =>
             {
-                if (runningConfig.Data.Tuntap.Running) { _ = Run(); }
+                if (config.Data.Client.Tuntap.Running) { _ = Run(); }
                 else { _ = SendChange(); }
             };
         }
@@ -68,8 +66,8 @@ namespace cmonitor.plugins.tuntap
                     List<TuntapInfo> infos = await GetRemoteInfo();
                     SetIPs(infos);
                 }
-                runningConfig.Data.Tuntap.Running = Status == TuntapStatus.Running;
-                runningConfig.Data.Update();
+                config.Data.Client.Tuntap.Running = Status == TuntapStatus.Running;
+                config.Save();
                 await SendChange();
                 return result;
             }
@@ -93,8 +91,8 @@ namespace cmonitor.plugins.tuntap
             try
             {
                 tuntapVea.Kill();
-                runningConfig.Data.Tuntap.Running = Status == TuntapStatus.Running;
-                runningConfig.Data.Update();
+                config.Data.Client.Tuntap.Running = Status == TuntapStatus.Running;
+                config.Save();
                 await SendChange();
             }
             catch (Exception ex)

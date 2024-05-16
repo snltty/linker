@@ -14,6 +14,9 @@
 
         ExternalIP = 2007,
 
+        Success = 2008,
+        SuccessForward = 2009,
+
         None = 2099
     }
 }
