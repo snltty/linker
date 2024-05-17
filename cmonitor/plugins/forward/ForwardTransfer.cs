@@ -12,52 +12,68 @@ namespace cmonitor.plugins.forward
 
         private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
 
-        public ForwardTransfer( Config config, ForwardProxy forwardProxy, ClientSignInState clientSignInState)
+        public ForwardTransfer(Config config, ForwardProxy forwardProxy, ClientSignInState clientSignInState)
         {
             this.config = config;
             this.forwardProxy = forwardProxy;
 
             clientSignInState.NetworkFirstEnabledHandle += () =>
             {
-                StartForward();
+                Start();
             };
         }
 
-        private void StartForward()
+        private void Start()
         {
-            uint maxid = config.Data.Client.Forward.Forwards.Count > 0 ? config.Data.Client.Forward.Forwards.Max(c=>c.ID) : 1;
+            uint maxid = config.Data.Client.Forward.Forwards.Count > 0 ? config.Data.Client.Forward.Forwards.Max(c => c.ID) : 1;
             ns.Reset(maxid);
 
             foreach (var item in config.Data.Client.Forward.Forwards)
             {
-                try
+                if (item.Started)
                 {
-                    if (item.Started)
+                    if (item.Proxy == null)
                     {
-                        if (item.Proxy == null)
+                        try
                         {
-                            Logger.Instance.Debug($"start forward {item.Port}->{item.MachineName}->{item.TargetEP}");
+                            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                Logger.Instance.Debug($"start forward {item.Port}->{item.MachineName}->{item.TargetEP}");
                             item.Proxy = forwardProxy;
-                            item.Proxy.Start(item.Port);
+                            item.Proxy.Start(item.Port, item.TargetEP, item.MachineName);
+                            item.Port = item.Proxy.LocalEndpoint.Port;
+                        }
+                        catch (Exception ex)
+                        {
+                            item.Started = false;
+                            Logger.Instance.Error(ex);
                         }
                     }
-                    else
+                }
+                else
+                {
+                    try
                     {
                         if (item.Proxy != null)
                         {
-                            Logger.Instance.Debug($"stop forward {item.Port}->{item.MachineName}->{item.TargetEP}");
+                            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                Logger.Instance.Debug($"stop forward {item.Port}->{item.MachineName}->{item.TargetEP}");
                             item.Proxy.Stop(item.Port);
                             item.Proxy = null;
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Instance.Error(ex);
+                    catch (Exception ex)
+                    {
+                        Logger.Instance.Error(ex);
+                    }
                 }
             }
         }
-        public bool AddForward(ForwardInfo forwardInfo)
+
+        public Dictionary<string, List<ForwardInfo>> Get()
+        {
+            return config.Data.Client.Forward.Forwards.GroupBy(c => c.MachineName).ToDictionary((a) => a.Key, (b) => b.ToList());
+        }
+        public bool Add(ForwardInfo forwardInfo)
         {
             //同名或者同端口，但是ID不一样
             ForwardInfo old = config.Data.Client.Forward.Forwards.FirstOrDefault(c => (c.Port == forwardInfo.Port || c.Name == forwardInfo.Name));
@@ -80,18 +96,18 @@ namespace cmonitor.plugins.forward
                 config.Data.Client.Forward.Forwards.Add(forwardInfo);
             }
             config.Save();
-            StartForward();
+            Start();
 
             return true;
         }
-        public bool RemoveForward(uint id)
+        public bool Remove(uint id)
         {
             //同名或者同端口，但是ID不一样
             ForwardInfo old = config.Data.Client.Forward.Forwards.FirstOrDefault(c => c.ID == id);
             if (old == null) return false;
 
             old.Started = false;
-            StartForward();
+            Start();
             config.Data.Client.Forward.Forwards.Remove(old);
             config.Save();
 

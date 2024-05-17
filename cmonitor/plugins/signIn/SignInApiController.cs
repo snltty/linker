@@ -61,15 +61,15 @@ namespace cmonitor.plugins.signin
             ConfigSetInfo info = param.Content.DeJson<ConfigSetInfo>();
             config.Data.Client.Name = info.Name;
             config.Data.Client.GroupId = info.GroupId;
-            config.Data.Client.Server = info.Server;
             config.Save();
             clientSignInTransfer.SignOut();
             _ = clientSignInTransfer.SignIn();
         }
-        public void SetServers(ApiControllerParamsInfo param)
+        public bool SetServers(ApiControllerParamsInfo param)
         {
             config.Data.Client.Servers = param.Content.DeJson<ClientServerInfo[]>();
             config.Save();
+            return true;
         }
 
         public ClientSignInState Info(ApiControllerParamsInfo param)
@@ -107,6 +107,5 @@ namespace cmonitor.plugins.signin
     {
         public string Name { get; set; }
         public string GroupId { get; set; }
-        public string Server { get; set; }
     }
 }

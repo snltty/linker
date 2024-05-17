@@ -1,4 +1,5 @@
 ﻿using cmonitor.client.tunnel;
+using cmonitor.config;
 using cmonitor.plugins.tunnel.server;
 using common.libs;
 using common.libs.extends;
@@ -17,6 +18,8 @@ namespace cmonitor.plugins.tunnel.transport
         public Func<TunnelTransportInfo, Task> OnSendConnectFail { get; set; } = async (info) => { await Task.CompletedTask; };
         public Func<TunnelTransportInfo, Task> OnSendConnectSuccess { get; set; } = async (info) => { await Task.CompletedTask; };
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
+
+
 
         private readonly TunnelBindServer tunnelBindServer;
         public TransportTcpNutssb(TunnelBindServer tunnelBindServer)
@@ -278,6 +281,6 @@ namespace cmonitor.plugins.tunnel.transport
             return ip.AddressFamily == AddressFamily.InterNetworkV6 && (NetworkHelper.IPv6Support == false);
         }
 
-       
+
     }
 }

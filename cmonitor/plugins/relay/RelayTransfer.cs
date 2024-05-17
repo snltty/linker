@@ -51,10 +51,10 @@ namespace cmonitor.plugins.relay
 
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineName, string transactionId)
         {
-            IEnumerable<ITransport> _transports = transports.OrderBy(c => c.Name);
+            IEnumerable<ITransport> _transports = transports.OrderBy(c => c.Type);
             foreach (RelayCompactInfo item in config.Data.Client.Relay.Servers.Where(c => c.Disabled == false))
             {
-                ITransport transport = _transports.FirstOrDefault(c => c.Name == item.Name);
+                ITransport transport = _transports.FirstOrDefault(c => c.Type == item.Type);
                 if (transport == null)
                 {
                     continue;

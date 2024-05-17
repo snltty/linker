@@ -1,4 +1,5 @@
-﻿using cmonitor.plugins.tunnel.messenger;
+﻿using cmonitor.config;
+using cmonitor.plugins.tunnel.messenger;
 using cmonitor.server;
 using common.libs;
 using common.libs.extends;
@@ -11,6 +12,8 @@ namespace cmonitor.plugins.tunnel.compact
     public sealed class CompactSelfHost : ICompact
     {
         public string Name => "self";
+
+        public TunnelCompactType Type =>  TunnelCompactType.Self;
 
         private readonly TcpServer tcpServer;
         private readonly MessengerSender messengerSender;

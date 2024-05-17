@@ -9,7 +9,7 @@ namespace cmonitor.startup
         /// <summary>
         /// 插件名
         /// </summary>
-        public string Name { get;  }
+        public string Name { get; }
         /// <summary>
         /// 必须的
         /// </summary>
@@ -48,6 +48,8 @@ namespace cmonitor.startup
 
     public enum StartupLevel
     {
+        Bottom = int.MinValue,
+
         Low9 = -9,
         Low8 = -8,
         Low7 = -7,

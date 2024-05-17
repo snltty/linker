@@ -4,7 +4,6 @@ using common.libs;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 using System.Net;
-using System.Net.Sockets;
 using System.Reflection;
 
 namespace cmonitor.plugins.tunnel.compact
@@ -37,7 +36,7 @@ namespace cmonitor.plugins.tunnel.compact
             {
                 TunnelCompactInfo item = config.Data.Client.Tunnel.Servers[i];
                 if (item.Disabled) continue;
-                ICompact compact = compacts.FirstOrDefault(c => c.Name == item.Name);
+                ICompact compact = compacts.FirstOrDefault(c => c.Type == item.Type);
                 if (compact == null) continue;
 
                 try

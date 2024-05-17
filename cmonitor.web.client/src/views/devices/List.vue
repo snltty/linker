@@ -16,17 +16,24 @@
                     </div>
                 </template>
             </el-table-column>
-            <el-table-column prop="tunel" label="通道" width="90" >
+            <el-table-column prop="tunel" label="隧道测试" width="90" >
                 <template #default="scope">
                     <div v-if="machineName != scope.row.MachineName">
                         <Tunnel :data="scope.row"></Tunnel>
                     </div>
                 </template>
             </el-table-column>
-            <el-table-column prop="tuntap" label="网卡"  width="180">
+            <el-table-column prop="tuntap" label="虚拟网卡"  width="180">
                 <template #default="scope">
                     <template v-if="state.tuntapInfos[scope.row.MachineName]">
                         <Tuntap @change="handleTuntapChange" :data="state.tuntapInfos[scope.row.MachineName]"></Tuntap>
+                    </template>
+                </template>
+            </el-table-column>
+            <el-table-column prop="forward" label="端口转发"  width="160">
+                <template #default="scope">
+                    <template v-if="state.forwardInfos">
+                        <Forward @change="handleForwardChange" :data="state.forwardInfos[scope.row.MachineName]" :name="scope.row.MachineName"></Forward>
                     </template>
                 </template>
             </el-table-column>
@@ -38,7 +45,7 @@
                     </div>
                 </template>
             </el-table-column>
-            <el-table-column label="操作">
+            <el-table-column label="操作" width="66">
                 <template #default="scope">
                     <el-popconfirm v-if="machineName != scope.row.MachineName" confirm-button-text="确认" cancel-button-text="取消" title="删除不可逆，是否确认?" @confirm="handleDel(scope.row.MachineName)">
                         <template #reference>
@@ -63,11 +70,12 @@ import {subWebsocketState} from '@/apis/request.js'
 import {getTuntapInfo} from '@/apis/tuntap'
 import {injectGlobalData} from '@/provide.js'
 import {reactive,onMounted, ref, nextTick, onUnmounted, computed} from 'vue'
-import { ElMessage } from 'element-plus'
 import Tuntap from './Tuntap.vue'
 import Tunnel from './Tunnel.vue'
+import Forward from './Forward.vue'
+import { getForwardInfo } from '@/apis/forward'
 export default {
-    components:{Tuntap,Tunnel},
+    components:{Tuntap,Tunnel,Forward},
     setup(props) {
         
         const globalData = injectGlobalData();
@@ -81,6 +89,7 @@ export default {
             },
             tuntapInfos:{},
             tuntapHashCode:0,
+            forwardInfos:null,
             height:0,
         });
 
@@ -108,6 +117,16 @@ export default {
                 tuntapTimer = setTimeout(_getTuntapInfo,1000);
             }
         }
+        const _getForwardInfo = ()=>{
+            getForwardInfo().then((res)=>{
+                state.forwardInfos = null;
+                nextTick(()=>{
+                    state.forwardInfos = res;
+                });
+            }).catch(()=>{
+                
+            });
+        }
 
         const _getSignList = ()=>{
             state.page.Request.GroupId = globalData.value.groupid;
@@ -115,6 +134,7 @@ export default {
                 state.page.Request = res.Request;
                 state.page.Count = res.Count;
                 state.page.List = res.List;
+                _getForwardInfo();
             }).catch((err)=>{});
         }
         const handlePageChange = ()=>{
@@ -126,6 +146,9 @@ export default {
             });
         }
         const handleTuntapChange = ()=>{
+            _getSignList();
+        }
+        const handleForwardChange = ()=>{
             _getSignList();
         }
 
@@ -147,7 +170,7 @@ export default {
         });
 
         return {
-            machineName,state,wrap,handlePageChange,handleDel,handleTuntapChange
+            machineName,state,wrap,handlePageChange,handleDel,handleTuntapChange,handleForwardChange
         }
     }
 }

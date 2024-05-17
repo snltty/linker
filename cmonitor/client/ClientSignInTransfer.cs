@@ -38,7 +38,6 @@ namespace cmonitor.client
         {
             Task.Run(async () =>
             {
-                await Task.Delay(10000);
                 while (true)
                 {
 
@@ -61,42 +60,41 @@ namespace cmonitor.client
 
         public async Task SignIn()
         {
-            if (clientSignInState.Connecting)
+            if (BooleanHelper.CompareExchange(ref clientSignInState.connecting, true, false))
             {
                 return;
             }
-            clientSignInState.Connecting = true;
-
-            IPEndPoint[] ips = new IPEndPoint[] { config.Data.Client.ServerEP };
-
-            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                Logger.Instance.Info($"get ip:{ips.ToJsonFormat()}");
-
-            foreach (IPEndPoint ip in ips)
+            if (string.IsNullOrWhiteSpace(config.Data.Client.Server))
             {
-                try
-                {
-                    if (await ConnectServer(ip) == false)
-                    {
-                        continue;
-                    }
-                    if (await SignIn2Server() == false)
-                    {
-                        continue;
-                    }
-
-                    GCHelper.FlushMemory();
-                    clientSignInState.PushNetworkEnabled();
-
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        Logger.Instance.Error(ex);
-                }
+                return;
             }
-            clientSignInState.Connecting = false;
+
+            try
+            {
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    Logger.Instance.Info($"connect to signin server :{config.Data.Client.Server}");
+
+                IPEndPoint ip = NetworkHelper.GetEndPoint(config.Data.Client.Server, 1802);
+
+                if (await ConnectServer(ip) == false)
+                {
+                    return;
+                }
+                if (await SignIn2Server() == false)
+                {
+                    return;
+                }
+
+                GCHelper.FlushMemory();
+                clientSignInState.PushNetworkEnabled();
+
+            }
+            catch (Exception ex)
+            {
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    Logger.Instance.Error(ex);
+            }
+            BooleanHelper.CompareExchange(ref clientSignInState.connecting, false, true);
         }
         public void SignOut()
         {

@@ -8,7 +8,9 @@ namespace cmonitor.client
         [JsonIgnore]
         public IConnection Connection { get; set; }
 
-        public bool Connecting { get; set; }
+        [JsonIgnore]
+        public bool connecting = false;
+        public bool Connecting => connecting;
         public bool Connected => Connection != null && Connection.Connected;
 
         private int networdkEnabledTimes = 0;

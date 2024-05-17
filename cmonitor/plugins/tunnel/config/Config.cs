@@ -21,7 +21,13 @@ namespace cmonitor.config
     public sealed class TunnelCompactInfo
     {
         public string Name { get; set; }
+        public TunnelCompactType Type { get; set; }
         public string Host { get; set; }
         public bool Disabled { get; set; }
+    }
+
+    public enum TunnelCompactType : byte
+    {
+        Self = 0
     }
 }

@@ -1,4 +1,5 @@
 ﻿using cmonitor.client.tunnel;
+using cmonitor.config;
 using MemoryPack;
 using System.Net;
 
@@ -7,6 +8,7 @@ namespace cmonitor.plugins.relay.transport
     public interface ITransport
     {
         public string Name { get; }
+        public RelayCompactType Type { get; }
         public TunnelProtocolType ProtocolType { get; }
 
         public Task<ITunnelConnection> RelayAsync(RelayInfo relayInfo);

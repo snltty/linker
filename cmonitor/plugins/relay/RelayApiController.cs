@@ -3,6 +3,7 @@ using cmonitor.client.tunnel;
 using cmonitor.config;
 using common.libs;
 using common.libs.api;
+using common.libs.extends;
 using System.Text;
 
 namespace cmonitor.plugins.relay
@@ -18,6 +19,13 @@ namespace cmonitor.plugins.relay
             this.relayTransfer = relayTransfer;
 
             RelayTest();
+        }
+
+        public bool SetServers(ApiControllerParamsInfo param)
+        {
+            config.Data.Client.Relay.Servers = param.Content.DeJson<RelayCompactInfo[]>();
+            config.Save();
+            return true;
         }
 
         public void Connect(ApiControllerParamsInfo param)

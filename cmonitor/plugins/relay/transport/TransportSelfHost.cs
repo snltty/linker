@@ -1,4 +1,5 @@
 ﻿using cmonitor.client.tunnel;
+using cmonitor.config;
 using cmonitor.plugins.relay.messenger;
 using cmonitor.server;
 using common.libs;
@@ -11,7 +12,8 @@ namespace cmonitor.plugins.relay.transport
 {
     public sealed class TransportSelfHost : ITransport
     {
-        public string Name => "self";
+        public string Name => "默认";
+        public RelayCompactType Type => RelayCompactType.Self;
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Tcp;
 
         private readonly TcpServer tcpServer;

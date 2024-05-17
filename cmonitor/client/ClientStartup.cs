@@ -11,7 +11,7 @@ namespace cmonitor.client
 {
     public sealed class ClientStartup : IStartup
     {
-        public StartupLevel Level => StartupLevel.Normal;
+        public StartupLevel Level => StartupLevel.Bottom;
         public string Name => "client";
         public bool Required => true;
         public string[] Dependent => new string[] { "firewall", "signin", "serialize" };
@@ -34,7 +34,6 @@ namespace cmonitor.client
         public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
         {
             Logger.Instance.Info($"start client");
-            Logger.Instance.Info($"server ip {config.Data.Client.ServerEP}");
 
             Logger.Instance.Info($"start client share memory");
             ShareMemory shareMemory = serviceProvider.GetService<ShareMemory>();
@@ -43,6 +42,8 @@ namespace cmonitor.client
             shareMemory.StartLoop();
 
             Logger.Instance.Info($"start client signin transfer");
+            if (string.IsNullOrWhiteSpace(config.Data.Client.Server) && config.Data.Client.Servers.Length > 0)
+                config.Data.Client.Server = config.Data.Client.Servers.FirstOrDefault().Host;
             ClientSignInTransfer clientTransfer = serviceProvider.GetService<ClientSignInTransfer>();
 
         }

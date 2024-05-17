@@ -14,17 +14,22 @@ namespace cmonitor.plugins.forward
             this.forwardTransfer = forwardTransfer;
         }
 
+        public Dictionary<string, List<ForwardInfo>> Get(ApiControllerParamsInfo param)
+        {
+            return forwardTransfer.Get();
+        }
+
         public bool Add(ApiControllerParamsInfo param)
         {
             ForwardInfo info = param.Content.DeJson<ForwardInfo>();
-            return forwardTransfer.AddForward(info);
+            return forwardTransfer.Add(info);
         }
 
         public bool Remove(ApiControllerParamsInfo param)
         {
             if (uint.TryParse(param.Content, out uint id))
             {
-                return forwardTransfer.RemoveForward(id);
+                return forwardTransfer.Remove(id);
             }
             return false;
         }

@@ -30,7 +30,12 @@ namespace cmonitor.plugins.relay
             {
                 config.Data.Client.Relay.Servers = new RelayCompactInfo[]
                 {
-                     new RelayCompactInfo{ Name="self", Disabled = false, Host = config.Data.Client.Server }
+                     new RelayCompactInfo{
+                         Name="默认",
+                         Type= RelayCompactType.Self,
+                         Disabled = false,
+                         Host = config.Data.Client.Servers.FirstOrDefault().Host
+                     }
                 };
             }
         }

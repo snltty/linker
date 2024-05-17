@@ -46,7 +46,12 @@ namespace cmonitor.plugins.tunnel
             {
                 config.Data.Client.Tunnel.Servers = new TunnelCompactInfo[]
                 {
-                     new TunnelCompactInfo{ Name="self", Disabled = false, Host = config.Data.Client.Server }
+                     new TunnelCompactInfo{
+                         Name="默认",
+                         Type= TunnelCompactType.Self,
+                         Disabled = false,
+                         Host = config.Data.Client.Servers.FirstOrDefault().Host
+                     }
                 };
             }
         }

@@ -23,10 +23,6 @@ namespace cmonitor.plugins.capi
 
         public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
         {
-            Logger.Instance.Info($"start client");
-            Logger.Instance.Info($"server ip {config.Data.Client.ServerEP}");
-
-
             if (config.Data.Client.CApi.ApiPort > 0)
             {
                 Logger.Instance.Info($"start client api server");

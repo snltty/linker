@@ -1,7 +1,9 @@
 ﻿using cmonitor.client.capi;
 using cmonitor.client.tunnel;
+using cmonitor.config;
 using common.libs;
 using common.libs.api;
+using common.libs.extends;
 using System.Text;
 
 namespace cmonitor.plugins.tunnel
@@ -9,12 +11,19 @@ namespace cmonitor.plugins.tunnel
     public sealed class TunnelApiController : IApiClientController
     {
         private readonly TunnelTransfer tunnelTransfer;
-
-        public TunnelApiController(TunnelTransfer tunnelTransfer)
+        private readonly Config config;
+        public TunnelApiController(TunnelTransfer tunnelTransfer, Config config)
         {
             this.tunnelTransfer = tunnelTransfer;
-
+            this.config = config;
             TunnelTest();
+        }
+
+        public bool SetServers(ApiControllerParamsInfo param)
+        {
+            config.Data.Client.Tunnel.Servers = param.Content.DeJson<TunnelCompactInfo[]>();
+            config.Save();
+            return true;
         }
 
         public void Connect(ApiControllerParamsInfo param)
