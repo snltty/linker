@@ -64,10 +64,6 @@ namespace cmonitor.client
             {
                 return;
             }
-            if (string.IsNullOrWhiteSpace(config.Data.Client.Server))
-            {
-                return;
-            }
 
             try
             {
@@ -94,7 +90,10 @@ namespace cmonitor.client
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     Logger.Instance.Error(ex);
             }
-            BooleanHelper.CompareExchange(ref clientSignInState.connecting, false, true);
+            finally
+            {
+                BooleanHelper.CompareExchange(ref clientSignInState.connecting, false, true);
+            }
         }
         public void SignOut()
         {

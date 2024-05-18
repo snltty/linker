@@ -38,7 +38,7 @@ namespace cmonitor.plugins.tunnel
 
             Logger.Instance.Info($"tunnel route level getting.");
             config.Data.Client.Tunnel.RouteLevel = NetworkHelper.GetRouteLevel(out List<IPAddress> ips);
-            config.Data.Client.Tunnel.LocalIPs = NetworkHelper.GetIPV6().Concat(ips).ToArray();
+            config.Data.Client.Tunnel.LocalIPs = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
             Logger.Instance.Info($"tunnel local ips :{string.Join(",", config.Data.Client.Tunnel.LocalIPs.Select(c => c.ToString()))}");
             Logger.Instance.Info($"tunnel route level:{config.Data.Client.Tunnel.RouteLevel}");
 

@@ -5,6 +5,8 @@ namespace cmonitor.plugins.wlan.report
     public class WlanWindows : IWlan
     {
         private Guid id;
+        bool error = false;
+
         public void Init()
         {
             try
@@ -17,15 +19,26 @@ namespace cmonitor.plugins.wlan.report
             }
             catch (Exception)
             {
+                error = true;
             }
         }
         public List<string> Enums()
         {
-            return NativeWifi.EnumerateAvailableNetworks().Where(c => string.IsNullOrWhiteSpace(c.ProfileName) == false).Select(c => c.ProfileName).ToList();
+            try
+            {
+                return NativeWifi.EnumerateAvailableNetworks().Where(c => string.IsNullOrWhiteSpace(c.ProfileName) == false).Select(c => c.ProfileName).ToList();
+            }
+            catch (Exception)
+            {
+                error = true;
+            }
+            return new List<string>();
         }
 
         public async Task<bool> Connect()
         {
+            if (error) return false;
+
             if (Connected() == false)
             {
                 try

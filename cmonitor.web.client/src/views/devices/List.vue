@@ -5,49 +5,50 @@
                 <template #default="scope">
                     <div>
                         <p>
-                            <template v-if="scope.row.Connected">
-                                <strong class="green">{{ scope.row.MachineName }}</strong>
-                            </template>
-                            <template v-else>
-                                <span>{{ scope.row.MachineName }}</span>
-                            </template>
+                            <strong :class="{green:scope.row.Connected}" >{{scope.row.MachineName }}</strong>
                         </p>
-                        <p>{{scope.row.IP}}</p>
+                        <p>{{ scope.row.IP }}</p>
                     </div>
                 </template>
             </el-table-column>
-            <el-table-column prop="tunel" label="隧道测试" width="90" >
+            <el-table-column prop="tunel" label="隧道测试" width="112">
                 <template #default="scope">
-                    <div v-if="machineName != scope.row.MachineName">
+                    <div v-if="scope.row.showTunnel">
                         <Tunnel :data="scope.row"></Tunnel>
                     </div>
+                    <div v-else>--</div>
                 </template>
             </el-table-column>
-            <el-table-column prop="tuntap" label="虚拟网卡"  width="180">
+            <el-table-column prop="tuntap" label="虚拟网卡" width="170">
                 <template #default="scope">
                     <template v-if="state.tuntapInfos[scope.row.MachineName]">
                         <Tuntap @change="handleTuntapChange" :data="state.tuntapInfos[scope.row.MachineName]"></Tuntap>
                     </template>
                 </template>
             </el-table-column>
-            <el-table-column prop="forward" label="端口转发"  width="160">
+            <el-table-column prop="forward" label="端口转发" width="160">
                 <template #default="scope">
                     <template v-if="state.forwardInfos">
-                        <Forward @change="handleForwardChange" :data="state.forwardInfos[scope.row.MachineName]" :name="scope.row.MachineName"></Forward>
+                        <template v-if="scope.row.showForward">
+                            <Forward @change="handleForwardChange" :data="state.forwardInfos[scope.row.MachineName]"
+                            :name="scope.row.MachineName"></Forward>
+                        </template>
+                        <template v-else>--</template>
                     </template>
                 </template>
             </el-table-column>
-            <el-table-column prop="LastSignIn" label="其它" width="140" >
+            <el-table-column prop="LastSignIn" label="其它" width="140">
                 <template #default="scope">
                     <div>
-                        <p>{{scope.row.LastSignIn}}</p>
-                        <p>v{{scope.row.Version}}</p>
+                        <p>{{ scope.row.LastSignIn }}</p>
+                        <p>v{{ scope.row.Version }}</p>
                     </div>
                 </template>
             </el-table-column>
             <el-table-column label="操作" width="66">
                 <template #default="scope">
-                    <el-popconfirm v-if="machineName != scope.row.MachineName" confirm-button-text="确认" cancel-button-text="取消" title="删除不可逆，是否确认?" @confirm="handleDel(scope.row.MachineName)">
+                    <el-popconfirm v-if="scope.row.showDel" confirm-button-text="确认"
+                        cancel-button-text="取消" title="删除不可逆，是否确认?" @confirm="handleDel(scope.row.MachineName)">
                         <template #reference>
                             <el-button type="danger" size="small">删除</el-button>
                         </template>
@@ -57,120 +58,124 @@
         </el-table>
         <div class="page t-c">
             <div class="page-wrap">
-                <el-pagination small background layout="total,prev, pager, next"  
-                :total="state.page.Count" :page-size="state.page.Request.Size" :current-page="state.page.Request.Page"
-                @current-change="handlePageChange"/>
+                <el-pagination small background layout="total,prev, pager, next" :total="state.page.Count"
+                    :page-size="state.page.Request.Size" :current-page="state.page.Request.Page"
+                    @current-change="handlePageChange" />
             </div>
         </div>
     </div>
 </template>
 <script>
-import {getSignList,updateSignInDel} from '@/apis/signin.js'
-import {subWebsocketState} from '@/apis/request.js'
-import {getTuntapInfo} from '@/apis/tuntap'
-import {injectGlobalData} from '@/provide.js'
-import {reactive,onMounted, ref, nextTick, onUnmounted, computed} from 'vue'
+import { getSignList, updateSignInDel } from '@/apis/signin.js'
+import { subWebsocketState } from '@/apis/request.js'
+import { getTuntapInfo } from '@/apis/tuntap'
+import { injectGlobalData } from '@/provide.js'
+import { reactive, onMounted, ref, nextTick, onUnmounted, computed } from 'vue'
 import Tuntap from './Tuntap.vue'
 import Tunnel from './Tunnel.vue'
 import Forward from './Forward.vue'
 import { getForwardInfo } from '@/apis/forward'
 export default {
-    components:{Tuntap,Tunnel,Forward},
+    components: { Tuntap, Tunnel, Forward },
     setup(props) {
-        
+
         const globalData = injectGlobalData();
-        const machineName = computed(()=>globalData.value.config.Client.Name);
+        const machineName = computed(() => globalData.value.config.Client.Name);
         const wrap = ref(null);
         const state = reactive({
-            page:{
-                Request:{Page:1,Size:10,GroupId:globalData.value.groupid},
-                Count:0,
-                List:[]
+            page: {
+                Request: { Page: 1, Size: 10, GroupId: globalData.value.groupid },
+                Count: 0,
+                List: []
             },
-            tuntapInfos:{},
-            tuntapHashCode:0,
-            forwardInfos:null,
-            height:0,
+            tuntapInfos: {},
+            tuntapHashCode: 0,
+            forwardInfos: null,
+            height: 0,
         });
 
         let tuntapTimer = 0;
-        const _getTuntapInfo = ()=>{
-            if(globalData.value.connected){
-                getTuntapInfo(state.tuntapHashCode.toString()).then((res)=>{
+        const _getTuntapInfo = () => {
+            if (globalData.value.connected) {
+                getTuntapInfo(state.tuntapHashCode.toString()).then((res) => {
                     state.tuntapHashCode = res.HashCode;
-                    if(res.List){  
+                    if (res.List) {
                         state.tuntapInfos = {};
-                        nextTick(()=>{
-                            state.tuntapInfos = res.List.reduce((json,value,index)=>{
-                                json[value.MachineName] = value;
-                                json[value.MachineName].running =  value.Status == 2;
-                                json[value.MachineName].loading =  value.Status == 1;
-                                return json;
-                            },{});
+                        nextTick(() => {
+                            for (let j in res.List) {
+                                res.List[j].running = res.List[j].Status == 2;
+                                res.List[j].loading = res.List[j].Status == 1;
+                            }
+                            state.tuntapInfos = res.List;
                         });
                     }
-                    tuntapTimer = setTimeout(_getTuntapInfo,200);
-                }).catch(()=>{
-                    tuntapTimer = setTimeout(_getTuntapInfo,200);
+                    tuntapTimer = setTimeout(_getTuntapInfo, 200);
+                }).catch(() => {
+                    tuntapTimer = setTimeout(_getTuntapInfo, 200);
                 });
-            }else{
-                tuntapTimer = setTimeout(_getTuntapInfo,1000);
+            } else {
+                tuntapTimer = setTimeout(_getTuntapInfo, 1000);
             }
         }
-        const _getForwardInfo = ()=>{
-            getForwardInfo().then((res)=>{
+        const _getForwardInfo = () => {
+            getForwardInfo().then((res) => {
                 state.forwardInfos = null;
-                nextTick(()=>{
+                nextTick(() => {
                     state.forwardInfos = res;
                 });
-            }).catch(()=>{
-                
+            }).catch(() => {
+
             });
         }
 
-        const _getSignList = ()=>{
+        const _getSignList = () => {
             state.page.Request.GroupId = globalData.value.groupid;
-            getSignList(state.page.Request).then((res)=>{
+            getSignList(state.page.Request).then((res) => {
                 state.page.Request = res.Request;
                 state.page.Count = res.Count;
+                for (let j in res.List) {
+                    res.List[j].showTunnel = machineName.value != res.List[j].MachineName;
+                    res.List[j].showForward = machineName.value != res.List[j].MachineName;
+                    res.List[j].showDel = machineName.value != res.List[j].MachineName && res.List[j].Connected == false;
+                }
                 state.page.List = res.List;
                 _getForwardInfo();
-            }).catch((err)=>{});
+            }).catch((err) => { });
         }
-        const handlePageChange = ()=>{
+        const handlePageChange = () => {
             _getSignList();
         }
-        const handleDel = (name)=>{
-            updateSignInDel(name).then(()=>{
+        const handleDel = (name) => {
+            updateSignInDel(name).then(() => {
                 _getSignList();
             });
         }
-        const handleTuntapChange = ()=>{
+        const handleTuntapChange = () => {
             _getSignList();
         }
-        const handleForwardChange = ()=>{
+        const handleForwardChange = () => {
             _getSignList();
         }
 
-        const resizeTable = ()=>{
-            nextTick(()=>{
+        const resizeTable = () => {
+            nextTick(() => {
                 state.height = wrap.value.offsetHeight - 80;
             });
         }
-        onMounted(()=>{
-            subWebsocketState((state)=>{ if(state)_getSignList();});
+        onMounted(() => {
+            subWebsocketState((state) => { if (state) _getSignList(); });
             resizeTable();
-            window.addEventListener('resize',resizeTable);
+            window.addEventListener('resize', resizeTable);
             _getSignList();
             _getTuntapInfo();
         });
-        onUnmounted(()=>{
+        onUnmounted(() => {
             clearTimeout(tuntapTimer);
-            window.removeEventListener('resize',resizeTable);
+            window.removeEventListener('resize', resizeTable);
         });
 
         return {
-            machineName,state,wrap,handlePageChange,handleDel,handleTuntapChange,handleForwardChange
+            machineName, state, wrap, handlePageChange, handleDel, handleTuntapChange, handleForwardChange
         }
     }
 }

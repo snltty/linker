@@ -7,6 +7,7 @@ using MemoryPack;
 using cmonitor.config;
 using common.libs.extends;
 using cmonitor.client.capi;
+using System.Collections.Concurrent;
 
 namespace cmonitor.plugins.tuntap
 {
@@ -26,8 +27,8 @@ namespace cmonitor.plugins.tuntap
         }
         public TuntabListInfo Get(ApiControllerParamsInfo param)
         {
-            int hashCode = int.Parse(param.Content);
-            int _hashCode = tuntapTransfer.Infos.GetHashCode();
+            uint hashCode = uint.Parse(param.Content);
+            uint _hashCode = tuntapTransfer.InfosVersion;
             if (_hashCode != hashCode)
             {
                 return new TuntabListInfo
@@ -42,7 +43,7 @@ namespace cmonitor.plugins.tuntap
         {
             if (param.Content == config.Data.Client.Name)
             {
-                _ = tuntapTransfer.Run();
+                tuntapTransfer.Run();
             }
             else
             {
@@ -59,14 +60,15 @@ namespace cmonitor.plugins.tuntap
         {
             if (param.Content == config.Data.Client.Name)
             {
-                _ = tuntapTransfer.Stop();
+                tuntapTransfer.Stop();
             }
             else
             {
+
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = clientSignInState.Connection,
-                    MessengerId = (ushort)TuntapMessengerIds.Stop,
+                    MessengerId = (ushort)TuntapMessengerIds.StopForward,
                     Payload = MemoryPackSerializer.Serialize(param.Content)
                 });
             }
@@ -88,7 +90,6 @@ namespace cmonitor.plugins.tuntap
                     MessengerId = (ushort)TuntapMessengerIds.UpdateForward,
                     Payload = MemoryPackSerializer.Serialize(info)
                 });
-                tuntapTransfer.OnChange();
             }
             return true;
         }
@@ -96,8 +97,8 @@ namespace cmonitor.plugins.tuntap
 
         public sealed class TuntabListInfo
         {
-            public List<TuntapInfo> List { get; set; }
-            public int HashCode { get; set; }
+            public ConcurrentDictionary<string,TuntapInfo> List { get; set; }
+            public uint HashCode { get; set; }
         }
     }
 }

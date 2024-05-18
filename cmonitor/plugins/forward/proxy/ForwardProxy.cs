@@ -2,7 +2,6 @@
 using cmonitor.plugins.relay;
 using cmonitor.plugins.tunnel;
 using common.libs;
-using common.libs.extends;
 using System.Collections.Concurrent;
 using System.Net;
 
@@ -15,6 +14,7 @@ namespace cmonitor.plugins.forward.proxy
 
         private readonly ConcurrentDictionary<int, ForwardProxyCacheInfo> caches = new ConcurrentDictionary<int, ForwardProxyCacheInfo>();
         private readonly ConcurrentDictionary<string, ITunnelConnection> connections = new ConcurrentDictionary<string, ITunnelConnection>();
+        private readonly ConcurrentDictionary<string, SemaphoreSlim> locks = new ConcurrentDictionary<string, SemaphoreSlim>();
 
         public ForwardProxy(TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer)
         {
@@ -54,28 +54,47 @@ namespace cmonitor.plugins.forward.proxy
             {
                 return connection;
             }
-
-            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                Logger.Instance.Debug($"viewer tunnel to {machineName}");
-            connection = await tunnelTransfer.ConnectAsync(machineName, "viewer");
-            if (connection != null)
+            if (locks.TryGetValue(machineName, out SemaphoreSlim slim) == false)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Debug($"viewer tunnel to {machineName} success");
+                slim = new SemaphoreSlim(1);
+                locks.TryAdd(machineName, slim);
             }
-            if (connection == null)
+            await slim.WaitAsync();
+
+            if (connections.TryGetValue(machineName, out connection) && connection.Connected)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Debug($"viewer relay to {machineName}");
-                connection = await relayTransfer.ConnectAsync(machineName, "viewer");
+                return connection;
+            }
+
+            try
+            {
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"viewer tunnel to {machineName}");
+                connection = await tunnelTransfer.ConnectAsync(machineName, "viewer");
                 if (connection != null)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        Logger.Instance.Debug($"viewer relay to {machineName} success");
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"viewer tunnel to {machineName} success");
                 }
+                if (connection == null)
+                {
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"viewer relay to {machineName}");
+
+                    connection = await relayTransfer.ConnectAsync(machineName, "viewer");
+                    if (connection != null)
+                    {
+                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"viewer relay to {machineName} success");
+                    }
+                }
+                if (connection != null)
+                    connections.TryAdd(machineName, connection);
             }
-            if (connection != null)
-                connections.TryAdd(machineName, connection);
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                slim.Release();
+            }
+
             return connection;
         }
 

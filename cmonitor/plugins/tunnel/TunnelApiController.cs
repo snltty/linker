@@ -35,9 +35,10 @@ namespace cmonitor.plugins.tunnel
                     ITunnelConnection connection = await tunnelTransfer.ConnectAsync(param.Content, "test");
                     if (connection != null)
                     {
+                        string str = connection.ToString();
                         for (int i = 0; i < 10; i++)
                         {
-                            Logger.Instance.Debug($"tunnel {connection.Direction} [test] send {i}");
+                            Logger.Instance.Debug($"{str} send {i}");
                             await connection.SendAsync(Encoding.UTF8.GetBytes($"snltty.tunnel.{i}"));
                         }
                         connection.Close();
@@ -57,9 +58,10 @@ namespace cmonitor.plugins.tunnel
         {
             tunnelTransfer.SetConnectedCallback("test", (ITunnelConnection connection) =>
             {
+                string str = connection.ToString();
                 connection.BeginReceive(async (ITunnelConnection connection, Memory<byte> data, object state) => {
 
-                    Logger.Instance.Debug($"tunnel [{connection.TransactionId}] receive {Encoding.UTF8.GetString(data.Span)}");
+                    Logger.Instance.Debug($"{str} receive {Encoding.UTF8.GetString(data.Span)}");
                     await Task.CompletedTask;
 
                 }, async (ITunnelConnection connection, object state) => {

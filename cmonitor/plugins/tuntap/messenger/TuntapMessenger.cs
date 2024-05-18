@@ -1,9 +1,8 @@
 ﻿using cmonitor.plugins.signin.messenger;
 using cmonitor.plugins.tuntap.vea;
 using cmonitor.server;
-using common.libs;
-using common.libs.extends;
 using MemoryPack;
+using System.Collections.Concurrent;
 
 namespace cmonitor.plugins.tuntap.messenger
 {
@@ -15,28 +14,16 @@ namespace cmonitor.plugins.tuntap.messenger
             this.tuntapTransfer = tuntapTransfer;
         }
 
-        [MessengerId((ushort)TuntapMessengerIds.Info)]
-        public void Info(IConnection connection)
-        {
-            connection.Write(MemoryPackSerializer.Serialize(tuntapTransfer.GetInfo()));
-        }
-
-        [MessengerId((ushort)TuntapMessengerIds.Change)]
-        public void Change(IConnection connection)
-        {
-            tuntapTransfer.OnChange();
-        }
-
         [MessengerId((ushort)TuntapMessengerIds.Run)]
         public void Run(IConnection connection)
         {
-            _ = tuntapTransfer.Run();
+            tuntapTransfer.Run();
         }
 
         [MessengerId((ushort)TuntapMessengerIds.Stop)]
         public void Stop(IConnection connection)
         {
-            _ = tuntapTransfer.Stop();
+            tuntapTransfer.Stop();
         }
 
         [MessengerId((ushort)TuntapMessengerIds.Update)]
@@ -44,6 +31,14 @@ namespace cmonitor.plugins.tuntap.messenger
         {
             TuntapInfo info = MemoryPackSerializer.Deserialize<TuntapInfo>(connection.ReceiveRequestWrap.Payload.Span);
             tuntapTransfer.Update(info);
+        }
+
+        [MessengerId((ushort)TuntapMessengerIds.Info)]
+        public void Info(IConnection connection)
+        {
+            TuntapInfo info = MemoryPackSerializer.Deserialize<TuntapInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            TuntapInfo _info = tuntapTransfer.Info(info);
+            connection.Write(MemoryPackSerializer.Serialize(_info));
         }
     }
 
@@ -59,65 +54,13 @@ namespace cmonitor.plugins.tuntap.messenger
             this.signCaching = signCaching;
         }
 
-        [MessengerId((ushort)TuntapMessengerIds.InfoForward)]
-        public async Task InfoForward(IConnection connection)
-        {
-            if (signCaching.Get(connection.Name, out SignCacheInfo cache))
-            {
-                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
-                List<Task<MessageResponeInfo>> tasks = new List<Task<MessageResponeInfo>>();
-                foreach (SignCacheInfo item in caches.Where(c => c.MachineName != connection.Name))
-                {
-                    tasks.Add(messengerSender.SendReply(new MessageRequestWrap
-                    {
-                        Connection = item.Connection,
-                        Timeout = 3000,
-                        MessengerId = (ushort)TuntapMessengerIds.Info
-                    }));
-                }
-                if(tasks.Count > 0)
-                {
-                    await Task.WhenAll(tasks);
-
-                    List<TuntapInfo> ips = tasks.Where(c => c.Result.Code == MessageResponeCodes.OK)
-                         .Select(c => MemoryPackSerializer.Deserialize<TuntapInfo>(c.Result.Data.Span)).ToList();
-                    connection.Write(MemoryPackSerializer.Serialize(ips));
-                }
-                else
-                {
-                    connection.Write(MemoryPackSerializer.Serialize(new List<TuntapInfo>()));
-                }
-            }
-        }
-
-
-        [MessengerId((ushort)TuntapMessengerIds.ChangeForward)]
-        public void ChangeForward(IConnection connection)
-        {
-            if (signCaching.Get(connection.Name, out SignCacheInfo cache))
-            {
-                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
-
-                foreach (SignCacheInfo item in caches.Where(c => c.MachineName != connection.Name))
-                {
-                    _ = messengerSender.SendOnly(new MessageRequestWrap
-                    {
-                        Connection = item.Connection,
-                        Timeout = 3000,
-                        MessengerId = (ushort)TuntapMessengerIds.Change
-                    });
-                }
-            }
-        }
-
-
         [MessengerId((ushort)TuntapMessengerIds.RunForward)]
-        public void RunForward(IConnection connection)
+        public async Task RunForward(IConnection connection)
         {
             string name = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.Get(name, out SignCacheInfo cache))
             {
-                _ = messengerSender.SendOnly(new MessageRequestWrap
+                await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = cache.Connection,
                     Timeout = 3000,
@@ -128,12 +71,12 @@ namespace cmonitor.plugins.tuntap.messenger
 
 
         [MessengerId((ushort)TuntapMessengerIds.StopForward)]
-        public void StopForward(IConnection connection)
+        public async Task StopForward(IConnection connection)
         {
             string name = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.Get(name, out SignCacheInfo cache))
             {
-                _ = messengerSender.SendOnly(new MessageRequestWrap
+                await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = cache.Connection,
                     Timeout = 3000,
@@ -144,18 +87,44 @@ namespace cmonitor.plugins.tuntap.messenger
 
 
         [MessengerId((ushort)TuntapMessengerIds.UpdateForward)]
-        public void UpdateForward(IConnection connection)
+        public async Task UpdateForward(IConnection connection)
         {
             TuntapInfo info = MemoryPackSerializer.Deserialize<TuntapInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.Get(info.MachineName, out SignCacheInfo cache))
             {
-                _ = messengerSender.SendOnly(new MessageRequestWrap
+                await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = cache.Connection,
                     Timeout = 3000,
                     MessengerId = (ushort)TuntapMessengerIds.Update,
-                     Payload= connection.ReceiveRequestWrap.Payload
+                    Payload = connection.ReceiveRequestWrap.Payload
                 });
+            }
+        }
+
+
+        [MessengerId((ushort)TuntapMessengerIds.InfoForward)]
+        public async Task InfoForward(IConnection connection)
+        {
+            if (signCaching.Get(connection.Name, out SignCacheInfo cache))
+            {
+                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
+
+                List<Task<MessageResponeInfo>> tasks = new List<Task<MessageResponeInfo>>();
+                foreach (SignCacheInfo item in caches.Where(c => c.MachineName != connection.Name && c.Connected))
+                {
+                    tasks.Add(messengerSender.SendReply(new MessageRequestWrap
+                    {
+                        Connection = item.Connection,
+                        MessengerId = (ushort)TuntapMessengerIds.Info,
+                        Payload = connection.ReceiveRequestWrap.Payload
+                    }));
+                }
+
+                await Task.WhenAll(tasks);
+
+                List<TuntapInfo> results = tasks.Where(c => c.Result.Code == MessageResponeCodes.OK).Select(c => MemoryPackSerializer.Deserialize<TuntapInfo>(c.Result.Data.Span)).ToList();
+                connection.Write(MemoryPackSerializer.Serialize(results));
             }
         }
     }

@@ -71,7 +71,7 @@ namespace cmonitor.plugins.tuntap.vea
         }
         public async Task<bool> SetIp(IPAddress ip)
         {
-            if(interfaceNumber > 0)
+            if (interfaceNumber > 0)
             {
                 CommandHelper.Windows(string.Empty, new string[] { $"netsh interface ip set address name=\"{veaName}\" source=static addr={ip} mask=255.255.255.0 gateway=none" });
                 for (int k = 0; k < 5; k++)
@@ -140,12 +140,15 @@ namespace cmonitor.plugins.tuntap.vea
         {
             if (interfaceNumber > 0)
             {
-                string[] commands = ip.Select(item => $"route delete {string.Join(".", BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes())}").ToArray();
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                string[] commands = ip.Where(c => c.IPAddress > 0).Select(item => $"route delete {string.Join(".", BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes())}").ToArray();
+                if (commands.Length > 0)
                 {
-                    Logger.Instance.Warning($"vea windows ->del route:{string.Join(Environment.NewLine, commands)}");
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        Logger.Instance.Warning($"vea windows ->del route:{string.Join(Environment.NewLine, commands)}");
+                    }
+                    CommandHelper.Windows(string.Empty, commands.ToArray());
                 }
-                CommandHelper.Windows(string.Empty, commands.ToArray());
             }
         }
 

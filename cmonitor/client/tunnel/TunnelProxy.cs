@@ -253,7 +253,7 @@ namespace cmonitor.client.tunnel
             token.Proxy.Data = data;
             if (token.Proxy.Step == ProxyStep.Request)
             {
-                bool connectResult = await ConnectTcp(token);
+                bool closeConnect = await ConnectTcp(token);
                 if (token.Connection != null)
                 {
                     Memory<byte> tempData = token.Proxy.Data;
@@ -278,7 +278,7 @@ namespace cmonitor.client.tunnel
                     //绑定
                     dic.TryAdd(new ConnectId(token.Proxy.ConnectId, token.Connection.GetHashCode()), token.Socket);
                 }
-                else if (connectResult == false)
+                else if (closeConnect)
                 {
                     CloseClientSocket(token);
                 }

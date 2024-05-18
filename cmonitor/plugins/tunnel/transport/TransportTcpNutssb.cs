@@ -1,5 +1,4 @@
 ﻿using cmonitor.client.tunnel;
-using cmonitor.config;
 using cmonitor.plugins.tunnel.server;
 using common.libs;
 using common.libs.extends;

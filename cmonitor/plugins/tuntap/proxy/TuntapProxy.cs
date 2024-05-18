@@ -21,6 +21,7 @@ namespace cmonitor.plugins.tuntap.proxy
         private uint maskValue = NetworkHelper.MaskValue(24);
         private readonly ConcurrentDictionary<uint, string> dic = new ConcurrentDictionary<uint, string>();
         private readonly ConcurrentDictionary<string, ITunnelConnection> dicConnections = new ConcurrentDictionary<string, ITunnelConnection>();
+        private readonly ConcurrentDictionary<string, SemaphoreSlim> dicLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
 
         public TuntapProxy(TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer)
         {
@@ -51,6 +52,10 @@ namespace cmonitor.plugins.tuntap.proxy
                     dic.AddOrUpdate(ip.NetWork, item.MachineName, (a, b) => item.MachineName);
                 }
             }
+        }
+        public void SetIP(string machineName, uint ip)
+        {
+            dic.AddOrUpdate(ip, machineName, (a, b) => machineName);
         }
 
         protected override async Task<bool> ConnectTcp(AsyncUserToken token)
@@ -131,8 +136,9 @@ namespace cmonitor.plugins.tuntap.proxy
 
         private async ValueTask<ITunnelConnection> ConnectTunnel(Memory<byte> ipArray)
         {
-            uint network = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span) & maskValue;
-            if (dic.TryGetValue(network, out string targetName) == false)
+            uint ip = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
+            uint network = ip & maskValue;
+            if (dic.TryGetValue(ip, out string targetName) == false && dic.TryGetValue(network, out targetName) == false)
             {
                 return null;
             }
@@ -140,28 +146,49 @@ namespace cmonitor.plugins.tuntap.proxy
             {
                 return connection;
             }
-            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                Logger.Instance.Debug($"tuntap tunnel to {targetName}");
-            connection = await tunnelTransfer.ConnectAsync(targetName, "viewer");
-            if (connection != null)
+
+            if(dicLocks.TryGetValue(targetName,out SemaphoreSlim slim) == false)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Debug($"tuntap tunnel to {targetName} success");
+                slim = new SemaphoreSlim(1);
+                dicLocks.TryAdd(targetName, slim);
             }
-            if (connection == null)
+            await slim.WaitAsync();
+
+            if (dicConnections.TryGetValue(targetName, out connection) && connection.Connected)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Debug($"tuntap relay to {targetName}");
-                connection = await relayTransfer.ConnectAsync(targetName, "viewer");
+                return connection;
+            }
+
+            try
+            {
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"tuntap tunnel to {targetName}");
+
+                connection = await tunnelTransfer.ConnectAsync(targetName, "tuntap");
                 if (connection != null)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        Logger.Instance.Debug($"tuntap relay to {targetName} success");
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"tuntap tunnel success,{connection.ToString()}");
+                }
+                if (connection == null)
+                {
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"tuntap relay to {targetName}");
+
+                    connection = await relayTransfer.ConnectAsync(targetName, "tuntap");
+                    if (connection != null)
+                    {
+                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"tuntap relay success,{connection.ToString()}");
+                    }
+                }
+                if (connection != null)
+                {
+                    dicConnections.AddOrUpdate(targetName, connection, (a, b) => connection);
                 }
             }
-            if (connection != null)
+            catch (Exception)
             {
-                dicConnections.AddOrUpdate(targetName, connection, (a, b) => connection);
+            }
+            finally
+            {
+                slim.Release();
             }
             return connection;
         }

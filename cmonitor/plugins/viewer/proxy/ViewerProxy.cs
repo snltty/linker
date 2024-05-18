@@ -38,7 +38,7 @@ namespace cmonitor.plugins.viewer.proxy
                 if (connection != null)
                 {
                     if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        Logger.Instance.Debug($"viewer tunnel to {runningConfig.Data.Viewer.ServerMachine} success");
+                        Logger.Instance.Debug($"viewer tunnel success,{connection.ToString()}");
                 }
                 if (connection == null)
                 {
@@ -48,7 +48,7 @@ namespace cmonitor.plugins.viewer.proxy
                     if (connection != null)
                     {
                         if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                            Logger.Instance.Debug($"viewer relay to {runningConfig.Data.Viewer.ServerMachine} success");
+                            Logger.Instance.Debug($"viewer relay success,{connection.ToString()}");
                     }
                 }
             }

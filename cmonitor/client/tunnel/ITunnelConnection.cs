@@ -41,6 +41,8 @@ namespace cmonitor.client.tunnel
         public void BeginReceive(TunnelReceivceCallback receiveCallback, TunnelCloseCallback closeCallback, object userToken);
 
         public void Close();
+
+        public string ToString();
     }
 
     public sealed class TunnelConnectionTcp : ITunnelConnection
@@ -166,6 +168,11 @@ namespace cmonitor.client.tunnel
             receiveCallback = null;
             closeCallback = null;
             Socket?.SafeClose();
+        }
+
+        public override string ToString()
+        {
+            return $"TransactionId:{TransactionId},TransportName:{TransportName},ProtocolType:{ProtocolType},Type:{Type},Direction:{Direction},IPEndPoint:{IPEndPoint},RemoteMachineName:{RemoteMachineName}";
         }
     }
 

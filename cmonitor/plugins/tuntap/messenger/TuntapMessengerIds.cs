@@ -2,22 +2,17 @@
 {
     public enum TuntapMessengerIds : ushort
     {
-        _ = 2200,
+        Run = 2200,
+        RunForward = 2201,
 
-        Change = 2201,
-        ChangeForward = 2202,
+        Stop = 2202,
+        StopForward = 2203,
 
-        Info = 2203,
-        InfoForward = 2204,
+        Update = 2204,
+        UpdateForward = 2205,
 
-        Run = 2205,
-        RunForward = 2206,
-
-        Stop = 2207,
-        StopForward = 2208,
-
-        Update = 2209,
-        UpdateForward = 2210,
+        Info = 2206,
+        InfoForward = 2207,
 
         None = 2299
     }
