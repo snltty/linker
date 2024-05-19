@@ -20,18 +20,33 @@
 [![star](https://gitee.com/snltty/cmonitor/badge/star.svg?theme=dark)](https://gitee.com/snltty/cmonitor/stargazers)
 [![fork](https://gitee.com/snltty/cmonitor/badge/fork.svg?theme=dark)](https://gitee.com/snltty/cmonitor/members)
 
-对客户机进行监控，以及客户端组网
+两个发布模式：**监控**、**组网**
 
 </div>
 
 ## 说明
-1. 这是一个粗略的局域网监控程序（说是局域网，你放外网也不是不行）
-2. 使用组件式，非常方便扩展，可由 **内存共享(MemoryMappedFiles)** 提供自己定义数据
-3. 内存占用小，（非定时，自动GC），linux无解
-4. 使用 **MemoryPack**、**SharpDX**、**NAudio**、**RdpSession+RdpViewer**、**tun2socks**
-5. 为了关闭不正常的程序，使用了一些驱动（**killer.sys**），遇见报毒，请添加信任
+1. 组件式，小内存
+2. 使用 **MemoryPack**、**SharpDX**、**NAudio**、**RdpSession+RdpViewer**、**tun2socks**
+3. releases 中，分为三类，**full** 是全功能，**monitor** 只包含监控功能，**network** 只包含组网功能
 
 ## 功能
+
+#### 公共功能
+不管是监控还是组网，都包含以下功能
+###### 打洞
+- [x] 打洞连接，客户端之间打洞连接 **tunnel**
+###### 中继
+- [x] 中继连接，客户端之间通过服务器转发连接 **relay**
+
+#### 组网功能
+仅组网发布下，或者全功能发布下，包含以下功能
+###### 组网
+- [x] 虚拟组网，使用虚拟网卡，将各个客户端组建为局域网络 **tuntap**
+###### 端口转发
+- [x] 端口转发，将客户端的端口转发到其它客户端的端口 **forward**
+
+#### 监控功能
+仅监控发布下，或者全功能发布下，包含以下功能
 ###### 系统
 - [x] 桌面捕获，捕获鼠标，**screen**
 - [x] 功能禁用，禁用各种系统功能 **system**
@@ -54,12 +69,6 @@
 - [x] 壁纸程序，为所有设备设置统一壁纸，以程序的方式 **wallpaper**
 ###### 锁屏
 - [x] 锁屏程序，打开锁屏程序，禁用键盘 **llock**
-###### 打洞
-- [x] 打洞连接，客户端之间打洞连接 **tunnel**
-###### 中继
-- [x] 中继连接，客户端之间通过服务器转发连接 **relay**
-###### 组网
-- [ ] 虚拟组网，使用虚拟网卡，将各个客户端组建为局域网络 **tuntap**
 
 ## 运行参数
 ```

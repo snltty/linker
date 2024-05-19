@@ -35,7 +35,6 @@ namespace cmonitor.client.tunnel
                 socket.IPv6Only(localEndPoint.AddressFamily, false);
                 socket.ReuseBind(localEndPoint);
                 socket.Listen(int.MaxValue);
-
                 AsyncUserToken userToken = new AsyncUserToken
                 {
                     ListenPort = port,
@@ -174,6 +173,7 @@ namespace cmonitor.client.tunnel
                 AsyncUserToken userToken = new AsyncUserToken
                 {
                     Socket = socket,
+                    ListenPort = token.ListenPort,
                     Proxy = new ProxyInfo { Data = Helper.EmptyArray, Step = ProxyStep.Request, ConnectId = ns.Increment() }
                 };
 
@@ -206,7 +206,7 @@ namespace cmonitor.client.tunnel
                 {
                     int offset = e.Offset;
                     int length = e.BytesTransferred;
-                    await ReadPacket(token, e.Buffer.AsMemory(offset, length));
+                    await ReadPacket(token, e.Buffer.AsMemory(offset, length)).ConfigureAwait(false);
                     if (token.Socket.Available > 0)
                     {
                         while (token.Socket.Available > 0)
@@ -244,7 +244,6 @@ namespace cmonitor.client.tunnel
             {
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     Logger.Instance.Error(ex);
-
                 CloseClientSocket(token);
             }
         }
@@ -285,7 +284,6 @@ namespace cmonitor.client.tunnel
             }
             else
             {
-
                 await SendToConnection(token).ConfigureAwait(false);
             }
         }
@@ -305,8 +303,10 @@ namespace cmonitor.client.tunnel
             {
                 await token.Connection.SendAsync(connectData.AsMemory(0, length)).ConfigureAwait(false);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    Logger.Instance.Error(ex);
                 CloseClientSocket(token);
             }
             finally
@@ -394,13 +394,24 @@ namespace cmonitor.client.tunnel
             if (token.Proxy.Protocol == ProxyProtocol.Tcp)
             {
                 ConnectId connectId = new ConnectId(token.Proxy.ConnectId, token.Connection.GetHashCode());
-                if (dic.TryGetValue(connectId, out Socket source))
+                if (token.Proxy.Data.Length > 0)
                 {
-                    try
+                    if (dic.TryGetValue(connectId, out Socket source))
                     {
-                        await source.SendAsync(token.Proxy.Data);
+                        try
+                        {
+                            await source.SendAsync(token.Proxy.Data);
+                        }
+                        catch (Exception)
+                        {
+                            CloseClientSocket(token);
+                        }
                     }
-                    catch (Exception)
+                }
+                else
+                {
+
+                    if (dic.TryRemove(connectId, out Socket source))
                     {
                         CloseClientSocket(token);
                     }
@@ -571,6 +582,7 @@ namespace cmonitor.client.tunnel
                         while (token.Socket.Available > 0)
                         {
                             length = token.Socket.Receive(e.Buffer);
+
                             if (length > 0)
                             {
                                 token.Proxy.Data = e.Buffer.AsMemory(0, length);
@@ -578,6 +590,8 @@ namespace cmonitor.client.tunnel
                             }
                             else
                             {
+                                //token.Proxy.Data = Helper.EmptyArray;
+                                //await SendToConnection(token).ConfigureAwait(false);
                                 CloseClientSocket(token);
                                 return;
                             }
@@ -586,6 +600,8 @@ namespace cmonitor.client.tunnel
 
                     if (token.Connection.Connected == false)
                     {
+                        //token.Proxy.Data = Helper.EmptyArray;
+                        //await SendToConnection(token).ConfigureAwait(false);
                         CloseClientSocket(token);
                         return;
                     }
@@ -597,6 +613,8 @@ namespace cmonitor.client.tunnel
                 }
                 else
                 {
+                    //token.Proxy.Data = Helper.EmptyArray;
+                    //await SendToConnection(token).ConfigureAwait(false);
                     CloseClientSocket(token);
                 }
             }
@@ -604,7 +622,8 @@ namespace cmonitor.client.tunnel
             {
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     Logger.Instance.Error(ex);
-
+                //token.Proxy.Data = Helper.EmptyArray;
+               // await SendToConnection(token).ConfigureAwait(false);
                 CloseClientSocket(token);
             }
         }
@@ -619,7 +638,10 @@ namespace cmonitor.client.tunnel
                 {
                     foreach (ConnectId item in dic.Keys.Where(c => c.hashCode == code).ToList())
                     {
-                        dic.TryRemove(item, out _);
+                        if (dic.TryRemove(item, out Socket socket))
+                        {
+                            socket?.SafeClose();
+                        }
                     }
                 }
                 else
@@ -899,7 +921,7 @@ namespace cmonitor.client.tunnel
         {
             Socket?.SafeClose();
 
-            Buffer?.Clear();
+            //Buffer?.Clear();
 
             Saea?.Dispose();
 

@@ -38,7 +38,7 @@ namespace cmonitor.plugins.signin.messenger
 
             if (signCaching.Get(connection.Name, out SignCacheInfo cache))
             {
-                List<SignCacheInfo> list = signCaching.Get(cache.GroupId);
+                List<SignCacheInfo> list = signCaching.Get(cache.GroupId).OrderByDescending(c=>c.MachineName).OrderByDescending(c=>c.LastSignIn).OrderByDescending(c=>c.Version).ToList();
                 int count = list.Count;
                 list = list.Skip((request.Page - 1) * request.Size).Take(request.Size).ToList();
 

@@ -20,6 +20,9 @@ namespace cmonitor.plugins.forward.proxy
         {
             this.tunnelTransfer = tunnelTransfer;
             this.relayTransfer = relayTransfer;
+
+            tunnelTransfer.SetConnectedCallback("forward", BindConnectionReceive);
+            relayTransfer.SetConnectedCallback("forward", BindConnectionReceive);
         }
 
         protected override async Task<bool> ConnectTcp(AsyncUserToken token)
@@ -68,20 +71,20 @@ namespace cmonitor.plugins.forward.proxy
 
             try
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"viewer tunnel to {machineName}");
-                connection = await tunnelTransfer.ConnectAsync(machineName, "viewer");
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward tunnel to {machineName}");
+                connection = await tunnelTransfer.ConnectAsync(machineName, "forward");
                 if (connection != null)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"viewer tunnel to {machineName} success");
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward tunnel to {machineName} success");
                 }
                 if (connection == null)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"viewer relay to {machineName}");
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineName}");
 
-                    connection = await relayTransfer.ConnectAsync(machineName, "viewer");
+                    connection = await relayTransfer.ConnectAsync(machineName, "forward");
                     if (connection != null)
                     {
-                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"viewer relay to {machineName} success");
+                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineName} success");
                     }
                 }
                 if (connection != null)

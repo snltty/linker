@@ -11,14 +11,14 @@
                     </div>
                 </template>
             </el-table-column>
-            <el-table-column prop="tunel" label="隧道测试" width="112">
+            <!-- <el-table-column prop="tunel" label="隧道测试" width="112">
                 <template #default="scope">
                     <div v-if="scope.row.showTunnel">
                         <Tunnel :data="scope.row"></Tunnel>
                     </div>
                     <div v-else>--</div>
                 </template>
-            </el-table-column>
+            </el-table-column> -->
             <el-table-column prop="tuntap" label="虚拟网卡" width="170">
                 <template #default="scope">
                     <template v-if="state.tuntapInfos[scope.row.MachineName]">
@@ -26,7 +26,7 @@
                     </template>
                 </template>
             </el-table-column>
-            <el-table-column prop="forward" label="端口转发" width="160">
+            <el-table-column prop="forward" label="端口转发">
                 <template #default="scope">
                     <template v-if="state.forwardInfos">
                         <template v-if="scope.row.showForward">
@@ -142,6 +142,30 @@ export default {
                 _getForwardInfo();
             }).catch((err) => { });
         }
+        const _getSignList1 = () => {
+            if (globalData.value.connected) {
+                state.page.Request.GroupId = globalData.value.groupid;
+                getSignList(state.page.Request).then((res) => {
+                    for (let j in res.List) {
+                        const item = state.page.List.filter(c=>c.MachineName == res.List[j].MachineName)[0];
+                        if(item){
+                            item.Connected = res.List[j].Connected;
+                            item.Version = res.List[j].Version;
+                            item.LastSignIn = res.List[j].LastSignIn;
+                            item.Args = res.List[j].Args;
+                            item.showDel = machineName.value != res.List[j].MachineName && res.List[j].Connected == false;
+                        }
+                    }
+                    setTimeout(_getSignList1, 3000);
+                }).catch((err) => { 
+                    setTimeout(_getSignList1, 3000);
+                });
+            }else{
+                setTimeout(_getSignList1, 3000);
+            }
+        }
+
+
         const handlePageChange = () => {
             _getSignList();
         }
@@ -167,6 +191,7 @@ export default {
             resizeTable();
             window.addEventListener('resize', resizeTable);
             _getSignList();
+            _getSignList1();
             _getTuntapInfo();
         });
         onUnmounted(() => {

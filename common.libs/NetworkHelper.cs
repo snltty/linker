@@ -137,7 +137,11 @@ namespace common.libs
         }
         public static IPAddress[] GetIPV4()
         {
-            return Dns.GetHostEntry(Dns.GetHostName()).AddressList.Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).Distinct().ToArray();
+            return Dns.GetHostEntry(Dns.GetHostName()).AddressList
+                .Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                .Where(c => c.IsIPv4MappedToIPv6 == false)
+                .Where(c => c.Equals(IPAddress.Loopback) == false)
+                .Distinct().ToArray();
         }
 
         public static byte MaskLength(uint ip)

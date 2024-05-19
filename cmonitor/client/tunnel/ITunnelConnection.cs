@@ -37,7 +37,7 @@ namespace cmonitor.client.tunnel
 
         public bool Connected { get; }
 
-        public Task SendAsync(Memory<byte> data);
+        public Task SendAsync(Memory<byte> data, CancellationToken cancellationToken = default);
         public void BeginReceive(TunnelReceivceCallback receiveCallback, TunnelCloseCallback closeCallback, object userToken);
 
         public void Close();
@@ -108,7 +108,13 @@ namespace cmonitor.client.tunnel
                     int offset = e.Offset;
                     int length = e.BytesTransferred;
 
-                    await receiveCallback(this,e.Buffer.AsMemory(offset, length), e.UserToken).ConfigureAwait(false);
+                    try
+                    {
+                        await receiveCallback(this, e.Buffer.AsMemory(offset, length), e.UserToken).ConfigureAwait(false);
+                    }
+                    catch (Exception)
+                    {
+                    }
 
                     if (Socket.Available > 0)
                     {
@@ -117,7 +123,13 @@ namespace cmonitor.client.tunnel
                             length = Socket.Receive(e.Buffer);
                             if (length > 0)
                             {
-                                await receiveCallback(this,e.Buffer.AsMemory(offset, length), e.UserToken).ConfigureAwait(false);
+                                try
+                                {
+                                    await receiveCallback(this, e.Buffer.AsMemory(offset, length), e.UserToken).ConfigureAwait(false);
+                                }
+                                catch (Exception)
+                                {
+                                }
                             }
                             else
                             {
@@ -158,9 +170,9 @@ namespace cmonitor.client.tunnel
             }
         }
 
-        public async Task SendAsync(Memory<byte> data)
+        public async Task SendAsync(Memory<byte> data,CancellationToken cancellationToken = default)
         {
-            await Socket.SendAsync(data, SocketFlags.None);
+            await Socket.SendAsync(data, SocketFlags.None, cancellationToken);
         }
 
         public void Close()
