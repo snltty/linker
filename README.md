@@ -24,7 +24,7 @@
 
 </div>
 
-## 说明
+## 简单说明
 1. 组件式，小内存
 2. 使用 **MemoryPack**、**SharpDX**、**NAudio**、**RdpSession+RdpViewer**、**tun2socks**
 3. releases 中，分为三类，**full** 是全功能，**monitor** 只包含监控功能，**network** 只包含组网功能
