@@ -97,7 +97,9 @@ Common -> ExcludePlugins 配置 不想要哪些插件，当不填写 IncludePlug
 ##### 由于winform不支持裁剪程序集，所以客户端需要安装NET8.0 SDK(sdk包含runtime，最简单)
 
 ##### windows客户端、服务端
-1. 可以运行 comitor.install.win.exe 进行安装操作
+```
+//可以运行 comitor.install.win.exe 进行安装操作
+```
 
 ##### linux服务端 systemd
 ```
