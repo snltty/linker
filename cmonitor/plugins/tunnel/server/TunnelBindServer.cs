@@ -1,5 +1,6 @@
 ﻿using common.libs;
 using common.libs.extends;
+using NAudio.CoreAudioApi;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -19,9 +20,11 @@ namespace cmonitor.plugins.tunnel.server
         {
             try
             {
-                Socket socket = new Socket(local.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                socket.IPv6Only(local.AddressFamily, false);
-                socket.ReuseBind(new IPEndPoint(IPAddress.Any, local.Port));
+                IPAddress localIP = NetworkHelper.IPv6Support ? IPAddress.IPv6Any : IPAddress.Any;
+
+                Socket socket = new Socket(localIP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                socket.IPv6Only(localIP.AddressFamily, false);
+                socket.ReuseBind(new IPEndPoint(localIP, local.Port));
                 socket.Listen(int.MaxValue);
 
                 AsyncUserToken token = new AsyncUserToken
@@ -42,8 +45,8 @@ namespace cmonitor.plugins.tunnel.server
                 StartAccept(acceptEventArg);
 
 
-                socketUdp = new UdpClient();
-                socketUdp.Client.ReuseBind(new IPEndPoint(IPAddress.Any, local.Port));
+                socketUdp = new UdpClient(localIP.AddressFamily);
+                socketUdp.Client.ReuseBind(new IPEndPoint(localIP, local.Port));
                 //socketUdp.Client.EnableBroadcast = true;
                 socketUdp.Client.WindowsUdpBug();
                 IAsyncResult result = socketUdp.BeginReceive(ReceiveCallbackUdp, state);

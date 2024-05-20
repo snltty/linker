@@ -113,19 +113,25 @@ namespace cmonitor.plugins.tunnel.transport
             //要连接哪些IP
             IPAddress[] localIps = tunnelTransportInfo.Remote.LocalIps.Where(c => c.Equals(tunnelTransportInfo.Remote.Local.Address) == false).ToArray();
             List<IPEndPoint> eps = new List<IPEndPoint>();
-            foreach (IPAddress item in localIps)
+            //先尝试内网ipv4
+            foreach (IPAddress item in localIps.Where(c => c.AddressFamily == AddressFamily.InterNetwork))
             {
                 eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Local.Port));
                 eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port));
                 eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port + 1));
             }
+            //在尝试外网
             eps.AddRange(new List<IPEndPoint>{
-                new IPEndPoint(tunnelTransportInfo.Remote.Local.Address,tunnelTransportInfo.Remote.Local.Port),
-                new IPEndPoint(tunnelTransportInfo.Remote.Local.Address,tunnelTransportInfo.Remote.Remote.Port),
-                new IPEndPoint(tunnelTransportInfo.Remote.Local.Address,tunnelTransportInfo.Remote.Remote.Port+1),
                 new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port),
                 new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port+1),
             });
+            //再尝试IPV6
+            foreach (IPAddress item in localIps.Where(c => c.AddressFamily == AddressFamily.InterNetworkV6))
+            {
+                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Local.Port));
+                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port));
+                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port + 1));
+            }
 
             if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
@@ -199,9 +205,6 @@ namespace cmonitor.plugins.tunnel.transport
                 eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port + 1));
             }
             eps.AddRange(new List<IPEndPoint>{
-                new IPEndPoint(tunnelTransportInfo.Remote.Local.Address,tunnelTransportInfo.Remote.Local.Port),
-                new IPEndPoint(tunnelTransportInfo.Remote.Local.Address,tunnelTransportInfo.Remote.Remote.Port),
-                new IPEndPoint(tunnelTransportInfo.Remote.Local.Address,tunnelTransportInfo.Remote.Remote.Port+1),
                 new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port),
                 new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port+1),
             });

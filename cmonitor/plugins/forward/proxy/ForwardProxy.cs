@@ -51,17 +51,22 @@ namespace cmonitor.plugins.forward.proxy
             }
 
         }
+
+        SemaphoreSlim slimGlobal = new SemaphoreSlim(1);
         private async Task<ITunnelConnection> ConnectTunnel(string machineName)
         {
             if (connections.TryGetValue(machineName, out ITunnelConnection connection) && connection.Connected)
             {
                 return connection;
             }
+
+            await slimGlobal.WaitAsync();
             if (locks.TryGetValue(machineName, out SemaphoreSlim slim) == false)
             {
                 slim = new SemaphoreSlim(1);
                 locks.TryAdd(machineName, slim);
             }
+            slimGlobal.Release();
             await slim.WaitAsync();
 
             if (connections.TryGetValue(machineName, out connection) && connection.Connected)

@@ -3,6 +3,7 @@ using cmonitor.client.tunnel;
 using cmonitor.plugins.relay;
 using cmonitor.plugins.tunnel;
 using common.libs;
+using System.Collections.Concurrent;
 
 namespace cmonitor.plugins.viewer.proxy
 {
@@ -12,7 +13,8 @@ namespace cmonitor.plugins.viewer.proxy
         private readonly TunnelTransfer tunnelTransfer;
         private readonly RelayTransfer relayTransfer;
 
-        private ITunnelConnection connection;
+        private readonly ConcurrentDictionary<string, ITunnelConnection> dicConnections = new ConcurrentDictionary<string, ITunnelConnection>();
+        private readonly ConcurrentDictionary<string, SemaphoreSlim> dicLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
 
         public ViewerProxy(RunningConfig runningConfig, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer)
         {
@@ -27,33 +29,70 @@ namespace cmonitor.plugins.viewer.proxy
             relayTransfer.SetConnectedCallback("viewer", BindConnectionReceive);
         }
 
+        SemaphoreSlim slimGlobal = new SemaphoreSlim(1);
         protected override async Task<bool> ConnectTcp(AsyncUserToken token)
         {
             token.Proxy.TargetEP = runningConfig.Data.Viewer.ConnectEP;
-            if (connection == null || connection.Connected == false)
+
+            token.Connection = await ConnectTunnel(runningConfig.Data.Viewer.ServerMachine);
+
+            return true;
+        }
+
+        private async ValueTask<ITunnelConnection> ConnectTunnel(string targetName)
+        {
+            if (dicConnections.TryGetValue(targetName, out ITunnelConnection connection) && connection.Connected)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Debug($"viewer tunnel to {runningConfig.Data.Viewer.ServerMachine}");
-                connection = await tunnelTransfer.ConnectAsync(runningConfig.Data.Viewer.ServerMachine, "viewer");
+                return connection;
+            }
+
+            await slimGlobal.WaitAsync();
+            if (dicLocks.TryGetValue(targetName, out SemaphoreSlim slim) == false)
+            {
+                slim = new SemaphoreSlim(1);
+                dicLocks.TryAdd(targetName, slim);
+            }
+            slimGlobal.Release();
+
+            await slim.WaitAsync();
+
+            if (dicConnections.TryGetValue(targetName, out connection) && connection.Connected)
+            {
+                return connection;
+            }
+
+            try
+            {
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"viewer tunnel to {targetName}");
+
+                connection = await tunnelTransfer.ConnectAsync(targetName, "viewer");
                 if (connection != null)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        Logger.Instance.Debug($"viewer tunnel success,{connection.ToString()}");
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"viewer tunnel success,{connection.ToString()}");
                 }
                 if (connection == null)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        Logger.Instance.Debug($"viewer relay to {runningConfig.Data.Viewer.ServerMachine}");
-                    connection = await relayTransfer.ConnectAsync(runningConfig.Data.Viewer.ServerMachine, "viewer");
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"viewer relay to {targetName}");
+
+                    connection = await relayTransfer.ConnectAsync(targetName, "viewer");
                     if (connection != null)
                     {
-                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                            Logger.Instance.Debug($"viewer relay success,{connection.ToString()}");
+                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"viewer relay success,{connection.ToString()}");
                     }
                 }
+                if (connection != null)
+                {
+                    dicConnections.AddOrUpdate(targetName, connection, (a, b) => connection);
+                }
             }
-            token.Connection = connection;
-            return true;
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                slim.Release();
+            }
+            return connection;
         }
     }
 }

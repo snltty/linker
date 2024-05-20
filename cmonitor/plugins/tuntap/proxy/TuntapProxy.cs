@@ -134,6 +134,7 @@ namespace cmonitor.plugins.tuntap.proxy
         }
 
 
+        SemaphoreSlim slimGlobal = new SemaphoreSlim(1);
         private async ValueTask<ITunnelConnection> ConnectTunnel(Memory<byte> ipArray)
         {
             uint ip = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
@@ -147,11 +148,14 @@ namespace cmonitor.plugins.tuntap.proxy
                 return connection;
             }
 
-            if(dicLocks.TryGetValue(targetName,out SemaphoreSlim slim) == false)
+            await slimGlobal.WaitAsync();
+            if (dicLocks.TryGetValue(targetName,out SemaphoreSlim slim) == false)
             {
                 slim = new SemaphoreSlim(1);
                 dicLocks.TryAdd(targetName, slim);
             }
+            slimGlobal.Release();
+
             await slim.WaitAsync();
 
             if (dicConnections.TryGetValue(targetName, out connection) && connection.Connected)
