@@ -10,7 +10,7 @@ namespace cmonitor.plugins.tuntap.vea
     {
         private string interfaceLinux = string.Empty;
         private Process Tun2SocksProcess;
-        private const string veaName = "p2p-tunnel";
+        private const string veaName = "cmonitor";
         private IPAddress ip;
 
         public bool Running => string.IsNullOrWhiteSpace(interfaceLinux) == false;

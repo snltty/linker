@@ -10,7 +10,7 @@ namespace cmonitor.plugins.tuntap.vea
     {
         private int interfaceNumber = 0;
         private Process Tun2SocksProcess;
-        private const string veaName = "p2p-tunnel";
+        private const string veaName = "cmonitor";
 
         public bool Running => interfaceNumber > 0;
 

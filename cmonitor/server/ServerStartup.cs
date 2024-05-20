@@ -61,9 +61,16 @@ namespace cmonitor.server
             }
 
             Logger.Instance.Info($"start server");
-            //服务
-            TcpServer tcpServer = serviceProvider.GetService<TcpServer>();
-            tcpServer.Start(config.Data.Server.ServicePort);
+            try
+            {
+                //服务
+                TcpServer tcpServer = serviceProvider.GetService<TcpServer>();
+                tcpServer.Start(config.Data.Server.ServicePort);
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error(ex);
+            }
             Logger.Instance.Info($"server listen:{config.Data.Server.ServicePort}");
 
         }
