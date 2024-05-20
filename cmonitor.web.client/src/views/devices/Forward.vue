@@ -59,19 +59,18 @@
                             </template>
                         </template>
                     </el-table-column>
-                    <el-table-column property="Started" label="启动状态" width="80">
+                    <el-table-column property="Started" label="状态" width="60">
                         <template #default="scope">
                             <el-switch v-model="scope.row.Started" @change="handleStartChange(scope.row)" inline-prompt
                                 active-text="是" inactive-text="否" />
                         </template>
-
                     </el-table-column>
-                    <el-table-column label="操作" width="66">
+                    <el-table-column label="操作" width="54">
                         <template #default="scope">
                             <el-popconfirm confirm-button-text="确认" cancel-button-text="取消" title="删除不可逆，是否确认?"
                                 @confirm="handleDel(scope.row.ID)">
                                 <template #reference>
-                                    <el-button type="danger" size="small">删除</el-button>
+                                    <el-button type="danger" size="small"><el-icon><Delete /></el-icon></el-button>
                                 </template>
                             </el-popconfirm>
                         </template>

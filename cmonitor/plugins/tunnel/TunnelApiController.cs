@@ -1,6 +1,7 @@
 ﻿using cmonitor.client.capi;
 using cmonitor.client.tunnel;
 using cmonitor.config;
+using cmonitor.plugins.tunnel.compact;
 using common.libs;
 using common.libs.api;
 using common.libs.extends;
@@ -12,11 +13,20 @@ namespace cmonitor.plugins.tunnel
     {
         private readonly TunnelTransfer tunnelTransfer;
         private readonly Config config;
-        public TunnelApiController(TunnelTransfer tunnelTransfer, Config config)
+        private readonly CompactTransfer compactTransfer;
+
+        public TunnelApiController(TunnelTransfer tunnelTransfer, Config config, CompactTransfer compactTransfer)
         {
             this.tunnelTransfer = tunnelTransfer;
             this.config = config;
+            this.compactTransfer = compactTransfer;
+
             TunnelTest();
+        }
+
+        public List<TunnelCompactTypeInfo> GetTypes(ApiControllerParamsInfo param)
+        {
+            return compactTransfer.GetTypes();
         }
 
         public bool SetServers(ApiControllerParamsInfo param)

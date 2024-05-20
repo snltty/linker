@@ -49,6 +49,23 @@ namespace cmonitor.plugins.tunnel
             Logger.Instance.Warning($"load tunnel transport:{string.Join(",", transports.Select(c => c.Name))}");
         }
 
+        public void SetConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
+        {
+            if (OnConnected.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks) == false)
+            {
+                callbacks = new List<Action<ITunnelConnection>>();
+                OnConnected[transactionId] = callbacks;
+            }
+            callbacks.Add(callback);
+        }
+        public void RemoveConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
+        {
+            if (OnConnected.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks))
+            {
+                callbacks.Remove(callback);
+            }
+        }
+
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineName, string transactionId)
         {
             IEnumerable<ITransport> _transports = transports.OrderBy(c => c.ProtocolType);
@@ -187,22 +204,7 @@ namespace cmonitor.plugins.tunnel
         }
 
 
-        public void SetConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
-        {
-            if (OnConnected.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks) == false)
-            {
-                callbacks = new List<Action<ITunnelConnection>>();
-                OnConnected[transactionId] = callbacks;
-            }
-            callbacks.Add(callback);
-        }
-        public void RemoveConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
-        {
-            if (OnConnected.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks))
-            {
-                callbacks.Remove(callback);
-            }
-        }
+      
 
         private void OnConnecting(TunnelTransportInfo tunnelTransportInfo)
         {

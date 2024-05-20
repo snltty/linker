@@ -18,7 +18,7 @@ namespace cmonitor.plugins.tuntap.vea
         {
         }
 
-        public async Task<bool> Run(int proxyPort)
+        public async Task<bool> Run(int proxyPort, IPAddress ip)
         {
             string command = $" -device {veaName} -proxy socks5://127.0.0.1:{proxyPort} -loglevel silent";
             if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -52,7 +52,7 @@ namespace cmonitor.plugins.tuntap.vea
                         }
                         continue;
                     }
-
+                    await SetIp(ip);
                     return true;
                 }
             }

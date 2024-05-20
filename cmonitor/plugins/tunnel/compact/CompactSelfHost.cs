@@ -29,7 +29,7 @@ namespace cmonitor.plugins.tunnel.compact
             Socket socket = new Socket(server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.Reuse(true);
             socket.IPv6Only(server.AddressFamily, false);
-            await socket.ConnectAsync(server).WaitAsync(TimeSpan.FromSeconds(2));
+            await socket.ConnectAsync(server).WaitAsync(TimeSpan.FromMilliseconds(500));
 
             IConnection connection = tcpServer.BindReceive(socket);
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap { Connection = connection, MessengerId = (ushort)TunnelMessengerIds.ExternalIP });
@@ -53,7 +53,7 @@ namespace cmonitor.plugins.tunnel.compact
                 try
                 {
                     await udpClient.SendAsync(new byte[1] { 0 }, server);
-                    UdpReceiveResult result = await udpClient.ReceiveAsync().WaitAsync(TimeSpan.FromSeconds(500));
+                    UdpReceiveResult result = await udpClient.ReceiveAsync().WaitAsync(TimeSpan.FromMilliseconds(500));
                     if (result.Buffer.Length == 0)
                     {
                         return null;

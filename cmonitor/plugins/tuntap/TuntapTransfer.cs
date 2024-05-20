@@ -6,7 +6,6 @@ using cmonitor.plugins.tuntap.vea;
 using cmonitor.server;
 using common.libs;
 using MemoryPack;
-using SharpDX;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
@@ -64,11 +63,7 @@ namespace cmonitor.plugins.tuntap
                 OnChange();
                 try
                 {
-                    bool result = await tuntapVea.Run(tuntapProxy.LocalEndpoint.Port);
-                    if (result)
-                    {
-                        await tuntapVea.SetIp(config.Data.Client.Tuntap.IP);
-                    }
+                    bool result = await tuntapVea.Run(tuntapProxy.LocalEndpoint.Port, config.Data.Client.Tuntap.IP);
                     config.Data.Client.Tuntap.Running = Status == TuntapStatus.Running;
                     config.Save();
                 }

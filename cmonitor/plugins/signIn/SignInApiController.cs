@@ -58,17 +58,33 @@ namespace cmonitor.plugins.signin
         }
         public void Set(ApiControllerParamsInfo param)
         {
+            string name = config.Data.Client.Name;
+            string gid = config.Data.Client.GroupId;
+
             ConfigSetInfo info = param.Content.DeJson<ConfigSetInfo>();
             config.Data.Client.Name = info.Name;
             config.Data.Client.GroupId = info.GroupId;
             config.Save();
-            clientSignInTransfer.SignOut();
-            _ = clientSignInTransfer.SignIn();
+
+            if(name != config.Data.Client.Name || gid != config.Data.Client.GroupId)
+            {
+                clientSignInTransfer.SignOut();
+                _ = clientSignInTransfer.SignIn();
+            }
         }
         public bool SetServers(ApiControllerParamsInfo param)
         {
+            string server = config.Data.Client.Server;
+
             config.Data.Client.Servers = param.Content.DeJson<ClientServerInfo[]>();
             config.Save();
+
+            if(server != config.Data.Client.Server)
+            {
+                clientSignInTransfer.SignOut();
+                _ = clientSignInTransfer.SignIn();
+            }
+            
             return true;
         }
 

@@ -19,10 +19,10 @@ namespace cmonitor.plugins.tuntap.vea
         {
         }
 
-        public async Task<bool> Run(int proxyPort)
+        public async Task<bool> Run(int proxyPort, IPAddress ip)
         {
             CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap add mode tun dev {veaName}" });
-
+            await SetIp(ip);
             string str = CommandHelper.Linux(string.Empty, new string[] { $"ifconfig" });
             if (str.Contains(veaName) == false)
             {

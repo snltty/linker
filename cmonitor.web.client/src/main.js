@@ -15,9 +15,14 @@ import 'element-plus/theme-chalk/display.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
 
 import {
-    ArrowDown,
+    ArrowDown, Top, Bottom, Delete, Plus, Select
 } from '@element-plus/icons-vue'
 app.component(ArrowDown.name, ArrowDown);
+app.component(Top.name, Top);
+app.component(Bottom.name, Bottom);
+app.component(Delete.name, Delete);
+app.component(Plus.name, Plus);
+app.component(Select.name, Select);
 
 
 app.use(ElementPlus, { size: 'default' }).use(router).mount('#app');

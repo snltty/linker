@@ -50,7 +50,7 @@
                     <el-popconfirm v-if="scope.row.showDel" confirm-button-text="确认"
                         cancel-button-text="取消" title="删除不可逆，是否确认?" @confirm="handleDel(scope.row.MachineName)">
                         <template #reference>
-                            <el-button type="danger" size="small">删除</el-button>
+                            <el-button type="danger" size="small"><el-icon><Delete /></el-icon></el-button>
                         </template>
                     </el-popconfirm>
                 </template>
@@ -153,6 +153,8 @@ export default {
                             item.Version = res.List[j].Version;
                             item.LastSignIn = res.List[j].LastSignIn;
                             item.Args = res.List[j].Args;
+                            item.showTunnel = machineName.value != res.List[j].MachineName;
+                            item.showForward = machineName.value != res.List[j].MachineName;
                             item.showDel = machineName.value != res.List[j].MachineName && res.List[j].Connected == false;
                         }
                     }

@@ -32,6 +32,11 @@ namespace cmonitor.plugins.relay
             Logger.Instance.Warning($"load relay transport:{string.Join(",", transports.Select(c => c.Name))}");
         }
 
+        public List<RelayCompactTypeInfo> GetTypes()
+        {
+            return transports.Select(c => new RelayCompactTypeInfo { Value = c.Type, Name = c.Type.ToString() }).Distinct(new RelayCompactTypeInfoEqualityComparer()).ToList();
+        }
+
         public void SetConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
         {
             if (OnConnected.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks) == false)
@@ -52,7 +57,7 @@ namespace cmonitor.plugins.relay
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineName, string transactionId)
         {
             IEnumerable<ITransport> _transports = transports.OrderBy(c => c.Type);
-            foreach (RelayCompactInfo item in config.Data.Client.Relay.Servers.Where(c => c.Disabled == false))
+            foreach (RelayCompactInfo item in config.Data.Client.Relay.Servers.Where(c => c.Disabled == false && string.IsNullOrWhiteSpace(c.Host) == false))
             {
                 ITransport transport = _transports.FirstOrDefault(c => c.Type == item.Type);
                 if (transport == null)

@@ -3,7 +3,7 @@
         <a href="javascript:;" @click="handleConfig">服务器 {{state.server}}</a>
         <span class="num">{{state.serverLength}}</span>
     </div>
-    <el-dialog v-model="state.show" title="登入设置" width="600">
+    <el-dialog v-model="state.show" title="登入设置" width="700">
         <div>
             <el-form :model="state.form" :rules="state.rules" label-width="6rem">
                 <el-form-item label=""  label-width="0">
@@ -18,16 +18,16 @@
                         </el-form-item>
                     </el-col>
                 </el-form-item>
-                <el-form-item label="服务器" prop="servers">
+                <el-form-item label-width="0">
                     <el-tabs type="border-card" style="width:100%" v-model="state.tab">
                         <el-tab-pane label="登入服务器" name="login">
                             <Servers :data="state.servers"></Servers>
                         </el-tab-pane>
                         <el-tab-pane label="中继服务器" name="relay">
-                            <Servers :data="state.relayServers"></Servers>
+                            <RelayServers :data="state.relayServers"></RelayServers>
                         </el-tab-pane>
-                        <el-tab-pane label="打洞服务器" name="hole">
-                            <Servers :data="state.holeServers"></Servers>
+                        <el-tab-pane label="公网端口服务器" name="hole">
+                            <TunnelServers :data="state.holeServers"></TunnelServers>
                         </el-tab-pane>
                     </el-tabs>
                 </el-form-item>
@@ -49,8 +49,10 @@ import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { computed, reactive } from 'vue';
 import Servers from './Servers.vue'
+import RelayServers from './RelayServers.vue'
+import TunnelServers from './TunnelServers.vue'
 export default {
-    components:{Servers},
+    components:{Servers,RelayServers,TunnelServers},
     setup(props) {
         
         const globalData = injectGlobalData();

@@ -30,9 +30,9 @@
                                 <div class="flex-1">
                                     <el-input v-model="state.ruleForm.LanIPs[index]" />
                                 </div>
-                                <div>
-                                    <el-button type="danger" @click="handleDel(index)">删除</el-button>
-                                    <el-button type="primary" @click="handleAdd(index)">添加</el-button>
+                                <div class="pdl-10">
+                                    <el-button type="danger" @click="handleDel(index)"><el-icon><Delete /></el-icon></el-button>
+                                    <el-button type="primary" @click="handleAdd(index)"><el-icon><Plus /></el-icon></el-button>
                                 </div>
                             </div>
                         </template>

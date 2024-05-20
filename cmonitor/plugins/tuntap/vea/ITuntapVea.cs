@@ -9,7 +9,7 @@ namespace cmonitor.plugins.tuntap.vea
     {
         public bool Running { get; }
 
-        public Task<bool> Run(int proxyPort);
+        public Task<bool> Run(int proxyPort,IPAddress ip);
         public Task<bool> SetIp(IPAddress ip);
         public void Kill();
 

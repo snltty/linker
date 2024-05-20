@@ -1,29 +1,55 @@
 <template>
-    <el-table :data="state.list" border size="small" width="100%" height="300">
-        <el-table-column prop="Name" label="名称"></el-table-column>
-        <el-table-column prop="Host" label="地址" ></el-table-column>
+    <div>使用其中一条作为主机</div>
+    <el-table :data="state.list" border size="small" width="100%" height="300" @cell-dblclick="handleCellClick">
+        <el-table-column prop="Name" label="名称">
+            <template #default="scope">
+                <template v-if="scope.row.NameEditing">
+                    <el-input autofocus size="small" v-model="scope.row.Name"
+                        @blur="handleEditBlur(scope.row, 'Name')"></el-input>
+                </template>
+                <template v-else>
+                    {{ scope.row.Name }}
+                </template>
+            </template>
+        </el-table-column>
+        <el-table-column prop="Host" label="地址" >
+            <template #default="scope">
+                <template v-if="scope.row.HostEditing">
+                    <el-input autofocus size="small" v-model="scope.row.Host"
+                        @blur="handleEditBlur(scope.row, 'Host')"></el-input>
+                </template>
+                <template v-else>
+                    {{ scope.row.Host }}
+                </template>
+            </template>
+        </el-table-column>
+        <el-table-column prop="Oper" label="操作" width="150">
+            <template #default="scope">
+                <div>
+                    <el-popconfirm title="删除不可逆，是否确认?" @confirm="handleDel(scope.$index)">
+                        <template #reference>
+                            <el-button type="danger" size="small">
+                                <el-icon><Delete /></el-icon>
+                            </el-button>
+                        </template>
+                    </el-popconfirm>
+                    <el-button type="primary" size="small" @click="handleAdd(scope.$index)">
+                        <el-icon><Plus /></el-icon>
+                    </el-button>
+                    <template v-if="state.server != scope.row.Host">
+                        <el-button size="small" @click="handleUse(scope.$index)">
+                            <el-icon><Select /></el-icon>
+                        </el-button>
+                    </template>
+                </div>
+            </template>
+        </el-table-column>
     </el-table>
-    <el-dialog v-model="state.showAdd" title="添加服务器" width="300" >
-        <div>
-            <el-form :model="state.formAdd" :rules="state.rulesAdd" label-width="6rem">
-                <el-form-item label="名称" prop="name">
-                    <el-input v-model="state.formAdd.name" maxlength="12" show-word-limit />
-                </el-form-item>
-                <el-form-item label="地址" prop="host">
-                    <el-input v-model="state.formAdd.host" placeholder="ip/域名:端口" />
-                </el-form-item>
-            </el-form>
-        </div>
-        <template #footer>
-        <div class="dialog-footer t-c">
-            <el-button @click="state.showAdd = false" :loading="state.loading">取消</el-button>
-            <el-button type="primary" @click="handleSaveAdd" :loading="state.loading">确定保存</el-button>
-        </div>
-        </template>
-    </el-dialog>
 </template>
 <script>
-import { reactive } from 'vue'
+import { updateConfigSetServers } from '@/apis/signin';
+import { injectGlobalData } from '@/provide';
+import { computed, reactive } from 'vue'
 export default {
     props:{
         data:{
@@ -32,44 +58,49 @@ export default {
         }
     },
     setup(props) {
+        const globalData = injectGlobalData();
         const state = reactive({
             list:props.data,
-            
-            showAdd:false,
-            formAdd:{
-                name:'',
-                host:''
-            },
-            rulesAdd:{
-                name:[
-                    { required: true, message: '听填写', trigger: 'blur' },
-                ],
-                host:[
-                    { required: true, message: '听填写', trigger: 'blur' },
-                ]
-            },
+            server:computed(()=>globalData.value.config.Client.Server)
         });
 
-        const handleDel = (item)=>{
-            const servers = state.list.filter(c=>c.Host != item.Host || c.Name != item.Name);
+        const handleCellClick = (row, column) => {
+            handleEdit(row, column.property);
         }
-        const handleAdd = ()=>{
-            state.showAdd = true;
-            state.formAdd.name = '';
-            state.formAdd.host = '';
+        const handleEdit = (row, p) => {
+            state.list.forEach(c => {
+                c[`NameEditing`] = false;
+                c[`HostEditing`] = false;
+            })
+            row[`${p}Editing`] = true;
         }
-        const handleSaveAdd = ()=>{
-            const servers = state.list || [];
-            const name  =  state.formAdd.name.replace(/^\s|\s$/g,'');
-            const host  =  state.formAdd.host.replace(/^\s|\s$/g,'');
-            if(servers.filter(c=>c.Host == host).length > 0 || servers.filter(c=>c.Name == name).length > 0){
-                ElMessage.error('已存在差不多相同的记录!');                
-                return;
-            }
-            servers.push({Name:name,Host:host});
+        const handleEditBlur = (row, p) => {
+            row[`${p}Editing`] = false;
+            handleSave();
         }
 
-        return {state,handleDel,handleAdd,handleSaveAdd}
+        const handleDel = (index)=>{
+            state.list.splice(index,1);
+            handleSave();
+        }
+        const handleAdd = (index)=>{
+            if(state.list.filter(c=>c.Host == '' || c.Name == '').length > 0){
+                return;
+            }
+            state.list.splice(index+1,0,{Name:'',Host:''});
+            handleSave();
+        }
+        const handleUse = (index)=>{
+            const temp = state.list[index];
+            state.list[index] = state.list[0];
+            state.list[0] = temp;
+            handleSave();
+        }
+        const handleSave = ()=>{
+            updateConfigSetServers(state.list);
+        }
+
+        return {state,handleCellClick,handleEditBlur,handleDel,handleAdd,handleUse}
     }
 }
 </script>

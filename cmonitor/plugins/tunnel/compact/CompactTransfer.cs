@@ -28,6 +28,12 @@ namespace cmonitor.plugins.tunnel.compact
             Logger.Instance.Warning($"load tunnel compacts:{string.Join(",", compacts.Select(c => c.Name))}");
         }
 
+        public List<TunnelCompactTypeInfo> GetTypes()
+        {
+            return compacts.Select(c => new TunnelCompactTypeInfo { Value = c.Type, Name = c.Type.ToString() }).Distinct(new TunnelCompactTypeInfoEqualityComparer()).ToList();
+        }
+
+
         public async Task<TunnelCompactIPEndPoint[]> GetExternalIPAsync(TunnelProtocolType protocolType)
         {
             TunnelCompactIPEndPoint[] endpoints = new TunnelCompactIPEndPoint[config.Data.Client.Tunnel.Servers.Length];
@@ -35,7 +41,7 @@ namespace cmonitor.plugins.tunnel.compact
             for (int i = 0; i < config.Data.Client.Tunnel.Servers.Length; i++)
             {
                 TunnelCompactInfo item = config.Data.Client.Tunnel.Servers[i];
-                if (item.Disabled) continue;
+                if (item.Disabled || string.IsNullOrWhiteSpace(item.Host)) continue;
                 ICompact compact = compacts.FirstOrDefault(c => c.Type == item.Type);
                 if (compact == null) continue;
 

@@ -19,7 +19,7 @@ namespace cmonitor.plugins.tuntap.vea
         {
         }
 
-        public async Task<bool> Run(int proxyPort)
+        public async Task<bool> Run(int proxyPort, IPAddress ip)
         {
             interfaceOsx = GetOsxInterfaceNum();
             try
@@ -41,6 +41,8 @@ namespace cmonitor.plugins.tuntap.vea
                 }
                 await Task.Delay(1000);
             }
+
+            await SetIp(ip);
 
             return string.IsNullOrWhiteSpace(interfaceOsx) == false;
         }

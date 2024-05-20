@@ -21,6 +21,11 @@ namespace cmonitor.plugins.relay
             RelayTest();
         }
 
+        public List<RelayCompactTypeInfo> GetTypes(ApiControllerParamsInfo param)
+        {
+            return relayTransfer.GetTypes();
+        }
+
         public bool SetServers(ApiControllerParamsInfo param)
         {
             config.Data.Client.Relay.Servers = param.Content.DeJson<RelayCompactInfo[]>();
