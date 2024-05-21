@@ -7,8 +7,7 @@ namespace cmonitor.plugins.tunnel.compact
     {
         public string Name { get; }
         public TunnelCompactType Type { get; }
-        public Task<TunnelCompactIPEndPoint> GetTcpExternalIPAsync(IPEndPoint server);
-        public Task<TunnelCompactIPEndPoint> GetUdpExternalIPAsync(IPEndPoint server);
+        public Task<TunnelCompactIPEndPoint> GetExternalIPAsync(IPEndPoint server);
     }
 
     public sealed class TunnelCompactIPEndPoint

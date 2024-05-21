@@ -142,6 +142,7 @@ namespace cmonitor.plugins.tunnel.transport
             {
                 Socket targetSocket = new(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 targetSocket.IPv6Only(ep.Address.AddressFamily, false);
+                targetSocket.KeepAlive();
                 targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
                 IAsyncResult result = targetSocket.BeginConnect(ep, null, null);
 

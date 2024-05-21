@@ -30,10 +30,7 @@ namespace cmonitor.plugins.forward.proxy
             if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
             {
                 token.Proxy.TargetEP = cache.TargetEP;
-                if (cache.Connection == null || cache.Connection.Connected == false)
-                {
-                    cache.Connection = await ConnectTunnel(cache.MachineName);
-                }
+                cache.Connection = await ConnectTunnel(cache.MachineName);
                 token.Connection = cache.Connection;
             }
             return true;
@@ -43,10 +40,7 @@ namespace cmonitor.plugins.forward.proxy
             if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
             {
                 token.Proxy.TargetEP = cache.TargetEP;
-                if (cache.Connection == null || cache.Connection.Connected == false)
-                {
-                    cache.Connection = await ConnectTunnel(cache.MachineName);
-                }
+                cache.Connection = await ConnectTunnel(cache.MachineName);
                 token.Connection = cache.Connection;
             }
 
@@ -69,13 +63,13 @@ namespace cmonitor.plugins.forward.proxy
             slimGlobal.Release();
             await slim.WaitAsync();
 
-            if (connections.TryGetValue(machineName, out connection) && connection.Connected)
-            {
-                return connection;
-            }
-
             try
             {
+                if (connections.TryGetValue(machineName, out connection) && connection.Connected)
+                {
+                    return connection;
+                }
+
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward tunnel to {machineName}");
                 connection = await tunnelTransfer.ConnectAsync(machineName, "forward");
                 if (connection != null)
@@ -93,7 +87,10 @@ namespace cmonitor.plugins.forward.proxy
                     }
                 }
                 if (connection != null)
-                    connections.TryAdd(machineName, connection);
+                {
+                    connections.AddOrUpdate(machineName, connection,(a,b)=> connection);
+                }
+               
             }
             catch (Exception)
             {

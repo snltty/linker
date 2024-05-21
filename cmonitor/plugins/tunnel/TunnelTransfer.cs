@@ -72,14 +72,14 @@ namespace cmonitor.plugins.tunnel
             foreach (ITransport transport in _transports)
             {
                 //获取自己的外网ip
-                TunnelTransportExternalIPInfo localInfo = await GetLocalInfo(transport.ProtocolType);
+                TunnelTransportExternalIPInfo localInfo = await GetLocalInfo();
                 if (localInfo == null)
                 {
                     Logger.Instance.Error($"tunnel {transport.Name} get local external ip fail ");
                     continue;
                 }
                 //获取对方的外网ip
-                TunnelTransportExternalIPInfo remoteInfo = await GetRemoteInfo(remoteMachineName, transport.ProtocolType);
+                TunnelTransportExternalIPInfo remoteInfo = await GetRemoteInfo(remoteMachineName);
                 if (remoteInfo == null)
                 {
                     Logger.Instance.Error($"tunnel {transport.Name} get remote {remoteMachineName} external ip fail ");
@@ -134,12 +134,12 @@ namespace cmonitor.plugins.tunnel
         }
         public async Task<TunnelTransportExternalIPInfo> Info(TunnelTransportExternalIPRequestInfo request)
         {
-            return await GetLocalInfo(request.TransportType);
+            return await GetLocalInfo();
         }
 
-        private async Task<TunnelTransportExternalIPInfo> GetLocalInfo(TunnelProtocolType transportType)
+        private async Task<TunnelTransportExternalIPInfo> GetLocalInfo()
         {
-            TunnelCompactIPEndPoint[] ips = await compactTransfer.GetExternalIPAsync(transportType);
+            TunnelCompactIPEndPoint[] ips = await compactTransfer.GetExternalIPAsync();
             if (ips != null && ips.Length > 0)
             {
                 return new TunnelTransportExternalIPInfo
@@ -153,7 +153,7 @@ namespace cmonitor.plugins.tunnel
             }
             return null;
         }
-        private async Task<TunnelTransportExternalIPInfo> GetRemoteInfo(string remoteMachineName, TunnelProtocolType transportType)
+        private async Task<TunnelTransportExternalIPInfo> GetRemoteInfo(string remoteMachineName)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
@@ -163,7 +163,7 @@ namespace cmonitor.plugins.tunnel
                 Payload = MemoryPackSerializer.Serialize(new TunnelTransportExternalIPRequestInfo
                 {
                     RemoteMachineName = remoteMachineName,
-                    TransportType = transportType,
+                    TransportType = TunnelProtocolType.Udp,
                 })
             });
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
@@ -204,7 +204,7 @@ namespace cmonitor.plugins.tunnel
         }
 
 
-      
+
 
         private void OnConnecting(TunnelTransportInfo tunnelTransportInfo)
         {

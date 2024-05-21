@@ -11,14 +11,6 @@
                     </div>
                 </template>
             </el-table-column>
-            <!-- <el-table-column prop="tunel" label="隧道测试" width="112">
-                <template #default="scope">
-                    <div v-if="scope.row.showTunnel">
-                        <Tunnel :data="scope.row"></Tunnel>
-                    </div>
-                    <div v-else>--</div>
-                </template>
-            </el-table-column> -->
             <el-table-column prop="tuntap" label="虚拟网卡" width="170">
                 <template #default="scope">
                     <template v-if="state.tuntapInfos[scope.row.MachineName]">
@@ -72,11 +64,10 @@ import { getTuntapInfo } from '@/apis/tuntap'
 import { injectGlobalData } from '@/provide.js'
 import { reactive, onMounted, ref, nextTick, onUnmounted, computed } from 'vue'
 import Tuntap from './Tuntap.vue'
-import Tunnel from './Tunnel.vue'
 import Forward from './Forward.vue'
 import { getForwardInfo } from '@/apis/forward'
 export default {
-    components: { Tuntap, Tunnel, Forward },
+    components: { Tuntap,  Forward },
     setup(props) {
 
         const globalData = injectGlobalData();

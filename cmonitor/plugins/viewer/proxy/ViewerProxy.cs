@@ -56,13 +56,13 @@ namespace cmonitor.plugins.viewer.proxy
 
             await slim.WaitAsync();
 
-            if (dicConnections.TryGetValue(targetName, out connection) && connection.Connected)
-            {
-                return connection;
-            }
-
             try
             {
+                if (dicConnections.TryGetValue(targetName, out connection) && connection.Connected)
+                {
+                    return connection;
+                }
+
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"viewer tunnel to {targetName}");
 
                 connection = await tunnelTransfer.ConnectAsync(targetName, "viewer");
@@ -82,6 +82,7 @@ namespace cmonitor.plugins.viewer.proxy
                 }
                 if (connection != null)
                 {
+                    Logger.Instance.Warning($"got {targetName} connection2");
                     dicConnections.AddOrUpdate(targetName, connection, (a, b) => connection);
                 }
             }

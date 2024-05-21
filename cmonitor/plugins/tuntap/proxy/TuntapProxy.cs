@@ -158,13 +158,14 @@ namespace cmonitor.plugins.tuntap.proxy
 
             await slim.WaitAsync();
 
-            if (dicConnections.TryGetValue(targetName, out connection) && connection.Connected)
-            {
-                return connection;
-            }
-
             try
             {
+
+                if (dicConnections.TryGetValue(targetName, out connection) && connection.Connected)
+                {
+                    return connection;
+                }
+
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"tuntap tunnel to {targetName}");
 
                 connection = await tunnelTransfer.ConnectAsync(targetName, "tuntap");

@@ -1,19 +1,20 @@
-﻿using common.libs.extends;
+﻿using common.libs;
+using common.libs.extends;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.Json.Serialization;
 
 namespace cmonitor.client.tunnel
 {
-    public delegate Task TunnelReceivceCallback(ITunnelConnection connection,Memory<byte> data, object state);
-    public delegate Task TunnelCloseCallback(ITunnelConnection connection,object state);
+    public delegate Task TunnelReceivceCallback(ITunnelConnection connection, Memory<byte> data, object state);
+    public delegate Task TunnelCloseCallback(ITunnelConnection connection, object state);
 
     public enum TunnelProtocolType : byte
     {
         Tcp = ProtocolType.Tcp,
         Udp = ProtocolType.Udp,
     }
-    public enum TunnelType:byte
+    public enum TunnelType : byte
     {
         P2P = 0,
         Relay = 1,
@@ -22,6 +23,12 @@ namespace cmonitor.client.tunnel
     {
         Forward = 0,
         Reverse = 1
+    }
+
+    public interface ITunnelConnectionCallback
+    {
+        public Task Receive(ITunnelConnection connection, Memory<byte> data, object state);
+        public Task Closed(ITunnelConnection connection, object state);
     }
 
     public interface ITunnelConnection
@@ -38,7 +45,7 @@ namespace cmonitor.client.tunnel
         public bool Connected { get; }
 
         public Task SendAsync(Memory<byte> data, CancellationToken cancellationToken = default);
-        public void BeginReceive(TunnelReceivceCallback receiveCallback, TunnelCloseCallback closeCallback, object userToken);
+        public void BeginReceive(ITunnelConnectionCallback callback, object userToken);
 
         public void Close();
 
@@ -67,15 +74,13 @@ namespace cmonitor.client.tunnel
         public Socket Socket { get; init; }
 
 
-        private TunnelReceivceCallback receiveCallback;
-        private TunnelCloseCallback closeCallback;
+        private ITunnelConnectionCallback callback;
 
-        public void BeginReceive(TunnelReceivceCallback receiveCallback, TunnelCloseCallback closeCallback, object userToken)
+        public void BeginReceive(ITunnelConnectionCallback callback, object userToken)
         {
-            if (this.receiveCallback != null) return;
+            if (this.callback != null) return;
 
-            this.receiveCallback = receiveCallback;
-            this.closeCallback = closeCallback;
+            this.callback = callback;
             SocketAsyncEventArgs readEventArgs = new SocketAsyncEventArgs
             {
                 UserToken = userToken,
@@ -110,7 +115,7 @@ namespace cmonitor.client.tunnel
 
                     try
                     {
-                        await receiveCallback(this, e.Buffer.AsMemory(offset, length), e.UserToken).ConfigureAwait(false);
+                        await callback.Receive(this, e.Buffer.AsMemory(offset, length), e.UserToken).ConfigureAwait(false);
                     }
                     catch (Exception)
                     {
@@ -120,12 +125,12 @@ namespace cmonitor.client.tunnel
                     {
                         while (Socket.Available > 0)
                         {
-                            length = Socket.Receive(e.Buffer);
+                            length = await Socket.ReceiveAsync(e.Buffer.AsMemory(), SocketFlags.None);
                             if (length > 0)
                             {
                                 try
                                 {
-                                    await receiveCallback(this, e.Buffer.AsMemory(offset, length), e.UserToken).ConfigureAwait(false);
+                                    await callback.Receive(this, e.Buffer.AsMemory(offset, length), e.UserToken).ConfigureAwait(false);
                                 }
                                 catch (Exception)
                                 {
@@ -152,33 +157,44 @@ namespace cmonitor.client.tunnel
                 }
                 else
                 {
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        Logger.Instance.Error(this.ToString());
+                        Logger.Instance.Error(e.SocketError.ToString());
+                    }
                     CloseClientSocket(e);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    Logger.Instance.Error(this.ToString());
+                    Logger.Instance.Error(ex);
+                }
+
                 CloseClientSocket(e);
             }
         }
         private void CloseClientSocket(SocketAsyncEventArgs e)
         {
-            if(closeCallback != null)
+            if (callback != null)
             {
-                closeCallback(this, e.UserToken);
+                callback.Closed(this, e.UserToken);
                 e.Dispose();
                 Close();
             }
         }
 
-        public async Task SendAsync(Memory<byte> data,CancellationToken cancellationToken = default)
+        public async Task SendAsync(Memory<byte> data, CancellationToken cancellationToken = default)
         {
             await Socket.SendAsync(data, SocketFlags.None, cancellationToken);
+
         }
 
         public void Close()
         {
-            receiveCallback = null;
-            closeCallback = null;
+            callback = null;
             Socket?.SafeClose();
         }
 
@@ -187,6 +203,9 @@ namespace cmonitor.client.tunnel
             return $"TransactionId:{TransactionId},TransportName:{TransportName},ProtocolType:{ProtocolType},Type:{Type},Direction:{Direction},IPEndPoint:{IPEndPoint},RemoteMachineName:{RemoteMachineName}";
         }
     }
+
+
+
 
 
 }
