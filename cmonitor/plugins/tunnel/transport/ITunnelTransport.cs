@@ -1,11 +1,10 @@
 ﻿using cmonitor.client.tunnel;
-using cmonitor.config;
 using MemoryPack;
 using System.Net;
 
 namespace cmonitor.plugins.tunnel.transport
 {
-    public interface ITransport
+    public interface ITunnelTransport
     {
         public string Name { get; }
         public TunnelProtocolType ProtocolType { get; }
@@ -73,6 +72,15 @@ namespace cmonitor.plugins.tunnel.transport
         public int RouteLevel { get; set; }
 
         public string MachineName { get; set; }
+    }
+
+
+    [MemoryPackable]
+    public sealed partial class TunnelTransportConfigInfo
+    {
+        public string MachineName { get; set; }
+        public int RouteLevel { get; set; } = 0;
+        public int RouteLevelPlus { get; set; } = 0;
     }
 
 

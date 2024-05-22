@@ -157,11 +157,6 @@ namespace cmonitor.client.tunnel
                 }
                 else
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        Logger.Instance.Error(this.ToString());
-                        Logger.Instance.Error(e.SocketError.ToString());
-                    }
                     CloseClientSocket(e);
                 }
             }

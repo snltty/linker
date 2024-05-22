@@ -1,42 +1,18 @@
 <template>
     <div class="home-list-wrap absolute" ref="wrap">
         <el-table :data="state.page.List" border style="width: 100%" :height="`${state.height}px`" size="small">
-            <el-table-column prop="MachineName" label="设备">
-                <template #default="scope">
-                    <div>
-                        <p>
-                            <strong :class="{green:scope.row.Connected}" >{{scope.row.MachineName }}</strong>
-                        </p>
-                        <p>{{ scope.row.IP }}</p>
-                    </div>
-                </template>
-            </el-table-column>
-            <el-table-column prop="tuntap" label="虚拟网卡" width="170">
-                <template #default="scope">
-                    <template v-if="state.tuntapInfos[scope.row.MachineName]">
-                        <Tuntap @change="handleTuntapChange" :data="state.tuntapInfos[scope.row.MachineName]"></Tuntap>
-                    </template>
-                </template>
-            </el-table-column>
-            <el-table-column prop="forward" label="端口转发">
-                <template #default="scope">
-                    <template v-if="state.forwardInfos">
-                        <template v-if="scope.row.showForward">
-                            <Forward @change="handleForwardChange" :data="state.forwardInfos[scope.row.MachineName]"
-                            :name="scope.row.MachineName"></Forward>
-                        </template>
-                        <template v-else>--</template>
-                    </template>
-                </template>
-            </el-table-column>
-            <el-table-column prop="LastSignIn" label="其它" width="140">
-                <template #default="scope">
-                    <div>
-                        <p>{{ scope.row.LastSignIn }}</p>
-                        <p>v{{ scope.row.Version }}</p>
-                    </div>
-                </template>
-            </el-table-column>
+            <Device @change="handlePageChange" @edit="handleDeviceEdit" @refresh="handlePageRefresh"></Device>
+            <template v-if="state.tunnelInfos">
+                <Tunnel @change="handleTunnelChange" @edit="handleTunnelEdit" @refresh="handleTunnelRefresh" :data="state.tunnelInfos"></Tunnel>
+            </template>
+            <template v-if="state.tuntapInfos">
+                <Tuntap @change="handleTuntapChange" @edit="handleTuntapEdit" @refresh="handleTuntapRefresh" :data="state.tuntapInfos"></Tuntap>
+            </template>
+            <template v-if="state.forwardInfos">
+                <Forward @change="handleForwardChange" @edit="handleForwardEdit" @refresh="handleForwardRefresh" :data="state.forwardInfos"></Forward>
+            </template>    
+            <Info></Info>   
+           
             <el-table-column label="操作" width="66">
                 <template #default="scope">
                     <el-popconfirm v-if="scope.row.showDel" confirm-button-text="确认"
@@ -55,19 +31,32 @@
                     @current-change="handlePageChange" />
             </div>
         </div>
+        <DeviceEdit v-if="state.showDeviceEdit" v-model="state.showDeviceEdit"  @change="handlePageChange" :data="state.deviceInfo"></DeviceEdit>
+        <TunnelEdit v-if="state.showTunnelEdit" v-model="state.showTunnelEdit"  @change="handleTunnelChange" :data="state.tunnelInfo"></TunnelEdit>
+        <TuntapEdit v-if="state.showTuntapEdit" v-model="state.showTuntapEdit"  @change="handleTuntapChange" :data="state.tuntapInfo"></TuntapEdit>
+        <ForwardEdit v-if="state.showForwardEdit" v-model="state.showForwardEdit"  @change="handleTuntapChange" :data="state.forwardInfo"></ForwardEdit>
     </div>
 </template>
 <script>
 import { getSignList, updateSignInDel } from '@/apis/signin.js'
 import { subWebsocketState } from '@/apis/request.js'
-import { getTuntapInfo } from '@/apis/tuntap'
+import { getTuntapInfo,refreshTuntap } from '@/apis/tuntap'
+import { getForwardInfo ,refreshForward} from '@/apis/forward'
+import { getTunnelInfo ,refreshTunnel} from '@/apis/tunnel'
 import { injectGlobalData } from '@/provide.js'
 import { reactive, onMounted, ref, nextTick, onUnmounted, computed } from 'vue'
+import Device from './Device.vue'
+import DeviceEdit from './DeviceEdit.vue'
+import Info from './Info.vue'
 import Tuntap from './Tuntap.vue'
+import TuntapEdit from './TuntapEdit.vue'
+import Tunnel from './Tunnel.vue'
+import TunnelEdit from './TunnelEdit.vue'
 import Forward from './Forward.vue'
-import { getForwardInfo } from '@/apis/forward'
+import ForwardEdit from './ForwardEdit.vue'
+import { ElMessage } from 'element-plus'
 export default {
-    components: { Tuntap,  Forward },
+    components: {Device,DeviceEdit,Info,Tunnel,TunnelEdit, Tuntap,TuntapEdit,  Forward,ForwardEdit },
     setup(props) {
 
         const globalData = injectGlobalData();
@@ -79,9 +68,24 @@ export default {
                 Count: 0,
                 List: []
             },
-            tuntapInfos: {},
+
+            showDeviceEdit:false,
+            deviceInfo: null,
+
+            showTuntapEdit:false,
+            tuntapInfo: null,
+            tuntapInfos: null,
             tuntapHashCode: 0,
+
+            showTunnelEdit:false,
+            tunnelInfo: null,
+            tunnelInfos: null,
+            tunnelHashCode: 0,
+
+            showForwardEdit:false,
             forwardInfos: null,
+            forwardInfo : null,
+
             height: 0,
         });
 
@@ -91,7 +95,7 @@ export default {
                 getTuntapInfo(state.tuntapHashCode.toString()).then((res) => {
                     state.tuntapHashCode = res.HashCode;
                     if (res.List) {
-                        state.tuntapInfos = {};
+                        state.tuntapInfos = null;
                         nextTick(() => {
                             for (let j in res.List) {
                                 res.List[j].running = res.List[j].Status == 2;
@@ -108,6 +112,52 @@ export default {
                 tuntapTimer = setTimeout(_getTuntapInfo, 1000);
             }
         }
+        const handleTuntapEdit = (tuntap)=>{
+            state.tuntapInfo = tuntap;
+            state.showTuntapEdit = true;
+
+        }
+        const handleTuntapChange = () => {
+            _getSignList();
+        }
+        const handleTuntapRefresh = ()=>{
+            refreshTuntap();
+            ElMessage.success('刷新成功');
+        }
+
+
+        let tunnelTimer = 0;
+        const _getTunnelInfo = () => {
+            if (globalData.value.connected) {
+                getTunnelInfo(state.tunnelHashCode.toString()).then((res) => {
+                    state.tunnelHashCode = res.HashCode;
+                    if (res.List) {
+                        state.tunnelInfos = null;
+                        nextTick(() => {
+                            state.tunnelInfos = res.List;
+                        });
+                    }
+                    tunnelTimer = setTimeout(_getTunnelInfo, 200);
+                }).catch(() => {
+                    tunnelTimer = setTimeout(_getTunnelInfo, 200);
+                });
+            } else {
+                tunnelTimer = setTimeout(_getTunnelInfo, 1000);
+            }
+        }
+        const handleTunnelEdit = (tunnel)=>{
+            state.tunnelInfo = tunnel;
+            state.showTunnelEdit = true;
+        }
+        const handleTunnelChange = () => {
+            _getSignList();
+        }
+        const handleTunnelRefresh = ()=>{
+            refreshTunnel();
+            ElMessage.success('刷新成功');
+        }
+
+
         const _getForwardInfo = () => {
             getForwardInfo().then((res) => {
                 state.forwardInfos = null;
@@ -117,6 +167,17 @@ export default {
             }).catch(() => {
 
             });
+        }
+        const handleForwardEdit = (machineName)=>{
+            state.forwardInfo = machineName;
+            state.showForwardEdit = true;
+        }
+        const handleForwardChange = () => {
+            _getSignList();
+        }
+        const handleForwardRefresh = ()=>{
+            refreshForward();
+            ElMessage.success('刷新成功');
         }
 
         const _getSignList = () => {
@@ -128,6 +189,7 @@ export default {
                     res.List[j].showTunnel = machineName.value != res.List[j].MachineName;
                     res.List[j].showForward = machineName.value != res.List[j].MachineName;
                     res.List[j].showDel = machineName.value != res.List[j].MachineName && res.List[j].Connected == false;
+                    res.List[j].isSelf = machineName.value == res.List[j].MachineName;
                 }
                 state.page.List = res.List;
                 _getForwardInfo();
@@ -147,18 +209,26 @@ export default {
                             item.showTunnel = machineName.value != res.List[j].MachineName;
                             item.showForward = machineName.value != res.List[j].MachineName;
                             item.showDel = machineName.value != res.List[j].MachineName && res.List[j].Connected == false;
+                            item.isSelf = machineName.value == res.List[j].MachineName;
                         }
                     }
-                    setTimeout(_getSignList1, 3000);
+                    setTimeout(_getSignList1, 5000);
                 }).catch((err) => { 
-                    setTimeout(_getSignList1, 3000);
+                    setTimeout(_getSignList1, 5000);
                 });
             }else{
-                setTimeout(_getSignList1, 3000);
+                setTimeout(_getSignList1, 5000);
             }
         }
-
-
+        
+        const handleDeviceEdit = (row)=>{
+            state.deviceInfo = row;
+            state.showDeviceEdit = true;
+        }
+        const handlePageRefresh = ()=>{
+            handlePageChange();
+            ElMessage.success('刷新成功');  
+        }
         const handlePageChange = () => {
             _getSignList();
         }
@@ -166,12 +236,6 @@ export default {
             updateSignInDel(name).then(() => {
                 _getSignList();
             });
-        }
-        const handleTuntapChange = () => {
-            _getSignList();
-        }
-        const handleForwardChange = () => {
-            _getSignList();
         }
 
         const resizeTable = () => {
@@ -186,14 +250,19 @@ export default {
             _getSignList();
             _getSignList1();
             _getTuntapInfo();
+            _getTunnelInfo();
         });
         onUnmounted(() => {
             clearTimeout(tuntapTimer);
+            clearTimeout(tunnelTimer);
             window.removeEventListener('resize', resizeTable);
         });
 
         return {
-            machineName, state, wrap, handlePageChange, handleDel, handleTuntapChange, handleForwardChange
+            machineName, state, wrap,handleDeviceEdit,handlePageRefresh, handlePageChange, handleDel,
+            handleTuntapEdit, handleTuntapChange, handleTuntapRefresh,
+            handleTunnelEdit, handleTunnelChange, handleTunnelRefresh,
+            handleForwardEdit,handleForwardChange,handleForwardRefresh
         }
     }
 }

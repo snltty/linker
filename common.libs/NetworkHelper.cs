@@ -71,16 +71,15 @@ namespace common.libs
                     }
                     else
                     {
-                        if (i == 0) return 1;
-                        if (i == 1) return 1;
-                        return (ushort)(i - 1);
+                        if (i <= 2) return 3;
+                        return (ushort)(i + 1);
                     }
                 }
             }
             catch (Exception)
             {
             }
-            return 1;
+            return 3;
         }
         public static IEnumerable<IPAddress> GetTraceRoute(string hostNameOrAddress)
         {

@@ -39,6 +39,12 @@ namespace cmonitor.plugins.tuntap
             }
             return new TuntabListInfo { HashCode = _hashCode };
         }
+        public void Refresh(ApiControllerParamsInfo param)
+        {
+            tuntapTransfer.RefreshInfo();
+        }
+
+
         public async Task<bool> Run(ApiControllerParamsInfo param)
         {
             if (param.Content == config.Data.Client.Name)
@@ -80,7 +86,7 @@ namespace cmonitor.plugins.tuntap
             TuntapInfo info = param.Content.DeJson<TuntapInfo>();
             if (info.MachineName == config.Data.Client.Name)
             {
-                tuntapTransfer.Update(info);
+                tuntapTransfer.OnUpdate(info);
             }
             else
             {
@@ -97,7 +103,7 @@ namespace cmonitor.plugins.tuntap
 
         public sealed class TuntabListInfo
         {
-            public ConcurrentDictionary<string,TuntapInfo> List { get; set; }
+            public ConcurrentDictionary<string, TuntapInfo> List { get; set; }
             public uint HashCode { get; set; }
         }
     }

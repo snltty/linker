@@ -7,13 +7,13 @@ using System.Reflection;
 
 namespace cmonitor.plugins.tunnel.compact
 {
-    public sealed class CompactTransfer
+    public sealed class TunnelCompactTransfer
     {
-        private List<ICompact> compacts;
+        private List<ITunnelCompact> compacts;
 
         private readonly Config config;
         private readonly ServiceProvider serviceProvider;
-        public CompactTransfer(Config config, ServiceProvider serviceProvider)
+        public TunnelCompactTransfer(Config config, ServiceProvider serviceProvider)
         {
             this.config = config;
             this.serviceProvider = serviceProvider;
@@ -21,8 +21,8 @@ namespace cmonitor.plugins.tunnel.compact
 
         public void Load(Assembly[] assembs)
         {
-            IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs, typeof(ICompact));
-            compacts = types.Select(c => (ICompact)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
+            IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs, typeof(ITunnelCompact));
+            compacts = types.Select(c => (ITunnelCompact)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
 
             Logger.Instance.Warning($"load tunnel compacts:{string.Join(",", compacts.Select(c => c.Name))}");
         }
@@ -41,7 +41,7 @@ namespace cmonitor.plugins.tunnel.compact
             {
                 TunnelCompactInfo item = config.Data.Client.Tunnel.Servers[i];
                 if (item.Disabled || string.IsNullOrWhiteSpace(item.Host)) continue;
-                ICompact compact = compacts.FirstOrDefault(c => c.Type == item.Type);
+                ITunnelCompact compact = compacts.FirstOrDefault(c => c.Type == item.Type);
                 if (compact == null) continue;
 
                 try

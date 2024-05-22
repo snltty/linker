@@ -12,3 +12,6 @@ export const stopTuntap = (name) => {
 export const updateTuntap = (name) => {
     return sendWebsocketMsg('tuntapclient/update', name);
 }
+export const refreshTuntap = () => {
+    return sendWebsocketMsg('tuntapclient/refresh');
+}

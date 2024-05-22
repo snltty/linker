@@ -76,7 +76,7 @@ namespace cmonitor.plugins.forward
         public bool Add(ForwardInfo forwardInfo)
         {
             //同名或者同端口，但是ID不一样
-            ForwardInfo old = config.Data.Client.Forward.Forwards.FirstOrDefault(c => (c.Port == forwardInfo.Port || c.Name == forwardInfo.Name));
+            ForwardInfo old = config.Data.Client.Forward.Forwards.FirstOrDefault(c => (c.Port == forwardInfo.Port || c.Name == forwardInfo.Name) && c.MachineName == forwardInfo.MachineName);
             if (old != null && old.ID != forwardInfo.ID) return false;
 
             if (forwardInfo.ID != 0)

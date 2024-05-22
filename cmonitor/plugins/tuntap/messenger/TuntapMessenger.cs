@@ -30,14 +30,14 @@ namespace cmonitor.plugins.tuntap.messenger
         public void Update(IConnection connection)
         {
             TuntapInfo info = MemoryPackSerializer.Deserialize<TuntapInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            tuntapTransfer.Update(info);
+            tuntapTransfer.OnUpdate(info);
         }
 
-        [MessengerId((ushort)TuntapMessengerIds.Info)]
-        public void Info(IConnection connection)
+        [MessengerId((ushort)TuntapMessengerIds.Config)]
+        public void Config(IConnection connection)
         {
             TuntapInfo info = MemoryPackSerializer.Deserialize<TuntapInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            TuntapInfo _info = tuntapTransfer.Info(info);
+            TuntapInfo _info = tuntapTransfer.OnConfig(info);
             connection.Write(MemoryPackSerializer.Serialize(_info));
         }
     }
@@ -103,8 +103,8 @@ namespace cmonitor.plugins.tuntap.messenger
         }
 
 
-        [MessengerId((ushort)TuntapMessengerIds.InfoForward)]
-        public async Task InfoForward(IConnection connection)
+        [MessengerId((ushort)TuntapMessengerIds.ConfigForward)]
+        public async Task ConfigForward(IConnection connection)
         {
             if (signCaching.Get(connection.Name, out SignCacheInfo cache))
             {
@@ -116,7 +116,7 @@ namespace cmonitor.plugins.tuntap.messenger
                     tasks.Add(messengerSender.SendReply(new MessageRequestWrap
                     {
                         Connection = item.Connection,
-                        MessengerId = (ushort)TuntapMessengerIds.Info,
+                        MessengerId = (ushort)TuntapMessengerIds.Config,
                         Payload = connection.ReceiveRequestWrap.Payload
                     }));
                 }

@@ -66,7 +66,7 @@ namespace cmonitor.plugins.signin
             config.Data.Client.GroupId = info.GroupId;
             config.Save();
 
-            if(name != config.Data.Client.Name || gid != config.Data.Client.GroupId)
+            if (name != config.Data.Client.Name || gid != config.Data.Client.GroupId)
             {
                 clientSignInTransfer.SignOut();
                 _ = clientSignInTransfer.SignIn();
@@ -79,12 +79,12 @@ namespace cmonitor.plugins.signin
             config.Data.Client.Servers = param.Content.DeJson<ClientServerInfo[]>();
             config.Save();
 
-            if(server != config.Data.Client.Server)
+            if (server != config.Data.Client.Server)
             {
                 clientSignInTransfer.SignOut();
                 _ = clientSignInTransfer.SignIn();
             }
-            
+
             return true;
         }
 
@@ -117,6 +117,35 @@ namespace cmonitor.plugins.signin
             return new SignInListResponseInfo { };
         }
 
+
+        public async Task<bool> UpdateName(ApiControllerParamsInfo param)
+        {
+            ConfigUpdateNameInfo info = param.Content.DeJson<ConfigUpdateNameInfo>();
+
+
+            await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)SignInMessengerIds.UpdateNameForward,
+                Payload = MemoryPackSerializer.Serialize(info)
+            });
+
+            if (info.OldName == config.Data.Client.Name)
+            {
+                config.Data.Client.Name = info.NewName;
+                config.Save();
+                clientSignInTransfer.SignOut();
+                _ = clientSignInTransfer.SignIn();
+            }
+            return true;
+        }
+    }
+
+    [MemoryPackable]
+    public sealed partial class ConfigUpdateNameInfo
+    {
+        public string OldName { get; set; }
+        public string NewName { get; set; }
     }
 
     public sealed class ConfigSetInfo

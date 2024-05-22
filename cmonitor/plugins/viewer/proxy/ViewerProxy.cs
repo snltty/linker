@@ -25,9 +25,15 @@ namespace cmonitor.plugins.viewer.proxy
             Start(0);
             Logger.Instance.Info($"start viewer proxy, listen port : {LocalEndpoint}");
 
-            tunnelTransfer.SetConnectedCallback("viewer", BindConnectionReceive);
-            relayTransfer.SetConnectedCallback("viewer", BindConnectionReceive);
+            tunnelTransfer.SetConnectedCallback("viewer", OnConnected);
+            relayTransfer.SetConnectedCallback("viewer", OnConnected);
         }
+        private void OnConnected(ITunnelConnection connection)
+        {
+            dicConnections.AddOrUpdate(connection.RemoteMachineName, connection, (a, b) => connection);
+            BindConnectionReceive(connection);
+        }
+
 
         SemaphoreSlim slimGlobal = new SemaphoreSlim(1);
         protected override async Task<bool> ConnectTcp(AsyncUserToken token)
@@ -82,7 +88,6 @@ namespace cmonitor.plugins.viewer.proxy
                 }
                 if (connection != null)
                 {
-                    Logger.Instance.Warning($"got {targetName} connection2");
                     dicConnections.AddOrUpdate(targetName, connection, (a, b) => connection);
                 }
             }

@@ -113,11 +113,16 @@ namespace cmonitor.plugins.tuntap
             config.Save();
         }
 
+
+        public void RefreshInfo()
+        {
+            OnChange();
+        }
         /// <summary>
         /// 更新本机信息
         /// </summary>
         /// <param name="info"></param>
-        public void Update(TuntapInfo info)
+        public void OnUpdate(TuntapInfo info)
         {
             config.Data.Client.Tuntap.IP = info.IP;
             config.Data.Client.Tuntap.LanIPs = info.LanIPs;
@@ -137,7 +142,7 @@ namespace cmonitor.plugins.tuntap
         /// </summary>
         /// <param name="info"></param>
         /// <returns></returns>
-        public TuntapInfo Info(TuntapInfo info)
+        public TuntapInfo OnConfig(TuntapInfo info)
         {
             Task.Run(() =>
             {
@@ -149,7 +154,6 @@ namespace cmonitor.plugins.tuntap
 
             return GetLocalInfo();
         }
-
         private void OnChange()
         {
             GetRemoteInfo().ContinueWith((result) =>
@@ -174,7 +178,7 @@ namespace cmonitor.plugins.tuntap
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,
-                MessengerId = (ushort)TuntapMessengerIds.InfoForward,
+                MessengerId = (ushort)TuntapMessengerIds.ConfigForward,
                 Payload = MemoryPackSerializer.Serialize(info)
             });
             if (resp.Code != MessageResponeCodes.OK)

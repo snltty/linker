@@ -28,16 +28,17 @@ namespace cmonitor.plugins.tunnel
 
             serviceCollection.AddSingleton<TunnelClientMessenger>();
 
-            serviceCollection.AddSingleton<CompactTransfer>();
-            serviceCollection.AddSingleton<CompactSelfHost>();
+            serviceCollection.AddSingleton<TunnelCompactTransfer>();
+            serviceCollection.AddSingleton<TunnelCompactSelfHost>();
 
             serviceCollection.AddSingleton<TunnelTransfer>();
             serviceCollection.AddSingleton<TunnelBindServer>();
-            serviceCollection.AddSingleton<TransportTcpNutssb>();
+            serviceCollection.AddSingleton<TunnelTransportTcpNutssb>();
 
 
             Logger.Instance.Info($"tunnel route level getting.");
             config.Data.Client.Tunnel.RouteLevel = NetworkHelper.GetRouteLevel(out List<IPAddress> ips);
+            Logger.Instance.Warning($"route ips:{string.Join(",", ips.Select(c => c.ToString()))}");
             config.Data.Client.Tunnel.LocalIPs = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
             Logger.Instance.Info($"tunnel local ips :{string.Join(",", config.Data.Client.Tunnel.LocalIPs.Select(c => c.ToString()))}");
             Logger.Instance.Info($"tunnel route level:{config.Data.Client.Tunnel.RouteLevel}");
@@ -63,7 +64,7 @@ namespace cmonitor.plugins.tunnel
 
         public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
         {
-            CompactTransfer compack = serviceProvider.GetService<CompactTransfer>();
+            TunnelCompactTransfer compack = serviceProvider.GetService<TunnelCompactTransfer>();
             compack.Load(assemblies);
 
             TunnelTransfer tunnel = serviceProvider.GetService<TunnelTransfer>();

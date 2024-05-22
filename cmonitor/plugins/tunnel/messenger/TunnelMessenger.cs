@@ -1,10 +1,9 @@
 ﻿using cmonitor.plugins.signin.messenger;
+using cmonitor.plugins.tunnel.compact;
 using cmonitor.plugins.tunnel.transport;
 using cmonitor.server;
 using common.libs;
-using common.libs.extends;
 using MemoryPack;
-using System.Net;
 
 namespace cmonitor.plugins.tunnel.messenger
 {
@@ -61,6 +60,23 @@ namespace cmonitor.plugins.tunnel.messenger
 
             tunnel.OnSuccess(tunnelTransportInfo);
         }
+
+
+        [MessengerId((ushort)TunnelMessengerIds.Update)]
+        public void Update(IConnection connection)
+        {
+            TunnelTransportConfigInfo tunnelTransportConfigWrapInfo = MemoryPackSerializer.Deserialize<TunnelTransportConfigInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            tunnel.OnUpdate(tunnelTransportConfigWrapInfo);
+        }
+
+
+        [MessengerId((ushort)TunnelMessengerIds.Config)]
+        public void Config(IConnection connection)
+        {
+            TunnelTransportConfigInfo tunnelTransportConfigWrapInfo = MemoryPackSerializer.Deserialize<TunnelTransportConfigInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            TunnelTransportConfigInfo result = tunnel.OnConfig(tunnelTransportConfigWrapInfo);
+            connection.Write(MemoryPackSerializer.Serialize(result));
+        }
     }
 
     public sealed class TunnelServerMessenger : IMessenger
@@ -71,23 +87,6 @@ namespace cmonitor.plugins.tunnel.messenger
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
-        }
-
-        [MessengerId((ushort)TunnelMessengerIds.BeginForward)]
-        public async Task BeginForward(IConnection connection)
-        {
-            TunnelTransportInfo tunnelTransportInfo = MemoryPackSerializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
-
-            if (signCaching.Get(tunnelTransportInfo.Remote.MachineName, out SignCacheInfo cache) && signCaching.Get(connection.Name, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
-            {
-                await messengerSender.SendReply(new MessageRequestWrap
-                {
-                    Connection = cache.Connection,
-                    MessengerId = (ushort)TunnelMessengerIds.Begin,
-                    Payload = connection.ReceiveRequestWrap.Payload
-                });
-                connection.Write(Helper.TrueArray);
-            }
         }
 
         [MessengerId((ushort)TunnelMessengerIds.InfoForward)]
@@ -109,6 +108,25 @@ namespace cmonitor.plugins.tunnel.messenger
             }
         }
 
+
+        [MessengerId((ushort)TunnelMessengerIds.BeginForward)]
+        public async Task BeginForward(IConnection connection)
+        {
+            TunnelTransportInfo tunnelTransportInfo = MemoryPackSerializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
+
+            if (signCaching.Get(tunnelTransportInfo.Remote.MachineName, out SignCacheInfo cache) && signCaching.Get(connection.Name, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            {
+                await messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = cache.Connection,
+                    MessengerId = (ushort)TunnelMessengerIds.Begin,
+                    Payload = connection.ReceiveRequestWrap.Payload
+                });
+                connection.Write(Helper.TrueArray);
+            }
+        }
+
+
         [MessengerId((ushort)TunnelMessengerIds.FailForward)]
         public async Task FailForward(IConnection connection)
         {
@@ -122,12 +140,6 @@ namespace cmonitor.plugins.tunnel.messenger
                     Payload = connection.ReceiveRequestWrap.Payload
                 });
             }
-        }
-
-        [MessengerId((ushort)TunnelMessengerIds.ExternalIP)]
-        public void ExternalIP(IConnection connection)
-        {
-            connection.Write(MemoryPackSerializer.Serialize(new TunnelExternalIPInfo { ExternalIP = connection.Address }));
         }
 
 
@@ -145,12 +157,49 @@ namespace cmonitor.plugins.tunnel.messenger
                 });
             }
         }
+
+
+        [MessengerId((ushort)TunnelMessengerIds.UpdateForward)]
+        public async Task UpdateForward(IConnection connection)
+        {
+            TunnelTransportConfigInfo tunnelTransportInfo = MemoryPackSerializer.Deserialize<TunnelTransportConfigInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.Get(tunnelTransportInfo.MachineName, out SignCacheInfo cache) && signCaching.Get(connection.Name, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cache.Connection,
+                    MessengerId = (ushort)TunnelMessengerIds.Update,
+                    Payload = connection.ReceiveRequestWrap.Payload
+                });
+            }
+
+        }
+
+        [MessengerId((ushort)TunnelMessengerIds.ConfigForward)]
+        public async Task ConfigForward(IConnection connection)
+        {
+            if (signCaching.Get(connection.Name, out SignCacheInfo cache))
+            {
+                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
+
+                List<Task<MessageResponeInfo>> tasks = new List<Task<MessageResponeInfo>>();
+                foreach (SignCacheInfo item in caches.Where(c => c.MachineName != connection.Name && c.Connected))
+                {
+                    tasks.Add(messengerSender.SendReply(new MessageRequestWrap
+                    {
+                        Connection = item.Connection,
+                        MessengerId = (ushort)TunnelMessengerIds.Config,
+                        Payload = connection.ReceiveRequestWrap.Payload
+                    }));
+                }
+
+                await Task.WhenAll(tasks);
+
+                List<TunnelTransportConfigInfo> results = tasks.Where(c => c.Result.Code == MessageResponeCodes.OK).Select(c => MemoryPackSerializer.Deserialize<TunnelTransportConfigInfo>(c.Result.Data.Span)).ToList();
+                connection.Write(MemoryPackSerializer.Serialize(results));
+            }
+        }
     }
 
-    [MemoryPackable]
-    public sealed partial class TunnelExternalIPInfo
-    {
-        [MemoryPackAllowSerialize]
-        public IPEndPoint ExternalIP { get; set; }
-    }
+
 }

@@ -9,3 +9,6 @@ export const removeForwardInfo = (id) => {
 export const addForwardInfo = (data) => {
     return sendWebsocketMsg('forwardclient/add', data);
 }
+export const refreshForward = () => {
+    return sendWebsocketMsg('forwardclient/refresh');
+}

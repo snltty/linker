@@ -9,35 +9,46 @@ using common.libs;
 using common.libs.extends;
 using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Concurrent;
 using System.Reflection;
 
 namespace cmonitor.plugins.tunnel
 {
     public sealed class TunnelTransfer
     {
-        private List<ITransport> transports;
+        private List<ITunnelTransport> transports;
 
         private readonly Config config;
         private readonly ServiceProvider serviceProvider;
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
-        private readonly CompactTransfer compactTransfer;
+        private readonly TunnelCompactTransfer compactTransfer;
+
+        private uint version = 0;
+        public uint ConfigVersion => version;
+        private ConcurrentDictionary<string, TunnelTransportConfigInfo> configs = new ConcurrentDictionary<string, TunnelTransportConfigInfo>();
+        public ConcurrentDictionary<string, TunnelTransportConfigInfo> Config => configs;
 
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
-        public TunnelTransfer(Config config, ServiceProvider serviceProvider, ClientSignInState clientSignInState, MessengerSender messengerSender, CompactTransfer compactTransfer)
+        public TunnelTransfer(Config config, ServiceProvider serviceProvider, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelCompactTransfer compactTransfer)
         {
             this.config = config;
             this.serviceProvider = serviceProvider;
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
             this.compactTransfer = compactTransfer;
+
+            clientSignInState.NetworkEnabledHandle += (times) =>
+            {
+                GetRemoveConfigs();
+            };
         }
 
         public void Load(Assembly[] assembs)
         {
-            IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs, typeof(ITransport));
-            transports = types.Select(c => (ITransport)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
+            IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs, typeof(ITunnelTransport));
+            transports = types.Select(c => (ITunnelTransport)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
             foreach (var item in transports)
             {
                 item.OnSendConnectBegin = OnSendConnectBegin;
@@ -48,6 +59,57 @@ namespace cmonitor.plugins.tunnel
 
             Logger.Instance.Warning($"load tunnel transport:{string.Join(",", transports.Select(c => c.Name))}");
         }
+
+
+        public void RefreshConfig()
+        {
+            GetRemoveConfigs();
+        }
+        public void OnUpdate(TunnelTransportConfigInfo tunnelTransportConfigWrapInfo)
+        {
+            config.Data.Client.Tunnel.RouteLevelPlus = tunnelTransportConfigWrapInfo.RouteLevelPlus;
+            config.Save();
+            GetRemoveConfigs();
+        }
+        public TunnelTransportConfigInfo OnConfig(TunnelTransportConfigInfo tunnelTransportConfigWrapInfo)
+        {
+            configs.AddOrUpdate(tunnelTransportConfigWrapInfo.MachineName, tunnelTransportConfigWrapInfo, (a, b) => tunnelTransportConfigWrapInfo);
+            Interlocked.Increment(ref version);
+            return GetLocalConfig();
+        }
+        private void GetRemoveConfigs()
+        {
+            TunnelTransportConfigInfo config = GetLocalConfig();
+            messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)TunnelMessengerIds.ConfigForward,
+                Payload = MemoryPackSerializer.Serialize(config)
+            }).ContinueWith((result) =>
+            {
+                if (result.Result.Code == MessageResponeCodes.OK)
+                {
+                    List<TunnelTransportConfigInfo> list = MemoryPackSerializer.Deserialize<List<TunnelTransportConfigInfo>>(result.Result.Data.Span);
+                    foreach (var item in list)
+                    {
+                        configs.AddOrUpdate(item.MachineName, item, (a, b) => item);
+                    }
+                    TunnelTransportConfigInfo config = GetLocalConfig();
+                    configs.AddOrUpdate(config.MachineName, config, (a, b) => config);
+                    Interlocked.Increment(ref version);
+                }
+            });
+        }
+        private TunnelTransportConfigInfo GetLocalConfig()
+        {
+            return new TunnelTransportConfigInfo
+            {
+                MachineName = config.Data.Client.Name,
+                RouteLevel = config.Data.Client.Tunnel.RouteLevel,
+                RouteLevelPlus = config.Data.Client.Tunnel.RouteLevelPlus
+            };
+        }
+
 
         public void SetConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
         {
@@ -66,50 +128,67 @@ namespace cmonitor.plugins.tunnel
             }
         }
 
+
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineName, string transactionId)
         {
-            IEnumerable<ITransport> _transports = transports.OrderBy(c => c.ProtocolType);
-            foreach (ITransport transport in _transports)
+            IEnumerable<ITunnelTransport> _transports = transports.OrderBy(c => c.ProtocolType);
+            foreach (ITunnelTransport transport in _transports)
             {
-                //获取自己的外网ip
-                TunnelTransportExternalIPInfo localInfo = await GetLocalInfo();
-                if (localInfo == null)
+                /*
+                 * 我们不能连续获取端口，在正向连接失败后再尝试反向
+                 * 
+                 * 因为，短时间内，连续进行网络连接，大概率会得到连续的端口
+                 * 
+                 * 假设，第一次正向连接获取到外网端口为 12345，那我们将会尝试对 12345 12346 进行连接，会对12346有所污染
+                 * 
+                 * 所以，我们需要在第一次正向连接失败后再尝试反向连接，因为间隔了一定时间，最大程度避免了连续端口污染
+                 */
+                TunnelTransportInfo tunnelTransportInfo = null;
+                for (int i = 0; i <= 1; i++)
                 {
-                    Logger.Instance.Error($"tunnel {transport.Name} get local external ip fail ");
-                    continue;
-                }
-                //获取对方的外网ip
-                TunnelTransportExternalIPInfo remoteInfo = await GetRemoteInfo(remoteMachineName);
-                if (remoteInfo == null)
-                {
-                    Logger.Instance.Error($"tunnel {transport.Name} get remote {remoteMachineName} external ip fail ");
-                    continue;
-                }
+                    //获取自己的外网ip
+                    TunnelTransportExternalIPInfo localInfo = await GetLocalInfo();
+                    if (localInfo == null)
+                    {
+                        Logger.Instance.Error($"tunnel {transport.Name} get local external ip fail ");
+                        goto end;
+                    }
+                    //获取对方的外网ip
+                    TunnelTransportExternalIPInfo remoteInfo = await GetRemoteInfo(remoteMachineName);
+                    if (remoteInfo == null)
+                    {
+                        Logger.Instance.Error($"tunnel {transport.Name} get remote {remoteMachineName} external ip fail ");
+                        goto end;
+                    }
 
-
-                TunnelTransportInfo tunnelTransportInfo = new TunnelTransportInfo
-                {
-                    Direction = TunnelDirection.Forward,
-                    TransactionId = transactionId,
-                    TransportName = transport.Name,
-                    TransportType = transport.ProtocolType,
-                    Local = localInfo,
-                    Remote = remoteInfo,
-                };
-                OnConnecting(tunnelTransportInfo);
-                ITunnelConnection connection = await transport.ConnectAsync(tunnelTransportInfo);
-                if (connection != null)
-                {
-                    _OnConnected(connection);
-                    return connection;
+                    tunnelTransportInfo = new TunnelTransportInfo
+                    {
+                        Direction = (TunnelDirection)i,
+                        TransactionId = transactionId,
+                        TransportName = transport.Name,
+                        TransportType = transport.ProtocolType,
+                        Local = localInfo,
+                        Remote = remoteInfo,
+                    };
+                    OnConnecting(tunnelTransportInfo);
+                    ITunnelConnection connection = await transport.ConnectAsync(tunnelTransportInfo);
+                    if (connection != null)
+                    {
+                        _OnConnected(connection);
+                        return connection;
+                    }
                 }
-                OnConnectFail(tunnelTransportInfo);
+            end:
+                if (tunnelTransportInfo != null)
+                {
+                    OnConnectFail(tunnelTransportInfo);
+                }
             }
             return null;
         }
         public void OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
-            ITransport _transports = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
+            ITunnelTransport _transports = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
             if (_transports != null)
             {
                 _transports.OnBegin(tunnelTransportInfo);
@@ -118,7 +197,7 @@ namespace cmonitor.plugins.tunnel
         }
         public void OnFail(TunnelTransportInfo tunnelTransportInfo)
         {
-            ITransport _transports = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
+            ITunnelTransport _transports = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
             if (_transports != null)
             {
                 _transports.OnFail(tunnelTransportInfo);
@@ -126,7 +205,7 @@ namespace cmonitor.plugins.tunnel
         }
         public void OnSuccess(TunnelTransportInfo tunnelTransportInfo)
         {
-            ITransport _transports = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
+            ITunnelTransport _transports = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
             if (_transports != null)
             {
                 _transports.OnSuccess(tunnelTransportInfo);
@@ -147,7 +226,7 @@ namespace cmonitor.plugins.tunnel
                     Local = ips[0].Local,
                     Remote = ips[0].Remote,
                     LocalIps = config.Data.Client.Tunnel.LocalIPs,
-                    RouteLevel = config.Data.Client.Tunnel.RouteLevel,
+                    RouteLevel = config.Data.Client.Tunnel.RouteLevel + config.Data.Client.Tunnel.RouteLevelPlus,
                     MachineName = config.Data.Client.Name
                 };
             }
@@ -203,9 +282,6 @@ namespace cmonitor.plugins.tunnel
             });
         }
 
-
-
-
         private void OnConnecting(TunnelTransportInfo tunnelTransportInfo)
         {
             if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -219,7 +295,7 @@ namespace cmonitor.plugins.tunnel
         private void _OnConnected(ITunnelConnection connection)
         {
             if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                Logger.Instance.Debug($"tunnel connect {connection.RemoteMachineName} success->{connection.IPEndPoint}");
+                Logger.Instance.Debug($"tunnel connect {connection.RemoteMachineName} success->{connection.IPEndPoint},{connection.ToJson()}");
             if (OnConnected.TryGetValue(connection.TransactionId, out List<Action<ITunnelConnection>> callbacks))
             {
                 foreach (var item in callbacks)

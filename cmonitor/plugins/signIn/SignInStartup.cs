@@ -20,14 +20,14 @@ namespace cmonitor.plugins.signin
 
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
+            serviceCollection.AddSingleton<SignInClientMessenger>();
             serviceCollection.AddSingleton<SignInClientApiController>();
-            
         }
 
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<SignCaching>();
-            serviceCollection.AddSingleton<SignInMessenger>();
+            serviceCollection.AddSingleton<SignInServerMessenger>();
             serviceCollection.AddSingleton<SignInServerApiController>();
         }
 

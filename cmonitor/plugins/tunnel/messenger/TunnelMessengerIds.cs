@@ -2,20 +2,25 @@
 {
     public enum TunnelMessengerIds : ushort
     {
-        Update = 2000,
+        _ = 2000,
+
         Info = 2001,
         InfoForward = 2002,
+
         Begin = 2003,
         BeginForward = 2004,
 
         Fail = 2005,
         FailForward = 2006,
 
+        Success = 2007,
+        SuccessForward = 2008,
 
-        ExternalIP = 2007,
+        Config = 2009,
+        ConfigForward = 2010,
 
-        Success = 2008,
-        SuccessForward = 2009,
+        Update = 2011,
+        UpdateForward = 2012,
 
         None = 2099
     }

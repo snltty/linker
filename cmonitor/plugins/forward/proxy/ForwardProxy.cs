@@ -21,8 +21,13 @@ namespace cmonitor.plugins.forward.proxy
             this.tunnelTransfer = tunnelTransfer;
             this.relayTransfer = relayTransfer;
 
-            tunnelTransfer.SetConnectedCallback("forward", BindConnectionReceive);
-            relayTransfer.SetConnectedCallback("forward", BindConnectionReceive);
+            tunnelTransfer.SetConnectedCallback("forward", OnConnected);
+            relayTransfer.SetConnectedCallback("forward", OnConnected);
+        }
+        private void OnConnected(ITunnelConnection connection)
+        {
+            connections.AddOrUpdate(connection.RemoteMachineName, connection, (a, b) => connection);
+            BindConnectionReceive(connection);
         }
 
         protected override async Task<bool> ConnectTcp(AsyncUserToken token)
@@ -78,12 +83,12 @@ namespace cmonitor.plugins.forward.proxy
                 }
                 if (connection == null)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineName}");
+                    //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineName}");
 
-                    connection = await relayTransfer.ConnectAsync(machineName, "forward");
+                    //connection = await relayTransfer.ConnectAsync(machineName, "forward");
                     if (connection != null)
                     {
-                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineName} success");
+                       // if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineName} success");
                     }
                 }
                 if (connection != null)

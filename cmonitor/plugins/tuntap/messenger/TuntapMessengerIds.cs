@@ -11,8 +11,8 @@
         Update = 2204,
         UpdateForward = 2205,
 
-        Info = 2206,
-        InfoForward = 2207,
+        Config = 2206,
+        ConfigForward = 2207,
 
         None = 2299
     }

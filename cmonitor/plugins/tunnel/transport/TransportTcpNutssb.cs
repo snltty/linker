@@ -8,7 +8,7 @@ using System.Net.Sockets;
 
 namespace cmonitor.plugins.tunnel.transport
 {
-    public sealed class TransportTcpNutssb : ITransport
+    public sealed class TunnelTransportTcpNutssb : ITunnelTransport
     {
         public string Name => "TcpNutssb";
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Tcp;
@@ -21,7 +21,7 @@ namespace cmonitor.plugins.tunnel.transport
 
 
         private readonly TunnelBindServer tunnelBindServer;
-        public TransportTcpNutssb(TunnelBindServer tunnelBindServer)
+        public TunnelTransportTcpNutssb(TunnelBindServer tunnelBindServer)
         {
             this.tunnelBindServer = tunnelBindServer;
             tunnelBindServer.OnTcpConnected += OnTcpConnected;
@@ -29,36 +29,38 @@ namespace cmonitor.plugins.tunnel.transport
 
         public async Task<ITunnelConnection> ConnectAsync(TunnelTransportInfo tunnelTransportInfo)
         {
-            //正向连接
-            tunnelTransportInfo.Direction = TunnelDirection.Forward;
-            if (await OnSendConnectBegin(tunnelTransportInfo) == false)
+            if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
             {
-                return null;
+                //正向连接
+                if (await OnSendConnectBegin(tunnelTransportInfo) == false)
+                {
+                    return null;
+                }
+                ITunnelConnection connection = await ConnectForward(tunnelTransportInfo);
+                if (connection != null)
+                {
+                    await OnSendConnectSuccess(tunnelTransportInfo);
+                    return connection;
+                }
             }
-            ITunnelConnection connection = await ConnectForward(tunnelTransportInfo);
-            if (connection != null)
+            else if (tunnelTransportInfo.Direction == TunnelDirection.Reverse)
             {
-                await OnSendConnectSuccess(tunnelTransportInfo);
-                return connection;
+                //反向连接
+                TunnelTransportInfo tunnelTransportInfo1 = tunnelTransportInfo.ToJsonFormat().DeJson<TunnelTransportInfo>();
+                tunnelBindServer.Bind(tunnelTransportInfo1.Local.Local, tunnelTransportInfo1);
+                BindAndTTL(tunnelTransportInfo1);
+                if (await OnSendConnectBegin(tunnelTransportInfo1) == false)
+                {
+                    return null;
+                }
+                ITunnelConnection connection = await WaitReverse(tunnelTransportInfo1);
+                if (connection != null)
+                {
+                    await OnSendConnectSuccess(tunnelTransportInfo);
+                    return connection;
+                }
             }
 
-            //反向连接
-            TunnelTransportInfo tunnelTransportInfo1 = tunnelTransportInfo.ToJsonFormat().DeJson<TunnelTransportInfo>();
-            tunnelTransportInfo1.Direction = TunnelDirection.Reverse;
-            tunnelBindServer.Bind(tunnelTransportInfo1.Local.Local, tunnelTransportInfo1);
-            BindAndTTL(tunnelTransportInfo1);
-            if (await OnSendConnectBegin(tunnelTransportInfo1) == false)
-            {
-                return null;
-            }
-            connection = await WaitReverse(tunnelTransportInfo1);
-            if (connection != null)
-            {
-                await OnSendConnectSuccess(tunnelTransportInfo);
-                return connection;
-            }
-
-            //正向反向都失败
             await OnSendConnectFail(tunnelTransportInfo);
             return null;
         }
@@ -184,11 +186,6 @@ namespace cmonitor.plugins.tunnel.transport
                 }
                 catch (Exception ex)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        Logger.Instance.Error(ep.ToString());
-                        Logger.Instance.Error(ex);
-                    }
                     targetSocket.SafeClose();
                 }
             }
@@ -216,7 +213,7 @@ namespace cmonitor.plugins.tunnel.transport
                 try
                 {
                     targetSocket.IPv6Only(ip.Address.AddressFamily, false);
-                    targetSocket.Ttl = ip.Address.AddressFamily == AddressFamily.InterNetworkV6 ? (short)2 : (short)(tunnelTransportInfo.Local.RouteLevel + 1);
+                    targetSocket.Ttl = ip.Address.AddressFamily == AddressFamily.InterNetworkV6 ? (short)2 : (short)(tunnelTransportInfo.Local.RouteLevel);
                     targetSocket.ReuseBind(new IPEndPoint(ip.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
                     _ = targetSocket.ConnectAsync(ip);
                     return targetSocket;
