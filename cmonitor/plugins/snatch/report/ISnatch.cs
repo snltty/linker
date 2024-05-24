@@ -108,7 +108,7 @@ namespace cmonitor.plugins.snatch.report
 
             return bytes;
         }
-        public static SnatchQuestionInfo DeBytes(Memory<byte> data)
+        public static SnatchQuestionInfo DeBytes(ReadOnlyMemory<byte> data)
         {
             SnatchQuestionInfo snatchQuestionInfo = new SnatchQuestionInfo();
 
@@ -214,7 +214,7 @@ namespace cmonitor.plugins.snatch.report
 
             return bytes;
         }
-        public static SnatchAnswerInfo DeBytes(Memory<byte> data)
+        public static SnatchAnswerInfo DeBytes(ReadOnlyMemory<byte> data)
         {
             SnatchAnswerInfo snatchAnswerInfo = new SnatchAnswerInfo();
 

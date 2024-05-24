@@ -12,6 +12,9 @@
                         <router-link :to="{name:'Index'}">首页</router-link>
                     </li>
                     <li>
+                        <router-link :to="{name:'Servers'}">服务器</router-link>
+                    </li>
+                    <li>
                         <router-link :to="{name:'Logger'}">日志</router-link>
                     </li>
                 </ul>
@@ -70,6 +73,7 @@ export default {
             getConfig().then((res)=>{
                 globalData.value.config.Common = res.Data.Common;
                 globalData.value.config.Client = res.Data.Client;
+                globalData.value.configed = true;
                 setTimeout(()=>{
                     _getConfig();
                 },1000);

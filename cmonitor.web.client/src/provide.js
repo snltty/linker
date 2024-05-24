@@ -8,7 +8,9 @@ export const provideGlobalData = () => {
         //已连接
         connected: false,
         updateFlag: false,
+        height: 0,
         config: { Common: {}, Client: {} },
+        configed: false,
         signin: { Connected: false, Connecting: false },
         groupid: ''
     });

@@ -1,5 +1,5 @@
 <template>
-    <div class="home-list-wrap absolute" ref="wrap">
+    <div class="home-list-wrap absolute" >
         <el-table :data="state.page.List" border style="width: 100%" :height="`${state.height}px`" size="small">
             <Device @change="handlePageChange" @edit="handleDeviceEdit" @refresh="handlePageRefresh"></Device>
             <template v-if="state.tunnelInfos">
@@ -38,7 +38,7 @@
     </div>
 </template>
 <script>
-import { getSignList, updateSignInDel } from '@/apis/signin.js'
+import { getSignInList, signInDel } from '@/apis/signin.js'
 import { subWebsocketState } from '@/apis/request.js'
 import { getTuntapInfo,refreshTuntap } from '@/apis/tuntap'
 import { getForwardInfo ,refreshForward} from '@/apis/forward'
@@ -61,7 +61,7 @@ export default {
 
         const globalData = injectGlobalData();
         const machineName = computed(() => globalData.value.config.Client.Name);
-        const wrap = ref(null);
+       
         const state = reactive({
             page: {
                 Request: { Page: 1, Size: 10, GroupId: globalData.value.groupid },
@@ -86,7 +86,7 @@ export default {
             forwardInfos: null,
             forwardInfo : null,
 
-            height: 0,
+            height: computed(()=>globalData.value.height-60),
         });
 
         let tuntapTimer = 0;
@@ -182,7 +182,7 @@ export default {
 
         const _getSignList = () => {
             state.page.Request.GroupId = globalData.value.groupid;
-            getSignList(state.page.Request).then((res) => {
+            getSignInList(state.page.Request).then((res) => {
                 state.page.Request = res.Request;
                 state.page.Count = res.Count;
                 for (let j in res.List) {
@@ -198,7 +198,7 @@ export default {
         const _getSignList1 = () => {
             if (globalData.value.connected) {
                 state.page.Request.GroupId = globalData.value.groupid;
-                getSignList(state.page.Request).then((res) => {
+                getSignInList(state.page.Request).then((res) => {
                     for (let j in res.List) {
                         const item = state.page.List.filter(c=>c.MachineName == res.List[j].MachineName)[0];
                         if(item){
@@ -233,20 +233,13 @@ export default {
             _getSignList();
         }
         const handleDel = (name) => {
-            updateSignInDel(name).then(() => {
+            signInDel(name).then(() => {
                 _getSignList();
             });
         }
 
-        const resizeTable = () => {
-            nextTick(() => {
-                state.height = wrap.value.offsetHeight - 80;
-            });
-        }
         onMounted(() => {
             subWebsocketState((state) => { if (state) _getSignList(); });
-            resizeTable();
-            window.addEventListener('resize', resizeTable);
             _getSignList();
             _getSignList1();
             _getTuntapInfo();
@@ -255,11 +248,10 @@ export default {
         onUnmounted(() => {
             clearTimeout(tuntapTimer);
             clearTimeout(tunnelTimer);
-            window.removeEventListener('resize', resizeTable);
         });
 
         return {
-            machineName, state, wrap,handleDeviceEdit,handlePageRefresh, handlePageChange, handleDel,
+            machineName, state, handleDeviceEdit,handlePageRefresh, handlePageChange, handleDel,
             handleTuntapEdit, handleTuntapChange, handleTuntapRefresh,
             handleTunnelEdit, handleTunnelChange, handleTunnelRefresh,
             handleForwardEdit,handleForwardChange,handleForwardRefresh

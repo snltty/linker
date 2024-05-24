@@ -6,6 +6,11 @@ const routes = [
         component: () => import('../views/devices/Index.vue')
     },
     {
+        path: '/servers.html',
+        name: 'Servers',
+        component: () => import('../views/servers/Index.vue')
+    },
+    {
         path: '/logger.html',
         name: 'Logger',
         component: () => import('../views/logger/Index.vue')

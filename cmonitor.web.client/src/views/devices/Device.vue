@@ -10,7 +10,7 @@
         <div>
             <p>
                 <a href="javascript:;" @click="handleEdit(scope.row)" :class="{green:scope.row.Connected}">{{scope.row.MachineName }}</a>
-                <strong v-if="scope.row.isSelf"> -- (本机)</strong>
+                <strong v-if="scope.row.isSelf"> - (本机)</strong>
             </p>
             <p>{{ scope.row.IP }}</p>
         </div>

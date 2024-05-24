@@ -33,7 +33,7 @@ namespace cmonitor.plugins.relay.transport
             socket.IPv6Only(relayInfo.Server.AddressFamily, false);
             await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromMilliseconds(500));
 
-            IConnection connection = tcpServer.BindReceive(socket);
+            IConnection connection = await tcpServer.BindReceive(socket);
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = connection,
@@ -67,7 +67,7 @@ namespace cmonitor.plugins.relay.transport
             socket.IPv6Only(relayInfo.Server.AddressFamily, false);
             await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromMilliseconds(500));
 
-            IConnection connection = tcpServer.BindReceive(socket);
+            IConnection connection = await tcpServer.BindReceive(socket);
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = connection,

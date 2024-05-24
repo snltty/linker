@@ -82,9 +82,9 @@ namespace cmonitor.server
         /// <returns></returns>
         public async Task InputData(IConnection connection)
         {
-            Memory<byte> receive = connection.ReceiveData;
+            ReadOnlyMemory<byte> receive = connection.ReceiveData;
             //去掉表示数据长度的4字节
-            Memory<byte> readReceive = receive.Slice(4);
+            ReadOnlyMemory<byte> readReceive = receive.Slice(4);
             MessageResponseWrap responseWrap = connection.ReceiveResponseWrap;
             MessageRequestWrap requestWrap = connection.ReceiveRequestWrap;
             try

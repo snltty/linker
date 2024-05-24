@@ -10,10 +10,12 @@ namespace cmonitor.plugins.tunnel.messenger
     public sealed class TunnelClientMessenger : IMessenger
     {
         private readonly TunnelTransfer tunnel;
+        private readonly TunnelCompactTransfer tunnelCompactTransfer;
 
-        public TunnelClientMessenger(TunnelTransfer tunnel)
+        public TunnelClientMessenger(TunnelTransfer tunnel, TunnelCompactTransfer tunnelCompactTransfer)
         {
             this.tunnel = tunnel;
+            this.tunnelCompactTransfer = tunnelCompactTransfer;
         }
 
         [MessengerId((ushort)TunnelMessengerIds.Begin)]
@@ -61,21 +63,34 @@ namespace cmonitor.plugins.tunnel.messenger
             tunnel.OnSuccess(tunnelTransportInfo);
         }
 
-
-        [MessengerId((ushort)TunnelMessengerIds.Update)]
-        public void Update(IConnection connection)
+        [MessengerId((ushort)TunnelMessengerIds.RouteLevel)]
+        public void RouteLevel(IConnection connection)
         {
-            TunnelTransportConfigInfo tunnelTransportConfigWrapInfo = MemoryPackSerializer.Deserialize<TunnelTransportConfigInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            tunnel.OnUpdate(tunnelTransportConfigWrapInfo);
+            TunnelTransportRouteLevelInfo tunnelTransportConfigWrapInfo = MemoryPackSerializer.Deserialize<TunnelTransportRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            tunnel.OnLocalRouteLevel(tunnelTransportConfigWrapInfo);
         }
-
 
         [MessengerId((ushort)TunnelMessengerIds.Config)]
         public void Config(IConnection connection)
         {
-            TunnelTransportConfigInfo tunnelTransportConfigWrapInfo = MemoryPackSerializer.Deserialize<TunnelTransportConfigInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            TunnelTransportConfigInfo result = tunnel.OnConfig(tunnelTransportConfigWrapInfo);
+            TunnelTransportRouteLevelInfo tunnelTransportConfigWrapInfo = MemoryPackSerializer.Deserialize<TunnelTransportRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            TunnelTransportRouteLevelInfo result = tunnel.OnRemoteRouteLevel(tunnelTransportConfigWrapInfo);
             connection.Write(MemoryPackSerializer.Serialize(result));
+        }
+
+
+        [MessengerId((ushort)TunnelMessengerIds.Transport)]
+        public void Transport(IConnection connection)
+        {
+            List<TunnelTransportItemInfo> transports = MemoryPackSerializer.Deserialize<List<TunnelTransportItemInfo>>(connection.ReceiveRequestWrap.Payload.Span);
+            tunnel.OnTransports(transports);
+        }
+
+        [MessengerId((ushort)TunnelMessengerIds.Servers)]
+        public void Servers(IConnection connection)
+        {
+            TunnelCompactInfo[] servers = MemoryPackSerializer.Deserialize<TunnelCompactInfo[]>(connection.ReceiveRequestWrap.Payload.Span);
+            tunnelCompactTransfer.OnServers(servers);
         }
     }
 
@@ -159,16 +174,16 @@ namespace cmonitor.plugins.tunnel.messenger
         }
 
 
-        [MessengerId((ushort)TunnelMessengerIds.UpdateForward)]
-        public async Task UpdateForward(IConnection connection)
+        [MessengerId((ushort)TunnelMessengerIds.RouteLevelForward)]
+        public async Task RouteLevelForward(IConnection connection)
         {
-            TunnelTransportConfigInfo tunnelTransportInfo = MemoryPackSerializer.Deserialize<TunnelTransportConfigInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            TunnelTransportRouteLevelInfo tunnelTransportInfo = MemoryPackSerializer.Deserialize<TunnelTransportRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.Get(tunnelTransportInfo.MachineName, out SignCacheInfo cache) && signCaching.Get(connection.Name, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = cache.Connection,
-                    MessengerId = (ushort)TunnelMessengerIds.Update,
+                    MessengerId = (ushort)TunnelMessengerIds.RouteLevel,
                     Payload = connection.ReceiveRequestWrap.Payload
                 });
             }
@@ -195,8 +210,47 @@ namespace cmonitor.plugins.tunnel.messenger
 
                 await Task.WhenAll(tasks);
 
-                List<TunnelTransportConfigInfo> results = tasks.Where(c => c.Result.Code == MessageResponeCodes.OK).Select(c => MemoryPackSerializer.Deserialize<TunnelTransportConfigInfo>(c.Result.Data.Span)).ToList();
+                List<TunnelTransportRouteLevelInfo> results = tasks.Where(c => c.Result.Code == MessageResponeCodes.OK).Select(c => MemoryPackSerializer.Deserialize<TunnelTransportRouteLevelInfo>(c.Result.Data.Span)).ToList();
                 connection.Write(MemoryPackSerializer.Serialize(results));
+            }
+        }
+
+
+        [MessengerId((ushort)TunnelMessengerIds.TransportForward)]
+        public async Task TransportForward(IConnection connection)
+        {
+            if (signCaching.Get(connection.Name, out SignCacheInfo cache))
+            {
+                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
+
+                foreach (SignCacheInfo item in caches.Where(c => c.MachineName != connection.Name && c.Connected))
+                {
+                    await messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = item.Connection,
+                        MessengerId = (ushort)TunnelMessengerIds.Transport,
+                        Payload = connection.ReceiveRequestWrap.Payload
+                    });
+                }
+            }
+        }
+
+        [MessengerId((ushort)TunnelMessengerIds.ServersForward)]
+        public async Task ServersForward(IConnection connection)
+        {
+            if (signCaching.Get(connection.Name, out SignCacheInfo cache))
+            {
+                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
+
+                foreach (SignCacheInfo item in caches.Where(c => c.MachineName != connection.Name && c.Connected))
+                {
+                    await messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = item.Connection,
+                        MessengerId = (ushort)TunnelMessengerIds.Servers,
+                        Payload = connection.ReceiveRequestWrap.Payload
+                    });
+                }
             }
         }
     }

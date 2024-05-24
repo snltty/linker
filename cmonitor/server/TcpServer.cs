@@ -1,24 +1,39 @@
 ﻿using common.libs;
 using common.libs.extends;
+using System.Buffers;
+using System.IO.Pipelines;
 using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace cmonitor.server
 {
     public sealed class TcpServer
     {
-        private int bufferSize = 8 * 1024;
         private Socket socket;
         private UdpClient socketUdp;
         private CancellationTokenSource cancellationTokenSource;
         private Memory<byte> relayFLagCData = Encoding.UTF8.GetBytes("snltty.relay");
+        private readonly X509Certificate serverCertificate;
 
         public Func<IConnection, Task> OnPacket { get; set; } = async (connection) => { await Task.CompletedTask; };
-        public Action<int> OnDisconnected { get; set; }
 
         public TcpServer()
         {
+            string path = Path.GetFullPath("./snltty.pfx");
+            if (File.Exists(path))
+            {
+                serverCertificate = new X509Certificate(path, "snltty");
+            }
+            else
+            {
+                Logger.Instance.Error($"file {path} not found");
+                Environment.Exit(0);
+            }
+
         }
         public void Start(int port)
         {
@@ -39,10 +54,7 @@ namespace cmonitor.server
 
             SocketAsyncEventArgs acceptEventArg = new SocketAsyncEventArgs
             {
-                UserToken = new AsyncUserToken
-                {
-                    Socket = socket
-                },
+                UserToken = socket,
                 SocketFlags = SocketFlags.None,
             };
             acceptEventArg.Completed += IO_Completed;
@@ -58,15 +70,28 @@ namespace cmonitor.server
             return socket;
 
         }
+
+        byte[] sendData = ArrayPool<byte>.Shared.Rent(20);
         private async void ReceiveCallbackUdp(IAsyncResult result)
         {
             try
             {
                 IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
                 byte[] bytes = socketUdp.EndReceive(result, ref endPoint);
+
+
                 try
                 {
-                    await socketUdp.SendAsync(endPoint.ToString().ToBytes(), endPoint);
+                    sendData[0] = (byte)endPoint.AddressFamily;
+                    endPoint.Address.TryWriteBytes(sendData.AsSpan(1), out int length);
+                    ((ushort)endPoint.Port).ToBytes(sendData.AsMemory(1 + length));
+
+                    for (int i = 0; i < 1 + length + 2; i++)
+                    {
+                        sendData[i] = (byte)(sendData[i] ^ byte.MaxValue);
+                    }
+
+                    await socketUdp.SendAsync(sendData.AsMemory(0, 1 + length + 2), endPoint);
                 }
                 catch (Exception)
                 {
@@ -82,17 +107,17 @@ namespace cmonitor.server
         private void StartAccept(SocketAsyncEventArgs acceptEventArg)
         {
             acceptEventArg.AcceptSocket = null;
-            AsyncUserToken token = (AsyncUserToken)acceptEventArg.UserToken;
+            Socket token = (Socket)acceptEventArg.UserToken;
             try
             {
-                if (token.Socket.AcceptAsync(acceptEventArg) == false)
+                if (token.AcceptAsync(acceptEventArg) == false)
                 {
                     ProcessAccept(acceptEventArg);
                 }
             }
             catch (Exception)
             {
-                token.Clear();
+                token?.SafeClose();
             }
         }
         private void IO_Completed(object sender, SocketAsyncEventArgs e)
@@ -102,9 +127,6 @@ namespace cmonitor.server
                 case SocketAsyncOperation.Accept:
                     ProcessAccept(e);
                     break;
-                case SocketAsyncOperation.Receive:
-                    ProcessReceive(e);
-                    break;
                 default:
                     break;
             }
@@ -113,12 +135,12 @@ namespace cmonitor.server
         {
             if (e.AcceptSocket != null)
             {
-                BindReceive(e.AcceptSocket);
+                _ = BindReceiveServer(e.AcceptSocket);
                 StartAccept(e);
             }
         }
 
-        public IConnection BindReceive(Socket socket)
+        private async Task<IConnection> BindReceiveServer(Socket socket)
         {
             try
             {
@@ -126,27 +148,13 @@ namespace cmonitor.server
                 {
                     return null;
                 }
-
                 socket.KeepAlive();
-                AsyncUserToken userToken = new AsyncUserToken
-                {
-                    Socket = socket,
-                    Connection = CreateConnection(socket)
-                };
+                SslStream sslStream = new SslStream(new NetworkStream(socket), true);
+                await sslStream.AuthenticateAsServerAsync(serverCertificate, false, SslProtocols.Tls13, false);
+                IConnection connection = CreateConnection(sslStream, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
+                _ = ProcessReceive(connection, sslStream);
 
-                SocketAsyncEventArgs saea = new SocketAsyncEventArgs
-                {
-                    UserToken = userToken,
-                    SocketFlags = SocketFlags.None,
-                };
-                userToken.PoolBuffer = new byte[bufferSize];
-                saea.SetBuffer(userToken.PoolBuffer, 0, bufferSize);
-                saea.Completed += IO_Completed;
-                if (socket.ReceiveAsync(saea) == false)
-                {
-                    ProcessReceive(saea);
-                }
-                return userToken.Connection;
+                return connection;
             }
             catch (Exception ex)
             {
@@ -155,130 +163,115 @@ namespace cmonitor.server
             }
             return null;
         }
-        private async void ProcessReceive(SocketAsyncEventArgs e)
+
+
+        public bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            return true;
+        }
+        public async Task<IConnection> BindReceive(Socket socket)
         {
             try
             {
-                AsyncUserToken token = (AsyncUserToken)e.UserToken;
-
-                if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
+                if (socket == null || socket.RemoteEndPoint == null)
                 {
-                    int offset = e.Offset;
-                    int length = e.BytesTransferred;
-
-                    bool res = await ReadPacket(token, e.Buffer, offset, length);
-                    if (res == false)
-                    {
-                        return;
-                    }
-
-                    if (token.Socket.Available > 0)
-                    {
-                        while (token.Socket.Available > 0)
-                        {
-                            length = token.Socket.Receive(e.Buffer);
-                            if (length > 0)
-                            {
-                                res = await ReadPacket(token, e.Buffer, 0, length);
-                                if (res == false)
-                                {
-                                    return;
-                                }
-                            }
-                            else
-                            {
-                                CloseClientSocket(e);
-                                return;
-                            }
-                        }
-                    }
-
-                    if (token.Socket.Connected == false)
-                    {
-                        CloseClientSocket(e);
-                        return;
-                    }
-                    if (token.Socket.ReceiveAsync(e) == false)
-                    {
-                        ProcessReceive(e);
-                    }
+                    return null;
                 }
-                else
-                {
-                    CloseClientSocket(e);
-                }
+                socket.KeepAlive();
+                SslStream sslStream = new SslStream(new NetworkStream(socket), true, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
+                await sslStream.AuthenticateAsClientAsync("snltty.com");
+                IConnection connection = CreateConnection(sslStream, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
+                _ = ProcessReceive(connection, sslStream);
+
+                return connection;
             }
             catch (Exception ex)
             {
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     Logger.Instance.Error(ex);
-
-                CloseClientSocket(e);
             }
+            return null;
         }
-        private async Task<bool> ReadPacket(AsyncUserToken token, byte[] data, int offset, int length)
+        private async Task ProcessReceive(IConnection connection, SslStream sslStream)
         {
-            if (token.Connection.TcpTargetSocket != null)
+            PipeReader reader = PipeReader.Create(sslStream);
+
+            try
             {
-                if (token.DataBuffer.Size > 0)
+                while (cancellationTokenSource.IsCancellationRequested == false)
                 {
-                    await token.Connection.TcpTargetSocket.SendAsync(token.DataBuffer.Data.Slice(0, token.DataBuffer.Size), SocketFlags.None);
-                    token.DataBuffer.Clear();
+                    ReadResult readResult = await reader.ReadAsync().ConfigureAwait(false);
+                    ReadOnlySequence<byte> buffer = readResult.Buffer;
+
+                    SequencePosition end = await ReadPacket(connection, buffer).ConfigureAwait(false);
+                    reader.AdvanceTo(buffer.Start, end);
                 }
-                await token.Connection.TcpTargetSocket.SendAsync(data.AsMemory(offset, length), SocketFlags.None);
-                return true;
             }
-            else if (length == relayFLagCData.Length && data.AsSpan(offset, relayFLagCData.Length).SequenceEqual(relayFLagCData.Span))
+            catch (Exception ex)
             {
-                return false;
-            }
-            else
-            {
-                //是一个完整的包
-                if (token.DataBuffer.Size == 0 && length > 4)
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Memory<byte> memory = data.AsMemory(offset, length);
-                    int packageLen = memory.Span.ToInt32();
-                    if (packageLen == length - 4)
-                    {
-                        token.Connection.ReceiveData = data.AsMemory(offset, packageLen + 4);
-                        await OnPacket(token.Connection);
-                        return true;
-                    }
+                    Logger.Instance.Error(ex);
+                }
+            }
+            finally
+            {
+                reader.Complete();
+            }
+        }
+        private unsafe int ReaderHead(ReadOnlySequence<byte> buffer)
+        {
+            Span<byte> span = stackalloc byte[4];
+            buffer.Slice(0, 4).CopyTo(span);
+            return span.ToInt32();
+        }
+
+        private async Task<SequencePosition> ReadPacket(IConnection connection, ReadOnlySequence<byte> buffer)
+        {
+            //已中继
+            if (connection.TcpTargetSocket != null)
+            {
+                SequencePosition position = buffer.Start;
+                if (buffer.TryGet(ref position, out ReadOnlyMemory<byte> data))
+                {
+                    await connection.TcpTargetSocket.WriteAsync(data).ConfigureAwait(false);
+                    await connection.TcpTargetSocket.FlushAsync();
+                }
+                return buffer.End;
+            }
+            //中继标识
+            else if (buffer.Length == relayFLagCData.Length)
+            {
+                SequencePosition position = buffer.Start;
+                if (buffer.TryGet(ref position, out ReadOnlyMemory<byte> data) && data.Span.SequenceEqual(relayFLagCData.Span))
+                {
+                    return buffer.End;
+                }
+            }
+            //正常处理
+            while (buffer.Length > 4)
+            {
+                int length = ReaderHead(buffer);
+                if (buffer.Length < length + 4)
+                {
+                    break;
+                }
+                SequencePosition position = buffer.GetPosition(4);
+                if (buffer.TryGet(ref position, out ReadOnlyMemory<byte> memory))
+                {
+                    connection.ReceiveData = memory;
+                    await OnPacket(connection).ConfigureAwait(false);
                 }
 
-                //不是完整包
-                token.DataBuffer.AddRange(data, offset, length);
-                do
-                {
-                    int packageLen = token.DataBuffer.Data.Span.ToInt32();
-                    if (packageLen > token.DataBuffer.Size - 4)
-                    {
-                        break;
-                    }
-                    token.Connection.ReceiveData = token.DataBuffer.Data.Slice(0, packageLen + 4);
-                    await OnPacket(token.Connection);
-
-                    token.DataBuffer.RemoveRange(0, packageLen + 4);
-                } while (token.DataBuffer.Size > 4);
+                SequencePosition endPosition = buffer.GetPosition(4 + length);
+                buffer = buffer.Slice(endPosition);
             }
-            return true;
+            return buffer.Start;
         }
 
-        private void CloseClientSocket(SocketAsyncEventArgs e)
+        public IConnection CreateConnection(SslStream stream, IPEndPoint local, IPEndPoint remote)
         {
-            AsyncUserToken token = e.UserToken as AsyncUserToken;
-            if (token.Socket != null)
-            {
-                token.Clear();
-                e.Dispose();
-            }
-            if (token.Socket != null)
-                OnDisconnected?.Invoke(token.Socket.GetHashCode());
-        }
-        public IConnection CreateConnection(Socket socket)
-        {
-            return new TcpConnection(socket)
+            return new TcpConnection(stream, local, remote)
             {
                 ReceiveRequestWrap = new MessageRequestWrap(),
                 ReceiveResponseWrap = new MessageResponseWrap()

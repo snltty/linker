@@ -1,5 +1,5 @@
 <template>
-    <el-table-column prop="tuntap" label="隧道" width="110">
+    <el-table-column prop="tuntap" label="隧道" width="90">
         <template #header>
             <div class="flex">
                 <span class="flex-1">隧道</span>
@@ -9,7 +9,7 @@
         <template #default="scope">
             <div v-if="data[scope.row.MachineName]">
                 <a href="javascript:;" class="a-line" @click="handleTunnel(data[scope.row.MachineName])">
-                    <span>网关层级 : {{data[scope.row.MachineName].RouteLevel}} + {{data[scope.row.MachineName].RouteLevelPlus}}</span>
+                    <span>网关 : {{data[scope.row.MachineName].RouteLevel}} + {{data[scope.row.MachineName].RouteLevelPlus}}</span>
                 </a>
             </div> 
         </template>

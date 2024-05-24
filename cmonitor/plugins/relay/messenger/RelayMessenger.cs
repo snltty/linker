@@ -23,6 +23,13 @@ namespace cmonitor.plugins.relay.messenger
             bool res = await relayTransfer.OnBeginAsync(info);
             connection.Write(res ? Helper.TrueArray : Helper.FalseArray);
         }
+
+        [MessengerId((ushort)RelayMessengerIds.Servers)]
+        public void Servers(IConnection connection)
+        {
+            RelayCompactInfo[] servers = MemoryPackSerializer.Deserialize<RelayCompactInfo[]>(connection.ReceiveRequestWrap.Payload.Span);
+            relayTransfer.OnServers(servers);
+        }
     }
 
     public sealed class RelayServerMessenger : IMessenger
@@ -40,6 +47,26 @@ namespace cmonitor.plugins.relay.messenger
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
         }
+
+        [MessengerId((ushort)RelayMessengerIds.ServersForward)]
+        public async Task ServersForward(IConnection connection)
+        {
+            if (signCaching.Get(connection.Name, out SignCacheInfo cache))
+            {
+                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
+
+                foreach (SignCacheInfo item in caches.Where(c => c.MachineName != connection.Name && c.Connected))
+                {
+                    await messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = item.Connection,
+                        MessengerId = (ushort)RelayMessengerIds.Servers,
+                        Payload = connection.ReceiveRequestWrap.Payload
+                    });
+                }
+            }
+        }
+
 
         [MessengerId((ushort)RelayMessengerIds.RelayForward)]
         public async Task RelayForward(IConnection connection)

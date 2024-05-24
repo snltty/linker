@@ -26,8 +26,8 @@ namespace cmonitor.plugins.tunnel
 
         private uint version = 0;
         public uint ConfigVersion => version;
-        private ConcurrentDictionary<string, TunnelTransportConfigInfo> configs = new ConcurrentDictionary<string, TunnelTransportConfigInfo>();
-        public ConcurrentDictionary<string, TunnelTransportConfigInfo> Config => configs;
+        private ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> configs = new ConcurrentDictionary<string, TunnelTransportRouteLevelInfo>();
+        public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> Config => configs;
 
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
@@ -41,7 +41,7 @@ namespace cmonitor.plugins.tunnel
 
             clientSignInState.NetworkEnabledHandle += (times) =>
             {
-                GetRemoveConfigs();
+                GetRemoveRouteLevel();
             };
         }
 
@@ -57,29 +57,36 @@ namespace cmonitor.plugins.tunnel
                 item.OnConnected = _OnConnected;
             }
 
+            //拼接，再去重，因为有可能有新的
+            config.Data.Client.Tunnel.TunnelTransports = config.Data.Client.Tunnel.TunnelTransports
+                .Concat(transports.Select(c => new TunnelTransportItemInfo { Disabled = false, Label = c.Label, Name = c.Name, ProtocolType = c.ProtocolType.ToString() }))
+                .Distinct(new TunnelTransportItemInfoEqualityComparer())
+                .ToList();
+
             Logger.Instance.Warning($"load tunnel transport:{string.Join(",", transports.Select(c => c.Name))}");
+            Logger.Instance.Warning($"used tunnel transport:{string.Join(",", config.Data.Client.Tunnel.TunnelTransports.Where(c => c.Disabled == false).Select(c => c.Name))}");
         }
 
 
         public void RefreshConfig()
         {
-            GetRemoveConfigs();
+            GetRemoveRouteLevel();
         }
-        public void OnUpdate(TunnelTransportConfigInfo tunnelTransportConfigWrapInfo)
+        public void OnLocalRouteLevel(TunnelTransportRouteLevelInfo tunnelTransportConfigWrapInfo)
         {
             config.Data.Client.Tunnel.RouteLevelPlus = tunnelTransportConfigWrapInfo.RouteLevelPlus;
             config.Save();
-            GetRemoveConfigs();
+            GetRemoveRouteLevel();
         }
-        public TunnelTransportConfigInfo OnConfig(TunnelTransportConfigInfo tunnelTransportConfigWrapInfo)
+        public TunnelTransportRouteLevelInfo OnRemoteRouteLevel(TunnelTransportRouteLevelInfo tunnelTransportConfigWrapInfo)
         {
             configs.AddOrUpdate(tunnelTransportConfigWrapInfo.MachineName, tunnelTransportConfigWrapInfo, (a, b) => tunnelTransportConfigWrapInfo);
             Interlocked.Increment(ref version);
-            return GetLocalConfig();
+            return GetLocalRouteLevel();
         }
-        private void GetRemoveConfigs()
+        private void GetRemoveRouteLevel()
         {
-            TunnelTransportConfigInfo config = GetLocalConfig();
+            TunnelTransportRouteLevelInfo config = GetLocalRouteLevel();
             messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,
@@ -89,25 +96,30 @@ namespace cmonitor.plugins.tunnel
             {
                 if (result.Result.Code == MessageResponeCodes.OK)
                 {
-                    List<TunnelTransportConfigInfo> list = MemoryPackSerializer.Deserialize<List<TunnelTransportConfigInfo>>(result.Result.Data.Span);
+                    List<TunnelTransportRouteLevelInfo> list = MemoryPackSerializer.Deserialize<List<TunnelTransportRouteLevelInfo>>(result.Result.Data.Span);
                     foreach (var item in list)
                     {
                         configs.AddOrUpdate(item.MachineName, item, (a, b) => item);
                     }
-                    TunnelTransportConfigInfo config = GetLocalConfig();
+                    TunnelTransportRouteLevelInfo config = GetLocalRouteLevel();
                     configs.AddOrUpdate(config.MachineName, config, (a, b) => config);
                     Interlocked.Increment(ref version);
                 }
             });
         }
-        private TunnelTransportConfigInfo GetLocalConfig()
+        private TunnelTransportRouteLevelInfo GetLocalRouteLevel()
         {
-            return new TunnelTransportConfigInfo
+            return new TunnelTransportRouteLevelInfo
             {
                 MachineName = config.Data.Client.Name,
                 RouteLevel = config.Data.Client.Tunnel.RouteLevel,
                 RouteLevelPlus = config.Data.Client.Tunnel.RouteLevelPlus
             };
+        }
+        public void OnTransports(List<TunnelTransportItemInfo> transports)
+        {
+            config.Data.Client.Tunnel.TunnelTransports = transports;
+            config.Save();
         }
 
 
@@ -131,9 +143,10 @@ namespace cmonitor.plugins.tunnel
 
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineName, string transactionId)
         {
-            IEnumerable<ITunnelTransport> _transports = transports.OrderBy(c => c.ProtocolType);
-            foreach (ITunnelTransport transport in _transports)
+            foreach (TunnelTransportItemInfo transportItem in config.Data.Client.Tunnel.TunnelTransports.Where(c => c.Disabled == false))
             {
+                ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == transportItem.Name);
+                if (transport == null) continue;
                 /*
                  * 我们不能连续获取端口，在正向连接失败后再尝试反向
                  * 
@@ -218,13 +231,13 @@ namespace cmonitor.plugins.tunnel
 
         private async Task<TunnelTransportExternalIPInfo> GetLocalInfo()
         {
-            TunnelCompactIPEndPoint[] ips = await compactTransfer.GetExternalIPAsync();
-            if (ips != null && ips.Length > 0)
+            TunnelCompactIPEndPoint ip = await compactTransfer.GetExternalIPAsync();
+            if (ip != null)
             {
                 return new TunnelTransportExternalIPInfo
                 {
-                    Local = ips[0].Local,
-                    Remote = ips[0].Remote,
+                    Local = ip.Local,
+                    Remote = ip.Remote,
                     LocalIps = config.Data.Client.Tunnel.LocalIPs,
                     RouteLevel = config.Data.Client.Tunnel.RouteLevel + config.Data.Client.Tunnel.RouteLevelPlus,
                     MachineName = config.Data.Client.Name

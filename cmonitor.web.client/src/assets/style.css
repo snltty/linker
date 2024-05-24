@@ -84,12 +84,20 @@ a.a-line {
     padding-left: .6rem;
 }
 
+.pdb-6 {
+    padding-bottom: .6rem;
+}
+
 .pdl-10 {
     padding-left: 1rem;
 }
 
 .pdt-10 {
     padding-top: 1rem;
+}
+
+.pdr-10 {
+    padding-right: 1rem;
 }
 
 .m-r-1 {

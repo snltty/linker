@@ -1,6 +1,11 @@
 <template>
-    <div>将按顺序通过所有主机获取外网端口，如何使用，交由打洞决定，默认打洞仅使用第一个</div>
-    <el-table :data="state.list" border size="small" width="100%" height="300" @cell-dblclick="handleCellClick">
+    <div class="flex">
+        <div class="pdr-10 pdb-6 flex-1">
+            <el-checkbox v-model="state.sync" label="将更改同步到所有客户端"  />
+        </div>
+        <div>将按顺序获取IP，直到其中一个成功获取，连接不同地域的服务器可能会走不同线路</div>
+    </div>
+    <el-table :data="state.list" border size="small" width="100%" :height="`${state.height}px`" @cell-dblclick="handleCellClick">
         <el-table-column prop="Name" label="名称">
             <template #default="scope">
                 <template v-if="scope.row.NameEditing">
@@ -65,21 +70,17 @@
     </el-table>
 </template>
 <script>
-import { updateTunnelSetServers,getTunnelTypes } from '@/apis/tunnel';
+import { setTunnelServers,getTunnelTypes } from '@/apis/tunnel';
 import { injectGlobalData } from '@/provide';
 import { computed, onMounted, reactive } from 'vue'
 export default {
-    props:{
-        data:{
-            type:Array,
-            default:[]
-        }
-    },
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({
-            list:props.data.sort((a,b)=>a.Disabled - b.Disabled),
-            types:[]
+            list:((globalData.value.config.Client.Tunnel || {Servers:[]}).Servers || []).sort((a,b)=>a.Disabled - b.Disabled),
+            types:[],
+            height: computed(()=>globalData.value.height-130),
+            sync:true
         });
 
         const _getTunnelTypes = ()=>{
@@ -126,10 +127,13 @@ export default {
             }
             handleSave(state.list);
         }
-        
+     
         const handleSave = ()=>{
             state.list = state.list.slice().sort((a,b)=>a.Disabled - b.Disabled);
-            updateTunnelSetServers(state.list);
+            setTunnelServers({
+                sync:state.sync,
+                list:state.list
+            });
         }
 
         onMounted(()=>{

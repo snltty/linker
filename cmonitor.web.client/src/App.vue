@@ -2,7 +2,7 @@
     <div>
         <div class="app-wrap flex flex-column flex-nowrap">
             <div class="head"><Head></Head></div>
-            <div class="body flex-1 relative">
+            <div class="body flex-1 relative" ref="wrap">
                 <router-view/>
             </div>
             <div class="status">
@@ -12,13 +12,29 @@
     </div>
 </template>
 <script>
+import { nextTick, onMounted, onUnmounted, ref } from 'vue';
 import Head from './components/Head.vue'
 import Status from './components/status/Index.vue'
 import { provideGlobalData } from './provide';
 export default{
     components:{Head,Status},
     setup(props) {
-        provideGlobalData();
+       const globalData = provideGlobalData();
+
+        const wrap = ref(null);
+        const resizeTable = () => {
+            nextTick(() => {
+                globalData.value.height = wrap.value.offsetHeight;
+            });
+        }
+        onMounted(()=>{
+            window.addEventListener('resize', resizeTable);
+            resizeTable();
+        });
+        onUnmounted(()=>{
+            window.removeEventListener('resize', resizeTable);
+        });
+        return {wrap};
     }
 }
 </script>

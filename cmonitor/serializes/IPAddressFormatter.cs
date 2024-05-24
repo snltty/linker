@@ -18,6 +18,7 @@ namespace cmonitor.serializes
             Span<byte> span = memory.Span;
 
             value.TryWriteBytes(span.Slice(1), out int bytesWritten);
+
             span[0] = (byte)bytesWritten;
 
             writer.WriteCollectionHeader(bytesWritten + 4);

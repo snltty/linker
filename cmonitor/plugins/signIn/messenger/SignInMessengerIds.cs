@@ -6,10 +6,11 @@
         List = 1,
         Delete = 2,
 
-        Update = 3,
+        Name = 3,
+        NameForward = 4,
 
-        UpdateName = 4,
-        UpdateNameForward = 5,
+        Servers = 5,
+        ServersForward = 6,
 
         None = 99
     }

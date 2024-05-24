@@ -37,6 +37,12 @@ namespace cmonitor.plugins.relay
             return transports.Select(c => new RelayCompactTypeInfo { Value = c.Type, Name = c.Type.ToString() }).Distinct(new RelayCompactTypeInfoEqualityComparer()).ToList();
         }
 
+        public void OnServers(RelayCompactInfo[] servers)
+        {
+            config.Data.Client.Relay.Servers = servers;
+            config.Save();
+        }
+
         public void SetConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
         {
             if (OnConnected.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks) == false)

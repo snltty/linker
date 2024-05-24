@@ -3,23 +3,23 @@ import { sendWebsocketMsg } from './request'
 export const getConfig = () => {
     return sendWebsocketMsg('signInclient/config');
 }
-export const updateConfigSet = (data) => {
+export const setSignIn = (data) => {
     return sendWebsocketMsg('signInclient/set', data);
 }
-export const updateConfigSetServers = (servers) => {
+export const setSignInServers = (servers) => {
     return sendWebsocketMsg('signInclient/setservers', servers);
 }
 
 export const getSignInfo = () => {
     return sendWebsocketMsg('signInclient/info');
 }
-export const getSignList = (data) => {
+export const getSignInList = (data) => {
     return sendWebsocketMsg('signInclient/List', data);
 }
-export const updateSignInDel = (machineName) => {
+export const signInDel = (machineName) => {
     return sendWebsocketMsg('signInclient/del', machineName);
 }
 
-export const updateConfigName = (data) => {
-    return sendWebsocketMsg('signInclient/updatename', data);
+export const setSignInName = (data) => {
+    return sendWebsocketMsg('signInclient/setname', data);
 }

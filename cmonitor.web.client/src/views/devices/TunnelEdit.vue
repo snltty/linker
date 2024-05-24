@@ -34,7 +34,7 @@
     </el-dialog>
 </template>
 <script>
-import {updateTunnel } from '@/apis/tunnel';
+import {setTunnelRouteLevel } from '@/apis/tunnel';
 import { ElMessage } from 'element-plus';
 import { reactive, ref, watch } from 'vue';
 
@@ -63,7 +63,7 @@ export default {
             const json = JSON.parse(JSON.stringify(props.data));
             json.RouteLevel = +state.ruleForm.RouteLevel;
             json.RouteLevelPlus = +state.ruleForm.RouteLevelPlus;
-            updateTunnel(json).then(() => {
+            setTunnelRouteLevel(json).then(() => {
                 state.show = false;
                 ElMessage.success('已操作！');
                 emit('change')

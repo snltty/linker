@@ -11,6 +11,7 @@ namespace cmonitor.plugins.tunnel.transport
     public sealed class TunnelTransportTcpNutssb : ITunnelTransport
     {
         public string Name => "TcpNutssb";
+        public string Label => "基于低TTL的TCP打洞";
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Tcp;
 
         public Func<TunnelTransportInfo, Task<bool>> OnSendConnectBegin { get; set; } = async (info) => { return await Task.FromResult<bool>(false); };
@@ -18,7 +19,7 @@ namespace cmonitor.plugins.tunnel.transport
         public Func<TunnelTransportInfo, Task> OnSendConnectSuccess { get; set; } = async (info) => { await Task.CompletedTask; };
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
 
-
+        
 
         private readonly TunnelBindServer tunnelBindServer;
         public TunnelTransportTcpNutssb(TunnelBindServer tunnelBindServer)

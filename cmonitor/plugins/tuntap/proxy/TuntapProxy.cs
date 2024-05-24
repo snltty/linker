@@ -115,7 +115,7 @@ namespace cmonitor.plugins.tuntap.proxy
             token.Proxy.Data = Socks5Parser.GetUdpData(token.Proxy.Data);
             token.Connection = await ConnectTunnel(ipArray);
         }
-        protected override async Task<bool> ConnectionReceiveUdp(AsyncUserToken token, AsyncUserUdpToken asyncUserUdpToken)
+        protected override async Task<bool> ConnectionReceiveUdp(AsyncUserTunnelToken token, AsyncUserUdpToken asyncUserUdpToken)
         {
             byte[] data = Socks5Parser.MakeUdpResponse(token.Proxy.TargetEP, token.Proxy.Data, out int length);
             try
@@ -124,7 +124,6 @@ namespace cmonitor.plugins.tuntap.proxy
             }
             catch (Exception)
             {
-                throw;
             }
             finally
             {
@@ -149,7 +148,7 @@ namespace cmonitor.plugins.tuntap.proxy
             }
 
             await slimGlobal.WaitAsync();
-            if (dicLocks.TryGetValue(targetName,out SemaphoreSlim slim) == false)
+            if (dicLocks.TryGetValue(targetName, out SemaphoreSlim slim) == false)
             {
                 slim = new SemaphoreSlim(1);
                 dicLocks.TryAdd(targetName, slim);

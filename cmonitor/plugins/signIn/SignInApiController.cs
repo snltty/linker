@@ -58,33 +58,24 @@ namespace cmonitor.plugins.signin
         }
         public void Set(ApiControllerParamsInfo param)
         {
-            string name = config.Data.Client.Name;
-            string gid = config.Data.Client.GroupId;
-
             ConfigSetInfo info = param.Content.DeJson<ConfigSetInfo>();
-            config.Data.Client.Name = info.Name;
-            config.Data.Client.GroupId = info.GroupId;
-            config.Save();
-
-            if (name != config.Data.Client.Name || gid != config.Data.Client.GroupId)
-            {
-                clientSignInTransfer.SignOut();
-                _ = clientSignInTransfer.SignIn();
-            }
+            clientSignInTransfer.UpdateName(info.Name, info.GroupId);
         }
-        public bool SetServers(ApiControllerParamsInfo param)
+        public async Task<bool> SetServers(ApiControllerParamsInfo param)
         {
-            string server = config.Data.Client.Server;
+            ConfigSetServersInfo configUpdateServersInfo = param.Content.DeJson<ConfigSetServersInfo>();
 
-            config.Data.Client.Servers = param.Content.DeJson<ClientServerInfo[]>();
-            config.Save();
 
-            if (server != config.Data.Client.Server)
+            clientSignInTransfer.UpdateServers(configUpdateServersInfo.List);
+            if(configUpdateServersInfo.Sync)
             {
-                clientSignInTransfer.SignOut();
-                _ = clientSignInTransfer.SignIn();
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = clientSignInState.Connection,
+                    MessengerId = (ushort)SignInMessengerIds.ServersForward,
+                    Payload = MemoryPackSerializer.Serialize(configUpdateServersInfo.List)
+                });
             }
-
             return true;
         }
 
@@ -118,31 +109,33 @@ namespace cmonitor.plugins.signin
         }
 
 
-        public async Task<bool> UpdateName(ApiControllerParamsInfo param)
+        public async Task<bool> SetName(ApiControllerParamsInfo param)
         {
-            ConfigUpdateNameInfo info = param.Content.DeJson<ConfigUpdateNameInfo>();
+            ConfigSetNameInfo info = param.Content.DeJson<ConfigSetNameInfo>();
 
 
             await messengerSender.SendOnly(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,
-                MessengerId = (ushort)SignInMessengerIds.UpdateNameForward,
+                MessengerId = (ushort)SignInMessengerIds.NameForward,
                 Payload = MemoryPackSerializer.Serialize(info)
             });
-
             if (info.OldName == config.Data.Client.Name)
             {
-                config.Data.Client.Name = info.NewName;
-                config.Save();
-                clientSignInTransfer.SignOut();
-                _ = clientSignInTransfer.SignIn();
+                clientSignInTransfer.UpdateName(info.NewName);
             }
             return true;
         }
     }
 
+    public sealed partial class ConfigSetServersInfo
+    {
+        public bool Sync { get; set; }
+        public ClientServerInfo[] List { get; set; } = Array.Empty<ClientServerInfo>();
+    }
+
     [MemoryPackable]
-    public sealed partial class ConfigUpdateNameInfo
+    public sealed partial class ConfigSetNameInfo
     {
         public string OldName { get; set; }
         public string NewName { get; set; }

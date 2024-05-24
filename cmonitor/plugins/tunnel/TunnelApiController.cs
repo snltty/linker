@@ -54,27 +54,39 @@ namespace cmonitor.plugins.tunnel
             return compactTransfer.GetTypes();
         }
 
-        public bool SetServers(ApiControllerParamsInfo param)
+        public async Task<bool> SetServers(ApiControllerParamsInfo param)
         {
-            config.Data.Client.Tunnel.Servers = param.Content.DeJson<TunnelCompactInfo[]>();
-            config.Save();
+            SetServersParamInfo info = param.Content.DeJson<SetServersParamInfo>();
+
+            compactTransfer.OnServers(info.List);
+            if (info.Sync)
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = clientSignInState.Connection,
+                    MessengerId = (ushort)TunnelMessengerIds.ServersForward,
+                    Payload = MemoryPackSerializer.Serialize(info.List)
+                });
+            }
+
             return true;
+
         }
 
-        public async Task<bool> SetConfig(ApiControllerParamsInfo param)
+        public async Task<bool> SetRouteLevel(ApiControllerParamsInfo param)
         {
-            TunnelTransportConfigInfo tunnelTransportConfigWrapInfo = param.Content.DeJson<TunnelTransportConfigInfo>();
+            TunnelTransportRouteLevelInfo tunnelTransportConfigWrapInfo = param.Content.DeJson<TunnelTransportRouteLevelInfo>();
 
             if (tunnelTransportConfigWrapInfo.MachineName == config.Data.Client.Name)
             {
-                tunnelTransfer.OnUpdate(tunnelTransportConfigWrapInfo);
+                tunnelTransfer.OnLocalRouteLevel(tunnelTransportConfigWrapInfo);
             }
             else
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = clientSignInState.Connection,
-                    MessengerId = (ushort)TunnelMessengerIds.UpdateForward,
+                    MessengerId = (ushort)TunnelMessengerIds.RouteLevelForward,
                     Payload = MemoryPackSerializer.Serialize(tunnelTransportConfigWrapInfo)
                 });
             }
@@ -82,10 +94,41 @@ namespace cmonitor.plugins.tunnel
             return true;
         }
 
+        public List<TunnelTransportItemInfo> GetTransports(ApiControllerParamsInfo param)
+        {
+            return config.Data.Client.Tunnel.TunnelTransports;
+        }
+        public async Task SetTransports(ApiControllerParamsInfo param)
+        {
+            SetTransportsParamInfo info = param.Content.DeJson<SetTransportsParamInfo>();
+            tunnelTransfer.OnTransports(info.List);
+            if (info.Sync)
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = clientSignInState.Connection,
+                    MessengerId = (ushort)TunnelMessengerIds.TransportForward,
+                    Payload = MemoryPackSerializer.Serialize(info.List)
+                });
+            }
+        }
+
         public sealed class TunnelListInfo
         {
-            public ConcurrentDictionary<string, TunnelTransportConfigInfo> List { get; set; }
+            public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> List { get; set; }
             public uint HashCode { get; set; }
+        }
+
+        public sealed class SetServersParamInfo
+        {
+            public bool Sync { get; set; }
+            public TunnelCompactInfo[] List { get; set; } = Array.Empty<TunnelCompactInfo>();
+        }
+
+        public sealed class SetTransportsParamInfo
+        {
+            public bool Sync { get; set; }
+            public List<TunnelTransportItemInfo> List { get; set; } = new List<TunnelTransportItemInfo>();
         }
     }
 

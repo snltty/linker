@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using MemoryPack;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace cmonitor.config
@@ -22,7 +23,8 @@ namespace cmonitor.config
         public string SecretKey { get; set; } = "snltty";
     }
 
-    public sealed class RelayCompactInfo
+    [MemoryPackable]
+    public sealed partial class RelayCompactInfo
     {
         public string Name { get; set; } = string.Empty;
         public RelayCompactType Type { get; set; } = RelayCompactType.Self;

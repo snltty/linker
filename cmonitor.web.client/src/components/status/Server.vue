@@ -1,35 +1,18 @@
 <template>
     <div class="status-server-wrap" :class="{connected:state.connected}">
-        <a href="javascript:;" @click="handleConfig">服务器 {{state.server}}</a>
-        <span class="num">{{state.serverLength}}</span>
+        <a href="javascript:;" @click="handleConfig">
+            <template v-if="state.connected">已连接信标服务器</template>
+            <template v-else>请连接信标服务器</template>
+        </a>
     </div>
-    <el-dialog v-model="state.show" title="登入设置" width="700">
+    <el-dialog v-model="state.show" title="连接设置" width="300">
         <div>
             <el-form :model="state.form" :rules="state.rules" label-width="6rem">
-                <el-form-item label=""  label-width="0">
-                    <el-col :span="12">
-                        <el-form-item label="机器名" prop="name">
-                            <el-input v-model="state.form.name" maxlength="12" show-word-limit />
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="分组名" prop="groupid">
-                            <el-input v-model="state.form.groupid" maxlength="32" show-word-limit />
-                        </el-form-item>
-                    </el-col>
+                <el-form-item label="机器名" prop="name">
+                    <el-input v-model="state.form.name" maxlength="12" show-word-limit />
                 </el-form-item>
-                <el-form-item label-width="0">
-                    <el-tabs type="border-card" style="width:100%" v-model="state.tab">
-                        <el-tab-pane label="登入服务器" name="login">
-                            <Servers :data="state.servers"></Servers>
-                        </el-tab-pane>
-                        <el-tab-pane label="中继服务器" name="relay">
-                            <RelayServers :data="state.relayServers"></RelayServers>
-                        </el-tab-pane>
-                        <el-tab-pane label="公网端口服务器" name="hole">
-                            <TunnelServers :data="state.holeServers"></TunnelServers>
-                        </el-tab-pane>
-                    </el-tabs>
+                <el-form-item label="分组名" prop="groupid">
+                    <el-input v-model="state.form.groupid" maxlength="36" show-word-limit />
                 </el-form-item>
             </el-form>
         </div>
@@ -44,15 +27,11 @@
     
 </template>
 <script>
-import { updateConfigSet, updateConfigSetServers } from '@/apis/signin';
+import { setSignIn } from '@/apis/signin';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { computed, reactive } from 'vue';
-import Servers from './Servers.vue'
-import RelayServers from './RelayServers.vue'
-import TunnelServers from './TunnelServers.vue'
 export default {
-    components:{Servers,RelayServers,TunnelServers},
     setup(props) {
         
         const globalData = injectGlobalData();
@@ -69,12 +48,6 @@ export default {
                 groupid:globalData.value.config.Client.GroupId,
             },
             rules:{},
-
-            tab:'login',
-            servers:computed(()=>globalData.value.config.Client.Servers || []),
-            relayServers:computed(()=>(globalData.value.config.Client.Relay || {Servers:[]}).Servers || []),
-            holeServers:computed(()=>(globalData.value.config.Client.Tunnel || {Servers:[]}).Servers || []),
-
         });
 
         const handleConfig = ()=>{
@@ -84,7 +57,7 @@ export default {
         }
         const handleSave = ()=>{
             state.loading = true;
-            updateConfigSet(state.form).then(()=>{
+            setSignIn(state.form).then(()=>{
                 state.loading = false;
                 state.show = false;
                 ElMessage.success('已操作');
@@ -110,7 +83,6 @@ export default {
 
     &.connected {
        a{color:green;font-weight:bold;}
-       span{background-color:green;color:#fff;}
     }  
 }
 

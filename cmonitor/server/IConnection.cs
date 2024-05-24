@@ -2,6 +2,7 @@
 using common.libs.extends;
 using System.Buffers;
 using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
 
 namespace cmonitor.server
@@ -21,8 +22,8 @@ namespace cmonitor.server
         public IPEndPoint Address { get; }
         public IPEndPoint LocalAddress { get; }
 
-        public Socket TcpSourceSocket { get; }
-        public Socket TcpTargetSocket { get; set; }
+        public SslStream TcpSourceSocket { get; }
+        public SslStream TcpTargetSocket { get; set; }
 
         #region 接收数据
         /// <summary>
@@ -36,7 +37,7 @@ namespace cmonitor.server
         /// <summary>
         /// 接收到的原始数据
         /// </summary>
-        public Memory<byte> ReceiveData { get; set; }
+        public ReadOnlyMemory<byte> ReceiveData { get; set; }
         #endregion
 
         /// <summary>
@@ -100,8 +101,8 @@ namespace cmonitor.server
         public IPEndPoint Address { get; protected set; }
         public IPEndPoint LocalAddress { get; protected set; }
 
-        public Socket TcpSourceSocket { get; protected set; }
-        public Socket TcpTargetSocket { get; set; }
+        public SslStream TcpSourceSocket { get; protected set; }
+        public SslStream TcpTargetSocket { get; set; }
         public bool Relayed { get; set; }
 
         #region 接收数据
@@ -116,7 +117,7 @@ namespace cmonitor.server
         /// <summary>
         /// 接收数据
         /// </summary>
-        public Memory<byte> ReceiveData { get; set; }
+        public ReadOnlyMemory<byte> ReceiveData { get; set; }
         #endregion
 
         #region 回复数据
@@ -222,29 +223,27 @@ namespace cmonitor.server
 
     public sealed class TcpConnection : Connection
     {
-        public TcpConnection(Socket tcpSocket) : base()
+        public TcpConnection(SslStream stream,IPEndPoint local, IPEndPoint remote) : base()
         {
-            TcpSourceSocket = tcpSocket;
+            TcpSourceSocket = stream;
 
-            IPEndPoint address = TcpSourceSocket.RemoteEndPoint as IPEndPoint ?? new IPEndPoint(IPAddress.Any, 0);
-            if (address.Address.AddressFamily == AddressFamily.InterNetworkV6 && address.Address.IsIPv4MappedToIPv6)
+            if (remote.Address.AddressFamily == AddressFamily.InterNetworkV6 && remote.Address.IsIPv4MappedToIPv6)
             {
-                address = new IPEndPoint(new IPAddress(address.Address.GetAddressBytes()[^4..]), address.Port);
+                remote = new IPEndPoint(new IPAddress(remote.Address.GetAddressBytes()[^4..]), remote.Port);
             }
-            Address = address;
+            Address = remote;
 
-            IPEndPoint localaddress = TcpSourceSocket.LocalEndPoint as IPEndPoint ?? new IPEndPoint(IPAddress.Any, 0);
-            if (localaddress.Address.AddressFamily == AddressFamily.InterNetworkV6 && localaddress.Address.IsIPv4MappedToIPv6)
+            if (local.Address.AddressFamily == AddressFamily.InterNetworkV6 && local.Address.IsIPv4MappedToIPv6)
             {
-                localaddress = new IPEndPoint(new IPAddress(localaddress.Address.GetAddressBytes()[^4..]), localaddress.Port);
+                local = new IPEndPoint(new IPAddress(local.Address.GetAddressBytes()[^4..]), local.Port);
             }
-            LocalAddress = localaddress;
+            LocalAddress = local;
         }
 
         /// <summary>
         /// 已连接
         /// </summary>
-        public override bool Connected => TcpSourceSocket != null && TcpSourceSocket.Connected;
+        public override bool Connected => TcpSourceSocket != null && TcpSourceSocket.CanWrite;
 
         /// <summary>
         /// 发送
@@ -257,7 +256,8 @@ namespace cmonitor.server
             {
                 try
                 {
-                    await TcpSourceSocket.SendAsync(data, SocketFlags.None);
+                    await TcpSourceSocket.WriteAsync(data);
+                    await TcpSourceSocket.FlushAsync();
                     //SentBytes += (ulong)data.Length;
                     return true;
                 }
@@ -286,13 +286,19 @@ namespace cmonitor.server
         public override void Disponse()
         {
             base.Disponse();
-            if (TcpSourceSocket != null)
+            try
             {
-                TcpSourceSocket.SafeClose();
-                TcpSourceSocket.Dispose();
+                if (TcpSourceSocket != null)
+                {
+                    TcpSourceSocket.ShutdownAsync();
+                    TcpSourceSocket.Dispose();
 
-                TcpTargetSocket?.SafeClose();
-                TcpTargetSocket?.Dispose();
+                    TcpTargetSocket?.ShutdownAsync();
+                    TcpTargetSocket?.Dispose();
+                }
+            }
+            catch (Exception)
+            {
             }
         }
     }

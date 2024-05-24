@@ -1,6 +1,11 @@
 <template>
-    <div>使用其中一条作为主机</div>
-    <el-table :data="state.list" border size="small" width="100%" height="300" @cell-dblclick="handleCellClick">
+    <div class="flex">
+        <div class="pdr-10 pdb-6 flex-1">
+            <el-checkbox v-model="state.sync" label="将更改同步到所有客户端"  />
+        </div>
+        <div>使用其中一条作为信标服务器</div>
+    </div>
+    <el-table :data="state.list" border size="small" width="100%" :height="`${state.height}px`" @cell-dblclick="handleCellClick">
         <el-table-column prop="Name" label="名称">
             <template #default="scope">
                 <template v-if="scope.row.NameEditing">
@@ -47,21 +52,18 @@
     </el-table>
 </template>
 <script>
-import { updateConfigSetServers } from '@/apis/signin';
+import { setSignInServers } from '@/apis/signin';
 import { injectGlobalData } from '@/provide';
+import { ElMessage } from 'element-plus';
 import { computed, reactive } from 'vue'
 export default {
-    props:{
-        data:{
-            type:Array,
-            default:[]
-        }
-    },
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({
-            list:props.data,
-            server:computed(()=>globalData.value.config.Client.Server)
+            list:globalData.value.config.Client.Servers || [],
+            server:computed(()=>globalData.value.config.Client.Server),
+            height: computed(()=>globalData.value.height-130),
+            sync:true,
         });
 
         const handleCellClick = (row, column) => {
@@ -96,8 +98,12 @@ export default {
             state.list[0] = temp;
             handleSave();
         }
+
         const handleSave = ()=>{
-            updateConfigSetServers(state.list);
+            setSignInServers({
+                sync:state.sync,
+                list:state.list
+            });
         }
 
         return {state,handleCellClick,handleEditBlur,handleDel,handleAdd,handleUse}

@@ -31,7 +31,7 @@
 
 <script>
 import { ref, reactive } from "@vue/reactivity";
-import { getLoggerConfig, updateLoggerConfig } from "@/apis/logger";
+import { getLoggerConfig, setLoggerConfig } from "@/apis/logger";
 import { onMounted } from "@vue/runtime-core";
 import { ElMessage } from 'element-plus';
 import {subWebsocketState} from '@/apis/request.js'
@@ -87,7 +87,7 @@ export default {
                     }
                     state.loading = true;
                     const _json = getJson();
-                    updateLoggerConfig(_json).then((res) => {
+                    setLoggerConfig(_json).then((res) => {
                         state.loading = false;
                         resolve();
                         if (res) {

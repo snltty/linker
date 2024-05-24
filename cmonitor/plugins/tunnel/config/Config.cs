@@ -1,5 +1,5 @@
 ﻿using cmonitor.plugins.tunnel.compact;
-using MemoryPack;
+using cmonitor.plugins.tunnel.transport;
 using System.Net;
 using System.Text.Json.Serialization;
 
@@ -14,6 +14,8 @@ namespace cmonitor.config
         public TunnelCompactInfo[] Servers { get; set; } = Array.Empty<TunnelCompactInfo>();
         public int RouteLevelPlus { get; set; } = 0;
 
+        public List<TunnelTransportItemInfo> TunnelTransports { get; set; } = new List<TunnelTransportItemInfo>();
+
         [JsonIgnore]
         public int RouteLevel { get; set; }
 
@@ -21,6 +23,6 @@ namespace cmonitor.config
         public IPAddress[] LocalIPs { get; set; }
     }
 
-    
+
 
 }

@@ -1,6 +1,4 @@
-﻿using System.Threading;
-
-namespace common.libs
+﻿namespace common.libs
 {
     public static class BooleanHelper
     {

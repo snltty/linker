@@ -123,4 +123,9 @@
 		<TrimmerRootAssembly Include="SharpDX" />
 		
 	</ItemGroup>
+	<ItemGroup>
+	  <None Update="snltty.pfx">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
 </Project>

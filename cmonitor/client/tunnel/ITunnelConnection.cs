@@ -1,6 +1,7 @@
 ﻿using common.libs;
 using common.libs.extends;
 using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Text.Json.Serialization;
 
@@ -11,8 +12,9 @@ namespace cmonitor.client.tunnel
 
     public enum TunnelProtocolType : byte
     {
-        Tcp = ProtocolType.Tcp,
-        Udp = ProtocolType.Udp,
+        Tcp = 1,
+        Udp = 2,
+        Quic = 4,
     }
     public enum TunnelType : byte
     {

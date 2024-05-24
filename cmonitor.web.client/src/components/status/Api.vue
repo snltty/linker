@@ -1,7 +1,9 @@
 <template>
     <div class="status-api-wrap" :class="{connected:connected}">
-        <a href="javascript:;" @click="handleResetConnect">管理接口</a>
-        <span class="num">1</span>
+        <a href="javascript:;" @click="handleResetConnect">
+            <template v-if="connected">已连接本地管理接口</template>
+            <template v-else>请连接管理接口</template>
+        </a>
     </div>
 </template>
 <script>

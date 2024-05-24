@@ -32,11 +32,14 @@ namespace cmonitor.plugins.tunnel.compact
             return compacts.Select(c => new TunnelCompactTypeInfo { Value = c.Type, Name = c.Type.ToString() }).Distinct(new TunnelCompactTypeInfoEqualityComparer()).ToList();
         }
 
-
-        public async Task<TunnelCompactIPEndPoint[]> GetExternalIPAsync()
+        public void OnServers(TunnelCompactInfo[] servers)
         {
-            TunnelCompactIPEndPoint[] endpoints = new TunnelCompactIPEndPoint[config.Data.Client.Tunnel.Servers.Length];
+            config.Data.Client.Tunnel.Servers = servers;
+            config.Save();
+        }
 
+        public async Task<TunnelCompactIPEndPoint> GetExternalIPAsync()
+        {
             for (int i = 0; i < config.Data.Client.Tunnel.Servers.Length; i++)
             {
                 TunnelCompactInfo item = config.Data.Client.Tunnel.Servers[i];
@@ -55,15 +58,14 @@ namespace cmonitor.plugins.tunnel.compact
                         Logger.Instance.Warning($"get domain ip time:{sw.ElapsedMilliseconds}ms");
                     }
                     TunnelCompactIPEndPoint externalIP = await compact.GetExternalIPAsync(server);
-                    endpoints[i] = externalIP;
+                    if (externalIP != null) return externalIP;
                 }
                 catch (Exception ex)
                 {
                     Logger.Instance.Error(ex);
                 }
             }
-
-            return endpoints.Where(c => c != null && c.Remote != null).ToArray();
+            return null;
         }
     }
 }

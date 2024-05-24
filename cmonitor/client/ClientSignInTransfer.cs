@@ -27,11 +27,6 @@ namespace cmonitor.client
             this.signInArgsTransfer = signInArgsTransfer;
 
             SignInTask();
-            tcpServer.OnDisconnected += (hashcode) =>
-            {
-                Logger.Instance.Info($"client disconnected");
-                clientSignInState.PushNetworkDisabled();
-            };
         }
 
         private void SignInTask()
@@ -101,6 +96,43 @@ namespace cmonitor.client
                 clientSignInState.Connection.Disponse();
         }
 
+        public void UpdateName(string newName)
+        {
+            config.Data.Client.Name = newName;
+            config.Save();
+
+            SignOut();
+            _ = SignIn();
+        }
+        public void UpdateName(string newName, string newGroupid)
+        {
+            string name = config.Data.Client.Name;
+            string gid = config.Data.Client.GroupId;
+
+            config.Data.Client.Name = newName;
+            config.Data.Client.GroupId = newGroupid;
+            config.Save();
+
+            if (name != config.Data.Client.Name || gid != config.Data.Client.GroupId)
+            {
+                SignOut();
+                _ = SignIn();
+            }
+        }
+        public void UpdateServers(ClientServerInfo[] servers)
+        {
+            string server = config.Data.Client.Server;
+
+            config.Data.Client.Servers = servers;
+            config.Save();
+
+            if (server != config.Data.Client.Server)
+            {
+                SignOut();
+                _ = SignIn();
+            }
+        }
+
         private async Task<bool> ConnectServer(IPEndPoint remote)
         {
             Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -112,7 +144,7 @@ namespace cmonitor.client
                 socket.SafeClose();
                 return false;
             }
-            clientSignInState.Connection = tcpServer.BindReceive(socket);
+            clientSignInState.Connection = await tcpServer.BindReceive(socket);
             return true;
         }
         private async Task<bool> SignIn2Server()

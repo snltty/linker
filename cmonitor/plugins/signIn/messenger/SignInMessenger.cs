@@ -2,7 +2,6 @@
 using cmonitor.config;
 using cmonitor.server;
 using common.libs;
-using common.libs.extends;
 using MemoryPack;
 
 namespace cmonitor.plugins.signin.messenger
@@ -17,21 +16,18 @@ namespace cmonitor.plugins.signin.messenger
             this.clientSignInTransfer = clientSignInTransfer;
         }
 
-        [MessengerId((ushort)SignInMessengerIds.Update)]
-        public void Update(IConnection connection)
+        [MessengerId((ushort)SignInMessengerIds.Name)]
+        public void Name(IConnection connection)
         {
-
+            ConfigSetNameInfo info = MemoryPackSerializer.Deserialize<ConfigSetNameInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            clientSignInTransfer.UpdateName(info.NewName);
         }
 
-        [MessengerId((ushort)SignInMessengerIds.UpdateName)]
-        public void UpdateName(IConnection connection)
+        [MessengerId((ushort)SignInMessengerIds.Servers)]
+        public void Servers(IConnection connection)
         {
-            ConfigUpdateNameInfo info = MemoryPackSerializer.Deserialize<ConfigUpdateNameInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            config.Data.Client.Name = info.NewName;
-            config.Save();
-
-            clientSignInTransfer.SignOut();
-            _ = clientSignInTransfer.SignIn();
+            ClientServerInfo[] servers = MemoryPackSerializer.Deserialize<ClientServerInfo[]>(connection.ReceiveRequestWrap.Payload.Span);
+            clientSignInTransfer.UpdateServers(servers);
         }
     }
 
@@ -91,22 +87,44 @@ namespace cmonitor.plugins.signin.messenger
             }
         }
 
-        [MessengerId((ushort)SignInMessengerIds.UpdateNameForward)]
-        public async Task UpdateNameForward(IConnection connection)
+        [MessengerId((ushort)SignInMessengerIds.NameForward)]
+        public async Task NameForward(IConnection connection)
         {
-            ConfigUpdateNameInfo info = MemoryPackSerializer.Deserialize<ConfigUpdateNameInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            ConfigSetNameInfo info = MemoryPackSerializer.Deserialize<ConfigSetNameInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.Get(info.OldName, out SignCacheInfo cache) && signCaching.Get(connection.Name, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
-                if(info.OldName != connection.Name)
+                if (info.OldName != connection.Name)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
                         Connection = cache.Connection,
-                        MessengerId = (ushort)SignInMessengerIds.UpdateName,
+                        MessengerId = (ushort)SignInMessengerIds.Name,
                         Payload = connection.ReceiveRequestWrap.Payload,
                     });
                 }
                 signCaching.Del(info.OldName);
+            }
+        }
+
+
+        [MessengerId((ushort)SignInMessengerIds.ServersForward)]
+        public async Task ServersForward(IConnection connection)
+        {
+            if (signCaching.Get(connection.Name, out SignCacheInfo cache))
+            {
+                var clients = signCaching.Get(cache.GroupId);
+                foreach (var info in clients)
+                {
+                    if (info.MachineName != connection.Name)
+                    {
+                        await messengerSender.SendOnly(new MessageRequestWrap
+                        {
+                            Connection = info.Connection,
+                            MessengerId = (ushort)SignInMessengerIds.Servers,
+                            Payload = connection.ReceiveRequestWrap.Payload,
+                        });
+                    }
+                }
             }
         }
 

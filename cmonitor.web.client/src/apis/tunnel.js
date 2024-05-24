@@ -3,7 +3,7 @@ import { sendWebsocketMsg } from './request'
 export const getTunnelTypes = () => {
     return sendWebsocketMsg('tunnel/gettypes');
 }
-export const updateTunnelSetServers = (servers) => {
+export const setTunnelServers = (servers) => {
     return sendWebsocketMsg('tunnel/SetServers', servers);
 }
 
@@ -14,6 +14,13 @@ export const refreshTunnel = () => {
     return sendWebsocketMsg('tunnel/refresh');
 }
 
-export const updateTunnel = (data) => {
-    return sendWebsocketMsg('tunnel/SetConfig', data);
+export const setTunnelRouteLevel = (data) => {
+    return sendWebsocketMsg('tunnel/SetRouteLevel', data);
+}
+
+export const getTunnelTransports = () => {
+    return sendWebsocketMsg('tunnel/GetTransports');
+}
+export const setTunnelTransports = (data) => {
+    return sendWebsocketMsg('tunnel/SetTransports', data);
 }

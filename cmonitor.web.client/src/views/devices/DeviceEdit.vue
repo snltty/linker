@@ -16,7 +16,7 @@
     </el-dialog>
 </template>
 <script>
-import { updateConfigName } from '@/apis/signin';
+import { setSignInName } from '@/apis/signin';
 import { ElMessage } from 'element-plus';
 import { reactive, ref, watch } from 'vue';
 
@@ -42,7 +42,7 @@ export default {
 
         const handleSave = () => {
             if(props.data.MachineName == state.ruleForm.MachineName) return;
-            updateConfigName({
+            setSignInName({
                 oldName:props.data.MachineName,
                 newName:state.ruleForm.MachineName
             }).then(() => {

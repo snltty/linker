@@ -52,6 +52,8 @@ namespace cmonitor.plugins.signin.messenger
             return config.Clients.Values.Where(c => c.GroupId == groupId).ToList();
         }
 
+
+
         public bool Del(string machineName)
         {
             bool res = config.Clients.TryRemove(machineName, out _);

@@ -180,7 +180,7 @@ namespace common.libs.api
             }
         }
 
-        public void Notify(string path, string name, Memory<byte> content)
+        public void Notify(string path, string name, ReadOnlyMemory<byte> content)
         {
             if (server.Connections.Any())
             {

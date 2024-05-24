@@ -7,6 +7,7 @@ namespace cmonitor.plugins.tunnel.transport
     public interface ITunnelTransport
     {
         public string Name { get; }
+        public string Label { get; }
         public TunnelProtocolType ProtocolType { get; }
 
         /// <summary>
@@ -76,12 +77,35 @@ namespace cmonitor.plugins.tunnel.transport
 
 
     [MemoryPackable]
-    public sealed partial class TunnelTransportConfigInfo
+    public sealed partial class TunnelTransportRouteLevelInfo
     {
         public string MachineName { get; set; }
         public int RouteLevel { get; set; } = 0;
         public int RouteLevelPlus { get; set; } = 0;
     }
+
+    [MemoryPackable]
+    public sealed partial class TunnelTransportItemInfo
+    {
+        public string Name { get; set; }
+        public string Label { get; set; }
+        public string ProtocolType { get; set; }
+
+        public bool Disabled { get; set; }
+    }
+    public sealed class TunnelTransportItemInfoEqualityComparer : IEqualityComparer<TunnelTransportItemInfo>
+    {
+        public bool Equals(TunnelTransportItemInfo x, TunnelTransportItemInfo y)
+        {
+            return x.Name == y.Name;
+        }
+
+        public int GetHashCode(TunnelTransportItemInfo obj)
+        {
+            return obj.Name.GetHashCode();
+        }
+    }
+
 
 
     [MemoryPackable]

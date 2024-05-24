@@ -12,6 +12,6 @@ export const getLoggerConfig = () => {
     return sendWebsocketMsg('loggerclient/getconfig');
 }
 
-export const updateLoggerConfig = (data) => {
+export const setLoggerConfig = (data) => {
     return sendWebsocketMsg('loggerclient/setconfig', data);
 }

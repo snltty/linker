@@ -1,4 +1,5 @@
 ﻿using common.libs.extends;
+using MemoryPack;
 using System.Net;
 
 namespace cmonitor.config
@@ -11,7 +12,12 @@ namespace cmonitor.config
     public sealed partial class ConfigClientInfo
     {
         private ClientServerInfo[] servers = new ClientServerInfo[] {
+#if DEBUG
             new ClientServerInfo{ Name="默认", Host=new IPEndPoint(IPAddress.Loopback, 1802).ToString() }
+#else
+            new ClientServerInfo{ Name="默认", Host="hk.cm.snltty.com:1802" }
+#endif
+            
         };
         public ClientServerInfo[] Servers
         {
@@ -32,17 +38,28 @@ namespace cmonitor.config
             }
         }
 
-        public string GroupId { get; set; } = "snltty";
+        private string groupid = "snltty";
+        public string GroupId
+        {
+            get => groupid; set
+            {
+                groupid = value.SubStr(0, 36);
+            }
+        }
 
         public string ShareMemoryKey { get; set; } = "cmonitor/share";
         public int ShareMemoryCount { get; set; } = 100;
         public int ShareMemorySize { get; set; } = 1024;
-
+#if DEBUG
         public string Server { get; set; } = new IPEndPoint(IPAddress.Loopback, 1802).ToString();
+#else
+        public string Server { get; set; } = "hk.cm.snltty.com:1802";
+#endif
 
     }
 
-    public sealed class ClientServerInfo
+    [MemoryPackable]
+    public sealed partial class ClientServerInfo
     {
         public string Name { get; set; } = string.Empty;
         public string Host { get; set; } = string.Empty;

@@ -30,6 +30,7 @@ namespace cmonitor.plugins.tunnel
 
             serviceCollection.AddSingleton<TunnelCompactTransfer>();
             serviceCollection.AddSingleton<TunnelCompactSelfHost>();
+            serviceCollection.AddSingleton<TunnelCompactStun>();
 
             serviceCollection.AddSingleton<TunnelTransfer>();
             serviceCollection.AddSingleton<TunnelBindServer>();

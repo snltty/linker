@@ -10,7 +10,7 @@ namespace cmonitor.server
         public ushort MessengerId { get; set; }
         public uint RequestId { get; set; }
         public bool Reply { get; internal set; }
-        public Memory<byte> Payload { get; set; }
+        public ReadOnlyMemory<byte> Payload { get; set; }
 
         public IConnection Connection { get; set; }
 
@@ -43,7 +43,7 @@ namespace cmonitor.server
 
             return res;
         }
-        public unsafe void FromArray(Memory<byte> memory)
+        public unsafe void FromArray(ReadOnlyMemory<byte> memory)
         {
             var span = memory.Span;
 
@@ -73,23 +73,10 @@ namespace cmonitor.server
     /// </summary>
     public sealed class MessageResponseWrap
     {
-        /// <summary>
-        /// 
-        /// </summary>
         public IConnection Connection { get; set; }
-        /// <summary>
-        /// 
-        /// </summary>
         public MessageResponeCodes Code { get; set; }
-        /// <summary>
-        /// 
-        /// </summary>
         public uint RequestId { get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public Memory<byte> Payload { get; set; }
+        public ReadOnlyMemory<byte> Payload { get; set; }
 
         /// <summary>
         /// 转包
@@ -129,7 +116,7 @@ namespace cmonitor.server
         /// 解包
         /// </summary>
         /// <param name="memory"></param>
-        public void FromArray(Memory<byte> memory)
+        public void FromArray(ReadOnlyMemory<byte> memory)
         {
             var span = memory.Span;
             int index = 0;

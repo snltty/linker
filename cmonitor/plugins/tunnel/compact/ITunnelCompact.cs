@@ -1,5 +1,4 @@
 ﻿using MemoryPack;
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
 
 namespace cmonitor.plugins.tunnel.compact
@@ -26,7 +25,8 @@ namespace cmonitor.plugins.tunnel.compact
 
 
 
-    public sealed class TunnelCompactInfo
+    [MemoryPackable]
+    public sealed partial class TunnelCompactInfo
     {
         public string Name { get; set; } = string.Empty;
         public TunnelCompactType Type { get; set; }
@@ -36,7 +36,8 @@ namespace cmonitor.plugins.tunnel.compact
 
     public enum TunnelCompactType : byte
     {
-        Self = 0
+        Self = 0,
+        Stun = 1
     }
 
     public sealed class TunnelCompactTypeInfo
@@ -52,7 +53,7 @@ namespace cmonitor.plugins.tunnel.compact
             return x.Value == y.Value;
         }
 
-        public int GetHashCode([DisallowNull] TunnelCompactTypeInfo obj)
+        public int GetHashCode(TunnelCompactTypeInfo obj)
         {
             return obj.Value.GetHashCode();
         }

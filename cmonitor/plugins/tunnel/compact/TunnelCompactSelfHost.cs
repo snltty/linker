@@ -6,8 +6,7 @@ namespace cmonitor.plugins.tunnel.compact
 {
     public sealed class TunnelCompactSelfHost : ITunnelCompact
     {
-        public string Name => "self";
-
+        public string Name => "默认";
         public TunnelCompactType Type => TunnelCompactType.Self;
 
         public TunnelCompactSelfHost()
@@ -29,7 +28,17 @@ namespace cmonitor.plugins.tunnel.compact
                     {
                         return null;
                     }
-                    IPEndPoint remoteEP = IPEndPoint.Parse(result.Buffer.AsSpan().GetString());
+
+                    for (int j = 0; j < result.Buffer.Length; j++)
+                    {
+                        result.Buffer[j] = (byte)(result.Buffer[j] ^ byte.MaxValue);
+                    }
+                    AddressFamily addressFamily = (AddressFamily)result.Buffer[0];
+                    int length = addressFamily == AddressFamily.InterNetwork ? 4 : 16;
+                    IPAddress ip = new IPAddress(result.Buffer.AsSpan(1,length));
+                    ushort port = result.Buffer.AsMemory(1 + length).ToUInt16();
+
+                    IPEndPoint remoteEP = new IPEndPoint(ip, port);
 
                     return new TunnelCompactIPEndPoint { Local = udpClient.Client.LocalEndPoint as IPEndPoint, Remote = remoteEP };
                 }
