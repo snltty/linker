@@ -1,22 +1,21 @@
 ﻿using common.libs;
 using common.libs.extends;
 using System.Buffers;
+using System.IO.Pipelines;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 
 namespace cmonitor.server
 {
-    /// <summary>
-    /// 连接对象
-    /// </summary>
+    public interface IConnectionReceiveCallback
+    {
+        public Task Receive(IConnection connection, ReadOnlyMemory<byte> data, object state);
+    }
+
     public interface IConnection
     {
         public string Name { get; set; }
-        /// <summary>
-        /// <summary>
-        /// 已连接
-        /// </summary>
         public bool Connected { get; }
 
         public IPEndPoint Address { get; }
@@ -26,37 +25,17 @@ namespace cmonitor.server
         public SslStream TcpTargetSocket { get; set; }
 
         #region 接收数据
-        /// <summary>
-        /// 请求数据包装对象
-        /// </summary>
         public MessageRequestWrap ReceiveRequestWrap { get; }
-        /// <summary>
-        /// 回复数据包装对象
-        /// </summary>
         public MessageResponseWrap ReceiveResponseWrap { get; }
-        /// <summary>
-        /// 接收到的原始数据
-        /// </summary>
         public ReadOnlyMemory<byte> ReceiveData { get; set; }
         #endregion
 
-        /// <summary>
-        /// 发送
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public Task<bool> Send(ReadOnlyMemory<byte> data);
-        /// <summary>
-        /// 发送
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="length"></param>
-        /// <returns></returns>
-        public Task<bool> Send(byte[] data, int length);
+        public void BeginReceive(IConnectionReceiveCallback callback, object userToken, bool byFrame = true);
 
-        /// <summary>
-        /// 销毁
-        /// </summary>
+        public Task<bool> SendAsync(ReadOnlyMemory<byte> data);
+        public Task<bool> SendAsync(byte[] data, int length);
+
+        public void Cancel();
         public void Disponse();
 
         #region 回复消息相关
@@ -66,19 +45,8 @@ namespace cmonitor.server
         public void Write(ulong num);
         public void Write(ushort num);
         public void Write(ushort[] nums);
-        /// <summary>
-        /// 英文多用这个
-        /// </summary>
-        /// <param name="str"></param>
         public void WriteUTF8(string str);
-        /// <summary>
-        /// 中文多用这个
-        /// </summary>
-        /// <param name="str"></param>
         public void WriteUTF16(string str);
-        /// <summary>
-        /// 归还池
-        /// </summary>
         public void Return();
         #endregion
 
@@ -91,32 +59,17 @@ namespace cmonitor.server
         }
 
         public string Name { get; set; }
-        /// <summary>
-        /// 已连接
-        /// </summary>
         public virtual bool Connected => false;
-        /// <summary>
-        /// 地址
-        /// </summary>
         public IPEndPoint Address { get; protected set; }
         public IPEndPoint LocalAddress { get; protected set; }
 
         public SslStream TcpSourceSocket { get; protected set; }
         public SslStream TcpTargetSocket { get; set; }
-        public bool Relayed { get; set; }
+
 
         #region 接收数据
-        /// <summary>
-        /// 接收请求数据
-        /// </summary>
         public MessageRequestWrap ReceiveRequestWrap { get; set; }
-        /// <summary>
-        /// 接收回执数据
-        /// </summary>
         public MessageResponseWrap ReceiveResponseWrap { get; set; }
-        /// <summary>
-        /// 接收数据
-        /// </summary>
         public ReadOnlyMemory<byte> ReceiveData { get; set; }
         #endregion
 
@@ -150,10 +103,7 @@ namespace cmonitor.server
             nums.ToBytes(responseData);
             ResponseData = responseData.AsMemory(0, length);
         }
-        /// <summary>
-        /// 英文多用这个
-        /// </summary>
-        /// <param name="str"></param>
+
         public void WriteUTF8(string str)
         {
             var span = str.AsSpan();
@@ -167,10 +117,7 @@ namespace cmonitor.server
 
             ResponseData = responseData.AsMemory(0, length);
         }
-        /// <summary>
-        /// 中文多用这个
-        /// </summary>
-        /// <param name="str"></param>
+
         public void WriteUTF16(string str)
         {
             var span = str.GetUTF16Bytes();
@@ -181,9 +128,7 @@ namespace cmonitor.server
 
             ResponseData = responseData.AsMemory(0, length);
         }
-        /// <summary>
-        /// 归还池
-        /// </summary>
+
         public void Return()
         {
             if (length > 0 && ResponseData.Length > 0)
@@ -196,34 +141,23 @@ namespace cmonitor.server
         }
         #endregion
 
-        /// <summary>
-        /// 发送
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public abstract Task<bool> Send(ReadOnlyMemory<byte> data);
-        /// <summary>
-        /// 发送
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="length"></param>
-        /// <returns></returns>
-        public abstract Task<bool> Send(byte[] data, int length);
 
-        /// <summary>
-        /// 销毁
-        /// </summary>
+        public abstract void BeginReceive(IConnectionReceiveCallback callback, object userToken, bool byFrame = true);
+
+        public abstract Task<bool> SendAsync(ReadOnlyMemory<byte> data);
+        public abstract Task<bool> SendAsync(byte[] data, int length);
+
+        public virtual void Cancel()
+        {
+        }
         public virtual void Disponse()
         {
         }
-
-
     }
-
 
     public sealed class TcpConnection : Connection
     {
-        public TcpConnection(SslStream stream,IPEndPoint local, IPEndPoint remote) : base()
+        public TcpConnection(SslStream stream, IPEndPoint local, IPEndPoint remote) : base()
         {
             TcpSourceSocket = stream;
 
@@ -240,25 +174,137 @@ namespace cmonitor.server
             LocalAddress = local;
         }
 
-        /// <summary>
-        /// 已连接
-        /// </summary>
         public override bool Connected => TcpSourceSocket != null && TcpSourceSocket.CanWrite;
 
-        /// <summary>
-        /// 发送
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public override async Task<bool> Send(ReadOnlyMemory<byte> data)
+        private IConnectionReceiveCallback callback;
+        private CancellationTokenSource cancellationTokenSource;
+        private object userToken;
+        private bool byFrame;
+        private Pipe pipe;
+        private ReceiveDataBuffer bufferCache = new ReceiveDataBuffer();
+        public override void BeginReceive(IConnectionReceiveCallback callback, object userToken, bool byFrame = true)
+        {
+            if (this.callback != null) return;
+
+            this.callback = callback;
+            this.userToken = userToken;
+            this.byFrame = byFrame;
+            cancellationTokenSource = new CancellationTokenSource();
+            pipe = new Pipe();
+
+            _ = ProcessWrite();
+            _ = ProcessReader();
+        }
+        private async Task ProcessWrite()
+        {
+            var writer = pipe.Writer;
+            try
+            {
+                while (cancellationTokenSource.IsCancellationRequested == false)
+                {
+                    Memory<byte> buffer = writer.GetMemory(8 * 1024);
+                    int length = await TcpSourceSocket.ReadAsync(buffer, cancellationTokenSource.Token);
+                    writer.Advance(length);
+                    await writer.FlushAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    Logger.Instance.Error(ex);
+                }
+            }
+            finally
+            {
+                writer.Complete();
+            }
+        }
+        private async Task ProcessReader()
+        {
+            PipeReader reader = pipe.Reader;
+            try
+            {
+                while (cancellationTokenSource.IsCancellationRequested == false)
+                {
+                    ReadResult readResult = await reader.ReadAsync().ConfigureAwait(false);
+                    ReadOnlySequence<byte> buffer = readResult.Buffer;
+                    SequencePosition end = await ReadPacket(buffer).ConfigureAwait(false);
+                    reader.AdvanceTo(end);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    Logger.Instance.Error(ex);
+                }
+            }
+            finally
+            {
+                bufferCache.Clear(true);
+                reader.Complete();
+            }
+        }
+        private unsafe int ReaderHead(ReadOnlySequence<byte> buffer)
+        {
+            Span<byte> span = stackalloc byte[4];
+            buffer.Slice(0, 4).CopyTo(span);
+            return span.ToInt32();
+        }
+        private async Task<SequencePosition> ReadPacket(ReadOnlySequence<byte> buffer)
+        {
+            if (TcpTargetSocket != null)
+            {
+                SequencePosition position = buffer.Start;
+                while (buffer.TryGet(ref position, out ReadOnlyMemory<byte> memory))
+                {
+                    await TcpTargetSocket.WriteAsync(memory);
+                }
+                return buffer.End;
+            }
+
+            if (byFrame == false)
+            {
+                SequencePosition position = buffer.Start;
+                if (buffer.TryGet(ref position, out ReadOnlyMemory<byte> memory))
+                {
+                    await callback.Receive(this, memory, this.userToken).ConfigureAwait(false);
+                }
+                return buffer.End;
+            }
+
+            //粘包
+            while (buffer.Length > 4)
+            {
+                int length = ReaderHead(buffer);
+                if (buffer.Length < length + 4)
+                {
+                    break;
+                }
+
+                ReadOnlySequence<byte> cache = buffer.Slice(4, length);
+                SequencePosition position = cache.Start;
+                while (cache.TryGet(ref position, out ReadOnlyMemory<byte> memory))
+                {
+                    bufferCache.AddRange(memory);
+                }
+                await callback.Receive(this, bufferCache.Data.Slice(0, bufferCache.Size), this.userToken).ConfigureAwait(false);
+                bufferCache.Clear();
+
+                SequencePosition endPosition = buffer.GetPosition(4 + length);
+                buffer = buffer.Slice(endPosition);
+            }
+            return buffer.Start;
+        }
+
+        public override async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             if (Connected)
             {
                 try
                 {
                     await TcpSourceSocket.WriteAsync(data);
-                    await TcpSourceSocket.FlushAsync();
-                    //SentBytes += (ulong)data.Length;
                     return true;
                 }
                 catch (Exception ex)
@@ -270,21 +316,26 @@ namespace cmonitor.server
             }
             return false;
         }
-        /// <summary>
-        /// 发送
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="length"></param>
-        /// <returns></returns>
-        public override async Task<bool> Send(byte[] data, int length)
+        public override async Task<bool> SendAsync(byte[] data, int length)
         {
-            return await Send(data.AsMemory(0, length));
+            return await SendAsync(data.AsMemory(0, length));
         }
-        /// <summary>
-        /// 销毁
-        /// </summary>
+
+
+        public override void Cancel()
+        {
+            callback = null;
+            userToken = null;
+            cancellationTokenSource?.Cancel();
+
+            pipe = null;
+
+            bufferCache.Clear(true);
+        }
+
         public override void Disponse()
         {
+            Cancel();
             base.Disponse();
             try
             {

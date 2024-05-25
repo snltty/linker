@@ -66,7 +66,6 @@ namespace common.libs.winapis
                             Address = addressBytes,
                             InterfaceIndex = (uint)adapter
                         };
-                        Console.WriteLine($"delete connection {adapter}->{ip}");
                         int result = DeleteIpNetEntry2(ref row);
                     }
                 }

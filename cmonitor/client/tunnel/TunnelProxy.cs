@@ -4,10 +4,11 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 
 namespace cmonitor.client.tunnel
 {
-    public class TunnelProxy : ITunnelConnectionCallback
+    public class TunnelProxy : ITunnelConnectionReceiveCallback
     {
         private ConcurrentDictionary<int, AsyncUserToken> userTokens = new ConcurrentDictionary<int, AsyncUserToken>();
         private ConcurrentDictionary<int, AsyncUserUdpToken> udpClients = new ConcurrentDictionary<int, AsyncUserUdpToken>();
@@ -313,39 +314,14 @@ namespace cmonitor.client.tunnel
             connection.BeginReceive(this, new AsyncUserTunnelToken
             {
                 Connection = connection,
-                Buffer = new ReceiveDataBuffer(),
                 Proxy = new ProxyInfo { }
             });
         }
-        public async Task Receive(ITunnelConnection connection, Memory<byte> memory, object userToken)
+        public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> memory, object userToken)
         {
             AsyncUserTunnelToken token = userToken as AsyncUserTunnelToken;
-            //是一个完整的包
-            if (token.Buffer.Size == 0 && memory.Length > 4)
-            {
-                int packageLen = memory.ToInt32();
-                if (packageLen == memory.Length - 4)
-                {
-                    token.Proxy.DeBytes(memory.Slice(0, packageLen + 4));
-                    await ReadConnectionPack(token).ConfigureAwait(false);
-                    return;
-                }
-            }
-
-            //不是完整包
-            token.Buffer.AddRange(memory);
-            do
-            {
-                int packageLen = token.Buffer.Data.ToInt32();
-                if (packageLen > token.Buffer.Size - 4)
-                {
-                    break;
-                }
-                token.Proxy.DeBytes(token.Buffer.Data.Slice(0, packageLen + 4));
-                await ReadConnectionPack(token).ConfigureAwait(false);
-
-                token.Buffer.RemoveRange(0, packageLen + 4);
-            } while (token.Buffer.Size > 4);
+            token.Proxy.DeBytes(memory);
+            await ReadConnectionPack(token).ConfigureAwait(false);
         }
         public async Task Closed(ITunnelConnection connection, object userToken)
         {
@@ -404,12 +380,12 @@ namespace cmonitor.client.tunnel
                 await SendToConnection(token);
 
                 token.Proxy.Step = ProxyStep.Forward;
-                BindReceiveTarget(token);
 
                 if (state.Data.Length > 0)
                 {
-                    await socket.SendAsync(state.Data.AsMemory(), SocketFlags.None);
+                    await state.Socket.SendAsync(state.Data.AsMemory(0, state.Length), SocketFlags.None);
                 }
+                BindReceiveTarget(token);
             }
             catch (Exception ex)
             {
@@ -433,10 +409,13 @@ namespace cmonitor.client.tunnel
                 ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.GetHashCode());
                 if (dic.TryGetValue(connectId, out AsyncUserToken token))
                 {
-                    token.Received = true;
-                    if (token.Socket.ReceiveAsync(token.Saea) == false)
+                    if(token.Received == false)
                     {
-                        ProcessReceive(token.Saea);
+                        token.Received = true;
+                        if (token.Socket.ReceiveAsync(token.Saea) == false)
+                        {
+                            ProcessReceive(token.Saea);
+                        }
                     }
                 }
             }
@@ -479,10 +458,11 @@ namespace cmonitor.client.tunnel
             {
                 try
                 {
-                    await token1.Socket.SendAsync(token1.Proxy.Data);
+                    await token1.Socket.SendAsync(tunnelToken.Proxy.Data);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Logger.Instance.Error(ex);
                     CloseClientSocket(token1);
                 }
             }
@@ -587,7 +567,7 @@ namespace cmonitor.client.tunnel
             {
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Logger.Instance.Error($"socks5 forward udp -> receive" + ex);
+                    Logger.Instance.Error($"forward udp -> receive" + ex);
                 }
                 CloseClientSocket(token);
             }
@@ -816,7 +796,7 @@ namespace cmonitor.client.tunnel
 
         public byte Rsv { get; set; }
 
-        public Memory<byte> Data { get; set; }
+        public ReadOnlyMemory<byte> Data { get; set; }
 
         public byte[] ToBytes(out int length)
         {
@@ -889,10 +869,10 @@ namespace cmonitor.client.tunnel
             ArrayPool<byte>.Shared.Return(bytes);
         }
 
-        public void DeBytes(Memory<byte> memory)
+        public void DeBytes(ReadOnlyMemory<byte> memory)
         {
-            int index = 4;
-            Span<byte> span = memory.Span;
+            int index = 0;
+            ReadOnlySpan<byte> span = memory.Span;
 
             ConnectId = memory.Slice(index).ToUInt64();
             index += 8;
@@ -938,9 +918,6 @@ namespace cmonitor.client.tunnel
 
         public ProxyInfo Proxy { get; set; }
 
-        public ReceiveDataBuffer Buffer { get; set; }
-
-
         public void Clear()
         {
             GC.Collect();
@@ -966,8 +943,6 @@ namespace cmonitor.client.tunnel
 
         public ProxyInfo Proxy { get; set; }
 
-        public ReceiveDataBuffer Buffer { get; set; }
-
         public SocketAsyncEventArgs Saea { get; set; }
 
         public bool Received { get; set; }
@@ -975,8 +950,6 @@ namespace cmonitor.client.tunnel
         public void Clear()
         {
             Socket?.SafeClose();
-
-            //Buffer?.Clear();
 
             Saea?.Dispose();
 
@@ -993,7 +966,7 @@ namespace cmonitor.client.tunnel
         public byte[] Data { get; set; } = Helper.EmptyArray;
         public int Length { get; set; }
 
-        public void CopyData(Memory<byte> data)
+        public void CopyData(ReadOnlyMemory<byte> data)
         {
             if (data.Length > 0)
             {

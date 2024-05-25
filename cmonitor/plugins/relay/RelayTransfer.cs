@@ -88,6 +88,13 @@ namespace cmonitor.plugins.relay
                     ITunnelConnection connection = await transport.RelayAsync(relayInfo);
                     if (connection != null)
                     {
+                        if (OnConnected.TryGetValue(connection.TransactionId, out List<Action<ITunnelConnection>> callbacks))
+                        {
+                            foreach (var callabck in callbacks)
+                            {
+                                callabck(connection);
+                            }
+                        }
                         return connection;
                     }
                     else
@@ -112,9 +119,9 @@ namespace cmonitor.plugins.relay
                 {
                     if (OnConnected.TryGetValue(connection.TransactionId, out List<Action<ITunnelConnection>> callbacks))
                     {
-                        foreach (var item in callbacks)
+                        foreach (var callabck in callbacks)
                         {
-                            item(connection);
+                            callabck(connection);
                         }
                     }
                     return true;

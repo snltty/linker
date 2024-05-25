@@ -69,7 +69,7 @@ namespace cmonitor.server
                 }
 
                 byte[] bytes = msg.ToArray(out int length);
-                bool res = await msg.Connection.Send(bytes.AsMemory(0, length)).ConfigureAwait(false);
+                bool res = await msg.Connection.SendAsync(bytes.AsMemory(0, length)).ConfigureAwait(false);
                 msg.Return(bytes);
                 return res;
             }
@@ -95,7 +95,7 @@ namespace cmonitor.server
             try
             {
                 byte[] bytes = msg.ToArray(out int length);
-                bool res = await msg.Connection.Send(bytes.AsMemory(0, length)).ConfigureAwait(false);
+                bool res = await msg.Connection.SendAsync(bytes.AsMemory(0, length)).ConfigureAwait(false);
                 msg.Return(bytes);
                 return res;
             }

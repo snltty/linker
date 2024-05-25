@@ -76,26 +76,26 @@ namespace cmonitor.plugins.forward.proxy
                 }
 
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward tunnel to {machineName}");
-                connection = await tunnelTransfer.ConnectAsync(machineName, "forward");
+                connection = null;//await tunnelTransfer.ConnectAsync(machineName, "forward");
                 if (connection != null)
                 {
                     if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward tunnel to {machineName} success");
                 }
                 if (connection == null)
                 {
-                    //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineName}");
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineName}");
 
-                    //connection = await relayTransfer.ConnectAsync(machineName, "forward");
+                    connection = await relayTransfer.ConnectAsync(machineName, "forward");
                     if (connection != null)
                     {
-                       // if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineName} success");
+                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineName} success");
                     }
                 }
                 if (connection != null)
                 {
-                    connections.AddOrUpdate(machineName, connection,(a,b)=> connection);
+                    connections.AddOrUpdate(machineName, connection, (a, b) => connection);
                 }
-               
+
             }
             catch (Exception)
             {

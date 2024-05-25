@@ -1,5 +1,7 @@
-﻿using cmonitor.config;
+﻿using cmonitor.client;
+using cmonitor.config;
 using common.libs;
+using common.libs.extends;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 using System.Net;
@@ -13,6 +15,7 @@ namespace cmonitor.plugins.tunnel.compact
 
         private readonly Config config;
         private readonly ServiceProvider serviceProvider;
+
         public TunnelCompactTransfer(Config config, ServiceProvider serviceProvider)
         {
             this.config = config;

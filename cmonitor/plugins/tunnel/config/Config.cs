@@ -14,6 +14,9 @@ namespace cmonitor.config
         public TunnelCompactInfo[] Servers { get; set; } = Array.Empty<TunnelCompactInfo>();
         public int RouteLevelPlus { get; set; } = 0;
 
+        public string Certificate { get; set; } = "./snltty.pfx";
+        public string Password { get; set; } = "snltty";
+
         public List<TunnelTransportItemInfo> TunnelTransports { get; set; } = new List<TunnelTransportItemInfo>();
 
         [JsonIgnore]

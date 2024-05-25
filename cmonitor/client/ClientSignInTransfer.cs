@@ -137,14 +137,8 @@ namespace cmonitor.client
         {
             Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.KeepAlive();
-            IAsyncResult result = socket.BeginConnect(remote, null, null);
-            await Task.Delay(500);
-            if (result.IsCompleted == false)
-            {
-                socket.SafeClose();
-                return false;
-            }
-            clientSignInState.Connection = await tcpServer.BindReceive(socket);
+            await socket.ConnectAsync(remote).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+            clientSignInState.Connection = await tcpServer.BeginReceive(socket);
             return true;
         }
         private async Task<bool> SignIn2Server()

@@ -7,24 +7,19 @@ namespace cmonitor.server
     /// <summary>
     /// 消息处理总线
     /// </summary>
-    public sealed class MessengerResolver
+    public sealed class MessengerResolver : IConnectionReceiveCallback
     {
         delegate void VoidDelegate(IConnection connection);
         delegate Task TaskDelegate(IConnection connection);
 
         private readonly Dictionary<ushort, MessengerCacheInfo> messengers = new();
 
-        private readonly TcpServer tcpserver;
         private readonly MessengerSender messengerSender;
         private readonly ServiceProvider serviceProvider;
 
-
-        public MessengerResolver(TcpServer tcpserver, MessengerSender messengerSender, ServiceProvider serviceProvider)
+        public MessengerResolver(MessengerSender messengerSender, ServiceProvider serviceProvider)
         {
-            this.tcpserver = tcpserver;
             this.messengerSender = messengerSender;
-
-            this.tcpserver.OnPacket = InputData;
             this.serviceProvider = serviceProvider;
         }
 
@@ -37,7 +32,7 @@ namespace cmonitor.server
             foreach (Type type in types)
             {
                 object obj = serviceProvider.GetService(type);
-                if(obj == null)
+                if (obj == null)
                 {
                     continue;
                 }
@@ -75,31 +70,23 @@ namespace cmonitor.server
 
         }
 
-        /// <summary>
-        /// 收到消息
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <returns></returns>
-        public async Task InputData(IConnection connection)
+        public async Task Receive(IConnection connection, ReadOnlyMemory<byte> data, object state)
         {
-            ReadOnlyMemory<byte> receive = connection.ReceiveData;
-            //去掉表示数据长度的4字节
-            ReadOnlyMemory<byte> readReceive = receive.Slice(4);
             MessageResponseWrap responseWrap = connection.ReceiveResponseWrap;
             MessageRequestWrap requestWrap = connection.ReceiveRequestWrap;
             try
             {
 
                 //回复的消息
-                if ((MessageTypes)(readReceive.Span[0] & 0b0000_1111) == MessageTypes.RESPONSE)
+                if ((MessageTypes)(data.Span[0] & 0b0000_1111) == MessageTypes.RESPONSE)
                 {
-                    responseWrap.FromArray(readReceive);
+                    responseWrap.FromArray(data);
                     messengerSender.Response(responseWrap);
                     return;
                 }
 
                 //新的请求
-                requestWrap.FromArray(readReceive);
+                requestWrap.FromArray(data);
                 //404,没这个插件
                 if (messengers.TryGetValue(requestWrap.MessengerId, out MessengerCacheInfo plugin) == false)
                 {
@@ -143,7 +130,6 @@ namespace cmonitor.server
                 connection.Return();
             }
         }
-
 
         /// <summary>
         /// 消息插件缓存

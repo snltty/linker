@@ -33,6 +33,17 @@ namespace common.libs
                 return items;
             }
         }
+
+        public void AddRange(ReadOnlyMemory<byte> data)
+        {
+            if (data.Length > 0)
+            {
+                BeResize(data.Length);
+
+                data.CopyTo(items.Slice(size, data.Length));
+                size += data.Length;
+            }
+        }
         public void AddRange(Memory<byte> data)
         {
             if(data.Length > 0)

@@ -1,10 +1,14 @@
 ﻿using cmonitor.client.tunnel;
+using cmonitor.config;
 using cmonitor.plugins.tunnel.server;
 using common.libs;
 using common.libs.extends;
 using System.Collections.Concurrent;
 using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 
 namespace cmonitor.plugins.tunnel.transport
 {
@@ -14,18 +18,29 @@ namespace cmonitor.plugins.tunnel.transport
         public string Label => "基于低TTL的TCP打洞";
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Tcp;
 
+        private X509Certificate serverCertificate;
+
         public Func<TunnelTransportInfo, Task<bool>> OnSendConnectBegin { get; set; } = async (info) => { return await Task.FromResult<bool>(false); };
         public Func<TunnelTransportInfo, Task> OnSendConnectFail { get; set; } = async (info) => { await Task.CompletedTask; };
         public Func<TunnelTransportInfo, Task> OnSendConnectSuccess { get; set; } = async (info) => { await Task.CompletedTask; };
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
 
-        
-
         private readonly TunnelBindServer tunnelBindServer;
-        public TunnelTransportTcpNutssb(TunnelBindServer tunnelBindServer)
+        public TunnelTransportTcpNutssb(TunnelBindServer tunnelBindServer, Config config)
         {
             this.tunnelBindServer = tunnelBindServer;
             tunnelBindServer.OnTcpConnected += OnTcpConnected;
+
+            string path = Path.GetFullPath(config.Data.Client.Tunnel.Certificate);
+            if (File.Exists(path))
+            {
+                serverCertificate = new X509Certificate(path, config.Data.Client.Tunnel.Password);
+            }
+            else
+            {
+                Logger.Instance.Error($"file {path} not found");
+                Environment.Exit(0);
+            }
         }
 
         public async Task<ITunnelConnection> ConnectAsync(TunnelTransportInfo tunnelTransportInfo)
@@ -65,7 +80,6 @@ namespace cmonitor.plugins.tunnel.transport
             await OnSendConnectFail(tunnelTransportInfo);
             return null;
         }
-
         public void OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
             if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
@@ -96,7 +110,7 @@ namespace cmonitor.plugins.tunnel.transport
 
         public void OnFail(TunnelTransportInfo tunnelTransportInfo)
         {
-            tunnelBindServer.RemoveBind(tunnelTransportInfo.Local.Local.Port);
+            tunnelBindServer.RemoveBind(tunnelTransportInfo.Local.Local.Port, true);
             if (reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineName, out TaskCompletionSource<ITunnelConnection> tcs))
             {
                 tcs.SetResult(null);
@@ -104,7 +118,7 @@ namespace cmonitor.plugins.tunnel.transport
         }
         public void OnSuccess(TunnelTransportInfo tunnelTransportInfo)
         {
-            tunnelBindServer.RemoveBind(tunnelTransportInfo.Local.Local.Port);
+            tunnelBindServer.RemoveBind(tunnelTransportInfo.Local.Local.Port, true);
             if (reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineName, out TaskCompletionSource<ITunnelConnection> tcs))
             {
                 tcs.SetResult(null);
@@ -173,24 +187,34 @@ namespace cmonitor.plugins.tunnel.transport
                     }
 
                     targetSocket.EndConnect(result);
+
+                    SslStream sslStream = new SslStream(new NetworkStream(targetSocket), true, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
+                    await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 });
+
                     return new TunnelConnectionTcp
                     {
-                        Socket = targetSocket,
+                        Socket = sslStream,
+                        IPEndPoint = targetSocket.RemoteEndPoint as IPEndPoint,
                         TransactionId = tunnelTransportInfo.TransactionId,
                         RemoteMachineName = tunnelTransportInfo.Remote.MachineName,
                         TransportName = Name,
                         Direction = tunnelTransportInfo.Direction,
                         ProtocolType = ProtocolType,
                         Type = TunnelType.P2P,
+                        Mode = TunnelMode.Client,
                         Label = string.Empty
                     };
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     targetSocket.SafeClose();
                 }
             }
             return null;
+        }
+        public bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            return true;
         }
         private void BindAndTTL(TunnelTransportInfo tunnelTransportInfo)
         {
@@ -252,28 +276,43 @@ namespace cmonitor.plugins.tunnel.transport
             return null;
         }
 
-        private void OnTcpConnected(object state, Socket socket)
+        private async Task OnTcpConnected(object state, Socket socket)
         {
             if (state is TunnelTransportInfo _state && _state.TransportName == Name)
             {
-                TunnelConnectionTcp result = new TunnelConnectionTcp
+                try
                 {
-                    RemoteMachineName = _state.Remote.MachineName,
-                    Direction = _state.Direction,
-                    ProtocolType = TunnelProtocolType.Tcp,
-                    Socket = socket,
-                    Type = TunnelType.P2P,
-                    TransactionId = _state.TransactionId,
-                    TransportName = _state.TransportName,
-                    Label = string.Empty,
-                };
-                if (reverseDic.TryRemove(_state.Remote.MachineName, out TaskCompletionSource<ITunnelConnection> tcs))
-                {
-                    tcs.SetResult(result);
-                    return;
-                }
+                    SslStream sslStream = new SslStream(new NetworkStream(socket), true);
+                    await sslStream.AuthenticateAsServerAsync(serverCertificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false);
 
-                OnConnected(result);
+                    TunnelConnectionTcp result = new TunnelConnectionTcp
+                    {
+                        RemoteMachineName = _state.Remote.MachineName,
+                        Direction = _state.Direction,
+                        ProtocolType = TunnelProtocolType.Tcp,
+                        Socket = sslStream,
+                        Type = TunnelType.P2P,
+                        Mode = TunnelMode.Server,
+                        TransactionId = _state.TransactionId,
+                        TransportName = _state.TransportName,
+                        IPEndPoint = socket.RemoteEndPoint as IPEndPoint,
+                        Label = string.Empty,
+                    };
+                    if (reverseDic.TryRemove(_state.Remote.MachineName, out TaskCompletionSource<ITunnelConnection> tcs))
+                    {
+                        tcs.SetResult(result);
+                        return;
+                    }
+
+                    OnConnected(result);
+                }
+                catch (Exception ex)
+                {
+                    if(Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        Logger.Instance.Error(ex);
+                    }
+                }
             }
         }
 

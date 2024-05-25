@@ -1,6 +1,5 @@
 ﻿using common.libs;
 using common.libs.extends;
-using NAudio.CoreAudioApi;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -9,10 +8,8 @@ namespace cmonitor.plugins.tunnel.server
 {
     public sealed class TunnelBindServer
     {
-        private UdpClient socketUdp;
-
-        public Action<object, Socket> OnTcpConnected { get; set; } = (state, socket) => { };
-        public Action<object, UdpClient> OnUdpConnected { get; set; } = (state, udpClient) => { };
+        public Func<object, Socket,Task> OnTcpConnected { get; set; } = async (state, socket) => { await Task.CompletedTask; };
+        public Func<object, UdpClient,Task> OnUdpConnected { get; set; } = async (state, udpClient) => { await Task.CompletedTask; };
 
         private ConcurrentDictionary<int, AsyncUserToken> acceptBinds = new ConcurrentDictionary<int, AsyncUserToken>();
 
@@ -45,22 +42,22 @@ namespace cmonitor.plugins.tunnel.server
                 StartAccept(acceptEventArg);
 
 
-                socketUdp = new UdpClient(localIP.AddressFamily);
-                socketUdp.Client.ReuseBind(new IPEndPoint(localIP, local.Port));
+                token.UdpClient = new UdpClient(localIP.AddressFamily);
+                token.UdpClient.Client.ReuseBind(new IPEndPoint(localIP, local.Port));
                 //socketUdp.Client.EnableBroadcast = true;
-                socketUdp.Client.WindowsUdpBug();
-                IAsyncResult result = socketUdp.BeginReceive(ReceiveCallbackUdp, state);
+                token.UdpClient.Client.WindowsUdpBug();
+                IAsyncResult result = token.UdpClient.BeginReceive(ReceiveCallbackUdp, token);
             }
             catch (Exception ex)
             {
                 Logger.Instance.Error(ex);
             }
         }
-        public void RemoveBind(int localPort)
+        public void RemoveBind(int localPort, bool closeUdp)
         {
             if (acceptBinds.TryRemove(localPort, out AsyncUserToken saea))
             {
-                CloseClientSocket(saea);
+                CloseClientSocket(saea, closeUdp);
             }
         }
 
@@ -77,7 +74,7 @@ namespace cmonitor.plugins.tunnel.server
             }
             catch (Exception)
             {
-                token.Clear();
+                token.Clear(true);
             }
         }
         private void IO_Completed(object sender, SocketAsyncEventArgs e)
@@ -106,29 +103,30 @@ namespace cmonitor.plugins.tunnel.server
         }
         private void ReceiveCallbackUdp(IAsyncResult result)
         {
+            AsyncUserToken token = result.AsyncState as AsyncUserToken;
             try
             {
                 IPEndPoint ep = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
-                byte[] _ = socketUdp.EndReceive(result, ref ep);
+                byte[] _ = token.UdpClient.EndReceive(result, ref ep);
 
-                OnUdpConnected(result.AsyncState, socketUdp);
+                OnUdpConnected(token.State, token.UdpClient);
             }
             catch (Exception)
             {
             }
         }
 
-        private void CloseClientSocket(AsyncUserToken token)
+        private void CloseClientSocket(AsyncUserToken token, bool closeUdp)
         {
             if (token == null) return;
 
             Socket socket = token.SourceSocket;
             if (socket != null)
             {
-                token.Clear();
+                token.Clear(closeUdp);
                 if (acceptBinds.TryRemove(token.LocalPort, out AsyncUserToken tk))
                 {
-                    CloseClientSocket(tk);
+                    CloseClientSocket(tk, closeUdp);
                 }
             }
         }
@@ -140,10 +138,15 @@ namespace cmonitor.plugins.tunnel.server
             public object State { get; set; }
             public int LocalPort { get; set; }
 
-            public void Clear()
+            public UdpClient UdpClient { get; set; }
+
+            public void Clear(bool closeUdp)
             {
                 SourceSocket?.SafeClose();
                 SourceSocket = null;
+
+                if (closeUdp)
+                    UdpClient?.Close();
 
                 Saea?.Dispose();
 

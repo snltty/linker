@@ -52,15 +52,15 @@ namespace common.libs.socks5
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static Memory<byte> GetRemoteEndPoint(Memory<byte> data, out Socks5EnumAddressType addressType, out ushort port, out int index)
+        public static ReadOnlyMemory<byte> GetRemoteEndPoint(ReadOnlyMemory<byte> data, out Socks5EnumAddressType addressType, out ushort port, out int index)
         {
             //VERSION COMMAND RSV ATYPE  DST.ADDR  DST.PORT
             //去掉 VERSION COMMAND RSV
-            Memory<byte> memory = data.Slice(3);
-            Span<byte> span = memory.Span;
+            ReadOnlyMemory<byte> memory = data.Slice(3);
+            ReadOnlySpan<byte> span = memory.Span;
             addressType = (Socks5EnumAddressType)span[0];
             index = 0;
-            Memory<byte> result = Helper.EmptyArray;
+            ReadOnlyMemory<byte> result = Helper.EmptyArray;
 
             switch (addressType)
             {
@@ -98,7 +98,7 @@ namespace common.libs.socks5
         /// <param name="span"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public static Memory<byte> GetUdpData(Memory<byte> span)
+        public static ReadOnlyMemory<byte> GetUdpData(ReadOnlyMemory<byte> span)
         {
             //RSV FRAG ATYPE DST.ADDR DST.PORT DATA
             //去掉 RSV FRAG   RSV占俩字节
@@ -150,7 +150,7 @@ namespace common.libs.socks5
         /// <param name="remoteEndPoint"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static unsafe byte[] MakeUdpResponse(IPEndPoint remoteEndPoint, Memory<byte> data, out int length)
+        public static unsafe byte[] MakeUdpResponse(IPEndPoint remoteEndPoint, ReadOnlyMemory<byte> data, out int length)
         {
             //RSV FRAG ATYPE DST.ADDR DST.PORT DATA
             //RSV占俩字节
@@ -208,7 +208,7 @@ namespace common.libs.socks5
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static EnumProxyValidateDataResult ValidateRequestData(Memory<byte> data)
+        public static EnumProxyValidateDataResult ValidateRequestData(ReadOnlyMemory<byte> data)
         {
             /*
              * VERSION	METHODS_COUNT	METHODS
@@ -234,7 +234,7 @@ namespace common.libs.socks5
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static EnumProxyValidateDataResult ValidateCommandData(Memory<byte> data)
+        public static EnumProxyValidateDataResult ValidateCommandData(ReadOnlyMemory<byte> data)
         {
             /*
              * VERSION  COMMAND RSV ADDRESS_TYPE    DST.ADDR    DST.PORT
@@ -269,7 +269,7 @@ namespace common.libs.socks5
         /// <param name="data"></param>
         /// <param name="authType"></param>
         /// <returns></returns>
-        public static EnumProxyValidateDataResult ValidateAuthData(Memory<byte> data, Socks5EnumAuthType authType)
+        public static EnumProxyValidateDataResult ValidateAuthData(ReadOnlyMemory<byte> data, Socks5EnumAuthType authType)
         {
             return authType switch
             {
@@ -282,7 +282,7 @@ namespace common.libs.socks5
                 _ => EnumProxyValidateDataResult.Bad,
             };
         }
-        private static EnumProxyValidateDataResult ValidateAuthPasswordData(Memory<byte> data)
+        private static EnumProxyValidateDataResult ValidateAuthPasswordData(ReadOnlyMemory<byte> data)
         {
             /*
              VERSION	USERNAME_LENGTH	USERNAME	PASSWORD_LENGTH	PASSWORD

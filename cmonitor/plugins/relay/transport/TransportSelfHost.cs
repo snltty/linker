@@ -5,8 +5,8 @@ using cmonitor.server;
 using common.libs;
 using common.libs.extends;
 using MemoryPack;
+using System.Net;
 using System.Net.Sockets;
-using System.Text;
 
 namespace cmonitor.plugins.relay.transport
 {
@@ -18,7 +18,6 @@ namespace cmonitor.plugins.relay.transport
 
         private readonly TcpServer tcpServer;
         private readonly MessengerSender messengerSender;
-        private readonly Memory<byte> relayFlagData = Encoding.UTF8.GetBytes("snltty.relay").AsMemory();
 
         public TransportSelfHost(TcpServer tcpServer, MessengerSender messengerSender)
         {
@@ -33,7 +32,7 @@ namespace cmonitor.plugins.relay.transport
             socket.IPv6Only(relayInfo.Server.AddressFamily, false);
             await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromMilliseconds(500));
 
-            IConnection connection = await tcpServer.BindReceive(socket);
+            IConnection connection = await tcpServer.BeginReceive(socket);
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = connection,
@@ -46,14 +45,16 @@ namespace cmonitor.plugins.relay.transport
                 connection.Disponse();
                 return null;
             }
-            await socket.SendAsync(relayFlagData);
+            connection.Cancel();
             await Task.Delay(10);
             return new TunnelConnectionTcp
             {
                 Direction = TunnelDirection.Forward,
                 ProtocolType = TunnelProtocolType.Tcp,
                 RemoteMachineName = relayInfo.RemoteMachineName,
-                Socket = socket,
+                Socket = connection.TcpSourceSocket,
+                Mode = TunnelMode.Client,
+                IPEndPoint = socket.RemoteEndPoint as IPEndPoint,
                 TransactionId = relayInfo.TransactionId,
                 TransportName = Name,
                 Type = TunnelType.Relay
@@ -67,27 +68,23 @@ namespace cmonitor.plugins.relay.transport
             socket.IPv6Only(relayInfo.Server.AddressFamily, false);
             await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromMilliseconds(500));
 
-            IConnection connection = await tcpServer.BindReceive(socket);
-            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            IConnection connection = await tcpServer.BeginReceive(socket);
+            await messengerSender.SendOnly(new MessageRequestWrap
             {
                 Connection = connection,
                 MessengerId = (ushort)RelayMessengerIds.RelayForward,
-                Payload = MemoryPackSerializer.Serialize(relayInfo),
-                Timeout = 2000
+                Payload = MemoryPackSerializer.Serialize(relayInfo)
             });
-            if (resp.Code != MessageResponeCodes.OK || resp.Data.Span.SequenceEqual(Helper.TrueArray) == false)
-            {
-                connection.Disponse();
-                return null;
-            }
-            await socket.SendAsync(relayFlagData);
+            connection.Cancel();
             await Task.Delay(10);
             return new TunnelConnectionTcp
             {
                 Direction = TunnelDirection.Reverse,
                 ProtocolType = TunnelProtocolType.Tcp,
                 RemoteMachineName = relayInfo.RemoteMachineName,
-                Socket = socket,
+                Socket = connection.TcpSourceSocket,
+                Mode = TunnelMode.Server,
+                IPEndPoint = socket.RemoteEndPoint as IPEndPoint,
                 TransactionId = relayInfo.TransactionId,
                 TransportName = Name,
                 Type = TunnelType.Relay

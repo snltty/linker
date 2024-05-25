@@ -79,7 +79,7 @@ namespace cmonitor.plugins.tuntap.proxy
             Socks5EnumRequestCommand command = (Socks5EnumRequestCommand)token.Proxy.Data.Span[1];
 
             //获取远端地址
-            Memory<byte> ipArray = Socks5Parser.GetRemoteEndPoint(token.Proxy.Data, out Socks5EnumAddressType addressType, out ushort port, out int index);
+            ReadOnlyMemory<byte> ipArray = Socks5Parser.GetRemoteEndPoint(token.Proxy.Data, out Socks5EnumAddressType addressType, out ushort port, out int index);
             token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
             token.Proxy.Data = token.Proxy.Data.Slice(index);
             //不支持域名
@@ -109,7 +109,7 @@ namespace cmonitor.plugins.tuntap.proxy
         }
         protected override async Task ConnectUdp(AsyncUserUdpToken token)
         {
-            Memory<byte> ipArray = Socks5Parser.GetRemoteEndPoint(token.Proxy.Data, out Socks5EnumAddressType addressType, out ushort port, out int index);
+            ReadOnlyMemory<byte> ipArray = Socks5Parser.GetRemoteEndPoint(token.Proxy.Data, out Socks5EnumAddressType addressType, out ushort port, out int index);
             token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
             //解析出udp包的数据部分
             token.Proxy.Data = Socks5Parser.GetUdpData(token.Proxy.Data);
@@ -134,7 +134,7 @@ namespace cmonitor.plugins.tuntap.proxy
 
 
         SemaphoreSlim slimGlobal = new SemaphoreSlim(1);
-        private async ValueTask<ITunnelConnection> ConnectTunnel(Memory<byte> ipArray)
+        private async ValueTask<ITunnelConnection> ConnectTunnel(ReadOnlyMemory<byte> ipArray)
         {
             uint ip = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
             uint network = ip & maskValue;

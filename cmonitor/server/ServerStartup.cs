@@ -29,9 +29,6 @@ namespace cmonitor.server
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<IRuleConfig, RuleConfigWindows>();
-            // if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<IRuleConfig, RuleConfigWindows>();
-            // else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<IRuleConfig, RuleConfigLinux>();
-            // else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<IRuleConfig, RuleConfigMacOS>();
 
             serviceCollection.AddSingleton<MessengerSender>();
             serviceCollection.AddSingleton<MessengerResolver>();
@@ -65,6 +62,7 @@ namespace cmonitor.server
             {
                 //服务
                 TcpServer tcpServer = serviceProvider.GetService<TcpServer>();
+                tcpServer.Init(config.Data.Server.Certificate, config.Data.Server.Password);
                 tcpServer.Start(config.Data.Server.ServicePort);
             }
             catch (Exception ex)
