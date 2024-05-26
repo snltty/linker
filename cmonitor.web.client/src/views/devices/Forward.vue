@@ -1,6 +1,6 @@
 <template>
 
-    <el-table-column prop="forward" label="端口转发">
+    <el-table-column prop="forward" label="端口转发" width="190">
         <template #default="scope">
             <template v-if="scope.row.showForward">
                 <div>

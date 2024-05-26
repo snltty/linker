@@ -179,18 +179,18 @@ namespace cmonitor.server
         private IConnectionReceiveCallback callback;
         private CancellationTokenSource cancellationTokenSource;
         private object userToken;
-        private bool byFrame;
+        private bool framing;
         private Pipe pipe;
         private ReceiveDataBuffer bufferCache = new ReceiveDataBuffer();
-        public override void BeginReceive(IConnectionReceiveCallback callback, object userToken, bool byFrame = true)
+        public override void BeginReceive(IConnectionReceiveCallback callback, object userToken, bool framing = true)
         {
             if (this.callback != null) return;
 
             this.callback = callback;
             this.userToken = userToken;
-            this.byFrame = byFrame;
+            this.framing = framing;
             cancellationTokenSource = new CancellationTokenSource();
-            pipe = new Pipe();
+            pipe = new Pipe(new PipeOptions(pauseWriterThreshold: 1 * 1024 * 1024, resumeWriterThreshold: 128 * 1024));
 
             _ = ProcessWrite();
             _ = ProcessReader();
@@ -204,6 +204,10 @@ namespace cmonitor.server
                 {
                     Memory<byte> buffer = writer.GetMemory(8 * 1024);
                     int length = await TcpSourceSocket.ReadAsync(buffer, cancellationTokenSource.Token);
+                    if (length == 0)
+                    {
+                        break;
+                    }
                     writer.Advance(length);
                     await writer.FlushAsync();
                 }
@@ -217,7 +221,8 @@ namespace cmonitor.server
             }
             finally
             {
-                writer.Complete();
+                Disponse();
+                await writer.CompleteAsync();
             }
         }
         private async Task ProcessReader()
@@ -229,6 +234,10 @@ namespace cmonitor.server
                 {
                     ReadResult readResult = await reader.ReadAsync().ConfigureAwait(false);
                     ReadOnlySequence<byte> buffer = readResult.Buffer;
+                    if (buffer.Length == 0)
+                    {
+                        break;
+                    }
                     SequencePosition end = await ReadPacket(buffer).ConfigureAwait(false);
                     reader.AdvanceTo(end);
                 }
@@ -242,8 +251,8 @@ namespace cmonitor.server
             }
             finally
             {
-                bufferCache.Clear(true);
-                reader.Complete();
+                Disponse();
+                await reader.CompleteAsync();
             }
         }
         private unsafe int ReaderHead(ReadOnlySequence<byte> buffer)
@@ -254,6 +263,7 @@ namespace cmonitor.server
         }
         private async Task<SequencePosition> ReadPacket(ReadOnlySequence<byte> buffer)
         {
+            //已转发
             if (TcpTargetSocket != null)
             {
                 SequencePosition position = buffer.Start;
@@ -263,8 +273,8 @@ namespace cmonitor.server
                 }
                 return buffer.End;
             }
-
-            if (byFrame == false)
+            //不分包
+            if (framing == false)
             {
                 SequencePosition position = buffer.Start;
                 if (buffer.TryGet(ref position, out ReadOnlyMemory<byte> memory))
@@ -274,7 +284,7 @@ namespace cmonitor.server
                 return buffer.End;
             }
 
-            //粘包
+            //分包
             while (buffer.Length > 4)
             {
                 int length = ReaderHead(buffer);

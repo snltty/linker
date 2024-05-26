@@ -4,7 +4,6 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 
 namespace cmonitor.client.tunnel
 {
@@ -228,6 +227,7 @@ namespace cmonitor.client.tunnel
                                 CloseClientSocket(token);
                                 return;
                             }
+                            if (token.Received == false) return;
                         }
                     }
 

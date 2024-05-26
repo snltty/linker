@@ -1,5 +1,5 @@
 <template>
-    <el-table-column prop="tuntap" label="虚拟网卡" width="170">
+    <el-table-column prop="tuntap" label="虚拟网卡" width="150">
         <template #header>
             <div class="flex">
                 <span class="flex-1">虚拟网卡</span>

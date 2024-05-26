@@ -13,7 +13,7 @@
             </template>    
             <Info></Info>   
            
-            <el-table-column label="操作" width="66">
+            <el-table-column label="操作" width="66" fixed="right">
                 <template #default="scope">
                     <el-popconfirm v-if="scope.row.showDel" confirm-button-text="确认"
                         cancel-button-text="取消" title="删除不可逆，是否确认?" @confirm="handleDel(scope.row.MachineName)">

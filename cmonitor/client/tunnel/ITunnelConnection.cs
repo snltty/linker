@@ -83,7 +83,7 @@ namespace cmonitor.client.tunnel
         private ITunnelConnectionReceiveCallback callback;
         private CancellationTokenSource cancellationTokenSource;
         private object userToken;
-        private bool byFrame;
+        private bool framing;
         private Pipe pipe;
         private ReceiveDataBuffer bufferCache = new ReceiveDataBuffer();
 
@@ -93,22 +93,21 @@ namespace cmonitor.client.tunnel
         /// <param name="callback">数据回调</param>
         /// <param name="userToken">自定义数据</param>
         /// <param name="byFrame">是否处理粘包，true时，请在首部4字节标注数据长度</param>
-        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken, bool byFrame = true)
+        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken, bool framing = true)
         {
             if (this.callback != null) return;
 
             this.callback = callback;
             this.userToken = userToken;
-            this.byFrame = byFrame;
+            this.framing = framing;
             cancellationTokenSource = new CancellationTokenSource();
-            pipe = new Pipe();
-
+            pipe = new Pipe(new PipeOptions(pauseWriterThreshold: 1 * 1024 * 1024, resumeWriterThreshold: 128 * 1024));
             _ = ProcessWrite();
             _ = ProcessReader();
         }
         private async Task ProcessWrite()
         {
-            var writer = pipe.Writer;
+            PipeWriter writer = pipe.Writer;
             try
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
@@ -117,11 +116,10 @@ namespace cmonitor.client.tunnel
                     int length = await Socket.ReadAsync(buffer, cancellationTokenSource.Token);
                     if (length == 0)
                     {
-                        Cancel();
                         break;
                     }
                     writer.Advance(length);
-                    await writer.FlushAsync();
+                    FlushResult result = await writer.FlushAsync();
                 }
             }
             catch (Exception ex)
@@ -133,7 +131,8 @@ namespace cmonitor.client.tunnel
             }
             finally
             {
-                writer.Complete();
+                Close();
+                await writer.CompleteAsync();
             }
         }
         private async Task ProcessReader()
@@ -147,7 +146,6 @@ namespace cmonitor.client.tunnel
                     ReadOnlySequence<byte> buffer = readResult.Buffer;
                     if (buffer.Length == 0)
                     {
-                        Cancel();
                         break;
                     }
                     SequencePosition end = await ReadPacket(buffer).ConfigureAwait(false);
@@ -163,8 +161,8 @@ namespace cmonitor.client.tunnel
             }
             finally
             {
-                bufferCache.Clear(true);
-                reader.Complete();
+                Close();
+                await reader.CompleteAsync();
             }
         }
         private unsafe int ReaderHead(ReadOnlySequence<byte> buffer)
@@ -175,7 +173,8 @@ namespace cmonitor.client.tunnel
         }
         private async Task<SequencePosition> ReadPacket(ReadOnlySequence<byte> buffer)
         {
-            if (byFrame == false)
+            //不分包
+            if (framing == false)
             {
                 SequencePosition position = buffer.Start;
                 if (buffer.TryGet(ref position, out ReadOnlyMemory<byte> memory))
@@ -185,24 +184,28 @@ namespace cmonitor.client.tunnel
                 return buffer.End;
             }
 
-            //粘包
+            //分包
             while (buffer.Length > 4)
             {
+                //读取头
                 int length = ReaderHead(buffer);
                 if (buffer.Length < length + 4)
                 {
                     break;
                 }
 
+                //拼接数据
                 ReadOnlySequence<byte> cache = buffer.Slice(4, length);
                 SequencePosition position = cache.Start;
                 while (cache.TryGet(ref position, out ReadOnlyMemory<byte> memory))
                 {
                     bufferCache.AddRange(memory);
                 }
+
                 await callback.Receive(this, bufferCache.Data.Slice(0, bufferCache.Size), this.userToken).ConfigureAwait(false);
                 bufferCache.Clear();
 
+                //分割去掉已使用的数据
                 SequencePosition endPosition = buffer.GetPosition(4 + length);
                 buffer = buffer.Slice(endPosition);
             }

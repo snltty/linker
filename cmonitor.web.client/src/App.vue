@@ -43,7 +43,7 @@ export default{
     box-sizing:border-box;
     background-color:#fff;
     border:1px solid #d0d7de;
-    width:80rem;
+    width:81rem;
     max-width : 80%;
     height:90%;
     position:absolute;
