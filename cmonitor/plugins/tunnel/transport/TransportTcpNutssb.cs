@@ -188,7 +188,6 @@ namespace cmonitor.plugins.tunnel.transport
 
                     targetSocket.EndConnect(result);
 
-                    targetSocket.NoDelay = true;
                     SslStream sslStream = new SslStream(new NetworkStream(targetSocket), true, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                     await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 });
 
@@ -283,7 +282,6 @@ namespace cmonitor.plugins.tunnel.transport
             {
                 try
                 {
-                    socket.NoDelay = true;
                     SslStream sslStream = new SslStream(new NetworkStream(socket), true);
                     await sslStream.AuthenticateAsServerAsync(serverCertificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false);
 
