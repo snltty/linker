@@ -76,7 +76,7 @@ namespace cmonitor.plugins.forward.proxy
                 }
 
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward tunnel to {machineName}");
-                connection = null;//await tunnelTransfer.ConnectAsync(machineName, "forward");
+                connection = await tunnelTransfer.ConnectAsync(machineName, "forward");
                 if (connection != null)
                 {
                     if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward tunnel to {machineName} success");
