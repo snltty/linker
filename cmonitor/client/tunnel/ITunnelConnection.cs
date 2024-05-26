@@ -184,7 +184,7 @@ namespace cmonitor.client.tunnel
             if (framing == false)
             {
                 SequencePosition position = buffer.Start;
-                if (buffer.TryGet(ref position, out ReadOnlyMemory<byte> memory))
+                while (buffer.TryGet(ref position, out ReadOnlyMemory<byte> memory))
                 {
                     await callback.Receive(this, memory, this.userToken).ConfigureAwait(false);
                 }
