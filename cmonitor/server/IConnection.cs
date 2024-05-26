@@ -5,7 +5,6 @@ using System.IO.Pipelines;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
-using System.Reflection.PortableExecutable;
 
 namespace cmonitor.server
 {
