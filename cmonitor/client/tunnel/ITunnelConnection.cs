@@ -127,6 +127,10 @@ namespace cmonitor.client.tunnel
                     }
                     writer.Advance(length);
                     FlushResult result = await writer.FlushAsync();
+                    if (result.IsCanceled || result.IsCompleted)
+                    {
+                        break;
+                    }
                 }
             }
             catch (Exception ex)
@@ -151,7 +155,7 @@ namespace cmonitor.client.tunnel
                 {
                     ReadResult readResult = await reader.ReadAsync().ConfigureAwait(false);
                     ReadOnlySequence<byte> buffer = readResult.Buffer;
-                    if (buffer.Length == 0)
+                    if (buffer.Length == 0 || readResult.IsCompleted || readResult.IsCanceled)
                     {
                         break;
                     }
@@ -208,7 +212,6 @@ namespace cmonitor.client.tunnel
                 {
                     bufferCache.AddRange(memory);
                 }
-
                 await callback.Receive(this, bufferCache.Data.Slice(0, bufferCache.Size), this.userToken).ConfigureAwait(false);
                 bufferCache.Clear();
 
@@ -231,7 +234,7 @@ namespace cmonitor.client.tunnel
                 {
                     ReadResult readResult = await reader.ReadAsync().ConfigureAwait(false);
                     ReadOnlySequence<byte> buffer = readResult.Buffer;
-                    if (buffer.Length == 0)
+                    if (buffer.Length == 0 || readResult.IsCompleted || readResult.IsCanceled)
                     {
                         break;
                     }
@@ -263,7 +266,11 @@ namespace cmonitor.client.tunnel
             try
             {
                 await senderPipe.Writer.WriteAsync(data, sendCancellationTokenSource.Token);
-                await senderPipe.Writer.FlushAsync(sendCancellationTokenSource.Token);
+                FlushResult result = await senderPipe.Writer.FlushAsync(sendCancellationTokenSource.Token);
+                if (result.IsCanceled || result.IsCompleted)
+                {
+                    Close();
+                }
             }
             catch (Exception ex)
             {

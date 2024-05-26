@@ -1,5 +1,6 @@
 ﻿using common.libs;
 using common.libs.extends;
+using SharpDX;
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Net;
@@ -213,7 +214,11 @@ namespace cmonitor.server
                         break;
                     }
                     writer.Advance(length);
-                    await writer.FlushAsync();
+                    FlushResult result = await writer.FlushAsync();
+                    if (result.IsCanceled || result.IsCompleted)
+                    {
+                        break;
+                    }
                 }
             }
             catch (Exception ex)
@@ -238,7 +243,7 @@ namespace cmonitor.server
                 {
                     ReadResult readResult = await reader.ReadAsync().ConfigureAwait(false);
                     ReadOnlySequence<byte> buffer = readResult.Buffer;
-                    if (buffer.Length == 0)
+                    if (buffer.Length == 0 || readResult.IsCompleted || readResult.IsCanceled)
                     {
                         break;
                     }
@@ -324,7 +329,7 @@ namespace cmonitor.server
                 {
                     ReadResult readResult = await reader.ReadAsync().ConfigureAwait(false);
                     ReadOnlySequence<byte> buffer = readResult.Buffer;
-                    if (buffer.Length == 0)
+                    if (buffer.Length == 0 || readResult.IsCompleted || readResult.IsCanceled)
                     {
                         break;
                     }
@@ -358,7 +363,11 @@ namespace cmonitor.server
                 try
                 {
                     await senderPipe.Writer.WriteAsync(data, sendCancellationTokenSource.Token);
-                    await senderPipe.Writer.FlushAsync(sendCancellationTokenSource.Token);
+                    FlushResult result = await senderPipe.Writer.FlushAsync(sendCancellationTokenSource.Token);
+                    if (result.IsCanceled || result.IsCompleted)
+                    {
+                        Disponse();
+                    }
                     return true;
                 }
                 catch (Exception ex)
