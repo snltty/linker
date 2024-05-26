@@ -52,6 +52,7 @@ namespace cmonitor.plugins.tunnel.transport
                 {
                     return null;
                 }
+                await Task.Delay(500);
                 ITunnelConnection connection = await ConnectForward(tunnelTransportInfo);
                 if (connection != null)
                 {
@@ -263,7 +264,7 @@ namespace cmonitor.plugins.tunnel.transport
 
             try
             {
-                ITunnelConnection connection = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(3000));
+                ITunnelConnection connection = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000));
                 return connection;
             }
             catch (Exception)

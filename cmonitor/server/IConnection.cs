@@ -5,6 +5,7 @@ using System.IO.Pipelines;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Reflection.PortableExecutable;
 
 namespace cmonitor.server
 {
@@ -172,6 +173,10 @@ namespace cmonitor.server
                 local = new IPEndPoint(new IPAddress(local.Address.GetAddressBytes()[^4..]), local.Port);
             }
             LocalAddress = local;
+
+            sendCancellationTokenSource = new CancellationTokenSource();
+            senderPipe = new Pipe(new PipeOptions(pauseWriterThreshold: 1 * 1024 * 1024, resumeWriterThreshold: 128 * 1024));
+            _ = ProcessSender();
         }
 
         public override bool Connected => TcpSourceSocket != null && TcpSourceSocket.CanWrite;
@@ -308,13 +313,53 @@ namespace cmonitor.server
             return buffer.Start;
         }
 
+
+        private CancellationTokenSource sendCancellationTokenSource;
+        private Pipe senderPipe;
+        private async Task ProcessSender()
+        {
+            var reader = senderPipe.Reader;
+            try
+            {
+                while (sendCancellationTokenSource.IsCancellationRequested == false)
+                {
+                    ReadResult readResult = await reader.ReadAsync().ConfigureAwait(false);
+                    ReadOnlySequence<byte> buffer = readResult.Buffer;
+                    if (buffer.Length == 0)
+                    {
+                        break;
+                    }
+
+                    SequencePosition position = buffer.Start;
+                    while (buffer.TryGet(ref position, out ReadOnlyMemory<byte> memory))
+                    {
+                        await TcpSourceSocket.WriteAsync(memory);
+                    }
+
+                    reader.AdvanceTo(buffer.End);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    Logger.Instance.Error(ex);
+                }
+            }
+            finally
+            {
+                Disponse();
+                await reader.CompleteAsync();
+            }
+        }
         public override async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             if (Connected)
             {
                 try
                 {
-                    await TcpSourceSocket.WriteAsync(data);
+                    await senderPipe.Writer.WriteAsync(data, sendCancellationTokenSource.Token);
+                    await senderPipe.Writer.FlushAsync(sendCancellationTokenSource.Token);
                     return true;
                 }
                 catch (Exception ex)
@@ -331,7 +376,6 @@ namespace cmonitor.server
             return await SendAsync(data.AsMemory(0, length));
         }
 
-
         public override void Cancel()
         {
             callback = null;
@@ -342,13 +386,13 @@ namespace cmonitor.server
 
             bufferCache.Clear(true);
         }
-
         public override void Disponse()
         {
             Cancel();
             base.Disponse();
             try
             {
+                sendCancellationTokenSource?.Cancel();
                 if (TcpSourceSocket != null)
                 {
                     TcpSourceSocket.ShutdownAsync();
@@ -357,6 +401,8 @@ namespace cmonitor.server
                     TcpTargetSocket?.ShutdownAsync();
                     TcpTargetSocket?.Dispose();
                 }
+                senderPipe.Writer.Complete();
+                senderPipe.Reader.Complete();
             }
             catch (Exception)
             {

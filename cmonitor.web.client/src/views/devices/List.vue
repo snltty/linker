@@ -176,7 +176,6 @@ export default {
             _getSignList();
         }
         const handleForwardRefresh = ()=>{
-            refreshForward();
             ElMessage.success('刷新成功');
         }
 
@@ -227,6 +226,8 @@ export default {
         }
         const handlePageRefresh = ()=>{
             handlePageChange();
+            refreshTunnel();
+            refreshTuntap();
             ElMessage.success('刷新成功');  
         }
         const handlePageChange = () => {
@@ -239,7 +240,12 @@ export default {
         }
 
         onMounted(() => {
-            subWebsocketState((state) => { if (state) _getSignList(); });
+            subWebsocketState((state) => { 
+                if (state){
+                    handlePageChange();
+                    _getSignList();
+                } 
+            });
             _getSignList();
             _getSignList1();
             _getTuntapInfo();

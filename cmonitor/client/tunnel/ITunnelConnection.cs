@@ -50,8 +50,8 @@ namespace cmonitor.client.tunnel
 
         public bool Connected { get; }
 
-        public Task SendAsync(ReadOnlyMemory<byte> data, CancellationToken cancellationToken = default);
-        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken, bool byFrame = true);
+        public Task SendAsync(ReadOnlyMemory<byte> data);
+        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken, bool framing = true);
 
         public void Close();
 
@@ -60,6 +60,13 @@ namespace cmonitor.client.tunnel
 
     public sealed class TunnelConnectionTcp : ITunnelConnection
     {
+        public TunnelConnectionTcp()
+        {
+            sendCancellationTokenSource = new CancellationTokenSource();
+            senderPipe = new Pipe(new PipeOptions(pauseWriterThreshold: 1 * 1024 * 1024, resumeWriterThreshold: 128 * 1024));
+            _ = ProcessSender();
+        }
+
         public string RemoteMachineName { get; init; }
 
         public string TransactionId { get; init; }
@@ -212,9 +219,59 @@ namespace cmonitor.client.tunnel
             return buffer.Start;
         }
 
-        public async Task SendAsync(ReadOnlyMemory<byte> data, CancellationToken cancellationToken = default)
+
+        private CancellationTokenSource sendCancellationTokenSource;
+        private Pipe senderPipe;
+        private async Task ProcessSender()
         {
-            await Socket.WriteAsync(data, cancellationToken);
+            var reader = senderPipe.Reader;
+            try
+            {
+                while (sendCancellationTokenSource.IsCancellationRequested == false)
+                {
+                    ReadResult readResult = await reader.ReadAsync().ConfigureAwait(false);
+                    ReadOnlySequence<byte> buffer = readResult.Buffer;
+                    if (buffer.Length == 0)
+                    {
+                        break;
+                    }
+
+                    SequencePosition position = buffer.Start;
+                    while (buffer.TryGet(ref position, out ReadOnlyMemory<byte> memory))
+                    {
+                        await Socket.WriteAsync(memory);
+                    }
+
+                    reader.AdvanceTo(buffer.End);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    Logger.Instance.Error(ex);
+                }
+            }
+            finally
+            {
+                Close();
+                await reader.CompleteAsync();
+            }
+        }
+        public async Task SendAsync(ReadOnlyMemory<byte> data)
+        {
+            try
+            {
+                await senderPipe.Writer.WriteAsync(data, sendCancellationTokenSource.Token);
+                await senderPipe.Writer.FlushAsync(sendCancellationTokenSource.Token);
+            }
+            catch (Exception ex)
+            {
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    Logger.Instance.Error(ex);
+                }
+            }
         }
 
         private void Cancel()
@@ -231,6 +288,16 @@ namespace cmonitor.client.tunnel
             Cancel();
             Socket?.Close();
             Socket?.Dispose();
+
+            try
+            {
+                sendCancellationTokenSource?.Cancel();
+                senderPipe.Writer.Complete();
+                senderPipe.Reader.Complete();
+            }
+            catch (Exception)
+            {
+            }
         }
 
         public override string ToString()
@@ -238,6 +305,5 @@ namespace cmonitor.client.tunnel
             return $"TransactionId:{TransactionId},TransportName:{TransportName},ProtocolType:{ProtocolType},Type:{Type},Direction:{Direction},IPEndPoint:{IPEndPoint},RemoteMachineName:{RemoteMachineName}";
         }
     }
-
 
 }
