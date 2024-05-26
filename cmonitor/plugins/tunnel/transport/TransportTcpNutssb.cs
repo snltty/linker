@@ -15,7 +15,7 @@ namespace cmonitor.plugins.tunnel.transport
     public sealed class TunnelTransportTcpNutssb : ITunnelTransport
     {
         public string Name => "TcpNutssb";
-        public string Label => "基于低TTL的TCP打洞";
+        public string Label => "TCP、基于低TTL";
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Tcp;
 
         private X509Certificate serverCertificate;
