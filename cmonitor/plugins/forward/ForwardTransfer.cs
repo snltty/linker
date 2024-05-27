@@ -12,7 +12,7 @@ namespace cmonitor.plugins.forward
 
         private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
 
-        public ForwardTransfer(Config config, ForwardProxy forwardProxy, ClientSignInState clientSignInState)
+        public ForwardTransfer(Config config, ForwardProxy forwardProxy, ClientSignInState clientSignInState, ClientSignInTransfer clientSignInTransfer)
         {
             this.config = config;
             this.forwardProxy = forwardProxy;
@@ -20,6 +20,13 @@ namespace cmonitor.plugins.forward
             clientSignInState.NetworkFirstEnabledHandle += () =>
             {
                 Start();
+            };
+            clientSignInTransfer.NameChanged += (string oldName, string newName) =>
+            {
+                foreach (var item in config.Data.Client.Forward.Forwards.Where(c=>c.MachineName == oldName))
+                {
+                    item.MachineName = newName;
+                }
             };
         }
 

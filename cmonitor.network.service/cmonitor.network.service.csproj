@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
@@ -32,9 +32,6 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
-	</ItemGroup>
-	<ItemGroup>
-	  <ProjectReference Include="..\cmonitor.libs\cmonitor.libs.csproj" />
 	</ItemGroup>
 
 </Project>

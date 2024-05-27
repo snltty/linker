@@ -1,32 +1,50 @@
 ﻿using common.libs;
 using common.libs.extends;
+using System.Reflection;
 using System.Text.Json.Serialization;
 
 namespace cmonitor.config
 {
     public sealed class Config
     {
-        private FileStream fs = null;
-        private StreamWriter writer = null;
-        private StreamReader reader = null;
         private SemaphoreSlim slim = new SemaphoreSlim(1);
         private string configPath = "./configs/";
+
+        private Dictionary<string, FileReadWrite> fsDic = new Dictionary<string, FileReadWrite>();
 
         public ConfigInfo Data { get; private set; } = new ConfigInfo();
 
         public Config()
         {
+            Init();
+            Load();
+            Save();
+        }
+
+        private void Init()
+        {
             if (Directory.Exists(configPath) == false)
             {
                 Directory.CreateDirectory(configPath);
             }
-            string path = Path.Join(configPath, "config.json");
-            fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
-            reader = new StreamReader(fs, System.Text.Encoding.UTF8);
-            writer = new StreamWriter(fs, System.Text.Encoding.UTF8);
 
-            Load();
-            Save();
+            Type type = Data.GetType();
+            Type typeAttr = typeof(JsonIgnoreAttribute);
+            foreach (var item in type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(c => c.GetCustomAttribute(typeAttr) == null))
+            {
+                FileStream fs = new FileStream(Path.Join(configPath, $"{item.Name.ToLower()}.json"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+                object property = item.GetValue(Data);
+                MethodInfo method = property.GetType().GetMethod("Load");
+                fsDic.Add(item.Name.ToLower(), new FileReadWrite
+                {
+                    FS = fs,
+                    SR = new StreamReader(fs, System.Text.Encoding.UTF8),
+                    SW = new StreamWriter(fs, System.Text.Encoding.UTF8),
+                    Property = item,
+                    PropertyObject = property,
+                    PropertyLoadMethod = method
+                });
+            }
         }
 
         private void Load()
@@ -34,13 +52,21 @@ namespace cmonitor.config
             slim.Wait();
             try
             {
-                fs.Seek(0, SeekOrigin.Begin);
-                string text = reader.ReadToEnd();
-                if (string.IsNullOrWhiteSpace(text))
+                foreach (var item in fsDic)
                 {
-                    return;
+                    if (item.Value.PropertyObject == null || item.Value.PropertyLoadMethod == null)
+                    {
+                        continue;
+                    }
+                    item.Value.FS.Seek(0, SeekOrigin.Begin);
+                    string text = item.Value.SR.ReadToEnd();
+                    if (string.IsNullOrWhiteSpace(text))
+                    {
+                        return;
+                    }
+                    object value = item.Value.PropertyLoadMethod.Invoke(item.Value.PropertyObject, new object[] { text });
+                    item.Value.Property.SetValue(Data, value);
                 }
-                Data = text.DeJson<ConfigInfo>();
             }
             catch (Exception ex)
             {
@@ -58,10 +84,17 @@ namespace cmonitor.config
             slim.Wait();
             try
             {
-                fs.Seek(0, SeekOrigin.Begin);
-                fs.SetLength(0);
-                writer.Write(Data.ToJsonFormat());
-                writer.Flush();
+                foreach (var item in fsDic)
+                {
+                    if (item.Value.PropertyObject == null || item.Value.PropertyLoadMethod == null)
+                    {
+                        continue;
+                    }
+                    item.Value.FS.Seek(0, SeekOrigin.Begin);
+                    item.Value.FS.SetLength(0);
+                    item.Value.SW.Write(item.Value.Property.GetValue(Data).ToJsonFormat());
+                    item.Value.SW.Flush();
+                }
             }
             catch (Exception ex)
             {
@@ -75,6 +108,18 @@ namespace cmonitor.config
 
 
     }
+
+    public sealed class FileReadWrite
+    {
+        public FileStream FS { get; set; }
+        public StreamReader SR { get; set; }
+        public StreamWriter SW { get; set; }
+
+        public PropertyInfo Property { get; set; }
+        public object PropertyObject { get; set; }
+        public MethodInfo PropertyLoadMethod { get; set; }
+    }
+
 
     public sealed partial class ConfigInfo
     {
@@ -111,5 +156,11 @@ namespace cmonitor.config
 
         public string[] IncludePlugins { get; set; } = Array.Empty<string>();
         public string[] ExcludePlugins { get; set; } = Array.Empty<string>();
+
+
+        public ConfigCommonInfo Load(string text)
+        {
+            return text.DeJson<ConfigCommonInfo>();
+        }
     }
 }

@@ -124,6 +124,9 @@
 		
 	</ItemGroup>
 	<ItemGroup>
+	  <None Update="configs\common.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
 	  <None Update="snltty.pfx">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>

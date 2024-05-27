@@ -15,13 +15,15 @@ namespace cmonitor.plugins.elevated
 
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
+            config.Data.Elevated = common.libs.winapis.Win32Interop.GetCommandLine().Contains("--elevated");
 #if DEBUG
 #else
-            if (common.libs.winapis.Win32Interop.GetCommandLine().Contains("--elevated") == false)
+            if (config.Data.Elevated == false)
             {
                 common.libs.winapis.Win32Interop.RelaunchElevated();
             }
 #endif
+
         }
 
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)

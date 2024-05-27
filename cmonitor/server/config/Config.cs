@@ -1,4 +1,6 @@
-﻿namespace cmonitor.config
+﻿using common.libs.extends;
+
+namespace cmonitor.config
 {
     public sealed partial class ConfigInfo
     {
@@ -10,5 +12,10 @@
 
         public string Certificate { get; set; } = "./snltty.pfx";
         public string Password { get; set; } = "snltty";
+
+        public ConfigServerInfo Load(string text)
+        {
+            return text.DeJson<ConfigServerInfo>();
+        }
     }
 }

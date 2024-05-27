@@ -107,7 +107,7 @@ namespace cmonitor.sas.service
         {
             Task.Run(async () =>
             {
-                while (true)
+                while (cancellationTokenSource.IsCancellationRequested == false)
                 {
                     try
                     {

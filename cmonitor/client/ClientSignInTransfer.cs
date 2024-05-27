@@ -18,6 +18,8 @@ namespace cmonitor.client
         private readonly MessengerSender messengerSender;
         private readonly SignInArgsTransfer signInArgsTransfer;
 
+        public Action<string, string> NameChanged { get; set; }
+
         public ClientSignInTransfer(ClientSignInState clientSignInState, Config config, TcpServer tcpServer, MessengerSender messengerSender, SignInArgsTransfer signInArgsTransfer)
         {
             this.clientSignInState = clientSignInState;
@@ -98,25 +100,35 @@ namespace cmonitor.client
 
         public void UpdateName(string newName)
         {
-            config.Data.Client.Name = newName;
-            config.Save();
+            string name = config.Data.Client.Name;
 
-            SignOut();
-            _ = SignIn();
+            if (name != newName)
+            {
+                config.Data.Client.Name = newName;
+                config.Save();
+                NameChanged.Invoke(name, newName);
+
+                Environment.Exit(0);
+                //SignOut();
+                //_ = SignIn();
+            }
+
+
         }
         public void UpdateName(string newName, string newGroupid)
         {
             string name = config.Data.Client.Name;
             string gid = config.Data.Client.GroupId;
 
-            config.Data.Client.Name = newName;
-            config.Data.Client.GroupId = newGroupid;
-            config.Save();
-
-            if (name != config.Data.Client.Name || gid != config.Data.Client.GroupId)
+            if (name != newName || gid != newGroupid)
             {
-                SignOut();
-                _ = SignIn();
+                config.Data.Client.Name = newName;
+                config.Data.Client.GroupId = newGroupid;
+                config.Save();
+                NameChanged.Invoke(name, newName);
+                Environment.Exit(0);
+                //SignOut();
+                //_ = SignIn();
             }
         }
         public void UpdateServers(ClientServerInfo[] servers)
@@ -124,6 +136,10 @@ namespace cmonitor.client
             string server = config.Data.Client.Server;
 
             config.Data.Client.Servers = servers;
+            if (config.Data.Client.Servers.Length > 0)
+            {
+                config.Data.Client.Server = config.Data.Client.Servers.FirstOrDefault().Host;
+            }
             config.Save();
 
             if (server != config.Data.Client.Server)

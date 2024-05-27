@@ -24,9 +24,13 @@ namespace cmonitor.config
             get => servers; set
             {
                 servers = value;
-                if (value.Length > 0) Server = value.FirstOrDefault().Host;
             }
         }
+#if DEBUG
+        public string Server { get; set; } = new IPEndPoint(IPAddress.Loopback, 1802).ToString();
+#else
+        public string Server { get; set; } = "hk.cm.snltty.com:1802";
+#endif
 
 
         private string name = Dns.GetHostName().SubStr(0, 12);
@@ -47,14 +51,10 @@ namespace cmonitor.config
             }
         }
 
-        public string ShareMemoryKey { get; set; } = "cmonitor/share";
-        public int ShareMemoryCount { get; set; } = 100;
-        public int ShareMemorySize { get; set; } = 1024;
-#if DEBUG
-        public string Server { get; set; } = new IPEndPoint(IPAddress.Loopback, 1802).ToString();
-#else
-        public string Server { get; set; } = "hk.cm.snltty.com:1802";
-#endif
+        public ConfigClientInfo Load(string text)
+        {
+            return text.DeJson<ConfigClientInfo>();
+        }
 
     }
 

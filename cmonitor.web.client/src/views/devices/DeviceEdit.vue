@@ -2,6 +2,9 @@
      <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" title="设置设备" width="300">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="auto">
+                <el-form-item label="">
+                    <div>这将会关闭程序，如果以服务启动，稍后会自动启动，否则你需要手动重新运行</div>
+                </el-form-item>
                 <el-form-item label="设备名" prop="MachineName">
                     <el-input maxlength="12" show-word-limit v-model="state.ruleForm.MachineName" />
                 </el-form-item>

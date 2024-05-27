@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using cmonitor.startup;
 using cmonitor.config;
+using System.ServiceProcess;
 
 namespace cmonitor
 {
@@ -11,11 +12,17 @@ namespace cmonitor
     {
         static async Task Main(string[] args)
         {
+            Run(args);
+            await Helper.Await();
+        }
+
+        public static void Run(string[] args)
+        {
             Init();
 
             //初始化配置文件
             Config config = new Config();
-            config.Data.Elevated = args.Any(c => c.Contains("--elevated"));
+
 
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
             StartupTransfer.Init(config, assemblies);
@@ -34,7 +41,6 @@ namespace cmonitor
             StartupTransfer.Use(serviceProvider, config, assemblies);
 
             GCHelper.FlushMemory();
-            await Helper.Await();
         }
 
         private static void Init()
@@ -102,9 +108,10 @@ namespace cmonitor
             };
         }
 
-
     }
 
+
+   
 
 
 }

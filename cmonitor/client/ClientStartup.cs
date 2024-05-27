@@ -26,20 +26,24 @@ namespace cmonitor.client
             serviceCollection.AddSingleton<ClientSignInState>();
             serviceCollection.AddSingleton<ClientSignInTransfer>();
 
+#if RELEASEMONITOR || RELEASE || DEBUG
             //内存共享
             ShareMemory shareMemory = new ShareMemory(config.Data.Client.ShareMemoryKey, config.Data.Client.ShareMemoryCount, config.Data.Client.ShareMemorySize);
             serviceCollection.AddSingleton<ShareMemory>((a) => shareMemory);
+#endif
         }
 
         public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
         {
             Logger.Instance.Info($"start client");
 
+#if RELEASEMONITOR || RELEASE || DEBUG
             Logger.Instance.Info($"start client share memory");
             ShareMemory shareMemory = serviceProvider.GetService<ShareMemory>();
             shareMemory.InitLocal();
             shareMemory.InitGlobal();
             shareMemory.StartLoop();
+#endif
 
             Logger.Instance.Info($"start client signin transfer");
             if (string.IsNullOrWhiteSpace(config.Data.Client.Server) && config.Data.Client.Servers.Length > 0)
