@@ -104,8 +104,8 @@ namespace cmonitor.plugins.relay.messenger
                     }
 
                     IConnection targetConnection = await tcsWrap.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(3000));
-                    connection.TcpTargetSocket = targetConnection.TcpSourceSocket;
-                    targetConnection.TcpTargetSocket = connection.TcpSourceSocket;
+                    connection.TargetStream = targetConnection.SourceStream;
+                    targetConnection.TargetStream = connection.SourceStream;
                     connection.Write(Helper.TrueArray);
                 }
                 catch (Exception)

@@ -69,14 +69,13 @@ namespace cmonitor.server
             return socket;
         }
 
-        byte[] sendData = ArrayPool<byte>.Shared.Rent(20);
+        byte[] sendData = new byte[20];
         private async void ReceiveCallbackUdp(IAsyncResult result)
         {
             try
             {
                 IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
                 byte[] bytes = socketUdp.EndReceive(result, ref endPoint);
-
 
                 try
                 {

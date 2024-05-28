@@ -194,7 +194,7 @@ namespace cmonitor.plugins.tunnel.transport
 
                     return new TunnelConnectionTcp
                     {
-                        Socket = sslStream,
+                        Stream = sslStream,
                         IPEndPoint = targetSocket.RemoteEndPoint as IPEndPoint,
                         TransactionId = tunnelTransportInfo.TransactionId,
                         RemoteMachineName = tunnelTransportInfo.Remote.MachineName,
@@ -291,7 +291,7 @@ namespace cmonitor.plugins.tunnel.transport
                         RemoteMachineName = _state.Remote.MachineName,
                         Direction = _state.Direction,
                         ProtocolType = TunnelProtocolType.Tcp,
-                        Socket = sslStream,
+                        Stream = sslStream,
                         Type = TunnelType.P2P,
                         Mode = TunnelMode.Server,
                         TransactionId = _state.TransactionId,

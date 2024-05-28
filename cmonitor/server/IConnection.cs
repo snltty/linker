@@ -22,8 +22,8 @@ namespace cmonitor.server
         public IPEndPoint Address { get; }
         public IPEndPoint LocalAddress { get; }
 
-        public SslStream TcpSourceSocket { get; }
-        public SslStream TcpTargetSocket { get; set; }
+        public SslStream SourceStream { get; }
+        public SslStream TargetStream { get; set; }
 
         #region 接收数据
         public MessageRequestWrap ReceiveRequestWrap { get; }
@@ -64,8 +64,8 @@ namespace cmonitor.server
         public IPEndPoint Address { get; protected set; }
         public IPEndPoint LocalAddress { get; protected set; }
 
-        public SslStream TcpSourceSocket { get; protected set; }
-        public SslStream TcpTargetSocket { get; set; }
+        public SslStream SourceStream { get; protected set; }
+        public SslStream TargetStream { get; set; }
 
 
         #region 接收数据
@@ -160,7 +160,7 @@ namespace cmonitor.server
     {
         public TcpConnection(SslStream stream, IPEndPoint local, IPEndPoint remote) : base()
         {
-            TcpSourceSocket = stream;
+            SourceStream = stream;
 
             if (remote.Address.AddressFamily == AddressFamily.InterNetworkV6 && remote.Address.IsIPv4MappedToIPv6)
             {
@@ -174,12 +174,9 @@ namespace cmonitor.server
             }
             LocalAddress = local;
 
-            sendCancellationTokenSource = new CancellationTokenSource();
-            senderPipe = new Pipe(new PipeOptions(pauseWriterThreshold: 1 * 1024 * 1024, resumeWriterThreshold: 128 * 1024));
-            _ = ProcessSender();
         }
 
-        public override bool Connected => TcpSourceSocket != null && TcpSourceSocket.CanWrite;
+        public override bool Connected => SourceStream != null && SourceStream.CanWrite;
 
         private IConnectionReceiveCallback callback;
         private CancellationTokenSource cancellationTokenSource;
@@ -208,7 +205,7 @@ namespace cmonitor.server
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
                     Memory<byte> buffer = writer.GetMemory(8 * 1024);
-                    int length = await TcpSourceSocket.ReadAsync(buffer, cancellationTokenSource.Token);
+                    int length = await SourceStream.ReadAsync(buffer, cancellationTokenSource.Token);
                     if (length == 0)
                     {
                         break;
@@ -230,8 +227,8 @@ namespace cmonitor.server
             }
             finally
             {
-                Disponse();
                 await writer.CompleteAsync();
+                Disponse();
             }
         }
         private async Task ProcessReader()
@@ -260,8 +257,8 @@ namespace cmonitor.server
             }
             finally
             {
-                Disponse();
                 await reader.CompleteAsync();
+                Disponse();
             }
         }
         private unsafe int ReaderHead(ReadOnlySequence<byte> buffer)
@@ -273,22 +270,32 @@ namespace cmonitor.server
         private async Task<SequencePosition> ReadPacket(ReadOnlySequence<byte> buffer)
         {
             //已转发
-            if (TcpTargetSocket != null)
+            if (TargetStream != null)
             {
-                SequencePosition position = buffer.Start;
-                while (buffer.TryGet(ref position, out ReadOnlyMemory<byte> memory))
+                foreach (var memory in buffer)
                 {
-                    await TcpTargetSocket.WriteAsync(memory);
+                    try
+                    {
+                        await TargetStream.WriteAsync(memory).ConfigureAwait(false);
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
                 return buffer.End;
             }
             //不分包
             if (framing == false)
             {
-                SequencePosition position = buffer.Start;
-                while (buffer.TryGet(ref position, out ReadOnlyMemory<byte> memory))
+                foreach (var memory in buffer)
                 {
-                    await callback.Receive(this, memory, this.userToken).ConfigureAwait(false);
+                    try
+                    {
+                        await callback.Receive(this, memory, this.userToken).ConfigureAwait(false);
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
                 return buffer.End;
             }
@@ -303,45 +310,32 @@ namespace cmonitor.server
                 }
 
                 ReadOnlySequence<byte> cache = buffer.Slice(4, length);
-                SequencePosition position = cache.Start;
-                while (cache.TryGet(ref position, out ReadOnlyMemory<byte> memory))
+                foreach (var memory in cache)
                 {
                     bufferCache.AddRange(memory);
                 }
-                await callback.Receive(this, bufferCache.Data.Slice(0, bufferCache.Size), this.userToken).ConfigureAwait(false);
+                try
+                {
+                    await callback.Receive(this, bufferCache.Data.Slice(0, bufferCache.Size), this.userToken).ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                }
                 bufferCache.Clear();
 
-                SequencePosition endPosition = buffer.GetPosition(4 + length);
-                buffer = buffer.Slice(endPosition);
+                buffer = buffer.Slice(4 + length);
             }
             return buffer.Start;
         }
 
 
-        private CancellationTokenSource sendCancellationTokenSource;
-        private Pipe senderPipe;
-        private async Task ProcessSender()
+        private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
+        public override async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
-            var reader = senderPipe.Reader;
+            await semaphoreSlim.WaitAsync();
             try
             {
-                while (sendCancellationTokenSource.IsCancellationRequested == false)
-                {
-                    ReadResult readResult = await reader.ReadAsync().ConfigureAwait(false);
-                    ReadOnlySequence<byte> buffer = readResult.Buffer;
-                    if (buffer.Length == 0 || readResult.IsCompleted || readResult.IsCanceled)
-                    {
-                        break;
-                    }
-
-                    SequencePosition position = buffer.Start;
-                    while (buffer.TryGet(ref position, out ReadOnlyMemory<byte> memory))
-                    {
-                        await TcpSourceSocket.WriteAsync(memory);
-                    }
-
-                    reader.AdvanceTo(buffer.End);
-                }
+                await SourceStream.WriteAsync(data, cancellationTokenSource.Token);
             }
             catch (Exception ex)
             {
@@ -352,32 +346,9 @@ namespace cmonitor.server
             }
             finally
             {
-                Disponse();
-                await reader.CompleteAsync();
+                semaphoreSlim.Release();
             }
-        }
-        public override async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
-        {
-            if (Connected)
-            {
-                try
-                {
-                    await senderPipe.Writer.WriteAsync(data, sendCancellationTokenSource.Token);
-                    FlushResult result = await senderPipe.Writer.FlushAsync(sendCancellationTokenSource.Token);
-                    if (result.IsCanceled || result.IsCompleted)
-                    {
-                        Disponse();
-                    }
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    Disponse();
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        Logger.Instance.Error(ex);
-                }
-            }
-            return false;
+            return true;
         }
         public override async Task<bool> SendAsync(byte[] data, int length)
         {
@@ -400,17 +371,14 @@ namespace cmonitor.server
             base.Disponse();
             try
             {
-                sendCancellationTokenSource?.Cancel();
-                if (TcpSourceSocket != null)
+                if (SourceStream != null)
                 {
-                    TcpSourceSocket.ShutdownAsync();
-                    TcpSourceSocket.Dispose();
+                    SourceStream.ShutdownAsync();
+                    SourceStream.Dispose();
 
-                    TcpTargetSocket?.ShutdownAsync();
-                    TcpTargetSocket?.Dispose();
+                    TargetStream?.ShutdownAsync();
+                    TargetStream?.Dispose();
                 }
-                senderPipe.Writer.Complete();
-                senderPipe.Reader.Complete();
             }
             catch (Exception)
             {

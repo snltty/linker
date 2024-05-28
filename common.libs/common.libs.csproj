@@ -57,7 +57,7 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
-	  <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
+	  <PackageReference Include="System.IO.Pipelines" Version="9.0.0-preview.1.24080.9" />
 	</ItemGroup>
 
 </Project>

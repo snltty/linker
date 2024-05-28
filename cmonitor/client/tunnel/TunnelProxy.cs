@@ -353,7 +353,7 @@ namespace cmonitor.client.tunnel
             Socket socket = new Socket(token.Proxy.TargetEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.KeepAlive();
 
-            ConnectState state = new ConnectState { Connection = token.Connection, ConnectId = token.Proxy.ConnectId, Socket = socket };
+            ConnectState state = new ConnectState { Connection = token.Connection, ConnectId = token.Proxy.ConnectId, Socket = socket, IPEndPoint = token.Proxy.TargetEP };
             state.CopyData(token.Proxy.Data);
             socket.BeginConnect(token.Proxy.TargetEP, ConnectCallback, state);
 
@@ -391,6 +391,7 @@ namespace cmonitor.client.tunnel
             {
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
+                    Logger.Instance.Error(state.IPEndPoint.ToString());
                     Logger.Instance.Error(ex);
                 }
                 token.Proxy.Step = ProxyStep.Close;
@@ -409,7 +410,7 @@ namespace cmonitor.client.tunnel
                 ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.GetHashCode());
                 if (dic.TryGetValue(connectId, out AsyncUserToken token))
                 {
-                    if(token.Received == false)
+                    if (token.Received == false)
                     {
                         token.Received = true;
                         if (token.Socket.ReceiveAsync(token.Saea) == false)
@@ -460,15 +461,17 @@ namespace cmonitor.client.tunnel
                 {
                     await token1.Socket.SendAsync(tunnelToken.Proxy.Data);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    Logger.Instance.Error(ex);
+                    token1.Proxy.Step = ProxyStep.Close;
+                    token1.Proxy.Data = Helper.EmptyArray;
+                    await SendToConnection(token1);
                     CloseClientSocket(token1);
                 }
             }
             else if (tunnelToken.Proxy.Direction == ProxyDirection.Forward)
             {
-                ConnectBind(tunnelToken);
+                //ConnectBind(tunnelToken);
             }
         }
         private async Task SendToSocketUdp(AsyncUserTunnelToken tunnelToken)
@@ -535,7 +538,7 @@ namespace cmonitor.client.tunnel
             }
         }
         /// <summary>
-        /// 连接对方返回UDP，知否要自己处理
+        /// 连接对方返回UDP，是否要自己处理
         /// </summary>
         /// <param name="token"></param>
         /// <param name="asyncUserUdpToken"></param>
@@ -649,8 +652,9 @@ namespace cmonitor.client.tunnel
                             }
                             else
                             {
-                                //token.Proxy.Data = Helper.EmptyArray;
-                                //await SendToConnection(token).ConfigureAwait(false);
+                                token.Proxy.Step = ProxyStep.Close;
+                                token.Proxy.Data = Helper.EmptyArray;
+                                await SendToConnection(token).ConfigureAwait(false);
                                 CloseClientSocket(token);
                                 return;
                             }
@@ -659,8 +663,9 @@ namespace cmonitor.client.tunnel
 
                     if (token.Connection.Connected == false)
                     {
-                        //token.Proxy.Data = Helper.EmptyArray;
-                        //await SendToConnection(token).ConfigureAwait(false);
+                        token.Proxy.Step = ProxyStep.Close;
+                        token.Proxy.Data = Helper.EmptyArray;
+                        await SendToConnection(token).ConfigureAwait(false);
                         CloseClientSocket(token);
                         return;
                     }
@@ -672,8 +677,9 @@ namespace cmonitor.client.tunnel
                 }
                 else
                 {
-                    //token.Proxy.Data = Helper.EmptyArray;
-                    //await SendToConnection(token).ConfigureAwait(false);
+                    token.Proxy.Step = ProxyStep.Close;
+                    token.Proxy.Data = Helper.EmptyArray;
+                    await SendToConnection(token).ConfigureAwait(false);
                     CloseClientSocket(token);
                 }
             }
@@ -681,8 +687,9 @@ namespace cmonitor.client.tunnel
             {
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     Logger.Instance.Error(ex);
-                //token.Proxy.Data = Helper.EmptyArray;
-                // await SendToConnection(token).ConfigureAwait(false);
+                token.Proxy.Step = ProxyStep.Close;
+                token.Proxy.Data = Helper.EmptyArray;
+                await SendToConnection(token).ConfigureAwait(false);
                 CloseClientSocket(token);
             }
         }
@@ -962,6 +969,7 @@ namespace cmonitor.client.tunnel
         public ITunnelConnection Connection { get; set; }
         public ulong ConnectId { get; set; }
         public Socket Socket { get; set; }
+        public IPEndPoint IPEndPoint { get; set; }
 
         public byte[] Data { get; set; } = Helper.EmptyArray;
         public int Length { get; set; }
