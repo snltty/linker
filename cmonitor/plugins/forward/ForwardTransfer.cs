@@ -43,11 +43,12 @@ namespace cmonitor.plugins.forward
                     {
                         try
                         {
-                            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                Logger.Instance.Debug($"start forward {item.Port}->{item.MachineName}->{item.TargetEP}");
                             item.Proxy = forwardProxy;
                             item.Proxy.Start(item.Port, item.TargetEP, item.MachineName);
                             item.Port = item.Proxy.LocalEndpoint.Port;
+
+                            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                Logger.Instance.Debug($"start forward {item.Port}->{item.MachineName}->{item.TargetEP}");
                         }
                         catch (Exception ex)
                         {
