@@ -92,7 +92,7 @@ namespace cmonitor.client.tunnel
                         Received = false,
                         Paused = false,
                         ListenPort = acceptToken.ListenPort,
-                        Proxy = new ProxyInfo { Data = Helper.EmptyArray, Step = ProxyStep.Request, Port = acceptToken.ListenPort, ConnectId = ns.Increment() }
+                        Proxy = new ProxyInfo { Data = Helper.EmptyArray, Step = ProxyStep.Request, Port = (ushort)acceptToken.ListenPort, ConnectId = ns.Increment() }
                     };
                     BindReceive(userToken);
                 }
