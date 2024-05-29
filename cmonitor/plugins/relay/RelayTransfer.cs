@@ -83,11 +83,12 @@ namespace cmonitor.plugins.relay
                         TransactionId = transactionId,
                         TransportName = transport.Name
                     };
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        Logger.Instance.Debug($"relay to {relayInfo.RemoteMachineName} {relayInfo.ToJson()}");
+                    //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    Logger.Instance.Info($"relay to {relayInfo.RemoteMachineName} {relayInfo.ToJson()}");
                     ITunnelConnection connection = await transport.RelayAsync(relayInfo);
                     if (connection != null)
                     {
+                        Logger.Instance.Debug($"relay to {relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
                         if (OnConnected.TryGetValue(connection.TransactionId, out List<Action<ITunnelConnection>> callbacks))
                         {
                             foreach (var callabck in callbacks)
@@ -117,6 +118,7 @@ namespace cmonitor.plugins.relay
                 ITunnelConnection connection = await _transports.OnBeginAsync(relayInfo);
                 if (connection != null)
                 {
+                    Logger.Instance.Debug($"relay from {relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
                     if (OnConnected.TryGetValue(connection.TransactionId, out List<Action<ITunnelConnection>> callbacks))
                     {
                         foreach (var callabck in callbacks)

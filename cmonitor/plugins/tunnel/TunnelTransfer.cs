@@ -297,18 +297,18 @@ namespace cmonitor.plugins.tunnel
 
         private void OnConnecting(TunnelTransportInfo tunnelTransportInfo)
         {
-            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                Logger.Instance.Debug($"tunnel connecting {tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
+            //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            Logger.Instance.Info($"tunnel connecting {tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
         }
         private void OnConnectBegin(TunnelTransportInfo tunnelTransportInfo)
         {
-            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                Logger.Instance.Debug($"tunnel connecting from {tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
+            //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            Logger.Instance.Info($"tunnel connecting from {tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
         }
         private void _OnConnected(ITunnelConnection connection)
         {
-            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                Logger.Instance.Debug($"tunnel connect {connection.RemoteMachineName} success->{connection.IPEndPoint},{connection.ToJson()}");
+            //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            Logger.Instance.Debug($"tunnel connect {connection.RemoteMachineName} success->{connection.IPEndPoint},{connection.ToJson()}");
             if (OnConnected.TryGetValue(connection.TransactionId, out List<Action<ITunnelConnection>> callbacks))
             {
                 foreach (var item in callbacks)
