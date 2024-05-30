@@ -2,10 +2,11 @@
 
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
-		<TargetFrameworks>net7;net8</TargetFrameworks>
+		<TargetFrameworks>net8</TargetFrameworks>
 		<PublishAot>false</PublishAot>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<Configurations>Debug;Release;ReleaseNetwork;ReleaseMonitor</Configurations>
+		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -27,15 +28,6 @@
 	  <DebugType>none</DebugType>
 	  <DebugSymbols>false</DebugSymbols>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net7.0|AnyCPU'">
-	  <DebugType>embedded</DebugType>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseMonitor|net7.0|AnyCPU'">
-	  <DebugType>embedded</DebugType>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseNetwork|net7.0|AnyCPU'">
-	  <DebugType>embedded</DebugType>
-	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
 	  <DebugType>embedded</DebugType>
 	</PropertyGroup>
@@ -45,9 +37,7 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseNetwork|net8.0|AnyCPU'">
 	  <DebugType>embedded</DebugType>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0|AnyCPU'">
-	  <DebugType>embedded</DebugType>
-	</PropertyGroup>
+
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
 	  <DebugType>embedded</DebugType>
 	</PropertyGroup>

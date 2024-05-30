@@ -51,7 +51,13 @@ namespace common.libs.extends
                 }
                 finally
                 {
-                    socket.Close();
+                    try
+                    {
+                        socket.Close();
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
             }
         }

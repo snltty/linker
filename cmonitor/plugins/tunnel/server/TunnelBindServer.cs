@@ -3,13 +3,14 @@ using common.libs.extends;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 
 namespace cmonitor.plugins.tunnel.server
 {
     public sealed class TunnelBindServer
     {
-        public Func<object, Socket,Task> OnTcpConnected { get; set; } = async (state, socket) => { await Task.CompletedTask; };
-        public Func<object, UdpClient,Task> OnUdpConnected { get; set; } = async (state, udpClient) => { await Task.CompletedTask; };
+        public Func<object, Socket, Task> OnTcpConnected { get; set; } = async (state, socket) => { await Task.CompletedTask; };
+        public Func<object, UdpClient, Task> OnUdpConnected { get; set; } = async (state, udpClient) => { await Task.CompletedTask; };
 
         private ConcurrentDictionary<int, AsyncUserToken> acceptBinds = new ConcurrentDictionary<int, AsyncUserToken>();
 
@@ -107,9 +108,21 @@ namespace cmonitor.plugins.tunnel.server
             try
             {
                 IPEndPoint ep = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
-                byte[] _ = token.UdpClient.EndReceive(result, ref ep);
+                byte[] bytes = token.UdpClient.EndReceive(result, ref ep);
+                string command = Encoding.UTF8.GetString(bytes);
 
-                OnUdpConnected(token.State, token.UdpClient);
+                if (command == "snltty.end")
+                {
+                    OnUdpConnected(token.State, token.UdpClient);
+                    return;
+                }
+                else if (command == "snltty.test")
+                {
+                    token.UdpClient.Send(bytes);
+                }
+
+
+                result = token.UdpClient.BeginReceive(ReceiveCallbackUdp, token);
             }
             catch (Exception)
             {

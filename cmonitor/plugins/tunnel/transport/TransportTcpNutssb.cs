@@ -68,6 +68,7 @@ namespace cmonitor.plugins.tunnel.transport
                 BindAndTTL(tunnelTransportInfo1);
                 if (await OnSendConnectBegin(tunnelTransportInfo1) == false)
                 {
+                    tunnelBindServer.RemoveBind(tunnelTransportInfo1.Local.Local.Port, true);
                     return null;
                 }
                 ITunnelConnection connection = await WaitReverse(tunnelTransportInfo1);
@@ -76,7 +77,9 @@ namespace cmonitor.plugins.tunnel.transport
                     await OnSendConnectSuccess(tunnelTransportInfo);
                     return connection;
                 }
+                tunnelBindServer.RemoveBind(tunnelTransportInfo1.Local.Local.Port, true);
             }
+
 
             await OnSendConnectFail(tunnelTransportInfo);
             return null;
@@ -159,35 +162,18 @@ namespace cmonitor.plugins.tunnel.transport
             foreach (IPEndPoint ep in eps.Where(c => NotIPv6Support(c.Address) == false))
             {
                 Socket targetSocket = new(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
-                targetSocket.IPv6Only(ep.Address.AddressFamily, false);
-                targetSocket.KeepAlive();
-                targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
-                IAsyncResult result = targetSocket.BeginConnect(ep, null, null);
-
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    Logger.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineName} {ep}");
-                }
-
-                int times = ep.Address.Equals(tunnelTransportInfo.Remote.Remote.Address) ? 10 : 5;
-                for (int i = 0; i < times; i++)
-                {
-                    if (result.IsCompleted)
-                    {
-                        break;
-                    }
-                    await Task.Delay(20);
-                }
-
                 try
                 {
-                    if (result.IsCompleted == false)
-                    {
-                        targetSocket.SafeClose();
-                        continue;
-                    }
 
-                    targetSocket.EndConnect(result);
+                    targetSocket.IPv6Only(ep.Address.AddressFamily, false);
+                    targetSocket.KeepAlive();
+                    targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
+
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        Logger.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineName} {ep}");
+                    }
+                    await targetSocket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(ep.Address.Equals(tunnelTransportInfo.Remote.Remote.Address) ? 500 : 100));
 
                     SslStream sslStream = new SslStream(new NetworkStream(targetSocket), true, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                     await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 });
@@ -309,7 +295,7 @@ namespace cmonitor.plugins.tunnel.transport
                 }
                 catch (Exception ex)
                 {
-                    if(Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
                         Logger.Instance.Error(ex);
                     }

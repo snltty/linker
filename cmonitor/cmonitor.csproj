@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFrameworks>net8.0;net7.0</TargetFrameworks>
+		<TargetFrameworks>net8.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>disable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -15,6 +15,7 @@
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>cmonitor.snk</AssemblyOriginatorKeyFile>
+		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -107,6 +108,9 @@
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
+	<ItemGroup>
+	  <None Include="..\.editorconfig" Link=".editorconfig" />
+	</ItemGroup>
 	
 	<ItemGroup>
 		<ProjectReference Include="..\cmonitor.libs\cmonitor.libs.csproj" />
@@ -121,7 +125,7 @@
 		<TrimmerRootAssembly Include="NAudio" />
 		<TrimmerRootAssembly Include="SharpDX" />
 	</ItemGroup>
-	<ItemGroup >
+	<ItemGroup>
 		<PackageReference Include="MemoryPack" Version="1.10.0" />
 		
 	</ItemGroup>
