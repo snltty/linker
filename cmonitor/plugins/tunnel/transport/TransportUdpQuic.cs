@@ -45,6 +45,8 @@ namespace cmonitor.plugins.tunnel.transport
         {
             if (OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
             {
+                if (QuicListener.IsSupported == false) return;
+
                 string path = Path.GetFullPath(config.Data.Client.Tunnel.Certificate);
                 if (File.Exists(path))
                 {
