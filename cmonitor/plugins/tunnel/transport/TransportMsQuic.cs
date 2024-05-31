@@ -1,5 +1,6 @@
 ﻿using cmonitor.client.tunnel;
 using cmonitor.config;
+using cmonitor.plugins.tunnel.compact;
 using common.libs;
 using common.libs.extends;
 using System.Collections.Concurrent;
@@ -28,7 +29,7 @@ namespace cmonitor.plugins.tunnel.transport
         public Func<TunnelTransportInfo, Task> OnSendConnectSuccess { get; set; } = async (info) => { await Task.CompletedTask; };
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
 
-       
+
 
         private X509Certificate serverCertificate;
         public TransportMsQuic(Config config)
@@ -100,8 +101,8 @@ namespace cmonitor.plugins.tunnel.transport
             {
                 if (QuicListener.IsSupported == false)
                 {
-                    OnSendConnectFail(tunnelTransportInfo);
-                    return;
+                    //OnSendConnectFail(tunnelTransportInfo);
+                    //return;
                 }
             }
             Task.Run(async () =>
@@ -109,6 +110,7 @@ namespace cmonitor.plugins.tunnel.transport
                 if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
                 {
                     BindAndTTL(tunnelTransportInfo);
+                    Logger.Instance.Error($"ttl");
                     await Task.Delay(50);
                     _ = QuicStart(tunnelTransportInfo.Local.Local, tunnelTransportInfo);
                 }
@@ -147,7 +149,7 @@ namespace cmonitor.plugins.tunnel.transport
                 eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port + 1));
             }
             //在尝试外网
-           
+
             //再尝试IPV6
             foreach (IPAddress item in localIps.Where(c => c.AddressFamily == AddressFamily.InterNetworkV6))
             {
@@ -161,17 +163,26 @@ namespace cmonitor.plugins.tunnel.transport
                 Logger.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", eps.Select(c => c.ToString()))}");
             }
 
-
+            //IPEndPoint local = new IPEndPoint(IPAddress.Any, tunnelTransportInfo.Local.Local.Port);
+            //UdpClient udpClient = new UdpClient(local);
+            //udpClient.Client.ReuseBind(local);
 
             foreach (IPEndPoint ep in eps.Where(c => NetworkHelper.NotIPv6Support(c.Address) == false))
             {
-                QuicConnection connection = null;
+                //QuicConnection connection = null;
+
+
+               
                 try
                 {
+                   
                     if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
                         Logger.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineName} {ep}");
                     }
+                    TunnelCompactSelfHost.udpClient.Send(Encoding.UTF8.GetBytes("snltty.ttl"), ep);
+                    TunnelCompactSelfHost.udpClient.Send(Encoding.UTF8.GetBytes("snltty.end"), ep);
+                    /*
                     connection = await QuicConnection.ConnectAsync(new QuicClientConnectionOptions
                     {
                         RemoteEndPoint = ep,
@@ -189,7 +200,7 @@ namespace cmonitor.plugins.tunnel.transport
                             }
                         }
                     }).AsTask().WaitAsync(TimeSpan.FromMilliseconds(ep.Address.Equals(tunnelTransportInfo.Remote.Remote.Address) ? 500 : 100));
-                    
+
 
                     QuicStream quicStream = await connection.OpenOutboundStreamAsync(QuicStreamType.Bidirectional);
 
@@ -207,6 +218,7 @@ namespace cmonitor.plugins.tunnel.transport
                         Mode = TunnelMode.Client,
                         Label = string.Empty,
                     };
+                    */
                 }
                 catch (Exception ex)
                 {
@@ -214,8 +226,8 @@ namespace cmonitor.plugins.tunnel.transport
                     {
                         Logger.Instance.Error(ex.Message);
                     }
-                    Logger.Instance.Warning($"{Name} wait 1000");
-                    await Task.Delay(1000);
+                    //Logger.Instance.Warning($"{Name} wait 1000");
+                    //await Task.Delay(1000);
                 }
             }
             return null;
@@ -237,9 +249,6 @@ namespace cmonitor.plugins.tunnel.transport
             });
             foreach (var ip in eps.Where(c => NetworkHelper.NotIPv6Support(c.Address) == false))
             {
-                IPEndPoint ep = new IPEndPoint(ip.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port);
-                Socket socket = new Socket(ep.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
-                
                 try
                 {
 
@@ -247,8 +256,7 @@ namespace cmonitor.plugins.tunnel.transport
                     {
                         Logger.Instance.Warning($"{Name} ttl to {tunnelTransportInfo.Remote.MachineName} {ip}");
                     }
-                    socket.Bind(ep);
-                    socket.SendTo(Encoding.UTF8.GetBytes(tunnelTransportInfo.Remote.MachineName),ip);
+                    TunnelCompactSelfHost.udpClient.Send(Encoding.UTF8.GetBytes(tunnelTransportInfo.Remote.MachineName), ip);
                 }
                 catch (Exception ex)
                 {
@@ -259,13 +267,6 @@ namespace cmonitor.plugins.tunnel.transport
                 }
                 finally
                 {
-                    try
-                    {
-                        socket?.SafeClose();
-                    }
-                    catch (Exception)
-                    {
-                    }
                 }
             }
         }
@@ -347,6 +348,15 @@ namespace cmonitor.plugins.tunnel.transport
 
         private async Task QuicStart(IPEndPoint local, TunnelTransportInfo info)
         {
+            return;
+            UdpClient udpClient = new UdpClient(local);
+            while (true)
+            {
+                UdpReceiveResult result = await udpClient.ReceiveAsync();
+                Console.WriteLine(Encoding.UTF8.GetString(result.Buffer));
+            }
+
+            return;
             if (OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
             {
                 if (QuicListener.IsSupported == false) return;

@@ -1,6 +1,8 @@
-﻿using common.libs.extends;
+﻿using common.libs;
+using common.libs.extends;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 
 namespace cmonitor.plugins.tunnel.compact
 {
@@ -9,14 +11,19 @@ namespace cmonitor.plugins.tunnel.compact
         public string Name => "默认";
         public TunnelCompactType Type => TunnelCompactType.Self;
 
+        public static UdpClient udpClient;
+
         public TunnelCompactSelfHost()
         {
         }
 
         public async Task<TunnelCompactIPEndPoint> GetExternalIPAsync(IPEndPoint server)
         {
-            using UdpClient udpClient = new UdpClient();
+            udpClient = new UdpClient(AddressFamily.InterNetwork);
+            //udpClient.Client.IPv6Only(AddressFamily.InterNetworkV6, false);
             udpClient.Client.Reuse(true);
+            udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, new Random().Next(10000, 50000)));
+            
 
             for (int i = 0; i < 10; i++)
             {
@@ -35,7 +42,7 @@ namespace cmonitor.plugins.tunnel.compact
                     }
                     AddressFamily addressFamily = (AddressFamily)result.Buffer[0];
                     int length = addressFamily == AddressFamily.InterNetwork ? 4 : 16;
-                    IPAddress ip = new IPAddress(result.Buffer.AsSpan(1,length));
+                    IPAddress ip = new IPAddress(result.Buffer.AsSpan(1, length));
                     ushort port = result.Buffer.AsMemory(1 + length).ToUInt16();
 
                     IPEndPoint remoteEP = new IPEndPoint(ip, port);
@@ -46,6 +53,23 @@ namespace cmonitor.plugins.tunnel.compact
                 {
                 }
             }
+
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    try
+                    {
+                        UdpReceiveResult result = await udpClient.ReceiveAsync();
+                        Logger.Instance.Error(Encoding.UTF8.GetString(result.Buffer));
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Instance.Error(ex);
+                    }
+                }
+            });
+
             return null;
         }
     }

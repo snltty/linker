@@ -29,6 +29,7 @@ namespace common.libs.extends
             {
                 try
                 {
+                    socket.DualMode = val;
                     socket.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, val);
                 }
                 catch (Exception)
@@ -64,6 +65,7 @@ namespace common.libs.extends
 
         public static void Reuse(this Socket socket, bool reuse = true)
         {
+            socket.ExclusiveAddressUse = !reuse;
             socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, reuse);
         }
         public static void ReuseBind(this Socket socket, IPEndPoint ip)
