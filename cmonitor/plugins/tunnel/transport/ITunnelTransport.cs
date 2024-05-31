@@ -8,6 +8,7 @@ namespace cmonitor.plugins.tunnel.transport
     {
         public string Name { get; }
         public string Label { get; }
+        public bool Disabled { get; }
         public TunnelProtocolType ProtocolType { get; }
 
         /// <summary>

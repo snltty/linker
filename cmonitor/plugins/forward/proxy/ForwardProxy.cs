@@ -97,7 +97,7 @@ namespace cmonitor.plugins.forward.proxy
                 {
                     if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineName}");
 
-                    connection = await relayTransfer.ConnectAsync(machineName, "forward");
+                    //connection = await relayTransfer.ConnectAsync(machineName, "forward");
                     if (connection != null)
                     {
                         if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineName} success");

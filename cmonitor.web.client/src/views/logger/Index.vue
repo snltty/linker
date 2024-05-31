@@ -104,7 +104,7 @@ export default {
             let css = `padding:1rem;border:1px solid #ddd; resize:none;width:39rem;box-sizing: border-box;white-space: nowrap; height:30rem;`;
             
             ElMessageBox.alert(`<textarea class="scrollbar-4" style="${css}">${row.Content}</textarea>`, '内容', {
-                dangerouslyUseHTMLString: true
+                dangerouslyUseHTMLString: true,
             }).catch(()=>{});
         }
 

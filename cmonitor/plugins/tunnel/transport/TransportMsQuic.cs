@@ -9,6 +9,7 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 
 namespace cmonitor.plugins.tunnel.transport
 {
@@ -18,6 +19,8 @@ namespace cmonitor.plugins.tunnel.transport
 
         public string Label => "UDP,MsQuic";
 
+        public bool Disabled => false;
+
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Quic;
 
         public Func<TunnelTransportInfo, Task<bool>> OnSendConnectBegin { get; set; } = async (info) => { return await Task.FromResult<bool>(false); };
@@ -25,6 +28,7 @@ namespace cmonitor.plugins.tunnel.transport
         public Func<TunnelTransportInfo, Task> OnSendConnectSuccess { get; set; } = async (info) => { await Task.CompletedTask; };
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
 
+       
 
         private X509Certificate serverCertificate;
         public TransportMsQuic(Config config)
@@ -131,6 +135,10 @@ namespace cmonitor.plugins.tunnel.transport
             //要连接哪些IP
             IPAddress[] localIps = tunnelTransportInfo.Remote.LocalIps.Where(c => c.Equals(tunnelTransportInfo.Remote.Local.Address) == false).ToArray();
             List<IPEndPoint> eps = new List<IPEndPoint>();
+            eps.AddRange(new List<IPEndPoint>{
+                new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port),
+                new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port+1),
+            });
             //先尝试内网ipv4
             foreach (IPAddress item in localIps.Where(c => c.AddressFamily == AddressFamily.InterNetwork))
             {
@@ -139,10 +147,7 @@ namespace cmonitor.plugins.tunnel.transport
                 eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port + 1));
             }
             //在尝试外网
-            eps.AddRange(new List<IPEndPoint>{
-                new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port),
-                new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port+1),
-            });
+           
             //再尝试IPV6
             foreach (IPAddress item in localIps.Where(c => c.AddressFamily == AddressFamily.InterNetworkV6))
             {
@@ -160,9 +165,13 @@ namespace cmonitor.plugins.tunnel.transport
 
             foreach (IPEndPoint ep in eps.Where(c => NetworkHelper.NotIPv6Support(c.Address) == false))
             {
-                QuicConnection connection = null; ;
+                QuicConnection connection = null;
                 try
                 {
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        Logger.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineName} {ep}");
+                    }
                     connection = await QuicConnection.ConnectAsync(new QuicClientConnectionOptions
                     {
                         RemoteEndPoint = ep,
@@ -180,6 +189,7 @@ namespace cmonitor.plugins.tunnel.transport
                             }
                         }
                     }).AsTask().WaitAsync(TimeSpan.FromMilliseconds(ep.Address.Equals(tunnelTransportInfo.Remote.Remote.Address) ? 500 : 100));
+                    
 
                     QuicStream quicStream = await connection.OpenOutboundStreamAsync(QuicStreamType.Bidirectional);
 
@@ -198,18 +208,14 @@ namespace cmonitor.plugins.tunnel.transport
                         Label = string.Empty,
                     };
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                }
-                if (connection != null)
-                {
-                    try
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        await connection.DisposeAsync();
+                        Logger.Instance.Error(ex.Message);
                     }
-                    catch (Exception)
-                    {
-                    }
+                    Logger.Instance.Warning($"{Name} wait 1000");
+                    await Task.Delay(1000);
                 }
             }
             return null;
@@ -231,18 +237,34 @@ namespace cmonitor.plugins.tunnel.transport
             });
             foreach (var ip in eps.Where(c => NetworkHelper.NotIPv6Support(c.Address) == false))
             {
+                IPEndPoint ep = new IPEndPoint(ip.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port);
+                Socket socket = new Socket(ep.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
+                
                 try
                 {
-                    IPEndPoint ep = new IPEndPoint(ip.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port);
-                    using UdpClient udpClient = new UdpClient(ep.AddressFamily);
-                    udpClient.Client.ReuseBind(ep);
-                    udpClient.Send(new byte[] { 0 }, ip);
+
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        Logger.Instance.Warning($"{Name} ttl to {tunnelTransportInfo.Remote.MachineName} {ip}");
+                    }
+                    socket.Bind(ep);
+                    socket.SendTo(Encoding.UTF8.GetBytes(tunnelTransportInfo.Remote.MachineName),ip);
                 }
                 catch (Exception ex)
                 {
                     if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
                         Logger.Instance.Error(ex);
+                    }
+                }
+                finally
+                {
+                    try
+                    {
+                        socket?.SafeClose();
+                    }
+                    catch (Exception)
+                    {
                     }
                 }
             }
@@ -359,8 +381,12 @@ namespace cmonitor.plugins.tunnel.transport
                     QuicStream quicStream = await quicConnection.AcceptInboundStreamAsync().AsTask().WaitAsync(TimeSpan.FromMilliseconds(2000));
                     await OnUdpConnected(info, quicConnection, quicStream);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        Logger.Instance.Error(ex);
+                    }
                 }
                 await listener.DisposeAsync();
             }

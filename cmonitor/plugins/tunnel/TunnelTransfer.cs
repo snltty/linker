@@ -59,7 +59,7 @@ namespace cmonitor.plugins.tunnel
 
             //拼接，再去重，因为有可能有新的
             config.Data.Client.Tunnel.TunnelTransports = config.Data.Client.Tunnel.TunnelTransports
-                .Concat(transports.Select(c => new TunnelTransportItemInfo { Disabled = false, Label = c.Label, Name = c.Name, ProtocolType = c.ProtocolType.ToString() }))
+                .Concat(transports.Select(c => new TunnelTransportItemInfo { Disabled = c.Disabled, Label = c.Label, Name = c.Name, ProtocolType = c.ProtocolType.ToString() }))
                 .Distinct(new TunnelTransportItemInfoEqualityComparer())
                 .ToList();
 
@@ -157,7 +157,7 @@ namespace cmonitor.plugins.tunnel
                  * 所以，我们需要在第一次正向连接失败后再尝试反向连接，因为间隔了一定时间，最大程度避免了连续端口污染
                  */
                 TunnelTransportInfo tunnelTransportInfo = null;
-                for (int i = 0; i <= 1; i++)
+                for (int i = 0; i <= 0; i++)
                 {
                     try
                     {
@@ -176,7 +176,7 @@ namespace cmonitor.plugins.tunnel
                             Logger.Instance.Error($"tunnel {transport.Name} get remote {remoteMachineName} external ip fail ");
                             goto end;
                         }
-                        Logger.Instance.Info($"tunnel {transport.Name} got remote external ip {localInfo.ToJson()}");
+                        Logger.Instance.Info($"tunnel {transport.Name} got remote external ip {remoteInfo.ToJson()}");
 
                         tunnelTransportInfo = new TunnelTransportInfo
                         {

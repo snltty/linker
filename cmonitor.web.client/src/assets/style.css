@@ -373,6 +373,7 @@ h3.title {
 
 .el-message-box {
     max-width: 90%;
+    width: fit-content;
 }
 
 .el-select-dropdown__item {
