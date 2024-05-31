@@ -1,7 +1,6 @@
 ﻿using cmonitor.config;
 using cmonitor.plugins.tunnel.compact;
 using cmonitor.plugins.tunnel.messenger;
-using cmonitor.plugins.tunnel.server;
 using cmonitor.plugins.tunnel.transport;
 using cmonitor.startup;
 using common.libs;
@@ -33,8 +32,8 @@ namespace cmonitor.plugins.tunnel
             serviceCollection.AddSingleton<TunnelCompactStun>();
 
             serviceCollection.AddSingleton<TunnelTransfer>();
-            serviceCollection.AddSingleton<TunnelBindServer>();
             serviceCollection.AddSingleton<TunnelTransportTcpNutssb>();
+            serviceCollection.AddSingleton<TransportMsQuic>();
 
 
             Logger.Instance.Info($"tunnel route level getting.");

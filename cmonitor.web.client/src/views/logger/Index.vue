@@ -50,24 +50,25 @@
 </template>
 
 <script>
-import { reactive } from '@vue/reactivity'
+import { reactive,computed } from '@vue/reactivity'
 import { getLogger, clearLogger } from '@/apis/logger'
 import { onMounted,onUnmounted } from '@vue/runtime-core'
 import Setting from './Setting.vue'
 import { ElMessageBox } from 'element-plus'
 import {subWebsocketState} from '@/apis/request.js'
 import { nextTick, ref } from 'vue'
+import { injectGlobalData } from '@/provide'
 export default {
     components: { Setting },
     setup() {
-
+        const globalData = injectGlobalData();
         const wrap = ref(null);
         const state = reactive({
             loading: true,
             type:-1,
             page: { Page: 1, Size: 20, Count: 0, List: [] },
             types: ['debug', 'info', 'warning', 'error', 'fatal'],
-            height:0,
+            height:computed(()=>globalData.value.height - 200),
         })
         const loadData = () => {
             state.loading = true;
@@ -103,23 +104,13 @@ export default {
             let css = `padding:1rem;border:1px solid #ddd; resize:none;width:39rem;box-sizing: border-box;white-space: nowrap; height:30rem;`;
             
             ElMessageBox.alert(`<textarea class="scrollbar-4" style="${css}">${row.Content}</textarea>`, '内容', {
-                dangerouslyUseHTMLString: true,
-            });
+                dangerouslyUseHTMLString: true
+            }).catch(()=>{});
         }
 
-        const resizeTable = ()=>{
-            nextTick(()=>{
-                state.height = wrap.value.offsetHeight - 200;
-            });
-        }
         onMounted(()=>{
             subWebsocketState((state)=>{ if(state)loadData();});
-            resizeTable();
-            window.addEventListener('resize',resizeTable);
             loadData();
-        });
-        onUnmounted(()=>{
-            window.removeEventListener('resize',resizeTable);
         });
 
         return {

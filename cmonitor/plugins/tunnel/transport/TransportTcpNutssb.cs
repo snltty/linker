@@ -1,6 +1,5 @@
 ﻿using cmonitor.client.tunnel;
 using cmonitor.config;
-using cmonitor.plugins.tunnel.server;
 using common.libs;
 using common.libs.extends;
 using System.Collections.Concurrent;
@@ -15,7 +14,7 @@ namespace cmonitor.plugins.tunnel.transport
     public sealed class TunnelTransportTcpNutssb : ITunnelTransport
     {
         public string Name => "TcpNutssb";
-        public string Label => "TCP、基于低TTL";
+        public string Label => "TCP、低TTL";
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Tcp;
 
         private X509Certificate serverCertificate;
@@ -25,12 +24,8 @@ namespace cmonitor.plugins.tunnel.transport
         public Func<TunnelTransportInfo, Task> OnSendConnectSuccess { get; set; } = async (info) => { await Task.CompletedTask; };
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
 
-        private readonly TunnelBindServer tunnelBindServer;
-        public TunnelTransportTcpNutssb(TunnelBindServer tunnelBindServer, Config config)
+        public TunnelTransportTcpNutssb(Config config)
         {
-            this.tunnelBindServer = tunnelBindServer;
-            tunnelBindServer.OnTcpConnected += OnTcpConnected;
-
             string path = Path.GetFullPath(config.Data.Client.Tunnel.Certificate);
             if (File.Exists(path))
             {
@@ -64,11 +59,10 @@ namespace cmonitor.plugins.tunnel.transport
             {
                 //反向连接
                 TunnelTransportInfo tunnelTransportInfo1 = tunnelTransportInfo.ToJsonFormat().DeJson<TunnelTransportInfo>();
-                tunnelBindServer.Bind(tunnelTransportInfo1.Local.Local, tunnelTransportInfo1);
+                _ = StartListen(tunnelTransportInfo1.Local.Local, tunnelTransportInfo1);
                 BindAndTTL(tunnelTransportInfo1);
                 if (await OnSendConnectBegin(tunnelTransportInfo1) == false)
                 {
-                    tunnelBindServer.RemoveBind(tunnelTransportInfo1.Local.Local.Port, true);
                     return null;
                 }
                 ITunnelConnection connection = await WaitReverse(tunnelTransportInfo1);
@@ -77,7 +71,6 @@ namespace cmonitor.plugins.tunnel.transport
                     await OnSendConnectSuccess(tunnelTransportInfo);
                     return connection;
                 }
-                tunnelBindServer.RemoveBind(tunnelTransportInfo1.Local.Local.Port, true);
             }
 
 
@@ -88,7 +81,7 @@ namespace cmonitor.plugins.tunnel.transport
         {
             if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
             {
-                tunnelBindServer.Bind(tunnelTransportInfo.Local.Local, tunnelTransportInfo);
+                _ = StartListen(tunnelTransportInfo.Local.Local, tunnelTransportInfo);
             }
             Task.Run(async () =>
             {
@@ -114,7 +107,6 @@ namespace cmonitor.plugins.tunnel.transport
 
         public void OnFail(TunnelTransportInfo tunnelTransportInfo)
         {
-            tunnelBindServer.RemoveBind(tunnelTransportInfo.Local.Local.Port, true);
             if (reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineName, out TaskCompletionSource<ITunnelConnection> tcs))
             {
                 tcs.SetResult(null);
@@ -122,7 +114,6 @@ namespace cmonitor.plugins.tunnel.transport
         }
         public void OnSuccess(TunnelTransportInfo tunnelTransportInfo)
         {
-            tunnelBindServer.RemoveBind(tunnelTransportInfo.Local.Local.Port, true);
             if (reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineName, out TaskCompletionSource<ITunnelConnection> tcs))
             {
                 tcs.SetResult(null);
@@ -159,7 +150,7 @@ namespace cmonitor.plugins.tunnel.transport
                 Logger.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", eps.Select(c => c.ToString()))}");
             }
 
-            foreach (IPEndPoint ep in eps.Where(c => NotIPv6Support(c.Address) == false))
+            foreach (IPEndPoint ep in eps.Where(c => NetworkHelper.NotIPv6Support(c.Address) == false))
             {
                 Socket targetSocket = new(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 try
@@ -219,7 +210,7 @@ namespace cmonitor.plugins.tunnel.transport
                 new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port+1),
             });
             //过滤掉不支持IPV6的情况
-            IEnumerable<Socket> sockets = eps.Where(c => NotIPv6Support(c.Address) == false).Select(ip =>
+            IEnumerable<Socket> sockets = eps.Where(c => NetworkHelper.NotIPv6Support(c.Address) == false).Select(ip =>
             {
                 Socket targetSocket = new(ip.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 try
@@ -303,11 +294,30 @@ namespace cmonitor.plugins.tunnel.transport
             }
         }
 
-        private bool NotIPv6Support(IPAddress ip)
+
+        private async Task StartListen(IPEndPoint local, TunnelTransportInfo tunnelTransportInfo)
         {
-            return ip.AddressFamily == AddressFamily.InterNetworkV6 && (NetworkHelper.IPv6Support == false);
+            IPAddress localIP = NetworkHelper.IPv6Support ? IPAddress.IPv6Any : IPAddress.Any;
+            Socket socket = new Socket(localIP.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+            socket.IPv6Only(localIP.AddressFamily, false);
+            socket.ReuseBind(new IPEndPoint(localIP, local.Port));
+            socket.Listen(int.MaxValue);
+
+            try
+            {
+                Socket client = await socket.AcceptAsync().WaitAsync(TimeSpan.FromMilliseconds(30000));
+                await OnTcpConnected(tunnelTransportInfo, client);
+            }
+            catch (Exception)
+            {
+            }
+            try
+            {
+                socket.SafeClose();
+            }
+            catch (Exception)
+            {
+            }
         }
-
-
     }
 }

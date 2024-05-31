@@ -223,11 +223,11 @@ namespace cmonitor.server
                 {
                     Logger.Instance.Error(ex);
                 }
+                Disponse();
             }
             finally
             {
                 await writer.CompleteAsync();
-                Disponse();
             }
         }
         private async Task ProcessReader()
@@ -253,11 +253,12 @@ namespace cmonitor.server
                 {
                     Logger.Instance.Error(ex);
                 }
+                Disponse();
             }
             finally
             {
                 await reader.CompleteAsync();
-                Disponse();
+               
             }
         }
         private unsafe int ReaderHead(ReadOnlySequence<byte> buffer)

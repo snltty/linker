@@ -163,6 +163,11 @@ namespace common.libs
             return 0xffffffff << (32 - maskLength);
         }
 
+        public static bool NotIPv6Support(IPAddress ip)
+        {
+            return ip.AddressFamily == AddressFamily.InterNetworkV6 && (IPv6Support == false);
+        }
+
 
 #if DISABLE_IPV6 || (!UNITY_EDITOR && ENABLE_IL2CPP && !UNITY_2018_3_OR_NEWER)
             public static bool  IPv6Support = false;

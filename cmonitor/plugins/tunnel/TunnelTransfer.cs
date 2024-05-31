@@ -159,36 +159,48 @@ namespace cmonitor.plugins.tunnel
                 TunnelTransportInfo tunnelTransportInfo = null;
                 for (int i = 0; i <= 1; i++)
                 {
-                    //获取自己的外网ip
-                    TunnelTransportExternalIPInfo localInfo = await GetLocalInfo();
-                    if (localInfo == null)
+                    try
                     {
-                        Logger.Instance.Error($"tunnel {transport.Name} get local external ip fail ");
-                        goto end;
-                    }
-                    //获取对方的外网ip
-                    TunnelTransportExternalIPInfo remoteInfo = await GetRemoteInfo(remoteMachineName);
-                    if (remoteInfo == null)
-                    {
-                        Logger.Instance.Error($"tunnel {transport.Name} get remote {remoteMachineName} external ip fail ");
-                        goto end;
-                    }
+                        //获取自己的外网ip
+                        TunnelTransportExternalIPInfo localInfo = await GetLocalInfo();
+                        if (localInfo == null)
+                        {
+                            Logger.Instance.Error($"tunnel {transport.Name} get local external ip fail ");
+                            goto end;
+                        }
+                        Logger.Instance.Info($"tunnel {transport.Name} got local external ip {localInfo.ToJson()}");
+                        //获取对方的外网ip
+                        TunnelTransportExternalIPInfo remoteInfo = await GetRemoteInfo(remoteMachineName);
+                        if (remoteInfo == null)
+                        {
+                            Logger.Instance.Error($"tunnel {transport.Name} get remote {remoteMachineName} external ip fail ");
+                            goto end;
+                        }
+                        Logger.Instance.Info($"tunnel {transport.Name} got remote external ip {localInfo.ToJson()}");
 
-                    tunnelTransportInfo = new TunnelTransportInfo
+                        tunnelTransportInfo = new TunnelTransportInfo
+                        {
+                            Direction = (TunnelDirection)i,
+                            TransactionId = transactionId,
+                            TransportName = transport.Name,
+                            TransportType = transport.ProtocolType,
+                            Local = localInfo,
+                            Remote = remoteInfo,
+                        };
+                        OnConnecting(tunnelTransportInfo);
+                        ITunnelConnection connection = await transport.ConnectAsync(tunnelTransportInfo);
+                        if (connection != null)
+                        {
+                            _OnConnected(connection);
+                            return connection;
+                        }
+                    }
+                    catch (Exception ex)
                     {
-                        Direction = (TunnelDirection)i,
-                        TransactionId = transactionId,
-                        TransportName = transport.Name,
-                        TransportType = transport.ProtocolType,
-                        Local = localInfo,
-                        Remote = remoteInfo,
-                    };
-                    OnConnecting(tunnelTransportInfo);
-                    ITunnelConnection connection = await transport.ConnectAsync(tunnelTransportInfo);
-                    if (connection != null)
-                    {
-                        _OnConnected(connection);
-                        return connection;
+                        if(Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        {
+                            Logger.Instance.Error(ex);
+                        }
                     }
                 }
             end:
