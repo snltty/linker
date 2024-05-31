@@ -169,6 +169,7 @@ namespace cmonitor.plugins.tunnel.transport
                         LocalEndPoint = new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port),
                         DefaultCloseErrorCode = 0x0a,
                         DefaultStreamErrorCode = 0x0b,
+                        IdleTimeout = TimeSpan.FromMilliseconds(15000),
                         ClientAuthenticationOptions = new SslClientAuthenticationOptions
                         {
                             ApplicationProtocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http3 },
@@ -179,9 +180,10 @@ namespace cmonitor.plugins.tunnel.transport
                             }
                         }
                     }).AsTask().WaitAsync(TimeSpan.FromMilliseconds(ep.Address.Equals(tunnelTransportInfo.Remote.Remote.Address) ? 500 : 100));
+
                     QuicStream quicStream = await connection.OpenOutboundStreamAsync(QuicStreamType.Bidirectional);
 
-                    return new TunnelConnectionQuic
+                    return new TunnelConnectionMsQuic
                     {
                         Stream = quicStream,
                         Connection = connection,
@@ -234,7 +236,7 @@ namespace cmonitor.plugins.tunnel.transport
                     IPEndPoint ep = new IPEndPoint(ip.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port);
                     using UdpClient udpClient = new UdpClient(ep.AddressFamily);
                     udpClient.Client.ReuseBind(ep);
-                    udpClient.Send(new byte[] { 0 });
+                    udpClient.Send(new byte[] { 0 }, ip);
                 }
                 catch (Exception ex)
                 {
@@ -289,7 +291,7 @@ namespace cmonitor.plugins.tunnel.transport
             {
                 try
                 {
-                    TunnelConnectionQuic result = new TunnelConnectionQuic
+                    TunnelConnectionMsQuic result = new TunnelConnectionMsQuic
                     {
                         RemoteMachineName = state.Remote.MachineName,
                         Direction = state.Direction,
@@ -340,6 +342,7 @@ namespace cmonitor.plugins.tunnel.transport
                             MaxInboundUnidirectionalStreams = 65535,
                             DefaultCloseErrorCode = 0x0a,
                             DefaultStreamErrorCode = 0x0b,
+                            IdleTimeout = TimeSpan.FromMilliseconds(15000),
                             ServerAuthenticationOptions = new SslServerAuthenticationOptions
                             {
                                 ServerCertificate = serverCertificate,

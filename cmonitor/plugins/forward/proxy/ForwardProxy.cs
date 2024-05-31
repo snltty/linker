@@ -30,7 +30,7 @@ namespace cmonitor.plugins.forward.proxy
             BindConnectionReceive(connection);
         }
 
-        protected override async Task<bool> ConnectTcp(AsyncUserToken token)
+        protected override async ValueTask<bool> ConnectTunnelConnection(AsyncUserToken token)
         {
             if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
             {
@@ -40,7 +40,7 @@ namespace cmonitor.plugins.forward.proxy
             }
             return true;
         }
-        protected override async Task ConnectUdp(AsyncUserUdpToken token)
+        protected override async ValueTask ConnectTunnelConnection(AsyncUserUdpToken token)
         {
             if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
             {
@@ -48,11 +48,23 @@ namespace cmonitor.plugins.forward.proxy
                 cache.Connection = await ConnectTunnel(cache.MachineName);
                 token.Connection = cache.Connection;
             }
-
         }
+        protected override async ValueTask CheckTunnelConnection(AsyncUserToken token)
+        {
+            if(token.Connection == null || token.Connection.Connected == false)
+            {
+                if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
+                {
+                    cache.Connection = await ConnectTunnel(cache.MachineName);
+                    token.Connection = cache.Connection;
+                }
+            }
+            
+        }
+       
 
         SemaphoreSlim slimGlobal = new SemaphoreSlim(1);
-        private async Task<ITunnelConnection> ConnectTunnel(string machineName)
+        private async ValueTask<ITunnelConnection> ConnectTunnel(string machineName)
         {
             if (connections.TryGetValue(machineName, out ITunnelConnection connection) && connection.Connected)
             {

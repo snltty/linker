@@ -44,7 +44,7 @@ namespace cmonitor.client.tunnel
 
                 token.Proxy.SourceEP = token.TempRemoteEP;
                 token.Proxy.Data = bytes;
-                await ConnectUdp(token);
+                await ConnectTunnelConnection(token);
                 if (token.Connection != null && token.Proxy.TargetEP != null)
                 {
                     //发送连接请求包
@@ -77,27 +77,27 @@ namespace cmonitor.client.tunnel
                 token.Proxy.Return(connectData);
             }
         }
-
         /// <summary>
         /// 连接UDP
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        protected virtual async Task ConnectUdp(AsyncUserUdpToken token)
+        protected virtual async ValueTask ConnectTunnelConnection(AsyncUserUdpToken token)
         {
-            await Task.CompletedTask;
+            await ValueTask.CompletedTask;
         }
         private async Task SendToSocketUdp(AsyncUserTunnelToken tunnelToken)
         {
 
             if (tunnelToken.Proxy.Direction == ProxyDirection.Forward)
             {
-                ConnectIdUdp connectId = new ConnectIdUdp(tunnelToken.Proxy.ConnectId, tunnelToken.Proxy.SourceEP, tunnelToken.Connection.GetHashCode());
+                ConnectIdUdp connectId = new ConnectIdUdp(tunnelToken.Proxy.ConnectId, tunnelToken.Proxy.SourceEP, tunnelToken.Connection.RemoteMachineName);
                 try
                 {
 
                     if (udpConnections.TryGetValue(connectId, out AsyncUserUdpTokenTarget token))
                     {
+                        token.Connection = tunnelToken.Connection;
                         await token.TargetSocket.SendToAsync(tunnelToken.Proxy.Data, tunnelToken.Proxy.TargetEP);
                         return;
                     }
@@ -166,9 +166,9 @@ namespace cmonitor.client.tunnel
         /// <param name="token"></param>
         /// <param name="asyncUserUdpToken"></param>
         /// <returns>true表示自己已经处理过了，不需要再处理了</returns>
-        protected virtual async Task<bool> ConnectionReceiveUdp(AsyncUserTunnelToken token, AsyncUserUdpToken asyncUserUdpToken)
+        protected virtual async ValueTask<bool> ConnectionReceiveUdp(AsyncUserTunnelToken token, AsyncUserUdpToken asyncUserUdpToken)
         {
-            return await Task.FromResult(false);
+            return await ValueTask.FromResult(false);
         }
 
 
@@ -214,6 +214,7 @@ namespace cmonitor.client.tunnel
                 token.Proxy.Return(connectData);
             }
         }
+
 
 
         private void CloseClientSocket(AsyncUserUdpToken token)
@@ -279,6 +280,8 @@ namespace cmonitor.client.tunnel
 
         public IPEndPoint TempRemoteEP = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
 
+        public uint TargetIP { get; set; }
+
         public void Clear()
         {
             SourceSocket?.Close();
@@ -296,7 +299,7 @@ namespace cmonitor.client.tunnel
 
         public ConnectIdUdp ConnectId { get; set; }
 
-        public int LastTime { get; set; } = Environment.TickCount;
+        public long LastTime { get; set; } = Environment.TickCount64;
         public EndPoint TempRemoteEP = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
         public void Clear()
         {
@@ -307,7 +310,7 @@ namespace cmonitor.client.tunnel
         }
         public void Update()
         {
-            LastTime = Environment.TickCount;
+            LastTime = Environment.TickCount64;
         }
     }
 
@@ -315,25 +318,25 @@ namespace cmonitor.client.tunnel
     {
         public bool Equals(ConnectIdUdp x, ConnectIdUdp y)
         {
-            return x.Source != null && x.Source.Equals(y.Source) && x.ConnectId == y.ConnectId && x.HashCode == y.HashCode;
+            return x.source != null && x.source.Equals(y.source) && x.connectId == y.connectId && x.name == y.name;
         }
         public int GetHashCode(ConnectIdUdp obj)
         {
-            if (obj.Source == null) return 0;
-            return obj.Source.GetHashCode() ^ obj.ConnectId.GetHashCode() ^ obj.HashCode;
+            if (obj.source == null) return 0;
+            return obj.source.GetHashCode() ^ obj.connectId.GetHashCode() ^ obj.name.GetHashCode();
         }
     }
     public readonly struct ConnectIdUdp
     {
-        public readonly IPEndPoint Source { get; }
-        public readonly ulong ConnectId { get; }
-        public int HashCode { get; }
+        public readonly IPEndPoint source { get; }
+        public readonly ulong connectId { get; }
+        public string name { get; }
 
-        public ConnectIdUdp(ulong connectId, IPEndPoint source, int hashCode)
+        public ConnectIdUdp(ulong connectId, IPEndPoint source, string name)
         {
-            ConnectId = connectId;
-            Source = source;
-            HashCode = hashCode;
+            this.connectId = connectId;
+            this.source = source;
+            this.name = name;
         }
     }
 }

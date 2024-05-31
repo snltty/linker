@@ -4,6 +4,7 @@ using cmonitor.plugins.relay;
 using cmonitor.plugins.tunnel;
 using common.libs;
 using System.Collections.Concurrent;
+using static cmonitor.plugins.forward.proxy.ForwardProxy;
 
 namespace cmonitor.plugins.viewer.proxy
 {
@@ -36,14 +37,23 @@ namespace cmonitor.plugins.viewer.proxy
 
 
         SemaphoreSlim slimGlobal = new SemaphoreSlim(1);
-        protected override async Task<bool> ConnectTcp(AsyncUserToken token)
+        protected override async ValueTask<bool> ConnectTunnelConnection(AsyncUserToken token)
         {
             token.Proxy.TargetEP = runningConfig.Data.Viewer.ConnectEP;
-
             token.Connection = await ConnectTunnel(runningConfig.Data.Viewer.ServerMachine);
 
             return true;
         }
+
+        protected override async ValueTask CheckTunnelConnection(AsyncUserToken token)
+        {
+            if (token.Connection == null || token.Connection.Connected == false)
+            {
+                token.Proxy.TargetEP = runningConfig.Data.Viewer.ConnectEP;
+                token.Connection = await ConnectTunnel(runningConfig.Data.Viewer.ServerMachine);
+            }
+        }
+
 
         private async ValueTask<ITunnelConnection> ConnectTunnel(string targetName)
         {
