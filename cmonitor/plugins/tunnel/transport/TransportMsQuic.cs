@@ -1,6 +1,5 @@
 ﻿using cmonitor.client.tunnel;
 using cmonitor.config;
-using cmonitor.plugins.tunnel.compact;
 using common.libs;
 using common.libs.extends;
 using System.Collections.Concurrent;
@@ -228,7 +227,6 @@ namespace cmonitor.plugins.tunnel.transport
             }
         }
 
-
         private async Task<ITunnelConnection> ConnectForward(TunnelTransportInfo tunnelTransportInfo)
         {
             //要连接哪些IP
@@ -349,7 +347,6 @@ namespace cmonitor.plugins.tunnel.transport
             }
             return null;
         }
-
 
         private async Task BindListen(IPEndPoint local, IPEndPoint targetEP, TunnelTransportInfo state)
         {
@@ -524,7 +521,6 @@ namespace cmonitor.plugins.tunnel.transport
             }
         }
 
-
         private ConcurrentDictionary<string, TaskCompletionSource<ITunnelConnection>> reverseDic = new ConcurrentDictionary<string, TaskCompletionSource<ITunnelConnection>>();
         private async Task<ITunnelConnection> WaitReverse(TunnelTransportInfo tunnelTransportInfo)
         {
@@ -559,7 +555,6 @@ namespace cmonitor.plugins.tunnel.transport
                 tcs.SetResult(null);
             }
         }
-
 
         private async Task OnUdpConnected(object _state, UdpClient localUdp, UdpClient remoteUdp,IPEndPoint remoteEP, QuicConnection quicConnection, QuicStream stream)
         {
