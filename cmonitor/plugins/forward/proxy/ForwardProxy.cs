@@ -51,7 +51,7 @@ namespace cmonitor.plugins.forward.proxy
         }
         protected override async ValueTask CheckTunnelConnection(AsyncUserToken token)
         {
-            if(token.Connection == null || token.Connection.Connected == false)
+            if (token.Connection == null || token.Connection.Connected == false)
             {
                 if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
                 {
@@ -59,9 +59,9 @@ namespace cmonitor.plugins.forward.proxy
                     token.Connection = cache.Connection;
                 }
             }
-            
+
         }
-       
+
 
         SemaphoreSlim slimGlobal = new SemaphoreSlim(1);
         private async ValueTask<ITunnelConnection> ConnectTunnel(string machineName)
@@ -97,7 +97,7 @@ namespace cmonitor.plugins.forward.proxy
                 {
                     if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineName}");
 
-                    //connection = await relayTransfer.ConnectAsync(machineName, "forward");
+                    connection = await relayTransfer.ConnectAsync(machineName, "forward");
                     if (connection != null)
                     {
                         if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineName} success");

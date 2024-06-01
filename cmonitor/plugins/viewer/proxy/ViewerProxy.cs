@@ -4,7 +4,6 @@ using cmonitor.plugins.relay;
 using cmonitor.plugins.tunnel;
 using common.libs;
 using System.Collections.Concurrent;
-using static cmonitor.plugins.forward.proxy.ForwardProxy;
 
 namespace cmonitor.plugins.viewer.proxy
 {
