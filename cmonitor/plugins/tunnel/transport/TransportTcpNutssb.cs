@@ -15,7 +15,6 @@ namespace cmonitor.plugins.tunnel.transport
     {
         public string Name => "TcpNutssb";
         public string Label => "TCP、低TTL";
-        public bool Disabled => true;
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Tcp;
 
         private X509Certificate serverCertificate;

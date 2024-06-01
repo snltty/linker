@@ -9,6 +9,11 @@
         <el-table-column prop="Name" label="名称"></el-table-column>
         <el-table-column prop="Label" label="说明"></el-table-column>
         <el-table-column prop="ProtocolType" label="协议" ></el-table-column>
+        <el-table-column property="Reverse" label="反向" width="60">
+            <template #default="scope">
+                <el-switch v-model="scope.row.Reverse" @change="handleSave" inline-prompt active-text="是" inactive-text="否" style="--el-switch-on-color: red; --el-switch-off-color: #ddd" />
+            </template>
+        </el-table-column>
         <el-table-column property="Disabled" label="禁用" width="60">
             <template #default="scope">
                 <el-switch v-model="scope.row.Disabled" @change="handleSave" inline-prompt active-text="是" inactive-text="否" style="--el-switch-on-color: red; --el-switch-off-color: #ddd" />

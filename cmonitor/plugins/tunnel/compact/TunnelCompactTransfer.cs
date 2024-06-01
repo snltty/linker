@@ -41,7 +41,7 @@ namespace cmonitor.plugins.tunnel.compact
             config.Save();
         }
 
-        public async Task<TunnelCompactIPEndPoint> GetExternalIPAsync()
+        public async Task<TunnelCompactIPEndPoint> GetExternalIPAsync(IPAddress localIP)
         {
             for (int i = 0; i < config.Data.Client.Tunnel.Servers.Length; i++)
             {
@@ -61,7 +61,11 @@ namespace cmonitor.plugins.tunnel.compact
                         Logger.Instance.Warning($"get domain ip time:{sw.ElapsedMilliseconds}ms");
                     }
                     TunnelCompactIPEndPoint externalIP = await compact.GetExternalIPAsync(server);
-                    if (externalIP != null) return externalIP;
+                    if (externalIP != null)
+                    {
+                        externalIP.Local.Address = localIP;
+                        return externalIP;
+                    }
                 }
                 catch (Exception ex)
                 {

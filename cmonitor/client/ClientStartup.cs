@@ -49,7 +49,7 @@ namespace cmonitor.client
             if (string.IsNullOrWhiteSpace(config.Data.Client.Server) && config.Data.Client.Servers.Length > 0)
                 config.Data.Client.Server = config.Data.Client.Servers.FirstOrDefault().Host;
             ClientSignInTransfer clientTransfer = serviceProvider.GetService<ClientSignInTransfer>();
-
+            clientTransfer.SignInTask();
         }
 
 

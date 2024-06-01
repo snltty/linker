@@ -1,5 +1,6 @@
 ﻿using common.libs;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace cmonitor.server
 {
@@ -69,6 +70,7 @@ namespace cmonitor.server
                 }
 
                 byte[] bytes = msg.ToArray(out int length);
+                var sw = new Stopwatch();
                 bool res = await msg.Connection.SendAsync(bytes.AsMemory(0, length)).ConfigureAwait(false);
                 msg.Return(bytes);
                 return res;

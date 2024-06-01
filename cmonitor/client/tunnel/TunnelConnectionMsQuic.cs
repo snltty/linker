@@ -6,6 +6,7 @@ using System.Net.Quic;
 using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
+using System.Net.Sockets;
 
 namespace cmonitor.client.tunnel
 {
@@ -31,6 +32,11 @@ namespace cmonitor.client.tunnel
         public QuicStream Stream { get; init; }
         [JsonIgnore]
         public QuicConnection Connection { get; init; }
+
+        [JsonIgnore]
+        public UdpClient LocalUdp { get; init; }
+        [JsonIgnore]
+        public UdpClient remoteUdp { get; init; }
 
 
         private ITunnelConnectionReceiveCallback callback;
@@ -256,6 +262,9 @@ namespace cmonitor.client.tunnel
 
             Connection?.CloseAsync(0x0a);
             Connection?.DisposeAsync();
+
+            LocalUdp?.Close();
+            remoteUdp?.Close();
         }
 
         public override string ToString()

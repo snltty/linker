@@ -114,7 +114,8 @@ namespace cmonitor.plugins.tunnel.messenger
                 {
                     Connection = cache.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.Info,
-                    Payload = connection.ReceiveRequestWrap.Payload
+                    Payload = connection.ReceiveRequestWrap.Payload,
+                    Timeout = 3000,
                 });
                 if (resp.Code == MessageResponeCodes.OK && resp.Data.Span.Length > 0)
                 {
@@ -131,7 +132,7 @@ namespace cmonitor.plugins.tunnel.messenger
 
             if (signCaching.Get(tunnelTransportInfo.Remote.MachineName, out SignCacheInfo cache) && signCaching.Get(connection.Name, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
-                await messengerSender.SendReply(new MessageRequestWrap
+                await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = cache.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.Begin,
@@ -204,6 +205,7 @@ namespace cmonitor.plugins.tunnel.messenger
                     {
                         Connection = item.Connection,
                         MessengerId = (ushort)TunnelMessengerIds.Config,
+                        Timeout = 3000,
                         Payload = connection.ReceiveRequestWrap.Payload
                     }));
                 }

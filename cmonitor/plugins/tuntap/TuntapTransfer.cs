@@ -124,18 +124,21 @@ namespace cmonitor.plugins.tuntap
         /// <param name="info"></param>
         public void OnUpdate(TuntapInfo info)
         {
-            config.Data.Client.Tuntap.IP = info.IP;
-            config.Data.Client.Tuntap.LanIPs = info.LanIPs;
-            config.Save();
-            if (Status == TuntapStatus.Running)
+            Task.Run(() =>
             {
-                Stop();
-                Run();
-            }
-            else
-            {
-                OnChange();
-            }
+                config.Data.Client.Tuntap.IP = info.IP;
+                config.Data.Client.Tuntap.LanIPs = info.LanIPs;
+                config.Save();
+                if (Status == TuntapStatus.Running)
+                {
+                    Stop();
+                    Run();
+                }
+                else
+                {
+                    OnChange();
+                }
+            });
         }
         /// <summary>
         /// 更新远程主机信息
@@ -158,13 +161,20 @@ namespace cmonitor.plugins.tuntap
         {
             GetRemoteInfo().ContinueWith((result) =>
             {
-                DelRoute();
-                foreach (var item in result.Result)
+                if(result.Result == null)
                 {
-                    tuntapInfos.AddOrUpdate(item.MachineName, item, (a, b) => item);
+                    OnChange();
                 }
-                Interlocked.Increment(ref infosVersion);
-                AddRoute();
+                else
+                {
+                    DelRoute();
+                    foreach (var item in result.Result)
+                    {
+                        tuntapInfos.AddOrUpdate(item.MachineName, item, (a, b) => item);
+                    }
+                    Interlocked.Increment(ref infosVersion);
+                    AddRoute();
+                }
             });
         }
 
@@ -179,7 +189,8 @@ namespace cmonitor.plugins.tuntap
             {
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)TuntapMessengerIds.ConfigForward,
-                Payload = MemoryPackSerializer.Serialize(info)
+                Payload = MemoryPackSerializer.Serialize(info),
+                Timeout = 3000
             });
             if (resp.Code != MessageResponeCodes.OK)
             {

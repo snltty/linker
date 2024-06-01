@@ -10,6 +10,7 @@ using common.libs.extends;
 using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
+using System.Net;
 using System.Reflection;
 
 namespace cmonitor.plugins.tunnel
@@ -59,7 +60,7 @@ namespace cmonitor.plugins.tunnel
 
             //拼接，再去重，因为有可能有新的
             config.Data.Client.Tunnel.TunnelTransports = config.Data.Client.Tunnel.TunnelTransports
-                .Concat(transports.Select(c => new TunnelTransportItemInfo { Disabled = c.Disabled, Label = c.Label, Name = c.Name, ProtocolType = c.ProtocolType.ToString() }))
+                .Concat(transports.Select(c => new TunnelTransportItemInfo { Reverse = true, Disabled = false, Label = c.Label, Name = c.Name, ProtocolType = c.ProtocolType.ToString() }))
                 .Distinct(new TunnelTransportItemInfoEqualityComparer())
                 .ToList();
 
@@ -91,6 +92,7 @@ namespace cmonitor.plugins.tunnel
             {
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)TunnelMessengerIds.ConfigForward,
+                Timeout = 3000,
                 Payload = MemoryPackSerializer.Serialize(config)
             }).ContinueWith((result) =>
             {
@@ -157,7 +159,8 @@ namespace cmonitor.plugins.tunnel
                  * 所以，我们需要在第一次正向连接失败后再尝试反向连接，因为间隔了一定时间，最大程度避免了连续端口污染
                  */
                 TunnelTransportInfo tunnelTransportInfo = null;
-                for (int i = 0; i <= 0; i++)
+                int times = transportItem.Reverse ? 1 : 0;
+                for (int i = 0; i <= times; i++)
                 {
                     try
                     {
@@ -197,7 +200,7 @@ namespace cmonitor.plugins.tunnel
                     }
                     catch (Exception ex)
                     {
-                        if(Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         {
                             Logger.Instance.Error(ex);
                         }
@@ -243,7 +246,7 @@ namespace cmonitor.plugins.tunnel
 
         private async Task<TunnelTransportExternalIPInfo> GetLocalInfo()
         {
-            TunnelCompactIPEndPoint ip = await compactTransfer.GetExternalIPAsync();
+            TunnelCompactIPEndPoint ip = await compactTransfer.GetExternalIPAsync(clientSignInState.Connection?.LocalAddress.Address ?? IPAddress.Any);
             if (ip != null)
             {
                 return new TunnelTransportExternalIPInfo

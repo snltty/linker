@@ -28,16 +28,15 @@ namespace cmonitor.client
             this.messengerSender = messengerSender;
             this.signInArgsTransfer = signInArgsTransfer;
 
-            SignInTask();
+            //SignInTask();
         }
 
-        private void SignInTask()
+        public void SignInTask()
         {
             Task.Run(async () =>
             {
                 while (true)
                 {
-
                     if (clientSignInState.Connected == false)
                     {
                         try

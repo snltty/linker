@@ -8,7 +8,6 @@ namespace cmonitor.plugins.tunnel.transport
     {
         public string Name { get; }
         public string Label { get; }
-        public bool Disabled { get; }
         public TunnelProtocolType ProtocolType { get; }
 
         /// <summary>
@@ -93,6 +92,7 @@ namespace cmonitor.plugins.tunnel.transport
         public string ProtocolType { get; set; }
 
         public bool Disabled { get; set; }
+        public bool Reverse { get; set; }
     }
     public sealed class TunnelTransportItemInfoEqualityComparer : IEqualityComparer<TunnelTransportItemInfo>
     {

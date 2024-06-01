@@ -117,7 +117,8 @@ namespace cmonitor.plugins.tuntap.messenger
                     {
                         Connection = item.Connection,
                         MessengerId = (ushort)TuntapMessengerIds.Config,
-                        Payload = connection.ReceiveRequestWrap.Payload
+                        Payload = connection.ReceiveRequestWrap.Payload,
+                        Timeout = 1000,
                     }));
                 }
 
