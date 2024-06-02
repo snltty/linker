@@ -240,10 +240,12 @@ namespace cmonitor.client.tunnel
             byte[] connectData = token.Proxy.ToBytes(out int length);
             try
             {
+                /*
                 if(token.Proxy.Direction == ProxyDirection.Forward)
                 {
                     await CheckTunnelConnection(token);
                 }
+                */
                 await token.Connection.SendAsync(connectData.AsMemory(0, length)).ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -377,7 +379,7 @@ namespace cmonitor.client.tunnel
                 ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.RemoteMachineName, (byte)tunnelToken.Proxy.Direction);
                 if (tcpConnections.TryGetValue(connectId, out AsyncUserToken token))
                 {
-                    token.Connection = tunnelToken.Connection;
+                    //token.Connection = tunnelToken.Connection;
                     token.Received = false;
                 }
             }
@@ -389,7 +391,7 @@ namespace cmonitor.client.tunnel
                 ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.RemoteMachineName, (byte)tunnelToken.Proxy.Direction);
                 if (tcpConnections.TryGetValue(connectId, out AsyncUserToken token))
                 {
-                    token.Connection = tunnelToken.Connection;
+                    //token.Connection = tunnelToken.Connection;
                     if (token.Received == false)
                     {
                         token.Received = true;
@@ -433,7 +435,7 @@ namespace cmonitor.client.tunnel
             {
                 try
                 {
-                    token1.Connection = tunnelToken.Connection;
+                    //token1.Connection = tunnelToken.Connection;
                     token1.SenderPipe.Writer.Write(tunnelToken.Proxy.Data.Span);
                     await token1.SenderPipe.Writer.FlushAsync();
                 }

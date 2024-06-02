@@ -3,7 +3,7 @@
         <div class="pdr-10 pdb-6 flex-1">
             <el-checkbox v-model="state.sync" label="将更改同步到所有客户端"  />
         </div>
-        <div>使用其中一条作为信标服务器</div>
+        <div>信标服务器为交换数据服务器（用于登入），使用其中一条作为信标服务器</div>
     </div>
     <el-table :data="state.list" border size="small" width="100%" :height="`${state.height}px`" @cell-dblclick="handleCellClick">
         <el-table-column prop="Name" label="名称">

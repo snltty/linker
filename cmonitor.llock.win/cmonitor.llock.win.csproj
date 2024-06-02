@@ -9,6 +9,7 @@
 		<ApplicationIcon>favicon.ico</ApplicationIcon>
 		<Configurations>Debug;Release;ReleaseNetwork;ReleaseMonitor</Configurations>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
+		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -1,9 +1,5 @@
 @echo off
 
-rd /s /q public\\publish
-rd /s /q public\\publish-zip
-mkdir public\\publish-zip
-
 for %%r in (win-x64,win-arm64,linux-x64,linux-arm64,osx-x64,osx-arm64) do (
 	for %%c in (ReleaseMonitor,ReleaseNetwork) do (
 		
@@ -17,10 +13,5 @@ for %%r in (win-x64,win-arm64,linux-x64,linux-arm64,osx-x64,osx-arm64) do (
 		echo F|xcopy "public\\extends\\%%c\\any\\*" "public\\publish\\%%c\\%%r\\any\\*"  /s /f /h /y	
 
 		7z a -tzip ./public/publish-zip/%%c-%%r.zip ./public/publish/%%c/%%r/*
-	)
-)
-for %%r in (win-x64,win-arm64) do (
-	for %%c in (ReleaseMonitor,ReleaseNetwork) do (
-		echo F|xcopy "cmonitor\\msquic.dll" "public\\publish\\%%c\\%%r\\single\\*"  /s /f /h /y
 	)
 )

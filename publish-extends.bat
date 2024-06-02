@@ -1,6 +1,9 @@
 @echo off
 
 rd /s /q public\\extends
+rd /s /q public\\publish
+rd /s /q public\\publish-zip
+mkdir public\\publish-zip
 
 cd cmonitor.web
 call npm install
@@ -53,6 +56,12 @@ for %%r in (win-x64,win-arm64) do (
 	)
                 for %%c in (ReleaseNetwork,ReleaseMonitor) do (
 		echo F|xcopy "cmonitor.tray.win\\dist\\*" "public\\extends\\%%c\\%%r\\*"  /s /f /h /y
+	)
+)
+
+for %%r in (win-x64,win-arm64) do (
+	for %%c in (ReleaseMonitor,ReleaseNetwork) do (
+		echo F|xcopy "cmonitor\\msquic.dll" "public\\publish\\%%c\\%%r\\single\\msquic.dll"  /s /f /h /y
 	)
 )
 

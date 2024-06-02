@@ -13,6 +13,7 @@
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<PublishAot>true</PublishAot>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

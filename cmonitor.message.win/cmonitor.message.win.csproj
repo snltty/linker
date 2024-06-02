@@ -9,6 +9,7 @@
 		<ApplicationManifest>app.manifest</ApplicationManifest>
 		<ApplicationIcon>favicon.ico</ApplicationIcon>
 		<Configurations>Debug;Release;ReleaseNetwork;ReleaseMonitor</Configurations>
+		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-windows|AnyCPU'">

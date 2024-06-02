@@ -108,7 +108,6 @@
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
-	
 	<ItemGroup>
 		<ProjectReference Include="..\cmonitor.libs\cmonitor.libs.csproj" />
 		<ProjectReference Include="..\common.libs\common.libs.csproj" />
