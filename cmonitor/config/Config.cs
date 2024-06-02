@@ -62,7 +62,7 @@ namespace cmonitor.config
                     string text = item.Value.SR.ReadToEnd();
                     if (string.IsNullOrWhiteSpace(text))
                     {
-                        return;
+                        continue;
                     }
                     object value = item.Value.PropertyLoadMethod.Invoke(item.Value.PropertyObject, new object[] { text });
                     item.Value.Property.SetValue(Data, value);
