@@ -54,6 +54,7 @@ namespace cmonitor.plugins.tunnel.transport
             {
                 if (QuicListener.IsSupported == false)
                 {
+                    Logger.Instance.Error($"quic not supported");
                     await OnSendConnectFail(tunnelTransportInfo);
                     return null;
                 }

@@ -110,7 +110,7 @@ namespace cmonitor.server
                     await plugin.TaskMethod(connection);
                 }
 
-                if (requestWrap.Reply == true)
+                if (requestWrap.Reply == true && connection.ResponseData.Length > 0)
                 {
                     bool res = await messengerSender.ReplyOnly(new MessageResponseWrap
                     {

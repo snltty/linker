@@ -92,7 +92,7 @@ namespace cmonitor.plugins.tunnel
             {
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)TunnelMessengerIds.ConfigForward,
-                Timeout = 3000,
+                Timeout = 10000,
                 Payload = MemoryPackSerializer.Serialize(config)
             }).ContinueWith((result) =>
             {
@@ -266,7 +266,6 @@ namespace cmonitor.plugins.tunnel
             {
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)TunnelMessengerIds.InfoForward,
-                Timeout = 3000,
                 Payload = MemoryPackSerializer.Serialize(new TunnelTransportExternalIPRequestInfo
                 {
                     RemoteMachineName = remoteMachineName,

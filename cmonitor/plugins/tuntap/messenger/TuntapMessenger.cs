@@ -2,7 +2,6 @@
 using cmonitor.plugins.tuntap.vea;
 using cmonitor.server;
 using MemoryPack;
-using System.Collections.Concurrent;
 
 namespace cmonitor.plugins.tuntap.messenger
 {
@@ -104,12 +103,13 @@ namespace cmonitor.plugins.tuntap.messenger
 
 
         [MessengerId((ushort)TuntapMessengerIds.ConfigForward)]
-        public async Task ConfigForward(IConnection connection)
+        public void ConfigForward(IConnection connection)
         {
             if (signCaching.Get(connection.Name, out SignCacheInfo cache))
             {
-                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
+                uint requiestid = connection.ReceiveRequestWrap.RequestId;
 
+                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
                 List<Task<MessageResponeInfo>> tasks = new List<Task<MessageResponeInfo>>();
                 foreach (SignCacheInfo item in caches.Where(c => c.MachineName != connection.Name && c.Connected))
                 {
@@ -122,10 +122,18 @@ namespace cmonitor.plugins.tuntap.messenger
                     }));
                 }
 
-                await Task.WhenAll(tasks);
+                Task.WhenAll(tasks).ContinueWith(async (result) =>
+                {
+                    List<TuntapInfo> results = tasks.Where(c => c.Result.Code == MessageResponeCodes.OK)
+                    .Select(c => MemoryPackSerializer.Deserialize<TuntapInfo>(c.Result.Data.Span)).ToList();
 
-                List<TuntapInfo> results = tasks.Where(c => c.Result.Code == MessageResponeCodes.OK).Select(c => MemoryPackSerializer.Deserialize<TuntapInfo>(c.Result.Data.Span)).ToList();
-                connection.Write(MemoryPackSerializer.Serialize(results));
+                    await messengerSender.ReplyOnly(new MessageResponseWrap
+                    {
+                        RequestId = requiestid,
+                        Connection = connection,
+                        Payload = MemoryPackSerializer.Serialize(results)
+                    });
+                });
             }
         }
     }
