@@ -213,7 +213,7 @@ namespace cmonitor.client.tunnel
                     token.Proxy.Step = ProxyStep.Forward;
 
                     //绑定
-                    tcpConnections.TryAdd(new ConnectId(token.Proxy.ConnectId, token.Connection.RemoteMachineName, (byte)ProxyDirection.Reverse), token);
+                    tcpConnections.TryAdd(new ConnectId(token.Proxy.ConnectId, token.Connection.GetHashCode(), (byte)ProxyDirection.Reverse), token);
                 }
                 else if (closeConnect)
                 {
@@ -240,12 +240,6 @@ namespace cmonitor.client.tunnel
             byte[] connectData = token.Proxy.ToBytes(out int length);
             try
             {
-                /*
-                if(token.Proxy.Direction == ProxyDirection.Forward)
-                {
-                    await CheckTunnelConnection(token);
-                }
-                */
                 await token.Connection.SendAsync(connectData.AsMemory(0, length)).ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -312,7 +306,7 @@ namespace cmonitor.client.tunnel
                 {
                     await token.Socket.SendAsync(state.Data.AsMemory(0, state.Length), SocketFlags.None);
                 }
-                tcpConnections.TryAdd(new ConnectId(token.Proxy.ConnectId, token.Connection.RemoteMachineName, (byte)ProxyDirection.Forward), token);
+                tcpConnections.TryAdd(new ConnectId(token.Proxy.ConnectId, token.Connection.GetHashCode(), (byte)ProxyDirection.Forward), token);
 
                 await SendToConnection(token).ConfigureAwait(false);
                 token.Proxy.Step = ProxyStep.Forward;
@@ -376,7 +370,7 @@ namespace cmonitor.client.tunnel
         {
             if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)
             {
-                ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.RemoteMachineName, (byte)tunnelToken.Proxy.Direction);
+                ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.GetHashCode(), (byte)tunnelToken.Proxy.Direction);
                 if (tcpConnections.TryGetValue(connectId, out AsyncUserToken token))
                 {
                     //token.Connection = tunnelToken.Connection;
@@ -388,7 +382,7 @@ namespace cmonitor.client.tunnel
         {
             if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)
             {
-                ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.RemoteMachineName, (byte)tunnelToken.Proxy.Direction);
+                ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.GetHashCode(), (byte)tunnelToken.Proxy.Direction);
                 if (tcpConnections.TryGetValue(connectId, out AsyncUserToken token))
                 {
                     //token.Connection = tunnelToken.Connection;
@@ -411,7 +405,7 @@ namespace cmonitor.client.tunnel
         {
             if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)
             {
-                ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.RemoteMachineName, (byte)tunnelToken.Proxy.Direction);
+                ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.GetHashCode(), (byte)tunnelToken.Proxy.Direction);
                 if (tcpConnections.TryRemove(connectId, out AsyncUserToken token))
                 {
                     CloseClientSocket(token);
@@ -421,7 +415,7 @@ namespace cmonitor.client.tunnel
 
         private async Task SendToSocketTcp(AsyncUserTunnelToken tunnelToken)
         {
-            ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.RemoteMachineName, (byte)tunnelToken.Proxy.Direction);
+            ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.GetHashCode(), (byte)tunnelToken.Proxy.Direction);
             if (tunnelToken.Proxy.Data.Length == 0)
             {
                 if (tcpConnections.TryRemove(connectId, out AsyncUserToken token))
@@ -456,7 +450,7 @@ namespace cmonitor.client.tunnel
             if (token == null) return;
             if (token.Connection != null)
             {
-                tcpConnections.TryRemove(new ConnectId(token.Proxy.ConnectId, token.Connection.RemoteMachineName, (byte)token.Proxy.Direction), out _);
+                tcpConnections.TryRemove(new ConnectId(token.Proxy.ConnectId, token.Connection.GetHashCode(), (byte)token.Proxy.Direction), out _);
             }
             token.Clear();
         }
@@ -497,23 +491,23 @@ namespace cmonitor.client.tunnel
     {
         public bool Equals(ConnectId x, ConnectId y)
         {
-            return x.connectId == y.connectId && x.name == y.name && x.direction == y.direction;
+            return x.connectId == y.connectId && x.hashcode == y.hashcode && x.direction == y.direction;
         }
         public int GetHashCode(ConnectId obj)
         {
-            return obj.connectId.GetHashCode() ^ obj.name.GetHashCode() ^ obj.direction;
+            return obj.connectId.GetHashCode() ^ obj.hashcode ^ obj.direction;
         }
     }
     public record struct ConnectId
     {
         public ulong connectId;
-        public string name;
+        public int hashcode;
         public byte direction;
 
-        public ConnectId(ulong connectId, string name, byte direction)
+        public ConnectId(ulong connectId, int hashcode, byte direction)
         {
             this.connectId = connectId;
-            this.name = name;
+            this.hashcode = hashcode;
             this.direction = direction;
         }
     }

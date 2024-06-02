@@ -91,7 +91,7 @@ namespace cmonitor.client.tunnel
 
             if (tunnelToken.Proxy.Direction == ProxyDirection.Forward)
             {
-                ConnectIdUdp connectId = new ConnectIdUdp(tunnelToken.Proxy.ConnectId, tunnelToken.Proxy.SourceEP, tunnelToken.Connection.RemoteMachineName);
+                ConnectIdUdp connectId = new ConnectIdUdp(tunnelToken.Proxy.ConnectId, tunnelToken.Proxy.SourceEP, tunnelToken.Connection.GetHashCode());
                 try
                 {
 
@@ -318,25 +318,25 @@ namespace cmonitor.client.tunnel
     {
         public bool Equals(ConnectIdUdp x, ConnectIdUdp y)
         {
-            return x.source != null && x.source.Equals(y.source) && x.connectId == y.connectId && x.name == y.name;
+            return x.source != null && x.source.Equals(y.source) && x.connectId == y.connectId && x.hashcode == y.hashcode;
         }
         public int GetHashCode(ConnectIdUdp obj)
         {
             if (obj.source == null) return 0;
-            return obj.source.GetHashCode() ^ obj.connectId.GetHashCode() ^ obj.name.GetHashCode();
+            return obj.source.GetHashCode() ^ obj.connectId.GetHashCode() ^ obj.hashcode;
         }
     }
     public readonly struct ConnectIdUdp
     {
         public readonly IPEndPoint source { get; }
         public readonly ulong connectId { get; }
-        public string name { get; }
+        public int hashcode { get; }
 
-        public ConnectIdUdp(ulong connectId, IPEndPoint source, string name)
+        public ConnectIdUdp(ulong connectId, IPEndPoint source, int hashcode)
         {
             this.connectId = connectId;
             this.source = source;
-            this.name = name;
+            this.hashcode = hashcode;
         }
     }
 }
