@@ -91,21 +91,30 @@ mainForm.runCommand = function(id,event){
 		function(mainForm){
 			import service;
 			import win.ui;
+			import thread;
 			try{
-				mainForm.saveConfig();
 				mainForm.btnRun.text = '....';
 				if(service.isRunning(mainForm.serviceName)){
 					if(service.stop(mainForm.serviceName,true)){
-						
+						while(service.isRunning(mainForm.serviceName))
+						{
+							thread.delay(100);
+						}
 					}else{
 						win.msgbox("停止失败");	
 					}
+					
 				}else{
 					if(service.start(mainForm.serviceName)){
+						while(!service.isRunning(mainForm.serviceName))
+						{
+							thread.delay(100);
+						}
 					}else{
 						win.msgbox("运行失败");	
 					}
 				}
+				
 				mainForm.checkService();	
 			}catch(e){
 			}
@@ -124,16 +133,22 @@ mainForm.installCommand = function(id,event){
 			import service;
 			import win.ui;
 			try{
-				mainForm.saveConfig();
 				mainForm.btnInstall.text = '....';
 				if(service.isExist(mainForm.serviceName)){
 					if(service.delete(mainForm.serviceName)){
-						
+						while(service.isExist(mainForm.serviceName))
+						{
+							thread.delay(100);
+						}
 					}else{
 						win.msgbox("卸载失败");	
 					}
 				}else{
 					if(service.create(io.fullpath(mainForm.exeName),mainForm.serviceName,mainForm.serviceName,mainForm.serviceName)){
+						while(!service.isExist(mainForm.serviceName) || !service.isRunning(mainForm.serviceName))
+						{
+							thread.delay(100);
+						}
 					}else{
 						win.msgbox("安装失败");	
 					}
