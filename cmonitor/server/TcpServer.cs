@@ -174,7 +174,8 @@ namespace cmonitor.server
                     return null;
                 }
                 socket.KeepAlive();
-                SslStream sslStream = new SslStream(new NetworkStream(socket,true), true, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
+                NetworkStream networkStream = new NetworkStream(socket, true);
+                SslStream sslStream = new SslStream(networkStream, true, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                 await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 });
                 IConnection connection = CreateConnection(sslStream, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
 
