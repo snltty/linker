@@ -56,7 +56,7 @@ namespace cmonitor.client.tunnel
             this.framing = framing;
 
             cancellationTokenSource = new CancellationTokenSource();
-            pipe = new Pipe(new PipeOptions(pauseWriterThreshold: 1 * 1024 * 1024, resumeWriterThreshold: 128 * 1024));
+            pipe = new Pipe(new PipeOptions(pauseWriterThreshold: 512 * 1024, resumeWriterThreshold: 64 * 1024));
             _ = ProcessWrite();
             _ = ProcessReader();
             _ = ProcessHeart();
@@ -218,6 +218,7 @@ namespace cmonitor.client.tunnel
             try
             {
                 await Stream.WriteAsync(data, cancellationTokenSource.Token);
+                Stream.Flush();
                 ticks = Environment.TickCount64;
             }
             catch (Exception ex)

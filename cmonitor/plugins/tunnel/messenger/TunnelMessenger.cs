@@ -83,7 +83,7 @@ namespace cmonitor.plugins.tunnel.messenger
         public void Transport(IConnection connection)
         {
             List<TunnelTransportItemInfo> transports = MemoryPackSerializer.Deserialize<List<TunnelTransportItemInfo>>(connection.ReceiveRequestWrap.Payload.Span);
-            tunnel.OnTransports(transports);
+            tunnel.OnRemoteTransports(transports);
         }
 
         [MessengerId((ushort)TunnelMessengerIds.Servers)]

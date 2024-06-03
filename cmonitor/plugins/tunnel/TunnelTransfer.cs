@@ -32,6 +32,9 @@ namespace cmonitor.plugins.tunnel
 
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
+        private ConcurrentDictionary<string, ConcurrentDictionary<string, ITunnelConnection>> connections { get; } = new ConcurrentDictionary<string, ConcurrentDictionary<string, ITunnelConnection>>();
+        public ConcurrentDictionary<string, ConcurrentDictionary<string, ITunnelConnection>> Connections => connections;
+
         public TunnelTransfer(Config config, ServiceProvider serviceProvider, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelCompactTransfer compactTransfer)
         {
             this.config = config;
@@ -69,16 +72,28 @@ namespace cmonitor.plugins.tunnel
         }
 
 
+        /// <summary>
+        /// 刷新关于隧道的配置信息，也就是获取自己的和别的客户端的，方便查看
+        /// </summary>
         public void RefreshConfig()
         {
             GetRemoveRouteLevel();
         }
+        /// <summary>
+        /// 修改自己的网关层级信息
+        /// </summary>
+        /// <param name="tunnelTransportConfigWrapInfo"></param>
         public void OnLocalRouteLevel(TunnelTransportRouteLevelInfo tunnelTransportConfigWrapInfo)
         {
             config.Data.Client.Tunnel.RouteLevelPlus = tunnelTransportConfigWrapInfo.RouteLevelPlus;
             config.Save();
             GetRemoveRouteLevel();
         }
+        /// <summary>
+        /// 收到别人发给我的修改我的信息
+        /// </summary>
+        /// <param name="tunnelTransportConfigWrapInfo"></param>
+        /// <returns></returns>
         public TunnelTransportRouteLevelInfo OnRemoteRouteLevel(TunnelTransportRouteLevelInfo tunnelTransportConfigWrapInfo)
         {
             configs.AddOrUpdate(tunnelTransportConfigWrapInfo.MachineName, tunnelTransportConfigWrapInfo, (a, b) => tunnelTransportConfigWrapInfo);
@@ -118,13 +133,22 @@ namespace cmonitor.plugins.tunnel
                 RouteLevelPlus = config.Data.Client.Tunnel.RouteLevelPlus
             };
         }
-        public void OnTransports(List<TunnelTransportItemInfo> transports)
+        /// <summary>
+        /// 收到别人发给我的修改我的打洞协议信息
+        /// </summary>
+        /// <param name="transports"></param>
+        public void OnRemoteTransports(List<TunnelTransportItemInfo> transports)
         {
             config.Data.Client.Tunnel.TunnelTransports = transports;
             config.Save();
         }
 
 
+        /// <summary>
+        /// 设置成功打洞回调
+        /// </summary>
+        /// <param name="transactionId"></param>
+        /// <param name="callback"></param>
         public void SetConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
         {
             if (OnConnected.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks) == false)
@@ -134,6 +158,11 @@ namespace cmonitor.plugins.tunnel
             }
             callbacks.Add(callback);
         }
+        /// <summary>
+        /// 移除打洞成功回调
+        /// </summary>
+        /// <param name="transactionId"></param>
+        /// <param name="callback"></param>
         public void RemoveConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
         {
             if (OnConnected.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks))
@@ -319,10 +348,22 @@ namespace cmonitor.plugins.tunnel
             //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             Logger.Instance.Info($"tunnel connecting from {tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
         }
+
         private void _OnConnected(ITunnelConnection connection)
         {
             //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            Logger.Instance.Debug($"tunnel connect {connection.RemoteMachineName} success->{connection.IPEndPoint},{connection.ToJson()}");
+            Logger.Instance.Debug($"tunnel connect {connection.RemoteMachineName} success->{connection.IPEndPoint},{connection.ToJsonFormat()}");
+
+            lock (this)
+            {
+                if(connections.TryGetValue(connection.RemoteMachineName,out ConcurrentDictionary<string,ITunnelConnection> cons) == false)
+                {
+                    cons = new ConcurrentDictionary<string, ITunnelConnection>();
+                    connections.TryAdd(connection.RemoteMachineName,cons);
+                }
+                cons.AddOrUpdate(connection.TransactionId, connection, (a, b) => connection);
+            }
+           
             if (OnConnected.TryGetValue(connection.TransactionId, out List<Action<ITunnelConnection>> callbacks))
             {
                 foreach (var item in callbacks)
@@ -333,7 +374,7 @@ namespace cmonitor.plugins.tunnel
         }
         private void OnConnectFail(TunnelTransportInfo tunnelTransportInfo)
         {
-            Logger.Instance.Error($"tunnel connect {tunnelTransportInfo.Remote.MachineName} fail->{tunnelTransportInfo.ToJson()}");
+            Logger.Instance.Error($"tunnel connect {tunnelTransportInfo.Remote.MachineName} fail->{tunnelTransportInfo.ToJsonFormat()}");
         }
     }
 }

@@ -9,7 +9,8 @@ namespace cmonitor.client.tunnel
     public partial class TunnelProxy : ITunnelConnectionReceiveCallback
     {
         private readonly NumberSpace ns = new NumberSpace();
-
+        private SemaphoreSlim semaphoreSlimForward = new SemaphoreSlim(10);
+        private SemaphoreSlim semaphoreSlimReverse = new SemaphoreSlim(10);
         public TunnelProxy()
         {
         }

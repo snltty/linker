@@ -63,6 +63,9 @@ namespace cmonitor.client.tunnel
         }
         private async Task SendToConnection(AsyncUserUdpToken token)
         {
+            SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
+            await semaphoreSlim.WaitAsync();
+
             byte[] connectData = token.Proxy.ToBytes(out int length);
             try
             {
@@ -75,6 +78,7 @@ namespace cmonitor.client.tunnel
             finally
             {
                 token.Proxy.Return(connectData);
+                semaphoreSlim.Release();
             }
         }
         /// <summary>

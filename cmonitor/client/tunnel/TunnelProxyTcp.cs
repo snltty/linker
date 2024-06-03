@@ -58,8 +58,9 @@ namespace cmonitor.client.tunnel
                     ProcessAccept(acceptEventArg);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Logger.Instance.Error(ex);
                 token.Clear();
             }
         }
@@ -79,31 +80,38 @@ namespace cmonitor.client.tunnel
         }
         private void ProcessAccept(SocketAsyncEventArgs e)
         {
-            if (e.AcceptSocket != null)
+            try
             {
-                AsyncUserToken acceptToken = (AsyncUserToken)e.UserToken;
-                Socket socket = e.AcceptSocket;
-                if (socket != null && socket.RemoteEndPoint != null)
+                if (e.AcceptSocket != null)
                 {
-                    socket.KeepAlive();
-                    AsyncUserToken userToken = new AsyncUserToken
+                    AsyncUserToken acceptToken = (AsyncUserToken)e.UserToken;
+                    Socket socket = e.AcceptSocket;
+                    if (socket != null && socket.RemoteEndPoint != null)
                     {
-                        Socket = socket,
-                        Received = false,
-                        Paused = false,
-                        ListenPort = acceptToken.ListenPort,
-                        Proxy = new ProxyInfo { Data = Helper.EmptyArray, Step = ProxyStep.Request, Port = (ushort)acceptToken.ListenPort, ConnectId = ns.Increment() }
-                    };
-                    BindReceive(userToken);
+                        socket.KeepAlive();
+                        AsyncUserToken userToken = new AsyncUserToken
+                        {
+                            Socket = socket,
+                            Received = false,
+                            Paused = false,
+                            ListenPort = acceptToken.ListenPort,
+                            Proxy = new ProxyInfo { Data = Helper.EmptyArray, Step = ProxyStep.Request, Port = (ushort)acceptToken.ListenPort, ConnectId = ns.Increment() }
+                        };
+                        BindReceive(userToken);
+                    }
+                    StartAccept(e);
                 }
-                StartAccept(e);
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error(ex);
             }
         }
         private void BindReceive(AsyncUserToken token)
         {
             try
             {
-                token.SenderPipe = new Pipe(new PipeOptions(pauseWriterThreshold: 1 * 1024 * 1024, resumeWriterThreshold: 64 * 1024));
+                token.SenderPipe = new Pipe(new PipeOptions(pauseWriterThreshold: 512 * 1024, resumeWriterThreshold: 64 * 1024));
                 _ = ProcessSender(token);
 
                 SocketAsyncEventArgs readEventArgs = new SocketAsyncEventArgs
@@ -237,6 +245,9 @@ namespace cmonitor.client.tunnel
         }
         private async Task SendToConnection(AsyncUserToken token)
         {
+            SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
+            await semaphoreSlim.WaitAsync();
+
             byte[] connectData = token.Proxy.ToBytes(out int length);
             try
             {
@@ -251,6 +262,7 @@ namespace cmonitor.client.tunnel
             finally
             {
                 token.Proxy.Return(connectData);
+                semaphoreSlim.Release();
             }
         }
         protected virtual async ValueTask CheckTunnelConnection(AsyncUserToken token)
@@ -315,11 +327,7 @@ namespace cmonitor.client.tunnel
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    Logger.Instance.Error(state.IPEndPoint.ToString());
-                    Logger.Instance.Error(ex);
-                }
+                Logger.Instance.Error($"connect {state.IPEndPoint} error -> {ex}");
                 await SendToConnectionClose(token).ConfigureAwait(false);
                 CloseClientSocket(token);
             }
@@ -429,7 +437,6 @@ namespace cmonitor.client.tunnel
             {
                 try
                 {
-                    //token1.Connection = tunnelToken.Connection;
                     token1.SenderPipe.Writer.Write(tunnelToken.Proxy.Data.Span);
                     await token1.SenderPipe.Writer.FlushAsync();
                 }

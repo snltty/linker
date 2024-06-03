@@ -1,5 +1,6 @@
 ﻿using common.libs;
 using common.libs.extends;
+using System;
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Net;
@@ -23,6 +24,8 @@ namespace cmonitor.server
 
         public SslStream SourceStream { get; }
         public SslStream TargetStream { get; set; }
+
+        public uint RelayLimit { get; set; }
 
         #region 接收数据
         public MessageRequestWrap ReceiveRequestWrap { get; }
@@ -66,6 +69,8 @@ namespace cmonitor.server
         public SslStream SourceStream { get; protected set; }
         public SslStream TargetStream { get; set; }
 
+
+        public virtual uint RelayLimit { get; set; } = 0;
 
         #region 接收数据
         public MessageRequestWrap ReceiveRequestWrap { get; set; }
@@ -177,8 +182,21 @@ namespace cmonitor.server
 
         public override bool Connected => SourceStream != null && SourceStream.CanWrite;
 
+        private uint relayLimit = 0;
+        private double relayLimitToken = 0;
+        public override uint RelayLimit
+        {
+            get => relayLimit; set
+            {
+                relayLimit = value;
+                relayLimitToken = relayLimit / 1000.0;
+                relayLimitBucket = relayLimit;
+            }
+        }
+
         private IConnectionReceiveCallback callback;
         private CancellationTokenSource cancellationTokenSource;
+        private CancellationTokenSource cancellationTokenSourceWrite;
         private object userToken;
         private bool framing;
         private Pipe pipe;
@@ -191,7 +209,8 @@ namespace cmonitor.server
             this.userToken = userToken;
             this.framing = framing;
             cancellationTokenSource = new CancellationTokenSource();
-            pipe = new Pipe(new PipeOptions(pauseWriterThreshold: 1 * 1024 * 1024, resumeWriterThreshold: 128 * 1024));
+            cancellationTokenSourceWrite = new CancellationTokenSource();
+            pipe = new Pipe(new PipeOptions(pauseWriterThreshold: 512 * 1024, resumeWriterThreshold: 64 * 1024));
 
             _ = ProcessWrite();
             _ = ProcessReader();
@@ -217,13 +236,18 @@ namespace cmonitor.server
                     }
                 }
             }
+            catch (OperationCanceledException)
+            {
+
+            }
             catch (Exception ex)
             {
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     Logger.Instance.Error(ex);
                 }
-                Disponse();
+                if (SourceStream.CanRead == false)
+                    Disponse();
             }
             finally
             {
@@ -247,18 +271,23 @@ namespace cmonitor.server
                     reader.AdvanceTo(end);
                 }
             }
+            catch (OperationCanceledException)
+            {
+
+            }
             catch (Exception ex)
             {
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     Logger.Instance.Error(ex);
                 }
-                Disponse();
+                if (SourceStream.CanRead == false)
+                    Disponse();
             }
             finally
             {
                 await reader.CompleteAsync();
-               
+
             }
         }
         private unsafe int ReaderHead(ReadOnlySequence<byte> buffer)
@@ -274,14 +303,12 @@ namespace cmonitor.server
             {
                 foreach (var memory in buffer)
                 {
-                    try
-                    {
-                        await TargetStream.WriteAsync(memory).ConfigureAwait(false);
-                    }
-                    catch (Exception)
-                    {
-                    }
+                    await TargetStream.WriteAsync(memory).ConfigureAwait(false);
                 }
+
+                Cancel();
+                _ = CopyToAsync(SourceStream, TargetStream);
+
                 return buffer.End;
             }
             //不分包
@@ -335,7 +362,7 @@ namespace cmonitor.server
             await semaphoreSlim.WaitAsync();
             try
             {
-                await SourceStream.WriteAsync(data, cancellationTokenSource.Token);
+                await SourceStream.WriteAsync(data, cancellationTokenSourceWrite.Token);
             }
             catch (Exception ex)
             {
@@ -355,8 +382,67 @@ namespace cmonitor.server
             return await SendAsync(data.AsMemory(0, length));
         }
 
+        private async Task CopyToAsync(SslStream source, SslStream destination)
+        {
+            await Task.Delay(500);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
+            try
+            {
+                int bytesRead;
+                while ((bytesRead = await source.ReadAsync(new Memory<byte>(buffer)).ConfigureAwait(false)) != 0)
+                {
+                    /*
+                    int length = bytesRead;
+                    TryLimit(ref length);
+                    while (length > 0)
+                    {
+                        await Task.Delay(30);
+                        TryLimit(ref length);
+                    }
+                    */
+                    await destination.WriteAsync(new ReadOnlyMemory<byte>(buffer, 0, bytesRead)).ConfigureAwait(false);
+                    destination.Flush();
+                }
+            }
+            catch (Exception ex)
+            {
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    Logger.Instance.Error(ex);
+                }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+        }
+        private double relayLimitBucket = 0;
+        private long relayLimitTicks = Environment.TickCount64;
+        private void TryLimit(ref int length)
+        {
+            long _relayLimitTicks = Environment.TickCount64;
+            long relayLimitTicksTemp = _relayLimitTicks - relayLimitTicks;
+            relayLimitTicks = _relayLimitTicks;
+            relayLimitBucket += relayLimitTicksTemp * relayLimitToken;
+            if (relayLimitBucket > relayLimit) relayLimitBucket = relayLimit;
+
+            if (relayLimitBucket >= length)
+            {
+                relayLimitBucket -= length;
+                length = 0;
+            }
+            else
+            {
+                length -= (int)relayLimitBucket;
+                relayLimitBucket = 0;
+            }
+        }
+
+
         public override void Cancel()
         {
+            pipe.Writer.Complete();
+            pipe.Reader.Complete();
             callback = null;
             userToken = null;
             cancellationTokenSource?.Cancel();
@@ -368,6 +454,7 @@ namespace cmonitor.server
         public override void Disponse()
         {
             Cancel();
+            cancellationTokenSourceWrite?.Cancel();
             base.Disponse();
             try
             {

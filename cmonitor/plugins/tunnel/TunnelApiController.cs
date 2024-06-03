@@ -1,5 +1,6 @@
 ﻿using cmonitor.client;
 using cmonitor.client.capi;
+using cmonitor.client.tunnel;
 using cmonitor.config;
 using cmonitor.plugins.tunnel.compact;
 using cmonitor.plugins.tunnel.messenger;
@@ -101,7 +102,7 @@ namespace cmonitor.plugins.tunnel
         public async Task SetTransports(ApiControllerParamsInfo param)
         {
             SetTransportsParamInfo info = param.Content.DeJson<SetTransportsParamInfo>();
-            tunnelTransfer.OnTransports(info.List);
+            tunnelTransfer.OnRemoteTransports(info.List);
             if (info.Sync)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
@@ -112,6 +113,13 @@ namespace cmonitor.plugins.tunnel
                 });
             }
         }
+
+
+        public ConcurrentDictionary<string, ConcurrentDictionary<string, ITunnelConnection>> GetConnections()
+        {
+            return tunnelTransfer.Connections;
+        }
+
 
         public sealed class TunnelListInfo
         {

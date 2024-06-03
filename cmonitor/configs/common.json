@@ -1,7 +1,3 @@
 {
-  "Modes": [ "client", "server" ],
-  "LoggerType": 2,
-  "LoggerSize": 100,
-  "IncludePlugins": [],
-  "ExcludePlugins": []
+  "Modes": [ "client", "server" ]
 }

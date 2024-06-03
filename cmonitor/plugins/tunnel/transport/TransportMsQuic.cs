@@ -54,7 +54,7 @@ namespace cmonitor.plugins.tunnel.transport
             {
                 if (QuicListener.IsSupported == false)
                 {
-                    Logger.Instance.Error($"quic not supported");
+                    Logger.Instance.Error($"msquic not supported, need win11+,or linux");
                     await OnSendConnectFail(tunnelTransportInfo);
                     return null;
                 }
@@ -436,7 +436,7 @@ namespace cmonitor.plugins.tunnel.transport
                             RemoteUdp = token.LocalUdp,
                             RealRemoteEP = token.tempEP,
                             Received = true,
-                        }) ;
+                        });
                     }
                     else
                     {
@@ -557,7 +557,7 @@ namespace cmonitor.plugins.tunnel.transport
             }
         }
 
-        private async Task OnUdpConnected(object _state, UdpClient localUdp, UdpClient remoteUdp,IPEndPoint remoteEP, QuicConnection quicConnection, QuicStream stream)
+        private async Task OnUdpConnected(object _state, UdpClient localUdp, UdpClient remoteUdp, IPEndPoint remoteEP, QuicConnection quicConnection, QuicStream stream)
         {
             TunnelTransportInfo state = _state as TunnelTransportInfo;
             if (state.TransportName == Name)
@@ -602,7 +602,11 @@ namespace cmonitor.plugins.tunnel.transport
         {
             if (OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
             {
-                if (QuicListener.IsSupported == false) return;
+                if (QuicListener.IsSupported == false)
+                {
+                    Logger.Instance.Error($"msquic not supported, need win11+,or linux");
+                    return;
+                }
 
                 QuicListener listener = await QuicListener.ListenAsync(new QuicListenerOptions
                 {

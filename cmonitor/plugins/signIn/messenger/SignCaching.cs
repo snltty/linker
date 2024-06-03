@@ -45,6 +45,11 @@ namespace cmonitor.plugins.signin.messenger
         }
         public bool Get(string machineName, out SignCacheInfo cache)
         {
+            if (machineName == null)
+            {
+                cache = null;
+                return false;
+            }
             return config.Clients.TryGetValue(machineName, out cache);
         }
         public List<SignCacheInfo> Get(string groupId)

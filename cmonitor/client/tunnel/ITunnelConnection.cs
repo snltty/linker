@@ -44,6 +44,7 @@ namespace cmonitor.client.tunnel
 
         public bool Connected { get; }
 
+
         public Task SendAsync(ReadOnlyMemory<byte> data);
         public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken, bool framing = true);
 
