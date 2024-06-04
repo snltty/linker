@@ -99,10 +99,7 @@ namespace cmonitor.client.tunnel
             }
             finally
             {
-                await writer.CompleteAsync();
                 Close();
-
-                Logger.Instance.Error($"tunnel connection writer offline {ToString()}");
             }
         }
         private async Task ProcessReader()
@@ -134,9 +131,7 @@ namespace cmonitor.client.tunnel
             }
             finally
             {
-                await reader.CompleteAsync();
                 Close();
-                Logger.Instance.Error($"tunnel connection writer offline {ToString()}");
             }
         }
         private unsafe int ReaderHead(ReadOnlySequence<byte> buffer)
@@ -265,6 +260,7 @@ namespace cmonitor.client.tunnel
                 {
                     Logger.Instance.Error(ex);
                 }
+                Close();
             }
             finally
             {
@@ -277,12 +273,20 @@ namespace cmonitor.client.tunnel
             callback = null;
             userToken = null;
             cancellationTokenSource?.Cancel();
-            pipe = null;
+            
             bufferCache.Clear(true);
 
             Stream?.Close();
             Stream?.Dispose();
-
+            try
+            {
+                pipe?.Writer.Complete();
+                pipe?.Reader.Complete();
+            }
+            catch (Exception)
+            {
+            }
+            pipe = null;
         }
 
         public override string ToString()

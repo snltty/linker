@@ -6,6 +6,7 @@ using System.IO.Pipelines;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace cmonitor.server
 {
@@ -226,6 +227,7 @@ namespace cmonitor.server
                     int length = await SourceStream.ReadAsync(buffer, cancellationTokenSource.Token);
                     if (length == 0)
                     {
+                        Disponse();
                         break;
                     }
                     writer.Advance(length);
@@ -236,12 +238,8 @@ namespace cmonitor.server
                     }
                 }
             }
-            catch (OperationCanceledException ex)
+            catch (OperationCanceledException)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    Logger.Instance.Error(ex);
-                }
             }
             catch (Exception ex)
             {
@@ -253,7 +251,7 @@ namespace cmonitor.server
             }
             finally
             {
-                await writer.CompleteAsync();
+                Cancel();
             }
         }
         private async Task ProcessReader()
@@ -275,7 +273,6 @@ namespace cmonitor.server
             }
             catch (OperationCanceledException)
             {
-
             }
             catch (Exception ex)
             {
@@ -283,13 +280,11 @@ namespace cmonitor.server
                 {
                     Logger.Instance.Error(ex);
                 }
-                if (SourceStream.CanRead == false)
-                    Disponse();
+                Disponse();
             }
             finally
             {
-                await reader.CompleteAsync();
-
+                Cancel();
             }
         }
         private unsafe int ReaderHead(ReadOnlySequence<byte> buffer)
@@ -372,6 +367,7 @@ namespace cmonitor.server
                 {
                     Logger.Instance.Error(ex);
                 }
+                Disponse();
             }
             finally
             {
@@ -442,15 +438,19 @@ namespace cmonitor.server
 
         public override void Cancel()
         {
-            pipe?.Writer.Complete();
-            pipe?.Reader.Complete();
             callback = null;
             userToken = null;
             cancellationTokenSource?.Cancel();
-
-            pipe = null;
-
             bufferCache.Clear(true);
+            try
+            {
+                pipe?.Writer.Complete();
+                pipe?.Reader.Complete();
+            }
+            catch (Exception)
+            {
+            }
+            pipe = null;
         }
         public override void Disponse()
         {
@@ -467,6 +467,7 @@ namespace cmonitor.server
                     TargetStream?.ShutdownAsync();
                     TargetStream?.Dispose();
                 }
+                
             }
             catch (Exception)
             {
