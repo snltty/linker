@@ -241,6 +241,9 @@ namespace cmonitor.server
             catch (OperationCanceledException)
             {
             }
+            catch (InvalidOperationException)
+            {
+            }
             catch (Exception ex)
             {
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -272,6 +275,9 @@ namespace cmonitor.server
                 }
             }
             catch (OperationCanceledException)
+            {
+            }
+            catch (InvalidOperationException)
             {
             }
             catch (Exception ex)
