@@ -35,6 +35,7 @@ namespace cmonitor.plugins.tunnel
             serviceCollection.AddSingleton<TunnelTransportTcpNutssb>();
             serviceCollection.AddSingleton<TransportMsQuic>();
 
+            serviceCollection.AddSingleton<TunnelConfigTransfer>();
 
             Logger.Instance.Info($"tunnel route level getting.");
             config.Data.Client.Tunnel.RouteLevel = NetworkHelper.GetRouteLevel(out List<IPAddress> ips);
@@ -69,6 +70,8 @@ namespace cmonitor.plugins.tunnel
 
             TunnelTransfer tunnel = serviceProvider.GetService<TunnelTransfer>();
             tunnel.Load(assemblies);
+
+            TunnelConfigTransfer tunnelConfigTransfer = serviceProvider.GetService<TunnelConfigTransfer>();
         }
 
         public void UseServer(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)

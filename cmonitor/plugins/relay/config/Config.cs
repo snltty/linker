@@ -1,5 +1,5 @@
-﻿using MemoryPack;
-using System.Collections.Generic;
+﻿using common.libs;
+using MemoryPack;
 using System.Diagnostics.CodeAnalysis;
 
 namespace cmonitor.config
@@ -20,7 +20,7 @@ namespace cmonitor.config
 
     public sealed class RelayConfigServerInfo
     {
-        public string SecretKey { get; set; } = "snltty";
+        public string SecretKey { get; set; } = Helper.GlobalString;
         public bool GuestRelay { get; set; } = false;
         public int GuestRelayLmit { get; set; } = 100 * 1024;
 

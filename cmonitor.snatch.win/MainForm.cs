@@ -1,4 +1,5 @@
 using cmonitor.libs;
+using common.libs;
 using common.libs.extends;
 using System;
 using System.Diagnostics;
@@ -172,7 +173,7 @@ namespace cmonitor.snatch.win
                 byte[] result = shareMemory.ReadValueArray(shareQuestionIndex);
                 if (result.Length == 0)
                 {
-                    snatchQuesionInfo = new SnatchQuestionInfo { Chance = 65535, UserName = "snltty", Question = "测试测试", Correct = "A", Option = 5, Cate = SnatchCate.Question, Type = SnatchType.Select };
+                    snatchQuesionInfo = new SnatchQuestionInfo { Chance = 65535, UserName = Helper.GlobalString, Question = "测试测试", Correct = "A", Option = 5, Cate = SnatchCate.Question, Type = SnatchType.Select };
                 }
                 else
                 {
@@ -191,7 +192,7 @@ namespace cmonitor.snatch.win
                 byte[] result = shareMemory.ReadValueArray(shareAnswerIndex);
                 if (result.Length == 0)
                 {
-                    snatchAnswerInfo = new SnatchAnswerInfo { UserName = "snltty", Result = false, ResultStr = "ABC", State = SnatchState.Ask, };
+                    snatchAnswerInfo = new SnatchAnswerInfo { UserName = Helper.GlobalString, Result = false, ResultStr = "ABC", State = SnatchState.Ask, };
                 }
                 else
                 {

@@ -1,5 +1,6 @@
 ﻿using cmonitor.plugins.tunnel.compact;
 using cmonitor.plugins.tunnel.transport;
+using common.libs;
 using System.Net;
 using System.Text.Json.Serialization;
 
@@ -15,7 +16,7 @@ namespace cmonitor.config
         public int RouteLevelPlus { get; set; } = 0;
 
         public string Certificate { get; set; } = "./snltty.pfx";
-        public string Password { get; set; } = "snltty";
+        public string Password { get; set; } = Helper.GlobalString;
 
         public List<TunnelTransportItemInfo> TunnelTransports { get; set; } = new List<TunnelTransportItemInfo>();
 

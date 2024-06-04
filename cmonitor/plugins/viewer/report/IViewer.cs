@@ -1,4 +1,5 @@
 ﻿using cmonitor.plugins.viewer.config;
+using common.libs;
 using System.Net;
 
 namespace cmonitor.plugins.viewer.report
@@ -21,7 +22,7 @@ namespace cmonitor.plugins.viewer.report
         public int ShareItemMLength { get; set; } = 1024;
         public int ShareIndex { get; set; } = 5;
         public ViewerMode Mode { get; set; } = ViewerMode.Server;
-        public string GroupName { get; set; } = "snltty";
+        public string GroupName { get; set; } = Helper.GlobalString;
     }
 }
 

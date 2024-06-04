@@ -11,6 +11,8 @@ namespace common.libs
         public static byte[] TrueArray = new byte[] { 1 };
         public static byte[] FalseArray = new byte[] { 0 };
 
+        public static string GlobalString = "snltty";
+
         public static async Task Await()
         {
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();

@@ -7,22 +7,22 @@
             </div>
         </template>
         <template #default="scope">
-            <div v-if="data[scope.row.MachineName]">
+            <div v-if="tuntap.list[scope.row.MachineName]">
                 <div class="flex">
                     <div class="flex-1">
-                        <a href="javascript:;" class="a-line" @click="handleTuntapIP(data[scope.row.MachineName])">
-                            <template v-if="data[scope.row.MachineName].running">
-                                <strong class="green">{{ data[scope.row.MachineName].IP }}</strong>
+                        <a href="javascript:;" class="a-line" @click="handleTuntapIP(tuntap.list[scope.row.MachineName])">
+                            <template v-if="tuntap.list[scope.row.MachineName].running">
+                                <strong class="green">{{ tuntap.list[scope.row.MachineName].IP }}</strong>
                             </template>
                             <template v-else>
-                                <span>{{ data[scope.row.MachineName].IP }}</span>
+                                <span>{{ tuntap.list[scope.row.MachineName].IP }}</span>
                             </template>
                         </a>
                     </div>
-                    <el-switch v-model="data[scope.row.MachineName].running" :loading="data[scope.row.MachineName].loading" disabled @click="handleTuntap(data[scope.row.MachineName])"  size="small" inline-prompt active-text="O" inactive-text="F" > 
+                    <el-switch v-model="tuntap.list[scope.row.MachineName].running" :loading="tuntap.list[scope.row.MachineName].loading" disabled @click="handleTuntap(tuntap.list[scope.row.MachineName])"  size="small" inline-prompt active-text="O" inactive-text="F" > 
                     </el-switch>
                 </div>
-                <div>{{ data[scope.row.MachineName].LanIPs.join('、') }}</div>
+                <div>{{ tuntap.list[scope.row.MachineName].LanIPs.join('、') }}</div>
             </div> 
         </template>
     </el-table-column>
@@ -30,19 +30,17 @@
 <script>
 import { stopTuntap, runTuntap } from '@/apis/tuntap';
 import { ElMessage } from 'element-plus';
-import { reactive } from 'vue';
+import { inject, reactive } from 'vue';
 
 export default {
-    props: ['data'],
-    emits: ['change','edit','refresh'],
+    emits: ['edit','refresh'],
     setup(props, { emit }) {
-        const state = reactive({});
-       
+
+        const tuntap = inject('tuntap');
         const handleTuntap = (tuntap) => {
             const fn = tuntap.running ? stopTuntap (tuntap.MachineName) : runTuntap(tuntap.MachineName);
             fn.then(() => {
                 ElMessage.success('操作成功！');
-                emit('change');
             }).catch(() => {
                 ElMessage.error('操作失败！');
             })
@@ -55,7 +53,7 @@ export default {
         }
        
         return {
-            data: props.data, state, handleTuntap, handleTuntapIP,handleRuntapRefresh
+            tuntap,  handleTuntap, handleTuntapIP,handleRuntapRefresh
         }
     }
 }

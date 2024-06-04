@@ -391,7 +391,7 @@ namespace cmonitor.server
                 int bytesRead;
                 while ((bytesRead = await source.ReadAsync(new Memory<byte>(buffer)).ConfigureAwait(false)) != 0)
                 {
-                    /*
+
                     int length = bytesRead;
                     TryLimit(ref length);
                     while (length > 0)
@@ -399,9 +399,8 @@ namespace cmonitor.server
                         await Task.Delay(30);
                         TryLimit(ref length);
                     }
-                    */
+
                     await destination.WriteAsync(new ReadOnlyMemory<byte>(buffer, 0, bytesRead)).ConfigureAwait(false);
-                    destination.Flush();
                 }
             }
             catch (Exception ex)

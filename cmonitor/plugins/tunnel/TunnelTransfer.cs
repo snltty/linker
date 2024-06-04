@@ -25,15 +25,7 @@ namespace cmonitor.plugins.tunnel
         private readonly MessengerSender messengerSender;
         private readonly TunnelCompactTransfer compactTransfer;
 
-        private uint version = 0;
-        public uint ConfigVersion => version;
-        private ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> configs = new ConcurrentDictionary<string, TunnelTransportRouteLevelInfo>();
-        public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> Config => configs;
-
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
-
-        private ConcurrentDictionary<string, ConcurrentDictionary<string, ITunnelConnection>> connections { get; } = new ConcurrentDictionary<string, ConcurrentDictionary<string, ITunnelConnection>>();
-        public ConcurrentDictionary<string, ConcurrentDictionary<string, ITunnelConnection>> Connections => connections;
 
         public TunnelTransfer(Config config, ServiceProvider serviceProvider, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelCompactTransfer compactTransfer)
         {
@@ -42,11 +34,6 @@ namespace cmonitor.plugins.tunnel
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
             this.compactTransfer = compactTransfer;
-
-            clientSignInState.NetworkEnabledHandle += (times) =>
-            {
-                GetRemoveRouteLevel();
-            };
         }
 
         public void Load(Assembly[] assembs)
@@ -69,78 +56,6 @@ namespace cmonitor.plugins.tunnel
 
             Logger.Instance.Warning($"load tunnel transport:{string.Join(",", transports.Select(c => c.Name))}");
             Logger.Instance.Warning($"used tunnel transport:{string.Join(",", config.Data.Client.Tunnel.TunnelTransports.Where(c => c.Disabled == false).Select(c => c.Name))}");
-        }
-
-
-        /// <summary>
-        /// 刷新关于隧道的配置信息，也就是获取自己的和别的客户端的，方便查看
-        /// </summary>
-        public void RefreshConfig()
-        {
-            GetRemoveRouteLevel();
-        }
-        /// <summary>
-        /// 修改自己的网关层级信息
-        /// </summary>
-        /// <param name="tunnelTransportConfigWrapInfo"></param>
-        public void OnLocalRouteLevel(TunnelTransportRouteLevelInfo tunnelTransportConfigWrapInfo)
-        {
-            config.Data.Client.Tunnel.RouteLevelPlus = tunnelTransportConfigWrapInfo.RouteLevelPlus;
-            config.Save();
-            GetRemoveRouteLevel();
-        }
-        /// <summary>
-        /// 收到别人发给我的修改我的信息
-        /// </summary>
-        /// <param name="tunnelTransportConfigWrapInfo"></param>
-        /// <returns></returns>
-        public TunnelTransportRouteLevelInfo OnRemoteRouteLevel(TunnelTransportRouteLevelInfo tunnelTransportConfigWrapInfo)
-        {
-            configs.AddOrUpdate(tunnelTransportConfigWrapInfo.MachineName, tunnelTransportConfigWrapInfo, (a, b) => tunnelTransportConfigWrapInfo);
-            Interlocked.Increment(ref version);
-            return GetLocalRouteLevel();
-        }
-        private void GetRemoveRouteLevel()
-        {
-            TunnelTransportRouteLevelInfo config = GetLocalRouteLevel();
-            messengerSender.SendReply(new MessageRequestWrap
-            {
-                Connection = clientSignInState.Connection,
-                MessengerId = (ushort)TunnelMessengerIds.ConfigForward,
-                Timeout = 10000,
-                Payload = MemoryPackSerializer.Serialize(config)
-            }).ContinueWith((result) =>
-            {
-                if (result.Result.Code == MessageResponeCodes.OK)
-                {
-                    List<TunnelTransportRouteLevelInfo> list = MemoryPackSerializer.Deserialize<List<TunnelTransportRouteLevelInfo>>(result.Result.Data.Span);
-                    foreach (var item in list)
-                    {
-                        configs.AddOrUpdate(item.MachineName, item, (a, b) => item);
-                    }
-                    TunnelTransportRouteLevelInfo config = GetLocalRouteLevel();
-                    configs.AddOrUpdate(config.MachineName, config, (a, b) => config);
-                    Interlocked.Increment(ref version);
-                }
-            });
-        }
-        private TunnelTransportRouteLevelInfo GetLocalRouteLevel()
-        {
-            return new TunnelTransportRouteLevelInfo
-            {
-                MachineName = config.Data.Client.Name,
-                RouteLevel = config.Data.Client.Tunnel.RouteLevel,
-                RouteLevelPlus = config.Data.Client.Tunnel.RouteLevelPlus
-            };
-        }
-        /// <summary>
-        /// 收到别人发给我的修改我的打洞协议信息
-        /// </summary>
-        /// <param name="transports"></param>
-        public void OnRemoteTransports(List<TunnelTransportItemInfo> transports)
-        {
-            config.Data.Client.Tunnel.TunnelTransports = transports;
-            config.Save();
         }
 
 
@@ -354,17 +269,14 @@ namespace cmonitor.plugins.tunnel
             //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             Logger.Instance.Debug($"tunnel connect {connection.RemoteMachineName} success->{connection.IPEndPoint},{connection.ToJsonFormat()}");
 
-            lock (this)
+            if (OnConnected.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))
             {
-                if(connections.TryGetValue(connection.RemoteMachineName,out ConcurrentDictionary<string,ITunnelConnection> cons) == false)
+                foreach (var item in callbacks)
                 {
-                    cons = new ConcurrentDictionary<string, ITunnelConnection>();
-                    connections.TryAdd(connection.RemoteMachineName,cons);
+                    item(connection);
                 }
-                cons.AddOrUpdate(connection.TransactionId, connection, (a, b) => connection);
             }
-           
-            if (OnConnected.TryGetValue(connection.TransactionId, out List<Action<ITunnelConnection>> callbacks))
+            if (OnConnected.TryGetValue(connection.TransactionId, out callbacks))
             {
                 foreach (var item in callbacks)
                 {

@@ -1,4 +1,5 @@
-﻿using common.libs.extends;
+﻿using common.libs;
+using common.libs.extends;
 
 namespace cmonitor.config
 {
@@ -11,7 +12,7 @@ namespace cmonitor.config
         public int ServicePort { get; set; } = 1802;
 
         public string Certificate { get; set; } = "./snltty.pfx";
-        public string Password { get; set; } = "snltty";
+        public string Password { get; set; } = Helper.GlobalString;
 
         public ConfigServerInfo Load(string text)
         {

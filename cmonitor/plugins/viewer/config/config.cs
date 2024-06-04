@@ -1,4 +1,5 @@
 ﻿using cmonitor.plugins.viewer.config;
+using common.libs;
 using MemoryPack;
 using System.Net;
 
@@ -11,7 +12,7 @@ namespace cmonitor.plugins.viewer.config
 
         public bool Open { get; set; }
 
-        public string ShareId { get; set; } = "snltty";
+        public string ShareId { get; set; } = Helper.GlobalString;
 
         /// <summary>
         /// 共享服务端机器名，在通知消息和代理时需要

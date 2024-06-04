@@ -6,7 +6,7 @@
         <div>将按顺序进行中继，直到其中一个成功中继，秘钥用以确定服务器是否允许你进行中继</div>
     </div>
     <el-table :data="state.list" border size="small" width="100%" :height="`${state.height}px`" @cell-dblclick="handleCellClick">
-        <el-table-column prop="Name" label="名称">
+        <el-table-column prop="Name" label="名称" width="100">
             <template #default="scope">
                 <template v-if="scope.row.NameEditing">
                     <el-input autofocus size="small" v-model="scope.row.Name"
@@ -17,14 +17,14 @@
                 </template>
             </template>
         </el-table-column>
-        <el-table-column prop="Type" label="类别" >
+        <el-table-column prop="Type" label="类别" width="80">
             <template #default="scope">
                 <el-select v-model="scope.row.Type" placeholder="Select" size="small" @change="handleEditBlur(scope.row, 'Type')">
                     <el-option v-for="item in state.types" :key="item.Value" :label="item.Name" :value="item.Value"/>
                 </el-select>
             </template>
         </el-table-column>
-        <el-table-column prop="Host" label="地址" width="120">
+        <el-table-column prop="Host" label="地址">
             <template #default="scope">
                 <template v-if="scope.row.HostEditing">
                     <el-input autofocus size="small" v-model="scope.row.Host"  @blur="handleEditBlur(scope.row, 'Host')"></el-input>

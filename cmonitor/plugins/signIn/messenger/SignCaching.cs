@@ -1,4 +1,5 @@
 ﻿using cmonitor.server;
+using common.libs;
 using common.libs.database;
 using MemoryPack;
 using System.Collections.Concurrent;
@@ -100,7 +101,7 @@ namespace cmonitor.plugins.signin.messenger
     {
         public string MachineName { get; set; }
         public string Version { get; set; } = "1.0.0.0";
-        public string GroupId { get; set; } = "snltty";
+        public string GroupId { get; set; } = Helper.GlobalString;
         public DateTime LastSignIn { get; set; } = DateTime.Now;
         public Dictionary<string, string> Args { get; set; } = new Dictionary<string, string>();
 

@@ -1,3 +1,4 @@
+using common.libs;
 using System.Net;
 using System.Text.Json;
 
@@ -41,6 +42,6 @@ namespace cmonitor.viewer.server.win
         public int ShareItemMLength { get; set; } = 1024;
         public int ShareIndex { get; set; } = 5;
         public Mode Mode { get; set; } = Mode.Server;
-        public string GroupName { get; set; } = "snltty";
+        public string GroupName { get; set; } = Helper.GlobalString;
     }
 }

@@ -61,24 +61,24 @@
     </el-dialog>
 </template>
 <script>
-import { onMounted, reactive, watch } from 'vue';
+import { inject, onMounted, reactive, watch } from 'vue';
 import { getForwardInfo, removeForwardInfo, addForwardInfo } from '@/apis/forward'
 import { ElMessage } from 'element-plus';
 export default {
     props: ['data','modelValue'],
-    emits: ['change','update:modelValue'],
+    emits: ['update:modelValue'],
     setup(props, { emit }) {
 
+        const forward = inject('forward');
         const state = reactive({
             show: true,
-            machineName: props.data,
+            machineName: forward.value.current,
             data: [],
         });
         watch(() => state.show, (val) => {
             if (!val) {
                 setTimeout(() => {
                     emit('update:modelValue', val);
-                    emit('change')
                 }, 300);
             }
         });

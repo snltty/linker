@@ -11,11 +11,13 @@ namespace cmonitor.plugins.tunnel.messenger
     {
         private readonly TunnelTransfer tunnel;
         private readonly TunnelCompactTransfer tunnelCompactTransfer;
+        private readonly TunnelConfigTransfer tunnelConfigTransfer;
 
-        public TunnelClientMessenger(TunnelTransfer tunnel, TunnelCompactTransfer tunnelCompactTransfer)
+        public TunnelClientMessenger(TunnelTransfer tunnel, TunnelCompactTransfer tunnelCompactTransfer, TunnelConfigTransfer tunnelConfigTransfer)
         {
             this.tunnel = tunnel;
             this.tunnelCompactTransfer = tunnelCompactTransfer;
+            this.tunnelConfigTransfer = tunnelConfigTransfer;
         }
 
         [MessengerId((ushort)TunnelMessengerIds.Begin)]
@@ -67,14 +69,14 @@ namespace cmonitor.plugins.tunnel.messenger
         public void RouteLevel(IConnection connection)
         {
             TunnelTransportRouteLevelInfo tunnelTransportConfigWrapInfo = MemoryPackSerializer.Deserialize<TunnelTransportRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            tunnel.OnLocalRouteLevel(tunnelTransportConfigWrapInfo);
+            tunnelConfigTransfer.OnLocalRouteLevel(tunnelTransportConfigWrapInfo);
         }
 
         [MessengerId((ushort)TunnelMessengerIds.Config)]
         public void Config(IConnection connection)
         {
             TunnelTransportRouteLevelInfo tunnelTransportConfigWrapInfo = MemoryPackSerializer.Deserialize<TunnelTransportRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            TunnelTransportRouteLevelInfo result = tunnel.OnRemoteRouteLevel(tunnelTransportConfigWrapInfo);
+            TunnelTransportRouteLevelInfo result = tunnelConfigTransfer.OnRemoteRouteLevel(tunnelTransportConfigWrapInfo);
             connection.Write(MemoryPackSerializer.Serialize(result));
         }
 
@@ -83,7 +85,7 @@ namespace cmonitor.plugins.tunnel.messenger
         public void Transport(IConnection connection)
         {
             List<TunnelTransportItemInfo> transports = MemoryPackSerializer.Deserialize<List<TunnelTransportItemInfo>>(connection.ReceiveRequestWrap.Payload.Span);
-            tunnel.OnRemoteTransports(transports);
+            tunnelConfigTransfer.SetTransports(transports);
         }
 
         [MessengerId((ushort)TunnelMessengerIds.Servers)]
@@ -201,6 +203,7 @@ namespace cmonitor.plugins.tunnel.messenger
         [MessengerId((ushort)TunnelMessengerIds.ConfigForward)]
         public void ConfigForward(IConnection connection)
         {
+            TunnelTransportRouteLevelInfo tunnelTransportRouteLevelInfo = MemoryPackSerializer.Deserialize<TunnelTransportRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.Get(connection.Name, out SignCacheInfo cache))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;

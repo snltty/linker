@@ -21,7 +21,7 @@ namespace cmonitor.server.ruleConfig
             RuleConfigInfo = configDataProvider.Load().Result ?? new RuleConfigInfo { };
             if (RuleConfigInfo.Data.Keys.Count == 0)
             {
-                RuleConfigInfo.Data.Add("snltty", new Dictionary<string, string>());
+                RuleConfigInfo.Data.Add(Helper.GlobalString, new Dictionary<string, string>());
             }
         }
 

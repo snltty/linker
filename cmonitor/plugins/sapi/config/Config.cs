@@ -1,4 +1,6 @@
-﻿namespace cmonitor.config
+﻿using common.libs;
+
+namespace cmonitor.config
 {
     public partial class ConfigServerInfo
     {
@@ -10,6 +12,6 @@
         public int WebPort { get; set; } = 1800;
         public string WebRoot { get; set; } = "./web/";
         public int ApiPort { get; set; } = 1801;
-        public string ApiPassword { get; set; } = "snltty";
+        public string ApiPassword { get; set; } = Helper.GlobalString;
     }
 }

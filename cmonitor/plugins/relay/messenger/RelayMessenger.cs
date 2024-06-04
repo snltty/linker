@@ -51,6 +51,8 @@ namespace cmonitor.plugins.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.ServersForward)]
         public async Task ServersForward(IConnection connection)
         {
+            RelayCompactInfo[] servers = MemoryPackSerializer.Deserialize<RelayCompactInfo[]>(connection.ReceiveRequestWrap.Payload.Span);
+
             if (signCaching.Get(connection.Name, out SignCacheInfo cache))
             {
                 List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);

@@ -89,13 +89,8 @@ namespace cmonitor.plugins.relay
                     if (connection != null)
                     {
                         Logger.Instance.Debug($"relay to {relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
-                        if (OnConnected.TryGetValue(connection.TransactionId, out List<Action<ITunnelConnection>> callbacks))
-                        {
-                            foreach (var callabck in callbacks)
-                            {
-                                callabck(connection);
-                            }
-                        }
+
+                        ConnectedCallback(relayInfo, connection);
                         return connection;
                     }
                     else
@@ -118,19 +113,31 @@ namespace cmonitor.plugins.relay
                 ITunnelConnection connection = await _transports.OnBeginAsync(relayInfo);
                 if (connection != null)
                 {
-                    Logger.Instance.Debug($"relay from {relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
-                    if (OnConnected.TryGetValue(connection.TransactionId, out List<Action<ITunnelConnection>> callbacks))
-                    {
-                        foreach (var callabck in callbacks)
-                        {
-                            callabck(connection);
-                        }
-                    }
+                    ConnectedCallback(relayInfo, connection);
                     return true;
                 }
             }
             return false;
         }
 
+        private void ConnectedCallback(RelayInfo relayInfo, ITunnelConnection connection)
+        {
+            Logger.Instance.Debug($"relay from {relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
+
+            if (OnConnected.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))
+            {
+                foreach (var item in callbacks)
+                {
+                    item(connection);
+                }
+            }
+            if (OnConnected.TryGetValue(connection.TransactionId, out callbacks))
+            {
+                foreach (var callabck in callbacks)
+                {
+                    callabck(connection);
+                }
+            }
+        }
     }
 }

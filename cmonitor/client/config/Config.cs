@@ -1,4 +1,5 @@
-﻿using common.libs.extends;
+﻿using common.libs;
+using common.libs.extends;
 using MemoryPack;
 using System.Net;
 
@@ -42,7 +43,7 @@ namespace cmonitor.config
             }
         }
 
-        private string groupid = "snltty";
+        private string groupid = Helper.GlobalString;
         public string GroupId
         {
             get => groupid; set

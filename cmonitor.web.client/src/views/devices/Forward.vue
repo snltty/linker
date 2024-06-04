@@ -5,8 +5,8 @@
             <template v-if="scope.row.showForward">
                 <div>
                     <ul class="list">
-                        <template v-if="data[scope.row.MachineName] && data[scope.row.MachineName].length > 0">
-                            <template v-for="(item, index) in data[scope.row.MachineName]" :key="index">
+                        <template v-if="forward.list[scope.row.MachineName] && forward.list[scope.row.MachineName].length > 0">
+                            <template v-for="(item, index) in forward.list[scope.row.MachineName]" :key="index">
                                 <li>
                                     <a href="javascript:;" @click="handleEdit(scope.row.MachineName)" :class="{ green: item.Started }">
                                         <template v-if="item.Started"><strong>{{ item.Port }}->{{ item.TargetEP
@@ -27,17 +27,19 @@
     </el-table-column>
 </template>
 <script>
+import { inject } from 'vue';
+
 export default {
-    props: ['data'],
     emits: ['edit'],
     setup(props, { emit }) {
 
+        const forward = inject('forward')
         const handleEdit = (machineName)=>{
             emit('edit',machineName)
         }
 
         return {
-            data: props.data, handleEdit
+            forward, handleEdit
         }
     }
 }

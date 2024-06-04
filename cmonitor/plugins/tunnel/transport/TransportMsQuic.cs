@@ -28,8 +28,8 @@ namespace cmonitor.plugins.tunnel.transport
 
 
         private ConcurrentDictionary<int, ListenAsyncToken> stateDic = new ConcurrentDictionary<int, ListenAsyncToken>();
-        private byte[] authBytes = Encoding.UTF8.GetBytes("snltty.ttl");
-        private byte[] endBytes = Encoding.UTF8.GetBytes("snltty.end");
+        private byte[] authBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.ttl");
+        private byte[] endBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.end");
         private IPEndPoint quicListenEP = null;
 
         private X509Certificate serverCertificate;

@@ -105,6 +105,7 @@ namespace cmonitor.plugins.tuntap.messenger
         [MessengerId((ushort)TuntapMessengerIds.ConfigForward)]
         public void ConfigForward(IConnection connection)
         {
+            TuntapInfo tuntapInfo = MemoryPackSerializer.Deserialize<TuntapInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.Get(connection.Name, out SignCacheInfo cache))
             {
                 uint requiestid = connection.ReceiveRequestWrap.RequestId;

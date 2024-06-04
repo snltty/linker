@@ -34,18 +34,19 @@
 <script>
 import {updateTuntap } from '@/apis/tuntap';
 import { ElMessage } from 'element-plus';
-import { reactive, ref, watch } from 'vue';
+import { inject, reactive, ref, watch } from 'vue';
 
 export default {
-    props: ['data','modelValue'],
+    props: ['modelValue'],
     emits: ['change','update:modelValue'],
     setup(props, { emit }) {
+        const tuntap = inject('tuntap');
         const ruleFormRef = ref(null);
         const state = reactive({
             show: true,
             ruleForm: {
-                IP: props.data.IP,
-                LanIPs: props.data.LanIPs.slice(0)
+                IP: tuntap.value.current.IP,
+                LanIPs: tuntap.value.current.LanIPs.slice(0)
             },
             rules: {}
         });
@@ -68,7 +69,7 @@ export default {
             state.ruleForm.LanIPs.splice(index + 1, 0, '');
         }
         const handleSave = () => {
-            const json = JSON.parse(JSON.stringify(props.data));
+            const json = JSON.parse(JSON.stringify(tuntap.value.current));
             json.IP = state.ruleForm.IP || '0.0.0.0';
             json.LanIPs = state.ruleForm.LanIPs.filter(c => c);
             updateTuntap(json).then(() => {

@@ -48,7 +48,6 @@ namespace cmonitor.plugins.relay
 
             return true;
         }
-
     }
 
     public sealed class RelayCompactParamInfo

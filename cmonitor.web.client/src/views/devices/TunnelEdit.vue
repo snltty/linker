@@ -36,18 +36,20 @@
 <script>
 import {setTunnelRouteLevel } from '@/apis/tunnel';
 import { ElMessage } from 'element-plus';
-import { reactive, ref, watch } from 'vue';
+import { inject, reactive, ref, watch } from 'vue';
 
 export default {
-    props: ['data','modelValue'],
+    props: ['modelValue'],
     emits: ['change','update:modelValue'],
     setup(props, { emit }) {
+
+        const tunnel = inject('tunnel');
         const ruleFormRef = ref(null);
         const state = reactive({
             show: true,
             ruleForm: {
-                RouteLevel: props.data.RouteLevel,
-                RouteLevelPlus: props.data.RouteLevelPlus,
+                RouteLevel: tunnel.value.current.RouteLevel,
+                RouteLevelPlus: tunnel.value.current.RouteLevelPlus,
             },
             rules: {}
         });
@@ -60,7 +62,7 @@ export default {
         });
 
         const handleSave = () => {
-            const json = JSON.parse(JSON.stringify(props.data));
+            const json = JSON.parse(JSON.stringify(tunnel.value.current));
             json.RouteLevel = +state.ruleForm.RouteLevel;
             json.RouteLevelPlus = +state.ruleForm.RouteLevelPlus;
             setTunnelRouteLevel(json).then(() => {

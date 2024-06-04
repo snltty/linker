@@ -1,6 +1,5 @@
 ﻿using cmonitor.client;
 using cmonitor.client.capi;
-using cmonitor.client.tunnel;
 using cmonitor.config;
 using cmonitor.plugins.tunnel.compact;
 using cmonitor.plugins.tunnel.messenger;
@@ -17,28 +16,28 @@ namespace cmonitor.plugins.tunnel
     {
         private readonly Config config;
         private readonly TunnelCompactTransfer compactTransfer;
-        private readonly TunnelTransfer tunnelTransfer;
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
+        private readonly TunnelConfigTransfer tunnelConfigTransfer;
 
-        public TunnelApiController(Config config, TunnelCompactTransfer compactTransfer, TunnelTransfer tunnelTransfer, ClientSignInState clientSignInState, MessengerSender messengerSender)
+        public TunnelApiController(Config config, TunnelCompactTransfer compactTransfer, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelConfigTransfer tunnelConfigTransfer)
         {
             this.config = config;
             this.compactTransfer = compactTransfer;
-            this.tunnelTransfer = tunnelTransfer;
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
+            this.tunnelConfigTransfer = tunnelConfigTransfer;
         }
 
         public TunnelListInfo Get(ApiControllerParamsInfo param)
         {
             uint hashCode = uint.Parse(param.Content);
-            uint _hashCode = tunnelTransfer.ConfigVersion;
+            uint _hashCode = tunnelConfigTransfer.ConfigVersion;
             if (_hashCode != hashCode)
             {
                 return new TunnelListInfo
                 {
-                    List = tunnelTransfer.Config,
+                    List = tunnelConfigTransfer.Config,
                     HashCode = _hashCode
                 };
             }
@@ -46,7 +45,7 @@ namespace cmonitor.plugins.tunnel
         }
         public void Refresh(ApiControllerParamsInfo param)
         {
-            tunnelTransfer.RefreshConfig();
+            tunnelConfigTransfer.RefreshConfig();
         }
 
 
@@ -80,7 +79,7 @@ namespace cmonitor.plugins.tunnel
 
             if (tunnelTransportConfigWrapInfo.MachineName == config.Data.Client.Name)
             {
-                tunnelTransfer.OnLocalRouteLevel(tunnelTransportConfigWrapInfo);
+                tunnelConfigTransfer.OnLocalRouteLevel(tunnelTransportConfigWrapInfo);
             }
             else
             {
@@ -97,12 +96,12 @@ namespace cmonitor.plugins.tunnel
 
         public List<TunnelTransportItemInfo> GetTransports(ApiControllerParamsInfo param)
         {
-            return config.Data.Client.Tunnel.TunnelTransports;
+            return tunnelConfigTransfer.GetTransports();
         }
         public async Task SetTransports(ApiControllerParamsInfo param)
         {
             SetTransportsParamInfo info = param.Content.DeJson<SetTransportsParamInfo>();
-            tunnelTransfer.OnRemoteTransports(info.List);
+            tunnelConfigTransfer.SetTransports(info.List);
             if (info.Sync)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
@@ -112,12 +111,6 @@ namespace cmonitor.plugins.tunnel
                     Payload = MemoryPackSerializer.Serialize(info.List)
                 });
             }
-        }
-
-
-        public ConcurrentDictionary<string, ConcurrentDictionary<string, ITunnelConnection>> GetConnections()
-        {
-            return tunnelTransfer.Connections;
         }
 
 

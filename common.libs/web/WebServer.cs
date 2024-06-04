@@ -48,7 +48,7 @@ namespace common.libs.web
 
             try
             {
-                response.Headers.Set("Server", "snltty");
+                response.Headers.Set("Server", Helper.GlobalString);
 
                 string path = request.Url.AbsolutePath;
                 //默认页面

@@ -39,7 +39,7 @@ namespace cmonitor.client.tunnel
         private ReceiveDataBuffer bufferCache = new ReceiveDataBuffer();
 
         private long ticks = Environment.TickCount64;
-        private byte[] heartBytes = Encoding.UTF8.GetBytes("snltty.msquic.ping");
+        private byte[] heartBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ping");
 
         /// <summary>
         /// 开始接收数据
@@ -173,12 +173,16 @@ namespace cmonitor.client.tunnel
                     bufferCache.AddRange(memory);
                 }
 
-                try
+                Memory<byte> packet = bufferCache.Data.Slice(0, length);
+                if ((length == heartBytes.Length && packet.Span.SequenceEqual(heartBytes)) == false)
                 {
-                    await callback.Receive(this, bufferCache.Data.Slice(0, bufferCache.Size), this.userToken).ConfigureAwait(false);
-                }
-                catch (Exception)
-                {
+                    try
+                    {
+                        await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
                 bufferCache.Clear();
 
@@ -218,7 +222,6 @@ namespace cmonitor.client.tunnel
             try
             {
                 await Stream.WriteAsync(data, cancellationTokenSource.Token);
-                Stream.Flush();
                 ticks = Environment.TickCount64;
             }
             catch (Exception ex)

@@ -17,14 +17,14 @@
                 </template>
             </template>
         </el-table-column>
-        <el-table-column prop="Type" label="类别" >
+        <el-table-column prop="Type" label="类别" width="100">
             <template #default="scope">
                 <el-select v-model="scope.row.Type" placeholder="Select" size="small" @change="handleEditBlur(scope.row, 'Type')">
                     <el-option v-for="item in state.types" :key="item.Value" :label="item.Name" :value="item.Value"/>
                 </el-select>
             </template>
         </el-table-column>
-        <el-table-column prop="Host" label="地址" width="120">
+        <el-table-column prop="Host" label="地址">
             <template #default="scope">
                 <template v-if="scope.row.HostEditing">
                     <el-input autofocus size="small" v-model="scope.row.Host"  @blur="handleEditBlur(scope.row, 'Host')"></el-input>

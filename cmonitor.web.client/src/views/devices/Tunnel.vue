@@ -7,22 +7,30 @@
             </div>
         </template>
         <template #default="scope">
-            <div v-if="data[scope.row.MachineName]">
-                <a href="javascript:;" class="a-line" @click="handleTunnel(data[scope.row.MachineName])">
-                    <span>网关 : {{data[scope.row.MachineName].RouteLevel}} + {{data[scope.row.MachineName].RouteLevelPlus}}</span>
-                </a>
+            <div v-if="tunnel.list[scope.row.MachineName]">
+                <p>
+                    <a href="javascript:;" class="a-line" @click="handleTunnel(tunnel.list[scope.row.MachineName])">
+                    <span>网关 : {{tunnel.list[scope.row.MachineName].RouteLevel}} + {{tunnel.list[scope.row.MachineName].RouteLevelPlus}}</span>
+                    </a>
+                </p>
             </div> 
+            <p v-if="connections.list[scope.row.MachineName]">
+                <a href="javascript:;" class="a-line" @click="handleConnections(scope.row.MachineName)">
+                    <span>连接数 : {{connections.list[scope.row.MachineName].length}}</span>
+                    </a>
+            </p>
         </template>
     </el-table-column>
 </template>
 <script>
-import { reactive } from 'vue';
+import { inject, reactive } from 'vue';
 
 export default {
-    props: ['data'],
-    emits: ['change','refresh'],
+    emits: ['edit','refresh'],
     setup(props, { emit }) {
-        const state = reactive({});
+
+        const tunnel = inject('tunnel');
+        const connections = inject('connections');
        
         const handleTunnel = (tunnel) => {
             emit('edit',tunnel);
@@ -30,9 +38,13 @@ export default {
         const handleTunnelRefresh = ()=>{
             emit('refresh');
         }
+        const handleConnections = (machineName)=>{
+            emit('connections',machineName);
+        }
        
         return {
-            data: props.data, state, handleTunnel,handleTunnelRefresh
+            tunnel, handleTunnel,handleTunnelRefresh,
+            connections,handleConnections
         }
     }
 }

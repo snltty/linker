@@ -48,7 +48,7 @@ namespace cmonitor.client.tunnel
 
         private long ticks = Environment.TickCount64;
 
-        private byte[] heartBytes = Encoding.UTF8.GetBytes("snltty.msquic.ping");
+        private byte[] heartBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.msquic.ping");
 
         /// <summary>
         /// 开始接收数据
@@ -233,7 +233,6 @@ namespace cmonitor.client.tunnel
             try
             {
                 await Stream.WriteAsync(data, cancellationTokenSource.Token);
-                await Stream.FlushAsync();
                 ticks = Environment.TickCount64;
             }
             catch (Exception ex)
