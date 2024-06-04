@@ -395,15 +395,16 @@ namespace cmonitor.server
                 int bytesRead;
                 while ((bytesRead = await source.ReadAsync(new Memory<byte>(buffer)).ConfigureAwait(false)) != 0)
                 {
-
-                    int length = bytesRead;
-                    TryLimit(ref length);
-                    while (length > 0)
+                    if(RelayLimit > 0)
                     {
-                        await Task.Delay(30);
+                        int length = bytesRead;
                         TryLimit(ref length);
+                        while (length > 0)
+                        {
+                            await Task.Delay(30);
+                            TryLimit(ref length);
+                        }
                     }
-
                     await destination.WriteAsync(new ReadOnlyMemory<byte>(buffer, 0, bytesRead)).ConfigureAwait(false);
                 }
             }
