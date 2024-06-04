@@ -35,7 +35,7 @@
                     </div>
                     <div class="pages t-c">
                         <div class="page-wrap">
-                            <el-pagination small :total="state.page.Count" v-model:currentPage="state.page.Page" :page-size="state.page.Size" @current-change="loadData" background layout="total,prev, pager, next">
+                            <el-pagination small :total="state.page.Count" v-model:currentPage="state.page.Page" :page-size="state.page.Size" @current-change="handlePageChange" background layout="total,prev, pager, next">
                             </el-pagination>
                         </div>
                     </div>
@@ -87,6 +87,12 @@ export default {
                 state.loading = false;
             });
         }
+        const handlePageChange = (page)=>{
+            if(page){
+                state.page.Page = page;
+                loadData();
+            }
+        }
         const clearData = () => {
             state.loading = true;
             clearLogger().then(() => {
@@ -114,7 +120,7 @@ export default {
         });
 
         return {
-            wrap,state, loadData, clearData, tableRowClassName, handleRowClick
+            wrap,state, loadData, clearData, tableRowClassName, handleRowClick,handlePageChange
         }
     }
 }
