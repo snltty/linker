@@ -17,7 +17,7 @@ namespace cmonitor.plugins.tunnel.transport
     {
         public string Name => "msquic";
 
-        public string Label => "UDP over MsQuic，win11+、linux";
+        public string Label => "UDP over MsQuic，win10+、linux";
 
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Quic;
 

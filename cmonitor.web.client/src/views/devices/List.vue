@@ -221,7 +221,7 @@ export default {
                     res.List[j].showDel = machineName.value != res.List[j].MachineName && res.List[j].Connected == false;
                     res.List[j].isSelf = machineName.value == res.List[j].MachineName;
                 }
-                state.page.List = res.List;
+                state.page.List = res.List.sort((a,b)=>a.Connected - b.Connected);
             }).catch((err) => { });
         }
         const _getSignList1 = () => {
@@ -260,8 +260,11 @@ export default {
             refreshTuntap();
             ElMessage.success('刷新成功');  
         }
-        const handlePageChange = () => {
-            _getSignList();
+        const handlePageChange = (page) => {
+            if(page){
+                state.page.Request.Page = page;
+                _getSignList();
+            }
         }
         const handleDel = (name) => {
             signInDel(name).then(() => {
