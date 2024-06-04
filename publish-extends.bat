@@ -62,6 +62,7 @@ for %%r in (win-x64,win-arm64) do (
 for %%r in (win-x64,win-arm64) do (
 	for %%c in (ReleaseMonitor,ReleaseNetwork) do (
 		echo F|xcopy "cmonitor\\msquic.dll" "public\\publish\\%%c\\%%r\\single\\msquic.dll"  /s /f /h /y
+		echo F|xcopy "cmonitor\\msquic-openssl.dll" "public\\publish\\%%c\\%%r\\single\\msquic-openssl.dll"  /s /f /h /y
 	)
 )
 
