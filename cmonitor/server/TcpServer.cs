@@ -145,7 +145,7 @@ namespace cmonitor.server
                     return null;
                 }
                 socket.KeepAlive();
-                SslStream sslStream = new SslStream(new NetworkStream(socket), true);
+                SslStream sslStream = new SslStream(new NetworkStream(socket,true), true);
                 await sslStream.AuthenticateAsServerAsync(serverCertificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false);
                 IConnection connection = CreateConnection(sslStream, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
 

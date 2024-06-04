@@ -43,8 +43,11 @@ namespace cmonitor.client.tunnel
         public IPEndPoint IPEndPoint { get; }
 
         public bool Connected { get; }
+        public int Delay { get; }
+        public long SendBytes { get; }
+        public long ReceiveBytes { get; }
 
-
+        public Task SendPing();
         public Task SendAsync(ReadOnlyMemory<byte> data);
         public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken, bool framing = true);
 

@@ -39,6 +39,7 @@ namespace cmonitor.client
                 {
                     if (clientSignInState.Connected == false)
                     {
+                        Logger.Instance.Error($"client offline , reconnect it~~");
                         try
                         {
                             await SignIn();
@@ -154,6 +155,7 @@ namespace cmonitor.client
             socket.KeepAlive();
             await socket.ConnectAsync(remote).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
             clientSignInState.Connection = await tcpServer.BeginReceive(socket);
+
             return true;
         }
         private async Task<bool> SignIn2Server()

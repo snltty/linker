@@ -236,9 +236,12 @@ namespace cmonitor.server
                     }
                 }
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException ex)
             {
-
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    Logger.Instance.Error(ex);
+                }
             }
             catch (Exception ex)
             {
@@ -246,8 +249,7 @@ namespace cmonitor.server
                 {
                     Logger.Instance.Error(ex);
                 }
-                if (SourceStream.CanRead == false)
-                    Disponse();
+                Disponse();
             }
             finally
             {
@@ -440,8 +442,8 @@ namespace cmonitor.server
 
         public override void Cancel()
         {
-            pipe.Writer.Complete();
-            pipe.Reader.Complete();
+            pipe?.Writer.Complete();
+            pipe?.Reader.Complete();
             callback = null;
             userToken = null;
             cancellationTokenSource?.Cancel();

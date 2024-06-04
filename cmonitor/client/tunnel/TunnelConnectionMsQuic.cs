@@ -27,6 +27,10 @@ namespace cmonitor.client.tunnel
         public IPEndPoint IPEndPoint { get; init; }
 
         public bool Connected => Stream != null && Stream.CanWrite;
+        public int Delay { get; private set; }
+        public long SendBytes { get; private set; }
+        public long ReceiveBytes { get; private set; }
+
 
         [JsonIgnore]
         public QuicStream Stream { get; init; }
@@ -47,8 +51,9 @@ namespace cmonitor.client.tunnel
         private ReceiveDataBuffer bufferCache = new ReceiveDataBuffer();
 
         private long ticks = Environment.TickCount64;
-
-        private byte[] heartBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.msquic.ping");
+        private long pingStart = Environment.TickCount64;
+        private byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ping");
+        private byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.pong");
 
         /// <summary>
         /// 开始接收数据
@@ -80,6 +85,7 @@ namespace cmonitor.client.tunnel
                 {
                     Memory<byte> buffer = writer.GetMemory(8 * 1024);
                     int length = await Stream.ReadAsync(buffer, cancellationTokenSource.Token);
+                    ReceiveBytes += length;
                     ticks = Environment.TickCount64;
                     if (length == 0)
                     {
@@ -184,7 +190,18 @@ namespace cmonitor.client.tunnel
                 }
 
                 Memory<byte> packet = bufferCache.Data.Slice(0, length);
-                if ((length == heartBytes.Length && packet.Span.SequenceEqual(heartBytes)) == false)
+                if (length == pingBytes.Length && (packet.Span.SequenceEqual(pingBytes) || packet.Span.SequenceEqual(pongBytes)))
+                {
+                    if (packet.Span.SequenceEqual(pingBytes))
+                    {
+                        await SendPingPong(pongBytes);
+                    }
+                    else if (packet.Span.SequenceEqual(pongBytes))
+                    {
+                        Delay = (int)(Environment.TickCount64 - pingStart);
+                    }
+                }
+                else
                 {
                     try
                     {
@@ -207,15 +224,12 @@ namespace cmonitor.client.tunnel
         {
             try
             {
-                byte[] heartData = new byte[4 + heartBytes.Length];
-                heartBytes.Length.ToBytes(heartData);
-                heartBytes.AsMemory().CopyTo(heartData.AsMemory(4));
-
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
                     if (Environment.TickCount64 - ticks > 3000)
                     {
-                        await SendAsync(heartData);
+                        pingStart = Environment.TickCount64;
+                        await SendPingPong(pingBytes);
                     }
                     await Task.Delay(3000);
                 }
@@ -224,15 +238,32 @@ namespace cmonitor.client.tunnel
             {
             }
         }
+        private async Task SendPingPong(byte[] data)
+        {
+            int length = 4 + pingBytes.Length;
+
+            byte[] heartData = ArrayPool<byte>.Shared.Rent(length);
+            data.Length.ToBytes(heartData);
+            data.AsMemory().CopyTo(heartData.AsMemory(4));
+
+            await Stream.WriteAsync(heartData.AsMemory(0, length), cancellationTokenSource.Token);
+
+            ArrayPool<byte>.Shared.Return(heartData);
+        }
 
 
         private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
+        public async Task SendPing()
+        {
+            await SendPingPong(pingBytes);
+        }
         public async Task SendAsync(ReadOnlyMemory<byte> data)
         {
             await semaphoreSlim.WaitAsync();
             try
             {
                 await Stream.WriteAsync(data, cancellationTokenSource.Token);
+                SendBytes += data.Length;
                 ticks = Environment.TickCount64;
             }
             catch (Exception ex)
