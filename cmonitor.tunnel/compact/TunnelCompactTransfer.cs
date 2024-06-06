@@ -1,25 +1,23 @@
-﻿using cmonitor.client;
-using cmonitor.config;
+﻿using cmonitor.tunnel.adapter;
 using common.libs;
-using common.libs.extends;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 using System.Net;
 using System.Reflection;
 
-namespace cmonitor.plugins.tunnel.compact
+namespace cmonitor.tunnel.compact
 {
     public sealed class TunnelCompactTransfer
     {
         private List<ITunnelCompact> compacts;
 
-        private readonly Config config;
         private readonly ServiceProvider serviceProvider;
+        private readonly ITunnelAdapter tunnelMessengerAdapter;
 
-        public TunnelCompactTransfer(Config config, ServiceProvider serviceProvider)
+        public TunnelCompactTransfer(ServiceProvider serviceProvider, ITunnelAdapter tunnelMessengerAdapter)
         {
-            this.config = config;
             this.serviceProvider = serviceProvider;
+            this.tunnelMessengerAdapter = tunnelMessengerAdapter;
         }
 
         public void Load(Assembly[] assembs)
@@ -35,17 +33,11 @@ namespace cmonitor.plugins.tunnel.compact
             return compacts.Select(c => new TunnelCompactTypeInfo { Value = c.Type, Name = c.Type.ToString() }).Distinct(new TunnelCompactTypeInfoEqualityComparer()).ToList();
         }
 
-        public void OnServers(TunnelCompactInfo[] servers)
-        {
-            config.Data.Client.Tunnel.Servers = servers;
-            config.Save();
-        }
-
         public async Task<TunnelCompactIPEndPoint> GetExternalIPAsync(IPAddress localIP)
         {
-            for (int i = 0; i < config.Data.Client.Tunnel.Servers.Length; i++)
+            var compactItems = tunnelMessengerAdapter.GetTunnelCompacts();
+            foreach (TunnelCompactInfo item in compactItems)
             {
-                TunnelCompactInfo item = config.Data.Client.Tunnel.Servers[i];
                 if (item.Disabled || string.IsNullOrWhiteSpace(item.Host)) continue;
                 ITunnelCompact compact = compacts.FirstOrDefault(c => c.Type == item.Type);
                 if (compact == null) continue;

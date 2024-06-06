@@ -1,12 +1,12 @@
-﻿using common.libs;
+﻿using cmonitor.tunnel.connection;
+using common.libs;
 using common.libs.extends;
 using System.Buffers;
 using System.Collections.Concurrent;
-using System.IO.Pipelines;
 using System.Net;
 using System.Net.Sockets;
 
-namespace cmonitor.client.tunnel
+namespace cmonitor.tunnel.proxy
 {
     public partial class TunnelProxy
     {
@@ -111,9 +111,6 @@ namespace cmonitor.client.tunnel
         {
             try
             {
-                token.SenderPipe = new Pipe(new PipeOptions(pauseWriterThreshold: 512 * 1024, resumeWriterThreshold: 64 * 1024));
-                _ = ProcessSender(token);
-
                 SocketAsyncEventArgs readEventArgs = new SocketAsyncEventArgs
                 {
                     UserToken = token,
@@ -121,7 +118,7 @@ namespace cmonitor.client.tunnel
                 };
                 token.Saea = readEventArgs;
 
-                readEventArgs.SetBuffer(new byte[8 * 1024], 0, 8 * 1024);
+                readEventArgs.SetBuffer(new byte[16 * 1024], 0, 16 * 1024);
                 readEventArgs.Completed += IO_Completed;
                 if (token.Socket.ReceiveAsync(readEventArgs) == false)
                 {
@@ -337,43 +334,6 @@ namespace cmonitor.client.tunnel
             }
         }
 
-        private async Task ProcessSender(AsyncUserToken token)
-        {
-            PipeReader reader = token.SenderPipe.Reader;
-            try
-            {
-                while (true)
-                {
-                    ReadResult readResult = await reader.ReadAsync();
-                    ReadOnlySequence<byte> buffer = readResult.Buffer;
-                    if (buffer.IsEmpty && readResult.IsCompleted)
-                    {
-                        break;
-                    }
-                    if (buffer.Length > 0)
-                    {
-                        foreach (ReadOnlyMemory<byte> memory in buffer)
-                        {
-                            await token.Socket.SendAsync(memory, SocketFlags.None);
-                        }
-                        reader.AdvanceTo(buffer.End);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    Logger.Instance.Error(ex);
-                }
-            }
-            finally
-            {
-                await SendToConnectionClose(token).ConfigureAwait(false);
-                CloseClientSocket(token);
-            }
-        }
-
         private void PauseSocket(AsyncUserTunnelToken tunnelToken)
         {
             if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)
@@ -381,7 +341,6 @@ namespace cmonitor.client.tunnel
                 ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.GetHashCode(), (byte)tunnelToken.Proxy.Direction);
                 if (tcpConnections.TryGetValue(connectId, out AsyncUserToken token))
                 {
-                    //token.Connection = tunnelToken.Connection;
                     token.Received = false;
                 }
             }
@@ -393,7 +352,6 @@ namespace cmonitor.client.tunnel
                 ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.GetHashCode(), (byte)tunnelToken.Proxy.Direction);
                 if (tcpConnections.TryGetValue(connectId, out AsyncUserToken token))
                 {
-                    //token.Connection = tunnelToken.Connection;
                     if (token.Received == false)
                     {
                         token.Received = true;
@@ -437,8 +395,7 @@ namespace cmonitor.client.tunnel
             {
                 try
                 {
-                    token1.SenderPipe.Writer.Write(tunnelToken.Proxy.Data.Span);
-                    await token1.SenderPipe.Writer.FlushAsync();
+                    await token1.Socket.SendAsync(tunnelToken.Proxy.Data, SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(1000)).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -526,8 +483,6 @@ namespace cmonitor.client.tunnel
         public ProxyInfo Proxy { get; set; }
         public SocketAsyncEventArgs Saea { get; set; }
 
-        public Pipe SenderPipe { get; set; }
-
         public bool Received { get; set; } = false;
         public bool Paused { get; set; } = true;
 
@@ -538,9 +493,6 @@ namespace cmonitor.client.tunnel
             Socket?.SafeClose();
 
             Saea?.Dispose();
-
-            SenderPipe?.Writer.Complete();
-            SenderPipe?.Reader.Complete();
 
             GC.Collect();
         }

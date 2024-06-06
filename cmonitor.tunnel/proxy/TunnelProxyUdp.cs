@@ -1,10 +1,12 @@
-﻿using common.libs;
+﻿using cmonitor.tunnel.connection;
+using common.libs;
 using common.libs.extends;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 
-namespace cmonitor.client.tunnel
+namespace cmonitor.tunnel.proxy
 {
     public partial class TunnelProxy
     {
@@ -204,6 +206,10 @@ namespace cmonitor.client.tunnel
         }
         private async Task SendToConnection(AsyncUserUdpTokenTarget token)
         {
+            SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
+            await semaphoreSlim.WaitAsync();
+
+
             byte[] connectData = token.Proxy.ToBytes(out int length);
             try
             {
@@ -216,6 +222,7 @@ namespace cmonitor.client.tunnel
             finally
             {
                 token.Proxy.Return(connectData);
+                semaphoreSlim.Release();
             }
         }
 

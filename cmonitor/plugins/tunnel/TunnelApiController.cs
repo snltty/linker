@@ -1,10 +1,11 @@
 ﻿using cmonitor.client;
 using cmonitor.client.capi;
 using cmonitor.config;
-using cmonitor.plugins.tunnel.compact;
 using cmonitor.plugins.tunnel.messenger;
-using cmonitor.plugins.tunnel.transport;
 using cmonitor.server;
+using cmonitor.tunnel.adapter;
+using cmonitor.tunnel.compact;
+using cmonitor.tunnel.transport;
 using common.libs.api;
 using common.libs.extends;
 using MemoryPack;
@@ -19,14 +20,16 @@ namespace cmonitor.plugins.tunnel
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
         private readonly TunnelConfigTransfer tunnelConfigTransfer;
+        private readonly ITunnelAdapter tunnelMessengerAdapter;
 
-        public TunnelApiController(Config config, TunnelCompactTransfer compactTransfer, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelConfigTransfer tunnelConfigTransfer)
+        public TunnelApiController(Config config, TunnelCompactTransfer compactTransfer, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelConfigTransfer tunnelConfigTransfer, ITunnelAdapter tunnelMessengerAdapter)
         {
             this.config = config;
             this.compactTransfer = compactTransfer;
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
             this.tunnelConfigTransfer = tunnelConfigTransfer;
+            this.tunnelMessengerAdapter = tunnelMessengerAdapter;
         }
 
         public TunnelListInfo Get(ApiControllerParamsInfo param)
@@ -58,7 +61,7 @@ namespace cmonitor.plugins.tunnel
         {
             SetServersParamInfo info = param.Content.DeJson<SetServersParamInfo>();
 
-            compactTransfer.OnServers(info.List);
+            tunnelMessengerAdapter.SetTunnelCompacts(info.List.ToList());
             if (info.Sync)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
@@ -96,12 +99,12 @@ namespace cmonitor.plugins.tunnel
 
         public List<TunnelTransportItemInfo> GetTransports(ApiControllerParamsInfo param)
         {
-            return tunnelConfigTransfer.GetTransports();
+            return tunnelMessengerAdapter.GetTunnelTransports();
         }
         public async Task SetTransports(ApiControllerParamsInfo param)
         {
             SetTransportsParamInfo info = param.Content.DeJson<SetTransportsParamInfo>();
-            tunnelConfigTransfer.SetTransports(info.List);
+            tunnelMessengerAdapter.SetTunnelTransports(info.List);
             if (info.Sync)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap

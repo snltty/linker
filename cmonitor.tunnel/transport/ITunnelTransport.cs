@@ -1,8 +1,7 @@
-﻿using cmonitor.client.tunnel;
-using MemoryPack;
+﻿using cmonitor.tunnel.connection;
 using System.Net;
 
-namespace cmonitor.plugins.tunnel.transport
+namespace cmonitor.tunnel.transport
 {
     public interface ITunnelTransport
     {
@@ -34,57 +33,35 @@ namespace cmonitor.plugins.tunnel.transport
         /// <returns></returns>
         public Task<ITunnelConnection> ConnectAsync(TunnelTransportInfo tunnelTransportInfo);
         /// <summary>
-        /// 收到开始连接
+        /// 收到开始打洞
         /// </summary>
         /// <param name="tunnelTransportInfo"></param>
         /// <returns></returns>
         public void OnBegin(TunnelTransportInfo tunnelTransportInfo);
         /// <summary>
-        /// 失败
+        /// 收到打洞失败
         /// </summary>
         /// <param name="tunnelTransportInfo"></param>
         public void OnFail(TunnelTransportInfo tunnelTransportInfo);
         /// <summary>
-        /// 失败
+        /// 收到打洞成功
         /// </summary>
         /// <param name="tunnelTransportInfo"></param>
         public void OnSuccess(TunnelTransportInfo tunnelTransportInfo);
     }
 
-    [MemoryPackable]
-    public sealed partial class TunnelTransportExternalIPRequestInfo
-    {
-        public string RemoteMachineName { get; set; }
-        public TunnelProtocolType TransportType { get; set; }
-    }
-
-    [MemoryPackable]
     public sealed partial class TunnelTransportExternalIPInfo
     {
-        [MemoryPackAllowSerialize]
         public IPEndPoint Local { get; set; }
-
-        [MemoryPackAllowSerialize]
-        public IPAddress[] LocalIps { get; set; }
-
-        [MemoryPackAllowSerialize]
         public IPEndPoint Remote { get; set; }
+
+        public IPAddress[] LocalIps { get; set; }
 
         public int RouteLevel { get; set; }
 
         public string MachineName { get; set; }
     }
 
-
-    [MemoryPackable]
-    public sealed partial class TunnelTransportRouteLevelInfo
-    {
-        public string MachineName { get; set; }
-        public int RouteLevel { get; set; } = 0;
-        public int RouteLevelPlus { get; set; } = 0;
-    }
-
-    [MemoryPackable]
     public sealed partial class TunnelTransportItemInfo
     {
         public string Name { get; set; }
@@ -107,9 +84,6 @@ namespace cmonitor.plugins.tunnel.transport
         }
     }
 
-
-
-    [MemoryPackable]
     public sealed partial class TunnelTransportInfo
     {
         public TunnelTransportExternalIPInfo Local { get; set; }

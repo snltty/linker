@@ -1,5 +1,5 @@
-﻿using cmonitor.client.tunnel;
-using cmonitor.config;
+﻿using cmonitor.tunnel.adapter;
+using cmonitor.tunnel.connection;
 using common.libs;
 using common.libs.extends;
 using System.Collections.Concurrent;
@@ -8,10 +8,9 @@ using System.Net.Quic;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
-namespace cmonitor.plugins.tunnel.transport
+namespace cmonitor.tunnel.transport
 {
     public sealed class TransportMsQuic : ITunnelTransport
     {
@@ -32,17 +31,13 @@ namespace cmonitor.plugins.tunnel.transport
         private byte[] endBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.end");
         private IPEndPoint quicListenEP = null;
 
-        private X509Certificate serverCertificate;
-        public TransportMsQuic(Config config)
+        private readonly ITunnelAdapter  tunnelAdapter;
+        public TransportMsQuic(ITunnelAdapter tunnelAdapter)
         {
-            string path = Path.GetFullPath(config.Data.Client.Tunnel.Certificate);
-            if (File.Exists(path))
+            this.tunnelAdapter = tunnelAdapter;
+            if (tunnelAdapter.Certificate == null)
             {
-                serverCertificate = new X509Certificate(path, config.Data.Client.Tunnel.Password);
-            }
-            else
-            {
-                Logger.Instance.Error($"file {path} not found");
+                Logger.Instance.Error($"Certificate not found");
                 Environment.Exit(0);
             }
             _ = QuicStart();
@@ -624,7 +619,7 @@ namespace cmonitor.plugins.tunnel.transport
                             IdleTimeout = TimeSpan.FromMilliseconds(15000),
                             ServerAuthenticationOptions = new SslServerAuthenticationOptions
                             {
-                                ServerCertificate = serverCertificate,
+                                ServerCertificate = tunnelAdapter.Certificate,
                                 EnabledSslProtocols = SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13,
                                 ApplicationProtocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http3 }
                             }

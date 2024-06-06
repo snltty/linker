@@ -1,15 +1,13 @@
-﻿using common.libs;
-using common.libs.extends;
+﻿using common.libs.extends;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 
-namespace cmonitor.plugins.tunnel.compact
+namespace cmonitor.tunnel.compact
 {
     public sealed class TunnelCompactSelfHost : ITunnelCompact
     {
         public string Name => "默认";
-        public TunnelCompactType Type => TunnelCompactType.Self;
+        public TunnelCompactType Type => TunnelCompactType.Cmonitor;
 
         public TunnelCompactSelfHost()
         {

@@ -1,7 +1,6 @@
-﻿using MemoryPack;
-using System.Net;
+﻿using System.Net;
 
-namespace cmonitor.plugins.tunnel.compact
+namespace cmonitor.tunnel.compact
 {
     public interface ITunnelCompact
     {
@@ -12,31 +11,39 @@ namespace cmonitor.plugins.tunnel.compact
 
     public sealed class TunnelCompactIPEndPoint
     {
+        /// <summary>
+        /// 内网
+        /// </summary>
         public IPEndPoint Local { get; set; }
+        /// <summary>
+        /// 外网
+        /// </summary>
         public IPEndPoint Remote { get; set; }
     }
 
-    [MemoryPackable]
-    public sealed partial class TunnelCompactExternalIPInfo
-    {
-        [MemoryPackAllowSerialize]
-        public IPEndPoint ExternalIP { get; set; }
-    }
-
-
-
-    [MemoryPackable]
     public sealed partial class TunnelCompactInfo
     {
+        /// <summary>
+        /// 名称
+        /// </summary>
         public string Name { get; set; } = string.Empty;
+        /// <summary>
+        /// 协议类别
+        /// </summary>
         public TunnelCompactType Type { get; set; }
+        /// <summary>
+        /// 地址
+        /// </summary>
         public string Host { get; set; } = string.Empty;
+        /// <summary>
+        /// 是否禁用
+        /// </summary>
         public bool Disabled { get; set; }
     }
 
     public enum TunnelCompactType : byte
     {
-        Self = 0,
+        Cmonitor = 0,
         Stun = 1
     }
 

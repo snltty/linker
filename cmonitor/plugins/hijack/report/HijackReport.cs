@@ -23,7 +23,11 @@ namespace cmonitor.plugins.hijack.report
             this.hijack = hijack;
             this.runningConfig = runningConfig;
             this.clientSignInState = clientSignInState;
+#if DEBUG
+#else
             Init();
+#endif
+
         }
 
         private void Init()

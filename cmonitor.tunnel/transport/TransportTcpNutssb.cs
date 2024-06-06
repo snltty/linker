@@ -1,5 +1,5 @@
-﻿using cmonitor.client.tunnel;
-using cmonitor.config;
+﻿using cmonitor.tunnel.adapter;
+using cmonitor.tunnel.connection;
 using common.libs;
 using common.libs.extends;
 using System.Collections.Concurrent;
@@ -9,7 +9,7 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 
-namespace cmonitor.plugins.tunnel.transport
+namespace cmonitor.tunnel.transport
 {
     public sealed class TunnelTransportTcpNutssb : ITunnelTransport
     {
@@ -17,23 +17,18 @@ namespace cmonitor.plugins.tunnel.transport
         public string Label => "TCP、低TTL";
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Tcp;
 
-        private X509Certificate serverCertificate;
-
         public Func<TunnelTransportInfo, Task<bool>> OnSendConnectBegin { get; set; } = async (info) => { return await Task.FromResult<bool>(false); };
         public Func<TunnelTransportInfo, Task> OnSendConnectFail { get; set; } = async (info) => { await Task.CompletedTask; };
         public Func<TunnelTransportInfo, Task> OnSendConnectSuccess { get; set; } = async (info) => { await Task.CompletedTask; };
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
 
-        public TunnelTransportTcpNutssb(Config config)
+        private readonly ITunnelAdapter tunnelAdapter;
+        public TunnelTransportTcpNutssb(ITunnelAdapter tunnelAdapter)
         {
-            string path = Path.GetFullPath(config.Data.Client.Tunnel.Certificate);
-            if (File.Exists(path))
+            this.tunnelAdapter = tunnelAdapter;
+            if (tunnelAdapter.Certificate == null)
             {
-                serverCertificate = new X509Certificate(path, config.Data.Client.Tunnel.Password);
-            }
-            else
-            {
-                Logger.Instance.Error($"file {path} not found");
+                Logger.Instance.Error($"Certificate not found");
                 Environment.Exit(0);
             }
         }
@@ -166,12 +161,17 @@ namespace cmonitor.plugins.tunnel.transport
                     }
                     await targetSocket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(ep.Address.Equals(tunnelTransportInfo.Remote.Remote.Address) ? 500 : 100));
 
-                    SslStream sslStream = new SslStream(new NetworkStream(targetSocket), true, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
-                    await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 });
+                    SslStream sslStream = null;
+                    if (tunnelAdapter.SSL)
+                    {
+                        sslStream = new SslStream(new NetworkStream(targetSocket, false), false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
+                        await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 });
+                    }
 
                     return new TunnelConnectionTcp
                     {
                         Stream = sslStream,
+                        Socket = targetSocket,
                         IPEndPoint = targetSocket.RemoteEndPoint as IPEndPoint,
                         TransactionId = tunnelTransportInfo.TransactionId,
                         RemoteMachineName = tunnelTransportInfo.Remote.MachineName,
@@ -260,8 +260,12 @@ namespace cmonitor.plugins.tunnel.transport
             {
                 try
                 {
-                    SslStream sslStream = new SslStream(new NetworkStream(socket), true);
-                    await sslStream.AuthenticateAsServerAsync(serverCertificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false);
+                    SslStream sslStream = null;
+                    if (tunnelAdapter.SSL)
+                    {
+                        sslStream = new SslStream(new NetworkStream(socket, false), false);
+                        await sslStream.AuthenticateAsServerAsync(tunnelAdapter.Certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false);
+                    }
 
                     TunnelConnectionTcp result = new TunnelConnectionTcp
                     {
@@ -269,6 +273,7 @@ namespace cmonitor.plugins.tunnel.transport
                         Direction = _state.Direction,
                         ProtocolType = TunnelProtocolType.Tcp,
                         Stream = sslStream,
+                        Socket = socket,
                         Type = TunnelType.P2P,
                         Mode = TunnelMode.Server,
                         TransactionId = _state.TransactionId,

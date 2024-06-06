@@ -16,6 +16,9 @@ namespace cmonitor.config
     public sealed class RelayConfigClientInfo
     {
         public RelayCompactInfo[] Servers { get; set; } = Array.Empty<RelayCompactInfo>();
+        public string Certificate { get; set; } = "./snltty.pfx";
+        public string Password { get; set; } = Helper.GlobalString;
+        public bool SSL { get; set; } = true;
     }
 
     public sealed class RelayConfigServerInfo

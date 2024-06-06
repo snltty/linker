@@ -1,12 +1,15 @@
-﻿using cmonitor.client.tunnel;
-using cmonitor.config;
+﻿using cmonitor.config;
 using cmonitor.plugins.relay.messenger;
 using cmonitor.server;
+using cmonitor.tunnel.connection;
 using common.libs;
 using common.libs.extends;
 using MemoryPack;
 using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 
 namespace cmonitor.plugins.relay.transport
 {
@@ -18,11 +21,21 @@ namespace cmonitor.plugins.relay.transport
 
         private readonly TcpServer tcpServer;
         private readonly MessengerSender messengerSender;
+        private readonly Config config;
 
-        public TransportSelfHost(TcpServer tcpServer, MessengerSender messengerSender)
+        private X509Certificate certificate;
+
+        public TransportSelfHost(TcpServer tcpServer, MessengerSender messengerSender, Config config)
         {
             this.tcpServer = tcpServer;
             this.messengerSender = messengerSender;
+            this.config = config;
+
+            string path = Path.GetFullPath(config.Data.Client.Tunnel.Certificate);
+            if (File.Exists(path))
+            {
+                certificate = new X509Certificate(path, config.Data.Client.Tunnel.Password);
+            }
         }
 
         public async Task<ITunnelConnection> RelayAsync(RelayInfo relayInfo)
@@ -47,18 +60,32 @@ namespace cmonitor.plugins.relay.transport
             }
             connection.Cancel();
             await Task.Delay(10);
+
+            SslStream sslStream = null;
+            if (config.Data.Client.Relay.SSL)
+            {
+                sslStream = new SslStream(new NetworkStream(socket, false), false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
+                await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 });
+            }
+
             return new TunnelConnectionTcp
             {
                 Direction = TunnelDirection.Forward,
                 ProtocolType = TunnelProtocolType.Tcp,
                 RemoteMachineName = relayInfo.RemoteMachineName,
-                Stream = connection.SourceStream,
+                Stream = sslStream,
+                Socket = socket,
                 Mode = TunnelMode.Client,
                 IPEndPoint = socket.RemoteEndPoint as IPEndPoint,
                 TransactionId = relayInfo.TransactionId,
                 TransportName = Name,
                 Type = TunnelType.Relay
             };
+        }
+
+        private bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            return true;
         }
 
         public async Task<ITunnelConnection> OnBeginAsync(RelayInfo relayInfo)
@@ -77,12 +104,21 @@ namespace cmonitor.plugins.relay.transport
             });
             connection.Cancel();
             await Task.Delay(10);
+
+            SslStream sslStream = null;
+            if (config.Data.Client.Relay.SSL)
+            {
+                sslStream = new SslStream(new NetworkStream(socket, false), false);
+                await sslStream.AuthenticateAsServerAsync(certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false);
+            }
+
             return new TunnelConnectionTcp
             {
                 Direction = TunnelDirection.Reverse,
                 ProtocolType = TunnelProtocolType.Tcp,
                 RemoteMachineName = relayInfo.RemoteMachineName,
-                Stream = connection.SourceStream,
+                Stream = sslStream,
+                Socket = socket,
                 Mode = TunnelMode.Server,
                 IPEndPoint = socket.RemoteEndPoint as IPEndPoint,
                 TransactionId = relayInfo.TransactionId,

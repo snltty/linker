@@ -2,23 +2,40 @@
   <el-dialog v-model="state.show" append-to=".app-wrap" title="隧道链接" top="1vh" width="700">
         <div>
             <el-table :data="state.data" size="small" border height="500">
-                <el-table-column property="RemoteMachineName" label="目标"></el-table-column>
-                <el-table-column property="TransactionId" label="事务">
+                <el-table-column property="RemoteMachineName" label="目标">
+                    <template #default="scope">
+                        <div>
+                            <p>{{scope.row.RemoteMachineName}}</p>
+                            <p>{{scope.row.IPEndPoint}}</p>
+                        </div>
+                    </template>
+                </el-table-column>
+                <el-table-column property="TransactionId" label="事务" width="80">
                     <template #default="scope">
                         <span>{{ state.transactions[scope.row.TransactionId] }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column property="TransportName" label="协议">
                     <template #default="scope">
-                        <span>{{scope.row.TransportName}}({{ state.protocolTypes[scope.row.ProtocolType] }})</span>
+                        <div>
+                            <p>{{scope.row.TransportName}}({{ state.protocolTypes[scope.row.ProtocolType] }})</p>
+                            <p>{{ state.types[scope.row.Type] }}</p>
+                        </div>
                     </template>
                 </el-table-column>
-                <el-table-column property="Type" label="类别">
+                <el-table-column property="Delay" label="延迟" width="80">
                     <template #default="scope">
-                        <span>{{ state.types[scope.row.Type] }}</span>
+                        <span>{{scope.row.Delay}}ms</span>
                     </template>
                 </el-table-column>
-                <el-table-column property="IPEndPoint" label="IP"></el-table-column>
+                <el-table-column property="Bytes" label="通信">
+                    <template #default="scope">
+                        <div>
+                            <p>sent : {{scope.row.SendBytes}}</p>
+                            <p>receive : {{scope.row.ReceiveBytes}}</p>
+                        </div>
+                    </template>
+                </el-table-column>
                 <el-table-column property="Connected" label="连接中" width="60">
                     <template #default="scope">
                         <el-switch disabled v-model="scope.row.Connected" inline-prompt active-text="是" inactive-text="否" />

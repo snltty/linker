@@ -1,39 +1,29 @@
-﻿using cmonitor.client;
-using cmonitor.client.tunnel;
-using cmonitor.config;
-using cmonitor.plugins.tunnel.compact;
-using cmonitor.plugins.tunnel.messenger;
-using cmonitor.plugins.tunnel.transport;
-using cmonitor.server;
+﻿using cmonitor.tunnel.adapter;
+using cmonitor.tunnel.compact;
+using cmonitor.tunnel.connection;
+using cmonitor.tunnel.transport;
 using common.libs;
 using common.libs.extends;
-using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Concurrent;
-using System.Net;
 using System.Reflection;
 
-namespace cmonitor.plugins.tunnel
+namespace cmonitor.tunnel
 {
     public sealed class TunnelTransfer
     {
         private List<ITunnelTransport> transports;
-
-        private readonly Config config;
         private readonly ServiceProvider serviceProvider;
-        private readonly ClientSignInState clientSignInState;
-        private readonly MessengerSender messengerSender;
+
         private readonly TunnelCompactTransfer compactTransfer;
+        private readonly ITunnelAdapter tunnelMessengerAdapter;
 
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
-        public TunnelTransfer(Config config, ServiceProvider serviceProvider, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelCompactTransfer compactTransfer)
+        public TunnelTransfer(ServiceProvider serviceProvider, TunnelCompactTransfer compactTransfer, ITunnelAdapter tunnelMessengerAdapter)
         {
-            this.config = config;
             this.serviceProvider = serviceProvider;
-            this.clientSignInState = clientSignInState;
-            this.messengerSender = messengerSender;
             this.compactTransfer = compactTransfer;
+            this.tunnelMessengerAdapter = tunnelMessengerAdapter;
         }
 
         public void Load(Assembly[] assembs)
@@ -42,20 +32,20 @@ namespace cmonitor.plugins.tunnel
             transports = types.Select(c => (ITunnelTransport)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
             foreach (var item in transports)
             {
-                item.OnSendConnectBegin = OnSendConnectBegin;
-                item.OnSendConnectFail = OnSendConnectFail;
-                item.OnSendConnectSuccess = OnSendConnectSuccess;
+                item.OnSendConnectBegin = tunnelMessengerAdapter.SendConnectBegin;
+                item.OnSendConnectFail = tunnelMessengerAdapter.SendConnectFail;
+                item.OnSendConnectSuccess = tunnelMessengerAdapter.SendConnectSuccess;
                 item.OnConnected = _OnConnected;
             }
 
-            //拼接，再去重，因为有可能有新的
-            config.Data.Client.Tunnel.TunnelTransports = config.Data.Client.Tunnel.TunnelTransports
-                .Concat(transports.Select(c => new TunnelTransportItemInfo { Reverse = true, Disabled = false, Label = c.Label, Name = c.Name, ProtocolType = c.ProtocolType.ToString() }))
+            var transportItems = tunnelMessengerAdapter.GetTunnelTransports();
+            transportItems = transportItems.Concat(transports.Select(c => new TunnelTransportItemInfo { Reverse = true, Disabled = false, Label = c.Label, Name = c.Name, ProtocolType = c.ProtocolType.ToString() }))
                 .Distinct(new TunnelTransportItemInfoEqualityComparer())
                 .ToList();
+            tunnelMessengerAdapter.SetTunnelTransports(transportItems);
 
             Logger.Instance.Warning($"load tunnel transport:{string.Join(",", transports.Select(c => c.Name))}");
-            Logger.Instance.Warning($"used tunnel transport:{string.Join(",", config.Data.Client.Tunnel.TunnelTransports.Where(c => c.Disabled == false).Select(c => c.Name))}");
+            Logger.Instance.Warning($"used tunnel transport:{string.Join(",", transportItems.Where(c => c.Disabled == false).Select(c => c.Name))}");
         }
 
 
@@ -89,7 +79,7 @@ namespace cmonitor.plugins.tunnel
 
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineName, string transactionId)
         {
-            foreach (TunnelTransportItemInfo transportItem in config.Data.Client.Tunnel.TunnelTransports.Where(c => c.Disabled == false))
+            foreach (TunnelTransportItemInfo transportItem in tunnelMessengerAdapter.GetTunnelTransports().Where(c => c.Disabled == false))
             {
                 ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == transportItem.Name);
                 if (transport == null) continue;
@@ -117,7 +107,7 @@ namespace cmonitor.plugins.tunnel
                         }
                         Logger.Instance.Info($"tunnel {transport.Name} got local external ip {localInfo.ToJson()}");
                         //获取对方的外网ip
-                        TunnelTransportExternalIPInfo remoteInfo = await GetRemoteInfo(remoteMachineName);
+                        TunnelTransportExternalIPInfo remoteInfo = await tunnelMessengerAdapter.GetRemoteExternalIP(remoteMachineName);
                         if (remoteInfo == null)
                         {
                             Logger.Instance.Error($"tunnel {transport.Name} get remote {remoteMachineName} external ip fail ");
@@ -183,74 +173,27 @@ namespace cmonitor.plugins.tunnel
                 _transports.OnSuccess(tunnelTransportInfo);
             }
         }
-        public async Task<TunnelTransportExternalIPInfo> Info(TunnelTransportExternalIPRequestInfo request)
+        public async Task<TunnelTransportExternalIPInfo> GetExternalIP()
         {
             return await GetLocalInfo();
         }
 
         private async Task<TunnelTransportExternalIPInfo> GetLocalInfo()
         {
-            TunnelCompactIPEndPoint ip = await compactTransfer.GetExternalIPAsync(clientSignInState.Connection?.LocalAddress.Address ?? IPAddress.Any);
+            TunnelCompactIPEndPoint ip = await compactTransfer.GetExternalIPAsync(tunnelMessengerAdapter.LocalIP);
             if (ip != null)
             {
+                var config = tunnelMessengerAdapter.GetLocalConfig();
                 return new TunnelTransportExternalIPInfo
                 {
                     Local = ip.Local,
                     Remote = ip.Remote,
-                    LocalIps = config.Data.Client.Tunnel.LocalIPs,
-                    RouteLevel = config.Data.Client.Tunnel.RouteLevel + config.Data.Client.Tunnel.RouteLevelPlus,
-                    MachineName = config.Data.Client.Name
+                    LocalIps = config.LocalIps,
+                    RouteLevel = config.RouteLevel,
+                    MachineName = config.MachineName
                 };
             }
             return null;
-        }
-        private async Task<TunnelTransportExternalIPInfo> GetRemoteInfo(string remoteMachineName)
-        {
-            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
-            {
-                Connection = clientSignInState.Connection,
-                MessengerId = (ushort)TunnelMessengerIds.InfoForward,
-                Payload = MemoryPackSerializer.Serialize(new TunnelTransportExternalIPRequestInfo
-                {
-                    RemoteMachineName = remoteMachineName,
-                    TransportType = TunnelProtocolType.Udp,
-                })
-            });
-            if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
-            {
-                return MemoryPackSerializer.Deserialize<TunnelTransportExternalIPInfo>(resp.Data.Span);
-            }
-            return null;
-
-        }
-
-        private async Task<bool> OnSendConnectBegin(TunnelTransportInfo tunnelTransportInfo)
-        {
-            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
-            {
-                Connection = clientSignInState.Connection,
-                MessengerId = (ushort)TunnelMessengerIds.BeginForward,
-                Payload = MemoryPackSerializer.Serialize(tunnelTransportInfo)
-            });
-            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
-        }
-        private async Task OnSendConnectFail(TunnelTransportInfo tunnelTransportInfo)
-        {
-            await messengerSender.SendOnly(new MessageRequestWrap
-            {
-                Connection = clientSignInState.Connection,
-                MessengerId = (ushort)TunnelMessengerIds.FailForward,
-                Payload = MemoryPackSerializer.Serialize(tunnelTransportInfo)
-            });
-        }
-        private async Task OnSendConnectSuccess(TunnelTransportInfo tunnelTransportInfo)
-        {
-            await messengerSender.SendOnly(new MessageRequestWrap
-            {
-                Connection = clientSignInState.Connection,
-                MessengerId = (ushort)TunnelMessengerIds.SuccessForward,
-                Payload = MemoryPackSerializer.Serialize(tunnelTransportInfo)
-            });
         }
 
         private void OnConnecting(TunnelTransportInfo tunnelTransportInfo)

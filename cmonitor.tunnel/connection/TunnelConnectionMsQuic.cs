@@ -8,7 +8,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Net.Sockets;
 
-namespace cmonitor.client.tunnel
+namespace cmonitor.tunnel.connection
 {
     public sealed class TunnelConnectionMsQuic : ITunnelConnection
     {
@@ -52,8 +52,10 @@ namespace cmonitor.client.tunnel
 
         private long ticks = Environment.TickCount64;
         private long pingStart = Environment.TickCount64;
-        private byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ping");
-        private byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.pong");
+        private static byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ping");
+        private static byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.pong");
+        private bool pong = true;
+
 
         /// <summary>
         /// 开始接收数据
@@ -70,20 +72,17 @@ namespace cmonitor.client.tunnel
             this.framing = framing;
 
             cancellationTokenSource = new CancellationTokenSource();
-            pipe = new Pipe(new PipeOptions(pauseWriterThreshold: 1 * 1024 * 1024, resumeWriterThreshold: 128 * 1024));
             _ = ProcessWrite();
-            _ = ProcessReader();
             _ = ProcessHeart();
 
         }
         private async Task ProcessWrite()
         {
-            PipeWriter writer = pipe.Writer;
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
             try
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
-                    Memory<byte> buffer = writer.GetMemory(8 * 1024);
                     int length = await Stream.ReadAsync(buffer, cancellationTokenSource.Token);
                     ReceiveBytes += length;
                     ticks = Environment.TickCount64;
@@ -91,12 +90,7 @@ namespace cmonitor.client.tunnel
                     {
                         break;
                     }
-                    writer.Advance(length);
-                    FlushResult result = await writer.FlushAsync();
-                    if (result.IsCanceled || result.IsCompleted)
-                    {
-                        break;
-                    }
+                    await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -108,116 +102,64 @@ namespace cmonitor.client.tunnel
             }
             finally
             {
-                await writer.CompleteAsync();
-                Close();
-
+                ArrayPool<byte>.Shared.Return(buffer);
+                Dispose();
                 Logger.Instance.Error($"tunnel connection writer offline {ToString()}");
             }
         }
-        private async Task ProcessReader()
+        private async Task ReadPacket(Memory<byte> buffer)
         {
-            PipeReader reader = pipe.Reader;
-            try
-            {
-                while (cancellationTokenSource.IsCancellationRequested == false)
-                {
-                    ReadResult readResult = await reader.ReadAsync();
-                    ReadOnlySequence<byte> buffer = readResult.Buffer;
-                    if (buffer.IsEmpty && readResult.IsCompleted)
-                    {
-                        break;
-                    }
-                    if (buffer.Length > 0)
-                    {
-                        SequencePosition end = await ReadPacket(buffer).ConfigureAwait(false);
-                        reader.AdvanceTo(end);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    Logger.Instance.Error(ex);
-                }
-            }
-            finally
-            {
-                await reader.CompleteAsync();
-                Close();
-                Logger.Instance.Error($"tunnel connection reader offline {ToString()}");
-            }
-        }
-        private unsafe int ReaderHead(ReadOnlySequence<byte> buffer)
-        {
-            Span<byte> span = stackalloc byte[4];
-            buffer.Slice(0, 4).CopyTo(span);
-            return span.ToInt32();
-        }
-        private async Task<SequencePosition> ReadPacket(ReadOnlySequence<byte> buffer)
-        {
-            //不分包
             if (framing == false)
             {
-                foreach (var memory in buffer)
-                {
-                    try
-                    {
-                        await callback.Receive(this, memory, this.userToken).ConfigureAwait(false);
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
-                return buffer.End;
+                await CallbackPacket(buffer).ConfigureAwait(false);
+                return;
             }
 
-            //分包
-            while (buffer.Length > 4)
+            //是一个完整的包
+            if (bufferCache.Size == 0 && buffer.Length > 4)
             {
-                //读取头
-                int length = ReaderHead(buffer);
-                if (buffer.Length < length + 4)
+                int packageLen = buffer.Span.ToInt32();
+                if (packageLen + 4 <= buffer.Length)
+                {
+                    await CallbackPacket(buffer.Slice(4, packageLen)).ConfigureAwait(false);
+                    buffer = buffer.Slice(4 + packageLen);
+                }
+                if (buffer.Length == 0)
+                    return;
+            }
+
+            bufferCache.AddRange(buffer);
+            do
+            {
+                int packageLen = bufferCache.Data.Span.ToInt32();
+                if (packageLen + 4 > bufferCache.Size)
                 {
                     break;
                 }
+                await CallbackPacket(bufferCache.Data.Slice(4, packageLen)).ConfigureAwait(false);
 
-                //拼接数据
-                ReadOnlySequence<byte> cache = buffer.Slice(4, length);
-                foreach (var memory in cache)
+
+                bufferCache.RemoveRange(0, packageLen + 4);
+            } while (bufferCache.Size > 4);
+        }
+        private async Task CallbackPacket(Memory<byte> packet)
+        {
+            if (packet.Length == pingBytes.Length && (packet.Span.SequenceEqual(pingBytes) || packet.Span.SequenceEqual(pongBytes)))
+            {
+                if (packet.Span.SequenceEqual(pingBytes))
                 {
-                    bufferCache.AddRange(memory);
+                    await SendPingPong(pongBytes);
                 }
-
-                Memory<byte> packet = bufferCache.Data.Slice(0, length);
-                if (length == pingBytes.Length && (packet.Span.SequenceEqual(pingBytes) || packet.Span.SequenceEqual(pongBytes)))
+                else if (packet.Span.SequenceEqual(pongBytes))
                 {
-                    if (packet.Span.SequenceEqual(pingBytes))
-                    {
-                        await SendPingPong(pongBytes);
-                    }
-                    else if (packet.Span.SequenceEqual(pongBytes))
-                    {
-                        Delay = (int)(Environment.TickCount64 - pingStart);
-                    }
+                    Delay = (int)(Environment.TickCount64 - pingStart);
+                    pong = true;
                 }
-                else
-                {
-                    try
-                    {
-                        await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
-
-                bufferCache.Clear();
-
-                //分割去掉已使用的数据
-                buffer = buffer.Slice(4 + length);
             }
-            return buffer.Start;
+            else
+            {
+                await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
+            }
         }
 
         private async Task ProcessHeart()
@@ -246,20 +188,28 @@ namespace cmonitor.client.tunnel
             data.Length.ToBytes(heartData);
             data.AsMemory().CopyTo(heartData.AsMemory(4));
 
-            await Stream.WriteAsync(heartData.AsMemory(0, length), cancellationTokenSource.Token);
+            try
+            {
+                await Stream.WriteAsync(heartData.AsMemory(0, length), cancellationTokenSource.Token);
+            }
+            catch (Exception)
+            {
+                pong = true;
+            }
 
             ArrayPool<byte>.Shared.Return(heartData);
         }
 
 
-        private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
         public async Task SendPing()
         {
+            if (pong == false) return;
+            pong = false;
+            pingStart = Environment.TickCount64;
             await SendPingPong(pingBytes);
         }
         public async Task SendAsync(ReadOnlyMemory<byte> data)
         {
-            await semaphoreSlim.WaitAsync();
             try
             {
                 await Stream.WriteAsync(data, cancellationTokenSource.Token);
@@ -275,26 +225,32 @@ namespace cmonitor.client.tunnel
             }
             finally
             {
-                semaphoreSlim.Release();
             }
         }
 
-        public void Close()
+        public void Dispose()
         {
             callback = null;
             userToken = null;
             cancellationTokenSource?.Cancel();
-            pipe = null;
-            bufferCache.Clear(true);
+            bufferCache?.Clear(true);
 
             Stream?.Close();
             Stream?.Dispose();
-
             Connection?.CloseAsync(0x0a);
             Connection?.DisposeAsync();
-
             LocalUdp?.Close();
             remoteUdp?.Close();
+
+            try
+            {
+                pipe?.Writer.Complete();
+                pipe?.Reader.Complete();
+            }
+            catch (Exception)
+            {
+            }
+            pipe = null;
         }
 
         public override string ToString()

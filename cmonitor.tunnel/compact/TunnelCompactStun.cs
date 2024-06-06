@@ -3,7 +3,7 @@ using System.Buffers.Binary;
 using System.Net;
 using System.Net.Sockets;
 
-namespace cmonitor.plugins.tunnel.compact
+namespace cmonitor.tunnel.compact
 {
     public sealed class TunnelCompactStun : ITunnelCompact
     {

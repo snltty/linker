@@ -1,5 +1,5 @@
-﻿using cmonitor.client.tunnel;
-using cmonitor.config;
+﻿using cmonitor.config;
+using cmonitor.tunnel.connection;
 using MemoryPack;
 using System.Net;
 

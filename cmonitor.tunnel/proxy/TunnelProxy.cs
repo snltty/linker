@@ -1,10 +1,11 @@
-﻿using common.libs;
+﻿using cmonitor.tunnel.connection;
+using common.libs;
 using common.libs.extends;
 using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
 
-namespace cmonitor.client.tunnel
+namespace cmonitor.tunnel.proxy
 {
     public partial class TunnelProxy : ITunnelConnectionReceiveCallback
     {

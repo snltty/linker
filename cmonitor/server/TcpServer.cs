@@ -48,6 +48,7 @@ namespace cmonitor.server
         {
             IPEndPoint localEndPoint = new IPEndPoint(NetworkHelper.IPv6Support ? IPAddress.IPv6Any : IPAddress.Any, port);
             Socket socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            socket.ReceiveBufferSize = 128 * 1024;
             socket.IPv6Only(localEndPoint.AddressFamily, false);
             socket.ReuseBind(localEndPoint);
             socket.Listen(int.MaxValue);
@@ -144,8 +145,9 @@ namespace cmonitor.server
                 {
                     return null;
                 }
+                socket.ReceiveBufferSize = 8 * 1024;
                 socket.KeepAlive();
-                SslStream sslStream = new SslStream(new NetworkStream(socket,true), true);
+                SslStream sslStream = new SslStream(new NetworkStream(socket,false), false);
                 await sslStream.AuthenticateAsServerAsync(serverCertificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false);
                 IConnection connection = CreateConnection(sslStream, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
 
@@ -174,8 +176,8 @@ namespace cmonitor.server
                     return null;
                 }
                 socket.KeepAlive();
-                NetworkStream networkStream = new NetworkStream(socket, true);
-                SslStream sslStream = new SslStream(networkStream, true, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
+                NetworkStream networkStream = new NetworkStream(socket, false);
+                SslStream sslStream = new SslStream(networkStream, false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                 await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 });
                 IConnection connection = CreateConnection(sslStream, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
 

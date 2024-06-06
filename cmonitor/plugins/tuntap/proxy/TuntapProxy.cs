@@ -1,14 +1,14 @@
-﻿using cmonitor.client.tunnel;
-using cmonitor.plugins.relay;
-using cmonitor.plugins.tunnel;
+﻿using cmonitor.plugins.relay;
 using cmonitor.plugins.tuntap.vea;
+using cmonitor.tunnel;
+using cmonitor.tunnel.connection;
+using cmonitor.tunnel.proxy;
 using common.libs;
 using common.libs.socks5;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
-using static cmonitor.plugins.forward.proxy.ForwardProxy;
 
 namespace cmonitor.plugins.tuntap.proxy
 {

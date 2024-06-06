@@ -1,9 +1,12 @@
 ﻿using cmonitor.config;
-using cmonitor.plugins.tunnel.compact;
 using cmonitor.plugins.tunnel.messenger;
-using cmonitor.plugins.tunnel.transport;
 using cmonitor.startup;
+using cmonitor.tunnel;
+using cmonitor.tunnel.adapter;
+using cmonitor.tunnel.compact;
+using cmonitor.tunnel.transport;
 using common.libs;
+using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Reflection;
@@ -23,6 +26,12 @@ namespace cmonitor.plugins.tunnel
 
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
+            MemoryPackFormatterProvider.Register(new TunnelCompactInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TunnelTransportExternalIPInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TunnelTransportItemInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TunnelTransportInfoFormatter());
+
+
             serviceCollection.AddSingleton<TunnelApiController>();
 
             serviceCollection.AddSingleton<TunnelClientMessenger>();
@@ -36,6 +45,7 @@ namespace cmonitor.plugins.tunnel
             serviceCollection.AddSingleton<TransportMsQuic>();
 
             serviceCollection.AddSingleton<TunnelConfigTransfer>();
+            serviceCollection.AddSingleton<ITunnelAdapter, TunnelAdapter>();
 
             Logger.Instance.Info($"tunnel route level getting.");
             config.Data.Client.Tunnel.RouteLevel = NetworkHelper.GetRouteLevel(out List<IPAddress> ips);
@@ -50,7 +60,7 @@ namespace cmonitor.plugins.tunnel
                 {
                      new TunnelCompactInfo{
                          Name="默认",
-                         Type= TunnelCompactType.Self,
+                         Type= TunnelCompactType.Cmonitor,
                          Disabled = false,
                          Host = config.Data.Client.Servers.FirstOrDefault().Host
                      }
@@ -60,6 +70,11 @@ namespace cmonitor.plugins.tunnel
 
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
+            MemoryPackFormatterProvider.Register(new TunnelCompactInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TunnelTransportExternalIPInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TunnelTransportItemInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TunnelTransportInfoFormatter());
+
             serviceCollection.AddSingleton<TunnelServerMessenger>();
         }
 

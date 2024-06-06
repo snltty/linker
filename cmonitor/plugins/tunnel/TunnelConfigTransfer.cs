@@ -1,9 +1,8 @@
 ﻿using cmonitor.client;
 using cmonitor.config;
-using cmonitor.plugins.tunnel.compact;
 using cmonitor.plugins.tunnel.messenger;
-using cmonitor.plugins.tunnel.transport;
 using cmonitor.server;
+using cmonitor.tunnel.compact;
 using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
@@ -95,20 +94,6 @@ namespace cmonitor.plugins.tunnel
                 RouteLevelPlus = config.Data.Client.Tunnel.RouteLevelPlus
             };
         }
-        /// <summary>
-        /// 收到别人发给我的修改我的打洞协议信息
-        /// </summary>
-        /// <param name="transports"></param>
-        public void SetTransports(List<TunnelTransportItemInfo> transports)
-        {
-            config.Data.Client.Tunnel.TunnelTransports = transports;
-            config.Save();
-        }
-
-
-        public List<TunnelTransportItemInfo> GetTransports()
-        {
-            return config.Data.Client.Tunnel.TunnelTransports;
-        }
+        
     }
 }

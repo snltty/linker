@@ -110,6 +110,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\cmonitor.libs\cmonitor.libs.csproj" />
+		<ProjectReference Include="..\cmonitor.tunnel\cmonitor.tunnel.csproj" />
 		<ProjectReference Include="..\common.libs\common.libs.csproj" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(Configuration)'=='Debug' or '$(Configuration)'=='Release' or '$(Configuration)'=='ReleaseMonitor'">

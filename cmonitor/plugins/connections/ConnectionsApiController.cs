@@ -1,7 +1,7 @@
 ﻿using cmonitor.client.capi;
-using cmonitor.client.tunnel;
 using cmonitor.plugins.relay;
-using cmonitor.plugins.tunnel;
+using cmonitor.tunnel;
+using cmonitor.tunnel.connection;
 using common.libs;
 using common.libs.api;
 using common.libs.extends;
@@ -25,11 +25,24 @@ namespace cmonitor.plugins.connections
         public ConnectionListInfo Get(ApiControllerParamsInfo param)
         {
             uint hashCode = uint.Parse(param.Content);
-            if (hashCode != connectionVersion)
+            //if (hashCode != connectionVersion)
             {
+                foreach (var item in connections)
+                {
+                    foreach (var connection in item.Value)
+                    {
+                        try
+                        {
+                            connection.Value.SendPing();
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                }
                 return new ConnectionListInfo { HashCode = connectionVersion, List = connections };
             }
-            return new ConnectionListInfo { HashCode = connectionVersion };
+            //return new ConnectionListInfo { HashCode = connectionVersion };
         }
         public bool Remove(ApiControllerParamsInfo param)
         {
@@ -46,7 +59,7 @@ namespace cmonitor.plugins.connections
                 {
                     try
                     {
-                        _connection.Close();
+                        _connection.Dispose();
                     }
                     catch (Exception)
                     {
@@ -68,7 +81,7 @@ namespace cmonitor.plugins.connections
                 {
                     try
                     {
-                        _connection.Close();
+                        _connection.Dispose();
                     }
                     catch (Exception)
                     {

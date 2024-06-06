@@ -1,12 +1,12 @@
 ﻿using common.libs;
 using common.libs.extends;
-using System;
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Security;
 using System.Net.Sockets;
-using System.Threading;
+using System.Text;
 
 namespace cmonitor.server
 {
@@ -24,8 +24,13 @@ namespace cmonitor.server
         public IPEndPoint LocalAddress { get; }
 
         public SslStream SourceStream { get; }
+        public Socket SourceSocket { get; }
         public SslStream TargetStream { get; set; }
+        public Socket TargetSocket { get; set; }
 
+        public int Delay { get; }
+        public long SendBytes { get; }
+        public long ReceiveBytes { get; }
         public uint RelayLimit { get; set; }
 
         #region 接收数据
@@ -68,9 +73,13 @@ namespace cmonitor.server
         public IPEndPoint LocalAddress { get; protected set; }
 
         public SslStream SourceStream { get; protected set; }
+        public Socket SourceSocket { get; protected set; }
         public SslStream TargetStream { get; set; }
+        public Socket TargetSocket { get; set; }
 
-
+        public int Delay { get; protected set; }
+        public long SendBytes { get; protected set; }
+        public long ReceiveBytes { get; protected set; }
         public virtual uint RelayLimit { get; set; } = 0;
 
         #region 接收数据
@@ -200,8 +209,14 @@ namespace cmonitor.server
         private CancellationTokenSource cancellationTokenSourceWrite;
         private object userToken;
         private bool framing;
-        private Pipe pipe;
         private ReceiveDataBuffer bufferCache = new ReceiveDataBuffer();
+
+        private long ticks = Environment.TickCount64;
+        private long pingStart = Environment.TickCount64;
+        private static byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ping");
+        private static byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.pong");
+        private bool pong = true;
+
         public override void BeginReceive(IConnectionReceiveCallback callback, object userToken, bool framing = true)
         {
             if (this.callback != null) return;
@@ -211,38 +226,33 @@ namespace cmonitor.server
             this.framing = framing;
             cancellationTokenSource = new CancellationTokenSource();
             cancellationTokenSourceWrite = new CancellationTokenSource();
-            pipe = new Pipe(new PipeOptions(pauseWriterThreshold: 512 * 1024, resumeWriterThreshold: 64 * 1024));
 
             _ = ProcessWrite();
-            _ = ProcessReader();
+            _ = ProcessHeart();
         }
         private async Task ProcessWrite()
         {
-            var writer = pipe.Writer;
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
             try
             {
+                int length = 0;
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
-                    Memory<byte> buffer = writer.GetMemory(8 * 1024);
-                    int length = await SourceStream.ReadAsync(buffer, cancellationTokenSource.Token);
+                    if (SourceStream != null)
+                    {
+                        length = await SourceStream.ReadAsync(buffer, cancellationTokenSource.Token);
+                    }
+                    else
+                    {
+                        length = await SourceSocket.ReceiveAsync(buffer, SocketFlags.None, cancellationTokenSource.Token);
+                    }
                     if (length == 0)
                     {
-                        Disponse();
                         break;
                     }
-                    writer.Advance(length);
-                    FlushResult result = await writer.FlushAsync();
-                    if (result.IsCanceled || result.IsCompleted)
-                    {
-                        break;
-                    }
+                    ReceiveBytes += length;
+                    await ReadPacket(buffer.AsMemory(0, length));
                 }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (InvalidOperationException)
-            {
             }
             catch (Exception ex)
             {
@@ -250,122 +260,144 @@ namespace cmonitor.server
                 {
                     Logger.Instance.Error(ex);
                 }
-                Disponse();
             }
             finally
             {
-                Cancel();
-            }
-        }
-        private async Task ProcessReader()
-        {
-            PipeReader reader = pipe.Reader;
-            try
-            {
-                while (cancellationTokenSource.IsCancellationRequested == false)
-                {
-                    ReadResult readResult = await reader.ReadAsync().ConfigureAwait(false);
-                    ReadOnlySequence<byte> buffer = readResult.Buffer;
-                    if (buffer.Length == 0 || readResult.IsCompleted || readResult.IsCanceled)
-                    {
-                        break;
-                    }
-                    SequencePosition end = await ReadPacket(buffer).ConfigureAwait(false);
-                    reader.AdvanceTo(end);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (InvalidOperationException)
-            {
-            }
-            catch (Exception ex)
-            {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    Logger.Instance.Error(ex);
-                }
+                ArrayPool<byte>.Shared.Return(buffer);
                 Disponse();
             }
-            finally
+        }
+        private async Task ReadPacket(Memory<byte> buffer)
+        {
+            if(TargetSocket != null)
             {
                 Cancel();
+                _ = CopyToAsync(SourceSocket,TargetSocket);
+                return;
             }
-        }
-        private unsafe int ReaderHead(ReadOnlySequence<byte> buffer)
-        {
-            Span<byte> span = stackalloc byte[4];
-            buffer.Slice(0, 4).CopyTo(span);
-            return span.ToInt32();
-        }
-        private async Task<SequencePosition> ReadPacket(ReadOnlySequence<byte> buffer)
-        {
-            //已转发
-            if (TargetStream != null)
-            {
-                foreach (var memory in buffer)
-                {
-                    await TargetStream.WriteAsync(memory).ConfigureAwait(false);
-                }
 
-                Cancel();
-                _ = CopyToAsync(SourceStream, TargetStream);
-
-                return buffer.End;
-            }
-            //不分包
             if (framing == false)
             {
-                foreach (var memory in buffer)
-                {
-                    try
-                    {
-                        await callback.Receive(this, memory, this.userToken).ConfigureAwait(false);
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
-                return buffer.End;
+                await CallbackPacket(buffer).ConfigureAwait(false);
+                return;
             }
 
-            //分包
-            while (buffer.Length > 4)
+            //是一个完整的包
+            if (bufferCache.Size == 0 && buffer.Length > 4)
             {
-                int length = ReaderHead(buffer);
-                if (buffer.Length < length + 4)
+                int packageLen = buffer.Span.ToInt32();
+                if (packageLen + 4 <= buffer.Length)
+                {
+                    await CallbackPacket(buffer.Slice(4, packageLen)).ConfigureAwait(false);
+                    buffer = buffer.Slice(4 + packageLen);
+                }
+                if (buffer.Length == 0)
+                    return;
+            }
+
+            bufferCache.AddRange(buffer);
+            do
+            {
+                int packageLen = bufferCache.Data.Span.ToInt32();
+                if (packageLen + 4 > bufferCache.Size)
                 {
                     break;
                 }
+                await CallbackPacket(bufferCache.Data.Slice(4, packageLen)).ConfigureAwait(false);
 
-                ReadOnlySequence<byte> cache = buffer.Slice(4, length);
-                foreach (var memory in cache)
-                {
-                    bufferCache.AddRange(memory);
-                }
-                try
-                {
-                    await callback.Receive(this, bufferCache.Data.Slice(0, bufferCache.Size), this.userToken).ConfigureAwait(false);
-                }
-                catch (Exception)
-                {
-                }
-                bufferCache.Clear();
 
-                buffer = buffer.Slice(4 + length);
+                bufferCache.RemoveRange(0, packageLen + 4);
+            } while (bufferCache.Size > 4);
+        }
+        private async Task CallbackPacket(Memory<byte> packet)
+        {
+
+            if (packet.Length == pingBytes.Length && (packet.Span.SequenceEqual(pingBytes) || packet.Span.SequenceEqual(pongBytes)))
+            {
+                if (packet.Span.SequenceEqual(pingBytes))
+                {
+                    await SendPingPong(pongBytes);
+                }
+                else if (packet.Span.SequenceEqual(pongBytes))
+                {
+                    Delay = (int)(Environment.TickCount64 - pingStart);
+                    pong = true;
+                }
             }
-            return buffer.Start;
+            else
+            {
+                await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
+            }
+        }
+
+        private async Task ProcessHeart()
+        {
+            try
+            {
+                while (cancellationTokenSource.IsCancellationRequested == false)
+                {
+                    if (Environment.TickCount64 - ticks > 3000)
+                    {
+                        pingStart = Environment.TickCount64;
+                        await SendPingPong(pingBytes);
+
+                    }
+                    await Task.Delay(3000);
+                }
+            }
+            catch (Exception)
+            {
+            }
         }
 
 
         private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
-        public override async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
+        private async Task SendPingPong(byte[] data)
         {
-            await semaphoreSlim.WaitAsync();
+            int length = 4 + pingBytes.Length;
+
+            byte[] heartData = ArrayPool<byte>.Shared.Rent(length);
+            data.Length.ToBytes(heartData);
+            data.AsMemory().CopyTo(heartData.AsMemory(4));
+
             try
             {
-                await SourceStream.WriteAsync(data, cancellationTokenSourceWrite.Token);
+                if (SourceStream != null)
+                {
+                    await SourceStream.WriteAsync(heartData.AsMemory(0, length), cancellationTokenSource.Token);
+                }
+                else
+                {
+                    await SourceSocket.SendAsync(heartData.AsMemory(0, length), cancellationTokenSource.Token);
+                }
+
+            }
+            catch (Exception)
+            {
+                pong = true;
+            }
+
+            ArrayPool<byte>.Shared.Return(heartData);
+        }
+        public async Task SendPing()
+        {
+            if (pong == false) return;
+            pong = false;
+            pingStart = Environment.TickCount64;
+            await SendPingPong(pingBytes);
+        }
+        public override async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
+        {
+            if (SourceStream != null) await semaphoreSlim.WaitAsync();
+            try
+            {
+                if (SourceStream != null)
+                    await SourceStream.WriteAsync(data, cancellationTokenSourceWrite.Token);
+                else
+                    await SourceSocket.SendAsync(data, cancellationTokenSourceWrite.Token);
+
+                SendBytes += data.Length;
+                ticks = Environment.TickCount64;
             }
             catch (Exception ex)
             {
@@ -377,7 +409,7 @@ namespace cmonitor.server
             }
             finally
             {
-                semaphoreSlim.Release();
+                if (SourceStream != null) semaphoreSlim.Release();
             }
             return true;
         }
@@ -386,16 +418,16 @@ namespace cmonitor.server
             return await SendAsync(data.AsMemory(0, length));
         }
 
-        private async Task CopyToAsync(SslStream source, SslStream destination)
+        private async Task CopyToAsync(Socket source, Socket destination)
         {
             await Task.Delay(500);
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
             try
             {
                 int bytesRead;
-                while ((bytesRead = await source.ReadAsync(new Memory<byte>(buffer)).ConfigureAwait(false)) != 0)
+                while ((bytesRead = await source.ReceiveAsync(new Memory<byte>(buffer)).ConfigureAwait(false)) != 0)
                 {
-                    if(RelayLimit > 0)
+                    if (RelayLimit > 0)
                     {
                         int length = bytesRead;
                         TryLimit(ref length);
@@ -405,7 +437,7 @@ namespace cmonitor.server
                             TryLimit(ref length);
                         }
                     }
-                    await destination.WriteAsync(new ReadOnlyMemory<byte>(buffer, 0, bytesRead)).ConfigureAwait(false);
+                    await destination.SendAsync(new ReadOnlyMemory<byte>(buffer, 0, bytesRead)).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -413,6 +445,22 @@ namespace cmonitor.server
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     Logger.Instance.Error(ex);
+                }
+                try
+                {
+                    source.Close();
+                    source.Dispose();
+                }
+                catch (Exception)
+                {
+                }
+                try
+                {
+                    destination.Close();
+                    destination.Dispose();
+                }
+                catch (Exception)
+                {
                 }
             }
             finally
@@ -449,36 +497,27 @@ namespace cmonitor.server
             userToken = null;
             cancellationTokenSource?.Cancel();
             bufferCache.Clear(true);
+
             try
             {
-                pipe?.Writer.Complete();
-                pipe?.Reader.Complete();
+                if (SourceStream != null)
+                {
+                    SourceStream.Dispose();
+                    TargetStream?.Dispose();
+                }
             }
             catch (Exception)
             {
             }
-            pipe = null;
         }
         public override void Disponse()
         {
             Cancel();
             cancellationTokenSourceWrite?.Cancel();
             base.Disponse();
-            try
-            {
-                if (SourceStream != null)
-                {
-                    SourceStream.ShutdownAsync();
-                    SourceStream.Dispose();
 
-                    TargetStream?.ShutdownAsync();
-                    TargetStream?.Dispose();
-                }
-                
-            }
-            catch (Exception)
-            {
-            }
+            SourceSocket?.SafeClose();
+            TargetSocket?.SafeClose();
         }
     }
 

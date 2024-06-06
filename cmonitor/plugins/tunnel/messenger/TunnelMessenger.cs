@@ -1,7 +1,10 @@
-﻿using cmonitor.plugins.signin.messenger;
-using cmonitor.plugins.tunnel.compact;
-using cmonitor.plugins.tunnel.transport;
+﻿using cmonitor.config;
+using cmonitor.plugins.signin.messenger;
 using cmonitor.server;
+using cmonitor.tunnel;
+using cmonitor.tunnel.adapter;
+using cmonitor.tunnel.compact;
+using cmonitor.tunnel.transport;
 using common.libs;
 using MemoryPack;
 
@@ -10,14 +13,14 @@ namespace cmonitor.plugins.tunnel.messenger
     public sealed class TunnelClientMessenger : IMessenger
     {
         private readonly TunnelTransfer tunnel;
-        private readonly TunnelCompactTransfer tunnelCompactTransfer;
         private readonly TunnelConfigTransfer tunnelConfigTransfer;
+        private readonly ITunnelAdapter tunnelMessengerAdapter;
 
-        public TunnelClientMessenger(TunnelTransfer tunnel, TunnelCompactTransfer tunnelCompactTransfer, TunnelConfigTransfer tunnelConfigTransfer)
+        public TunnelClientMessenger(TunnelTransfer tunnel, TunnelConfigTransfer tunnelConfigTransfer, ITunnelAdapter tunnelMessengerAdapter)
         {
             this.tunnel = tunnel;
-            this.tunnelCompactTransfer = tunnelCompactTransfer;
             this.tunnelConfigTransfer = tunnelConfigTransfer;
+            this.tunnelMessengerAdapter = tunnelMessengerAdapter;
         }
 
         [MessengerId((ushort)TunnelMessengerIds.Begin)]
@@ -35,8 +38,7 @@ namespace cmonitor.plugins.tunnel.messenger
         [MessengerId((ushort)TunnelMessengerIds.Info)]
         public async Task Info(IConnection connection)
         {
-            TunnelTransportExternalIPRequestInfo request = MemoryPackSerializer.Deserialize<TunnelTransportExternalIPRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            TunnelTransportExternalIPInfo tunnelTransportPortInfo = await tunnel.Info(request);
+            TunnelTransportExternalIPInfo tunnelTransportPortInfo = await tunnel.GetExternalIP();
             if (tunnelTransportPortInfo != null)
             {
                 connection.Write(MemoryPackSerializer.Serialize(tunnelTransportPortInfo));
@@ -85,14 +87,14 @@ namespace cmonitor.plugins.tunnel.messenger
         public void Transport(IConnection connection)
         {
             List<TunnelTransportItemInfo> transports = MemoryPackSerializer.Deserialize<List<TunnelTransportItemInfo>>(connection.ReceiveRequestWrap.Payload.Span);
-            tunnelConfigTransfer.SetTransports(transports);
+            tunnelMessengerAdapter.SetTunnelTransports(transports);
         }
 
         [MessengerId((ushort)TunnelMessengerIds.Servers)]
         public void Servers(IConnection connection)
         {
             TunnelCompactInfo[] servers = MemoryPackSerializer.Deserialize<TunnelCompactInfo[]>(connection.ReceiveRequestWrap.Payload.Span);
-            tunnelCompactTransfer.OnServers(servers);
+            tunnelMessengerAdapter.SetTunnelCompacts(servers.ToList());
         }
     }
 
@@ -109,8 +111,8 @@ namespace cmonitor.plugins.tunnel.messenger
         [MessengerId((ushort)TunnelMessengerIds.InfoForward)]
         public void InfoForward(IConnection connection)
         {
-            TunnelTransportExternalIPRequestInfo request = MemoryPackSerializer.Deserialize<TunnelTransportExternalIPRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.Get(request.RemoteMachineName, out SignCacheInfo cache) && signCaching.Get(connection.Name, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            string remoteMachineName = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.Get(remoteMachineName, out SignCacheInfo cache) && signCaching.Get(connection.Name, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 _ = messengerSender.SendReply(new MessageRequestWrap

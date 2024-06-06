@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace cmonitor.client.tunnel
+namespace cmonitor.tunnel.connection
 {
     public enum TunnelProtocolType : byte
     {
@@ -51,10 +51,10 @@ namespace cmonitor.client.tunnel
         public Task SendAsync(ReadOnlyMemory<byte> data);
         public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken, bool framing = true);
 
-        public void Close();
+        public void Dispose();
 
         public string ToString();
     }
 
-   
+
 }
