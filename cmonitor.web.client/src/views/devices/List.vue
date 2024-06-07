@@ -152,7 +152,8 @@ export default {
             showEdit:false,
             current: [],
             list: {},
-            hashcode: 0,
+            speedCache: {},
+            hashcode: 0
         });
         provide('connections',connections);
         const _getConnections = ()=>{
@@ -160,10 +161,26 @@ export default {
                 getConnections(connections.value.hashcode.toString()).then((res)=>{
                     connections.value.hashcode = res.HashCode;
                     if (res.List) {
-                        for(let j in res.List){
-                            res.List[j] = Object.values(res.List[j]);
+                        const newList = res.List;
+                        const caches = connections.value.speedCache;
+                        for(let j in newList){
+                            const cons = newList[j];
+                            for(let k in cons){
+                                const con = cons[k];
+                                
+                                const key = `${con.RemoteMachineName}-${con.TransactionId}`;
+                                const cache = caches[key] || {SendBytes:0,ReceiveBytes:0};
+                               
+                                con.SendBytesText = parseSpeed(con.SendBytes - cache.SendBytes);
+                                con.ReceiveBytesText = parseSpeed(con.ReceiveBytes - cache.ReceiveBytes);
+
+                                cache.SendBytes = con.SendBytes;
+                                cache.ReceiveBytes = con.ReceiveBytes;
+                                caches[key] = cache;
+                            }
+                            newList[j] = Object.values(newList[j]);
                         }
-                        connections.value.list = res.List;
+                        connections.value.list = newList;
                     }
                     connections.value.timer = setTimeout(_getConnections, 1000);
                 }).catch((e)=>{
@@ -172,6 +189,14 @@ export default {
             }else {
                 connections.value.timer = setTimeout(_getConnections, 1000);
             }
+        }
+        const parseSpeed = (num)=>{
+            let index = 0;
+            while(num >= 1024){
+                num/=1024;
+                index++;
+            }
+            return `${num.toFixed(2)}${['B/s','KB/s','MB/s','GB/s','TB/s'][index]}`;
         }
         const handleTunnelConnections = (machineName)=>{
             connections.value.current = machineName;

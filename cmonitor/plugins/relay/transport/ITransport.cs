@@ -28,6 +28,6 @@ namespace cmonitor.plugins.relay.transport
         [MemoryPackAllowSerialize]
         public IPEndPoint Server { get; set; }
 
-
+        public bool SSL { get; set; } = true;
     }
 }

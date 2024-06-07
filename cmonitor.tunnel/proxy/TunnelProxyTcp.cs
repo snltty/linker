@@ -3,6 +3,7 @@ using common.libs;
 using common.libs.extends;
 using System.Buffers;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 
@@ -246,6 +247,7 @@ namespace cmonitor.tunnel.proxy
             await semaphoreSlim.WaitAsync();
 
             byte[] connectData = token.Proxy.ToBytes(out int length);
+
             try
             {
                 await token.Connection.SendAsync(connectData.AsMemory(0, length)).ConfigureAwait(false);
@@ -390,12 +392,13 @@ namespace cmonitor.tunnel.proxy
                 }
                 return;
             }
-
             if (tcpConnections.TryGetValue(connectId, out AsyncUserToken token1) && token1.Socket.Connected)
             {
                 try
                 {
+                  
                     await token1.Socket.SendAsync(tunnelToken.Proxy.Data, SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(1000)).ConfigureAwait(false);
+                  
                 }
                 catch (Exception ex)
                 {

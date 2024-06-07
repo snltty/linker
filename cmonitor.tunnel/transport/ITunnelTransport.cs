@@ -68,8 +68,9 @@ namespace cmonitor.tunnel.transport
         public string Label { get; set; }
         public string ProtocolType { get; set; }
 
-        public bool Disabled { get; set; }
-        public bool Reverse { get; set; }
+        public bool Disabled { get; set; } = false;
+        public bool Reverse { get; set; } = true;
+        public bool SSL { get; set; } = true;
     }
     public sealed class TunnelTransportItemInfoEqualityComparer : IEqualityComparer<TunnelTransportItemInfo>
     {
@@ -95,6 +96,8 @@ namespace cmonitor.tunnel.transport
         public string TransportName { get; set; }
 
         public TunnelDirection Direction { get; set; }
+
+        public bool SSL { get; set; }
     }
 
 

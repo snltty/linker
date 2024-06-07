@@ -2,6 +2,7 @@
 using common.libs;
 using common.libs.extends;
 using System.Buffers;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 
@@ -40,6 +41,7 @@ namespace cmonitor.tunnel.proxy
         public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> memory, object userToken)
         {
             AsyncUserTunnelToken token = userToken as AsyncUserTunnelToken;
+           
             token.Proxy.DeBytes(memory);
             await ReadConnectionPack(token).ConfigureAwait(false);
         }

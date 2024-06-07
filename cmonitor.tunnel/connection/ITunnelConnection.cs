@@ -42,6 +42,8 @@ namespace cmonitor.tunnel.connection
         public TunnelDirection Direction { get; }
         public IPEndPoint IPEndPoint { get; }
 
+        public bool SSL { get; }
+
         public bool Connected { get; }
         public int Delay { get; }
         public long SendBytes { get; }

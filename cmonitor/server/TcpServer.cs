@@ -48,7 +48,7 @@ namespace cmonitor.server
         {
             IPEndPoint localEndPoint = new IPEndPoint(NetworkHelper.IPv6Support ? IPAddress.IPv6Any : IPAddress.Any, port);
             Socket socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            socket.ReceiveBufferSize = 128 * 1024;
+            //socket.ReceiveBufferSize = 128 * 1024;
             socket.IPv6Only(localEndPoint.AddressFamily, false);
             socket.ReuseBind(localEndPoint);
             socket.Listen(int.MaxValue);
@@ -147,12 +147,13 @@ namespace cmonitor.server
                 }
                 socket.ReceiveBufferSize = 8 * 1024;
                 socket.KeepAlive();
-                SslStream sslStream = new SslStream(new NetworkStream(socket,false), false);
+                NetworkStream networkStream = new NetworkStream(socket, false);
+                SslStream sslStream = new SslStream(networkStream, true);
                 await sslStream.AuthenticateAsServerAsync(serverCertificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false);
-                IConnection connection = CreateConnection(sslStream, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
+                IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
 
 
-                connection.BeginReceive(connectionReceiveCallback,null,true);
+                connection.BeginReceive(connectionReceiveCallback, null, true);
                 return connection;
             }
             catch (Exception ex)
@@ -176,10 +177,11 @@ namespace cmonitor.server
                     return null;
                 }
                 socket.KeepAlive();
+                socket.ReceiveBufferSize = 8 * 1024;
                 NetworkStream networkStream = new NetworkStream(socket, false);
-                SslStream sslStream = new SslStream(networkStream, false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
-                await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 });
-                IConnection connection = CreateConnection(sslStream, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
+                SslStream sslStream = new SslStream(networkStream, true, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
+                await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { AllowRenegotiation = true, EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 });
+                IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
 
                 connection.BeginReceive(connectionReceiveCallback, null, true);
 
@@ -193,9 +195,9 @@ namespace cmonitor.server
             return null;
         }
 
-        public IConnection CreateConnection(SslStream stream, IPEndPoint local, IPEndPoint remote)
+        public IConnection CreateConnection(SslStream stream,NetworkStream networkStream, Socket socket, IPEndPoint local, IPEndPoint remote)
         {
-            return new TcpConnection(stream, local, remote)
+            return new TcpConnection(stream, networkStream, socket, local, remote)
             {
                 ReceiveRequestWrap = new MessageRequestWrap(),
                 ReceiveResponseWrap = new MessageResponseWrap()

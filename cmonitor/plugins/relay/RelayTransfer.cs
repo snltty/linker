@@ -81,7 +81,8 @@ namespace cmonitor.plugins.relay
                         SecretKey = item.SecretKey,
                         Server = server,
                         TransactionId = transactionId,
-                        TransportName = transport.Name
+                        TransportName = transport.Name,
+                        SSL = item.SSL
                     };
                     //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     Logger.Instance.Info($"relay to {relayInfo.RemoteMachineName} {relayInfo.ToJson()}");

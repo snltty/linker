@@ -30,7 +30,7 @@ namespace cmonitor.plugins.signin.messenger
         {
             if (config.Clients.TryRemove(signInfo.MachineName, out SignCacheInfo cache))
             {
-                cache.Connection?.Disponse();
+                cache.Connection?.Disponse(9);
             }
             connection.Name = signInfo.MachineName;
             SignCacheInfo cache1 = new SignCacheInfo
@@ -131,7 +131,7 @@ namespace cmonitor.plugins.signin.messenger
             {
                 if (Connection != null)
                 {
-                    connected =  Connection.Connected == true;
+                    connected = Connection.Connected == true;
                 }
                 return connected;
             }

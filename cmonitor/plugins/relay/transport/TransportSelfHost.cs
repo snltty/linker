@@ -21,7 +21,6 @@ namespace cmonitor.plugins.relay.transport
 
         private readonly TcpServer tcpServer;
         private readonly MessengerSender messengerSender;
-        private readonly Config config;
 
         private X509Certificate certificate;
 
@@ -29,7 +28,6 @@ namespace cmonitor.plugins.relay.transport
         {
             this.tcpServer = tcpServer;
             this.messengerSender = messengerSender;
-            this.config = config;
 
             string path = Path.GetFullPath(config.Data.Client.Tunnel.Certificate);
             if (File.Exists(path))
@@ -55,16 +53,16 @@ namespace cmonitor.plugins.relay.transport
             });
             if (resp.Code != MessageResponeCodes.OK || resp.Data.Span.SequenceEqual(Helper.TrueArray) == false)
             {
-                connection.Disponse();
+                connection.Disponse(7);
                 return null;
             }
             connection.Cancel();
-            await Task.Delay(10);
+            await Task.Delay(500);
 
             SslStream sslStream = null;
-            if (config.Data.Client.Relay.SSL)
+            if (relayInfo.SSL)
             {
-                sslStream = new SslStream(new NetworkStream(socket, false), false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
+                sslStream = new SslStream(connection.SourceNetworkStream, false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                 await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 });
             }
 
@@ -79,7 +77,8 @@ namespace cmonitor.plugins.relay.transport
                 IPEndPoint = socket.RemoteEndPoint as IPEndPoint,
                 TransactionId = relayInfo.TransactionId,
                 TransportName = Name,
-                Type = TunnelType.Relay
+                Type = TunnelType.Relay,
+                SSL = relayInfo.SSL
             };
         }
 
@@ -103,12 +102,18 @@ namespace cmonitor.plugins.relay.transport
                 Payload = MemoryPackSerializer.Serialize(relayInfo)
             });
             connection.Cancel();
-            await Task.Delay(10);
+            await Task.Delay(500);
 
             SslStream sslStream = null;
-            if (config.Data.Client.Relay.SSL)
+            if (relayInfo.SSL)
             {
-                sslStream = new SslStream(new NetworkStream(socket, false), false);
+                if (certificate == null)
+                {
+                    connection.Disponse(8);
+                    return null;
+                }
+                Console.WriteLine($"relay begin {socket.GetHashCode()}:{socket.Connected}");
+                sslStream = new SslStream(connection.SourceNetworkStream, false);
                 await sslStream.AuthenticateAsServerAsync(certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false);
             }
 
@@ -123,7 +128,8 @@ namespace cmonitor.plugins.relay.transport
                 IPEndPoint = socket.RemoteEndPoint as IPEndPoint,
                 TransactionId = relayInfo.TransactionId,
                 TransportName = Name,
-                Type = TunnelType.Relay
+                Type = TunnelType.Relay,
+                SSL = relayInfo.SSL
             };
         }
     }

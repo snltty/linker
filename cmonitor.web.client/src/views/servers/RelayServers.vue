@@ -42,6 +42,11 @@
                 <template v-else></template>
             </template>
         </el-table-column>
+        <el-table-column property="SSL" label="SSL" width="60">
+            <template #default="scope">
+                <el-switch v-model="scope.row.SSL" @change="handleEditBlur(scope.row, 'SSL')" inline-prompt active-text="是" inactive-text="否"/>
+            </template>
+        </el-table-column>
         <el-table-column property="Disabled" label="禁用" width="60">
             <template #default="scope">
                 <el-switch v-model="scope.row.Disabled" @change="handleEditBlur(scope.row, 'Disabled')" inline-prompt active-text="是" inactive-text="否" style="--el-switch-on-color: red; --el-switch-off-color: #ddd" />

@@ -25,8 +25,10 @@ namespace cmonitor.server
 
         public SslStream SourceStream { get; }
         public Socket SourceSocket { get; }
+        public NetworkStream SourceNetworkStream { get;  }
         public SslStream TargetStream { get; set; }
         public Socket TargetSocket { get; set; }
+        public NetworkStream TargetNetworkStream { get; set; }
 
         public int Delay { get; }
         public long SendBytes { get; }
@@ -44,8 +46,10 @@ namespace cmonitor.server
         public Task<bool> SendAsync(ReadOnlyMemory<byte> data);
         public Task<bool> SendAsync(byte[] data, int length);
 
+        public Task RelayAsync();
+
         public void Cancel();
-        public void Disponse();
+        public void Disponse(int value = 0);
 
         #region 回复消息相关
 
@@ -74,8 +78,10 @@ namespace cmonitor.server
 
         public SslStream SourceStream { get; protected set; }
         public Socket SourceSocket { get; protected set; }
+        public NetworkStream SourceNetworkStream { get; set; }
         public SslStream TargetStream { get; set; }
         public Socket TargetSocket { get; set; }
+        public NetworkStream TargetNetworkStream { get; set; }
 
         public int Delay { get; protected set; }
         public long SendBytes { get; protected set; }
@@ -161,21 +167,24 @@ namespace cmonitor.server
 
         public abstract Task<bool> SendAsync(ReadOnlyMemory<byte> data);
         public abstract Task<bool> SendAsync(byte[] data, int length);
+        public abstract Task RelayAsync();
+
 
         public virtual void Cancel()
         {
         }
-        public virtual void Disponse()
+        public virtual void Disponse(int value = 0)
         {
         }
     }
 
     public sealed class TcpConnection : Connection
     {
-        public TcpConnection(SslStream stream, IPEndPoint local, IPEndPoint remote) : base()
+        public TcpConnection(SslStream stream, NetworkStream networkStream, Socket socket, IPEndPoint local, IPEndPoint remote) : base()
         {
             SourceStream = stream;
-
+            SourceNetworkStream = networkStream;
+            SourceSocket = socket;
             if (remote.Address.AddressFamily == AddressFamily.InterNetworkV6 && remote.Address.IsIPv4MappedToIPv6)
             {
                 remote = new IPEndPoint(new IPAddress(remote.Address.GetAddressBytes()[^4..]), remote.Port);
@@ -248,11 +257,15 @@ namespace cmonitor.server
                     }
                     if (length == 0)
                     {
+                        Disponse(1);
                         break;
                     }
                     ReceiveBytes += length;
                     await ReadPacket(buffer.AsMemory(0, length));
                 }
+            }
+            catch (OperationCanceledException)
+            {
             }
             catch (Exception ex)
             {
@@ -260,22 +273,15 @@ namespace cmonitor.server
                 {
                     Logger.Instance.Error(ex);
                 }
+                Disponse(2);
             }
             finally
             {
                 ArrayPool<byte>.Shared.Return(buffer);
-                Disponse();
             }
         }
         private async Task ReadPacket(Memory<byte> buffer)
         {
-            if(TargetSocket != null)
-            {
-                Cancel();
-                _ = CopyToAsync(SourceSocket,TargetSocket);
-                return;
-            }
-
             if (framing == false)
             {
                 await CallbackPacket(buffer).ConfigureAwait(false);
@@ -311,7 +317,6 @@ namespace cmonitor.server
         }
         private async Task CallbackPacket(Memory<byte> packet)
         {
-
             if (packet.Length == pingBytes.Length && (packet.Span.SequenceEqual(pingBytes) || packet.Span.SequenceEqual(pongBytes)))
             {
                 if (packet.Span.SequenceEqual(pingBytes))
@@ -326,7 +331,13 @@ namespace cmonitor.server
             }
             else
             {
-                await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
+                try
+                {
+                    await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                }
             }
         }
 
@@ -349,7 +360,6 @@ namespace cmonitor.server
             {
             }
         }
-
 
         private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
         private async Task SendPingPong(byte[] data)
@@ -399,13 +409,17 @@ namespace cmonitor.server
                 SendBytes += data.Length;
                 ticks = Environment.TickCount64;
             }
+            catch (OperationCanceledException)
+            {
+
+            }
             catch (Exception ex)
             {
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     Logger.Instance.Error(ex);
                 }
-                Disponse();
+                Disponse(3);
             }
             finally
             {
@@ -418,14 +432,21 @@ namespace cmonitor.server
             return await SendAsync(data.AsMemory(0, length));
         }
 
-        private async Task CopyToAsync(Socket source, Socket destination)
+        public override async Task RelayAsync()
+        {
+            if (TargetNetworkStream != null)
+            {
+               await CopyToAsync(SourceNetworkStream,TargetNetworkStream);
+            }
+        }
+        private async Task CopyToAsync(NetworkStream source, NetworkStream destination)
         {
             await Task.Delay(500);
             byte[] buffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
             try
             {
                 int bytesRead;
-                while ((bytesRead = await source.ReceiveAsync(new Memory<byte>(buffer)).ConfigureAwait(false)) != 0)
+                while ((bytesRead = await source.ReadAsync(new Memory<byte>(buffer)).ConfigureAwait(false)) != 0)
                 {
                     if (RelayLimit > 0)
                     {
@@ -437,7 +458,7 @@ namespace cmonitor.server
                             TryLimit(ref length);
                         }
                     }
-                    await destination.SendAsync(new ReadOnlyMemory<byte>(buffer, 0, bytesRead)).ConfigureAwait(false);
+                    await destination.WriteAsync(new ReadOnlyMemory<byte>(buffer, 0, bytesRead)).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -446,22 +467,7 @@ namespace cmonitor.server
                 {
                     Logger.Instance.Error(ex);
                 }
-                try
-                {
-                    source.Close();
-                    source.Dispose();
-                }
-                catch (Exception)
-                {
-                }
-                try
-                {
-                    destination.Close();
-                    destination.Dispose();
-                }
-                catch (Exception)
-                {
-                }
+                Disponse(4);
             }
             finally
             {
@@ -490,32 +496,29 @@ namespace cmonitor.server
             }
         }
 
-
         public override void Cancel()
         {
             callback = null;
             userToken = null;
             cancellationTokenSource?.Cancel();
             bufferCache.Clear(true);
-
-            try
-            {
-                if (SourceStream != null)
-                {
-                    SourceStream.Dispose();
-                    TargetStream?.Dispose();
-                }
-            }
-            catch (Exception)
-            {
-            }
         }
-        public override void Disponse()
+        public override void Disponse(int value = 0)
         {
             Cancel();
             cancellationTokenSourceWrite?.Cancel();
             base.Disponse();
 
+            try
+            {
+                SourceStream?.Close();
+                SourceStream?.Dispose();
+                TargetStream?.Close();
+                TargetStream?.Dispose();
+            }
+            catch (Exception)
+            {
+            }
             SourceSocket?.SafeClose();
             TargetSocket?.SafeClose();
         }

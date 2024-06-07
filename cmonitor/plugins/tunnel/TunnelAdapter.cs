@@ -14,7 +14,6 @@ namespace cmonitor.plugins.tunnel
 {
     public sealed class TunnelAdapter : ITunnelAdapter
     {
-        public bool SSL => config.Data.Client.Tunnel.SSL;
         public IPAddress LocalIP => clientSignInState.Connection?.LocalAddress.Address ?? IPAddress.Any;
         public X509Certificate Certificate { get; private set; }
 

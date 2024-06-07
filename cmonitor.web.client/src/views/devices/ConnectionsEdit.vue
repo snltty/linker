@@ -31,8 +31,8 @@
                 <el-table-column property="Bytes" label="通信">
                     <template #default="scope">
                         <div>
-                            <p>sent : {{scope.row.SendBytes}}</p>
-                            <p>receive : {{scope.row.ReceiveBytes}}</p>
+                            <p>sent : {{scope.row.SendBytesText}}</p>
+                            <p>receive : {{scope.row.ReceiveBytesText}}</p>
                         </div>
                     </template>
                 </el-table-column>

@@ -95,7 +95,7 @@ namespace cmonitor.client
         public void SignOut()
         {
             if (clientSignInState.Connected)
-                clientSignInState.Connection.Disponse();
+                clientSignInState.Connection.Disponse(5);
         }
 
         public void UpdateName(string newName)
@@ -177,7 +177,7 @@ namespace cmonitor.client
             });
             if (resp.Code != MessageResponeCodes.OK || resp.Data.Span.SequenceEqual(Helper.TrueArray) == false)
             {
-                clientSignInState.Connection?.Disponse();
+                clientSignInState.Connection?.Disponse(6);
                 return false;
             }
             return true;

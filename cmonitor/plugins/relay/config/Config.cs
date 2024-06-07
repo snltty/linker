@@ -18,7 +18,7 @@ namespace cmonitor.config
         public RelayCompactInfo[] Servers { get; set; } = Array.Empty<RelayCompactInfo>();
         public string Certificate { get; set; } = "./snltty.pfx";
         public string Password { get; set; } = Helper.GlobalString;
-        public bool SSL { get; set; } = true;
+        
     }
 
     public sealed class RelayConfigServerInfo
@@ -37,6 +37,7 @@ namespace cmonitor.config
         public string SecretKey { get; set; } = "snltty";
         public string Host { get; set; } = string.Empty;
         public bool Disabled { get; set; }
+        public bool SSL { get; set; } = true;
     }
 
     public enum RelayCompactType : byte

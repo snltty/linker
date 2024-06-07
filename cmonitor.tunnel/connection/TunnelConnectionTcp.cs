@@ -24,6 +24,7 @@ namespace cmonitor.tunnel.connection
         public TunnelType Type { get; init; }
         public TunnelDirection Direction { get; init; }
         public IPEndPoint IPEndPoint { get; init; }
+        public bool SSL { get; init; }
 
         public bool Connected => Socket != null && Socket.Connected;
         public int Delay { get; private set; }
@@ -80,17 +81,35 @@ namespace cmonitor.tunnel.connection
                     if (Stream != null)
                     {
                         length = await Stream.ReadAsync(buffer, cancellationTokenSource.Token);
+                        if (length == 0)
+                        {
+                            break;
+                        }
+                        ReceiveBytes += length;
+                        await ReadPacket(buffer.AsMemory(0, length));
                     }
                     else
                     {
                         length = await Socket.ReceiveAsync(buffer, SocketFlags.None, cancellationTokenSource.Token);
+
+                        if (length == 0)
+                        {
+                            break;
+                        }
+                        ReceiveBytes += length;
+                        await ReadPacket(buffer.AsMemory(0, length));
+
+                        while (Socket.Available > 0)
+                        {
+                            length = Socket.Receive(buffer);
+                            if (length == 0)
+                            {
+                                break;
+                            }
+                            ReceiveBytes += length;
+                            await ReadPacket(buffer.AsMemory(0, length));
+                        }
                     }
-                    if (length == 0)
-                    {
-                        break;
-                    }
-                    ReceiveBytes += length;
-                    await ReadPacket(buffer.AsMemory(0, length));
                 }
             }
             catch (Exception ex)
@@ -157,7 +176,13 @@ namespace cmonitor.tunnel.connection
             }
             else
             {
-                await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
+                try
+                {
+                    await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                }
             }
         }
 
@@ -188,10 +213,12 @@ namespace cmonitor.tunnel.connection
             data.Length.ToBytes(heartData);
             data.AsMemory().CopyTo(heartData.AsMemory(4));
 
+            await semaphoreSlim.WaitAsync();
             try
             {
                 if (Stream != null)
                 {
+
                     await Stream.WriteAsync(heartData.AsMemory(0, length), cancellationTokenSource.Token);
                 }
                 else
@@ -203,6 +230,10 @@ namespace cmonitor.tunnel.connection
             catch (Exception)
             {
                 pong = true;
+            }
+            finally
+            {
+                semaphoreSlim.Release();
             }
 
             ArrayPool<byte>.Shared.Return(heartData);
@@ -219,8 +250,9 @@ namespace cmonitor.tunnel.connection
         }
         public async Task SendAsync(ReadOnlyMemory<byte> data)
         {
-            if (Stream != null) await semaphoreSlim.WaitAsync();
+            if (callback == null) return;
 
+            if (Stream != null) await semaphoreSlim.WaitAsync();
             try
             {
                 if (Stream != null)
@@ -229,7 +261,7 @@ namespace cmonitor.tunnel.connection
                 }
                 else
                 {
-                    await Socket.SendAsync(data, cancellationTokenSource.Token);
+                    await Socket.SendAsync(data, SocketFlags.None, cancellationTokenSource.Token);
                 }
                 SendBytes += data.Length;
                 ticks = Environment.TickCount64;

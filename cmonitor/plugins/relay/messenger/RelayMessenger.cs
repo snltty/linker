@@ -107,11 +107,7 @@ namespace cmonitor.plugins.relay.messenger
 
                     IConnection targetConnection = await tcsWrap.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(3000));
 
-                    int limit = info.SecretKey == config.Data.Server.Relay.SecretKey ? 0 : config.Data.Server.Relay.GuestRelayLmit;
-                    connection.TargetStream = targetConnection.SourceStream;
-                    connection.RelayLimit = (uint)limit;
-                    targetConnection.TargetStream = connection.SourceStream;
-                    targetConnection.RelayLimit = (uint)limit;
+                    Relay(connection, targetConnection, info.SecretKey);
 
                     connection.Write(Helper.TrueArray);
                 }
@@ -138,6 +134,25 @@ namespace cmonitor.plugins.relay.messenger
                 return;
             }
         }
+
+        private void Relay(IConnection source, IConnection target, string secretKey)
+        {
+            int limit = secretKey == config.Data.Server.Relay.SecretKey ? 0 : config.Data.Server.Relay.GuestRelayLmit;
+            source.TargetStream = target.SourceStream;
+            source.TargetSocket = target.SourceSocket;
+            source.TargetNetworkStream = target.SourceNetworkStream;
+            source.RelayLimit = (uint)limit;
+            target.TargetStream = source.SourceStream;
+            target.TargetSocket = source.SourceSocket;
+            target.TargetNetworkStream = source.SourceNetworkStream;
+            target.RelayLimit = (uint)limit;
+
+            source.Cancel();
+            target.Cancel();
+            _ = source.RelayAsync();
+            _ = target.RelayAsync();
+        }
+
         public sealed class TcsWrap
         {
             public TaskCompletionSource<IConnection> Tcs { get; set; }

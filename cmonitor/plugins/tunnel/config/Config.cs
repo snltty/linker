@@ -19,7 +19,6 @@ namespace cmonitor.config
 
         public string Certificate { get; set; } = "./snltty.pfx";
         public string Password { get; set; } = Helper.GlobalString;
-        public bool SSL { get; set; } = true;
 
         public List<TunnelTransportItemInfo> TunnelTransports { get; set; } = new List<TunnelTransportItemInfo>();
 
@@ -249,9 +248,12 @@ namespace cmonitor.config
         [MemoryPackInclude]
         TunnelDirection Direction => tunnelTransportInfo.Direction;
 
+        [MemoryPackInclude]
+        bool SSL => tunnelTransportInfo.SSL;
+
 
         [MemoryPackConstructor]
-        SerializableTunnelTransportInfo(TunnelTransportExternalIPInfo local, TunnelTransportExternalIPInfo remote, string transactionId, TunnelProtocolType transportType, string transportName, TunnelDirection direction)
+        SerializableTunnelTransportInfo(TunnelTransportExternalIPInfo local, TunnelTransportExternalIPInfo remote, string transactionId, TunnelProtocolType transportType, string transportName, TunnelDirection direction, bool ssl)
         {
             var tunnelTransportInfo = new TunnelTransportInfo
             {
@@ -260,7 +262,8 @@ namespace cmonitor.config
                 TransactionId = transactionId,
                 TransportName = transportName,
                 TransportType = transportType,
-                Direction = direction
+                Direction = direction,
+                SSL = ssl
             };
             this.tunnelTransportInfo = tunnelTransportInfo;
         }

@@ -35,11 +35,6 @@ namespace cmonitor.tunnel.transport
         public TransportMsQuic(ITunnelAdapter tunnelAdapter)
         {
             this.tunnelAdapter = tunnelAdapter;
-            if (tunnelAdapter.Certificate == null)
-            {
-                Logger.Instance.Error($"Certificate not found");
-                Environment.Exit(0);
-            }
             _ = QuicStart();
         }
 
@@ -50,6 +45,12 @@ namespace cmonitor.tunnel.transport
                 if (QuicListener.IsSupported == false)
                 {
                     Logger.Instance.Error($"msquic not supported, need win11+,or linux");
+                    await OnSendConnectFail(tunnelTransportInfo);
+                    return null;
+                }
+                if (tunnelAdapter.Certificate == null)
+                {
+                    Logger.Instance.Error($"msquic need ssl");
                     await OnSendConnectFail(tunnelTransportInfo);
                     return null;
                 }
@@ -98,6 +99,12 @@ namespace cmonitor.tunnel.transport
             {
                 if (QuicListener.IsSupported == false)
                 {
+                    OnSendConnectFail(tunnelTransportInfo);
+                    return;
+                }
+                if (tunnelAdapter.Certificate == null)
+                {
+                    Logger.Instance.Error($"msquic need ssl");
                     OnSendConnectFail(tunnelTransportInfo);
                     return;
                 }
@@ -600,6 +607,11 @@ namespace cmonitor.tunnel.transport
                 if (QuicListener.IsSupported == false)
                 {
                     Logger.Instance.Error($"msquic not supported, need win11+,or linux");
+                    return;
+                }
+                if (tunnelAdapter.Certificate == null)
+                {
+                    Logger.Instance.Error($"msquic need ssl");
                     return;
                 }
 

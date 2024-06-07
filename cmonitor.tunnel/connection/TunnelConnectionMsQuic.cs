@@ -25,6 +25,7 @@ namespace cmonitor.tunnel.connection
         public TunnelType Type { get; init; }
         public TunnelDirection Direction { get; init; }
         public IPEndPoint IPEndPoint { get; init; }
+        public bool SSL => true;
 
         public bool Connected => Stream != null && Stream.CanWrite;
         public int Delay { get; private set; }
@@ -158,7 +159,13 @@ namespace cmonitor.tunnel.connection
             }
             else
             {
-                await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
+                try
+                {
+                    await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                }
             }
         }
 

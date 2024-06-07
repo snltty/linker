@@ -39,7 +39,7 @@ namespace cmonitor.tunnel
             }
 
             var transportItems = tunnelMessengerAdapter.GetTunnelTransports();
-            transportItems = transportItems.Concat(transports.Select(c => new TunnelTransportItemInfo { Reverse = true, Disabled = false, Label = c.Label, Name = c.Name, ProtocolType = c.ProtocolType.ToString() }))
+            transportItems = transportItems.Concat(transports.Select(c => new TunnelTransportItemInfo { Label = c.Label, Name = c.Name, ProtocolType = c.ProtocolType.ToString() }))
                 .Distinct(new TunnelTransportItemInfoEqualityComparer())
                 .ToList();
             tunnelMessengerAdapter.SetTunnelTransports(transportItems);
@@ -123,6 +123,7 @@ namespace cmonitor.tunnel
                             TransportType = transport.ProtocolType,
                             Local = localInfo,
                             Remote = remoteInfo,
+                            SSL = transportItem.SSL
                         };
                         OnConnecting(tunnelTransportInfo);
                         ITunnelConnection connection = await transport.ConnectAsync(tunnelTransportInfo);

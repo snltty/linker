@@ -7,9 +7,6 @@ namespace cmonitor.tunnel.adapter
 {
     public interface ITunnelAdapter
     {
-
-        public bool SSL { get; }
-
         /// <summary>
         /// 本机局域网IP，用于UDP打洞绑定
         /// </summary>

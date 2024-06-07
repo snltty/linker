@@ -26,11 +26,6 @@ namespace cmonitor.tunnel.transport
         public TunnelTransportTcpNutssb(ITunnelAdapter tunnelAdapter)
         {
             this.tunnelAdapter = tunnelAdapter;
-            if (tunnelAdapter.Certificate == null)
-            {
-                Logger.Instance.Error($"Certificate not found");
-                Environment.Exit(0);
-            }
         }
 
         public async Task<ITunnelConnection> ConnectAsync(TunnelTransportInfo tunnelTransportInfo)
@@ -74,6 +69,13 @@ namespace cmonitor.tunnel.transport
         }
         public void OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
+            if (tunnelTransportInfo.SSL && tunnelAdapter.Certificate == null)
+            {
+                Logger.Instance.Error($"{Name}->ssl Certificate not found");
+                _ = OnSendConnectSuccess(tunnelTransportInfo);
+                return;
+            }
+
             if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
             {
                 _ = StartListen(tunnelTransportInfo.Local.Local, tunnelTransportInfo);
@@ -162,7 +164,7 @@ namespace cmonitor.tunnel.transport
                     await targetSocket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(ep.Address.Equals(tunnelTransportInfo.Remote.Remote.Address) ? 500 : 100));
 
                     SslStream sslStream = null;
-                    if (tunnelAdapter.SSL)
+                    if (tunnelTransportInfo.SSL)
                     {
                         sslStream = new SslStream(new NetworkStream(targetSocket, false), false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                         await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 });
@@ -180,7 +182,8 @@ namespace cmonitor.tunnel.transport
                         ProtocolType = ProtocolType,
                         Type = TunnelType.P2P,
                         Mode = TunnelMode.Client,
-                        Label = string.Empty
+                        Label = string.Empty,
+                        SSL = tunnelTransportInfo.SSL
                     };
                 }
                 catch (Exception)
@@ -261,8 +264,15 @@ namespace cmonitor.tunnel.transport
                 try
                 {
                     SslStream sslStream = null;
-                    if (tunnelAdapter.SSL)
+                    if (_state.SSL)
                     {
+                        if (tunnelAdapter.Certificate == null)
+                        {
+                            Logger.Instance.Error($"{Name}-> ssl Certificate not found");
+                            socket.SafeClose();
+                            return;
+                        }
+
                         sslStream = new SslStream(new NetworkStream(socket, false), false);
                         await sslStream.AuthenticateAsServerAsync(tunnelAdapter.Certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false);
                     }
@@ -280,6 +290,7 @@ namespace cmonitor.tunnel.transport
                         TransportName = _state.TransportName,
                         IPEndPoint = socket.RemoteEndPoint as IPEndPoint,
                         Label = string.Empty,
+                        SSL = _state.SSL
                     };
                     if (reverseDic.TryRemove(_state.Remote.MachineName, out TaskCompletionSource<ITunnelConnection> tcs))
                     {
@@ -304,6 +315,7 @@ namespace cmonitor.tunnel.transport
         {
             IPAddress localIP = NetworkHelper.IPv6Support ? IPAddress.IPv6Any : IPAddress.Any;
             Socket socket = new Socket(localIP.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+            socket.ReceiveBufferSize = 128 * 1024;
             socket.IPv6Only(localIP.AddressFamily, false);
             socket.ReuseBind(new IPEndPoint(localIP, local.Port));
             socket.Listen(int.MaxValue);
