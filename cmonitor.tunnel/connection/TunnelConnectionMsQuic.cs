@@ -219,7 +219,7 @@ namespace cmonitor.tunnel.connection
             await SendPingPong(pingBytes);
         }
         private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
-        public async Task SendAsync(ReadOnlyMemory<byte> data)
+        public async ValueTask<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             await semaphoreSlim.WaitAsync();
             try
@@ -227,6 +227,7 @@ namespace cmonitor.tunnel.connection
                 await Stream.WriteAsync(data, cancellationTokenSource.Token);
                 SendBytes += data.Length;
                 ticks = Environment.TickCount64;
+                return true;
             }
             catch (Exception ex)
             {
@@ -239,10 +240,12 @@ namespace cmonitor.tunnel.connection
             {
                 semaphoreSlim.Release();
             }
+            return false;
         }
 
         public void Dispose()
         {
+            callback?.Closed(this, userToken);
             callback = null;
             userToken = null;
             cancellationTokenSource?.Cancel();

@@ -2,7 +2,6 @@
 using common.libs;
 using common.libs.extends;
 using System.Buffers;
-using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 
@@ -47,7 +46,16 @@ namespace cmonitor.tunnel.proxy
         }
         public async Task Closed(ITunnelConnection connection, object userToken)
         {
-            CloseClientSocket(userToken as AsyncUserToken);
+            try
+            {
+                CloseClientSocketTcp(connection);
+                CloseClientSocketUdp(connection);
+            }
+            catch (Exception ex)
+            {
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    Logger.Instance.Error(ex);
+            }
             await Task.CompletedTask;
         }
         private async Task ReadConnectionPack(AsyncUserTunnelToken token)

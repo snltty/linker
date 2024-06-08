@@ -3,7 +3,6 @@ using common.libs;
 using common.libs.extends;
 using System.Buffers;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 
@@ -174,14 +173,14 @@ namespace cmonitor.tunnel.proxy
                             token.Paused = false;
                         }
                     }
-                    
+
                     if (token.Socket.Connected == false)
                     {
                         await SendToConnectionClose(token).ConfigureAwait(false);
                         CloseClientSocket(token);
                         return;
                     }
-                    
+
                     if (token.Socket.ReceiveAsync(e) == false)
                     {
                         ProcessReceive(e);
@@ -250,7 +249,11 @@ namespace cmonitor.tunnel.proxy
 
             try
             {
-                await token.Connection.SendAsync(connectData.AsMemory(0, length)).ConfigureAwait(false);
+                bool res = await token.Connection.SendAsync(connectData.AsMemory(0, length)).ConfigureAwait(false);
+                if (res == false)
+                {
+                    CloseClientSocket(token);
+                }
             }
             catch (Exception ex)
             {
@@ -396,9 +399,9 @@ namespace cmonitor.tunnel.proxy
             {
                 try
                 {
-                  
+
                     await token1.Socket.SendAsync(tunnelToken.Proxy.Data, SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(1000)).ConfigureAwait(false);
-                  
+
                 }
                 catch (Exception ex)
                 {
@@ -420,6 +423,24 @@ namespace cmonitor.tunnel.proxy
                 tcpConnections.TryRemove(new ConnectId(token.Proxy.ConnectId, token.Connection.GetHashCode(), (byte)token.Proxy.Direction), out _);
             }
             token.Clear();
+        }
+        private void CloseClientSocketTcp(ITunnelConnection connection)
+        {
+            int hashcode = connection.GetHashCode();
+            var tokens = tcpConnections.Where(c => c.Key.hashcode == hashcode).ToList();
+            foreach (var item in tokens)
+            {
+                try
+                {
+                    if (tcpConnections.TryRemove(item.Key, out AsyncUserToken token))
+                    {
+                        token.Clear();
+                    }
+                }
+                catch (Exception)
+                {
+                }
+            }
         }
 
         public void StopTcp()

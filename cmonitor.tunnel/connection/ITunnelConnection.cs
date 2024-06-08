@@ -50,7 +50,7 @@ namespace cmonitor.tunnel.connection
         public long ReceiveBytes { get; }
 
         public Task SendPing();
-        public Task SendAsync(ReadOnlyMemory<byte> data);
+        public ValueTask<bool> SendAsync(ReadOnlyMemory<byte> data);
         public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken, bool framing = true);
 
         public void Dispose();

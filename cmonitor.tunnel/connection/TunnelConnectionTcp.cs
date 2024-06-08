@@ -239,9 +239,9 @@ namespace cmonitor.tunnel.connection
             pingStart = Environment.TickCount64;
             await SendPingPong(pingBytes);
         }
-        public async Task SendAsync(ReadOnlyMemory<byte> data)
+        public async ValueTask<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
-            if (callback == null) return;
+            if (callback == null) return false;
 
             if (Stream != null)
                 await semaphoreSlim.WaitAsync();
@@ -257,6 +257,7 @@ namespace cmonitor.tunnel.connection
                 }
                 SendBytes += data.Length;
                 ticks = Environment.TickCount64;
+                return true;
             }
             catch (Exception ex)
             {
@@ -271,10 +272,12 @@ namespace cmonitor.tunnel.connection
                 if (Stream != null)
                     semaphoreSlim.Release();
             }
+            return false;
         }
 
         public void Dispose()
         {
+            callback?.Closed(this,userToken);
             callback = null;
             userToken = null;
             cancellationTokenSource?.Cancel();

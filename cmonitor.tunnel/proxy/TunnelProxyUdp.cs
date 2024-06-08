@@ -71,7 +71,11 @@ namespace cmonitor.tunnel.proxy
             byte[] connectData = token.Proxy.ToBytes(out int length);
             try
             {
-                await token.Connection.SendAsync(connectData.AsMemory(0, length)).ConfigureAwait(false);
+                bool res = await token.Connection.SendAsync(connectData.AsMemory(0, length)).ConfigureAwait(false);
+                if (res == false)
+                {
+                    CloseClientSocket(token);
+                }
             }
             catch (Exception)
             {
@@ -213,7 +217,11 @@ namespace cmonitor.tunnel.proxy
             byte[] connectData = token.Proxy.ToBytes(out int length);
             try
             {
-                await token.Connection.SendAsync(connectData.AsMemory(0, length)).ConfigureAwait(false);
+                bool res = await token.Connection.SendAsync(connectData.AsMemory(0, length)).ConfigureAwait(false);
+                if (res == false)
+                {
+                    CloseClientSocket(token);
+                }
             }
             catch (Exception)
             {
@@ -227,7 +235,24 @@ namespace cmonitor.tunnel.proxy
         }
 
 
-
+        private void CloseClientSocketUdp(ITunnelConnection connection)
+        {
+            int hashcode = connection.GetHashCode();
+            var tokens = udpConnections.Where(c => c.Key.hashcode == hashcode).ToList();
+            foreach (var item in tokens)
+            {
+                try
+                {
+                    if (udpConnections.TryRemove(item.Key, out AsyncUserUdpTokenTarget token))
+                    {
+                        token.Clear();
+                    }
+                }
+                catch (Exception)
+                {
+                }
+            }
+        }
         private void CloseClientSocket(AsyncUserUdpToken token)
         {
             if (token == null) return;

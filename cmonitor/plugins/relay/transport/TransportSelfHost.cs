@@ -39,6 +39,7 @@ namespace cmonitor.plugins.relay.transport
         public async Task<ITunnelConnection> RelayAsync(RelayInfo relayInfo)
         {
             Socket socket = new Socket(relayInfo.Server.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+            socket.NoDelay = true;
             socket.Reuse(true);
             socket.IPv6Only(relayInfo.Server.AddressFamily, false);
             await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromMilliseconds(500));
@@ -90,6 +91,7 @@ namespace cmonitor.plugins.relay.transport
         public async Task<ITunnelConnection> OnBeginAsync(RelayInfo relayInfo)
         {
             Socket socket = new Socket(relayInfo.Server.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+            socket.NoDelay = true;
             socket.Reuse(true);
             socket.IPv6Only(relayInfo.Server.AddressFamily, false);
             await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromMilliseconds(500));
