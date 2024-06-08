@@ -127,7 +127,7 @@ namespace cmonitor.tunnel.proxy
                         Connection = tunnelToken.Connection
                     };
                     udpToken.Proxy.Direction = ProxyDirection.Reverse;
-                    udpToken.PoolBuffer = new byte[65535];
+                    udpToken.PoolBuffer = new byte[64 * 1024];
                     udpConnections.AddOrUpdate(connectId, udpToken, (a, b) => udpToken);
 
                     await udpToken.TargetSocket.SendToAsync(tunnelToken.Proxy.Data, SocketFlags.None, tunnelToken.Proxy.TargetEP);

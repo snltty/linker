@@ -174,14 +174,14 @@ namespace cmonitor.tunnel.proxy
                             token.Paused = false;
                         }
                     }
-
+                    
                     if (token.Socket.Connected == false)
                     {
                         await SendToConnectionClose(token).ConfigureAwait(false);
                         CloseClientSocket(token);
                         return;
                     }
-
+                    
                     if (token.Socket.ReceiveAsync(e) == false)
                     {
                         ProcessReceive(e);

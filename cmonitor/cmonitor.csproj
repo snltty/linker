@@ -16,6 +16,7 @@
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>cmonitor.snk</AssemblyOriginatorKeyFile>
 		<EnablePreviewFeatures>true</EnablePreviewFeatures>
+		<ServerGarbageCollection>false</ServerGarbageCollection>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

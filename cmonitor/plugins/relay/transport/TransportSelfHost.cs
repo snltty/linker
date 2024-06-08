@@ -112,7 +112,6 @@ namespace cmonitor.plugins.relay.transport
                     connection.Disponse(8);
                     return null;
                 }
-                Console.WriteLine($"relay begin {socket.GetHashCode()}:{socket.Connected}");
                 sslStream = new SslStream(connection.SourceNetworkStream, false);
                 await sslStream.AuthenticateAsServerAsync(certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false);
             }

@@ -78,34 +78,25 @@ namespace cmonitor.tunnel.connection
                 int length = 0;
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
+
                     if (Stream != null)
                     {
-                        length = await Stream.ReadAsync(buffer, cancellationTokenSource.Token);
-                        if (length == 0)
-                        {
-                            break;
-                        }
+                        length = await Stream.ReadAsync(buffer);
+                        if (length == 0) break;
                         ReceiveBytes += length;
                         await ReadPacket(buffer.AsMemory(0, length));
                     }
                     else
                     {
-                        length = await Socket.ReceiveAsync(buffer, SocketFlags.None, cancellationTokenSource.Token);
-
-                        if (length == 0)
-                        {
-                            break;
-                        }
+                        length = await Socket.ReceiveAsync(buffer, SocketFlags.None);
+                        if (length == 0) break;
                         ReceiveBytes += length;
                         await ReadPacket(buffer.AsMemory(0, length));
 
                         while (Socket.Available > 0)
                         {
                             length = Socket.Receive(buffer);
-                            if (length == 0)
-                            {
-                                break;
-                            }
+                            if (length == 0) break;
                             ReceiveBytes += length;
                             await ReadPacket(buffer.AsMemory(0, length));
                         }
@@ -219,11 +210,11 @@ namespace cmonitor.tunnel.connection
                 if (Stream != null)
                 {
 
-                    await Stream.WriteAsync(heartData.AsMemory(0, length), cancellationTokenSource.Token);
+                    await Stream.WriteAsync(heartData.AsMemory(0, length));
                 }
                 else
                 {
-                    await Socket.SendAsync(heartData.AsMemory(0, length), cancellationTokenSource.Token);
+                    await Socket.SendAsync(heartData.AsMemory(0, length));
                 }
 
             }
@@ -252,16 +243,17 @@ namespace cmonitor.tunnel.connection
         {
             if (callback == null) return;
 
-            if (Stream != null) await semaphoreSlim.WaitAsync();
+            if (Stream != null)
+                await semaphoreSlim.WaitAsync();
             try
             {
                 if (Stream != null)
                 {
-                    await Stream.WriteAsync(data, cancellationTokenSource.Token);
+                    await Stream.WriteAsync(data);
                 }
                 else
                 {
-                    await Socket.SendAsync(data, SocketFlags.None, cancellationTokenSource.Token);
+                    await Socket.SendAsync(data, SocketFlags.None);
                 }
                 SendBytes += data.Length;
                 ticks = Environment.TickCount64;
@@ -276,7 +268,8 @@ namespace cmonitor.tunnel.connection
             }
             finally
             {
-                if (Stream != null) semaphoreSlim.Release();
+                if (Stream != null)
+                    semaphoreSlim.Release();
             }
         }
 

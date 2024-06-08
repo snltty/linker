@@ -1,7 +1,6 @@
 ﻿using common.libs.extends;
 using common.libs;
 using System.Buffers;
-using System.IO.Pipelines;
 using System.Net.Quic;
 using System.Net;
 using System.Text;
@@ -48,7 +47,6 @@ namespace cmonitor.tunnel.connection
         private CancellationTokenSource cancellationTokenSource;
         private object userToken;
         private bool framing;
-        private Pipe pipe;
         private ReceiveDataBuffer bufferCache = new ReceiveDataBuffer();
 
         private long ticks = Environment.TickCount64;
@@ -195,6 +193,7 @@ namespace cmonitor.tunnel.connection
             data.Length.ToBytes(heartData);
             data.AsMemory().CopyTo(heartData.AsMemory(4));
 
+            await semaphoreSlim.WaitAsync();
             try
             {
                 await Stream.WriteAsync(heartData.AsMemory(0, length), cancellationTokenSource.Token);
@@ -202,6 +201,10 @@ namespace cmonitor.tunnel.connection
             catch (Exception)
             {
                 pong = true;
+            }
+            finally
+            {
+                semaphoreSlim.Release();
             }
 
             ArrayPool<byte>.Shared.Return(heartData);
@@ -215,8 +218,10 @@ namespace cmonitor.tunnel.connection
             pingStart = Environment.TickCount64;
             await SendPingPong(pingBytes);
         }
+        private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
         public async Task SendAsync(ReadOnlyMemory<byte> data)
         {
+            await semaphoreSlim.WaitAsync();
             try
             {
                 await Stream.WriteAsync(data, cancellationTokenSource.Token);
@@ -232,6 +237,7 @@ namespace cmonitor.tunnel.connection
             }
             finally
             {
+                semaphoreSlim.Release();
             }
         }
 
@@ -249,15 +255,6 @@ namespace cmonitor.tunnel.connection
             LocalUdp?.Close();
             remoteUdp?.Close();
 
-            try
-            {
-                pipe?.Writer.Complete();
-                pipe?.Reader.Complete();
-            }
-            catch (Exception)
-            {
-            }
-            pipe = null;
         }
 
         public override string ToString()

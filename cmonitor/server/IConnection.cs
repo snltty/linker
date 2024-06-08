@@ -370,6 +370,7 @@ namespace cmonitor.server
             data.Length.ToBytes(heartData);
             data.AsMemory().CopyTo(heartData.AsMemory(4));
 
+            await semaphoreSlim.WaitAsync();
             try
             {
                 if (SourceStream != null)
@@ -385,6 +386,10 @@ namespace cmonitor.server
             catch (Exception)
             {
                 pong = true;
+            }
+            finally
+            {
+                semaphoreSlim.Release();
             }
 
             ArrayPool<byte>.Shared.Return(heartData);

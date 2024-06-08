@@ -16,7 +16,7 @@ namespace cmonitor.tunnel.transport
     {
         public string Name => "msquic";
 
-        public string Label => "UDP over MsQuic，win10+、linux";
+        public string Label => "MsQuic，win10+、linux";
 
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Quic;
 
@@ -31,7 +31,7 @@ namespace cmonitor.tunnel.transport
         private byte[] endBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.end");
         private IPEndPoint quicListenEP = null;
 
-        private readonly ITunnelAdapter  tunnelAdapter;
+        private readonly ITunnelAdapter tunnelAdapter;
         public TransportMsQuic(ITunnelAdapter tunnelAdapter)
         {
             this.tunnelAdapter = tunnelAdapter;
@@ -184,9 +184,9 @@ namespace cmonitor.tunnel.transport
                 Received = false,
                 RemoteUdp = localUdp,
             };
-            remoteUdp.BeginReceive(ListenConnectCallback, token);
+            _ = ListenConnectCallback(token);
 
-            localUdp.BeginReceive(ListenConnectCallback, new ListenAsyncToken
+            _ = ListenConnectCallback(new ListenAsyncToken
             {
                 LocalUdp = localUdp,
                 Received = false,
@@ -197,27 +197,36 @@ namespace cmonitor.tunnel.transport
 
             return localUdp;
         }
-        private void ListenConnectCallback(IAsyncResult result)
+        private async Task ListenConnectCallback(ListenAsyncToken token)
         {
-            ListenAsyncToken token = result.AsyncState as ListenAsyncToken;
             try
             {
-                byte[] bytes = token.LocalUdp.EndReceive(result, ref token.tempEP);
-                if (token.Received == false)
+                while (true)
                 {
-                    if (token.State is ListenAsyncToken targetToken)
+                    UdpReceiveResult result = await token.LocalUdp.ReceiveAsync();
+                    if (result.Buffer.Length == 0) break;
+
+                    if (token.Received == false)
                     {
-                        targetToken.RemoteEP = token.tempEP;
+                        if (token.State is ListenAsyncToken targetToken)
+                        {
+                            targetToken.RemoteEP = result.RemoteEndPoint;
+                        }
                     }
+                    token.Received = true;
+
+                    token.RemoteUdp.Send(result.Buffer, token.RemoteEP);
                 }
-                token.Received = true;
-
-                token.RemoteUdp.Send(bytes, token.RemoteEP);
-
-                token.LocalUdp.BeginReceive(ListenConnectCallback, token);
 
             }
-            catch (Exception)
+            catch (Exception ex)
+            {
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    Logger.Instance.Error(ex);
+                }
+            }
+            finally
             {
                 try
                 {
@@ -255,6 +264,18 @@ namespace cmonitor.tunnel.transport
                 eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port));
                 eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port + 1));
             }
+            //本机有V6
+            bool hasV6 = tunnelTransportInfo.Local.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6);
+            //本机的局域网ip和外网ip
+            List<IPAddress> localLocalIps = tunnelTransportInfo.Local.LocalIps.Concat(new List<IPAddress> { tunnelTransportInfo.Local.Remote.Address }).ToList();
+            eps = eps
+                //对方是V6，本机也得有V6
+                .Where(c => (c.AddressFamily == AddressFamily.InterNetworkV6 && hasV6) == false)
+                //端口和本机端口一样，那不应该是换回地址
+                .Where(c => (c.Port == tunnelTransportInfo.Local.Local.Port && c.Address.Equals(IPAddress.Loopback)) == false)
+                //端口和本机端口一样。那不应该是本机的IP
+                .Where(c => (c.Port == tunnelTransportInfo.Local.Local.Port && localLocalIps.Any(d => d.Equals(c.Address))) == false)
+                .ToList();
 
             if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
@@ -368,7 +389,7 @@ namespace cmonitor.tunnel.transport
                     Tcs = new TaskCompletionSource<bool>(),
                     State = state
                 };
-                udpClient.BeginReceive(ListenReceiveCallback, token);
+                _ = ListenReceiveCallback(token);
 
 
                 udpClient6.Client.ReuseBind(new IPEndPoint(IPAddress.IPv6Any, local.Port));
@@ -381,7 +402,7 @@ namespace cmonitor.tunnel.transport
                     Tcs = token.Tcs,
                     State = state
                 };
-                udpClient6.BeginReceive(ListenReceiveCallback, token6);
+                _ = ListenReceiveCallback(token6);
 
                 bool result = await token.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(30000));
             }
@@ -395,57 +416,60 @@ namespace cmonitor.tunnel.transport
                 }
             }
         }
-        private void ListenReceiveCallback(IAsyncResult result)
+        private async Task ListenReceiveCallback(ListenAsyncToken token)
         {
-            ListenAsyncToken token = result.AsyncState as ListenAsyncToken;
             try
             {
+                while (true)
+                {
+                    UdpReceiveResult result = await token.LocalUdp.ReceiveAsync();
+                    if (result.Buffer.Length == 0) break;
 
-                byte[] bytes = token.LocalUdp.EndReceive(result, ref token.tempEP);
-                if (token.Step == ListenStep.Auth)
-                {
-                    if (bytes.Length == endBytes.Length && bytes.AsSpan().SequenceEqual(endBytes))
+                    if (token.Step == ListenStep.Auth)
                     {
-                        token.Step = ListenStep.Forward;
-                    }
-                    else
-                    {
-                        token.LocalUdp.Send(bytes, token.tempEP);
-                    }
-                    if (token.Tcs != null && token.Tcs.Task.IsCompleted == false)
-                    {
-                        token.Tcs.SetResult(true);
-                    }
-                }
-                else
-                {
-                    if (token.RemoteUdp == null)
-                    {
-                        token.RemoteUdp = new UdpClient();
-                        token.RemoteUdp.Client.WindowsUdpBug();
-                    }
-                    if (token.Received == false)
-                    {
-                        token.RemoteUdp.Send(bytes, token.RemoteEP);
-                        token.Received = true;
-                        token.RealRemoteEP = token.tempEP;
-                        stateDic.AddOrUpdate((token.RemoteUdp.Client.LocalEndPoint as IPEndPoint).Port, token, (a, b) => token);
-                        token.RemoteUdp.BeginReceive(ListenReceiveCallback, new ListenAsyncToken
+                        if (result.Buffer.Length == endBytes.Length && result.Buffer.AsSpan().SequenceEqual(endBytes))
                         {
-                            LocalUdp = token.RemoteUdp,
-                            Step = ListenStep.Forward,
-                            RemoteEP = token.tempEP,
-                            RemoteUdp = token.LocalUdp,
-                            RealRemoteEP = token.tempEP,
-                            Received = true,
-                        });
+                            token.Step = ListenStep.Forward;
+                        }
+                        else
+                        {
+                            token.LocalUdp.Send(result.Buffer, result.RemoteEndPoint);
+                        }
+                        if (token.Tcs != null && token.Tcs.Task.IsCompleted == false)
+                        {
+                            token.Tcs.SetResult(true);
+                        }
                     }
                     else
                     {
-                        token.RemoteUdp.Send(bytes, token.RemoteEP);
+                        if (token.RemoteUdp == null)
+                        {
+                            token.RemoteUdp = new UdpClient();
+                            token.RemoteUdp.Client.WindowsUdpBug();
+                        }
+                        if (token.Received == false)
+                        {
+                            token.RemoteUdp.Send(result.Buffer, token.RemoteEP);
+                            token.Received = true;
+                            token.RealRemoteEP = result.RemoteEndPoint;
+                            stateDic.AddOrUpdate((token.RemoteUdp.Client.LocalEndPoint as IPEndPoint).Port, token, (a, b) => token);
+
+                            _ = ListenReceiveCallback(new ListenAsyncToken
+                            {
+                                LocalUdp = token.RemoteUdp,
+                                Step = ListenStep.Forward,
+                                RemoteEP = result.RemoteEndPoint,
+                                RemoteUdp = token.LocalUdp,
+                                RealRemoteEP = result.RemoteEndPoint,
+                                Received = true,
+                            });
+                        }
+                        else
+                        {
+                            token.RemoteUdp.Send(result.Buffer, token.RemoteEP);
+                        }
                     }
                 }
-                token.LocalUdp.BeginReceive(ListenReceiveCallback, token);
             }
             catch (Exception ex)
             {
@@ -453,6 +477,9 @@ namespace cmonitor.tunnel.transport
                 {
                     Logger.Instance.Error(ex);
                 }
+            }
+            finally
+            {
                 try
                 {
                     stateDic.TryRemove((token.RemoteUdp.Client.LocalEndPoint as IPEndPoint).Port, out _);
@@ -469,7 +496,6 @@ namespace cmonitor.tunnel.transport
             //给对方发送TTL消息
             IPAddress[] localIps = tunnelTransportInfo.Remote.LocalIps.Where(c => c.Equals(tunnelTransportInfo.Remote.Local.Address) == false).ToArray();
             List<IPEndPoint> eps = new List<IPEndPoint>();
-
             foreach (IPAddress item in localIps)
             {
                 eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Local.Port));
@@ -481,9 +507,21 @@ namespace cmonitor.tunnel.transport
                 new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port),
                 new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port+1),
             });
+            //本机有V6
+            bool hasV6 = tunnelTransportInfo.Local.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6);
+            //本机的局域网ip和外网ip
+            List<IPAddress> localLocalIps = tunnelTransportInfo.Local.LocalIps.Concat(new List<IPAddress> { tunnelTransportInfo.Local.Remote.Address }).ToList();
+            eps = eps
+                //对方是V6，本机也得有V6
+                .Where(c => (c.AddressFamily == AddressFamily.InterNetworkV6 && hasV6) == false)
+                //端口和本机端口一样，那不应该是换回地址
+                .Where(c => (c.Port == tunnelTransportInfo.Local.Local.Port && c.Address.Equals(IPAddress.Loopback)) == false)
+                //端口和本机端口一样。那不应该是本机的IP
+                .Where(c => (c.Port == tunnelTransportInfo.Local.Local.Port && localLocalIps.Any(d => d.Equals(c.Address))) == false)
+                .ToList();
 
             IPEndPoint local = new IPEndPoint(tunnelTransportInfo.Local.Local.Address, tunnelTransportInfo.Local.Local.Port);
-            foreach (var ip in eps.Where(c => NetworkHelper.NotIPv6Support(c.Address) == false))
+            foreach (var ip in eps)
             {
                 try
                 {
@@ -667,7 +705,6 @@ namespace cmonitor.tunnel.transport
         {
             public ListenStep Step { get; set; }
             public UdpClient LocalUdp { get; set; }
-            public IPEndPoint tempEP = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
 
             public UdpClient RemoteUdp { get; set; }
             public IPEndPoint RemoteEP { get; set; }

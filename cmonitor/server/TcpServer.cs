@@ -48,7 +48,7 @@ namespace cmonitor.server
         {
             IPEndPoint localEndPoint = new IPEndPoint(NetworkHelper.IPv6Support ? IPAddress.IPv6Any : IPAddress.Any, port);
             Socket socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            //socket.ReceiveBufferSize = 128 * 1024;
+            //socket.ReceiveBufferSize = 64 * 1024;
             socket.IPv6Only(localEndPoint.AddressFamily, false);
             socket.ReuseBind(localEndPoint);
             socket.Listen(int.MaxValue);
