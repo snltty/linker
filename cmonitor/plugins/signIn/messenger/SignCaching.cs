@@ -1,6 +1,8 @@
-﻿using cmonitor.server;
+﻿using cmonitor.db;
+using cmonitor.server;
 using common.libs;
 using common.libs.database;
+using LiteDB;
 using MemoryPack;
 using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -11,26 +13,28 @@ namespace cmonitor.plugins.signin.messenger
 {
     public sealed class SignCaching
     {
-        private readonly IConfigDataProvider<SignCacheFileInfo> configDataProvider;
-        private SignCacheFileInfo config;
-        private bool changed = false;
+        private readonly DBfactory dBfactory;
+        private readonly ILiteCollection<SignCacheInfo> liteCollection;
+        public ConcurrentDictionary<string, SignCacheInfo> Clients { get; set; } = new ConcurrentDictionary<string, SignCacheInfo>();
 
-        public SignCaching(IConfigDataProvider<SignCacheFileInfo> configDataProvider)
+        public SignCaching(DBfactory dBfactory)
         {
-            this.configDataProvider = configDataProvider;
-            config = configDataProvider.Load().Result ?? new SignCacheFileInfo();
-            foreach (var item in config.Clients.Values)
+            this.dBfactory = dBfactory;
+            liteCollection = dBfactory.GetCollection<SignCacheInfo>("signs");
+
+            foreach (var item in liteCollection.FindAll())
             {
                 item.Connected = false;
+                Clients.TryAdd(item.MachineName, item);
             }
-            SaveConfig();
         }
 
         public void Sign(IConnection connection, SignInfo signInfo)
         {
-            if (config.Clients.TryRemove(signInfo.MachineName, out SignCacheInfo cache))
+            if (Clients.TryRemove(signInfo.MachineName, out SignCacheInfo cache))
             {
                 cache.Connection?.Disponse(9);
+                liteCollection.Delete(cache.Id);
             }
             connection.Name = signInfo.MachineName;
             SignCacheInfo cache1 = new SignCacheInfo
@@ -41,8 +45,9 @@ namespace cmonitor.plugins.signin.messenger
                 Args = signInfo.Args,
                 GroupId = signInfo.GroupId,
             };
-            config.Clients.TryAdd(signInfo.MachineName, cache1);
-            changed = true;
+            Clients.TryAdd(signInfo.MachineName, cache1);
+            liteCollection.Insert(cache1);
+
         }
         public bool Get(string machineName, out SignCacheInfo cache)
         {
@@ -51,54 +56,31 @@ namespace cmonitor.plugins.signin.messenger
                 cache = null;
                 return false;
             }
-            return config.Clients.TryGetValue(machineName, out cache);
+            return Clients.TryGetValue(machineName, out cache);
         }
+
         public List<SignCacheInfo> Get(string groupId)
         {
-            return config.Clients.Values.Where(c => c.GroupId == groupId).ToList();
+            return Clients.Values.Where(c => c.GroupId == groupId).ToList();
         }
-
-
 
         public bool Del(string machineName)
         {
-            bool res = config.Clients.TryRemove(machineName, out _);
-            changed = true;
+            if (Clients.TryRemove(machineName, out SignCacheInfo cache))
+            {
+                liteCollection.Delete(cache.Id);
+                dBfactory.Confirm();
+            }
             return true;
         }
-
-        public void Update()
-        {
-            changed = true;
-        }
-
-        private void SaveConfig()
-        {
-            Task.Run(async () =>
-            {
-                while (true)
-                {
-                    if (changed == true)
-                    {
-                        changed = false;
-                        configDataProvider.Save(config).Wait();
-                    }
-                    await Task.Delay(5000);
-                }
-
-            });
-        }
-    }
-
-    [Table("sign")]
-    public sealed class SignCacheFileInfo
-    {
-        public ConcurrentDictionary<string, SignCacheInfo> Clients { get; set; } = new ConcurrentDictionary<string, SignCacheInfo>();
     }
 
     [MemoryPackable]
     public sealed partial class SignCacheInfo
     {
+        [MemoryPackIgnore]
+        public ObjectId Id { get; set; }
+
         public string MachineName { get; set; }
         public string Version { get; set; } = "1.0.0.0";
         public string GroupId { get; set; } = Helper.GlobalString;
@@ -141,8 +123,7 @@ namespace cmonitor.plugins.signin.messenger
             }
         }
 
-        [JsonIgnore]
-        [MemoryPackIgnore]
+        [MemoryPackIgnore, JsonIgnore, BsonIgnore]
         public IConnection Connection { get; set; }
     }
 

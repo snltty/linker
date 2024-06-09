@@ -1,4 +1,5 @@
 ﻿using cmonitor.client;
+using cmonitor.client.config;
 using cmonitor.config;
 using cmonitor.plugins.tunnel.messenger;
 using cmonitor.server;
@@ -20,40 +21,41 @@ namespace cmonitor.plugins.tunnel
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
         private readonly Config config;
+        private readonly RunningConfig running;
 
-        public TunnelAdapter(ClientSignInState clientSignInState, MessengerSender messengerSender, Config config)
+        public TunnelAdapter(ClientSignInState clientSignInState, MessengerSender messengerSender, Config config, RunningConfig running)
         {
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
             this.config = config;
+            this.running = running;
 
 
-            string path = Path.GetFullPath(config.Data.Client.Tunnel.Certificate);
+            string path = Path.GetFullPath(config.Data.Client.Certificate);
             if (File.Exists(path))
             {
-                Certificate = new X509Certificate(path, config.Data.Client.Tunnel.Password);
+                Certificate = new X509Certificate(path, config.Data.Client.Password);
             }
         }
 
-
         public List<TunnelCompactInfo> GetTunnelCompacts()
         {
-            return config.Data.Client.Tunnel.Servers.ToList();
+            return running.Data.Tunnel.Servers.ToList();
         }
         public void SetTunnelCompacts(List<TunnelCompactInfo> compacts)
         {
-            config.Data.Client.Tunnel.Servers = compacts.ToArray();
-            config.Save();
+            running.Data.Tunnel.Servers = compacts.ToArray();
+            running.Data.Update();
         }
 
         public List<TunnelTransportItemInfo> GetTunnelTransports()
         {
-            return config.Data.Client.Tunnel.TunnelTransports;
+            return running.Data.Tunnel.Transports;
         }
         public void SetTunnelTransports(List<TunnelTransportItemInfo> transports)
         {
-            config.Data.Client.Tunnel.TunnelTransports = transports;
-            config.Save();
+            running.Data.Tunnel.Transports = transports;
+            running.Data.Update();
         }
 
         public NetworkInfo GetLocalConfig()
@@ -61,7 +63,7 @@ namespace cmonitor.plugins.tunnel
             return new NetworkInfo
             {
                 LocalIps = config.Data.Client.Tunnel.LocalIPs,
-                RouteLevel = config.Data.Client.Tunnel.RouteLevel + config.Data.Client.Tunnel.RouteLevelPlus,
+                RouteLevel = config.Data.Client.Tunnel.RouteLevel + running.Data.Tunnel.RouteLevelPlus,
                 MachineName = config.Data.Client.Name
             };
         }

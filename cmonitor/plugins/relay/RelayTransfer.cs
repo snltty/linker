@@ -1,4 +1,5 @@
-﻿using cmonitor.config;
+﻿using cmonitor.client.config;
+using cmonitor.config;
 using cmonitor.plugins.relay.transport;
 using cmonitor.tunnel.connection;
 using common.libs;
@@ -13,15 +14,28 @@ namespace cmonitor.plugins.relay
     {
         private List<ITransport> transports;
 
-        private readonly Config config;
+        private readonly RunningConfig running;
         private readonly ServiceProvider serviceProvider;
 
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
-        public RelayTransfer(Config config, ServiceProvider serviceProvider)
+        public RelayTransfer(RunningConfig running, ServiceProvider serviceProvider, Config config)
         {
-            this.config = config;
+            this.running = running;
             this.serviceProvider = serviceProvider;
+
+            if (running.Data.Relay.Servers.Length == 0)
+            {
+                running.Data.Relay.Servers = new RelayCompactInfo[]
+                {
+                     new RelayCompactInfo{
+                         Name="默认",
+                         Type= RelayCompactType.Cmonitor,
+                         Disabled = false,
+                         Host = running.Data.Client.Servers.FirstOrDefault().Host
+                     }
+                };
+            }
         }
 
         public void Load(Assembly[] assembs)
@@ -39,8 +53,8 @@ namespace cmonitor.plugins.relay
 
         public void OnServers(RelayCompactInfo[] servers)
         {
-            config.Data.Client.Relay.Servers = servers;
-            config.Save();
+            running.Data.Relay.Servers = servers;
+            running.Data.Update();
         }
 
         public void SetConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
@@ -63,7 +77,7 @@ namespace cmonitor.plugins.relay
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineName, string transactionId)
         {
             IEnumerable<ITransport> _transports = transports.OrderBy(c => c.Type);
-            foreach (RelayCompactInfo item in config.Data.Client.Relay.Servers.Where(c => c.Disabled == false && string.IsNullOrWhiteSpace(c.Host) == false))
+            foreach (RelayCompactInfo item in running.Data.Relay.Servers.Where(c => c.Disabled == false && string.IsNullOrWhiteSpace(c.Host) == false))
             {
                 ITransport transport = _transports.FirstOrDefault(c => c.Type == item.Type);
                 if (transport == null)

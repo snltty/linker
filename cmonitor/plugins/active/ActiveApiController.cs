@@ -2,12 +2,12 @@
 using cmonitor.plugins.active.report;
 using cmonitor.plugins.signin.messenger;
 using cmonitor.server;
-using cmonitor.server.ruleConfig;
 using common.libs;
 using common.libs.extends;
 using MemoryPack;
 using common.libs.api;
 using cmonitor.server.sapi;
+using cmonitor.plugins.active.db;
 
 namespace cmonitor.plugins.active
 {
@@ -15,12 +15,13 @@ namespace cmonitor.plugins.active
     {
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;
-        private readonly IRuleConfig ruleConfig;
-        public ActiveApiController(MessengerSender messengerSender, SignCaching signCaching, IRuleConfig ruleConfig)
+        private readonly IActiveWindowDB activeWindowDB;
+
+        public ActiveApiController(MessengerSender messengerSender, SignCaching signCaching, IActiveWindowDB activeWindowDB)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
-            this.ruleConfig = ruleConfig;
+            this.activeWindowDB = activeWindowDB;
         }
         public async Task<ActiveWindowTimeReportInfo> Get(ApiControllerParamsInfo param)
         {
@@ -60,7 +61,6 @@ namespace cmonitor.plugins.active
         {
             if (signCaching.Get(param.Content, out SignCacheInfo cache) && cache.Connected)
             {
-                signCaching.Update();
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = cache.Connection,
@@ -109,27 +109,12 @@ namespace cmonitor.plugins.active
 
         public string Update(ApiControllerParamsInfo param)
         {
-            UpdateWindowGroupInfo model = param.Content.DeJson<UpdateWindowGroupInfo>();
-            ruleConfig.Set(model.UserName, "Windows", model.Data);
+            WindowUserInfo model = param.Content.DeJson<WindowUserInfo>();
+            activeWindowDB.Add(model);
             return string.Empty;
         }
     }
 
-    public sealed class UpdateWindowGroupInfo
-    {
-        public string UserName { get; set; }
-        public List<WindowGroupInfo> Data { get; set; } = new List<WindowGroupInfo>();
-    }
-    public sealed class WindowGroupInfo
-    {
-        public string Name { get; set; }
-        public List<WindowItemInfo> List { get; set; } = new List<WindowItemInfo>();
-    }
-    public sealed class WindowItemInfo
-    {
-        public string Name { get; set; }
-        public string Desc { get; set; }
-    }
 
 
     public sealed class DisallowInfo

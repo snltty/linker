@@ -25,19 +25,6 @@ namespace cmonitor.plugins.relay
             serviceCollection.AddSingleton<TransportSelfHost>();
             serviceCollection.AddSingleton<RelayTransfer>();
 
-
-            if (config.Data.Client.Relay.Servers.Length == 0)
-            {
-                config.Data.Client.Relay.Servers = new RelayCompactInfo[]
-                {
-                     new RelayCompactInfo{
-                         Name="默认",
-                         Type= RelayCompactType.Self,
-                         Disabled = false,
-                         Host = config.Data.Client.Servers.FirstOrDefault().Host
-                     }
-                };
-            }
         }
 
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)

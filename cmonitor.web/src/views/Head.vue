@@ -35,7 +35,7 @@
 <script>
 import { computed, onMounted, reactive, watch } from 'vue';
 import { initWebsocket, subWebsocketState,closeWebsocket } from '../apis/request'
-import { getRules, addName } from '../apis/rule'
+import { getRules } from '../apis/rule'
 import { getConfig } from '../apis/signin'
 import { useRoute, useRouter } from 'vue-router';
 import { injectGlobalData } from './provide';
@@ -83,6 +83,7 @@ export default {
                     }
                 }
                 globalData.value.usernames = res.Data;
+                globalData.value.usernames[globalData.value.username] = globalData.value.usernames[globalData.value.username] || {}
                 state.usernames = Object.keys(res.Data);
             }).catch(() => { });
         }
@@ -105,13 +106,6 @@ export default {
         const handleUsername = () => {
             saveCache();
             document.title = `班长-${globalData.value.username}`
-        }
-        const handleChange = (value) => {
-            addName(value).then(() => {
-                globalData.value.updateRuleFlag = Date.now();
-            }).catch(() => {
-                globalData.value.updateRuleFlag = Date.now();
-            })
         }
 
         onMounted(() => {

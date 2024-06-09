@@ -1,4 +1,5 @@
 ﻿using cmonitor.config;
+using cmonitor.plugins.modes.db;
 using cmonitor.startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -23,6 +24,7 @@ namespace cmonitor.plugins.modes
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<ModesApiController>();
+            serviceCollection.AddSingleton<IModesDB, ModesDB>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)

@@ -1,5 +1,6 @@
 ﻿using cmonitor.plugins.viewer.config;
 using common.libs;
+using LiteDB;
 using MemoryPack;
 using System.Net;
 
@@ -8,6 +9,9 @@ namespace cmonitor.plugins.viewer.config
     [MemoryPackable]
     public sealed partial class ViewerRunningConfigInfo
     {
+        [MemoryPackIgnore]
+        public ObjectId Id { get; set; }
+
         public ViewerMode Mode { get; set; }
 
         public bool Open { get; set; }
@@ -46,7 +50,7 @@ namespace cmonitor.plugins.viewer.config
 
 
 
-namespace cmonitor.client.running
+namespace cmonitor.client.config
 {
     public sealed partial class RunningConfigInfo
     {

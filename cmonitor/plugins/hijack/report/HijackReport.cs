@@ -3,7 +3,7 @@ using cmonitor.client.report;
 using cmonitor.config;
 using common.libs;
 using MemoryPack;
-using cmonitor.client.running;
+using cmonitor.client.config;
 
 namespace cmonitor.plugins.hijack.report
 {

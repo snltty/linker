@@ -9,7 +9,7 @@ export const provideGlobalData = () => {
         connected: false,
         updateFlag: false,
         height: 0,
-        config: { Common: {}, Client: {} },
+        config: { Common: {}, Client: {}, Running: {} },
         configed: false,
         signin: { Connected: false, Connecting: false },
         groupid: ''

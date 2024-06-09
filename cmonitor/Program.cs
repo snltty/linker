@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using cmonitor.startup;
 using cmonitor.config;
-using System.ServiceProcess;
 
 namespace cmonitor
 {
@@ -33,7 +32,6 @@ namespace cmonitor
             //注入
             serviceCollection.AddSingleton((e) => serviceProvider);
             serviceCollection.AddSingleton((a) => config);
-            serviceCollection.AddTransient(typeof(IConfigDataProvider<>), typeof(ConfigDataFileProvider<>));
             StartupTransfer.Add(serviceCollection, config, assemblies);
 
             //运行

@@ -286,6 +286,8 @@ namespace cmonitor.tunnel.proxy
 
         private void ConnectBind(AsyncUserTunnelToken token)
         {
+            if (token.Proxy.TargetEP == null) return;
+
             Socket socket = new Socket(token.Proxy.TargetEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.KeepAlive();
 

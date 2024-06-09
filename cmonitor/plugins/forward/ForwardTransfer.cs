@@ -1,5 +1,5 @@
 ﻿using cmonitor.client;
-using cmonitor.config;
+using cmonitor.client.config;
 using cmonitor.plugins.forward.proxy;
 using common.libs;
 
@@ -7,14 +7,14 @@ namespace cmonitor.plugins.forward
 {
     public sealed class ForwardTransfer
     {
-        private readonly Config config;
+        private readonly RunningConfig running;
         private readonly ForwardProxy forwardProxy;
 
         private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
 
-        public ForwardTransfer(Config config, ForwardProxy forwardProxy, ClientSignInState clientSignInState, ClientSignInTransfer clientSignInTransfer)
+        public ForwardTransfer(RunningConfig running, ForwardProxy forwardProxy, ClientSignInState clientSignInState, ClientSignInTransfer clientSignInTransfer)
         {
-            this.config = config;
+            this.running = running;
             this.forwardProxy = forwardProxy;
 
             clientSignInState.NetworkFirstEnabledHandle += () =>
@@ -23,7 +23,7 @@ namespace cmonitor.plugins.forward
             };
             clientSignInTransfer.NameChanged += (string oldName, string newName) =>
             {
-                foreach (var item in config.Data.Client.Forward.Forwards.Where(c=>c.MachineName == oldName))
+                foreach (var item in running.Data.Forwards.Where(c => c.MachineName == oldName))
                 {
                     item.MachineName = newName;
                 }
@@ -32,10 +32,10 @@ namespace cmonitor.plugins.forward
 
         private void Start()
         {
-            uint maxid = config.Data.Client.Forward.Forwards.Count > 0 ? config.Data.Client.Forward.Forwards.Max(c => c.ID) : 1;
+            uint maxid = running.Data.Forwards.Count > 0 ? running.Data.Forwards.Max(c => c.Id) : 1;
             ns.Reset(maxid);
 
-            foreach (var item in config.Data.Client.Forward.Forwards)
+            foreach (var item in running.Data.Forwards)
             {
                 if (item.Started)
                 {
@@ -79,17 +79,17 @@ namespace cmonitor.plugins.forward
 
         public Dictionary<string, List<ForwardInfo>> Get()
         {
-            return config.Data.Client.Forward.Forwards.GroupBy(c => c.MachineName).ToDictionary((a) => a.Key, (b) => b.ToList());
+            return running.Data.Forwards.GroupBy(c => c.MachineName).ToDictionary((a) => a.Key, (b) => b.ToList());
         }
         public bool Add(ForwardInfo forwardInfo)
         {
             //同名或者同端口，但是ID不一样
-            ForwardInfo old = config.Data.Client.Forward.Forwards.FirstOrDefault(c => (c.Port == forwardInfo.Port || c.Name == forwardInfo.Name) && c.MachineName == forwardInfo.MachineName);
-            if (old != null && old.ID != forwardInfo.ID) return false;
+            ForwardInfo old = running.Data.Forwards.FirstOrDefault(c => (c.Port == forwardInfo.Port || c.Name == forwardInfo.Name) && c.MachineName == forwardInfo.MachineName);
+            if (old != null && old.Id != forwardInfo.Id) return false;
 
-            if (forwardInfo.ID != 0)
+            if (forwardInfo.Id != 0)
             {
-                old = config.Data.Client.Forward.Forwards.FirstOrDefault(c => c.ID == forwardInfo.ID);
+                old = running.Data.Forwards.FirstOrDefault(c => c.Id == forwardInfo.Id);
                 if (old == null) return false;
 
                 old.Port = forwardInfo.Port;
@@ -100,10 +100,10 @@ namespace cmonitor.plugins.forward
             }
             else
             {
-                forwardInfo.ID = ns.Increment();
-                config.Data.Client.Forward.Forwards.Add(forwardInfo);
+                forwardInfo.Id = ns.Increment();
+                running.Data.Forwards.Add(forwardInfo);
             }
-            config.Save();
+            running.Data.Update();
             Start();
 
             return true;
@@ -111,13 +111,13 @@ namespace cmonitor.plugins.forward
         public bool Remove(uint id)
         {
             //同名或者同端口，但是ID不一样
-            ForwardInfo old = config.Data.Client.Forward.Forwards.FirstOrDefault(c => c.ID == id);
+            ForwardInfo old = running.Data.Forwards.FirstOrDefault(c => c.Id == id);
             if (old == null) return false;
 
             old.Started = false;
             Start();
-            config.Data.Client.Forward.Forwards.Remove(old);
-            config.Save();
+            running.Data.Forwards.Remove(old);
+            running.Data.Update();
 
             return true;
         }

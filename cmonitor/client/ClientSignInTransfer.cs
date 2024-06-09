@@ -1,4 +1,5 @@
 ﻿using cmonitor.client.args;
+using cmonitor.client.config;
 using cmonitor.config;
 using cmonitor.plugins.signin.messenger;
 using cmonitor.server;
@@ -13,6 +14,7 @@ namespace cmonitor.client
     public sealed class ClientSignInTransfer
     {
         private readonly ClientSignInState clientSignInState;
+        private readonly RunningConfig runningConfig;
         private readonly Config config;
         private readonly TcpServer tcpServer;
         private readonly MessengerSender messengerSender;
@@ -20,14 +22,17 @@ namespace cmonitor.client
 
         public Action<string, string> NameChanged { get; set; }
 
-        public ClientSignInTransfer(ClientSignInState clientSignInState, Config config, TcpServer tcpServer, MessengerSender messengerSender, SignInArgsTransfer signInArgsTransfer)
+        public ClientSignInTransfer(ClientSignInState clientSignInState, RunningConfig runningConfig, Config config, TcpServer tcpServer, MessengerSender messengerSender, SignInArgsTransfer signInArgsTransfer)
         {
             this.clientSignInState = clientSignInState;
+            this.runningConfig = runningConfig;
             this.config = config;
             this.tcpServer = tcpServer;
             this.messengerSender = messengerSender;
             this.signInArgsTransfer = signInArgsTransfer;
 
+            if (string.IsNullOrWhiteSpace(config.Data.Client.Server) && runningConfig.Data.Client.Servers.Length > 0)
+                config.Data.Client.Server = runningConfig.Data.Client.Servers.FirstOrDefault().Host;
             //SignInTask();
         }
 
@@ -135,12 +140,12 @@ namespace cmonitor.client
         {
             string server = config.Data.Client.Server;
 
-            config.Data.Client.Servers = servers;
-            if (config.Data.Client.Servers.Length > 0)
+            runningConfig.Data.Client.Servers = servers;
+            if (runningConfig.Data.Client.Servers.Length > 0)
             {
-                config.Data.Client.Server = config.Data.Client.Servers.FirstOrDefault().Host;
+                config.Data.Client.Server = runningConfig.Data.Client.Servers.FirstOrDefault().Host;
             }
-            config.Save();
+            runningConfig.Data.Update();
 
             if (server != config.Data.Client.Server)
             {

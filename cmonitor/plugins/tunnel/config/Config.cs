@@ -2,26 +2,38 @@
 using cmonitor.tunnel.connection;
 using cmonitor.tunnel.transport;
 using common.libs;
+using LiteDB;
 using MemoryPack;
 using System.Net;
 using System.Text.Json.Serialization;
+
+
+namespace cmonitor.client.config
+{
+    public sealed partial class RunningConfigInfo
+    {
+        public TunnelRunningInfo Tunnel { get; set; } = new TunnelRunningInfo();
+    }
+
+    public sealed class TunnelRunningInfo
+    {
+        public ObjectId Id { get; set; }
+        public TunnelCompactInfo[] Servers { get; set; } = Array.Empty<TunnelCompactInfo>();
+        public int RouteLevelPlus { get; set; } = 0;
+
+        public List<TunnelTransportItemInfo> Transports { get; set; } = new List<TunnelTransportItemInfo>();
+    }
+}
 
 namespace cmonitor.config
 {
     public partial class ConfigClientInfo
     {
+        [JsonIgnore]
         public TunnelConfigClientInfo Tunnel { get; set; } = new TunnelConfigClientInfo();
     }
     public sealed class TunnelConfigClientInfo
     {
-        public TunnelCompactInfo[] Servers { get; set; } = Array.Empty<TunnelCompactInfo>();
-        public int RouteLevelPlus { get; set; } = 0;
-
-        public string Certificate { get; set; } = "./snltty.pfx";
-        public string Password { get; set; } = Helper.GlobalString;
-
-        public List<TunnelTransportItemInfo> TunnelTransports { get; set; } = new List<TunnelTransportItemInfo>();
-
         [JsonIgnore]
         public int RouteLevel { get; set; }
 
@@ -220,7 +232,6 @@ namespace cmonitor.config
             value = wrapped.tunnelTransportItemInfo;
         }
     }
-
 
 
     [MemoryPackable]

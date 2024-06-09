@@ -77,7 +77,7 @@ export default {
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({
-            list:((globalData.value.config.Client.Tunnel || {Servers:[]}).Servers || []).sort((a,b)=>a.Disabled - b.Disabled),
+            list:((globalData.value.config.Running.Tunnel || {Servers:[]}).Servers || []).sort((a,b)=>a.Disabled - b.Disabled),
             types:[],
             height: computed(()=>globalData.value.height-130),
             sync:true
@@ -85,6 +85,7 @@ export default {
 
         const _getTunnelTypes = ()=>{
             getTunnelTypes().then((res)=>{
+                console.log(res);
                 state.types = res;
             });
         }

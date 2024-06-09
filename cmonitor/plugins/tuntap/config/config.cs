@@ -12,9 +12,9 @@ namespace cmonitor.plugins.tuntap.config
 }
 
 
-namespace cmonitor.config
+namespace cmonitor.client.config
 {
-    public sealed partial class ConfigClientInfo
+    public sealed partial class RunningConfigInfo
     {
         public TuntapConfigInfo Tuntap { get; set; } = new TuntapConfigInfo();
     }

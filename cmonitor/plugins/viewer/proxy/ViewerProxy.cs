@@ -1,4 +1,4 @@
-﻿using cmonitor.client.running;
+﻿using cmonitor.client.config;
 using cmonitor.plugins.relay;
 using cmonitor.tunnel;
 using cmonitor.tunnel.connection;

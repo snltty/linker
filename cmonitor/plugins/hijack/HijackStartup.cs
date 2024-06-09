@@ -1,4 +1,5 @@
 ﻿using cmonitor.config;
+using cmonitor.plugins.hijack.db;
 using cmonitor.plugins.hijack.messenger;
 using cmonitor.plugins.hijack.report;
 using cmonitor.startup;
@@ -29,6 +30,7 @@ namespace cmonitor.plugins.hijack
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<HijackApiController>();
+            serviceCollection.AddSingleton<IHijackDB, HijackDB>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)

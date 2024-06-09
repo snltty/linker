@@ -72,8 +72,10 @@ export default {
 
         const _getConfig = ()=>{
             getConfig().then((res)=>{
-                globalData.value.config.Common = res.Data.Common;
-                globalData.value.config.Client = res.Data.Client;
+                console.log(res);
+                globalData.value.config.Common = res.Common;
+                globalData.value.config.Client = res.Client;
+                globalData.value.config.Running = res.Running;
                 globalData.value.configed = true;
                 setTimeout(()=>{
                     _getConfig();

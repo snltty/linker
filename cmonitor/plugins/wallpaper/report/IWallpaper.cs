@@ -16,7 +16,7 @@ namespace cmonitor.plugins.wallpaper.report
     }
 }
 
-namespace cmonitor.client.running
+namespace cmonitor.client.config
 {
     public sealed partial class RunningConfigInfo
     {

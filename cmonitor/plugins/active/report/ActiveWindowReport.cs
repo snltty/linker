@@ -5,9 +5,9 @@ using common.libs;
 using MemoryPack;
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
-using System.Diagnostics;
-using cmonitor.client.running;
 using cmonitor.plugins.active.report;
+using cmonitor.client.config;
+using LiteDB;
 
 namespace cmonitor.plugins.active.report
 {
@@ -140,6 +140,8 @@ namespace cmonitor.plugins.active.report
     [MemoryPackable]
     public sealed partial class ActiveDisallowInfo
     {
+        [MemoryPackIgnore]
+        public ObjectId Id { get; set; }
         public string[] FileNames { get; set; } = Array.Empty<string>();
         public string[] Ids1 { get; set; } = Array.Empty<string>();
         public string[] Ids2 { get; set; } = Array.Empty<string>();
@@ -248,7 +250,7 @@ namespace cmonitor.plugins.active.report
     }
 }
 
-namespace cmonitor.client.running
+namespace cmonitor.client.config
 {
     public sealed partial class RunningConfigInfo
     {

@@ -28,7 +28,7 @@ namespace cmonitor.tunnel
 
         public void Load(Assembly[] assembs)
         {
-            IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs, typeof(ITunnelTransport));
+            IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs.Concat(new Assembly[] { typeof(TunnelTransfer).Assembly }).ToArray(), typeof(ITunnelTransport));
             transports = types.Select(c => (ITunnelTransport)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
             foreach (var item in transports)
             {

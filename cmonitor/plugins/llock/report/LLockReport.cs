@@ -3,8 +3,9 @@ using cmonitor.client.report;
 using cmonitor.config;
 using cmonitor.libs;
 using common.libs;
-using cmonitor.client.running;
 using cmonitor.plugins.llock.report;
+using cmonitor.client.config;
+using LiteDB;
 
 namespace cmonitor.plugins.llock.report
 {
@@ -87,6 +88,7 @@ namespace cmonitor.plugins.llock.report
 
     public sealed class LLockConfigInfo
     {
+        public ObjectId Id { get; set; }
         public bool Open { get; set; }
     }
 
@@ -102,7 +104,7 @@ namespace cmonitor.plugins.llock.report
 }
 
 
-namespace cmonitor.client.running
+namespace cmonitor.client.config
 {
     public sealed partial class RunningConfigInfo
     {

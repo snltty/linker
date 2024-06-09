@@ -5,7 +5,7 @@ using common.libs;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using cmonitor.client.args;
-using cmonitor.client.running;
+using cmonitor.client.config;
 
 namespace cmonitor.client
 {
@@ -46,8 +46,6 @@ namespace cmonitor.client
 #endif
 
             Logger.Instance.Info($"start client signin transfer");
-            if (string.IsNullOrWhiteSpace(config.Data.Client.Server) && config.Data.Client.Servers.Length > 0)
-                config.Data.Client.Server = config.Data.Client.Servers.FirstOrDefault().Host;
             ClientSignInTransfer clientTransfer = serviceProvider.GetService<ClientSignInTransfer>();
             clientTransfer.SignInTask();
         }

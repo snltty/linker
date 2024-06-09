@@ -60,7 +60,7 @@ export default {
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({
-            list:globalData.value.config.Client.Servers || [],
+            list:globalData.value.config.Running.Client.Servers || [],
             server:computed(()=>globalData.value.config.Client.Server),
             height: computed(()=>globalData.value.height-130),
             sync:true,

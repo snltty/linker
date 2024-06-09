@@ -1,24 +1,32 @@
-﻿using common.libs;
+﻿using cmonitor.config;
+using cmonitor.tunnel.compact;
+using cmonitor.tunnel.transport;
+using common.libs;
+using LiteDB;
 using MemoryPack;
 using System.Diagnostics.CodeAnalysis;
 
+
+namespace cmonitor.client.config
+{
+    public sealed partial class RunningConfigInfo
+    {
+        public RelayRunningInfo Relay { get; set; } = new RelayRunningInfo();
+    }
+
+    public sealed class RelayRunningInfo
+    {
+        public ObjectId Id { get; set; }
+        public RelayCompactInfo[] Servers { get; set; } = Array.Empty<RelayCompactInfo>();
+    }
+}
+
+
 namespace cmonitor.config
 {
-    public partial class ConfigClientInfo
-    {
-        public RelayConfigClientInfo Relay { get; set; } = new RelayConfigClientInfo();
-    }
     public partial class ConfigServerInfo
     {
         public RelayConfigServerInfo Relay { get; set; } = new RelayConfigServerInfo();
-    }
-
-    public sealed class RelayConfigClientInfo
-    {
-        public RelayCompactInfo[] Servers { get; set; } = Array.Empty<RelayCompactInfo>();
-        public string Certificate { get; set; } = "./snltty.pfx";
-        public string Password { get; set; } = Helper.GlobalString;
-        
     }
 
     public sealed class RelayConfigServerInfo
@@ -33,7 +41,7 @@ namespace cmonitor.config
     public sealed partial class RelayCompactInfo
     {
         public string Name { get; set; } = string.Empty;
-        public RelayCompactType Type { get; set; } = RelayCompactType.Self;
+        public RelayCompactType Type { get; set; } = RelayCompactType.Cmonitor;
         public string SecretKey { get; set; } = "snltty";
         public string Host { get; set; } = string.Empty;
         public bool Disabled { get; set; }
@@ -42,7 +50,7 @@ namespace cmonitor.config
 
     public enum RelayCompactType : byte
     {
-        Self = 0,
+        Cmonitor = 0,
     }
 
     public sealed class RelayCompactTypeInfo

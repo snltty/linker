@@ -1,10 +1,10 @@
 ﻿using cmonitor.client;
+using cmonitor.client.config;
 using cmonitor.config;
 using cmonitor.plugins.tunnel.messenger;
 using cmonitor.server;
 using cmonitor.tunnel.compact;
 using MemoryPack;
-using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
 
 namespace cmonitor.plugins.tunnel
@@ -12,6 +12,7 @@ namespace cmonitor.plugins.tunnel
     public sealed class TunnelConfigTransfer
     {
         private readonly Config config;
+        private readonly RunningConfig running;
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
 
@@ -20,9 +21,10 @@ namespace cmonitor.plugins.tunnel
         private ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> configs = new ConcurrentDictionary<string, TunnelTransportRouteLevelInfo>();
         public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> Config => configs;
 
-        public TunnelConfigTransfer(Config config, ServiceProvider serviceProvider, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelCompactTransfer compactTransfer)
+        public TunnelConfigTransfer(Config config, RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelCompactTransfer compactTransfer)
         {
             this.config = config;
+            this.running = running;
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
 
@@ -30,6 +32,19 @@ namespace cmonitor.plugins.tunnel
             {
                 GetRemoveRouteLevel();
             };
+
+            if (running.Data.Tunnel.Servers.Length == 0)
+            {
+                running.Data.Tunnel.Servers = new TunnelCompactInfo[]
+                {
+                     new TunnelCompactInfo{
+                         Name="默认",
+                         Type= TunnelCompactType.Cmonitor,
+                         Disabled = false,
+                         Host = running.Data.Client.Servers.FirstOrDefault().Host
+                     }
+                };
+            }
         }
 
         /// <summary>
@@ -45,8 +60,8 @@ namespace cmonitor.plugins.tunnel
         /// <param name="tunnelTransportConfigWrapInfo"></param>
         public void OnLocalRouteLevel(TunnelTransportRouteLevelInfo tunnelTransportConfigWrapInfo)
         {
-            config.Data.Client.Tunnel.RouteLevelPlus = tunnelTransportConfigWrapInfo.RouteLevelPlus;
-            config.Save();
+            running.Data.Tunnel.RouteLevelPlus = tunnelTransportConfigWrapInfo.RouteLevelPlus;
+            running.Data.Update();
             GetRemoveRouteLevel();
         }
         /// <summary>
@@ -91,9 +106,9 @@ namespace cmonitor.plugins.tunnel
             {
                 MachineName = config.Data.Client.Name,
                 RouteLevel = config.Data.Client.Tunnel.RouteLevel,
-                RouteLevelPlus = config.Data.Client.Tunnel.RouteLevelPlus
+                RouteLevelPlus = running.Data.Tunnel.RouteLevelPlus
             };
         }
-        
+
     }
 }

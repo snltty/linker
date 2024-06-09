@@ -1,4 +1,5 @@
 ﻿using cmonitor.client;
+using cmonitor.client.config;
 using cmonitor.config;
 using cmonitor.plugins.tuntap.messenger;
 using cmonitor.plugins.tuntap.proxy;
@@ -19,6 +20,7 @@ namespace cmonitor.plugins.tuntap
         private readonly ITuntapVea tuntapVea;
         private readonly Config config;
         private readonly TuntapProxy tuntapProxy;
+        private readonly RunningConfig runningConfig;
 
         private uint infosVersion = 0;
         private readonly ConcurrentDictionary<string, TuntapInfo> tuntapInfos = new ConcurrentDictionary<string, TuntapInfo>();
@@ -29,18 +31,19 @@ namespace cmonitor.plugins.tuntap
         private bool starting = false;
         public TuntapStatus Status => tuntapVea.Running ? TuntapStatus.Running : (starting ? TuntapStatus.Starting : TuntapStatus.Normal);
 
-        public TuntapTransfer(MessengerSender messengerSender, ClientSignInState clientSignInState, ITuntapVea tuntapVea, Config config, TuntapProxy tuntapProxy)
+        public TuntapTransfer(MessengerSender messengerSender, ClientSignInState clientSignInState, ITuntapVea tuntapVea, Config config, TuntapProxy tuntapProxy, RunningConfig runningConfig)
         {
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
             this.tuntapVea = tuntapVea;
             this.config = config;
             this.tuntapProxy = tuntapProxy;
+            this.runningConfig = runningConfig;
 
             tuntapVea.Kill();
             clientSignInState.NetworkFirstEnabledHandle += () =>
             {
-                if (config.Data.Client.Tuntap.Running) { Run(); }
+                if (runningConfig.Data.Tuntap.Running) { Run(); }
             };
             clientSignInState.NetworkEnabledHandle += (times) =>
             {
@@ -63,9 +66,9 @@ namespace cmonitor.plugins.tuntap
                 OnChange();
                 try
                 {
-                    bool result = await tuntapVea.Run(tuntapProxy.LocalEndpoint.Port, config.Data.Client.Tuntap.IP);
-                    config.Data.Client.Tuntap.Running = Status == TuntapStatus.Running;
-                    config.Save();
+                    bool result = await tuntapVea.Run(tuntapProxy.LocalEndpoint.Port, runningConfig.Data.Tuntap.IP);
+                    runningConfig.Data.Tuntap.Running = Status == TuntapStatus.Running;
+                    runningConfig.Data.Update();
                 }
                 catch (Exception ex)
                 {
@@ -88,8 +91,8 @@ namespace cmonitor.plugins.tuntap
             {
                 OnChange();
                 tuntapVea.Kill();
-                config.Data.Client.Tuntap.Running = Status == TuntapStatus.Running;
-                config.Save();
+                runningConfig.Data.Tuntap.Running = Status == TuntapStatus.Running;
+                runningConfig.Data.Update();
             }
             catch (Exception ex)
             {
@@ -107,10 +110,10 @@ namespace cmonitor.plugins.tuntap
 
         private void StopExit()
         {
-            bool running = config.Data.Client.Tuntap.Running;
+            bool running = runningConfig.Data.Tuntap.Running;
             Stop();
-            config.Data.Client.Tuntap.Running = running;
-            config.Save();
+            runningConfig.Data.Tuntap.Running = running;
+            runningConfig.Data.Update();
         }
 
 
@@ -126,9 +129,9 @@ namespace cmonitor.plugins.tuntap
         {
             Task.Run(() =>
             {
-                config.Data.Client.Tuntap.IP = info.IP;
-                config.Data.Client.Tuntap.LanIPs = info.LanIPs;
-                config.Save();
+                runningConfig.Data.Tuntap.IP = info.IP;
+                runningConfig.Data.Tuntap.LanIPs = info.LanIPs;
+                runningConfig.Data.Update();
                 if (Status == TuntapStatus.Running)
                 {
                     Stop();
@@ -180,7 +183,7 @@ namespace cmonitor.plugins.tuntap
 
         private TuntapInfo GetLocalInfo()
         {
-            return new TuntapInfo { IP = config.Data.Client.Tuntap.IP, LanIPs = config.Data.Client.Tuntap.LanIPs, MachineName = config.Data.Client.Name, Status = Status };
+            return new TuntapInfo { IP = runningConfig.Data.Tuntap.IP, LanIPs = runningConfig.Data.Tuntap.LanIPs, MachineName = config.Data.Client.Name, Status = Status };
         }
         private async Task<List<TuntapInfo>> GetRemoteInfo()
         {
@@ -212,7 +215,7 @@ namespace cmonitor.plugins.tuntap
         {
             List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.ToList());
             TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
-            tuntapVea.AddRoute(ips, config.Data.Client.Tuntap.IP);
+            tuntapVea.AddRoute(ips, runningConfig.Data.Tuntap.IP);
 
             tuntapProxy.SetIPs(ipsList);
             foreach (var item in tuntapInfos.Values)
@@ -228,20 +231,20 @@ namespace cmonitor.plugins.tuntap
                 .Select(c => BinaryPrimitives.ReadUInt32BigEndian(c.GetAddressBytes()) & maskValue)
                 .ToArray();
 
-            uint network = BinaryPrimitives.ReadUInt32BigEndian(config.Data.Client.Tuntap.IP.GetAddressBytes()) & maskValue;
-            return config.Data.Client.Tuntap.IP.Equals(IPAddress.Any) == false && networks.Contains(network) == false;
+            uint network = BinaryPrimitives.ReadUInt32BigEndian(runningConfig.Data.Tuntap.IP.GetAddressBytes()) & maskValue;
+            return runningConfig.Data.Tuntap.IP.Equals(IPAddress.Any) == false && networks.Contains(network) == false;
         }
 
         private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)
         {
             uint maskValue = NetworkHelper.MaskValue(24);
-            uint[] networks = NetworkHelper.GetIPV4().Concat(new IPAddress[] { config.Data.Client.Tuntap.IP })
+            uint[] networks = NetworkHelper.GetIPV4().Concat(new IPAddress[] { runningConfig.Data.Tuntap.IP })
                 .Select(c => BinaryPrimitives.ReadUInt32BigEndian(c.GetAddressBytes()) & maskValue)
                 .ToArray();
 
             return infos
                 //自己的ip不要
-                .Where(c => c.IP.Equals(config.Data.Client.Tuntap.IP) == false)
+                .Where(c => c.IP.Equals(runningConfig.Data.Tuntap.IP) == false)
                 .Select(c =>
                 {
                     return new TuntapVeaLanIPAddressList

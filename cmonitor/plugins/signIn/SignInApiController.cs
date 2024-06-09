@@ -7,6 +7,7 @@ using cmonitor.server;
 using MemoryPack;
 using cmonitor.server.sapi;
 using cmonitor.client.capi;
+using cmonitor.client.config;
 
 namespace cmonitor.plugins.signin
 {
@@ -39,22 +40,24 @@ namespace cmonitor.plugins.signin
 
     public sealed class SignInClientApiController : IApiClientController
     {
+        private readonly RunningConfig runningConfig;
         private readonly Config config;
         private readonly ClientSignInState clientSignInState;
         private readonly ClientSignInTransfer clientSignInTransfer;
         private readonly MessengerSender messengerSender;
 
-        public SignInClientApiController(Config config, ClientSignInState clientSignInState, ClientSignInTransfer clientSignInTransfer, MessengerSender messengerSender)
+        public SignInClientApiController(RunningConfig runningConfig, Config config, ClientSignInState clientSignInState, ClientSignInTransfer clientSignInTransfer, MessengerSender messengerSender)
         {
+            this.runningConfig = runningConfig;
             this.config = config;
             this.clientSignInState = clientSignInState;
             this.clientSignInTransfer = clientSignInTransfer;
             this.messengerSender = messengerSender;
         }
 
-        public Config Config(ApiControllerParamsInfo param)
+        public object Config(ApiControllerParamsInfo param)
         {
-            return config;
+            return new { Common = config.Data.Common, Client = config.Data.Client, Running = runningConfig.Data };
         }
         public void Set(ApiControllerParamsInfo param)
         {
@@ -67,7 +70,7 @@ namespace cmonitor.plugins.signin
 
 
             clientSignInTransfer.UpdateServers(configUpdateServersInfo.List);
-            if(configUpdateServersInfo.Sync)
+            if (configUpdateServersInfo.Sync)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {

@@ -54,18 +54,6 @@ namespace cmonitor.plugins.tunnel
             Logger.Instance.Info($"tunnel local ips :{string.Join(",", config.Data.Client.Tunnel.LocalIPs.Select(c => c.ToString()))}");
             Logger.Instance.Info($"tunnel route level:{config.Data.Client.Tunnel.RouteLevel}");
 
-            if (config.Data.Client.Tunnel.Servers.Length == 0)
-            {
-                config.Data.Client.Tunnel.Servers = new TunnelCompactInfo[]
-                {
-                     new TunnelCompactInfo{
-                         Name="默认",
-                         Type= TunnelCompactType.Cmonitor,
-                         Disabled = false,
-                         Host = config.Data.Client.Servers.FirstOrDefault().Host
-                     }
-                };
-            }
         }
 
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)

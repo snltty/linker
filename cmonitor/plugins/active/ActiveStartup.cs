@@ -1,4 +1,5 @@
 ﻿using cmonitor.config;
+using cmonitor.plugins.active.db;
 using cmonitor.plugins.active.messenger;
 using cmonitor.plugins.active.report;
 using cmonitor.startup;
@@ -21,6 +22,8 @@ namespace cmonitor.plugins.active
             if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<IActiveWindow, ActiveWindowWindows>();
             else if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<IActiveWindow, ActiveWindowLinux>();
             else if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<IActiveWindow, ActiveWindowMacOS>();
+
+            serviceCollection.AddSingleton<IActiveWindowDB, ActiveWindowDB>();
 
             serviceCollection.AddSingleton<ActiveClientMessenger>();
         }

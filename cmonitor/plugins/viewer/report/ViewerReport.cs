@@ -6,11 +6,11 @@ using cmonitor.plugins.viewer.messenger;
 using cmonitor.server;
 using common.libs;
 using MemoryPack;
-using cmonitor.client.running;
 using System.Net;
 using cmonitor.plugins.viewer.proxy;
 using common.libs.extends;
 using cmonitor.plugins.viewer.config;
+using cmonitor.client.config;
 
 namespace cmonitor.plugins.viewer.report
 {

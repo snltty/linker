@@ -1,5 +1,4 @@
 ﻿using cmonitor.config;
-using cmonitor.server.ruleConfig;
 using cmonitor.startup;
 using common.libs;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,8 +27,6 @@ namespace cmonitor.server
 
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
-            serviceCollection.AddSingleton<IRuleConfig, RuleConfigWindows>();
-
             serviceCollection.AddSingleton<MessengerSender>();
             serviceCollection.AddSingleton<MessengerResolver>();
             serviceCollection.AddSingleton<TcpServer>();

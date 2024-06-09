@@ -16,7 +16,7 @@ namespace cmonitor.plugins.relay.transport
     public sealed class TransportSelfHost : ITransport
     {
         public string Name => "默认";
-        public RelayCompactType Type => RelayCompactType.Self;
+        public RelayCompactType Type => RelayCompactType.Cmonitor;
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Tcp;
 
         private readonly TcpServer tcpServer;
@@ -29,10 +29,10 @@ namespace cmonitor.plugins.relay.transport
             this.tcpServer = tcpServer;
             this.messengerSender = messengerSender;
 
-            string path = Path.GetFullPath(config.Data.Client.Tunnel.Certificate);
+            string path = Path.GetFullPath(config.Data.Client.Certificate);
             if (File.Exists(path))
             {
-                certificate = new X509Certificate(path, config.Data.Client.Tunnel.Password);
+                certificate = new X509Certificate(path, config.Data.Client.Password);
             }
         }
 

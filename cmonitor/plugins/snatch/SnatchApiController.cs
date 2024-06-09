@@ -2,23 +2,23 @@
 using cmonitor.plugins.snatch.messenger;
 using cmonitor.plugins.snatch.report;
 using cmonitor.server;
-using cmonitor.server.ruleConfig;
 using common.libs.extends;
 using common.libs.api;
 using cmonitor.server.sapi;
+using cmonitor.plugins.snatch.db;
 
 namespace cmonitor.plugins.snatch
 {
     public sealed class SnatchApiController : IApiServerController
     {
         private readonly MessengerSender messengerSender;
-        private readonly IRuleConfig ruleConfig;
+        private readonly ISnatchDB snatchDB;
         private readonly SignCaching signCaching;
         private readonly ISnatachCaching snatachCaching;
 
-        public SnatchApiController(IRuleConfig ruleConfig, MessengerSender messengerSender, SignCaching signCaching, ISnatachCaching snatachCaching)
+        public SnatchApiController(ISnatchDB snatchDB, MessengerSender messengerSender, SignCaching signCaching, ISnatachCaching snatachCaching)
         {
-            this.ruleConfig = ruleConfig;
+            this.snatchDB = snatchDB;
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
             this.snatachCaching = snatachCaching;
@@ -26,11 +26,11 @@ namespace cmonitor.plugins.snatch
 
         public string Update(ApiControllerParamsInfo param)
         {
-            UpdateSnatchGroupInfo model = param.Content.DeJson<UpdateSnatchGroupInfo>();
-            ruleConfig.Set(model.UserName,"Snatchs", model.Data);
+            SnatchUserInfo model = param.Content.DeJson<SnatchUserInfo>();
+            snatchDB.Add(model);
             return string.Empty;
         }
-       
+
         public AnswerGroupInfo[] GetQuestion(ApiControllerParamsInfo param)
         {
             if (snatachCaching.Get(param.Content, out SnatchQuestionCacheInfo info))
@@ -134,47 +134,6 @@ namespace cmonitor.plugins.snatch
         {
             public SnatchQuestionInfo Question { get; set; }
             public SnatchAnswerInfo[] Answers { get; set; }
-        }
-
-
-        public sealed class SnatchGroupInfo
-        {
-            public string Name { get; set; }
-            public List<SnatchItemInfo> List { get; set; } = new List<SnatchItemInfo>();
-        }
-        public sealed class UpdateSnatchGroupInfo
-        {
-            public string UserName { get; set; }
-            public List<SnatchGroupInfo> Data { get; set; }
-        }
-        public sealed class SnatchItemInfo
-        {
-            public uint ID { get; set; }
-            public string Title { get; set; }
-
-            public SnatchCate Cate { get; set; } = SnatchCate.Question;
-            public SnatchType Type { get; set; } = SnatchType.Select;
-            /// <summary>
-            /// 问题
-            /// </summary>
-            public string Question { get; set; }
-            /// <summary>
-            /// 选项数
-            /// </summary>
-            public List<SnatchItemOptionInfo> Options { get; set; }
-            /// <summary>
-            /// 答案
-            /// </summary>
-            public string Correct { get; set; }
-            /// <summary>
-            /// 最多答题次数
-            /// </summary>
-            public int Chance { get; set; }
-        }
-        public sealed class SnatchItemOptionInfo
-        {
-            public string Text { get; set; }
-            public bool Value { get; set; }
         }
     }
 

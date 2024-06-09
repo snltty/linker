@@ -2,80 +2,40 @@
 using cmonitor.plugins.hijack.report;
 using cmonitor.plugins.signin.messenger;
 using cmonitor.server;
-using cmonitor.server.ruleConfig;
 using common.libs.extends;
 using MemoryPack;
 using common.libs.api;
 using cmonitor.server.sapi;
+using cmonitor.plugins.hijack.db;
 
 namespace cmonitor.plugins.hijack
 {
     public sealed class HijackApiController : IApiServerController
     {
-        private readonly IRuleConfig ruleConfig;
+        private readonly IHijackDB hijackDB;
         private readonly SignCaching signCaching;
         private readonly MessengerSender messengerSender;
-        public HijackApiController(IRuleConfig ruleConfig, SignCaching signCaching, MessengerSender messengerSender)
+        public HijackApiController(IHijackDB hijackDB, SignCaching signCaching, MessengerSender messengerSender)
         {
-            this.ruleConfig = ruleConfig;
+            this.hijackDB = hijackDB;
             this.signCaching = signCaching;
             this.messengerSender = messengerSender;
         }
 
         public string UpdateRule(ApiControllerParamsInfo param)
         {
-            UpdateRuleInfo model = param.Content.DeJson<UpdateRuleInfo>();
-            ruleConfig.Set(model.UserName,"Rules", model.Data);
+            HijackRuleUserInfo model = param.Content.DeJson<HijackRuleUserInfo>();
+            hijackDB.AddRule(model);
             return string.Empty;
-        }
-        public sealed class RulesInfo
-        {
-            public string Name { get; set; }
-            public List<string> PrivateProcesss { get; set; } = new List<string>();
-            public List<string> PublicProcesss { get; set; } = new List<string>();
-        }
-        public sealed class UpdateRuleInfo
-        {
-            public string UserName { get; set; }
-            public List<RulesInfo> Data { get; set; }
         }
 
 
         public string UpdateProcess(ApiControllerParamsInfo param)
         {
-            UpdateHijackInfo model = param.Content.DeJson<UpdateHijackInfo>();
-            ruleConfig.Set(model.UserName, "Processs", model.Data);
+            HijackProcessUserInfo model = param.Content.DeJson<HijackProcessUserInfo>();
+            hijackDB.AddProcess(model);
             return string.Empty;
         }
-        public sealed class HijackGroupInfo
-        {
-            public string Name { get; set; }
-            public List<HijackItemInfo> List { get; set; } = new List<HijackItemInfo>();
-        }
-        public sealed class HijackItemInfo
-        {
-            public string Name { get; set; }
-            public HijackDataType DataType { get; set; }
-            public HijackAllowType AllowType { get; set; }
-        }
-        public enum HijackDataType
-        {
-            Process = 0,
-            Domain = 1,
-            IP = 2,
-        }
-        public enum HijackAllowType
-        {
-            Allow = 0,
-            Denied = 1
-        }
-        public sealed class UpdateHijackInfo
-        {
-            public string UserName { get; set; }
-            public List<HijackGroupInfo> Data { get; set; }
-        }
-
-
 
         public async Task<List<string>> UseHijackRules(ApiControllerParamsInfo param)
         {

@@ -124,6 +124,7 @@
 		<TrimmerRootAssembly Include="SharpDX" />
 	</ItemGroup>
 	<ItemGroup>
+		<PackageReference Include="LiteDB" Version="5.0.20" />
 		<PackageReference Include="MemoryPack" Version="1.10.0" />
 	</ItemGroup>
 	<ItemGroup>

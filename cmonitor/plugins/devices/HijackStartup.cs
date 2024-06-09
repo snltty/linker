@@ -1,4 +1,5 @@
 ﻿using cmonitor.config;
+using cmonitor.plugins.devices.db;
 using cmonitor.startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -21,6 +22,8 @@ namespace cmonitor.plugins.devices
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<DevicesApiController>();
+            serviceCollection.AddSingleton<IDevicesDB, DevicesDB>();
+            
         }
 
         public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)

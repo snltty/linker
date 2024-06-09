@@ -1,7 +1,7 @@
 ﻿using common.libs.api;
-using cmonitor.config;
 using common.libs.extends;
 using cmonitor.client.capi;
+using cmonitor.client.config;
 
 namespace cmonitor.plugins.forward
 {

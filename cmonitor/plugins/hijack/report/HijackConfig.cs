@@ -1,4 +1,5 @@
 ﻿using cmonitor.plugins.hijack.report;
+using LiteDB;
 
 namespace cmonitor.plugins.hijack.report
 {
@@ -8,6 +9,7 @@ namespace cmonitor.plugins.hijack.report
         {
 
         }
+        public ObjectId Id { get; set; }
 
         /// <summary>
         /// 进程白名单
@@ -45,7 +47,7 @@ namespace cmonitor.plugins.hijack.report
 
 }
 
-namespace cmonitor.client.running
+namespace cmonitor.client.config
 {
     public sealed partial class RunningConfigInfo
     {

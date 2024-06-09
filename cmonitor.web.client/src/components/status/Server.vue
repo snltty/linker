@@ -45,7 +45,7 @@ export default {
             connected:computed(()=>globalData.value.signin.Connected),
             connecting:computed(()=>globalData.value.signin.Connecting),
             server:computed(()=>globalData.value.config.Client.Server),
-            serverLength:computed(()=>(globalData.value.config.Client.Servers||[]).length),
+            serverLength:computed(()=>(globalData.value.config.Running.Client.Servers||[]).length),
             form:{
                 name:globalData.value.config.Client.Name,
                 groupid:globalData.value.config.Client.GroupId,

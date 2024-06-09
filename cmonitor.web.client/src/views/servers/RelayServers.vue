@@ -90,7 +90,7 @@ export default {
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({
-            list:((globalData.value.config.Client.Relay || {Servers:[]}).Servers || []).sort((a,b)=>a.Disabled - b.Disabled),
+            list:((globalData.value.config.Running.Relay || {Servers:[]}).Servers || []).sort((a,b)=>a.Disabled - b.Disabled),
             types:[],
             height: computed(()=>globalData.value.height-130),
             sync:true

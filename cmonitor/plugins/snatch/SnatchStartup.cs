@@ -1,4 +1,5 @@
 ﻿using cmonitor.config;
+using cmonitor.plugins.snatch.db;
 using cmonitor.plugins.snatch.messenger;
 using cmonitor.plugins.snatch.report;
 using cmonitor.startup;
@@ -33,6 +34,8 @@ namespace cmonitor.plugins.snatch
             serviceCollection.AddSingleton<SnatchServerMessenger>();
             serviceCollection.AddSingleton<SnatchApiController>();
             serviceCollection.AddSingleton<ISnatachCaching, SnatachCachingMemory>();
+            serviceCollection.AddSingleton<ISnatchDB, SnatchDB>();
+            
         }
 
         public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)

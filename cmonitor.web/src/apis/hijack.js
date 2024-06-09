@@ -3,9 +3,6 @@ import { sendWebsocketMsg } from './request'
 export const getRules = () => {
     return sendWebsocketMsg('hijack/info');
 }
-export const addName = (data) => {
-    return sendWebsocketMsg('hijack/addName', data);
-}
 export const updateProcess = (data) => {
     return sendWebsocketMsg('hijack/UpdateProcess', data);
 }

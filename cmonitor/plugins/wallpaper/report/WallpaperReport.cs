@@ -3,7 +3,7 @@ using cmonitor.client.report;
 using cmonitor.config;
 using cmonitor.libs;
 using common.libs;
-using cmonitor.client.running;
+using cmonitor.client.config;
 
 namespace cmonitor.plugins.wallpaper.report
 {
