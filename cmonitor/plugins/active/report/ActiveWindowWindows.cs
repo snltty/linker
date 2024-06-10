@@ -15,7 +15,11 @@ namespace cmonitor.plugins.active.report
             CreateKey();
             DisallowRunClear();
             DisallowRun(false);
+#if DEBUG
+#else
             InitDriver();
+#endif
+
         }
 
         private void CreateKey()

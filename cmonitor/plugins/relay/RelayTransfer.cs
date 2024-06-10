@@ -74,7 +74,7 @@ namespace cmonitor.plugins.relay
             }
         }
 
-        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineName, string transactionId)
+        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId)
         {
             IEnumerable<ITransport> _transports = transports.OrderBy(c => c.Type);
             foreach (RelayCompactInfo item in running.Data.Relay.Servers.Where(c => c.Disabled == false && string.IsNullOrWhiteSpace(c.Host) == false))
@@ -91,7 +91,8 @@ namespace cmonitor.plugins.relay
                     RelayInfo relayInfo = new RelayInfo
                     {
                         FlowingId = 0,
-                        RemoteMachineName = remoteMachineName,
+                        RemoteMachineId = remoteMachineId,
+                        RemoteMachineName = string.Empty,
                         SecretKey = item.SecretKey,
                         Server = server,
                         TransactionId = transactionId,
@@ -99,18 +100,18 @@ namespace cmonitor.plugins.relay
                         SSL = item.SSL
                     };
                     //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Info($"relay to {relayInfo.RemoteMachineName} {relayInfo.ToJson()}");
+                    Logger.Instance.Info($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} {relayInfo.ToJson()}");
                     ITunnelConnection connection = await transport.RelayAsync(relayInfo);
                     if (connection != null)
                     {
-                        Logger.Instance.Debug($"relay to {relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
+                        Logger.Instance.Debug($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
 
                         ConnectedCallback(relayInfo, connection);
                         return connection;
                     }
                     else
                     {
-                        Logger.Instance.Error($"relay to {relayInfo.RemoteMachineName} fail,{relayInfo.ToJson()}");
+                        Logger.Instance.Error($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} fail,{relayInfo.ToJson()}");
                     }
                 }
                 catch (Exception ex)
@@ -137,7 +138,7 @@ namespace cmonitor.plugins.relay
 
         private void ConnectedCallback(RelayInfo relayInfo, ITunnelConnection connection)
         {
-            Logger.Instance.Debug($"relay from {relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
+            Logger.Instance.Debug($"relay from {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
 
             if (OnConnected.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))
             {

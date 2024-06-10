@@ -34,7 +34,7 @@ namespace cmonitor.plugins.tuntap.vea
     [MemoryPackable]
     public sealed partial class TuntapVeaLanIPAddressList
     {
-        public string MachineName { get; set; }
+        public string MachineId { get; set; }
         public List<TuntapVeaLanIPAddress> IPS { get; set; }
 
     }
@@ -49,7 +49,7 @@ namespace cmonitor.plugins.tuntap.vea
     [MemoryPackable]
     public sealed partial class TuntapInfo
     {
-        public string MachineName { get; set; }
+        public string MachineId { get; set; }
 
         public TuntapStatus Status { get; set; }
 
@@ -64,7 +64,7 @@ namespace cmonitor.plugins.tuntap.vea
     [MemoryPackable]
     public sealed partial class TuntapOnlineInfo
     {
-        public string[] MachineNames { get; set; }
+        public string[] MachineIds { get; set; }
         public byte[] Status { get; set; }
 
         [JsonIgnore]

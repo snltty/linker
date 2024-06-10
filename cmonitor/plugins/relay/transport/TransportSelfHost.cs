@@ -71,7 +71,8 @@ namespace cmonitor.plugins.relay.transport
             {
                 Direction = TunnelDirection.Forward,
                 ProtocolType = TunnelProtocolType.Tcp,
-                RemoteMachineName = relayInfo.RemoteMachineName,
+                RemoteMachineId = relayInfo.RemoteMachineId,
+                 RemoteMachineName= relayInfo.RemoteMachineName,
                 Stream = sslStream,
                 Socket = socket,
                 Mode = TunnelMode.Client,
@@ -122,7 +123,8 @@ namespace cmonitor.plugins.relay.transport
             {
                 Direction = TunnelDirection.Reverse,
                 ProtocolType = TunnelProtocolType.Tcp,
-                RemoteMachineName = relayInfo.RemoteMachineName,
+                RemoteMachineId = relayInfo.RemoteMachineId,
+                 RemoteMachineName= relayInfo.RemoteMachineName,
                 Stream = sslStream,
                 Socket = socket,
                 Mode = TunnelMode.Server,

@@ -5,8 +5,6 @@ using LiteDB;
 using MemoryPack;
 using System.Net;
 
-
-
 namespace cmonitor.client.config
 {
     public sealed partial class RunningConfigInfo
@@ -44,12 +42,21 @@ namespace cmonitor.config
 
     public sealed partial class ConfigClientInfo
     {
-        
+
 #if DEBUG
         public string Server { get; set; } = new IPEndPoint(IPAddress.Loopback, 1802).ToString();
 #else
         public string Server { get; set; } = "hk.cm.snltty.com:1802";
 #endif
+
+        private string id = string.Empty;
+        public string Id
+        {
+            get => id; set
+            {
+                id = value.SubStr(0, 36);
+            }
+        }
 
 
         private string name = Dns.GetHostName().SubStr(0, 12);

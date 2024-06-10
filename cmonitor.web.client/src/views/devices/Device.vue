@@ -1,5 +1,5 @@
 <template>
-<el-table-column prop="MachineName" label="设备">
+<el-table-column prop="MachineId" label="设备">
     <template #header>
         <div class="flex">
             <span class="flex-1">设备</span>

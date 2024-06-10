@@ -51,7 +51,7 @@ namespace cmonitor.plugins.signin.messenger
             if (info.Version == config.Data.Version)
             {
                 signCaching.Sign(connection, info);
-                connection.Write(Helper.TrueArray);
+                connection.Write(MemoryPackSerializer.Serialize(info.MachineId));
             }
             else
             {
@@ -65,7 +65,7 @@ namespace cmonitor.plugins.signin.messenger
         {
             SignInListRequestInfo request = MemoryPackSerializer.Deserialize<SignInListRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
 
-            if (signCaching.Get(connection.Name, out SignCacheInfo cache))
+            if (signCaching.Get(connection.Id, out SignCacheInfo cache))
             {
                 List<SignCacheInfo> list = signCaching.Get(cache.GroupId).OrderByDescending(c => c.MachineName).OrderByDescending(c => c.LastSignIn).OrderByDescending(c => c.Version).ToList();
                 int count = list.Count;
@@ -81,7 +81,7 @@ namespace cmonitor.plugins.signin.messenger
         public void Delete(IConnection connection)
         {
             string name = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.Get(name, out SignCacheInfo cache) && signCaching.Get(connection.Name, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            if (signCaching.Get(name, out SignCacheInfo cache) && signCaching.Get(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
                 signCaching.Del(name);
             }
@@ -91,9 +91,9 @@ namespace cmonitor.plugins.signin.messenger
         public async Task NameForward(IConnection connection)
         {
             ConfigSetNameInfo info = MemoryPackSerializer.Deserialize<ConfigSetNameInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.Get(info.OldName, out SignCacheInfo cache) && signCaching.Get(connection.Name, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            if (signCaching.Get(info.Id, out SignCacheInfo cache) && signCaching.Get(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
-                if (info.OldName != connection.Name)
+                if (info.Id != connection.Id)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
@@ -102,7 +102,6 @@ namespace cmonitor.plugins.signin.messenger
                         Payload = connection.ReceiveRequestWrap.Payload,
                     });
                 }
-                signCaching.Del(info.OldName);
             }
         }
 
@@ -110,12 +109,12 @@ namespace cmonitor.plugins.signin.messenger
         [MessengerId((ushort)SignInMessengerIds.ServersForward)]
         public async Task ServersForward(IConnection connection)
         {
-            if (signCaching.Get(connection.Name, out SignCacheInfo cache))
+            if (signCaching.Get(connection.Id, out SignCacheInfo cache))
             {
                 var clients = signCaching.Get(cache.GroupId);
                 foreach (var info in clients)
                 {
-                    if (info.MachineName != connection.Name)
+                    if (info.MachineId != connection.Id)
                     {
                         await messengerSender.SendOnly(new MessageRequestWrap
                         {

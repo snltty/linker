@@ -5,10 +5,10 @@
             <template v-if="scope.row.showForward">
                 <div>
                     <ul class="list">
-                        <template v-if="forward.list[scope.row.MachineName] && forward.list[scope.row.MachineName].length > 0">
-                            <template v-for="(item, index) in forward.list[scope.row.MachineName]" :key="index">
+                        <template v-if="forward.list[scope.row.MachineId] && forward.list[scope.row.MachineId].length > 0">
+                            <template v-for="(item, index) in forward.list[scope.row.MachineId]" :key="index">
                                 <li>
-                                    <a href="javascript:;" @click="handleEdit(scope.row.MachineName)" :class="{ green: item.Started }">
+                                    <a href="javascript:;" @click="handleEdit(scope.row.MachineId)" :class="{ green: item.Started }">
                                         <template v-if="item.Started"><strong>{{ item.Port }}->{{ item.TargetEP
                                                 }}</strong></template>
                                         <template v-else>{{ item.Port }}->{{ item.TargetEP }}</template>
@@ -17,7 +17,7 @@
                             </template>
                         </template>
                         <template v-else>
-                            <li><a href="javascript:;" @click="handleEdit(scope.row.MachineName)">暂无配置</a></li>
+                            <li><a href="javascript:;" @click="handleEdit(scope.row.MachineId)">暂无配置</a></li>
                         </template>
                     </ul>
                 </div>
@@ -34,8 +34,8 @@ export default {
     setup(props, { emit }) {
 
         const forward = inject('forward')
-        const handleEdit = (machineName)=>{
-            emit('edit',machineName)
+        const handleEdit = (machineId)=>{
+            emit('edit',machineId)
         }
 
         return {

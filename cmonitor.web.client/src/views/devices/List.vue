@@ -9,7 +9,7 @@
             <el-table-column label="操作" width="66" fixed="right">
                 <template #default="scope">
                     <el-popconfirm v-if="scope.row.showDel" confirm-button-text="确认"
-                        cancel-button-text="取消" title="删除不可逆，是否确认?" @confirm="handleDel(scope.row.MachineName)">
+                        cancel-button-text="取消" title="删除不可逆，是否确认?" @confirm="handleDel(scope.row.MachineId)">
                         <template #reference>
                             <el-button type="danger" size="small"><el-icon><Delete /></el-icon></el-button>
                         </template>
@@ -56,7 +56,7 @@ export default {
     setup(props) {
 
         const globalData = injectGlobalData();
-        const machineName = computed(() => globalData.value.config.Client.Name);
+        const machineId = computed(() => globalData.value.config.Client.Id);
        
         const state = reactive({
             page: {
@@ -168,7 +168,7 @@ export default {
                             for(let k in cons){
                                 const con = cons[k];
                                 
-                                const key = `${con.RemoteMachineName}-${con.TransactionId}`;
+                                const key = `${con.RemotemachineId}-${con.TransactionId}`;
                                 const cache = caches[key] || {SendBytes:0,ReceiveBytes:0};
                                
                                 con.SendBytesText = parseSpeed(con.SendBytes - cache.SendBytes);
@@ -198,8 +198,8 @@ export default {
             }
             return `${num.toFixed(2)}${['B/s','KB/s','MB/s','GB/s','TB/s'][index]}`;
         }
-        const handleTunnelConnections = (machineName)=>{
-            connections.value.current = machineName;
+        const handleTunnelConnections = (machineId)=>{
+            connections.value.current = machineId;
             connections.value.showEdit = true;
         }
 
@@ -223,8 +223,8 @@ export default {
                 forward.value.timer = setTimeout(_getForwardInfo, 1000);
             }
         }
-        const handleForwardEdit = (machineName)=>{
-            forward.value.current = machineName;
+        const handleForwardEdit = (machineId)=>{
+            forward.value.current = machineId;
             forward.value.showEdit = true;
         }
         const handleForwardChange = () => {
@@ -241,10 +241,10 @@ export default {
                 state.page.Request = res.Request;
                 state.page.Count = res.Count;
                 for (let j in res.List) {
-                    res.List[j].showTunnel = machineName.value != res.List[j].MachineName;
-                    res.List[j].showForward = machineName.value != res.List[j].MachineName;
-                    res.List[j].showDel = machineName.value != res.List[j].MachineName && res.List[j].Connected == false;
-                    res.List[j].isSelf = machineName.value == res.List[j].MachineName;
+                    res.List[j].showTunnel = machineId.value != res.List[j].MachineId;
+                    res.List[j].showForward = machineId.value != res.List[j].MachineId;
+                    res.List[j].showDel = machineId.value != res.List[j].MachineId && res.List[j].Connected == false;
+                    res.List[j].isSelf = machineId.value == res.List[j].MachineId;
                 }
                 state.page.List = res.List.sort((a,b)=>a.Connected - b.Connected);
             }).catch((err) => { });
@@ -254,16 +254,16 @@ export default {
                 state.page.Request.GroupId = globalData.value.groupid;
                 getSignInList(state.page.Request).then((res) => {
                     for (let j in res.List) {
-                        const item = state.page.List.filter(c=>c.MachineName == res.List[j].MachineName)[0];
+                        const item = state.page.List.filter(c=>c.MachineId == res.List[j].MachineId)[0];
                         if(item){
                             item.Connected = res.List[j].Connected;
                             item.Version = res.List[j].Version;
                             item.LastSignIn = res.List[j].LastSignIn;
                             item.Args = res.List[j].Args;
-                            item.showTunnel = machineName.value != res.List[j].MachineName;
-                            item.showForward = machineName.value != res.List[j].MachineName;
-                            item.showDel = machineName.value != res.List[j].MachineName && res.List[j].Connected == false;
-                            item.isSelf = machineName.value == res.List[j].MachineName;
+                            item.showTunnel = machineId.value != res.List[j].MachineId;
+                            item.showForward = machineId.value != res.List[j].MachineId;
+                            item.showDel = machineId.value != res.List[j].MachineId && res.List[j].Connected == false;
+                            item.isSelf = machineId.value == res.List[j].MachineId;
                         }
                     }
                     setTimeout(_getSignList1, 5000);
@@ -318,7 +318,7 @@ export default {
         });
 
         return {
-            machineName, state, 
+            machineId, state, 
             handleDeviceEdit,handlePageRefresh, handlePageChange, handleDel,
             tuntap, handleTuntapEdit, handleTuntapChange, handleTuntapRefresh,
             tunnel,connections, handleTunnelEdit, handleTunnelChange, handleTunnelRefresh,handleTunnelConnections,

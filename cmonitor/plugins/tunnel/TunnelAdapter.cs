@@ -64,16 +64,16 @@ namespace cmonitor.plugins.tunnel
             {
                 LocalIps = config.Data.Client.Tunnel.LocalIPs,
                 RouteLevel = config.Data.Client.Tunnel.RouteLevel + running.Data.Tunnel.RouteLevelPlus,
-                MachineName = config.Data.Client.Name
+                MachineId = config.Data.Client.Id
             };
         }
-        public async Task<TunnelTransportExternalIPInfo> GetRemoteExternalIP(string remoteMachineName)
+        public async Task<TunnelTransportExternalIPInfo> GetRemoteExternalIP(string remoteMachineId)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)TunnelMessengerIds.InfoForward,
-                Payload = MemoryPackSerializer.Serialize(remoteMachineName)
+                Payload = MemoryPackSerializer.Serialize(remoteMachineId)
             });
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {

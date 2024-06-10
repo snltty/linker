@@ -7,16 +7,16 @@
             </div>
         </template>
         <template #default="scope">
-            <div v-if="tunnel.list[scope.row.MachineName]">
+            <div v-if="tunnel.list[scope.row.MachineId]">
                 <p>
-                    <a href="javascript:;" class="a-line" @click="handleTunnel(tunnel.list[scope.row.MachineName])">
-                    <span>网关 : {{tunnel.list[scope.row.MachineName].RouteLevel}} + {{tunnel.list[scope.row.MachineName].RouteLevelPlus}}</span>
+                    <a href="javascript:;" class="a-line" @click="handleTunnel(tunnel.list[scope.row.MachineId])">
+                    <span>网关 : {{tunnel.list[scope.row.MachineId].RouteLevel}} + {{tunnel.list[scope.row.MachineId].RouteLevelPlus}}</span>
                     </a>
                 </p>
             </div> 
-            <p v-if="connections.list[scope.row.MachineName]">
-                <a href="javascript:;" class="a-line" @click="handleConnections(scope.row.MachineName)">
-                    <span>连接数 : {{connections.list[scope.row.MachineName].length}}</span>
+            <p v-if="connections.list[scope.row.MachineId]">
+                <a href="javascript:;" class="a-line" @click="handleConnections(scope.row.MachineId)">
+                    <span>连接数 : {{connections.list[scope.row.MachineId].length}}</span>
                     </a>
             </p>
         </template>
@@ -38,8 +38,8 @@ export default {
         const handleTunnelRefresh = ()=>{
             emit('refresh');
         }
-        const handleConnections = (machineName)=>{
-            emit('connections',machineName);
+        const handleConnections = (machineId)=>{
+            emit('connections',machineId);
         }
        
         return {

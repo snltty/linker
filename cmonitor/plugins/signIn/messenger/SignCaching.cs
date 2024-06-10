@@ -1,11 +1,10 @@
 ﻿using cmonitor.db;
 using cmonitor.server;
 using common.libs;
-using common.libs.database;
+using common.libs.extends;
 using LiteDB;
 using MemoryPack;
 using System.Collections.Concurrent;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Net;
 using System.Text.Json.Serialization;
 
@@ -25,38 +24,46 @@ namespace cmonitor.plugins.signin.messenger
             foreach (var item in liteCollection.FindAll())
             {
                 item.Connected = false;
-                Clients.TryAdd(item.MachineName, item);
+                Clients.TryAdd(item.MachineId, item);
             }
         }
 
         public void Sign(IConnection connection, SignInfo signInfo)
         {
-            if (Clients.TryRemove(signInfo.MachineName, out SignCacheInfo cache))
+            if (string.IsNullOrWhiteSpace(signInfo.MachineId))
             {
-                cache.Connection?.Disponse(9);
-                liteCollection.Delete(cache.Id);
+                signInfo.MachineId = ObjectId.NewObjectId().ToString();
             }
-            connection.Name = signInfo.MachineName;
-            SignCacheInfo cache1 = new SignCacheInfo
-            {
-                Connection = connection,
-                MachineName = signInfo.MachineName,
-                Version = signInfo.Version,
-                Args = signInfo.Args,
-                GroupId = signInfo.GroupId,
-            };
-            Clients.TryAdd(signInfo.MachineName, cache1);
-            liteCollection.Insert(cache1);
 
+            if (Clients.TryGetValue(signInfo.MachineId, out SignCacheInfo cache) == false)
+            {
+                cache = new SignCacheInfo();
+                cache.Id = new ObjectId(signInfo.MachineId);
+                cache.MachineId = signInfo.MachineId;
+                liteCollection.Insert(cache);
+                Clients.TryAdd(signInfo.MachineId, cache);
+            }
+            cache.Connection?.Disponse(9);
+
+            connection.Id = signInfo.MachineId;
+            connection.Name = signInfo.MachineName;
+            cache.MachineName = signInfo.MachineName;
+            cache.Connection = connection;
+            cache.Version = signInfo.Version;
+            cache.Args = signInfo.Args;
+            cache.GroupId = signInfo.GroupId;
+            liteCollection.Update(cache);
+            dBfactory.Confirm();
         }
-        public bool Get(string machineName, out SignCacheInfo cache)
+
+        public bool Get(string machineId, out SignCacheInfo cache)
         {
-            if (machineName == null)
+            if (machineId == null)
             {
                 cache = null;
                 return false;
             }
-            return Clients.TryGetValue(machineName, out cache);
+            return Clients.TryGetValue(machineId, out cache);
         }
 
         public List<SignCacheInfo> Get(string groupId)
@@ -64,9 +71,9 @@ namespace cmonitor.plugins.signin.messenger
             return Clients.Values.Where(c => c.GroupId == groupId).ToList();
         }
 
-        public bool Del(string machineName)
+        public bool Del(string machineId)
         {
-            if (Clients.TryRemove(machineName, out SignCacheInfo cache))
+            if (Clients.TryRemove(machineId, out SignCacheInfo cache))
             {
                 liteCollection.Delete(cache.Id);
                 dBfactory.Confirm();
@@ -81,6 +88,7 @@ namespace cmonitor.plugins.signin.messenger
         [MemoryPackIgnore]
         public ObjectId Id { get; set; }
 
+        public string MachineId { get; set; }
         public string MachineName { get; set; }
         public string Version { get; set; } = "1.0.0.0";
         public string GroupId { get; set; } = Helper.GlobalString;
@@ -131,6 +139,8 @@ namespace cmonitor.plugins.signin.messenger
     [MemoryPackable]
     public sealed partial class SignInfo
     {
+
+        public string MachineId { get; set; } = string.Empty;
         public string MachineName { get; set; } = string.Empty;
         public string GroupId { get; set; } = string.Empty;
         public string Version { get; set; } = string.Empty;

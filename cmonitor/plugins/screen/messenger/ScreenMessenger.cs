@@ -62,16 +62,16 @@ namespace cmonitor.plugins.screen.messenger
         [MessengerId((ushort)ScreenMessengerIds.CaptureFullReport)]
         public void CaptureFullReport(IConnection connection)
         {
-            if (signCaching.Get(connection.Name, out SignCacheInfo cache))
+            if (signCaching.Get(connection.Id, out SignCacheInfo cache))
             {
                 if (cache.Version == config.Data.Version)
                 {
-                    clientServer.Notify("/notify/report/screen/full", connection.Name, connection.ReceiveRequestWrap.Payload);
+                    clientServer.Notify("/notify/report/screen/full", connection.Id, connection.ReceiveRequestWrap.Payload);
                 }
                 else
                 {
                     string base64 = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-                    clientServer.Notify("/notify/report/screen/full", new { connection.Name, Img = base64 });
+                    clientServer.Notify("/notify/report/screen/full", new { connection.Id, Img = base64 });
                 }
             }
         }
@@ -79,14 +79,14 @@ namespace cmonitor.plugins.screen.messenger
         [MessengerId((ushort)ScreenMessengerIds.CaptureRegionReport)]
         public void CaptureRegionReport(IConnection connection)
         {
-            clientServer.Notify("/notify/report/screen/region", connection.Name, connection.ReceiveRequestWrap.Payload);
+            clientServer.Notify("/notify/report/screen/region", connection.Id, connection.ReceiveRequestWrap.Payload);
         }
 
         [MessengerId((ushort)ScreenMessengerIds.CaptureRectangles)]
         public void CaptureRectangles(IConnection connection)
         {
             Rectangle[] rectangles = MemoryPackSerializer.Deserialize<Rectangle[]>(connection.ReceiveRequestWrap.Payload.Span);
-            clientServer.Notify("/notify/report/screen/rectangles", new { connection.Name, Rectangles = rectangles });
+            clientServer.Notify("/notify/report/screen/rectangles", new { connection.Id, Rectangles = rectangles });
         }
     }
 }

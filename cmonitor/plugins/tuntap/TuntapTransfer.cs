@@ -153,7 +153,7 @@ namespace cmonitor.plugins.tuntap
             Task.Run(() =>
             {
                 DelRoute();
-                tuntapInfos.AddOrUpdate(info.MachineName, info, (a, b) => info);
+                tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
                 Interlocked.Increment(ref infosVersion);
                 AddRoute();
             });
@@ -164,7 +164,7 @@ namespace cmonitor.plugins.tuntap
         {
             GetRemoteInfo().ContinueWith((result) =>
             {
-                if(result.Result == null)
+                if (result.Result == null)
                 {
                     OnChange();
                 }
@@ -173,7 +173,7 @@ namespace cmonitor.plugins.tuntap
                     DelRoute();
                     foreach (var item in result.Result)
                     {
-                        tuntapInfos.AddOrUpdate(item.MachineName, item, (a, b) => item);
+                        tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
                     }
                     Interlocked.Increment(ref infosVersion);
                     AddRoute();
@@ -183,7 +183,7 @@ namespace cmonitor.plugins.tuntap
 
         private TuntapInfo GetLocalInfo()
         {
-            return new TuntapInfo { IP = runningConfig.Data.Tuntap.IP, LanIPs = runningConfig.Data.Tuntap.LanIPs, MachineName = config.Data.Client.Name, Status = Status };
+            return new TuntapInfo { IP = runningConfig.Data.Tuntap.IP, LanIPs = runningConfig.Data.Tuntap.LanIPs, MachineId = config.Data.Client.Id, Status = Status };
         }
         private async Task<List<TuntapInfo>> GetRemoteInfo()
         {
@@ -220,7 +220,7 @@ namespace cmonitor.plugins.tuntap
             tuntapProxy.SetIPs(ipsList);
             foreach (var item in tuntapInfos.Values)
             {
-                tuntapProxy.SetIP(item.MachineName, BinaryPrimitives.ReadUInt32BigEndian(item.IP.GetAddressBytes()));
+                tuntapProxy.SetIP(item.MachineId, BinaryPrimitives.ReadUInt32BigEndian(item.IP.GetAddressBytes()));
             }
 
         }
@@ -249,7 +249,7 @@ namespace cmonitor.plugins.tuntap
                 {
                     return new TuntapVeaLanIPAddressList
                     {
-                        MachineName = c.MachineName,
+                        MachineId = c.MachineId,
                         IPS = ParseIPs(c.LanIPs)
                     };
                 })

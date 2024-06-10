@@ -49,7 +49,7 @@ namespace cmonitor.plugins.report.messenger
         public void Report(IConnection connection)
         {
             string report = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            clientServer.Notify("/notify/report/report", new { connection.Name, Report = report });
+            clientServer.Notify("/notify/report/report", new { connection.Id, Report = report });
         }
     }
 }

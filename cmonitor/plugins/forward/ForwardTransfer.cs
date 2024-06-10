@@ -21,13 +21,6 @@ namespace cmonitor.plugins.forward
             {
                 Start();
             };
-            clientSignInTransfer.NameChanged += (string oldName, string newName) =>
-            {
-                foreach (var item in running.Data.Forwards.Where(c => c.MachineName == oldName))
-                {
-                    item.MachineName = newName;
-                }
-            };
         }
 
         private void Start()
@@ -44,11 +37,11 @@ namespace cmonitor.plugins.forward
                         try
                         {
                             item.Proxy = forwardProxy;
-                            item.Proxy.Start(item.Port, item.TargetEP, item.MachineName);
+                            item.Proxy.Start(item.Port, item.TargetEP, item.MachineId);
                             item.Port = item.Proxy.LocalEndpoint.Port;
 
                             if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                Logger.Instance.Debug($"start forward {item.Port}->{item.MachineName}->{item.TargetEP}");
+                                Logger.Instance.Debug($"start forward {item.Port}->{item.MachineId}->{item.TargetEP}");
                         }
                         catch (Exception ex)
                         {
@@ -64,7 +57,7 @@ namespace cmonitor.plugins.forward
                         if (item.Proxy != null)
                         {
                             if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                Logger.Instance.Debug($"stop forward {item.Port}->{item.MachineName}->{item.TargetEP}");
+                                Logger.Instance.Debug($"stop forward {item.Port}->{item.MachineId}->{item.TargetEP}");
                             item.Proxy.Stop(item.Port);
                             item.Proxy = null;
                         }
@@ -79,12 +72,12 @@ namespace cmonitor.plugins.forward
 
         public Dictionary<string, List<ForwardInfo>> Get()
         {
-            return running.Data.Forwards.GroupBy(c => c.MachineName).ToDictionary((a) => a.Key, (b) => b.ToList());
+            return running.Data.Forwards.GroupBy(c => c.MachineId).ToDictionary((a) => a.Key, (b) => b.ToList());
         }
         public bool Add(ForwardInfo forwardInfo)
         {
             //同名或者同端口，但是ID不一样
-            ForwardInfo old = running.Data.Forwards.FirstOrDefault(c => (c.Port == forwardInfo.Port || c.Name == forwardInfo.Name) && c.MachineName == forwardInfo.MachineName);
+            ForwardInfo old = running.Data.Forwards.FirstOrDefault(c => (c.Port == forwardInfo.Port || c.Name == forwardInfo.Name) && c.MachineId == forwardInfo.MachineId);
             if (old != null && old.Id != forwardInfo.Id) return false;
 
             if (forwardInfo.Id != 0)
@@ -95,7 +88,7 @@ namespace cmonitor.plugins.forward
                 old.Port = forwardInfo.Port;
                 old.Name = forwardInfo.Name;
                 old.TargetEP = forwardInfo.TargetEP;
-                old.MachineName = forwardInfo.MachineName;
+                old.MachineId = forwardInfo.MachineId;
                 old.Started = forwardInfo.Started;
             }
             else

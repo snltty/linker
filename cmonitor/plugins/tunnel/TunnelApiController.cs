@@ -80,7 +80,7 @@ namespace cmonitor.plugins.tunnel
         {
             TunnelTransportRouteLevelInfo tunnelTransportConfigWrapInfo = param.Content.DeJson<TunnelTransportRouteLevelInfo>();
 
-            if (tunnelTransportConfigWrapInfo.MachineName == config.Data.Client.Name)
+            if (tunnelTransportConfigWrapInfo.MachineId == config.Data.Client.Id)
             {
                 tunnelConfigTransfer.OnLocalRouteLevel(tunnelTransportConfigWrapInfo);
             }

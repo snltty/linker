@@ -161,7 +161,7 @@ namespace cmonitor.plugins.snatch.report
     public sealed class SnatchAnswerInfo
     {
         public string UserName { get; set; }
-        public string MachineName { get; set; }
+        public string MachineId { get; set; }
         public SnatchState State { get; set; }
         public bool Result { get; set; }
         public long Time { get; set; }

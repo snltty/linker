@@ -8,9 +8,6 @@
     <el-dialog v-model="state.show" title="连接设置" width="300">
         <div>
             <el-form :model="state.form" :rules="state.rules" label-width="6rem">
-                <el-form-item label="" label-width="0">
-                    修改这些信息，将会自动退出程序，如果没有安装为服务，则需要手动运行
-                </el-form-item>
                 <el-form-item label="机器名" prop="name">
                     <el-input v-model="state.form.name" maxlength="12" show-word-limit />
                 </el-form-item>

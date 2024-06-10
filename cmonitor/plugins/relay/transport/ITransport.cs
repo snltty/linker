@@ -18,6 +18,7 @@ namespace cmonitor.plugins.relay.transport
     [MemoryPackable]
     public sealed partial class RelayInfo
     {
+        public string RemoteMachineId { get; set; }
         public string RemoteMachineName { get; set; }
         public string TransactionId { get; set; }
         public string SecretKey { get; set; }

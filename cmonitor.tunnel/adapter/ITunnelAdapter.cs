@@ -46,9 +46,9 @@ namespace cmonitor.tunnel.adapter
         /// <summary>
         /// 获取远端的外网信息，可以在远端调用  TunnelTransfer.GetExternalIP() 发送回来
         /// </summary>
-        /// <param name="remoteMachineName"></param>
+        /// <param name="remoteMachineId"></param>
         /// <returns></returns>
-        public Task<TunnelTransportExternalIPInfo> GetRemoteExternalIP(string remoteMachineName);
+        public Task<TunnelTransportExternalIPInfo> GetRemoteExternalIP(string remoteMachineId);
 
         /// <summary>
         /// 发送开始打洞
@@ -83,6 +83,6 @@ namespace cmonitor.tunnel.adapter
         /// <summary>
         /// 本机名
         /// </summary>
-        public string MachineName { get; set; }
+        public string MachineId { get; set; }
     }
 }

@@ -52,17 +52,17 @@ namespace cmonitor.plugins.snatch.messenger
         public void UpdateAnswer(IConnection connection)
         {
             SnatchAnswerInfo answerInfo = SnatchAnswerInfo.DeBytes(connection.ReceiveRequestWrap.Payload);
-            snatachCaching.Update(connection.Name, answerInfo);
+            snatachCaching.Update(connection.Id, answerInfo);
 
             Task.Run(async () =>
             {
-                if (snatachCaching.Get(answerInfo.UserName, connection.Name, out SnatchAnswerInfo info))
+                if (snatachCaching.Get(answerInfo.UserName, connection.Id, out SnatchAnswerInfo info))
                 {
                     byte[] bytes = info.Question.ToBytes();
                     SnatchAnswerInfo[] answers = snatachCaching.Get(info);
                     foreach (var item in answers)
                     {
-                        if (signCaching.Get(item.MachineName, out SignCacheInfo cache))
+                        if (signCaching.Get(item.MachineId, out SignCacheInfo cache))
                         {
                             await messengerSender.SendOnly(new MessageRequestWrap
                             {

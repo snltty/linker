@@ -31,7 +31,7 @@ namespace cmonitor.plugins.viewer.proxy
         }
         private void OnConnected(ITunnelConnection connection)
         {
-            dicConnections.AddOrUpdate(connection.RemoteMachineName, connection, (a, b) => connection);
+            dicConnections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
             BindConnectionReceive(connection);
         }
 

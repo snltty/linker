@@ -123,7 +123,7 @@ namespace cmonitor.plugins.signin
                 MessengerId = (ushort)SignInMessengerIds.NameForward,
                 Payload = MemoryPackSerializer.Serialize(info)
             });
-            if (info.OldName == config.Data.Client.Name)
+            if (info.Id == config.Data.Client.Id)
             {
                 clientSignInTransfer.UpdateName(info.NewName);
             }
@@ -140,7 +140,7 @@ namespace cmonitor.plugins.signin
     [MemoryPackable]
     public sealed partial class ConfigSetNameInfo
     {
-        public string OldName { get; set; }
+        public string Id { get; set; }
         public string NewName { get; set; }
     }
 

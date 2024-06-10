@@ -53,9 +53,9 @@ namespace cmonitor.plugins.snatch
                 if (info.Question != null)
                 {
                     byte[] bytes = info.Question.ToBytes();
-                    for (int i = 0; i < info.Cache.MachineNames.Length; i++)
+                    for (int i = 0; i < info.Cache.MachineIds.Length; i++)
                     {
-                        if (signCaching.Get(info.Cache.MachineNames[i], out SignCacheInfo signCache))
+                        if (signCaching.Get(info.Cache.MachineIds[i], out SignCacheInfo signCache))
                         {
                             await messengerSender.SendOnly(new MessageRequestWrap
                             {
@@ -75,15 +75,15 @@ namespace cmonitor.plugins.snatch
             foreach (UpdateQuestionCacheParamItemInfo item in info.Items)
             {
                 SnatchAnswerInfo answer = null;
-                bool conti = snatachCaching.Update(info.UserName, item.MachineName, item.Question) == false
-                    || snatachCaching.Get(info.UserName, item.MachineName, out answer) == false
+                bool conti = snatachCaching.Update(info.UserName, item.MachineId, item.Question) == false
+                    || snatachCaching.Get(info.UserName, item.MachineId, out answer) == false
                     || answer == null || answer.Question == null;
                 if (conti)
                 {
                     continue;
                 }
                 byte[] bytes = answer.Question.ToBytes();
-                if (signCaching.Get(answer.MachineName, out SignCacheInfo signCache))
+                if (signCaching.Get(answer.MachineId, out SignCacheInfo signCache))
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
@@ -99,9 +99,9 @@ namespace cmonitor.plugins.snatch
         {
             if (snatachCaching.Remove(param.Content, out SnatchQuestionCacheInfo info))
             {
-                for (int i = 0; i < info.MachineNames.Length; i++)
+                for (int i = 0; i < info.MachineIds.Length; i++)
                 {
-                    if (signCaching.Get(info.MachineNames[i], out SignCacheInfo cache))
+                    if (signCaching.Get(info.MachineIds[i], out SignCacheInfo cache))
                     {
                         await messengerSender.SendOnly(new MessageRequestWrap
                         {
@@ -122,7 +122,7 @@ namespace cmonitor.plugins.snatch
         }
         public sealed class UpdateQuestionCacheParamItemInfo
         {
-            public string MachineName { get; set; }
+            public string MachineId { get; set; }
             public SnatchQuestionInfo Question { get; set; }
         }
         public sealed class SnatchQuestionCacheParamInfo

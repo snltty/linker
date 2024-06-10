@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="state.show" @open="handleOnShowList" append-to=".app-wrap" :title="`端口转发到【${state.machineName}】`" top="1vh" width="600">
+  <el-dialog v-model="state.show" @open="handleOnShowList" append-to=".app-wrap" :title="`端口转发到【${state.MachineName}】`" top="1vh" width="600">
         <div>
             <div class="t-c head">
                 <el-button type="success" size="small" @click="handleAdd">添加</el-button>
@@ -72,7 +72,7 @@ export default {
         const forward = inject('forward');
         const state = reactive({
             show: true,
-            machineName: forward.value.current,
+            machineId: forward.value.current,
             data: [],
         });
         watch(() => state.show, (val) => {
@@ -85,7 +85,7 @@ export default {
 
         const _getForwardInfo = () => {
             getForwardInfo().then((res) => {
-                state.data = res[state.machineName] || [];
+                state.data = res[state.machineId] || [];
             }).catch(() => {
             });
         }
@@ -102,7 +102,7 @@ export default {
             ElMessage.success('已刷新')
         }
         const handleAdd = () => {
-            saveRow({ ID: 0, Name: '', Port: 0, TargetEP: '127.0.0.1:80', MachineName: state.machineName });
+            saveRow({ ID: 0, Name: '', Port: 0, TargetEP: '127.0.0.1:80', machineId: state.machineId });
         }
         const handleEdit = (row, p) => {
             state.data.forEach(c => {

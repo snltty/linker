@@ -59,6 +59,7 @@ namespace cmonitor.tunnel.transport
 
         public int RouteLevel { get; set; }
 
+        public string MachineId { get; set; }
         public string MachineName { get; set; }
     }
 

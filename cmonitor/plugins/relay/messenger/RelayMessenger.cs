@@ -53,11 +53,11 @@ namespace cmonitor.plugins.relay.messenger
         {
             RelayCompactInfo[] servers = MemoryPackSerializer.Deserialize<RelayCompactInfo[]>(connection.ReceiveRequestWrap.Payload.Span);
 
-            if (signCaching.Get(connection.Name, out SignCacheInfo cache))
+            if (signCaching.Get(connection.Id, out SignCacheInfo cache))
             {
                 List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
 
-                foreach (SignCacheInfo item in caches.Where(c => c.MachineName != connection.Name && c.Connected))
+                foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected))
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
@@ -81,13 +81,14 @@ namespace cmonitor.plugins.relay.messenger
                     connection.Write(Helper.FalseArray);
                     return;
                 }
-                if (signCaching.Get(info.RemoteMachineName, out SignCacheInfo cache) == false)
+                if (signCaching.Get(info.RemoteMachineId, out SignCacheInfo cache) == false)
                 {
                     connection.Write(Helper.FalseArray);
                     return;
                 }
 
                 info.FlowingId = Interlocked.Increment(ref flowingId);
+                info.RemoteMachineName = cache.MachineName;
                 TcsWrap tcsWrap = new TcsWrap { Connection = connection, Tcs = new TaskCompletionSource<IConnection>() };
                 dic.TryAdd(info.FlowingId, tcsWrap);
 

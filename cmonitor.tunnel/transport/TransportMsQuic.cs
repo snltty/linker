@@ -279,7 +279,7 @@ namespace cmonitor.tunnel.transport
 
             if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
-                Logger.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", eps.Select(c => c.ToString()))}");
+                Logger.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", eps.Select(c => c.ToString()))}");
             }
 
             IPEndPoint local = new IPEndPoint(tunnelTransportInfo.Local.Local.Address, tunnelTransportInfo.Local.Local.Port);
@@ -293,7 +293,7 @@ namespace cmonitor.tunnel.transport
                 {
                     if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        Logger.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineName} {ep}");
+                        Logger.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
                     }
                     if (ep.AddressFamily == AddressFamily.InterNetwork)
                     {
@@ -346,6 +346,7 @@ namespace cmonitor.tunnel.transport
                     Connection = connection,
                     IPEndPoint = remoteEP,
                     TransactionId = tunnelTransportInfo.TransactionId,
+                    RemoteMachineId = tunnelTransportInfo.Remote.MachineId,
                     RemoteMachineName = tunnelTransportInfo.Remote.MachineName,
                     TransportName = Name,
                     Direction = tunnelTransportInfo.Direction,
@@ -527,7 +528,7 @@ namespace cmonitor.tunnel.transport
                 {
                     if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        Logger.Instance.Warning($"{Name} ttl to {tunnelTransportInfo.Remote.MachineName} {ip}");
+                        Logger.Instance.Warning($"{Name} ttl to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ip}");
                     }
 
                     if (ip.AddressFamily == AddressFamily.InterNetwork)
@@ -566,7 +567,7 @@ namespace cmonitor.tunnel.transport
         private async Task<ITunnelConnection> WaitReverse(TunnelTransportInfo tunnelTransportInfo)
         {
             TaskCompletionSource<ITunnelConnection> tcs = new TaskCompletionSource<ITunnelConnection>();
-            reverseDic.TryAdd(tunnelTransportInfo.Remote.MachineName, tcs);
+            reverseDic.TryAdd(tunnelTransportInfo.Remote.MachineId, tcs);
 
             try
             {
@@ -578,20 +579,20 @@ namespace cmonitor.tunnel.transport
             }
             finally
             {
-                reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineName, out _);
+                reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out _);
             }
             return null;
         }
         public void OnFail(TunnelTransportInfo tunnelTransportInfo)
         {
-            if (reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineName, out TaskCompletionSource<ITunnelConnection> tcs))
+            if (reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out TaskCompletionSource<ITunnelConnection> tcs))
             {
                 tcs.SetResult(null);
             }
         }
         public void OnSuccess(TunnelTransportInfo tunnelTransportInfo)
         {
-            if (reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineName, out TaskCompletionSource<ITunnelConnection> tcs))
+            if (reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out TaskCompletionSource<ITunnelConnection> tcs))
             {
                 tcs.SetResult(null);
             }
@@ -608,6 +609,7 @@ namespace cmonitor.tunnel.transport
                     {
                         LocalUdp = localUdp,
                         remoteUdp = remoteUdp,
+                        RemoteMachineId = state.Remote.MachineId,
                         RemoteMachineName = state.Remote.MachineName,
                         Direction = state.Direction,
                         ProtocolType = TunnelProtocolType.Quic,
@@ -620,7 +622,7 @@ namespace cmonitor.tunnel.transport
                         IPEndPoint = remoteEP,
                         Label = string.Empty,
                     };
-                    if (reverseDic.TryRemove(state.Remote.MachineName, out TaskCompletionSource<ITunnelConnection> tcs))
+                    if (reverseDic.TryRemove(state.Remote.MachineId, out TaskCompletionSource<ITunnelConnection> tcs))
                     {
                         tcs.SetResult(result);
                         return;

@@ -17,6 +17,7 @@ namespace cmonitor.server
 
     public interface IConnection
     {
+        public string Id { get; set; }
         public string Name { get; set; }
         public bool Connected { get; }
 
@@ -71,6 +72,7 @@ namespace cmonitor.server
         {
         }
 
+        public string Id { get; set; }
         public string Name { get; set; }
         public virtual bool Connected => false;
         public IPEndPoint Address { get; protected set; }

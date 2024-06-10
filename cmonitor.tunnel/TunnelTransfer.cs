@@ -77,7 +77,7 @@ namespace cmonitor.tunnel
         }
 
 
-        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineName, string transactionId)
+        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId)
         {
             foreach (TunnelTransportItemInfo transportItem in tunnelMessengerAdapter.GetTunnelTransports().Where(c => c.Disabled == false))
             {
@@ -107,10 +107,10 @@ namespace cmonitor.tunnel
                         }
                         Logger.Instance.Info($"tunnel {transport.Name} got local external ip {localInfo.ToJson()}");
                         //获取对方的外网ip
-                        TunnelTransportExternalIPInfo remoteInfo = await tunnelMessengerAdapter.GetRemoteExternalIP(remoteMachineName);
+                        TunnelTransportExternalIPInfo remoteInfo = await tunnelMessengerAdapter.GetRemoteExternalIP(remoteMachineId);
                         if (remoteInfo == null)
                         {
-                            Logger.Instance.Error($"tunnel {transport.Name} get remote {remoteMachineName} external ip fail ");
+                            Logger.Instance.Error($"tunnel {transport.Name} get remote {remoteMachineId} external ip fail ");
                             goto end;
                         }
                         Logger.Instance.Info($"tunnel {transport.Name} got remote external ip {remoteInfo.ToJson()}");
@@ -191,7 +191,7 @@ namespace cmonitor.tunnel
                     Remote = ip.Remote,
                     LocalIps = config.LocalIps,
                     RouteLevel = config.RouteLevel,
-                    MachineName = config.MachineName
+                    MachineId = config.MachineId
                 };
             }
             return null;
@@ -200,18 +200,18 @@ namespace cmonitor.tunnel
         private void OnConnecting(TunnelTransportInfo tunnelTransportInfo)
         {
             //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            Logger.Instance.Info($"tunnel connecting {tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
+            Logger.Instance.Info($"tunnel connecting {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
         }
         private void OnConnectBegin(TunnelTransportInfo tunnelTransportInfo)
         {
             //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            Logger.Instance.Info($"tunnel connecting from {tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
+            Logger.Instance.Info($"tunnel connecting from {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
         }
 
         private void _OnConnected(ITunnelConnection connection)
         {
             //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            Logger.Instance.Debug($"tunnel connect {connection.RemoteMachineName} success->{connection.IPEndPoint},{connection.ToJsonFormat()}");
+            Logger.Instance.Debug($"tunnel connect {connection.RemoteMachineId}->{connection.RemoteMachineName} success->{connection.IPEndPoint},{connection.ToJsonFormat()}");
 
             if (OnConnected.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))
             {
@@ -230,7 +230,7 @@ namespace cmonitor.tunnel
         }
         private void OnConnectFail(TunnelTransportInfo tunnelTransportInfo)
         {
-            Logger.Instance.Error($"tunnel connect {tunnelTransportInfo.Remote.MachineName} fail->{tunnelTransportInfo.ToJsonFormat()}");
+            Logger.Instance.Error($"tunnel connect {tunnelTransportInfo.Remote.MachineId} fail->{tunnelTransportInfo.ToJsonFormat()}");
         }
     }
 }

@@ -111,8 +111,8 @@ namespace cmonitor.plugins.tunnel.messenger
         [MessengerId((ushort)TunnelMessengerIds.InfoForward)]
         public void InfoForward(IConnection connection)
         {
-            string remoteMachineName = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.Get(remoteMachineName, out SignCacheInfo cache) && signCaching.Get(connection.Name, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            string remoteMachineId = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.Get(remoteMachineId, out SignCacheInfo cache) && signCaching.Get(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 _ = messengerSender.SendReply(new MessageRequestWrap
@@ -141,7 +141,7 @@ namespace cmonitor.plugins.tunnel.messenger
         {
             TunnelTransportInfo tunnelTransportInfo = MemoryPackSerializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
 
-            if (signCaching.Get(tunnelTransportInfo.Remote.MachineName, out SignCacheInfo cache) && signCaching.Get(connection.Name, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            if (signCaching.Get(tunnelTransportInfo.Remote.MachineId, out SignCacheInfo cache) && signCaching.Get(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -158,7 +158,7 @@ namespace cmonitor.plugins.tunnel.messenger
         public async Task FailForward(IConnection connection)
         {
             TunnelTransportInfo tunnelTransportInfo = MemoryPackSerializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.Get(tunnelTransportInfo.Remote.MachineName, out SignCacheInfo cache) && signCaching.Get(connection.Name, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            if (signCaching.Get(tunnelTransportInfo.Remote.MachineId, out SignCacheInfo cache) && signCaching.Get(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -174,7 +174,7 @@ namespace cmonitor.plugins.tunnel.messenger
         public async Task SuccessForward(IConnection connection)
         {
             TunnelTransportInfo tunnelTransportInfo = MemoryPackSerializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.Get(tunnelTransportInfo.Remote.MachineName, out SignCacheInfo cache) && signCaching.Get(connection.Name, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            if (signCaching.Get(tunnelTransportInfo.Remote.MachineId, out SignCacheInfo cache) && signCaching.Get(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -190,7 +190,7 @@ namespace cmonitor.plugins.tunnel.messenger
         public async Task RouteLevelForward(IConnection connection)
         {
             TunnelTransportRouteLevelInfo tunnelTransportInfo = MemoryPackSerializer.Deserialize<TunnelTransportRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.Get(tunnelTransportInfo.MachineName, out SignCacheInfo cache) && signCaching.Get(connection.Name, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            if (signCaching.Get(tunnelTransportInfo.MachineId, out SignCacheInfo cache) && signCaching.Get(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -206,13 +206,13 @@ namespace cmonitor.plugins.tunnel.messenger
         public void ConfigForward(IConnection connection)
         {
             TunnelTransportRouteLevelInfo tunnelTransportRouteLevelInfo = MemoryPackSerializer.Deserialize<TunnelTransportRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.Get(connection.Name, out SignCacheInfo cache))
+            if (signCaching.Get(connection.Id, out SignCacheInfo cache))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
 
                 List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
                 List<Task<MessageResponeInfo>> tasks = new List<Task<MessageResponeInfo>>();
-                foreach (SignCacheInfo item in caches.Where(c => c.MachineName != connection.Name && c.Connected))
+                foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected))
                 {
                     tasks.Add(messengerSender.SendReply(new MessageRequestWrap
                     {
@@ -240,11 +240,11 @@ namespace cmonitor.plugins.tunnel.messenger
         [MessengerId((ushort)TunnelMessengerIds.TransportForward)]
         public async Task TransportForward(IConnection connection)
         {
-            if (signCaching.Get(connection.Name, out SignCacheInfo cache))
+            if (signCaching.Get(connection.Id, out SignCacheInfo cache))
             {
                 List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
 
-                foreach (SignCacheInfo item in caches.Where(c => c.MachineName != connection.Name && c.Connected))
+                foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected))
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
@@ -259,11 +259,11 @@ namespace cmonitor.plugins.tunnel.messenger
         [MessengerId((ushort)TunnelMessengerIds.ServersForward)]
         public async Task ServersForward(IConnection connection)
         {
-            if (signCaching.Get(connection.Name, out SignCacheInfo cache))
+            if (signCaching.Get(connection.Id, out SignCacheInfo cache))
             {
                 List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
 
-                foreach (SignCacheInfo item in caches.Where(c => c.MachineName != connection.Name && c.Connected))
+                foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected))
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {

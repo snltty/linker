@@ -20,8 +20,6 @@ namespace cmonitor.client
         private readonly MessengerSender messengerSender;
         private readonly SignInArgsTransfer signInArgsTransfer;
 
-        public Action<string, string> NameChanged { get; set; }
-
         public ClientSignInTransfer(ClientSignInState clientSignInState, RunningConfig runningConfig, Config config, TcpServer tcpServer, MessengerSender messengerSender, SignInArgsTransfer signInArgsTransfer)
         {
             this.clientSignInState = clientSignInState;
@@ -111,11 +109,9 @@ namespace cmonitor.client
             {
                 config.Data.Client.Name = newName;
                 config.Save();
-                NameChanged.Invoke(name, newName);
 
-                Environment.Exit(0);
-                //SignOut();
-                //_ = SignIn();
+                SignOut();
+                _ = SignIn();
             }
 
 
@@ -130,10 +126,8 @@ namespace cmonitor.client
                 config.Data.Client.Name = newName;
                 config.Data.Client.GroupId = newGroupid;
                 config.Save();
-                NameChanged.Invoke(name, newName);
-                Environment.Exit(0);
-                //SignOut();
-                //_ = SignIn();
+                SignOut();
+                _ = SignIn();
             }
         }
         public void UpdateServers(ClientServerInfo[] servers)
@@ -175,17 +169,23 @@ namespace cmonitor.client
                 Payload = MemoryPackSerializer.Serialize(new SignInfo
                 {
                     MachineName = config.Data.Client.Name,
+                    MachineId = config.Data.Client.Id,
                     Version = config.Data.Version,
                     Args = args,
                     GroupId = config.Data.Client.GroupId,
                 })
             });
-            if (resp.Code != MessageResponeCodes.OK || resp.Data.Span.SequenceEqual(Helper.TrueArray) == false)
+            if (resp.Code == MessageResponeCodes.OK)
             {
-                clientSignInState.Connection?.Disponse(6);
-                return false;
+                if(resp.Data.Span.SequenceEqual(Helper.FalseArray) == false)
+                {
+                    config.Data.Client.Id = MemoryPackSerializer.Deserialize<string>(resp.Data.Span);
+                    config.Save();
+                    return true;
+                }
             }
-            return true;
+            clientSignInState.Connection?.Disponse(6);
+            return false;
         }
     }
 }

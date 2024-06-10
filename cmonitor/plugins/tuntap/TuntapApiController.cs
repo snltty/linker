@@ -47,7 +47,7 @@ namespace cmonitor.plugins.tuntap
 
         public async Task<bool> Run(ApiControllerParamsInfo param)
         {
-            if (param.Content == config.Data.Client.Name)
+            if (param.Content == config.Data.Client.Id)
             {
                 tuntapTransfer.Run();
             }
@@ -64,7 +64,7 @@ namespace cmonitor.plugins.tuntap
         }
         public async Task<bool> Stop(ApiControllerParamsInfo param)
         {
-            if (param.Content == config.Data.Client.Name)
+            if (param.Content == config.Data.Client.Id)
             {
                 tuntapTransfer.Stop();
             }
@@ -84,7 +84,7 @@ namespace cmonitor.plugins.tuntap
         public async Task<bool> Update(ApiControllerParamsInfo param)
         {
             TuntapInfo info = param.Content.DeJson<TuntapInfo>();
-            if (info.MachineName == config.Data.Client.Name)
+            if (info.MachineId == config.Data.Client.Id)
             {
                 tuntapTransfer.OnUpdate(info);
             }

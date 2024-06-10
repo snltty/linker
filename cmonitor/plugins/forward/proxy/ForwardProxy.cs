@@ -5,6 +5,7 @@ using cmonitor.tunnel.proxy;
 using common.libs;
 using System.Collections.Concurrent;
 using System.Net;
+using System.Reflection.PortableExecutable;
 
 namespace cmonitor.plugins.forward.proxy
 {
@@ -27,7 +28,7 @@ namespace cmonitor.plugins.forward.proxy
         }
         private void OnConnected(ITunnelConnection connection)
         {
-            connections.AddOrUpdate(connection.RemoteMachineName, connection, (a, b) => connection);
+            connections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
             BindConnectionReceive(connection);
         }
 
@@ -36,7 +37,7 @@ namespace cmonitor.plugins.forward.proxy
             if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
             {
                 token.Proxy.TargetEP = cache.TargetEP;
-                cache.Connection = await ConnectTunnel(cache.MachineName);
+                cache.Connection = await ConnectTunnel(cache.MachineId);
                 token.Connection = cache.Connection;
             }
             return true;
@@ -46,7 +47,7 @@ namespace cmonitor.plugins.forward.proxy
             if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
             {
                 token.Proxy.TargetEP = cache.TargetEP;
-                cache.Connection = await ConnectTunnel(cache.MachineName);
+                cache.Connection = await ConnectTunnel(cache.MachineId);
                 token.Connection = cache.Connection;
             }
         }
@@ -56,7 +57,7 @@ namespace cmonitor.plugins.forward.proxy
             {
                 if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
                 {
-                    cache.Connection = await ConnectTunnel(cache.MachineName);
+                    cache.Connection = await ConnectTunnel(cache.MachineId);
                     token.Connection = cache.Connection;
                 }
             }
@@ -65,48 +66,48 @@ namespace cmonitor.plugins.forward.proxy
 
 
         SemaphoreSlim slimGlobal = new SemaphoreSlim(1);
-        private async ValueTask<ITunnelConnection> ConnectTunnel(string machineName)
+        private async ValueTask<ITunnelConnection> ConnectTunnel(string machineId)
         {
-            if (connections.TryGetValue(machineName, out ITunnelConnection connection) && connection.Connected)
+            if (connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected)
             {
                 return connection;
             }
 
             await slimGlobal.WaitAsync();
-            if (locks.TryGetValue(machineName, out SemaphoreSlim slim) == false)
+            if (locks.TryGetValue(machineId, out SemaphoreSlim slim) == false)
             {
                 slim = new SemaphoreSlim(1);
-                locks.TryAdd(machineName, slim);
+                locks.TryAdd(machineId, slim);
             }
             slimGlobal.Release();
             await slim.WaitAsync();
 
             try
             {
-                if (connections.TryGetValue(machineName, out connection) && connection.Connected)
+                if (connections.TryGetValue(machineId, out connection) && connection.Connected)
                 {
                     return connection;
                 }
 
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward tunnel to {machineName}");
-                connection = await tunnelTransfer.ConnectAsync(machineName, "forward");
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward tunnel to {machineId}");
+                connection = await tunnelTransfer.ConnectAsync(machineId, "forward");
                 if (connection != null)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward tunnel to {machineName} success");
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward tunnel to {machineId} success");
                 }
                 if (connection == null)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineName}");
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineId}");
 
-                    connection = await relayTransfer.ConnectAsync(machineName, "forward");
+                    connection = await relayTransfer.ConnectAsync(machineId, "forward");
                     if (connection != null)
                     {
-                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineName} success");
+                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineId} success");
                     }
                 }
                 if (connection != null)
                 {
-                    connections.AddOrUpdate(machineName, connection, (a, b) => connection);
+                    connections.AddOrUpdate(machineId, connection, (a, b) => connection);
                 }
 
             }
@@ -122,10 +123,10 @@ namespace cmonitor.plugins.forward.proxy
         }
 
 
-        public void Start(int port, IPEndPoint targetEP, string machineName)
+        public void Start(int port, IPEndPoint targetEP, string machineId)
         {
             Stop(port);
-            caches.TryAdd(port, new ForwardProxyCacheInfo { Port = port, TargetEP = targetEP, MachineName = machineName });
+            caches.TryAdd(port, new ForwardProxyCacheInfo { Port = port, TargetEP = targetEP, MachineId = machineId });
             base.Start(port);
         }
         public override void Stop(int port)
@@ -140,7 +141,7 @@ namespace cmonitor.plugins.forward.proxy
         {
             public int Port { get; set; }
             public IPEndPoint TargetEP { get; set; }
-            public string MachineName { get; set; }
+            public string MachineId { get; set; }
 
             public ITunnelConnection Connection { get; set; }
         }

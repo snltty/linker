@@ -32,6 +32,7 @@ namespace cmonitor.tunnel.connection
 
     public interface ITunnelConnection
     {
+        public string RemoteMachineId { get; }
         public string RemoteMachineName { get; }
         public string TransactionId { get; }
         public string TransportName { get; }

@@ -39,7 +39,7 @@ namespace cmonitor.plugins.tuntap.proxy
         }
         private void OnConnected(ITunnelConnection connection)
         {
-            dicConnections.AddOrUpdate(connection.RemoteMachineName, connection, (a, b) => connection);
+            dicConnections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
             BindConnectionReceive(connection);
         }
 
@@ -50,13 +50,13 @@ namespace cmonitor.plugins.tuntap.proxy
             {
                 foreach (var ip in item.IPS)
                 {
-                    dic.AddOrUpdate(ip.NetWork, item.MachineName, (a, b) => item.MachineName);
+                    dic.AddOrUpdate(ip.NetWork, item.MachineId, (a, b) => item.MachineId);
                 }
             }
         }
-        public void SetIP(string machineName, uint ip)
+        public void SetIP(string machineId, uint ip)
         {
-            dic.AddOrUpdate(ip, machineName, (a, b) => machineName);
+            dic.AddOrUpdate(ip, machineId, (a, b) => machineId);
         }
 
         protected override async ValueTask<bool> ConnectTunnelConnection(AsyncUserToken token)

@@ -47,7 +47,7 @@ namespace cmonitor.plugins.connections
         public bool Remove(ApiControllerParamsInfo param)
         {
             RemoveConnectionInfo removeConnectionInfo = param.Content.DeJson<RemoveConnectionInfo>();
-            RemoveConnection(removeConnectionInfo.MachineName, removeConnectionInfo.TransactionId);
+            RemoveConnection(removeConnectionInfo.MachineId, removeConnectionInfo.TransactionId);
             return true;
         }
 
@@ -72,10 +72,10 @@ namespace cmonitor.plugins.connections
         {
             lock (this)
             {
-                if (connections.TryGetValue(connection.RemoteMachineName, out ConcurrentDictionary<string, ITunnelConnection> cons) == false)
+                if (connections.TryGetValue(connection.RemoteMachineId, out ConcurrentDictionary<string, ITunnelConnection> cons) == false)
                 {
                     cons = new ConcurrentDictionary<string, ITunnelConnection>();
-                    connections.TryAdd(connection.RemoteMachineName, cons);
+                    connections.TryAdd(connection.RemoteMachineId, cons);
                 }
                 if (cons.TryRemove(connection.TransactionId, out ITunnelConnection _connection))
                 {
@@ -101,7 +101,7 @@ namespace cmonitor.plugins.connections
         }
         sealed class RemoveConnectionInfo
         {
-            public string MachineName { get; set; }
+            public string MachineId { get; set; }
             public string TransactionId { get; set; }
 
         }

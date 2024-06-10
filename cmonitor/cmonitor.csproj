@@ -79,6 +79,7 @@
 		<Compile Remove="plugins\capi\**\*.cs" />
 		<Compile Remove="plugins\tuntap\**\*.cs" />
 		<Compile Remove="plugins\forward\**\*.cs" />
+		<Compile Remove="plugins\sforward\**\*.cs" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(Configuration)'=='Debug' or (('$(Configuration)'=='Release' or '$(Configuration)'=='ReleaseMonitor') and ('$(RuntimeIdentifier)'=='win-x64' or '$(RuntimeIdentifier)'=='win-arm64'))">
@@ -134,5 +135,8 @@
 	  <None Update="snltty.pfx">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="plugins\sforward\" />
 	</ItemGroup>
 </Project>

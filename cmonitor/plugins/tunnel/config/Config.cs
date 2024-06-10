@@ -45,7 +45,7 @@ namespace cmonitor.config
     [MemoryPackable]
     public sealed partial class TunnelTransportRouteLevelInfo
     {
-        public string MachineName { get; set; }
+        public string MachineId { get; set; }
         public int RouteLevel { get; set; } = 0;
         public int RouteLevelPlus { get; set; } = 0;
     }
@@ -128,12 +128,15 @@ namespace cmonitor.config
         int RouteLevel => tunnelTransportExternalIPInfo.RouteLevel;
 
         [MemoryPackInclude]
+        string MachineId => tunnelTransportExternalIPInfo.MachineId;
+
+        [MemoryPackInclude]
         string MachineName => tunnelTransportExternalIPInfo.MachineName;
 
         [MemoryPackConstructor]
-        SerializableTunnelTransportExternalIPInfo(IPEndPoint local, IPEndPoint remote, IPAddress[] localIps, int routeLevel, string machineName)
+        SerializableTunnelTransportExternalIPInfo(IPEndPoint local, IPEndPoint remote, IPAddress[] localIps, int routeLevel, string machineId,string machineName)
         {
-            var tunnelTransportExternalIPInfo = new TunnelTransportExternalIPInfo { Local = local, Remote = remote, LocalIps = localIps, RouteLevel = routeLevel, MachineName = machineName };
+            var tunnelTransportExternalIPInfo = new TunnelTransportExternalIPInfo { Local = local, Remote = remote, LocalIps = localIps, RouteLevel = routeLevel, MachineId = machineId, MachineName= machineName };
             this.tunnelTransportExternalIPInfo = tunnelTransportExternalIPInfo;
         }
 

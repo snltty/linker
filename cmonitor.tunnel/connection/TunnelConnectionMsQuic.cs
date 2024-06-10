@@ -15,6 +15,7 @@ namespace cmonitor.tunnel.connection
         {
         }
 
+        public string RemoteMachineId { get; init; }
         public string RemoteMachineName { get; init; }
         public string TransactionId { get; init; }
         public string TransportName { get; init; }
@@ -262,7 +263,7 @@ namespace cmonitor.tunnel.connection
 
         public override string ToString()
         {
-            return $"TransactionId:{TransactionId},TransportName:{TransportName},ProtocolType:{ProtocolType},Type:{Type},Direction:{Direction},IPEndPoint:{IPEndPoint},RemoteMachineName:{RemoteMachineName}";
+            return $"TransactionId:{TransactionId},TransportName:{TransportName},ProtocolType:{ProtocolType},Type:{Type},Direction:{Direction},IPEndPoint:{IPEndPoint},RemoteMachineId:{RemoteMachineId},RemoteMachineName:{RemoteMachineName}";
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using common.libs.extends;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 
 namespace cmonitor.plugins.snatch.report
 {
@@ -16,17 +15,17 @@ namespace cmonitor.plugins.snatch.report
         /// 更新一个设备的题目
         /// </summary>
         /// <param name="username"></param>
-        /// <param name="machineName"></param>
+        /// <param name="machineId"></param>
         /// <param name="quesion"></param>
         /// <returns></returns>
-        public bool Update(string username, string machineName, SnatchQuestionInfo quesion);
+        public bool Update(string username, string machineId, SnatchQuestionInfo quesion);
         /// <summary>
         /// 更新设备的回答
         /// </summary>
-        /// <param name="machineName"></param>
+        /// <param name="machineId"></param>
         /// <param name="answer"></param>
         /// <returns></returns>
-        public bool Update(string machineName, SnatchAnswerInfo answer);
+        public bool Update(string machineId, SnatchAnswerInfo answer);
         /// <summary>
         /// 移除一个互动
         /// </summary>
@@ -46,10 +45,10 @@ namespace cmonitor.plugins.snatch.report
         /// 获取设备的回答
         /// </summary>
         /// <param name="username"></param>
-        /// <param name="machineName"></param>
+        /// <param name="machineId"></param>
         /// <param name="info"></param>
         /// <returns></returns>
-        public bool Get(string username, string machineName, out SnatchAnswerInfo answer);
+        public bool Get(string username, string machineId, out SnatchAnswerInfo answer);
         /// <summary>
         /// 获取相同题目的所有设备回答，先获取设备回答，再拿回答来这里获取
         /// </summary>
@@ -62,7 +61,7 @@ namespace cmonitor.plugins.snatch.report
     {
         public string UserName { get; set; }
         public List<SnatchAnswerInfo> Answers { get; set; }
-        public string[] MachineNames { get; set; }
+        public string[] MachineIds { get; set; }
     }
 
     public sealed class SnatachCachingMemory : ISnatachCaching
@@ -76,7 +75,7 @@ namespace cmonitor.plugins.snatch.report
         {
             if (cache.TryGetValue(info.UserName, out SnatchQuestionCacheInfo _info) == false)
             {
-                info.Answers = info.MachineNames.Select(c => new SnatchAnswerInfo { UserName = info.UserName, Question = quesion, Times = 0, MachineName = c, Result = false, ResultStr = string.Empty, State = SnatchState.Ask, Time = 0 }).ToList();
+                info.Answers = info.MachineIds.Select(c => new SnatchAnswerInfo { UserName = info.UserName, Question = quesion, Times = 0, MachineId = c, Result = false, ResultStr = string.Empty, State = SnatchState.Ask, Time = 0 }).ToList();
 
                 cache.TryAdd(info.UserName, info);
                 foreach (SnatchAnswerInfo item in info.Answers)
@@ -87,11 +86,11 @@ namespace cmonitor.plugins.snatch.report
             }
             return false;
         }
-        public bool Update(string username, string machineName, SnatchQuestionInfo quesion)
+        public bool Update(string username, string machineId, SnatchQuestionInfo quesion)
         {
             if (cache.TryGetValue(username, out SnatchQuestionCacheInfo _info))
             {
-                SnatchAnswerInfo answer = _info.Answers.FirstOrDefault(c => c.MachineName == machineName);
+                SnatchAnswerInfo answer = _info.Answers.FirstOrDefault(c => c.MachineId == machineId);
                 if (answer != null)
                 {
                     answer.Question = quesion;
@@ -102,11 +101,11 @@ namespace cmonitor.plugins.snatch.report
             return false;
         }
 
-        public bool Update(string machineName, SnatchAnswerInfo answer)
+        public bool Update(string machineId, SnatchAnswerInfo answer)
         {
             if (cache.TryGetValue(answer.UserName, out SnatchQuestionCacheInfo info))
             {
-                SnatchAnswerInfo _answer = info.Answers.FirstOrDefault(c => c.MachineName == machineName);
+                SnatchAnswerInfo _answer = info.Answers.FirstOrDefault(c => c.MachineId == machineId);
                 if (_answer == null)
                 {
                     return false;
@@ -165,12 +164,12 @@ namespace cmonitor.plugins.snatch.report
         {
             return cache.TryGetValue(username, out info);
         }
-        public bool Get(string username, string machineName, out SnatchAnswerInfo info)
+        public bool Get(string username, string machineId, out SnatchAnswerInfo info)
         {
             info = null;
             if (cache.TryGetValue(username, out SnatchQuestionCacheInfo cacheInfo))
             {
-                info = cacheInfo.Answers.FirstOrDefault(c => c.MachineName == machineName);
+                info = cacheInfo.Answers.FirstOrDefault(c => c.MachineId == machineId);
             }
             return info != null;
         }

@@ -71,7 +71,7 @@ namespace cmonitor.plugins.tunnel
         /// <returns></returns>
         public TunnelTransportRouteLevelInfo OnRemoteRouteLevel(TunnelTransportRouteLevelInfo tunnelTransportConfigWrapInfo)
         {
-            configs.AddOrUpdate(tunnelTransportConfigWrapInfo.MachineName, tunnelTransportConfigWrapInfo, (a, b) => tunnelTransportConfigWrapInfo);
+            configs.AddOrUpdate(tunnelTransportConfigWrapInfo.MachineId, tunnelTransportConfigWrapInfo, (a, b) => tunnelTransportConfigWrapInfo);
             Interlocked.Increment(ref version);
             return GetLocalRouteLevel();
         }
@@ -91,10 +91,10 @@ namespace cmonitor.plugins.tunnel
                     List<TunnelTransportRouteLevelInfo> list = MemoryPackSerializer.Deserialize<List<TunnelTransportRouteLevelInfo>>(result.Result.Data.Span);
                     foreach (var item in list)
                     {
-                        configs.AddOrUpdate(item.MachineName, item, (a, b) => item);
+                        configs.AddOrUpdate(item.MachineId, item, (a, b) => item);
                     }
                     TunnelTransportRouteLevelInfo config = GetLocalRouteLevel();
-                    configs.AddOrUpdate(config.MachineName, config, (a, b) => config);
+                    configs.AddOrUpdate(config.MachineId, config, (a, b) => config);
                     Interlocked.Increment(ref version);
                 }
             });
@@ -104,7 +104,7 @@ namespace cmonitor.plugins.tunnel
         {
             return new TunnelTransportRouteLevelInfo
             {
-                MachineName = config.Data.Client.Name,
+                MachineId = config.Data.Client.Id,
                 RouteLevel = config.Data.Client.Tunnel.RouteLevel,
                 RouteLevelPlus = running.Data.Tunnel.RouteLevelPlus
             };

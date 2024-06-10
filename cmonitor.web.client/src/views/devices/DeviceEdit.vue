@@ -46,7 +46,7 @@ export default {
         const handleSave = () => {
             if(props.data.MachineName == state.ruleForm.MachineName) return;
             setSignInName({
-                oldName:props.data.MachineName,
+                Id:props.data.MachineId,
                 newName:state.ruleForm.MachineName
             }).then(() => {
                 state.show = false;

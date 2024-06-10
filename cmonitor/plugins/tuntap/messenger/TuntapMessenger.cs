@@ -89,7 +89,7 @@ namespace cmonitor.plugins.tuntap.messenger
         public async Task UpdateForward(IConnection connection)
         {
             TuntapInfo info = MemoryPackSerializer.Deserialize<TuntapInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.Get(info.MachineName, out SignCacheInfo cache))
+            if (signCaching.Get(info.MachineId, out SignCacheInfo cache))
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -106,13 +106,13 @@ namespace cmonitor.plugins.tuntap.messenger
         public void ConfigForward(IConnection connection)
         {
             TuntapInfo tuntapInfo = MemoryPackSerializer.Deserialize<TuntapInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.Get(connection.Name, out SignCacheInfo cache))
+            if (signCaching.Get(connection.Id, out SignCacheInfo cache))
             {
                 uint requiestid = connection.ReceiveRequestWrap.RequestId;
 
                 List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
                 List<Task<MessageResponeInfo>> tasks = new List<Task<MessageResponeInfo>>();
-                foreach (SignCacheInfo item in caches.Where(c => c.MachineName != connection.Name && c.Connected))
+                foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected))
                 {
                     tasks.Add(messengerSender.SendReply(new MessageRequestWrap
                     {

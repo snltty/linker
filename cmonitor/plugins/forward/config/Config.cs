@@ -14,7 +14,7 @@ namespace cmonitor.client.config
     {
         public uint Id { get; set; }
         public string Name { get; set; }
-        public string MachineName { get; set; }
+        public string MachineId { get; set; }
         public int Port { get; set; }
         public IPEndPoint TargetEP { get; set; }
         public bool Started { get; set; }
