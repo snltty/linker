@@ -25,7 +25,7 @@ namespace cmonitor.plugins.volume
             byte[] bytes = MemoryPackSerializer.Serialize(info.Value);
             for (int i = 0; i < info.Names.Length; i++)
             {
-                if (signCaching.Get(info.Names[i], out SignCacheInfo cache) && cache.Connected)
+                if (signCaching.TryGet(info.Names[i], out SignCacheInfo cache) && cache.Connected)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
@@ -45,7 +45,7 @@ namespace cmonitor.plugins.volume
             byte[] bytes = MemoryPackSerializer.Serialize(info.Value);
             for (int i = 0; i < info.Names.Length; i++)
             {
-                if (signCaching.Get(info.Names[i], out SignCacheInfo cache) && cache.Connected)
+                if (signCaching.TryGet(info.Names[i], out SignCacheInfo cache) && cache.Connected)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
@@ -66,7 +66,7 @@ namespace cmonitor.plugins.volume
             byte[] bytes = MemoryPackSerializer.Serialize(info.Base64);
             for (int i = 0; i < info.Names.Length; i++)
             {
-                if (signCaching.Get(info.Names[i], out SignCacheInfo cache) && cache.Connected)
+                if (signCaching.TryGet(info.Names[i], out SignCacheInfo cache) && cache.Connected)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {

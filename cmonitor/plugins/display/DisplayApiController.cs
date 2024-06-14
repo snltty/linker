@@ -24,7 +24,7 @@ namespace cmonitor.plugins.display
 
             for (int i = 0; i < display.Names.Length; i++)
             {
-                bool res = signCaching.Get(display.Names[i], out SignCacheInfo cache) && cache.Connected;
+                bool res = signCaching.TryGet(display.Names[i], out SignCacheInfo cache) && cache.Connected;
                 if (res)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap

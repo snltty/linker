@@ -291,12 +291,6 @@ namespace cmonitor.tunnel.proxy
 
             if (udpListens.Count == 0)
             {
-                foreach (var item in udpListens)
-                {
-                    item.Value.Clear();
-                }
-                udpListens.Clear();
-
                 foreach (var item in udpConnections)
                 {
                     item.Value.Clear();

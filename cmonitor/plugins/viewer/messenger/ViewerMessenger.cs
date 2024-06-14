@@ -52,7 +52,7 @@ namespace cmonitor.plugins.viewer.messenger
             string[] usernames = viewerConfigInfo.ClientMachines;
             foreach (var item in usernames)
             {
-                if (signCaching.Get(item, out SignCacheInfo cache) && cache.Connected)
+                if (signCaching.TryGet(item, out SignCacheInfo cache) && cache.Connected)
                 {
                     _ = messengerSender.SendOnly(new MessageRequestWrap
                     {

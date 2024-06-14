@@ -57,7 +57,7 @@ namespace cmonitor.plugins.tuntap.messenger
         public async Task RunForward(IConnection connection)
         {
             string name = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.Get(name, out SignCacheInfo cache))
+            if (signCaching.TryGet(name, out SignCacheInfo cache))
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -73,7 +73,7 @@ namespace cmonitor.plugins.tuntap.messenger
         public async Task StopForward(IConnection connection)
         {
             string name = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.Get(name, out SignCacheInfo cache))
+            if (signCaching.TryGet(name, out SignCacheInfo cache))
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -89,7 +89,7 @@ namespace cmonitor.plugins.tuntap.messenger
         public async Task UpdateForward(IConnection connection)
         {
             TuntapInfo info = MemoryPackSerializer.Deserialize<TuntapInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.Get(info.MachineId, out SignCacheInfo cache))
+            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cache))
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -106,7 +106,7 @@ namespace cmonitor.plugins.tuntap.messenger
         public void ConfigForward(IConnection connection)
         {
             TuntapInfo tuntapInfo = MemoryPackSerializer.Deserialize<TuntapInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.Get(connection.Id, out SignCacheInfo cache))
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
                 uint requiestid = connection.ReceiveRequestWrap.RequestId;
 

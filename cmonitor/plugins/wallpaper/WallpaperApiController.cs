@@ -28,7 +28,7 @@ namespace cmonitor.plugins.wallpaper
             });
             for (int i = 0; i < info.Names.Length; i++)
             {
-                if (signCaching.Get(info.Names[i], out SignCacheInfo cache) && cache.Connected)
+                if (signCaching.TryGet(info.Names[i], out SignCacheInfo cache) && cache.Connected)
                 {
                     _ = messengerSender.SendOnly(new MessageRequestWrap
                     {

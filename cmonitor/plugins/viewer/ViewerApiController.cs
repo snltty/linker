@@ -27,7 +27,7 @@ namespace cmonitor.plugins.viewer
             list.Remove(viewer.Server);
             viewer.Clients = list.ToArray();
 
-            if (signCaching.Get(viewer.Server, out SignCacheInfo cache) && cache.Connected)
+            if (signCaching.TryGet(viewer.Server, out SignCacheInfo cache) && cache.Connected)
             {
                 ViewerRunningConfigInfo info = new ViewerRunningConfigInfo
                 {

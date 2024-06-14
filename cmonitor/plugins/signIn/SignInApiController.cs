@@ -27,7 +27,7 @@ namespace cmonitor.plugins.signin
         }
         public bool Del(ApiControllerParamsInfo param)
         {
-            signCaching.Del(param.Content);
+            signCaching.TryRemove(param.Content, out _);
 
             return true;
 

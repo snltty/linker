@@ -25,7 +25,7 @@ namespace cmonitor.plugins.active
         }
         public async Task<ActiveWindowTimeReportInfo> Get(ApiControllerParamsInfo param)
         {
-            if (signCaching.Get(param.Content, out SignCacheInfo cache) && cache.Connected)
+            if (signCaching.TryGet(param.Content, out SignCacheInfo cache) && cache.Connected)
             {
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
@@ -41,7 +41,7 @@ namespace cmonitor.plugins.active
         }
         public async Task<Dictionary<uint, string>> Windows(ApiControllerParamsInfo param)
         {
-            if (signCaching.Get(param.Content, out SignCacheInfo cache) && cache.Connected)
+            if (signCaching.TryGet(param.Content, out SignCacheInfo cache) && cache.Connected)
             {
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
@@ -59,7 +59,7 @@ namespace cmonitor.plugins.active
 
         public async Task<bool> Clear(ApiControllerParamsInfo param)
         {
-            if (signCaching.Get(param.Content, out SignCacheInfo cache) && cache.Connected)
+            if (signCaching.TryGet(param.Content, out SignCacheInfo cache) && cache.Connected)
             {
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
@@ -76,7 +76,7 @@ namespace cmonitor.plugins.active
             byte[] bytes = MemoryPackSerializer.Serialize(new ActiveDisallowInfo { FileNames = disallowInfo.Data, Ids1 = disallowInfo.Ids1, Ids2 = disallowInfo.Ids2 });
             foreach (string name in disallowInfo.Devices)
             {
-                if (signCaching.Get(name, out SignCacheInfo cache) && cache.Connected)
+                if (signCaching.TryGet(name, out SignCacheInfo cache) && cache.Connected)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
@@ -93,7 +93,7 @@ namespace cmonitor.plugins.active
         {
             ActiveKillInfo activeKillInfo = param.Content.DeJson<ActiveKillInfo>();
             byte[] bytes = activeKillInfo.Pid.ToBytes();
-            if (signCaching.Get(activeKillInfo.UserName, out SignCacheInfo cache) && cache.Connected)
+            if (signCaching.TryGet(activeKillInfo.UserName, out SignCacheInfo cache) && cache.Connected)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {

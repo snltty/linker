@@ -1,0 +1,49 @@
+﻿using common.libs;
+using System.Text;
+
+namespace cmonitor.plugins.sforward
+{
+    public partial class SForwardProxy
+    {
+        private readonly NumberSpace ns = new NumberSpace();
+        private byte[] flagBytes = Encoding.UTF8.GetBytes($"snltty.sforward");
+
+        public SForwardProxy()
+        {
+        }
+
+        public string Start(int port, bool isweb)
+        {
+            try
+            {
+                StartTcp(port, isweb);
+                StartUdp(port);
+                return string.Empty;
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+        }
+
+
+        public void Stop()
+        {
+            StopTcp();
+            StopUdp();
+        }
+        public void Stop(int port)
+        {
+            try
+            {
+                StopTcp(port);
+                StopUdp(port);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+    }
+
+}

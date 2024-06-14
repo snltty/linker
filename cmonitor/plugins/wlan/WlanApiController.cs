@@ -26,7 +26,7 @@ namespace cmonitor.plugins.wlan
             string[] names = param.Content.DeJson<string[]>();
             foreach (string name in names)
             {
-                if (signCaching.Get(name, out SignCacheInfo cache) && cache.Connected)
+                if (signCaching.TryGet(name, out SignCacheInfo cache) && cache.Connected)
                 {
                     tasks.Add(messengerSender.SendReply(new MessageRequestWrap
                     {
@@ -49,7 +49,7 @@ namespace cmonitor.plugins.wlan
             byte[] bytes = MemoryPackSerializer.Serialize(info.Value);
             for (int i = 0; i < info.Names.Length; i++)
             {
-                if (signCaching.Get(info.Names[i], out SignCacheInfo cache) && cache.Connected)
+                if (signCaching.TryGet(info.Names[i], out SignCacheInfo cache) && cache.Connected)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {

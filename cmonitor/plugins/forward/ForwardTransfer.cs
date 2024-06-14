@@ -12,7 +12,7 @@ namespace cmonitor.plugins.forward
 
         private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
 
-        public ForwardTransfer(RunningConfig running, ForwardProxy forwardProxy, ClientSignInState clientSignInState, ClientSignInTransfer clientSignInTransfer)
+        public ForwardTransfer(RunningConfig running, ForwardProxy forwardProxy, ClientSignInState clientSignInState)
         {
             this.running = running;
             this.forwardProxy = forwardProxy;
@@ -32,43 +32,52 @@ namespace cmonitor.plugins.forward
             {
                 if (item.Started)
                 {
-                    if (item.Proxy == null)
-                    {
-                        try
-                        {
-                            item.Proxy = forwardProxy;
-                            item.Proxy.Start(item.Port, item.TargetEP, item.MachineId);
-                            item.Port = item.Proxy.LocalEndpoint.Port;
-
-                            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                Logger.Instance.Debug($"start forward {item.Port}->{item.MachineId}->{item.TargetEP}");
-                        }
-                        catch (Exception ex)
-                        {
-                            item.Started = false;
-                            Logger.Instance.Error(ex);
-                        }
-                    }
+                    Start(item);
                 }
                 else
                 {
-                    try
-                    {
-                        if (item.Proxy != null)
-                        {
-                            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                Logger.Instance.Debug($"stop forward {item.Port}->{item.MachineId}->{item.TargetEP}");
-                            item.Proxy.Stop(item.Port);
-                            item.Proxy = null;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Instance.Error(ex);
-                    }
+                    Stop(item);
                 }
             }
         }
+        private void Start(ForwardInfo forwardInfo)
+        {
+            if (forwardInfo.Proxy == false)
+            {
+                try
+                {
+                    forwardProxy.Start(forwardInfo.Port, forwardInfo.TargetEP, forwardInfo.MachineId);
+                    forwardInfo.Port = forwardProxy.LocalEndpoint.Port;
+                    forwardInfo.Proxy = true;
+
+                    //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    Logger.Instance.Debug($"start forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP}");
+                }
+                catch (Exception ex)
+                {
+                    forwardInfo.Started = false;
+                    Logger.Instance.Error(ex);
+                }
+            }
+        }
+        private void Stop(ForwardInfo forwardInfo)
+        {
+            try
+            {
+                if (forwardInfo.Proxy)
+                {
+                    // if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    Logger.Instance.Debug($"stop forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP}");
+                    forwardProxy.Stop(forwardInfo.Port);
+                    forwardInfo.Proxy = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error(ex);
+            }
+        }
+
 
         public Dictionary<string, List<ForwardInfo>> Get()
         {

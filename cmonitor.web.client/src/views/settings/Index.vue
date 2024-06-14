@@ -13,6 +13,9 @@
             <el-tab-pane label="中继服务器" name="relay">
                 <RelayServers v-if="state.connected"></RelayServers>
             </el-tab-pane>
+            <el-tab-pane label="服务器代理穿透" name="sforward">
+                <SForward v-if="state.connected"></SForward>
+            </el-tab-pane>
         </el-tabs>
     </div>
 </template>
@@ -22,9 +25,10 @@ import SignInServers from './SignInServers.vue'
 import RelayServers from './RelayServers.vue'
 import TunnelServers from './TunnelServers.vue'
 import Transports from './Transports.vue'
+import SForward from './SForward.vue'
 import { injectGlobalData } from '@/provide';
 export default {
-    components:{SignInServers,RelayServers,TunnelServers,Transports},
+    components:{SignInServers,RelayServers,TunnelServers,Transports,SForward},
     setup(props) {
         
         const globalData = injectGlobalData();

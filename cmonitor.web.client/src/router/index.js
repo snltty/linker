@@ -6,9 +6,9 @@ const routes = [
         component: () => import('../views/devices/Index.vue')
     },
     {
-        path: '/servers.html',
-        name: 'Servers',
-        component: () => import('../views/servers/Index.vue')
+        path: '/settings.html',
+        name: 'Settings',
+        component: () => import('../views/settings/Index.vue')
     },
     {
         path: '/logger.html',

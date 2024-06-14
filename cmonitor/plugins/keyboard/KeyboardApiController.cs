@@ -25,7 +25,7 @@ namespace cmonitor.plugins.keyboard
             byte[] bytes = MemoryPackSerializer.Serialize(info.Input);
             for (int i = 0; i < info.Names.Length; i++)
             {
-                if (signCaching.Get(info.Names[i], out SignCacheInfo cache) && cache.Connected)
+                if (signCaching.TryGet(info.Names[i], out SignCacheInfo cache) && cache.Connected)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
@@ -44,7 +44,7 @@ namespace cmonitor.plugins.keyboard
             string[] names = param.Content.DeJson<string[]>();
             for (int i = 0; i < names.Length; i++)
             {
-                if (signCaching.Get(names[i], out SignCacheInfo cache) && cache.Connected)
+                if (signCaching.TryGet(names[i], out SignCacheInfo cache) && cache.Connected)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
@@ -64,7 +64,7 @@ namespace cmonitor.plugins.keyboard
             byte[] bytes = MemoryPackSerializer.Serialize(info.Input);
             for (int i = 0; i < info.Names.Length; i++)
             {
-                if (signCaching.Get(info.Names[i], out SignCacheInfo cache) && cache.Connected)
+                if (signCaching.TryGet(info.Names[i], out SignCacheInfo cache) && cache.Connected)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
@@ -83,7 +83,7 @@ namespace cmonitor.plugins.keyboard
             byte[] bytes = MemoryPackSerializer.Serialize(info.Input);
             for (int i = 0; i < info.Names.Length; i++)
             {
-                if (signCaching.Get(info.Names[i], out SignCacheInfo cache) && cache.Connected)
+                if (signCaching.TryGet(info.Names[i], out SignCacheInfo cache) && cache.Connected)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {

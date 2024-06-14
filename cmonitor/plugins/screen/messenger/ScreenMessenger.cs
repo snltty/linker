@@ -3,7 +3,6 @@ using cmonitor.plugins.screen.report;
 using cmonitor.plugins.signin.messenger;
 using cmonitor.server;
 using MemoryPack;
-using cmonitor.plugins.sapi;
 using cmonitor.server.sapi;
 
 namespace cmonitor.plugins.screen.messenger
@@ -62,7 +61,7 @@ namespace cmonitor.plugins.screen.messenger
         [MessengerId((ushort)ScreenMessengerIds.CaptureFullReport)]
         public void CaptureFullReport(IConnection connection)
         {
-            if (signCaching.Get(connection.Id, out SignCacheInfo cache))
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
                 if (cache.Version == config.Data.Version)
                 {

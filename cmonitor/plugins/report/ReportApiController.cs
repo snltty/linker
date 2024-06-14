@@ -32,7 +32,7 @@ namespace cmonitor.plugins.report
             for (int i = 0; i < updateinfo.Names.Length; i++)
             {
                 string name = updateinfo.Names[i];
-                bool connectionRes = signCaching.Get(name, out SignCacheInfo cache) && cache.Connected;
+                bool connectionRes = signCaching.TryGet(name, out SignCacheInfo cache) && cache.Connected;
                 if (connectionRes == false) continue;
                 bool reportTimeRes = fpsHelper.Acquire(name, 30);
 
@@ -60,7 +60,7 @@ namespace cmonitor.plugins.report
             for (int i = 0; i < names.Length; i++)
             {
                 string name = names[i];
-                if (signCaching.Get(names[i], out SignCacheInfo cache) && cache.Connected && fpsHelper.Acquire(name, 30))
+                if (signCaching.TryGet(names[i], out SignCacheInfo cache) && cache.Connected && fpsHelper.Acquire(name, 30))
                 {
                     DateTime starTime = DateTime.Now;
                     _ = messengerSender.SendReply(new MessageRequestWrap

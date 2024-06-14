@@ -319,6 +319,16 @@ namespace cmonitor.tunnel.transport
                 IPEndPoint remoteEP = await taskCompletionSource.Task.WaitAsync(TimeSpan.FromMilliseconds(500));
                 //绑定一个udp，用来给QUIC链接
                 UdpClient localUdp = BindListen(remoteEP.AddressFamily == AddressFamily.InterNetwork ? remoteUdp : remoteUdp6, remoteEP);
+                if (remoteEP.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    remoteUdp6.Close();
+                    remoteUdp6.Dispose();
+                }
+                else
+                {
+                    remoteUdp.Close();
+                    remoteUdp.Dispose();
+                }
 
                 QuicConnection connection = connection = await QuicConnection.ConnectAsync(new QuicClientConnectionOptions
                 {
@@ -387,7 +397,7 @@ namespace cmonitor.tunnel.transport
                     Step = ListenStep.Auth,
                     LocalUdp = udpClient,
                     RemoteEP = targetEP,
-                    Tcs = new TaskCompletionSource<bool>(),
+                    Tcs = new TaskCompletionSource<AddressFamily>(),
                     State = state
                 };
                 _ = ListenReceiveCallback(token);
@@ -405,7 +415,17 @@ namespace cmonitor.tunnel.transport
                 };
                 _ = ListenReceiveCallback(token6);
 
-                bool result = await token.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(30000));
+                AddressFamily af = await token.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(30000));
+                if (af == AddressFamily.InterNetwork)
+                {
+                    udpClient6.Close();
+                    udpClient6.Dispose();
+                }
+                else
+                {
+                    udpClient.Close();
+                    udpClient.Dispose();
+                }
             }
             catch (Exception ex)
             {
@@ -438,7 +458,7 @@ namespace cmonitor.tunnel.transport
                         }
                         if (token.Tcs != null && token.Tcs.Task.IsCompleted == false)
                         {
-                            token.Tcs.SetResult(true);
+                            token.Tcs.SetResult(result.RemoteEndPoint.AddressFamily);
                         }
                     }
                     else
@@ -712,7 +732,7 @@ namespace cmonitor.tunnel.transport
             public IPEndPoint RemoteEP { get; set; }
             public IPEndPoint RealRemoteEP { get; set; }
 
-            public TaskCompletionSource<bool> Tcs { get; set; }
+            public TaskCompletionSource<AddressFamily> Tcs { get; set; }
 
             public object State { get; set; }
 

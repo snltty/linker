@@ -23,7 +23,7 @@ namespace cmonitor.plugins.share
             byte[] bytes = MemoryPackSerializer.Serialize(info.Item);
             for (int i = 0; i < info.Names.Length; i++)
             {
-                if (signCaching.Get(info.Names[i], out SignCacheInfo cache))
+                if (signCaching.TryGet(info.Names[i], out SignCacheInfo cache))
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {

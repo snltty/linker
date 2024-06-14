@@ -62,7 +62,7 @@ namespace cmonitor.plugins.snatch.messenger
                     SnatchAnswerInfo[] answers = snatachCaching.Get(info);
                     foreach (var item in answers)
                     {
-                        if (signCaching.Get(item.MachineId, out SignCacheInfo cache))
+                        if (signCaching.TryGet(item.MachineId, out SignCacheInfo cache))
                         {
                             await messengerSender.SendOnly(new MessageRequestWrap
                             {

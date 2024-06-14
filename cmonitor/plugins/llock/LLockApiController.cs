@@ -23,7 +23,7 @@ namespace cmonitor.plugins.llock
             byte[] bytes = MemoryPackSerializer.Serialize(info.Value);
             for (int i = 0; i < info.Names.Length; i++)
             {
-                if (signCaching.Get(info.Names[i], out SignCacheInfo cache) && cache.Connected)
+                if (signCaching.TryGet(info.Names[i], out SignCacheInfo cache) && cache.Connected)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
@@ -42,7 +42,7 @@ namespace cmonitor.plugins.llock
             string[] names = param.Content.DeJson<string[]>();
             for (int i = 0; i < names.Length; i++)
             {
-                if (signCaching.Get(names[i], out SignCacheInfo cache) && cache.Connected)
+                if (signCaching.TryGet(names[i], out SignCacheInfo cache) && cache.Connected)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {

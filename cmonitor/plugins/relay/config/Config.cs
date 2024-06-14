@@ -32,8 +32,6 @@ namespace cmonitor.config
     public sealed class RelayConfigServerInfo
     {
         public string SecretKey { get; set; } = Helper.GlobalString;
-        public bool GuestRelay { get; set; } = false;
-        public int GuestRelayLmit { get; set; } = 100 * 1024;
 
     }
 

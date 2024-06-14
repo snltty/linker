@@ -49,7 +49,7 @@
                 <el-table-column label="操作" width="54">
                     <template #default="scope">
                         <el-popconfirm confirm-button-text="确认" cancel-button-text="取消" title="删除不可逆，是否确认?"
-                            @confirm="handleDel(scope.row.ID)">
+                            @confirm="handleDel(scope.row.Id)">
                             <template #reference>
                                 <el-button type="danger" size="small"><el-icon><Delete /></el-icon></el-button>
                             </template>

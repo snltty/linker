@@ -1,9 +1,7 @@
 ﻿using common.libs;
 using common.libs.extends;
 using System.Buffers;
-using System.IO.Pipelines;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
@@ -104,6 +102,7 @@ namespace cmonitor.server
         public void Write(Memory<byte> data)
         {
             ResponseData = data;
+            length = 0;
         }
         public void Write(ulong num)
         {

@@ -65,7 +65,7 @@ namespace cmonitor.plugins.signin.messenger
         {
             SignInListRequestInfo request = MemoryPackSerializer.Deserialize<SignInListRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
 
-            if (signCaching.Get(connection.Id, out SignCacheInfo cache))
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
                 List<SignCacheInfo> list = signCaching.Get(cache.GroupId).OrderByDescending(c => c.MachineName).OrderByDescending(c => c.LastSignIn).OrderByDescending(c => c.Version).ToList();
                 int count = list.Count;
@@ -81,9 +81,9 @@ namespace cmonitor.plugins.signin.messenger
         public void Delete(IConnection connection)
         {
             string name = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.Get(name, out SignCacheInfo cache) && signCaching.Get(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            if (signCaching.TryGet(name, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
-                signCaching.Del(name);
+                signCaching.TryRemove(name,out _);
             }
         }
 
@@ -91,7 +91,7 @@ namespace cmonitor.plugins.signin.messenger
         public async Task NameForward(IConnection connection)
         {
             ConfigSetNameInfo info = MemoryPackSerializer.Deserialize<ConfigSetNameInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.Get(info.Id, out SignCacheInfo cache) && signCaching.Get(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            if (signCaching.TryGet(info.Id, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
                 if (info.Id != connection.Id)
                 {
@@ -109,7 +109,7 @@ namespace cmonitor.plugins.signin.messenger
         [MessengerId((ushort)SignInMessengerIds.ServersForward)]
         public async Task ServersForward(IConnection connection)
         {
-            if (signCaching.Get(connection.Id, out SignCacheInfo cache))
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
                 var clients = signCaching.Get(cache.GroupId);
                 foreach (var info in clients)

@@ -31,7 +31,7 @@ namespace cmonitor.plugins.screen
             for (int i = 0; i < report.Names.Length; i++)
             {
                 string name = report.Names[i];
-                if (signCaching.Get(name, out SignCacheInfo cache) && cache.Connected && fpsHelper.Acquire(name, 5))
+                if (signCaching.TryGet(name, out SignCacheInfo cache) && cache.Connected && fpsHelper.Acquire(name, 5))
                 {
                     _ = messengerSender.SendOnly(new MessageRequestWrap
                     {
@@ -51,7 +51,7 @@ namespace cmonitor.plugins.screen
         public bool Clip(ApiControllerParamsInfo param)
         {
             ScreenClipParamInfo screenClipParamInfo = param.Content.DeJson<ScreenClipParamInfo>();
-            if (signCaching.Get(screenClipParamInfo.Name, out SignCacheInfo cache))
+            if (signCaching.TryGet(screenClipParamInfo.Name, out SignCacheInfo cache))
             {
                 _ = messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -70,7 +70,7 @@ namespace cmonitor.plugins.screen
             for (int i = 0; i < names.Length; i++)
             {
                 string name = names[i];
-                if (signCaching.Get(names[i], out SignCacheInfo cache) && cache.Connected && fpsHelper.Acquire(name, 5))
+                if (signCaching.TryGet(names[i], out SignCacheInfo cache) && cache.Connected && fpsHelper.Acquire(name, 5))
                 {
                     _ = messengerSender.SendOnly(new MessageRequestWrap
                     {

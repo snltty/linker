@@ -4,7 +4,7 @@
             <Device  @edit="handleDeviceEdit" @refresh="handlePageRefresh"></Device>
             <Tunnel  @edit="handleTunnelEdit" @refresh="handleTunnelRefresh" @connections="handleTunnelConnections"></Tunnel>
             <Tuntap  @edit="handleTuntapEdit" @refresh="handleTuntapRefresh"></Tuntap>
-            <Forward @edit="handleForwardEdit" @refresh="handleForwardRefresh"></Forward>  
+            <Forward @edit="handleForwardEdit" @sedit="handleSForwardEdit" @refresh="handleForwardRefresh"></Forward>  
             <Info></Info>          
             <el-table-column label="操作" width="66" fixed="right">
                 <template #default="scope">
@@ -28,7 +28,8 @@
         <TunnelEdit v-if="tunnel.showEdit" v-model="tunnel.showEdit"  @change="handleTunnelChange"></TunnelEdit>
         <ConnectionsEdit v-if="connections.showEdit" v-model="connections.showEdit" ></ConnectionsEdit>
         <TuntapEdit v-if="tuntap.showEdit" v-model="tuntap.showEdit"  @change="handleTuntapChange"></TuntapEdit>
-        <ForwardEdit v-if="forward.showEdit" v-model="forward.showEdit"  @change="handleTuntapChange"></ForwardEdit>
+        <ForwardEdit v-if="forward.showEdit" v-model="forward.showEdit"  @change="handleForwardChange"></ForwardEdit>
+        <SForwardEdit v-if="sforward.showEdit" v-model="sforward.showEdit"  @change="handleSForwardChange"></SForwardEdit>
     </div>
 </template>
 <script>
@@ -36,6 +37,7 @@ import { getSignInList, signInDel } from '@/apis/signin.js'
 import { subWebsocketState } from '@/apis/request.js'
 import { getTuntapInfo,refreshTuntap } from '@/apis/tuntap'
 import { getForwardInfo ,refreshForward} from '@/apis/forward'
+import { getSForwardInfo} from '@/apis/sforward'
 import { getTunnelInfo ,refreshTunnel} from '@/apis/tunnel'
 import { injectGlobalData } from '@/provide.js'
 import { reactive, onMounted, ref, nextTick, onUnmounted, computed, provide } from 'vue'
@@ -48,17 +50,19 @@ import Tunnel from './Tunnel.vue'
 import TunnelEdit from './TunnelEdit.vue'
 import Forward from './Forward.vue'
 import ForwardEdit from './ForwardEdit.vue'
+import SForwardEdit from './SForwardEdit.vue'
 import ConnectionsEdit from './ConnectionsEdit.vue'
 import { ElMessage } from 'element-plus'
 import { getConnections } from '@/apis/connections'
 export default {
-    components: {Device,DeviceEdit,Info,Tunnel,TunnelEdit,ConnectionsEdit, Tuntap,TuntapEdit,  Forward,ForwardEdit },
+    components: {Device,DeviceEdit,Info,Tunnel,TunnelEdit,ConnectionsEdit, Tuntap,TuntapEdit,  Forward,ForwardEdit,SForwardEdit },
     setup(props) {
 
         const globalData = injectGlobalData();
         const machineId = computed(() => globalData.value.config.Client.Id);
        
         const state = reactive({
+            timer:0,
             page: {
                 Request: { Page: 1, Size: 10, GroupId: globalData.value.groupid },
                 Count: 0,
@@ -235,6 +239,34 @@ export default {
             ElMessage.success('刷新成功');
         }
 
+
+        const sforward = ref({
+            timer:0,
+            showEdit:false,
+            list: []
+        });
+        provide('sforward',sforward);
+        const _getSForwardInfo = () => {
+            if (globalData.value.connected) {
+                getSForwardInfo().then((res) => {
+                    sforward.value.list = res;
+                    sforward.value.timer = setTimeout(_getSForwardInfo, 1000);
+                }).catch(() => {
+                    sforward.value.timer = setTimeout(_getSForwardInfo, 1000);
+                });
+            }else {
+                sforward.value.timer = setTimeout(_getSForwardInfo, 1000);
+            }
+        }
+        const handleSForwardEdit = ()=>{
+            sforward.value.showEdit = true;
+        }
+        const handleSForwardChange = () => {
+            _getSignList();
+        }
+
+
+
         const _getSignList = () => {
             state.page.Request.GroupId = globalData.value.groupid;
             getSignInList(state.page.Request).then((res) => {
@@ -243,6 +275,7 @@ export default {
                 for (let j in res.List) {
                     res.List[j].showTunnel = machineId.value != res.List[j].MachineId;
                     res.List[j].showForward = machineId.value != res.List[j].MachineId;
+                    res.List[j].showSForward = machineId.value == res.List[j].MachineId;
                     res.List[j].showDel = machineId.value != res.List[j].MachineId && res.List[j].Connected == false;
                     res.List[j].isSelf = machineId.value == res.List[j].MachineId;
                 }
@@ -266,12 +299,12 @@ export default {
                             item.isSelf = machineId.value == res.List[j].MachineId;
                         }
                     }
-                    setTimeout(_getSignList1, 5000);
+                    state.timer = setTimeout(_getSignList1, 5000);
                 }).catch((err) => { 
-                    setTimeout(_getSignList1, 5000);
+                    state.timer =  setTimeout(_getSignList1, 5000);
                 });
             }else{
-                setTimeout(_getSignList1, 5000);
+                state.timer = setTimeout(_getSignList1, 5000);
             }
         }
         
@@ -310,11 +343,14 @@ export default {
             _getTunnelInfo();
             _getConnections();
             _getForwardInfo();
+            _getSForwardInfo();
         });
         onUnmounted(() => {
+            clearTimeout( state.timer);
             clearTimeout(tuntap.value.timer);
             clearTimeout(tunnel.value.timer);
-            clearTimeout(connections.value.timer);
+            clearTimeout(forward.value.timer);
+            clearTimeout(sforward.value.timer);
         });
 
         return {
@@ -322,7 +358,7 @@ export default {
             handleDeviceEdit,handlePageRefresh, handlePageChange, handleDel,
             tuntap, handleTuntapEdit, handleTuntapChange, handleTuntapRefresh,
             tunnel,connections, handleTunnelEdit, handleTunnelChange, handleTunnelRefresh,handleTunnelConnections,
-            forward, handleForwardEdit,handleForwardChange,handleForwardRefresh
+            forward,sforward, handleForwardEdit,handleForwardChange,handleForwardRefresh,handleSForwardEdit,handleSForwardChange
         }
     }
 }

@@ -43,6 +43,7 @@ namespace cmonitor.plugins.tunnel
             serviceCollection.AddSingleton<TunnelTransfer>();
             serviceCollection.AddSingleton<TunnelTransportTcpNutssb>();
             serviceCollection.AddSingleton<TransportMsQuic>();
+            //serviceCollection.AddSingleton<TransportUdp>();
 
             serviceCollection.AddSingleton<TunnelConfigTransfer>();
             serviceCollection.AddSingleton<ITunnelAdapter, TunnelAdapter>();

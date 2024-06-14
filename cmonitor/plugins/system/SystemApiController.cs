@@ -24,7 +24,7 @@ namespace cmonitor.plugins.system
             byte[] bytes = MemoryPackSerializer.Serialize(info.Input);
             for (int i = 0; i < info.Devices.Length; i++)
             {
-                if (signCaching.Get(info.Devices[i], out SignCacheInfo cache) && cache.Connected)
+                if (signCaching.TryGet(info.Devices[i], out SignCacheInfo cache) && cache.Connected)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
@@ -44,7 +44,7 @@ namespace cmonitor.plugins.system
             byte[] bytes = MemoryPackSerializer.Serialize(info.Data);
             for (int i = 0; i < info.Devices.Length; i++)
             {
-                if (signCaching.Get(info.Devices[i], out SignCacheInfo cache) && cache.Connected)
+                if (signCaching.TryGet(info.Devices[i], out SignCacheInfo cache) && cache.Connected)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {

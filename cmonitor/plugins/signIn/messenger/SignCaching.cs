@@ -1,7 +1,6 @@
 ﻿using cmonitor.db;
 using cmonitor.server;
 using common.libs;
-using common.libs.extends;
 using LiteDB;
 using MemoryPack;
 using System.Collections.Concurrent;
@@ -56,7 +55,7 @@ namespace cmonitor.plugins.signin.messenger
             dBfactory.Confirm();
         }
 
-        public bool Get(string machineId, out SignCacheInfo cache)
+        public bool TryGet(string machineId, out SignCacheInfo cache)
         {
             if (machineId == null)
             {
@@ -71,9 +70,9 @@ namespace cmonitor.plugins.signin.messenger
             return Clients.Values.Where(c => c.GroupId == groupId).ToList();
         }
 
-        public bool Del(string machineId)
+        public bool TryRemove(string machineId, out SignCacheInfo cache)
         {
-            if (Clients.TryRemove(machineId, out SignCacheInfo cache))
+            if (Clients.TryRemove(machineId, out cache))
             {
                 liteCollection.Delete(cache.Id);
                 dBfactory.Confirm();

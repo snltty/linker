@@ -59,7 +59,7 @@ namespace cmonitor.server
             MessengerId = span.Slice(index).ToUInt16();
             index += 2;
 
-            Payload = memory.Slice(index, memory.Length - index);
+            Payload = memory.Slice(index);
         }
         public void Return(byte[] array)
         {
@@ -129,7 +129,7 @@ namespace cmonitor.server
             RequestId = span.Slice(index).ToUInt32();
             index += 4;
 
-            Payload = memory.Slice(index, memory.Length - index);
+            Payload = memory.Slice(index);
         }
 
         public void Return(byte[] array)

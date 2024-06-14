@@ -55,7 +55,7 @@ namespace cmonitor.plugins.snatch
                     byte[] bytes = info.Question.ToBytes();
                     for (int i = 0; i < info.Cache.MachineIds.Length; i++)
                     {
-                        if (signCaching.Get(info.Cache.MachineIds[i], out SignCacheInfo signCache))
+                        if (signCaching.TryGet(info.Cache.MachineIds[i], out SignCacheInfo signCache))
                         {
                             await messengerSender.SendOnly(new MessageRequestWrap
                             {
@@ -83,7 +83,7 @@ namespace cmonitor.plugins.snatch
                     continue;
                 }
                 byte[] bytes = answer.Question.ToBytes();
-                if (signCaching.Get(answer.MachineId, out SignCacheInfo signCache))
+                if (signCaching.TryGet(answer.MachineId, out SignCacheInfo signCache))
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
@@ -101,7 +101,7 @@ namespace cmonitor.plugins.snatch
             {
                 for (int i = 0; i < info.MachineIds.Length; i++)
                 {
-                    if (signCaching.Get(info.MachineIds[i], out SignCacheInfo cache))
+                    if (signCaching.TryGet(info.MachineIds[i], out SignCacheInfo cache))
                     {
                         await messengerSender.SendOnly(new MessageRequestWrap
                         {

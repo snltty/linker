@@ -24,7 +24,7 @@ namespace cmonitor.plugins.command
             byte[] bytes = MemoryPackSerializer.Serialize(info.Commands);
             for (int i = 0; i < info.Names.Length; i++)
             {
-                if (signCaching.Get(info.Names[i], out SignCacheInfo cache) && cache.Connected)
+                if (signCaching.TryGet(info.Names[i], out SignCacheInfo cache) && cache.Connected)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
@@ -40,7 +40,7 @@ namespace cmonitor.plugins.command
 
         public async Task<int> CommandStart(ApiControllerParamsInfo param)
         {
-            if (signCaching.Get(param.Content, out SignCacheInfo cache) && cache.Connected)
+            if (signCaching.TryGet(param.Content, out SignCacheInfo cache) && cache.Connected)
             {
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
@@ -58,7 +58,7 @@ namespace cmonitor.plugins.command
         public async Task<bool> CommandWrite(ApiControllerParamsInfo param)
         {
             CommandWriteInfo info = param.Content.DeJson<CommandWriteInfo>();
-            if (signCaching.Get(info.Name, out SignCacheInfo cache) && cache.Connected)
+            if (signCaching.TryGet(info.Name, out SignCacheInfo cache) && cache.Connected)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -74,7 +74,7 @@ namespace cmonitor.plugins.command
         public async Task<bool> CommandStop(ApiControllerParamsInfo param)
         {
             CommandStopInfo info = param.Content.DeJson<CommandStopInfo>();
-            if (signCaching.Get(info.Name, out SignCacheInfo cache) && cache.Connected)
+            if (signCaching.TryGet(info.Name, out SignCacheInfo cache) && cache.Connected)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -90,7 +90,7 @@ namespace cmonitor.plugins.command
         public async Task<bool> CommandAlive(ApiControllerParamsInfo param)
         {
             CommandAliveInfo info = param.Content.DeJson<CommandAliveInfo>();
-            if (signCaching.Get(info.Name, out SignCacheInfo cache) && cache.Connected)
+            if (signCaching.TryGet(info.Name, out SignCacheInfo cache) && cache.Connected)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {

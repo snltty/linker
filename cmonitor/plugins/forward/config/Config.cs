@@ -1,5 +1,4 @@
-﻿using cmonitor.plugins.forward.proxy;
-using LiteDB;
+﻿using LiteDB;
 using System.Net;
 using System.Text.Json.Serialization;
 
@@ -20,7 +19,7 @@ namespace cmonitor.client.config
         public bool Started { get; set; }
 
         [JsonIgnore,BsonIgnore]
-        public ForwardProxy Proxy { get; set; }
+        public bool Proxy { get; set; }
 
     }
 }

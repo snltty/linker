@@ -51,7 +51,7 @@ namespace cmonitor.plugins.hijack
                 });
                 for (int i = 0; i < setRuleParamInfo.Devices.Length; i++)
                 {
-                    if (signCaching.Get(setRuleParamInfo.Devices[i], out SignCacheInfo cache))
+                    if (signCaching.TryGet(setRuleParamInfo.Devices[i], out SignCacheInfo cache))
                     {
                         bool res = await messengerSender.SendOnly(new MessageRequestWrap
                         {

@@ -53,7 +53,7 @@ namespace cmonitor.plugins.relay.messenger
         {
             RelayCompactInfo[] servers = MemoryPackSerializer.Deserialize<RelayCompactInfo[]>(connection.ReceiveRequestWrap.Payload.Span);
 
-            if (signCaching.Get(connection.Id, out SignCacheInfo cache))
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
                 List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
 
@@ -76,12 +76,12 @@ namespace cmonitor.plugins.relay.messenger
             RelayInfo info = MemoryPackSerializer.Deserialize<RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (info.FlowingId == 0)
             {
-                if (info.SecretKey != config.Data.Server.Relay.SecretKey && config.Data.Server.Relay.GuestRelay == false)
+                if (info.SecretKey != config.Data.Server.Relay.SecretKey)
                 {
                     connection.Write(Helper.FalseArray);
                     return;
                 }
-                if (signCaching.Get(info.RemoteMachineId, out SignCacheInfo cache) == false)
+                if (signCaching.TryGet(info.RemoteMachineId, out SignCacheInfo cache) == false)
                 {
                     connection.Write(Helper.FalseArray);
                     return;
@@ -138,7 +138,7 @@ namespace cmonitor.plugins.relay.messenger
 
         private void Relay(IConnection source, IConnection target, string secretKey)
         {
-            int limit = secretKey == config.Data.Server.Relay.SecretKey ? 0 : config.Data.Server.Relay.GuestRelayLmit;
+            int limit = 0;
             source.TargetStream = target.SourceStream;
             source.TargetSocket = target.SourceSocket;
             source.TargetNetworkStream = target.SourceNetworkStream;

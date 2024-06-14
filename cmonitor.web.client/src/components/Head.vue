@@ -12,7 +12,7 @@
                         <router-link :to="{name:'Index'}">首页</router-link>
                     </li>
                     <li>
-                        <router-link :to="{name:'Servers'}">服务器</router-link>
+                        <router-link :to="{name:'Settings'}">配置</router-link>
                     </li>
                     <li>
                         <router-link :to="{name:'Logger'}">日志</router-link>
@@ -72,7 +72,6 @@ export default {
 
         const _getConfig = ()=>{
             getConfig().then((res)=>{
-                console.log(res);
                 globalData.value.config.Common = res.Common;
                 globalData.value.config.Client = res.Client;
                 globalData.value.config.Running = res.Running;
