@@ -3,6 +3,7 @@ using cmonitor.plugins.sforward.config;
 using cmonitor.plugins.sforward.validator;
 using cmonitor.plugins.signin.messenger;
 using cmonitor.server;
+using common.libs.extends;
 using MemoryPack;
 
 namespace cmonitor.plugins.sforward.messenger
@@ -22,6 +23,7 @@ namespace cmonitor.plugins.sforward.messenger
             this.proxy = proxy;
             proxy.WebConnect = WebConnect;
             proxy.TunnelConnect = TunnelConnect;
+            proxy.UdpConnect = UdpConnect;
             this.sForwardServerCahing = sForwardServerCahing;
             this.sender = sender;
             this.signCaching = signCaching;
@@ -192,6 +194,19 @@ namespace cmonitor.plugins.sforward.messenger
             }
             return false;
         }
+        private async Task<bool> UdpConnect(int port, ulong id)
+        {
+            if (sForwardServerCahing.TryGet(port, out string machineId) && signCaching.TryGet(machineId, out SignCacheInfo sign) && sign.Connected)
+            {
+                return await sender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = sign.Connection,
+                    MessengerId = (ushort)SForwardMessengerIds.ProxyUdp,
+                    Payload = MemoryPackSerializer.Serialize(new SForwardProxyInfo { RemotePort = port, Id = id })
+                });
+            }
+            return false;
+        }
     }
 
     public sealed class SForwardClientMessenger : IMessenger
@@ -227,6 +242,22 @@ namespace cmonitor.plugins.sforward.messenger
                 }
             }
         }
+        [MessengerId((ushort)SForwardMessengerIds.ProxyUdp)]
+        public void ProxyUdp(IConnection connection)
+        {
+            SForwardProxyInfo sForwardProxyInfo = MemoryPackSerializer.Deserialize<SForwardProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            Console.WriteLine(sForwardProxyInfo.ToJson());
+
+            if (sForwardProxyInfo.RemotePort > 0)
+            {
+                SForwardInfo sForwardInfo = runningConfig.Data.SForwards.FirstOrDefault(c => c.RemotePort == sForwardProxyInfo.RemotePort);
+                if (sForwardInfo != null)
+                {
+                    _ = proxy.OnConnectUdp(sForwardProxyInfo.Id, new System.Net.IPEndPoint(connection.Address.Address, sForwardProxyInfo.RemotePort), sForwardInfo.LocalEP);
+                }
+            }
+        }
+
 
         [MessengerId((ushort)SForwardMessengerIds.SecretKey)]
         public void SecretKey(IConnection connection)

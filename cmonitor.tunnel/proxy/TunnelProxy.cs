@@ -14,6 +14,7 @@ namespace cmonitor.tunnel.proxy
         private SemaphoreSlim semaphoreSlimReverse = new SemaphoreSlim(10);
         public TunnelProxy()
         {
+            TaskUdp();
         }
 
         public void Start(int port)

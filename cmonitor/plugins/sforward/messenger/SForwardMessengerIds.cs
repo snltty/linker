@@ -8,9 +8,10 @@
         Remove = 2302,
 
         Proxy = 2303,
+        ProxyUdp = 2304,
 
-        SecretKey = 2304,
-        SecretKeyForward = 2305,
+        SecretKey = 2305,
+        SecretKeyForward = 2306,
 
         Max = 2399
     }

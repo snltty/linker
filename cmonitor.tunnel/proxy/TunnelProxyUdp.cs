@@ -4,7 +4,6 @@ using common.libs.extends;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 
 namespace cmonitor.tunnel.proxy
 {
@@ -35,7 +34,6 @@ namespace cmonitor.tunnel.proxy
                 Logger.Instance.Error(ex);
             }
         }
-
         private async void ReceiveCallbackUdp(IAsyncResult result)
         {
             try
@@ -109,6 +107,7 @@ namespace cmonitor.tunnel.proxy
                     {
                         token.Connection = tunnelToken.Connection;
                         await token.TargetSocket.SendToAsync(tunnelToken.Proxy.Data, tunnelToken.Proxy.TargetEP);
+                        token.Update();
                         return;
                     }
 
@@ -181,7 +180,6 @@ namespace cmonitor.tunnel.proxy
             return await ValueTask.FromResult(false);
         }
 
-
         private async void ReceiveCallbackUdpTarget(IAsyncResult result)
         {
             AsyncUserUdpTokenTarget token = result.AsyncState as AsyncUserUdpTokenTarget;
@@ -234,6 +232,32 @@ namespace cmonitor.tunnel.proxy
             }
         }
 
+
+        private void TaskUdp()
+        {
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    var connections = udpConnections.Where(c => c.Value.Timeout).Select(c => c.Key).ToList();
+                    foreach (var item in connections)
+                    {
+                        if (udpConnections.TryRemove(item, out AsyncUserUdpTokenTarget token))
+                        {
+                            try
+                            {
+                                token.Clear();
+                            }
+                            catch (Exception)
+                            {
+                            }
+                        }
+                    }
+
+                    await Task.Delay(5000);
+                }
+            });
+        }
 
         private void CloseClientSocketUdp(ITunnelConnection connection)
         {
@@ -315,6 +339,7 @@ namespace cmonitor.tunnel.proxy
         public void Clear()
         {
             SourceSocket?.Close();
+            SourceSocket?.Dispose();
             SourceSocket = null;
             GC.Collect();
         }
@@ -330,6 +355,8 @@ namespace cmonitor.tunnel.proxy
         public ConnectIdUdp ConnectId { get; set; }
 
         public long LastTime { get; set; } = Environment.TickCount64;
+        public bool Timeout => Environment.TickCount64 - LastTime > 15000;
+
         public EndPoint TempRemoteEP = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
         public void Clear()
         {

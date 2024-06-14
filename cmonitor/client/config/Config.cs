@@ -78,7 +78,7 @@ namespace cmonitor.config
         }
 
         public string Certificate { get; set; } = "./snltty.pfx";
-        public string Password { get; set; } = Helper.GlobalString;
+        public string Password { get; set; } = "oeq9tw1o";
 
         public ConfigClientInfo Load(string text)
         {

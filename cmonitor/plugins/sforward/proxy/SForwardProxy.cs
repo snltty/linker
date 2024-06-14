@@ -10,6 +10,7 @@ namespace cmonitor.plugins.sforward
 
         public SForwardProxy()
         {
+            UdpTask();
         }
 
         public string Start(int port, bool isweb)

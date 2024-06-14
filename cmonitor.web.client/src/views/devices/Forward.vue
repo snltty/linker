@@ -1,6 +1,6 @@
 <template>
 
-    <el-table-column prop="forward" label="端口转发" width="190">
+    <el-table-column prop="forward" label="端口转发">
         <template #default="scope">
             <template v-if="scope.row.showForward">
                 <div>
@@ -71,6 +71,18 @@ export default {
 <style lang="stylus" scoped>
 a{
     text-decoration: underline;
+    font-weight:bold;
 }
 a.green{color:green}
+
+ul.sforward a{
+    background: linear-gradient(45deg, #386185, #5f5f5f, #346666);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: rgba(255, 255, 255, 0);
+}
+ul.sforward a.green{
+    background: linear-gradient(45deg, #0e79d6, #178c43, #1f976a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: rgba(255, 255, 255, 0);
+}
 </style>

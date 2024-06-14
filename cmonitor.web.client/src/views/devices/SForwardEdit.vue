@@ -107,7 +107,13 @@ export default {
             ElMessage.success('已刷新')
         }
         const handleAdd = () => {
-            saveRow({ Id: 0, Name: '', RemotePort: 0, LocalEP: '127.0.0.1:80',Domain:'',Temp:'' });
+            addSForwardInfo({ Id: 0, Name: '', RemotePort: 0, LocalEP: '127.0.0.1:80',Domain:'',Temp:'' }).then(() => {
+                setTimeout(()=>{
+                    _getSForwardInfo();
+                },1000)
+            }).catch((err) => {
+                ElMessage.error(err);
+            });
         }
         const handleEdit = (row, p) => {
             state.data.forEach(c => {

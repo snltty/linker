@@ -29,11 +29,6 @@ namespace cmonitor.plugins.sforward
             };
         }
 
-        public void SetKey()
-        {
-
-        }
-
         private void Start()
         {
             uint maxid = running.Data.SForwards.Count > 0 ? running.Data.SForwards.Max(c => c.Id) : 1;

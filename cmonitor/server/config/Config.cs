@@ -12,7 +12,7 @@ namespace cmonitor.config
         public int ServicePort { get; set; } = 1802;
 
         public string Certificate { get; set; } = "./snltty.pfx";
-        public string Password { get; set; } = Helper.GlobalString;
+        public string Password { get; set; } = "oeq9tw1o";
 
         public ConfigServerInfo Load(string text)
         {

@@ -1,9 +1,13 @@
 <template>
     <div class="status-api-wrap" :class="{connected:connected}">
-        <a href="javascript:;" @click="handleResetConnect">
-            <template v-if="connected">已连接本地管理接口</template>
-            <template v-else>请连接管理接口</template>
-        </a>
+        <el-popconfirm confirm-button-text="是" cancel-button-text="否" title="确定清楚连接信息并刷新吗？" @confirm="handleResetConnect" >
+            <template #reference>
+                <a href="javascript:;" >
+                    <template v-if="connected">已连接本地管理接口</template>
+                    <template v-else>请连接管理接口</template>
+                </a>
+            </template>
+        </el-popconfirm>
     </div>
 </template>
 <script>
@@ -18,8 +22,7 @@ export default {
         const route = useRoute();
 
         const handleResetConnect = () => {
-            localStorage.setItem('api-client', '');
-            localStorage.setItem('apipsd-client', '');
+            localStorage.setItem('api-cache', '');
             router.push({name:route.name});
             window.location.reload();
         }

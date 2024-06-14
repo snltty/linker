@@ -5,7 +5,7 @@
             <Tunnel  @edit="handleTunnelEdit" @refresh="handleTunnelRefresh" @connections="handleTunnelConnections"></Tunnel>
             <Tuntap  @edit="handleTuntapEdit" @refresh="handleTuntapRefresh"></Tuntap>
             <Forward @edit="handleForwardEdit" @sedit="handleSForwardEdit" @refresh="handleForwardRefresh"></Forward>  
-            <Info></Info>          
+            <!-- <Info></Info>           -->
             <el-table-column label="操作" width="66" fixed="right">
                 <template #default="scope">
                     <el-popconfirm v-if="scope.row.showDel" confirm-button-text="确认"

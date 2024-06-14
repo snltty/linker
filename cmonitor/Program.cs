@@ -41,14 +41,17 @@ namespace cmonitor
             GCHelper.FlushMemory();
         }
 
+        static Mutex mutex;
         private static void Init()
         {
             //单服务
-            Mutex mutex = new Mutex(true, System.Diagnostics.Process.GetCurrentProcess().ProcessName, out bool isAppRunning);
+#if RELEASEMONITOR
+            mutex = new Mutex(true, System.Diagnostics.Process.GetCurrentProcess().ProcessName, out bool isAppRunning);
             if (isAppRunning == false)
             {
                 Environment.Exit(1);
             }
+#endif
             //全局异常
             AppDomain.CurrentDomain.UnhandledException += (a, b) =>
             {
@@ -109,7 +112,7 @@ namespace cmonitor
     }
 
 
-   
+
 
 
 }

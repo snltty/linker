@@ -65,6 +65,7 @@ export default {
             queryCache.psd = state.psd;
             queryCache.groupid = state.groupid;
             localStorage.setItem('api-cache',JSON.stringify(queryCache));
+
             closeWebsocket();
             //initWebsocket(`ws://192.168.1.18:1803`,state.psd);
             initWebsocket(`ws://${state.api}`,state.psd);
