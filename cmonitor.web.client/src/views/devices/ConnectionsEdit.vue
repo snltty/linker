@@ -2,10 +2,10 @@
   <el-dialog v-model="state.show" append-to=".app-wrap" title="隧道链接" top="1vh" width="700">
         <div>
             <el-table :data="state.data" size="small" border height="500">
-                <el-table-column property="RemotemachineId" label="目标">
+                <el-table-column property="RemoteMachineId" label="目标">
                     <template #default="scope">
                         <div>
-                            <p>{{scope.row.RemotemachineId}}</p>
+                            <p>{{scope.row.RemoteMachineName}}</p>
                             <p>{{scope.row.IPEndPoint}}</p>
                         </div>
                     </template>
@@ -81,7 +81,8 @@ export default {
             }
         });
         const handleDel = (row)=>{
-            removeConnection(row.RemotemachineId,row.TransactionId).then(()=>{
+            console.log(row);
+            removeConnection(row.RemoteMachineId,row.TransactionId).then(()=>{
 
             }).catch(()=>{})
         }

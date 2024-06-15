@@ -1,5 +1,4 @@
-﻿using cmonitor.plugins.sforward.config;
-using common.libs;
+﻿using common.libs;
 using common.libs.extends;
 using System.Buffers;
 using System.Collections.Concurrent;
@@ -11,6 +10,7 @@ namespace cmonitor.plugins.sforward
     public partial class SForwardProxy
     {
         private ConcurrentDictionary<int, AsyncUserUdpToken> udpListens = new ConcurrentDictionary<int, AsyncUserUdpToken>();
+        private ConcurrentDictionary<ulong, UdpConnectedCache> udpConnectds = new ConcurrentDictionary<ulong, UdpConnectedCache>();
         private ConcurrentDictionary<IPEndPoint, UdpTargetCache> udpConnections = new ConcurrentDictionary<IPEndPoint, UdpTargetCache>(new IPEndPointComparer());
         private ConcurrentDictionary<ulong, TaskCompletionSource<IPEndPoint>> udptcss = new ConcurrentDictionary<ulong, TaskCompletionSource<IPEndPoint>>();
 
@@ -39,10 +39,14 @@ namespace cmonitor.plugins.sforward
                 while (true)
                 {
                     UdpReceiveResult result = await token.SourceSocket.ReceiveAsync();
-                    if (result.Buffer.Length == 0) break;
+
+                    if (result.Buffer.Length == 0)
+                    {
+                        break;
+                    }
 
                     //已经连接
-                    if (udpConnections.TryGetValue(result.RemoteEndPoint, out UdpTargetCache cache))
+                    if (udpConnections.TryGetValue(result.RemoteEndPoint, out UdpTargetCache cache) && cache != null)
                     {
                         await token.SourceSocket.SendAsync(result.Buffer, cache.IPEndPoint);
                     }
@@ -56,15 +60,23 @@ namespace cmonitor.plugins.sforward
                             {
                                 _tcs.SetResult(result.RemoteEndPoint);
                             }
-                            return;
+                            continue;
                         }
+
+
+                        IPEndPoint source = result.RemoteEndPoint;
+                        if (udpConnections.TryGetValue(source, out _))
+                        {
+                            continue;
+                        }
+                        udpConnections.TryAdd(source, null);
 
                         int length = result.Buffer.Length;
                         byte[] buffer = ArrayPool<byte>.Shared.Rent(length);
                         result.Buffer.AsMemory().CopyTo(buffer);
+
                         _ = Task.Run(async () =>
                         {
-                            //去连接
                             ulong id = ns.Increment();
                             try
                             {
@@ -75,14 +87,19 @@ namespace cmonitor.plugins.sforward
 
                                     IPEndPoint remote = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
 
-                                    udpConnections.TryAdd(result.RemoteEndPoint, new UdpTargetCache { IPEndPoint = remote });
+                                    udpConnections.TryRemove(source, out _);
+                                    udpConnections.TryAdd(source, new UdpTargetCache { IPEndPoint = remote });
+                                    udpConnections.TryAdd(remote, new UdpTargetCache { IPEndPoint = source });
 
-                                    await token.SourceSocket.SendAsync(buffer.AsMemory(0,length), remote);
+                                    await token.SourceSocket.SendAsync(buffer.AsMemory(0, length), remote);
                                 }
                             }
-                            catch (Exception)
+                            catch (Exception ex)
                             {
-                               
+                                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                {
+                                    Logger.Instance.Error(ex);
+                                }
                             }
                             finally
                             {
@@ -107,8 +124,6 @@ namespace cmonitor.plugins.sforward
         }
         public async Task OnConnectUdp(ulong id, IPEndPoint server, IPEndPoint service)
         {
-            Console.WriteLine($"{id}->{server}->{service}");
-
             UdpClient udpClient = new UdpClient();
             udpClient.Client.WindowsUdpBug();
 
@@ -130,6 +145,9 @@ namespace cmonitor.plugins.sforward
                         serviceUdpClient = new UdpClient();
                         serviceUdpClient.Client.WindowsUdpBug();
                         await serviceUdpClient.SendAsync(result.Buffer, service);
+
+                        udpConnectds.TryAdd(id, new UdpConnectedCache { SourceSocket = udpClient, TargetSocket = serviceUdpClient });
+
                         _ = Task.Run(async () =>
                         {
                             while (true)
@@ -137,6 +155,7 @@ namespace cmonitor.plugins.sforward
                                 try
                                 {
                                     UdpReceiveResult result = await serviceUdpClient.ReceiveAsync();
+                                    if (result.Buffer.Length == 0) break;
                                     await udpClient.SendAsync(result.Buffer, server);
                                 }
                                 catch (Exception ex)
@@ -164,7 +183,7 @@ namespace cmonitor.plugins.sforward
                 }
                 catch (Exception ex)
                 {
-                    if(Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
                         Logger.Instance.Error(ex);
                     }
@@ -174,6 +193,8 @@ namespace cmonitor.plugins.sforward
 
                     serviceUdpClient?.Close();
                     serviceUdpClient?.Dispose();
+
+                    break;
                 }
             }
         }
@@ -189,6 +210,15 @@ namespace cmonitor.plugins.sforward
                     foreach (var item in connections)
                     {
                         udpConnections.TryRemove(item, out _);
+                    }
+
+                    var connecteds = udpConnectds.Where(c => c.Value.Timeout).Select(c => c.Key);
+                    foreach (var item in connecteds)
+                    {
+                        if (udpConnectds.TryRemove(item, out UdpConnectedCache cache))
+                        {
+                            cache.Clear();
+                        }
                     }
                     await Task.Delay(5000);
                 }
@@ -226,6 +256,29 @@ namespace cmonitor.plugins.sforward
             LastTime = Environment.TickCount64;
         }
         public bool Timeout => Environment.TickCount64 - LastTime > 15000;
+    }
+
+    public sealed class UdpConnectedCache
+    {
+        public UdpClient SourceSocket { get; set; }
+        public UdpClient TargetSocket { get; set; }
+        public long LastTime { get; set; } = Environment.TickCount64;
+        public void Update()
+        {
+            LastTime = Environment.TickCount64;
+        }
+        public bool Timeout => Environment.TickCount64 - LastTime > 15000;
+
+        public void Clear()
+        {
+            SourceSocket?.Close();
+            SourceSocket = null;
+
+            TargetSocket?.Close();
+            TargetSocket = null;
+
+            GC.Collect();
+        }
     }
 
     public sealed class AsyncUserUdpToken

@@ -147,7 +147,7 @@ namespace cmonitor.tunnel.transport
             List<IPAddress> localLocalIps = tunnelTransportInfo.Local.LocalIps.Concat(new List<IPAddress> { tunnelTransportInfo.Local.Remote.Address }).ToList();
             eps = eps
                 //对方是V6，本机也得有V6
-                .Where(c => (c.AddressFamily == AddressFamily.InterNetworkV6 && hasV6) == false)
+                .Where(c => (c.AddressFamily == AddressFamily.InterNetworkV6 && hasV6) || c.AddressFamily == AddressFamily.InterNetwork)
                 //端口和本机端口一样，那不应该是换回地址
                 .Where(c => (c.Port == tunnelTransportInfo.Local.Local.Port && c.Address.Equals(IPAddress.Loopback)) == false)
                 //端口和本机端口一样。那不应该是本机的IP
@@ -159,7 +159,7 @@ namespace cmonitor.tunnel.transport
                 Logger.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", eps.Select(c => c.ToString()))}");
             }
 
-            foreach (IPEndPoint ep in eps.Where(c => NetworkHelper.NotIPv6Support(c.Address) == false))
+            foreach (IPEndPoint ep in eps)
             {
                 Socket targetSocket = new(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 try
@@ -231,7 +231,7 @@ namespace cmonitor.tunnel.transport
             List<IPAddress> localLocalIps = tunnelTransportInfo.Local.LocalIps.Concat(new List<IPAddress> { tunnelTransportInfo.Local.Remote.Address }).ToList();
             eps = eps
                 //对方是V6，本机也得有V6
-                .Where(c => (c.AddressFamily == AddressFamily.InterNetworkV6 && hasV6) == false)
+                .Where(c => (c.AddressFamily == AddressFamily.InterNetworkV6 && hasV6) || c.AddressFamily == AddressFamily.InterNetwork)
                 //端口和本机端口一样，那不应该是换回地址
                 .Where(c => (c.Port == tunnelTransportInfo.Local.Local.Port && c.Address.Equals(IPAddress.Loopback)) == false)
                 //端口和本机端口一样。那不应该是本机的IP
@@ -239,7 +239,7 @@ namespace cmonitor.tunnel.transport
                 .ToList();
 
             //过滤掉不支持IPV6的情况
-            IEnumerable<Socket> sockets = eps.Where(c => NetworkHelper.NotIPv6Support(c.Address) == false).Select(ip =>
+            IEnumerable<Socket> sockets = eps.Select(ip =>
             {
                 Socket targetSocket = new(ip.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 try

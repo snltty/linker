@@ -127,7 +127,7 @@ namespace cmonitor.tunnel.transport
             List<IPAddress> localLocalIps = tunnelTransportInfo.Local.LocalIps.Concat(new List<IPAddress> { tunnelTransportInfo.Local.Remote.Address }).ToList();
             eps = eps
                 //对方是V6，本机也得有V6
-                .Where(c => (c.AddressFamily == AddressFamily.InterNetworkV6 && hasV6) == false)
+                .Where(c => (c.AddressFamily == AddressFamily.InterNetworkV6 && hasV6) || c.AddressFamily == AddressFamily.InterNetwork)
                 //端口和本机端口一样，那不应该是换回地址
                 .Where(c => (c.Port == tunnelTransportInfo.Local.Local.Port && c.Address.Equals(IPAddress.Loopback)) == false)
                 //端口和本机端口一样。那不应该是本机的IP
@@ -144,7 +144,7 @@ namespace cmonitor.tunnel.transport
             //接收远端数据，收到了就是成功了
             (UdpClient remoteUdp, UdpClient remoteUdp6) = BindListen(local, taskCompletionSource);
 
-            foreach (IPEndPoint ep in eps.Where(c => NetworkHelper.NotIPv6Support(c.Address) == false))
+            foreach (IPEndPoint ep in eps)
             {
                 try
                 {
@@ -365,7 +365,7 @@ namespace cmonitor.tunnel.transport
             List<IPAddress> localLocalIps = tunnelTransportInfo.Local.LocalIps.Concat(new List<IPAddress> { tunnelTransportInfo.Local.Remote.Address }).ToList();
             eps = eps
                 //对方是V6，本机也得有V6
-                .Where(c => (c.AddressFamily == AddressFamily.InterNetworkV6 && hasV6) == false)
+                .Where(c => (c.AddressFamily == AddressFamily.InterNetworkV6 && hasV6) || c.AddressFamily == AddressFamily.InterNetwork)
                 //端口和本机端口一样，那不应该是换回地址
                 .Where(c => (c.Port == tunnelTransportInfo.Local.Local.Port && c.Address.Equals(IPAddress.Loopback)) == false)
                 //端口和本机端口一样。那不应该是本机的IP

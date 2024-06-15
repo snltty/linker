@@ -172,7 +172,7 @@ export default {
                             for(let k in cons){
                                 const con = cons[k];
                                 
-                                const key = `${con.RemotemachineId}-${con.TransactionId}`;
+                                const key = `${con.RemoteMachineId}-${con.TransactionId}`;
                                 const cache = caches[key] || {SendBytes:0,ReceiveBytes:0};
                                
                                 con.SendBytesText = parseSpeed(con.SendBytes - cache.SendBytes);
@@ -229,6 +229,7 @@ export default {
         }
         const handleForwardEdit = (machineId)=>{
             forward.value.current = machineId;
+            forward.value.machineName =state.page.List.filter(c=>c.MachineId == machineId)[0].MachineName ;
             forward.value.showEdit = true;
         }
         const handleForwardChange = () => {

@@ -22,7 +22,7 @@ namespace cmonitor.tunnel.proxy
             try
             {
                 StartTcp(port);
-                StartUdp(port);
+                StartUdp(LocalEndpoint.Port);
             }
             catch (Exception ex)
             {

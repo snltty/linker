@@ -72,6 +72,7 @@ namespace cmonitor.plugins.sforward.messenger
                         {
                             result.Success = false;
                             result.Message = $"port 【{sForwardAddInfo.RemotePort}】 add fail : {msg}";
+                            sForwardServerCahing.TryRemove(sForwardAddInfo.RemotePort, connection.Id, out _);
                         }
                         else
                         {
@@ -246,8 +247,6 @@ namespace cmonitor.plugins.sforward.messenger
         public void ProxyUdp(IConnection connection)
         {
             SForwardProxyInfo sForwardProxyInfo = MemoryPackSerializer.Deserialize<SForwardProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            Console.WriteLine(sForwardProxyInfo.ToJson());
-
             if (sForwardProxyInfo.RemotePort > 0)
             {
                 SForwardInfo sForwardInfo = runningConfig.Data.SForwards.FirstOrDefault(c => c.RemotePort == sForwardProxyInfo.RemotePort);

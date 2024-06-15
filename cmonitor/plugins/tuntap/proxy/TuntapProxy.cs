@@ -1,4 +1,6 @@
-﻿using cmonitor.plugins.relay;
+﻿using cmonitor.client.config;
+using cmonitor.config;
+using cmonitor.plugins.relay;
 using cmonitor.plugins.tuntap.vea;
 using cmonitor.tunnel;
 using cmonitor.tunnel.connection;
@@ -16,6 +18,8 @@ namespace cmonitor.plugins.tuntap.proxy
     {
         private readonly TunnelTransfer tunnelTransfer;
         private readonly RelayTransfer relayTransfer;
+        private readonly RunningConfig runningConfig;
+        private readonly Config config;
 
         private IPEndPoint proxyEP;
 
@@ -24,10 +28,12 @@ namespace cmonitor.plugins.tuntap.proxy
         private readonly ConcurrentDictionary<string, ITunnelConnection> dicConnections = new ConcurrentDictionary<string, ITunnelConnection>();
         private readonly ConcurrentDictionary<string, SemaphoreSlim> dicLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
 
-        public TuntapProxy(TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer)
+        public TuntapProxy(TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, RunningConfig runningConfig, Config config)
         {
             this.tunnelTransfer = tunnelTransfer;
             this.relayTransfer = relayTransfer;
+            this.runningConfig = runningConfig;
+            this.config = config;
 
             Start(0);
             proxyEP = new IPEndPoint(IPAddress.Any, LocalEndpoint.Port);
@@ -81,26 +87,25 @@ namespace cmonitor.plugins.tuntap.proxy
 
             //获取远端地址
             ReadOnlyMemory<byte> ipArray = Socks5Parser.GetRemoteEndPoint(token.Proxy.Data, out Socks5EnumAddressType addressType, out ushort port, out int index);
-            token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
-            token.Proxy.Data = token.Proxy.Data.Slice(index);
-            token.TargetIP = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
-            //不支持域名
-            if (addressType == Socks5EnumAddressType.Domain)
+            //不支持域名 和 IPV6
+            if (addressType == Socks5EnumAddressType.Domain || addressType == Socks5EnumAddressType.IPV6)
             {
-                token.Proxy.TargetEP = null;
                 byte[] response1 = Socks5Parser.MakeConnectResponse(proxyEP, (byte)Socks5EnumResponseCommand.AddressNotAllow);
                 await token.Socket.SendAsync(response1.AsMemory());
                 return true;
             }
+
+
+            token.Proxy.Data = token.Proxy.Data.Slice(index);
+            token.TargetIP = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
             //是UDP中继，不做连接操作，等UDP数据过去的时候再绑定
-            if (token.Proxy.TargetEP.Address.Equals(IPAddress.Any) || command == Socks5EnumRequestCommand.UdpAssociate)
+            if (token.TargetIP == 0 || command == Socks5EnumRequestCommand.UdpAssociate)
             {
-                token.Proxy.TargetEP = null;
-                byte[] response1 = Socks5Parser.MakeConnectResponse(proxyEP, (byte)Socks5EnumResponseCommand.ConnecSuccess);
-                await token.Socket.SendAsync(response1.AsMemory());
+                await token.Socket.SendAsync(Socks5Parser.MakeConnectResponse(proxyEP, (byte)Socks5EnumResponseCommand.ConnecSuccess).AsMemory());
                 return false;
             }
 
+            token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
             token.Connection = await ConnectTunnel(token.TargetIP);
 
             Socks5EnumResponseCommand resp = token.Connection != null && token.Connection.Connected ? Socks5EnumResponseCommand.ConnecSuccess : Socks5EnumResponseCommand.NetworkError;
@@ -112,11 +117,33 @@ namespace cmonitor.plugins.tuntap.proxy
         protected override async ValueTask ConnectTunnelConnection(AsyncUserUdpToken token)
         {
             ReadOnlyMemory<byte> ipArray = Socks5Parser.GetRemoteEndPoint(token.Proxy.Data, out Socks5EnumAddressType addressType, out ushort port, out int index);
-            token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
+
             token.TargetIP = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
+            //只支持本IP段的广播
+            if ((token.TargetIP | (~maskValue)) != (runningConfig.Data.Tuntap.IpInt | (~maskValue)))
+            {
+                return;
+            }
+            token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
             //解析出udp包的数据部分
             token.Proxy.Data = Socks5Parser.GetUdpData(token.Proxy.Data);
-            token.Connection = await ConnectTunnel(token.TargetIP);
+            
+            if (ipArray.Span[3] == 255)
+            {
+                token.Connections = new List<ITunnelConnection>();
+                foreach (var item in dic.Values)
+                {
+                    ITunnelConnection cinnection = await ConnectTunnel(item);
+                    if (cinnection != null)
+                    {
+                        token.Connections.Add(cinnection);
+                    }
+                }
+            }
+            else
+            {
+                token.Connection = await ConnectTunnel(token.TargetIP);
+            }
         }
         protected override async ValueTask CheckTunnelConnection(AsyncUserToken token)
         {
@@ -148,20 +175,29 @@ namespace cmonitor.plugins.tuntap.proxy
         private async ValueTask<ITunnelConnection> ConnectTunnel(uint ip)
         {
             uint network = ip & maskValue;
-            if (dic.TryGetValue(ip, out string targetName) == false && dic.TryGetValue(network, out targetName) == false)
+            if (dic.TryGetValue(ip, out string machineId) == false && dic.TryGetValue(network, out machineId) == false)
             {
                 return null;
             }
-            if (dicConnections.TryGetValue(targetName, out ITunnelConnection connection) && connection.Connected)
+            return await ConnectTunnel(machineId);
+        }
+        private async ValueTask<ITunnelConnection> ConnectTunnel(string machineId)
+        {
+            if (config.Data.Client.Id == machineId)
+            {
+                return null;
+            }
+
+            if (dicConnections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected)
             {
                 return connection;
             }
 
             await slimGlobal.WaitAsync();
-            if (dicLocks.TryGetValue(targetName, out SemaphoreSlim slim) == false)
+            if (dicLocks.TryGetValue(machineId, out SemaphoreSlim slim) == false)
             {
                 slim = new SemaphoreSlim(1);
-                dicLocks.TryAdd(targetName, slim);
+                dicLocks.TryAdd(machineId, slim);
             }
             slimGlobal.Release();
 
@@ -170,23 +206,23 @@ namespace cmonitor.plugins.tuntap.proxy
             try
             {
 
-                if (dicConnections.TryGetValue(targetName, out connection) && connection.Connected)
+                if (dicConnections.TryGetValue(machineId, out connection) && connection.Connected)
                 {
                     return connection;
                 }
 
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"tuntap tunnel to {targetName}");
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"tuntap tunnel to {machineId}");
 
-                connection = await tunnelTransfer.ConnectAsync(targetName, "tuntap");
+                connection = await tunnelTransfer.ConnectAsync(machineId, "tuntap");
                 if (connection != null)
                 {
                     if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"tuntap tunnel success,{connection.ToString()}");
                 }
                 if (connection == null)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"tuntap relay to {targetName}");
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"tuntap relay to {machineId}");
 
-                    connection = await relayTransfer.ConnectAsync(targetName, "tuntap");
+                    connection = await relayTransfer.ConnectAsync(machineId, "tuntap");
                     if (connection != null)
                     {
                         if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"tuntap relay success,{connection.ToString()}");
@@ -194,7 +230,7 @@ namespace cmonitor.plugins.tuntap.proxy
                 }
                 if (connection != null)
                 {
-                    dicConnections.AddOrUpdate(targetName, connection, (a, b) => connection);
+                    dicConnections.AddOrUpdate(machineId, connection, (a, b) => connection);
                 }
             }
             catch (Exception)
@@ -206,6 +242,7 @@ namespace cmonitor.plugins.tuntap.proxy
             }
             return connection;
         }
+
 
         private async Task<bool> ReceiveCommandData(AsyncUserToken token)
         {

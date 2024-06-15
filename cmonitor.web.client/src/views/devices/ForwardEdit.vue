@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="state.show" @open="handleOnShowList" append-to=".app-wrap" :title="`端口转发到【${state.MachineName}】`" top="1vh" width="600">
+  <el-dialog v-model="state.show" @open="handleOnShowList" append-to=".app-wrap" :title="`端口转发到【${state.machineName}】`" top="1vh" width="600">
         <div>
             <div class="t-c head">
                 <el-button type="success" size="small" @click="handleAdd">添加</el-button>
@@ -73,6 +73,7 @@ export default {
         const state = reactive({
             show: true,
             machineId: forward.value.current,
+            machineName: forward.value.machineName,
             data: [],
         });
         watch(() => state.show, (val) => {
