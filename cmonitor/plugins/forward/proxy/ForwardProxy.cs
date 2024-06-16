@@ -1,16 +1,17 @@
-﻿using cmonitor.plugins.relay;
+﻿using cmonitor.config;
+using cmonitor.plugins.relay;
 using cmonitor.tunnel;
 using cmonitor.tunnel.connection;
 using cmonitor.tunnel.proxy;
 using common.libs;
 using System.Collections.Concurrent;
 using System.Net;
-using System.Reflection.PortableExecutable;
 
 namespace cmonitor.plugins.forward.proxy
 {
     public sealed class ForwardProxy : TunnelProxy
     {
+        private readonly Config config;
         private readonly TunnelTransfer tunnelTransfer;
         private readonly RelayTransfer relayTransfer;
 
@@ -18,8 +19,9 @@ namespace cmonitor.plugins.forward.proxy
         private readonly ConcurrentDictionary<string, ITunnelConnection> connections = new ConcurrentDictionary<string, ITunnelConnection>();
         private readonly ConcurrentDictionary<string, SemaphoreSlim> locks = new ConcurrentDictionary<string, SemaphoreSlim>();
 
-        public ForwardProxy(TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer)
+        public ForwardProxy(Config config,TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer)
         {
+            this.config = config;
             this.tunnelTransfer = tunnelTransfer;
             this.relayTransfer = relayTransfer;
 
@@ -99,7 +101,7 @@ namespace cmonitor.plugins.forward.proxy
                 {
                     if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineId}");
 
-                    connection = await relayTransfer.ConnectAsync(machineId, "forward");
+                    connection = await relayTransfer.ConnectAsync(config.Data.Client.Id,machineId, "forward");
                     if (connection != null)
                     {
                         if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineId} success");

@@ -5,6 +5,7 @@ using cmonitor.tunnel.connection;
 using common.libs;
 using common.libs.extends;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Reflection;
 
@@ -17,6 +18,7 @@ namespace cmonitor.plugins.relay
         private readonly RunningConfig running;
         private readonly ServiceProvider serviceProvider;
 
+        private ConcurrentDictionary<string, bool> connectingDic = new ConcurrentDictionary<string, bool>();
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
         public RelayTransfer(RunningConfig running, ServiceProvider serviceProvider, Config config)
@@ -74,23 +76,29 @@ namespace cmonitor.plugins.relay
             }
         }
 
-        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId)
+        public async Task<ITunnelConnection> ConnectAsync(string fromMachineId, string remoteMachineId, string transactionId)
         {
-            IEnumerable<ITransport> _transports = transports.OrderBy(c => c.Type);
-            foreach (RelayCompactInfo item in running.Data.Relay.Servers.Where(c => c.Disabled == false && string.IsNullOrWhiteSpace(c.Host) == false))
+            if (connectingDic.TryAdd(remoteMachineId, true) == false)
             {
-                ITransport transport = _transports.FirstOrDefault(c => c.Type == item.Type);
-                if (transport == null)
+                return null;
+            }
+            try
+            {
+                IEnumerable<ITransport> _transports = transports.OrderBy(c => c.Type);
+                foreach (RelayCompactInfo item in running.Data.Relay.Servers.Where(c => c.Disabled == false && string.IsNullOrWhiteSpace(c.Host) == false))
                 {
-                    continue;
-                }
+                    ITransport transport = _transports.FirstOrDefault(c => c.Type == item.Type);
+                    if (transport == null)
+                    {
+                        continue;
+                    }
 
-                try
-                {
                     IPEndPoint server = NetworkHelper.GetEndPoint(item.Host, 3478);
                     RelayInfo relayInfo = new RelayInfo
                     {
                         FlowingId = 0,
+                        FromMachineId = fromMachineId,
+                        FromMachineName = string.Empty,
                         RemoteMachineId = remoteMachineId,
                         RemoteMachineName = string.Empty,
                         SecretKey = item.SecretKey,
@@ -99,13 +107,12 @@ namespace cmonitor.plugins.relay
                         TransportName = transport.Name,
                         SSL = item.SSL
                     };
-                    //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+
                     Logger.Instance.Info($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} {relayInfo.ToJson()}");
                     ITunnelConnection connection = await transport.RelayAsync(relayInfo);
                     if (connection != null)
                     {
                         Logger.Instance.Debug($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
-
                         ConnectedCallback(relayInfo, connection);
                         return connection;
                     }
@@ -114,32 +121,56 @@ namespace cmonitor.plugins.relay
                         Logger.Instance.Error($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} fail,{relayInfo.ToJson()}");
                     }
                 }
-                catch (Exception ex)
-                {
-                    Logger.Instance.Error(ex);
-                }
             }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error(ex);
+            }
+            finally
+            {
+                connectingDic.TryRemove(remoteMachineId, out _);
+            }
+
             return null;
         }
         public async Task<bool> OnBeginAsync(RelayInfo relayInfo)
         {
-            ITransport _transports = transports.FirstOrDefault(c => c.Name == relayInfo.TransportName);
-            if (_transports != null)
+            if (connectingDic.TryAdd(relayInfo.FromMachineId, true) == false)
             {
-                ITunnelConnection connection = await _transports.OnBeginAsync(relayInfo);
-                if (connection != null)
+                return false;
+            }
+
+            try
+            {
+                ITransport _transports = transports.FirstOrDefault(c => c.Name == relayInfo.TransportName);
+                if (_transports != null)
                 {
-                    ConnectedCallback(relayInfo, connection);
-                    return true;
+                    ITunnelConnection connection = await _transports.OnBeginAsync(relayInfo);
+                    if (connection != null)
+                    {
+                        Logger.Instance.Debug($"relay from {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
+                        ConnectedCallback(relayInfo, connection);
+                        return true;
+                    }
                 }
+
+            }
+            catch (Exception ex)
+            {
+                if(Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    Logger.Instance.Error(ex);
+                }
+            }
+            finally
+            {
+                connectingDic.TryRemove(relayInfo.FromMachineId, out _);
             }
             return false;
         }
 
         private void ConnectedCallback(RelayInfo relayInfo, ITunnelConnection connection)
         {
-            Logger.Instance.Debug($"relay from {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
-
             if (OnConnected.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))
             {
                 foreach (var item in callbacks)

@@ -6,6 +6,7 @@ using cmonitor.tunnel;
 using cmonitor.tunnel.connection;
 using cmonitor.tunnel.proxy;
 using common.libs;
+using common.libs.extends;
 using common.libs.socks5;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
@@ -45,6 +46,8 @@ namespace cmonitor.plugins.tuntap.proxy
         }
         private void OnConnected(ITunnelConnection connection)
         {
+            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                Logger.Instance.Warning($"tuntap add connection {connection.GetHashCode()} {connection.ToJson()}");
             dicConnections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
             BindConnectionReceive(connection);
         }
@@ -127,7 +130,7 @@ namespace cmonitor.plugins.tuntap.proxy
             token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
             //解析出udp包的数据部分
             token.Proxy.Data = Socks5Parser.GetUdpData(token.Proxy.Data);
-            
+
             if (ipArray.Span[3] == 255)
             {
                 token.Connections = new List<ITunnelConnection>();
@@ -222,7 +225,7 @@ namespace cmonitor.plugins.tuntap.proxy
                 {
                     if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"tuntap relay to {machineId}");
 
-                    connection = await relayTransfer.ConnectAsync(machineId, "tuntap");
+                    connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, "tuntap");
                     if (connection != null)
                     {
                         if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"tuntap relay success,{connection.ToString()}");

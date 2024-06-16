@@ -81,14 +81,18 @@ namespace cmonitor.plugins.relay.messenger
                     connection.Write(Helper.FalseArray);
                     return;
                 }
-                if (signCaching.TryGet(info.RemoteMachineId, out SignCacheInfo cache) == false)
+                if (signCaching.TryGet(info.FromMachineId, out SignCacheInfo cacheFrom) == false || signCaching.TryGet(info.RemoteMachineId, out SignCacheInfo cacheTo) == false)
                 {
                     connection.Write(Helper.FalseArray);
                     return;
                 }
 
                 info.FlowingId = Interlocked.Increment(ref flowingId);
-                info.RemoteMachineName = cache.MachineName;
+                info.RemoteMachineId = info.FromMachineId;
+                info.FromMachineId = info.RemoteMachineId;
+                info.RemoteMachineName = cacheFrom.MachineName;
+                info.FromMachineName = cacheTo.MachineName;
+
                 TcsWrap tcsWrap = new TcsWrap { Connection = connection, Tcs = new TaskCompletionSource<IConnection>() };
                 dic.TryAdd(info.FlowingId, tcsWrap);
 
@@ -96,7 +100,7 @@ namespace cmonitor.plugins.relay.messenger
                 {
                     bool res = await messengerSender.SendOnly(new MessageRequestWrap
                     {
-                        Connection = cache.Connection,
+                        Connection = cacheTo.Connection,
                         MessengerId = (ushort)RelayMessengerIds.Relay,
                         Payload = MemoryPackSerializer.Serialize(info)
                     });

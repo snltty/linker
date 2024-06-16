@@ -1,4 +1,5 @@
 ﻿using cmonitor.client.config;
+using cmonitor.config;
 using cmonitor.plugins.relay;
 using cmonitor.tunnel;
 using cmonitor.tunnel.connection;
@@ -10,6 +11,7 @@ namespace cmonitor.plugins.viewer.proxy
 {
     public sealed class ViewerProxy : TunnelProxy
     {
+        private readonly Config config;
         private readonly RunningConfig runningConfig;
         private readonly TunnelTransfer tunnelTransfer;
         private readonly RelayTransfer relayTransfer;
@@ -17,8 +19,9 @@ namespace cmonitor.plugins.viewer.proxy
         private readonly ConcurrentDictionary<string, ITunnelConnection> dicConnections = new ConcurrentDictionary<string, ITunnelConnection>();
         private readonly ConcurrentDictionary<string, SemaphoreSlim> dicLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
 
-        public ViewerProxy(RunningConfig runningConfig, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer)
+        public ViewerProxy(Config config,RunningConfig runningConfig, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer)
         {
+            this.config = config;
             this.runningConfig = runningConfig;
             this.tunnelTransfer = tunnelTransfer;
             this.relayTransfer = relayTransfer;
@@ -90,7 +93,7 @@ namespace cmonitor.plugins.viewer.proxy
                 {
                     if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"viewer relay to {targetName}");
 
-                    connection = await relayTransfer.ConnectAsync(targetName, "viewer");
+                    connection = await relayTransfer.ConnectAsync(config.Data.Client.Id,targetName, "viewer");
                     if (connection != null)
                     {
                         if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"viewer relay success,{connection.ToString()}");

@@ -5,6 +5,7 @@ using cmonitor.tunnel.transport;
 using common.libs;
 using common.libs.extends;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Concurrent;
 using System.Reflection;
 
 namespace cmonitor.tunnel
@@ -17,6 +18,7 @@ namespace cmonitor.tunnel
         private readonly TunnelCompactTransfer compactTransfer;
         private readonly ITunnelAdapter tunnelMessengerAdapter;
 
+        private ConcurrentDictionary<string, bool> connectingDic = new ConcurrentDictionary<string, bool>();
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
         public TunnelTransfer(ServiceProvider serviceProvider, TunnelCompactTransfer compactTransfer, ITunnelAdapter tunnelMessengerAdapter)
@@ -79,19 +81,13 @@ namespace cmonitor.tunnel
 
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId)
         {
+            connectingDic.AddOrUpdate(remoteMachineId, true, (a, b) => true);
+
             foreach (TunnelTransportItemInfo transportItem in tunnelMessengerAdapter.GetTunnelTransports().Where(c => c.Disabled == false))
             {
                 ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == transportItem.Name);
                 if (transport == null) continue;
-                /*
-                 * 我们不能连续获取端口，在正向连接失败后再尝试反向
-                 * 
-                 * 因为，短时间内，连续进行网络连接，大概率会得到连续的端口
-                 * 
-                 * 假设，第一次正向连接获取到外网端口为 12345，那我们将会尝试对 12345 12346 进行连接，会对12346有所污染
-                 * 
-                 * 所以，我们需要在第一次正向连接失败后再尝试反向连接，因为间隔了一定时间，最大程度避免了连续端口污染
-                 */
+
                 TunnelTransportInfo tunnelTransportInfo = null;
                 int times = transportItem.Reverse ? 1 : 0;
                 for (int i = 0; i <= times; i++)
@@ -103,7 +99,7 @@ namespace cmonitor.tunnel
                         if (localInfo == null)
                         {
                             Logger.Instance.Error($"tunnel {transport.Name} get local external ip fail ");
-                            goto end;
+                            break;
                         }
                         Logger.Instance.Info($"tunnel {transport.Name} got local external ip {localInfo.ToJson()}");
                         //获取对方的外网ip
@@ -111,7 +107,7 @@ namespace cmonitor.tunnel
                         if (remoteInfo == null)
                         {
                             Logger.Instance.Error($"tunnel {transport.Name} get remote {remoteMachineId} external ip fail ");
-                            goto end;
+                            break;
                         }
                         Logger.Instance.Info($"tunnel {transport.Name} got remote external ip {remoteInfo.ToJson()}");
 
@@ -130,6 +126,7 @@ namespace cmonitor.tunnel
                         if (connection != null)
                         {
                             _OnConnected(connection);
+                            connectingDic.TryRemove(remoteMachineId, out _);
                             return connection;
                         }
                     }
@@ -141,16 +138,20 @@ namespace cmonitor.tunnel
                         }
                     }
                 }
-            end:
                 if (tunnelTransportInfo != null)
                 {
                     OnConnectFail(tunnelTransportInfo);
                 }
             }
+            connectingDic.TryRemove(remoteMachineId, out _);
             return null;
         }
         public void OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
+            if (connectingDic.TryGetValue(tunnelTransportInfo.Remote.MachineId, out _))
+            {
+                return;
+            }
             ITunnelTransport _transports = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
             if (_transports != null)
             {

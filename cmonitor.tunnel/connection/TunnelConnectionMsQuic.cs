@@ -104,7 +104,7 @@ namespace cmonitor.tunnel.connection
             {
                 ArrayPool<byte>.Shared.Return(buffer);
                 Dispose();
-                Logger.Instance.Error($"tunnel connection writer offline {ToString()}");
+
             }
         }
         private async Task ReadPacket(Memory<byte> buffer)
@@ -236,6 +236,7 @@ namespace cmonitor.tunnel.connection
                 {
                     Logger.Instance.Error(ex);
                 }
+                Dispose();
             }
             finally
             {
@@ -246,6 +247,8 @@ namespace cmonitor.tunnel.connection
 
         public void Dispose()
         {
+            Logger.Instance.Error($"tunnel connection writer offline {ToString()}");
+
             callback?.Closed(this, userToken);
             callback = null;
             userToken = null;
@@ -263,7 +266,7 @@ namespace cmonitor.tunnel.connection
 
         public override string ToString()
         {
-            return $"TransactionId:{TransactionId},TransportName:{TransportName},ProtocolType:{ProtocolType},Type:{Type},Direction:{Direction},IPEndPoint:{IPEndPoint},RemoteMachineId:{RemoteMachineId},RemoteMachineName:{RemoteMachineName}";
+            return this.ToJsonFormat();
         }
     }
 }

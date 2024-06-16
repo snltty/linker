@@ -27,7 +27,7 @@ namespace cmonitor.tunnel.connection
         public IPEndPoint IPEndPoint { get; init; }
         public bool SSL { get; init; }
 
-        public bool Connected => Socket != null && Socket.Connected;
+        public bool Connected => Socket != null && Socket.Poll(-1, SelectMode.SelectWrite) && Socket.Connected;
         public int Delay { get; private set; }
         public long SendBytes { get; private set; }
         public long ReceiveBytes { get; private set; }
@@ -278,7 +278,9 @@ namespace cmonitor.tunnel.connection
 
         public void Dispose()
         {
-            callback?.Closed(this,userToken);
+            Logger.Instance.Error($"tunnel connection {this.GetHashCode()} writer offline {ToString()}");
+
+            callback?.Closed(this, userToken);
             callback = null;
             userToken = null;
             cancellationTokenSource?.Cancel();
@@ -293,9 +295,7 @@ namespace cmonitor.tunnel.connection
 
         public override string ToString()
         {
-            return $"TransactionId:{TransactionId},TransportName:{TransportName},ProtocolType:{ProtocolType},Type:{Type},Direction:{Direction},IPEndPoint:{IPEndPoint},RemoteMachineId:{RemoteMachineId}";
+            return this.ToJson();
         }
     }
-
-
 }

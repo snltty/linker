@@ -48,7 +48,6 @@ namespace cmonitor.server
         {
             IPEndPoint localEndPoint = new IPEndPoint(NetworkHelper.IPv6Support ? IPAddress.IPv6Any : IPAddress.Any, port);
             Socket socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            //socket.ReceiveBufferSize = 64 * 1024;
             socket.IPv6Only(localEndPoint.AddressFamily, false);
             socket.ReuseBind(localEndPoint);
             socket.Listen(int.MaxValue);
@@ -62,7 +61,6 @@ namespace cmonitor.server
             StartAccept(acceptEventArg);
 
             socketUdp = new UdpClient(new IPEndPoint(IPAddress.Any, port));
-            //socketUdp.JoinMulticastGroup(config.BroadcastIP);
             socketUdp.Client.EnableBroadcast = true;
             socketUdp.Client.WindowsUdpBug();
             IAsyncResult result = socketUdp.BeginReceive(ReceiveCallbackUdp, null);
@@ -145,7 +143,6 @@ namespace cmonitor.server
                 {
                     return null;
                 }
-                socket.ReceiveBufferSize = 8 * 1024;
                 socket.KeepAlive();
                 NetworkStream networkStream = new NetworkStream(socket, false);
                 SslStream sslStream = new SslStream(networkStream, true);
@@ -177,7 +174,6 @@ namespace cmonitor.server
                     return null;
                 }
                 socket.KeepAlive();
-                socket.ReceiveBufferSize = 8 * 1024;
                 NetworkStream networkStream = new NetworkStream(socket, false);
                 SslStream sslStream = new SslStream(networkStream, true, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                 await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { AllowRenegotiation = true, EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 });

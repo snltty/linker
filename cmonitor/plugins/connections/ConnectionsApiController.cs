@@ -51,9 +51,9 @@ namespace cmonitor.plugins.connections
             return true;
         }
 
-        private void RemoveConnection(string remoteName, string transactionId)
+        private void RemoveConnection(string machineId, string transactionId)
         {
-            if (connections.TryGetValue(remoteName, out ConcurrentDictionary<string, ITunnelConnection> cons))
+            if (connections.TryGetValue(machineId, out ConcurrentDictionary<string, ITunnelConnection> cons))
             {
                 if (cons.TryRemove(transactionId, out ITunnelConnection _connection))
                 {
@@ -81,12 +81,16 @@ namespace cmonitor.plugins.connections
                 {
                     try
                     {
+                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            Logger.Instance.Warning($"TryRemove {_connection.GetHashCode()} {_connection.TransactionId} {_connection.ToJson()}");
                         _connection.Dispose();
                     }
                     catch (Exception)
                     {
                     }
                 }
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    Logger.Instance.Warning($"TryAdd {connection.GetHashCode()} {connection.TransactionId} {connection.ToJson()}");
                 cons.TryAdd(connection.TransactionId, connection);
             }
             Interlocked.Increment(ref connectionVersion);
