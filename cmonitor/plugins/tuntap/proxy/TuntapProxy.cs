@@ -12,7 +12,6 @@ using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 
 namespace cmonitor.plugins.tuntap.proxy
 {
@@ -24,6 +23,7 @@ namespace cmonitor.plugins.tuntap.proxy
         private readonly Config config;
 
         private IPEndPoint proxyEP;
+        public override IPAddress UdpBindAdress { get; set; }
 
         private uint maskValue = NetworkHelper.MaskValue(24);
         private readonly ConcurrentDictionary<uint, string> dic = new ConcurrentDictionary<uint, string>();
@@ -63,10 +63,13 @@ namespace cmonitor.plugins.tuntap.proxy
                     dic.AddOrUpdate(ip.NetWork, item.MachineId, (a, b) => item.MachineId);
                 }
             }
+            UdpBindAdress = runningConfig.Data.Tuntap.ip;
         }
         public void SetIP(string machineId, uint ip)
         {
             dic.AddOrUpdate(ip, machineId, (a, b) => machineId);
+
+            UdpBindAdress = runningConfig.Data.Tuntap.ip;
         }
 
         protected override async ValueTask<bool> ConnectTunnelConnection(AsyncUserToken token)
@@ -121,18 +124,18 @@ namespace cmonitor.plugins.tuntap.proxy
         protected override async ValueTask ConnectTunnelConnection(AsyncUserUdpToken token)
         {
             ReadOnlyMemory<byte> ipArray = Socks5Parser.GetRemoteEndPoint(token.Proxy.Data, out Socks5EnumAddressType addressType, out ushort port, out int index);
-
-            token.TargetIP = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
-            //只支持本IP段的广播
-            if ((token.TargetIP | (~maskValue)) != (runningConfig.Data.Tuntap.IpInt | (~maskValue)))
+            if (addressType == Socks5EnumAddressType.IPV6)
             {
                 return;
             }
+
             token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
+            token.TargetIP = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
+
             //解析出udp包的数据部分
             token.Proxy.Data = Socks5Parser.GetUdpData(token.Proxy.Data);
-
-            if (ipArray.Span[3] == 255)
+            /*
+            if (ipArray.GetIsBroadcastAddress())
             {
                 token.Connections = new List<ITunnelConnection>();
                 foreach (var item in dic.Values)
@@ -144,7 +147,7 @@ namespace cmonitor.plugins.tuntap.proxy
                     }
                 }
             }
-            else
+            else*/
             {
                 token.Connection = await ConnectTunnel(token.TargetIP);
             }
@@ -159,7 +162,6 @@ namespace cmonitor.plugins.tuntap.proxy
 
         protected override async ValueTask<bool> ConnectionReceiveUdp(AsyncUserTunnelToken token, AsyncUserUdpToken asyncUserUdpToken)
         {
-            //Console.WriteLine($"receive send {token.Proxy.TargetEP} -> {token.Proxy.SourceEP} {Encoding.UTF8.GetString(token.Proxy.Data.Span)}");
             byte[] data = Socks5Parser.MakeUdpResponse(token.Proxy.TargetEP, token.Proxy.Data, out int length);
             try
             {

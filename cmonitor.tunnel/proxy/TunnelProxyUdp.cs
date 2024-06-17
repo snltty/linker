@@ -4,7 +4,6 @@ using common.libs.extends;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 
 namespace cmonitor.tunnel.proxy
 {
@@ -141,10 +140,7 @@ namespace cmonitor.tunnel.proxy
                 try
                 {
                     IPEndPoint target = new IPEndPoint(tunnelToken.Proxy.TargetEP.Address, tunnelToken.Proxy.TargetEP.Port);
-                    if (target.Address.GetAddressBytes()[3] == 255)
-                    {
-                        target.Address = IPAddress.Loopback;
-                    }
+
 
                     if (udpConnections.TryGetValue(connectId, out AsyncUserUdpTokenTarget token))
                     {
@@ -191,52 +187,63 @@ namespace cmonitor.tunnel.proxy
         }
         private async Task ConnectUdp(AsyncUserTunnelToken tunnelToken, IPEndPoint target)
         {
-            ConnectIdUdp connectId = new ConnectIdUdp(tunnelToken.Proxy.ConnectId, tunnelToken.Proxy.SourceEP, tunnelToken.Connection.GetHashCode());
-
+            //bool isBroadcast = target.Address.GetIsBroadcastAddress();
             UdpClient udpClient = new UdpClient();
             udpClient.Client.WindowsUdpBug();
-            AsyncUserUdpTokenTarget udpToken = new AsyncUserUdpTokenTarget
+            //if (isBroadcast)
             {
-                Proxy = new ProxyInfo
-                {
-                    ConnectId = tunnelToken.Proxy.ConnectId,
-                    Direction = ProxyDirection.Reverse,
-                    Protocol = tunnelToken.Proxy.Protocol,
-                    SourceEP = tunnelToken.Proxy.SourceEP,
-                    TargetEP = tunnelToken.Proxy.TargetEP,
-                    Step = tunnelToken.Proxy.Step,
-                    Port = tunnelToken.Proxy.Port,
-                },
-                TargetSocket = udpClient,
-                ConnectId = connectId,
-                Connection = tunnelToken.Connection
-            };
-            udpToken.Proxy.Direction = ProxyDirection.Reverse;
-            udpConnections.AddOrUpdate(connectId, udpToken, (a, b) => udpToken);
-
+                //target.Address = IPAddress.Loopback;
+                //udpClient.Client.Bind(new IPEndPoint(UdpBindAdress, 0));
+                //udpClient.Client.EnableBroadcast = true;
+                //target.Address = UdpBindAdress;
+            }
             await udpClient.SendAsync(tunnelToken.Proxy.Data, target);
-            try
+
+            //if(isBroadcast == false)
             {
-                while (true)
+                ConnectIdUdp connectId = new ConnectIdUdp(tunnelToken.Proxy.ConnectId, tunnelToken.Proxy.SourceEP, tunnelToken.Connection.GetHashCode());
+                AsyncUserUdpTokenTarget udpToken = new AsyncUserUdpTokenTarget
                 {
-                    UdpReceiveResult result = await udpClient.ReceiveAsync();
-                    udpToken.Proxy.Data = result.Buffer;
-                    udpToken.Update();
-                    await SendToConnection(udpToken);
+                    Proxy = new ProxyInfo
+                    {
+                        ConnectId = tunnelToken.Proxy.ConnectId,
+                        Direction = ProxyDirection.Reverse,
+                        Protocol = tunnelToken.Proxy.Protocol,
+                        SourceEP = tunnelToken.Proxy.SourceEP,
+                        TargetEP = tunnelToken.Proxy.TargetEP,
+                        Step = tunnelToken.Proxy.Step,
+                        Port = tunnelToken.Proxy.Port,
+                    },
+                    TargetSocket = udpClient,
+                    ConnectId = connectId,
+                    Connection = tunnelToken.Connection
+                };
+                udpToken.Proxy.Direction = ProxyDirection.Reverse;
+                udpConnections.AddOrUpdate(connectId, udpToken, (a, b) => udpToken);
+
+                try
+                {
+                    while (true)
+                    {
+                        UdpReceiveResult result = await udpClient.ReceiveAsync();
+                        udpToken.Proxy.Data = result.Buffer;
+                        udpToken.Update();
+                        await SendToConnection(udpToken);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                catch (Exception ex)
                 {
-                    Logger.Instance.Error(ex.Message);
+                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        Logger.Instance.Error(ex.Message);
+                    }
                 }
-            }
-            finally
-            {
-                if (udpConnections.TryRemove(connectId, out AsyncUserUdpTokenTarget token))
+                finally
                 {
-                    CloseClientSocket(token);
+                    if (udpConnections.TryRemove(connectId, out AsyncUserUdpTokenTarget token))
+                    {
+                        CloseClientSocket(token);
+                    }
                 }
             }
         }

@@ -12,6 +12,9 @@ namespace cmonitor.tunnel.proxy
         private readonly NumberSpace ns = new NumberSpace();
         private SemaphoreSlim semaphoreSlimForward = new SemaphoreSlim(10);
         private SemaphoreSlim semaphoreSlimReverse = new SemaphoreSlim(10);
+
+        public virtual IPAddress UdpBindAdress { get; set;}
+
         public TunnelProxy()
         {
             TaskUdp();
