@@ -27,7 +27,7 @@ namespace cmonitor.tunnel.connection
         public IPEndPoint IPEndPoint { get; init; }
         public bool SSL { get; init; }
 
-        public bool Connected => Socket != null && Socket.Poll(-1, SelectMode.SelectWrite) && Socket.Connected;
+        public bool Connected => Socket != null && Environment.TickCount64 - ticks < 15000;
         public int Delay { get; private set; }
         public long SendBytes { get; private set; }
         public long ReceiveBytes { get; private set; }
@@ -85,6 +85,7 @@ namespace cmonitor.tunnel.connection
                         length = await Stream.ReadAsync(buffer);
                         if (length == 0) break;
                         ReceiveBytes += length;
+                        ticks = Environment.TickCount64;
                         await ReadPacket(buffer.AsMemory(0, length));
                     }
                     else
@@ -92,6 +93,7 @@ namespace cmonitor.tunnel.connection
                         length = await Socket.ReceiveAsync(buffer, SocketFlags.None);
                         if (length == 0) break;
                         ReceiveBytes += length;
+                        ticks = Environment.TickCount64;
                         await ReadPacket(buffer.AsMemory(0, length));
 
                         while (Socket.Available > 0)
@@ -99,6 +101,7 @@ namespace cmonitor.tunnel.connection
                             length = Socket.Receive(buffer);
                             if (length == 0) break;
                             ReceiveBytes += length;
+                            ticks = Environment.TickCount64;
                             await ReadPacket(buffer.AsMemory(0, length));
                         }
                     }
@@ -154,6 +157,7 @@ namespace cmonitor.tunnel.connection
         }
         private async Task CallbackPacket(Memory<byte> packet)
         {
+            
             if (packet.Length == pingBytes.Length && (packet.Span.SequenceEqual(pingBytes) || packet.Span.SequenceEqual(pongBytes)))
             {
                 if (packet.Span.SequenceEqual(pingBytes))

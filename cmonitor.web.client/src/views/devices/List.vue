@@ -280,7 +280,7 @@ export default {
                     res.List[j].showDel = machineId.value != res.List[j].MachineId && res.List[j].Connected == false;
                     res.List[j].isSelf = machineId.value == res.List[j].MachineId;
                 }
-                state.page.List = res.List.sort((a,b)=>a.Connected - b.Connected);
+                state.page.List = res.List.sort((a,b)=>b.Connected - a.Connected);
             }).catch((err) => { });
         }
         const _getSignList1 = () => {

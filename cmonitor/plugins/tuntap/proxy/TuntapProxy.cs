@@ -12,6 +12,7 @@ using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 
 namespace cmonitor.plugins.tuntap.proxy
 {
@@ -158,13 +159,18 @@ namespace cmonitor.plugins.tuntap.proxy
 
         protected override async ValueTask<bool> ConnectionReceiveUdp(AsyncUserTunnelToken token, AsyncUserUdpToken asyncUserUdpToken)
         {
+            //Console.WriteLine($"receive send {token.Proxy.TargetEP} -> {token.Proxy.SourceEP} {Encoding.UTF8.GetString(token.Proxy.Data.Span)}");
             byte[] data = Socks5Parser.MakeUdpResponse(token.Proxy.TargetEP, token.Proxy.Data, out int length);
             try
             {
                 await asyncUserUdpToken.SourceSocket.SendAsync(data.AsMemory(0, length), token.Proxy.SourceEP);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    Logger.Instance.Error(ex);
+                }
             }
             finally
             {

@@ -1,8 +1,6 @@
 ﻿using cmonitor.db;
 using common.libs;
 using LiteDB;
-using SharpDX.DXGI;
-using System.Reflection;
 using System.Text.Json.Serialization;
 
 namespace cmonitor.client.config

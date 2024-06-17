@@ -262,6 +262,7 @@ namespace cmonitor.server
                         break;
                     }
                     ReceiveBytes += length;
+                    ticks = Environment.TickCount64;
                     await ReadPacket(buffer.AsMemory(0, length));
                 }
             }
@@ -279,6 +280,10 @@ namespace cmonitor.server
             finally
             {
                 ArrayPool<byte>.Shared.Return(buffer);
+                SourceStream?.Close();
+                SourceStream?.Dispose();
+                TargetStream?.Close();
+                TargetStream?.Dispose();
             }
         }
         private async Task ReadPacket(Memory<byte> buffer)
@@ -447,7 +452,6 @@ namespace cmonitor.server
         }
         private async Task CopyToAsync(NetworkStream source, NetworkStream destination)
         {
-            await Task.Delay(500);
             byte[] buffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
             try
             {
@@ -508,6 +512,7 @@ namespace cmonitor.server
             userToken = null;
             cancellationTokenSource?.Cancel();
             bufferCache.Clear(true);
+
         }
         public override void Disponse(int value = 0)
         {
@@ -517,10 +522,10 @@ namespace cmonitor.server
 
             try
             {
-                SourceStream?.Close();
-                SourceStream?.Dispose();
-                TargetStream?.Close();
-                TargetStream?.Dispose();
+                SourceNetworkStream?.Close();
+                SourceNetworkStream?.Dispose();
+                TargetNetworkStream?.Close();
+                TargetNetworkStream?.Dispose();
             }
             catch (Exception)
             {

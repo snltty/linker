@@ -112,7 +112,7 @@ namespace cmonitor.plugins.relay.messenger
 
                     IConnection targetConnection = await tcsWrap.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(3000));
 
-                    Relay(connection, targetConnection, info.SecretKey);
+                    _ = Relay(connection, targetConnection, info.SecretKey);
 
                     connection.Write(Helper.TrueArray);
                 }
@@ -140,8 +140,9 @@ namespace cmonitor.plugins.relay.messenger
             }
         }
 
-        private void Relay(IConnection source, IConnection target, string secretKey)
+        private async Task Relay(IConnection source, IConnection target, string secretKey)
         {
+            await Task.Delay(100);
             int limit = 0;
             source.TargetStream = target.SourceStream;
             source.TargetSocket = target.SourceSocket;
@@ -154,8 +155,10 @@ namespace cmonitor.plugins.relay.messenger
 
             source.Cancel();
             target.Cancel();
-            _ = source.RelayAsync();
-            _ = target.RelayAsync();
+
+            await Task.Delay(200);
+
+            await Task.WhenAll(source.RelayAsync(), target.RelayAsync());
         }
 
         public sealed class TcsWrap

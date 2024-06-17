@@ -5,7 +5,6 @@ using cmonitor.tunnel.connection;
 using common.libs;
 using common.libs.extends;
 using MemoryPack;
-using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
@@ -69,7 +68,6 @@ namespace cmonitor.plugins.relay.transport
                     await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 });
                 }
 
-                Console.WriteLine($"socket:{socket.Connected}");
                 return new TunnelConnectionTcp
                 {
                     Direction = TunnelDirection.Forward,
@@ -130,7 +128,6 @@ namespace cmonitor.plugins.relay.transport
                     sslStream = new SslStream(connection.SourceNetworkStream, false);
                     await sslStream.AuthenticateAsServerAsync(certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false);
                 }
-                Console.WriteLine($"socket:{socket.Connected}");
                 return new TunnelConnectionTcp
                 {
                     Direction = TunnelDirection.Reverse,
