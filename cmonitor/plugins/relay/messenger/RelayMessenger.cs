@@ -3,6 +3,7 @@ using cmonitor.plugins.relay.transport;
 using cmonitor.plugins.signin.messenger;
 using cmonitor.server;
 using common.libs;
+using common.libs.extends;
 using MemoryPack;
 using System.Collections.Concurrent;
 
@@ -173,6 +174,9 @@ namespace cmonitor.plugins.relay.messenger
         {
             await Task.Delay(100);
             int limit = 0;
+
+
+
             source.TargetStream = target.SourceStream;
             source.TargetSocket = target.SourceSocket;
             source.TargetNetworkStream = target.SourceNetworkStream;
@@ -181,6 +185,8 @@ namespace cmonitor.plugins.relay.messenger
             target.TargetSocket = source.SourceSocket;
             target.TargetNetworkStream = source.SourceNetworkStream;
             target.RelayLimit = (uint)limit;
+
+
 
             source.Cancel();
             target.Cancel();

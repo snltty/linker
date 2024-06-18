@@ -90,7 +90,7 @@ namespace cmonitor.tunnel.connection
                     }
                     else
                     {
-                        length = await Socket.ReceiveAsync(buffer, SocketFlags.None);
+                        length = await Socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None);
                         if (length == 0) break;
                         ReceiveBytes += length;
                         ticks = Environment.TickCount64;

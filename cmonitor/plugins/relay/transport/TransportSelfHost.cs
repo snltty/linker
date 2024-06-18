@@ -5,6 +5,7 @@ using cmonitor.tunnel.connection;
 using common.libs;
 using common.libs.extends;
 using MemoryPack;
+using System.Buffers;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
@@ -58,8 +59,10 @@ namespace cmonitor.plugins.relay.transport
                     connection.Disponse(7);
                     return null;
                 }
+
                 connection.Cancel();
-                await Task.Delay(500);
+                await Task.Delay(100);
+                ClearSocket(socket);
 
                 SslStream sslStream = null;
                 if (relayInfo.SSL)
@@ -117,8 +120,10 @@ namespace cmonitor.plugins.relay.transport
                     MessengerId = (ushort)RelayMessengerIds.RelayForward,
                     Payload = MemoryPackSerializer.Serialize(relayInfo)
                 });
+
                 connection.Cancel();
-                await Task.Delay(500);
+                await Task.Delay(100);
+                ClearSocket(socket);
 
                 SslStream sslStream = null;
                 if (relayInfo.SSL)
@@ -155,6 +160,17 @@ namespace cmonitor.plugins.relay.transport
                 }
             }
             return null;
+        }
+
+
+        public void ClearSocket(Socket socket)
+        {
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(1 * 1024);
+            while (socket.Available > 0)
+            {
+                socket.Receive(buffer, SocketFlags.None);
+            }
+            ArrayPool<byte>.Shared.Return(buffer);
         }
     }
 }

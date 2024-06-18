@@ -45,7 +45,7 @@ namespace cmonitor.server
         /// <summary>
         /// 你的网络流
         /// </summary>
-        public NetworkStream SourceNetworkStream { get;  }
+        public NetworkStream SourceNetworkStream { get; }
         /// <summary>
         /// 对方的网络流
         /// </summary>
@@ -266,7 +266,7 @@ namespace cmonitor.server
 
         }
 
-        public override bool Connected => SourceStream != null && SourceStream.CanWrite;
+        public override bool Connected => SourceSocket != null && Environment.TickCount64 - ticks < 15000;
 
         private uint relayLimit = 0;
         private double relayLimitToken = 0;
@@ -346,10 +346,10 @@ namespace cmonitor.server
             finally
             {
                 ArrayPool<byte>.Shared.Return(buffer);
-                SourceStream?.Close();
-                SourceStream?.Dispose();
-                TargetStream?.Close();
-                TargetStream?.Dispose();
+                //SourceStream?.Close();
+                //SourceStream?.Dispose();
+                // TargetStream?.Close();
+                //TargetStream?.Dispose();
             }
         }
         private async Task ReadPacket(Memory<byte> buffer)
@@ -512,7 +512,7 @@ namespace cmonitor.server
         {
             if (TargetNetworkStream != null)
             {
-               await CopyToAsync(SourceNetworkStream,TargetNetworkStream);
+                await CopyToAsync(SourceNetworkStream, TargetNetworkStream);
             }
         }
         private async Task CopyToAsync(NetworkStream source, NetworkStream destination)
@@ -533,6 +533,7 @@ namespace cmonitor.server
                             TryLimit(ref length);
                         }
                     }
+                    Console.WriteLine($"bytesRead:{bytesRead}");
                     await destination.WriteAsync(new ReadOnlyMemory<byte>(buffer, 0, bytesRead)).ConfigureAwait(false);
                 }
             }
