@@ -17,9 +17,21 @@ namespace cmonitor.tunnel.transport
         public string Label => "TCP、低TTL";
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Tcp;
 
+        /// <summary>
+        /// 发送开始连接消息
+        /// </summary>
         public Func<TunnelTransportInfo, Task<bool>> OnSendConnectBegin { get; set; } = async (info) => { return await Task.FromResult<bool>(false); };
+        /// <summary>
+        /// 发送连接失败消息
+        /// </summary>
         public Func<TunnelTransportInfo, Task> OnSendConnectFail { get; set; } = async (info) => { await Task.CompletedTask; };
+        /// <summary>
+        /// 发送连接成功消息
+        /// </summary>
         public Func<TunnelTransportInfo, Task> OnSendConnectSuccess { get; set; } = async (info) => { await Task.CompletedTask; };
+        /// <summary>
+        /// 连接成功
+        /// </summary>
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
 
         private readonly ITunnelAdapter tunnelAdapter;
@@ -28,6 +40,11 @@ namespace cmonitor.tunnel.transport
             this.tunnelAdapter = tunnelAdapter;
         }
 
+        /// <summary>
+        /// 连接对方
+        /// </summary>
+        /// <param name="tunnelTransportInfo"></param>
+        /// <returns></returns>
         public async Task<ITunnelConnection> ConnectAsync(TunnelTransportInfo tunnelTransportInfo)
         {
             if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
@@ -55,6 +72,7 @@ namespace cmonitor.tunnel.transport
                 {
                     return null;
                 }
+                //等待对方连接，如果连接成功，我会收到一个socket，并且创建一个连接对象，失败的话会超时，那就是null
                 ITunnelConnection connection = await WaitReverse(tunnelTransportInfo1);
                 if (connection != null)
                 {
@@ -67,6 +85,10 @@ namespace cmonitor.tunnel.transport
             await OnSendConnectFail(tunnelTransportInfo);
             return null;
         }
+        /// <summary>
+        /// 收到对方开始连接的消息
+        /// </summary>
+        /// <param name="tunnelTransportInfo"></param>
         public void OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
             if (tunnelTransportInfo.SSL && tunnelAdapter.Certificate == null)
@@ -75,17 +97,19 @@ namespace cmonitor.tunnel.transport
                 _ = OnSendConnectSuccess(tunnelTransportInfo);
                 return;
             }
-
+            //正向连接，也就是它要连接我，那我就监听
             if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
             {
                 _ = StartListen(tunnelTransportInfo.Local.Local, tunnelTransportInfo);
             }
             Task.Run(async () =>
             {
+                //正向连接，也就是它要连接我，那我就给它发TTL消息
                 if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
                 {
                     BindAndTTL(tunnelTransportInfo);
                 }
+                //我要连它，那就连接
                 else
                 {
                     ITunnelConnection connection = await ConnectForward(tunnelTransportInfo);
@@ -175,6 +199,7 @@ namespace cmonitor.tunnel.transport
                     }
                     await targetSocket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(ep.Address.Equals(tunnelTransportInfo.Remote.Remote.Address) ? 500 : 100));
 
+                    //需要ssl
                     SslStream sslStream = null;
                     if (tunnelTransportInfo.SSL)
                     {

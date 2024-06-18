@@ -8,6 +8,9 @@ using System.Collections.Concurrent;
 
 namespace cmonitor.plugins.relay.messenger
 {
+    /// <summary>
+    /// 中继客户端
+    /// </summary>
     public sealed class RelayClientMessenger : IMessenger
     {
         private readonly RelayTransfer relayTransfer;
@@ -16,6 +19,11 @@ namespace cmonitor.plugins.relay.messenger
             this.relayTransfer = relayTransfer;
         }
 
+        /// <summary>
+        /// 收到中继请求
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
         [MessengerId((ushort)RelayMessengerIds.Relay)]
         public async Task Relay(IConnection connection)
         {
@@ -24,6 +32,10 @@ namespace cmonitor.plugins.relay.messenger
             connection.Write(res ? Helper.TrueArray : Helper.FalseArray);
         }
 
+        /// <summary>
+        /// 设置中继协议列表，一般是别人同步过来的
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)RelayMessengerIds.Servers)]
         public void Servers(IConnection connection)
         {
@@ -32,6 +44,9 @@ namespace cmonitor.plugins.relay.messenger
         }
     }
 
+    /// <summary>
+    /// 中继服务端
+    /// </summary>
     public sealed class RelayServerMessenger : IMessenger
     {
         private readonly Config config;
@@ -48,6 +63,11 @@ namespace cmonitor.plugins.relay.messenger
             this.signCaching = signCaching;
         }
 
+        /// <summary>
+        /// 同步中继协议给其它客户端
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
         [MessengerId((ushort)RelayMessengerIds.ServersForward)]
         public async Task ServersForward(IConnection connection)
         {
@@ -69,7 +89,11 @@ namespace cmonitor.plugins.relay.messenger
             }
         }
 
-
+        /// <summary>
+        /// 收到中继请求
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
         [MessengerId((ushort)RelayMessengerIds.RelayForward)]
         public async Task RelayForward(IConnection connection)
         {
@@ -82,6 +106,11 @@ namespace cmonitor.plugins.relay.messenger
                     return;
                 }
                 if (signCaching.TryGet(info.FromMachineId, out SignCacheInfo cacheFrom) == false || signCaching.TryGet(info.RemoteMachineId, out SignCacheInfo cacheTo) == false)
+                {
+                    connection.Write(Helper.FalseArray);
+                    return;
+                }
+                if (cacheFrom.GroupId != cacheTo.GroupId)
                 {
                     connection.Write(Helper.FalseArray);
                     return;

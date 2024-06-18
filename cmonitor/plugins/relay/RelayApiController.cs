@@ -9,6 +9,9 @@ using MemoryPack;
 
 namespace cmonitor.plugins.relay
 {
+    /// <summary>
+    /// 中继管理接口
+    /// </summary>
     public sealed class RelayApiController : IApiClientController
     {
         private readonly Config config;
@@ -23,12 +26,20 @@ namespace cmonitor.plugins.relay
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
         }
-
+        /// <summary>
+        /// 获取所有中继协议
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public List<RelayCompactTypeInfo> GetTypes(ApiControllerParamsInfo param)
         {
             return relayTransfer.GetTypes();
         }
-
+        /// <summary>
+        /// 设置中继协议
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> SetServers(ApiControllerParamsInfo param)
         {
             RelayCompactParamInfo info = param.Content.DeJson<RelayCompactParamInfo>();

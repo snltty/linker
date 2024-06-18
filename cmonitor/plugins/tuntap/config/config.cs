@@ -6,7 +6,10 @@ namespace cmonitor.plugins.tuntap.config
 {
     public sealed class TuntapConfigInfo
     {
-        public IPAddress ip = IPAddress.Any;
+        private IPAddress ip = IPAddress.Any;
+        /// <summary>
+        /// 网卡IP
+        /// </summary>
         public IPAddress IP
         {
             get => ip; set
@@ -18,6 +21,9 @@ namespace cmonitor.plugins.tuntap.config
         public uint IpInt { get; private set; }
 
 
+        /// <summary>
+        /// 局域网IP列表
+        /// </summary>
         public IPAddress[] LanIPs { get; set; } = Array.Empty<IPAddress>();
         public bool Running { get; set; }
     }

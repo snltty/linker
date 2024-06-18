@@ -2,10 +2,18 @@
 
 namespace cmonitor.tunnel.compact
 {
+    /// <summary>
+    /// 外网端口协议
+    /// </summary>
     public interface ITunnelCompact
     {
         public string Name { get; }
         public TunnelCompactType Type { get; }
+        /// <summary>
+        /// 获取外网端口
+        /// </summary>
+        /// <param name="server">服务端</param>
+        /// <returns></returns>
         public Task<TunnelCompactIPEndPoint> GetExternalIPAsync(IPEndPoint server);
     }
 

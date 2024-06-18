@@ -7,6 +7,9 @@ using System.Reflection;
 
 namespace cmonitor.plugins.relay
 {
+    /// <summary>
+    /// 中继插件
+    /// </summary>
     public sealed class RelayStartup : IStartup
     {
         public StartupLevel Level => StartupLevel.Normal;

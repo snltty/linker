@@ -15,7 +15,10 @@ namespace cmonitor.tunnel.proxy
         private Socket socket;
         public IPEndPoint LocalEndpoint => socket?.LocalEndPoint as IPEndPoint ?? new IPEndPoint(IPAddress.Any, 0);
 
-
+        /// <summary>
+        /// 监听一个端口
+        /// </summary>
+        /// <param name="port"></param>
         private void StartTcp(int port)
         {
             try
@@ -49,6 +52,10 @@ namespace cmonitor.tunnel.proxy
                 Logger.Instance.Error(ex);
             }
         }
+        /// <summary>
+        /// 接收连接
+        /// </summary>
+        /// <param name="acceptEventArg"></param>
         private void StartAccept(SocketAsyncEventArgs acceptEventArg)
         {
             acceptEventArg.AcceptSocket = null;
@@ -109,6 +116,10 @@ namespace cmonitor.tunnel.proxy
                 Logger.Instance.Error(ex);
             }
         }
+        /// <summary>
+        /// 接收连接数据
+        /// </summary>
+        /// <param name="token"></param>
         private void BindReceive(AsyncUserToken token)
         {
             try
@@ -134,6 +145,10 @@ namespace cmonitor.tunnel.proxy
                     Logger.Instance.Error(ex);
             }
         }
+        /// <summary>
+        /// 接收连接数据
+        /// </summary>
+        /// <param name="e"></param>
         private async void ProcessReceive(SocketAsyncEventArgs e)
         {
             AsyncUserToken token = (AsyncUserToken)e.UserToken;
@@ -205,6 +220,12 @@ namespace cmonitor.tunnel.proxy
                 CloseClientSocket(token);
             }
         }
+        /// <summary>
+        /// 处理连接数据，b端收到数据，发给a，a端收到数据，发给b，通过隧道
+        /// </summary>
+        /// <param name="token"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
         private async Task ReadPacket(AsyncUserToken token, Memory<byte> data)
         {
             token.Proxy.Data = data;
@@ -242,6 +263,11 @@ namespace cmonitor.tunnel.proxy
         {
             return await ValueTask.FromResult(false);
         }
+        /// <summary>
+        /// 往隧道发数据
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
         private async Task SendToConnection(AsyncUserToken token)
         {
             SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
@@ -269,14 +295,14 @@ namespace cmonitor.tunnel.proxy
                 semaphoreSlim.Release();
             }
         }
-        protected virtual async ValueTask CheckTunnelConnection(AsyncUserToken token)
-        {
-            await ValueTask.CompletedTask;
-        }
-
+        /// <summary>
+        /// 往隧道发关闭包数据，通知对面关闭连接
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
         private async Task SendToConnectionClose(AsyncUserToken token)
         {
-            if (token.Proxy.Direction == ProxyDirection.Reverse)
+            //if (token.Proxy.Direction == ProxyDirection.Reverse)
             {
                 ProxyStep step = token.Proxy.Step;
                 token.Proxy.Step = ProxyStep.Close;
@@ -286,6 +312,10 @@ namespace cmonitor.tunnel.proxy
             }
         }
 
+        /// <summary>
+        /// b端连接目标服务
+        /// </summary>
+        /// <param name="token"></param>
         private void ConnectBind(AsyncUserTunnelToken token)
         {
             if (token.Proxy.TargetEP == null) return;
@@ -343,6 +373,10 @@ namespace cmonitor.tunnel.proxy
             }
         }
 
+        /// <summary>
+        /// 暂停接收数据
+        /// </summary>
+        /// <param name="tunnelToken"></param>
         private void PauseSocket(AsyncUserTunnelToken tunnelToken)
         {
             if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)
@@ -354,6 +388,10 @@ namespace cmonitor.tunnel.proxy
                 }
             }
         }
+        /// <summary>
+        /// 继续接收数据
+        /// </summary>
+        /// <param name="tunnelToken"></param>
         private void ReceiveSocket(AsyncUserTunnelToken tunnelToken)
         {
             if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)
@@ -376,6 +414,10 @@ namespace cmonitor.tunnel.proxy
                 }
             }
         }
+        /// <summary>
+        /// 关闭连接
+        /// </summary>
+        /// <param name="tunnelToken"></param>
         private void CloseSocket(AsyncUserTunnelToken tunnelToken)
         {
             if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)
@@ -388,10 +430,15 @@ namespace cmonitor.tunnel.proxy
             }
         }
 
+        /// <summary>
+        /// 从隧道收到数据，确定是tcp，那就发给对应的socket
+        /// </summary>
+        /// <param name="tunnelToken"></param>
+        /// <returns></returns>
         private async Task SendToSocketTcp(AsyncUserTunnelToken tunnelToken)
         {
             ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.GetHashCode(), (byte)tunnelToken.Proxy.Direction);
-            if (tunnelToken.Proxy.Data.Length == 0)
+            if (tunnelToken.Proxy.Step == ProxyStep.Close || tunnelToken.Proxy.Data.Length == 0)
             {
                 if (tcpConnections.TryRemove(connectId, out AsyncUserToken token))
                 {
@@ -419,6 +466,7 @@ namespace cmonitor.tunnel.proxy
                 }
             }
         }
+
         private void CloseClientSocket(AsyncUserToken token)
         {
             if (token == null) return;

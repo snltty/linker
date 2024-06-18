@@ -9,6 +9,9 @@ using System.Net.Sockets;
 
 namespace cmonitor.tunnel.connection
 {
+    /// <summary>
+    /// msquic
+    /// </summary>
     public sealed class TunnelConnectionMsQuic : ITunnelConnection
     {
         public TunnelConnectionMsQuic()

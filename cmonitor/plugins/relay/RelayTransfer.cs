@@ -11,6 +11,9 @@ using System.Reflection;
 
 namespace cmonitor.plugins.relay
 {
+    /// <summary>
+    /// 中继
+    /// </summary>
     public sealed class RelayTransfer
     {
         private List<ITransport> transports;
@@ -40,6 +43,10 @@ namespace cmonitor.plugins.relay
             }
         }
 
+        /// <summary>
+        /// 加载中继协议
+        /// </summary>
+        /// <param name="assembs"></param>
         public void Load(Assembly[] assembs)
         {
             IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs, typeof(ITransport));
@@ -47,18 +54,28 @@ namespace cmonitor.plugins.relay
 
             Logger.Instance.Warning($"load relay transport:{string.Join(",", transports.Select(c => c.Name))}");
         }
-
+        /// <summary>
+        /// 获取所有中继协议
+        /// </summary>
+        /// <returns></returns>
         public List<RelayCompactTypeInfo> GetTypes()
         {
             return transports.Select(c => new RelayCompactTypeInfo { Value = c.Type, Name = c.Type.ToString() }).Distinct(new RelayCompactTypeInfoEqualityComparer()).ToList();
         }
-
+        /// <summary>
+        /// 收到中继协议列表
+        /// </summary>
+        /// <param name="servers"></param>
         public void OnServers(RelayCompactInfo[] servers)
         {
             running.Data.Relay.Servers = servers;
             running.Data.Update();
         }
-
+        /// <summary>
+        /// 设置中继成功回调
+        /// </summary>
+        /// <param name="transactionId">事务</param>
+        /// <param name="callback"></param>
         public void SetConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
         {
             if (OnConnected.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks) == false)
@@ -68,6 +85,11 @@ namespace cmonitor.plugins.relay
             }
             callbacks.Add(callback);
         }
+        /// <summary>
+        /// 一处中继成功回调
+        /// </summary>
+        /// <param name="transactionId">事务</param>
+        /// <param name="callback"></param>
         public void RemoveConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
         {
             if (OnConnected.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks))
@@ -75,7 +97,13 @@ namespace cmonitor.plugins.relay
                 callbacks.Remove(callback);
             }
         }
-
+        /// <summary>
+        /// 中继连接对方
+        /// </summary>
+        /// <param name="fromMachineId">自己的id</param>
+        /// <param name="remoteMachineId">对方id</param>
+        /// <param name="transactionId">事务</param>
+        /// <returns></returns>
         public async Task<ITunnelConnection> ConnectAsync(string fromMachineId, string remoteMachineId, string transactionId)
         {
             if (connectingDic.TryAdd(remoteMachineId, true) == false)
@@ -133,6 +161,11 @@ namespace cmonitor.plugins.relay
 
             return null;
         }
+        /// <summary>
+        /// 收到对方的中继请求
+        /// </summary>
+        /// <param name="relayInfo"></param>
+        /// <returns></returns>
         public async Task<bool> OnBeginAsync(RelayInfo relayInfo)
         {
             if (connectingDic.TryAdd(relayInfo.FromMachineId, true) == false)
@@ -168,7 +201,11 @@ namespace cmonitor.plugins.relay
             }
             return false;
         }
-
+        /// <summary>
+        /// 回调
+        /// </summary>
+        /// <param name="relayInfo"></param>
+        /// <param name="connection"></param>
         private void ConnectedCallback(RelayInfo relayInfo, ITunnelConnection connection)
         {
             if (OnConnected.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))

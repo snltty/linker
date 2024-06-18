@@ -33,6 +33,10 @@ namespace cmonitor.tunnel.proxy
             }
         }
 
+        /// <summary>
+        /// 接收隧道的数据
+        /// </summary>
+        /// <param name="connection"></param>
         protected void BindConnectionReceive(ITunnelConnection connection)
         {
             connection.BeginReceive(this, new AsyncUserTunnelToken
@@ -41,6 +45,13 @@ namespace cmonitor.tunnel.proxy
                 Proxy = new ProxyInfo { }
             });
         }
+        /// <summary>
+        /// 收到隧道数据
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="memory"></param>
+        /// <param name="userToken"></param>
+        /// <returns></returns>
         public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> memory, object userToken)
         {
             AsyncUserTunnelToken token = userToken as AsyncUserTunnelToken;
@@ -48,6 +59,12 @@ namespace cmonitor.tunnel.proxy
             token.Proxy.DeBytes(memory);
             await ReadConnectionPack(token).ConfigureAwait(false);
         }
+        /// <summary>
+        /// 收到隧道关闭消息
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="userToken"></param>
+        /// <returns></returns>
         public async Task Closed(ITunnelConnection connection, object userToken)
         {
             try
@@ -62,6 +79,11 @@ namespace cmonitor.tunnel.proxy
             }
             await Task.CompletedTask;
         }
+        /// <summary>
+        /// 根据不同的消息类型做不同的事情
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
         private async Task ReadConnectionPack(AsyncUserTunnelToken token)
         {
             switch (token.Proxy.Step)
@@ -85,6 +107,7 @@ namespace cmonitor.tunnel.proxy
                     break;
             }
         }
+
         private async Task SendToSocket(AsyncUserTunnelToken tunnelToken)
         {
             if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)

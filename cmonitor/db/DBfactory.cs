@@ -4,6 +4,10 @@ using System.Net;
 
 namespace cmonitor.db
 {
+
+    /// <summary>
+    /// 持久化
+    /// </summary>
     public sealed class DBfactory
     {
         LiteDatabase database;

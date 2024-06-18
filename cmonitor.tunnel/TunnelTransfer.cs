@@ -6,6 +6,7 @@ using common.libs;
 using common.libs.extends;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace cmonitor.tunnel
@@ -28,6 +29,10 @@ namespace cmonitor.tunnel
             this.tunnelMessengerAdapter = tunnelMessengerAdapter;
         }
 
+        /// <summary>
+        /// 加载打洞协议
+        /// </summary>
+        /// <param name="assembs"></param>
         public void Load(Assembly[] assembs)
         {
             IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs.Concat(new Assembly[] { typeof(TunnelTransfer).Assembly }).ToArray(), typeof(ITunnelTransport));
@@ -79,9 +84,18 @@ namespace cmonitor.tunnel
         }
 
 
+        /// <summary>
+        /// 开始连接对方
+        /// </summary>
+        /// <param name="remoteMachineId">对方id</param>
+        /// <param name="transactionId">事务id，随便起，你喜欢就好</param>
+        /// <returns></returns>
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId)
         {
-            connectingDic.AddOrUpdate(remoteMachineId, true, (a, b) => true);
+            if (connectingDic.TryAdd(remoteMachineId, true) == false)
+            {
+                return null;
+            }
 
             foreach (TunnelTransportItemInfo transportItem in tunnelMessengerAdapter.GetTunnelTransports().Where(c => c.Disabled == false))
             {
@@ -89,6 +103,7 @@ namespace cmonitor.tunnel
                 if (transport == null) continue;
 
                 TunnelTransportInfo tunnelTransportInfo = null;
+                //是否在失败后尝试反向连接
                 int times = transportItem.Reverse ? 1 : 0;
                 for (int i = 0; i <= times; i++)
                 {
@@ -146,9 +161,13 @@ namespace cmonitor.tunnel
             connectingDic.TryRemove(remoteMachineId, out _);
             return null;
         }
+        /// <summary>
+        /// 收到对方开始连接的消息
+        /// </summary>
+        /// <param name="tunnelTransportInfo"></param>
         public void OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
-            if (connectingDic.TryGetValue(tunnelTransportInfo.Remote.MachineId, out _))
+            if (connectingDic.TryAdd(tunnelTransportInfo.Remote.MachineId, true) == false)
             {
                 return;
             }
@@ -159,6 +178,10 @@ namespace cmonitor.tunnel
                 OnConnectBegin(tunnelTransportInfo);
             }
         }
+        /// <summary>
+        /// 收到对方发来的连接失败的消息
+        /// </summary>
+        /// <param name="tunnelTransportInfo"></param>
         public void OnFail(TunnelTransportInfo tunnelTransportInfo)
         {
             ITunnelTransport _transports = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
@@ -167,6 +190,10 @@ namespace cmonitor.tunnel
                 _transports.OnFail(tunnelTransportInfo);
             }
         }
+        /// <summary>
+        /// 收到对方发来的连接成功的消息
+        /// </summary>
+        /// <param name="tunnelTransportInfo"></param>
         public void OnSuccess(TunnelTransportInfo tunnelTransportInfo)
         {
             ITunnelTransport _transports = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
@@ -175,11 +202,19 @@ namespace cmonitor.tunnel
                 _transports.OnSuccess(tunnelTransportInfo);
             }
         }
+
+        /// <summary>
+        /// 获取自己的外网IP，给别人调用
+        /// </summary>
+        /// <returns></returns>
         public async Task<TunnelTransportExternalIPInfo> GetExternalIP()
         {
             return await GetLocalInfo();
         }
-
+        /// <summary>
+        /// 获取自己的外网IP
+        /// </summary>
+        /// <returns></returns>
         private async Task<TunnelTransportExternalIPInfo> GetLocalInfo()
         {
             TunnelCompactIPEndPoint ip = await compactTransfer.GetExternalIPAsync(tunnelMessengerAdapter.LocalIP);
@@ -209,11 +244,16 @@ namespace cmonitor.tunnel
             Logger.Instance.Info($"tunnel connecting from {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
         }
 
+        /// <summary>
+        /// 连接成功
+        /// </summary>
+        /// <param name="connection"></param>
         private void _OnConnected(ITunnelConnection connection)
         {
             //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             Logger.Instance.Debug($"tunnel connect {connection.RemoteMachineId}->{connection.RemoteMachineName} success->{connection.IPEndPoint},{connection.ToJsonFormat()}");
 
+            //调用以下别人注册的回调
             if (OnConnected.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))
             {
                 foreach (var item in callbacks)

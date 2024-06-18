@@ -50,16 +50,36 @@ namespace cmonitor.tunnel.transport
         public void OnSuccess(TunnelTransportInfo tunnelTransportInfo);
     }
 
+    /// <summary>
+    /// 网络信息，包括局域网，外网
+    /// </summary>
     public sealed partial class TunnelTransportExternalIPInfo
     {
+        /// <summary>
+        /// 我的本地
+        /// </summary>
         public IPEndPoint Local { get; set; }
+        /// <summary>
+        /// 我的外网
+        /// </summary>
         public IPEndPoint Remote { get; set; }
-
+        /// <summary>
+        /// 我的局域网IP
+        /// </summary>
         public IPAddress[] LocalIps { get; set; }
 
+        /// <summary>
+        /// 我的外网层级
+        /// </summary>
         public int RouteLevel { get; set; }
 
+        /// <summary>
+        /// 我的id
+        /// </summary>
         public string MachineId { get; set; }
+        /// <summary>
+        /// 我的名称
+        /// </summary>
         public string MachineName { get; set; }
     }
 
@@ -88,14 +108,30 @@ namespace cmonitor.tunnel.transport
 
     public sealed partial class TunnelTransportInfo
     {
+        /// <summary>
+        /// 我的
+        /// </summary>
         public TunnelTransportExternalIPInfo Local { get; set; }
+        /// <summary>
+        /// 对方的
+        /// </summary>
         public TunnelTransportExternalIPInfo Remote { get; set; }
 
+        /// <summary>
+        /// 事务
+        /// </summary>
         public string TransactionId { get; set; }
-
+        /// <summary>
+        /// 协议类型
+        /// </summary>
         public TunnelProtocolType TransportType { get; set; }
+        /// <summary>
+        /// 协议名
+        /// </summary>
         public string TransportName { get; set; }
-
+        /// <summary>
+        /// 方向
+        /// </summary>
         public TunnelDirection Direction { get; set; }
 
         public bool SSL { get; set; }

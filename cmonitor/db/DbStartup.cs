@@ -1,11 +1,13 @@
 ﻿using cmonitor.config;
 using cmonitor.startup;
 using Microsoft.Extensions.DependencyInjection;
-using System.Net;
 using System.Reflection;
 
 namespace cmonitor.db
 {
+    /// <summary>
+    /// 持久化加载插件
+    /// </summary>
     public sealed class DbStartupStartup : IStartup
     {
         public StartupLevel Level => StartupLevel.Normal;

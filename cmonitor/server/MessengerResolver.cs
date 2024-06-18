@@ -23,6 +23,10 @@ namespace cmonitor.server
             this.serviceProvider = serviceProvider;
         }
 
+        /// <summary>
+        /// 加载所有消息处理器
+        /// </summary>
+        /// <param name="assemblys"></param>
         public void LoadMessenger(Assembly[] assemblys)
         {
             Type voidType = typeof(void);
@@ -49,10 +53,12 @@ namespace cmonitor.server
                             {
                                 Target = obj
                             };
+                            //void方法
                             if (method.ReturnType == voidType)
                             {
                                 cache.VoidMethod = (VoidDelegate)Delegate.CreateDelegate(typeof(VoidDelegate), obj, method);
                             }
+                            //异步方法
                             else if (method.ReturnType.GetProperty("IsCompleted") != null && method.ReturnType.GetMethod("GetAwaiter") != null)
                             {
                                 cache.TaskMethod = (TaskDelegate)Delegate.CreateDelegate(typeof(TaskDelegate), obj, method);
@@ -70,6 +76,13 @@ namespace cmonitor.server
 
         }
 
+        /// <summary>
+        /// 处理消息
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="data"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
         public async Task Receive(IConnection connection, ReadOnlyMemory<byte> data, object state)
         {
             MessageResponseWrap responseWrap = connection.ReceiveResponseWrap;
@@ -109,7 +122,7 @@ namespace cmonitor.server
                 {
                     await plugin.TaskMethod(connection);
                 }
-
+                //有需要回复的
                 if (requestWrap.Reply == true && connection.ResponseData.Length > 0)
                 {
                     bool res = await messengerSender.ReplyOnly(new MessageResponseWrap

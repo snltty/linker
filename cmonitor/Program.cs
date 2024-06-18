@@ -9,6 +9,12 @@ namespace cmonitor
 {
     internal class Program
     {
+        /*
+         * common.libs 是一些帮助，扩展，公共方法
+         * cmonitor.tunnel 是打洞库
+         * 
+         */
+
         static async Task Main(string[] args)
         {
             Run(args);
@@ -67,7 +73,6 @@ namespace cmonitor
 
         private static void LoggerConsole()
         {
-            //Logger.Instance.LoggerLevel = LoggerTypes.DEBUG;
             if (Directory.Exists("logs") == false)
             {
                 Directory.CreateDirectory("logs");
@@ -110,9 +115,5 @@ namespace cmonitor
         }
 
     }
-
-
-
-
 
 }

@@ -48,15 +48,6 @@ namespace cmonitor.plugins.viewer.proxy
             return true;
         }
 
-        protected override async ValueTask CheckTunnelConnection(AsyncUserToken token)
-        {
-            if (token.Connection == null || token.Connection.Connected == false)
-            {
-                token.Proxy.TargetEP = runningConfig.Data.Viewer.ConnectEP;
-                token.Connection = await ConnectTunnel(runningConfig.Data.Viewer.ServerMachine);
-            }
-        }
-
 
         private async ValueTask<ITunnelConnection> ConnectTunnel(string targetName)
         {

@@ -78,10 +78,12 @@ namespace cmonitor.server
 
                 try
                 {
+                    //给客户端返回他的IP+端口
                     sendData[0] = (byte)endPoint.AddressFamily;
                     endPoint.Address.TryWriteBytes(sendData.AsSpan(1), out int length);
                     ((ushort)endPoint.Port).ToBytes(sendData.AsMemory(1 + length));
 
+                    //防止一些网关修改掉它的外网IP
                     for (int i = 0; i < 1 + length + 2; i++)
                     {
                         sendData[i] = (byte)(sendData[i] ^ byte.MaxValue);

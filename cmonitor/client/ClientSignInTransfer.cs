@@ -11,6 +11,9 @@ using System.Net.Sockets;
 
 namespace cmonitor.client
 {
+    /// <summary>
+    /// 登入
+    /// </summary>
     public sealed class ClientSignInTransfer
     {
         private readonly ClientSignInState clientSignInState;
@@ -34,6 +37,9 @@ namespace cmonitor.client
             //SignInTask();
         }
 
+        /// <summary>
+        /// 开始定期检查登入状态
+        /// </summary>
         public void SignInTask()
         {
             Task.Run(async () =>
@@ -58,6 +64,10 @@ namespace cmonitor.client
             });
         }
 
+        /// <summary>
+        /// 登入
+        /// </summary>
+        /// <returns></returns>
         public async Task SignIn()
         {
             if (BooleanHelper.CompareExchange(ref clientSignInState.connecting, true, false))
@@ -95,12 +105,19 @@ namespace cmonitor.client
                 BooleanHelper.CompareExchange(ref clientSignInState.connecting, false, true);
             }
         }
+        /// <summary>
+        /// 登出
+        /// </summary>
         public void SignOut()
         {
             if (clientSignInState.Connected)
                 clientSignInState.Connection.Disponse(5);
         }
 
+        /// <summary>
+        /// 修改客户端名称
+        /// </summary>
+        /// <param name="newName"></param>
         public void UpdateName(string newName)
         {
             string name = config.Data.Client.Name;
@@ -116,6 +133,11 @@ namespace cmonitor.client
 
 
         }
+        /// <summary>
+        /// 修改客户端名称和分组编号
+        /// </summary>
+        /// <param name="newName"></param>
+        /// <param name="newGroupid"></param>
         public void UpdateName(string newName, string newGroupid)
         {
             string name = config.Data.Client.Name;
@@ -130,6 +152,10 @@ namespace cmonitor.client
                 _ = SignIn();
             }
         }
+        /// <summary>
+        /// 修改信标服务器列表
+        /// </summary>
+        /// <param name="servers"></param>
         public void UpdateServers(ClientServerInfo[] servers)
         {
             string server = config.Data.Client.Server;
@@ -148,6 +174,11 @@ namespace cmonitor.client
             }
         }
 
+        /// <summary>
+        /// 连接到信标服务器
+        /// </summary>
+        /// <param name="remote"></param>
+        /// <returns></returns>
         private async Task<bool> ConnectServer(IPEndPoint remote)
         {
             Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -157,6 +188,10 @@ namespace cmonitor.client
 
             return true;
         }
+        /// <summary>
+        /// 登入到信标服务器
+        /// </summary>
+        /// <returns></returns>
         private async Task<bool> SignIn2Server()
         {
             Dictionary<string, string> args = new Dictionary<string, string>();

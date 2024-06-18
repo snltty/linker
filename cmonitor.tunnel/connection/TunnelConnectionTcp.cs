@@ -157,7 +157,6 @@ namespace cmonitor.tunnel.connection
         }
         private async Task CallbackPacket(Memory<byte> packet)
         {
-            
             if (packet.Length == pingBytes.Length && (packet.Span.SequenceEqual(pingBytes) || packet.Span.SequenceEqual(pongBytes)))
             {
                 if (packet.Span.SequenceEqual(pingBytes))
@@ -169,16 +168,15 @@ namespace cmonitor.tunnel.connection
                     Delay = (int)(Environment.TickCount64 - pingStart);
                     pong = true;
                 }
+                return;
             }
-            else
+            try
             {
-                try
-                {
-                    await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
-                }
-                catch (Exception)
-                {
-                }
+                await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
             }
         }
 

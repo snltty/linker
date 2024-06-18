@@ -15,23 +15,65 @@ namespace cmonitor.server
 
     public interface IConnection
     {
+        /// <summary>
+        /// 连接id
+        /// </summary>
         public string Id { get; set; }
+        /// <summary>
+        /// 链接名
+        /// </summary>
         public string Name { get; set; }
         public bool Connected { get; }
 
+        /// <summary>
+        /// 外网IP
+        /// </summary>
         public IPEndPoint Address { get; }
+        /// <summary>
+        /// 内网IP
+        /// </summary>
         public IPEndPoint LocalAddress { get; }
 
+        /// <summary>
+        /// 你的ssl流
+        /// </summary>
         public SslStream SourceStream { get; }
+        /// <summary>
+        /// 你的socket
+        /// </summary>
         public Socket SourceSocket { get; }
+        /// <summary>
+        /// 你的网络流
+        /// </summary>
         public NetworkStream SourceNetworkStream { get;  }
+        /// <summary>
+        /// 对方的网络流
+        /// </summary>
         public SslStream TargetStream { get; set; }
+        /// <summary>
+        /// 对方的socket
+        /// </summary>
         public Socket TargetSocket { get; set; }
+        /// <summary>
+        /// 对方的网络流
+        /// </summary>
         public NetworkStream TargetNetworkStream { get; set; }
 
+        /// <summary>
+        /// 延迟ms
+        /// </summary>
         public int Delay { get; }
+        /// <summary>
+        /// 已发送字节数
+        /// </summary>
         public long SendBytes { get; }
+        /// <summary>
+        /// 已接收字节数
+        /// </summary>
         public long ReceiveBytes { get; }
+        /// <summary>
+        /// 中继限速 byte/s
+        /// </summary>
         public uint RelayLimit { get; set; }
 
         #region 接收数据
@@ -40,13 +82,37 @@ namespace cmonitor.server
         public ReadOnlyMemory<byte> ReceiveData { get; set; }
         #endregion
 
+        /// <summary>
+        /// 开始就接收数据
+        /// </summary>
+        /// <param name="callback">处理回调</param>
+        /// <param name="userToken">携带自定义数据，回调时带过去</param>
+        /// <param name="byFrame">是否处理粘包</param>
         public void BeginReceive(IConnectionReceiveCallback callback, object userToken, bool byFrame = true);
 
+        /// <summary>
+        /// 发送数据
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
         public Task<bool> SendAsync(ReadOnlyMemory<byte> data);
+        /// <summary>
+        /// 发送数据
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
         public Task<bool> SendAsync(byte[] data, int length);
 
+        /// <summary>
+        /// 开始中继，不再处理包，在此之前，应该先调用Cancel取消处理包，在等待一段时间后，再开始中继
+        /// </summary>
+        /// <returns></returns>
         public Task RelayAsync();
 
+        /// <summary>
+        /// 取消处理包
+        /// </summary>
         public void Cancel();
         public void Disponse(int value = 0);
 
@@ -416,7 +482,6 @@ namespace cmonitor.server
                     await SourceStream.WriteAsync(data, cancellationTokenSourceWrite.Token);
                 else
                     await SourceSocket.SendAsync(data, cancellationTokenSourceWrite.Token);
-
                 SendBytes += data.Length;
                 ticks = Environment.TickCount64;
             }

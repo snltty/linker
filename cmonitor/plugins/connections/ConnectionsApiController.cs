@@ -81,16 +81,13 @@ namespace cmonitor.plugins.connections
                 {
                     try
                     {
-                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                            Logger.Instance.Warning($"TryRemove {_connection.GetHashCode()} {_connection.TransactionId} {_connection.ToJson()}");
                         _connection.Dispose();
                     }
                     catch (Exception)
                     {
                     }
                 }
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Warning($"TryAdd {connection.GetHashCode()} {connection.TransactionId} {connection.ToJson()}");
+               
                 cons.TryAdd(connection.TransactionId, connection);
             }
             Interlocked.Increment(ref connectionVersion);

@@ -9,6 +9,9 @@ using cmonitor.client.config;
 
 namespace cmonitor.client
 {
+    /// <summary>
+    /// 客户端插件
+    /// </summary>
     public sealed class ClientStartup : IStartup
     {
         public StartupLevel Level => StartupLevel.Bottom;

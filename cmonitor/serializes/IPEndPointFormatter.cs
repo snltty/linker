@@ -4,6 +4,9 @@ using System.Net;
 
 namespace cmonitor.serializes
 {
+    /// <summary>
+    ///  MemoryPack 的 IPEndPoint序列化扩展
+    /// </summary>
     public sealed class IPEndPointFormatter : MemoryPackFormatter<IPEndPoint>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref IPEndPoint value)
@@ -14,8 +17,8 @@ namespace cmonitor.serializes
                 return;
             }
 
-
-            Memory<byte> memory = new byte[20];
+            //最多 IPV6 16byte + 端口 2byte + 头部 4byte
+            Memory<byte> memory = new byte[22];
             Span<byte> span = memory.Span;
             int index = 1;
 

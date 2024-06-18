@@ -23,7 +23,7 @@ namespace cmonitor.plugins.relay.transport
         private readonly MessengerSender messengerSender;
 
         private X509Certificate certificate;
-        
+
 
         public TransportSelfHost(TcpServer tcpServer, MessengerSender messengerSender, Config config)
         {
@@ -65,7 +65,10 @@ namespace cmonitor.plugins.relay.transport
                 if (relayInfo.SSL)
                 {
                     sslStream = new SslStream(connection.SourceNetworkStream, false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
-                    await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 });
+                    await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
+                    {
+                        EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13
+                    });
                 }
 
                 return new TunnelConnectionTcp

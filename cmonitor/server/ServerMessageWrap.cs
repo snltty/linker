@@ -4,16 +4,41 @@ using System.ComponentModel;
 
 namespace cmonitor.server
 {
+    /// <summary>
+    /// 请求数据包
+    /// </summary>
     public sealed class MessageRequestWrap
     {
+        /// <summary>
+        /// 超时ms
+        /// </summary>
         public int Timeout { get; set; }
+        /// <summary>
+        /// 消息id
+        /// </summary>
         public ushort MessengerId { get; set; }
+        /// <summary>
+        /// 请求id
+        /// </summary>
         public uint RequestId { get; set; }
+        /// <summary>
+        /// 是否需要回复
+        /// </summary>
         public bool Reply { get; internal set; }
+        /// <summary>
+        /// 荷载
+        /// </summary>
         public ReadOnlyMemory<byte> Payload { get; set; }
-
+        /// <summary>
+        /// 连接对象
+        /// </summary>
         public IConnection Connection { get; set; }
 
+        /// <summary>
+        /// 序列化，使用了池化，用完后记得调用 Return
+        /// </summary>
+        /// <param name="length"></param>
+        /// <returns></returns>
         public byte[] ToArray(out int length)
         {
             int index = 0;
@@ -43,6 +68,10 @@ namespace cmonitor.server
 
             return res;
         }
+        /// <summary>
+        /// 反序列化
+        /// </summary>
+        /// <param name="memory"></param>
         public unsafe void FromArray(ReadOnlyMemory<byte> memory)
         {
             var span = memory.Span;
@@ -73,13 +102,25 @@ namespace cmonitor.server
     /// </summary>
     public sealed class MessageResponseWrap
     {
+        /// <summary>
+        /// 连接对象
+        /// </summary>
         public IConnection Connection { get; set; }
+        /// <summary>
+        /// 返回码
+        /// </summary>
         public MessageResponeCodes Code { get; set; }
+        /// <summary>
+        /// 消息id
+        /// </summary>
         public uint RequestId { get; set; }
+        /// <summary>
+        /// 何在
+        /// </summary>
         public ReadOnlyMemory<byte> Payload { get; set; }
 
         /// <summary>
-        /// 转包
+        /// 序列化。用了池化，用完记得 Return
         /// </summary>
         /// <returns></returns>
         public byte[] ToArray(out int length)

@@ -8,6 +8,9 @@ using System.Reflection;
 
 namespace cmonitor.plugins.tuntap
 {
+    /// <summary>
+    /// 虚拟网卡组网插件
+    /// </summary>
     public sealed class TuntapStartup : IStartup
     {
         public StartupLevel Level => StartupLevel.Normal;
@@ -20,6 +23,7 @@ namespace cmonitor.plugins.tuntap
 
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
+            //不同平台下的虚拟网卡
             if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<ITuntapVea, TuntapVeaWindows>();
             if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<ITuntapVea, TuntapVeaLinux>();
             if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<ITuntapVea, TuntapVeaMacOs>();

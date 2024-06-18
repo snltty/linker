@@ -4,6 +4,7 @@ using cmonitor.tunnel;
 using cmonitor.tunnel.connection;
 using cmonitor.tunnel.proxy;
 using common.libs;
+using common.libs.extends;
 using System.Collections.Concurrent;
 using System.Net;
 
@@ -30,6 +31,9 @@ namespace cmonitor.plugins.forward.proxy
         }
         private void OnConnected(ITunnelConnection connection)
         {
+            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                Logger.Instance.Warning($"TryAdd {connection.GetHashCode()} {connection.TransactionId} {connection.ToJson()}");
+
             connections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
             BindConnectionReceive(connection);
         }
@@ -52,18 +56,6 @@ namespace cmonitor.plugins.forward.proxy
                 cache.Connection = await ConnectTunnel(cache.MachineId);
                 token.Connection = cache.Connection;
             }
-        }
-        protected override async ValueTask CheckTunnelConnection(AsyncUserToken token)
-        {
-            if (token.Connection == null || token.Connection.Connected == false)
-            {
-                if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
-                {
-                    cache.Connection = await ConnectTunnel(cache.MachineId);
-                    token.Connection = cache.Connection;
-                }
-            }
-
         }
 
 

@@ -50,10 +50,23 @@ namespace cmonitor.plugins.tuntap
                 OnChange();
             };
 
-            AppDomain.CurrentDomain.ProcessExit += (s, e) => StopExit();
-            Console.CancelKeyPress += (s, e) => StopExit();
+            AppDomain.CurrentDomain.ProcessExit += (s, e) => OnExit();
+            Console.CancelKeyPress += (s, e) => OnExit();
+        }
+        /// <summary>
+        /// 程序关闭
+        /// </summary>
+        private void OnExit()
+        {
+            bool running = runningConfig.Data.Tuntap.Running;
+            Stop();
+            runningConfig.Data.Tuntap.Running = running;
+            runningConfig.Data.Update();
         }
 
+        /// <summary>
+        /// 运行网卡
+        /// </summary>
         public void Run()
         {
             if (BooleanHelper.CompareExchange(ref starting, true, false))
@@ -81,6 +94,9 @@ namespace cmonitor.plugins.tuntap
                 }
             });
         }
+        /// <summary>
+        /// 停止网卡
+        /// </summary>
         public void Stop()
         {
             if (BooleanHelper.CompareExchange(ref starting, true, false))
@@ -108,21 +124,16 @@ namespace cmonitor.plugins.tuntap
             }
         }
 
-        private void StopExit()
-        {
-            bool running = runningConfig.Data.Tuntap.Running;
-            Stop();
-            runningConfig.Data.Tuntap.Running = running;
-            runningConfig.Data.Update();
-        }
-
-
-        public void RefreshInfo()
+        /// <summary>
+        /// 刷新信息，把自己的网卡配置发给别人，顺便把别人的网卡信息带回来
+        /// </summary>
+        public void Refresh()
         {
             OnChange();
         }
+
         /// <summary>
-        /// 更新本机信息
+        /// 更新本机网卡信息
         /// </summary>
         /// <param name="info"></param>
         public void OnUpdate(TuntapInfo info)
@@ -144,7 +155,7 @@ namespace cmonitor.plugins.tuntap
             });
         }
         /// <summary>
-        /// 更新远程主机信息
+        /// 收到别的客户端的网卡信息
         /// </summary>
         /// <param name="info"></param>
         /// <returns></returns>
@@ -160,6 +171,10 @@ namespace cmonitor.plugins.tuntap
 
             return GetLocalInfo();
         }
+
+        /// <summary>
+        /// 信息有变化，刷新信息，把自己的网卡配置发给别人，顺便把别人的网卡信息带回来
+        /// </summary>
         private void OnChange()
         {
             GetRemoteInfo().ContinueWith((result) =>
@@ -180,11 +195,18 @@ namespace cmonitor.plugins.tuntap
                 }
             });
         }
-
+        /// <summary>
+        /// 获取自己的网卡信息
+        /// </summary>
+        /// <returns></returns>
         private TuntapInfo GetLocalInfo()
         {
             return new TuntapInfo { IP = runningConfig.Data.Tuntap.IP, LanIPs = runningConfig.Data.Tuntap.LanIPs, MachineId = config.Data.Client.Id, Status = Status };
         }
+        /// <summary>
+        /// 获取别人的网卡信息
+        /// </summary>
+        /// <returns></returns>
         private async Task<List<TuntapInfo>> GetRemoteInfo()
         {
             TuntapInfo info = GetLocalInfo();
@@ -205,12 +227,18 @@ namespace cmonitor.plugins.tuntap
             return infos;
         }
 
+        /// <summary>
+        /// 删除路由
+        /// </summary>
         private void DelRoute()
         {
             List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.ToList());
             TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
             tuntapVea.DelRoute(ips);
         }
+        /// <summary>
+        /// 添加路由
+        /// </summary>
         private void AddRoute()
         {
             List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.ToList());
@@ -223,16 +251,6 @@ namespace cmonitor.plugins.tuntap
                 tuntapProxy.SetIP(item.MachineId, BinaryPrimitives.ReadUInt32BigEndian(item.IP.GetAddressBytes()));
             }
 
-        }
-        private bool CheckIp()
-        {
-            uint maskValue = NetworkHelper.MaskValue(24);
-            uint[] networks = NetworkHelper.GetIPV4()
-                .Select(c => BinaryPrimitives.ReadUInt32BigEndian(c.GetAddressBytes()) & maskValue)
-                .ToArray();
-
-            uint network = BinaryPrimitives.ReadUInt32BigEndian(runningConfig.Data.Tuntap.IP.GetAddressBytes()) & maskValue;
-            return runningConfig.Data.Tuntap.IP.Equals(IPAddress.Any) == false && networks.Contains(network) == false;
         }
 
         private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)

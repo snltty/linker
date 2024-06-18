@@ -7,6 +7,9 @@ using System.Reflection;
 
 namespace cmonitor.tunnel.compact
 {
+    /// <summary>
+    /// 外网端口协议
+    /// </summary>
     public sealed class TunnelCompactTransfer
     {
         private List<ITunnelCompact> compacts;
@@ -20,6 +23,10 @@ namespace cmonitor.tunnel.compact
             this.tunnelMessengerAdapter = tunnelMessengerAdapter;
         }
 
+        /// <summary>
+        /// 加载所有外网端口协议
+        /// </summary>
+        /// <param name="assembs"></param>
         public void Load(Assembly[] assembs)
         {
             IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs.Concat(new Assembly[] { typeof(TunnelCompactTransfer).Assembly }).ToArray(), typeof(ITunnelCompact));
@@ -33,6 +40,11 @@ namespace cmonitor.tunnel.compact
             return compacts.Select(c => new TunnelCompactTypeInfo { Value = c.Type, Name = c.Type.ToString() }).Distinct(new TunnelCompactTypeInfoEqualityComparer()).ToList();
         }
 
+        /// <summary>
+        /// 获取外网端口
+        /// </summary>
+        /// <param name="localIP">你的局域网IP</param>
+        /// <returns></returns>
         public async Task<TunnelCompactIPEndPoint> GetExternalIPAsync(IPAddress localIP)
         {
             var compactItems = tunnelMessengerAdapter.GetTunnelCompacts();

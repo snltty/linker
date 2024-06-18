@@ -13,18 +13,30 @@ namespace cmonitor.plugins.tuntap.messenger
             this.tuntapTransfer = tuntapTransfer;
         }
 
+        /// <summary>
+        /// 运行网卡
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)TuntapMessengerIds.Run)]
         public void Run(IConnection connection)
         {
             tuntapTransfer.Run();
         }
 
+        /// <summary>
+        /// 停止网卡
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)TuntapMessengerIds.Stop)]
         public void Stop(IConnection connection)
         {
             tuntapTransfer.Stop();
         }
 
+        /// <summary>
+        /// 更新网卡信息
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)TuntapMessengerIds.Update)]
         public void Update(IConnection connection)
         {
@@ -32,6 +44,10 @@ namespace cmonitor.plugins.tuntap.messenger
             tuntapTransfer.OnUpdate(info);
         }
 
+        /// <summary>
+        /// 收到别人的网卡信息
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)TuntapMessengerIds.Config)]
         public void Config(IConnection connection)
         {
@@ -53,6 +69,11 @@ namespace cmonitor.plugins.tuntap.messenger
             this.signCaching = signCaching;
         }
 
+        /// <summary>
+        /// 转发运行命令
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
         [MessengerId((ushort)TuntapMessengerIds.RunForward)]
         public async Task RunForward(IConnection connection)
         {
@@ -68,7 +89,11 @@ namespace cmonitor.plugins.tuntap.messenger
             }
         }
 
-
+        /// <summary>
+        /// 转发停止命令
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
         [MessengerId((ushort)TuntapMessengerIds.StopForward)]
         public async Task StopForward(IConnection connection)
         {
@@ -84,7 +109,11 @@ namespace cmonitor.plugins.tuntap.messenger
             }
         }
 
-
+        /// <summary>
+        /// 转发更新网卡信息命令
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
         [MessengerId((ushort)TuntapMessengerIds.UpdateForward)]
         public async Task UpdateForward(IConnection connection)
         {
@@ -101,7 +130,10 @@ namespace cmonitor.plugins.tuntap.messenger
             }
         }
 
-
+        /// <summary>
+        /// 广播网卡信息命令，把自己的发给所有人，然后拿回所有人的信息
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)TuntapMessengerIds.ConfigForward)]
         public void ConfigForward(IConnection connection)
         {

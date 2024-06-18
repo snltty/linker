@@ -17,10 +17,7 @@ namespace cmonitor.plugins.forward
             this.running = running;
             this.forwardProxy = forwardProxy;
 
-            clientSignInState.NetworkFirstEnabledHandle += () =>
-            {
-                Start();
-            };
+            clientSignInState.NetworkFirstEnabledHandle += Start;
         }
 
         private void Start()

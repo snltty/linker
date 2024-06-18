@@ -13,6 +13,9 @@ using System.Collections.Concurrent;
 
 namespace cmonitor.plugins.tunnel
 {
+    /// <summary>
+    /// 管理接口
+    /// </summary>
     public sealed class TunnelApiController : IApiClientController
     {
         private readonly Config config;
@@ -32,6 +35,11 @@ namespace cmonitor.plugins.tunnel
             this.tunnelMessengerAdapter = tunnelMessengerAdapter;
         }
 
+        /// <summary>
+        /// 获取所有人的隧道信息
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public TunnelListInfo Get(ApiControllerParamsInfo param)
         {
             uint hashCode = uint.Parse(param.Content);
@@ -46,17 +54,29 @@ namespace cmonitor.plugins.tunnel
             }
             return new TunnelListInfo { HashCode = _hashCode };
         }
+        /// <summary>
+        /// 刷新隧道信息
+        /// </summary>
+        /// <param name="param"></param>
         public void Refresh(ApiControllerParamsInfo param)
         {
             tunnelConfigTransfer.RefreshConfig();
         }
 
-
+        /// <summary>
+        /// 获取所有外网端口协议
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public List<TunnelCompactTypeInfo> GetTypes(ApiControllerParamsInfo param)
         {
             return compactTransfer.GetTypes();
         }
-
+        /// <summary>
+        /// 设置外网端口协议
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> SetServers(ApiControllerParamsInfo param)
         {
             SetServersParamInfo info = param.Content.DeJson<SetServersParamInfo>();
@@ -75,7 +95,11 @@ namespace cmonitor.plugins.tunnel
             return true;
 
         }
-
+        /// <summary>
+        /// 设置网关层级
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> SetRouteLevel(ApiControllerParamsInfo param)
         {
             TunnelTransportRouteLevelInfo tunnelTransportConfigWrapInfo = param.Content.DeJson<TunnelTransportRouteLevelInfo>();
@@ -96,11 +120,20 @@ namespace cmonitor.plugins.tunnel
 
             return true;
         }
-
+        /// <summary>
+        /// 获取打洞协议
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public List<TunnelTransportItemInfo> GetTransports(ApiControllerParamsInfo param)
         {
             return tunnelMessengerAdapter.GetTunnelTransports();
         }
+        /// <summary>
+        /// 设置打洞协议
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task SetTransports(ApiControllerParamsInfo param)
         {
             SetTransportsParamInfo info = param.Content.DeJson<SetTransportsParamInfo>();

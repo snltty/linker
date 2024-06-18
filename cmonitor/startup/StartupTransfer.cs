@@ -8,6 +8,11 @@ namespace cmonitor.startup
     public static class StartupTransfer
     {
         static List<IStartup> startups = new List<IStartup>();
+        /// <summary>
+        /// 反射读取所有插件
+        /// </summary>
+        /// <param name="config"></param>
+        /// <param name="assemblies"></param>
         public static void Init(Config config, Assembly[] assemblies)
         {
             var types = ReflectionHelper.GetInterfaceSchieves(assemblies, typeof(IStartup));
@@ -15,6 +20,10 @@ namespace cmonitor.startup
             TestDependent(temps);
             LoadPlugins(config, temps);
         }
+        /// <summary>
+        /// 检查插件依赖
+        /// </summary>
+        /// <param name="temps"></param>
         private static void TestDependent(List<IStartup> temps)
         {
             IEnumerable<string> names = temps.Select(c => c.Name);
@@ -27,7 +36,11 @@ namespace cmonitor.startup
                 }
             }
         }
-
+        /// <summary>
+        /// 加载插件
+        /// </summary>
+        /// <param name="config"></param>
+        /// <param name="temps"></param>
         private static void LoadPlugins(Config config, List<IStartup> temps)
         {
             //只要哪些
@@ -48,6 +61,11 @@ namespace cmonitor.startup
 
             Logger.Instance.Warning($"load startup : {string.Join(",", startups.Select(c => c.Name))}");
         }
+        /// <summary>
+        /// 加载插件依赖
+        /// </summary>
+        /// <param name="all"></param>
+        /// <param name="sependents"></param>
         private static void LoadDependents(List<IStartup> all, IEnumerable<string> sependents)
         {
             if (sependents.Any() == false) return;
@@ -60,7 +78,12 @@ namespace cmonitor.startup
             LoadDependents(all, _sependents);
         }
 
-
+        /// <summary>
+        /// 注入
+        /// </summary>
+        /// <param name="serviceCollection"></param>
+        /// <param name="config"></param>
+        /// <param name="assemblies"></param>
         public static void Add(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             foreach (var startup in startups)
@@ -71,6 +94,13 @@ namespace cmonitor.startup
                     startup.AddServer(serviceCollection, config, assemblies);
             }
         }
+
+        /// <summary>
+        /// 启动
+        /// </summary>
+        /// <param name="serviceProvider"></param>
+        /// <param name="config"></param>
+        /// <param name="assemblies"></param>
         public static void Use(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
         {
             foreach (var startup in startups)

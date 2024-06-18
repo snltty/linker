@@ -13,6 +13,9 @@ using System.Reflection;
 
 namespace cmonitor.plugins.tunnel
 {
+    /// <summary>
+    /// 打洞插件
+    /// </summary>
     public sealed class TunnelStartup : IStartup
     {
         public StartupLevel Level => StartupLevel.Normal;
@@ -26,20 +29,23 @@ namespace cmonitor.plugins.tunnel
 
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
+            //序列化扩展
             MemoryPackFormatterProvider.Register(new TunnelCompactInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportExternalIPInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportItemInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportInfoFormatter());
 
-
+            //管理接口
             serviceCollection.AddSingleton<TunnelApiController>();
-
+            //命令接口
             serviceCollection.AddSingleton<TunnelClientMessenger>();
 
+            //外网端口协议
             serviceCollection.AddSingleton<TunnelCompactTransfer>();
             serviceCollection.AddSingleton<TunnelCompactSelfHost>();
             serviceCollection.AddSingleton<TunnelCompactStun>();
 
+            //打洞协议
             serviceCollection.AddSingleton<TunnelTransfer>();
             serviceCollection.AddSingleton<TunnelTransportTcpNutssb>();
             serviceCollection.AddSingleton<TransportMsQuic>();

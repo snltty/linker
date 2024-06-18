@@ -6,6 +6,9 @@ using System.Reflection;
 
 namespace cmonitor.serializes
 {
+    /// <summary>
+    /// MemoryPack 序列化扩展加载插件
+    /// </summary>
     public sealed class SerializeStartup : IStartup
     {
         public StartupLevel Level => StartupLevel.Hight9;

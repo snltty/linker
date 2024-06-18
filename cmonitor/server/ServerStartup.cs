@@ -6,6 +6,9 @@ using System.Reflection;
 
 namespace cmonitor.server
 {
+    /// <summary>
+    /// 服务端插件
+    /// </summary>
     public sealed class ServerStartup : IStartup
     {
         public StartupLevel Level => StartupLevel.Normal;
