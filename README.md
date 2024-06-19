@@ -25,15 +25,19 @@
 </div>
 
 ## 简单说明
-1. 组件式（随意拆卸）
-2. 与信标服务器通信，打洞通信，均使用SSL加密
-3. 使用了 **MemoryPack** 进行数据序列化反序列化
+1. 组件式
+2. SSL加密
+3. 使用**MemoryPack**序列化
 4. 程序分为两类，**monitor** 只包含监控功能，**network** 只包含内网穿透功能
 
 ## 公共功能
 ##### 监控、内网穿透，都包含以下功能
 
 - [x] 打洞连接，客户端之间打洞连接，TCP打洞、MsQuic打洞 **tunnel**
+    
+    1. 默认msquic.dll win11+ <a target="_blank" href="https://github.com/dotnet/runtime/tree/main/src/libraries/System.Net.Quic">官方库说明</a>，win10 请删除 msquic.dll，将 msquic-openssl.dll 更名为 msquic.dll
+    2. linux 请按官方说明安装msquic
+
 - [x] 中继连接，客户端之间通过服务器转发连接 **relay**
 
 ## 内网穿透
@@ -62,6 +66,111 @@
 - [x] 屏幕共享，以某一设备为主机，向其它设备共享屏幕，用于演示 **viewer**，使用 **RdpSession+RdpViewer**
 - [x] 壁纸程序，为所有设备设置统一壁纸，以程序的方式 **wallpaper**
 - [x] 锁屏程序，打开锁屏程序，禁用键盘 **llock**
+
+
+## 配置文件
+
+> 1. 修改common.json，确定要运行什么模式
+> 2. 运行程序，在配置文件目录下会生成 client.json  server.json
+> 3. 关闭程序，修改对应配置文件，再次运行程序
+
+1. 公共配置 common.json
+```
+{
+  //运行在哪个模式下，多个模式可同时存在
+  "Modes": ["client","server"]
+}
+```
+2. 客户端配置 client.json
+```
+客户端配置可以在 web 中配置，运行模式存在client时，可以浏览器打开 http://127.0.0.1:1804 进行初始化配置
+```
+
+3. 服务端配置 server.json
+```
+{
+  //中继加密秘钥，当客户端与服务端秘钥不一致时，无法使用中继
+  "Relay": {
+    "SecretKey": "snltty"
+  },
+  //监听端口
+  "ServicePort": 1802,
+  //服务器代理穿透配置
+  "SForward": {
+    //服务器代理秘钥
+    "SecretKey": "snltty",
+    //网页端口，可以根据域名区分不同客户端
+    "WebPort": 8088,
+    //隧道端口范围，根据不同端口区分不同客户端
+    "TunnelPortRange": [
+      10000,
+      60000
+    ]
+  },
+}
+```
+
+## 安装示例
+
+##### 1、windows
+
+使用 **cmonitor.tray.win.exe** 创建服务
+
+##### 2、linux  systemd
+```
+//1、下载linux版本程序，放到 /usr/local/cmonitor 文件夹，并在文件夹下创建一个 log 目录
+
+//2、 修改文件权限
+chmod 0777 cmonitor
+chmoe 0777 plugins/tuntap/tun2socks
+
+//3、写配置文件
+vim /etc/systemd/system/cmonitor.service
+
+[Unit]
+Description=cmonitor
+
+[Service]
+WorkingDirectory=/usr/local/cmonitor
+ExecStart=/usr/local/cmonitor/cmonitor
+ExecStop=/bin/kill $MAINPID
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+
+//4、重新加载配置文件
+systemctl daemon-reload
+
+//5、启动，或者重新启动
+systemctl start cmonitor
+systemctl restart cmonitor
+
+//6、设置为自启动
+systemctl enable cmonitor
+```
+
+##### linux docker
+
+**snltty/cmonitor-alpine-x64** 或者 **snltty/cmonitor-alpine-arm64**
+
+
+## 发布项目
+
+##### 1、主项目 cmonitor 项目分为三个发布配置
+1. Release 全功能
+2. ReleaseMonitor 只包含监控功能
+3. ReleaseNetwork 只包含组网功能
+
+##### 2、发布脚本
+```
+publish-extends.bat   生成web和winform
+publish.bat  发布主程序
+
+public/publish 目录下查看已发布程序
+```
 
 
 ## 支持作者
