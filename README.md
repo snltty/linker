@@ -20,7 +20,7 @@
 [![star](https://gitee.com/snltty/cmonitor/badge/star.svg?theme=dark)](https://gitee.com/snltty/cmonitor/stargazers)
 [![fork](https://gitee.com/snltty/cmonitor/badge/fork.svg?theme=dark)](https://gitee.com/snltty/cmonitor/members)
 
-两个发布模式：**监控**、**组网**、<a href="https://github.com/snltty/cmonitor/wiki" target="_blank">使用说明wiki</a>
+两个模式：**监控**、**组网**
 
 </div>
 
@@ -74,19 +74,19 @@
 > 2. 运行程序，在配置文件目录下会生成 client.json  server.json
 > 3. 关闭程序，修改对应配置文件，再次运行程序
 
-1. 公共配置 common.json
+##### 1、 公共配置 common.json
 ```
 {
   //运行在哪个模式下，多个模式可同时存在
   "Modes": ["client","server"]
 }
 ```
-2. 客户端配置 client.json
+##### 2、 客户端配置 client.json
 ```
 客户端配置可以在 web 中配置，运行模式存在client时，可以浏览器打开 http://127.0.0.1:1804 进行初始化配置
 ```
 
-3. 服务端配置 server.json
+##### 3、 服务端配置 server.json
 ```
 {
   //中继加密秘钥，当客户端与服务端秘钥不一致时，无法使用中继
@@ -113,8 +113,9 @@
 ## 安装示例
 
 ##### 1、windows
-
-使用 **cmonitor.tray.win.exe** 创建服务
+```
+使用 cmonitor.tray.win.exe
+```
 
 ##### 2、linux  systemd
 ```
@@ -153,16 +154,17 @@ systemctl enable cmonitor
 ```
 
 ##### linux docker
-
-**snltty/cmonitor-alpine-x64** 或者 **snltty/cmonitor-alpine-arm64**
-
+```
+snltty/cmonitor-alpine-x64
+snltty/cmonitor-alpine-arm64
+```
 
 ## 发布项目
 
 ##### 1、主项目 cmonitor 项目分为三个发布配置
-1. Release 全功能
-2. ReleaseMonitor 只包含监控功能
-3. ReleaseNetwork 只包含组网功能
+>1. Release 全功能
+>2. ReleaseMonitor 只包含监控功能
+>3. ReleaseNetwork 只包含组网功能
 
 ##### 2、发布脚本
 ```
