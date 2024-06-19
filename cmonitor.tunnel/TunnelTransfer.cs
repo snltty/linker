@@ -171,11 +171,21 @@ namespace cmonitor.tunnel
             {
                 return;
             }
-            ITunnelTransport _transports = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
-            if (_transports != null)
+            try
             {
-                _transports.OnBegin(tunnelTransportInfo);
-                OnConnectBegin(tunnelTransportInfo);
+                ITunnelTransport _transports = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
+                if (_transports != null)
+                {
+                    OnConnectBegin(tunnelTransportInfo);
+                    _transports.OnBegin(tunnelTransportInfo).ContinueWith((result) =>
+                    {
+                        connectingDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out _);
+                    });
+                }
+            }
+            catch (Exception)
+            {
+                connectingDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out _);
             }
         }
         /// <summary>

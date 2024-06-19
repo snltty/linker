@@ -31,6 +31,7 @@ namespace cmonitor.plugins.active
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<ActiveApiController>();
+            serviceCollection.AddSingleton<IActiveWindowDB, ActiveWindowDB>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)

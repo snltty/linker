@@ -93,45 +93,42 @@ namespace cmonitor.tunnel.transport
             await OnSendConnectFail(tunnelTransportInfo);
             return null;
         }
-        public void OnBegin(TunnelTransportInfo tunnelTransportInfo)
+        public async Task OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
             if (OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
             {
                 if (QuicListener.IsSupported == false)
                 {
-                    OnSendConnectFail(tunnelTransportInfo);
+                    await OnSendConnectFail(tunnelTransportInfo);
                     return;
                 }
                 if (tunnelAdapter.Certificate == null)
                 {
                     Logger.Instance.Error($"msquic need ssl");
-                    OnSendConnectFail(tunnelTransportInfo);
+                    await OnSendConnectFail(tunnelTransportInfo);
                     return;
                 }
             }
-            Task.Run(async () =>
+            if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
             {
-                if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
+                _ = BindListen(tunnelTransportInfo.Local.Local, quicListenEP, tunnelTransportInfo);
+                await Task.Delay(50);
+                BindAndTTL(tunnelTransportInfo);
+            }
+            else
+            {
+
+                ITunnelConnection connection = await ConnectForward(tunnelTransportInfo);
+                if (connection != null)
                 {
-                    _ = BindListen(tunnelTransportInfo.Local.Local, quicListenEP, tunnelTransportInfo);
-                    await Task.Delay(50);
-                    BindAndTTL(tunnelTransportInfo);
+                    OnConnected(connection);
+                    await OnSendConnectSuccess(tunnelTransportInfo);
                 }
                 else
                 {
-
-                    ITunnelConnection connection = await ConnectForward(tunnelTransportInfo);
-                    if (connection != null)
-                    {
-                        OnConnected(connection);
-                        await OnSendConnectSuccess(tunnelTransportInfo);
-                    }
-                    else
-                    {
-                        await OnSendConnectFail(tunnelTransportInfo);
-                    }
+                    await OnSendConnectFail(tunnelTransportInfo);
                 }
-            });
+            }
         }
 
         private (UdpClient, UdpClient) BindListen(IPEndPoint local, TaskCompletionSource<IPEndPoint> tcs)

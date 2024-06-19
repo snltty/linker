@@ -23,7 +23,7 @@ namespace cmonitor.plugins.relay.transport
         private readonly TcpServer tcpServer;
         private readonly MessengerSender messengerSender;
 
-        private X509Certificate certificate;
+        private X509Certificate2 certificate;
 
 
         public TransportSelfHost(TcpServer tcpServer, MessengerSender messengerSender, Config config)
@@ -34,7 +34,7 @@ namespace cmonitor.plugins.relay.transport
             string path = Path.GetFullPath(config.Data.Client.Certificate);
             if (File.Exists(path))
             {
-                certificate = new X509Certificate(path, config.Data.Client.Password);
+                certificate = new X509Certificate2(path, config.Data.Client.Password, X509KeyStorageFlags.Exportable);
             }
         }
 
@@ -61,7 +61,7 @@ namespace cmonitor.plugins.relay.transport
                 }
 
                 connection.Cancel();
-                await Task.Delay(100);
+                await Task.Delay(500);
                 ClearSocket(socket);
 
                 SslStream sslStream = null;
@@ -120,7 +120,6 @@ namespace cmonitor.plugins.relay.transport
                     MessengerId = (ushort)RelayMessengerIds.RelayForward,
                     Payload = MemoryPackSerializer.Serialize(relayInfo)
                 });
-
                 connection.Cancel();
                 await Task.Delay(100);
                 ClearSocket(socket);

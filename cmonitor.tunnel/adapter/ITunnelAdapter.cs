@@ -14,7 +14,7 @@ namespace cmonitor.tunnel.adapter
         /// <summary>
         /// ssl加密证书
         /// </summary>
-        public X509Certificate Certificate { get; }
+        public X509Certificate2 Certificate { get; }
 
         /// <summary>
         /// 获取外网端口协议列表

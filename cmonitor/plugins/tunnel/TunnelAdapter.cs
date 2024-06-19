@@ -16,7 +16,7 @@ namespace cmonitor.plugins.tunnel
     public sealed class TunnelAdapter : ITunnelAdapter
     {
         public IPAddress LocalIP => clientSignInState.Connection?.LocalAddress.Address ?? IPAddress.Any;
-        public X509Certificate Certificate { get; private set; }
+        public X509Certificate2 Certificate { get; private set; }
 
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
@@ -34,7 +34,7 @@ namespace cmonitor.plugins.tunnel
             string path = Path.GetFullPath(config.Data.Client.Certificate);
             if (File.Exists(path))
             {
-                Certificate = new X509Certificate(path, config.Data.Client.Password);
+                Certificate = new X509Certificate2(path, config.Data.Client.Password, X509KeyStorageFlags.Exportable);
             }
         }
 

@@ -80,6 +80,8 @@ namespace cmonitor.config
         public string Certificate { get; set; } = "./snltty.pfx";
         public string Password { get; set; } = "oeq9tw1o";
 
+        public bool Installed { get; set; } = false;
+
         public ConfigClientInfo Load(string text)
         {
             return text.DeJson<ConfigClientInfo>();

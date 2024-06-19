@@ -16,9 +16,9 @@ namespace cmonitor.tunnel.compact
 
         public async Task<TunnelCompactIPEndPoint> GetExternalIPAsync(IPEndPoint server)
         {
-            using UdpClient udpClient = new UdpClient();
-            udpClient.Client.Reuse(true);
-
+            UdpClient udpClient = new UdpClient(AddressFamily.InterNetwork);
+            udpClient.Client.Reuse();
+            udpClient.Client.WindowsUdpBug();
             try
             {
                 byte[] stunRequest = new byte[] {

@@ -131,7 +131,7 @@ namespace cmonitor.tunnel.proxy
                 };
                 token.Saea = readEventArgs;
 
-                readEventArgs.SetBuffer(new byte[16 * 1024], 0, 16 * 1024);
+                readEventArgs.SetBuffer(new byte[8 * 1024], 0, 8 * 1024);
                 readEventArgs.Completed += IO_Completed;
                 if (token.Socket.ReceiveAsync(readEventArgs) == false)
                 {

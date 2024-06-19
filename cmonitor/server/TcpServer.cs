@@ -1,6 +1,5 @@
 ﻿using common.libs;
 using common.libs.extends;
-using System.Buffers;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
@@ -146,11 +145,11 @@ namespace cmonitor.server
                     return null;
                 }
                 socket.KeepAlive();
-                 NetworkStream networkStream = new NetworkStream(socket, false);
-                 SslStream sslStream = new SslStream(networkStream, true);
-                 await sslStream.AuthenticateAsServerAsync(serverCertificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false);
+                NetworkStream networkStream = new NetworkStream(socket, false);
+                SslStream sslStream = new SslStream(networkStream, true);
+                await sslStream.AuthenticateAsServerAsync(serverCertificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false);
                 IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
-                
+
 
                 connection.BeginReceive(connectionReceiveCallback, null, true);
                 return connection;
@@ -178,9 +177,13 @@ namespace cmonitor.server
                 socket.KeepAlive();
                 NetworkStream networkStream = new NetworkStream(socket, false);
                 SslStream sslStream = new SslStream(networkStream, true, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
-                await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { AllowRenegotiation = true, EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 });
+                await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
+                {
+                    AllowRenegotiation = true,
+                    EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13
+                });
                 IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
-               
+
                 connection.BeginReceive(connectionReceiveCallback, null, true);
 
                 return connection;
@@ -193,7 +196,7 @@ namespace cmonitor.server
             return null;
         }
 
-        public IConnection CreateConnection(SslStream stream,NetworkStream networkStream, Socket socket, IPEndPoint local, IPEndPoint remote)
+        public IConnection CreateConnection(SslStream stream, NetworkStream networkStream, Socket socket, IPEndPoint local, IPEndPoint remote)
         {
             return new TcpConnection(stream, networkStream, socket, local, remote)
             {

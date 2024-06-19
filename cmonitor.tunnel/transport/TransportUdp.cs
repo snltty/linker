@@ -68,31 +68,28 @@ namespace cmonitor.tunnel.transport
             await OnSendConnectFail(tunnelTransportInfo);
             return null;
         }
-        public void OnBegin(TunnelTransportInfo tunnelTransportInfo)
+        public async Task OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
-            Task.Run(async () =>
+            if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
             {
-                if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
+                _ = BindListen(tunnelTransportInfo.Local.Local, tunnelTransportInfo);
+                await Task.Delay(50);
+                BindAndTTL(tunnelTransportInfo);
+            }
+            else
+            {
+
+                ITunnelConnection connection = await ConnectForward(tunnelTransportInfo);
+                if (connection != null)
                 {
-                    _ = BindListen(tunnelTransportInfo.Local.Local, tunnelTransportInfo);
-                    await Task.Delay(50);
-                    BindAndTTL(tunnelTransportInfo);
+                    OnConnected(connection);
+                    await OnSendConnectSuccess(tunnelTransportInfo);
                 }
                 else
                 {
-
-                    ITunnelConnection connection = await ConnectForward(tunnelTransportInfo);
-                    if (connection != null)
-                    {
-                        OnConnected(connection);
-                        await OnSendConnectSuccess(tunnelTransportInfo);
-                    }
-                    else
-                    {
-                        await OnSendConnectFail(tunnelTransportInfo);
-                    }
+                    await OnSendConnectFail(tunnelTransportInfo);
                 }
-            });
+            }
         }
 
 

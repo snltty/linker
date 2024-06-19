@@ -73,7 +73,7 @@ namespace cmonitor.tunnel.connection
 
         private async Task ProcessWrite()
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
             try
             {
                 int length = 0;

@@ -89,12 +89,12 @@ namespace cmonitor.tunnel.transport
         /// 收到对方开始连接的消息
         /// </summary>
         /// <param name="tunnelTransportInfo"></param>
-        public void OnBegin(TunnelTransportInfo tunnelTransportInfo)
+        public async Task OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
             if (tunnelTransportInfo.SSL && tunnelAdapter.Certificate == null)
             {
                 Logger.Instance.Error($"{Name}->ssl Certificate not found");
-                _ = OnSendConnectSuccess(tunnelTransportInfo);
+                await OnSendConnectSuccess(tunnelTransportInfo);
                 return;
             }
             //正向连接，也就是它要连接我，那我就监听
@@ -102,28 +102,25 @@ namespace cmonitor.tunnel.transport
             {
                 _ = StartListen(tunnelTransportInfo.Local.Local, tunnelTransportInfo);
             }
-            Task.Run(async () =>
+            //正向连接，也就是它要连接我，那我就给它发TTL消息
+            if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
             {
-                //正向连接，也就是它要连接我，那我就给它发TTL消息
-                if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
+                BindAndTTL(tunnelTransportInfo);
+            }
+            //我要连它，那就连接
+            else
+            {
+                ITunnelConnection connection = await ConnectForward(tunnelTransportInfo);
+                if (connection != null)
                 {
-                    BindAndTTL(tunnelTransportInfo);
+                    OnConnected(connection);
+                    await OnSendConnectSuccess(tunnelTransportInfo);
                 }
-                //我要连它，那就连接
                 else
                 {
-                    ITunnelConnection connection = await ConnectForward(tunnelTransportInfo);
-                    if (connection != null)
-                    {
-                        OnConnected(connection);
-                        await OnSendConnectSuccess(tunnelTransportInfo);
-                    }
-                    else
-                    {
-                        await OnSendConnectFail(tunnelTransportInfo);
-                    }
+                    await OnSendConnectFail(tunnelTransportInfo);
                 }
-            });
+            }
         }
 
         public void OnFail(TunnelTransportInfo tunnelTransportInfo)
@@ -214,7 +211,7 @@ namespace cmonitor.tunnel.transport
                         IPEndPoint = targetSocket.RemoteEndPoint as IPEndPoint,
                         TransactionId = tunnelTransportInfo.TransactionId,
                         RemoteMachineId = tunnelTransportInfo.Remote.MachineId,
-                         RemoteMachineName = tunnelTransportInfo.Remote.MachineName,
+                        RemoteMachineName = tunnelTransportInfo.Remote.MachineName,
                         TransportName = Name,
                         Direction = tunnelTransportInfo.Direction,
                         ProtocolType = ProtocolType,
@@ -331,7 +328,7 @@ namespace cmonitor.tunnel.transport
                     TunnelConnectionTcp result = new TunnelConnectionTcp
                     {
                         RemoteMachineId = _state.Remote.MachineId,
-                         RemoteMachineName= _state.Remote.MachineName,
+                        RemoteMachineName = _state.Remote.MachineName,
                         Direction = _state.Direction,
                         ProtocolType = TunnelProtocolType.Tcp,
                         Stream = sslStream,

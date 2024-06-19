@@ -308,7 +308,7 @@ namespace cmonitor.server
         }
         private async Task ProcessWrite()
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
             try
             {
                 int length = 0;
@@ -517,11 +517,11 @@ namespace cmonitor.server
         }
         private async Task CopyToAsync(NetworkStream source, NetworkStream destination)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
             try
             {
                 int bytesRead;
-                while ((bytesRead = await source.ReadAsync(new Memory<byte>(buffer)).ConfigureAwait(false)) != 0)
+                while ((bytesRead = await source.ReadAsync(buffer.AsMemory()).ConfigureAwait(false)) != 0)
                 {
                     if (RelayLimit > 0)
                     {
@@ -533,8 +533,7 @@ namespace cmonitor.server
                             TryLimit(ref length);
                         }
                     }
-                    Console.WriteLine($"bytesRead:{bytesRead}");
-                    await destination.WriteAsync(new ReadOnlyMemory<byte>(buffer, 0, bytesRead)).ConfigureAwait(false);
+                    await destination.WriteAsync(buffer.AsMemory(0, bytesRead)).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)

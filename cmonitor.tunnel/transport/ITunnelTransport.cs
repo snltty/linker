@@ -37,7 +37,7 @@ namespace cmonitor.tunnel.transport
         /// </summary>
         /// <param name="tunnelTransportInfo"></param>
         /// <returns></returns>
-        public void OnBegin(TunnelTransportInfo tunnelTransportInfo);
+        public Task OnBegin(TunnelTransportInfo tunnelTransportInfo);
         /// <summary>
         /// 收到打洞失败
         /// </summary>
