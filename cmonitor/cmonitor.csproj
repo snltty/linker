@@ -50,70 +50,70 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(Configuration)' == 'ReleaseNetwork'">
-		<Compile Remove="plugins\active\**\*.cs" />
-		<Compile Remove="plugins\command\**\*.cs" />
-		<Compile Remove="plugins\devices\**\*.cs" />
-		<Compile Remove="plugins\display\**\*.cs" />
-		<Compile Remove="plugins\elevated\**\*.cs" />
-		<Compile Remove="plugins\hijack\**\*.cs" />
-		<Compile Remove="plugins\keyboard\**\*.cs" />
-		<Compile Remove="plugins\light\**\*.cs" />
-		<Compile Remove="plugins\llock\**\*.cs" />
-		<Compile Remove="plugins\modes\**\*.cs" />
-		<Compile Remove="plugins\notify\**\*.cs" />
-		<Compile Remove="plugins\ntrights\**\*.cs" />
-		<Compile Remove="plugins\report\**\*.cs" />
-		<Compile Remove="plugins\rule\**\*.cs" />
-		<Compile Remove="plugins\sapi\**\*.cs" />
-		<Compile Remove="plugins\screen\**\*.cs" />
-		<Compile Remove="plugins\share\**\*.cs" />
-		<Compile Remove="plugins\snatch\**\*.cs" />
-		<Compile Remove="plugins\system\**\*.cs" />
-		<Compile Remove="plugins\viewer\**\*.cs" />
-		<Compile Remove="plugins\volume\**\*.cs" />
-		<Compile Remove="plugins\wallpaper\**\*.cs" />
-		<Compile Remove="plugins\watch\**\*.cs" />
-		<Compile Remove="plugins\wlan\**\*.cs" />
+		<Compile Remove="plugins\monitor\active\**\*.cs" />
+		<Compile Remove="plugins\monitor\command\**\*.cs" />
+		<Compile Remove="plugins\monitor\devices\**\*.cs" />
+		<Compile Remove="plugins\monitor\display\**\*.cs" />
+		<Compile Remove="plugins\monitor\elevated\**\*.cs" />
+		<Compile Remove="plugins\monitor\hijack\**\*.cs" />
+		<Compile Remove="plugins\monitor\keyboard\**\*.cs" />
+		<Compile Remove="plugins\monitor\light\**\*.cs" />
+		<Compile Remove="plugins\monitor\llock\**\*.cs" />
+		<Compile Remove="plugins\monitor\modes\**\*.cs" />
+		<Compile Remove="plugins\monitor\notify\**\*.cs" />
+		<Compile Remove="plugins\monitor\ntrights\**\*.cs" />
+		<Compile Remove="plugins\monitor\report\**\*.cs" />
+		<Compile Remove="plugins\monitor\rule\**\*.cs" />
+		<Compile Remove="plugins\monitor\sapi\**\*.cs" />
+		<Compile Remove="plugins\monitor\screen\**\*.cs" />
+		<Compile Remove="plugins\monitor\share\**\*.cs" />
+		<Compile Remove="plugins\monitor\snatch\**\*.cs" />
+		<Compile Remove="plugins\monitor\system\**\*.cs" />
+		<Compile Remove="plugins\monitor\viewer\**\*.cs" />
+		<Compile Remove="plugins\monitor\volume\**\*.cs" />
+		<Compile Remove="plugins\monitor\wallpaper\**\*.cs" />
+		<Compile Remove="plugins\monitor\watch\**\*.cs" />
+		<Compile Remove="plugins\monitor\wlan\**\*.cs" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(Configuration)' == 'ReleaseMonitor'">
-		<Compile Remove="plugins\capi\**\*.cs" />
-		<Compile Remove="plugins\tuntap\**\*.cs" />
-		<Compile Remove="plugins\forward\**\*.cs" />
-		<Compile Remove="plugins\sforward\**\*.cs" />
+		<Compile Remove="plugins\network\capi\**\*.cs" />
+		<Compile Remove="plugins\network\tuntap\**\*.cs" />
+		<Compile Remove="plugins\network\forward\**\*.cs" />
+		<Compile Remove="plugins\network\sforward\**\*.cs" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(Configuration)'=='Debug' or (('$(Configuration)'=='Release' or '$(Configuration)'=='ReleaseMonitor') and ('$(RuntimeIdentifier)'=='win-x64' or '$(RuntimeIdentifier)'=='win-arm64'))">
-		<None Update="plugins\active\cmonitor.killer.dll">
+		<None Update="plugins\monitor\hijack\nfapi.dll">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<Link>plugins\hijack\nfapi.dll</Link>
+		</None>
+		<None Update="plugins\monitor\hijack\nfdriver.sys">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<Link>plugins\hijack\nfdriver.sys</Link>
+		</None>
+		<None Update="plugins\monitor\ntrights\ntrights.exe">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<Link>plugins\ntrights\ntrights.exe</Link>
 		</None>
-		<None Update="plugins\active\killer.sys">
+		<Content Include="plugins\monitor\wallpaper\bg.jpg">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="plugins\hijack\nfapi.dll">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="plugins\hijack\nfdriver.sys">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="plugins\ntrights\ntrights.exe">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<Content Include="plugins\wallpaper\bg.jpg">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<Link>plugins\wallpaper\bg.jpg</Link>
 		</Content>
 	</ItemGroup>
 	<ItemGroup Condition="'$(Configuration)'=='Debug' or (('$(Configuration)'=='Release' or '$(Configuration)'=='ReleaseNetwork') and ('$(RuntimeIdentifier)'=='win-x64' or '$(RuntimeIdentifier)'=='win-arm64'))">
-		<None Update="plugins\tuntap\tun2socks">
+		<None Update="plugins\network\tuntap\tun2socks">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<Link>plugins\tuntap\tun2socks</Link>
 		</None>
-		<None Update="plugins\tuntap\wintun.dll">
+		<None Update="plugins\network\tuntap\wintun.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<Link>plugins\tuntap\wintun.dll</Link>
 		</None>
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\cmonitor.libs\cmonitor.libs.csproj" />
-		<ProjectReference Include="..\cmonitor.tunnel\cmonitor.tunnel.csproj" />
-		<ProjectReference Include="..\common.libs\common.libs.csproj" />
+		<ProjectReference Include="..\libs\cmonitor.libs\cmonitor.libs.csproj" />
+		<ProjectReference Include="..\libs\cmonitor.tunnel\cmonitor.tunnel.csproj" />
+		<ProjectReference Include="..\libs\common.libs\common.libs.csproj" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(Configuration)'=='Debug' or '$(Configuration)'=='Release' or '$(Configuration)'=='ReleaseMonitor'">
 		<PackageReference Include="ManagedNativeWifi" Version="2.5.0" />

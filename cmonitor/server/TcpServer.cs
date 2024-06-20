@@ -11,7 +11,7 @@ namespace cmonitor.server
     public sealed class TcpServer
     {
         private Socket socket;
-        private UdpClient socketUdp;
+        private Socket socketUdp;
         private CancellationTokenSource cancellationTokenSource;
         private X509Certificate serverCertificate;
 
@@ -59,45 +59,49 @@ namespace cmonitor.server
             acceptEventArg.Completed += IO_Completed;
             StartAccept(acceptEventArg);
 
-            socketUdp = new UdpClient(new IPEndPoint(IPAddress.Any, port));
-            socketUdp.Client.EnableBroadcast = true;
-            socketUdp.Client.WindowsUdpBug();
-            IAsyncResult result = socketUdp.BeginReceive(ReceiveCallbackUdp, null);
-
+            _ = BindUdp(port);
             return socket;
         }
 
-        byte[] sendData = new byte[20];
-        private async void ReceiveCallbackUdp(IAsyncResult result)
-        {
-            try
-            {
-                IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
-                byte[] bytes = socketUdp.EndReceive(result, ref endPoint);
 
+
+        private async Task BindUdp(int port)
+        {
+            socketUdp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            socketUdp.Bind(new IPEndPoint(IPAddress.Any, port));
+            socketUdp.WindowsUdpBug();
+            IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
+            byte[] buffer = new byte[1024];
+            byte[] sendData = new byte[20];
+            while (true)
+            {
                 try
                 {
-                    //给客户端返回他的IP+端口
-                    sendData[0] = (byte)endPoint.AddressFamily;
-                    endPoint.Address.TryWriteBytes(sendData.AsSpan(1), out int length);
-                    ((ushort)endPoint.Port).ToBytes(sendData.AsMemory(1 + length));
-
-                    //防止一些网关修改掉它的外网IP
-                    for (int i = 0; i < 1 + length + 2; i++)
+                    SocketReceiveFromResult result = await socketUdp.ReceiveFromAsync(buffer, SocketFlags.None, endPoint);
+                    IPEndPoint ep = result.RemoteEndPoint as IPEndPoint;
+                    try
                     {
-                        sendData[i] = (byte)(sendData[i] ^ byte.MaxValue);
-                    }
+                        //给客户端返回他的IP+端口
+                        sendData[0] = (byte)ep.AddressFamily;
+                        ep.Address.TryWriteBytes(sendData.AsSpan(1), out int length);
+                        ((ushort)ep.Port).ToBytes(sendData.AsMemory(1 + length));
 
-                    await socketUdp.SendAsync(sendData.AsMemory(0, 1 + length + 2), endPoint);
+                        //防止一些网关修改掉它的外网IP
+                        for (int i = 0; i < 1 + length + 2; i++)
+                        {
+                            sendData[i] = (byte)(sendData[i] ^ byte.MaxValue);
+                        }
+
+                        await socketUdp.SendToAsync(sendData.AsMemory(0, 1 + length + 2), ep);
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
                 catch (Exception)
                 {
+                    break;
                 }
-
-                result = socketUdp.BeginReceive(ReceiveCallbackUdp, null);
-            }
-            catch (Exception)
-            {
             }
         }
 
