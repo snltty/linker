@@ -1,5 +1,6 @@
 ﻿using cmonitor.tunnel.connection;
 using System.Net;
+using System.Text.Json.Serialization;
 
 namespace cmonitor.tunnel.transport
 {
@@ -133,8 +134,13 @@ namespace cmonitor.tunnel.transport
         /// 方向
         /// </summary>
         public TunnelDirection Direction { get; set; }
-
+        /// <summary>
+        /// 需要加密
+        /// </summary>
         public bool SSL { get; set; }
+
+        [JsonIgnore]
+        public List<IPEndPoint> RemoteEndPoints { get; set; }
     }
 
 

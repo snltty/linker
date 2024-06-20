@@ -140,47 +140,12 @@ namespace cmonitor.tunnel.transport
 
         private async Task<ITunnelConnection> ConnectForward(TunnelTransportInfo tunnelTransportInfo)
         {
-            //要连接哪些IP
-            IPAddress[] localIps = tunnelTransportInfo.Remote.LocalIps.Where(c => c.Equals(tunnelTransportInfo.Remote.Local.Address) == false).ToArray();
-            List<IPEndPoint> eps = new List<IPEndPoint>();
-            //先尝试内网ipv4
-            foreach (IPAddress item in localIps.Where(c => c.AddressFamily == AddressFamily.InterNetwork))
-            {
-                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Local.Port));
-                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port));
-                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port + 1));
-            }
-            //在尝试外网
-            eps.AddRange(new List<IPEndPoint>{
-                new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port),
-                new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port+1),
-            });
-            //再尝试IPV6
-            foreach (IPAddress item in localIps.Where(c => c.AddressFamily == AddressFamily.InterNetworkV6))
-            {
-                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Local.Port));
-                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port));
-                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port + 1));
-            }
-            //本机有V6
-            bool hasV6 = tunnelTransportInfo.Local.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6);
-            //本机的局域网ip和外网ip
-            List<IPAddress> localLocalIps = tunnelTransportInfo.Local.LocalIps.Concat(new List<IPAddress> { tunnelTransportInfo.Local.Remote.Address }).ToList();
-            eps = eps
-                //对方是V6，本机也得有V6
-                .Where(c => (c.AddressFamily == AddressFamily.InterNetworkV6 && hasV6) || c.AddressFamily == AddressFamily.InterNetwork)
-                //端口和本机端口一样，那不应该是换回地址
-                .Where(c => (c.Port == tunnelTransportInfo.Local.Local.Port && c.Address.Equals(IPAddress.Loopback)) == false)
-                //端口和本机端口一样。那不应该是本机的IP
-                .Where(c => (c.Port == tunnelTransportInfo.Local.Local.Port && localLocalIps.Any(d => d.Equals(c.Address))) == false)
-                .ToList();
-
             if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
-                Logger.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", eps.Select(c => c.ToString()))}");
+                Logger.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", tunnelTransportInfo.RemoteEndPoints.Select(c => c.ToString()))}");
             }
 
-            foreach (IPEndPoint ep in eps)
+            foreach (IPEndPoint ep in tunnelTransportInfo.RemoteEndPoints)
             {
                 Socket targetSocket = new(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 try
@@ -234,34 +199,7 @@ namespace cmonitor.tunnel.transport
         }
         private void BindAndTTL(TunnelTransportInfo tunnelTransportInfo)
         {
-            //给对方发送TTL消息
-            IPAddress[] localIps = tunnelTransportInfo.Remote.LocalIps.Where(c => c.Equals(tunnelTransportInfo.Remote.Local.Address) == false).ToArray();
-            List<IPEndPoint> eps = new List<IPEndPoint>();
-            foreach (IPAddress item in localIps)
-            {
-                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Local.Port));
-                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port));
-                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port + 1));
-            }
-            eps.AddRange(new List<IPEndPoint>{
-                new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port),
-                new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port+1),
-            });
-            //本机有V6
-            bool hasV6 = tunnelTransportInfo.Local.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6);
-            //本机的局域网ip和外网ip
-            List<IPAddress> localLocalIps = tunnelTransportInfo.Local.LocalIps.Concat(new List<IPAddress> { tunnelTransportInfo.Local.Remote.Address }).ToList();
-            eps = eps
-                //对方是V6，本机也得有V6
-                .Where(c => (c.AddressFamily == AddressFamily.InterNetworkV6 && hasV6) || c.AddressFamily == AddressFamily.InterNetwork)
-                //端口和本机端口一样，那不应该是换回地址
-                .Where(c => (c.Port == tunnelTransportInfo.Local.Local.Port && c.Address.Equals(IPAddress.Loopback)) == false)
-                //端口和本机端口一样。那不应该是本机的IP
-                .Where(c => (c.Port == tunnelTransportInfo.Local.Local.Port && localLocalIps.Any(d => d.Equals(c.Address))) == false)
-                .ToList();
-
-            //过滤掉不支持IPV6的情况
-            IEnumerable<Socket> sockets = eps.Select(ip =>
+            IEnumerable<Socket> sockets = tunnelTransportInfo.RemoteEndPoints.Select(ip =>
             {
                 Socket targetSocket = new(ip.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 try

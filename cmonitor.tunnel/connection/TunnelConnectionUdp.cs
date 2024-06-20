@@ -205,7 +205,7 @@ namespace cmonitor.tunnel.connection
 
         public override string ToString()
         {
-            return $"TransactionId:{TransactionId},TransportName:{TransportName},ProtocolType:{ProtocolType},Type:{Type},Direction:{Direction},IPEndPoint:{IPEndPoint},RemoteMachineId:{RemoteMachineId},RemoteMachineName:{RemoteMachineName}";
+            return this.ToJsonFormat();
         }
     }
 }
