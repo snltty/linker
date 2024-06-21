@@ -171,10 +171,13 @@ namespace cmonitor.plugins.tuntap.proxy
                     }
                 }
             }
-            else*/
+            else
             {
-                token.Connection = await ConnectTunnel(token.TargetIP);
+                
             }
+            */
+
+            token.Connection = await ConnectTunnel(token.TargetIP);
         }
 
         /// <summary>
