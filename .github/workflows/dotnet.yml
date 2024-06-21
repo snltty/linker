@@ -56,11 +56,13 @@ jobs:
         draft: false
         prerelease: false
         body: |
-          1. 使用litedb替代一些可配置的配置信息，简化配置文件
+          1. 使用litedb数据库
           2. 使用唯一编号Id识别，而不是使用机器名，client.json Id请保留为空，登入自动生成
           3. 客户端，服务端，都要更新
           4. 修复中继问题
           5. 修复msquic证书错误
+	  6. 优化msquic通信
+          7. web管理增加初始化配置
 
     - name: upload monitor win x64
       id: upload-monitor-win-x64

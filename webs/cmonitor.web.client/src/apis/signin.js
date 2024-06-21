@@ -23,3 +23,6 @@ export const signInDel = (machineId) => {
 export const setSignInName = (data) => {
     return sendWebsocketMsg('signInclient/setname', data);
 }
+export const install = (data) => {
+    return sendWebsocketMsg('signInclient/install', data);
+}

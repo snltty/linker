@@ -29,15 +29,15 @@ namespace cmonitor.plugins.capi
                 IApiClientServer clientServer = serviceProvider.GetService<IApiClientServer>();
                 clientServer.LoadPlugins(assemblies);
                 clientServer.Websocket(config.Data.Client.CApi.ApiPort, config.Data.Client.CApi.ApiPassword);
-                Logger.Instance.Info($"client api listen:{config.Data.Client.CApi.ApiPort}");
-                Logger.Instance.Info($"client api password:{config.Data.Client.CApi.ApiPassword}");
+                Logger.Instance.Warning($"client api listen:{config.Data.Client.CApi.ApiPort}");
+                Logger.Instance.Warning($"client api password:{config.Data.Client.CApi.ApiPassword}");
             }
 
             if (config.Data.Client.CApi.WebPort > 0)
             {
                 IWebClientServer webServer = serviceProvider.GetService<IWebClientServer>();
                 webServer.Start(config.Data.Client.CApi.WebPort, config.Data.Client.CApi.WebRoot);
-                Logger.Instance.Info($"client web listen:{config.Data.Client.CApi.WebPort}");
+                Logger.Instance.Warning($"client web listen:{config.Data.Client.CApi.WebPort}");
             }
         }
 

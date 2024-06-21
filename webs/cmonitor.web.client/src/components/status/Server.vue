@@ -1,5 +1,5 @@
 <template>
-    <div class="status-server-wrap" :class="{connected:state.connected}">
+    <div class="status-server-wrap" :class="{ connected: state.connected }">
         <a href="javascript:;" @click="handleConfig">
             <template v-if="state.connected">已连接信标服务器</template>
             <template v-else>请连接信标服务器</template>
@@ -17,14 +17,12 @@
             </el-form>
         </div>
         <template #footer>
-        <div class="dialog-footer t-c">
-            <el-button @click="state.show = false" :loading="state.loading">取消</el-button>
-            <el-button type="primary" @click="handleSave" :loading="state.loading">确定保存</el-button>
-        </div>
+            <div class="dialog-footer t-c">
+                <el-button @click="state.show = false" :loading="state.loading">取消</el-button>
+                <el-button type="primary" @click="handleSave" :loading="state.loading">确定保存</el-button>
+            </div>
         </template>
     </el-dialog>
-
-    
 </template>
 <script>
 import { setSignIn } from '@/apis/signin';
@@ -33,44 +31,44 @@ import { ElMessage } from 'element-plus';
 import { computed, reactive } from 'vue';
 export default {
     setup(props) {
-        
+
         const globalData = injectGlobalData();
 
         const state = reactive({
-            show:false,
-            loading:false,
-            connected:computed(()=>globalData.value.signin.Connected),
-            connecting:computed(()=>globalData.value.signin.Connecting),
-            server:computed(()=>globalData.value.config.Client.Server),
-            serverLength:computed(()=>(globalData.value.config.Running.Client.Servers||[]).length),
-            form:{
-                name:globalData.value.config.Client.Name,
-                groupid:globalData.value.config.Client.GroupId,
+            show: false,
+            loading: false,
+            connected: computed(() => globalData.value.signin.Connected),
+            connecting: computed(() => globalData.value.signin.Connecting),
+            server: computed(() => globalData.value.config.Client.Server),
+            serverLength: computed(() => (globalData.value.config.Running.Client.Servers || []).length),
+            form: {
+                name: globalData.value.config.Client.Name,
+                groupid: globalData.value.config.Client.GroupId,
             },
-            rules:{},
+            rules: {},
         });
 
-        const handleConfig = ()=>{
+        const handleConfig = () => {
             state.form.name = globalData.value.config.Client.Name;
             state.form.groupid = globalData.value.config.Client.GroupId;
             state.show = true;
         }
-        const handleSave = ()=>{
+        const handleSave = () => {
             state.loading = true;
-            setSignIn(state.form).then(()=>{
+            setSignIn(state.form).then(() => {
                 state.loading = false;
                 state.show = false;
                 ElMessage.success('已操作');
                 globalData.value.updateFlag = Date.now();
-            }).catch((err)=>{
+            }).catch((err) => {
                 state.loading = false;
                 ElMessage.success('操作失败!');
             });
         }
 
         return {
-            state,handleConfig,handleSave,
-            
+            state, handleConfig, handleSave,
+
         }
     }
 }

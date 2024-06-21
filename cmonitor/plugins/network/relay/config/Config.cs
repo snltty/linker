@@ -1,7 +1,4 @@
 ﻿using cmonitor.config;
-using cmonitor.tunnel.compact;
-using cmonitor.tunnel.transport;
-using common.libs;
 using LiteDB;
 using MemoryPack;
 using System.Diagnostics.CodeAnalysis;
@@ -31,7 +28,7 @@ namespace cmonitor.config
 
     public sealed class RelayConfigServerInfo
     {
-        public string SecretKey { get; set; } = Helper.GlobalString;
+        public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
 
     }
 

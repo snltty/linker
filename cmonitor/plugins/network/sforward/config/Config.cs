@@ -40,7 +40,7 @@ namespace cmonitor.config
 
     public sealed class SForwardConfigServerInfo
     {
-        public string SecretKey { get; set; } = Helper.GlobalString;
+        public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
 
         public int WebPort { get; set; }
         public int[] TunnelPortRange { get; set; } = new int[] { 10000, 60000 };

@@ -1,12 +1,16 @@
 <template>
     <div>
         <div class="app-wrap flex flex-column flex-nowrap">
-            <div class="head"><Head></Head></div>
+            <div class="head">
+
+                <Head></Head>
+            </div>
             <div class="body flex-1 relative" ref="wrap">
-                <router-view/>
+                <router-view />
             </div>
             <div class="status">
                 <Status></Status>
+                <Install></Install>
             </div>
         </div>
     </div>
@@ -15,11 +19,12 @@
 import { nextTick, onMounted, onUnmounted, ref } from 'vue';
 import Head from './components/Head.vue'
 import Status from './components/status/Index.vue'
+import Install from './components/install/Index.vue'
 import { provideGlobalData } from './provide';
-export default{
-    components:{Head,Status},
+export default {
+    components: { Head, Status, Install },
     setup(props) {
-       const globalData = provideGlobalData();
+        const globalData = provideGlobalData();
 
         const wrap = ref(null);
         const resizeTable = () => {
@@ -27,14 +32,14 @@ export default{
                 globalData.value.height = wrap.value.offsetHeight;
             });
         }
-        onMounted(()=>{
+        onMounted(() => {
             window.addEventListener('resize', resizeTable);
             resizeTable();
         });
-        onUnmounted(()=>{
+        onUnmounted(() => {
             window.removeEventListener('resize', resizeTable);
         });
-        return {wrap};
+        return { wrap };
     }
 }
 </script>

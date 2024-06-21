@@ -1,5 +1,4 @@
 ﻿using cmonitor.config;
-using common.libs;
 using common.libs.extends;
 using LiteDB;
 using MemoryPack;
@@ -68,7 +67,7 @@ namespace cmonitor.config
             }
         }
 
-        private string groupid = Helper.GlobalString;
+        private string groupid = string.Empty;
         public string GroupId
         {
             get => groupid; set
@@ -79,8 +78,6 @@ namespace cmonitor.config
 
         public string Certificate { get; set; } = "./snltty.pfx";
         public string Password { get; set; } = "oeq9tw1o";
-
-        public bool Installed { get; set; } = false;
 
         public ConfigClientInfo Load(string text)
         {

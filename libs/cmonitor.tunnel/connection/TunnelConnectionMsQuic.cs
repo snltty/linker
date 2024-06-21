@@ -42,9 +42,9 @@ namespace cmonitor.tunnel.connection
         public QuicConnection Connection { get; init; }
 
         [JsonIgnore]
-        public UdpClient LocalUdp { get; init; }
+        public Socket QuicUdp { get; init; }
         [JsonIgnore]
-        public UdpClient remoteUdp { get; init; }
+        public Socket RemoteUdp { get; init; }
 
 
         private ITunnelConnectionReceiveCallback callback;
@@ -262,8 +262,8 @@ namespace cmonitor.tunnel.connection
             Stream?.Dispose();
             Connection?.CloseAsync(0x0a);
             Connection?.DisposeAsync();
-            LocalUdp?.Close();
-            remoteUdp?.Close();
+            QuicUdp?.SafeClose();
+            RemoteUdp?.SafeClose();
 
         }
 

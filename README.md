@@ -68,37 +68,39 @@
 - [x] 锁屏程序，打开锁屏程序，禁用键盘 **llock**
 
 
-## 配置文件
+## 初始运行
 
-> 1. 修改common.json，确定要运行什么模式
-> 2. 运行程序，在配置文件目录下会生成 client.json  server.json
+##### 客户端
+```
+运行程序后，在浏览器打开 http://127.0.0.1:1804 进行初始化配置
+```
+
+##### 服务端
+
+> 1. 修改common.json，Modes 只保留 server
+> 2. 运行程序，在配置文件目录下会生成 server.json
 > 3. 关闭程序，修改对应配置文件，再次运行程序
 
-##### 1、 公共配置 common.json
+common.json
 ```
 {
   //运行在哪个模式下，多个模式可同时存在
   "Modes": ["client","server"]
 }
 ```
-##### 2、 客户端配置 client.json
-```
-客户端配置可以在 web 中配置，运行模式存在client时，可以浏览器打开 http://127.0.0.1:1804 进行初始化配置
-```
-
-##### 3、 服务端配置 server.json
+server.json
 ```
 {
   //中继加密秘钥，当客户端与服务端秘钥不一致时，无法使用中继
   "Relay": {
-    "SecretKey": "snltty"
+    "SecretKey": ""
   },
   //监听端口
   "ServicePort": 1802,
   //服务器代理穿透配置
   "SForward": {
     //服务器代理秘钥
-    "SecretKey": "snltty",
+    "SecretKey": "",
     //网页端口，可以根据域名区分不同客户端
     "WebPort": 8088,
     //隧道端口范围，根据不同端口区分不同客户端

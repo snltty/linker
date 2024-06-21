@@ -8,6 +8,9 @@ using MemoryPack;
 using cmonitor.server.sapi;
 using cmonitor.client.capi;
 using cmonitor.client.config;
+using static common.libs.winapis.ADVAPI32;
+using System.Diagnostics;
+using common.libs;
 
 namespace cmonitor.plugins.signin
 {
@@ -53,6 +56,7 @@ namespace cmonitor.plugins.signin
             this.clientSignInState = clientSignInState;
             this.clientSignInTransfer = clientSignInTransfer;
             this.messengerSender = messengerSender;
+
         }
 
         public object Config(ApiControllerParamsInfo param)
@@ -129,6 +133,34 @@ namespace cmonitor.plugins.signin
             }
             return true;
         }
+
+
+        public bool Install(ApiControllerParamsInfo param)
+        {
+            ConfigInstallInfo info = param.Content.DeJson<ConfigInstallInfo>();
+
+            config.Data.Client.Name = info.Name;
+            config.Data.Client.GroupId = info.GroupId;
+            config.Data.Client.CApi.WebPort = info.Web;
+            config.Data.Client.CApi.ApiPort = info.Api;
+            config.Data.Client.CApi.ApiPassword = info.Password;
+            config.Data.Common.Modes = new string[] { "client" };
+            config.Save();
+
+            if (info.Restart)
+            {
+                try
+                {
+                    CommandHelper.Execute(Process.GetCurrentProcess().MainModule.FileName, string.Empty);
+                    Environment.Exit(0);
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            return true;
+        }
     }
 
     public sealed partial class ConfigSetServersInfo
@@ -148,5 +180,15 @@ namespace cmonitor.plugins.signin
     {
         public string Name { get; set; }
         public string GroupId { get; set; }
+    }
+
+    public sealed class ConfigInstallInfo
+    {
+        public string Name { get; set; }
+        public string GroupId { get; set; }
+        public int Api { get; set; }
+        public int Web { get; set; }
+        public string Password { get; set; }
+        public bool Restart { get; set; }
     }
 }

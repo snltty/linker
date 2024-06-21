@@ -48,7 +48,6 @@ namespace cmonitor.client
                 {
                     if (clientSignInState.Connected == false)
                     {
-                        Logger.Instance.Error($"client offline , reconnect it~~");
                         try
                         {
                             await SignIn();
@@ -70,6 +69,10 @@ namespace cmonitor.client
         /// <returns></returns>
         public async Task SignIn()
         {
+            if (string.IsNullOrWhiteSpace(config.Data.Client.GroupId))
+            {
+                return;
+            }
             if (BooleanHelper.CompareExchange(ref clientSignInState.connecting, true, false))
             {
                 return;
@@ -212,7 +215,7 @@ namespace cmonitor.client
             });
             if (resp.Code == MessageResponeCodes.OK)
             {
-                if(resp.Data.Span.SequenceEqual(Helper.FalseArray) == false)
+                if (resp.Data.Span.SequenceEqual(Helper.FalseArray) == false)
                 {
                     config.Data.Client.Id = MemoryPackSerializer.Deserialize<string>(resp.Data.Span);
                     config.Save();
