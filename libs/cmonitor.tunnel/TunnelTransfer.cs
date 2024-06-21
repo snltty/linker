@@ -49,7 +49,10 @@ namespace cmonitor.tunnel
             var transportItems = tunnelMessengerAdapter.GetTunnelTransports();
             transportItems = transportItems.Concat(transports.Select(c => new TunnelTransportItemInfo { Label = c.Label, Name = c.Name, ProtocolType = c.ProtocolType.ToString() }))
                 .Distinct(new TunnelTransportItemInfoEqualityComparer())
+                .Where(c=> transports.Select(c=>c.Name).Contains(c.Name))
                 .ToList();
+
+
             tunnelMessengerAdapter.SetTunnelTransports(transportItems);
 
             Logger.Instance.Warning($"load tunnel transport:{string.Join(",", transports.Select(c => c.Name))}");
@@ -98,69 +101,82 @@ namespace cmonitor.tunnel
                 return null;
             }
 
-            foreach (TunnelTransportItemInfo transportItem in tunnelMessengerAdapter.GetTunnelTransports().Where(c => c.Disabled == false))
+            try
             {
-                ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == transportItem.Name);
-                if (transport == null) continue;
-
-                TunnelTransportInfo tunnelTransportInfo = null;
-                //是否在失败后尝试反向连接
-                int times = transportItem.Reverse ? 1 : 0;
-                for (int i = 0; i <= times; i++)
+                foreach (TunnelTransportItemInfo transportItem in tunnelMessengerAdapter.GetTunnelTransports().Where(c => c.Disabled == false))
                 {
-                    try
-                    {
-                        //获取自己的外网ip
-                        TunnelTransportExternalIPInfo localInfo = await GetLocalInfo();
-                        if (localInfo == null)
-                        {
-                            Logger.Instance.Error($"tunnel {transport.Name} get local external ip fail ");
-                            break;
-                        }
-                        Logger.Instance.Info($"tunnel {transport.Name} got local external ip {localInfo.ToJson()}");
-                        //获取对方的外网ip
-                        TunnelTransportExternalIPInfo remoteInfo = await tunnelMessengerAdapter.GetRemoteExternalIP(remoteMachineId);
-                        if (remoteInfo == null)
-                        {
-                            Logger.Instance.Error($"tunnel {transport.Name} get remote {remoteMachineId} external ip fail ");
-                            break;
-                        }
-                        Logger.Instance.Info($"tunnel {transport.Name} got remote external ip {remoteInfo.ToJson()}");
+                    ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == transportItem.Name);
+                    if (transport == null) continue;
 
-                        tunnelTransportInfo = new TunnelTransportInfo
+                    TunnelTransportInfo tunnelTransportInfo = null;
+                    //是否在失败后尝试反向连接
+                    int times = transportItem.Reverse ? 1 : 0;
+                    for (int i = 0; i <= times; i++)
+                    {
+                        try
                         {
-                            Direction = (TunnelDirection)i,
-                            TransactionId = transactionId,
-                            TransportName = transport.Name,
-                            TransportType = transport.ProtocolType,
-                            Local = localInfo,
-                            Remote = remoteInfo,
-                            SSL = transportItem.SSL
-                        };
-                        OnConnecting(tunnelTransportInfo);
-                        ParseRemoteEndPoint(tunnelTransportInfo);
-                        ITunnelConnection connection = await transport.ConnectAsync(tunnelTransportInfo);
-                        if (connection != null)
+                            //获取自己的外网ip
+                            TunnelTransportExternalIPInfo localInfo = await GetLocalInfo();
+                            if (localInfo == null)
+                            {
+                                Logger.Instance.Error($"tunnel {transport.Name} get local external ip fail ");
+                                break;
+                            }
+                            Logger.Instance.Info($"tunnel {transport.Name} got local external ip {localInfo.ToJson()}");
+                            //获取对方的外网ip
+                            TunnelTransportExternalIPInfo remoteInfo = await tunnelMessengerAdapter.GetRemoteExternalIP(remoteMachineId);
+                            if (remoteInfo == null)
+                            {
+                                Logger.Instance.Error($"tunnel {transport.Name} get remote {remoteMachineId} external ip fail ");
+                                break;
+                            }
+                            Logger.Instance.Info($"tunnel {transport.Name} got remote external ip {remoteInfo.ToJson()}");
+
+                            tunnelTransportInfo = new TunnelTransportInfo
+                            {
+                                Direction = (TunnelDirection)i,
+                                TransactionId = transactionId,
+                                TransportName = transport.Name,
+                                TransportType = transport.ProtocolType,
+                                Local = localInfo,
+                                Remote = remoteInfo,
+                                SSL = transportItem.SSL
+                            };
+                            OnConnecting(tunnelTransportInfo);
+                            ParseRemoteEndPoint(tunnelTransportInfo);
+                            ITunnelConnection connection = await transport.ConnectAsync(tunnelTransportInfo);
+                            if (connection != null)
+                            {
+                                _OnConnected(connection);
+                                return connection;
+                            }
+                        }
+                        catch (Exception ex)
                         {
-                            _OnConnected(connection);
-                            connectingDic.TryRemove(remoteMachineId, out _);
-                            return connection;
+                            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            {
+                                Logger.Instance.Error(ex);
+                            }
                         }
                     }
-                    catch (Exception ex)
+                    if (tunnelTransportInfo != null)
                     {
-                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        {
-                            Logger.Instance.Error(ex);
-                        }
+                        OnConnectFail(tunnelTransportInfo);
                     }
-                }
-                if (tunnelTransportInfo != null)
-                {
-                    OnConnectFail(tunnelTransportInfo);
                 }
             }
-            connectingDic.TryRemove(remoteMachineId, out _);
+            catch (Exception ex)
+            {
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    Logger.Instance.Error(ex);
+                }
+            }
+            finally
+            {
+                connectingDic.TryRemove(remoteMachineId, out _);
+            }
+
             return null;
         }
         /// <summary>
@@ -185,10 +201,18 @@ namespace cmonitor.tunnel
                         connectingDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out _);
                     });
                 }
+                else
+                {
+                    connectingDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out _);
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 connectingDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out _);
+                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    Logger.Instance.Error(ex);
+                }
             }
         }
         /// <summary>
