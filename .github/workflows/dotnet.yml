@@ -58,11 +58,11 @@ jobs:
         body: |
           1. 使用litedb数据库
           2. 使用唯一编号Id识别，而不是使用机器名，client.json Id请保留为空，登入自动生成
-          3. 客户端，服务端，都要更新
-          4. 修复中继问题
-          5. 修复msquic证书错误
-	  6. 优化msquic通信
-          7. web管理增加初始化配置
+          3. 修复中继问题
+          4. 修复msquic证书错误
+	        5. 优化msquic通信
+          6. web管理增加初始化配置
+          7. 客户端，服务端，都要更新
 
     - name: upload monitor win x64
       id: upload-monitor-win-x64
