@@ -158,7 +158,7 @@ namespace cmonitor.plugins.tuntap.proxy
             token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
             //解析出udp包的数据部分
             token.Proxy.Data = Socks5Parser.GetUdpData(token.Proxy.Data);
-
+            /*
             if (ipArray.Span[3] == 255)
             {
                 token.Connections = new List<ITunnelConnection>();
@@ -171,7 +171,7 @@ namespace cmonitor.plugins.tuntap.proxy
                     }
                 }
             }
-            else
+            else*/
             {
                 token.Connection = await ConnectTunnel(token.TargetIP);
             }

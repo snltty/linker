@@ -160,7 +160,6 @@ namespace cmonitor.tunnel.proxy
                         target.Address = UdpBindAdress;
                     }
 
-
                     if (udpConnections.TryGetValue(connectId, out AsyncUserUdpTokenTarget token))
                     {
                         token.Connection = tunnelToken.Connection;
