@@ -11,6 +11,7 @@ namespace cmonitor.tunnel.adapter
         /// 本机局域网IP，用于UDP打洞绑定
         /// </summary>
         public IPAddress LocalIP { get; }
+
         /// <summary>
         /// ssl加密证书
         /// </summary>

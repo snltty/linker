@@ -18,6 +18,7 @@ namespace cmonitor.plugins.tunnel
         public IPAddress LocalIP => clientSignInState.Connection?.LocalAddress.Address ?? IPAddress.Any;
         public X509Certificate2 Certificate { get; private set; }
 
+
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
         private readonly Config config;
@@ -62,7 +63,7 @@ namespace cmonitor.plugins.tunnel
         {
             return new NetworkInfo
             {
-                LocalIps = config.Data.Client.Tunnel.LocalIPs,
+                LocalIps = config.Data.Client.Tunnel.LocalIPs.Where(c => c.Equals(running.Data.Tuntap.IP) == false).ToArray(),
                 RouteLevel = config.Data.Client.Tunnel.RouteLevel + running.Data.Tunnel.RouteLevelPlus,
                 MachineId = config.Data.Client.Id
             };
