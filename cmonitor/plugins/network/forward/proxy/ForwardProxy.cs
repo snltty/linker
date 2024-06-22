@@ -26,7 +26,9 @@ namespace cmonitor.plugins.forward.proxy
             this.tunnelTransfer = tunnelTransfer;
             this.relayTransfer = relayTransfer;
 
+            //监听打洞成功
             tunnelTransfer.SetConnectedCallback("forward", OnConnected);
+            //监听中继成功
             relayTransfer.SetConnectedCallback("forward", OnConnected);
         }
         private void OnConnected(ITunnelConnection connection)
@@ -34,10 +36,16 @@ namespace cmonitor.plugins.forward.proxy
             if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 Logger.Instance.Warning($"TryAdd {connection.GetHashCode()} {connection.TransactionId} {connection.ToJson()}");
 
+            //把隧道对象添加到缓存，方便下次直接获取
             connections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
             BindConnectionReceive(connection);
         }
 
+        /// <summary>
+        /// 来一个TCP转发
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
         protected override async ValueTask<bool> ConnectTunnelConnection(AsyncUserToken token)
         {
             if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
@@ -48,6 +56,11 @@ namespace cmonitor.plugins.forward.proxy
             }
             return true;
         }
+        /// <summary>
+        /// 来一个UDP转发
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
         protected override async ValueTask ConnectTunnelConnection(AsyncUserUdpToken token)
         {
             if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
@@ -60,6 +73,11 @@ namespace cmonitor.plugins.forward.proxy
 
 
         SemaphoreSlim slimGlobal = new SemaphoreSlim(1);
+        /// <summary>
+        /// 连接对方
+        /// </summary>
+        /// <param name="machineId"></param>
+        /// <returns></returns>
         private async ValueTask<ITunnelConnection> ConnectTunnel(string machineId)
         {
             if (connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected)
