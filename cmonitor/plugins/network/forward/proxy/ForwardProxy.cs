@@ -80,11 +80,13 @@ namespace cmonitor.plugins.forward.proxy
         /// <returns></returns>
         private async ValueTask<ITunnelConnection> ConnectTunnel(string machineId)
         {
+            //之前这个客户端已经连接过
             if (connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected)
             {
                 return connection;
             }
 
+            //不要同时去连太多，锁以下
             await slimGlobal.WaitAsync();
             if (locks.TryGetValue(machineId, out SemaphoreSlim slim) == false)
             {
@@ -96,21 +98,24 @@ namespace cmonitor.plugins.forward.proxy
 
             try
             {
+                //获得锁之前再次看看之前有没有连接成功
                 if (connections.TryGetValue(machineId, out connection) && connection.Connected)
                 {
                     return connection;
                 }
 
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward tunnel to {machineId}");
+                //打洞
                 connection = await tunnelTransfer.ConnectAsync(machineId, "forward");
                 if (connection != null)
                 {
                     if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward tunnel to {machineId} success");
                 }
+                //打洞失败
                 if (connection == null)
                 {
                     if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineId}");
-
+                    //尝试中继
                     connection = await relayTransfer.ConnectAsync(config.Data.Client.Id,machineId, "forward");
                     if (connection != null)
                     {
