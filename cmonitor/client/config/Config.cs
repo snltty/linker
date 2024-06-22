@@ -66,8 +66,11 @@ namespace cmonitor.config
                 name = value.SubStr(0, 12);
             }
         }
-
+#if DEBUG
+        private string groupid = "snltty";
+#else
         private string groupid = string.Empty;
+#endif
         public string GroupId
         {
             get => groupid; set

@@ -26,7 +26,7 @@ namespace cmonitor.plugins.viewer.proxy
             this.tunnelTransfer = tunnelTransfer;
             this.relayTransfer = relayTransfer;
 
-            Start(0);
+            Start(new System.Net.IPEndPoint(System.Net.IPAddress.Any,0));
             Logger.Instance.Info($"start viewer proxy, listen port : {LocalEndpoint}");
 
             tunnelTransfer.SetConnectedCallback("viewer", OnConnected);

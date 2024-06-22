@@ -43,7 +43,7 @@ namespace cmonitor.plugins.forward
             {
                 try
                 {
-                    forwardProxy.Start(forwardInfo.Port, forwardInfo.TargetEP, forwardInfo.MachineId);
+                    forwardProxy.Start(new System.Net.IPEndPoint(forwardInfo.BindIPAddress, forwardInfo.Port), forwardInfo.TargetEP, forwardInfo.MachineId);
                     forwardInfo.Port = forwardProxy.LocalEndpoint.Port;
                     forwardInfo.Proxy = true;
 
@@ -91,6 +91,7 @@ namespace cmonitor.plugins.forward
                 old = running.Data.Forwards.FirstOrDefault(c => c.Id == forwardInfo.Id);
                 if (old == null) return false;
 
+                old.BindIPAddress = forwardInfo.BindIPAddress;
                 old.Port = forwardInfo.Port;
                 old.Name = forwardInfo.Name;
                 old.TargetEP = forwardInfo.TargetEP;

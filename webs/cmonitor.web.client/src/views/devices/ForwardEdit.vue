@@ -6,7 +6,6 @@
                 <el-button size="small" @click="handleRefresh">刷新</el-button>
             </div>
             <el-table :data="state.data" size="small" border height="500" @cell-dblclick="handleCellClick">
-                <el-table-column property="ID" label="ID" width="60" />
                 <el-table-column property="Name" label="名称">
                     <template #default="scope">
                         <template v-if="scope.row.NameEditing">
@@ -18,7 +17,14 @@
                         </template>
                     </template>
                 </el-table-column>
-                <el-table-column property="Port" label="本地端口" width="80">
+                <el-table-column property="BindIPAddress" label="监听IP" width="140">
+                    <template #default="scope">
+                        <el-select v-model="scope.row.BindIPAddress" size="small">
+                            <el-option v-for="item in state.ips" :key="item" :label="item" :value="item"/>
+                        </el-select>
+                    </template>
+                </el-table-column>
+                <el-table-column property="Port" label="监听端口" width="65">
                     <template #default="scope">
                         <template v-if="scope.row.PortEditing">
                             <el-input type="number" autofocus size="small" v-model="scope.row.Port"
@@ -43,7 +49,7 @@
                 <el-table-column property="Started" label="状态" width="60">
                     <template #default="scope">
                         <el-switch v-model="scope.row.Started" @change="handleStartChange(scope.row)" inline-prompt
-                            active-text="是" inactive-text="否" />
+                            active-text="开" inactive-text="关" />
                     </template>
                 </el-table-column>
                 <el-table-column label="操作" width="54">
@@ -62,7 +68,7 @@
 </template>
 <script>
 import { inject, onMounted, reactive, watch } from 'vue';
-import { getForwardInfo, removeForwardInfo, addForwardInfo } from '@/apis/forward'
+import { getForwardInfo, removeForwardInfo, addForwardInfo ,getForwardIpv4 } from '@/apis/forward'
 import { ElMessage } from 'element-plus';
 export default {
     props: ['data','modelValue'],
@@ -75,6 +81,7 @@ export default {
             machineId: forward.value.current,
             machineName: forward.value.machineName,
             data: [],
+            ips:[]
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -83,6 +90,13 @@ export default {
                 }, 300);
             }
         });
+
+        const _getForwardIpv4 = ()=>{
+            getForwardIpv4().then((res)=>{
+                res.splice(0,0,'0.0.0.0');
+                state.ips = res;
+            }).catch(()=>{});
+        }
 
         const _getForwardInfo = () => {
             getForwardInfo().then((res) => {
@@ -110,6 +124,7 @@ export default {
                 c[`NameEditing`] = false;
                 c[`PortEditing`] = false;
                 c[`TargetEPEditing`] = false;
+                c[`BindIPAddressEditing`] = false;
             })
             row[`${p}Editing`] = true;
         }
@@ -136,6 +151,7 @@ export default {
 
         onMounted(()=>{
             _getForwardInfo();
+            _getForwardIpv4();
         })
 
         return {

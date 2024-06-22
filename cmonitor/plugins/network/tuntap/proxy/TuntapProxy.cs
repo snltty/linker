@@ -37,7 +37,7 @@ namespace cmonitor.plugins.tuntap.proxy
             this.runningConfig = runningConfig;
             this.config = config;
 
-            Start(0);
+            Start(new IPEndPoint(IPAddress.Any,0));
             proxyEP = new IPEndPoint(IPAddress.Any, LocalEndpoint.Port);
             Logger.Instance.Info($"start tuntap proxy, listen port : {LocalEndpoint}");
 

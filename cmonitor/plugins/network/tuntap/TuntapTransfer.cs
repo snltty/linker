@@ -10,6 +10,7 @@ using MemoryPack;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
+using System.Net.NetworkInformation;
 
 namespace cmonitor.plugins.tuntap
 {
@@ -40,7 +41,7 @@ namespace cmonitor.plugins.tuntap
             this.tuntapProxy = tuntapProxy;
             this.runningConfig = runningConfig;
 
-            tuntapVea.Kill();
+
             clientSignInState.NetworkFirstEnabledHandle += () =>
             {
                 if (runningConfig.Data.Tuntap.Running) { Run(); }
@@ -50,9 +51,12 @@ namespace cmonitor.plugins.tuntap
                 OnChange();
             };
 
+            tuntapVea.Kill();
             AppDomain.CurrentDomain.ProcessExit += (s, e) => OnExit();
             Console.CancelKeyPress += (s, e) => OnExit();
+            _ = CheckVeaStatusTask();
         }
+
         /// <summary>
         /// 程序关闭
         /// </summary>
@@ -309,6 +313,28 @@ namespace cmonitor.plugins.tuntap
                 NetWork = ipInt & maskValue,
                 Broadcast = ipInt | (~maskValue),
             };
+        }
+
+        private async Task CheckVeaStatusTask()
+        {
+            while (true)
+            {
+                try
+                {
+                    NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == tuntapVea.InterfaceName);
+                    if (networkInterface != null && networkInterface.OperationalStatus != OperationalStatus.Up)
+                    {
+                        Stop();
+                        await Task.Delay(5000);
+                        Run();
+                    }
+                }
+                catch (Exception)
+                {
+                }
+
+                await Task.Delay(15000);
+            }
         }
     }
 }

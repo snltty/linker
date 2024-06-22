@@ -19,18 +19,18 @@ namespace cmonitor.tunnel.proxy
         /// 监听一个端口
         /// </summary>
         /// <param name="port"></param>
-        private void StartTcp(int port)
+        private void StartTcp(IPEndPoint ep)
         {
             try
             {
-                IPEndPoint localEndPoint = new IPEndPoint(NetworkHelper.IPv6Support ? IPAddress.IPv6Any : IPAddress.Any, port);
+                IPEndPoint localEndPoint = ep;
                 socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 socket.IPv6Only(localEndPoint.AddressFamily, false);
                 socket.ReuseBind(localEndPoint);
                 socket.Listen(int.MaxValue);
                 AsyncUserToken userToken = new AsyncUserToken
                 {
-                    ListenPort = port,
+                    ListenPort = localEndPoint.Port,
                     Socket = socket
                 };
                 SocketAsyncEventArgs acceptEventArg = new SocketAsyncEventArgs
@@ -43,7 +43,7 @@ namespace cmonitor.tunnel.proxy
                 acceptEventArg.Completed += IO_Completed;
                 StartAccept(acceptEventArg);
 
-                tcpListens.AddOrUpdate(port, userToken, (a, b) => userToken);
+                tcpListens.AddOrUpdate(localEndPoint.Port, userToken, (a, b) => userToken);
 
 
             }

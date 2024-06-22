@@ -3,6 +3,9 @@ import { sendWebsocketMsg } from './request'
 export const getForwardInfo = () => {
     return sendWebsocketMsg('forwardclient/get');
 }
+export const getForwardIpv4 = () => {
+    return sendWebsocketMsg('forwardclient/bindips');
+}
 export const removeForwardInfo = (id) => {
     return sendWebsocketMsg('forwardclient/remove', id);
 }

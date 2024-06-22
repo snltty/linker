@@ -10,10 +10,10 @@ namespace cmonitor.plugins.tuntap.vea
     {
         private string interfaceOsx = string.Empty;
         private Process Tun2SocksProcess;
-        private const string veaNameOsx = "utun12138";
         private IPAddress ip;
 
         public bool Running => string.IsNullOrWhiteSpace(interfaceOsx) == false;
+        public string InterfaceName => "utun12138";
 
         public TuntapVeaMacOs()
         {
@@ -24,7 +24,7 @@ namespace cmonitor.plugins.tuntap.vea
             interfaceOsx = GetOsxInterfaceNum();
             try
             {
-                Tun2SocksProcess = CommandHelper.Execute("./plugins/tuntap/tun2socks", $" -device {veaNameOsx} -proxy socks5://127.0.0.1:{proxyPort} -interface {interfaceOsx} -loglevel silent");
+                Tun2SocksProcess = CommandHelper.Execute("./plugins/tuntap/tun2socks", $" -device {InterfaceName} -proxy socks5://127.0.0.1:{proxyPort} -interface {interfaceOsx} -loglevel silent");
             }
             catch (Exception ex)
             {
@@ -35,7 +35,7 @@ namespace cmonitor.plugins.tuntap.vea
             for (int i = 0; i < 5; i++)
             {
                 string output = CommandHelper.Osx(string.Empty, new string[] { "ifconfig" });
-                if (output.Contains(veaNameOsx))
+                if (output.Contains(InterfaceName))
                 {
                     break;
                 }
@@ -56,7 +56,7 @@ namespace cmonitor.plugins.tuntap.vea
             }
 
             this.ip = ip;
-            CommandHelper.Osx(string.Empty, new string[] { $"ifconfig {veaNameOsx} {ip} {ip} up" });
+            CommandHelper.Osx(string.Empty, new string[] { $"ifconfig {InterfaceName} {ip} {ip} up" });
             await Task.Delay(10);
 
             var ipBytes = ip.GetAddressBytes();

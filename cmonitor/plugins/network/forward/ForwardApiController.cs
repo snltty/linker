@@ -2,6 +2,8 @@
 using common.libs.extends;
 using cmonitor.client.capi;
 using cmonitor.client.config;
+using System.Net;
+using common.libs;
 
 namespace cmonitor.plugins.forward
 {
@@ -17,6 +19,11 @@ namespace cmonitor.plugins.forward
         public Dictionary<string, List<ForwardInfo>> Get(ApiControllerParamsInfo param)
         {
             return forwardTransfer.Get();
+        }
+
+        public IPAddress[] BindIPs(ApiControllerParamsInfo param)
+        {
+            return NetworkHelper.GetIPV4();
         }
 
         public bool Add(ApiControllerParamsInfo param)

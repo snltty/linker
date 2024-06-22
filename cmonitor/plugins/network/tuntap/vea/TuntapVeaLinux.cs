@@ -10,10 +10,10 @@ namespace cmonitor.plugins.tuntap.vea
     {
         private string interfaceLinux = string.Empty;
         private Process Tun2SocksProcess;
-        private const string veaName = "cmonitor";
         private IPAddress ip;
 
         public bool Running => string.IsNullOrWhiteSpace(interfaceLinux) == false;
+        public string InterfaceName => "cmonitor";
 
         public TuntapVeaLinux()
         {
@@ -21,12 +21,12 @@ namespace cmonitor.plugins.tuntap.vea
 
         public async Task<bool> Run(int proxyPort, IPAddress ip)
         {
-            CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap add mode tun dev {veaName}" });
+            CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap add mode tun dev {InterfaceName}" });
             await SetIp(ip);
             string str = CommandHelper.Linux(string.Empty, new string[] { $"ifconfig" });
-            if (str.Contains(veaName) == false)
+            if (str.Contains(InterfaceName) == false)
             {
-                string msg = CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap add mode tun dev {veaName}" });
+                string msg = CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap add mode tun dev {InterfaceName}" });
                 Logger.Instance.Error(msg);
                 return false;
             }
@@ -34,7 +34,7 @@ namespace cmonitor.plugins.tuntap.vea
             interfaceLinux = GetLinuxInterfaceNum();
             try
             {
-                string command = $" -device {veaName} -proxy socks5://127.0.0.1:{proxyPort} -interface {interfaceLinux} -loglevel silent";
+                string command = $" -device {InterfaceName} -proxy socks5://127.0.0.1:{proxyPort} -interface {interfaceLinux} -loglevel silent";
                 if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     Logger.Instance.Warning($"vea linux ->exec:{command}");
@@ -54,10 +54,10 @@ namespace cmonitor.plugins.tuntap.vea
         {
             if (this.ip != null)
             {
-                CommandHelper.Linux(string.Empty, new string[] { $"ip addr del {this.ip}/24 dev {veaName}" });
+                CommandHelper.Linux(string.Empty, new string[] { $"ip addr del {this.ip}/24 dev {InterfaceName}" });
             }
             this.ip = ip;
-            CommandHelper.Linux(string.Empty, new string[] { $"ip addr add {ip}/24 dev {veaName}", $"ip link set dev {veaName} up" });
+            CommandHelper.Linux(string.Empty, new string[] { $"ip addr add {ip}/24 dev {InterfaceName}", $"ip link set dev {InterfaceName} up" });
             return await Task.FromResult(true);
         }
 
@@ -75,13 +75,13 @@ namespace cmonitor.plugins.tuntap.vea
                 Tun2SocksProcess = null;
             }
             interfaceLinux = string.Empty;
-            CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap del mode tun dev {veaName}" });
+            CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap del mode tun dev {InterfaceName}" });
         }
         public void AddRoute(TuntapVeaLanIPAddress[] ips, IPAddress ip)
         {
             string[] commands = ips.Where(c => c.IPAddress > 0).Select(item =>
             {
-                return $"ip route add {string.Join(".", BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes())}/{item.MaskLength} via {ip} dev {veaName} metric 1 ";
+                return $"ip route add {string.Join(".", BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes())}/{item.MaskLength} via {ip} dev {InterfaceName} metric 1 ";
             }).ToArray();
             if (commands.Length > 0)
             {

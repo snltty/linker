@@ -20,12 +20,12 @@ namespace cmonitor.tunnel.proxy
             TaskUdp();
         }
 
-        public void Start(int port)
+        public void Start(IPEndPoint ep)
         {
             try
             {
-                StartTcp(port);
-                StartUdp(LocalEndpoint.Port);
+                StartTcp(ep);
+                StartUdp(new IPEndPoint(ep.Address,LocalEndpoint.Port));
             }
             catch (Exception ex)
             {

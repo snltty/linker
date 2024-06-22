@@ -8,6 +8,7 @@ namespace cmonitor.plugins.tuntap.vea
     public interface ITuntapVea
     {
         public bool Running { get; }
+        public string InterfaceName { get; }
 
         public Task<bool> Run(int proxyPort,IPAddress ip);
         public Task<bool> SetIp(IPAddress ip);
@@ -15,6 +16,8 @@ namespace cmonitor.plugins.tuntap.vea
 
         public void AddRoute(TuntapVeaLanIPAddress[] ips, IPAddress ip);
         public void DelRoute(TuntapVeaLanIPAddress[] ips);
+
+
     }
 
     [MemoryPackable]

@@ -16,21 +16,21 @@ namespace cmonitor.tunnel.proxy
         /// 监听一个端口
         /// </summary>
         /// <param name="port"></param>
-        private void StartUdp(int port)
+        private void StartUdp(IPEndPoint ep)
         {
             try
             {
                 Socket socketUdp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 socketUdp.EnableBroadcast = true;
                 socketUdp.WindowsUdpBug();
-                socketUdp.Bind(new IPEndPoint(IPAddress.Any, port));
+                socketUdp.Bind(ep);
                 AsyncUserUdpToken asyncUserUdpToken = new AsyncUserUdpToken
                 {
-                    ListenPort = port,
+                    ListenPort = ep.Port,
                     SourceSocket = socketUdp,
-                    Proxy = new ProxyInfo { Port = (ushort)port, Step = ProxyStep.Forward, ConnectId = 0, Protocol = ProxyProtocol.Udp, Direction = ProxyDirection.Forward }
+                    Proxy = new ProxyInfo { Port = (ushort)ep.Port, Step = ProxyStep.Forward, ConnectId = 0, Protocol = ProxyProtocol.Udp, Direction = ProxyDirection.Forward }
                 };
-                udpListens.AddOrUpdate(port, asyncUserUdpToken, (a, b) => asyncUserUdpToken);
+                udpListens.AddOrUpdate(ep.Port, asyncUserUdpToken, (a, b) => asyncUserUdpToken);
 
                 _ = ReceiveUdp(asyncUserUdpToken);
 

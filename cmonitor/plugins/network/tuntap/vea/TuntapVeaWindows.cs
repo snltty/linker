@@ -10,9 +10,9 @@ namespace cmonitor.plugins.tuntap.vea
     {
         private int interfaceNumber = 0;
         private Process Tun2SocksProcess;
-        private const string veaName = "cmonitor";
 
         public bool Running => interfaceNumber > 0;
+        public string InterfaceName => "cmonitor";
 
         public TuntapVeaWindows()
         {
@@ -20,7 +20,7 @@ namespace cmonitor.plugins.tuntap.vea
 
         public async Task<bool> Run(int proxyPort, IPAddress ip)
         {
-            string command = $" -device {veaName} -proxy socks5://127.0.0.1:{proxyPort} -loglevel silent";
+            string command = $" -device {InterfaceName} -proxy socks5://127.0.0.1:{proxyPort} -loglevel silent";
             if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
                 Logger.Instance.Warning($"vea windows ->exec:{command}");
@@ -35,7 +35,7 @@ namespace cmonitor.plugins.tuntap.vea
                     {
                         break;
                     }
-                    if (GetWindowsHasInterface(veaName) == false)
+                    if (GetWindowsHasInterface(InterfaceName) == false)
                     {
                         if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         {
@@ -73,7 +73,7 @@ namespace cmonitor.plugins.tuntap.vea
         {
             if (interfaceNumber > 0)
             {
-                CommandHelper.Windows(string.Empty, new string[] { $"netsh interface ip set address name=\"{veaName}\" source=static addr={ip} mask=255.255.255.0 gateway=none" });
+                CommandHelper.Windows(string.Empty, new string[] { $"netsh interface ip set address name=\"{InterfaceName}\" source=static addr={ip} mask=255.255.255.0 gateway=none" });
                 for (int k = 0; k < 5; k++)
                 {
                     if (GetWindowsHasIp(ip))
@@ -175,5 +175,6 @@ namespace cmonitor.plugins.tuntap.vea
             string output = CommandHelper.Windows(string.Empty, new string[] { $"ipconfig | findstr \"{ip}\"" });
             return string.IsNullOrWhiteSpace(output) == false;
         }
+
     }
 }

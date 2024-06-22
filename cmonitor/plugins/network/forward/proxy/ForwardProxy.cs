@@ -140,11 +140,11 @@ namespace cmonitor.plugins.forward.proxy
         }
 
 
-        public void Start(int port, IPEndPoint targetEP, string machineId)
+        public void Start(IPEndPoint ep, IPEndPoint targetEP, string machineId)
         {
-            Stop(port);
-            caches.TryAdd(port, new ForwardProxyCacheInfo { Port = port, TargetEP = targetEP, MachineId = machineId });
-            base.Start(port);
+            Stop(ep.Port);
+            caches.TryAdd(ep.Port, new ForwardProxyCacheInfo { Port = ep.Port, TargetEP = targetEP, MachineId = machineId });
+            base.Start(ep);
         }
         public override void Stop(int port)
         {
