@@ -5,7 +5,7 @@ config  = fsys.config("/config/");
 
 //不需要序列化的配置名字前请添加下划线
 namespace config {
-	__appName = "link";
+	__appName = "linker";
 	__website = "https://blog.snltty.com/";
 }
 

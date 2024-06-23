@@ -1,6 +1,6 @@
 import win.ui;
 /*DSG{{*/
-mainForm = win.form(text="link 托盘";right=279;bottom=186;max=false)
+mainForm = win.form(text="linker tray";right=279;bottom=186;max=false)
 mainForm.add(
 btnCheck={cls="button";text="检查安装";left=104;top=130;right=173;bottom=153;z=1};
 btnInstall={cls="button";text="安装服务";left=95;top=23;right=183;bottom=65;z=2};
@@ -16,8 +16,8 @@ if(!atom){
 	win.quitMessage();	return;
 };
 
-mainForm.serviceName = "link.service";
-mainForm.exeName = "link.service.exe";
+mainForm.serviceName = "linker.service";
+mainForm.exeName = "linker.service.exe";
 
 import win.image;
 hIcon = win.image.loadIconFromFile("/res/favicon.ico",true);
