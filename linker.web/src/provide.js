@@ -11,7 +11,7 @@ export const provideGlobalData = () => {
         height: 0,
         config: { Common: {}, Client: {}, Running: {} },
         configed: false,
-        signin: { Connected: false, Connecting: false },
+        signin: { Connected: false, Connecting: false, Version: 'v1.0.0.0' },
         groupid: ''
     });
     subWebsocketState((state) => {

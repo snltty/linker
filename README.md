@@ -11,15 +11,12 @@
 <div align="center">
 <p><img src="./readme/logo.png" height="150"></p> 
 
-# linker
-
+# linker、link anywhere
 
 ![GitHub Repo stars](https://img.shields.io/github/stars/snltty/linker?style=social)
 ![GitHub Repo forks](https://img.shields.io/github/forks/snltty/linker?style=social)
 [![star](https://gitee.com/snltty/linker/badge/star.svg?theme=dark)](https://gitee.com/snltty/linker/stargazers)
 [![fork](https://gitee.com/snltty/linker/badge/fork.svg?theme=dark)](https://gitee.com/snltty/linker/members)
-
-<a href="https://jq.qq.com/?_wv=1027&k=ucoIVfz4" target="_blank">QQ 群：1121552990</a>
 
 </div>
 
@@ -28,6 +25,7 @@
 2. SSL加密
 3. 使用了一些第三方库 **MemoryPack** 、**tun2socks** 、 **msquic**
 4. 使用了winform、aardio 做窗体
+5. <a href="https://jq.qq.com/?_wv=1027&k=ucoIVfz4" target="_blank">加入 QQ 群：1121552990</a>
 
 ## 主要功能
 

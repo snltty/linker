@@ -19,6 +19,8 @@ namespace linker.client
         public bool Connecting => connecting;
         public bool Connected => Connection != null && Connection.Connected;
 
+        public string Version { get; set; }
+
         private int networdkEnabledTimes = 0;
         /// <summary>
         /// 上线事件

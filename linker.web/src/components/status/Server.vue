@@ -1,7 +1,7 @@
 <template>
     <div class="status-server-wrap" :class="{ connected: state.connected }">
         <a href="javascript:;" @click="handleConfig">
-            <template v-if="state.connected">已连接信标服务器</template>
+            <template v-if="state.connected">已连接信标服务器{{state.version}}</template>
             <template v-else>请连接信标服务器</template>
         </a>
     </div>
@@ -39,6 +39,7 @@ export default {
             loading: false,
             connected: computed(() => globalData.value.signin.Connected),
             connecting: computed(() => globalData.value.signin.Connecting),
+            version: computed(() => globalData.value.signin.Version),
             server: computed(() => globalData.value.config.Client.Server),
             serverLength: computed(() => (globalData.value.config.Running.Client.Servers || []).length),
             form: {

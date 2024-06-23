@@ -94,6 +94,8 @@ namespace linker.client
                     return;
                 }
 
+                await GetServerVersion();
+
                 GCHelper.FlushMemory();
                 clientSignInState.PushNetworkEnabled();
 
@@ -224,6 +226,27 @@ namespace linker.client
             }
             clientSignInState.Connection?.Disponse(6);
             return false;
+        }
+
+        /// <summary>
+        /// 获取服务器版本
+        /// </summary>
+        /// <returns></returns>
+        private async Task GetServerVersion()
+        {
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)SignInMessengerIds.Version,
+            });
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                clientSignInState.Version = MemoryPackSerializer.Deserialize<string>(resp.Data.Span);
+            }
+            else
+            {
+                clientSignInState.Version = "v1.0.0.0";
+            }
         }
     }
 }

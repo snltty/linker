@@ -12,6 +12,8 @@
         Servers = 5,
         ServersForward = 6,
 
+        Version = 7,
+
         None = 99
     }
 }

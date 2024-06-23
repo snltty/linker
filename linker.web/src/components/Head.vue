@@ -90,6 +90,7 @@ export default {
             getSignInfo().then((res)=>{
                 globalData.value.signin.Connected = res.Connected;
                 globalData.value.signin.Connecting = res.Connecting;
+                globalData.value.signin.Version = res.Version;
                 setTimeout(()=>{
                     _getSignInfoInfo();
                 },1000);

@@ -127,6 +127,13 @@ namespace linker.plugins.signin.messenger
             }
         }
 
+
+        [MessengerId((ushort)SignInMessengerIds.Version)]
+        public void Version(IConnection connection)
+        {
+            connection.Write(MemoryPackSerializer.Serialize(config.Data.Version));
+        }
+
     }
 
     [MemoryPackable]
