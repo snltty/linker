@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "link": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

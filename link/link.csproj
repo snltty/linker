@@ -1,0 +1,59 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFrameworks>net8.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>disable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<ApplicationManifest>app.manifest</ApplicationManifest>
+		<ApplicationIcon>favicon.ico</ApplicationIcon>
+		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+		<Configurations>Debug;Release</Configurations>
+		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+		<PublishAot>false</PublishAot>
+		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+		<SignAssembly>true</SignAssembly>
+		<EnablePreviewFeatures>true</EnablePreviewFeatures>
+		<ServerGarbageCollection>false</ServerGarbageCollection>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DebugType>embedded</DebugType>
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Content Include="favicon.ico" />
+		<EmbeddedResource Include="favicon.ico" />
+		<None Update="msquic-openssl.dll" Condition="'$(RuntimeIdentifier)'=='win-x64' or '$(RuntimeIdentifier)'=='win-arm64'">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="msquic.dll" Condition="'$(RuntimeIdentifier)'=='win-x64' or '$(RuntimeIdentifier)'=='win-arm64'">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="plugins\tuntap\tun2socks" Condition="'$(Configuration)'=='Debug'">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="plugins\tuntap\wintun.dll" Condition="'$(RuntimeIdentifier)'=='win-x64' or '$(RuntimeIdentifier)'=='win-arm64' or '$(Configuration)'=='Debug'">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="configs\common.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="snltty.pfx">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\link.tunnel\link.tunnel.csproj" />
+		<ProjectReference Include="..\link.libs\link.libs.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="LiteDB" Version="5.0.17" />
+		<PackageReference Include="MemoryPack" Version="1.10.0" />
+	</ItemGroup>
+</Project>

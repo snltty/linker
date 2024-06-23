@@ -1,0 +1,200 @@
+import win.ui;
+/*DSG{{*/
+mainForm = win.form(text="link 托盘";right=279;bottom=186;max=false)
+mainForm.add(
+btnCheck={cls="button";text="检查安装";left=104;top=130;right=173;bottom=153;z=1};
+btnInstall={cls="button";text="安装服务";left=95;top=23;right=183;bottom=65;z=2};
+btnRun={cls="button";text="运行服务";left=95;top=74;right=183;bottom=113;z=3};
+ckAutoStart={cls="checkbox";text="托盘自启动";left=189;top=160;right=269;bottom=177;z=4}
+)
+/*}}*/
+
+import win.ui.atom;
+var atom,hwndConflict = mainForm.atom("36E2C876-A68F-456C-98B7-CBE08C5B8B06");
+if(!atom){
+	/*为窗口设置原子值可以避免一个程序重复运行多个实例*/
+	win.quitMessage();	return;
+};
+
+mainForm.serviceName = "link.service";
+mainForm.exeName = "link.service.exe";
+
+import win.image;
+hIcon = win.image.loadIconFromFile("/res/favicon.ico",true);
+hIcon1 = win.image.loadIconFromFile("/res/favicon1.ico",true);
+mainForm.myTray = null;
+mainForm.wndproc = function(hwnd,message,wParam,lParam){
+		//托盘菜单
+		if(message === 0xACCF ){
+			//右键
+			if( lParam === 0x205){
+				
+    			var pt = ::POINT();
+        		::User32.GetCursorPos(pt);
+        		win.setForeground(mainForm.hwnd)
+        		mainForm.popmenu.popup(pt.x,pt.y,true );
+        		
+			} 
+			//左键
+			if(lParam === 0x0202){
+				mainForm.show();
+			} 
+		}
+		//关闭
+		if(message === 0x10){
+			mainForm.show(false);
+			return 0;
+		}
+}
+mainForm.showPopmenu = function(){
+	import win.util.tray;
+	import win.ui.menu;
+	import service;
+	
+	if(mainForm.myTray != null){
+		mainForm.myTray.delete();
+		mainForm.myTray = null;
+	}
+	tray = win.util.tray(mainForm);
+	mainForm.myTray = tray;
+	if(service.isRunning(mainForm.serviceName))
+	{
+		tray.icon = hIcon; 
+	}else
+	{
+		tray.icon = hIcon1; 
+	}
+	tray.tip = mainForm.text;
+	tray.message = 0xACCF;
+	mainForm.popmenu=win.ui.popmenu(mainForm);
+	
+	mainForm.popmenu.add(mainForm.ckAutoStart.checked ? '取消托盘自启动':'开启托盘自启动',function(id){mainForm.runAsTaskCommand()});
+	mainForm.popmenu.add(service.isRunning(mainForm.serviceName) ? '停止服务':'运行服务',function(id){mainForm.installCommand()});
+	mainForm.popmenu.add(service.isExist(mainForm.serviceName) ? '卸载服务':'安装服务',function(id){mainForm.installCommand()});
+	
+	mainForm.popmenu.add('退出托盘',function(id){
+		win.quitMessage();
+   		mainForm.close();
+	});
+}
+
+mainForm.checkService = function(){
+	import service;
+	mainForm.btnInstall.text = service.isExist(mainForm.serviceName) ? "卸载服务" : "安装服务";
+	mainForm.btnRun.text = service.isRunning(mainForm.serviceName) ? "停止服务" : "运行服务";
+	mainForm.showPopmenu();
+	mainForm.runAsTaskCheck();
+}
+mainForm.btnCheck.oncommand = function(id,event){
+	mainForm.checkService();
+	win.msgbox('已检查');
+}
+mainForm.runCommand = function(id,event){
+	import thread;
+	thread.invoke( 
+		function(mainForm){
+			import service;
+			import win.ui;
+			import thread;
+			try{
+				mainForm.btnRun.text = '....';
+				if(service.isRunning(mainForm.serviceName)){
+					if(service.stop(mainForm.serviceName,true)){
+						while(service.isRunning(mainForm.serviceName))
+						{
+							thread.delay(100);
+						}
+					}else{
+						win.msgbox("停止失败");	
+					}
+					
+				}else{
+					if(service.start(mainForm.serviceName)){
+						while(!service.isRunning(mainForm.serviceName))
+						{
+							thread.delay(100);
+						}
+					}else{
+						win.msgbox("运行失败");	
+					}
+				}
+				
+				mainForm.checkService();	
+			}catch(e){
+			}
+		},mainForm
+	);
+}
+mainForm.btnRun.oncommand = function(){
+	mainForm.runCommand();
+}
+
+
+mainForm.installCommand = function(id,event){
+	import thread;
+	thread.invoke( 
+		function(mainForm){
+			import service;
+			import win.ui;
+			try{
+				mainForm.btnInstall.text = '....';
+				if(service.isExist(mainForm.serviceName)){
+					if(service.delete(mainForm.serviceName)){
+						while(service.isExist(mainForm.serviceName))
+						{
+							thread.delay(100);
+						}
+					}else{
+						win.msgbox("卸载失败");	
+					}
+				}else{
+					if(service.create(io.fullpath(mainForm.exeName),mainForm.serviceName,mainForm.serviceName,mainForm.serviceName)){
+						while(!service.isExist(mainForm.serviceName) || !service.isRunning(mainForm.serviceName))
+						{
+							thread.delay(100);
+						}
+						service.startDelayed(mainForm.serviceName,true);
+					}else{
+						win.msgbox("安装失败");	
+					}
+				}
+				mainForm.checkService();	
+			}catch(e){
+			}
+		},mainForm
+	);
+}
+mainForm.btnInstall.oncommand = function(){
+	mainForm.installCommand();
+}
+
+mainForm.runAsTask = function(run){
+	import sys.runAsTask;
+	task = sys.runAsTask(mainForm.serviceName);
+	if(run)
+	{
+		task.register();
+	}else
+	{
+		task.delete();
+	}
+	mainForm.checkService();
+}
+mainForm.runAsTaskCheck = function(){
+	import sys.runAsTask;
+	task = sys.runAsTask(mainForm.serviceName);
+	mainForm.ckAutoStart.checked = task.get() != null;
+}
+mainForm.ckAutoStart.oncommand = function(id,event){
+	mainForm.runAsTask(mainForm.ckAutoStart.checked);
+}
+mainForm.runAsTaskCommand = function()
+{
+	mainForm.runAsTask(!mainForm.ckAutoStart.checked);
+}
+
+mainForm.checkService();
+mainForm.showPopmenu();
+
+mainForm.show();
+return win.loopMessage();

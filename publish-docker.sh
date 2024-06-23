@@ -1,17 +1,12 @@
 target=$(cd $(dirname $0); pwd)
-image="snltty/cmonitor"
+image="snltty/link"
 
 
-fs=('cmonitor')
+fs=('link')
 ps=('alpine')
 rs=('x64' 'arm64')
 
-cd cmonitor.web 
-npm install &&
-npm run build &&
-cd ../
-
-cd cmonitor.web.client 
+cd link.web 
 npm install &&
 npm run build &&
 cd ../
@@ -25,9 +20,9 @@ do
 			dotnet publish ./${f} -c release -f net8.0 -o ./public/publish/docker/linux-${p}-${r}/${f}  -r ${p}-${r}  --self-contained true -p:TieredPGO=true  -p:DebugType=none -p:DebugSymbols=false  -p:PublishSingleFile=true -p:PublishTrimmed=true -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true  -p:TrimMode=partial
 			cp -rf public/publish/docker/linux-${p}-${r}/${f}/${f} public/publish/docker/linux-${p}-${r}/${f}/${f}.run
 			rm -rf public/publish/docker/linux-${p}-${r}/${f}/${f}
-			cp -rf cmonitor/Dockerfile-${p} public/publish/docker/linux-${p}-${r}/${f}/Dockerfile-${p}
+			cp -rf link/Dockerfile-${p} public/publish/docker/linux-${p}-${r}/${f}/Dockerfile-${p}
 			cp -rf public/extends/any/* public/publish/docker/linux-${p}-${r}/${f}/*
-			cp -rf cmonitor/plugins/tuntap/tun2socks-${p}-${r} public/publish/docker/linux-${p}-${r}/${f}/tun2socks
+			cp -rf link/plugins/tuntap/tun2socks-${p}-${r} public/publish/docker/linux-${p}-${r}/${f}/tun2socks
 		done
 
 		cd public/publish/docker/linux-${p}-x64/${f}
