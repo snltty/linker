@@ -2,9 +2,10 @@ import win.ui;
 /*DSG{{*/
 mainForm = win.form(text="cmonitor 托盘";right=279;bottom=186;max=false)
 mainForm.add(
-btnCheck={cls="button";text="检查安装";left=104;top=143;right=173;bottom=166;z=1};
+btnCheck={cls="button";text="检查安装";left=104;top=130;right=173;bottom=153;z=1};
 btnInstall={cls="button";text="安装服务";left=95;top=23;right=183;bottom=65;z=2};
-btnRun={cls="button";text="运行服务";left=95;top=74;right=183;bottom=113;z=3}
+btnRun={cls="button";text="运行服务";left=95;top=74;right=183;bottom=113;z=3};
+ckAutoStart={cls="checkbox";text="托盘自启动";left=189;top=160;right=269;bottom=177;z=4}
 )
 /*}}*/
 
@@ -67,8 +68,10 @@ mainForm.showPopmenu = function(){
 	tray.message = 0xACCF;
 	mainForm.popmenu=win.ui.popmenu(mainForm);
 	
+	mainForm.popmenu.add(mainForm.ckAutoStart.checked ? '取消托盘自启动':'开启托盘自启动',function(id){mainForm.runAsTaskCommand()});
 	mainForm.popmenu.add(service.isRunning(mainForm.serviceName) ? '停止服务':'运行服务',function(id){mainForm.installCommand()});
 	mainForm.popmenu.add(service.isExist(mainForm.serviceName) ? '卸载服务':'安装服务',function(id){mainForm.installCommand()});
+	
 	mainForm.popmenu.add('退出托盘',function(id){
 		win.quitMessage();
    		mainForm.close();
@@ -80,6 +83,7 @@ mainForm.checkService = function(){
 	mainForm.btnInstall.text = service.isExist(mainForm.serviceName) ? "卸载服务" : "安装服务";
 	mainForm.btnRun.text = service.isRunning(mainForm.serviceName) ? "停止服务" : "运行服务";
 	mainForm.showPopmenu();
+	mainForm.runAsTaskCheck();
 }
 mainForm.btnCheck.oncommand = function(id,event){
 	mainForm.checkService();
@@ -149,6 +153,7 @@ mainForm.installCommand = function(id,event){
 						{
 							thread.delay(100);
 						}
+						service.startDelayed(mainForm.serviceName,true);
 					}else{
 						win.msgbox("安装失败");	
 					}
@@ -161,6 +166,31 @@ mainForm.installCommand = function(id,event){
 }
 mainForm.btnInstall.oncommand = function(){
 	mainForm.installCommand();
+}
+
+mainForm.runAsTask = function(run){
+	import sys.runAsTask;
+	task = sys.runAsTask(mainForm.serviceName);
+	if(run)
+	{
+		task.register();
+	}else
+	{
+		task.delete();
+	}
+	mainForm.checkService();
+}
+mainForm.runAsTaskCheck = function(){
+	import sys.runAsTask;
+	task = sys.runAsTask(mainForm.serviceName);
+	mainForm.ckAutoStart.checked = task.get() != null;
+}
+mainForm.ckAutoStart.oncommand = function(id,event){
+	mainForm.runAsTask(mainForm.ckAutoStart.checked);
+}
+mainForm.runAsTaskCommand = function()
+{
+	mainForm.runAsTask(!mainForm.ckAutoStart.checked);
 }
 
 mainForm.checkService();
