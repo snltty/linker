@@ -6,18 +6,18 @@
  * @LastEditTime: 2022-11-21 16:36:26
  * @version: v1.0.0
  * @Descripttion: 功能说明
- * @FilePath: \client.service.ui.webd:\desktop\link\README.md
+ * @FilePath: \client.service.ui.webd:\desktop\linker\README.md
 -->
 <div align="center">
 <p><img src="./readme/logo.png" height="150"></p> 
 
-# link
+# linker
 
 
-![GitHub Repo stars](https://img.shields.io/github/stars/snltty/link?style=social)
-![GitHub Repo forks](https://img.shields.io/github/forks/snltty/link?style=social)
-[![star](https://gitee.com/snltty/link/badge/star.svg?theme=dark)](https://gitee.com/snltty/link/stargazers)
-[![fork](https://gitee.com/snltty/link/badge/fork.svg?theme=dark)](https://gitee.com/snltty/link/members)
+![GitHub Repo stars](https://img.shields.io/github/stars/snltty/linker?style=social)
+![GitHub Repo forks](https://img.shields.io/github/forks/snltty/linker?style=social)
+[![star](https://gitee.com/snltty/linker/badge/star.svg?theme=dark)](https://gitee.com/snltty/linker/stargazers)
+[![fork](https://gitee.com/snltty/linker/badge/fork.svg?theme=dark)](https://gitee.com/snltty/linker/members)
 
 <a href="https://jq.qq.com/?_wv=1027&k=ucoIVfz4" target="_blank">QQ 群：1121552990</a>
 
@@ -92,26 +92,26 @@ server.json
 
 ##### 1、windows
 ```
-使用 link.tray.win.exe
+使用 linker.tray.win.exe
 ```
 
 ##### 2、linux  systemd
 ```
-//1、下载linux版本程序，放到 /usr/local/link 文件夹，并在文件夹下创建一个 log 目录
+//1、下载linux版本程序，放到 /usr/local/linker 文件夹，并在文件夹下创建一个 log 目录
 
 //2、 修改文件权限
-chmod 0777 link
+chmod 0777 linker
 chmoe 0777 plugins/tuntap/tun2socks
 
 //3、写配置文件
-vim /etc/systemd/system/link.service
+vim /etc/systemd/system/linker.service
 
 [Unit]
-Description=link
+Description=linker
 
 [Service]
-WorkingDirectory=/usr/local/link
-ExecStart=/usr/local/link/link
+WorkingDirectory=/usr/local/linker
+ExecStart=/usr/local/linker/linker
 ExecStop=/bin/kill $MAINPID
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
@@ -124,17 +124,17 @@ WantedBy=multi-user.target
 systemctl daemon-reload
 
 //5、启动，或者重新启动
-systemctl start link
-systemctl restart link
+systemctl start linker
+systemctl restart linker
 
 //6、设置为自启动
-systemctl enable link
+systemctl enable linker
 ```
 
 ##### linux docker
 ```
-snltty/link-alpine-x64
-snltty/link-alpine-arm64
+snltty/linker-alpine-x64
+snltty/linker-alpine-arm64
 ```
 
 ## 发布项目
