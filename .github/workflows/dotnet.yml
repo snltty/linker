@@ -62,8 +62,8 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/win-x64.zip
-        asset_name: win-x64.zip
+        asset_path: ./public/publish-zip/linker-win-x64.zip
+        asset_name: linker-win-x64.zip
         asset_content_type: application/zip
 
     - name: upload win arm64
@@ -73,8 +73,8 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/win-arm64.zip
-        asset_name: win-arm64.zip
+        asset_path: ./public/publish-zip/linker-win-arm64.zip
+        asset_name: linker-win-arm64.zip
         asset_content_type: application/zip
 
     - name: upload linux x64
@@ -84,8 +84,8 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/linux-x64.zip
-        asset_name: linux-x64.zip
+        asset_path: ./public/publish-zip/linker-linux-x64.zip
+        asset_name: linker-linux-x64.zip
         asset_content_type: application/zip
 
     - name: upload linux arm64
@@ -95,8 +95,8 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/linux-arm64.zip
-        asset_name: linux-arm64.zip
+        asset_path: ./public/publish-zip/linker-linux-arm64.zip
+        asset_name: linker-linux-arm64.zip
         asset_content_type: application/zip
 
     - name: upload osx x64
@@ -106,8 +106,8 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/osx-x64.zip
-        asset_name: osx-x64.zip
+        asset_path: ./public/publish-zip/linker-osx-x64.zip
+        asset_name: linker-osx-x64.zip
         asset_content_type: application/zip
 
     - name: upload osx arm64
@@ -117,6 +117,6 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/osx-arm64.zip
-        asset_name: osx-arm64.zip
+        asset_path: ./public/publish-zip/linker-osx-arm64.zip
+        asset_name: linker-osx-arm64.zip
         asset_content_type: application/zip
