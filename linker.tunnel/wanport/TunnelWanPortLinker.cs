@@ -7,7 +7,7 @@ namespace linker.tunnel.wanport
     public sealed class TunnelWanPortLinker : ITunnelWanPort
     {
         public string Name => "默认";
-        public TunnelWanPortType Type => TunnelWanPortType.Link;
+        public TunnelWanPortType Type => TunnelWanPortType.Linker;
 
         public TunnelWanPortLinker()
         {

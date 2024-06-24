@@ -35,7 +35,7 @@ namespace linker.plugins.relay
                 {
                      new RelayCompactInfo{
                          Name="默认",
-                         Type= RelayCompactType.Link,
+                         Type= RelayCompactType.Linker,
                          Disabled = false,
                          Host = running.Data.Client.Servers.FirstOrDefault().Host
                      }

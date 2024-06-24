@@ -17,7 +17,7 @@ namespace linker.plugins.relay.transport
     public sealed class TransportSelfHost : ITransport
     {
         public string Name => "默认";
-        public RelayCompactType Type => RelayCompactType.Link;
+        public RelayCompactType Type => RelayCompactType.Linker;
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Tcp;
 
         private readonly TcpServer tcpServer;

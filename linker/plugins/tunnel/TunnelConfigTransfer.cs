@@ -39,7 +39,7 @@ namespace linker.plugins.tunnel
                 {
                      new TunnelWanPortInfo{
                          Name="默认",
-                         Type= TunnelWanPortType.Link,
+                         Type= TunnelWanPortType.Linker,
                          Disabled = false,
                          Host = running.Data.Client.Servers.FirstOrDefault().Host
                      }

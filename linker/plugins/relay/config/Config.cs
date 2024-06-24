@@ -36,7 +36,7 @@ namespace linker.config
     public sealed partial class RelayCompactInfo
     {
         public string Name { get; set; } = string.Empty;
-        public RelayCompactType Type { get; set; } = RelayCompactType.Link;
+        public RelayCompactType Type { get; set; } = RelayCompactType.Linker;
         public string SecretKey { get; set; } = "snltty";
         public string Host { get; set; } = string.Empty;
         public bool Disabled { get; set; }
@@ -45,7 +45,7 @@ namespace linker.config
 
     public enum RelayCompactType : byte
     {
-        Link = 0,
+        Linker = 0,
     }
 
     public sealed class RelayCompactTypeInfo
