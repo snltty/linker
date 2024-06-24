@@ -45,14 +45,24 @@ namespace linker.plugins.forward
                 {
                     forwardProxy.Start(new System.Net.IPEndPoint(forwardInfo.BindIPAddress, forwardInfo.Port), forwardInfo.TargetEP, forwardInfo.MachineId);
                     forwardInfo.Port = forwardProxy.LocalEndpoint.Port;
-                    forwardInfo.Proxy = true;
 
-                    //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Debug($"start forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP}");
+                    if(forwardInfo.Port > 0)
+                    {
+                        forwardInfo.Proxy = true;
+                        forwardInfo.Msg = string.Empty;
+                        Logger.Instance.Debug($"start forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP}");
+                    }
+                    else
+                    {
+                        forwardInfo.Msg = $"start forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP} fail";
+                        Logger.Instance.Error(forwardInfo.Msg);
+                    }
+                    
                 }
                 catch (Exception ex)
                 {
                     forwardInfo.Started = false;
+                    forwardInfo.Msg = ex.Message;
                     Logger.Instance.Error(ex);
                 }
             }
@@ -63,7 +73,6 @@ namespace linker.plugins.forward
             {
                 if (forwardInfo.Proxy)
                 {
-                    // if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     Logger.Instance.Debug($"stop forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP}");
                     forwardProxy.Stop(forwardInfo.Port);
                     forwardInfo.Proxy = false;

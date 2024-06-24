@@ -1,12 +1,12 @@
 <template>
     <div class="home-list-wrap absolute" >
-        <el-table :data="state.page.List" border style="width: 100%" :height="`${state.height}px`" size="small">
+        <el-table :data="state.page.List" stripe border style="width: 100%" :height="`${state.height}px`" size="small">
             <Device  @edit="handleDeviceEdit" @refresh="handlePageRefresh"></Device>
             <Tunnel  @edit="handleTunnelEdit" @refresh="handleTunnelRefresh" @connections="handleTunnelConnections"></Tunnel>
             <Tuntap  @edit="handleTuntapEdit" @refresh="handleTuntapRefresh"></Tuntap>
             <Forward @edit="handleForwardEdit" @sedit="handleSForwardEdit" @refresh="handleForwardRefresh"></Forward>  
             <!-- <Info></Info>           -->
-            <el-table-column label="操作" width="66" fixed="right">
+            <el-table-column label="操作" width="54" fixed="right">
                 <template #default="scope">
                     <el-popconfirm v-if="scope.row.showDel" confirm-button-text="确认"
                         cancel-button-text="取消" title="删除不可逆，是否确认?" @confirm="handleDel(scope.row.MachineId)">
@@ -107,7 +107,10 @@ export default {
             tuntap.value.showEdit = true;
 
         }
-        const handleTuntapChange = () => {
+        const handleTuntapChange = (page) => {
+            if(page){
+                state.page.Request.Page = page;
+            }
             _getSignList();
         }
         const handleTuntapRefresh = ()=>{
@@ -296,6 +299,7 @@ export default {
                             item.Args = res.List[j].Args;
                             item.showTunnel = machineId.value != res.List[j].MachineId;
                             item.showForward = machineId.value != res.List[j].MachineId;
+                            item.showSForward = machineId.value == res.List[j].MachineId;
                             item.showDel = machineId.value != res.List[j].MachineId && res.List[j].Connected == false;
                             item.isSelf = machineId.value == res.List[j].MachineId;
                         }

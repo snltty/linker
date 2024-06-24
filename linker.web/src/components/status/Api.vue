@@ -3,8 +3,9 @@
         <el-popconfirm confirm-button-text="是" cancel-button-text="否" title="确定清楚连接信息并刷新吗？" @confirm="handleResetConnect" >
             <template #reference>
                 <a href="javascript:;" >
-                    <template v-if="connected">已连接本地管理接口</template>
-                    <template v-else>请连接管理接口</template>
+                    <el-icon size="16"><Tools /></el-icon>
+                    <template v-if="connected">管理接口</template>
+                    <template v-else>管理接口</template>
                 </a>
             </template>
         </el-popconfirm>
@@ -14,7 +15,9 @@
 import {computed} from 'vue'
 import {useRoute,useRouter} from 'vue-router'
 import {injectGlobalData} from '../../provide'
+import {Tools} from '@element-plus/icons-vue'
 export default {
+    components:{Tools},
     setup(props) {
         const globalData = injectGlobalData();
         const connected = computed(()=>globalData.value.connected);
@@ -41,6 +44,9 @@ export default {
        a{color:green;font-weight:bold;}
        span{background-color:green;color:#fff;}
     }  
+    .el-icon{
+        vertical-align:sub;
+    }
 }
 
 </style>

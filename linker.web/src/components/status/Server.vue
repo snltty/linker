@@ -1,8 +1,9 @@
 <template>
     <div class="status-server-wrap" :class="{ connected: state.connected }">
         <a href="javascript:;" @click="handleConfig">
-            <template v-if="state.connected">已连接信标服务器{{state.version}}</template>
-            <template v-else>请连接信标服务器</template>
+            <el-icon size="16"><Promotion /></el-icon>
+            <template v-if="state.connected">信标服务器 {{state.version}}</template>
+            <template v-else>信标服务器</template>
         </a>
     </div>
     <el-dialog v-model="state.show" title="连接设置" width="300">
@@ -29,7 +30,9 @@ import { setSignIn } from '@/apis/signin';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { computed, reactive } from 'vue';
+import {Promotion} from '@element-plus/icons-vue'
 export default {
+    components:{Promotion},
     setup(props) {
 
         const globalData = injectGlobalData();
@@ -83,6 +86,10 @@ export default {
     &.connected {
        a{color:green;font-weight:bold;}
     }  
+
+    .el-icon{
+        vertical-align:text-bottom;
+    }
 }
 
 </style>

@@ -66,11 +66,13 @@ namespace linker.plugins.sforward
                             {
                                 forwardInfo.Proxy = true;
                                 Logger.Instance.Debug(sForwardAddResultInfo.Message);
+                                forwardInfo.Msg = string.Empty;
                             }
                             else
                             {
                                 forwardInfo.Started = false;
                                 Logger.Instance.Error(sForwardAddResultInfo.Message);
+                                forwardInfo.Msg = sForwardAddResultInfo.Message;
                             }
 
                         }

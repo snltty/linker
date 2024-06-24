@@ -126,7 +126,7 @@ namespace linker.config
         public ConfigCommonInfo Common { get; set; } = new ConfigCommonInfo();
 
         [JsonIgnore]
-        public string Version { get; set; } = "v1.1.0.0";
+        public string Version { get; set; } = $"v{Assembly.GetEntryAssembly().GetName().Version}";
         [JsonIgnore]
         public bool Elevated { get; set; }
     }

@@ -21,6 +21,8 @@ namespace linker
             //初始化配置文件
             Config config = new Config();
 
+            Logger.Instance.Warning($"current version : {config.Data.Version}");
+
 
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
             StartupTransfer.Init(config, assemblies);

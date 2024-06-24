@@ -24,14 +24,24 @@
                         </el-select>
                     </template>
                 </el-table-column>
-                <el-table-column property="Port" label="监听端口" width="65">
+                <el-table-column property="Port" label="监听端口" width="80">
                     <template #default="scope">
                         <template v-if="scope.row.PortEditing">
                             <el-input type="number" autofocus size="small" v-model="scope.row.Port"
                                 @blur="handleEditBlur(scope.row, 'Port')"></el-input>
                         </template>
                         <template v-else>
-                            {{ scope.row.Port }}
+                            <template v-if="!!scope.row.Msg">
+                                <el-popover placement="top" title="msg" width="20rem"  trigger="hover" :content="scope.row.Msg">
+                                    <template #reference>
+                                        <div :class="{error:!!scope.row.Msg}">
+                                            <span>{{ scope.row.Port }}</span>
+                                            <el-icon size="20"><WarnTriangleFilled /></el-icon>
+                                        </div>
+                                    </template>
+                                </el-popover>
+                            </template>
+                            <template v-else><span>{{ scope.row.Port }}</span></template>
                         </template>
                     </template>
                 </el-table-column>
@@ -70,9 +80,11 @@
 import { inject, onMounted, reactive, watch } from 'vue';
 import { getForwardInfo, removeForwardInfo, addForwardInfo ,getForwardIpv4 } from '@/apis/forward'
 import { ElMessage } from 'element-plus';
+import {WarnTriangleFilled} from '@element-plus/icons-vue'
 export default {
     props: ['data','modelValue'],
     emits: ['update:modelValue'],
+    components:{WarnTriangleFilled},
     setup(props, { emit }) {
 
         const forward = inject('forward');
@@ -163,4 +175,12 @@ export default {
 <style lang="stylus" scoped>
 
 .head{padding-bottom:1rem}
+
+.error{
+    color:red;
+    font-weight:bold;
+    .el-icon{
+        vertical-align:text-bottom
+    }
+}
 </style>

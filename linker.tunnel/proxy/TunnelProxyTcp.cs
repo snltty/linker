@@ -21,13 +21,13 @@ namespace linker.tunnel.proxy
         /// <param name="port"></param>
         private void StartTcp(IPEndPoint ep)
         {
+            IPEndPoint localEndPoint = ep;
+            socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            socket.IPv6Only(localEndPoint.AddressFamily, false);
+            socket.ReuseBind(localEndPoint);
+            socket.Listen(int.MaxValue);
             try
             {
-                IPEndPoint localEndPoint = ep;
-                socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                socket.IPv6Only(localEndPoint.AddressFamily, false);
-                socket.ReuseBind(localEndPoint);
-                socket.Listen(int.MaxValue);
                 AsyncUserToken userToken = new AsyncUserToken
                 {
                     ListenPort = localEndPoint.Port,

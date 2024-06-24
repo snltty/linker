@@ -9,13 +9,13 @@
             <div class="menu flex-1">
                 <ul class="flex">
                     <li>
-                        <router-link :to="{name:'Index'}">首页</router-link>
+                        <router-link :to="{name:'Index'}"><el-icon size="16"><StarFilled /></el-icon> 首页</router-link>
                     </li>
                     <li>
-                        <router-link :to="{name:'Settings'}">配置</router-link>
+                        <router-link :to="{name:'Settings'}"><el-icon size="16"><Tools /></el-icon> 配置</router-link>
                     </li>
                     <li>
-                        <router-link :to="{name:'Logger'}">日志</router-link>
+                        <router-link :to="{name:'Logger'}"><el-icon size="16"><WarnTriangleFilled /></el-icon> 日志</router-link>
                     </li>
                 </ul>
             </div>
@@ -43,7 +43,9 @@ import { initWebsocket, subWebsocketState,closeWebsocket } from '../apis/request
 import { getConfig,getSignInfo } from '../apis/signin'
 import { useRoute, useRouter } from 'vue-router';
 import { injectGlobalData } from '../provide';
+import {Tools,StarFilled,WarnTriangleFilled} from '@element-plus/icons-vue'
 export default {
+    components:{Tools,StarFilled,WarnTriangleFilled},
     setup() {
 
         const globalData = injectGlobalData();
@@ -144,6 +146,10 @@ export default {
             &:hover,&.router-link-active{
                 background-color:rgba(0,0,0,0.1);
                 font-weight:bold;
+            }
+
+            .el-icon{
+                vertical-align:sub;
             }
         }
     }

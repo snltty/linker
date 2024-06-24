@@ -27,7 +27,7 @@ namespace linker.plugins.tuntap.vea
             }
             try
             {
-                Tun2SocksProcess = CommandHelper.Execute("./plugins/tuntap/tun2socks", command);
+                Tun2SocksProcess = CommandHelper.Execute("./plugins/tuntap/tun2socks.exe", command);
                 for (int i = 0; i < 10; i++)
                 {
                     await Task.Delay(1000);
@@ -63,7 +63,7 @@ namespace linker.plugins.tuntap.vea
 
             if (interfaceNumber <= 0)
             {
-                string msg = CommandHelper.Execute("./plugins/tuntap/tun2socks", command, Array.Empty<string>());
+                string msg = CommandHelper.Execute("./plugins/tuntap/tun2socks.exe", command, Array.Empty<string>());
                 Logger.Instance.Error(msg);
             }
 

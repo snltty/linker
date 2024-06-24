@@ -22,15 +22,8 @@ namespace linker.tunnel.proxy
 
         public void Start(IPEndPoint ep)
         {
-            try
-            {
-                StartTcp(ep);
-                StartUdp(new IPEndPoint(ep.Address,LocalEndpoint.Port));
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Error(ex);
-            }
+            StartTcp(ep);
+            StartUdp(new IPEndPoint(ep.Address, LocalEndpoint.Port));
         }
 
         /// <summary>

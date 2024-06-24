@@ -24,6 +24,7 @@ namespace linker.client.config
         public IPEndPoint LocalEP { get; set; }
 
         public bool Started { get; set; }
+        public string Msg { get; set; }
 
         [JsonIgnore, BsonIgnore]
         public bool Proxy { get; set; }

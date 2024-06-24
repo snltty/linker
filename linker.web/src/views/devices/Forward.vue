@@ -7,7 +7,7 @@
                     <ul class="list forward">
                         <template v-if="forward.list[scope.row.MachineId] && forward.list[scope.row.MachineId].length > 0">
                             <template v-for="(item, index) in forward.list[scope.row.MachineId]" :key="index">
-                                <li>
+                                <li :class="{error:!!item.Msg}">
                                     <a href="javascript:;" @click="handleEdit(scope.row.MachineId)" :class="{ green: item.Started }">
                                         <template v-if="item.Started"><strong>{{ item.Port }}->{{ item.TargetEP
                                                 }}</strong></template>
@@ -27,7 +27,7 @@
                     <ul class="list sforward">
                         <template v-if="sforward.list && sforward.list.length > 0">
                             <template v-for="(item, index) in sforward.list" :key="index">
-                                <li>
+                                <li :class="{error:!!item.Msg}">
                                     <a href="javascript:;" @click="handleSEdit()" :class="{ green: item.Started }">
                                         <template v-if="item.Started"><strong>{{ item.Domain || item.RemotePort }}->{{ item.LocalEP
                                                 }}</strong></template>
@@ -75,14 +75,7 @@ a{
 }
 a.green{color:green}
 
-ul.sforward a{
-    background: linear-gradient(45deg, #386185, #5f5f5f, #346666);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: rgba(255, 255, 255, 0);
-}
-ul.sforward a.green{
-    background: linear-gradient(45deg, #0e79d6, #178c43, #1f976a);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: rgba(255, 255, 255, 0);
+li.error{
+    a{color:red;}
 }
 </style>

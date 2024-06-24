@@ -6,7 +6,6 @@
                 <el-button size="small" @click="handleRefresh">刷新</el-button>
             </div>
             <el-table :data="state.data" size="small" border height="500" @cell-dblclick="handleCellClick">
-                <el-table-column property="ID" label="ID" width="60" />
                 <el-table-column property="Name" label="名称">
                     <template #default="scope">
                         <template v-if="scope.row.NameEditing">
@@ -18,14 +17,24 @@
                         </template>
                     </template>
                 </el-table-column>
-                <el-table-column property="Temp" label="远程端口/域名" width="140">
+                <el-table-column property="Temp" label="远程端口/域名" width="160">
                     <template #default="scope">
                         <template v-if="scope.row.TempEditing">
                             <el-input autofocus size="small" v-model="scope.row.Temp"
                                 @blur="handleEditBlur(scope.row, 'Temp')"></el-input>
                         </template>
                         <template v-else>
-                            {{ scope.row.Temp }}
+                            <template v-if="!!scope.row.Msg">
+                                <el-popover placement="top" title="msg" width="20rem"  trigger="hover" :content="scope.row.Msg">
+                                    <template #reference>
+                                        <div :class="{error:!!scope.row.Msg}">
+                                            <span>{{ scope.row.Temp }}</span>
+                                            <el-icon size="20"><WarnTriangleFilled /></el-icon>
+                                        </div>
+                                    </template>
+                                </el-popover>
+                            </template>
+                            <template v-else><span>{{ scope.row.Temp }}</span></template>
                         </template>
                     </template>
                 </el-table-column>
@@ -64,9 +73,11 @@
 import { inject, onMounted, reactive, watch } from 'vue';
 import { getSForwardInfo, removeSForwardInfo, addSForwardInfo } from '@/apis/sforward'
 import { ElMessage } from 'element-plus';
+import {WarnTriangleFilled} from '@element-plus/icons-vue'
 export default {
     props: ['data','modelValue'],
     emits: ['update:modelValue'],
+    components:{WarnTriangleFilled},
     setup(props, { emit }) {
 
         const sforward = inject('sforward');
@@ -171,4 +182,12 @@ export default {
 <style lang="stylus" scoped>
 
 .head{padding-bottom:1rem}
+
+.error{
+    color:red;
+    font-weight:bold;
+    .el-icon{
+        vertical-align:text-bottom
+    }
+}
 </style>
