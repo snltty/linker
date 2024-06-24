@@ -4,7 +4,7 @@ using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace linker.libs.web
+namespace Linker.Libs.Web
 {
     /// <summary>
     /// 本地web管理端服务器
@@ -35,7 +35,7 @@ namespace linker.libs.web
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
             }, TaskCreationOptions.LongRunning);
         }

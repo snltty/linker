@@ -1,13 +1,13 @@
-﻿using linker.config;
-using linker.plugins.sforward.config;
-using linker.server;
+﻿using Linker.Config;
+using Linker.Plugins.SForward.Config;
+using Linker.Server;
 
-namespace linker.plugins.sforward.validator
+namespace Linker.Plugins.SForward.Validator
 {
     public sealed class Validator : IValidator
     {
-        private readonly Config config;
-        public Validator(Config config)
+        private readonly ConfigWrap config;
+        public Validator(ConfigWrap config)
         {
             this.config = config;
         }

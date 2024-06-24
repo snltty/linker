@@ -1,17 +1,17 @@
-﻿using linker.client;
-using linker.client.config;
-using linker.config;
-using linker.plugins.tunnel.messenger;
-using linker.server;
-using linker.tunnel.wanport;
+﻿using Linker.Client;
+using Linker.Client.Config;
+using Linker.Config;
+using Linker.Plugins.Tunnel.Messenger;
+using Linker.Server;
+using Linker.Tunnel.WanPort;
 using MemoryPack;
 using System.Collections.Concurrent;
 
-namespace linker.plugins.tunnel
+namespace Linker.Plugins.Tunnel
 {
     public sealed class TunnelConfigTransfer
     {
-        private readonly Config config;
+        private readonly ConfigWrap config;
         private readonly RunningConfig running;
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
@@ -21,7 +21,7 @@ namespace linker.plugins.tunnel
         private ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> configs = new ConcurrentDictionary<string, TunnelTransportRouteLevelInfo>();
         public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> Config => configs;
 
-        public TunnelConfigTransfer(Config config, RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelWanPortTransfer compactTransfer)
+        public TunnelConfigTransfer(ConfigWrap config, RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelWanPortTransfer compactTransfer)
         {
             this.config = config;
             this.running = running;

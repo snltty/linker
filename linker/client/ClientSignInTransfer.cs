@@ -1,15 +1,15 @@
-﻿using linker.client.args;
-using linker.client.config;
-using linker.config;
-using linker.plugins.signin.messenger;
-using linker.server;
-using linker.libs;
-using linker.libs.extends;
+﻿using Linker.Client.Args;
+using Linker.Client.Config;
+using Linker.Config;
+using Linker.Plugins.Signin.Messenger;
+using Linker.Server;
+using Linker.Libs;
+using Linker.Libs.Extends;
 using MemoryPack;
 using System.Net;
 using System.Net.Sockets;
 
-namespace linker.client
+namespace Linker.Client
 {
     /// <summary>
     /// 登入
@@ -18,12 +18,12 @@ namespace linker.client
     {
         private readonly ClientSignInState clientSignInState;
         private readonly RunningConfig runningConfig;
-        private readonly Config config;
+        private readonly ConfigWrap config;
         private readonly TcpServer tcpServer;
         private readonly MessengerSender messengerSender;
         private readonly SignInArgsTransfer signInArgsTransfer;
 
-        public ClientSignInTransfer(ClientSignInState clientSignInState, RunningConfig runningConfig, Config config, TcpServer tcpServer, MessengerSender messengerSender, SignInArgsTransfer signInArgsTransfer)
+        public ClientSignInTransfer(ClientSignInState clientSignInState, RunningConfig runningConfig, ConfigWrap config, TcpServer tcpServer, MessengerSender messengerSender, SignInArgsTransfer signInArgsTransfer)
         {
             this.clientSignInState = clientSignInState;
             this.runningConfig = runningConfig;
@@ -54,8 +54,8 @@ namespace linker.client
                         }
                         catch (Exception ex)
                         {
-                            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                Logger.Instance.Error(ex);
+                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                LoggerHelper.Instance.Error(ex);
                         }
                     }
                     await Task.Delay(10000);
@@ -80,8 +80,8 @@ namespace linker.client
 
             try
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Info($"connect to signin server :{config.Data.Client.Server}");
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Info($"connect to signin server :{config.Data.Client.Server}");
 
                 IPEndPoint ip = NetworkHelper.GetEndPoint(config.Data.Client.Server, 1802);
 
@@ -102,8 +102,8 @@ namespace linker.client
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Error(ex);
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(ex);
             }
             finally
             {

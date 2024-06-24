@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace linker.libs.winapis;
+namespace Linker.Libs.Winapis;
 
 public static class WTSAPI32
 {

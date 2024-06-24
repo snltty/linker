@@ -1,15 +1,15 @@
-﻿using linker.client.config;
-using linker.config;
-using linker.plugins.relay.transport;
-using linker.tunnel.connection;
-using linker.libs;
-using linker.libs.extends;
+﻿using Linker.Client.Config;
+using Linker.Config;
+using Linker.Plugins.Relay.Transport;
+using Linker.Tunnel.Connection;
+using Linker.Libs;
+using Linker.Libs.Extends;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Reflection;
 
-namespace linker.plugins.relay
+namespace Linker.Plugins.Relay
 {
     /// <summary>
     /// 中继
@@ -24,7 +24,7 @@ namespace linker.plugins.relay
         private ConcurrentDictionary<string, bool> connectingDic = new ConcurrentDictionary<string, bool>();
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
-        public RelayTransfer(RunningConfig running, ServiceProvider serviceProvider, Config config)
+        public RelayTransfer(RunningConfig running, ServiceProvider serviceProvider, ConfigWrap config)
         {
             this.running = running;
             this.serviceProvider = serviceProvider;
@@ -52,7 +52,7 @@ namespace linker.plugins.relay
             IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs, typeof(ITransport));
             transports = types.Select(c => (ITransport)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
 
-            Logger.Instance.Warning($"load relay transport:{string.Join(",", transports.Select(c => c.Name))}");
+            LoggerHelper.Instance.Warning($"load relay transport:{string.Join(",", transports.Select(c => c.Name))}");
         }
         /// <summary>
         /// 获取所有中继协议
@@ -136,23 +136,23 @@ namespace linker.plugins.relay
                         SSL = item.SSL
                     };
 
-                    Logger.Instance.Info($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} {relayInfo.ToJson()}");
+                    LoggerHelper.Instance.Info($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} {relayInfo.ToJson()}");
                     ITunnelConnection connection = await transport.RelayAsync(relayInfo);
                     if (connection != null)
                     {
-                        Logger.Instance.Debug($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
+                        LoggerHelper.Instance.Debug($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
                         ConnectedCallback(relayInfo, connection);
                         return connection;
                     }
                     else
                     {
-                        Logger.Instance.Error($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} fail,{relayInfo.ToJson()}");
+                        LoggerHelper.Instance.Error($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} fail,{relayInfo.ToJson()}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                LoggerHelper.Instance.Error(ex);
             }
             finally
             {
@@ -181,7 +181,7 @@ namespace linker.plugins.relay
                     ITunnelConnection connection = await _transports.OnBeginAsync(relayInfo);
                     if (connection != null)
                     {
-                        Logger.Instance.Debug($"relay from {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
+                        LoggerHelper.Instance.Debug($"relay from {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
                         ConnectedCallback(relayInfo, connection);
                         return true;
                     }
@@ -190,9 +190,9 @@ namespace linker.plugins.relay
             }
             catch (Exception ex)
             {
-                if(Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if(LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
             }
             finally

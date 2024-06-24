@@ -1,4 +1,4 @@
-﻿namespace linker.plugins.tuntap.messenger
+﻿namespace Linker.Plugins.Tuntap.Messenger
 {
     public enum TuntapMessengerIds : ushort
     {

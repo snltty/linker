@@ -1,6 +1,6 @@
-﻿using linker.libs;
+﻿using Linker.Libs;
 
-namespace linker.config
+namespace Linker.Config
 {
     public partial class ConfigClientInfo
     {

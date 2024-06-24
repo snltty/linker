@@ -1,12 +1,12 @@
-﻿using linker.tunnel.connection;
-using linker.libs;
-using linker.libs.extends;
+﻿using Linker.Tunnel.Connection;
+using Linker.Libs;
+using Linker.Libs.Extends;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 
-namespace linker.tunnel.proxy
+namespace Linker.Tunnel.Proxy
 {
     public partial class TunnelProxy
     {
@@ -49,7 +49,7 @@ namespace linker.tunnel.proxy
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                LoggerHelper.Instance.Error(ex);
             }
         }
         /// <summary>
@@ -69,7 +69,7 @@ namespace linker.tunnel.proxy
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                LoggerHelper.Instance.Error(ex);
                 token.Clear();
             }
         }
@@ -113,7 +113,7 @@ namespace linker.tunnel.proxy
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                LoggerHelper.Instance.Error(ex);
             }
         }
         /// <summary>
@@ -141,8 +141,8 @@ namespace linker.tunnel.proxy
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Error(ex);
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(ex);
             }
         }
         /// <summary>
@@ -205,8 +205,8 @@ namespace linker.tunnel.proxy
                 }
                 else
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        Logger.Instance.Error(e.SocketError.ToString());
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        LoggerHelper.Instance.Error(e.SocketError.ToString());
 
                     await SendToConnectionClose(token).ConfigureAwait(false);
                     CloseClientSocket(token);
@@ -214,8 +214,8 @@ namespace linker.tunnel.proxy
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Error(ex);
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(ex);
                 await SendToConnectionClose(token).ConfigureAwait(false);
                 CloseClientSocket(token);
             }
@@ -285,8 +285,8 @@ namespace linker.tunnel.proxy
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Error(ex);
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(ex);
                 CloseClientSocket(token);
             }
             finally
@@ -363,7 +363,7 @@ namespace linker.tunnel.proxy
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error($"connect {state.IPEndPoint} error -> {ex}");
+                LoggerHelper.Instance.Error($"connect {state.IPEndPoint} error -> {ex}");
                 await SendToConnectionClose(token).ConfigureAwait(false);
                 CloseClientSocket(token);
             }
@@ -456,9 +456,9 @@ namespace linker.tunnel.proxy
                 }
                 catch (Exception ex)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        Logger.Instance.Error(ex);
+                        LoggerHelper.Instance.Error(ex);
                     }
 
                     await SendToConnectionClose(token1).ConfigureAwait(false);

@@ -1,13 +1,13 @@
-﻿using linker.client.config;
-using linker.client;
-using linker.libs;
-using linker.server;
-using linker.plugins.sforward.messenger;
+﻿using Linker.Client.Config;
+using Linker.Client;
+using Linker.Libs;
+using Linker.Server;
+using Linker.Plugins.SForward.Messenger;
 using MemoryPack;
-using linker.plugins.sforward.config;
+using Linker.Plugins.SForward.Config;
 using System.Text;
 
-namespace linker.plugins.sforward
+namespace Linker.Plugins.SForward
 {
     public sealed class SForwardTransfer
     {
@@ -65,13 +65,13 @@ namespace linker.plugins.sforward
                             if (sForwardAddResultInfo.Success)
                             {
                                 forwardInfo.Proxy = true;
-                                Logger.Instance.Debug(sForwardAddResultInfo.Message);
+                                LoggerHelper.Instance.Debug(sForwardAddResultInfo.Message);
                                 forwardInfo.Msg = string.Empty;
                             }
                             else
                             {
                                 forwardInfo.Started = false;
-                                Logger.Instance.Error(sForwardAddResultInfo.Message);
+                                LoggerHelper.Instance.Error(sForwardAddResultInfo.Message);
                                 forwardInfo.Msg = sForwardAddResultInfo.Message;
                             }
 
@@ -81,7 +81,7 @@ namespace linker.plugins.sforward
                 catch (Exception ex)
                 {
                     forwardInfo.Started = false;
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
             }
         }
@@ -104,12 +104,12 @@ namespace linker.plugins.sforward
                             if (sForwardAddResultInfo.Success)
                             {
                                 forwardInfo.Proxy = false;
-                                Logger.Instance.Debug(sForwardAddResultInfo.Message);
+                                LoggerHelper.Instance.Debug(sForwardAddResultInfo.Message);
                             }
                             else
                             {
                                 forwardInfo.Started = true;
-                                Logger.Instance.Error(sForwardAddResultInfo.Message);
+                                LoggerHelper.Instance.Error(sForwardAddResultInfo.Message);
                             }
 
                         }
@@ -118,7 +118,7 @@ namespace linker.plugins.sforward
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                LoggerHelper.Instance.Error(ex);
             }
         }
 

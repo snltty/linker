@@ -1,8 +1,8 @@
-﻿using linker.libs.jsonConverters;
+﻿using Linker.Libs.JsonConverters;
 using System.Text.Json;
 using System.Text.Unicode;
 
-namespace linker.libs.extends
+namespace Linker.Libs.Extends
 {
     public static class SerialzeExtends
     {

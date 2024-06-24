@@ -4,7 +4,7 @@
     <_LastSelectedProfileId>D:\desktop\cmonitor\cmonitor.sas.service\Properties\PublishProfiles\FolderProfile.pubxml</_LastSelectedProfileId>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Update="LinkService.cs">
+    <Compile Update="LinkerService.cs">
       <SubType>Component</SubType>
     </Compile>
   </ItemGroup>

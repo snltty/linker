@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.IO;
 
-namespace linker.libs
+namespace Linker.Libs
 {
     public sealed class CommandHelper
     {

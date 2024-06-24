@@ -1,13 +1,13 @@
-﻿using linker.database;
-using linker.server;
-using linker.libs;
+﻿using Linker.Store;
+using Linker.Server;
+using Linker.Libs;
 using LiteDB;
 using MemoryPack;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Text.Json.Serialization;
 
-namespace linker.plugins.signin.messenger
+namespace Linker.Plugins.Signin.Messenger
 {
     public sealed class SignCaching
     {

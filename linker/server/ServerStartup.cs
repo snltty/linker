@@ -1,10 +1,10 @@
-﻿using linker.config;
-using linker.startup;
-using linker.libs;
+﻿using Linker.Config;
+using Linker.Startup;
+using Linker.Libs;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace linker.server
+namespace Linker.Server
 {
     /// <summary>
     /// 服务端插件
@@ -17,14 +17,14 @@ namespace linker.server
         public string[] Dependent => new string[] { "serialize", "firewall", "signin" };
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
-        public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<MessengerSender>();
             serviceCollection.AddSingleton<MessengerResolver>();
             serviceCollection.AddSingleton<TcpServer>();
         }
 
-        public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<MessengerSender>();
             serviceCollection.AddSingleton<MessengerResolver>();
@@ -34,7 +34,7 @@ namespace linker.server
 
 
         private bool loaded = false;
-        public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {
             if (loaded == false)
             {
@@ -44,7 +44,7 @@ namespace linker.server
             }
         }
 
-        public void UseServer(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {
             if (loaded == false)
             {
@@ -53,7 +53,7 @@ namespace linker.server
                 loaded = true;
             }
 
-            Logger.Instance.Info($"start server");
+            LoggerHelper.Instance.Info($"start server");
             try
             {
                 //服务
@@ -63,9 +63,9 @@ namespace linker.server
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                LoggerHelper.Instance.Error(ex);
             }
-            Logger.Instance.Info($"server listen:{config.Data.Server.ServicePort}");
+            LoggerHelper.Instance.Info($"server listen:{config.Data.Server.ServicePort}");
 
         }
     }

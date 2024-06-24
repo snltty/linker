@@ -1,12 +1,12 @@
-﻿using linker.client.config;
-using linker.plugins.sforward.config;
-using linker.plugins.sforward.validator;
-using linker.plugins.signin.messenger;
-using linker.server;
-using linker.libs.extends;
+﻿using Linker.Client.Config;
+using Linker.Plugins.SForward.Config;
+using Linker.Plugins.SForward.Validator;
+using Linker.Plugins.Signin.Messenger;
+using Linker.Server;
 using MemoryPack;
+using Linker.Plugins.SForward.Proxy;
 
-namespace linker.plugins.sforward.messenger
+namespace Linker.Plugins.SForward.Messenger
 {
     public sealed class SForwardServerMessenger : IMessenger
     {

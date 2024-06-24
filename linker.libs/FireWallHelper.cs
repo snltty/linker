@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace linker.libs
+namespace Linker.Libs
 {
     public static class FireWallHelper
     {

@@ -1,12 +1,11 @@
-﻿using linker.libs;
-using System;
+﻿using System;
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace linker.libs.websocket
+namespace Linker.Libs.Websocket
 {
     /// <summary>
     /// websocket解析器

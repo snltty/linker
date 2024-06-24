@@ -1,18 +1,18 @@
-﻿using linker.config;
-using linker.plugins.relay;
-using linker.tunnel;
-using linker.tunnel.connection;
-using linker.tunnel.proxy;
-using linker.libs;
-using linker.libs.extends;
+﻿using Linker.Config;
+using Linker.Plugins.Relay;
+using Linker.Tunnel;
+using Linker.Tunnel.Connection;
+using Linker.Tunnel.Proxy;
+using Linker.Libs;
+using Linker.Libs.Extends;
 using System.Collections.Concurrent;
 using System.Net;
 
-namespace linker.plugins.forward.proxy
+namespace Linker.Plugins.Forward.Proxy
 {
     public sealed class ForwardProxy : TunnelProxy
     {
-        private readonly Config config;
+        private readonly ConfigWrap config;
         private readonly TunnelTransfer tunnelTransfer;
         private readonly RelayTransfer relayTransfer;
 
@@ -20,7 +20,7 @@ namespace linker.plugins.forward.proxy
         private readonly ConcurrentDictionary<string, ITunnelConnection> connections = new ConcurrentDictionary<string, ITunnelConnection>();
         private readonly ConcurrentDictionary<string, SemaphoreSlim> locks = new ConcurrentDictionary<string, SemaphoreSlim>();
 
-        public ForwardProxy(Config config,TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer)
+        public ForwardProxy(ConfigWrap config,TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer)
         {
             this.config = config;
             this.tunnelTransfer = tunnelTransfer;
@@ -33,8 +33,8 @@ namespace linker.plugins.forward.proxy
         }
         private void OnConnected(ITunnelConnection connection)
         {
-            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                Logger.Instance.Warning($"TryAdd {connection.GetHashCode()} {connection.TransactionId} {connection.ToJson()}");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Warning($"TryAdd {connection.GetHashCode()} {connection.TransactionId} {connection.ToJson()}");
 
             //把隧道对象添加到缓存，方便下次直接获取
             connections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
@@ -104,22 +104,22 @@ namespace linker.plugins.forward.proxy
                     return connection;
                 }
 
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward tunnel to {machineId}");
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward tunnel to {machineId}");
                 //打洞
                 connection = await tunnelTransfer.ConnectAsync(machineId, "forward");
                 if (connection != null)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward tunnel to {machineId} success");
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward tunnel to {machineId} success");
                 }
                 //打洞失败
                 if (connection == null)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineId}");
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward relay to {machineId}");
                     //尝试中继
                     connection = await relayTransfer.ConnectAsync(config.Data.Client.Id,machineId, "forward");
                     if (connection != null)
                     {
-                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"forward relay to {machineId} success");
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward relay to {machineId} success");
                     }
                 }
                 if (connection != null)

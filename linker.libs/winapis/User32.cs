@@ -3,7 +3,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace linker.libs.winapis;
+namespace Linker.Libs.Winapis;
 
 public static class User32
 {

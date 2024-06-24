@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace linker.libs.winapis
+namespace Linker.Libs.Winapis
 {
     public static class Wlanapi
     {

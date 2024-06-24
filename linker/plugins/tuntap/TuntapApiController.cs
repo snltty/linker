@@ -1,24 +1,24 @@
-﻿using linker.server;
-using linker.libs.api;
-using linker.plugins.tuntap.vea;
-using linker.client;
-using linker.plugins.tuntap.messenger;
+﻿using Linker.Server;
+using Linker.Libs.Api;
+using Linker.Plugins.Tuntap.Vea;
+using Linker.Client;
+using Linker.Plugins.Tuntap.Messenger;
 using MemoryPack;
-using linker.config;
-using linker.libs.extends;
-using linker.client.capi;
+using Linker.Libs.Extends;
+using Linker.Client.Capi;
 using System.Collections.Concurrent;
+using Linker.Config;
 
-namespace linker.plugins.tuntap
+namespace Linker.Plugins.Tuntap
 {
     public sealed class TuntapClientApiController : IApiClientController
     {
         private readonly MessengerSender messengerSender;
         private readonly TuntapTransfer tuntapTransfer;
         private readonly ClientSignInState clientSignInState;
-        private readonly Config config;
+        private readonly ConfigWrap config;
 
-        public TuntapClientApiController(MessengerSender messengerSender, TuntapTransfer tuntapTransfer, ClientSignInState clientSignInState, Config config)
+        public TuntapClientApiController(MessengerSender messengerSender, TuntapTransfer tuntapTransfer, ClientSignInState clientSignInState, ConfigWrap config)
         {
             this.messengerSender = messengerSender;
             this.tuntapTransfer = tuntapTransfer;

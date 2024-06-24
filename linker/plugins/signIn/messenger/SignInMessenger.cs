@@ -1,16 +1,16 @@
-﻿using linker.client;
-using linker.config;
-using linker.server;
-using linker.libs;
+﻿using Linker.Client;
+using Linker.Config;
+using Linker.Server;
+using Linker.Libs;
 using MemoryPack;
 
-namespace linker.plugins.signin.messenger
+namespace Linker.Plugins.Signin.Messenger
 {
     public sealed class SignInClientMessenger : IMessenger
     {
-        private readonly Config config;
+        private readonly ConfigWrap config;
         private readonly ClientSignInTransfer clientSignInTransfer;
-        public SignInClientMessenger(Config config, ClientSignInTransfer clientSignInTransfer)
+        public SignInClientMessenger(ConfigWrap config, ClientSignInTransfer clientSignInTransfer)
         {
             this.config = config;
             this.clientSignInTransfer = clientSignInTransfer;
@@ -34,10 +34,10 @@ namespace linker.plugins.signin.messenger
     public sealed class SignInServerMessenger : IMessenger
     {
         private readonly SignCaching signCaching;
-        private readonly Config config;
+        private readonly ConfigWrap config;
         private readonly MessengerSender messengerSender;
 
-        public SignInServerMessenger(SignCaching signCaching, Config config, MessengerSender messengerSender)
+        public SignInServerMessenger(SignCaching signCaching, ConfigWrap config, MessengerSender messengerSender)
         {
             this.signCaching = signCaching;
             this.config = config;

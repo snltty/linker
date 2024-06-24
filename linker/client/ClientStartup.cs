@@ -1,13 +1,12 @@
-﻿using linker.config;
-using linker.libs;
-using linker.startup;
-using linker.libs;
+﻿using Linker.Libs;
+using Linker.Startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using linker.client.args;
-using linker.client.config;
+using Linker.Client.Args;
+using Linker.Client.Config;
+using Linker.Config;
 
-namespace linker.client
+namespace Linker.Client
 {
     /// <summary>
     /// 客户端插件
@@ -20,7 +19,7 @@ namespace linker.client
         public string[] Dependent => new string[] { "firewall", "signin", "serialize" };
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
-        public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<RunningConfig>();
 
@@ -31,21 +30,21 @@ namespace linker.client
 
         }
 
-        public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {
-            Logger.Instance.Info($"start client");
+            LoggerHelper.Instance.Info($"start client");
 
-            Logger.Instance.Info($"start client signin transfer");
+            LoggerHelper.Instance.Info($"start client signin transfer");
             ClientSignInTransfer clientTransfer = serviceProvider.GetService<ClientSignInTransfer>();
             clientTransfer.SignInTask();
         }
 
 
-        public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
 
         }
-        public void UseServer(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {
         }
     }

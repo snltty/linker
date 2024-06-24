@@ -1,17 +1,17 @@
-﻿using linker.config;
-using linker.plugins.tunnel.messenger;
-using linker.startup;
-using linker.tunnel;
-using linker.tunnel.adapter;
-using linker.tunnel.transport;
-using linker.libs;
+﻿using Linker.Config;
+using Linker.Plugins.Tunnel.Messenger;
+using Linker.Startup;
+using Linker.Tunnel;
+using Linker.Tunnel.Adapter;
+using Linker.Tunnel.Transport;
+using Linker.Libs;
 using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Reflection;
-using linker.tunnel.wanport;
+using Linker.Tunnel.WanPort;
 
-namespace linker.plugins.tunnel
+namespace Linker.Plugins.Tunnel
 {
     /// <summary>
     /// 打洞插件
@@ -27,7 +27,7 @@ namespace linker.plugins.tunnel
 
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
-        public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             //序列化扩展
             MemoryPackFormatterProvider.Register(new TunnelWanPortInfoFormatter());
@@ -54,16 +54,16 @@ namespace linker.plugins.tunnel
             serviceCollection.AddSingleton<TunnelConfigTransfer>();
             serviceCollection.AddSingleton<ITunnelAdapter, TunnelAdapter>();
 
-            Logger.Instance.Info($"tunnel route level getting.");
+            LoggerHelper.Instance.Info($"tunnel route level getting.");
             config.Data.Client.Tunnel.RouteLevel = NetworkHelper.GetRouteLevel(out List<IPAddress> ips);
-            Logger.Instance.Warning($"route ips:{string.Join(",", ips.Select(c => c.ToString()))}");
+            LoggerHelper.Instance.Warning($"route ips:{string.Join(",", ips.Select(c => c.ToString()))}");
             config.Data.Client.Tunnel.LocalIPs = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
-            Logger.Instance.Info($"tunnel local ips :{string.Join(",", config.Data.Client.Tunnel.LocalIPs.Select(c => c.ToString()))}");
-            Logger.Instance.Info($"tunnel route level:{config.Data.Client.Tunnel.RouteLevel}");
+            LoggerHelper.Instance.Info($"tunnel local ips :{string.Join(",", config.Data.Client.Tunnel.LocalIPs.Select(c => c.ToString()))}");
+            LoggerHelper.Instance.Info($"tunnel route level:{config.Data.Client.Tunnel.RouteLevel}");
 
         }
 
-        public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             MemoryPackFormatterProvider.Register(new TunnelWanPortInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportWanPortInfoFormatter());
@@ -73,7 +73,7 @@ namespace linker.plugins.tunnel
             serviceCollection.AddSingleton<TunnelServerMessenger>();
         }
 
-        public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {
             ITunnelAdapter tunnelAdapter = serviceProvider.GetService<ITunnelAdapter>();
 
@@ -91,7 +91,7 @@ namespace linker.plugins.tunnel
             TunnelConfigTransfer tunnelConfigTransfer = serviceProvider.GetService<TunnelConfigTransfer>();
         }
 
-        public void UseServer(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {
 
         }

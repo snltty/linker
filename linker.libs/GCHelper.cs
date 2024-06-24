@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace linker.libs
+namespace Linker.Libs
 {
     public static class GCHelper
     {

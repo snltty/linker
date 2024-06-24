@@ -1,13 +1,14 @@
-﻿using linker.config;
-using linker.plugins.sforward.config;
-using linker.plugins.sforward.messenger;
-using linker.plugins.sforward.validator;
-using linker.startup;
-using linker.libs;
+﻿using Linker.Config;
+using Linker.Plugins.SForward.Config;
+using Linker.Plugins.SForward.Messenger;
+using Linker.Plugins.SForward.Validator;
+using Linker.Startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using Linker.Plugins.SForward.Proxy;
+using Linker.Libs;
 
-namespace linker.plugins.sforward
+namespace Linker.Plugins.SForward
 {
     public sealed class SForwardStartup : IStartup
     {
@@ -21,7 +22,7 @@ namespace linker.plugins.sforward
 
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
-        public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             Add(serviceCollection, config, assemblies);
             serviceCollection.AddSingleton<SForwardClientApiController>();
@@ -29,17 +30,17 @@ namespace linker.plugins.sforward
             serviceCollection.AddSingleton<SForwardClientMessenger>();
         }
 
-        public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             Add(serviceCollection, config, assemblies);
             serviceCollection.AddSingleton<SForwardServerMessenger>();
             serviceCollection.AddSingleton<ISForwardServerCahing, SForwardServerCahing>();
-            serviceCollection.AddSingleton<IValidator, Validator>();
+            serviceCollection.AddSingleton<IValidator, Validator.Validator>();
 
         }
 
         bool added = false;
-        private void Add(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        private void Add(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             if (added == false)
             {
@@ -48,20 +49,20 @@ namespace linker.plugins.sforward
             }
         }
 
-        public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {
             SForwardTransfer forwardTransfer = serviceProvider.GetService<SForwardTransfer>();
         }
 
-        public void UseServer(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {
             SForwardProxy sForwardProxy = serviceProvider.GetService<SForwardProxy>();
             if (config.Data.Server.SForward.WebPort > 0)
             {
                 sForwardProxy.Start(config.Data.Server.SForward.WebPort, true);
-                Logger.Instance.Info($"listen server forward web in {config.Data.Server.SForward.WebPort}");
+                LoggerHelper.Instance.Info($"listen server forward web in {config.Data.Server.SForward.WebPort}");
             }
-            Logger.Instance.Info($"listen server forward tunnel in {string.Join("-", config.Data.Server.SForward.TunnelPortRange)}");
+            LoggerHelper.Instance.Info($"listen server forward tunnel in {string.Join("-", config.Data.Server.SForward.TunnelPortRange)}");
         }
     }
 }

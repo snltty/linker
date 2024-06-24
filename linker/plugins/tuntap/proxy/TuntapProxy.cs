@@ -1,26 +1,26 @@
-﻿using linker.client.config;
-using linker.config;
-using linker.plugins.relay;
-using linker.plugins.tuntap.vea;
-using linker.tunnel;
-using linker.tunnel.connection;
-using linker.tunnel.proxy;
-using linker.libs;
-using linker.libs.extends;
-using linker.libs.socks5;
+﻿using Linker.Client.Config;
+using Linker.Config;
+using Linker.Plugins.Relay;
+using Linker.Plugins.Tuntap.Vea;
+using Linker.Tunnel;
+using Linker.Tunnel.Connection;
+using Linker.Tunnel.Proxy;
+using Linker.Libs;
+using Linker.Libs.Extends;
+using Linker.Libs.Socks5;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 
-namespace linker.plugins.tuntap.proxy
+namespace Linker.Plugins.Tuntap.Proxy
 {
     public sealed class TuntapProxy : TunnelProxy
     {
         private readonly TunnelTransfer tunnelTransfer;
         private readonly RelayTransfer relayTransfer;
         private readonly RunningConfig runningConfig;
-        private readonly Config config;
+        private readonly ConfigWrap config;
 
         private IPEndPoint proxyEP;
         public override IPAddress UdpBindAdress { get; set; }
@@ -30,7 +30,7 @@ namespace linker.plugins.tuntap.proxy
         private readonly ConcurrentDictionary<string, ITunnelConnection> dicConnections = new ConcurrentDictionary<string, ITunnelConnection>();
         private readonly ConcurrentDictionary<string, SemaphoreSlim> dicLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
 
-        public TuntapProxy(TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, RunningConfig runningConfig, Config config)
+        public TuntapProxy(TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, RunningConfig runningConfig, ConfigWrap config)
         {
             this.tunnelTransfer = tunnelTransfer;
             this.relayTransfer = relayTransfer;
@@ -39,7 +39,7 @@ namespace linker.plugins.tuntap.proxy
 
             Start(new IPEndPoint(IPAddress.Any,0));
             proxyEP = new IPEndPoint(IPAddress.Any, LocalEndpoint.Port);
-            Logger.Instance.Info($"start tuntap proxy, listen port : {LocalEndpoint}");
+            LoggerHelper.Instance.Info($"start tuntap proxy, listen port : {LocalEndpoint}");
 
 
             //监听打洞连接成功
@@ -53,8 +53,8 @@ namespace linker.plugins.tuntap.proxy
         /// <param name="connection"></param>
         private void OnConnected(ITunnelConnection connection)
         {
-            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                Logger.Instance.Warning($"tuntap add connection {connection.GetHashCode()} {connection.ToJson()}");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Warning($"tuntap add connection {connection.GetHashCode()} {connection.ToJson()}");
             dicConnections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
             BindConnectionReceive(connection);
         }
@@ -195,9 +195,9 @@ namespace linker.plugins.tuntap.proxy
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
             }
             finally
@@ -258,21 +258,21 @@ namespace linker.plugins.tuntap.proxy
                     return connection;
                 }
 
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"tuntap tunnel to {machineId}");
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap tunnel to {machineId}");
 
                 connection = await tunnelTransfer.ConnectAsync(machineId, "tuntap");
                 if (connection != null)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"tuntap tunnel success,{connection.ToString()}");
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap tunnel success,{connection.ToString()}");
                 }
                 if (connection == null)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"tuntap relay to {machineId}");
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap relay to {machineId}");
 
                     connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, "tuntap");
                     if (connection != null)
                     {
-                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG) Logger.Instance.Debug($"tuntap relay success,{connection.ToString()}");
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap relay success,{connection.ToString()}");
                     }
                 }
                 if (connection != null)

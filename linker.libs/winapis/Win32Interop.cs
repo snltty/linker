@@ -1,4 +1,4 @@
-﻿using linker.libs.winapis;
+﻿using Linker.Libs.Winapis;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,13 +10,13 @@ using System.Runtime.Serialization;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
-using static linker.libs.winapis.WTSAPI32;
-using static linker.libs.winapis.ADVAPI32;
-using static linker.libs.winapis.Kernel32;
-using static linker.libs.winapis.NetApi32;
-using static linker.libs.winapis.User32;
+using static Linker.Libs.Winapis.WTSAPI32;
+using static Linker.Libs.Winapis.ADVAPI32;
+using static Linker.Libs.Winapis.Kernel32;
+using static Linker.Libs.Winapis.NetApi32;
+using static Linker.Libs.Winapis.User32;
 
-namespace linker.libs.winapis
+namespace Linker.Libs.Winapis
 {
     public class Win32Interop
     {
@@ -113,22 +113,22 @@ namespace linker.libs.winapis
                 nint inputDesktop = OpenInputDesktop();
                 if (inputDesktop == nint.Zero)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        Logger.Instance.Error($"OpenInputDesktop fail");
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        LoggerHelper.Instance.Error($"OpenInputDesktop fail");
                     return false;
                 }
 
                 bool result = SetThreadDesktop(inputDesktop);
                 if (result == false)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        Logger.Instance.Error($"SetThreadDesktop fail");
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        LoggerHelper.Instance.Error($"SetThreadDesktop fail");
                 }
                 result &= SwitchDesktop(inputDesktop);
                 if (result == false)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        Logger.Instance.Error($"SwitchDesktop fail");
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        LoggerHelper.Instance.Error($"SwitchDesktop fail");
                 }
 
                 lastInputDesktop = inputDesktop;
@@ -136,9 +136,9 @@ namespace linker.libs.winapis
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
                 return false;
             }
@@ -248,7 +248,7 @@ namespace linker.libs.winapis
             }
             catch(Exception ex)
             {
-                Logger.Instance.Debug($"CreateInteractiveSystemProcess {ex}");
+                LoggerHelper.Instance.Debug($"CreateInteractiveSystemProcess {ex}");
             }
         }
         

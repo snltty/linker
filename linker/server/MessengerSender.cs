@@ -1,7 +1,7 @@
-﻿using linker.libs;
+﻿using Linker.Libs;
 using System.Collections.Concurrent;
 
-namespace linker.server
+namespace Linker.Server
 {
     /// <summary>
     /// 消息发送器
@@ -87,7 +87,7 @@ namespace linker.server
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                LoggerHelper.Instance.Error(ex);
             }
             return false;
         }
@@ -113,8 +113,8 @@ namespace linker.server
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Error(ex);
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(ex);
             }
             return false;
         }

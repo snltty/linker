@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace linker.tunnel.wanport
+namespace Linker.Tunnel.WanPort
 {
     /// <summary>
     /// 外网端口协议

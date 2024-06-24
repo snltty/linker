@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "linker": {
+    "Linker": {
       "commandName": "Project"
     },
     "Docker": {

@@ -1,10 +1,10 @@
-﻿using linker.config;
-using linker.plugins.signin.messenger;
-using linker.startup;
+﻿using Linker.Config;
+using Linker.Plugins.Signin.Messenger;
+using Linker.Startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace linker.plugins.signin
+namespace Linker.Plugins.Signin
 {
     public sealed class SignInStartup : IStartup
     {
@@ -18,23 +18,23 @@ namespace linker.plugins.signin
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
 
-        public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<SignInClientMessenger>();
             serviceCollection.AddSingleton<SignInClientApiController>();
         }
 
-        public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<SignCaching>();
             serviceCollection.AddSingleton<SignInServerMessenger>();
         }
 
-        public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {
         }
 
-        public void UseServer(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {
         }
     }

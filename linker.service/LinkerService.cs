@@ -1,18 +1,18 @@
 ﻿using System.Diagnostics;
 using System.ServiceProcess;
 
-namespace linker.service
+namespace Linker.Service
 {
-    partial class LinkService : ServiceBase
+    partial class LinkerService : ServiceBase
     {
         private readonly string[] args;
-        public LinkService(string[] args)
+        public LinkerService(string[] args)
         {
             this.args = args;
             InitializeComponent();
         }
 
-        private string mainExeName = "linker";
+        private string mainExeName = "Linker";
         private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
         protected override void OnStart(string[] _args)

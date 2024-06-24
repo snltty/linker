@@ -1,5 +1,4 @@
-﻿using linker.libs;
-using linker.libs.extends;
+﻿using Linker.Libs.Extends;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -8,7 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace linker.libs.websocket
+namespace Linker.Libs.Websocket
 {
     /// <summary>
     /// websocket服务端
@@ -131,7 +130,7 @@ namespace linker.libs.websocket
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                LoggerHelper.Instance.Error(ex);
             }
         }
         private void ProcessAccept(SocketAsyncEventArgs e)

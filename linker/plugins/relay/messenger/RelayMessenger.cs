@@ -1,13 +1,13 @@
-﻿using linker.config;
-using linker.plugins.relay.transport;
-using linker.plugins.signin.messenger;
-using linker.server;
-using linker.libs;
-using linker.libs.extends;
+﻿using Linker.Config;
+using Linker.Plugins.Relay.Transport;
+using Linker.Plugins.Signin.Messenger;
+using Linker.Server;
+using Linker.Libs;
+using Linker.Libs.Extends;
 using MemoryPack;
 using System.Collections.Concurrent;
 
-namespace linker.plugins.relay.messenger
+namespace Linker.Plugins.Relay.Messenger
 {
     /// <summary>
     /// 中继客户端
@@ -50,14 +50,14 @@ namespace linker.plugins.relay.messenger
     /// </summary>
     public sealed class RelayServerMessenger : IMessenger
     {
-        private readonly Config config;
+        private readonly ConfigWrap config;
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;
         private readonly ConcurrentDictionary<ulong, TcsWrap> dic = new ConcurrentDictionary<ulong, TcsWrap>();
         private ulong flowingId = 0;
 
 
-        public RelayServerMessenger(Config config, MessengerSender messengerSender, SignCaching signCaching)
+        public RelayServerMessenger(ConfigWrap config, MessengerSender messengerSender, SignCaching signCaching)
         {
             this.config = config;
             this.messengerSender = messengerSender;

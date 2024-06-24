@@ -1,8 +1,8 @@
-﻿using linker.libs.extends;
+﻿using Linker.Libs.Extends;
 using MemoryPack;
 using System.Net;
 
-namespace linker.serializes
+namespace Linker.Serializes
 {
     /// <summary>
     ///  MemoryPack 的 IPEndPoint序列化扩展

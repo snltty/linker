@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace linker.libs
+namespace Linker.Libs
 {
     public sealed class ReflectionHelper
     {

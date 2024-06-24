@@ -1,11 +1,11 @@
-﻿using linker.libs.extends;
+﻿using Linker.Libs.Extends;
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Net;
 using System.Text;
 
-namespace linker.libs.socks5
+namespace Linker.Libs.Socks5
 {
     /// <summary>
     /// socks5 数据包解析和组装

@@ -1,9 +1,9 @@
-﻿using linker.client;
-using linker.client.config;
-using linker.plugins.forward.proxy;
-using linker.libs;
+﻿using Linker.Client;
+using Linker.Client.Config;
+using Linker.Libs;
+using Linker.Plugins.Forward.Proxy;
 
-namespace linker.plugins.forward
+namespace Linker.Plugins.Forward
 {
     public sealed class ForwardTransfer
     {
@@ -50,12 +50,12 @@ namespace linker.plugins.forward
                     {
                         forwardInfo.Proxy = true;
                         forwardInfo.Msg = string.Empty;
-                        Logger.Instance.Debug($"start forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP}");
+                        LoggerHelper.Instance.Debug($"start forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP}");
                     }
                     else
                     {
                         forwardInfo.Msg = $"start forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP} fail";
-                        Logger.Instance.Error(forwardInfo.Msg);
+                        LoggerHelper.Instance.Error(forwardInfo.Msg);
                     }
                     
                 }
@@ -63,7 +63,7 @@ namespace linker.plugins.forward
                 {
                     forwardInfo.Started = false;
                     forwardInfo.Msg = ex.Message;
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
             }
         }
@@ -73,14 +73,14 @@ namespace linker.plugins.forward
             {
                 if (forwardInfo.Proxy)
                 {
-                    Logger.Instance.Debug($"stop forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP}");
+                    LoggerHelper.Instance.Debug($"stop forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP}");
                     forwardProxy.Stop(forwardInfo.Port);
                     forwardInfo.Proxy = false;
                 }
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                LoggerHelper.Instance.Error(ex);
             }
         }
 

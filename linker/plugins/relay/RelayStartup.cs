@@ -1,11 +1,11 @@
-﻿using linker.config;
-using linker.plugins.relay.messenger;
-using linker.plugins.relay.transport;
-using linker.startup;
+﻿using Linker.Config;
+using Linker.Plugins.Relay.Messenger;
+using Linker.Plugins.Relay.Transport;
+using Linker.Startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace linker.plugins.relay
+namespace Linker.Plugins.Relay
 {
     /// <summary>
     /// 中继插件
@@ -21,7 +21,7 @@ namespace linker.plugins.relay
 
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
-        public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<RelayApiController>();
             serviceCollection.AddSingleton<RelayClientMessenger>();
@@ -30,18 +30,18 @@ namespace linker.plugins.relay
 
         }
 
-        public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<RelayServerMessenger>();
         }
 
-        public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {
             RelayTransfer relayTransfer = serviceProvider.GetService<RelayTransfer>();
             relayTransfer.Load(assemblies);
         }
 
-        public void UseServer(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {
         }
     }

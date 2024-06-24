@@ -1,25 +1,25 @@
-﻿using linker.client;
-using linker.client.capi;
-using linker.config;
-using linker.plugins.relay.messenger;
-using linker.server;
-using linker.libs.api;
-using linker.libs.extends;
+﻿using Linker.Client;
+using Linker.Client.Capi;
+using Linker.Config;
+using Linker.Plugins.Relay.Messenger;
+using Linker.Server;
+using Linker.Libs.Api;
+using Linker.Libs.Extends;
 using MemoryPack;
 
-namespace linker.plugins.relay
+namespace Linker.Plugins.Relay
 {
     /// <summary>
     /// 中继管理接口
     /// </summary>
     public sealed class RelayApiController : IApiClientController
     {
-        private readonly Config config;
+        private readonly ConfigWrap config;
         private readonly RelayTransfer relayTransfer;
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
 
-        public RelayApiController(Config config, RelayTransfer relayTransfer, ClientSignInState clientSignInState, MessengerSender messengerSender)
+        public RelayApiController(ConfigWrap config, RelayTransfer relayTransfer, ClientSignInState clientSignInState, MessengerSender messengerSender)
         {
             this.config = config;
             this.relayTransfer = relayTransfer;

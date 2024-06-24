@@ -1,14 +1,14 @@
-﻿using linker.tunnel.adapter;
-using linker.tunnel.connection;
-using linker.tunnel.transport;
-using linker.libs;
-using linker.libs.extends;
+﻿using Linker.Tunnel.Adapter;
+using Linker.Tunnel.Connection;
+using Linker.Tunnel.Transport;
+using Linker.Libs;
+using Linker.Libs.Extends;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Net;
-using linker.tunnel.wanport;
+using Linker.Tunnel.WanPort;
 
-namespace linker.tunnel
+namespace Linker.Tunnel
 {
     public sealed class TunnelTransfer
     {
@@ -19,10 +19,8 @@ namespace linker.tunnel
         private ConcurrentDictionary<string, bool> connectingDic = new ConcurrentDictionary<string, bool>();
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
-        public TunnelTransfer(TunnelWanPortTransfer compactTransfer, ITunnelAdapter  tunnelAdapter)
+        public TunnelTransfer()
         {
-            this.compactTransfer = compactTransfer;
-            this.tunnelAdapter = tunnelAdapter;
         }
 
         /// <summary>
@@ -52,8 +50,8 @@ namespace linker.tunnel
 
             tunnelAdapter.SetTunnelTransports(transportItems);
 
-            Logger.Instance.Warning($"load tunnel transport:{string.Join(",", transports.Select(c => c.Name))}");
-            Logger.Instance.Warning($"used tunnel transport:{string.Join(",", transportItems.Where(c => c.Disabled == false).Select(c => c.Name))}");
+            LoggerHelper.Instance.Warning($"load tunnel transport:{string.Join(",", transports.Select(c => c.Name))}");
+            LoggerHelper.Instance.Warning($"used tunnel transport:{string.Join(",", transportItems.Where(c => c.Disabled == false).Select(c => c.Name))}");
         }
 
 
@@ -116,18 +114,18 @@ namespace linker.tunnel
                             TunnelTransportWanPortInfo localInfo = await GetLocalInfo();
                             if (localInfo == null)
                             {
-                                Logger.Instance.Error($"tunnel {transport.Name} get local external ip fail ");
+                                LoggerHelper.Instance.Error($"tunnel {transport.Name} get local external ip fail ");
                                 break;
                             }
-                            Logger.Instance.Info($"tunnel {transport.Name} got local external ip {localInfo.ToJson()}");
+                            LoggerHelper.Instance.Info($"tunnel {transport.Name} got local external ip {localInfo.ToJson()}");
                             //获取对方的外网ip
                             TunnelTransportWanPortInfo remoteInfo = await tunnelAdapter.GetRemoteWanPort(remoteMachineId);
                             if (remoteInfo == null)
                             {
-                                Logger.Instance.Error($"tunnel {transport.Name} get remote {remoteMachineId} external ip fail ");
+                                LoggerHelper.Instance.Error($"tunnel {transport.Name} get remote {remoteMachineId} external ip fail ");
                                 break;
                             }
-                            Logger.Instance.Info($"tunnel {transport.Name} got remote external ip {remoteInfo.ToJson()}");
+                            LoggerHelper.Instance.Info($"tunnel {transport.Name} got remote external ip {remoteInfo.ToJson()}");
 
                             tunnelTransportInfo = new TunnelTransportInfo
                             {
@@ -150,9 +148,9 @@ namespace linker.tunnel
                         }
                         catch (Exception ex)
                         {
-                            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                             {
-                                Logger.Instance.Error(ex);
+                                LoggerHelper.Instance.Error(ex);
                             }
                         }
                     }
@@ -164,9 +162,9 @@ namespace linker.tunnel
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
             }
             finally
@@ -206,9 +204,9 @@ namespace linker.tunnel
             catch (Exception ex)
             {
                 connectingDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out _);
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
             }
         }
@@ -269,13 +267,13 @@ namespace linker.tunnel
 
         private void OnConnecting(TunnelTransportInfo tunnelTransportInfo)
         {
-            //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            Logger.Instance.Info($"tunnel connecting {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
+            //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            LoggerHelper.Instance.Info($"tunnel connecting {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
         }
         private void OnConnectBegin(TunnelTransportInfo tunnelTransportInfo)
         {
-            //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            Logger.Instance.Info($"tunnel connecting from {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
+            //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            LoggerHelper.Instance.Info($"tunnel connecting from {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
         }
 
         /// <summary>
@@ -284,8 +282,8 @@ namespace linker.tunnel
         /// <param name="connection"></param>
         private void _OnConnected(ITunnelConnection connection)
         {
-            //if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            Logger.Instance.Debug($"tunnel connect {connection.RemoteMachineId}->{connection.RemoteMachineName} success->{connection.IPEndPoint},{connection.ToJsonFormat()}");
+            //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            LoggerHelper.Instance.Debug($"tunnel connect {connection.RemoteMachineId}->{connection.RemoteMachineName} success->{connection.IPEndPoint},{connection.ToJsonFormat()}");
 
             //调用以下别人注册的回调
             if (OnConnected.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))
@@ -305,7 +303,7 @@ namespace linker.tunnel
         }
         private void OnConnectFail(TunnelTransportInfo tunnelTransportInfo)
         {
-            Logger.Instance.Error($"tunnel connect {tunnelTransportInfo.Remote.MachineId} fail->{tunnelTransportInfo.ToJsonFormat()}");
+            LoggerHelper.Instance.Error($"tunnel connect {tunnelTransportInfo.Remote.MachineId} fail->{tunnelTransportInfo.ToJsonFormat()}");
         }
 
         private void ParseRemoteEndPoint(TunnelTransportInfo tunnelTransportInfo)

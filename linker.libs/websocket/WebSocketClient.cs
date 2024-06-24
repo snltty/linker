@@ -1,11 +1,10 @@
-﻿using linker.libs;
-using linker.libs.extends;
+﻿using Linker.Libs.Extends;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 
-namespace linker.libs.websocket
+namespace Linker.Libs.Websocket
 {
     /// <summary>
     /// wensocket客户端
@@ -158,8 +157,8 @@ namespace linker.libs.websocket
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Error(ex);
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(ex);
                 OnConnectFail(ex.Message);
             }
         }
@@ -187,8 +186,8 @@ namespace linker.libs.websocket
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Error(ex);
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(ex);
             }
         }
         private void TargetProcessReceive()
@@ -232,8 +231,8 @@ namespace linker.libs.websocket
             catch (Exception ex)
             {
                 CloseClientSocket();
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Error(ex);
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(ex);
             }
         }
 

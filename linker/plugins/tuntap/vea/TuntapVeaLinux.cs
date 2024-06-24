@@ -1,10 +1,10 @@
-﻿using linker.libs;
-using linker.libs.extends;
+﻿using Linker.Libs;
+using Linker.Libs.Extends;
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Net;
 
-namespace linker.plugins.tuntap.vea
+namespace Linker.Plugins.Tuntap.Vea
 {
     public sealed class TuntapVeaLinux : ITuntapVea
     {
@@ -13,7 +13,7 @@ namespace linker.plugins.tuntap.vea
         private IPAddress ip;
 
         public bool Running => string.IsNullOrWhiteSpace(interfaceLinux) == false;
-        public string InterfaceName => "linker";
+        public string InterfaceName => "Linker";
 
         public TuntapVeaLinux()
         {
@@ -27,7 +27,7 @@ namespace linker.plugins.tuntap.vea
             if (str.Contains(InterfaceName) == false)
             {
                 string msg = CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap add mode tun dev {InterfaceName}" });
-                Logger.Instance.Error(msg);
+                LoggerHelper.Instance.Error(msg);
                 return false;
             }
 
@@ -35,16 +35,16 @@ namespace linker.plugins.tuntap.vea
             try
             {
                 string command = $" -device {InterfaceName} -proxy socks5://127.0.0.1:{proxyPort} -interface {interfaceLinux} -loglevel silent";
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Logger.Instance.Warning($"vea linux ->exec:{command}");
+                    LoggerHelper.Instance.Warning($"vea linux ->exec:{command}");
                 }
                 Tun2SocksProcess = CommandHelper.Execute("./plugins/tuntap/tun2socks", command);
                 await Task.Delay(10);
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex.Message);
+                LoggerHelper.Instance.Error(ex.Message);
                 return false;
             }
 
@@ -85,9 +85,9 @@ namespace linker.plugins.tuntap.vea
             }).ToArray();
             if (commands.Length > 0)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Logger.Instance.Warning($"vea linux ->add route:{string.Join(Environment.NewLine, commands)}");
+                    LoggerHelper.Instance.Warning($"vea linux ->add route:{string.Join(Environment.NewLine, commands)}");
                 }
                 CommandHelper.Linux(string.Empty, commands);
             }
@@ -99,9 +99,9 @@ namespace linker.plugins.tuntap.vea
                 return $"ip route del {string.Join(".", BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes())}/{item.MaskLength}";
             }).ToArray();
 
-            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
-                Logger.Instance.Warning($"vea linux ->del route:{string.Join(Environment.NewLine, commands)}");
+                LoggerHelper.Instance.Warning($"vea linux ->del route:{string.Join(Environment.NewLine, commands)}");
             }
             CommandHelper.Linux(string.Empty, commands);
         }

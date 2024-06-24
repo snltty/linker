@@ -1,7 +1,7 @@
 ﻿using MemoryPack;
 using System.Net;
 
-namespace linker.serializes
+namespace Linker.Serializes
 {
     /// <summary>
     /// MemoryPack 的 IPAddress序列化扩展

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
-namespace linker.plugins.sforward.config
+namespace Linker.Plugins.SForward.Config
 {
     public sealed class SForwardServerCahing : ISForwardServerCahing
     {

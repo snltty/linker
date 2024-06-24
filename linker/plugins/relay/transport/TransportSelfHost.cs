@@ -1,9 +1,9 @@
-﻿using linker.config;
-using linker.plugins.relay.messenger;
-using linker.server;
-using linker.tunnel.connection;
-using linker.libs;
-using linker.libs.extends;
+﻿using Linker.Config;
+using Linker.Plugins.Relay.Messenger;
+using Linker.Server;
+using Linker.Tunnel.Connection;
+using Linker.Libs;
+using Linker.Libs.Extends;
 using MemoryPack;
 using System.Buffers;
 using System.Net;
@@ -12,7 +12,7 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 
-namespace linker.plugins.relay.transport
+namespace Linker.Plugins.Relay.Transport
 {
     public sealed class TransportSelfHost : ITransport
     {
@@ -26,7 +26,7 @@ namespace linker.plugins.relay.transport
         private X509Certificate2 certificate;
 
 
-        public TransportSelfHost(TcpServer tcpServer, MessengerSender messengerSender, Config config)
+        public TransportSelfHost(TcpServer tcpServer, MessengerSender messengerSender, ConfigWrap config)
         {
             this.tcpServer = tcpServer;
             this.messengerSender = messengerSender;
@@ -92,9 +92,9 @@ namespace linker.plugins.relay.transport
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
             }
             return null;
@@ -153,9 +153,9 @@ namespace linker.plugins.relay.transport
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
             }
             return null;

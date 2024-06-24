@@ -1,8 +1,8 @@
-﻿using linker.libs.extends;
+﻿using Linker.Libs.Extends;
 using LiteDB;
 using System.Net;
 
-namespace linker.database
+namespace Linker.Store
 {
 
     /// <summary>

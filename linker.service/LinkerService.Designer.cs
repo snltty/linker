@@ -1,6 +1,6 @@
-﻿namespace linker.service
+﻿namespace Linker.Service
 {
-    partial class LinkService
+    partial class LinkerService
     {
         /// <summary> 
         /// 必需的设计器变量。

@@ -1,8 +1,8 @@
-﻿using linker.config;
+﻿using Linker.Config;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace linker.startup
+namespace Linker.Startup
 {
     public interface IStartup
     {
@@ -27,11 +27,11 @@ namespace linker.startup
         /// </summary>
         public StartupLoadType LoadType { get; }
 
-        public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies);
-        public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies);
+        public void AddClient(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies);
+        public void UseClient(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies);
 
-        public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies);
-        public void UseServer(ServiceProvider serviceProvider, Config config, Assembly[] assemblies);
+        public void AddServer(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies);
+        public void UseServer(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies);
     }
 
     public enum StartupLoadType

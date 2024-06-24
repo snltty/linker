@@ -1,9 +1,9 @@
-﻿using linker.config;
-using linker.startup;
+﻿using Linker.Config;
+using Linker.Startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace linker.plugins.connections
+namespace Linker.Plugins.Connections
 {
     public sealed class ConnectionsStartup : IStartup
     {
@@ -17,21 +17,21 @@ namespace linker.plugins.connections
 
         public StartupLoadType LoadType =>  StartupLoadType.Normal;
 
-        public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<ConnectionsApiController>();
         }
 
-        public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
         }
 
-        public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {
 
         }
 
-        public void UseServer(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {
         }
     }

@@ -1,8 +1,8 @@
-﻿using linker.libs;
+﻿using Linker.Libs;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace linker.server
+namespace Linker.Server
 {
     /// <summary>
     /// 消息处理总线
@@ -40,7 +40,7 @@ namespace linker.server
                 {
                     continue;
                 }
-                Logger.Instance.Warning($"load messenger:{type.Name}");
+                LoggerHelper.Instance.Warning($"load messenger:{type.Name}");
 
                 foreach (var method in type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
                 {
@@ -68,7 +68,7 @@ namespace linker.server
                         }
                         else
                         {
-                            Logger.Instance.Error($"{type.Name}->{method.Name}->{mid.Id} 消息id已存在");
+                            LoggerHelper.Instance.Error($"{type.Name}->{method.Name}->{mid.Id} 消息id已存在");
                         }
                     }
                 }
@@ -135,8 +135,8 @@ namespace linker.server
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Error(ex);
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(ex);
             }
             finally
             {

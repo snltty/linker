@@ -1,5 +1,5 @@
-﻿using linker.libs.extends;
-using linker.libs;
+﻿using Linker.Libs.Extends;
+using Linker.Libs;
 using System.Buffers;
 using System.Net.Quic;
 using System.Net;
@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Net.Sockets;
 
-namespace linker.tunnel.connection
+namespace Linker.Tunnel.Connection
 {
     /// <summary>
     /// msquic
@@ -98,9 +98,9 @@ namespace linker.tunnel.connection
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
             }
             finally
@@ -235,9 +235,9 @@ namespace linker.tunnel.connection
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
                 Dispose();
             }
@@ -250,7 +250,7 @@ namespace linker.tunnel.connection
 
         public void Dispose()
         {
-            Logger.Instance.Error($"tunnel connection writer offline {ToString()}");
+            LoggerHelper.Instance.Error($"tunnel connection writer offline {ToString()}");
 
             callback?.Closed(this, userToken);
             callback = null;

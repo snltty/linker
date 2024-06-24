@@ -1,13 +1,13 @@
-﻿using linker.client.capi;
-using linker.plugins.relay;
-using linker.tunnel;
-using linker.tunnel.connection;
-using linker.libs;
-using linker.libs.api;
-using linker.libs.extends;
+﻿using Linker.Client.Capi;
+using Linker.Plugins.Relay;
+using Linker.Tunnel;
+using Linker.Tunnel.Connection;
+using Linker.Libs;
+using Linker.Libs.Api;
+using Linker.Libs.Extends;
 using System.Collections.Concurrent;
 
-namespace linker.plugins.connections
+namespace Linker.Plugins.Connections
 {
     public sealed class ConnectionsApiController : IApiClientController
     {

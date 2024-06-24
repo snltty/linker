@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace linker.libs.winapis;
+namespace Linker.Libs.Winapis;
 
 // https://docs.microsoft.com/en-us/windows/win32/api/shlwapi/nf-shlwapi-isos
 public class Shlwapi

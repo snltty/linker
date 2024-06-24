@@ -1,10 +1,10 @@
-﻿using linker.config;
-using linker.startup;
+﻿using Linker.Config;
+using Linker.Startup;
 using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace linker.serializes
+namespace Linker.Serializes
 {
     /// <summary>
     /// MemoryPack 序列化扩展加载插件
@@ -17,24 +17,24 @@ namespace linker.serializes
         public string[] Dependent => Array.Empty<string>();
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
-        public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             MemoryPackFormatterProvider.Register(new IPEndPointFormatter());
             MemoryPackFormatterProvider.Register(new IPAddressFormatter());
         }
 
-        public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             MemoryPackFormatterProvider.Register(new IPEndPointFormatter());
             MemoryPackFormatterProvider.Register(new IPAddressFormatter());
         }
 
 
-        public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {
         }
 
-        public void UseServer(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {
         }
     }

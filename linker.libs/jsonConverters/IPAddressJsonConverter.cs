@@ -3,7 +3,7 @@ using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace linker.libs.jsonConverters
+namespace Linker.Libs.JsonConverters
 {
     public sealed class IPAddressJsonConverter : JsonConverter<IPAddress>
     {

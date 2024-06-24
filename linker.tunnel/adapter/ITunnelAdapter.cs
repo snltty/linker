@@ -1,9 +1,9 @@
-﻿using linker.tunnel.wanport;
-using linker.tunnel.transport;
+﻿using Linker.Tunnel.WanPort;
+using Linker.Tunnel.Transport;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 
-namespace linker.tunnel.adapter
+namespace Linker.Tunnel.Adapter
 {
     public interface ITunnelAdapter
     {
@@ -45,7 +45,7 @@ namespace linker.tunnel.adapter
         /// <returns></returns>
         public NetworkInfo GetLocalConfig();
         /// <summary>
-        /// 获取远端的外网信息，可以在远端调用  TunnelTransfer.GetWanPort() 发送回来
+        /// 获取远端的外网信息，比如你是A，你要获取B的信息，可以在B调用  TunnelTransfer.GetWanPort() 发送回来
         /// </summary>
         /// <param name="remoteMachineId"></param>
         /// <returns></returns>

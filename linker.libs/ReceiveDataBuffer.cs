@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace linker.libs
+namespace Linker.Libs
 {
     public sealed class ReceiveDataBuffer
     {

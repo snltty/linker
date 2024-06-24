@@ -1,9 +1,9 @@
-﻿using linker.config;
-using linker.startup;
+﻿using Linker.Config;
+using Linker.Startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace linker.database
+namespace Linker.Store
 {
     /// <summary>
     /// 持久化加载插件
@@ -17,17 +17,17 @@ namespace linker.database
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
         bool loaded = false;
-        public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             Add(serviceCollection, config, assemblies);
         }
 
-        public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             Add(serviceCollection, config, assemblies);
         }
 
-        private void Add(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        private void Add(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             if (loaded == false)
             {
@@ -36,11 +36,11 @@ namespace linker.database
             }
         }
 
-        public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {
         }
 
-        public void UseServer(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {
         }
     }

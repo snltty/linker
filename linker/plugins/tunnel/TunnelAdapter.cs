@@ -1,17 +1,17 @@
-﻿using linker.client;
-using linker.client.config;
-using linker.config;
-using linker.plugins.tunnel.messenger;
-using linker.server;
-using linker.tunnel.adapter;
-using linker.tunnel.transport;
-using linker.libs;
+﻿using Linker.Client;
+using Linker.Client.Config;
+using Linker.Config;
+using Linker.Plugins.Tunnel.Messenger;
+using Linker.Server;
+using Linker.Tunnel.Adapter;
+using Linker.Tunnel.Transport;
+using Linker.Libs;
 using MemoryPack;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
-using linker.tunnel.wanport;
+using Linker.Tunnel.WanPort;
 
-namespace linker.plugins.tunnel
+namespace Linker.Plugins.Tunnel
 {
     public sealed class TunnelAdapter : ITunnelAdapter
     {
@@ -21,10 +21,10 @@ namespace linker.plugins.tunnel
 
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
-        private readonly Config config;
+        private readonly ConfigWrap config;
         private readonly RunningConfig running;
 
-        public TunnelAdapter(ClientSignInState clientSignInState, MessengerSender messengerSender, Config config, RunningConfig running)
+        public TunnelAdapter(ClientSignInState clientSignInState, MessengerSender messengerSender, ConfigWrap config, RunningConfig running)
         {
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;

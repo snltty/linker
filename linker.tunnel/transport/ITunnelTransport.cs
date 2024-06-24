@@ -1,8 +1,7 @@
-﻿using linker.tunnel.connection;
+﻿using Linker.Tunnel.Connection;
 using System.Net;
-using System.Text.Json.Serialization;
 
-namespace linker.tunnel.transport
+namespace Linker.Tunnel.Transport
 {
     public interface ITunnelTransport
     {

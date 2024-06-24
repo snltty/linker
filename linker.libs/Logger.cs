@@ -3,12 +3,12 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace linker.libs
+namespace Linker.Libs
 {
-    public sealed class Logger
+    public sealed class LoggerHelper
     {
-        private static readonly Lazy<Logger> lazy = new Lazy<Logger>(() => new Logger());
-        public static Logger Instance => lazy.Value;
+        private static readonly Lazy<LoggerHelper> lazy = new Lazy<LoggerHelper>(() => new LoggerHelper());
+        public static LoggerHelper Instance => lazy.Value;
 
         private readonly ConcurrentQueue<LoggerModel> queue = new ConcurrentQueue<LoggerModel>();
         public Action<LoggerModel> OnLogger { get; set; } = (param) => { };
@@ -20,7 +20,7 @@ namespace linker.libs
         public LoggerTypes LoggerLevel { get; set; } = LoggerTypes.WARNING;
 #endif
 
-        private Logger()
+        private LoggerHelper()
         {
             Task.Factory.StartNew(async () =>
             {

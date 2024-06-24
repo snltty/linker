@@ -1,10 +1,10 @@
-﻿using linker.libs;
-using linker.libs.extends;
+﻿using Linker.Libs;
+using Linker.Libs.Extends;
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Net;
 
-namespace linker.plugins.tuntap.vea
+namespace Linker.Plugins.Tuntap.Vea
 {
     public sealed class TuntapVeaMacOs : ITuntapVea
     {
@@ -28,7 +28,7 @@ namespace linker.plugins.tuntap.vea
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex.Message);
+                LoggerHelper.Instance.Error(ex.Message);
                 return false;
             }
 

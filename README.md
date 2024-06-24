@@ -18,6 +18,8 @@
 [![star](https://gitee.com/snltty/linker/badge/star.svg?theme=dark)](https://gitee.com/snltty/linker/stargazers)
 [![fork](https://gitee.com/snltty/linker/badge/fork.svg?theme=dark)](https://gitee.com/snltty/linker/members)
 
+<a href="./Linker.Tunnel/README.md">Linker.Tunnel 打洞库说明，在你的项目集成</a>
+
 </div>
 
 ## 简单说明
@@ -31,7 +33,7 @@
 
 - [x] 打洞连接，客户端之间打洞连接，TCP打洞、MsQuic打洞 **tunnel**
     
-    1. 默认msquic.dll win11+ <a target="_blank" href="https://github.com/dotnet/runtime/tree/main/src/libraries/System.Net.Quic">官方库说明</a>，win10 请删除 msquic.dll，将 msquic-openssl.dll 更名为 msquic.dll
+    1. 默认msquic.dll win11+ <a target="_blank" href="https://github.com/dotnet/runtime/tree/main/src/libraries/System.Net.Quic">官方说明</a>，win10 请删除 msquic.dll，将 msquic-openssl.dll 更名为 msquic.dll
     2. linux 请按官方说明安装msquic
 
 - [x] 中继连接，客户端之间通过服务器转发连接 **relay**

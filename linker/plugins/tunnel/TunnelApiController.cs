@@ -1,31 +1,31 @@
-﻿using linker.client;
-using linker.client.capi;
-using linker.config;
-using linker.plugins.tunnel.messenger;
-using linker.server;
-using linker.tunnel.adapter;
-using linker.tunnel.transport;
-using linker.libs.api;
-using linker.libs.extends;
+﻿using Linker.Client;
+using Linker.Client.Capi;
+using Linker.Config;
+using Linker.Plugins.Tunnel.Messenger;
+using Linker.Server;
+using Linker.Tunnel.Adapter;
+using Linker.Tunnel.Transport;
+using Linker.Libs.Api;
+using Linker.Libs.Extends;
 using MemoryPack;
 using System.Collections.Concurrent;
-using linker.tunnel.wanport;
+using Linker.Tunnel.WanPort;
 
-namespace linker.plugins.tunnel
+namespace Linker.Plugins.Tunnel
 {
     /// <summary>
     /// 管理接口
     /// </summary>
     public sealed class TunnelApiController : IApiClientController
     {
-        private readonly Config config;
+        private readonly ConfigWrap config;
         private readonly TunnelWanPortTransfer compactTransfer;
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
         private readonly TunnelConfigTransfer tunnelConfigTransfer;
         private readonly ITunnelAdapter tunnelMessengerAdapter;
 
-        public TunnelApiController(Config config, TunnelWanPortTransfer compactTransfer, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelConfigTransfer tunnelConfigTransfer, ITunnelAdapter tunnelMessengerAdapter)
+        public TunnelApiController(ConfigWrap config, TunnelWanPortTransfer compactTransfer, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelConfigTransfer tunnelConfigTransfer, ITunnelAdapter tunnelMessengerAdapter)
         {
             this.config = config;
             this.compactTransfer = compactTransfer;

@@ -1,4 +1,4 @@
-﻿namespace linker.plugins.sforward.messenger
+﻿namespace Linker.Plugins.SForward.Messenger
 {
     public enum SForwardMessengerIds : ushort
     {

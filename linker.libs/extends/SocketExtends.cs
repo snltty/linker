@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
-namespace linker.libs.extends
+namespace Linker.Libs.Extends
 {
     public static class SocketExtends
     {

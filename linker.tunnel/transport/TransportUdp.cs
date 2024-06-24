@@ -1,12 +1,12 @@
-﻿using linker.tunnel.connection;
-using linker.libs;
-using linker.libs.extends;
+﻿using Linker.Tunnel.Connection;
+using Linker.Libs;
+using Linker.Libs.Extends;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace linker.tunnel.transport
+namespace Linker.Tunnel.Transport
 {
     public sealed class TransportUdp : ITunnelTransport
     {
@@ -96,9 +96,9 @@ namespace linker.tunnel.transport
         private async Task<ITunnelConnection> ConnectForward(TunnelTransportInfo tunnelTransportInfo)
         {
 
-            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
-                Logger.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", tunnelTransportInfo.RemoteEndPoints.Select(c => c.ToString()))}");
+                LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", tunnelTransportInfo.RemoteEndPoints.Select(c => c.ToString()))}");
             }
 
             IPEndPoint local = new IPEndPoint(tunnelTransportInfo.Local.Local.Address, tunnelTransportInfo.Local.Local.Port);
@@ -110,9 +110,9 @@ namespace linker.tunnel.transport
             {
                 try
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        Logger.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
+                        LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
                     }
                     if (ep.AddressFamily == AddressFamily.InterNetwork)
                     {
@@ -126,9 +126,9 @@ namespace linker.tunnel.transport
                 }
                 catch (Exception ex)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        Logger.Instance.Error(ex.Message);
+                        LoggerHelper.Instance.Error(ex.Message);
                     }
                 }
             }
@@ -166,9 +166,9 @@ namespace linker.tunnel.transport
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
             }
             try
@@ -267,9 +267,9 @@ namespace linker.tunnel.transport
             {
                 udpClient.Close();
                 udpClient6.Close();
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
             }
         }
@@ -299,9 +299,9 @@ namespace linker.tunnel.transport
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
             }
             finally
@@ -315,9 +315,9 @@ namespace linker.tunnel.transport
             {
                 try
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        Logger.Instance.Warning($"{Name} ttl to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ip}");
+                        LoggerHelper.Instance.Warning($"{Name} ttl to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ip}");
                     }
 
                     if (ip.AddressFamily == AddressFamily.InterNetwork)
@@ -341,9 +341,9 @@ namespace linker.tunnel.transport
                 }
                 catch (Exception ex)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        Logger.Instance.Error(ex.Message);
+                        LoggerHelper.Instance.Error(ex.Message);
                     }
                 }
                 finally
@@ -417,9 +417,9 @@ namespace linker.tunnel.transport
                 }
                 catch (Exception ex)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        Logger.Instance.Error(ex);
+                        LoggerHelper.Instance.Error(ex);
                     }
                 }
             }

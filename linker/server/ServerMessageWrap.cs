@@ -1,8 +1,8 @@
-﻿using linker.libs.extends;
+﻿using Linker.Libs.Extends;
 using System.Buffers;
 using System.ComponentModel;
 
-namespace linker.server
+namespace Linker.Server
 {
     /// <summary>
     /// 请求数据包

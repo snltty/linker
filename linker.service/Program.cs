@@ -1,6 +1,6 @@
 ﻿using System.ServiceProcess;
 
-namespace linker.service
+namespace Linker.Service
 {
     internal class Program
     {
@@ -15,7 +15,7 @@ namespace linker.service
                 ServiceBase[] ServicesToRun;
                 ServicesToRun = new ServiceBase[]
                 {
-                    new LinkService(args)
+                    new LinkerService(args)
                 };
                 ServiceBase.Run(ServicesToRun);
             }

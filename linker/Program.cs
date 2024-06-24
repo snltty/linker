@@ -1,10 +1,10 @@
-﻿using linker.libs;
+﻿using Linker.Libs;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using linker.startup;
-using linker.config;
+using Linker.Startup;
+using Linker.Config;
 
-namespace linker
+namespace Linker
 {
     internal class Program
     {
@@ -19,9 +19,9 @@ namespace linker
             Init();
 
             //初始化配置文件
-            Config config = new Config();
+            ConfigWrap config = new ConfigWrap();
 
-            Logger.Instance.Warning($"current version : {config.Data.Version}");
+            LoggerHelper.Instance.Warning($"current version : {config.Data.Version}");
 
 
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
@@ -47,7 +47,7 @@ namespace linker
             //全局异常
             AppDomain.CurrentDomain.UnhandledException += (a, b) =>
             {
-                Logger.Instance.Error(b.ExceptionObject + "");
+                LoggerHelper.Instance.Error(b.ExceptionObject + "");
             };
             //线程数
             ThreadPool.SetMinThreads(1024, 1024);
@@ -63,7 +63,7 @@ namespace linker
             {
                 Directory.CreateDirectory("logs");
             }
-            Logger.Instance.OnLogger += (model) =>
+            LoggerHelper.Instance.OnLogger += (model) =>
             {
                 ConsoleColor currentForeColor = Console.ForegroundColor;
                 switch (model.Type)

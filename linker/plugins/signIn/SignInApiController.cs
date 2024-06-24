@@ -1,26 +1,26 @@
-﻿using linker.config;
-using linker.plugins.signin.messenger;
-using linker.libs.api;
-using linker.libs.extends;
-using linker.client;
-using linker.server;
+﻿using Linker.Config;
+using Linker.Plugins.Signin.Messenger;
+using Linker.Libs.Api;
+using Linker.Libs.Extends;
+using Linker.Client;
+using Linker.Server;
 using MemoryPack;
-using linker.client.capi;
-using linker.client.config;
+using Linker.Client.Capi;
+using Linker.Client.Config;
 using System.Diagnostics;
-using linker.libs;
+using Linker.Libs;
 
-namespace linker.plugins.signin
+namespace Linker.Plugins.Signin
 {
     public sealed class SignInClientApiController : IApiClientController
     {
         private readonly RunningConfig runningConfig;
-        private readonly Config config;
+        private readonly ConfigWrap config;
         private readonly ClientSignInState clientSignInState;
         private readonly ClientSignInTransfer clientSignInTransfer;
         private readonly MessengerSender messengerSender;
 
-        public SignInClientApiController(RunningConfig runningConfig, Config config, ClientSignInState clientSignInState, ClientSignInTransfer clientSignInTransfer, MessengerSender messengerSender)
+        public SignInClientApiController(RunningConfig runningConfig, ConfigWrap config, ClientSignInState clientSignInState, ClientSignInTransfer clientSignInTransfer, MessengerSender messengerSender)
         {
             this.runningConfig = runningConfig;
             this.config = config;

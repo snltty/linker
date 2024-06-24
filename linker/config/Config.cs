@@ -1,11 +1,11 @@
-﻿using linker.libs;
-using linker.libs.extends;
+﻿using Linker.Libs;
+using Linker.Libs.Extends;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
-namespace linker.config
+namespace Linker.Config
 {
-    public sealed class Config
+    public sealed class ConfigWrap
     {
         private SemaphoreSlim slim = new SemaphoreSlim(1);
         private string configPath = "./configs/";
@@ -14,7 +14,7 @@ namespace linker.config
 
         public ConfigInfo Data { get; private set; } = new ConfigInfo();
 
-        public Config()
+        public ConfigWrap()
         {
             Init();
             Load();
@@ -70,7 +70,7 @@ namespace linker.config
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                LoggerHelper.Instance.Error(ex);
             }
             finally
             {
@@ -98,7 +98,7 @@ namespace linker.config
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                LoggerHelper.Instance.Error(ex);
             }
             finally
             {
@@ -149,7 +149,7 @@ namespace linker.config
             get => loggerType; set
             {
                 loggerType = value;
-                Logger.Instance.LoggerLevel = value;
+                LoggerHelper.Instance.LoggerLevel = value;
             }
         }
         public int LoggerSize { get; set; } = 100;

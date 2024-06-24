@@ -1,5 +1,5 @@
-﻿using linker.libs;
-using linker.libs.extends;
+﻿using Linker.Libs;
+using Linker.Libs.Extends;
 using System.Buffers;
 using System.Net.Security;
 using System.Net;
@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 using System.Text;
 using System.Net.Sockets;
 
-namespace linker.tunnel.connection
+namespace Linker.Tunnel.Connection
 {
     public sealed class TunnelConnectionTcp : ITunnelConnection
     {
@@ -109,9 +109,9 @@ namespace linker.tunnel.connection
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
             }
             finally
@@ -264,9 +264,9 @@ namespace linker.tunnel.connection
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
                 Dispose();
             }
@@ -280,7 +280,7 @@ namespace linker.tunnel.connection
 
         public void Dispose()
         {
-            Logger.Instance.Error($"tunnel connection {this.GetHashCode()} writer offline {ToString()}");
+            LoggerHelper.Instance.Error($"tunnel connection {this.GetHashCode()} writer offline {ToString()}");
 
             callback?.Closed(this, userToken);
             callback = null;

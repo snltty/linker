@@ -1,9 +1,9 @@
-﻿using linker.tunnel.adapter;
-using linker.libs;
+﻿using Linker.Tunnel.Adapter;
+using Linker.Libs;
 using System.Diagnostics;
 using System.Net;
 
-namespace linker.tunnel.wanport
+namespace Linker.Tunnel.WanPort
 {
     /// <summary>
     /// 外网端口协议
@@ -26,7 +26,7 @@ namespace linker.tunnel.wanport
 
             this.tunnelAdapter = tunnelAdapter;
             this.tunnelWanPorts = tunnelWanPorts;
-            Logger.Instance.Warning($"load tunnel wanport compacts:{string.Join(",", tunnelWanPorts.Select(c => c.Name))}");
+            LoggerHelper.Instance.Warning($"load tunnel wanport compacts:{string.Join(",", tunnelWanPorts.Select(c => c.Name))}");
         }
 
         public List<TunnelWanPortTypeInfo> GetTypes()
@@ -56,7 +56,7 @@ namespace linker.tunnel.wanport
                     sw.Stop();
                     if (sw.ElapsedMilliseconds > 1000)
                     {
-                        Logger.Instance.Warning($"get domain ip time:{sw.ElapsedMilliseconds}ms");
+                        LoggerHelper.Instance.Warning($"get domain ip time:{sw.ElapsedMilliseconds}ms");
                     }
                     TunnelWanPortEndPoint WanPort = await tunnelWanPort.GetAsync(server);
                     if (WanPort != null)
@@ -67,7 +67,7 @@ namespace linker.tunnel.wanport
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
             }
             return null;

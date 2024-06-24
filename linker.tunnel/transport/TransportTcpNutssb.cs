@@ -1,7 +1,7 @@
-﻿using linker.tunnel.adapter;
-using linker.tunnel.connection;
-using linker.libs;
-using linker.libs.extends;
+﻿using Linker.Tunnel.Adapter;
+using Linker.Tunnel.Connection;
+using Linker.Libs;
+using Linker.Libs.Extends;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Security;
@@ -9,7 +9,7 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 
-namespace linker.tunnel.transport
+namespace Linker.Tunnel.Transport
 {
     public sealed class TunnelTransportTcpNutssb : ITunnelTransport
     {
@@ -93,7 +93,7 @@ namespace linker.tunnel.transport
         {
             if (tunnelTransportInfo.SSL && tunnelAdapter.Certificate == null)
             {
-                Logger.Instance.Error($"{Name}->ssl Certificate not found");
+                LoggerHelper.Instance.Error($"{Name}->ssl Certificate not found");
                 await OnSendConnectSuccess(tunnelTransportInfo);
                 return;
             }
@@ -140,9 +140,9 @@ namespace linker.tunnel.transport
 
         private async Task<ITunnelConnection> ConnectForward(TunnelTransportInfo tunnelTransportInfo)
         {
-            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
-                Logger.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", tunnelTransportInfo.RemoteEndPoints.Select(c => c.ToString()))}");
+                LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", tunnelTransportInfo.RemoteEndPoints.Select(c => c.ToString()))}");
             }
 
             foreach (IPEndPoint ep in tunnelTransportInfo.RemoteEndPoints)
@@ -155,9 +155,9 @@ namespace linker.tunnel.transport
                     targetSocket.KeepAlive();
                     targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
 
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        Logger.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
+                        LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
                     }
                     await targetSocket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(ep.Address.Equals(tunnelTransportInfo.Remote.Remote.Address) ? 500 : 100));
 
@@ -254,7 +254,7 @@ namespace linker.tunnel.transport
                     {
                         if (tunnelAdapter.Certificate == null)
                         {
-                            Logger.Instance.Error($"{Name}-> ssl Certificate not found");
+                            LoggerHelper.Instance.Error($"{Name}-> ssl Certificate not found");
                             socket.SafeClose();
                             return;
                         }
@@ -289,9 +289,9 @@ namespace linker.tunnel.transport
                 }
                 catch (Exception ex)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        Logger.Instance.Error(ex);
+                        LoggerHelper.Instance.Error(ex);
                     }
                 }
             }

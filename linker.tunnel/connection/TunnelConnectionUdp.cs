@@ -1,12 +1,12 @@
-﻿using linker.libs.extends;
-using linker.libs;
+﻿using Linker.Libs.Extends;
+using Linker.Libs;
 using System.Buffers;
 using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Net.Sockets;
 
-namespace linker.tunnel.connection
+namespace Linker.Tunnel.Connection
 {
     public sealed class TunnelConnectionUdp : ITunnelConnection
     {
@@ -83,16 +83,16 @@ namespace linker.tunnel.connection
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
             }
             finally
             {
                 ArrayPool<byte>.Shared.Return(buffer);
                 Dispose();
-                Logger.Instance.Error($"tunnel connection writer offline {ToString()}");
+                LoggerHelper.Instance.Error($"tunnel connection writer offline {ToString()}");
             }
         }
         private async Task CallbackPacket(Memory<byte> packet)
@@ -181,9 +181,9 @@ namespace linker.tunnel.connection
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
             }
             finally

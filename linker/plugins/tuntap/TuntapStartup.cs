@@ -1,12 +1,12 @@
-﻿using linker.config;
-using linker.plugins.tuntap.messenger;
-using linker.plugins.tuntap.proxy;
-using linker.plugins.tuntap.vea;
-using linker.startup;
+﻿using Linker.Config;
+using Linker.Plugins.Tuntap.Messenger;
+using Linker.Plugins.Tuntap.Proxy;
+using Linker.Plugins.Tuntap.Vea;
+using Linker.Startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace linker.plugins.tuntap
+namespace Linker.Plugins.Tuntap
 {
     /// <summary>
     /// 虚拟网卡组网插件
@@ -21,7 +21,7 @@ namespace linker.plugins.tuntap
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
 
-        public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             //不同平台下的虚拟网卡
             if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<ITuntapVea, TuntapVeaWindows>();
@@ -35,18 +35,18 @@ namespace linker.plugins.tuntap
             serviceCollection.AddSingleton<TuntapClientMessenger>();
         }
 
-        public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<TuntapServerMessenger>();
         }
 
-        public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {
             TuntapProxy tuntapProxy = serviceProvider.GetService<TuntapProxy>();
             TuntapTransfer tuntapTransfer = serviceProvider.GetService<TuntapTransfer>();
         }
 
-        public void UseServer(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {
         }
     }

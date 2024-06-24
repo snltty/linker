@@ -1,12 +1,12 @@
-﻿using linker.libs;
-using linker.libs.extends;
+﻿using Linker.Libs;
+using Linker.Libs.Extends;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace linker.plugins.sforward
+namespace Linker.Plugins.SForward.Proxy
 {
     public partial class SForwardProxy
     {
@@ -55,7 +55,7 @@ namespace linker.plugins.sforward
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                LoggerHelper.Instance.Error(ex);
                 token.Clear();
             }
         }
@@ -94,7 +94,7 @@ namespace linker.plugins.sforward
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                LoggerHelper.Instance.Error(ex);
             }
         }
         private async Task BindReceive(AsyncUserToken token)
@@ -222,9 +222,9 @@ namespace linker.plugins.sforward
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
             }
         }

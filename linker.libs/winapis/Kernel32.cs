@@ -4,7 +4,7 @@ using System.Net;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 
-namespace linker.libs.winapis;
+namespace Linker.Libs.Winapis;
 
 public static unsafe class Kernel32
 {

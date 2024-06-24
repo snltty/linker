@@ -1,11 +1,11 @@
-﻿using linker.client.capi;
-using linker.config;
-using linker.libs;
-using linker.libs.api;
+﻿using Linker.Client.Capi;
+using Linker.Config;
+using Linker.Libs;
+using Linker.Libs.Api;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace linker.plugins.capi
+namespace Linker.Plugins.Capi
 {
     /// <summary>
     /// 前段接口服务
@@ -13,9 +13,9 @@ namespace linker.plugins.capi
     public sealed class ApiClientServer : ApiServer, IApiClientServer
     {
         private readonly ServiceProvider serviceProvider;
-        private readonly Config config;
+        private readonly ConfigWrap config;
 
-        public ApiClientServer(ServiceProvider serviceProvider, Config config)
+        public ApiClientServer(ServiceProvider serviceProvider, ConfigWrap config)
         {
             this.serviceProvider = serviceProvider;
             this.config = config;
@@ -38,7 +38,7 @@ namespace linker.plugins.capi
                 {
                     continue;
                 }
-                Logger.Instance.Warning($"load client api:{item.Name}");
+                LoggerHelper.Instance.Warning($"load client api:{item.Name}");
 
                 string path = item.Name.Replace("ApiController", "").Replace("ApiController", "");
                 foreach (MethodInfo method in item.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))

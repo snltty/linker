@@ -1,11 +1,11 @@
-﻿using linker.libs;
+﻿using Linker.Libs;
 using LiteDB;
 using MemoryPack;
 using System.Net;
 using System.Text.Json.Serialization;
 
 
-namespace linker.client.config
+namespace Linker.Client.Config
 {
     public sealed partial class RunningConfigInfo
     {
@@ -32,7 +32,7 @@ namespace linker.client.config
 
 }
 
-namespace linker.config
+namespace Linker.Config
 {
     public partial class ConfigServerInfo
     {
@@ -50,7 +50,7 @@ namespace linker.config
 
 }
 
-namespace linker.plugins.sforward.config
+namespace Linker.Plugins.SForward.Config
 {
     [MemoryPackable]
     public sealed partial class SForwardAddInfo

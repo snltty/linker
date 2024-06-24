@@ -1,12 +1,12 @@
-﻿using linker.libs;
-using linker.libs.extends;
+﻿using Linker.Libs;
+using Linker.Libs.Extends;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 
-namespace linker.server
+namespace Linker.Server
 {
     public sealed class TcpServer
     {
@@ -31,7 +31,7 @@ namespace linker.server
             }
             else
             {
-                Logger.Instance.Error($"file {path} not found");
+                LoggerHelper.Instance.Error($"file {path} not found");
                 Environment.Exit(0);
             }
         }
@@ -160,8 +160,8 @@ namespace linker.server
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Error(ex);
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(ex);
             }
             return null;
         }
@@ -194,8 +194,8 @@ namespace linker.server
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Error(ex);
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(ex);
             }
             return null;
         }

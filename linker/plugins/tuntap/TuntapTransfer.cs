@@ -1,25 +1,25 @@
-﻿using linker.client;
-using linker.client.config;
-using linker.config;
-using linker.plugins.tuntap.messenger;
-using linker.plugins.tuntap.proxy;
-using linker.plugins.tuntap.vea;
-using linker.server;
-using linker.libs;
+﻿using Linker.Client;
+using Linker.Client.Config;
+using Linker.Config;
+using Linker.Plugins.Tuntap.Messenger;
+using Linker.Plugins.Tuntap.Proxy;
+using Linker.Plugins.Tuntap.Vea;
+using Linker.Server;
+using Linker.Libs;
 using MemoryPack;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.NetworkInformation;
 
-namespace linker.plugins.tuntap
+namespace Linker.Plugins.Tuntap
 {
     public sealed class TuntapTransfer
     {
         private readonly MessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
         private readonly ITuntapVea tuntapVea;
-        private readonly Config config;
+        private readonly ConfigWrap config;
         private readonly TuntapProxy tuntapProxy;
         private readonly RunningConfig runningConfig;
 
@@ -32,7 +32,7 @@ namespace linker.plugins.tuntap
         private bool starting = false;
         public TuntapStatus Status => tuntapVea.Running ? TuntapStatus.Running : (starting ? TuntapStatus.Starting : TuntapStatus.Normal);
 
-        public TuntapTransfer(MessengerSender messengerSender, ClientSignInState clientSignInState, ITuntapVea tuntapVea, Config config, TuntapProxy tuntapProxy, RunningConfig runningConfig)
+        public TuntapTransfer(MessengerSender messengerSender, ClientSignInState clientSignInState, ITuntapVea tuntapVea, ConfigWrap config, TuntapProxy tuntapProxy, RunningConfig runningConfig)
         {
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
@@ -89,7 +89,7 @@ namespace linker.plugins.tuntap
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
                 finally
                 {
@@ -116,9 +116,9 @@ namespace linker.plugins.tuntap
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
             }
             finally

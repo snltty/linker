@@ -16,4 +16,4 @@ COPY . .
 
 
 
-ENTRYPOINT ["./linker.run"]
+ENTRYPOINT ["./Linker.run"]

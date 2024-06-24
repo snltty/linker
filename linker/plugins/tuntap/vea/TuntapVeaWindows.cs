@@ -1,10 +1,10 @@
-﻿using linker.libs;
-using linker.libs.extends;
+﻿using Linker.Libs;
+using Linker.Libs.Extends;
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Net;
 
-namespace linker.plugins.tuntap.vea
+namespace Linker.Plugins.Tuntap.Vea
 {
     public sealed class TuntapVeaWindows : ITuntapVea
     {
@@ -12,7 +12,7 @@ namespace linker.plugins.tuntap.vea
         private Process Tun2SocksProcess;
 
         public bool Running => interfaceNumber > 0;
-        public string InterfaceName => "linker";
+        public string InterfaceName => "Linker";
 
         public TuntapVeaWindows()
         {
@@ -21,9 +21,9 @@ namespace linker.plugins.tuntap.vea
         public async Task<bool> Run(int proxyPort, IPAddress ip)
         {
             string command = $" -device {InterfaceName} -proxy socks5://127.0.0.1:{proxyPort} -loglevel silent";
-            if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
-                Logger.Instance.Warning($"vea windows ->exec:{command}");
+                LoggerHelper.Instance.Warning($"vea windows ->exec:{command}");
             }
             try
             {
@@ -37,18 +37,18 @@ namespace linker.plugins.tuntap.vea
                     }
                     if (GetWindowsHasInterface(InterfaceName) == false)
                     {
-                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         {
-                            Logger.Instance.Warning($"vea windows ->interface not dound");
+                            LoggerHelper.Instance.Warning($"vea windows ->interface not dound");
                         }
                         continue;
                     }
                     interfaceNumber = GetWindowsInterfaceNum();
                     if (interfaceNumber == 0)
                     {
-                        if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         {
-                            Logger.Instance.Warning($"vea windows ->interface num not dound");
+                            LoggerHelper.Instance.Warning($"vea windows ->interface num not dound");
                         }
                         continue;
                     }
@@ -58,13 +58,13 @@ namespace linker.plugins.tuntap.vea
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                LoggerHelper.Instance.Error(ex);
             }
 
             if (interfaceNumber <= 0)
             {
                 string msg = CommandHelper.Execute("./plugins/tuntap/tun2socks.exe", command, Array.Empty<string>());
-                Logger.Instance.Error(msg);
+                LoggerHelper.Instance.Error(msg);
             }
 
             return interfaceNumber > 0;
@@ -80,9 +80,9 @@ namespace linker.plugins.tuntap.vea
                     {
                         return true;
                     }
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        Logger.Instance.Error($"vea windows ->set ip fail");
+                        LoggerHelper.Instance.Error($"vea windows ->set ip fail");
                     }
                     await Task.Delay(500);
                 }
@@ -128,9 +128,9 @@ namespace linker.plugins.tuntap.vea
                 }).ToArray();
                 if (commands.Length > 0)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        Logger.Instance.Warning($"vea windows ->add route:{string.Join(Environment.NewLine, commands)}");
+                        LoggerHelper.Instance.Warning($"vea windows ->add route:{string.Join(Environment.NewLine, commands)}");
                     }
                     CommandHelper.Windows(string.Empty, commands);
                 }
@@ -143,9 +143,9 @@ namespace linker.plugins.tuntap.vea
                 string[] commands = ip.Where(c => c.IPAddress > 0).Select(item => $"route delete {string.Join(".", BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes())}").ToArray();
                 if (commands.Length > 0)
                 {
-                    if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        Logger.Instance.Warning($"vea windows ->del route:{string.Join(Environment.NewLine, commands)}");
+                        LoggerHelper.Instance.Warning($"vea windows ->del route:{string.Join(Environment.NewLine, commands)}");
                     }
                     CommandHelper.Windows(string.Empty, commands.ToArray());
                 }

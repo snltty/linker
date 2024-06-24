@@ -1,20 +1,20 @@
-﻿using linker.libs.extends;
-using linker.libs.api;
-using linker.libs;
-using linker.config;
-using linker.client.capi;
+﻿using Linker.Libs.Extends;
+using Linker.Libs.Api;
+using Linker.Libs;
+using Linker.Config;
+using Linker.Client.Capi;
 
-namespace linker.plugins.logger
+namespace Linker.Plugins.Logger
 {
     public sealed class LoggerClientApiController : IApiClientController
     {
         private readonly List<LoggerModel> loggers = new List<LoggerModel>();
 
-        private readonly Config config;
-        public LoggerClientApiController(Config config)
+        private readonly ConfigWrap config;
+        public LoggerClientApiController(ConfigWrap config)
         {
             this.config = config;
-            Logger.Instance.OnLogger += (LoggerModel logger) =>
+            LoggerHelper.Instance.OnLogger += (LoggerModel logger) =>
             {
                 loggers.Add(logger);
                 if (loggers.Count > config.Data.Common.LoggerSize)

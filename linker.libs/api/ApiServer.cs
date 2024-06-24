@@ -1,5 +1,5 @@
-﻿using linker.libs.extends;
-using linker.libs.websocket;
+﻿using Linker.Libs.Extends;
+using Linker.Libs.Websocket;
 using System;
 using System.Buffers;
 using System.Collections.Concurrent;
@@ -11,7 +11,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace linker.libs.api
+namespace Linker.Libs.Api
 {
     /// <summary>
     /// 前段接口服务
@@ -42,7 +42,7 @@ namespace linker.libs.api
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                LoggerHelper.Instance.Error(ex);
             }
             server.OnConnecting = (connection, header) =>
             {
@@ -134,7 +134,7 @@ namespace linker.libs.api
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                LoggerHelper.Instance.Error(ex);
                 return new ApiControllerResponseInfo
                 {
                     Content = ex.Message,
@@ -175,7 +175,7 @@ namespace linker.libs.api
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(ex);
                 }
             }
         }
@@ -222,7 +222,7 @@ namespace linker.libs.api
                 }
                 catch (Exception)
                 {
-                    //Logger.Instance.Error(ex);
+                    //LoggerHelper.Instance.Error(ex);
                 }
             }
         }
@@ -251,7 +251,7 @@ namespace linker.libs.api
             }
             catch (Exception)
             {
-                //Logger.Instance.Error(ex);
+                //LoggerHelper.Instance.Error(ex);
             }
         }
     }

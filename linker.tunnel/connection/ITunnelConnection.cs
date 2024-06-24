@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace linker.tunnel.connection
+namespace Linker.Tunnel.Connection
 {
     /// <summary>
     /// 隧道协议

@@ -1,9 +1,9 @@
-﻿using linker.database;
-using linker.libs;
+﻿using Linker.Store;
+using Linker.Libs;
 using LiteDB;
 using System.Text.Json.Serialization;
 
-namespace linker.client.config
+namespace Linker.Client.Config
 {
     public sealed class RunningConfig
     {
@@ -33,7 +33,7 @@ namespace linker.client.config
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                LoggerHelper.Instance.Error(ex);
             }
             finally
             {
@@ -78,7 +78,7 @@ namespace linker.client.config
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error(ex);
+                LoggerHelper.Instance.Error(ex);
             }
             finally
             {

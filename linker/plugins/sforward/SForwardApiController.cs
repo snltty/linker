@@ -1,13 +1,13 @@
-﻿using linker.libs.api;
-using linker.libs.extends;
-using linker.client.capi;
-using linker.client.config;
-using linker.server;
-using linker.client;
-using linker.plugins.sforward.messenger;
+﻿using Linker.Libs.Api;
+using Linker.Libs.Extends;
+using Linker.Client.Capi;
+using Linker.Client.Config;
+using Linker.Server;
+using Linker.Client;
+using Linker.Plugins.SForward.Messenger;
 using MemoryPack;
 
-namespace linker.plugins.sforward
+namespace Linker.Plugins.SForward
 {
     public sealed class SForwardClientApiController : IApiClientController
     {

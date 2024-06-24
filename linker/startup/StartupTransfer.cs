@@ -1,9 +1,9 @@
-﻿using linker.config;
-using linker.libs;
+﻿using Linker.Config;
+using Linker.Libs;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace linker.startup
+namespace Linker.Startup
 {
     public static class StartupTransfer
     {
@@ -13,7 +13,7 @@ namespace linker.startup
         /// </summary>
         /// <param name="config"></param>
         /// <param name="assemblies"></param>
-        public static void Init(Config config, Assembly[] assemblies)
+        public static void Init(ConfigWrap config, Assembly[] assemblies)
         {
             var types = ReflectionHelper.GetInterfaceSchieves(assemblies, typeof(IStartup));
             List<IStartup> temps = types.Select(c => Activator.CreateInstance(c) as IStartup).OrderByDescending(c => c.Level).ToList();
@@ -32,7 +32,7 @@ namespace linker.startup
                 IEnumerable<string> excepts = item.Dependent.Except(names);
                 if (excepts.Any())
                 {
-                    Logger.Instance.Error($"【{item.Name}】dependent by {string.Join(",", excepts)}，but it not exists");
+                    LoggerHelper.Instance.Error($"【{item.Name}】dependent by {string.Join(",", excepts)}，but it not exists");
                 }
             }
         }
@@ -41,7 +41,7 @@ namespace linker.startup
         /// </summary>
         /// <param name="config"></param>
         /// <param name="temps"></param>
-        private static void LoadPlugins(Config config, List<IStartup> temps)
+        private static void LoadPlugins(ConfigWrap config, List<IStartup> temps)
         {
             //只要哪些
             if (config.Data.Common.IncludePlugins.Length > 0)
@@ -59,7 +59,7 @@ namespace linker.startup
 
             config.Data.Common.Plugins = startups.Select(c => c.Name).ToArray();
 
-            Logger.Instance.Warning($"load startup : {string.Join(",", startups.Select(c => c.Name))}");
+            LoggerHelper.Instance.Warning($"load startup : {string.Join(",", startups.Select(c => c.Name))}");
         }
         /// <summary>
         /// 加载插件依赖
@@ -84,7 +84,7 @@ namespace linker.startup
         /// <param name="serviceCollection"></param>
         /// <param name="config"></param>
         /// <param name="assemblies"></param>
-        public static void Add(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
+        public static void Add(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             foreach (var startup in startups)
             {
@@ -101,7 +101,7 @@ namespace linker.startup
         /// <param name="serviceProvider"></param>
         /// <param name="config"></param>
         /// <param name="assemblies"></param>
-        public static void Use(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
+        public static void Use(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {
             foreach (var startup in startups)
             {

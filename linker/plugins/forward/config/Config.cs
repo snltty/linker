@@ -2,7 +2,7 @@
 using System.Net;
 using System.Text.Json.Serialization;
 
-namespace linker.client.config
+namespace Linker.Client.Config
 {
     public sealed partial class RunningConfigInfo
     {

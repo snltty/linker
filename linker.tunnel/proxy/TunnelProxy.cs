@@ -1,11 +1,11 @@
-﻿using linker.tunnel.connection;
-using linker.libs;
-using linker.libs.extends;
+﻿using Linker.Tunnel.Connection;
+using Linker.Libs;
+using Linker.Libs.Extends;
 using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
 
-namespace linker.tunnel.proxy
+namespace Linker.Tunnel.Proxy
 {
     public partial class TunnelProxy : ITunnelConnectionReceiveCallback
     {
@@ -67,8 +67,8 @@ namespace linker.tunnel.proxy
             }
             catch (Exception ex)
             {
-                if (Logger.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    Logger.Instance.Error(ex);
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(ex);
             }
             await Task.CompletedTask;
         }

@@ -6,7 +6,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 
-namespace linker.libs
+namespace Linker.Libs
 {
     public static class NetworkHelper
     {
