@@ -1,9 +1,9 @@
-﻿using Linker.Config;
-using Linker.Libs;
+﻿using linker.config;
+using linker.libs;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace Linker.Client.Args
+namespace linker.client.args
 {
     public sealed class SignInArgsTransfer
     {

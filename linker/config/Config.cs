@@ -1,9 +1,9 @@
-﻿using Linker.Libs;
-using Linker.Libs.Extends;
+﻿using linker.libs;
+using linker.libs.extends;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
-namespace Linker.Config
+namespace linker.config
 {
     public sealed class ConfigWrap
     {

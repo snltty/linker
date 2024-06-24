@@ -1,4 +1,4 @@
-﻿namespace Linker.Plugins.SForward.Config
+﻿namespace linker.plugins.sforward.config
 {
     public interface ISForwardServerCahing
     {

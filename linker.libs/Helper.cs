@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Linker.Libs
+namespace linker.libs
 {
     public static class Helper
     {

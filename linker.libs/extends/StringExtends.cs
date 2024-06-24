@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Unicode;
 
-namespace Linker.Libs.Extends
+namespace linker.libs.extends
 {
     /// <summary>
     /// |               Method |       Mean |     Error |     StdDev |     Median | Rank |   Gen0 | Allocated |

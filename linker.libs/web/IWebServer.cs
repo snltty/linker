@@ -1,4 +1,4 @@
-﻿namespace Linker.Libs.Web
+﻿namespace linker.libs.web
 {
     /// <summary>
     /// web服务

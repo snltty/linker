@@ -1,9 +1,9 @@
-﻿using Linker.Client;
-using Linker.Client.Config;
-using Linker.Libs;
-using Linker.Plugins.Forward.Proxy;
+﻿using linker.client;
+using linker.client.config;
+using linker.libs;
+using linker.plugins.forward.proxy;
 
-namespace Linker.Plugins.Forward
+namespace linker.plugins.forward
 {
     public sealed class ForwardTransfer
     {

@@ -4,7 +4,7 @@ using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace Linker.Libs.Web
+namespace linker.libs.web
 {
     /// <summary>
     /// 本地web管理端服务器

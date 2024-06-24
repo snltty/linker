@@ -1,8 +1,8 @@
-﻿using Linker.Plugins.Tuntap.Config;
+﻿using linker.plugins.tuntap.config;
 using System.Buffers.Binary;
 using System.Net;
 
-namespace Linker.Plugins.Tuntap.Config
+namespace linker.plugins.tuntap.config
 {
     public sealed class TuntapConfigInfo
     {
@@ -30,7 +30,7 @@ namespace Linker.Plugins.Tuntap.Config
 }
 
 
-namespace Linker.Client.Config
+namespace linker.client.config
 {
     public sealed partial class RunningConfigInfo
     {

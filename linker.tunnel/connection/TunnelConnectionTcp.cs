@@ -1,5 +1,5 @@
-﻿using Linker.Libs;
-using Linker.Libs.Extends;
+﻿using linker.libs;
+using linker.libs.extends;
 using System.Buffers;
 using System.Net.Security;
 using System.Net;
@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 using System.Text;
 using System.Net.Sockets;
 
-namespace Linker.Tunnel.Connection
+namespace linker.tunnel.connection
 {
     public sealed class TunnelConnectionTcp : ITunnelConnection
     {

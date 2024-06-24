@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Linker.Libs.Winapis;
+namespace linker.libs.winapis;
 
 public static class GDI32
 {

@@ -1,14 +1,14 @@
-﻿using Linker.Tunnel.Connection;
-using Linker.Tunnel.WanPort;
-using Linker.Tunnel.Transport;
-using Linker.Tunnel.WanPort;
+﻿using linker.tunnel.connection;
+using linker.tunnel.wanport;
+using linker.tunnel.transport;
+using linker.tunnel.wanport;
 using LiteDB;
 using MemoryPack;
 using System.Net;
 using System.Text.Json.Serialization;
 
 
-namespace Linker.Client.Config
+namespace linker.client.config
 {
     public sealed partial class RunningConfigInfo
     {
@@ -25,7 +25,7 @@ namespace Linker.Client.Config
     }
 }
 
-namespace Linker.Config
+namespace linker.config
 {
     public partial class ConfigClientInfo
     {

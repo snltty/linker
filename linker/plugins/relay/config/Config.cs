@@ -1,10 +1,10 @@
-﻿using Linker.Config;
+﻿using linker.config;
 using LiteDB;
 using MemoryPack;
 using System.Diagnostics.CodeAnalysis;
 
 
-namespace Linker.Client.Config
+namespace linker.client.config
 {
     public sealed partial class RunningConfigInfo
     {
@@ -19,7 +19,7 @@ namespace Linker.Client.Config
 }
 
 
-namespace Linker.Config
+namespace linker.config
 {
     public partial class ConfigServerInfo
     {
@@ -36,7 +36,7 @@ namespace Linker.Config
     public sealed partial class RelayCompactInfo
     {
         public string Name { get; set; } = string.Empty;
-        public RelayCompactType Type { get; set; } = RelayCompactType.Linker;
+        public RelayCompactType Type { get; set; } = RelayCompactType.linker;
         public string SecretKey { get; set; } = "snltty";
         public string Host { get; set; } = string.Empty;
         public bool Disabled { get; set; }
@@ -45,7 +45,7 @@ namespace Linker.Config
 
     public enum RelayCompactType : byte
     {
-        Linker = 0,
+        linker = 0,
     }
 
     public sealed class RelayCompactTypeInfo

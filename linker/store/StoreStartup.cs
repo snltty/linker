@@ -1,9 +1,9 @@
-﻿using Linker.Config;
-using Linker.Startup;
+﻿using linker.config;
+using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace Linker.Store
+namespace linker.store
 {
     /// <summary>
     /// 持久化加载插件

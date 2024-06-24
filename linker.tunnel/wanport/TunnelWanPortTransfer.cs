@@ -1,9 +1,9 @@
-﻿using Linker.Tunnel.Adapter;
-using Linker.Libs;
+﻿using linker.tunnel.adapter;
+using linker.libs;
 using System.Diagnostics;
 using System.Net;
 
-namespace Linker.Tunnel.WanPort
+namespace linker.tunnel.wanport
 {
     /// <summary>
     /// 外网端口协议

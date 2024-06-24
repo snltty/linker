@@ -1,14 +1,14 @@
-﻿using Linker.Config;
-using Linker.Plugins.Relay;
-using Linker.Tunnel;
-using Linker.Tunnel.Connection;
-using Linker.Tunnel.Proxy;
-using Linker.Libs;
-using Linker.Libs.Extends;
+﻿using linker.config;
+using linker.plugins.relay;
+using linker.tunnel;
+using linker.tunnel.connection;
+using linker.tunnel.proxy;
+using linker.libs;
+using linker.libs.extends;
 using System.Collections.Concurrent;
 using System.Net;
 
-namespace Linker.Plugins.Forward.Proxy
+namespace linker.plugins.forward.proxy
 {
     public sealed class ForwardProxy : TunnelProxy
     {

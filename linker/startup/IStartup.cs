@@ -1,8 +1,8 @@
-﻿using Linker.Config;
+﻿using linker.config;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace Linker.Startup
+namespace linker.startup
 {
     public interface IStartup
     {

@@ -7,13 +7,13 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<Configurations>Debug;Release</Configurations>
 		<EnablePreviewFeatures>true</EnablePreviewFeatures>
-		<Title>Linker libs</Title>
+		<Title>linker libs</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>Linker libs</Description>
+		<Description>linker libs</Description>
 		<Copyright>snltty</Copyright>
-		<PackageProjectUrl>https://github.com/snltty/Linker</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/snltty/Linker</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<Version>1.1.0</Version>
 		<AssemblyVersion>1.1.0.1</AssemblyVersion>
 		<FileVersion>1.1.0.1</FileVersion>

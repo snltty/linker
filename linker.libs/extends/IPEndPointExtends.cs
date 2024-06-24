@@ -3,7 +3,7 @@ using System.Buffers.Binary;
 using System.Linq;
 using System.Net;
 
-namespace Linker.Libs.Extends
+namespace linker.libs.extends
 {
     public static class IPEndPointExtends
     {

@@ -1,10 +1,10 @@
-﻿using Linker.Libs.Extends;
+﻿using linker.libs.extends;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 
-namespace Linker.Libs.Websocket
+namespace linker.libs.websocket
 {
     /// <summary>
     /// wensocket客户端

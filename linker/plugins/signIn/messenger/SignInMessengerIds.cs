@@ -1,4 +1,4 @@
-﻿namespace Linker.Plugins.Signin.Messenger
+﻿namespace linker.plugins.signin.messenger
 {
     public enum SignInMessengerIds : ushort
     {

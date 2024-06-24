@@ -1,7 +1,7 @@
-﻿using Linker.Server;
+﻿using linker.server;
 using System.Text.Json.Serialization;
 
-namespace Linker.Client
+namespace linker.client
 {
     /// <summary>
     /// 登入对象

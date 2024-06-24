@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 
-namespace Linker.Libs
+namespace linker.libs
 {
     public sealed class NumberSpace
     {

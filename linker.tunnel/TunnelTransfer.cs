@@ -1,14 +1,14 @@
-﻿using Linker.Tunnel.Adapter;
-using Linker.Tunnel.Connection;
-using Linker.Tunnel.Transport;
-using Linker.Libs;
-using Linker.Libs.Extends;
+﻿using linker.tunnel.adapter;
+using linker.tunnel.connection;
+using linker.tunnel.transport;
+using linker.libs;
+using linker.libs.extends;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Net;
-using Linker.Tunnel.WanPort;
+using linker.tunnel.wanport;
 
-namespace Linker.Tunnel
+namespace linker.tunnel
 {
     public sealed class TunnelTransfer
     {
@@ -243,6 +243,7 @@ namespace Linker.Tunnel
         {
             return await GetLocalInfo();
         }
+
         /// <summary>
         /// 获取自己的外网IP
         /// </summary>

@@ -1,12 +1,12 @@
-﻿using Linker.Libs;
-using Linker.Libs.Extends;
+﻿using linker.libs;
+using linker.libs.extends;
 using System.Buffers;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Linker.Server
+namespace linker.server
 {
     public interface IConnectionReceiveCallback
     {

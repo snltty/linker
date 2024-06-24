@@ -1,9 +1,9 @@
-﻿using Linker.Config;
-using Linker.Startup;
+﻿using linker.config;
+using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace Linker.Plugins.Connections
+namespace linker.plugins.connections
 {
     public sealed class ConnectionsStartup : IStartup
     {

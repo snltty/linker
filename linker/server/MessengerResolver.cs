@@ -1,8 +1,8 @@
-﻿using Linker.Libs;
+﻿using linker.libs;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace Linker.Server
+namespace linker.server
 {
     /// <summary>
     /// 消息处理总线

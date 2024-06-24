@@ -1,7 +1,7 @@
-﻿using Linker.Tunnel.Connection;
+﻿using linker.tunnel.connection;
 using System.Net;
 
-namespace Linker.Tunnel.Transport
+namespace linker.tunnel.transport
 {
     public interface ITunnelTransport
     {

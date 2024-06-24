@@ -1,9 +1,9 @@
-﻿using Linker.Config;
-using Linker.Startup;
+﻿using linker.config;
+using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace Linker.Plugins.Logger
+namespace linker.plugins.logger
 {
     public sealed class LoggerStartup : IStartup
     {

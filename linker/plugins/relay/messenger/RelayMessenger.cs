@@ -1,13 +1,12 @@
-﻿using Linker.Config;
-using Linker.Plugins.Relay.Transport;
-using Linker.Plugins.Signin.Messenger;
-using Linker.Server;
-using Linker.Libs;
-using Linker.Libs.Extends;
+﻿using linker.config;
+using linker.plugins.relay.transport;
+using linker.plugins.signin.messenger;
+using linker.server;
+using linker.libs;
 using MemoryPack;
 using System.Collections.Concurrent;
 
-namespace Linker.Plugins.Relay.Messenger
+namespace linker.plugins.relay.messenger
 {
     /// <summary>
     /// 中继客户端

@@ -1,11 +1,11 @@
 
-## Linker.Tunnel 打洞库说明
+## linker.tunnel 打洞库说明
 
 ### 说明
 你需要自己实现信标服务器，用于交换打洞信息
 
 ```
-nuget 安装 Linker.Tunnel
+nuget 安装 linker.tunnel
 ```
 
 ### 1、初始化

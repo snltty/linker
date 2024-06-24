@@ -1,11 +1,11 @@
-﻿using Linker.Libs.Api;
-using Linker.Libs.Extends;
-using Linker.Client.Capi;
-using Linker.Client.Config;
+﻿using linker.libs.api;
+using linker.libs.extends;
+using linker.client.capi;
+using linker.client.config;
 using System.Net;
-using Linker.Libs;
+using linker.libs;
 
-namespace Linker.Plugins.Forward
+namespace linker.plugins.forward
 {
     public sealed class ForwardClientApiController : IApiClientController
     {

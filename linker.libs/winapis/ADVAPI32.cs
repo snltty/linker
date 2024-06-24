@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
 
-namespace Linker.Libs.Winapis;
+namespace linker.libs.winapis;
 
 public static unsafe class ADVAPI32
 {

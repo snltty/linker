@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.ServiceProcess;
 
-namespace Linker.Service
+namespace linker.service
 {
     partial class LinkerService : ServiceBase
     {
@@ -12,7 +12,7 @@ namespace Linker.Service
             InitializeComponent();
         }
 
-        private string mainExeName = "Linker";
+        private string mainExeName = "linker";
         private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
         protected override void OnStart(string[] _args)

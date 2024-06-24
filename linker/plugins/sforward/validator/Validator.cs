@@ -1,8 +1,8 @@
-﻿using Linker.Config;
-using Linker.Plugins.SForward.Config;
-using Linker.Server;
+﻿using linker.config;
+using linker.plugins.sforward.config;
+using linker.server;
 
-namespace Linker.Plugins.SForward.Validator
+namespace linker.plugins.sforward.validator
 {
     public sealed class Validator : IValidator
     {

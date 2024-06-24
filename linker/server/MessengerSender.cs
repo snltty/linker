@@ -1,7 +1,7 @@
-﻿using Linker.Libs;
+﻿using linker.libs;
 using System.Collections.Concurrent;
 
-namespace Linker.Server
+namespace linker.server
 {
     /// <summary>
     /// 消息发送器

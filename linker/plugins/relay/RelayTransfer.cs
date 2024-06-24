@@ -1,15 +1,15 @@
-﻿using Linker.Client.Config;
-using Linker.Config;
-using Linker.Plugins.Relay.Transport;
-using Linker.Tunnel.Connection;
-using Linker.Libs;
-using Linker.Libs.Extends;
+﻿using linker.client.config;
+using linker.config;
+using linker.plugins.relay.transport;
+using linker.tunnel.connection;
+using linker.libs;
+using linker.libs.extends;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Reflection;
 
-namespace Linker.Plugins.Relay
+namespace linker.plugins.relay
 {
     /// <summary>
     /// 中继
@@ -35,7 +35,7 @@ namespace Linker.Plugins.Relay
                 {
                      new RelayCompactInfo{
                          Name="默认",
-                         Type= RelayCompactType.Linker,
+                         Type= RelayCompactType.linker,
                          Disabled = false,
                          Host = running.Data.Client.Servers.FirstOrDefault().Host
                      }

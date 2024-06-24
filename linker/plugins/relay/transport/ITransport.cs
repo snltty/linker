@@ -1,9 +1,9 @@
-﻿using Linker.Config;
-using Linker.Tunnel.Connection;
+﻿using linker.config;
+using linker.tunnel.connection;
 using MemoryPack;
 using System.Net;
 
-namespace Linker.Plugins.Relay.Transport
+namespace linker.plugins.relay.transport
 {
     /// <summary>
     /// 中继接口

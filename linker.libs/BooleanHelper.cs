@@ -1,4 +1,4 @@
-﻿namespace Linker.Libs
+﻿namespace linker.libs
 {
     public static class BooleanHelper
     {

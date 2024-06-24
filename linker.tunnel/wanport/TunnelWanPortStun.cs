@@ -1,9 +1,9 @@
-﻿using Linker.Libs.Extends;
+﻿using linker.libs.extends;
 using System.Buffers.Binary;
 using System.Net;
 using System.Net.Sockets;
 
-namespace Linker.Tunnel.WanPort
+namespace linker.tunnel.wanport
 {
     public sealed class TunnelWanPortStun : ITunnelWanPort
     {

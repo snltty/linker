@@ -1,10 +1,10 @@
-﻿using Linker.Config;
-using Linker.Plugins.Forward.Proxy;
-using Linker.Startup;
+﻿using linker.config;
+using linker.plugins.forward.proxy;
+using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace Linker.Plugins.Forward
+namespace linker.plugins.forward
 {
     public sealed class ForwardStartup : IStartup
     {

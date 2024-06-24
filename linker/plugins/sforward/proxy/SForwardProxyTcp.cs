@@ -1,12 +1,12 @@
-﻿using Linker.Libs;
-using Linker.Libs.Extends;
+﻿using linker.libs;
+using linker.libs.extends;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Linker.Plugins.SForward.Proxy
+namespace linker.plugins.sforward.proxy
 {
     public partial class SForwardProxy
     {

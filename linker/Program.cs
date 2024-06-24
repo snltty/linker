@@ -1,10 +1,10 @@
-﻿using Linker.Libs;
+﻿using linker.libs;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using Linker.Startup;
-using Linker.Config;
+using linker.startup;
+using linker.config;
 
-namespace Linker
+namespace linker
 {
     internal class Program
     {

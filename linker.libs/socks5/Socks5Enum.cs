@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Linker.Libs.Socks5
+namespace linker.libs.socks5
 {
     /// <summary>
     /// 数据验证结果

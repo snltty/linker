@@ -5,7 +5,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Linker.Libs.Websocket
+namespace linker.libs.websocket
 {
     /// <summary>
     /// websocket解析器

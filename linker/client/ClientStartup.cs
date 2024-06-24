@@ -1,12 +1,12 @@
-﻿using Linker.Libs;
-using Linker.Startup;
+﻿using linker.libs;
+using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using Linker.Client.Args;
-using Linker.Client.Config;
-using Linker.Config;
+using linker.client.args;
+using linker.client.config;
+using linker.config;
 
-namespace Linker.Client
+namespace linker.client
 {
     /// <summary>
     /// 客户端插件

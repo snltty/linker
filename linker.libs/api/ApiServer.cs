@@ -1,5 +1,5 @@
-﻿using Linker.Libs.Extends;
-using Linker.Libs.Websocket;
+﻿using linker.libs.extends;
+using linker.libs.websocket;
 using System;
 using System.Buffers;
 using System.Collections.Concurrent;
@@ -11,7 +11,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Linker.Libs.Api
+namespace linker.libs.api
 {
     /// <summary>
     /// 前段接口服务

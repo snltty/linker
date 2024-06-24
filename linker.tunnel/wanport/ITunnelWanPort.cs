@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Linker.Tunnel.WanPort
+namespace linker.tunnel.wanport
 {
     /// <summary>
     /// 外网端口协议
@@ -51,7 +51,7 @@ namespace Linker.Tunnel.WanPort
 
     public enum TunnelWanPortType : byte
     {
-        Linker = 0,
+        linker = 0,
         Stun = 1
     }
 

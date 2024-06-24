@@ -5,7 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 
-namespace Linker.Libs.Winapis
+namespace linker.libs.winapis
 {
     public static class Wininet
     {

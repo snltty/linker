@@ -1,13 +1,13 @@
-﻿using Linker.Libs.Extends;
+﻿using linker.libs.extends;
 using System.Net;
 using System.Net.Sockets;
 
-namespace Linker.Tunnel.WanPort
+namespace linker.tunnel.wanport
 {
     public sealed class TunnelWanPortLinker : ITunnelWanPort
     {
         public string Name => "默认";
-        public TunnelWanPortType Type => TunnelWanPortType.Linker;
+        public TunnelWanPortType Type => TunnelWanPortType.linker;
 
         public TunnelWanPortLinker()
         {

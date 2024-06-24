@@ -1,16 +1,16 @@
-﻿using Linker.Config;
-using Linker.Plugins.Signin.Messenger;
-using Linker.Libs.Api;
-using Linker.Libs.Extends;
-using Linker.Client;
-using Linker.Server;
+﻿using linker.config;
+using linker.plugins.signin.messenger;
+using linker.libs.api;
+using linker.libs.extends;
+using linker.client;
+using linker.server;
 using MemoryPack;
-using Linker.Client.Capi;
-using Linker.Client.Config;
+using linker.client.capi;
+using linker.client.config;
 using System.Diagnostics;
-using Linker.Libs;
+using linker.libs;
 
-namespace Linker.Plugins.Signin
+namespace linker.plugins.signin
 {
     public sealed class SignInClientApiController : IApiClientController
     {

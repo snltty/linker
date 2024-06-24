@@ -1,4 +1,4 @@
-﻿using Linker.Libs.Winapis;
+﻿using linker.libs.winapis;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,13 +10,13 @@ using System.Runtime.Serialization;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
-using static Linker.Libs.Winapis.WTSAPI32;
-using static Linker.Libs.Winapis.ADVAPI32;
-using static Linker.Libs.Winapis.Kernel32;
-using static Linker.Libs.Winapis.NetApi32;
-using static Linker.Libs.Winapis.User32;
+using static linker.libs.winapis.WTSAPI32;
+using static linker.libs.winapis.ADVAPI32;
+using static linker.libs.winapis.Kernel32;
+using static linker.libs.winapis.NetApi32;
+using static linker.libs.winapis.User32;
 
-namespace Linker.Libs.Winapis
+namespace linker.libs.winapis
 {
     public class Win32Interop
     {

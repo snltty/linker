@@ -1,11 +1,11 @@
-﻿using Linker.Client.Capi;
-using Linker.Config;
-using Linker.Libs;
-using Linker.Libs.Api;
+﻿using linker.client.capi;
+using linker.config;
+using linker.libs;
+using linker.libs.api;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace Linker.Plugins.Capi
+namespace linker.plugins.capi
 {
     /// <summary>
     /// 前段接口服务

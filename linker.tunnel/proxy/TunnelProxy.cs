@@ -1,11 +1,11 @@
-﻿using Linker.Tunnel.Connection;
-using Linker.Libs;
-using Linker.Libs.Extends;
+﻿using linker.tunnel.connection;
+using linker.libs;
+using linker.libs.extends;
 using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
 
-namespace Linker.Tunnel.Proxy
+namespace linker.tunnel.proxy
 {
     public partial class TunnelProxy : ITunnelConnectionReceiveCallback
     {

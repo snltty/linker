@@ -1,9 +1,9 @@
-﻿using Linker.Store;
-using Linker.Libs;
+﻿using linker.store;
+using linker.libs;
 using LiteDB;
 using System.Text.Json.Serialization;
 
-namespace Linker.Client.Config
+namespace linker.client.config
 {
     public sealed class RunningConfig
     {

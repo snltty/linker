@@ -1,10 +1,10 @@
-﻿using Linker.Libs;
-using Linker.Libs.Extends;
+﻿using linker.libs;
+using linker.libs.extends;
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Net;
 
-namespace Linker.Plugins.Tuntap.Vea
+namespace linker.plugins.tuntap.vea
 {
     public sealed class TuntapVeaMacOs : ITuntapVea
     {

@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Text.Json.Serialization;
 
-namespace Linker.Plugins.Tuntap.Vea
+namespace linker.plugins.tuntap.vea
 {
     public interface ITuntapVea
     {

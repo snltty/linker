@@ -1,4 +1,4 @@
-﻿using Linker.Libs.Extends;
+﻿using linker.libs.extends;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Linker.Libs.Websocket
+namespace linker.libs.websocket
 {
     /// <summary>
     /// websocket服务端

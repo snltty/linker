@@ -1,10 +1,10 @@
-﻿using Linker.Libs.Extends;
-using Linker.Libs.Api;
-using Linker.Libs;
-using Linker.Config;
-using Linker.Client.Capi;
+﻿using linker.libs.extends;
+using linker.libs.api;
+using linker.libs;
+using linker.config;
+using linker.client.capi;
 
-namespace Linker.Plugins.Logger
+namespace linker.plugins.logger
 {
     public sealed class LoggerClientApiController : IApiClientController
     {

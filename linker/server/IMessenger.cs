@@ -1,4 +1,4 @@
-﻿namespace Linker.Server
+﻿namespace linker.server
 {
     /// <summary>
     /// 消息接口

@@ -1,9 +1,9 @@
-﻿using Linker.Config;
-using Linker.Plugins.Relay.Messenger;
-using Linker.Server;
-using Linker.Tunnel.Connection;
-using Linker.Libs;
-using Linker.Libs.Extends;
+﻿using linker.config;
+using linker.plugins.relay.messenger;
+using linker.server;
+using linker.tunnel.connection;
+using linker.libs;
+using linker.libs.extends;
 using MemoryPack;
 using System.Buffers;
 using System.Net;
@@ -12,12 +12,12 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Linker.Plugins.Relay.Transport
+namespace linker.plugins.relay.transport
 {
     public sealed class TransportSelfHost : ITransport
     {
         public string Name => "默认";
-        public RelayCompactType Type => RelayCompactType.Linker;
+        public RelayCompactType Type => RelayCompactType.linker;
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Tcp;
 
         private readonly TcpServer tcpServer;

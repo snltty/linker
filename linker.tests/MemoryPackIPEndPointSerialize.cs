@@ -1,10 +1,10 @@
-using Linker.Serializes;
-using Linker.Tunnel.Connection;
-using Linker.Tunnel.Transport;
+using linker.serializes;
+using linker.tunnel.connection;
+using linker.tunnel.transport;
 using MemoryPack;
 using System.Net;
 
-namespace Linker.Tests
+namespace linker.Tests
 {
     [TestClass]
     public class MemoryPackIPEndPointSerialize

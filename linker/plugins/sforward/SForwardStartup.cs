@@ -1,14 +1,14 @@
-﻿using Linker.Config;
-using Linker.Plugins.SForward.Config;
-using Linker.Plugins.SForward.Messenger;
-using Linker.Plugins.SForward.Validator;
-using Linker.Startup;
+﻿using linker.config;
+using linker.plugins.sforward.config;
+using linker.plugins.sforward.messenger;
+using linker.plugins.sforward.validator;
+using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using Linker.Plugins.SForward.Proxy;
-using Linker.Libs;
+using linker.plugins.sforward.proxy;
+using linker.libs;
 
-namespace Linker.Plugins.SForward
+namespace linker.plugins.sforward
 {
     public sealed class SForwardStartup : IStartup
     {
@@ -35,7 +35,7 @@ namespace Linker.Plugins.SForward
             Add(serviceCollection, config, assemblies);
             serviceCollection.AddSingleton<SForwardServerMessenger>();
             serviceCollection.AddSingleton<ISForwardServerCahing, SForwardServerCahing>();
-            serviceCollection.AddSingleton<IValidator, Validator.Validator>();
+            serviceCollection.AddSingleton<IValidator, Validator>();
 
         }
 

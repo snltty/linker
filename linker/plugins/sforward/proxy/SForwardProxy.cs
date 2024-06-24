@@ -1,7 +1,7 @@
-﻿using Linker.Libs;
+﻿using linker.libs;
 using System.Text;
 
-namespace Linker.Plugins.SForward.Proxy
+namespace linker.plugins.sforward.proxy
 {
     public partial class SForwardProxy
     {

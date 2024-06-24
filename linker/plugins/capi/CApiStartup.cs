@@ -1,11 +1,11 @@
-﻿using Linker.Client.Capi;
-using Linker.Config;
-using Linker.Startup;
-using Linker.Libs;
+﻿using linker.client.capi;
+using linker.config;
+using linker.startup;
+using linker.libs;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace Linker.Plugins.Capi
+namespace linker.plugins.capi
 {
     public sealed class CApiStartup : IStartup
     {

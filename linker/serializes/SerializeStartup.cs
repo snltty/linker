@@ -1,10 +1,10 @@
-﻿using Linker.Config;
-using Linker.Startup;
+﻿using linker.config;
+using linker.startup;
 using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace Linker.Serializes
+namespace linker.serializes
 {
     /// <summary>
     /// MemoryPack 序列化扩展加载插件

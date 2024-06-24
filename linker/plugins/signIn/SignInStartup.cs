@@ -1,10 +1,10 @@
-﻿using Linker.Config;
-using Linker.Plugins.Signin.Messenger;
-using Linker.Startup;
+﻿using linker.config;
+using linker.plugins.signin.messenger;
+using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace Linker.Plugins.Signin
+namespace linker.plugins.signin
 {
     public sealed class SignInStartup : IStartup
     {

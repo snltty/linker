@@ -1,4 +1,4 @@
-﻿namespace Linker.Plugins.Tunnel.Messenger
+﻿namespace linker.plugins.tunnel.messenger
 {
     public enum TunnelMessengerIds : ushort
     {

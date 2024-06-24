@@ -1,17 +1,17 @@
-﻿using Linker.Client;
-using Linker.Client.Config;
-using Linker.Config;
-using Linker.Plugins.Tunnel.Messenger;
-using Linker.Server;
-using Linker.Tunnel.Adapter;
-using Linker.Tunnel.Transport;
-using Linker.Libs;
+﻿using linker.client;
+using linker.client.config;
+using linker.config;
+using linker.plugins.tunnel.messenger;
+using linker.server;
+using linker.tunnel.adapter;
+using linker.tunnel.transport;
+using linker.libs;
 using MemoryPack;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
-using Linker.Tunnel.WanPort;
+using linker.tunnel.wanport;
 
-namespace Linker.Plugins.Tunnel
+namespace linker.plugins.tunnel
 {
     public sealed class TunnelAdapter : ITunnelAdapter
     {

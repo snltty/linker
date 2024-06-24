@@ -1,4 +1,4 @@
-﻿namespace Linker.Client.Args
+﻿namespace linker.client.args
 {
     public interface ISignInArgs
     {

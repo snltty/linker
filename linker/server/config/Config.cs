@@ -1,7 +1,7 @@
-﻿using Linker.Libs;
-using Linker.Libs.Extends;
+﻿using linker.libs;
+using linker.libs.extends;
 
-namespace Linker.Config
+namespace linker.config
 {
     public sealed partial class ConfigInfo
     {

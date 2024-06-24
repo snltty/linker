@@ -1,6 +1,6 @@
-﻿using Linker.Libs.Web;
+﻿using linker.libs.web;
 
-namespace Linker.Plugins.Capi
+namespace linker.plugins.capi
 {
     public interface IWebClientServer : IWebServer
     {

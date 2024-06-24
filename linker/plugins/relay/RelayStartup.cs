@@ -1,11 +1,11 @@
-﻿using Linker.Config;
-using Linker.Plugins.Relay.Messenger;
-using Linker.Plugins.Relay.Transport;
-using Linker.Startup;
+﻿using linker.config;
+using linker.plugins.relay.messenger;
+using linker.plugins.relay.transport;
+using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace Linker.Plugins.Relay
+namespace linker.plugins.relay
 {
     /// <summary>
     /// 中继插件

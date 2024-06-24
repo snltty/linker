@@ -1,10 +1,10 @@
-﻿using Linker.Config;
-using Linker.Libs.Extends;
+﻿using linker.config;
+using linker.libs.extends;
 using LiteDB;
 using MemoryPack;
 using System.Net;
 
-namespace Linker.Client.Config
+namespace linker.client.config
 {
     public sealed partial class RunningConfigInfo
     {
@@ -32,7 +32,7 @@ namespace Linker.Client.Config
     }
 }
 
-namespace Linker.Config
+namespace linker.config
 {
     public sealed partial class ConfigInfo
     {

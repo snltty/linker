@@ -1,12 +1,12 @@
-﻿using Linker.Libs.Extends;
-using Linker.Libs;
+﻿using linker.libs.extends;
+using linker.libs;
 using System.Buffers;
 using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Net.Sockets;
 
-namespace Linker.Tunnel.Connection
+namespace linker.tunnel.connection
 {
     public sealed class TunnelConnectionUdp : ITunnelConnection
     {

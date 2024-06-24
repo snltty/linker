@@ -1,12 +1,12 @@
-﻿using Linker.Tunnel.Connection;
-using Linker.Libs;
-using Linker.Libs.Extends;
+﻿using linker.tunnel.connection;
+using linker.libs;
+using linker.libs.extends;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Linker.Tunnel.Transport
+namespace linker.tunnel.transport
 {
     public sealed class TransportUdp : ITunnelTransport
     {

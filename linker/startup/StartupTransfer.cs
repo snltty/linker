@@ -1,9 +1,9 @@
-﻿using Linker.Config;
-using Linker.Libs;
+﻿using linker.config;
+using linker.libs;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace Linker.Startup
+namespace linker.startup
 {
     public static class StartupTransfer
     {

@@ -1,4 +1,4 @@
-﻿namespace Linker.Service
+﻿namespace linker.service
 {
     partial class LinkerService
     {

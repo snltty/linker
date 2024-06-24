@@ -8,21 +8,21 @@
 	  <PublishAot>false</PublishAot>
 	  <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
 	  <EnablePreviewFeatures>true</EnablePreviewFeatures>
-	  <Title>Linker tunnel</Title>
+	  <Title>linker tunnel</Title>
 	  <Version>1.1.0</Version>
 	  <Authors>snltty</Authors>
 	  <Company>snltty</Company>
-	  <Description>Linker tunnel</Description>
+	  <Description>linker tunnel</Description>
 	  <Copyright>snltty</Copyright>
-	  <PackageProjectUrl>https://github.com/snltty/Linker</PackageProjectUrl>
-	  <RepositoryUrl>https://github.com/snltty/Linker</RepositoryUrl>
-	  <PackageReleaseNotes>Linker tunnel</PackageReleaseNotes>
+	  <PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
+	  <RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
+	  <PackageReleaseNotes>linker tunnel</PackageReleaseNotes>
 	  <AssemblyVersion>1.1.0.1</AssemblyVersion>
 	  <FileVersion>1.1.0.1</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Linker.Libs\Linker.Libs.csproj" />
+    <ProjectReference Include="..\linker.libs\linker.libs.csproj" />
   </ItemGroup>
 
 </Project>

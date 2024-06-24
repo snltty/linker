@@ -1,15 +1,15 @@
-﻿using Linker.Client.Args;
-using Linker.Client.Config;
-using Linker.Config;
-using Linker.Plugins.Signin.Messenger;
-using Linker.Server;
-using Linker.Libs;
-using Linker.Libs.Extends;
+﻿using linker.client.args;
+using linker.client.config;
+using linker.config;
+using linker.plugins.signin.messenger;
+using linker.server;
+using linker.libs;
+using linker.libs.extends;
 using MemoryPack;
 using System.Net;
 using System.Net.Sockets;
 
-namespace Linker.Client
+namespace linker.client
 {
     /// <summary>
     /// 登入

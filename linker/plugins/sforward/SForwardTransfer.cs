@@ -1,13 +1,13 @@
-﻿using Linker.Client.Config;
-using Linker.Client;
-using Linker.Libs;
-using Linker.Server;
-using Linker.Plugins.SForward.Messenger;
+﻿using linker.client.config;
+using linker.client;
+using linker.libs;
+using linker.server;
+using linker.plugins.sforward.messenger;
 using MemoryPack;
-using Linker.Plugins.SForward.Config;
+using linker.plugins.sforward.config;
 using System.Text;
 
-namespace Linker.Plugins.SForward
+namespace linker.plugins.sforward
 {
     public sealed class SForwardTransfer
     {

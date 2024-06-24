@@ -1,10 +1,10 @@
-﻿using Linker.Config;
-using Linker.Startup;
-using Linker.Libs;
+﻿using linker.config;
+using linker.startup;
+using linker.libs;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace Linker.Server
+namespace linker.server
 {
     /// <summary>
     /// 服务端插件

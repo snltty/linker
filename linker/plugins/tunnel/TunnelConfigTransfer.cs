@@ -1,13 +1,13 @@
-﻿using Linker.Client;
-using Linker.Client.Config;
-using Linker.Config;
-using Linker.Plugins.Tunnel.Messenger;
-using Linker.Server;
-using Linker.Tunnel.WanPort;
+﻿using linker.client;
+using linker.client.config;
+using linker.config;
+using linker.plugins.tunnel.messenger;
+using linker.server;
+using linker.tunnel.wanport;
 using MemoryPack;
 using System.Collections.Concurrent;
 
-namespace Linker.Plugins.Tunnel
+namespace linker.plugins.tunnel
 {
     public sealed class TunnelConfigTransfer
     {
@@ -39,7 +39,7 @@ namespace Linker.Plugins.Tunnel
                 {
                      new TunnelWanPortInfo{
                          Name="默认",
-                         Type= TunnelWanPortType.Linker,
+                         Type= TunnelWanPortType.linker,
                          Disabled = false,
                          Host = running.Data.Client.Servers.FirstOrDefault().Host
                      }

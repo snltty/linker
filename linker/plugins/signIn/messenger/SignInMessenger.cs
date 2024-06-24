@@ -1,10 +1,10 @@
-﻿using Linker.Client;
-using Linker.Config;
-using Linker.Server;
-using Linker.Libs;
+﻿using linker.client;
+using linker.config;
+using linker.server;
+using linker.libs;
 using MemoryPack;
 
-namespace Linker.Plugins.Signin.Messenger
+namespace linker.plugins.signin.messenger
 {
     public sealed class SignInClientMessenger : IMessenger
     {

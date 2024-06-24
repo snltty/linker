@@ -1,6 +1,6 @@
 ﻿using System.ServiceProcess;
 
-namespace Linker.Service
+namespace linker.service
 {
     internal class Program
     {

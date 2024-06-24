@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Linker.Libs
+namespace linker.libs
 {
     public sealed class LoggerHelper
     {

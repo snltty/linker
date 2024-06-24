@@ -1,7 +1,7 @@
-﻿using Linker.Libs.Websocket;
+﻿using linker.libs.websocket;
 using System;
 
-namespace Linker.Libs.Api
+namespace linker.libs.api
 {
     /// <summary>
     /// 前端接口服务

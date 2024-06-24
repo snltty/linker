@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 
 
-namespace Linker.Libs.Winapis;
+namespace linker.libs.winapis;
 
 public static class SECUR32
 {

@@ -1,9 +1,9 @@
-﻿using Linker.Plugins.Signin.Messenger;
-using Linker.Plugins.Tuntap.Vea;
-using Linker.Server;
+﻿using linker.plugins.signin.messenger;
+using linker.plugins.tuntap.vea;
+using linker.server;
 using MemoryPack;
 
-namespace Linker.Plugins.Tuntap.Messenger
+namespace linker.plugins.tuntap.messenger
 {
     public sealed class TuntapClientMessenger : IMessenger
     {

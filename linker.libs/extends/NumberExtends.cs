@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace Linker.Libs.Extends
+namespace linker.libs.extends
 {
     public static class NumberExtends
     {

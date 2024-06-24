@@ -1,13 +1,13 @@
-﻿using Linker.Client;
-using Linker.Client.Capi;
-using Linker.Config;
-using Linker.Plugins.Relay.Messenger;
-using Linker.Server;
-using Linker.Libs.Api;
-using Linker.Libs.Extends;
+﻿using linker.client;
+using linker.client.capi;
+using linker.config;
+using linker.plugins.relay.messenger;
+using linker.server;
+using linker.libs.api;
+using linker.libs.extends;
 using MemoryPack;
 
-namespace Linker.Plugins.Relay
+namespace linker.plugins.relay
 {
     /// <summary>
     /// 中继管理接口

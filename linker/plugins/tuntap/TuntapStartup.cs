@@ -1,12 +1,12 @@
-﻿using Linker.Config;
-using Linker.Plugins.Tuntap.Messenger;
-using Linker.Plugins.Tuntap.Proxy;
-using Linker.Plugins.Tuntap.Vea;
-using Linker.Startup;
+﻿using linker.config;
+using linker.plugins.tuntap.messenger;
+using linker.plugins.tuntap.proxy;
+using linker.plugins.tuntap.vea;
+using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace Linker.Plugins.Tuntap
+namespace linker.plugins.tuntap
 {
     /// <summary>
     /// 虚拟网卡组网插件

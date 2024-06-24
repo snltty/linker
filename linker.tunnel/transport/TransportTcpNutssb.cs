@@ -1,7 +1,7 @@
-﻿using Linker.Tunnel.Adapter;
-using Linker.Tunnel.Connection;
-using Linker.Libs;
-using Linker.Libs.Extends;
+﻿using linker.tunnel.adapter;
+using linker.tunnel.connection;
+using linker.libs;
+using linker.libs.extends;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Security;
@@ -9,7 +9,7 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Linker.Tunnel.Transport
+namespace linker.tunnel.transport
 {
     public sealed class TunnelTransportTcpNutssb : ITunnelTransport
     {

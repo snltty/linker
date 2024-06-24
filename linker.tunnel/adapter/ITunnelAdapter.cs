@@ -1,9 +1,9 @@
-﻿using Linker.Tunnel.WanPort;
-using Linker.Tunnel.Transport;
+﻿using linker.tunnel.wanport;
+using linker.tunnel.transport;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Linker.Tunnel.Adapter
+namespace linker.tunnel.adapter
 {
     public interface ITunnelAdapter
     {

@@ -1,8 +1,8 @@
-﻿using Linker.Libs.Websocket;
+﻿using linker.libs.websocket;
 using System;
 using System.Text.Json.Serialization;
 
-namespace Linker.Libs.Api
+namespace linker.libs.api
 {
     /// <summary>
     /// 前段接口

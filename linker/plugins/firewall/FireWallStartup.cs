@@ -1,9 +1,9 @@
-﻿using Linker.Config;
-using Linker.Startup;
+﻿using linker.config;
+using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace Linker.Plugins.Firewall
+namespace linker.plugins.firewall
 {
     public sealed class FireWallStartup : IStartup
     {
@@ -17,7 +17,7 @@ namespace Linker.Plugins.Firewall
         {
 #if DEBUG
 #else
-            Linker.Libs.FireWallHelper.Write(Path.GetFileNameWithoutExtension(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName), "./plugins/firewall");
+            linker.libs.FireWallHelper.Write(Path.GetFileNameWithoutExtension(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName), "./plugins/firewall");
 #endif
         }
 
