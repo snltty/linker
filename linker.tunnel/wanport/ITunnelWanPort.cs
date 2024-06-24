@@ -1,23 +1,23 @@
 ﻿using System.Net;
 
-namespace linker.tunnel.compact
+namespace linker.tunnel.wanport
 {
     /// <summary>
     /// 外网端口协议
     /// </summary>
-    public interface ITunnelCompact
+    public interface ITunnelWanPort
     {
         public string Name { get; }
-        public TunnelCompactType Type { get; }
+        public TunnelWanPortType Type { get; }
         /// <summary>
         /// 获取外网端口
         /// </summary>
         /// <param name="server">服务端</param>
         /// <returns></returns>
-        public Task<TunnelCompactIPEndPoint> GetExternalIPAsync(IPEndPoint server);
+        public Task<TunnelWanPortEndPoint> GetAsync(IPEndPoint server);
     }
 
-    public sealed class TunnelCompactIPEndPoint
+    public sealed class TunnelWanPortEndPoint
     {
         /// <summary>
         /// 内网
@@ -29,7 +29,7 @@ namespace linker.tunnel.compact
         public IPEndPoint Remote { get; set; }
     }
 
-    public sealed partial class TunnelCompactInfo
+    public sealed partial class TunnelWanPortInfo
     {
         /// <summary>
         /// 名称
@@ -38,7 +38,7 @@ namespace linker.tunnel.compact
         /// <summary>
         /// 协议类别
         /// </summary>
-        public TunnelCompactType Type { get; set; }
+        public TunnelWanPortType Type { get; set; }
         /// <summary>
         /// 地址
         /// </summary>
@@ -49,26 +49,26 @@ namespace linker.tunnel.compact
         public bool Disabled { get; set; }
     }
 
-    public enum TunnelCompactType : byte
+    public enum TunnelWanPortType : byte
     {
         Link = 0,
         Stun = 1
     }
 
-    public sealed class TunnelCompactTypeInfo
+    public sealed class TunnelWanPortTypeInfo
     {
-        public TunnelCompactType Value { get; set; }
+        public TunnelWanPortType Value { get; set; }
         public string Name { get; set; }
     }
 
-    public sealed class TunnelCompactTypeInfoEqualityComparer : IEqualityComparer<TunnelCompactTypeInfo>
+    public sealed class TunnelWanPortTypeInfoEqualityComparer : IEqualityComparer<TunnelWanPortTypeInfo>
     {
-        public bool Equals(TunnelCompactTypeInfo x, TunnelCompactTypeInfo y)
+        public bool Equals(TunnelWanPortTypeInfo x, TunnelWanPortTypeInfo y)
         {
             return x.Value == y.Value;
         }
 
-        public int GetHashCode(TunnelCompactTypeInfo obj)
+        public int GetHashCode(TunnelWanPortTypeInfo obj)
         {
             return obj.Value.GetHashCode();
         }

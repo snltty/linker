@@ -1,59 +1,56 @@
 ﻿using linker.tunnel.adapter;
-using linker.tunnel.compact;
 using linker.tunnel.connection;
 using linker.tunnel.transport;
 using linker.libs;
 using linker.libs.extends;
-using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Net;
-using System.Reflection;
+using linker.tunnel.wanport;
 
 namespace linker.tunnel
 {
     public sealed class TunnelTransfer
     {
         private List<ITunnelTransport> transports;
-        private readonly ServiceProvider serviceProvider;
-
-        private readonly TunnelCompactTransfer compactTransfer;
-        private readonly ITunnelAdapter tunnelMessengerAdapter;
+        private TunnelWanPortTransfer compactTransfer;
+        private ITunnelAdapter  tunnelAdapter ;
 
         private ConcurrentDictionary<string, bool> connectingDic = new ConcurrentDictionary<string, bool>();
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
-        public TunnelTransfer(ServiceProvider serviceProvider, TunnelCompactTransfer compactTransfer, ITunnelAdapter tunnelMessengerAdapter)
+        public TunnelTransfer(TunnelWanPortTransfer compactTransfer, ITunnelAdapter  tunnelAdapter)
         {
-            this.serviceProvider = serviceProvider;
             this.compactTransfer = compactTransfer;
-            this.tunnelMessengerAdapter = tunnelMessengerAdapter;
+            this.tunnelAdapter = tunnelAdapter;
         }
 
         /// <summary>
         /// 加载打洞协议
         /// </summary>
         /// <param name="assembs"></param>
-        public void Load(Assembly[] assembs)
+        public void Init(TunnelWanPortTransfer compactTransfer, ITunnelAdapter tunnelAdapter, List<ITunnelTransport> transports)
         {
-            IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs.Concat(new Assembly[] { typeof(TunnelTransfer).Assembly }).ToArray(), typeof(ITunnelTransport));
-            transports = types.Select(c => (ITunnelTransport)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
+            this.compactTransfer = compactTransfer;
+            this.tunnelAdapter = tunnelAdapter;
+            this.transports = transports;
+
             foreach (var item in transports)
             {
-                item.OnSendConnectBegin = tunnelMessengerAdapter.SendConnectBegin;
-                item.OnSendConnectFail = tunnelMessengerAdapter.SendConnectFail;
-                item.OnSendConnectSuccess = tunnelMessengerAdapter.SendConnectSuccess;
+                item.OnSendConnectBegin = tunnelAdapter.SendConnectBegin;
+                item.OnSendConnectFail = tunnelAdapter.SendConnectFail;
+                item.OnSendConnectSuccess = tunnelAdapter.SendConnectSuccess;
                 item.OnConnected = _OnConnected;
             }
 
-            var transportItems = tunnelMessengerAdapter.GetTunnelTransports();
+            var transportItems = tunnelAdapter.GetTunnelTransports();
             transportItems = transportItems.Concat(transports.Select(c => new TunnelTransportItemInfo { Label = c.Label, Name = c.Name, ProtocolType = c.ProtocolType.ToString() }))
                 .Distinct(new TunnelTransportItemInfoEqualityComparer())
                 .Where(c=> transports.Select(c=>c.Name).Contains(c.Name))
                 .ToList();
 
 
-            tunnelMessengerAdapter.SetTunnelTransports(transportItems);
+            tunnelAdapter.SetTunnelTransports(transportItems);
 
             Logger.Instance.Warning($"load tunnel transport:{string.Join(",", transports.Select(c => c.Name))}");
             Logger.Instance.Warning($"used tunnel transport:{string.Join(",", transportItems.Where(c => c.Disabled == false).Select(c => c.Name))}");
@@ -103,7 +100,7 @@ namespace linker.tunnel
 
             try
             {
-                foreach (TunnelTransportItemInfo transportItem in tunnelMessengerAdapter.GetTunnelTransports().Where(c => c.Disabled == false))
+                foreach (TunnelTransportItemInfo transportItem in tunnelAdapter.GetTunnelTransports().Where(c => c.Disabled == false))
                 {
                     ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == transportItem.Name);
                     if (transport == null) continue;
@@ -116,7 +113,7 @@ namespace linker.tunnel
                         try
                         {
                             //获取自己的外网ip
-                            TunnelTransportExternalIPInfo localInfo = await GetLocalInfo();
+                            TunnelTransportWanPortInfo localInfo = await GetLocalInfo();
                             if (localInfo == null)
                             {
                                 Logger.Instance.Error($"tunnel {transport.Name} get local external ip fail ");
@@ -124,7 +121,7 @@ namespace linker.tunnel
                             }
                             Logger.Instance.Info($"tunnel {transport.Name} got local external ip {localInfo.ToJson()}");
                             //获取对方的外网ip
-                            TunnelTransportExternalIPInfo remoteInfo = await tunnelMessengerAdapter.GetRemoteExternalIP(remoteMachineId);
+                            TunnelTransportWanPortInfo remoteInfo = await tunnelAdapter.GetRemoteWanPort(remoteMachineId);
                             if (remoteInfo == null)
                             {
                                 Logger.Instance.Error($"tunnel {transport.Name} get remote {remoteMachineId} external ip fail ");
@@ -244,7 +241,7 @@ namespace linker.tunnel
         /// 获取自己的外网IP，给别人调用
         /// </summary>
         /// <returns></returns>
-        public async Task<TunnelTransportExternalIPInfo> GetExternalIP()
+        public async Task<TunnelTransportWanPortInfo> GetWanPort()
         {
             return await GetLocalInfo();
         }
@@ -252,13 +249,13 @@ namespace linker.tunnel
         /// 获取自己的外网IP
         /// </summary>
         /// <returns></returns>
-        private async Task<TunnelTransportExternalIPInfo> GetLocalInfo()
+        private async Task<TunnelTransportWanPortInfo> GetLocalInfo()
         {
-            TunnelCompactIPEndPoint ip = await compactTransfer.GetExternalIPAsync(tunnelMessengerAdapter.LocalIP);
+            TunnelWanPortEndPoint ip = await compactTransfer.GetWanPortAsync(tunnelAdapter.LocalIP);
             if (ip != null)
             {
-                var config = tunnelMessengerAdapter.GetLocalConfig();
-                return new TunnelTransportExternalIPInfo
+                var config = tunnelAdapter.GetLocalConfig();
+                return new TunnelTransportWanPortInfo
                 {
                     Local = ip.Local,
                     Remote = ip.Remote,

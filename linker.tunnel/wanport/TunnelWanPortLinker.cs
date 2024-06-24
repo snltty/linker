@@ -2,18 +2,18 @@
 using System.Net;
 using System.Net.Sockets;
 
-namespace linker.tunnel.compact
+namespace linker.tunnel.wanport
 {
-    public sealed class TunnelCompactSelfHost : ITunnelCompact
+    public sealed class TunnelWanPortLinker : ITunnelWanPort
     {
         public string Name => "默认";
-        public TunnelCompactType Type => TunnelCompactType.Link;
+        public TunnelWanPortType Type => TunnelWanPortType.Link;
 
-        public TunnelCompactSelfHost()
+        public TunnelWanPortLinker()
         {
         }
 
-        public async Task<TunnelCompactIPEndPoint> GetExternalIPAsync(IPEndPoint server)
+        public async Task<TunnelWanPortEndPoint> GetAsync(IPEndPoint server)
         {
             UdpClient udpClient = new UdpClient(AddressFamily.InterNetwork);
             udpClient.Client.Reuse();
@@ -41,7 +41,7 @@ namespace linker.tunnel.compact
 
                     IPEndPoint remoteEP = new IPEndPoint(ip, port);
 
-                    return new TunnelCompactIPEndPoint { Local = udpClient.Client.LocalEndPoint as IPEndPoint, Remote = remoteEP };
+                    return new TunnelWanPortEndPoint { Local = udpClient.Client.LocalEndPoint as IPEndPoint, Remote = remoteEP };
                 }
                 catch (Exception)
                 {

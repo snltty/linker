@@ -4,12 +4,12 @@ using linker.config;
 using linker.plugins.tunnel.messenger;
 using linker.server;
 using linker.tunnel.adapter;
-using linker.tunnel.compact;
 using linker.tunnel.transport;
 using linker.libs;
 using MemoryPack;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
+using linker.tunnel.wanport;
 
 namespace linker.plugins.tunnel
 {
@@ -39,11 +39,11 @@ namespace linker.plugins.tunnel
             }
         }
 
-        public List<TunnelCompactInfo> GetTunnelCompacts()
+        public List<TunnelWanPortInfo> GetTunnelWanPortCompacts()
         {
             return running.Data.Tunnel.Servers.ToList();
         }
-        public void SetTunnelCompacts(List<TunnelCompactInfo> compacts)
+        public void SetTunnelWanPortCompacts(List<TunnelWanPortInfo> compacts)
         {
             running.Data.Tunnel.Servers = compacts.ToArray();
             running.Data.Update();
@@ -68,7 +68,7 @@ namespace linker.plugins.tunnel
                 MachineId = config.Data.Client.Id
             };
         }
-        public async Task<TunnelTransportExternalIPInfo> GetRemoteExternalIP(string remoteMachineId)
+        public async Task<TunnelTransportWanPortInfo> GetRemoteWanPort(string remoteMachineId)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
@@ -78,7 +78,7 @@ namespace linker.plugins.tunnel
             });
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
-                return MemoryPackSerializer.Deserialize<TunnelTransportExternalIPInfo>(resp.Data.Span);
+                return MemoryPackSerializer.Deserialize<TunnelTransportWanPortInfo>(resp.Data.Span);
             }
             return null;
         }

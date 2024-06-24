@@ -3,7 +3,7 @@ using linker.client.config;
 using linker.config;
 using linker.plugins.tunnel.messenger;
 using linker.server;
-using linker.tunnel.compact;
+using linker.tunnel.wanport;
 using MemoryPack;
 using System.Collections.Concurrent;
 
@@ -21,7 +21,7 @@ namespace linker.plugins.tunnel
         private ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> configs = new ConcurrentDictionary<string, TunnelTransportRouteLevelInfo>();
         public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> Config => configs;
 
-        public TunnelConfigTransfer(Config config, RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelCompactTransfer compactTransfer)
+        public TunnelConfigTransfer(Config config, RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelWanPortTransfer compactTransfer)
         {
             this.config = config;
             this.running = running;
@@ -35,11 +35,11 @@ namespace linker.plugins.tunnel
 
             if (running.Data.Tunnel.Servers.Length == 0)
             {
-                running.Data.Tunnel.Servers = new TunnelCompactInfo[]
+                running.Data.Tunnel.Servers = new TunnelWanPortInfo[]
                 {
-                     new TunnelCompactInfo{
+                     new TunnelWanPortInfo{
                          Name="默认",
-                         Type= TunnelCompactType.Link,
+                         Type= TunnelWanPortType.Link,
                          Disabled = false,
                          Host = running.Data.Client.Servers.FirstOrDefault().Host
                      }

@@ -1,6 +1,7 @@
-﻿using linker.tunnel.compact;
-using linker.tunnel.connection;
+﻿using linker.tunnel.connection;
+using linker.tunnel.wanport;
 using linker.tunnel.transport;
+using linker.tunnel.wanport;
 using LiteDB;
 using MemoryPack;
 using System.Net;
@@ -17,7 +18,7 @@ namespace linker.client.config
     public sealed class TunnelRunningInfo
     {
         public ObjectId Id { get; set; }
-        public TunnelCompactInfo[] Servers { get; set; } = Array.Empty<TunnelCompactInfo>();
+        public TunnelWanPortInfo[] Servers { get; set; } = Array.Empty<TunnelWanPortInfo>();
         public int RouteLevelPlus { get; set; } = 0;
 
         public List<TunnelTransportItemInfo> Transports { get; set; } = new List<TunnelTransportItemInfo>();
@@ -51,16 +52,16 @@ namespace linker.config
 
 
     [MemoryPackable]
-    public readonly partial struct SerializableTunnelCompactInfo
+    public readonly partial struct SerializableTunnelWanPortInfo
     {
         [MemoryPackIgnore]
-        public readonly TunnelCompactInfo tunnelCompactInfo;
+        public readonly TunnelWanPortInfo tunnelCompactInfo;
 
         [MemoryPackInclude]
         string Name => tunnelCompactInfo.Name;
 
         [MemoryPackInclude]
-        TunnelCompactType Type => tunnelCompactInfo.Type;
+        TunnelWanPortType Type => tunnelCompactInfo.Type;
 
         [MemoryPackInclude]
         string Host => tunnelCompactInfo.Host;
@@ -69,20 +70,20 @@ namespace linker.config
         bool Disabled => tunnelCompactInfo.Disabled;
 
         [MemoryPackConstructor]
-        SerializableTunnelCompactInfo(string name, TunnelCompactType type, string host, bool disabled)
+        SerializableTunnelWanPortInfo(string name, TunnelWanPortType type, string host, bool disabled)
         {
-            var tunnelCompactInfo = new TunnelCompactInfo { Name = name, Type = type, Host = host, Disabled = disabled };
+            var tunnelCompactInfo = new TunnelWanPortInfo { Name = name, Type = type, Host = host, Disabled = disabled };
             this.tunnelCompactInfo = tunnelCompactInfo;
         }
 
-        public SerializableTunnelCompactInfo(TunnelCompactInfo tunnelCompactInfo)
+        public SerializableTunnelWanPortInfo(TunnelWanPortInfo tunnelCompactInfo)
         {
             this.tunnelCompactInfo = tunnelCompactInfo;
         }
     }
-    public class TunnelCompactInfoFormatter : MemoryPackFormatter<TunnelCompactInfo>
+    public class TunnelWanPortInfoFormatter : MemoryPackFormatter<TunnelWanPortInfo>
     {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelCompactInfo value)
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelWanPortInfo value)
         {
             if (value == null)
             {
@@ -90,10 +91,10 @@ namespace linker.config
                 return;
             }
 
-            writer.WritePackable(new SerializableTunnelCompactInfo(value));
+            writer.WritePackable(new SerializableTunnelWanPortInfo(value));
         }
 
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelCompactInfo value)
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelWanPortInfo value)
         {
             if (reader.PeekIsNull())
             {
@@ -102,51 +103,51 @@ namespace linker.config
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTunnelCompactInfo>();
+            var wrapped = reader.ReadPackable<SerializableTunnelWanPortInfo>();
             value = wrapped.tunnelCompactInfo;
         }
     }
 
 
     [MemoryPackable]
-    public readonly partial struct SerializableTunnelTransportExternalIPInfo
+    public readonly partial struct SerializableTunnelTransportWanPortInfo
     {
         [MemoryPackIgnore]
-        public readonly TunnelTransportExternalIPInfo tunnelTransportExternalIPInfo;
+        public readonly TunnelTransportWanPortInfo tunnelTransportWanPortInfo;
 
         [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPEndPoint Local => tunnelTransportExternalIPInfo.Local;
+        IPEndPoint Local => tunnelTransportWanPortInfo.Local;
 
         [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPEndPoint Remote => tunnelTransportExternalIPInfo.Remote;
+        IPEndPoint Remote => tunnelTransportWanPortInfo.Remote;
 
         [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPAddress[] LocalIps => tunnelTransportExternalIPInfo.LocalIps;
+        IPAddress[] LocalIps => tunnelTransportWanPortInfo.LocalIps;
 
         [MemoryPackInclude]
-        int RouteLevel => tunnelTransportExternalIPInfo.RouteLevel;
+        int RouteLevel => tunnelTransportWanPortInfo.RouteLevel;
 
         [MemoryPackInclude]
-        string MachineId => tunnelTransportExternalIPInfo.MachineId;
+        string MachineId => tunnelTransportWanPortInfo.MachineId;
 
         [MemoryPackInclude]
-        string MachineName => tunnelTransportExternalIPInfo.MachineName;
+        string MachineName => tunnelTransportWanPortInfo.MachineName;
 
         [MemoryPackConstructor]
-        SerializableTunnelTransportExternalIPInfo(IPEndPoint local, IPEndPoint remote, IPAddress[] localIps, int routeLevel, string machineId,string machineName)
+        SerializableTunnelTransportWanPortInfo(IPEndPoint local, IPEndPoint remote, IPAddress[] localIps, int routeLevel, string machineId,string machineName)
         {
-            var tunnelTransportExternalIPInfo = new TunnelTransportExternalIPInfo { Local = local, Remote = remote, LocalIps = localIps, RouteLevel = routeLevel, MachineId = machineId, MachineName= machineName };
-            this.tunnelTransportExternalIPInfo = tunnelTransportExternalIPInfo;
+            var tunnelTransportWanPortInfo = new TunnelTransportWanPortInfo { Local = local, Remote = remote, LocalIps = localIps, RouteLevel = routeLevel, MachineId = machineId, MachineName= machineName };
+            this.tunnelTransportWanPortInfo = tunnelTransportWanPortInfo;
         }
 
-        public SerializableTunnelTransportExternalIPInfo(TunnelTransportExternalIPInfo tunnelTransportExternalIPInfo)
+        public SerializableTunnelTransportWanPortInfo(TunnelTransportWanPortInfo tunnelTransportWanPortInfo)
         {
-            this.tunnelTransportExternalIPInfo = tunnelTransportExternalIPInfo;
+            this.tunnelTransportWanPortInfo = tunnelTransportWanPortInfo;
         }
     }
-    public class TunnelTransportExternalIPInfoFormatter : MemoryPackFormatter<TunnelTransportExternalIPInfo>
+    public class TunnelTransportWanPortInfoFormatter : MemoryPackFormatter<TunnelTransportWanPortInfo>
     {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelTransportExternalIPInfo value)
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelTransportWanPortInfo value)
         {
             if (value == null)
             {
@@ -154,10 +155,10 @@ namespace linker.config
                 return;
             }
 
-            writer.WritePackable(new SerializableTunnelTransportExternalIPInfo(value));
+            writer.WritePackable(new SerializableTunnelTransportWanPortInfo(value));
         }
 
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelTransportExternalIPInfo value)
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelTransportWanPortInfo value)
         {
             if (reader.PeekIsNull())
             {
@@ -166,8 +167,8 @@ namespace linker.config
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTunnelTransportExternalIPInfo>();
-            value = wrapped.tunnelTransportExternalIPInfo;
+            var wrapped = reader.ReadPackable<SerializableTunnelTransportWanPortInfo>();
+            value = wrapped.tunnelTransportWanPortInfo;
         }
     }
 
@@ -244,10 +245,10 @@ namespace linker.config
 
 
         [MemoryPackInclude, MemoryPackAllowSerialize]
-        TunnelTransportExternalIPInfo Local => tunnelTransportInfo.Local;
+        TunnelTransportWanPortInfo Local => tunnelTransportInfo.Local;
 
         [MemoryPackInclude, MemoryPackAllowSerialize]
-        TunnelTransportExternalIPInfo Remote => tunnelTransportInfo.Remote;
+        TunnelTransportWanPortInfo Remote => tunnelTransportInfo.Remote;
 
         [MemoryPackInclude]
         string TransactionId => tunnelTransportInfo.TransactionId;
@@ -266,7 +267,7 @@ namespace linker.config
 
 
         [MemoryPackConstructor]
-        SerializableTunnelTransportInfo(TunnelTransportExternalIPInfo local, TunnelTransportExternalIPInfo remote, string transactionId, TunnelProtocolType transportType, string transportName, TunnelDirection direction, bool ssl)
+        SerializableTunnelTransportInfo(TunnelTransportWanPortInfo local, TunnelTransportWanPortInfo remote, string transactionId, TunnelProtocolType transportType, string transportName, TunnelDirection direction, bool ssl)
         {
             var tunnelTransportInfo = new TunnelTransportInfo
             {

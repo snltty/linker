@@ -54,7 +54,7 @@ namespace linker.tunnel.transport
     /// <summary>
     /// 网络信息，包括局域网，外网
     /// </summary>
-    public sealed partial class TunnelTransportExternalIPInfo
+    public sealed partial class TunnelTransportWanPortInfo
     {
         /// <summary>
         /// 我的本地
@@ -112,11 +112,11 @@ namespace linker.tunnel.transport
         /// <summary>
         /// 我的
         /// </summary>
-        public TunnelTransportExternalIPInfo Local { get; set; }
+        public TunnelTransportWanPortInfo Local { get; set; }
         /// <summary>
         /// 对方的
         /// </summary>
-        public TunnelTransportExternalIPInfo Remote { get; set; }
+        public TunnelTransportWanPortInfo Remote { get; set; }
 
         /// <summary>
         /// 事务

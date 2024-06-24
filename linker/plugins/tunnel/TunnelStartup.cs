@@ -3,13 +3,13 @@ using linker.plugins.tunnel.messenger;
 using linker.startup;
 using linker.tunnel;
 using linker.tunnel.adapter;
-using linker.tunnel.compact;
 using linker.tunnel.transport;
 using linker.libs;
 using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Reflection;
+using linker.tunnel.wanport;
 
 namespace linker.plugins.tunnel
 {
@@ -30,8 +30,8 @@ namespace linker.plugins.tunnel
         public void AddClient(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
             //序列化扩展
-            MemoryPackFormatterProvider.Register(new TunnelCompactInfoFormatter());
-            MemoryPackFormatterProvider.Register(new TunnelTransportExternalIPInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TunnelWanPortInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TunnelTransportWanPortInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportItemInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportInfoFormatter());
 
@@ -41,17 +41,15 @@ namespace linker.plugins.tunnel
             serviceCollection.AddSingleton<TunnelClientMessenger>();
 
             //外网端口协议
-            serviceCollection.AddSingleton<TunnelCompactTransfer>();
-            serviceCollection.AddSingleton<TunnelCompactSelfHost>();
-            serviceCollection.AddSingleton<TunnelCompactStun>();
+            serviceCollection.AddSingleton<TunnelWanPortTransfer>();
+            serviceCollection.AddSingleton<TunnelWanPortLinker>();
+            serviceCollection.AddSingleton<TunnelWanPortStun>();
 
             //打洞协议
             serviceCollection.AddSingleton<TunnelTransfer>();
             serviceCollection.AddSingleton<TunnelTransportTcpNutssb>();
             serviceCollection.AddSingleton<TransportMsQuic>();
             serviceCollection.AddSingleton<TransportMsQuic>();
-            //serviceCollection.AddSingleton<TransportMsQuicTest>();
-            //serviceCollection.AddSingleton<TransportUdp>();
 
             serviceCollection.AddSingleton<TunnelConfigTransfer>();
             serviceCollection.AddSingleton<ITunnelAdapter, TunnelAdapter>();
@@ -67,8 +65,8 @@ namespace linker.plugins.tunnel
 
         public void AddServer(ServiceCollection serviceCollection, Config config, Assembly[] assemblies)
         {
-            MemoryPackFormatterProvider.Register(new TunnelCompactInfoFormatter());
-            MemoryPackFormatterProvider.Register(new TunnelTransportExternalIPInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TunnelWanPortInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TunnelTransportWanPortInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportItemInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportInfoFormatter());
 
@@ -77,11 +75,18 @@ namespace linker.plugins.tunnel
 
         public void UseClient(ServiceProvider serviceProvider, Config config, Assembly[] assemblies)
         {
-            TunnelCompactTransfer compack = serviceProvider.GetService<TunnelCompactTransfer>();
-            compack.Load(assemblies);
+            ITunnelAdapter tunnelAdapter = serviceProvider.GetService<ITunnelAdapter>();
 
+            IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assemblies.Concat(new Assembly[] { typeof(TunnelWanPortTransfer).Assembly }).ToArray(), typeof(ITunnelWanPort));
+            List<ITunnelWanPort> compacts = types.Select(c => (ITunnelWanPort)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
+            TunnelWanPortTransfer compack = serviceProvider.GetService<TunnelWanPortTransfer>();
+            compack.Init(tunnelAdapter,compacts);
+
+
+            types = ReflectionHelper.GetInterfaceSchieves(assemblies.Concat(new Assembly[] { typeof(TunnelTransfer).Assembly }).ToArray(), typeof(ITunnelTransport));
+            List<ITunnelTransport> transports = types.Select(c => (ITunnelTransport)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
             TunnelTransfer tunnel = serviceProvider.GetService<TunnelTransfer>();
-            tunnel.Load(assemblies);
+            tunnel.Init(compack, tunnelAdapter, transports);
 
             TunnelConfigTransfer tunnelConfigTransfer = serviceProvider.GetService<TunnelConfigTransfer>();
         }

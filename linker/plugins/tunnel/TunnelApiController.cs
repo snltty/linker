@@ -4,12 +4,12 @@ using linker.config;
 using linker.plugins.tunnel.messenger;
 using linker.server;
 using linker.tunnel.adapter;
-using linker.tunnel.compact;
 using linker.tunnel.transport;
 using linker.libs.api;
 using linker.libs.extends;
 using MemoryPack;
 using System.Collections.Concurrent;
+using linker.tunnel.wanport;
 
 namespace linker.plugins.tunnel
 {
@@ -19,13 +19,13 @@ namespace linker.plugins.tunnel
     public sealed class TunnelApiController : IApiClientController
     {
         private readonly Config config;
-        private readonly TunnelCompactTransfer compactTransfer;
+        private readonly TunnelWanPortTransfer compactTransfer;
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
         private readonly TunnelConfigTransfer tunnelConfigTransfer;
         private readonly ITunnelAdapter tunnelMessengerAdapter;
 
-        public TunnelApiController(Config config, TunnelCompactTransfer compactTransfer, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelConfigTransfer tunnelConfigTransfer, ITunnelAdapter tunnelMessengerAdapter)
+        public TunnelApiController(Config config, TunnelWanPortTransfer compactTransfer, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelConfigTransfer tunnelConfigTransfer, ITunnelAdapter tunnelMessengerAdapter)
         {
             this.config = config;
             this.compactTransfer = compactTransfer;
@@ -68,7 +68,7 @@ namespace linker.plugins.tunnel
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public List<TunnelCompactTypeInfo> GetTypes(ApiControllerParamsInfo param)
+        public List<TunnelWanPortTypeInfo> GetTypes(ApiControllerParamsInfo param)
         {
             return compactTransfer.GetTypes();
         }
@@ -81,7 +81,7 @@ namespace linker.plugins.tunnel
         {
             SetServersParamInfo info = param.Content.DeJson<SetServersParamInfo>();
 
-            tunnelMessengerAdapter.SetTunnelCompacts(info.List.ToList());
+            tunnelMessengerAdapter.SetTunnelWanPortCompacts(info.List.ToList());
             if (info.Sync)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
@@ -159,7 +159,7 @@ namespace linker.plugins.tunnel
         public sealed class SetServersParamInfo
         {
             public bool Sync { get; set; }
-            public TunnelCompactInfo[] List { get; set; } = Array.Empty<TunnelCompactInfo>();
+            public TunnelWanPortInfo[] List { get; set; } = Array.Empty<TunnelWanPortInfo>();
         }
 
         public sealed class SetTransportsParamInfo

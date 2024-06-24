@@ -3,10 +3,10 @@ using linker.plugins.signin.messenger;
 using linker.server;
 using linker.tunnel;
 using linker.tunnel.adapter;
-using linker.tunnel.compact;
 using linker.tunnel.transport;
 using linker.libs;
 using MemoryPack;
+using linker.tunnel.wanport;
 
 namespace linker.plugins.tunnel.messenger
 {
@@ -27,7 +27,7 @@ namespace linker.plugins.tunnel.messenger
         public void Begin(IConnection connection)
         {
             TunnelTransportInfo tunnelTransportInfo = MemoryPackSerializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            TunnelTransportExternalIPInfo local = tunnelTransportInfo.Local;
+            TunnelTransportWanPortInfo local = tunnelTransportInfo.Local;
             tunnelTransportInfo.Local = tunnelTransportInfo.Remote;
             tunnelTransportInfo.Remote = local;
 
@@ -38,7 +38,7 @@ namespace linker.plugins.tunnel.messenger
         [MessengerId((ushort)TunnelMessengerIds.Info)]
         public async Task Info(IConnection connection)
         {
-            TunnelTransportExternalIPInfo tunnelTransportPortInfo = await tunnel.GetExternalIP();
+            TunnelTransportWanPortInfo tunnelTransportPortInfo = await tunnel.GetWanPort();
             if (tunnelTransportPortInfo != null)
             {
                 connection.Write(MemoryPackSerializer.Serialize(tunnelTransportPortInfo));
@@ -49,7 +49,7 @@ namespace linker.plugins.tunnel.messenger
         public void Fail(IConnection connection)
         {
             TunnelTransportInfo tunnelTransportInfo = MemoryPackSerializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            TunnelTransportExternalIPInfo local = tunnelTransportInfo.Local;
+            TunnelTransportWanPortInfo local = tunnelTransportInfo.Local;
             tunnelTransportInfo.Local = tunnelTransportInfo.Remote;
             tunnelTransportInfo.Remote = local;
 
@@ -60,7 +60,7 @@ namespace linker.plugins.tunnel.messenger
         public void Success(IConnection connection)
         {
             TunnelTransportInfo tunnelTransportInfo = MemoryPackSerializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            TunnelTransportExternalIPInfo local = tunnelTransportInfo.Local;
+            TunnelTransportWanPortInfo local = tunnelTransportInfo.Local;
             tunnelTransportInfo.Local = tunnelTransportInfo.Remote;
             tunnelTransportInfo.Remote = local;
 
@@ -93,8 +93,8 @@ namespace linker.plugins.tunnel.messenger
         [MessengerId((ushort)TunnelMessengerIds.Servers)]
         public void Servers(IConnection connection)
         {
-            TunnelCompactInfo[] servers = MemoryPackSerializer.Deserialize<TunnelCompactInfo[]>(connection.ReceiveRequestWrap.Payload.Span);
-            tunnelMessengerAdapter.SetTunnelCompacts(servers.ToList());
+            TunnelWanPortInfo[] servers = MemoryPackSerializer.Deserialize<TunnelWanPortInfo[]>(connection.ReceiveRequestWrap.Payload.Span);
+            tunnelMessengerAdapter.SetTunnelWanPortCompacts(servers.ToList());
         }
     }
 
@@ -127,7 +127,7 @@ namespace linker.plugins.tunnel.messenger
                         await messengerSender.ReplyOnly(new MessageResponseWrap
                         {
                             Connection = connection,
-                            Payload = MemoryPackSerializer.Serialize(MemoryPackSerializer.Deserialize<TunnelTransportExternalIPInfo>(result.Result.Data.Span)),
+                            Payload = MemoryPackSerializer.Serialize(MemoryPackSerializer.Deserialize<TunnelTransportWanPortInfo>(result.Result.Data.Span)),
                             RequestId = requestid,
                         });
                     }
