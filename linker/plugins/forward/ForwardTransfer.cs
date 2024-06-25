@@ -202,7 +202,7 @@ namespace linker.plugins.forward
             {
                 try
                 {
-                    foreach (var item in running.Data.Forwards.Where(c => c.Started == true))
+                    foreach (var item in running.Data.Forwards.Where(c => c.Port > 0))
                     {
                         string msg = await ConnectAsync(new IPEndPoint(item.BindIPAddress, item.Port));
                         item.Msg = msg;

@@ -118,6 +118,7 @@ export default {
                     c.RemotePort = 0;
                     c.Domain = '';
                 })
+                console.log(arr);
                 state.data = arr;
             }).catch(() => {
             });

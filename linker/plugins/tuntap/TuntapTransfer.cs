@@ -79,7 +79,6 @@ namespace linker.plugins.tuntap
             {
                 return;
             }
-
             Task.Run(async () =>
             {
                 OnChange();
@@ -105,6 +104,7 @@ namespace linker.plugins.tuntap
                 }
                 finally
                 {
+                    
                     BooleanHelper.CompareExchange(ref starting, false, true);
                     OnChange();
                 }
