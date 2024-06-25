@@ -1,4 +1,5 @@
 ﻿using linker.config;
+using linker.plugins.forward.messenger;
 using linker.plugins.forward.proxy;
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,11 +22,14 @@ namespace linker.plugins.forward
             serviceCollection.AddSingleton<ForwardClientApiController>();
             serviceCollection.AddSingleton<ForwardTransfer>();
             serviceCollection.AddSingleton<ForwardProxy>();
-            
+
+            serviceCollection.AddSingleton<ForwardClientMessenger>();
+
         }
 
         public void AddServer(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
+            serviceCollection.AddSingleton<ForwardServerMessenger>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)

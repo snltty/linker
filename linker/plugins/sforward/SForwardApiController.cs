@@ -68,6 +68,11 @@ namespace linker.plugins.sforward
             }
             return false;
         }
+        public bool TestLocal(ApiControllerParamsInfo param)
+        {
+            forwardTransfer.TestLocal();
+            return true;
+        }
 
         public sealed class SecretKeySetInfo
         {

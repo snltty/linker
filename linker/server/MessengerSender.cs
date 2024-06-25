@@ -51,7 +51,7 @@ namespace linker.server
 
             try
             {
-                return await tcs.Task.ConfigureAwait(false);
+                return await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(msg.Timeout)).ConfigureAwait(false);
             }
             catch (Exception)
             {

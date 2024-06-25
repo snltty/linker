@@ -24,17 +24,17 @@
                                 @blur="handleEditBlur(scope.row, 'Temp')"></el-input>
                         </template>
                         <template v-else>
-                            <template v-if="!!scope.row.Msg">
+                            <template v-if="scope.row.Msg">
                                 <el-popover placement="top" title="msg" width="20rem"  trigger="hover" :content="scope.row.Msg">
                                     <template #reference>
-                                        <div :class="{error:!!scope.row.Msg}">
+                                        <div class="error">
                                             <span>{{ scope.row.Temp }}</span>
                                             <el-icon size="20"><WarnTriangleFilled /></el-icon>
                                         </div>
                                     </template>
                                 </el-popover>
                             </template>
-                            <template v-else><span>{{ scope.row.Temp }}</span></template>
+                            <template v-else><span :class="{green:scope.row.Started}">{{ scope.row.Temp }}</span></template>
                         </template>
                     </template>
                 </el-table-column>
@@ -45,7 +45,17 @@
                                 @blur="handleEditBlur(scope.row, 'LocalEP')"></el-input>
                         </template>
                         <template v-else>
-                            {{ scope.row.LocalEP }}
+                            <template v-if="scope.row.LocalMsg">
+                                <el-popover placement="top" title="msg" width="20rem"  trigger="hover" :content="scope.row.LocalMsg">
+                                    <template #reference>
+                                        <span class="error">{{ scope.row.LocalEP }}</span>
+                                        <el-icon size="20"><WarnTriangleFilled /></el-icon>
+                                    </template>
+                                </el-popover>
+                            </template>
+                            <template v-else>
+                                <span :class="{green:scope.row.Started}">{{ scope.row.LocalEP }}</span>
+                            </template>
                         </template>
                     </template>
                 </el-table-column>
@@ -70,8 +80,8 @@
     </el-dialog>
 </template>
 <script>
-import { inject, onMounted, reactive, watch } from 'vue';
-import { getSForwardInfo, removeSForwardInfo, addSForwardInfo } from '@/apis/sforward'
+import { inject, onMounted, onUnmounted, reactive, watch } from 'vue';
+import { getSForwardInfo, removeSForwardInfo, addSForwardInfo,testLocalSForwardInfo } from '@/apis/sforward'
 import { ElMessage } from 'element-plus';
 import {WarnTriangleFilled} from '@element-plus/icons-vue'
 export default {
@@ -84,6 +94,7 @@ export default {
         const state = reactive({
             show: true,
             data: [],
+            timerTestLocal:0
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -92,7 +103,13 @@ export default {
                 }, 300);
             }
         });
-
+        const _testLocalSForwardInfo = ()=>{
+            testLocalSForwardInfo().then((res)=>{
+               state.timerTestLocal = setTimeout(_testLocalSForwardInfo,1000);
+            }).catch(()=>{
+                state.timerTestLocal = setTimeout(_testLocalSForwardInfo,1000);
+            });
+        }
         const _getSForwardInfo = () => {
             getSForwardInfo().then((res) => {
                 let arr = (res|| []);
@@ -121,7 +138,7 @@ export default {
             addSForwardInfo({ Id: 0, Name: '', RemotePort: 0, LocalEP: '127.0.0.1:80',Domain:'',Temp:'' }).then(() => {
                 setTimeout(()=>{
                     _getSForwardInfo();
-                },1000)
+                },100)
             }).catch((err) => {
                 ElMessage.error(err);
             });
@@ -154,6 +171,7 @@ export default {
                 row.RemotePort = parseInt(row.Temp);
                 if(row.RemotePort <= 1024 || row.RemotePort > 65535){
                     ElMessage.error('端口范围1025-65535');
+                    row.Started = false;
                     return;
                 }
             }else{
@@ -163,7 +181,7 @@ export default {
             addSForwardInfo(row).then(() => {
                 setTimeout(()=>{
                     _getSForwardInfo();
-                },1000)
+                },100)
             }).catch((err) => {
                 ElMessage.error(err);
             });
@@ -171,6 +189,10 @@ export default {
 
         onMounted(()=>{
             _getSForwardInfo();
+            _testLocalSForwardInfo();
+        });
+        onUnmounted(()=>{
+            clearTimeout(state.timerTestLocal);
         })
 
         return {

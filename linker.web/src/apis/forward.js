@@ -15,3 +15,10 @@ export const addForwardInfo = (data) => {
 export const refreshForward = () => {
     return sendWebsocketMsg('forwardclient/refresh');
 }
+
+export const testTargetForwardInfo = (machineid) => {
+    return sendWebsocketMsg('forwardclient/TestTarget', machineid);
+}
+export const testListenForwardInfo = () => {
+    return sendWebsocketMsg('forwardclient/TestListen');
+}

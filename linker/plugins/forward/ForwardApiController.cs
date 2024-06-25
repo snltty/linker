@@ -16,6 +16,23 @@ namespace linker.plugins.forward
             this.forwardTransfer = forwardTransfer;
         }
 
+        public void TestListen(ApiControllerParamsInfo param)
+        {
+            forwardTransfer.TestListen();
+        }
+        public void TestTarget(ApiControllerParamsInfo param)
+        {
+            if (string.IsNullOrWhiteSpace(param.Content))
+            {
+                forwardTransfer.TestTarget();
+            }
+            else
+            {
+                forwardTransfer.TestTarget(param.Content);
+            }
+
+        }
+
         public Dictionary<string, List<ForwardInfo>> Get(ApiControllerParamsInfo param)
         {
             return forwardTransfer.Get();

@@ -11,6 +11,8 @@ using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using linker.libs.extends;
 
 namespace linker.plugins.tuntap
 {
@@ -83,6 +85,16 @@ namespace linker.plugins.tuntap
                 OnChange();
                 try
                 {
+                    if(runningConfig.Data.Tuntap.Running == false || runningConfig.Data.Tuntap.IP.Equals(IPAddress.Any))
+                    {
+                        return;
+                    }
+
+                    while (tuntapProxy.LocalEndpoint == null)
+                    {
+                        await Task.Delay(1000);
+                    }
+
                     bool result = await tuntapVea.Run(tuntapProxy.LocalEndpoint.Port, runningConfig.Data.Tuntap.IP);
                     runningConfig.Data.Tuntap.Running = Status == TuntapStatus.Running;
                     runningConfig.Data.Update();
@@ -321,12 +333,11 @@ namespace linker.plugins.tuntap
             {
                 try
                 {
-                    NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == tuntapVea.InterfaceName);
-                    if (networkInterface != null && networkInterface.OperationalStatus != OperationalStatus.Up)
+                    if (tuntapVea.Running)
                     {
-                        Stop();
+                        await CheckProxy();
                         await Task.Delay(5000);
-                        Run();
+                        await CheckInterface();
                     }
                 }
                 catch (Exception)
@@ -334,6 +345,33 @@ namespace linker.plugins.tuntap
                 }
 
                 await Task.Delay(15000);
+            }
+        }
+        private async Task CheckInterface()
+        {
+            NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == tuntapVea.InterfaceName);
+            if (networkInterface != null && networkInterface.OperationalStatus != OperationalStatus.Up)
+            {
+                Stop();
+                await Task.Delay(5000);
+                Run();
+            }
+        }
+        private async Task CheckProxy()
+        {
+            if (tuntapProxy.LocalEndpoint == null || tuntapProxy.LocalEndpoint.Port == 0) return;
+            try
+            {
+                var socket = new Socket(tuntapProxy.LocalEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                await socket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, tuntapProxy.LocalEndpoint.Port)).WaitAsync(TimeSpan.FromMilliseconds(100));
+                socket.SafeClose();
+            }
+            catch (Exception ex)
+            {
+                tuntapProxy.Start();
+                Stop();
+                await Task.Delay(5000);
+                Run();
             }
         }
     }

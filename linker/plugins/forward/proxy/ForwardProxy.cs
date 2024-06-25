@@ -7,7 +7,6 @@ using linker.libs;
 using linker.libs.extends;
 using System.Collections.Concurrent;
 using System.Net;
-using System.Reflection.PortableExecutable;
 
 namespace linker.plugins.forward.proxy
 {

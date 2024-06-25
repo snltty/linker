@@ -13,7 +13,7 @@ namespace linker.tunnel.proxy
         private ConcurrentDictionary<int, AsyncUserToken> tcpListens = new ConcurrentDictionary<int, AsyncUserToken>();
         private readonly ConcurrentDictionary<ConnectId, AsyncUserToken> tcpConnections = new ConcurrentDictionary<ConnectId, AsyncUserToken>(new ConnectIdComparer());
         private Socket socket;
-        public IPEndPoint LocalEndpoint => socket?.LocalEndPoint as IPEndPoint ?? new IPEndPoint(IPAddress.Any, 0);
+        public IPEndPoint LocalEndpoint { get; private set; }
 
         /// <summary>
         /// 监听一个端口
@@ -26,6 +26,8 @@ namespace linker.tunnel.proxy
             socket.IPv6Only(localEndPoint.AddressFamily, false);
             socket.ReuseBind(localEndPoint);
             socket.Listen(int.MaxValue);
+
+            LocalEndpoint = socket.LocalEndPoint as IPEndPoint;
             try
             {
                 AsyncUserToken userToken = new AsyncUserToken
@@ -108,13 +110,13 @@ namespace linker.tunnel.proxy
                         };
                         BindReceive(userToken);
                     }
-                    StartAccept(e);
                 }
             }
             catch (Exception ex)
             {
                 LoggerHelper.Instance.Error(ex);
             }
+            StartAccept(e);
         }
         /// <summary>
         /// 接收连接数据
@@ -205,9 +207,6 @@ namespace linker.tunnel.proxy
                 }
                 else
                 {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Error(e.SocketError.ToString());
-
                     await SendToConnectionClose(token).ConfigureAwait(false);
                     CloseClientSocket(token);
                 }
@@ -270,6 +269,8 @@ namespace linker.tunnel.proxy
         /// <returns></returns>
         private async Task SendToConnection(AsyncUserToken token)
         {
+            if (token.Connection == null) return;
+
             SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
             await semaphoreSlim.WaitAsync();
 

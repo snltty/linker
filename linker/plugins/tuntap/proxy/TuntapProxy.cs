@@ -37,16 +37,24 @@ namespace linker.plugins.tuntap.proxy
             this.runningConfig = runningConfig;
             this.config = config;
 
-            Start(new IPEndPoint(IPAddress.Any,0));
-            proxyEP = new IPEndPoint(IPAddress.Any, LocalEndpoint.Port);
+            Start();
             LoggerHelper.Instance.Info($"start tuntap proxy, listen port : {LocalEndpoint}");
-
 
             //监听打洞连接成功
             tunnelTransfer.SetConnectedCallback("tuntap", OnConnected);
             //监听中继连接成功
             relayTransfer.SetConnectedCallback("tuntap", OnConnected);
         }
+        public void Start()
+        {
+            if(proxyEP != null)
+            {
+                Stop(proxyEP.Port);
+                Start(new IPEndPoint(IPAddress.Any, 0));
+                proxyEP = new IPEndPoint(IPAddress.Any, LocalEndpoint.Port);
+            }
+        }
+
         /// <summary>
         /// 将隧道拦截成功的连接对象缓存起来，下次有连接需要隧道就直接拿，不用再去打洞或中继
         /// </summary>

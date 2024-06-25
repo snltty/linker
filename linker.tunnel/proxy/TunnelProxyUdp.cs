@@ -84,6 +84,8 @@ namespace linker.tunnel.proxy
         /// <returns></returns>
         private async Task SendToConnection(AsyncUserUdpToken token)
         {
+            if (token.Connection == null) return;
+
             SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
             await semaphoreSlim.WaitAsync();
 

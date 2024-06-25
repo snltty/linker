@@ -5,7 +5,9 @@ using linker.server;
 using linker.plugins.sforward.messenger;
 using MemoryPack;
 using linker.plugins.sforward.config;
-using System.Text;
+using System.Net.Sockets;
+using System.Net;
+using linker.libs.extends;
 
 namespace linker.plugins.sforward
 {
@@ -119,6 +121,50 @@ namespace linker.plugins.sforward
             catch (Exception ex)
             {
                 LoggerHelper.Instance.Error(ex);
+            }
+        }
+
+        bool testing = false;
+        public void TestLocal()
+        {
+            if (testing) return;
+            testing = true;
+
+            Task.Run(async () =>
+            {
+                try
+                {
+                    var results = running.Data.SForwards.Select(c => c.LocalEP).Select(ConnectAsync);
+                    await Task.Delay(200);
+
+                    foreach (var item in results.Select(c => c.Result))
+                    {
+                        var forward = running.Data.SForwards.FirstOrDefault(c => c.LocalEP.Equals(item.Item1));
+                        if (forward != null)
+                        {
+                            forward.LocalMsg = item.Item2;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                }
+                testing = false;
+            });
+
+            async Task<(IPEndPoint, string)> ConnectAsync(IPEndPoint ep)
+            {
+                try
+                {
+                    using Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                    await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(100));
+                    socket.SafeClose();
+                    return (ep, string.Empty);
+                }
+                catch (Exception ex)
+                {
+                    return (ep, ex.Message);
+                }
             }
         }
 

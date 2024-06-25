@@ -15,3 +15,7 @@ export const removeSForwardInfo = (id) => {
 export const addSForwardInfo = (data) => {
     return sendWebsocketMsg('sforwardclient/add', data);
 }
+
+export const testLocalSForwardInfo = () => {
+    return sendWebsocketMsg('sforwardclient/TestLocal');
+}

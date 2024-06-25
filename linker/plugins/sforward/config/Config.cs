@@ -1,5 +1,4 @@
-﻿using linker.libs;
-using LiteDB;
+﻿using LiteDB;
 using MemoryPack;
 using System.Net;
 using System.Text.Json.Serialization;
@@ -25,6 +24,7 @@ namespace linker.client.config
 
         public bool Started { get; set; }
         public string Msg { get; set; }
+        public string LocalMsg { get; set; }
 
         [JsonIgnore, BsonIgnore]
         public bool Proxy { get; set; }

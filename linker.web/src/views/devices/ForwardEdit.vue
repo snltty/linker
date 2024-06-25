@@ -31,17 +31,19 @@
                                 @blur="handleEditBlur(scope.row, 'Port')"></el-input>
                         </template>
                         <template v-else>
-                            <template v-if="!!scope.row.Msg">
+                            <template v-if="scope.row.Msg">
                                 <el-popover placement="top" title="msg" width="20rem"  trigger="hover" :content="scope.row.Msg">
                                     <template #reference>
-                                        <div :class="{error:!!scope.row.Msg}">
+                                        <div class="error">
                                             <span>{{ scope.row.Port }}</span>
                                             <el-icon size="20"><WarnTriangleFilled /></el-icon>
                                         </div>
                                     </template>
                                 </el-popover>
                             </template>
-                            <template v-else><span>{{ scope.row.Port }}</span></template>
+                            <template v-else>
+                                <span :class="{green:scope.row.Started}">{{ scope.row.Port }}</span>
+                            </template>
                         </template>
                     </template>
                 </el-table-column>
@@ -52,7 +54,17 @@
                                 @blur="handleEditBlur(scope.row, 'TargetEP')"></el-input>
                         </template>
                         <template v-else>
-                            {{ scope.row.TargetEP }}
+                            <template v-if="scope.row.TargetMsg">
+                                <el-popover placement="top" title="msg" width="20rem"  trigger="hover" :content="scope.row.TargetMsg">
+                                    <template #reference>
+                                        <span class="error">{{ scope.row.TargetEP }}</span>
+                                        <el-icon size="20"><WarnTriangleFilled /></el-icon>
+                                    </template>
+                                </el-popover>
+                            </template>
+                            <template v-else>
+                                <span :class="{green:scope.row.Started}">{{ scope.row.TargetEP }}</span>
+                            </template>
                         </template>
                     </template>
                 </el-table-column>
@@ -77,8 +89,8 @@
     </el-dialog>
 </template>
 <script>
-import { inject, onMounted, reactive, watch } from 'vue';
-import { getForwardInfo, removeForwardInfo, addForwardInfo ,getForwardIpv4 } from '@/apis/forward'
+import { inject, onMounted, onUnmounted, reactive, watch } from 'vue';
+import { getForwardInfo, removeForwardInfo, addForwardInfo ,getForwardIpv4,testTargetForwardInfo,testListenForwardInfo } from '@/apis/forward'
 import { ElMessage } from 'element-plus';
 import {WarnTriangleFilled} from '@element-plus/icons-vue'
 export default {
@@ -93,7 +105,9 @@ export default {
             machineId: forward.value.current,
             machineName: forward.value.machineName,
             data: [],
-            ips:[]
+            ips:[],
+            timerTestTarget:0,
+            timerTestListen:0
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -109,6 +123,22 @@ export default {
                 state.ips = res;
             }).catch(()=>{});
         }
+
+        const _testTargetForwardInfo = ()=>{
+            testTargetForwardInfo(forward.value.current).then((res)=>{
+               state.timerTestTarget = setTimeout(_testTargetForwardInfo,1000);
+            }).catch(()=>{
+                state.timerTestTarget = setTimeout(_testTargetForwardInfo,1000);
+            });
+        }
+        const _testListenForwardInfo = ()=>{
+            testListenForwardInfo(forward.value.current).then((res)=>{
+               state.timerTestListen = setTimeout(_testListenForwardInfo,1000);
+            }).catch(()=>{
+                state.timerTestListen = setTimeout(_testListenForwardInfo,1000);
+            });
+        }
+        
 
         const _getForwardInfo = () => {
             getForwardInfo().then((res) => {
@@ -164,7 +194,13 @@ export default {
         onMounted(()=>{
             _getForwardInfo();
             _getForwardIpv4();
-        })
+            _testTargetForwardInfo();
+            _testListenForwardInfo();
+        });
+        onUnmounted(()=>{
+            clearTimeout(state.timerTestTarget);
+            clearTimeout(state.timerTestListen);
+        });
 
         return {
             state, handleOnShowList, handleCellClick, handleRefresh, handleAdd, handleEdit, handleEditBlur, handleDel, handleStartChange
@@ -175,7 +211,7 @@ export default {
 <style lang="stylus" scoped>
 
 .head{padding-bottom:1rem}
-
+.green{color:green;font-weight:bold;}
 .error{
     color:red;
     font-weight:bold;

@@ -7,11 +7,13 @@
                     <ul class="list forward">
                         <template v-if="forward.list[scope.row.MachineId] && forward.list[scope.row.MachineId].length > 0">
                             <template v-for="(item, index) in forward.list[scope.row.MachineId]" :key="index">
-                                <li :class="{error:!!item.Msg}">
+                                <li>
                                     <a href="javascript:;" @click="handleEdit(scope.row.MachineId)" :class="{ green: item.Started }">
-                                        <template v-if="item.Started"><strong>{{ item.Port }}->{{ item.TargetEP
-                                                }}</strong></template>
-                                        <template v-else>{{ item.Port }}->{{ item.TargetEP }}</template>
+                                        <span>
+                                            <span :class="{error:!!item.Msg}">{{item.Port}}</span>
+                                            ->
+                                            <span :class="{error:!!item.TargetMsg}">{{ item.TargetEP }}</span>
+                                        </span>
                                     </a>
                                 </li>
                             </template>
@@ -29,9 +31,11 @@
                             <template v-for="(item, index) in sforward.list" :key="index">
                                 <li :class="{error:!!item.Msg}">
                                     <a href="javascript:;" @click="handleSEdit()" :class="{ green: item.Started }">
-                                        <template v-if="item.Started"><strong>{{ item.Domain || item.RemotePort }}->{{ item.LocalEP
-                                                }}</strong></template>
-                                        <template v-else>{{item.Domain || item.RemotePort }}->{{ item.LocalEP }}</template>
+                                        <span>
+                                            <span :class="{error:!!item.Msg}">{{item.Domain || item.RemotePort}}</span>
+                                            ->
+                                            <span :class="{error:!!item.LocalMsg}">{{ item.LocalEP }}</span>
+                                        </span>
                                     </a>
                                 </li>
                             </template>
@@ -73,9 +77,6 @@ a{
     text-decoration: underline;
     font-weight:bold;
 }
-a.green{color:green}
-
-li.error{
-    a{color:red;}
-}
+span.green,a.green{color:green}
+span.error{color:red}
 </style>

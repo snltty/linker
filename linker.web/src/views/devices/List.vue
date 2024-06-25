@@ -36,8 +36,8 @@
 import { getSignInList, signInDel } from '@/apis/signin.js'
 import { subWebsocketState } from '@/apis/request.js'
 import { getTuntapInfo,refreshTuntap } from '@/apis/tuntap'
-import { getForwardInfo ,refreshForward} from '@/apis/forward'
-import { getSForwardInfo} from '@/apis/sforward'
+import { getForwardInfo ,testTargetForwardInfo,testListenForwardInfo} from '@/apis/forward'
+import { getSForwardInfo,testLocalSForwardInfo} from '@/apis/sforward'
 import { getTunnelInfo ,refreshTunnel} from '@/apis/tunnel'
 import { injectGlobalData } from '@/provide.js'
 import { reactive, onMounted, ref, nextTick, onUnmounted, computed, provide } from 'vue'
@@ -335,6 +335,34 @@ export default {
             });
         }
 
+
+        const timerState = reactive({
+            timerTestTarget:0,
+            timerTestListen:0,
+            timerTestLocal:0,
+        })
+        const _testTargetForwardInfo = ()=>{
+            testTargetForwardInfo(forward.value.current).then((res)=>{
+                timerState.timerTestTarget = setTimeout(_testTargetForwardInfo,5000);
+            }).catch(()=>{
+                timerState.timerTestTarget = setTimeout(_testTargetForwardInfo,5000);
+            });
+        }
+        const _testListenForwardInfo = ()=>{
+            testListenForwardInfo(forward.value.current).then((res)=>{
+                timerState.timerTestListen = setTimeout(_testListenForwardInfo,5000);
+            }).catch(()=>{
+                timerState.timerTestListen = setTimeout(_testListenForwardInfo,5000);
+            });
+        }
+        const _testLocalSForwardInfo = ()=>{
+            testLocalSForwardInfo().then((res)=>{
+                timerState.timerTestLocal = setTimeout(_testLocalSForwardInfo,5000);
+            }).catch(()=>{
+                timerState.timerTestLocal = setTimeout(_testLocalSForwardInfo,5000);
+            });
+        }
+
         onMounted(() => {
             subWebsocketState((state) => { 
                 if (state){
@@ -349,6 +377,10 @@ export default {
             _getConnections();
             _getForwardInfo();
             _getSForwardInfo();
+
+            _testTargetForwardInfo();
+            _testListenForwardInfo();
+            _testLocalSForwardInfo();
         });
         onUnmounted(() => {
             clearTimeout( state.timer);
@@ -356,6 +388,10 @@ export default {
             clearTimeout(tunnel.value.timer);
             clearTimeout(forward.value.timer);
             clearTimeout(sforward.value.timer);
+
+            clearTimeout(timerState.timerTestTarget);
+            clearTimeout(timerState.timerTestListen);
+            clearTimeout(timerState.timerTestLocal);
         });
 
         return {
