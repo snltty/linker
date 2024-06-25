@@ -51,7 +51,7 @@ namespace linker.tunnel.wanport
 
     public enum TunnelWanPortType : byte
     {
-        linker = 0,
+        Linker = 0,
         Stun = 1
     }
 

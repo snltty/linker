@@ -70,7 +70,13 @@ namespace linker.client.config
                     Type type = Data.GetType();
                     foreach (var property in old.GetType().GetProperties().Where(c => c.Name != "Id"))
                     {
-                        property.SetValue(old, type.GetProperty(property.Name).GetValue(Data));
+                        try
+                        {
+                            property.SetValue(old, type.GetProperty(property.Name).GetValue(Data));
+                        }
+                        catch (Exception)
+                        {
+                        }
                     };
                     liteCollection.Update(old.Id,old);
                 }
