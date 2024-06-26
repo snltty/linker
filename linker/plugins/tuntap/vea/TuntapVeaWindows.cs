@@ -55,15 +55,14 @@ namespace linker.plugins.tuntap.vea
                         continue;
                     }
                     await SetIp(ip);
-
-                    if (GetWindowsHasRoute(ip) == false)
+                    if (await GetWindowsHasRoute(ip) == false)
                     {
                         LoggerHelper.Instance.Warning($"vea windows ->route not found");
                         Kill();
+                        Tun2SocksProcess = CommandHelper.Execute("./plugins/tuntap/tun2socks.exe", command);
                         await Task.Delay(10000);
                         continue;
                     }
-
                     return true;
                 }
             }
@@ -186,10 +185,18 @@ namespace linker.plugins.tuntap.vea
             string output = CommandHelper.Windows(string.Empty, new string[] { $"ipconfig | findstr \"{ip}\"" });
             return string.IsNullOrWhiteSpace(output) == false;
         }
-        private bool GetWindowsHasRoute(IPAddress ip)
+        private async Task<bool> GetWindowsHasRoute(IPAddress ip)
         {
-            string output = CommandHelper.Windows(string.Empty, new string[] { "route print" });
-            return output.Contains(ip.ToString());
+            for (int i = 0; i < 5; i++)
+            {
+                await Task.Delay(1000);
+                string output = CommandHelper.Windows(string.Empty, new string[] { "route print" });
+                if (output.Contains(ip.ToString()))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
     }
