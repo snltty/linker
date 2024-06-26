@@ -48,12 +48,12 @@ jobs:
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
-        tag_name: v1.1.0.0
-        release_name: v1.1.0.0.${{ steps.date.outputs.today }}
+        tag_name: v1.1.1.1
+        release_name: v1.1.1.1.${{ steps.date.outputs.today }}
         draft: false
         prerelease: false
         body: |
-          1. 剔除监控代码
+          1. 增加许多检测，检测监听端口和目标服务连通性
 
     - name: upload win x64
       id: upload-win-x64
