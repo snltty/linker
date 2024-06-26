@@ -39,27 +39,31 @@ namespace linker.plugins.tuntap.vea
                     {
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         {
-                            LoggerHelper.Instance.Warning($"vea windows ->interface not dound");
+                            LoggerHelper.Instance.Warning($"vea windows ->interface not found");
                         }
                         continue;
                     }
-                    if (GetWindowsHasRoute(ip) == false)
-                    {
-                        LoggerHelper.Instance.Warning($"vea windows ->route not dound");
-                        await Task.Delay(10000);
-                        continue;
-                    }
+                    
 
                     interfaceNumber = GetWindowsInterfaceNum();
                     if (interfaceNumber == 0)
                     {
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         {
-                            LoggerHelper.Instance.Warning($"vea windows ->interface num not dound");
+                            LoggerHelper.Instance.Warning($"vea windows ->interface num not found");
                         }
                         continue;
                     }
                     await SetIp(ip);
+
+                    if (GetWindowsHasRoute(ip) == false)
+                    {
+                        LoggerHelper.Instance.Warning($"vea windows ->route not found");
+                        Kill();
+                        await Task.Delay(10000);
+                        continue;
+                    }
+
                     return true;
                 }
             }

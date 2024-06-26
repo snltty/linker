@@ -54,6 +54,7 @@ jobs:
         prerelease: false
         body: |
           1. 增加许多检测，检测监听端口和目标服务连通性
+          2. 如果发现配置信息消失，请删除db.db再重新启动
 
     - name: upload win x64
       id: upload-win-x64
