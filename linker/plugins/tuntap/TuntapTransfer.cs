@@ -46,6 +46,7 @@ namespace linker.plugins.tuntap
 
             clientSignInState.NetworkEnabledHandle += (times) =>
             {
+                OnChange();
                 if (runningConfig.Data.Tuntap.Running)
                 {
                     Stop(); Run();
