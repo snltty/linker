@@ -74,6 +74,17 @@ namespace linker.plugins.tuntap.vea
                 }
                 Tun2SocksProcess = null;
             }
+            foreach (var item in Process.GetProcesses().Where(c => c.ProcessName.Contains("tun2socks")))
+            {
+                try
+                {
+                    item.Kill();
+                }
+                catch (Exception)
+                {
+                }
+            };
+
             interfaceLinux = string.Empty;
             CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap del mode tun dev {InterfaceName}" });
         }

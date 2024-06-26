@@ -43,6 +43,13 @@ namespace linker.plugins.tuntap.vea
                         }
                         continue;
                     }
+                    if (GetWindowsHasRoute(ip) == false)
+                    {
+                        LoggerHelper.Instance.Warning($"vea windows ->route not dound");
+                        await Task.Delay(10000);
+                        continue;
+                    }
+
                     interfaceNumber = GetWindowsInterfaceNum();
                     if (interfaceNumber == 0)
                     {
@@ -174,6 +181,11 @@ namespace linker.plugins.tuntap.vea
         {
             string output = CommandHelper.Windows(string.Empty, new string[] { $"ipconfig | findstr \"{ip}\"" });
             return string.IsNullOrWhiteSpace(output) == false;
+        }
+        private bool GetWindowsHasRoute(IPAddress ip)
+        {
+            string output = CommandHelper.Windows(string.Empty, new string[] { "route print" });
+            return output.Contains(ip.ToString());
         }
 
     }

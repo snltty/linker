@@ -211,7 +211,7 @@ namespace linker.plugins.forward
                             try
                             {
                                 forwardProxy.Stop(item.Port);
-                                forwardProxy.Start(new System.Net.IPEndPoint(item.BindIPAddress, item.Port), item.TargetEP, item.MachineId);
+                                forwardProxy.Start(new IPEndPoint(item.BindIPAddress, item.Port), item.TargetEP, item.MachineId);
                             }
                             catch (Exception ex)
                             {

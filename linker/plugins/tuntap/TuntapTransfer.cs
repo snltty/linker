@@ -44,13 +44,12 @@ namespace linker.plugins.tuntap
             this.runningConfig = runningConfig;
 
 
-            clientSignInState.NetworkFirstEnabledHandle += () =>
-            {
-                if (runningConfig.Data.Tuntap.Running) { Run(); }
-            };
             clientSignInState.NetworkEnabledHandle += (times) =>
             {
-                OnChange();
+                if (runningConfig.Data.Tuntap.Running)
+                {
+                    Stop(); Run();
+                }
             };
 
             tuntapVea.Kill();
@@ -79,12 +78,13 @@ namespace linker.plugins.tuntap
             {
                 return;
             }
+
             Task.Run(async () =>
             {
                 OnChange();
                 try
                 {
-                    if(runningConfig.Data.Tuntap.Running == false || runningConfig.Data.Tuntap.IP.Equals(IPAddress.Any))
+                    if (runningConfig.Data.Tuntap.IP.Equals(IPAddress.Any))
                     {
                         return;
                     }
@@ -104,7 +104,6 @@ namespace linker.plugins.tuntap
                 }
                 finally
                 {
-                    
                     BooleanHelper.CompareExchange(ref starting, false, true);
                     OnChange();
                 }
@@ -368,7 +367,10 @@ namespace linker.plugins.tuntap
             }
             catch (Exception ex)
             {
+                LoggerHelper.Instance.Error($"tuntap proxy {new IPEndPoint(IPAddress.Loopback, tuntapProxy.LocalEndpoint.Port)} {ex}");
                 tuntapProxy.Start();
+                LoggerHelper.Instance.Debug($"tuntap proxy restart in {new IPEndPoint(IPAddress.Loopback, tuntapProxy.LocalEndpoint.Port)}");
+
                 Stop();
                 await Task.Delay(5000);
                 Run();

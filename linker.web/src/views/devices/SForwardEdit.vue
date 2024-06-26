@@ -117,8 +117,7 @@ export default {
                     c.Temp = (c.Domain || c.RemotePort).toString();
                     c.RemotePort = 0;
                     c.Domain = '';
-                })
-                console.log(arr);
+                });
                 state.data = arr;
             }).catch(() => {
             });
@@ -170,11 +169,6 @@ export default {
             if(!row.Temp) return;
             if(/^\d+$/.test(row.Temp)){
                 row.RemotePort = parseInt(row.Temp);
-                if(row.RemotePort <= 1024 || row.RemotePort > 65535){
-                    ElMessage.error('端口范围1025-65535');
-                    row.Started = false;
-                    return;
-                }
             }else{
                 row.Domain = row.Temp;
             }

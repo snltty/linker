@@ -14,23 +14,32 @@
                     </a>
                 </p>
             </div> 
-            <p v-if="connections.list[scope.row.MachineId]">
+            <p>
                 <a href="javascript:;" class="a-line" @click="handleConnections(scope.row.MachineId)">
-                    <span>连接数 : {{connections.list[scope.row.MachineId].length}}</span>
+                    <span>连接数 : {{connectionCount(scope.row.MachineId)}}</span>
                     </a>
             </p>
         </template>
     </el-table-column>
 </template>
 <script>
-import { inject, reactive } from 'vue';
+import { computed, inject, reactive } from 'vue';
 
 export default {
     emits: ['edit','refresh'],
     setup(props, { emit }) {
 
         const tunnel = inject('tunnel');
-        const connections = inject('connections');
+
+        const forwardConnections = inject('forward-connections');
+        const tuntapConnections = inject('tuntap-connections');
+
+        const connectionCount = (machineId)=>{
+                return [
+                    forwardConnections.value.list[machineId],
+                    tuntapConnections.value.list[machineId],
+                ].filter(c=>!!c).length;
+        };
        
         const handleTunnel = (tunnel) => {
             emit('edit',tunnel);
@@ -44,7 +53,7 @@ export default {
        
         return {
             tunnel, handleTunnel,handleTunnelRefresh,
-            connections,handleConnections
+            connectionCount,handleConnections
         }
     }
 }

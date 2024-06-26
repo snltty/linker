@@ -250,6 +250,8 @@ namespace linker.tunnel.connection
 
         public void Dispose()
         {
+            ticks = 0;
+
             LoggerHelper.Instance.Error($"tunnel connection writer offline {ToString()}");
 
             callback?.Closed(this, userToken);

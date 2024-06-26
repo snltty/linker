@@ -35,8 +35,8 @@
 <script>
 import { getSignInList, signInDel } from '@/apis/signin.js'
 import { subWebsocketState } from '@/apis/request.js'
-import { getTuntapInfo,refreshTuntap } from '@/apis/tuntap'
-import { getForwardInfo ,testTargetForwardInfo,testListenForwardInfo} from '@/apis/forward'
+import { getTuntapInfo,refreshTuntap,getTuntapConnections,removeTuntapConnection } from '@/apis/tuntap'
+import { getForwardInfo ,testTargetForwardInfo,testListenForwardInfo,getForwardConnections,removeForwardConnection} from '@/apis/forward'
 import { getSForwardInfo,testLocalSForwardInfo} from '@/apis/sforward'
 import { getTunnelInfo ,refreshTunnel} from '@/apis/tunnel'
 import { injectGlobalData } from '@/provide.js'
@@ -53,7 +53,6 @@ import ForwardEdit from './ForwardEdit.vue'
 import SForwardEdit from './SForwardEdit.vue'
 import ConnectionsEdit from './ConnectionsEdit.vue'
 import { ElMessage } from 'element-plus'
-import { getConnections } from '@/apis/connections'
 export default {
     components: {Device,DeviceEdit,Info,Tunnel,TunnelEdit,ConnectionsEdit, Tuntap,TuntapEdit,  Forward,ForwardEdit,SForwardEdit },
     setup(props) {
@@ -155,46 +154,63 @@ export default {
         }
 
         const connections = ref({
-            timer:0,
             showEdit:false,
-            current: [],
-            list: {},
             speedCache: {},
-            hashcode: 0
+            current:''
         });
         provide('connections',connections);
-        const _getConnections = ()=>{
-            if (globalData.value.connected) {
-                getConnections(connections.value.hashcode.toString()).then((res)=>{
-                    connections.value.hashcode = res.HashCode;
-                    if (res.List) {
-                        const newList = res.List;
-                        const caches = connections.value.speedCache;
-                        for(let j in newList){
-                            const cons = newList[j];
-                            for(let k in cons){
-                                const con = cons[k];
-                                
-                                const key = `${con.RemoteMachineId}-${con.TransactionId}`;
-                                const cache = caches[key] || {SendBytes:0,ReceiveBytes:0};
-                               
-                                con.SendBytesText = parseSpeed(con.SendBytes - cache.SendBytes);
-                                con.ReceiveBytesText = parseSpeed(con.ReceiveBytes - cache.ReceiveBytes);
 
-                                cache.SendBytes = con.SendBytes;
-                                cache.ReceiveBytes = con.ReceiveBytes;
-                                caches[key] = cache;
-                            }
-                            newList[j] = Object.values(newList[j]);
-                        }
-                        connections.value.list = newList;
-                    }
-                    connections.value.timer = setTimeout(_getConnections, 1000);
+        const forwardConnections = ref({
+            timer:0,
+            list: {},
+        });
+        provide('forward-connections',forwardConnections);
+        const _getForwardConnections = ()=>{
+            if (globalData.value.connected) {
+                getForwardConnections().then((res)=>{
+                    parseConnections(res,removeForwardConnection);
+                    forwardConnections.value.list = res;
+                    forwardConnections.value.timer = setTimeout(_getForwardConnections, 1000);
                 }).catch((e)=>{
-                    connections.value.timer = setTimeout(_getConnections, 1000);
+                    forwardConnections.value.timer = setTimeout(_getForwardConnections, 1000);
                 })
             }else {
-                connections.value.timer = setTimeout(_getConnections, 1000);
+                forwardConnections.value.timer = setTimeout(_getForwardConnections, 1000);
+            }
+        }
+        const tuntapConnections = ref({
+            timer:0,
+            list: {},
+        });
+        provide('tuntap-connections',tuntapConnections);
+        const _getTuntapConnections = ()=>{
+            if (globalData.value.connected) {
+                getTuntapConnections().then((res)=>{
+                    parseConnections(res,removeTuntapConnection);
+                    tuntapConnections.value.list = res;
+                    tuntapConnections.value.timer = setTimeout(_getTuntapConnections, 1000);
+                }).catch((e)=>{
+                    tuntapConnections.value.timer = setTimeout(_getTuntapConnections, 1000);
+                })
+            }else {
+                tuntapConnections.value.timer = setTimeout(_getTuntapConnections, 1000);
+            }
+        }
+        const parseConnections = (_connections,removeFunc)=>{
+            const caches = connections.value.speedCache;
+            for(let machineId in _connections){
+                const connection = _connections[machineId]; 
+                connection.removeFunc = removeFunc;
+                
+                const key = `${connection.RemoteMachineId}-${connection.TransactionId}`;
+                const cache = caches[key] || {SendBytes:0,ReceiveBytes:0};
+                
+                connection.SendBytesText = parseSpeed(connection.SendBytes - cache.SendBytes);
+                connection.ReceiveBytesText = parseSpeed(connection.ReceiveBytes - cache.ReceiveBytes);
+
+                cache.SendBytes = connection.SendBytes;
+                cache.ReceiveBytes = connection.ReceiveBytes;
+                caches[key] = cache;
             }
         }
         const parseSpeed = (num)=>{
@@ -374,7 +390,8 @@ export default {
             _getSignList1();
             _getTuntapInfo();
             _getTunnelInfo();
-            _getConnections();
+            _getForwardConnections();
+            _getTuntapConnections();
             _getForwardInfo();
             _getSForwardInfo();
 

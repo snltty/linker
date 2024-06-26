@@ -78,6 +78,17 @@ namespace linker.plugins.tuntap.vea
                 }
                 Tun2SocksProcess = null;
             }
+            foreach (var item in Process.GetProcesses().Where(c => c.ProcessName.Contains("tun2socks")))
+            {
+                try
+                {
+                    item.Kill();
+                }
+                catch (Exception)
+                {
+                }
+            };
+
             interfaceOsx = string.Empty;
             var ip = this.ip.GetAddressBytes();
             ip[^1] = 0;

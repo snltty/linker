@@ -27,7 +27,7 @@ namespace linker.plugins.tuntap.proxy
 
         private uint maskValue = NetworkHelper.MaskValue(24);
         private readonly ConcurrentDictionary<uint, string> dic = new ConcurrentDictionary<uint, string>();
-        private readonly ConcurrentDictionary<string, ITunnelConnection> dicConnections = new ConcurrentDictionary<string, ITunnelConnection>();
+        private readonly ConcurrentDictionary<string, ITunnelConnection> connections = new ConcurrentDictionary<string, ITunnelConnection>();
         private readonly ConcurrentDictionary<string, SemaphoreSlim> dicLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
 
         public TuntapProxy(TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, RunningConfig runningConfig, ConfigWrap config)
@@ -47,12 +47,12 @@ namespace linker.plugins.tuntap.proxy
         }
         public void Start()
         {
-            if(proxyEP != null)
+            if (proxyEP != null)
             {
                 Stop(proxyEP.Port);
-                Start(new IPEndPoint(IPAddress.Any, 0));
-                proxyEP = new IPEndPoint(IPAddress.Any, LocalEndpoint.Port);
             }
+            Start(new IPEndPoint(IPAddress.Any, 0));
+            proxyEP = new IPEndPoint(IPAddress.Any, LocalEndpoint.Port);
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace linker.plugins.tuntap.proxy
         {
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Warning($"tuntap add connection {connection.GetHashCode()} {connection.ToJson()}");
-            dicConnections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
+            connections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
             BindConnectionReceive(connection);
         }
 
@@ -243,7 +243,7 @@ namespace linker.plugins.tuntap.proxy
                 return null;
             }
 
-            if (dicConnections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected)
+            if (connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected)
             {
                 return connection;
             }
@@ -261,7 +261,7 @@ namespace linker.plugins.tuntap.proxy
             try
             {
 
-                if (dicConnections.TryGetValue(machineId, out connection) && connection.Connected)
+                if (connections.TryGetValue(machineId, out connection) && connection.Connected)
                 {
                     return connection;
                 }
@@ -285,7 +285,7 @@ namespace linker.plugins.tuntap.proxy
                 }
                 if (connection != null)
                 {
-                    dicConnections.AddOrUpdate(machineId, connection, (a, b) => connection);
+                    connections.AddOrUpdate(machineId, connection, (a, b) => connection);
                 }
             }
             catch (Exception)
@@ -330,7 +330,7 @@ namespace linker.plugins.tuntap.proxy
         /// </summary>
         /// <param name="info"></param>
         /// <returns></returns>
-        public EnumProxyValidateDataResult ValidateData(ProxyInfo info)
+        private EnumProxyValidateDataResult ValidateData(ProxyInfo info)
         {
             return (Socks5EnumStep)info.Rsv switch
             {
@@ -341,6 +341,26 @@ namespace linker.plugins.tuntap.proxy
                 Socks5EnumStep.ForwardUdp => EnumProxyValidateDataResult.Equal,
                 _ => EnumProxyValidateDataResult.Equal
             };
+        }
+
+
+
+        public ConcurrentDictionary<string, ITunnelConnection> GetConnections()
+        {
+            return connections;
+        }
+        public void RemoveConnection(string machineId)
+        {
+            if (connections.TryRemove(machineId, out ITunnelConnection _connection))
+            {
+                try
+                {
+                    _connection.Dispose();
+                }
+                catch (Exception)
+                {
+                }
+            }
         }
     }
 }

@@ -8,6 +8,9 @@ using linker.libs.extends;
 using linker.client.capi;
 using System.Collections.Concurrent;
 using linker.config;
+using linker.plugins.forward.proxy;
+using linker.tunnel.connection;
+using linker.plugins.tuntap.proxy;
 
 namespace linker.plugins.tuntap
 {
@@ -17,14 +20,26 @@ namespace linker.plugins.tuntap
         private readonly TuntapTransfer tuntapTransfer;
         private readonly ClientSignInState clientSignInState;
         private readonly ConfigWrap config;
+        private readonly TuntapProxy tuntapProxy;
 
-        public TuntapClientApiController(MessengerSender messengerSender, TuntapTransfer tuntapTransfer, ClientSignInState clientSignInState, ConfigWrap config)
+        public TuntapClientApiController(MessengerSender messengerSender, TuntapTransfer tuntapTransfer, ClientSignInState clientSignInState, ConfigWrap config, TuntapProxy tuntapProxy)
         {
             this.messengerSender = messengerSender;
             this.tuntapTransfer = tuntapTransfer;
             this.clientSignInState = clientSignInState;
             this.config = config;
+            this.tuntapProxy = tuntapProxy;
         }
+
+        public ConcurrentDictionary<string, ITunnelConnection> Connections(ApiControllerParamsInfo param)
+        {
+            return tuntapProxy.GetConnections();
+        }
+        public void RemoveConnection(ApiControllerParamsInfo param)
+        {
+            tuntapProxy.RemoveConnection(param.Content);
+        }
+
         /// <summary>
         /// 获取所有客户端的网卡信息
         /// </summary>

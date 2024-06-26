@@ -96,6 +96,7 @@ mainForm.runCommand = function(id,event){
 			import service;
 			import win.ui;
 			import thread;
+			import console;
 			try{
 				mainForm.btnRun.text = '....';
 				if(service.isRunning(mainForm.serviceName)){
@@ -121,6 +122,7 @@ mainForm.runCommand = function(id,event){
 				
 				mainForm.checkService();	
 			}catch(e){
+				console.log(e);
 			}
 		},mainForm
 	);
@@ -153,7 +155,7 @@ mainForm.installCommand = function(id,event){
 						{
 							thread.delay(100);
 						}
-						service.startDelayed(mainForm.serviceName,true);
+						service.manager().startDelayed(mainForm.serviceName,true);
 					}else{
 						win.msgbox("安装失败");	
 					}

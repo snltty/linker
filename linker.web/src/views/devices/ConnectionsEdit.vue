@@ -57,20 +57,26 @@
 </template>
 <script>
 import { onMounted, reactive, watch,inject,computed } from 'vue';
-import { removeConnection } from '@/apis/connections'
 import { ElMessage } from 'element-plus';
 export default {
     props: ['modelValue'],
     emits: ['change','update:modelValue'],
     setup(props, { emit }) {
 
-        const connections = inject('connections')
+        const connections = inject('connections');
+        const forwardConnections = inject('forward-connections');
+        const tuntapConnections = inject('tuntap-connections');
         const state = reactive({
             show: true,
             protocolTypes:{1:'tcp',2:'udp',4:'msquic'},
             types:{0:'打洞',1:'中继'},
-            transactions:{'forward':'端口转发','tuntap':'虚拟网卡','viewer':'桌面共享'},
-            data: computed(()=>connections.value.list[connections.value.current]),
+            transactions:{'forward':'端口转发','tuntap':'虚拟网卡'},
+            data: computed(()=>{
+                return [
+                    forwardConnections.value.list[connections.value.current],
+                    tuntapConnections.value.list[connections.value.current],
+                ].filter(c=>!!c);
+            }),
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -81,10 +87,9 @@ export default {
             }
         });
         const handleDel = (row)=>{
-            console.log(row);
-            removeConnection(row.RemoteMachineId,row.TransactionId).then(()=>{
-
-            }).catch(()=>{})
+            row.removeFunc(row.RemoteMachineId).then(()=>{
+                ElMessage.success('删除成功');
+            }).catch(()=>{});
         }
 
         return {

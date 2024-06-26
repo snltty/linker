@@ -158,6 +158,24 @@ namespace linker.plugins.forward.proxy
             }
         }
 
+        public ConcurrentDictionary<string, ITunnelConnection> GetConnections()
+        {
+            return connections;
+        }
+        public void RemoveConnection(string machineId)
+        {
+            if (connections.TryRemove(machineId, out ITunnelConnection _connection))
+            {
+                try
+                {
+                    _connection.Dispose();
+                }
+                catch (Exception)
+                {
+                }
+            }
+        }
+
         public sealed class ForwardProxyCacheInfo
         {
             public int Port { get; set; }

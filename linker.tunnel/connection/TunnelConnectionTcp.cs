@@ -280,6 +280,7 @@ namespace linker.tunnel.connection
 
         public void Dispose()
         {
+            ticks = 0;
             LoggerHelper.Instance.Error($"tunnel connection {this.GetHashCode()} writer offline {ToString()}");
 
             callback?.Closed(this, userToken);
