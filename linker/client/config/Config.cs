@@ -45,7 +45,7 @@ namespace linker.config
 #if DEBUG
         public string Server { get; set; } = new IPEndPoint(IPAddress.Loopback, 1802).ToString();
 #else
-        public string Server { get; set; } = "hk.cm.snltty.com:1802";
+        public string Server { get; set; } = "linker.snltty.com:1802";
 #endif
 
         private string id = string.Empty;
