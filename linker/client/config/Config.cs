@@ -19,7 +19,7 @@ namespace linker.client.config
 #if DEBUG
             new ClientServerInfo{ Name="默认", Host=new IPEndPoint(IPAddress.Loopback, 1802).ToString() }
 #else
-            new ClientServerInfo{ Name="默认", Host="hk.cm.snltty.com:1802" }
+            new ClientServerInfo{ Name="默认", Host="linker.snltty.com:1802" }
 #endif
         };
         public ClientServerInfo[] Servers
