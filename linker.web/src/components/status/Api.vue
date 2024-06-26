@@ -45,7 +45,7 @@ export default {
        span{background-color:green;color:#fff;}
     }  
     .el-icon{
-        vertical-align:sub;
+        vertical-align:text-top;
     }
 }
 
