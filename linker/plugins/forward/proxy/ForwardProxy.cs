@@ -147,8 +147,8 @@ namespace linker.plugins.forward.proxy
         public void Start(IPEndPoint ep, IPEndPoint targetEP, string machineId)
         {
             Stop(ep.Port);
-            caches.TryAdd(ep.Port, new ForwardProxyCacheInfo { Port = ep.Port, TargetEP = targetEP, MachineId = machineId });
             base.Start(ep);
+            caches.TryAdd(LocalEndpoint.Port, new ForwardProxyCacheInfo { Port = LocalEndpoint.Port, TargetEP = targetEP, MachineId = machineId });
         }
         public override void Stop(int port)
         {

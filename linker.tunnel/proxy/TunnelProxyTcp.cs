@@ -21,10 +21,10 @@ namespace linker.tunnel.proxy
         /// <param name="port"></param>
         private void StartTcp(IPEndPoint ep)
         {
-            IPEndPoint localEndPoint = ep;
-            socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            socket.IPv6Only(localEndPoint.AddressFamily, false);
-            socket.ReuseBind(localEndPoint);
+            IPEndPoint _localEndPoint = ep;
+            socket = new Socket(_localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            socket.IPv6Only(_localEndPoint.AddressFamily, false);
+            socket.ReuseBind(_localEndPoint);
             socket.Listen(int.MaxValue);
 
             LocalEndpoint = socket.LocalEndPoint as IPEndPoint;
@@ -32,7 +32,7 @@ namespace linker.tunnel.proxy
             {
                 AsyncUserToken userToken = new AsyncUserToken
                 {
-                    ListenPort = localEndPoint.Port,
+                    ListenPort = LocalEndpoint.Port,
                     Socket = socket
                 };
                 SocketAsyncEventArgs acceptEventArg = new SocketAsyncEventArgs
@@ -45,7 +45,7 @@ namespace linker.tunnel.proxy
                 acceptEventArg.Completed += IO_Completed;
                 StartAccept(acceptEventArg);
 
-                tcpListens.AddOrUpdate(localEndPoint.Port, userToken, (a, b) => userToken);
+                tcpListens.AddOrUpdate(LocalEndpoint.Port, userToken, (a, b) => userToken);
 
 
             }
