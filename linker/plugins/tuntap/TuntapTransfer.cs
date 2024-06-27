@@ -98,6 +98,10 @@ namespace linker.plugins.tuntap
                     bool result = await tuntapVea.Run(tuntapProxy.LocalEndpoint.Port, runningConfig.Data.Tuntap.IP);
                     runningConfig.Data.Tuntap.Running = Status == TuntapStatus.Running;
                     runningConfig.Data.Update();
+                    if(result == false)
+                    {
+                        Stop();
+                    }
                 }
                 catch (Exception ex)
                 {

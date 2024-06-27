@@ -78,6 +78,7 @@ namespace linker.plugins.tuntap
             //运行自己的
             if (param.Content == config.Data.Client.Id)
             {
+                tuntapTransfer.Stop();
                 tuntapTransfer.Run();
             }
             else

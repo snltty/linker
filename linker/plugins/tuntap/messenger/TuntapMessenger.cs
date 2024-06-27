@@ -20,6 +20,7 @@ namespace linker.plugins.tuntap.messenger
         [MessengerId((ushort)TuntapMessengerIds.Run)]
         public void Run(IConnection connection)
         {
+            tuntapTransfer.Stop();
             tuntapTransfer.Run();
         }
 
