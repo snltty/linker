@@ -265,24 +265,11 @@ namespace linker.tunnel.proxy
         {
             if (token.Connection == null)
             {
-                LoggerHelper.Instance.Warning($"connection null");
                 return;
             }
-            /*
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            {
-                LoggerHelper.Instance.Warning($"SendToConnection receive {token.Proxy.TargetEP}");
-            }
-            */
             SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
             await semaphoreSlim.WaitAsync();
-            /*
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            {
-                LoggerHelper.Instance.Warning($"SendToConnection receive {token.Proxy.TargetEP} got lock");
-            }
-            LoggerHelper.Instance.Warning($"token.Proxy:{token.Proxy.Data.Length}");
-            */
+            
             byte[] connectData = token.Proxy.ToBytes(out int length);
 
             try
@@ -329,14 +316,12 @@ namespace linker.tunnel.proxy
         private void ConnectBind(AsyncUserTunnelToken token)
         {
             if (token.Proxy.TargetEP == null) return;
-            /*
+            
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
                 LoggerHelper.Instance.Warning($"connect {token.Proxy.TargetEP}");
             }
 
-            token.Proxy.TargetEP = new IPEndPoint(IPAddress.Loopback, token.Proxy.TargetEP.Port);
-            */
             Socket socket = new Socket(token.Proxy.TargetEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.KeepAlive();
 
@@ -359,8 +344,7 @@ namespace linker.tunnel.proxy
                     ConnectId = state.ConnectId,
                     Step = ProxyStep.Receive,
                     Direction = ProxyDirection.Reverse,
-                    Protocol = ProxyProtocol.Tcp,
-                    TargetEP = state.IPEndPoint
+                    Protocol = ProxyProtocol.Tcp
                 }
             };
             try

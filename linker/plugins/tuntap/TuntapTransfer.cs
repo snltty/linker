@@ -346,7 +346,7 @@ namespace linker.plugins.tuntap
                 {
                     if (tuntapVea.Running)
                     {
-                        //await CheckProxy();
+                        await CheckProxy();
                         await Task.Delay(5000);
                         await CheckInterface();
                     }
