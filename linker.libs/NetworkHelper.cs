@@ -87,6 +87,11 @@ namespace linker.libs
         }
         private static IEnumerable<IPAddress> GetTraceRoute(string hostNameOrAddress, int ttl)
         {
+            if(ttl > 5)
+            {
+                return new List<IPAddress>();
+            }
+
             IPAddress target = Dns.GetHostEntry(hostNameOrAddress).AddressList.FirstOrDefault(c => c.AddressFamily == AddressFamily.InterNetwork);
 
             using Ping pinger = new();
@@ -116,7 +121,10 @@ namespace linker.libs
                 {
                     //递归访问下一个地址
                     IEnumerable<IPAddress> tempResult = GetTraceRoute(hostNameOrAddress, ttl + 1);
-                    result.AddRange(tempResult);
+                    if(tempResult.Count() > 0)
+                    {
+                        result.AddRange(tempResult);
+                    }
                 }
             }
             else

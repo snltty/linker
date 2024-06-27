@@ -39,7 +39,7 @@ namespace linker.plugins.tuntap.vea
                     {
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         {
-                            LoggerHelper.Instance.Warning($"vea windows ->interface not found");
+                            LoggerHelper.Instance.Warning($"ipconfig command not found or interface not found");
                         }
                         continue;
                     }
@@ -50,14 +50,14 @@ namespace linker.plugins.tuntap.vea
                     {
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         {
-                            LoggerHelper.Instance.Warning($"vea windows ->interface num not found");
+                            LoggerHelper.Instance.Warning($"ipconfig command not found or  interface num not found");
                         }
                         continue;
                     }
                     await SetIp(ip);
                     if (await GetWindowsHasRoute(ip) == false)
                     {
-                        LoggerHelper.Instance.Warning($"vea windows ->route not found");
+                        LoggerHelper.Instance.Warning($"route command not found or  route ip not found");
                         Kill();
                         Tun2SocksProcess = CommandHelper.Execute("./plugins/tuntap/tun2socks.exe", command);
                         await Task.Delay(10000);
@@ -178,6 +178,10 @@ namespace linker.plugins.tuntap.vea
         private bool GetWindowsHasInterface(string name)
         {
             string output = CommandHelper.Windows(string.Empty, new string[] { $"ipconfig | findstr \"{name}\"" });
+            if(output.Contains("Windows IP") == false)
+            {
+                return false;
+            }
             return string.IsNullOrWhiteSpace(output) == false;
         }
         private bool GetWindowsHasIp(IPAddress ip)
@@ -189,7 +193,7 @@ namespace linker.plugins.tuntap.vea
         {
             for (int i = 0; i < 5; i++)
             {
-                await Task.Delay(1000);
+                await Task.Delay(2000);
                 string output = CommandHelper.Windows(string.Empty, new string[] { "route print" });
                 if (output.Contains(ip.ToString()))
                 {
