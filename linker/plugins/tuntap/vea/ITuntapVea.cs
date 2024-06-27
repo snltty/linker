@@ -9,6 +9,7 @@ namespace linker.plugins.tuntap.vea
     {
         public bool Running { get; }
         public string InterfaceName { get; }
+        public string Error { get; }
 
         public Task<bool> Run(int proxyPort,IPAddress ip);
         public Task<bool> SetIp(IPAddress ip);
@@ -55,12 +56,14 @@ namespace linker.plugins.tuntap.vea
         public string MachineId { get; set; }
 
         public TuntapStatus Status { get; set; }
-
+       
         [MemoryPackAllowSerialize]
         public IPAddress IP { get; set; }
 
         [MemoryPackAllowSerialize]
         public IPAddress[] LanIPs { get; set; } = Array.Empty<IPAddress>();
+
+        public string Error { get; set; }
 
     }
 

@@ -12,7 +12,16 @@
                     <div class="flex-1">
                         <a href="javascript:;" class="a-line" @click="handleTuntapIP(tuntap.list[scope.row.MachineId])">
                             <template v-if="tuntap.list[scope.row.MachineId].running">
-                                <strong class="green">{{ tuntap.list[scope.row.MachineId].IP }}</strong>
+                                <template v-if="tuntap.list[scope.row.MachineId].Error">
+                                    <el-popover placement="top" title="msg" width="20rem"  trigger="hover" :content="tuntap.list[scope.row.MachineId].Error">
+                                        <template #reference>
+                                            <strong class="error">{{ tuntap.list[scope.row.MachineId].IP }}</strong>
+                                        </template>
+                                    </el-popover>
+                                </template>
+                                <template>
+                                    <strong class="green">{{ tuntap.list[scope.row.MachineId].IP }}</strong>
+                                </template>
                             </template>
                             <template v-else>
                                 <span>{{ tuntap.list[scope.row.MachineId].IP }}</span>
@@ -60,5 +69,6 @@ export default {
 </script>
 <style lang="stylus" scoped>
 .green{color:green;}
+.error{color:red;}
 .el-switch.is-disabled{opacity :1;}
 </style>

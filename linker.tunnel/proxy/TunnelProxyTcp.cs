@@ -271,8 +271,18 @@ namespace linker.tunnel.proxy
         {
             if (token.Connection == null) return;
 
+            if (token.Proxy.Step == ProxyStep.Receive && LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            {
+                LoggerHelper.Instance.Warning($"SendToConnection receive {token.Proxy.TargetEP}");
+            }
+
             SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
             await semaphoreSlim.WaitAsync();
+
+            if (token.Proxy.Step == ProxyStep.Receive && LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            {
+                LoggerHelper.Instance.Warning($"SendToConnection receive {token.Proxy.TargetEP} got lock");
+            }
 
             byte[] connectData = token.Proxy.ToBytes(out int length);
 

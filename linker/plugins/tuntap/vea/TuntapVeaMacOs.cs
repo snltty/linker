@@ -14,6 +14,7 @@ namespace linker.plugins.tuntap.vea
 
         public bool Running => string.IsNullOrWhiteSpace(interfaceOsx) == false;
         public string InterfaceName => "utun12138";
+        public string Error { get; private set; }
 
         public TuntapVeaMacOs()
         {
@@ -25,9 +26,15 @@ namespace linker.plugins.tuntap.vea
             try
             {
                 Tun2SocksProcess = CommandHelper.Execute("./plugins/tuntap/tun2socks", $" -device {InterfaceName} -proxy socks5://127.0.0.1:{proxyPort} -interface {interfaceOsx} -loglevel silent");
+                if (Tun2SocksProcess.HasExited)
+                {
+                    Error = CommandHelper.Execute("./plugins/tuntap/tun2socks", $" -device {InterfaceName} -proxy socks5://127.0.0.1:{proxyPort} -interface {interfaceOsx} -loglevel silent", Array.Empty<string>());
+                    LoggerHelper.Instance.Error(Error);
+                }
             }
             catch (Exception ex)
             {
+                Error = ex.Message;
                 LoggerHelper.Instance.Error(ex.Message);
                 return false;
             }
@@ -93,6 +100,7 @@ namespace linker.plugins.tuntap.vea
             var ip = this.ip.GetAddressBytes();
             ip[^1] = 0;
             CommandHelper.Osx(string.Empty, new string[] { $"route delete -net {new IPAddress(ip)}/24 {this.ip}" });
+            Error = string.Empty;
         }
 
         public void AddRoute(TuntapVeaLanIPAddress[] ips, IPAddress ip)

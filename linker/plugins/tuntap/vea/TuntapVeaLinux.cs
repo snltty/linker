@@ -14,6 +14,7 @@ namespace linker.plugins.tuntap.vea
 
         public bool Running => string.IsNullOrWhiteSpace(interfaceLinux) == false;
         public string InterfaceName => "linker";
+        public string Error { get; private set; }
 
         public TuntapVeaLinux()
         {
@@ -26,8 +27,8 @@ namespace linker.plugins.tuntap.vea
             string str = CommandHelper.Linux(string.Empty, new string[] { $"ifconfig" });
             if (str.Contains(InterfaceName) == false)
             {
-                string msg = CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap add mode tun dev {InterfaceName}" });
-                LoggerHelper.Instance.Error(msg);
+                Error = CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap add mode tun dev {InterfaceName}" });
+                LoggerHelper.Instance.Error(Error);
                 return false;
             }
 
@@ -40,10 +41,17 @@ namespace linker.plugins.tuntap.vea
                     LoggerHelper.Instance.Warning($"vea linux ->exec:{command}");
                 }
                 Tun2SocksProcess = CommandHelper.Execute("./plugins/tuntap/tun2socks", command);
+                if (Tun2SocksProcess.HasExited)
+                {
+                    Error = CommandHelper.Execute("./plugins/tuntap/tun2socks", command, Array.Empty<string>());
+                    LoggerHelper.Instance.Error(Error);
+                }
+               
                 await Task.Delay(10);
             }
             catch (Exception ex)
             {
+                Error = ex.Message;
                 LoggerHelper.Instance.Error(ex.Message);
                 return false;
             }
@@ -87,6 +95,7 @@ namespace linker.plugins.tuntap.vea
 
             interfaceLinux = string.Empty;
             CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap del mode tun dev {InterfaceName}" });
+            Error = string.Empty;
         }
         public void AddRoute(TuntapVeaLanIPAddress[] ips, IPAddress ip)
         {

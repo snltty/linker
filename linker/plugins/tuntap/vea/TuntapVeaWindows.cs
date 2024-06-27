@@ -13,6 +13,8 @@ namespace linker.plugins.tuntap.vea
 
         public bool Running => interfaceNumber > 0;
         public string InterfaceName => "linker";
+        public string Error { get; private set; }
+
 
         public TuntapVeaWindows()
         {
@@ -62,8 +64,8 @@ namespace linker.plugins.tuntap.vea
 
             if (interfaceNumber <= 0)
             {
-                string msg = CommandHelper.Execute("./plugins/tuntap/tun2socks.exe", command, Array.Empty<string>());
-                LoggerHelper.Instance.Error(msg);
+                Error = CommandHelper.Execute("./plugins/tuntap/tun2socks.exe", command, Array.Empty<string>());
+                LoggerHelper.Instance.Error(Error);
             }
             return interfaceNumber > 0;
         }
@@ -78,7 +80,8 @@ namespace linker.plugins.tuntap.vea
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        LoggerHelper.Instance.Error($"ipconfig command not found");
+                        Error = $"ipconfig command not found";
+                        LoggerHelper.Instance.Error(Error);
                     }
                     return false;
                 }
@@ -90,7 +93,8 @@ namespace linker.plugins.tuntap.vea
             }
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
-                LoggerHelper.Instance.Error($"vea windows ->set ip fail");
+                Error = $"vea windows ->set ip fail";
+                LoggerHelper.Instance.Error(Error);
             }
             return false;
         }
@@ -121,6 +125,7 @@ namespace linker.plugins.tuntap.vea
                 {
                 }
             };
+            Error = string.Empty;
         }
         public void AddRoute(TuntapVeaLanIPAddress[] ips, IPAddress ip)
         {
@@ -167,7 +172,8 @@ namespace linker.plugins.tuntap.vea
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        LoggerHelper.Instance.Error($"route command not found");
+                        Error = $"route command not found";
+                        LoggerHelper.Instance.Error(Error);
                     }
                     return false;
                 }
@@ -183,7 +189,8 @@ namespace linker.plugins.tuntap.vea
             }
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
-                LoggerHelper.Instance.Error($"interface number not found");
+                Error = $"interface number not found";
+                LoggerHelper.Instance.Error(Error);
             }
             return false;
         }
@@ -196,7 +203,8 @@ namespace linker.plugins.tuntap.vea
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        LoggerHelper.Instance.Error($"ipconfig command not found");
+                        Error = $"ipconfig command not found";
+                        LoggerHelper.Instance.Error(Error);
                     }
                     return false;
                 }
@@ -208,7 +216,8 @@ namespace linker.plugins.tuntap.vea
             }
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
-                LoggerHelper.Instance.Error($"interface {name} not found");
+                Error = $"interface {name} not found";
+                LoggerHelper.Instance.Error(Error);
             }
             return false;
         }
@@ -222,7 +231,8 @@ namespace linker.plugins.tuntap.vea
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        LoggerHelper.Instance.Error($"route command not found");
+                        Error = $"route command not found";
+                        LoggerHelper.Instance.Error(Error);
                     }
                     break;
                 }
@@ -233,7 +243,8 @@ namespace linker.plugins.tuntap.vea
             }
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
-                LoggerHelper.Instance.Error($"interface route set fail");
+                Error = $"interface route set fail";
+                LoggerHelper.Instance.Error(Error);
             }
             return false;
         }

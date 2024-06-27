@@ -98,7 +98,7 @@ namespace linker.plugins.tuntap
                     bool result = await tuntapVea.Run(tuntapProxy.LocalEndpoint.Port, runningConfig.Data.Tuntap.IP);
                     runningConfig.Data.Tuntap.Running = Status == TuntapStatus.Running;
                     runningConfig.Data.Update();
-                    if(result == false)
+                    if (result == false)
                     {
                         Stop();
                     }
@@ -221,7 +221,14 @@ namespace linker.plugins.tuntap
         /// <returns></returns>
         private TuntapInfo GetLocalInfo()
         {
-            return new TuntapInfo { IP = runningConfig.Data.Tuntap.IP, LanIPs = runningConfig.Data.Tuntap.LanIPs, MachineId = config.Data.Client.Id, Status = Status };
+            return new TuntapInfo
+            {
+                IP = runningConfig.Data.Tuntap.IP,
+                LanIPs = runningConfig.Data.Tuntap.LanIPs,
+                MachineId = config.Data.Client.Id,
+                Status = Status,
+                Error = tuntapVea.Error
+            };
         }
         /// <summary>
         /// 获取别人的网卡信息
