@@ -120,6 +120,7 @@ export default {
         const _getForwardIpv4 = ()=>{
             getForwardIpv4().then((res)=>{
                 res.splice(0,0,'0.0.0.0');
+                res.splice(1,0,'127.0.0.1');
                 state.ips = res;
             }).catch(()=>{});
         }
