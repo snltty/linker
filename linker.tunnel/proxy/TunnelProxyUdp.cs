@@ -157,11 +157,12 @@ namespace linker.tunnel.proxy
                 try
                 {
                     IPEndPoint target = new IPEndPoint(tunnelToken.Proxy.TargetEP.Address, tunnelToken.Proxy.TargetEP.Port);
+                    /*
                     if (target.Address.GetAddressBytes()[3] == 255)
                     {
                         target.Address = UdpBindAdress;
                     }
-
+                    */
                     if (udpConnections.TryGetValue(connectId, out AsyncUserUdpTokenTarget token))
                     {
                         token.Connection = tunnelToken.Connection;

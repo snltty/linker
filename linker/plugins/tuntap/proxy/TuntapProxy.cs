@@ -159,10 +159,12 @@ namespace linker.plugins.tuntap.proxy
 
             token.TargetIP = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
             //只支持本IP段的广播
+            /*
             if ((token.TargetIP | (~maskValue)) != (runningConfig.Data.Tuntap.IpInt | (~maskValue)))
             {
                 return;
             }
+            */
             token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
             //解析出udp包的数据部分
             token.Proxy.Data = Socks5Parser.GetUdpData(token.Proxy.Data);
