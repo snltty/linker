@@ -321,6 +321,12 @@ namespace linker.tunnel.proxy
         {
             if (token.Proxy.TargetEP == null) return;
 
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            {
+                LoggerHelper.Instance.Warning($"connect {token.Proxy.TargetEP}");
+            }
+
+
             Socket socket = new Socket(token.Proxy.TargetEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.KeepAlive();
 
@@ -348,8 +354,13 @@ namespace linker.tunnel.proxy
             };
             try
             {
+                
                 token.Socket.EndConnect(result);
                 token.Socket.KeepAlive();
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Warning($"connect {token.Proxy.TargetEP} success");
+                }
 
                 if (state.Data.Length > 0)
                 {
@@ -400,12 +411,20 @@ namespace linker.tunnel.proxy
                 ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.GetHashCode(), (byte)tunnelToken.Proxy.Direction);
                 if (tcpConnections.TryGetValue(connectId, out AsyncUserToken token))
                 {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Warning($"receive {token.Proxy.TargetEP}");
+                    }
                     if (token.Received == false)
                     {
                         token.Received = true;
                         if (token.Paused)
                         {
                             token.Paused = false;
+                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            {
+                                LoggerHelper.Instance.Warning($"receive {token.Proxy.TargetEP} success");
+                            }
                             if (token.Socket.ReceiveAsync(token.Saea) == false)
                             {
                                 ProcessReceive(token.Saea);
