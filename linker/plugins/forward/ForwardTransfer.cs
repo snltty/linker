@@ -254,7 +254,7 @@ namespace linker.plugins.forward
         public bool Add(ForwardInfo forwardInfo)
         {
             //同名或者同端口，但是ID不一样
-            ForwardInfo old = running.Data.Forwards.FirstOrDefault(c => ((c.Port == forwardInfo.Port && c.Port != 0) || c.Name == forwardInfo.Name) && c.MachineId == forwardInfo.MachineId);
+            ForwardInfo old = running.Data.Forwards.FirstOrDefault(c => (c.Port == forwardInfo.Port && c.Port != 0) && c.MachineId == forwardInfo.MachineId);
             if (old != null && old.Id != forwardInfo.Id) return false;
 
             if (forwardInfo.Id != 0)

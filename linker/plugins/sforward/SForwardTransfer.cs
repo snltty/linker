@@ -175,7 +175,7 @@ namespace linker.plugins.sforward
         public bool Add(SForwardInfo forwardInfo)
         {
             //同名或者同端口，但是ID不一样
-            SForwardInfo old = running.Data.SForwards.FirstOrDefault(c => (forwardInfo.RemotePort > 0 && c.RemotePort == forwardInfo.RemotePort) || c.Name == forwardInfo.Name || (string.IsNullOrWhiteSpace(forwardInfo.Domain) == false && c.Domain == forwardInfo.Domain));
+            SForwardInfo old = running.Data.SForwards.FirstOrDefault(c => (forwardInfo.RemotePort > 0 && c.RemotePort == forwardInfo.RemotePort) || (string.IsNullOrWhiteSpace(forwardInfo.Domain) == false && c.Domain == forwardInfo.Domain));
             if (old != null && old.Id != forwardInfo.Id) return false;
 
             if (forwardInfo.Id != 0)
