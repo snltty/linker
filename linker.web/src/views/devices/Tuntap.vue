@@ -19,7 +19,7 @@
                                         </template>
                                     </el-popover>
                                 </template>
-                                <template>
+                                <template v-else>
                                     <strong class="green">{{ tuntap.list[scope.row.MachineId].IP }}</strong>
                                 </template>
                             </template>
