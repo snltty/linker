@@ -35,19 +35,8 @@ namespace linker.tunnel.proxy
                     ListenPort = LocalEndpoint.Port,
                     Socket = socket
                 };
-                SocketAsyncEventArgs acceptEventArg = new SocketAsyncEventArgs
-                {
-                    UserToken = userToken,
-                    SocketFlags = SocketFlags.None,
-                };
-                userToken.Saea = acceptEventArg;
-
-                acceptEventArg.Completed += IO_Completed;
-                StartAccept(acceptEventArg);
-
+                _ = StartAccept(userToken);
                 tcpListens.AddOrUpdate(LocalEndpoint.Port, userToken, (a, b) => userToken);
-
-
             }
             catch (Exception ex)
             {
@@ -58,15 +47,14 @@ namespace linker.tunnel.proxy
         /// 接收连接
         /// </summary>
         /// <param name="acceptEventArg"></param>
-        private void StartAccept(SocketAsyncEventArgs acceptEventArg)
+        private async Task StartAccept(AsyncUserToken token)
         {
-            acceptEventArg.AcceptSocket = null;
-            AsyncUserToken token = (AsyncUserToken)acceptEventArg.UserToken;
             try
             {
-                if (token.Socket.AcceptAsync(acceptEventArg) == false)
+                while (true)
                 {
-                    ProcessAccept(acceptEventArg);
+                    Socket socket = await token.Socket.AcceptAsync();
+                    ProcessAccept(token, socket);
                 }
             }
             catch (Exception ex)
@@ -74,177 +62,102 @@ namespace linker.tunnel.proxy
                 LoggerHelper.Instance.Error(ex);
                 token.Clear();
             }
+
         }
-        private void IO_Completed(object sender, SocketAsyncEventArgs e)
-        {
-            switch (e.LastOperation)
-            {
-                case SocketAsyncOperation.Accept:
-                    ProcessAccept(e);
-                    break;
-                case SocketAsyncOperation.Receive:
-                    ProcessReceive(e);
-                    break;
-                default:
-                    break;
-            }
-        }
-        private void ProcessAccept(SocketAsyncEventArgs e)
+        private void ProcessAccept(AsyncUserToken acceptToken, Socket socket)
         {
             try
             {
-                if (e.AcceptSocket != null)
+                if (socket != null && socket.RemoteEndPoint != null)
                 {
-                    AsyncUserToken acceptToken = (AsyncUserToken)e.UserToken;
-                    Socket socket = e.AcceptSocket;
-                    if (socket != null && socket.RemoteEndPoint != null)
+                    socket.KeepAlive();
+                    AsyncUserToken userToken = new AsyncUserToken
                     {
-                        socket.KeepAlive();
-                        AsyncUserToken userToken = new AsyncUserToken
-                        {
-                            Socket = socket,
-                            Received = false,
-                            Paused = false,
-                            ListenPort = acceptToken.ListenPort,
-                            Proxy = new ProxyInfo { Data = Helper.EmptyArray, Step = ProxyStep.Request, Port = (ushort)acceptToken.ListenPort, ConnectId = ns.Increment() }
-                        };
-                        BindReceive(userToken);
-                    }
+                        Socket = socket,
+                        ListenPort = acceptToken.ListenPort,
+                        Buffer = new byte[8 * 1024],
+                        Proxy = new ProxyInfo { Data = Helper.EmptyArray, Step = ProxyStep.Request, Port = (ushort)acceptToken.ListenPort, ConnectId = ns.Increment() }
+                    };
+                    _ = BeginReceive(userToken);
                 }
             }
             catch (Exception ex)
             {
                 LoggerHelper.Instance.Error(ex);
             }
-            StartAccept(e);
         }
-        /// <summary>
-        /// 接收连接数据
-        /// </summary>
-        /// <param name="token"></param>
-        private void BindReceive(AsyncUserToken token)
+        private async Task BeginReceive(AsyncUserToken token)
         {
-            try
+            int length = await token.Socket.ReceiveAsync(token.Buffer.AsMemory(), SocketFlags.None);
+            if (length == 0)
             {
-                SocketAsyncEventArgs readEventArgs = new SocketAsyncEventArgs
-                {
-                    UserToken = token,
-                    SocketFlags = SocketFlags.None,
-                };
-                token.Saea = readEventArgs;
-
-                readEventArgs.SetBuffer(new byte[8 * 1024], 0, 8 * 1024);
-                readEventArgs.Completed += IO_Completed;
-                if (token.Socket.ReceiveAsync(readEventArgs) == false)
-                {
-                    ProcessReceive(readEventArgs);
-                }
-
+                CloseClientSocket(token);
+                return;
             }
-            catch (Exception ex)
+            token.Proxy.Data = token.Buffer.AsMemory(0, length);
+            bool closeConnect = await ConnectTunnelConnection(token).ConfigureAwait(false);
+            if (token.Connection != null)
             {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Error(ex);
+                if (token.Proxy.TargetEP != null)
+                {
+                    await SendToConnection(token).ConfigureAwait(false);
+                }
+                token.Proxy.Step = ProxyStep.Forward;
+                //绑定
+                tcpConnections.TryAdd(new ConnectId(token.Proxy.ConnectId, token.Connection.GetHashCode(), (byte)ProxyDirection.Reverse), token);
+            }
+            else if (closeConnect)
+            {
+                CloseClientSocket(token);
+                return;
             }
         }
+
         /// <summary>
         /// 接收连接数据
         /// </summary>
         /// <param name="e"></param>
-        private async void ProcessReceive(SocketAsyncEventArgs e)
+        private async Task ProcessReceive(AsyncUserToken token)
         {
-            AsyncUserToken token = (AsyncUserToken)e.UserToken;
+            if (token.Received) return;
+            token.Received = true;
+
             try
             {
-                if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
+                while (true)
                 {
-                    int offset = e.Offset;
-                    int length = e.BytesTransferred;
-                    await ReadPacket(token, e.Buffer.AsMemory(offset, length)).ConfigureAwait(false);
-
-                    if (token.Received == false)
+                    int length = await token.Socket.ReceiveAsync(token.Buffer.AsMemory(), SocketFlags.None);
+                    if (length == 0)
                     {
-                        token.Paused = true;
-                        return;
+                        break;
                     }
-                    token.Paused = false;
 
-                    if (token.Socket.Available > 0)
+                    token.Proxy.Data = token.Buffer.AsMemory(0, length);
+                    await SendToConnection(token).ConfigureAwait(false);
+
+                    while (token.Socket.Available > 0)
                     {
-                        while (token.Socket.Available > 0)
+                        length = token.Socket.Receive(token.Buffer);
+                        if (length == 0)
                         {
-                            length = token.Socket.Receive(e.Buffer);
-                            if (length > 0)
-                            {
-                                await ReadPacket(token, e.Buffer.AsMemory(0, length));
-                            }
-                            else
-                            {
-                                await SendToConnectionClose(token).ConfigureAwait(false);
-                                CloseClientSocket(token);
-                                return;
-                            }
-                            if (token.Received == false)
-                            {
-                                token.Paused = true;
-                                return;
-                            }
-                            token.Paused = false;
+                            break;
                         }
+                        token.Proxy.Data = token.Buffer.AsMemory(0, length);
+                        await SendToConnection(token).ConfigureAwait(false);
                     }
-
-                    if (token.Socket.ReceiveAsync(e) == false)
-                    {
-                        ProcessReceive(e);
-                    }
-                }
-                else
-                {
-                    LoggerHelper.Instance.Error(e.SocketError.ToString());
-                    await SendToConnectionClose(token).ConfigureAwait(false);
-                    CloseClientSocket(token);
                 }
             }
             catch (Exception ex)
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error(ex);
+            }
+            finally
+            {
                 await SendToConnectionClose(token).ConfigureAwait(false);
                 CloseClientSocket(token);
             }
-        }
-        /// <summary>
-        /// 处理连接数据，b端收到数据，发给a，a端收到数据，发给b，通过隧道
-        /// </summary>
-        /// <param name="token"></param>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        private async Task ReadPacket(AsyncUserToken token, Memory<byte> data)
-        {
-            token.Proxy.Data = data;
-            if (token.Proxy.Step == ProxyStep.Request)
-            {
-                bool closeConnect = await ConnectTunnelConnection(token);
-                if (token.Connection != null)
-                {
-                    if (token.Proxy.TargetEP != null)
-                    {
-                        await SendToConnection(token).ConfigureAwait(false);
-                    }
-                    token.Proxy.Step = ProxyStep.Forward;
 
-                    //绑定
-                    tcpConnections.TryAdd(new ConnectId(token.Proxy.ConnectId, token.Connection.GetHashCode(), (byte)ProxyDirection.Reverse), token);
-                }
-                else if (closeConnect)
-                {
-                    CloseClientSocket(token);
-                }
-            }
-            else
-            {
-                await SendToConnection(token).ConfigureAwait(false);
-            }
         }
 
         /// <summary>
@@ -269,7 +182,7 @@ namespace linker.tunnel.proxy
             }
             SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
             await semaphoreSlim.WaitAsync();
-            
+
             byte[] connectData = token.Proxy.ToBytes(out int length);
 
             try
@@ -316,10 +229,10 @@ namespace linker.tunnel.proxy
         private void ConnectBind(AsyncUserTunnelToken token)
         {
             if (token.Proxy.TargetEP == null) return;
-            
+
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
-                LoggerHelper.Instance.Warning($"connect {token.Proxy.TargetEP}");
+                LoggerHelper.Instance.Warning($"connect {token.Proxy.ConnectId} {token.Proxy.TargetEP}");
             }
 
             Socket socket = new Socket(token.Proxy.TargetEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -337,8 +250,7 @@ namespace linker.tunnel.proxy
             {
                 Connection = state.Connection,
                 Socket = state.Socket,
-                Received = true,
-                Paused = false,
+                Buffer = new byte[8 * 1024],
                 Proxy = new ProxyInfo
                 {
                     ConnectId = state.ConnectId,
@@ -354,11 +266,12 @@ namespace linker.tunnel.proxy
                 token.Socket.KeepAlive();
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    LoggerHelper.Instance.Warning($"connect {token.Proxy.TargetEP} success");
+                    LoggerHelper.Instance.Warning($"connect {token.Proxy.ConnectId} {token.Proxy.TargetEP} success");
                 }
 
                 if (state.Data.Length > 0)
                 {
+                    LoggerHelper.Instance.Warning($"connect {token.Proxy.ConnectId} {token.Proxy.TargetEP} success {state.Data.Length}");
                     await token.Socket.SendAsync(state.Data.AsMemory(0, state.Length), SocketFlags.None);
                 }
                 tcpConnections.TryAdd(new ConnectId(token.Proxy.ConnectId, token.Connection.GetHashCode(), (byte)ProxyDirection.Forward), token);
@@ -366,7 +279,7 @@ namespace linker.tunnel.proxy
                 await SendToConnection(token).ConfigureAwait(false);
                 token.Proxy.Step = ProxyStep.Forward;
 
-                BindReceive(token);
+                _ = ProcessReceive(token);
             }
             catch (Exception ex)
             {
@@ -380,21 +293,7 @@ namespace linker.tunnel.proxy
             }
         }
 
-        /// <summary>
-        /// 暂停接收数据
-        /// </summary>
-        /// <param name="tunnelToken"></param>
-        private void PauseSocket(AsyncUserTunnelToken tunnelToken)
-        {
-            if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)
-            {
-                ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.GetHashCode(), (byte)tunnelToken.Proxy.Direction);
-                if (tcpConnections.TryGetValue(connectId, out AsyncUserToken token))
-                {
-                    token.Received = false;
-                }
-            }
-        }
+
         /// <summary>
         /// 继续接收数据
         /// </summary>
@@ -403,29 +302,18 @@ namespace linker.tunnel.proxy
         {
             if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Warning($"receive  {tunnelToken.Proxy.ConnectId}");
+                }
                 ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.GetHashCode(), (byte)tunnelToken.Proxy.Direction);
                 if (tcpConnections.TryGetValue(connectId, out AsyncUserToken token))
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        LoggerHelper.Instance.Warning($"receive {token.Proxy.TargetEP}");
+                        LoggerHelper.Instance.Warning($"receive1  {tunnelToken.Proxy.ConnectId}");
                     }
-                    if (token.Received == false)
-                    {
-                        token.Received = true;
-                        if (token.Paused)
-                        {
-                            token.Paused = false;
-                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                            {
-                                LoggerHelper.Instance.Warning($"receive {token.Proxy.TargetEP} success");
-                            }
-                            if (token.Socket.ReceiveAsync(token.Saea) == false)
-                            {
-                                ProcessReceive(token.Saea);
-                            }
-                        }
-                    }
+                    _ = ProcessReceive(token);
                 }
             }
         }
@@ -461,13 +349,11 @@ namespace linker.tunnel.proxy
                 }
                 return;
             }
-            if (tcpConnections.TryGetValue(connectId, out AsyncUserToken token1) && token1.Socket.Connected)
+            if (tcpConnections.TryGetValue(connectId, out AsyncUserToken token1))
             {
                 try
                 {
-
-                    await token1.Socket.SendAsync(tunnelToken.Proxy.Data, SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(1000)).ConfigureAwait(false);
-
+                    await token1.Socket.SendAsync(tunnelToken.Proxy.Data, SocketFlags.None).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -475,7 +361,6 @@ namespace linker.tunnel.proxy
                     {
                         LoggerHelper.Instance.Error(ex);
                     }
-
                     await SendToConnectionClose(token1).ConfigureAwait(false);
                     CloseClientSocket(token1);
                 }
@@ -572,18 +457,18 @@ namespace linker.tunnel.proxy
         public Socket Socket { get; set; }
         public ITunnelConnection Connection { get; set; }
         public ProxyInfo Proxy { get; set; }
-        public SocketAsyncEventArgs Saea { get; set; }
 
-        public bool Received { get; set; } = false;
-        public bool Paused { get; set; } = true;
+        public bool Received { get; set; }
 
         public uint TargetIP { get; set; }
+
+        public byte[] Buffer { get; set; }
 
         public void Clear()
         {
             Socket?.SafeClose();
 
-            Saea?.Dispose();
+            Buffer = Helper.EmptyArray;
 
             GC.Collect();
         }

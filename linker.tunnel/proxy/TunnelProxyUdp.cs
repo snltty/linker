@@ -157,12 +157,6 @@ namespace linker.tunnel.proxy
                 try
                 {
                     IPEndPoint target = new IPEndPoint(tunnelToken.Proxy.TargetEP.Address, tunnelToken.Proxy.TargetEP.Port);
-                    /*
-                    if (target.Address.GetAddressBytes()[3] == 255)
-                    {
-                        target.Address = UdpBindAdress;
-                    }
-                    */
                     if (udpConnections.TryGetValue(connectId, out AsyncUserUdpTokenTarget token))
                     {
                         token.Connection = tunnelToken.Connection;
@@ -244,12 +238,8 @@ namespace linker.tunnel.proxy
                     await SendToConnection(udpToken);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Error(ex.Message);
-                }
             }
             finally
             {

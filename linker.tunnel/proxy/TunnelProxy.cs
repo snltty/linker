@@ -90,9 +90,6 @@ namespace linker.tunnel.proxy
                 case ProxyStep.Receive:
                     ReceiveSocket(token);
                     break;
-                case ProxyStep.Pause:
-                    PauseSocket(token);
-                    break;
                 case ProxyStep.Close:
                     CloseSocket(token);
                     break;
@@ -100,7 +97,11 @@ namespace linker.tunnel.proxy
                     break;
             }
         }
-
+       /// <summary>
+       /// 发送数据到目标服务
+       /// </summary>
+       /// <param name="tunnelToken"></param>
+       /// <returns></returns>
         private async Task SendToSocket(AsyncUserTunnelToken tunnelToken)
         {
             if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)

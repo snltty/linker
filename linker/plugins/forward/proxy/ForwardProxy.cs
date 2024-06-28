@@ -20,7 +20,7 @@ namespace linker.plugins.forward.proxy
         private readonly ConcurrentDictionary<string, ITunnelConnection> connections = new ConcurrentDictionary<string, ITunnelConnection>();
         private readonly ConcurrentDictionary<string, SemaphoreSlim> locks = new ConcurrentDictionary<string, SemaphoreSlim>();
 
-        public ForwardProxy(ConfigWrap config,TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer)
+        public ForwardProxy(ConfigWrap config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer)
         {
             this.config = config;
             this.tunnelTransfer = tunnelTransfer;
@@ -48,10 +48,10 @@ namespace linker.plugins.forward.proxy
         /// <returns></returns>
         protected override async ValueTask<bool> ConnectTunnelConnection(AsyncUserToken token)
         {
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward got {token.ListenPort} ");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward got {token.Proxy.ConnectId} {token.ListenPort} ");
             if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
             {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward got {token.ListenPort}->{cache.TargetEP} ");
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward got {token.Proxy.ConnectId} {token.ListenPort}->{cache.TargetEP} ");
                 token.Proxy.TargetEP = cache.TargetEP;
                 cache.Connection = await ConnectTunnel(cache.MachineId);
                 token.Connection = cache.Connection;
@@ -120,7 +120,7 @@ namespace linker.plugins.forward.proxy
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward relay to {machineId}");
                     //尝试中继
-                    connection = await relayTransfer.ConnectAsync(config.Data.Client.Id,machineId, "forward");
+                    connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, "forward");
                     if (connection != null)
                     {
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward relay to {machineId} success");
