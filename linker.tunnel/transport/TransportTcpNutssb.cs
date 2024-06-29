@@ -302,6 +302,7 @@ namespace linker.tunnel.transport
         private async Task StartListen(IPEndPoint local, TunnelTransportInfo tunnelTransportInfo)
         {
             IPAddress localIP = NetworkHelper.IPv6Support ? IPAddress.IPv6Any : IPAddress.Any;
+
             Socket socket = new Socket(localIP.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
             //socket.ReceiveBufferSize = 5 * 1024 * 1024;
 
