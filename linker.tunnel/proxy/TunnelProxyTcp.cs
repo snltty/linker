@@ -271,7 +271,6 @@ namespace linker.tunnel.proxy
 
                 if (state.Data.Length > 0)
                 {
-                    LoggerHelper.Instance.Warning($"connect {token.Proxy.ConnectId} {token.Proxy.TargetEP} success {state.Data.Length}");
                     await token.Socket.SendAsync(state.Data.AsMemory(0, state.Length), SocketFlags.None);
                 }
                 tcpConnections.TryAdd(new ConnectId(token.Proxy.ConnectId, token.Connection.GetHashCode(), (byte)ProxyDirection.Forward), token);
@@ -302,17 +301,9 @@ namespace linker.tunnel.proxy
         {
             if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)
             {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Warning($"receive  {tunnelToken.Proxy.ConnectId}");
-                }
                 ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.GetHashCode(), (byte)tunnelToken.Proxy.Direction);
                 if (tcpConnections.TryGetValue(connectId, out AsyncUserToken token))
                 {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        LoggerHelper.Instance.Warning($"receive1  {tunnelToken.Proxy.ConnectId}");
-                    }
                     _ = ProcessReceive(token);
                 }
             }

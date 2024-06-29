@@ -48,10 +48,8 @@ namespace linker.plugins.forward.proxy
         /// <returns></returns>
         protected override async ValueTask<bool> ConnectTunnelConnection(AsyncUserToken token)
         {
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward got {token.Proxy.ConnectId} {token.ListenPort} ");
             if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
             {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward got {token.Proxy.ConnectId} {token.ListenPort}->{cache.TargetEP} ");
                 token.Proxy.TargetEP = cache.TargetEP;
                 cache.Connection = await ConnectTunnel(cache.MachineId);
                 token.Connection = cache.Connection;
@@ -85,13 +83,10 @@ namespace linker.plugins.forward.proxy
             //之前这个客户端已经连接过
             if (connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected)
             {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward got {machineId} connection ");
                 return connection;
             }
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward begin {machineId} connection ");
             //不要同时去连太多，锁以下
             await slimGlobal.WaitAsync();
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward got {machineId} slim global ");
             if (locks.TryGetValue(machineId, out SemaphoreSlim slim) == false)
             {
                 slim = new SemaphoreSlim(1);
@@ -99,7 +94,6 @@ namespace linker.plugins.forward.proxy
             }
             slimGlobal.Release();
             await slim.WaitAsync();
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward got {machineId} slim ");
             try
             {
                 //获得锁之前再次看看之前有没有连接成功

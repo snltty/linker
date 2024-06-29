@@ -134,7 +134,9 @@ namespace linker.plugins.tuntap.vea
                 string[] commands = ips.Where(c => c.IPAddress > 0).Select(item =>
                 {
                     byte[] maskArr = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(item.MaskValue));
-                    return $"route add {string.Join(".", BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes())} mask {string.Join(".", maskArr)} {ip} metric 5 if {interfaceNumber}";
+                    byte[] ips = BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes();
+                    ips[3] = 0;
+                    return $"route add {string.Join(".", ips)} mask {string.Join(".", maskArr)} {ip} metric 5 if {interfaceNumber}";
                 }).ToArray();
                 if (commands.Length > 0)
                 {
@@ -150,7 +152,12 @@ namespace linker.plugins.tuntap.vea
         {
             if (interfaceNumber > 0)
             {
-                string[] commands = ip.Where(c => c.IPAddress > 0).Select(item => $"route delete {string.Join(".", BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes())}").ToArray();
+                string[] commands = ip.Where(c => c.IPAddress > 0).Select(item =>
+                {
+                    byte[] ips = BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes();
+                    ips[3] = 0;
+                    return $"route delete {string.Join(".", ips)}";
+                }).ToArray();
                 if (commands.Length > 0)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)

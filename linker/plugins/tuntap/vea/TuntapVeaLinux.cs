@@ -46,7 +46,7 @@ namespace linker.plugins.tuntap.vea
                     Error = CommandHelper.Execute("./plugins/tuntap/tun2socks", command, Array.Empty<string>());
                     LoggerHelper.Instance.Error(Error);
                 }
-               
+
                 await Task.Delay(10);
             }
             catch (Exception ex)
@@ -101,7 +101,9 @@ namespace linker.plugins.tuntap.vea
         {
             string[] commands = ips.Where(c => c.IPAddress > 0).Select(item =>
             {
-                return $"ip route add {string.Join(".", BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes())}/{item.MaskLength} via {ip} dev {InterfaceName} metric 1 ";
+                byte[] ips = BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes();
+                ips[3] = 0;
+                return $"ip route add {string.Join(".", ips)}/{item.MaskLength} via {ip} dev {InterfaceName} metric 1 ";
             }).ToArray();
             if (commands.Length > 0)
             {
@@ -116,7 +118,9 @@ namespace linker.plugins.tuntap.vea
         {
             string[] commands = ip.Select(item =>
             {
-                return $"ip route del {string.Join(".", BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes())}/{item.MaskLength}";
+                byte[] ips = BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes();
+                ips[3] = 0;
+                return $"ip route del {string.Join(".", ips)}/{item.MaskLength}";
             }).ToArray();
 
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)

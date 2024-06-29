@@ -346,7 +346,7 @@ namespace linker.tunnel.transport
 
             Task.Run(async () =>
             {
-                byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
+                byte[] buffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
                 try
                 {
                     IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
@@ -397,7 +397,7 @@ namespace linker.tunnel.transport
         /// <returns></returns>
         private async Task WaitQuicConnect(Socket remoteUdp, IPEndPoint remoteEP, Socket localUdp)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
             IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
             try
             {
@@ -466,7 +466,7 @@ namespace linker.tunnel.transport
         /// <returns></returns>
         private async Task WaitAuth(ListenAsyncToken token, TaskCompletionSource<AddressFamily> tcs)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
             IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
             try
             {
@@ -512,7 +512,7 @@ namespace linker.tunnel.transport
         /// <returns></returns>
         private async Task Connect2Quic(ListenAsyncToken token)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
             IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
             try
             {

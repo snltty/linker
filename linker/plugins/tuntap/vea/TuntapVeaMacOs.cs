@@ -107,7 +107,9 @@ namespace linker.plugins.tuntap.vea
         {
             string[] commands = ips.Where(c => c.IPAddress > 0).Select(item =>
             {
-                return $"route add -net {string.Join(".", BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes())}/{item.MaskLength} {ip}";
+                byte[] ips = BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes();
+                ips[3] = 0;
+                return $"route add -net {string.Join(".", ips)}/{item.MaskLength} {ip}";
             }).ToArray();
             if (commands.Length > 0)
             {
@@ -118,7 +120,9 @@ namespace linker.plugins.tuntap.vea
         {
             string[] commands = ip.Select(item =>
             {
-                return $"route delete -net {string.Join(".", BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes())}/{item.MaskLength}";
+                byte[] ips = BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes();
+                ips[3] = 0;
+                return $"route delete -net {string.Join(".", ips)}/{item.MaskLength}";
             }).ToArray();
             if (commands.Length > 0)
             {
