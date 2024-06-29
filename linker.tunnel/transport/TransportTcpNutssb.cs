@@ -304,6 +304,7 @@ namespace linker.tunnel.transport
             IPAddress localIP = NetworkHelper.IPv6Support ? IPAddress.IPv6Any : IPAddress.Any;
             Socket socket = new Socket(localIP.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
             //socket.ReceiveBufferSize = 5 * 1024 * 1024;
+
             socket.IPv6Only(localIP.AddressFamily, false);
             socket.ReuseBind(new IPEndPoint(localIP, local.Port));
             socket.Listen(int.MaxValue);
