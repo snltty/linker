@@ -246,6 +246,7 @@ namespace linker.tunnel.proxy
             index++;
 
             BufferSize = span[index];
+            index++;
 
             Port = memory.Slice(index).ToUInt16();
             index += 2;
