@@ -93,7 +93,7 @@ namespace linker.tunnel.transport
         public bool Reverse { get; set; } = true;
         public bool SSL { get; set; } = true;
 
-        public byte BufferSize { get; set; } = 3;
+        public byte BufferSize { get; set; } = 4;
     }
     public sealed class TunnelTransportItemInfoEqualityComparer : IEqualityComparer<TunnelTransportItemInfo>
     {

@@ -71,7 +71,7 @@ server.json
   "Relay": {
     "SecretKey": ""
   },
-  //监听端口
+  //信标服务监听端口
   "ServicePort": 1802,
   //服务器代理穿透配置
   "SForward": {
