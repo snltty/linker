@@ -1,15 +1,20 @@
 <template>
-     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" title="设置虚拟网卡IP" width="400">
+     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" title="设置虚拟网卡IP" width="380">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="80">
+                <el-form-item label="缓冲区" prop="BufferSize">
+                    <el-select v-model="state.ruleForm.BufferSize" placeholder="Select" style="width:12rem">
+                        <el-option v-for="(item,index) in state.bufferSize" :key="index" :label="item" :value="index"/>
+                    </el-select>
+                </el-form-item>
                 <el-form-item label="网卡IP" prop="IP">
-                    <el-input v-model="state.ruleForm.IP" />
+                    <el-input v-model="state.ruleForm.IP" style="width:12rem" /> / 24
                 </el-form-item>
                 <el-form-item label="局域网IP" prop="LanIP">
                     <template v-for="(item, index) in state.ruleForm.LanIPs" :key="index">
                         <div class="flex" style="margin-bottom:.6rem">
                             <div class="flex-1">
-                                <el-input v-model="state.ruleForm.LanIPs[index]" />
+                                <el-input v-model="state.ruleForm.LanIPs[index]" style="width:12rem" /> / 24
                             </div>
                             <div class="pdl-10">
                                 <el-button type="danger" @click="handleDel(index)"><el-icon><Delete /></el-icon></el-button>
@@ -17,9 +22,6 @@
                             </div>
                         </div>
                     </template>
-                </el-form-item>
-                <el-form-item label="" prop="alert">
-                    <div>网卡IP和局域网IP都是 /24 掩码</div>
                 </el-form-item>
                 <el-form-item label="" prop="Btns">
                     <div>
@@ -33,6 +35,7 @@
 </template>
 <script>
 import {updateTuntap } from '@/apis/tuntap';
+import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { inject, reactive, ref, watch } from 'vue';
 
@@ -40,13 +43,18 @@ export default {
     props: ['modelValue'],
     emits: ['change','update:modelValue'],
     setup(props, { emit }) {
+
+        const globalData = injectGlobalData();
+
         const tuntap = inject('tuntap');
         const ruleFormRef = ref(null);
         const state = reactive({
             show: true,
+            bufferSize:globalData.value.bufferSize,
             ruleForm: {
                 IP: tuntap.value.current.IP,
-                LanIPs: tuntap.value.current.LanIPs.slice(0)
+                LanIPs: tuntap.value.current.LanIPs.slice(0),
+                BufferSize: tuntap.value.current.BufferSize
             },
             rules: {}
         });
@@ -72,6 +80,7 @@ export default {
             const json = JSON.parse(JSON.stringify(tuntap.value.current));
             json.IP = state.ruleForm.IP || '0.0.0.0';
             json.LanIPs = state.ruleForm.LanIPs.filter(c => c);
+            json.BufferSize = state.ruleForm.BufferSize;
             updateTuntap(json).then(() => {
                 state.show = false;
                 ElMessage.success('已操作！');

@@ -28,6 +28,9 @@
         Servers = 2015,
         ServersForward = 2016,
 
+        ExcludeIPs = 2017,
+        ExcludeIPsForward = 2018,
+
         None = 2099
     }
 }

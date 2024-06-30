@@ -64,6 +64,7 @@ namespace linker.plugins.sforward
                         if (result.Result.Code == MessageResponeCodes.OK)
                         {
                             SForwardAddResultInfo sForwardAddResultInfo = MemoryPackSerializer.Deserialize<SForwardAddResultInfo>(result.Result.Data.Span);
+                            forwardInfo.BufferSize = sForwardAddResultInfo.BufferSize;
                             if (sForwardAddResultInfo.Success)
                             {
                                 forwardInfo.Proxy = true;

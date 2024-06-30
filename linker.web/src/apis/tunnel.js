@@ -24,3 +24,10 @@ export const getTunnelTransports = () => {
 export const setTunnelTransports = (data) => {
     return sendWebsocketMsg('tunnel/SetTransports', data);
 }
+
+export const getTunnelExcludeIPs = () => {
+    return sendWebsocketMsg('tunnel/GetExcludeIPs');
+}
+export const setTunnelExcludeIPs = (data) => {
+    return sendWebsocketMsg('tunnel/SetExcludeIPs', data);
+}

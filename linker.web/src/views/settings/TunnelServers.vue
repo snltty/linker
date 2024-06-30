@@ -72,6 +72,7 @@
 <script>
 import { setTunnelServers,getTunnelTypes } from '@/apis/tunnel';
 import { injectGlobalData } from '@/provide';
+import { ElMessage } from 'element-plus';
 import { computed, onMounted, reactive } from 'vue'
 export default {
     setup(props) {
@@ -85,7 +86,6 @@ export default {
 
         const _getTunnelTypes = ()=>{
             getTunnelTypes().then((res)=>{
-                console.log(res);
                 state.types = res;
             });
         }
@@ -134,7 +134,11 @@ export default {
             setTunnelServers({
                 sync:state.sync,
                 list:state.list
-            });
+            }).then(()=>{
+                ElMessage.success('已操作');
+            }).catch(()=>{
+                ElMessage.success('操作失败');
+            });;
         }
 
         onMounted(()=>{

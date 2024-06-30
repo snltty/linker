@@ -5,6 +5,7 @@ using linker.plugins.signin.messenger;
 using linker.server;
 using MemoryPack;
 using linker.plugins.sforward.proxy;
+using linker.config;
 
 namespace linker.plugins.sforward.messenger
 {
@@ -15,10 +16,10 @@ namespace linker.plugins.sforward.messenger
         private readonly ISForwardServerCahing sForwardServerCahing;
         private readonly MessengerSender sender;
         private readonly SignCaching signCaching;
-
+        private readonly ConfigWrap configWrap;
         private readonly IValidator validator;
 
-        public SForwardServerMessenger(SForwardProxy proxy, ISForwardServerCahing sForwardServerCahing, MessengerSender sender, SignCaching signCaching, IValidator validator)
+        public SForwardServerMessenger(SForwardProxy proxy, ISForwardServerCahing sForwardServerCahing, MessengerSender sender, SignCaching signCaching, ConfigWrap configWrap, IValidator validator)
         {
             this.proxy = proxy;
             proxy.WebConnect = WebConnect;
@@ -27,6 +28,7 @@ namespace linker.plugins.sforward.messenger
             this.sForwardServerCahing = sForwardServerCahing;
             this.sender = sender;
             this.signCaching = signCaching;
+            this.configWrap = configWrap;
             this.validator = validator;
         }
 
@@ -34,7 +36,7 @@ namespace linker.plugins.sforward.messenger
         public void Add(IConnection connection)
         {
             SForwardAddInfo sForwardAddInfo = MemoryPackSerializer.Deserialize<SForwardAddInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            SForwardAddResultInfo result = new SForwardAddResultInfo { Success = true };
+            SForwardAddResultInfo result = new SForwardAddResultInfo { Success = true, BufferSize = configWrap.Data.Server.SForward.BufferSize };
             try
             {
                 if (validator.Valid(connection, sForwardAddInfo, out string error) == false)
@@ -67,7 +69,7 @@ namespace linker.plugins.sforward.messenger
                     }
                     else
                     {
-                        string msg = proxy.Start(sForwardAddInfo.RemotePort, false);
+                        string msg = proxy.Start(sForwardAddInfo.RemotePort, false, configWrap.Data.Server.SForward.BufferSize);
                         if (string.IsNullOrWhiteSpace(msg) == false)
                         {
                             result.Success = false;
@@ -177,7 +179,7 @@ namespace linker.plugins.sforward.messenger
                 {
                     Connection = sign.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.Proxy,
-                    Payload = MemoryPackSerializer.Serialize(new SForwardProxyInfo { Domain = host, RemotePort = port, Id = id })
+                    Payload = MemoryPackSerializer.Serialize(new SForwardProxyInfo { Domain = host, RemotePort = port, Id = id, BufferSize= configWrap.Data.Server.SForward.BufferSize })
                 });
             }
             return false;
@@ -190,7 +192,7 @@ namespace linker.plugins.sforward.messenger
                 {
                     Connection = sign.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.Proxy,
-                    Payload = MemoryPackSerializer.Serialize(new SForwardProxyInfo { RemotePort = port, Id = id })
+                    Payload = MemoryPackSerializer.Serialize(new SForwardProxyInfo { RemotePort = port, Id = id, BufferSize = configWrap.Data.Server.SForward.BufferSize })
                 });
             }
             return false;
@@ -203,7 +205,7 @@ namespace linker.plugins.sforward.messenger
                 {
                     Connection = sign.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.ProxyUdp,
-                    Payload = MemoryPackSerializer.Serialize(new SForwardProxyInfo { RemotePort = port, Id = id })
+                    Payload = MemoryPackSerializer.Serialize(new SForwardProxyInfo { RemotePort = port, Id = id, BufferSize = configWrap.Data.Server.SForward.BufferSize })
                 });
             }
             return false;
@@ -231,7 +233,7 @@ namespace linker.plugins.sforward.messenger
                 SForwardInfo sForwardInfo = runningConfig.Data.SForwards.FirstOrDefault(c => c.Domain == sForwardProxyInfo.Domain);
                 if (sForwardInfo != null)
                 {
-                    _ = proxy.OnConnectTcp(sForwardProxyInfo.Id, new System.Net.IPEndPoint(connection.Address.Address, sForwardProxyInfo.RemotePort), sForwardInfo.LocalEP);
+                    _ = proxy.OnConnectTcp(sForwardProxyInfo.BufferSize,sForwardProxyInfo.Id, new System.Net.IPEndPoint(connection.Address.Address, sForwardProxyInfo.RemotePort), sForwardInfo.LocalEP);
                 }
             }
             else if (sForwardProxyInfo.RemotePort > 0)
@@ -239,7 +241,7 @@ namespace linker.plugins.sforward.messenger
                 SForwardInfo sForwardInfo = runningConfig.Data.SForwards.FirstOrDefault(c => c.RemotePort == sForwardProxyInfo.RemotePort);
                 if (sForwardInfo != null)
                 {
-                    _ = proxy.OnConnectTcp(sForwardProxyInfo.Id, new System.Net.IPEndPoint(connection.Address.Address, sForwardProxyInfo.RemotePort), sForwardInfo.LocalEP);
+                    _ = proxy.OnConnectTcp(sForwardProxyInfo.BufferSize, sForwardProxyInfo.Id, new System.Net.IPEndPoint(connection.Address.Address, sForwardProxyInfo.RemotePort), sForwardInfo.LocalEP);
                 }
             }
         }
@@ -252,7 +254,7 @@ namespace linker.plugins.sforward.messenger
                 SForwardInfo sForwardInfo = runningConfig.Data.SForwards.FirstOrDefault(c => c.RemotePort == sForwardProxyInfo.RemotePort);
                 if (sForwardInfo != null)
                 {
-                    _ = proxy.OnConnectUdp(sForwardProxyInfo.Id, new System.Net.IPEndPoint(connection.Address.Address, sForwardProxyInfo.RemotePort), sForwardInfo.LocalEP);
+                    _ = proxy.OnConnectUdp(sForwardProxyInfo.BufferSize, sForwardProxyInfo.Id, new System.Net.IPEndPoint(connection.Address.Address, sForwardProxyInfo.RemotePort), sForwardInfo.LocalEP);
                 }
             }
         }

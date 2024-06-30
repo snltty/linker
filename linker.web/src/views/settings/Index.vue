@@ -10,6 +10,9 @@
             <el-tab-pane label="打洞协议" name="hole">
                 <Transports v-if="state.connected"></Transports>
             </el-tab-pane>
+            <el-tab-pane label="打洞排除IP" name="ips">
+                <ExcludeIP v-if="state.connected"></ExcludeIP>
+            </el-tab-pane>
             <el-tab-pane label="中继服务器" name="relay">
                 <RelayServers v-if="state.connected"></RelayServers>
             </el-tab-pane>
@@ -25,10 +28,11 @@ import SignInServers from './SignInServers.vue'
 import RelayServers from './RelayServers.vue'
 import TunnelServers from './TunnelServers.vue'
 import Transports from './Transports.vue'
+import ExcludeIP from './ExcludeIP.vue'
 import SForward from './SForward.vue'
 import { injectGlobalData } from '@/provide';
 export default {
-    components:{SignInServers,RelayServers,TunnelServers,Transports,SForward},
+    components:{SignInServers,RelayServers,TunnelServers,Transports,ExcludeIP,SForward},
     setup(props) {
         
         const globalData = injectGlobalData();

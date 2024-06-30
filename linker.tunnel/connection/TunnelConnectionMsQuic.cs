@@ -30,6 +30,8 @@ namespace linker.tunnel.connection
         public IPEndPoint IPEndPoint { get; init; }
         public bool SSL => true;
 
+        public byte BufferSize { get; init; } = 3;
+
         public bool Connected => Stream != null && Stream.CanWrite;
         public int Delay { get; private set; }
         public long SendBytes { get; private set; }
@@ -81,7 +83,7 @@ namespace linker.tunnel.connection
         }
         private async Task ProcessWrite()
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent((1 << BufferSize) * 1024);
             try
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)

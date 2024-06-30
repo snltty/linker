@@ -7,6 +7,7 @@ using linker.tunnel.transport;
 using linker.libs;
 using MemoryPack;
 using linker.tunnel.wanport;
+using linker.client.config;
 
 namespace linker.plugins.tunnel.messenger
 {
@@ -95,6 +96,13 @@ namespace linker.plugins.tunnel.messenger
         {
             TunnelWanPortInfo[] servers = MemoryPackSerializer.Deserialize<TunnelWanPortInfo[]>(connection.ReceiveRequestWrap.Payload.Span);
             tunnelMessengerAdapter.SetTunnelWanPortCompacts(servers.ToList());
+        }
+
+        [MessengerId((ushort)TunnelMessengerIds.ExcludeIPs)]
+        public void ExcludeIPs(IConnection connection)
+        {
+            ExcludeIPItem[] ips = MemoryPackSerializer.Deserialize<ExcludeIPItem[]>(connection.ReceiveRequestWrap.Payload.Span);
+            tunnelConfigTransfer.SettExcludeIPs(ips);
         }
     }
 
@@ -269,6 +277,25 @@ namespace linker.plugins.tunnel.messenger
                     {
                         Connection = item.Connection,
                         MessengerId = (ushort)TunnelMessengerIds.Servers,
+                        Payload = connection.ReceiveRequestWrap.Payload
+                    });
+                }
+            }
+        }
+
+        [MessengerId((ushort)TunnelMessengerIds.ExcludeIPsForward)]
+        public async Task ExcludeIPsForward(IConnection connection)
+        {
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            {
+                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
+
+                foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected))
+                {
+                    await messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = item.Connection,
+                        MessengerId = (ushort)TunnelMessengerIds.ExcludeIPs,
                         Payload = connection.ReceiveRequestWrap.Payload
                     });
                 }

@@ -19,7 +19,7 @@ namespace linker.tunnel.proxy
         /// 监听一个端口
         /// </summary>
         /// <param name="port"></param>
-        private void StartTcp(IPEndPoint ep)
+        private void StartTcp(IPEndPoint ep, byte bufferSize)
         {
             IPEndPoint _localEndPoint = ep;
             socket = new Socket(_localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -33,7 +33,8 @@ namespace linker.tunnel.proxy
                 AsyncUserToken userToken = new AsyncUserToken
                 {
                     ListenPort = LocalEndpoint.Port,
-                    Socket = socket
+                    Socket = socket,
+                    BufferSize = bufferSize
                 };
                 _ = StartAccept(userToken);
                 tcpListens.AddOrUpdate(LocalEndpoint.Port, userToken, (a, b) => userToken);
@@ -75,7 +76,8 @@ namespace linker.tunnel.proxy
                     {
                         Socket = socket,
                         ListenPort = acceptToken.ListenPort,
-                        Buffer = new byte[8 * 1024],
+                        BufferSize = acceptToken.BufferSize,
+                        Buffer = new byte[(1 << acceptToken.BufferSize) * 1024],
                         Proxy = new ProxyInfo { Data = Helper.EmptyArray, Step = ProxyStep.Request, Port = (ushort)acceptToken.ListenPort, ConnectId = ns.Increment() }
                     };
                     _ = BeginReceive(userToken);
@@ -238,7 +240,7 @@ namespace linker.tunnel.proxy
             Socket socket = new Socket(token.Proxy.TargetEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.KeepAlive();
 
-            ConnectState state = new ConnectState { Connection = token.Connection, ConnectId = token.Proxy.ConnectId, Socket = socket, IPEndPoint = token.Proxy.TargetEP };
+            ConnectState state = new ConnectState { BufferSize = token.Proxy.BufferSize, Connection = token.Connection, ConnectId = token.Proxy.ConnectId, Socket = socket, IPEndPoint = token.Proxy.TargetEP };
             state.CopyData(token.Proxy.Data);
             socket.BeginConnect(token.Proxy.TargetEP, ConnectCallback, state);
 
@@ -250,7 +252,7 @@ namespace linker.tunnel.proxy
             {
                 Connection = state.Connection,
                 Socket = state.Socket,
-                Buffer = new byte[8 * 1024],
+                Buffer = new byte[(1 << state.BufferSize) * 1024],
                 Proxy = new ProxyInfo
                 {
                     ConnectId = state.ConnectId,
@@ -455,6 +457,8 @@ namespace linker.tunnel.proxy
 
         public byte[] Buffer { get; set; }
 
+        public byte BufferSize { get; set; } = 3;
+
         public void Clear()
         {
             Socket?.SafeClose();
@@ -473,6 +477,8 @@ namespace linker.tunnel.proxy
 
         public byte[] Data { get; set; } = Helper.EmptyArray;
         public int Length { get; set; }
+
+        public byte BufferSize { get; set; } = 3;
 
         public void CopyData(ReadOnlyMemory<byte> data)
         {

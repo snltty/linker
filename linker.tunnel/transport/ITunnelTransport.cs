@@ -92,6 +92,8 @@ namespace linker.tunnel.transport
         public bool Disabled { get; set; } = false;
         public bool Reverse { get; set; } = true;
         public bool SSL { get; set; } = true;
+
+        public byte BufferSize { get; set; } = 3;
     }
     public sealed class TunnelTransportItemInfoEqualityComparer : IEqualityComparer<TunnelTransportItemInfo>
     {
@@ -137,6 +139,8 @@ namespace linker.tunnel.transport
         /// 需要加密
         /// </summary>
         public bool SSL { get; set; }
+
+        public byte BufferSize { get; set; } = 3;
 
         public List<IPEndPoint> RemoteEndPoints { get; set; }
     }

@@ -99,7 +99,6 @@ namespace linker.plugins.tunnel
                 }
             });
         }
-
         private TunnelTransportRouteLevelInfo GetLocalRouteLevel()
         {
             return new TunnelTransportRouteLevelInfo
@@ -110,5 +109,15 @@ namespace linker.plugins.tunnel
             };
         }
 
+
+
+        public ExcludeIPItem[] GetExcludeIPs()
+        {
+            return running.Data.Tunnel.ExcludeIPs;
+        }
+        public void SettExcludeIPs(ExcludeIPItem[] ips)
+        {
+            running.Data.Tunnel.ExcludeIPs = ips;
+        }
     }
 }

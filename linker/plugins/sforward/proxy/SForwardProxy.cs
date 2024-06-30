@@ -13,12 +13,12 @@ namespace linker.plugins.sforward.proxy
             UdpTask();
         }
 
-        public string Start(int port, bool isweb)
+        public string Start(int port, bool isweb,byte bufferSize)
         {
             try
             {
-                StartTcp(port, isweb);
-                StartUdp(port);
+                StartTcp(port, isweb, bufferSize);
+                StartUdp(port, bufferSize);
                 return string.Empty;
             }
             catch (Exception ex)

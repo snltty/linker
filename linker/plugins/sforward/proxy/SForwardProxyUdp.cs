@@ -16,7 +16,7 @@ namespace linker.plugins.sforward.proxy
 
         public Func<int, ulong, Task<bool>> UdpConnect { get; set; } = async (port, id) => { return await Task.FromResult(false); };
 
-        private void StartUdp(int port)
+        private void StartUdp(int port, byte bufferSize)
         {
             Socket socketUdp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             socketUdp.Bind(new IPEndPoint(IPAddress.Any, port));
@@ -28,16 +28,16 @@ namespace linker.plugins.sforward.proxy
             socketUdp.EnableBroadcast = true;
             socketUdp.WindowsUdpBug();
 
-            _ = BindReceive(asyncUserUdpToken);
+            _ = BindReceive(asyncUserUdpToken, bufferSize);
 
             udpListens.AddOrUpdate(port, asyncUserUdpToken, (a, b) => asyncUserUdpToken);
         }
 
-        private async Task BindReceive(AsyncUserUdpToken token)
+        private async Task BindReceive(AsyncUserUdpToken token, byte bufferSize)
         {
             try
             {
-                byte[] buffer = new byte[8 * 1024];
+                byte[] buffer = new byte[(1 << bufferSize) * 1024];
                 IPEndPoint tempRemoteEP = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
                 while (true)
                 {
@@ -125,7 +125,7 @@ namespace linker.plugins.sforward.proxy
                 }
             }
         }
-        public async Task OnConnectUdp(ulong id, IPEndPoint server, IPEndPoint service)
+        public async Task OnConnectUdp(byte bufferSize, ulong id, IPEndPoint server, IPEndPoint service)
         {
             Socket socketUdp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             socketUdp.WindowsUdpBug();
@@ -137,7 +137,7 @@ namespace linker.plugins.sforward.proxy
             await socketUdp.SendToAsync(buffer, server);
 
             Socket serviceUdp = null;
-            buffer = new byte[8 * 1024];
+            buffer = new byte[(1 << bufferSize) * 1024];
             IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
             while (true)
             {
@@ -160,7 +160,7 @@ namespace linker.plugins.sforward.proxy
 
                         _ = Task.Run(async () =>
                         {
-                            buffer = new byte[8 * 1024];
+                            buffer = new byte[(1 << bufferSize) * 1024];
                             IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
                             while (true)
                             {

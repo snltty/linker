@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="state.show" @open="handleOnShowList" append-to=".app-wrap" :title="`端口转发到【${state.machineName}】`" top="1vh" width="600">
+  <el-dialog v-model="state.show" @open="handleOnShowList" append-to=".app-wrap" :title="`端口转发到【${state.machineName}】`" top="1vh" width="700">
         <div>
             <div class="t-c head">
                 <el-button type="success" size="small" @click="handleAdd">添加</el-button>
@@ -15,6 +15,13 @@
                         <template v-else>
                             {{ scope.row.Name }}
                         </template>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="BufferSize" label="缓冲区" width="100">
+                    <template #default="scope">
+                        <el-select v-model="scope.row.BufferSize" placeholder="Select" size="small" @change="handleEditBlur(scope.row, 'BufferSize')">
+                            <el-option v-for="(item,index) in state.bufferSize" :key="index" :label="item" :value="index"/>
+                        </el-select>
                     </template>
                 </el-table-column>
                 <el-table-column property="BindIPAddress" label="监听IP" width="140">
@@ -93,12 +100,14 @@ import { inject, onMounted, onUnmounted, reactive, watch } from 'vue';
 import { getForwardInfo, removeForwardInfo, addForwardInfo ,getForwardIpv4,testTargetForwardInfo,testListenForwardInfo } from '@/apis/forward'
 import { ElMessage } from 'element-plus';
 import {WarnTriangleFilled} from '@element-plus/icons-vue'
+import { injectGlobalData } from '@/provide';
 export default {
     props: ['data','modelValue'],
     emits: ['update:modelValue'],
     components:{WarnTriangleFilled},
     setup(props, { emit }) {
 
+        const globalData = injectGlobalData();
         const forward = inject('forward');
         const state = reactive({
             show: true,
@@ -107,7 +116,8 @@ export default {
             data: [],
             ips:[],
             timerTestTarget:0,
-            timerTestListen:0
+            timerTestListen:0,
+            bufferSize:globalData.value.bufferSize,
         });
         watch(() => state.show, (val) => {
             if (!val) {

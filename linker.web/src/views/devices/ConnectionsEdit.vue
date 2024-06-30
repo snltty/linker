@@ -4,9 +4,9 @@
             <el-table :data="state.data" size="small" border height="500">
                 <el-table-column property="RemoteMachineId" label="目标">
                     <template #default="scope">
-                        <div>
-                            <p>{{scope.row.RemoteMachineName}}</p>
+                        <div :class="{green:scope.row.Connected}">
                             <p>{{scope.row.IPEndPoint}}</p>
+                            <p>ssl : {{scope.row.SSL}}</p>
                         </div>
                     </template>
                 </el-table-column>
@@ -19,7 +19,7 @@
                     <template #default="scope">
                         <div>
                             <p>{{scope.row.TransportName}}({{ state.protocolTypes[scope.row.ProtocolType] }})</p>
-                            <p>{{ state.types[scope.row.Type] }}</p>
+                            <p>{{ state.types[scope.row.Type] }} - {{1<<scope.row.BufferSize}}KB</p>
                         </div>
                     </template>
                 </el-table-column>
@@ -31,14 +31,9 @@
                 <el-table-column property="Bytes" label="通信">
                     <template #default="scope">
                         <div>
-                            <p>sent : {{scope.row.SendBytesText}}</p>
-                            <p>receive : {{scope.row.ReceiveBytesText}}</p>
+                            <p>up : {{scope.row.SendBytesText}}</p>
+                            <p>down : {{scope.row.ReceiveBytesText}}</p>
                         </div>
-                    </template>
-                </el-table-column>
-                <el-table-column property="Connected" label="连接中" width="60">
-                    <template #default="scope">
-                        <el-switch disabled v-model="scope.row.Connected" inline-prompt active-text="是" inactive-text="否" />
                     </template>
                 </el-table-column>
                 <el-table-column label="操作" width="54">
@@ -101,4 +96,5 @@ export default {
 <style lang="stylus" scoped>
 
 .head{padding-bottom:1rem}
+.green{color:green}
 </style>

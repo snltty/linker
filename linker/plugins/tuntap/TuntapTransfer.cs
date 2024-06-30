@@ -90,6 +90,7 @@ namespace linker.plugins.tuntap
                         return;
                     }
 
+                    tuntapProxy.Start();
                     while (tuntapProxy.LocalEndpoint == null)
                     {
                         await Task.Delay(1000);
@@ -125,6 +126,7 @@ namespace linker.plugins.tuntap
             }
             try
             {
+                tuntapProxy.Stop();
                 OnChange();
                 tuntapVea.Kill();
                 runningConfig.Data.Tuntap.Running = Status == TuntapStatus.Running;
@@ -162,6 +164,7 @@ namespace linker.plugins.tuntap
             {
                 runningConfig.Data.Tuntap.IP = info.IP;
                 runningConfig.Data.Tuntap.LanIPs = info.LanIPs;
+                runningConfig.Data.Tuntap.BufferSize = info.BufferSize;
                 runningConfig.Data.Update();
                 if (Status == TuntapStatus.Running)
                 {
@@ -227,7 +230,8 @@ namespace linker.plugins.tuntap
                 LanIPs = runningConfig.Data.Tuntap.LanIPs,
                 MachineId = config.Data.Client.Id,
                 Status = Status,
-                Error = tuntapVea.Error
+                Error = tuntapVea.Error,
+                BufferSize = runningConfig.Data.Tuntap.BufferSize
             };
         }
         /// <summary>
@@ -377,12 +381,8 @@ namespace linker.plugins.tuntap
                 await socket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, tuntapProxy.LocalEndpoint.Port)).WaitAsync(TimeSpan.FromMilliseconds(100));
                 socket.SafeClose();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                LoggerHelper.Instance.Error($"tuntap proxy {new IPEndPoint(IPAddress.Loopback, tuntapProxy.LocalEndpoint.Port)} {ex}");
-                tuntapProxy.Start();
-                LoggerHelper.Instance.Debug($"tuntap proxy restart in {new IPEndPoint(IPAddress.Loopback, tuntapProxy.LocalEndpoint.Port)}");
-
                 Stop();
                 await Task.Delay(5000);
                 Run();

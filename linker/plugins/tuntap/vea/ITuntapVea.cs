@@ -65,6 +65,7 @@ namespace linker.plugins.tuntap.vea
 
         public string Error { get; set; }
 
+        public byte BufferSize { get; set; } = 3;
     }
 
     [MemoryPackable]

@@ -64,7 +64,7 @@ namespace linker.plugins.forward
             {
                 try
                 {
-                    forwardProxy.Start(new System.Net.IPEndPoint(forwardInfo.BindIPAddress, forwardInfo.Port), forwardInfo.TargetEP, forwardInfo.MachineId);
+                    forwardProxy.Start(new System.Net.IPEndPoint(forwardInfo.BindIPAddress, forwardInfo.Port), forwardInfo.TargetEP, forwardInfo.MachineId, forwardInfo.BufferSize);
                     forwardInfo.Port = forwardProxy.LocalEndpoint.Port;
 
                     if (forwardInfo.Port > 0)
@@ -211,7 +211,7 @@ namespace linker.plugins.forward
                             try
                             {
                                 forwardProxy.Stop(item.Port);
-                                forwardProxy.Start(new IPEndPoint(item.BindIPAddress, item.Port), item.TargetEP, item.MachineId);
+                                forwardProxy.Start(new IPEndPoint(item.BindIPAddress, item.Port), item.TargetEP, item.MachineId, item.BufferSize);
                             }
                             catch (Exception ex)
                             {
@@ -268,6 +268,7 @@ namespace linker.plugins.forward
                 old.TargetEP = forwardInfo.TargetEP;
                 old.MachineId = forwardInfo.MachineId;
                 old.Started = forwardInfo.Started;
+                old.BufferSize = forwardInfo.BufferSize;
             }
             else
             {

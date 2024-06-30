@@ -183,7 +183,8 @@ namespace linker.tunnel.transport
                         Type = TunnelType.P2P,
                         Mode = TunnelMode.Client,
                         Label = string.Empty,
-                        SSL = tunnelTransportInfo.SSL
+                        SSL = tunnelTransportInfo.SSL,
+                        BufferSize = tunnelTransportInfo.BufferSize,
                     };
                 }
                 catch (Exception)
@@ -278,7 +279,8 @@ namespace linker.tunnel.transport
                         TransportName = _state.TransportName,
                         IPEndPoint = socket.RemoteEndPoint as IPEndPoint,
                         Label = string.Empty,
-                        SSL = _state.SSL
+                        SSL = _state.SSL,
+                        BufferSize = _state.BufferSize,
                     };
                     if (reverseDic.TryRemove(_state.Remote.MachineId, out TaskCompletionSource<ITunnelConnection> tcs))
                     {

@@ -10,6 +10,9 @@ using MemoryPack;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using linker.tunnel.wanport;
+using System.Linq;
+using linker.libs.extends;
+using System.Buffers.Binary;
 
 namespace linker.plugins.tunnel
 {
@@ -63,7 +66,26 @@ namespace linker.plugins.tunnel
         {
             return new NetworkInfo
             {
-                LocalIps = config.Data.Client.Tunnel.LocalIPs.Where(c => c.Equals(running.Data.Tuntap.IP) == false).ToArray(),
+                LocalIps = config.Data.Client.Tunnel.LocalIPs
+                .Where(c => c.Equals(running.Data.Tuntap.IP) == false)
+                .Where(c=>
+                {
+                    if(c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    {
+                        uint ip = BinaryPrimitives.ReadUInt32BigEndian(c.GetAddressBytes());
+                        foreach (var item in running.Data.Tunnel.ExcludeIPs)
+                        {
+                            uint maskValue = NetworkHelper.MaskValue(item.Mask);
+                            uint ip1 = BinaryPrimitives.ReadUInt32BigEndian(item.IPAddress.GetAddressBytes());
+                            if((ip & maskValue) == (ip1 & maskValue))
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                    return true;
+                })
+                .ToArray(),
                 RouteLevel = config.Data.Client.Tunnel.RouteLevel + running.Data.Tunnel.RouteLevelPlus,
                 MachineId = config.Data.Client.Id
             };

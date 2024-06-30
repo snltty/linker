@@ -97,7 +97,7 @@ namespace linker.tunnel.transport
             {
                 //反向连接
                 TunnelTransportInfo tunnelTransportInfo1 = tunnelTransportInfo.ToJsonFormat().DeJson<TunnelTransportInfo>();
-                _ = ListenRemoteConnect(tunnelTransportInfo1.Local.Local, quicListenEP, tunnelTransportInfo1);
+                _ = ListenRemoteConnect(tunnelTransportInfo.BufferSize, tunnelTransportInfo1.Local.Local, quicListenEP, tunnelTransportInfo1);
                 await Task.Delay(50);
                 BindAndTTL(tunnelTransportInfo1);
                 if (await OnSendConnectBegin(tunnelTransportInfo1) == false)
@@ -139,7 +139,7 @@ namespace linker.tunnel.transport
             }
             if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
             {
-                _ = ListenRemoteConnect(tunnelTransportInfo.Local.Local, quicListenEP, tunnelTransportInfo);
+                _ = ListenRemoteConnect(tunnelTransportInfo.BufferSize, tunnelTransportInfo.Local.Local, quicListenEP, tunnelTransportInfo);
                 await Task.Delay(50);
                 BindAndTTL(tunnelTransportInfo);
             }
@@ -173,7 +173,7 @@ namespace linker.tunnel.transport
             IPEndPoint local = new IPEndPoint(tunnelTransportInfo.Local.Local.Address, tunnelTransportInfo.Local.Local.Port);
             TaskCompletionSource<IPEndPoint> taskCompletionSource = new TaskCompletionSource<IPEndPoint>();
             //接收远端数据，收到了就是成功了
-            Socket remoteUdp = ListenRemoteCallback(local, taskCompletionSource);
+            Socket remoteUdp = ListenRemoteCallback(tunnelTransportInfo.BufferSize, local, taskCompletionSource);
 
             //给远端发送一些消息
             foreach (IPEndPoint ep in tunnelTransportInfo.RemoteEndPoints)
@@ -203,7 +203,7 @@ namespace linker.tunnel.transport
             {
                 IPEndPoint remoteEP = await taskCompletionSource.Task.WaitAsync(TimeSpan.FromMilliseconds(500));
                 //绑定一个udp，用来给QUIC链接
-                Socket quicUdp = ListenQuicConnect(remoteUdp, remoteEP);
+                Socket quicUdp = ListenQuicConnect(tunnelTransportInfo.BufferSize, remoteUdp, remoteEP);
                 QuicConnection connection = connection = await QuicConnection.ConnectAsync(new QuicClientConnectionOptions
                 {
                     RemoteEndPoint = new IPEndPoint(IPAddress.Loopback, (quicUdp.LocalEndPoint as IPEndPoint).Port),
@@ -238,6 +238,7 @@ namespace linker.tunnel.transport
                     Type = TunnelType.P2P,
                     Mode = TunnelMode.Client,
                     Label = string.Empty,
+                    BufferSize = tunnelTransportInfo.BufferSize
                 };
             }
             catch (Exception ex)
@@ -338,7 +339,7 @@ namespace linker.tunnel.transport
         /// <param name="local">绑定的地址</param>
         /// <param name="tcs">等待对象，等待得到对方的地址</param>
         /// <returns></returns>
-        private Socket ListenRemoteCallback(IPEndPoint local, TaskCompletionSource<IPEndPoint> tcs)
+        private Socket ListenRemoteCallback(byte bufferSize, IPEndPoint local, TaskCompletionSource<IPEndPoint> tcs)
         {
             Socket socketUdp = new Socket(local.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
             socketUdp.ReuseBind(local);
@@ -346,13 +347,13 @@ namespace linker.tunnel.transport
 
             Task.Run(async () =>
             {
-                byte[] buffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
+                byte[] buffer = ArrayPool<byte>.Shared.Rent((1 << bufferSize) * 1024);
                 try
                 {
                     IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
 
                     //收到远端的消息，表明对方已收到，再给它发个结束消息，表示可以正常通信了
-                    SocketReceiveFromResult result = await socketUdp.ReceiveFromAsync(buffer, tempEp);
+                    SocketReceiveFromResult result = await socketUdp.ReceiveFromAsync(buffer.AsMemory(), tempEp);
                     IPEndPoint ep = result.RemoteEndPoint as IPEndPoint;
 
                     await socketUdp.SendToAsync(endBytes, ep);
@@ -380,13 +381,13 @@ namespace linker.tunnel.transport
         /// <param name="remoteUdp">监听收到消息消息后，通过这个udp发送给远端</param>
         /// <param name="remoteEP">远端地址</param>
         /// <returns></returns>
-        private Socket ListenQuicConnect(Socket remoteUdp, IPEndPoint remoteEP)
+        private Socket ListenQuicConnect(byte bufferSize, Socket remoteUdp, IPEndPoint remoteEP)
         {
             Socket localUdp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
             localUdp.Bind(new IPEndPoint(IPAddress.Any, 0));
             localUdp.WindowsUdpBug();
 
-            _ = WaitQuicConnect(remoteUdp, remoteEP, localUdp);
+            _ = WaitQuicConnect(bufferSize, remoteUdp, remoteEP, localUdp);
 
             return localUdp;
         }
@@ -395,9 +396,9 @@ namespace linker.tunnel.transport
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        private async Task WaitQuicConnect(Socket remoteUdp, IPEndPoint remoteEP, Socket localUdp)
+        private async Task WaitQuicConnect(byte bufferSize, Socket remoteUdp, IPEndPoint remoteEP, Socket localUdp)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent((1 << bufferSize) * 1024);
             IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
             try
             {
@@ -407,7 +408,7 @@ namespace linker.tunnel.transport
                 //发送给远端
                 await remoteUdp.SendToAsync(buffer.AsMemory(0, result.ReceivedBytes), remoteEP).ConfigureAwait(false);
 
-                await Task.WhenAll(CopyToAsync(localUdp, remoteUdp, remoteEP), CopyToAsync(remoteUdp, localUdp, quicEp)).ConfigureAwait(false);
+                await Task.WhenAll(CopyToAsync(bufferSize, localUdp, remoteUdp, remoteEP), CopyToAsync(bufferSize, remoteUdp, localUdp, quicEp)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -431,7 +432,7 @@ namespace linker.tunnel.transport
         /// <param name="quicEP">QUIC监听地址</param>
         /// <param name="state">收到连接后，调用连接成功回调，带上这个信息</param>
         /// <returns></returns>
-        private async Task ListenRemoteConnect(IPEndPoint local, IPEndPoint quicEP, TunnelTransportInfo state)
+        private async Task ListenRemoteConnect(byte bufferSize, IPEndPoint local, IPEndPoint quicEP, TunnelTransportInfo state)
         {
             Socket udpClient = new Socket(local.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
             ListenAsyncToken token = new ListenAsyncToken
@@ -446,7 +447,7 @@ namespace linker.tunnel.transport
 
                 udpClient.ReuseBind(local);
                 udpClient.WindowsUdpBug();
-                _ = WaitAuth(token, tcs);
+                _ = WaitAuth(bufferSize, token, tcs);
 
                 AddressFamily af = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(30000));
             }
@@ -464,9 +465,9 @@ namespace linker.tunnel.transport
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        private async Task WaitAuth(ListenAsyncToken token, TaskCompletionSource<AddressFamily> tcs)
+        private async Task WaitAuth(byte bufferSize, ListenAsyncToken token, TaskCompletionSource<AddressFamily> tcs)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent((1 << bufferSize) * 1024);
             IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
             try
             {
@@ -482,7 +483,7 @@ namespace linker.tunnel.transport
                     {
                         token.RemoteEP = result.RemoteEndPoint as IPEndPoint;
                         tcs.SetResult(result.RemoteEndPoint.AddressFamily);
-                        _ = Connect2Quic(token);
+                        _ = Connect2Quic(bufferSize, token);
                         break;
                     }
                     else
@@ -510,9 +511,9 @@ namespace linker.tunnel.transport
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        private async Task Connect2Quic(ListenAsyncToken token)
+        private async Task Connect2Quic(byte bufferSize, ListenAsyncToken token)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent((1 << bufferSize) * 1024);
             IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
             try
             {
@@ -526,7 +527,7 @@ namespace linker.tunnel.transport
                 stateDic.AddOrUpdate((token.QuicUdp.LocalEndPoint as IPEndPoint).Port, token, (a, b) => token);
 
                 //然后就可以交换数据了
-                await Task.WhenAll(CopyToAsync(token.RemoteUdp, token.QuicUdp, token.QuicEP), CopyToAsync(token.QuicUdp, token.RemoteUdp, token.RemoteEP)).ConfigureAwait(false);
+                await Task.WhenAll(CopyToAsync(bufferSize, token.RemoteUdp, token.QuicUdp, token.QuicEP), CopyToAsync(bufferSize, token.QuicUdp, token.RemoteUdp, token.RemoteEP)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -549,9 +550,9 @@ namespace linker.tunnel.transport
         /// <param name="remote"></param>
         /// <param name="remoteEp"></param>
         /// <returns></returns>
-        private async Task CopyToAsync(Socket local, Socket remote, IPEndPoint remoteEp)
+        private async Task CopyToAsync(byte bufferSize, Socket local, Socket remote, IPEndPoint remoteEp)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent((1 << bufferSize) * 1024);
             IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
             try
             {
@@ -623,6 +624,7 @@ namespace linker.tunnel.transport
                         TransportName = state.TransportName,
                         IPEndPoint = remoteEP,
                         Label = string.Empty,
+                        BufferSize = state.BufferSize,
                     };
                     if (reverseDic.TryRemove(state.Remote.MachineId, out TaskCompletionSource<ITunnelConnection> tcs))
                     {

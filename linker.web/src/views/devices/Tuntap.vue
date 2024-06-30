@@ -32,6 +32,7 @@
                     </el-switch>
                 </div>
                 <div>{{ tuntap.list[scope.row.MachineId].LanIPs.join('、') }}</div>
+                <div>{{ 1<<tuntap.list[scope.row.MachineId].BufferSize}}KB</div>
             </div> 
         </template>
     </el-table-column>

@@ -17,6 +17,11 @@
                         </template>
                     </template>
                 </el-table-column>
+                <el-table-column prop="BufferSize" label="缓冲区" width="100">
+                    <template #default="scope">
+                        <span>{{ 1<<scope.row.BufferSize }}KB</span>
+                    </template>
+                </el-table-column>
                 <el-table-column property="Temp" label="远程端口/域名" width="160">
                     <template #default="scope">
                         <template v-if="scope.row.TempEditing">
@@ -84,14 +89,17 @@ import { inject, onMounted, onUnmounted, reactive, watch } from 'vue';
 import { getSForwardInfo, removeSForwardInfo, addSForwardInfo,testLocalSForwardInfo } from '@/apis/sforward'
 import { ElMessage } from 'element-plus';
 import {WarnTriangleFilled} from '@element-plus/icons-vue'
+import { injectGlobalData } from '@/provide';
 export default {
     props: ['data','modelValue'],
     emits: ['update:modelValue'],
     components:{WarnTriangleFilled},
     setup(props, { emit }) {
 
+        const globalData = injectGlobalData();
         const sforward = inject('sforward');
         const state = reactive({
+            bufferSize:globalData.value.bufferSize,
             show: true,
             data: [],
             timerTestLocal:0

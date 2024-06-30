@@ -15,6 +15,7 @@
                                             <span :class="{error:!!item.TargetMsg}">{{ item.TargetEP }}</span>
                                         </span>
                                     </a>
+                                    <span> ({{ 1<<item.BufferSize }}KB)</span>
                                 </li>
                             </template>
                         </template>
@@ -37,6 +38,7 @@
                                             <span :class="{error:!!item.LocalMsg}">{{ item.LocalEP }}</span>
                                         </span>
                                     </a>
+                                    <span> ({{ 1<<item.BufferSize }}KB)</span>
                                 </li>
                             </template>
                         </template>

@@ -108,7 +108,7 @@ namespace linker.server
         /// 开始中继，不再处理包，在此之前，应该先调用Cancel取消处理包，在等待一段时间后，再开始中继
         /// </summary>
         /// <returns></returns>
-        public Task RelayAsync();
+        public Task RelayAsync(byte bufferSize);
 
         /// <summary>
         /// 取消处理包
@@ -234,7 +234,7 @@ namespace linker.server
 
         public abstract Task<bool> SendAsync(ReadOnlyMemory<byte> data);
         public abstract Task<bool> SendAsync(byte[] data, int length);
-        public abstract Task RelayAsync();
+        public abstract Task RelayAsync(byte bufferSize);
 
 
         public virtual void Cancel()
@@ -508,16 +508,16 @@ namespace linker.server
             return await SendAsync(data.AsMemory(0, length));
         }
 
-        public override async Task RelayAsync()
+        public override async Task RelayAsync(byte bufferSize)
         {
             if (TargetNetworkStream != null)
             {
-                await CopyToAsync(SourceNetworkStream, TargetNetworkStream);
+                await CopyToAsync(bufferSize,SourceNetworkStream, TargetNetworkStream);
             }
         }
-        private async Task CopyToAsync(NetworkStream source, NetworkStream destination)
+        private async Task CopyToAsync(byte bufferSize,NetworkStream source, NetworkStream destination)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent((1<< bufferSize) * 1024);
             try
             {
                 int bytesRead;

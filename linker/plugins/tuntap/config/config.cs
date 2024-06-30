@@ -20,6 +20,7 @@ namespace linker.plugins.tuntap.config
         }
         public uint IpInt { get; private set; }
 
+        public byte BufferSize { get; set; } = 3;
 
         /// <summary>
         /// 局域网IP列表

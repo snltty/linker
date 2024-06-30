@@ -13,17 +13,17 @@ namespace linker.tunnel.proxy
         private SemaphoreSlim semaphoreSlimForward = new SemaphoreSlim(10);
         private SemaphoreSlim semaphoreSlimReverse = new SemaphoreSlim(10);
 
-        public virtual IPAddress UdpBindAdress { get; set;}
+        public virtual IPAddress UdpBindAdress { get; set; }
 
         public TunnelProxy()
         {
             TaskUdp();
         }
 
-        public void Start(IPEndPoint ep)
+        public void Start(IPEndPoint ep, byte bufferSize)
         {
-            StartTcp(ep);
-            StartUdp(new IPEndPoint(ep.Address, LocalEndpoint.Port));
+            StartTcp(ep, bufferSize);
+            StartUdp(new IPEndPoint(ep.Address, LocalEndpoint.Port), bufferSize);
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace linker.tunnel.proxy
         public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> memory, object userToken)
         {
             AsyncUserTunnelToken token = userToken as AsyncUserTunnelToken;
-           
+
             token.Proxy.DeBytes(memory);
             await ReadConnectionPack(token).ConfigureAwait(false);
         }
@@ -97,11 +97,11 @@ namespace linker.tunnel.proxy
                     break;
             }
         }
-       /// <summary>
-       /// 发送数据到目标服务
-       /// </summary>
-       /// <param name="tunnelToken"></param>
-       /// <returns></returns>
+        /// <summary>
+        /// 发送数据到目标服务
+        /// </summary>
+        /// <param name="tunnelToken"></param>
+        /// <returns></returns>
         private async Task SendToSocket(AsyncUserTunnelToken tunnelToken)
         {
             if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)
@@ -132,9 +132,9 @@ namespace linker.tunnel.proxy
     {
         Request = 1,
         Forward = 2,
-        Receive = 4,
-        Pause = 8,
-        Close = 16,
+        Receive = 3,
+        Pause = 4,
+        Close = 5,
     }
     public enum ProxyProtocol : byte
     {
@@ -153,12 +153,14 @@ namespace linker.tunnel.proxy
         public ProxyStep Step { get; set; } = ProxyStep.Request;
         public ProxyProtocol Protocol { get; set; } = ProxyProtocol.Tcp;
         public ProxyDirection Direction { get; set; } = ProxyDirection.Forward;
+        public byte BufferSize { get; set; } = 3;
 
         public ushort Port { get; set; }
         public IPEndPoint SourceEP { get; set; }
         public IPEndPoint TargetEP { get; set; }
 
         public byte Rsv { get; set; }
+
 
         public ReadOnlyMemory<byte> Data { get; set; }
 
@@ -167,7 +169,7 @@ namespace linker.tunnel.proxy
             int sourceLength = SourceEP == null ? 0 : (SourceEP.AddressFamily == AddressFamily.InterNetwork ? 4 : 16) + 2;
             int targetLength = TargetEP == null ? 0 : (TargetEP.AddressFamily == AddressFamily.InterNetwork ? 4 : 16) + 2;
 
-            length = 4 + 8 + 1 + 1 + 1
+            length = 4 + 8 + 1 + 1
                 + 2
                 + 1 + sourceLength
                 + 1 + targetLength
@@ -185,13 +187,10 @@ namespace linker.tunnel.proxy
             ConnectId.ToBytes(memory.Slice(index));
             index += 8;
 
-            bytes[index] = (byte)Step;
+            bytes[index] = (byte)((byte)Step << 4 | (byte)Protocol << 2 | (byte)Direction);
             index += 1;
 
-            bytes[index] = (byte)Protocol;
-            index += 1;
-
-            bytes[index] = (byte)Direction;
+            bytes[index] = BufferSize;
             index += 1;
 
             Port.ToBytes(memory.Slice(index));
@@ -241,14 +240,12 @@ namespace linker.tunnel.proxy
             ConnectId = memory.Slice(index).ToUInt64();
             index += 8;
 
-            Step = (ProxyStep)span[index];
-            index += 1;
+            Step = (ProxyStep)(span[index] >> 4);
+            Protocol = (ProxyProtocol)(span[index] & 0b1100);
+            Direction = (ProxyDirection)(span[index] & 0b0011);
+            index++;
 
-            Protocol = (ProxyProtocol)span[index];
-            index += 1;
-
-            Direction = (ProxyDirection)span[index];
-            index += 1;
+            BufferSize = span[index];
 
             Port = memory.Slice(index).ToUInt16();
             index += 2;

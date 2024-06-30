@@ -37,9 +37,6 @@ namespace linker.plugins.tuntap.proxy
             this.runningConfig = runningConfig;
             this.config = config;
 
-            Start();
-            LoggerHelper.Instance.Info($"start tuntap proxy, listen port : {LocalEndpoint}");
-
             //监听打洞连接成功
             tunnelTransfer.SetConnectedCallback("tuntap", OnConnected);
             //监听中继连接成功
@@ -51,7 +48,7 @@ namespace linker.plugins.tuntap.proxy
             {
                 Stop(proxyEP.Port);
             }
-            Start(new IPEndPoint(IPAddress.Any, 0));
+            Start(new IPEndPoint(IPAddress.Any, 0), runningConfig.Data.Tuntap.BufferSize);
             proxyEP = new IPEndPoint(IPAddress.Any, LocalEndpoint.Port);
         }
 

@@ -87,7 +87,8 @@ namespace linker.plugins.relay.transport
                     TransactionId = relayInfo.TransactionId,
                     TransportName = Name,
                     Type = TunnelType.Relay,
-                    SSL = relayInfo.SSL
+                    SSL = relayInfo.SSL,
+                    BufferSize = 3
                 };
             }
             catch (Exception ex)
@@ -148,7 +149,8 @@ namespace linker.plugins.relay.transport
                     TransactionId = relayInfo.TransactionId,
                     TransportName = Name,
                     Type = TunnelType.Relay,
-                    SSL = relayInfo.SSL
+                    SSL = relayInfo.SSL,
+                    BufferSize = 3,
                 };
             }
             catch (Exception ex)

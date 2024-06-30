@@ -20,6 +20,8 @@ namespace linker.client.config
         public string Domain { get; set; }
         public int RemotePort { get; set; }
 
+        public byte BufferSize { get; set; } = 3;
+
         public IPEndPoint LocalEP { get; set; }
 
         public bool Started { get; set; }
@@ -42,7 +44,7 @@ namespace linker.config
     public sealed class SForwardConfigServerInfo
     {
         public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
-
+        public byte BufferSize { get; set; } = 3;
         public int WebPort { get; set; }
         public int[] TunnelPortRange { get; set; } = new int[] { 10000, 60000 };
 
@@ -65,6 +67,8 @@ namespace linker.plugins.sforward.config
     {
         public bool Success { get; set; }
         public string Message { get; set; }
+
+        public byte BufferSize { get; set; }
     }
 
 
@@ -74,5 +78,7 @@ namespace linker.plugins.sforward.config
         public ulong Id { get; set; }
         public string Domain { get; set; }
         public int RemotePort { get; set; }
+
+        public byte BufferSize { get; set; } = 3;
     }
 }

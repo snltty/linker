@@ -20,7 +20,17 @@ namespace linker.client.config
         public TunnelWanPortInfo[] Servers { get; set; } = Array.Empty<TunnelWanPortInfo>();
         public int RouteLevelPlus { get; set; } = 0;
 
+        public ExcludeIPItem[] ExcludeIPs { get; set; } = Array.Empty<ExcludeIPItem>();
+
         public List<TunnelTransportItemInfo> Transports { get; set; } = new List<TunnelTransportItemInfo>();
+    }
+
+    [MemoryPackable]
+    public sealed partial class ExcludeIPItem
+    {
+        [MemoryPackAllowSerialize]
+        public IPAddress IPAddress { get; set;}
+        public byte Mask { get; set; } = 32;
     }
 }
 
@@ -133,9 +143,9 @@ namespace linker.config
         string MachineName => tunnelTransportWanPortInfo.MachineName;
 
         [MemoryPackConstructor]
-        SerializableTunnelTransportWanPortInfo(IPEndPoint local, IPEndPoint remote, IPAddress[] localIps, int routeLevel, string machineId,string machineName)
+        SerializableTunnelTransportWanPortInfo(IPEndPoint local, IPEndPoint remote, IPAddress[] localIps, int routeLevel, string machineId, string machineName)
         {
-            var tunnelTransportWanPortInfo = new TunnelTransportWanPortInfo { Local = local, Remote = remote, LocalIps = localIps, RouteLevel = routeLevel, MachineId = machineId, MachineName= machineName };
+            var tunnelTransportWanPortInfo = new TunnelTransportWanPortInfo { Local = local, Remote = remote, LocalIps = localIps, RouteLevel = routeLevel, MachineId = machineId, MachineName = machineName };
             this.tunnelTransportWanPortInfo = tunnelTransportWanPortInfo;
         }
 
@@ -195,11 +205,14 @@ namespace linker.config
         [MemoryPackInclude]
         bool Reverse => tunnelTransportItemInfo.Reverse;
 
+        [MemoryPackInclude]
+        byte BufferSize => tunnelTransportItemInfo.BufferSize;
+
 
         [MemoryPackConstructor]
-        SerializableTunnelTransportItemInfo(string name, string label, string protocolType, bool disabled, bool reverse)
+        SerializableTunnelTransportItemInfo(string name, string label, string protocolType, bool disabled, bool reverse, byte buffersize)
         {
-            var tunnelTransportItemInfo = new TunnelTransportItemInfo { Name = name, Label = label, ProtocolType = protocolType, Disabled = disabled, Reverse = reverse };
+            var tunnelTransportItemInfo = new TunnelTransportItemInfo { Name = name, Label = label, ProtocolType = protocolType, Disabled = disabled, Reverse = reverse, BufferSize = buffersize };
             this.tunnelTransportItemInfo = tunnelTransportItemInfo;
         }
 
@@ -264,9 +277,12 @@ namespace linker.config
         [MemoryPackInclude]
         bool SSL => tunnelTransportInfo.SSL;
 
+        [MemoryPackInclude]
+        byte BufferSize => tunnelTransportInfo.BufferSize;
+
 
         [MemoryPackConstructor]
-        SerializableTunnelTransportInfo(TunnelTransportWanPortInfo local, TunnelTransportWanPortInfo remote, string transactionId, TunnelProtocolType transportType, string transportName, TunnelDirection direction, bool ssl)
+        SerializableTunnelTransportInfo(TunnelTransportWanPortInfo local, TunnelTransportWanPortInfo remote, string transactionId, TunnelProtocolType transportType, string transportName, TunnelDirection direction, bool ssl, byte bufferSize)
         {
             var tunnelTransportInfo = new TunnelTransportInfo
             {
@@ -276,7 +292,8 @@ namespace linker.config
                 TransportName = transportName,
                 TransportType = transportType,
                 Direction = direction,
-                SSL = ssl
+                SSL = ssl,
+                BufferSize = bufferSize,
             };
             this.tunnelTransportInfo = tunnelTransportInfo;
         }

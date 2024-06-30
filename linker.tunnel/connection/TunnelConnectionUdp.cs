@@ -25,6 +25,7 @@ namespace linker.tunnel.connection
         public TunnelDirection Direction { get; init; }
         public IPEndPoint IPEndPoint { get; init; }
         public bool SSL => false;
+        public byte BufferSize { get; init; } = 3;
 
         public bool Connected => UdpClient != null && Environment.TickCount64 - ticks < 15000;
         public int Delay { get; private set; }
@@ -66,7 +67,7 @@ namespace linker.tunnel.connection
         }
         private async Task ProcessWrite()
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent((1 << BufferSize) * 1024);
             try
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)

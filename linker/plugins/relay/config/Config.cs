@@ -29,7 +29,7 @@ namespace linker.config
     public sealed class RelayConfigServerInfo
     {
         public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
-
+        public byte BufferSize { get; set; } = 3;
     }
 
     [MemoryPackable]

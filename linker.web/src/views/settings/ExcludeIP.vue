@@ -3,32 +3,30 @@
         <div class="pdr-10 pdb-6 flex-1">
             <el-checkbox v-model="state.sync" label="将更改同步到所有客户端"  />
         </div>
-        <div>信标服务器为交换数据服务器（用于登入），使用其中一条作为信标服务器</div>
+        <div>打洞时，排除这些IP(比如VPN，虚拟网卡IP)</div>
     </div>
     <el-table :data="state.list" border size="small" width="100%" :height="`${state.height}px`" @cell-dblclick="handleCellClick">
-        <el-table-column prop="Name" label="名称">
+        <el-table-column prop="IPAddress" label="IP">
             <template #default="scope">
-                <template v-if="scope.row.NameEditing">
-                    <el-input autofocus size="small" v-model="scope.row.Name"
-                        @blur="handleEditBlur(scope.row, 'Name')"></el-input>
+                <template v-if="scope.row.IPAddressEditing">
+                    <el-input autofocus size="small" v-model="scope.row.IPAddress"  @blur="handleEditBlur(scope.row, 'IPAddress')"></el-input>
                 </template>
                 <template v-else>
-                    {{ scope.row.Name }}
+                    {{ scope.row.IPAddress }}
                 </template>
             </template>
         </el-table-column>
-        <el-table-column prop="Host" label="地址" >
+        <el-table-column prop="Mask" label="掩码">
             <template #default="scope">
-                <template v-if="scope.row.HostEditing">
-                    <el-input autofocus size="small" v-model="scope.row.Host"
-                        @blur="handleEditBlur(scope.row, 'Host')"></el-input>
+                <template v-if="scope.row.MaskEditing">
+                    <el-input autofocus size="small" v-model="scope.row.Mask"  @blur="handleEditBlur(scope.row, 'Mask')"></el-input>
                 </template>
                 <template v-else>
-                    {{ scope.row.Host }}
+                    {{ scope.row.Mask }}
                 </template>
             </template>
         </el-table-column>
-        <el-table-column prop="Oper" label="操作" width="150">
+        <el-table-column prop="Oper" label="操作" width="104" fixed="right">
             <template #default="scope">
                 <div>
                     <el-popconfirm title="删除不可逆，是否确认?" @confirm="handleDel(scope.$index)">
@@ -41,29 +39,24 @@
                     <el-button type="primary" size="small" @click="handleAdd(scope.$index)">
                         <el-icon><Plus /></el-icon>
                     </el-button>
-                    <template v-if="state.server != scope.row.Host">
-                        <el-button size="small" @click="handleUse(scope.$index)">
-                            <el-icon><Select /></el-icon>
-                        </el-button>
-                    </template>
                 </div>
             </template>
         </el-table-column>
     </el-table>
 </template>
 <script>
-import { setSignInServers } from '@/apis/signin';
+import { setTunnelExcludeIPs } from '@/apis/tunnel';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import { computed, reactive } from 'vue'
+import { computed, onMounted, reactive } from 'vue'
 export default {
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({
-            list:globalData.value.config.Running.Client.Servers || [],
-            server:computed(()=>globalData.value.config.Client.Server),
+            list:((globalData.value.config.Running.Tunnel || {ExcludeIPs:[]}).ExcludeIPs || [{IPAddress:'0.0.0.0',Mask:32}]),
+            types:[],
             height: computed(()=>globalData.value.height-130),
-            sync:true,
+            sync:true
         });
 
         const handleCellClick = (row, column) => {
@@ -71,8 +64,8 @@ export default {
         }
         const handleEdit = (row, p) => {
             state.list.forEach(c => {
-                c[`NameEditing`] = false;
-                c[`HostEditing`] = false;
+                c[`IPAddressEditing`] = false;
+                c[`MaskEditing`] = false;
             })
             row[`${p}Editing`] = true;
         }
@@ -86,21 +79,15 @@ export default {
             handleSave();
         }
         const handleAdd = (index)=>{
-            if(state.list.filter(c=>c.Host == '' || c.Name == '').length > 0){
-                return;
-            }
-            state.list.splice(index+1,0,{Name:'',Host:''});
-            handleSave();
-        }
-        const handleUse = (index)=>{
-            const temp = state.list[index];
-            state.list[index] = state.list[0];
-            state.list[0] = temp;
+            state.list.splice(index+1,0,{IPAddress:'0.0.0.0',Mask:32});
             handleSave();
         }
 
         const handleSave = ()=>{
-            setSignInServers({
+            state.list.forEach(c=>{
+                c.Mask = parseInt(c.Mask);
+            })
+            setTunnelExcludeIPs({
                 sync:state.sync,
                 list:state.list
             }).then(()=>{
@@ -110,7 +97,14 @@ export default {
             });;
         }
 
-        return {state,handleCellClick,handleEditBlur,handleDel,handleAdd,handleUse}
+        onMounted(() => {
+            if(state.list.length == 0){
+               state.list =  [{IPAddress:'0.0.0.0',Mask:32}];
+            }
+        });
+
+
+        return {state,handleCellClick,handleEditBlur,handleDel,handleAdd}
     }
 }
 </script>

@@ -15,10 +15,10 @@ namespace linker.plugins.sforward.proxy
 
 
         public Func<int, ulong, Task<bool>> TunnelConnect { get; set; } = async (port, id) => { return await Task.FromResult(false); };
-        public Func<string,int, ulong, Task<bool>> WebConnect { get; set; } = async (host,port, id) => { return await Task.FromResult(false); };
+        public Func<string, int, ulong, Task<bool>> WebConnect { get; set; } = async (host, port, id) => { return await Task.FromResult(false); };
 
 
-        private void StartTcp(int port, bool isweb)
+        private void StartTcp(int port, bool isweb, byte bufferSize)
         {
             IPEndPoint localEndPoint = new IPEndPoint(NetworkHelper.IPv6Support ? IPAddress.IPv6Any : IPAddress.Any, port);
             Socket socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -30,6 +30,7 @@ namespace linker.plugins.sforward.proxy
                 ListenPort = port,
                 SourceSocket = socket,
                 IsWeb = isweb,
+                BufferSize = bufferSize,
             };
             SocketAsyncEventArgs acceptEventArg = new SocketAsyncEventArgs
             {
@@ -86,6 +87,7 @@ namespace linker.plugins.sforward.proxy
                             SourceSocket = socket,
                             ListenPort = acceptToken.ListenPort,
                             IsWeb = acceptToken.IsWeb,
+                            BufferSize = acceptToken.BufferSize,
                         };
                         _ = BindReceive(userToken);
                     }
@@ -100,8 +102,8 @@ namespace linker.plugins.sforward.proxy
         private async Task BindReceive(AsyncUserToken token)
         {
             ulong id = ns.Increment();
-            byte[] buffer1 = ArrayPool<byte>.Shared.Rent(8 * 1024);
-            byte[] buffer2 = ArrayPool<byte>.Shared.Rent(8 * 1024);
+            byte[] buffer1 = ArrayPool<byte>.Shared.Rent((1 << token.BufferSize) * 1024);
+            byte[] buffer2 = ArrayPool<byte>.Shared.Rent((1 << token.BufferSize) * 1024);
             try
             {
                 int length = await token.SourceSocket.ReceiveAsync(buffer1.AsMemory(), SocketFlags.None);
@@ -132,7 +134,7 @@ namespace linker.plugins.sforward.proxy
                 }
                 else
                 {
-                    if(await TunnelConnect(token.ListenPort, id) == false)
+                    if (await TunnelConnect(token.ListenPort, id) == false)
                     {
                         CloseClientSocket(token);
                         return;
@@ -144,7 +146,7 @@ namespace linker.plugins.sforward.proxy
                 token.TargetSocket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(2000)).ConfigureAwait(false);
 
                 await token.TargetSocket.SendAsync(buffer1.AsMemory(0, length));
-                await Task.WhenAll(SwarpData(token, buffer1, token.SourceSocket, token.TargetSocket), SwarpData(token,buffer2, token.TargetSocket, token.SourceSocket));
+                await Task.WhenAll(CopyToAsync(buffer1, token.SourceSocket, token.TargetSocket), CopyToAsync(buffer2, token.TargetSocket, token.SourceSocket));
 
                 CloseClientSocket(token);
             }
@@ -157,14 +159,15 @@ namespace linker.plugins.sforward.proxy
                 tcpConnections.TryRemove(id, out _);
                 ArrayPool<byte>.Shared.Return(buffer1);
                 ArrayPool<byte>.Shared.Return(buffer2);
+
             }
         }
-        public async Task OnConnectTcp(ulong id, IPEndPoint server, IPEndPoint service)
+        public async Task OnConnectTcp(byte bufferSize, ulong id, IPEndPoint server, IPEndPoint service)
         {
             Socket sourceSocket = null;
             Socket targetSocket = null;
-            byte[] buffer1 = ArrayPool<byte>.Shared.Rent(8 * 1024);
-            byte[] buffer2 = ArrayPool<byte>.Shared.Rent(8 * 1024);
+            byte[] buffer1 = ArrayPool<byte>.Shared.Rent((1 << bufferSize) * 1024);
+            byte[] buffer2 = ArrayPool<byte>.Shared.Rent((1 << bufferSize) * 1024);
             try
             {
                 sourceSocket = new Socket(server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -179,7 +182,7 @@ namespace linker.plugins.sforward.proxy
                 id.ToBytes(buffer1.AsMemory(flagBytes.Length));
                 await sourceSocket.SendAsync(buffer1.AsMemory(0, flagBytes.Length + 8));
 
-                await Task.WhenAll(SwarpData(null,buffer1, sourceSocket, targetSocket), SwarpData(null,buffer2, targetSocket, sourceSocket));
+                await Task.WhenAll(CopyToAsync(buffer1, sourceSocket, targetSocket), CopyToAsync(buffer2, targetSocket, sourceSocket));
 
             }
             catch (Exception)
@@ -193,6 +196,7 @@ namespace linker.plugins.sforward.proxy
                 ArrayPool<byte>.Shared.Return(buffer2);
             }
         }
+
 
         private byte[] hostBytes = Encoding.UTF8.GetBytes("Host: ");
         private byte[] wrapBytes = Encoding.UTF8.GetBytes("\r\n");
@@ -210,14 +214,15 @@ namespace linker.plugins.sforward.proxy
 
             return Encoding.UTF8.GetString(buffer.Slice(start, length).Span);
         }
-        private async Task SwarpData(AsyncUserToken token,Memory<byte> buffer, Socket source, Socket target)
+
+        private async Task CopyToAsync(Memory<byte> buffer, Socket source, Socket target)
         {
             try
             {
                 int bytesRead;
-                while ((bytesRead = await source.ReceiveAsync(buffer).ConfigureAwait(false)) != 0)
+                while ((bytesRead = await source.ReceiveAsync(buffer, SocketFlags.None).ConfigureAwait(false)) != 0)
                 {
-                    await target.SendAsync(buffer.Slice(0, bytesRead)).ConfigureAwait(false);
+                    await target.SendAsync(buffer.Slice(0, bytesRead), SocketFlags.None).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -226,6 +231,11 @@ namespace linker.plugins.sforward.proxy
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
+            }
+            finally
+            {
+                source.SafeClose();
+                target.SafeClose();
             }
         }
 
@@ -259,6 +269,8 @@ namespace linker.plugins.sforward.proxy
         public bool IsWeb { get; set; }
         public Socket SourceSocket { get; set; }
         public Socket TargetSocket { get; set; }
+
+        public byte BufferSize { get; set; }
 
         public void Clear()
         {

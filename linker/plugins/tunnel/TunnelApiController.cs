@@ -10,6 +10,7 @@ using linker.libs.extends;
 using MemoryPack;
 using System.Collections.Concurrent;
 using linker.tunnel.wanport;
+using linker.client.config;
 
 namespace linker.plugins.tunnel
 {
@@ -149,6 +150,25 @@ namespace linker.plugins.tunnel
             }
         }
 
+        public ExcludeIPItem[] GetExcludeIPs(ApiControllerParamsInfo param)
+        {
+            return tunnelConfigTransfer.GetExcludeIPs();
+        }
+        public async Task SetExcludeIPs(ApiControllerParamsInfo param)
+        {
+            SetExcludeIPsParamInfo info = param.Content.DeJson<SetExcludeIPsParamInfo>();
+            tunnelConfigTransfer.SettExcludeIPs(info.List);
+            if (info.Sync)
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = clientSignInState.Connection,
+                    MessengerId = (ushort)TunnelMessengerIds.ExcludeIPsForward,
+                    Payload = MemoryPackSerializer.Serialize(info.List)
+                });
+            }
+        }
+
 
         public sealed class TunnelListInfo
         {
@@ -166,6 +186,11 @@ namespace linker.plugins.tunnel
         {
             public bool Sync { get; set; }
             public List<TunnelTransportItemInfo> List { get; set; } = new List<TunnelTransportItemInfo>();
+        }
+        public sealed class SetExcludeIPsParamInfo
+        {
+            public bool Sync { get; set; }
+            public ExcludeIPItem[] List { get; set; }  = Array.Empty<ExcludeIPItem>();
         }
     }
 

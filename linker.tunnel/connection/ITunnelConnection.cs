@@ -98,6 +98,12 @@ namespace linker.tunnel.connection
         /// 是否SSL
         /// </summary>
         public bool SSL { get; }
+
+        /// <summary>
+        /// 缓冲区大小
+        /// </summary>
+        public byte BufferSize { get; } 
+
         /// <summary>
         /// 已连接
         /// </summary>

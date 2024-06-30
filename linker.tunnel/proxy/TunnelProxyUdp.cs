@@ -16,7 +16,7 @@ namespace linker.tunnel.proxy
         /// 监听一个端口
         /// </summary>
         /// <param name="port"></param>
-        private void StartUdp(IPEndPoint ep)
+        private void StartUdp(IPEndPoint ep, byte buffersize)
         {
             try
             {
@@ -32,7 +32,7 @@ namespace linker.tunnel.proxy
                 };
                 udpListens.AddOrUpdate(ep.Port, asyncUserUdpToken, (a, b) => asyncUserUdpToken);
 
-                _ = ReceiveUdp(asyncUserUdpToken);
+                _ = ReceiveUdp(asyncUserUdpToken, buffersize);
 
             }
             catch (Exception ex)
@@ -40,9 +40,9 @@ namespace linker.tunnel.proxy
                 LoggerHelper.Instance.Error(ex);
             }
         }
-        private async Task ReceiveUdp(AsyncUserUdpToken token)
+        private async Task ReceiveUdp(AsyncUserUdpToken token, byte buffersize)
         {
-            byte[] bytes = new byte[8 * 1024];
+            byte[] bytes = new byte[(1 << buffersize) * 1024];
             IPEndPoint TempRemoteEP = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
             while (true)
             {
@@ -219,11 +219,12 @@ namespace linker.tunnel.proxy
                     TargetEP = tunnelToken.Proxy.TargetEP,
                     Step = tunnelToken.Proxy.Step,
                     Port = tunnelToken.Proxy.Port,
+                    BufferSize = tunnelToken.Proxy.BufferSize,
                 },
                 TargetSocket = socket,
                 ConnectId = connectId,
                 Connection = tunnelToken.Connection,
-                Buffer = new byte[8 * 1027]
+                Buffer = new byte[(1 << tunnelToken.Proxy.BufferSize) * 1024]
             };
             udpToken.Proxy.Direction = ProxyDirection.Reverse;
             udpConnections.AddOrUpdate(connectId, udpToken, (a, b) => udpToken);

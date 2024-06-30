@@ -59,7 +59,7 @@ namespace linker.plugins.sforward
             SForwardProxy sForwardProxy = serviceProvider.GetService<SForwardProxy>();
             if (config.Data.Server.SForward.WebPort > 0)
             {
-                sForwardProxy.Start(config.Data.Server.SForward.WebPort, true);
+                sForwardProxy.Start(config.Data.Server.SForward.WebPort, true, config.Data.Server.SForward.BufferSize);
                 LoggerHelper.Instance.Info($"listen server forward web in {config.Data.Server.SForward.WebPort}");
             }
             LoggerHelper.Instance.Info($"listen server forward tunnel in {string.Join("-", config.Data.Server.SForward.TunnelPortRange)}");

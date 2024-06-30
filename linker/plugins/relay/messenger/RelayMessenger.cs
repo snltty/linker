@@ -172,27 +172,22 @@ namespace linker.plugins.relay.messenger
         private async Task Relay(IConnection source, IConnection target, string secretKey)
         {
             await Task.Delay(100);
-            int limit = 0;
-
-
 
             source.TargetStream = target.SourceStream;
             source.TargetSocket = target.SourceSocket;
             source.TargetNetworkStream = target.SourceNetworkStream;
-            source.RelayLimit = (uint)limit;
+            source.RelayLimit = 0;
             target.TargetStream = source.SourceStream;
             target.TargetSocket = source.SourceSocket;
             target.TargetNetworkStream = source.SourceNetworkStream;
-            target.RelayLimit = (uint)limit;
-
-
+            target.RelayLimit = 0;
 
             source.Cancel();
             target.Cancel();
 
             await Task.Delay(200);
 
-            await Task.WhenAll(source.RelayAsync(), target.RelayAsync());
+            await Task.WhenAll(source.RelayAsync(config.Data.Server.Relay.BufferSize), target.RelayAsync(config.Data.Server.Relay.BufferSize));
         }
 
         public sealed class TcsWrap

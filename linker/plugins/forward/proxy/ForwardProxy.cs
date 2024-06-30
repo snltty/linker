@@ -138,10 +138,10 @@ namespace linker.plugins.forward.proxy
         }
 
 
-        public void Start(IPEndPoint ep, IPEndPoint targetEP, string machineId)
+        public void Start(IPEndPoint ep, IPEndPoint targetEP, string machineId,byte bufferSize)
         {
             Stop(ep.Port);
-            base.Start(ep);
+            base.Start(ep, bufferSize);
             caches.TryAdd(LocalEndpoint.Port, new ForwardProxyCacheInfo { Port = LocalEndpoint.Port, TargetEP = targetEP, MachineId = machineId });
         }
         public override void Stop(int port)

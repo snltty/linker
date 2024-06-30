@@ -21,6 +21,8 @@ namespace linker.client.config
         public IPEndPoint TargetEP { get; set; }
         public bool Started { get; set; }
 
+        public byte BufferSize { get; set; } = 3;
+
         public string Msg { get; set; }
         public string TargetMsg { get; set; }
 
