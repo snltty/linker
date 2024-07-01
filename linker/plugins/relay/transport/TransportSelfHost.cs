@@ -167,9 +167,15 @@ namespace linker.plugins.relay.transport
         public void ClearSocket(Socket socket)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1 * 1024);
-            while (socket.Available > 0)
+            try
             {
-                socket.Receive(buffer, SocketFlags.None);
+                while (socket.Available > 0)
+                {
+                    socket.Receive(buffer, SocketFlags.None);
+                }
+            }
+            catch (Exception)
+            {
             }
             ArrayPool<byte>.Shared.Return(buffer);
         }

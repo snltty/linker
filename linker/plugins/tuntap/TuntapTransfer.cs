@@ -47,6 +47,10 @@ namespace linker.plugins.tuntap
             clientSignInState.NetworkEnabledHandle += (times) =>
             {
                 OnChange();
+            };
+            clientSignInState.NetworkFirstEnabledHandle += () =>
+            {
+                OnChange();
                 if (runningConfig.Data.Tuntap.Running)
                 {
                     Stop(); Run();
@@ -367,6 +371,7 @@ namespace linker.plugins.tuntap
             NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == tuntapVea.InterfaceName);
             if (networkInterface != null && networkInterface.OperationalStatus != OperationalStatus.Up)
             {
+                LoggerHelper.Instance.Error($"tuntap inerface {tuntapVea.InterfaceName} is {networkInterface.OperationalStatus}, restarting");
                 Stop();
                 await Task.Delay(5000);
                 Run();
@@ -381,8 +386,9 @@ namespace linker.plugins.tuntap
                 await socket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, tuntapProxy.LocalEndpoint.Port)).WaitAsync(TimeSpan.FromMilliseconds(100));
                 socket.SafeClose();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                LoggerHelper.Instance.Error($"tuntap proxy {ex.Message}, restarting");
                 Stop();
                 await Task.Delay(5000);
                 Run();

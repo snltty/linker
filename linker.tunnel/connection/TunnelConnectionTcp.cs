@@ -73,7 +73,7 @@ namespace linker.tunnel.connection
 
         private async Task ProcessWrite()
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent((1<<BufferSize) * 1024);
+            byte[] buffer = new byte[(1<<BufferSize) * 1024];
             try
             {
                 int length = 0;
@@ -86,7 +86,7 @@ namespace linker.tunnel.connection
                         if (length == 0) break;
                         ReceiveBytes += length;
                         ticks = Environment.TickCount64;
-                        await ReadPacket(buffer.AsMemory(0, length));
+                        await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
                     }
                     else
                     {
@@ -94,7 +94,7 @@ namespace linker.tunnel.connection
                         if (length == 0) break;
                         ReceiveBytes += length;
                         ticks = Environment.TickCount64;
-                        await ReadPacket(buffer.AsMemory(0, length));
+                        await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
 
                         while (Socket.Available > 0)
                         {
@@ -102,7 +102,7 @@ namespace linker.tunnel.connection
                             if (length == 0) break;
                             ReceiveBytes += length;
                             ticks = Environment.TickCount64;
-                            await ReadPacket(buffer.AsMemory(0, length));
+                            await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
                         }
                     }
                 }
@@ -116,7 +116,7 @@ namespace linker.tunnel.connection
             }
             finally
             {
-                ArrayPool<byte>.Shared.Return(buffer);
+                //ArrayPool<byte>.Shared.Return(buffer);
                 Dispose();
             }
         }
@@ -242,7 +242,7 @@ namespace linker.tunnel.connection
             pingStart = Environment.TickCount64;
             await SendPingPong(pingBytes);
         }
-        public async ValueTask<bool> SendAsync(ReadOnlyMemory<byte> data)
+        public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             if (callback == null) return false;
 

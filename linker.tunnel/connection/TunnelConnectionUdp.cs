@@ -67,7 +67,7 @@ namespace linker.tunnel.connection
         }
         private async Task ProcessWrite()
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent((1 << BufferSize) * 1024);
+            byte[] buffer = new byte[(1 << BufferSize) * 1024];
             try
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
@@ -91,7 +91,7 @@ namespace linker.tunnel.connection
             }
             finally
             {
-                ArrayPool<byte>.Shared.Return(buffer);
+               // ArrayPool<byte>.Shared.Return(buffer);
                 Dispose();
                 LoggerHelper.Instance.Error($"tunnel connection writer offline {ToString()}");
             }
@@ -171,7 +171,7 @@ namespace linker.tunnel.connection
             pingStart = Environment.TickCount64;
             await SendPingPong(pingBytes);
         }
-        public async ValueTask<bool> SendAsync(ReadOnlyMemory<byte> data)
+        public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             try
             {

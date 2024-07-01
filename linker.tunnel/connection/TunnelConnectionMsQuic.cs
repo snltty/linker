@@ -83,7 +83,7 @@ namespace linker.tunnel.connection
         }
         private async Task ProcessWrite()
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent((1 << BufferSize) * 1024);
+            byte[] buffer = new byte[(1 << BufferSize) * 1024];
             try
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
@@ -107,7 +107,7 @@ namespace linker.tunnel.connection
             }
             finally
             {
-                ArrayPool<byte>.Shared.Return(buffer);
+                //  ArrayPool<byte>.Shared.Return(buffer);
                 Dispose();
 
             }
@@ -225,7 +225,7 @@ namespace linker.tunnel.connection
             await SendPingPong(pingBytes);
         }
         private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
-        public async ValueTask<bool> SendAsync(ReadOnlyMemory<byte> data)
+        public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             await semaphoreSlim.WaitAsync();
             try

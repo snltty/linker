@@ -182,11 +182,10 @@ namespace linker.tunnel.proxy
             {
                 return;
             }
-            SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
-            await semaphoreSlim.WaitAsync();
+            //SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
+            // await semaphoreSlim.WaitAsync();
 
             byte[] connectData = token.Proxy.ToBytes(out int length);
-
             try
             {
                 bool res = await token.Connection.SendAsync(connectData.AsMemory(0, length)).ConfigureAwait(false);
@@ -195,17 +194,10 @@ namespace linker.tunnel.proxy
                     CloseClientSocket(token);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Error(ex);
-                CloseClientSocket(token);
             }
-            finally
-            {
-                token.Proxy.Return(connectData);
-                semaphoreSlim.Release();
-            }
+            token.Proxy.Return(connectData);
         }
         /// <summary>
         /// 往隧道发关闭包数据，通知对面关闭连接
@@ -219,7 +211,7 @@ namespace linker.tunnel.proxy
                 ProxyStep step = token.Proxy.Step;
                 token.Proxy.Step = ProxyStep.Close;
                 token.Proxy.Data = Helper.EmptyArray;
-                await SendToConnection(token);
+                await SendToConnection(token).ConfigureAwait(false);
                 token.Proxy.Step = step;
             }
         }

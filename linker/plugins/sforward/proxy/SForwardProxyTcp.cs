@@ -20,7 +20,7 @@ namespace linker.plugins.sforward.proxy
 
         private void StartTcp(int port, bool isweb, byte bufferSize)
         {
-            IPEndPoint localEndPoint = new IPEndPoint(NetworkHelper.IPv6Support ? IPAddress.IPv6Any : IPAddress.Any, port);
+            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
             Socket socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.IPv6Only(localEndPoint.AddressFamily, false);
             socket.ReuseBind(localEndPoint);
@@ -102,8 +102,8 @@ namespace linker.plugins.sforward.proxy
         private async Task BindReceive(AsyncUserToken token)
         {
             ulong id = ns.Increment();
-            byte[] buffer1 = ArrayPool<byte>.Shared.Rent((1 << token.BufferSize) * 1024);
-            byte[] buffer2 = ArrayPool<byte>.Shared.Rent((1 << token.BufferSize) * 1024);
+            byte[] buffer1 = new byte[(1 << token.BufferSize) * 1024];
+            byte[] buffer2 = new byte[(1 << token.BufferSize) * 1024];
             try
             {
                 int length = await token.SourceSocket.ReceiveAsync(buffer1.AsMemory(), SocketFlags.None);
@@ -157,8 +157,8 @@ namespace linker.plugins.sforward.proxy
             finally
             {
                 tcpConnections.TryRemove(id, out _);
-                ArrayPool<byte>.Shared.Return(buffer1);
-                ArrayPool<byte>.Shared.Return(buffer2);
+                // ArrayPool<byte>.Shared.Return(buffer1);
+                // ArrayPool<byte>.Shared.Return(buffer2);
 
             }
         }
@@ -166,8 +166,8 @@ namespace linker.plugins.sforward.proxy
         {
             Socket sourceSocket = null;
             Socket targetSocket = null;
-            byte[] buffer1 = ArrayPool<byte>.Shared.Rent((1 << bufferSize) * 1024);
-            byte[] buffer2 = ArrayPool<byte>.Shared.Rent((1 << bufferSize) * 1024);
+            byte[] buffer1 = new byte[(1 << bufferSize) * 1024];
+            byte[] buffer2 = new byte[(1 << bufferSize) * 1024];
             try
             {
                 sourceSocket = new Socket(server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -192,8 +192,8 @@ namespace linker.plugins.sforward.proxy
             }
             finally
             {
-                ArrayPool<byte>.Shared.Return(buffer1);
-                ArrayPool<byte>.Shared.Return(buffer2);
+                //ArrayPool<byte>.Shared.Return(buffer1);
+                //ArrayPool<byte>.Shared.Return(buffer2);
             }
         }
 

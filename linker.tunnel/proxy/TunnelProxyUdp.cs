@@ -121,7 +121,7 @@ namespace linker.tunnel.proxy
             byte[] connectData = token.Proxy.ToBytes(out int length);
             try
             {
-                await Task.WhenAll(token.Connections.Select(c => c.SendAsync(connectData.AsMemory(0, length)).AsTask())).ConfigureAwait(false);
+                await Task.WhenAll(token.Connections.Select(c => c.SendAsync(connectData.AsMemory(0, length)))).ConfigureAwait(false);
             }
             catch (Exception)
             {
@@ -270,8 +270,8 @@ namespace linker.tunnel.proxy
         /// <returns></returns>
         private async Task SendToConnection(AsyncUserUdpTokenTarget token)
         {
-            SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
-            await semaphoreSlim.WaitAsync();
+           // SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
+           // await semaphoreSlim.WaitAsync();
 
 
             byte[] connectData = token.Proxy.ToBytes(out int length);
@@ -290,7 +290,7 @@ namespace linker.tunnel.proxy
             finally
             {
                 token.Proxy.Return(connectData);
-                semaphoreSlim.Release();
+               // semaphoreSlim.Release();
             }
         }
 

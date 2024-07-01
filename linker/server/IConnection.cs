@@ -308,7 +308,7 @@ namespace linker.server
         }
         private async Task ProcessWrite()
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
+            byte[] buffer = new byte[8 * 1024];
             try
             {
                 int length = 0;
@@ -345,7 +345,7 @@ namespace linker.server
             }
             finally
             {
-                ArrayPool<byte>.Shared.Return(buffer);
+                //ArrayPool<byte>.Shared.Return(buffer);
                 //SourceStream?.Close();
                 //SourceStream?.Dispose();
                 // TargetStream?.Close();
@@ -512,12 +512,12 @@ namespace linker.server
         {
             if (TargetNetworkStream != null)
             {
-                await CopyToAsync(bufferSize,SourceNetworkStream, TargetNetworkStream);
+                await CopyToAsync(bufferSize, SourceNetworkStream, TargetNetworkStream);
             }
         }
-        private async Task CopyToAsync(byte bufferSize,NetworkStream source, NetworkStream destination)
+        private async Task CopyToAsync(byte bufferSize, NetworkStream source, NetworkStream destination)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent((1<< bufferSize) * 1024);
+            byte[] buffer = new byte[(1 << bufferSize) * 1024];
             try
             {
                 int bytesRead;
@@ -546,7 +546,7 @@ namespace linker.server
             }
             finally
             {
-                ArrayPool<byte>.Shared.Return(buffer);
+                // ArrayPool<byte>.Shared.Return(buffer);
             }
         }
         private double relayLimitBucket = 0;

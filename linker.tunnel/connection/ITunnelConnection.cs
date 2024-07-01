@@ -131,7 +131,7 @@ namespace linker.tunnel.connection
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public ValueTask<bool> SendAsync(ReadOnlyMemory<byte> data);
+        public Task<bool> SendAsync(ReadOnlyMemory<byte> data);
         /// <summary>
         /// 开始接收数据
         /// </summary>
