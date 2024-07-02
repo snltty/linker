@@ -28,7 +28,7 @@ namespace linker.plugins.relay.messenger
         public async Task Relay(IConnection connection)
         {
             RelayInfo info = MemoryPackSerializer.Deserialize<RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            bool res = await relayTransfer.OnBeginAsync(info);
+            bool res = await relayTransfer.OnBeginAsync(info).ConfigureAwait(false);
             connection.Write(res ? Helper.TrueArray : Helper.FalseArray);
         }
 
@@ -84,7 +84,7 @@ namespace linker.plugins.relay.messenger
                         Connection = item.Connection,
                         MessengerId = (ushort)RelayMessengerIds.Servers,
                         Payload = connection.ReceiveRequestWrap.Payload
-                    });
+                    }).ConfigureAwait(false);
                 }
             }
         }
@@ -132,14 +132,14 @@ namespace linker.plugins.relay.messenger
                         Connection = cacheTo.Connection,
                         MessengerId = (ushort)RelayMessengerIds.Relay,
                         Payload = MemoryPackSerializer.Serialize(info)
-                    });
+                    }).ConfigureAwait(false);
                     if (res == false)
                     {
                         connection.Write(Helper.FalseArray);
                         return;
                     }
 
-                    IConnection targetConnection = await tcsWrap.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(3000));
+                    IConnection targetConnection = await tcsWrap.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(3000)).ConfigureAwait(false);
 
                     _ = Relay(connection, targetConnection, info.SecretKey);
 
@@ -171,7 +171,7 @@ namespace linker.plugins.relay.messenger
 
         private async Task Relay(IConnection source, IConnection target, string secretKey)
         {
-            await Task.Delay(100);
+            await Task.Delay(100).ConfigureAwait(false);
 
             source.TargetStream = target.SourceStream;
             source.TargetSocket = target.SourceSocket;
@@ -185,9 +185,9 @@ namespace linker.plugins.relay.messenger
             source.Cancel();
             target.Cancel();
 
-            await Task.Delay(200);
+            await Task.Delay(200).ConfigureAwait(false);
 
-            await Task.WhenAll(source.RelayAsync(config.Data.Server.Relay.BufferSize), target.RelayAsync(config.Data.Server.Relay.BufferSize));
+            await Task.WhenAll(source.RelayAsync(config.Data.Server.Relay.BufferSize), target.RelayAsync(config.Data.Server.Relay.BufferSize)).ConfigureAwait(false);
         }
 
         public sealed class TcsWrap

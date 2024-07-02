@@ -27,8 +27,8 @@ namespace linker.tunnel.wanport
             {
                 try
                 {
-                    await udpClient.SendAsync(new byte[1] { 0 }, server);
-                    UdpReceiveResult result = await udpClient.ReceiveAsync().WaitAsync(TimeSpan.FromMilliseconds(500));
+                    await udpClient.SendAsync(new byte[1] { 0 }, server).ConfigureAwait(false);
+                    UdpReceiveResult result = await udpClient.ReceiveAsync().WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
                     if (result.Buffer.Length == 0)
                     {
                         return null;
@@ -75,10 +75,10 @@ namespace linker.tunnel.wanport
             try
             {
                 Socket socket = new Socket(server.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
-                await socket.ConnectAsync(server);
+                await socket.ConnectAsync(server).ConfigureAwait(false);
 
                 await socket.SendAsync(new byte[] { 0 });
-                int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None);
+                int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
 
                 for (int j = 0; j < length; j++)
                 {

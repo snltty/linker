@@ -120,7 +120,7 @@ namespace linker.server
                 }
                 else if (plugin.TaskMethod != null)
                 {
-                    await plugin.TaskMethod(connection);
+                    await plugin.TaskMethod(connection).ConfigureAwait(false);
                 }
                 //有需要回复的
                 if (requestWrap.Reply == true && connection.ResponseData.Length > 0)

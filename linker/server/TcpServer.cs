@@ -92,13 +92,13 @@ namespace linker.server
             {
                 try
                 {
-                    SocketReceiveFromResult result = await socketUdp.ReceiveFromAsync(buffer, SocketFlags.None, endPoint);
+                    SocketReceiveFromResult result = await socketUdp.ReceiveFromAsync(buffer, SocketFlags.None, endPoint).ConfigureAwait(false);
                     IPEndPoint ep = result.RemoteEndPoint as IPEndPoint;
                     try
                     {
                         Memory<byte> memory = BuildSendData(sendData, ep);
 
-                        await socketUdp.SendToAsync(memory, ep);
+                        await socketUdp.SendToAsync(memory, ep).ConfigureAwait(false);
                     }
                     catch (Exception)
                     {
@@ -152,12 +152,12 @@ namespace linker.server
             byte[] sendData = ArrayPool<byte>.Shared.Rent(20);
             try
             {
-                await socket.ReceiveAsync(sendData.AsMemory(0, 1), SocketFlags.None);
+                await socket.ReceiveAsync(sendData.AsMemory(0, 1), SocketFlags.None).ConfigureAwait(false);
                 byte type = sendData[0];
                 if (type == 0)
                 {
                     Memory<byte> memory = BuildSendData(sendData, socket.RemoteEndPoint as IPEndPoint);
-                    await socket.SendAsync(memory, SocketFlags.None);
+                    await socket.SendAsync(memory, SocketFlags.None).ConfigureAwait(false); 
                 }
                 return type;
             }
@@ -180,14 +180,14 @@ namespace linker.server
                 }
                 socket.KeepAlive();
 
-                if (await ReceiveType(socket) == 0)
+                if (await ReceiveType(socket).ConfigureAwait(false) == 0)
                 {
                     return;
                 }
 
                 NetworkStream networkStream = new NetworkStream(socket, false);
                 SslStream sslStream = new SslStream(networkStream, true);
-                await sslStream.AuthenticateAsServerAsync(serverCertificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false);
+                await sslStream.AuthenticateAsServerAsync(serverCertificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false).ConfigureAwait(false);
                 IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
 
 
@@ -213,14 +213,14 @@ namespace linker.server
                     return null;
                 }
                 socket.KeepAlive();
-                await socket.SendAsync(new byte[] { 1 });
+                await socket.SendAsync(new byte[] { 1 }).ConfigureAwait(false);
                 NetworkStream networkStream = new NetworkStream(socket, false);
                 SslStream sslStream = new SslStream(networkStream, true, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                 await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
                 {
                     AllowRenegotiation = true,
                     EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13
-                });
+                }).ConfigureAwait(false); 
                 IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
 
                 connection.BeginReceive(connectionReceiveCallback, null, true);

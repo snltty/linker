@@ -44,7 +44,7 @@ namespace linker.plugins.relay.transport
             {
                 Socket socket = new Socket(relayInfo.Server.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 socket.KeepAlive();
-                await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromMilliseconds(500));
+                await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
 
                 IConnection connection = await tcpServer.BeginReceive(socket);
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -53,7 +53,7 @@ namespace linker.plugins.relay.transport
                     MessengerId = (ushort)RelayMessengerIds.RelayForward,
                     Payload = MemoryPackSerializer.Serialize(relayInfo),
                     Timeout = 2000
-                });
+                }).ConfigureAwait(false);
                 if (resp.Code != MessageResponeCodes.OK || resp.Data.Span.SequenceEqual(Helper.TrueArray) == false)
                 {
                     connection.Disponse(7);
@@ -61,7 +61,7 @@ namespace linker.plugins.relay.transport
                 }
 
                 connection.Cancel();
-                await Task.Delay(500);
+                await Task.Delay(500).ConfigureAwait(false);
                 ClearSocket(socket);
 
                 SslStream sslStream = null;
@@ -71,7 +71,7 @@ namespace linker.plugins.relay.transport
                     await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
                     {
                         EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13
-                    });
+                    }).ConfigureAwait(false);
                 }
 
                 return new TunnelConnectionTcp
@@ -112,7 +112,7 @@ namespace linker.plugins.relay.transport
             {
                 Socket socket = new Socket(relayInfo.Server.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 socket.KeepAlive();
-                await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromMilliseconds(500));
+                await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
 
                 IConnection connection = await tcpServer.BeginReceive(socket);
                 await messengerSender.SendOnly(new MessageRequestWrap
@@ -120,9 +120,9 @@ namespace linker.plugins.relay.transport
                     Connection = connection,
                     MessengerId = (ushort)RelayMessengerIds.RelayForward,
                     Payload = MemoryPackSerializer.Serialize(relayInfo)
-                });
+                }).ConfigureAwait(false);
                 connection.Cancel();
-                await Task.Delay(100);
+                await Task.Delay(100).ConfigureAwait(false);
                 ClearSocket(socket);
 
                 SslStream sslStream = null;
@@ -134,7 +134,7 @@ namespace linker.plugins.relay.transport
                         return null;
                     }
                     sslStream = new SslStream(connection.SourceNetworkStream, false);
-                    await sslStream.AuthenticateAsServerAsync(certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false);
+                    await sslStream.AuthenticateAsServerAsync(certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false).ConfigureAwait(false);
                 }
                 return new TunnelConnectionTcp
                 {

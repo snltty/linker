@@ -88,7 +88,7 @@ namespace linker.tunnel.connection
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
-                    int length = await Stream.ReadAsync(buffer, cancellationTokenSource.Token);
+                    int length = await Stream.ReadAsync(buffer, cancellationTokenSource.Token).ConfigureAwait(false);
                     ReceiveBytes += length;
                     ticks = Environment.TickCount64;
                     if (length == 0)
@@ -153,7 +153,7 @@ namespace linker.tunnel.connection
             {
                 if (packet.Span.SequenceEqual(pingBytes))
                 {
-                    await SendPingPong(pongBytes);
+                    await SendPingPong(pongBytes).ConfigureAwait(false); 
                 }
                 else if (packet.Span.SequenceEqual(pongBytes))
                 {
@@ -182,9 +182,9 @@ namespace linker.tunnel.connection
                     if (Environment.TickCount64 - ticks > 3000)
                     {
                         pingStart = Environment.TickCount64;
-                        await SendPingPong(pingBytes);
+                        await SendPingPong(pingBytes).ConfigureAwait(false);
                     }
-                    await Task.Delay(3000);
+                    await Task.Delay(3000).ConfigureAwait(false);
                 }
             }
             catch (Exception)
@@ -199,10 +199,10 @@ namespace linker.tunnel.connection
             data.Length.ToBytes(heartData);
             data.AsMemory().CopyTo(heartData.AsMemory(4));
 
-            await semaphoreSlim.WaitAsync();
+            await semaphoreSlim.WaitAsync().ConfigureAwait(false); 
             try
             {
-                await Stream.WriteAsync(heartData.AsMemory(0, length), cancellationTokenSource.Token);
+                await Stream.WriteAsync(heartData.AsMemory(0, length), cancellationTokenSource.Token).ConfigureAwait(false);
             }
             catch (Exception)
             {
@@ -222,15 +222,15 @@ namespace linker.tunnel.connection
             if (pong == false) return;
             pong = false;
             pingStart = Environment.TickCount64;
-            await SendPingPong(pingBytes);
+            await SendPingPong(pingBytes).ConfigureAwait(false);
         }
         private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
-            await semaphoreSlim.WaitAsync();
+            await semaphoreSlim.WaitAsync().ConfigureAwait(false);
             try
             {
-                await Stream.WriteAsync(data, cancellationTokenSource.Token);
+                await Stream.WriteAsync(data, cancellationTokenSource.Token).ConfigureAwait(false);
                 SendBytes += data.Length;
                 ticks = Environment.TickCount64;
                 return true;

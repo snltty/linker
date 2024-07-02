@@ -30,10 +30,10 @@ namespace linker.tunnel.wanport
                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
                     0x00,0x01,0x00,0x00
                  };
-                await udpClient.SendAsync(stunRequest, stunRequest.Length);
+                await udpClient.SendAsync(stunRequest, stunRequest.Length).ConfigureAwait(false);
 
                 IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
-                UdpReceiveResult stunResponse = await udpClient.ReceiveAsync();
+                UdpReceiveResult stunResponse = await udpClient.ReceiveAsync().ConfigureAwait(false);
 
                 Memory<byte> data = stunResponse.Buffer.AsMemory(20);
                 ushort attrTyoe = BitConverter.ToUInt16(data.Span);

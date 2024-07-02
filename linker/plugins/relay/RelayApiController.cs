@@ -53,7 +53,7 @@ namespace linker.plugins.relay
                     Connection = clientSignInState.Connection,
                     MessengerId = (ushort)RelayMessengerIds.ServersForward,
                     Payload = MemoryPackSerializer.Serialize(info.List)
-                });
+                }).ConfigureAwait(false);
             }
 
 

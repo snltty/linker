@@ -36,7 +36,7 @@ namespace linker.plugins.forward
             Task.Run(async () =>
             {
                 Stop();
-                await Task.Delay(5000);
+                await Task.Delay(5000).ConfigureAwait(false);
                 Start();
             });
         }
@@ -174,7 +174,7 @@ namespace linker.plugins.forward
         public async Task<Dictionary<IPEndPoint, string>> Test(ForwardTestInfo forwardTestInfo)
         {
             var results = forwardTestInfo.EndPoints.Select(ConnectAsync);
-            await Task.Delay(200);
+            await Task.Delay(200).ConfigureAwait(false);
             return results.Select(c => c.Result).Where(c => string.IsNullOrWhiteSpace(c.Item2) == false).ToDictionary(c => c.Item1, d => d.Item2);
 
             async Task<(IPEndPoint, string)> ConnectAsync(IPEndPoint ep)
@@ -182,7 +182,7 @@ namespace linker.plugins.forward
                 try
                 {
                     using Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                    await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(100));
+                    await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
                     socket.SafeClose();
                     return (ep, string.Empty);
                 }
@@ -204,7 +204,7 @@ namespace linker.plugins.forward
                 {
                     foreach (var item in running.Data.Forwards.Where(c => c.Port > 0))
                     {
-                        string msg = await ConnectAsync(new IPEndPoint(item.BindIPAddress, item.Port));
+                        string msg = await ConnectAsync(new IPEndPoint(item.BindIPAddress, item.Port)).ConfigureAwait(false);
                         item.Msg = msg;
                         if (string.IsNullOrWhiteSpace(msg) == false)
                         {
@@ -235,7 +235,7 @@ namespace linker.plugins.forward
                 try
                 {
                     using Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                    await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(100));
+                    await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
                     socket.SafeClose();
                     return string.Empty;
                 }

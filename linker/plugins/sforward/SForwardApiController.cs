@@ -44,7 +44,7 @@ namespace linker.plugins.sforward
                         Connection = clientSignInState.Connection,
                         MessengerId = (ushort)SForwardMessengerIds.SecretKeyForward,
                         Payload = MemoryPackSerializer.Serialize(info.SForwardSecretKey)
-                    });
+                    }).ConfigureAwait(false);
                 }
             }
         }

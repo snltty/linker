@@ -51,7 +51,7 @@ namespace linker.plugins.forward.proxy
             if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
             {
                 token.Proxy.TargetEP = cache.TargetEP;
-                cache.Connection = await ConnectTunnel(cache.MachineId);
+                cache.Connection = await ConnectTunnel(cache.MachineId).ConfigureAwait(false);
                 token.Connection = cache.Connection;
             }
             return true;
@@ -66,7 +66,7 @@ namespace linker.plugins.forward.proxy
             if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
             {
                 token.Proxy.TargetEP = cache.TargetEP;
-                cache.Connection = await ConnectTunnel(cache.MachineId);
+                cache.Connection = await ConnectTunnel(cache.MachineId).ConfigureAwait(false);
                 token.Connection = cache.Connection;
             }
         }
@@ -86,14 +86,14 @@ namespace linker.plugins.forward.proxy
                 return connection;
             }
             //不要同时去连太多，锁以下
-            await slimGlobal.WaitAsync();
+            await slimGlobal.WaitAsync().ConfigureAwait(false);
             if (locks.TryGetValue(machineId, out SemaphoreSlim slim) == false)
             {
                 slim = new SemaphoreSlim(1);
                 locks.TryAdd(machineId, slim);
             }
             slimGlobal.Release();
-            await slim.WaitAsync();
+            await slim.WaitAsync().ConfigureAwait(false);
             try
             {
                 //获得锁之前再次看看之前有没有连接成功
@@ -104,7 +104,7 @@ namespace linker.plugins.forward.proxy
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward tunnel to {machineId}");
                 //打洞
-                connection = await tunnelTransfer.ConnectAsync(machineId, "forward");
+                connection = await tunnelTransfer.ConnectAsync(machineId, "forward").ConfigureAwait(false);
                 if (connection != null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward tunnel to {machineId} success");
@@ -114,7 +114,7 @@ namespace linker.plugins.forward.proxy
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward relay to {machineId}");
                     //尝试中继
-                    connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, "forward");
+                    connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, "forward").ConfigureAwait(false);
                     if (connection != null)
                     {
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward relay to {machineId} success");

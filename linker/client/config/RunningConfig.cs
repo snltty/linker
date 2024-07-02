@@ -51,7 +51,7 @@ namespace linker.client.config
                         Save();
                         Data.Updated--;
                     }
-                    await Task.Delay(1000);
+                    await Task.Delay(1000).ConfigureAwait(false);
                 }
             });
         }

@@ -52,7 +52,7 @@ namespace linker.plugins.signin
                     Connection = clientSignInState.Connection,
                     MessengerId = (ushort)SignInMessengerIds.ServersForward,
                     Payload = MemoryPackSerializer.Serialize(configUpdateServersInfo.List)
-                });
+                }).ConfigureAwait(false);
             }
             return true;
         }
@@ -68,7 +68,7 @@ namespace linker.plugins.signin
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)SignInMessengerIds.Delete,
                 Payload = MemoryPackSerializer.Serialize(param.Content)
-            });
+            }).ConfigureAwait(false);
         }
         public async Task<SignInListResponseInfo> List(ApiControllerParamsInfo param)
         {
@@ -78,7 +78,7 @@ namespace linker.plugins.signin
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)SignInMessengerIds.List,
                 Payload = MemoryPackSerializer.Serialize(request)
-            });
+            }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK)
             {
                 return MemoryPackSerializer.Deserialize<SignInListResponseInfo>(resp.Data.Span);
@@ -97,7 +97,7 @@ namespace linker.plugins.signin
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)SignInMessengerIds.NameForward,
                 Payload = MemoryPackSerializer.Serialize(info)
-            });
+            }).ConfigureAwait(false);
             if (info.Id == config.Data.Client.Id)
             {
                 clientSignInTransfer.UpdateName(info.NewName);

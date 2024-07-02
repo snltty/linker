@@ -48,11 +48,11 @@ namespace linker.tunnel.proxy
             {
                 try
                 {
-                    SocketReceiveFromResult result = await token.SourceSocket.ReceiveFromAsync(bytes, TempRemoteEP);
+                    SocketReceiveFromResult result = await token.SourceSocket.ReceiveFromAsync(bytes, TempRemoteEP).ConfigureAwait(false);
 
                     token.Proxy.SourceEP = result.RemoteEndPoint as IPEndPoint;
                     token.Proxy.Data = bytes.AsMemory(0, result.ReceivedBytes);
-                    await ConnectTunnelConnection(token);
+                    await ConnectTunnelConnection(token).ConfigureAwait(false);
                     if (token.Proxy.TargetEP != null)
                     {
                         if (token.Connection != null)
@@ -87,7 +87,7 @@ namespace linker.tunnel.proxy
             if (token.Connection == null) return;
 
             SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
-            await semaphoreSlim.WaitAsync();
+            await semaphoreSlim.WaitAsync().ConfigureAwait(false);
 
             byte[] connectData = token.Proxy.ToBytes(out int length);
             try
@@ -116,7 +116,7 @@ namespace linker.tunnel.proxy
         private async Task SendToConnections(AsyncUserUdpToken token)
         {
             SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
-            await semaphoreSlim.WaitAsync();
+            await semaphoreSlim.WaitAsync().ConfigureAwait(false);
 
             byte[] connectData = token.Proxy.ToBytes(out int length);
             try
@@ -160,7 +160,7 @@ namespace linker.tunnel.proxy
                     if (udpConnections.TryGetValue(connectId, out AsyncUserUdpTokenTarget token))
                     {
                         token.Connection = tunnelToken.Connection;
-                        await token.TargetSocket.SendToAsync(tunnelToken.Proxy.Data, target);
+                        await token.TargetSocket.SendToAsync(tunnelToken.Proxy.Data, target).ConfigureAwait(false);
                         token.Update();
                         return;
                     }
@@ -185,9 +185,9 @@ namespace linker.tunnel.proxy
                 {
                     try
                     {
-                        if (await ConnectionReceiveUdp(tunnelToken, asyncUserUdpToken) == false)
+                        if (await ConnectionReceiveUdp(tunnelToken, asyncUserUdpToken).ConfigureAwait(false) == false)
                         {
-                            await asyncUserUdpToken.SourceSocket.SendToAsync(tunnelToken.Proxy.Data, tunnelToken.Proxy.SourceEP);
+                            await asyncUserUdpToken.SourceSocket.SendToAsync(tunnelToken.Proxy.Data, tunnelToken.Proxy.SourceEP).ConfigureAwait(false);
                         }
                     }
                     catch (Exception ex)
@@ -204,7 +204,7 @@ namespace linker.tunnel.proxy
         {
             Socket socket = new Socket(target.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
             socket.WindowsUdpBug();
-            await socket.SendToAsync(tunnelToken.Proxy.Data, target);
+            await socket.SendToAsync(tunnelToken.Proxy.Data, target).ConfigureAwait(false);
 
 
             ConnectIdUdp connectId = new ConnectIdUdp(tunnelToken.Proxy.ConnectId, tunnelToken.Proxy.SourceEP, tunnelToken.Connection.GetHashCode());
@@ -233,10 +233,10 @@ namespace linker.tunnel.proxy
             {
                 while (true)
                 {
-                    SocketReceiveFromResult result = await socket.ReceiveFromAsync(udpToken.Buffer, SocketFlags.None, target);
+                    SocketReceiveFromResult result = await socket.ReceiveFromAsync(udpToken.Buffer, SocketFlags.None, target).ConfigureAwait(false);
                     udpToken.Proxy.Data = udpToken.Buffer.AsMemory(0, result.ReceivedBytes);
                     udpToken.Update();
-                    await SendToConnection(udpToken);
+                    await SendToConnection(udpToken).ConfigureAwait(false);
                 }
             }
             catch (Exception)
@@ -318,7 +318,7 @@ namespace linker.tunnel.proxy
                         }
                     }
 
-                    await Task.Delay(5000);
+                    await Task.Delay(5000).ConfigureAwait(false);
                 }
             });
         }

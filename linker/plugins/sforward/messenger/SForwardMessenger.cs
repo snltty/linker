@@ -166,7 +166,7 @@ namespace linker.plugins.sforward.messenger
                         Connection = item.Connection,
                         MessengerId = (ushort)SForwardMessengerIds.SecretKey,
                         Payload = connection.ReceiveRequestWrap.Payload
-                    });
+                    }).ConfigureAwait(false);
                 }
             }
         }
@@ -180,7 +180,7 @@ namespace linker.plugins.sforward.messenger
                     Connection = sign.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.Proxy,
                     Payload = MemoryPackSerializer.Serialize(new SForwardProxyInfo { Domain = host, RemotePort = port, Id = id, BufferSize= configWrap.Data.Server.SForward.BufferSize })
-                });
+                }).ConfigureAwait(false);
             }
             return false;
         }
@@ -193,7 +193,7 @@ namespace linker.plugins.sforward.messenger
                     Connection = sign.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.Proxy,
                     Payload = MemoryPackSerializer.Serialize(new SForwardProxyInfo { RemotePort = port, Id = id, BufferSize = configWrap.Data.Server.SForward.BufferSize })
-                });
+                }).ConfigureAwait(false);
             }
             return false;
         }
@@ -206,7 +206,7 @@ namespace linker.plugins.sforward.messenger
                     Connection = sign.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.ProxyUdp,
                     Payload = MemoryPackSerializer.Serialize(new SForwardProxyInfo { RemotePort = port, Id = id, BufferSize = configWrap.Data.Server.SForward.BufferSize })
-                });
+                }).ConfigureAwait(false);
             }
             return false;
         }

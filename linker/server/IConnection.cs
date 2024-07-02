@@ -316,11 +316,11 @@ namespace linker.server
                 {
                     if (SourceStream != null)
                     {
-                        length = await SourceStream.ReadAsync(buffer, cancellationTokenSource.Token);
+                        length = await SourceStream.ReadAsync(buffer, cancellationTokenSource.Token).ConfigureAwait(false);
                     }
                     else
                     {
-                        length = await SourceSocket.ReceiveAsync(buffer, SocketFlags.None, cancellationTokenSource.Token);
+                        length = await SourceSocket.ReceiveAsync(buffer, SocketFlags.None, cancellationTokenSource.Token).ConfigureAwait(false);
                     }
                     if (length == 0)
                     {
@@ -329,7 +329,7 @@ namespace linker.server
                     }
                     ReceiveBytes += length;
                     ticks = Environment.TickCount64;
-                    await ReadPacket(buffer.AsMemory(0, length));
+                    await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)
@@ -393,7 +393,7 @@ namespace linker.server
             {
                 if (packet.Span.SequenceEqual(pingBytes))
                 {
-                    await SendPingPong(pongBytes);
+                    await SendPingPong(pongBytes).ConfigureAwait(false);
                 }
                 else if (packet.Span.SequenceEqual(pongBytes))
                 {
@@ -422,10 +422,10 @@ namespace linker.server
                     if (Environment.TickCount64 - ticks > 3000)
                     {
                         pingStart = Environment.TickCount64;
-                        await SendPingPong(pingBytes);
+                        await SendPingPong(pingBytes).ConfigureAwait(false); 
 
                     }
-                    await Task.Delay(3000);
+                    await Task.Delay(3000).ConfigureAwait(false);
                 }
             }
             catch (Exception)
@@ -442,16 +442,16 @@ namespace linker.server
             data.Length.ToBytes(heartData);
             data.AsMemory().CopyTo(heartData.AsMemory(4));
 
-            await semaphoreSlim.WaitAsync();
+            await semaphoreSlim.WaitAsync().ConfigureAwait(false); 
             try
             {
                 if (SourceStream != null)
                 {
-                    await SourceStream.WriteAsync(heartData.AsMemory(0, length), cancellationTokenSource.Token);
+                    await SourceStream.WriteAsync(heartData.AsMemory(0, length), cancellationTokenSource.Token).ConfigureAwait(false);
                 }
                 else
                 {
-                    await SourceSocket.SendAsync(heartData.AsMemory(0, length), cancellationTokenSource.Token);
+                    await SourceSocket.SendAsync(heartData.AsMemory(0, length), cancellationTokenSource.Token).ConfigureAwait(false); 
                 }
 
             }
@@ -475,13 +475,13 @@ namespace linker.server
         }
         public override async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
-            if (SourceStream != null) await semaphoreSlim.WaitAsync();
+            if (SourceStream != null) await semaphoreSlim.WaitAsync().ConfigureAwait(false);
             try
             {
                 if (SourceStream != null)
-                    await SourceStream.WriteAsync(data, cancellationTokenSourceWrite.Token);
+                    await SourceStream.WriteAsync(data, cancellationTokenSourceWrite.Token).ConfigureAwait(false);
                 else
-                    await SourceSocket.SendAsync(data, cancellationTokenSourceWrite.Token);
+                    await SourceSocket.SendAsync(data, cancellationTokenSourceWrite.Token).ConfigureAwait(false); 
                 SendBytes += data.Length;
                 ticks = Environment.TickCount64;
             }
@@ -505,14 +505,14 @@ namespace linker.server
         }
         public override async Task<bool> SendAsync(byte[] data, int length)
         {
-            return await SendAsync(data.AsMemory(0, length));
+            return await SendAsync(data.AsMemory(0, length)).ConfigureAwait(false); 
         }
 
         public override async Task RelayAsync(byte bufferSize)
         {
             if (TargetNetworkStream != null)
             {
-                await CopyToAsync(bufferSize, SourceNetworkStream, TargetNetworkStream);
+                await CopyToAsync(bufferSize, SourceNetworkStream, TargetNetworkStream).ConfigureAwait(false);
             }
         }
         private async Task CopyToAsync(byte bufferSize, NetworkStream source, NetworkStream destination)
@@ -529,7 +529,7 @@ namespace linker.server
                         TryLimit(ref length);
                         while (length > 0)
                         {
-                            await Task.Delay(30);
+                            await Task.Delay(30).ConfigureAwait(false); 
                             TryLimit(ref length);
                         }
                     }

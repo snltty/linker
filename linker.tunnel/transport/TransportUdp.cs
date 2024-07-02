@@ -45,15 +45,15 @@ namespace linker.tunnel.transport
             if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
             {
                 //正向连接
-                if (await OnSendConnectBegin(tunnelTransportInfo) == false)
+                if (await OnSendConnectBegin(tunnelTransportInfo).ConfigureAwait(false) == false)
                 {
                     return null;
                 }
-                await Task.Delay(500);
-                ITunnelConnection connection = await ConnectForward(tunnelTransportInfo);
+                await Task.Delay(500).ConfigureAwait(false);
+                ITunnelConnection connection = await ConnectForward(tunnelTransportInfo).ConfigureAwait(false);
                 if (connection != null)
                 {
-                    await OnSendConnectSuccess(tunnelTransportInfo);
+                    await OnSendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
                     return connection;
                 }
             }
@@ -62,21 +62,21 @@ namespace linker.tunnel.transport
                 //反向连接
                 TunnelTransportInfo tunnelTransportInfo1 = tunnelTransportInfo.ToJsonFormat().DeJson<TunnelTransportInfo>();
                 _ = BindListen(tunnelTransportInfo1.Local.Local, tunnelTransportInfo1);
-                await Task.Delay(50);
+                await Task.Delay(50).ConfigureAwait(false);
                 BindAndTTL(tunnelTransportInfo1);
-                if (await OnSendConnectBegin(tunnelTransportInfo1) == false)
+                if (await OnSendConnectBegin(tunnelTransportInfo1).ConfigureAwait(false) == false)
                 {
                     return null;
                 }
-                ITunnelConnection connection = await WaitReverse(tunnelTransportInfo1);
+                ITunnelConnection connection = await WaitReverse(tunnelTransportInfo1).ConfigureAwait(false);
                 if (connection != null)
                 {
-                    await OnSendConnectSuccess(tunnelTransportInfo);
+                    await OnSendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
                     return connection;
                 }
             }
 
-            await OnSendConnectFail(tunnelTransportInfo);
+            await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
             return null;
         }
         public async Task OnBegin(TunnelTransportInfo tunnelTransportInfo)
@@ -84,21 +84,21 @@ namespace linker.tunnel.transport
             if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
             {
                 _ = BindListen(tunnelTransportInfo.Local.Local, tunnelTransportInfo);
-                await Task.Delay(50);
+                await Task.Delay(50).ConfigureAwait(false);
                 BindAndTTL(tunnelTransportInfo);
             }
             else
             {
 
-                ITunnelConnection connection = await ConnectForward(tunnelTransportInfo);
+                ITunnelConnection connection = await ConnectForward(tunnelTransportInfo).ConfigureAwait(false);
                 if (connection != null)
                 {
                     OnConnected(connection);
-                    await OnSendConnectSuccess(tunnelTransportInfo);
+                    await OnSendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
                 }
                 else
                 {
-                    await OnSendConnectFail(tunnelTransportInfo);
+                    await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                 }
             }
         }
@@ -133,7 +133,7 @@ namespace linker.tunnel.transport
                     {
                         remoteUdp6.Send(authBytes, ep);
                     }
-                    await Task.Delay(50);
+                    await Task.Delay(50).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -146,7 +146,7 @@ namespace linker.tunnel.transport
 
             try
             {
-                IPEndPoint remoteEP = await taskCompletionSource.Task.WaitAsync(TimeSpan.FromMilliseconds(500));
+                IPEndPoint remoteEP = await taskCompletionSource.Task.WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
                 //绑定一个udp，用来给QUIC链接
                 UdpClient localUdp = remoteEP.AddressFamily == AddressFamily.InterNetwork ? remoteUdp : remoteUdp6;
                 if (remoteEP.AddressFamily == AddressFamily.InterNetwork)
@@ -261,7 +261,7 @@ namespace linker.tunnel.transport
                 };
                 _ = ListenReceiveCallback(token6);
 
-                AddressFamily af = await token.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(30000));
+                AddressFamily af = await token.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(30000)).ConfigureAwait(false);
 
                 if (af == AddressFamily.InterNetwork)
                 {
@@ -290,7 +290,7 @@ namespace linker.tunnel.transport
             {
                 while (true)
                 {
-                    UdpReceiveResult result = await token.LocalUdp.ReceiveAsync();
+                    UdpReceiveResult result = await token.LocalUdp.ReceiveAsync().ConfigureAwait(false);
                     if (result.Buffer.Length == 0) break;
 
                     if (result.Buffer.Length == endBytes.Length && result.Buffer.AsSpan().SequenceEqual(endBytes))
@@ -298,7 +298,7 @@ namespace linker.tunnel.transport
                         if (token.Tcs != null && token.Tcs.Task.IsCompleted == false)
                         {
                             token.Tcs.SetResult(result.RemoteEndPoint.AddressFamily);
-                            await OnUdpConnected(token.State, token.LocalUdp, result.RemoteEndPoint);
+                            await OnUdpConnected(token.State, token.LocalUdp, result.RemoteEndPoint).ConfigureAwait(false);
                         }
                         break;
                     }
@@ -371,7 +371,7 @@ namespace linker.tunnel.transport
 
             try
             {
-                ITunnelConnection connection = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000));
+                ITunnelConnection connection = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
                 return connection;
             }
             catch (Exception)

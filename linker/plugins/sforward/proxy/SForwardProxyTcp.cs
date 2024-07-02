@@ -106,7 +106,7 @@ namespace linker.plugins.sforward.proxy
             byte[] buffer2 = new byte[(1 << token.BufferSize) * 1024];
             try
             {
-                int length = await token.SourceSocket.ReceiveAsync(buffer1.AsMemory(), SocketFlags.None);
+                int length = await token.SourceSocket.ReceiveAsync(buffer1.AsMemory(), SocketFlags.None).ConfigureAwait(false);
                 if (length > flagBytes.Length && buffer1.AsSpan(0, flagBytes.Length).SequenceEqual(flagBytes))
                 {
                     ulong _id = buffer1.AsSpan(flagBytes.Length).ToUInt64();
@@ -126,7 +126,7 @@ namespace linker.plugins.sforward.proxy
                         CloseClientSocket(token);
                         return;
                     }
-                    if (await WebConnect(token.Host, token.ListenPort, id) == false)
+                    if (await WebConnect(token.Host, token.ListenPort, id).ConfigureAwait(false) == false)
                     {
                         CloseClientSocket(token);
                         return;
@@ -134,7 +134,7 @@ namespace linker.plugins.sforward.proxy
                 }
                 else
                 {
-                    if (await TunnelConnect(token.ListenPort, id) == false)
+                    if (await TunnelConnect(token.ListenPort, id).ConfigureAwait(false) == false)
                     {
                         CloseClientSocket(token);
                         return;
@@ -145,8 +145,8 @@ namespace linker.plugins.sforward.proxy
                 tcpConnections.TryAdd(id, tcs);
                 token.TargetSocket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(2000)).ConfigureAwait(false);
 
-                await token.TargetSocket.SendAsync(buffer1.AsMemory(0, length));
-                await Task.WhenAll(CopyToAsync(buffer1, token.SourceSocket, token.TargetSocket), CopyToAsync(buffer2, token.TargetSocket, token.SourceSocket));
+                await token.TargetSocket.SendAsync(buffer1.AsMemory(0, length)).ConfigureAwait(false);
+                await Task.WhenAll(CopyToAsync(buffer1, token.SourceSocket, token.TargetSocket), CopyToAsync(buffer2, token.TargetSocket, token.SourceSocket)).ConfigureAwait(false);
 
                 CloseClientSocket(token);
             }
@@ -172,17 +172,17 @@ namespace linker.plugins.sforward.proxy
             {
                 sourceSocket = new Socket(server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 sourceSocket.IPv6Only(server.AddressFamily, false);
-                await sourceSocket.ConnectAsync(server);
+                await sourceSocket.ConnectAsync(server).ConfigureAwait(false);
 
                 targetSocket = new Socket(service.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 targetSocket.IPv6Only(service.AddressFamily, false);
-                await targetSocket.ConnectAsync(service);
+                await targetSocket.ConnectAsync(service).ConfigureAwait(false);
 
                 flagBytes.AsMemory().CopyTo(buffer1);
                 id.ToBytes(buffer1.AsMemory(flagBytes.Length));
-                await sourceSocket.SendAsync(buffer1.AsMemory(0, flagBytes.Length + 8));
+                await sourceSocket.SendAsync(buffer1.AsMemory(0, flagBytes.Length + 8)).ConfigureAwait(false);
 
-                await Task.WhenAll(CopyToAsync(buffer1, sourceSocket, targetSocket), CopyToAsync(buffer2, targetSocket, sourceSocket));
+                await Task.WhenAll(CopyToAsync(buffer1, sourceSocket, targetSocket), CopyToAsync(buffer2, targetSocket, sourceSocket)).ConfigureAwait(false);
 
             }
             catch (Exception)

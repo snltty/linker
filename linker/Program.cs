@@ -11,7 +11,7 @@ namespace linker
         static async Task Main(string[] args)
         {
             Run(args);
-            await Helper.Await();
+            await Helper.Await().ConfigureAwait(false);
         }
 
         public static void Run(string[] args)

@@ -40,7 +40,7 @@ namespace linker.plugins.tunnel.messenger
         public async Task Info(IConnection connection)
         {
             TunnelWanPortProtocolInfo info = MemoryPackSerializer.Deserialize<TunnelWanPortProtocolInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            TunnelTransportWanPortInfo tunnelTransportPortInfo = await tunnel.GetWanPort(info);
+            TunnelTransportWanPortInfo tunnelTransportPortInfo = await tunnel.GetWanPort(info).ConfigureAwait(false);
             if (tunnelTransportPortInfo != null)
             {
                 connection.Write(MemoryPackSerializer.Serialize(tunnelTransportPortInfo));
@@ -138,7 +138,7 @@ namespace linker.plugins.tunnel.messenger
                             Connection = connection,
                             Payload = MemoryPackSerializer.Serialize(MemoryPackSerializer.Deserialize<TunnelTransportWanPortInfo>(result.Result.Data.Span)),
                             RequestId = requestid,
-                        });
+                        }).ConfigureAwait(false);
                     }
                 });
             }
@@ -157,7 +157,7 @@ namespace linker.plugins.tunnel.messenger
                     Connection = cache.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.Begin,
                     Payload = connection.ReceiveRequestWrap.Payload
-                });
+                }).ConfigureAwait(false);
                 connection.Write(Helper.TrueArray);
             }
         }
@@ -174,7 +174,7 @@ namespace linker.plugins.tunnel.messenger
                     Connection = cache.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.Fail,
                     Payload = connection.ReceiveRequestWrap.Payload
-                });
+                }).ConfigureAwait(false);
             }
         }
 
@@ -190,7 +190,7 @@ namespace linker.plugins.tunnel.messenger
                     Connection = cache.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.Success,
                     Payload = connection.ReceiveRequestWrap.Payload
-                });
+                }).ConfigureAwait(false);
             }
         }
 
@@ -206,7 +206,7 @@ namespace linker.plugins.tunnel.messenger
                     Connection = cache.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.RouteLevel,
                     Payload = connection.ReceiveRequestWrap.Payload
-                });
+                }).ConfigureAwait(false);
             }
 
         }
@@ -240,7 +240,7 @@ namespace linker.plugins.tunnel.messenger
                         Connection = connection,
                         Payload = MemoryPackSerializer.Serialize(results),
                         RequestId = requestid,
-                    });
+                    }).ConfigureAwait(false);
                 });
             }
         }
@@ -260,7 +260,7 @@ namespace linker.plugins.tunnel.messenger
                         Connection = item.Connection,
                         MessengerId = (ushort)TunnelMessengerIds.Transport,
                         Payload = connection.ReceiveRequestWrap.Payload
-                    });
+                    }).ConfigureAwait(false);
                 }
             }
         }
@@ -279,7 +279,7 @@ namespace linker.plugins.tunnel.messenger
                         Connection = item.Connection,
                         MessengerId = (ushort)TunnelMessengerIds.Servers,
                         Payload = connection.ReceiveRequestWrap.Payload
-                    });
+                    }).ConfigureAwait(false);
                 }
             }
         }
@@ -298,7 +298,7 @@ namespace linker.plugins.tunnel.messenger
                         Connection = item.Connection,
                         MessengerId = (ushort)TunnelMessengerIds.ExcludeIPs,
                         Payload = connection.ReceiveRequestWrap.Payload
-                    });
+                    }).ConfigureAwait(false);
                 }
             }
         }

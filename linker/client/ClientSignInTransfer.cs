@@ -50,7 +50,7 @@ namespace linker.client
                     {
                         try
                         {
-                            await SignIn();
+                            await SignIn().ConfigureAwait(false);
                         }
                         catch (Exception ex)
                         {
@@ -58,7 +58,7 @@ namespace linker.client
                                 LoggerHelper.Instance.Error(ex);
                         }
                     }
-                    await Task.Delay(10000);
+                    await Task.Delay(10000).ConfigureAwait(false);
                 }
             });
         }
@@ -85,16 +85,16 @@ namespace linker.client
 
                 IPEndPoint ip = NetworkHelper.GetEndPoint(config.Data.Client.Server, 1802);
 
-                if (await ConnectServer(ip) == false)
+                if (await ConnectServer(ip).ConfigureAwait(false) == false)
                 {
                     return;
                 }
-                if (await SignIn2Server() == false)
+                if (await SignIn2Server().ConfigureAwait(false) == false)
                 {
                     return;
                 }
 
-                await GetServerVersion();
+                await GetServerVersion().ConfigureAwait(false);
 
                 GCHelper.FlushMemory();
                 clientSignInState.PushNetworkEnabled();
@@ -189,7 +189,7 @@ namespace linker.client
             Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.KeepAlive();
             await socket.ConnectAsync(remote).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
-            clientSignInState.Connection = await tcpServer.BeginReceive(socket);
+            clientSignInState.Connection = await tcpServer.BeginReceive(socket).ConfigureAwait(false);
 
             return true;
         }
@@ -214,7 +214,7 @@ namespace linker.client
                     Args = args,
                     GroupId = config.Data.Client.GroupId,
                 })
-            });
+            }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK)
             {
                 if (resp.Data.Span.SequenceEqual(Helper.FalseArray) == false)
@@ -238,7 +238,7 @@ namespace linker.client
             {
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)SignInMessengerIds.Version,
-            });
+            }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK)
             {
                 clientSignInState.Version = MemoryPackSerializer.Deserialize<string>(resp.Data.Span);

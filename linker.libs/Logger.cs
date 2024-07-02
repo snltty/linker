@@ -33,7 +33,7 @@ namespace linker.libs
                             OnLogger?.Invoke(model);
                         }
                     }
-                    await Task.Delay(15);
+                    await Task.Delay(15).ConfigureAwait(false);
                 }
             });
         }

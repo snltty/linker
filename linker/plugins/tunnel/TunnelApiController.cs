@@ -90,7 +90,7 @@ namespace linker.plugins.tunnel
                     Connection = clientSignInState.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.ServersForward,
                     Payload = MemoryPackSerializer.Serialize(info.List)
-                });
+                }).ConfigureAwait(false);
             }
 
             return true;
@@ -116,7 +116,7 @@ namespace linker.plugins.tunnel
                     Connection = clientSignInState.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.RouteLevelForward,
                     Payload = MemoryPackSerializer.Serialize(tunnelTransportConfigWrapInfo)
-                });
+                }).ConfigureAwait(false);
             }
 
             return true;
@@ -146,7 +146,7 @@ namespace linker.plugins.tunnel
                     Connection = clientSignInState.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.TransportForward,
                     Payload = MemoryPackSerializer.Serialize(info.List)
-                });
+                }).ConfigureAwait(false);
             }
         }
 
@@ -165,7 +165,7 @@ namespace linker.plugins.tunnel
                     Connection = clientSignInState.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.ExcludeIPsForward,
                     Payload = MemoryPackSerializer.Serialize(info.List)
-                });
+                }).ConfigureAwait(false);
             }
         }
 

@@ -41,7 +41,7 @@ namespace linker.plugins.sforward.proxy
                 IPEndPoint tempRemoteEP = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
                 while (true)
                 {
-                    SocketReceiveFromResult result = await token.SourceSocket.ReceiveFromAsync(buffer, tempRemoteEP);
+                    SocketReceiveFromResult result = await token.SourceSocket.ReceiveFromAsync(buffer, tempRemoteEP).ConfigureAwait(false);
                     if (result.ReceivedBytes == 0)
                     {
                         break;
@@ -51,7 +51,7 @@ namespace linker.plugins.sforward.proxy
                     //已经连接
                     if (udpConnections.TryGetValue(result.RemoteEndPoint as IPEndPoint, out UdpTargetCache cache) && cache != null)
                     {
-                        await token.SourceSocket.SendToAsync(memory, cache.IPEndPoint);
+                        await token.SourceSocket.SendToAsync(memory, cache.IPEndPoint).ConfigureAwait(false);
                     }
                     else
                     {
@@ -83,7 +83,7 @@ namespace linker.plugins.sforward.proxy
                             ulong id = ns.Increment();
                             try
                             {
-                                if (await UdpConnect(token.ListenPort, id))
+                                if (await UdpConnect(token.ListenPort, id).ConfigureAwait(false))
                                 {
                                     TaskCompletionSource<IPEndPoint> tcs = new TaskCompletionSource<IPEndPoint>();
                                     udptcss.TryAdd(id, tcs);
@@ -94,7 +94,7 @@ namespace linker.plugins.sforward.proxy
                                     udpConnections.TryAdd(source, new UdpTargetCache { IPEndPoint = remote });
                                     udpConnections.TryAdd(remote, new UdpTargetCache { IPEndPoint = source });
 
-                                    await token.SourceSocket.SendToAsync(buf.AsMemory(0, length), remote);
+                                    await token.SourceSocket.SendToAsync(buf.AsMemory(0, length), remote).ConfigureAwait(false);
                                 }
                             }
                             catch (Exception ex)
@@ -134,7 +134,7 @@ namespace linker.plugins.sforward.proxy
             flagBytes.AsMemory().CopyTo(buffer);
             id.ToBytes(buffer.AsMemory(flagBytes.Length));
 
-            await socketUdp.SendToAsync(buffer, server);
+            await socketUdp.SendToAsync(buffer, server).ConfigureAwait(false);
 
             Socket serviceUdp = null;
             buffer = new byte[(1 << bufferSize) * 1024];
@@ -143,7 +143,7 @@ namespace linker.plugins.sforward.proxy
             {
                 try
                 {
-                    SocketReceiveFromResult result = await socketUdp.ReceiveFromAsync(buffer, tempEp);
+                    SocketReceiveFromResult result = await socketUdp.ReceiveFromAsync(buffer, tempEp).ConfigureAwait(false);
                     if (result.ReceivedBytes == 0)
                     {
                         break;
@@ -154,7 +154,7 @@ namespace linker.plugins.sforward.proxy
                     {
                         serviceUdp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                         serviceUdp.WindowsUdpBug();
-                        await serviceUdp.SendToAsync(memory, service);
+                        await serviceUdp.SendToAsync(memory, service).ConfigureAwait(false);
 
                         udpConnectds.TryAdd(id, new UdpConnectedCache { SourceSocket = socketUdp, TargetSocket = serviceUdp });
 
@@ -166,9 +166,9 @@ namespace linker.plugins.sforward.proxy
                             {
                                 try
                                 {
-                                    SocketReceiveFromResult result = await serviceUdp.ReceiveFromAsync(buffer, tempEp);
+                                    SocketReceiveFromResult result = await serviceUdp.ReceiveFromAsync(buffer, tempEp).ConfigureAwait(false);
                                     if (result.ReceivedBytes == 0) break;
-                                    await socketUdp.SendToAsync(buffer.AsMemory(0, result.ReceivedBytes), server);
+                                    await socketUdp.SendToAsync(buffer.AsMemory(0, result.ReceivedBytes), server).ConfigureAwait(false);
                                 }
                                 catch (Exception ex)
                                 {
@@ -189,7 +189,7 @@ namespace linker.plugins.sforward.proxy
                     }
                     else
                     {
-                        await serviceUdp.SendToAsync(memory, service);
+                        await serviceUdp.SendToAsync(memory, service).ConfigureAwait(false);
                     }
                 }
                 catch (Exception ex)
@@ -228,7 +228,7 @@ namespace linker.plugins.sforward.proxy
                             cache.Clear();
                         }
                     }
-                    await Task.Delay(5000);
+                    await Task.Delay(5000).ConfigureAwait(false);
                 }
             });
         }

@@ -18,7 +18,7 @@ namespace linker.libs
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
             AppDomain.CurrentDomain.ProcessExit += (sender, e) => cancellationTokenSource.Cancel();
             Console.CancelKeyPress += (sender, e) => cancellationTokenSource.Cancel();
-            await Task.Delay(-1, cancellationTokenSource.Token);
+            await Task.Delay(-1, cancellationTokenSource.Token).ConfigureAwait(false);
         }
 
         static DateTime startTime = new DateTime(1970, 1, 1);

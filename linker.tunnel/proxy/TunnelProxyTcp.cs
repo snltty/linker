@@ -54,7 +54,7 @@ namespace linker.tunnel.proxy
             {
                 while (true)
                 {
-                    Socket socket = await token.Socket.AcceptAsync();
+                    Socket socket = await token.Socket.AcceptAsync().ConfigureAwait(false);
                     ProcessAccept(token, socket);
                 }
             }
@@ -90,7 +90,7 @@ namespace linker.tunnel.proxy
         }
         private async Task BeginReceive(AsyncUserToken token)
         {
-            int length = await token.Socket.ReceiveAsync(token.Buffer.AsMemory(), SocketFlags.None);
+            int length = await token.Socket.ReceiveAsync(token.Buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
             if (length == 0)
             {
                 CloseClientSocket(token);
@@ -128,7 +128,7 @@ namespace linker.tunnel.proxy
             {
                 while (true)
                 {
-                    int length = await token.Socket.ReceiveAsync(token.Buffer.AsMemory(), SocketFlags.None);
+                    int length = await token.Socket.ReceiveAsync(token.Buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
                     if (length == 0)
                     {
                         break;
@@ -265,7 +265,7 @@ namespace linker.tunnel.proxy
 
                 if (state.Data.Length > 0)
                 {
-                    await token.Socket.SendAsync(state.Data.AsMemory(0, state.Length), SocketFlags.None);
+                    await token.Socket.SendAsync(state.Data.AsMemory(0, state.Length), SocketFlags.None).ConfigureAwait(false);
                 }
                 tcpConnections.TryAdd(new ConnectId(token.Proxy.ConnectId, token.Connection.GetHashCode(), (byte)ProxyDirection.Forward), token);
 
@@ -338,7 +338,7 @@ namespace linker.tunnel.proxy
             {
                 try
                 {
-                    await token1.Socket.SendAsync(tunnelToken.Proxy.Data, SocketFlags.None).ConfigureAwait(false);
+                    await token1.Socket.SendAsync(tunnelToken.Proxy.Data, SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {

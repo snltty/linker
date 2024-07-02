@@ -35,23 +35,23 @@ namespace linker.plugins.tuntap.vea
                     Kill();
                     return false;
                 }
-                if (await GetWindowsHasInterface(InterfaceName) == false)
+                if (await GetWindowsHasInterface(InterfaceName).ConfigureAwait(false) == false)
                 {
                     Kill();
                     return false;
                 }
-                if (await GetWindowsInterfaceNum() == false)
+                if (await GetWindowsInterfaceNum().ConfigureAwait(false) == false)
                 {
                     Kill();
                     return false;
                 }
-                if (await SetIp(ip) == false)
+                if (await SetIp(ip).ConfigureAwait(false) == false)
                 {
                     Kill();
                     return false;
                 }
 
-                if (await GetWindowsHasRoute(ip) == false)
+                if (await GetWindowsHasRoute(ip).ConfigureAwait(false) == false)
                 {
                     Kill();
                     return false;
@@ -89,7 +89,7 @@ namespace linker.plugins.tuntap.vea
                 {
                     return true;
                 }
-                await Task.Delay(1000);
+                await Task.Delay(1000).ConfigureAwait(false);
             }
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
@@ -192,7 +192,7 @@ namespace linker.plugins.tuntap.vea
                         return true;
                     }
                 }
-                await Task.Delay(1000);
+                await Task.Delay(1000).ConfigureAwait(false);
             }
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
@@ -219,7 +219,7 @@ namespace linker.plugins.tuntap.vea
                 {
                     return true;
                 }
-                await Task.Delay(1000);
+                await Task.Delay(1000).ConfigureAwait(false);
             }
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
@@ -232,7 +232,7 @@ namespace linker.plugins.tuntap.vea
         {
             for (int i = 0; i < 10; i++)
             {
-                await Task.Delay(1000);
+                await Task.Delay(1000).ConfigureAwait(false);
                 string output = CommandHelper.Windows(string.Empty, new string[] { "route print" });
                 if (output.Contains("IPv4") == false)
                 {

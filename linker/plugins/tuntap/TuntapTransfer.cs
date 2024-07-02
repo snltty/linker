@@ -97,10 +97,10 @@ namespace linker.plugins.tuntap
                     tuntapProxy.Start();
                     while (tuntapProxy.LocalEndpoint == null)
                     {
-                        await Task.Delay(1000);
+                        await Task.Delay(1000).ConfigureAwait(false);
                     }
 
-                    bool result = await tuntapVea.Run(tuntapProxy.LocalEndpoint.Port, runningConfig.Data.Tuntap.IP);
+                    bool result = await tuntapVea.Run(tuntapProxy.LocalEndpoint.Port, runningConfig.Data.Tuntap.IP).ConfigureAwait(false);
                     runningConfig.Data.Tuntap.Running = Status == TuntapStatus.Running;
                     runningConfig.Data.Update();
                     if (result == false)
@@ -251,7 +251,7 @@ namespace linker.plugins.tuntap
                 MessengerId = (ushort)TuntapMessengerIds.ConfigForward,
                 Payload = MemoryPackSerializer.Serialize(info),
                 Timeout = 3000
-            });
+            }).ConfigureAwait(false);
             if (resp.Code != MessageResponeCodes.OK)
             {
                 return null;
@@ -354,16 +354,16 @@ namespace linker.plugins.tuntap
                 {
                     if (tuntapVea.Running)
                     {
-                        await CheckProxy();
-                        await Task.Delay(5000);
-                        await CheckInterface();
+                        await CheckProxy().ConfigureAwait(false);
+                        await Task.Delay(5000).ConfigureAwait(false);
+                        await CheckInterface().ConfigureAwait(false);
                     }
                 }
                 catch (Exception)
                 {
                 }
 
-                await Task.Delay(15000);
+                await Task.Delay(15000).ConfigureAwait(false); 
             }
         }
         private async Task CheckInterface()
@@ -373,7 +373,7 @@ namespace linker.plugins.tuntap
             {
                 LoggerHelper.Instance.Error($"tuntap inerface {tuntapVea.InterfaceName} is {networkInterface.OperationalStatus}, restarting");
                 Stop();
-                await Task.Delay(5000);
+                await Task.Delay(5000).ConfigureAwait(false); 
                 Run();
             }
         }
@@ -383,14 +383,14 @@ namespace linker.plugins.tuntap
             try
             {
                 var socket = new Socket(tuntapProxy.LocalEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                await socket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, tuntapProxy.LocalEndpoint.Port)).WaitAsync(TimeSpan.FromMilliseconds(100));
+                await socket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, tuntapProxy.LocalEndpoint.Port)).WaitAsync(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false); 
                 socket.SafeClose();
             }
             catch (Exception ex)
             {
                 LoggerHelper.Instance.Error($"tuntap proxy {ex.Message}, restarting");
                 Stop();
-                await Task.Delay(5000);
+                await Task.Delay(5000).ConfigureAwait(false); 
                 Run();
             }
         }

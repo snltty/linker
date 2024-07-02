@@ -157,7 +157,7 @@ namespace linker.tunnel
                                     ProtocolType = wanPortProtocol.ProtocolType,
                                     Type = wanPortProtocol.Type,
                                 });
-                                await Task.WhenAll(localInfo, remoteInfo);
+                                await Task.WhenAll(localInfo, remoteInfo).ConfigureAwait(false);
 
                                 if (localInfo.Result == null)
                                 {
@@ -186,7 +186,7 @@ namespace linker.tunnel
                                 };
                                 OnConnecting(tunnelTransportInfo);
                                 ParseRemoteEndPoint(tunnelTransportInfo);
-                                ITunnelConnection connection = await transport.ConnectAsync(tunnelTransportInfo);
+                                ITunnelConnection connection = await transport.ConnectAsync(tunnelTransportInfo).ConfigureAwait(false);
                                 if (connection != null)
                                 {
                                     _OnConnected(connection);
@@ -290,7 +290,7 @@ namespace linker.tunnel
         public async Task<TunnelTransportWanPortInfo> GetWanPort(TunnelWanPortProtocolInfo _info)
         {
             TunnelWanPortInfo info = tunnelAdapter.GetTunnelWanPortProtocols().FirstOrDefault(c => c.Type == _info.Type && c.ProtocolType == _info.ProtocolType);
-            return await GetLocalInfo(info);
+            return await GetLocalInfo(info).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -299,7 +299,7 @@ namespace linker.tunnel
         /// <returns></returns>
         private async Task<TunnelTransportWanPortInfo> GetLocalInfo(TunnelWanPortInfo info)
         {
-            TunnelWanPortEndPoint ip = await compactTransfer.GetWanPortAsync(tunnelAdapter.LocalIP, info);
+            TunnelWanPortEndPoint ip = await compactTransfer.GetWanPortAsync(tunnelAdapter.LocalIP, info).ConfigureAwait(false);
             if (ip != null)
             {
                 var config = tunnelAdapter.GetLocalConfig();

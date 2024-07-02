@@ -61,19 +61,19 @@ namespace linker.tunnel.transport
         /// <returns></returns>
         public async Task<ITunnelConnection> ConnectAsync(TunnelTransportInfo tunnelTransportInfo)
         {
-            if (await OnSendConnectBegin(tunnelTransportInfo) == false)
+            if (await OnSendConnectBegin(tunnelTransportInfo).ConfigureAwait(false) == false)
             {
                 return null;
             }
-            await Task.Delay(50);
-            ITunnelConnection connection = await ConnectForward(tunnelTransportInfo, TunnelMode.Client);
+            await Task.Delay(50).ConfigureAwait(false);
+            ITunnelConnection connection = await ConnectForward(tunnelTransportInfo, TunnelMode.Client).ConfigureAwait(false);
             if (connection != null)
             {
-                await OnSendConnectSuccess(tunnelTransportInfo);
+                await OnSendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
                 return connection;
             }
 
-            await OnSendConnectFail(tunnelTransportInfo);
+            await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
             return null;
         }
         /// <summary>
@@ -85,18 +85,18 @@ namespace linker.tunnel.transport
             if (tunnelTransportInfo.SSL && tunnelAdapter.Certificate == null)
             {
                 LoggerHelper.Instance.Error($"{Name}->ssl Certificate not found");
-                await OnSendConnectSuccess(tunnelTransportInfo);
+                await OnSendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
                 return;
             }
-            ITunnelConnection connection = await ConnectForward(tunnelTransportInfo, TunnelMode.Server);
+            ITunnelConnection connection = await ConnectForward(tunnelTransportInfo, TunnelMode.Server).ConfigureAwait(false);
             if (connection != null)
             {
                 OnConnected(connection);
-                await OnSendConnectSuccess(tunnelTransportInfo);
+                await OnSendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
             }
             else
             {
-                await OnSendConnectFail(tunnelTransportInfo);
+                await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
             }
         }
 
@@ -126,13 +126,13 @@ namespace linker.tunnel.transport
                 {
                     LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
                 }
-                await targetSocket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(500));
+                await targetSocket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
 
                 if (mode == TunnelMode.Client)
                 {
-                    return await TcpClient(tunnelTransportInfo, targetSocket);
+                    return await TcpClient(tunnelTransportInfo, targetSocket).ConfigureAwait(false);
                 }
-                return await TcpServer(tunnelTransportInfo, targetSocket);
+                return await TcpServer(tunnelTransportInfo, targetSocket).ConfigureAwait(false);
             }
             catch (Exception)
             {
@@ -148,9 +148,9 @@ namespace linker.tunnel.transport
         private async Task<ITunnelConnection> TcpClient(TunnelTransportInfo state, Socket socket)
         {
             //随便发个消息看对方有没有收到
-            await socket.SendAsync(authBytes);
+            await socket.SendAsync(authBytes).ConfigureAwait(false);
             //如果对方收到，会回个消息，不管是啥，回了就行
-            int length = await socket.ReceiveAsync(new byte[1024]);
+            int length = await socket.ReceiveAsync(new byte[1024]).ConfigureAwait(false);
             if (length == 0) return null;
 
             //需要ssl
@@ -158,7 +158,7 @@ namespace linker.tunnel.transport
             if (state.SSL)
             {
                 sslStream = new SslStream(new NetworkStream(socket, false), false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
-                await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 });
+                await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 }).ConfigureAwait(false);
             }
 
             return new TunnelConnectionTcp
@@ -184,13 +184,13 @@ namespace linker.tunnel.transport
             try
             {
                 //对方会随便发个消息，不管是啥
-                int length = await socket.ReceiveAsync(new byte[1024]);
+                int length = await socket.ReceiveAsync(new byte[1024]).ConfigureAwait(false);
                 if (length == 0)
                 {
                     return null;
                 }
                 //回个消息给它就完了
-                await socket.SendAsync(endBytes);
+                await socket.SendAsync(endBytes).ConfigureAwait(false);
 
                 socket.KeepAlive();
                 SslStream sslStream = null;
@@ -204,7 +204,7 @@ namespace linker.tunnel.transport
                     }
 
                     sslStream = new SslStream(new NetworkStream(socket, false), false);
-                    await sslStream.AuthenticateAsServerAsync(tunnelAdapter.Certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false);
+                    await sslStream.AuthenticateAsServerAsync(tunnelAdapter.Certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false).ConfigureAwait(false);
                 }
 
                 return new TunnelConnectionTcp

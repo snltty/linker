@@ -77,13 +77,13 @@ namespace linker.tunnel.transport
                 if (QuicListener.IsSupported == false)
                 {
                     LoggerHelper.Instance.Error($"msquic not supported, need win11+,or linux");
-                    await OnSendConnectFail(tunnelTransportInfo);
+                    await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                     return null;
                 }
                 if (tunnelAdapter.Certificate == null)
                 {
                     LoggerHelper.Instance.Error($"msquic need ssl");
-                    await OnSendConnectFail(tunnelTransportInfo);
+                    await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                     return null;
                 }
             }
@@ -91,15 +91,15 @@ namespace linker.tunnel.transport
             if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
             {
                 //正向连接
-                if (await OnSendConnectBegin(tunnelTransportInfo) == false)
+                if (await OnSendConnectBegin(tunnelTransportInfo).ConfigureAwait(false) == false)
                 {
                     return null;
                 }
                 await Task.Delay(1000);
-                ITunnelConnection connection = await ConnectForward(tunnelTransportInfo);
+                ITunnelConnection connection = await ConnectForward(tunnelTransportInfo).ConfigureAwait(false);
                 if (connection != null)
                 {
-                    await OnSendConnectSuccess(tunnelTransportInfo);
+                    await OnSendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
                     return connection;
                 }
             }
@@ -108,21 +108,21 @@ namespace linker.tunnel.transport
                 //反向连接
                 TunnelTransportInfo tunnelTransportInfo1 = tunnelTransportInfo.ToJsonFormat().DeJson<TunnelTransportInfo>();
                 _ = ListenRemoteConnect(tunnelTransportInfo.BufferSize, tunnelTransportInfo1.Local.Local, quicListenEP, tunnelTransportInfo1);
-                await Task.Delay(50);
+                await Task.Delay(50).ConfigureAwait(false);
                 BindAndTTL(tunnelTransportInfo1);
-                if (await OnSendConnectBegin(tunnelTransportInfo1) == false)
+                if (await OnSendConnectBegin(tunnelTransportInfo1).ConfigureAwait(false) == false)
                 {
                     return null;
                 }
-                ITunnelConnection connection = await WaitReverse(tunnelTransportInfo1);
+                ITunnelConnection connection = await WaitReverse(tunnelTransportInfo1).ConfigureAwait(false);
                 if (connection != null)
                 {
-                    await OnSendConnectSuccess(tunnelTransportInfo);
+                    await OnSendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
                     return connection;
                 }
             }
 
-            await OnSendConnectFail(tunnelTransportInfo);
+            await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
             return null;
         }
         /// <summary>
@@ -137,34 +137,34 @@ namespace linker.tunnel.transport
                 if (QuicListener.IsSupported == false)
                 {
                     LoggerHelper.Instance.Error($"msquic not supported, need win11+,or linux");
-                    await OnSendConnectFail(tunnelTransportInfo);
+                    await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                     return;
                 }
                 if (tunnelAdapter.Certificate == null)
                 {
                     LoggerHelper.Instance.Error($"msquic need ssl");
-                    await OnSendConnectFail(tunnelTransportInfo);
+                    await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                     return;
                 }
             }
             if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
             {
                 _ = ListenRemoteConnect(tunnelTransportInfo.BufferSize, tunnelTransportInfo.Local.Local, quicListenEP, tunnelTransportInfo);
-                await Task.Delay(50);
+                await Task.Delay(50).ConfigureAwait(false);
                 BindAndTTL(tunnelTransportInfo);
             }
             else
             {
 
-                ITunnelConnection connection = await ConnectForward(tunnelTransportInfo);
+                ITunnelConnection connection = await ConnectForward(tunnelTransportInfo).ConfigureAwait(false);
                 if (connection != null)
                 {
                     OnConnected(connection);
-                    await OnSendConnectSuccess(tunnelTransportInfo);
+                    await OnSendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
                 }
                 else
                 {
-                    await OnSendConnectFail(tunnelTransportInfo);
+                    await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                 }
             }
         }
@@ -196,9 +196,9 @@ namespace linker.tunnel.transport
                     }
                     if (ep.AddressFamily == AddressFamily.InterNetwork)
                     {
-                        await remoteUdp.SendToAsync(authBytes, ep);
+                        await remoteUdp.SendToAsync(authBytes, ep).ConfigureAwait(false);
                     }
-                    await Task.Delay(50);
+                    await Task.Delay(50).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -211,7 +211,7 @@ namespace linker.tunnel.transport
 
             try
             {
-                IPEndPoint remoteEP = await taskCompletionSource.Task.WaitAsync(TimeSpan.FromMilliseconds(500));
+                IPEndPoint remoteEP = await taskCompletionSource.Task.WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
                 //绑定一个udp，用来给QUIC链接
                 Socket quicUdp = ListenQuicConnect(tunnelTransportInfo.BufferSize, remoteUdp, remoteEP);
                 QuicConnection connection = connection = await QuicConnection.ConnectAsync(new QuicClientConnectionOptions
@@ -230,8 +230,8 @@ namespace linker.tunnel.transport
                             return true;
                         }
                     }
-                }).AsTask().WaitAsync(TimeSpan.FromMilliseconds(5000));
-                QuicStream quicStream = await connection.OpenOutboundStreamAsync(QuicStreamType.Bidirectional);
+                }).AsTask().WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                QuicStream quicStream = await connection.OpenOutboundStreamAsync(QuicStreamType.Bidirectional).ConfigureAwait(false);
                 return new TunnelConnectionMsQuic
                 {
                     QuicUdp = quicUdp,
@@ -329,7 +329,7 @@ namespace linker.tunnel.transport
 
             try
             {
-                ITunnelConnection connection = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(10000));
+                ITunnelConnection connection = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(10000)).ConfigureAwait(false);
                 return connection;
             }
             catch (Exception)
@@ -363,10 +363,10 @@ namespace linker.tunnel.transport
                     IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
 
                     //收到远端的消息，表明对方已收到，再给它发个结束消息，表示可以正常通信了
-                    SocketReceiveFromResult result = await socketUdp.ReceiveFromAsync(buffer.AsMemory(), tempEp);
+                    SocketReceiveFromResult result = await socketUdp.ReceiveFromAsync(buffer.AsMemory(), tempEp).ConfigureAwait(false);
                     IPEndPoint ep = result.RemoteEndPoint as IPEndPoint;
 
-                    await socketUdp.SendToAsync(endBytes, ep);
+                    await socketUdp.SendToAsync(endBytes, ep).ConfigureAwait(false);
                     tcs.SetResult(ep);
                 }
                 catch (Exception ex)
@@ -459,7 +459,7 @@ namespace linker.tunnel.transport
                 udpClient.WindowsUdpBug();
                 _ = WaitAuth(bufferSize, token, tcs);
 
-                AddressFamily af = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(30000));
+                AddressFamily af = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(30000)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -695,23 +695,23 @@ namespace linker.tunnel.transport
                             }
                         });
                     }
-                });
+                }).ConfigureAwait(false);
                 quicListenEP = new IPEndPoint(IPAddress.Loopback, listener.LocalEndPoint.Port);
                 while (true)
                 {
                     try
                     {
-                        QuicConnection quicConnection = await listener.AcceptConnectionAsync();
+                        QuicConnection quicConnection = await listener.AcceptConnectionAsync().ConfigureAwait(false);
 
                         _ = Task.Run(async () =>
                         {
                             while (true)
                             {
-                                QuicStream quicStream = await quicConnection.AcceptInboundStreamAsync();
+                                QuicStream quicStream = await quicConnection.AcceptInboundStreamAsync().ConfigureAwait(false);
 
                                 if (stateDic.TryRemove(quicConnection.RemoteEndPoint.Port, out ListenAsyncToken token))
                                 {
-                                    await OnUdpConnected(token.State, token.RemoteUdp, token.QuicUdp, token.RemoteEP, quicConnection, quicStream);
+                                    await OnUdpConnected(token.State, token.RemoteUdp, token.QuicUdp, token.RemoteEP, quicConnection, quicStream).ConfigureAwait(false);
                                 }
                             }
                         });

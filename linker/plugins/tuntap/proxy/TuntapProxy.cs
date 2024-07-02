@@ -99,12 +99,12 @@ namespace linker.plugins.tuntap.proxy
             //步骤，request
             bool result = await ReceiveCommandData(token);
             if (result == false) return true;
-            await token.Socket.SendAsync(new byte[] { 0x05, 0x00 });
+            await token.Socket.SendAsync(new byte[] { 0x05, 0x00 }).ConfigureAwait(false);
             token.Proxy.Rsv = (byte)Socks5EnumStep.Command;
             token.Proxy.Data = Helper.EmptyArray;
 
             //步骤，command
-            result = await ReceiveCommandData(token);
+            result = await ReceiveCommandData(token).ConfigureAwait(false);
             if (result == false)
             {
                 return true;
@@ -117,7 +117,7 @@ namespace linker.plugins.tuntap.proxy
             if (addressType == Socks5EnumAddressType.Domain || addressType == Socks5EnumAddressType.IPV6)
             {
                 byte[] response1 = Socks5Parser.MakeConnectResponse(new IPEndPoint(IPAddress.Any, 0), (byte)Socks5EnumResponseCommand.AddressNotAllow);
-                await token.Socket.SendAsync(response1.AsMemory());
+                await token.Socket.SendAsync(response1.AsMemory()).ConfigureAwait(false);
                 return true;
             }
 
@@ -127,16 +127,16 @@ namespace linker.plugins.tuntap.proxy
             //是UDP中继，不做连接操作，等UDP数据过去的时候再绑定
             if (token.TargetIP == 0 || command == Socks5EnumRequestCommand.UdpAssociate)
             {
-                await token.Socket.SendAsync(Socks5Parser.MakeConnectResponse(new IPEndPoint(IPAddress.Any, 0), (byte)Socks5EnumResponseCommand.ConnecSuccess).AsMemory());
+                await token.Socket.SendAsync(Socks5Parser.MakeConnectResponse(new IPEndPoint(IPAddress.Any, 0), (byte)Socks5EnumResponseCommand.ConnecSuccess).AsMemory()).ConfigureAwait(false);
                 return false;
             }
 
             token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
-            token.Connection = await ConnectTunnel(token.TargetIP);
+            token.Connection = await ConnectTunnel(token.TargetIP).ConfigureAwait(false);
 
             Socks5EnumResponseCommand resp = token.Connection != null && token.Connection.Connected ? Socks5EnumResponseCommand.ConnecSuccess : Socks5EnumResponseCommand.NetworkError;
             byte[] response = Socks5Parser.MakeConnectResponse(new IPEndPoint(IPAddress.Any, 0), (byte)resp);
-            await token.Socket.SendAsync(response.AsMemory());
+            await token.Socket.SendAsync(response.AsMemory()).ConfigureAwait(false);
 
             return true;
         }
@@ -157,7 +157,7 @@ namespace linker.plugins.tuntap.proxy
             token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
             //解析出udp包的数据部分
             token.Proxy.Data = Socks5Parser.GetUdpData(token.Proxy.Data);
-            token.Connection = await ConnectTunnel(token.TargetIP);
+            token.Connection = await ConnectTunnel(token.TargetIP).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -171,7 +171,7 @@ namespace linker.plugins.tuntap.proxy
             byte[] data = Socks5Parser.MakeUdpResponse(token.Proxy.TargetEP, token.Proxy.Data, out int length);
             try
             {
-                await asyncUserUdpToken.SourceSocket.SendToAsync(data.AsMemory(0, length), token.Proxy.SourceEP);
+                await asyncUserUdpToken.SourceSocket.SendToAsync(data.AsMemory(0, length), token.Proxy.SourceEP).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -201,7 +201,7 @@ namespace linker.plugins.tuntap.proxy
             {
                 return null;
             }
-            return await ConnectTunnel(machineId);
+            return await ConnectTunnel(machineId).ConfigureAwait(false);
         }
         /// <summary>
         /// 打洞或者中继
@@ -220,7 +220,7 @@ namespace linker.plugins.tuntap.proxy
                 return connection;
             }
 
-            await slimGlobal.WaitAsync();
+            await slimGlobal.WaitAsync().ConfigureAwait(false);
             if (dicLocks.TryGetValue(machineId, out SemaphoreSlim slim) == false)
             {
                 slim = new SemaphoreSlim(1);
@@ -228,7 +228,7 @@ namespace linker.plugins.tuntap.proxy
             }
             slimGlobal.Release();
 
-            await slim.WaitAsync();
+            await slim.WaitAsync().ConfigureAwait(false);
 
             try
             {
@@ -240,7 +240,7 @@ namespace linker.plugins.tuntap.proxy
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap tunnel to {machineId}");
 
-                connection = await tunnelTransfer.ConnectAsync(machineId, "tuntap");
+                connection = await tunnelTransfer.ConnectAsync(machineId, "tuntap").ConfigureAwait(false);
                 if (connection != null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap tunnel success,{connection.ToString()}");
@@ -249,7 +249,7 @@ namespace linker.plugins.tuntap.proxy
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap relay to {machineId}");
 
-                    connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, "tuntap");
+                    connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, "tuntap").ConfigureAwait(false);
                     if (connection != null)
                     {
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap relay success,{connection.ToString()}");
@@ -282,7 +282,7 @@ namespace linker.plugins.tuntap.proxy
             //太短
             while ((validate & EnumProxyValidateDataResult.TooShort) == EnumProxyValidateDataResult.TooShort)
             {
-                totalLength += await token.Socket.ReceiveAsync(token.Buffer.AsMemory(totalLength), SocketFlags.None);
+                totalLength += await token.Socket.ReceiveAsync(token.Buffer.AsMemory(totalLength), SocketFlags.None).ConfigureAwait(false);
                 token.Proxy.Data = token.Buffer.AsMemory(0, totalLength);
                 validate = ValidateData(token.Proxy);
             }

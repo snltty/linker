@@ -137,7 +137,7 @@ namespace linker.plugins.relay
                     };
 
                     LoggerHelper.Instance.Info($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} {relayInfo.ToJson()}");
-                    ITunnelConnection connection = await transport.RelayAsync(relayInfo);
+                    ITunnelConnection connection = await transport.RelayAsync(relayInfo).ConfigureAwait(false);
                     if (connection != null)
                     {
                         LoggerHelper.Instance.Debug($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
@@ -178,7 +178,7 @@ namespace linker.plugins.relay
                 ITransport _transports = transports.FirstOrDefault(c => c.Name == relayInfo.TransportName);
                 if (_transports != null)
                 {
-                    ITunnelConnection connection = await _transports.OnBeginAsync(relayInfo);
+                    ITunnelConnection connection = await _transports.OnBeginAsync(relayInfo).ConfigureAwait(false);
                     if (connection != null)
                     {
                         LoggerHelper.Instance.Debug($"relay from {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");

@@ -72,7 +72,7 @@ namespace linker.tunnel.connection
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
-                    UdpReceiveResult result = await UdpClient.ReceiveAsync(cancellationTokenSource.Token);
+                    UdpReceiveResult result = await UdpClient.ReceiveAsync(cancellationTokenSource.Token).ConfigureAwait(false);
                     ReceiveBytes += result.Buffer.Length;
                     ticks = Environment.TickCount64;
                     if (result.Buffer.Length == 0)
@@ -102,7 +102,7 @@ namespace linker.tunnel.connection
             {
                 if (packet.Span.SequenceEqual(pingBytes))
                 {
-                    await SendPingPong(pongBytes);
+                    await SendPingPong(pongBytes).ConfigureAwait(false);
                 }
                 else if (packet.Span.SequenceEqual(pongBytes))
                 {
@@ -131,9 +131,9 @@ namespace linker.tunnel.connection
                     if (Environment.TickCount64 - ticks > 3000)
                     {
                         pingStart = Environment.TickCount64;
-                        await SendPingPong(pingBytes);
+                        await SendPingPong(pingBytes).ConfigureAwait(false);
                     }
-                    await Task.Delay(3000);
+                    await Task.Delay(3000).ConfigureAwait(false);
                 }
             }
             catch (Exception)
@@ -150,7 +150,7 @@ namespace linker.tunnel.connection
 
             try
             {
-                await UdpClient.SendAsync(heartData.AsMemory(0, length), IPEndPoint, cancellationTokenSource.Token);
+                await UdpClient.SendAsync(heartData.AsMemory(0, length), IPEndPoint, cancellationTokenSource.Token).ConfigureAwait(false);
             }
             catch (Exception)
             {
@@ -169,13 +169,13 @@ namespace linker.tunnel.connection
             if (pong == false) return;
             pong = false;
             pingStart = Environment.TickCount64;
-            await SendPingPong(pingBytes);
+            await SendPingPong(pingBytes).ConfigureAwait(false);
         }
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             try
             {
-                await UdpClient.SendAsync(data, IPEndPoint, cancellationTokenSource.Token);
+                await UdpClient.SendAsync(data, IPEndPoint, cancellationTokenSource.Token).ConfigureAwait(false);
                 SendBytes += data.Length;
                 ticks = Environment.TickCount64;
                 return true;

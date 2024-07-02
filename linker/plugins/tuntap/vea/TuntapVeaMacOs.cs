@@ -46,10 +46,10 @@ namespace linker.plugins.tuntap.vea
                 {
                     break;
                 }
-                await Task.Delay(1000);
+                await Task.Delay(1000).ConfigureAwait(false); 
             }
 
-            await SetIp(ip);
+            await SetIp(ip).ConfigureAwait(false); 
 
             return string.IsNullOrWhiteSpace(interfaceOsx) == false;
         }
@@ -64,7 +64,7 @@ namespace linker.plugins.tuntap.vea
 
             this.ip = ip;
             CommandHelper.Osx(string.Empty, new string[] { $"ifconfig {InterfaceName} {ip} {ip} up" });
-            await Task.Delay(10);
+            await Task.Delay(10).ConfigureAwait(false);
 
             var ipBytes = ip.GetAddressBytes();
             ipBytes[^1] = 0;

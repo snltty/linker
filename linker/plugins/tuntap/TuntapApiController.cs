@@ -89,7 +89,7 @@ namespace linker.plugins.tuntap
                     Connection = clientSignInState.Connection,
                     MessengerId = (ushort)TuntapMessengerIds.RunForward,
                     Payload = MemoryPackSerializer.Serialize(param.Content)
-                });
+                }).ConfigureAwait(false);
             }
             return true;
         }
@@ -113,7 +113,7 @@ namespace linker.plugins.tuntap
                     Connection = clientSignInState.Connection,
                     MessengerId = (ushort)TuntapMessengerIds.StopForward,
                     Payload = MemoryPackSerializer.Serialize(param.Content)
-                });
+                }).ConfigureAwait(false);
             }
             return true;
         }
@@ -135,7 +135,7 @@ namespace linker.plugins.tuntap
                     Connection = clientSignInState.Connection,
                     MessengerId = (ushort)TuntapMessengerIds.UpdateForward,
                     Payload = MemoryPackSerializer.Serialize(info)
-                });
+                }).ConfigureAwait(false);
             }
             return true;
         }

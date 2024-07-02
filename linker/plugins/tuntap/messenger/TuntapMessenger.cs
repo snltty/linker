@@ -86,7 +86,7 @@ namespace linker.plugins.tuntap.messenger
                     Connection = cache.Connection,
                     Timeout = 3000,
                     MessengerId = (ushort)TuntapMessengerIds.Run
-                });
+                }).ConfigureAwait(false);
             }
         }
 
@@ -106,7 +106,7 @@ namespace linker.plugins.tuntap.messenger
                     Connection = cache.Connection,
                     Timeout = 3000,
                     MessengerId = (ushort)TuntapMessengerIds.Stop
-                });
+                }).ConfigureAwait(false);
             }
         }
 
@@ -127,7 +127,7 @@ namespace linker.plugins.tuntap.messenger
                     Timeout = 3000,
                     MessengerId = (ushort)TuntapMessengerIds.Update,
                     Payload = connection.ReceiveRequestWrap.Payload
-                });
+                }).ConfigureAwait(false);
             }
         }
 
@@ -166,7 +166,7 @@ namespace linker.plugins.tuntap.messenger
                         RequestId = requiestid,
                         Connection = connection,
                         Payload = MemoryPackSerializer.Serialize(results)
-                    });
+                    }).ConfigureAwait(false);
                 });
             }
         }

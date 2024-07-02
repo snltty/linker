@@ -95,7 +95,7 @@ namespace linker.plugins.tunnel
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)TunnelMessengerIds.InfoForward,
                 Payload = MemoryPackSerializer.Serialize(info)
-            });
+            }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
                 return MemoryPackSerializer.Deserialize<TunnelTransportWanPortInfo>(resp.Data.Span);
@@ -110,7 +110,7 @@ namespace linker.plugins.tunnel
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)TunnelMessengerIds.BeginForward,
                 Payload = MemoryPackSerializer.Serialize(tunnelTransportInfo)
-            });
+            }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
 
@@ -121,7 +121,7 @@ namespace linker.plugins.tunnel
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)TunnelMessengerIds.FailForward,
                 Payload = MemoryPackSerializer.Serialize(tunnelTransportInfo)
-            });
+            }).ConfigureAwait(false);
             return true;
         }
 
@@ -132,7 +132,7 @@ namespace linker.plugins.tunnel
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)TunnelMessengerIds.SuccessForward,
                 Payload = MemoryPackSerializer.Serialize(tunnelTransportInfo)
-            });
+            }).ConfigureAwait(false);
             return true;
         }
 

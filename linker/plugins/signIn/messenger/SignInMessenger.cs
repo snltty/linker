@@ -100,7 +100,7 @@ namespace linker.plugins.signin.messenger
                         Connection = cache.Connection,
                         MessengerId = (ushort)SignInMessengerIds.Name,
                         Payload = connection.ReceiveRequestWrap.Payload,
-                    });
+                    }).ConfigureAwait(false);
                 }
             }
         }
@@ -121,7 +121,7 @@ namespace linker.plugins.signin.messenger
                             Connection = info.Connection,
                             MessengerId = (ushort)SignInMessengerIds.Servers,
                             Payload = connection.ReceiveRequestWrap.Payload,
-                        });
+                        }).ConfigureAwait(false);
                     }
                 }
             }

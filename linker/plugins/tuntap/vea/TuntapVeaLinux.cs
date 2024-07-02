@@ -23,7 +23,7 @@ namespace linker.plugins.tuntap.vea
         public async Task<bool> Run(int proxyPort, IPAddress ip)
         {
             CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap add mode tun dev {InterfaceName}" });
-            await SetIp(ip);
+            await SetIp(ip).ConfigureAwait(false); 
             string str = CommandHelper.Linux(string.Empty, new string[] { $"ifconfig" });
             if (str.Contains(InterfaceName) == false)
             {
@@ -47,7 +47,7 @@ namespace linker.plugins.tuntap.vea
                     LoggerHelper.Instance.Error(Error);
                 }
 
-                await Task.Delay(10);
+                await Task.Delay(10).ConfigureAwait(false); 
             }
             catch (Exception ex)
             {
@@ -66,7 +66,7 @@ namespace linker.plugins.tuntap.vea
             }
             this.ip = ip;
             CommandHelper.Linux(string.Empty, new string[] { $"ip addr add {ip}/24 dev {InterfaceName}", $"ip link set dev {InterfaceName} up" });
-            return await Task.FromResult(true);
+            return await Task.FromResult(true).ConfigureAwait(false); 
         }
 
         public void Kill()

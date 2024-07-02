@@ -49,7 +49,7 @@ namespace linker.tunnel.wanport
                 {
                     LoggerHelper.Instance.Warning($"get domain ip time:{sw.ElapsedMilliseconds}ms");
                 }
-                TunnelWanPortEndPoint WanPort = await tunnelWanPort.GetAsync(server);
+                TunnelWanPortEndPoint WanPort = await tunnelWanPort.GetAsync(server).ConfigureAwait(false);
                 if (WanPort != null)
                 {
                     WanPort.Local.Address = localIP;
