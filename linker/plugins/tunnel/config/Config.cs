@@ -5,6 +5,8 @@ using LiteDB;
 using MemoryPack;
 using System.Net;
 using System.Text.Json.Serialization;
+using linker.tunnel.adapter;
+using System.Net.Sockets;
 
 
 namespace linker.client.config
@@ -29,7 +31,7 @@ namespace linker.client.config
     public sealed partial class ExcludeIPItem
     {
         [MemoryPackAllowSerialize]
-        public IPAddress IPAddress { get; set;}
+        public IPAddress IPAddress { get; set; }
         public byte Mask { get; set; } = 32;
     }
 }
@@ -59,6 +61,60 @@ namespace linker.config
         public int RouteLevelPlus { get; set; } = 0;
     }
 
+
+    [MemoryPackable]
+    public readonly partial struct SerializableTunnelWanPortProtocolInfo
+    {
+        [MemoryPackIgnore]
+        public readonly TunnelWanPortProtocolInfo info;
+
+        [MemoryPackInclude]
+        string MachineId => info.MachineId;
+
+        [MemoryPackInclude]
+        TunnelWanPortType Type => info.Type;
+
+        [MemoryPackInclude]
+        TunnelWanPortProtocolType ProtocolType => info.ProtocolType;
+
+        [MemoryPackConstructor]
+        SerializableTunnelWanPortProtocolInfo(string machineId, TunnelWanPortType type, TunnelWanPortProtocolType protocolType)
+        {
+            var info = new TunnelWanPortProtocolInfo { MachineId = machineId, Type = type, ProtocolType = protocolType };
+            this.info = info;
+        }
+
+        public SerializableTunnelWanPortProtocolInfo(TunnelWanPortProtocolInfo tunnelCompactInfo)
+        {
+            this.info = tunnelCompactInfo;
+        }
+    }
+    public class TunnelWanPortProtocolInfoFormatter : MemoryPackFormatter<TunnelWanPortProtocolInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelWanPortProtocolInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableTunnelWanPortProtocolInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelWanPortProtocolInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableTunnelWanPortProtocolInfo>();
+            value = wrapped.info;
+        }
+    }
 
     [MemoryPackable]
     public readonly partial struct SerializableTunnelWanPortInfo

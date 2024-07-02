@@ -5,12 +5,14 @@ using System.Net.Sockets;
 
 namespace linker.tunnel.wanport
 {
-    public sealed class TunnelWanPortStun : ITunnelWanPort
+    public sealed class TunnelWanPortProtocolStun : ITunnelWanPortProtocol
     {
-        public string Name => "Stun";
+        public string Name => "Stun Udp";
         public TunnelWanPortType Type => TunnelWanPortType.Stun;
 
-        public TunnelWanPortStun()
+        public TunnelWanPortProtocolType ProtocolType => TunnelWanPortProtocolType.Udp;
+
+        public TunnelWanPortProtocolStun()
         {
         }
 

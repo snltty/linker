@@ -39,7 +39,7 @@ namespace linker.plugins.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.Servers)]
         public void Servers(IConnection connection)
         {
-            RelayCompactInfo[] servers = MemoryPackSerializer.Deserialize<RelayCompactInfo[]>(connection.ReceiveRequestWrap.Payload.Span);
+            RelayServerInfo[] servers = MemoryPackSerializer.Deserialize<RelayServerInfo[]>(connection.ReceiveRequestWrap.Payload.Span);
             relayTransfer.OnServers(servers);
         }
     }
@@ -71,7 +71,7 @@ namespace linker.plugins.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.ServersForward)]
         public async Task ServersForward(IConnection connection)
         {
-            RelayCompactInfo[] servers = MemoryPackSerializer.Deserialize<RelayCompactInfo[]>(connection.ReceiveRequestWrap.Payload.Span);
+            RelayServerInfo[] servers = MemoryPackSerializer.Deserialize<RelayServerInfo[]>(connection.ReceiveRequestWrap.Payload.Span);
 
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {

@@ -31,11 +31,11 @@ namespace linker.plugins.relay
 
             if (running.Data.Relay.Servers.Length == 0)
             {
-                running.Data.Relay.Servers = new RelayCompactInfo[]
+                running.Data.Relay.Servers = new RelayServerInfo[]
                 {
-                     new RelayCompactInfo{
+                     new RelayServerInfo{
                          Name="默认",
-                         Type= RelayCompactType.linker,
+                         RelayType= RelayType.Linker,
                          Disabled = false,
                          Host = running.Data.Client.Servers.FirstOrDefault().Host
                      }
@@ -58,15 +58,15 @@ namespace linker.plugins.relay
         /// 获取所有中继协议
         /// </summary>
         /// <returns></returns>
-        public List<RelayCompactTypeInfo> GetTypes()
+        public List<RelayTypeInfo> GetTypes()
         {
-            return transports.Select(c => new RelayCompactTypeInfo { Value = c.Type, Name = c.Type.ToString() }).Distinct(new RelayCompactTypeInfoEqualityComparer()).ToList();
+            return transports.Select(c => new RelayTypeInfo { Value = c.Type, Name = c.Type.ToString() }).Distinct(new RelayCompactTypeInfoEqualityComparer()).ToList();
         }
         /// <summary>
         /// 收到中继协议列表
         /// </summary>
         /// <param name="servers"></param>
-        public void OnServers(RelayCompactInfo[] servers)
+        public void OnServers(RelayServerInfo[] servers)
         {
             running.Data.Relay.Servers = servers;
             running.Data.Update();
@@ -113,9 +113,9 @@ namespace linker.plugins.relay
             try
             {
                 IEnumerable<ITransport> _transports = transports.OrderBy(c => c.Type);
-                foreach (RelayCompactInfo item in running.Data.Relay.Servers.Where(c => c.Disabled == false && string.IsNullOrWhiteSpace(c.Host) == false))
+                foreach (RelayServerInfo item in running.Data.Relay.Servers.Where(c => c.Disabled == false && string.IsNullOrWhiteSpace(c.Host) == false))
                 {
-                    ITransport transport = _transports.FirstOrDefault(c => c.Type == item.Type);
+                    ITransport transport = _transports.FirstOrDefault(c => c.Type == item.RelayType);
                     if (transport == null)
                     {
                         continue;

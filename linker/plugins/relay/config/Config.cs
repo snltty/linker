@@ -14,7 +14,7 @@ namespace linker.client.config
     public sealed class RelayRunningInfo
     {
         public ObjectId Id { get; set; }
-        public RelayCompactInfo[] Servers { get; set; } = Array.Empty<RelayCompactInfo>();
+        public RelayServerInfo[] Servers { get; set; } = Array.Empty<RelayServerInfo>();
     }
 }
 
@@ -33,35 +33,35 @@ namespace linker.config
     }
 
     [MemoryPackable]
-    public sealed partial class RelayCompactInfo
+    public sealed partial class RelayServerInfo
     {
         public string Name { get; set; } = string.Empty;
-        public RelayCompactType Type { get; set; } = RelayCompactType.linker;
+        public RelayType RelayType { get; set; } = RelayType.Linker;
         public string SecretKey { get; set; } = "snltty";
         public string Host { get; set; } = string.Empty;
         public bool Disabled { get; set; }
         public bool SSL { get; set; } = true;
     }
 
-    public enum RelayCompactType : byte
+    public enum RelayType : byte
     {
-        linker = 0,
+        Linker = 0,
     }
 
-    public sealed class RelayCompactTypeInfo
+    public sealed class RelayTypeInfo
     {
-        public RelayCompactType Value { get; set; }
+        public RelayType Value { get; set; }
         public string Name { get; set; }
     }
 
-    public sealed class RelayCompactTypeInfoEqualityComparer : IEqualityComparer<RelayCompactTypeInfo>
+    public sealed class RelayCompactTypeInfoEqualityComparer : IEqualityComparer<RelayTypeInfo>
     {
-        public bool Equals(RelayCompactTypeInfo x, RelayCompactTypeInfo y)
+        public bool Equals(RelayTypeInfo x, RelayTypeInfo y)
         {
             return x.Value == y.Value;
         }
 
-        public int GetHashCode([DisallowNull] RelayCompactTypeInfo obj)
+        public int GetHashCode([DisallowNull] RelayTypeInfo obj)
         {
             return obj.Value.GetHashCode();
         }

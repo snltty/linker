@@ -10,8 +10,6 @@ using MemoryPack;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using linker.tunnel.wanport;
-using System.Linq;
-using linker.libs.extends;
 using System.Buffers.Binary;
 
 namespace linker.plugins.tunnel
@@ -42,11 +40,11 @@ namespace linker.plugins.tunnel
             }
         }
 
-        public List<TunnelWanPortInfo> GetTunnelWanPortCompacts()
+        public List<TunnelWanPortInfo> GetTunnelWanPortProtocols()
         {
             return running.Data.Tunnel.Servers.ToList();
         }
-        public void SetTunnelWanPortCompacts(List<TunnelWanPortInfo> compacts)
+        public void SetTunnelWanPortProtocols(List<TunnelWanPortInfo> compacts)
         {
             running.Data.Tunnel.Servers = compacts.ToArray();
             running.Data.Update();
@@ -68,16 +66,16 @@ namespace linker.plugins.tunnel
             {
                 LocalIps = config.Data.Client.Tunnel.LocalIPs
                 .Where(c => c.Equals(running.Data.Tuntap.IP) == false)
-                .Where(c=>
+                .Where(c =>
                 {
-                    if(c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    if (c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                     {
                         uint ip = BinaryPrimitives.ReadUInt32BigEndian(c.GetAddressBytes());
                         foreach (var item in running.Data.Tunnel.ExcludeIPs)
                         {
                             uint maskValue = NetworkHelper.MaskValue(item.Mask);
                             uint ip1 = BinaryPrimitives.ReadUInt32BigEndian(item.IPAddress.GetAddressBytes());
-                            if((ip & maskValue) == (ip1 & maskValue))
+                            if ((ip & maskValue) == (ip1 & maskValue))
                             {
                                 return false;
                             }
@@ -90,13 +88,13 @@ namespace linker.plugins.tunnel
                 MachineId = config.Data.Client.Id
             };
         }
-        public async Task<TunnelTransportWanPortInfo> GetRemoteWanPort(string remoteMachineId)
+        public async Task<TunnelTransportWanPortInfo> GetRemoteWanPort(TunnelWanPortProtocolInfo info)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)TunnelMessengerIds.InfoForward,
-                Payload = MemoryPackSerializer.Serialize(remoteMachineId)
+                Payload = MemoryPackSerializer.Serialize(info)
             });
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {

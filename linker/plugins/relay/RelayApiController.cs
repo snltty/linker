@@ -31,7 +31,7 @@ namespace linker.plugins.relay
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public List<RelayCompactTypeInfo> GetTypes(ApiControllerParamsInfo param)
+        public List<RelayTypeInfo> GetTypes(ApiControllerParamsInfo param)
         {
             return relayTransfer.GetTypes();
         }
@@ -64,7 +64,7 @@ namespace linker.plugins.relay
     public sealed class RelayCompactParamInfo
     {
         public bool Sync { get; set; }
-        public RelayCompactInfo[] List { get; set; } = Array.Empty<RelayCompactInfo>();
+        public RelayServerInfo[] List { get; set; } = Array.Empty<RelayServerInfo>();
     }
 
 }

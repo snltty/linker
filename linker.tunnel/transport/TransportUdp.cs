@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using linker.tunnel.wanport;
 
 namespace linker.tunnel.transport
 {
@@ -15,12 +16,22 @@ namespace linker.tunnel.transport
         public string Label => "udp";
 
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Udp;
+        public TunnelWanPortProtocolType AllowWanPortProtocolType => TunnelWanPortProtocolType.Udp;
+        public bool Reverse => true;
+
+        public bool DisableReverse => false;
+
+        public bool SSL => true;
+
+        public bool DisableSSL => false;
+
 
         public Func<TunnelTransportInfo, Task<bool>> OnSendConnectBegin { get; set; } = async (info) => { return await Task.FromResult<bool>(false); };
         public Func<TunnelTransportInfo, Task> OnSendConnectFail { get; set; } = async (info) => { await Task.CompletedTask; };
         public Func<TunnelTransportInfo, Task> OnSendConnectSuccess { get; set; } = async (info) => { await Task.CompletedTask; };
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
 
+       
 
         private byte[] authBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.ttl");
         private byte[] endBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.end");

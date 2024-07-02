@@ -39,7 +39,8 @@ namespace linker.plugins.tunnel.messenger
         [MessengerId((ushort)TunnelMessengerIds.Info)]
         public async Task Info(IConnection connection)
         {
-            TunnelTransportWanPortInfo tunnelTransportPortInfo = await tunnel.GetWanPort();
+            TunnelWanPortProtocolInfo info = MemoryPackSerializer.Deserialize<TunnelWanPortProtocolInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            TunnelTransportWanPortInfo tunnelTransportPortInfo = await tunnel.GetWanPort(info);
             if (tunnelTransportPortInfo != null)
             {
                 connection.Write(MemoryPackSerializer.Serialize(tunnelTransportPortInfo));
@@ -95,7 +96,7 @@ namespace linker.plugins.tunnel.messenger
         public void Servers(IConnection connection)
         {
             TunnelWanPortInfo[] servers = MemoryPackSerializer.Deserialize<TunnelWanPortInfo[]>(connection.ReceiveRequestWrap.Payload.Span);
-            tunnelMessengerAdapter.SetTunnelWanPortCompacts(servers.ToList());
+            tunnelMessengerAdapter.SetTunnelWanPortProtocols(servers.ToList());
         }
 
         [MessengerId((ushort)TunnelMessengerIds.ExcludeIPs)]
@@ -119,8 +120,8 @@ namespace linker.plugins.tunnel.messenger
         [MessengerId((ushort)TunnelMessengerIds.InfoForward)]
         public void InfoForward(IConnection connection)
         {
-            string remoteMachineId = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(remoteMachineId, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            TunnelWanPortProtocolInfo info = MemoryPackSerializer.Deserialize<TunnelWanPortProtocolInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 _ = messengerSender.SendReply(new MessageRequestWrap

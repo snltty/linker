@@ -8,6 +8,7 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using linker.tunnel.wanport;
 
 namespace linker.tunnel.transport
 {
@@ -16,6 +17,15 @@ namespace linker.tunnel.transport
         public string Name => "TcpNutssb";
         public string Label => "TCP、低TTL";
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Tcp;
+        public TunnelWanPortProtocolType AllowWanPortProtocolType => TunnelWanPortProtocolType.Udp;
+        public bool Reverse => true;
+
+        public bool DisableReverse => false;
+
+        public bool SSL => true;
+
+        public bool DisableSSL => false;
+
 
         /// <summary>
         /// 发送开始连接消息

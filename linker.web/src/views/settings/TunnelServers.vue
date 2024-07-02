@@ -3,7 +3,7 @@
         <div class="pdr-10 pdb-6 flex-1">
             <el-checkbox v-model="state.sync" label="将更改同步到所有客户端"  />
         </div>
-        <div>将按顺序获取IP，直到其中一个成功获取，连接不同地域的服务器可能会走不同线路</div>
+        <div>将按顺序获取IP，进行尝试打洞</div>
     </div>
     <el-table :data="state.list" border size="small" width="100%" :height="`${state.height}px`" @cell-dblclick="handleCellClick">
         <el-table-column prop="Name" label="名称">
@@ -15,6 +15,16 @@
                 <template v-else>
                     {{ scope.row.Name }}
                 </template>
+            </template>
+        </el-table-column>
+        <el-table-column prop="ProtocolType" label="协议" width="100">
+            <template #default="scope">
+                <div>
+                    <el-select v-model="scope.row.ProtocolType" placeholder="Select" size="small" @change="handleEditBlur(scope.row, 'ProtocolType')">
+                        <el-option v-for="(item,index) in state.protocolTypes" :key="+index" :label="item" :value="+index"/>
+                    </el-select>
+                </div>
+                
             </template>
         </el-table-column>
         <el-table-column prop="Type" label="类别" width="100">
@@ -81,7 +91,8 @@ export default {
             list:((globalData.value.config.Running.Tunnel || {Servers:[]}).Servers || []).sort((a,b)=>a.Disabled - b.Disabled),
             types:[],
             height: computed(()=>globalData.value.height-130),
-            sync:true
+            sync:true,
+            protocolTypes:{1:'tcp',2:'udp'},
         });
 
         const _getTunnelTypes = ()=>{
@@ -98,6 +109,7 @@ export default {
                 c[`NameEditing`] = false;
                 c[`TypeEditing`] = false;
                 c[`HostEditing`] = false;
+                c[`ProtocolTypeEditing`] = false;
             })
             row[`${p}Editing`] = true;
         }
@@ -114,7 +126,7 @@ export default {
             if(state.list.filter(c=>c.Host == '' || c.Name == '').length > 0){
                 return;
             }
-            state.list.splice(index+1,0,{Name:'',Host:'',Type:0,Disabled:false});
+            state.list.splice(index+1,0,{Name:'',Host:'',Type:0,Disabled:false,ProtocolType:2});
             handleSave();
         }
 

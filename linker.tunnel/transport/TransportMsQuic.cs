@@ -2,7 +2,6 @@
 using linker.tunnel.connection;
 using linker.libs;
 using linker.libs.extends;
-using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Quic;
@@ -10,6 +9,7 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Text;
+using linker.tunnel.wanport;
 
 namespace linker.tunnel.transport
 {
@@ -20,12 +20,22 @@ namespace linker.tunnel.transport
         public string Label => "MsQuic，win10+、linux";
 
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Quic;
+        public TunnelWanPortProtocolType AllowWanPortProtocolType =>  TunnelWanPortProtocolType.Udp;
+        public bool Reverse => true;
+
+        public bool DisableReverse => false;
+
+        public bool SSL => true;
+
+        public bool DisableSSL => true;
+
 
         public Func<TunnelTransportInfo, Task<bool>> OnSendConnectBegin { get; set; } = async (info) => { return await Task.FromResult<bool>(false); };
         public Func<TunnelTransportInfo, Task> OnSendConnectFail { get; set; } = async (info) => { await Task.CompletedTask; };
         public Func<TunnelTransportInfo, Task> OnSendConnectSuccess { get; set; } = async (info) => { await Task.CompletedTask; };
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
 
+       
 
         private ConcurrentDictionary<int, ListenAsyncToken> stateDic = new ConcurrentDictionary<int, ListenAsyncToken>();
         private byte[] authBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.ttl");

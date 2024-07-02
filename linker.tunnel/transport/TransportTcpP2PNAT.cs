@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using linker.tunnel.wanport;
 
 namespace linker.tunnel.transport
 {
@@ -16,6 +17,14 @@ namespace linker.tunnel.transport
         public string Name => "TcpP2PNAT";
         public string Label => "TCP、同时打开";
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Tcp;
+        public TunnelWanPortProtocolType AllowWanPortProtocolType => TunnelWanPortProtocolType.Tcp;
+        public bool Reverse => false;
+
+        public bool DisableReverse => true;
+
+        public bool SSL => true;
+
+        public bool DisableSSL => false;
 
         /// <summary>
         /// 发送开始连接消息
@@ -56,6 +65,7 @@ namespace linker.tunnel.transport
             {
                 return null;
             }
+            await Task.Delay(50);
             ITunnelConnection connection = await ConnectForward(tunnelTransportInfo, TunnelMode.Client);
             if (connection != null)
             {
@@ -110,7 +120,7 @@ namespace linker.tunnel.transport
             try
             {
                 targetSocket.KeepAlive();
-                targetSocket.ReuseBind(new IPEndPoint(IPAddress.Any, tunnelTransportInfo.Local.Local.Port));
+                targetSocket.ReuseBind(new IPEndPoint(tunnelTransportInfo.Local.Local.Address, tunnelTransportInfo.Local.Local.Port));
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
@@ -137,6 +147,12 @@ namespace linker.tunnel.transport
 
         private async Task<ITunnelConnection> TcpClient(TunnelTransportInfo state, Socket socket)
         {
+            //随便发个消息看对方有没有收到
+            await socket.SendAsync(authBytes);
+            //如果对方收到，会回个消息，不管是啥，回了就行
+            int length = await socket.ReceiveAsync(new byte[1024]);
+            if (length == 0) return null;
+
             //需要ssl
             SslStream sslStream = null;
             if (state.SSL)
@@ -167,6 +183,15 @@ namespace linker.tunnel.transport
         {
             try
             {
+                //对方会随便发个消息，不管是啥
+                int length = await socket.ReceiveAsync(new byte[1024]);
+                if (length == 0)
+                {
+                    return null;
+                }
+                //回个消息给它就完了
+                await socket.SendAsync(endBytes);
+
                 socket.KeepAlive();
                 SslStream sslStream = null;
                 if (state.SSL)

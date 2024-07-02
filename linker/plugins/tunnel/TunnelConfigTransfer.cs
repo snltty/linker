@@ -38,10 +38,10 @@ namespace linker.plugins.tunnel
                 running.Data.Tunnel.Servers = new TunnelWanPortInfo[]
                 {
                      new TunnelWanPortInfo{
-                         Name="默认",
+                         Name="Linker Udp",
                          Type= TunnelWanPortType.Linker,
                          Disabled = false,
-                         Host = running.Data.Client.Servers.FirstOrDefault().Host
+                         Host = running.Data.Client.Servers.FirstOrDefault().Host,
                      }
                 };
             }

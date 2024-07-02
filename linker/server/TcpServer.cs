@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using System.Buffers;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
@@ -64,6 +65,20 @@ namespace linker.server
         }
 
 
+        private Memory<byte> BuildSendData(byte[] data, IPEndPoint ep)
+        {
+            //给客户端返回他的IP+端口
+            data[0] = (byte)ep.AddressFamily;
+            ep.Address.TryWriteBytes(data.AsSpan(1), out int length);
+            ((ushort)ep.Port).ToBytes(data.AsMemory(1 + length));
+
+            //防止一些网关修改掉它的外网IP
+            for (int i = 0; i < 1 + length + 2; i++)
+            {
+                data[i] = (byte)(data[i] ^ byte.MaxValue);
+            }
+            return data.AsMemory(0, 1 + length + 2);
+        }
 
         private async Task BindUdp(int port)
         {
@@ -81,18 +96,9 @@ namespace linker.server
                     IPEndPoint ep = result.RemoteEndPoint as IPEndPoint;
                     try
                     {
-                        //给客户端返回他的IP+端口
-                        sendData[0] = (byte)ep.AddressFamily;
-                        ep.Address.TryWriteBytes(sendData.AsSpan(1), out int length);
-                        ((ushort)ep.Port).ToBytes(sendData.AsMemory(1 + length));
+                        Memory<byte> memory = BuildSendData(sendData, ep);
 
-                        //防止一些网关修改掉它的外网IP
-                        for (int i = 0; i < 1 + length + 2; i++)
-                        {
-                            sendData[i] = (byte)(sendData[i] ^ byte.MaxValue);
-                        }
-
-                        await socketUdp.SendToAsync(sendData.AsMemory(0, 1 + length + 2), ep);
+                        await socketUdp.SendToAsync(memory, ep);
                     }
                     catch (Exception)
                     {
@@ -140,15 +146,45 @@ namespace linker.server
                 StartAccept(e);
             }
         }
-        private async Task<IConnection> BeginReceiveServer(Socket socket)
+
+        private async Task<byte> ReceiveType(Socket socket)
+        {
+            byte[] sendData = ArrayPool<byte>.Shared.Rent(20);
+            try
+            {
+                await socket.ReceiveAsync(sendData.AsMemory(0, 1), SocketFlags.None);
+                byte type = sendData[0];
+                if (type == 0)
+                {
+                    Memory<byte> memory = BuildSendData(sendData, socket.RemoteEndPoint as IPEndPoint);
+                    await socket.SendAsync(memory, SocketFlags.None);
+                }
+                return type;
+            }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(sendData);
+            }
+            return 1;
+        }
+        private async Task BeginReceiveServer(Socket socket)
         {
             try
             {
                 if (socket == null || socket.RemoteEndPoint == null)
                 {
-                    return null;
+                    return;
                 }
                 socket.KeepAlive();
+
+                if (await ReceiveType(socket) == 0)
+                {
+                    return;
+                }
+
                 NetworkStream networkStream = new NetworkStream(socket, false);
                 SslStream sslStream = new SslStream(networkStream, true);
                 await sslStream.AuthenticateAsServerAsync(serverCertificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false);
@@ -156,14 +192,12 @@ namespace linker.server
 
 
                 connection.BeginReceive(connectionReceiveCallback, null, true);
-                return connection;
             }
             catch (Exception ex)
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error(ex);
             }
-            return null;
         }
 
         private bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
@@ -179,6 +213,7 @@ namespace linker.server
                     return null;
                 }
                 socket.KeepAlive();
+                await socket.SendAsync(new byte[] { 1 });
                 NetworkStream networkStream = new NetworkStream(socket, false);
                 SslStream sslStream = new SslStream(networkStream, true, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                 await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions

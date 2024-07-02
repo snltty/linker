@@ -8,7 +8,7 @@
             <el-table :data="state.data" size="small" border height="500" @cell-dblclick="handleCellClick">
                 <el-table-column property="Name" label="名称">
                     <template #default="scope">
-                        <template v-if="scope.row.NameEditing">
+                        <template v-if="scope.row.NameEditing && scope.row.Started==false ">
                             <el-input autofocus size="small" v-model="scope.row.Name"
                                 @blur="handleEditBlur(scope.row, 'Name')"></el-input>
                         </template>
@@ -24,7 +24,7 @@
                 </el-table-column>
                 <el-table-column property="Temp" label="远程端口/域名" width="160">
                     <template #default="scope">
-                        <template v-if="scope.row.TempEditing">
+                        <template v-if="scope.row.TempEditing && scope.row.Started==false">
                             <el-input autofocus size="small" v-model="scope.row.Temp"
                                 @blur="handleEditBlur(scope.row, 'Temp')"></el-input>
                         </template>
@@ -45,7 +45,7 @@
                 </el-table-column>
                 <el-table-column property="LocalEP" label="本机服务" width="140">
                     <template #default="scope">
-                        <template v-if="scope.row.LocalEPEditing">
+                        <template v-if="scope.row.LocalEPEditing && scope.row.Started==false">
                             <el-input autofocus size="small" v-model="scope.row.LocalEP"
                                 @blur="handleEditBlur(scope.row, 'LocalEP')"></el-input>
                         </template>
@@ -152,6 +152,10 @@ export default {
             });
         }
         const handleEdit = (row, p) => {
+            if(row.Started){
+                ElMessage.error('请先停止运行');
+                return;
+            }
             state.data.forEach(c => {
                 c[`NameEditing`] = false;
                 c[`RemotePortEditing`] = false;
@@ -162,6 +166,10 @@ export default {
             row[`${p}Editing`] = true;
         }
         const handleEditBlur = (row, p) => {
+            if(row.Started){
+                ElMessage.error('请先停止运行');
+                return;
+            }
             row[`${p}Editing`] = false;
             saveRow(row);
         }

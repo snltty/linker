@@ -17,13 +17,13 @@ for %%r in (win-x64,win-arm64) do (
 	echo F|xcopy "linker\\msquic.dll" "public\\extends\\%%r\\linker-%%r\\msquic.dll"  /s /f /h /y
 	echo F|xcopy "linker\\msquic-openssl.dll" "public\\extends\\%%r\\linker-%%r\\msquic-openssl.dll"  /s /f /h /y
 )
+
 for %%r in (linux-x64,linux-arm64,osx-x64,osx-arm64) do (
 	echo F|xcopy "linker\\plugins\\tuntap\\tun2socks-%%r" "public\\extends\\%%r\\linker-%%r\\plugins\\tuntap\\tun2socks"  /s /f /h /y
 )
 for %%r in (win-x64,win-arm64) do (
 	echo F|xcopy "linker\\plugins\\tuntap\\tun2socks-%%r" "public\\extends\\%%r\\linker-%%r\\plugins\\tuntap\\tun2socks.exe"  /s /f /h /y
 )
-
 
 for %%r in (win-x64,win-arm64,linux-x64,linux-arm64,osx-x64,osx-arm64) do (
 	

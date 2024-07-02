@@ -17,9 +17,9 @@
                 </template>
             </template>
         </el-table-column>
-        <el-table-column prop="Type" label="类别" width="80">
+        <el-table-column prop="RelayType" label="类别" width="80">
             <template #default="scope">
-                <el-select v-model="scope.row.Type" placeholder="Select" size="small" @change="handleEditBlur(scope.row, 'Type')">
+                <el-select v-model="scope.row.RelayType" placeholder="Select" size="small" @change="handleEditBlur(scope.row, 'RelayType')">
                     <el-option v-for="item in state.types" :key="item.Value" :label="item.Name" :value="item.Value"/>
                 </el-select>
             </template>
@@ -109,7 +109,7 @@ export default {
         const handleEdit = (row, p) => {
             state.list.forEach(c => {
                 c[`NameEditing`] = false;
-                c[`TypeEditing`] = false;
+                c[`RelayTypeEditing`] = false;
                 c[`HostEditing`] = false;
                 c[`SecretKeyEditing`] = false;
             })
@@ -128,7 +128,7 @@ export default {
             if(state.list.filter(c=>c.Host == '' || c.Name == '').length > 0){
                 return;
             }
-            state.list.splice(index+1,0,{Name:'',Host:'',Type:0,SecretKey:'snltty',Disabled:false});
+            state.list.splice(index+1,0,{Name:'',Host:'',RelayType:0,SecretKey:'snltty',Disabled:false});
             handleSave();
         }
 

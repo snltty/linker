@@ -18,12 +18,12 @@
         </el-table-column>
         <el-table-column property="Reverse" label="反向" width="60">
             <template #default="scope">
-                <el-switch v-model="scope.row.Reverse" @change="handleSave" inline-prompt active-text="是" inactive-text="否" />
+                <el-switch :disabled="scope.row.DisableReverse" v-model="scope.row.Reverse" @change="handleSave" inline-prompt active-text="是" inactive-text="否" />
             </template>
         </el-table-column>
         <el-table-column property="SSL" label="SSL" width="60">
             <template #default="scope">
-                <el-switch v-model="scope.row.SSL" @change="handleSave" inline-prompt active-text="是" inactive-text="否" />
+                <el-switch :disabled="scope.row.DisableSSL" v-model="scope.row.SSL" @change="handleSave" inline-prompt active-text="是" inactive-text="否" />
             </template>
         </el-table-column>
         <el-table-column property="Disabled" label="禁用" width="60">

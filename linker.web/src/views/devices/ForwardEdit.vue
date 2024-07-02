@@ -8,7 +8,7 @@
             <el-table :data="state.data" size="small" border height="500" @cell-dblclick="handleCellClick">
                 <el-table-column property="Name" label="名称">
                     <template #default="scope">
-                        <template v-if="scope.row.NameEditing">
+                        <template v-if="scope.row.NameEditing && scope.row.Started==false">
                             <el-input autofocus size="small" v-model="scope.row.Name"
                                 @blur="handleEditBlur(scope.row, 'Name')"></el-input>
                         </template>
@@ -26,14 +26,14 @@
                 </el-table-column>
                 <el-table-column property="BindIPAddress" label="监听IP" width="140">
                     <template #default="scope">
-                        <el-select v-model="scope.row.BindIPAddress" size="small">
+                        <el-select v-model="scope.row.BindIPAddress" size="small" :disabled="scope.row.Started">
                             <el-option v-for="item in state.ips" :key="item" :label="item" :value="item"/>
                         </el-select>
                     </template>
                 </el-table-column>
                 <el-table-column property="Port" label="监听端口" width="80">
                     <template #default="scope">
-                        <template v-if="scope.row.PortEditing">
+                        <template v-if="scope.row.PortEditing && scope.row.Started==false">
                             <el-input type="number" autofocus size="small" v-model="scope.row.Port"
                                 @blur="handleEditBlur(scope.row, 'Port')"></el-input>
                         </template>
@@ -56,7 +56,7 @@
                 </el-table-column>
                 <el-table-column property="TargetEP" label="目标服务" width="140">
                     <template #default="scope">
-                        <template v-if="scope.row.TargetEPEditing">
+                        <template v-if="scope.row.TargetEPEditing && scope.row.Started==false">
                             <el-input autofocus size="small" v-model="scope.row.TargetEP"
                                 @blur="handleEditBlur(scope.row, 'TargetEP')"></el-input>
                         </template>
@@ -173,6 +173,10 @@ export default {
             saveRow({ ID: 0, Name: '', Port: 0, TargetEP: '127.0.0.1:80', machineId: state.machineId });
         }
         const handleEdit = (row, p) => {
+            if(row.Started){
+                ElMessage.error('请先停止');
+                return;
+            }
             state.data.forEach(c => {
                 c[`NameEditing`] = false;
                 c[`PortEditing`] = false;
@@ -182,6 +186,10 @@ export default {
             row[`${p}Editing`] = true;
         }
         const handleEditBlur = (row, p) => {
+            if(row.Started){
+                ElMessage.error('请先停止');
+                return;
+            }
             row[`${p}Editing`] = false;
             saveRow(row);
         }

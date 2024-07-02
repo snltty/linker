@@ -42,14 +42,14 @@ namespace linker.plugins.tunnel
 
             //外网端口协议
             serviceCollection.AddSingleton<TunnelWanPortTransfer>();
-            serviceCollection.AddSingleton<TunnelWanPortLinker>();
-            serviceCollection.AddSingleton<TunnelWanPortStun>();
+            serviceCollection.AddSingleton<TunnelWanPortProtocolLinkerUdp>();
+            serviceCollection.AddSingleton<TunnelWanPortProtocolStun>();
 
             //打洞协议
             serviceCollection.AddSingleton<TunnelTransfer>();
             serviceCollection.AddSingleton<TunnelTransportTcpNutssb>();
             serviceCollection.AddSingleton<TransportMsQuic>();
-            serviceCollection.AddSingleton<TransportMsQuic>();
+            serviceCollection.AddSingleton<TransportTcpP2PNAT>();
 
             serviceCollection.AddSingleton<TunnelConfigTransfer>();
             serviceCollection.AddSingleton<ITunnelAdapter, TunnelAdapter>();
@@ -77,10 +77,10 @@ namespace linker.plugins.tunnel
         {
             ITunnelAdapter tunnelAdapter = serviceProvider.GetService<ITunnelAdapter>();
 
-            IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assemblies.Concat(new Assembly[] { typeof(TunnelWanPortTransfer).Assembly }).ToArray(), typeof(ITunnelWanPort));
-            List<ITunnelWanPort> compacts = types.Select(c => (ITunnelWanPort)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
+            IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assemblies.Concat(new Assembly[] { typeof(TunnelWanPortTransfer).Assembly }).ToArray(), typeof(ITunnelWanPortProtocol));
+            List<ITunnelWanPortProtocol> compacts = types.Select(c => (ITunnelWanPortProtocol)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
             TunnelWanPortTransfer compack = serviceProvider.GetService<TunnelWanPortTransfer>();
-            compack.Init(tunnelAdapter,compacts);
+            compack.Init(compacts);
 
 
             types = ReflectionHelper.GetInterfaceSchieves(assemblies.Concat(new Assembly[] { typeof(TunnelTransfer).Assembly }).ToArray(), typeof(ITunnelTransport));

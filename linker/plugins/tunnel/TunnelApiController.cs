@@ -82,7 +82,7 @@ namespace linker.plugins.tunnel
         {
             SetServersParamInfo info = param.Content.DeJson<SetServersParamInfo>();
 
-            tunnelMessengerAdapter.SetTunnelWanPortCompacts(info.List.ToList());
+            tunnelMessengerAdapter.SetTunnelWanPortProtocols(info.List.ToList());
             if (info.Sync)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap

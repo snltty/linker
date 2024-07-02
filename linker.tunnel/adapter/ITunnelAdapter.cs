@@ -21,12 +21,12 @@ namespace linker.tunnel.adapter
         /// 获取外网端口协议列表
         /// </summary>
         /// <returns></returns>
-        public List<TunnelWanPortInfo> GetTunnelWanPortCompacts();
+        public List<TunnelWanPortInfo> GetTunnelWanPortProtocols();
         /// <summary>
         /// 保存外网端口协议列表
         /// </summary>
         /// <param name="compacts"></param>
-        public void SetTunnelWanPortCompacts(List<TunnelWanPortInfo> compacts);
+        public void SetTunnelWanPortProtocols(List<TunnelWanPortInfo> protocols);
 
         /// <summary>
         /// 获取打洞协议列表
@@ -49,7 +49,7 @@ namespace linker.tunnel.adapter
         /// </summary>
         /// <param name="remoteMachineId"></param>
         /// <returns></returns>
-        public Task<TunnelTransportWanPortInfo> GetRemoteWanPort(string remoteMachineId);
+        public Task<TunnelTransportWanPortInfo> GetRemoteWanPort(TunnelWanPortProtocolInfo info);
 
         /// <summary>
         /// 发送开始打洞
@@ -81,6 +81,22 @@ namespace linker.tunnel.adapter
         /// 本机与外网的距离，通过多少网关
         /// </summary>
         public int RouteLevel { get; set; }
+        /// <summary>
+        /// 本机名
+        /// </summary>
+        public string MachineId { get; set; }
+    }
+
+    public sealed class TunnelWanPortProtocolInfo
+    {
+        /// <summary>
+        /// 类别
+        /// </summary>
+        public TunnelWanPortType Type { get; set; }
+        /// <summary>
+        /// 协议
+        /// </summary>
+        public TunnelWanPortProtocolType ProtocolType { get; set; } = TunnelWanPortProtocolType.Udp;
         /// <summary>
         /// 本机名
         /// </summary>

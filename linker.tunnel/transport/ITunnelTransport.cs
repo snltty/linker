@@ -1,13 +1,43 @@
 ﻿using linker.tunnel.connection;
+using linker.tunnel.wanport;
 using System.Net;
 
 namespace linker.tunnel.transport
 {
     public interface ITunnelTransport
     {
+        /// <summary>
+        /// 打洞协议名
+        /// </summary>
         public string Name { get; }
+        /// <summary>
+        /// 打洞协议说明
+        /// </summary>
         public string Label { get; }
+        /// <summary>
+        /// 隧道协议
+        /// </summary>
         public TunnelProtocolType ProtocolType { get; }
+        /// <summary>
+        /// 允许哪些端口协议
+        /// </summary>
+        public TunnelWanPortProtocolType AllowWanPortProtocolType { get; }
+        /// <summary>
+        /// 是否反向打洞
+        /// </summary>
+        public bool Reverse { get;  } 
+        /// <summary>
+        /// 是否允许修改反向打洞配置
+        /// </summary>
+        public bool DisableReverse { get; }
+        /// <summary>
+        /// 是否ssl
+        /// </summary>
+        public bool SSL { get; }
+        /// <summary>
+        /// 是否允许修改ssl配置
+        /// </summary>
+        public bool DisableSSL { get; } 
 
         /// <summary>
         /// 发送连接开始信息
@@ -91,7 +121,9 @@ namespace linker.tunnel.transport
 
         public bool Disabled { get; set; } = false;
         public bool Reverse { get; set; } = true;
+        public bool DisableReverse { get; set; } = false;
         public bool SSL { get; set; } = true;
+        public bool DisableSSL { get; set; } = false;
 
         public byte BufferSize { get; set; } = 4;
     }

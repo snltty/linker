@@ -17,7 +17,7 @@ namespace linker.plugins.relay.transport
         /// <summary>
         /// 中继类型
         /// </summary>
-        public RelayCompactType Type { get; }
+        public RelayType Type { get; }
         /// <summary>
         /// 协议
         /// </summary>
