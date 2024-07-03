@@ -125,18 +125,20 @@ namespace linker.tunnel
 
             try
             {
-                foreach (var wanPortProtocol in tunnelAdapter.GetTunnelWanPortProtocols().Where(c => c.Disabled == false && string.IsNullOrWhiteSpace(c.Host) == false))
+                foreach (TunnelTransportItemInfo transportItem in tunnelAdapter.GetTunnelTransports().Where(c => c.Disabled == false))
                 {
-                    foreach (TunnelTransportItemInfo transportItem in tunnelAdapter.GetTunnelTransports().Where(c => c.Disabled == false))
+                    ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == transportItem.Name);
+                    //找不到这个打洞协议
+                    if (transport == null)
                     {
-                        ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == transportItem.Name);
-                        //找不到这个打洞协议
-                        if (transport == null)
-                        {
-                            continue;
-                        }
+                        continue;
+                    }
+
+                    foreach (var wanPortProtocol in tunnelAdapter.GetTunnelWanPortProtocols().Where(c => c.Disabled == false && string.IsNullOrWhiteSpace(c.Host) == false))
+                    {
+                       
                         //这个打洞协议不支持这个外网端口协议
-                        if((transport.AllowWanPortProtocolType & wanPortProtocol.ProtocolType) != wanPortProtocol.ProtocolType)
+                        if ((transport.AllowWanPortProtocolType & wanPortProtocol.ProtocolType) != wanPortProtocol.ProtocolType)
                         {
                             continue;
                         }
