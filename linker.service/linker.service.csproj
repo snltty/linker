@@ -14,6 +14,16 @@
 		<PublishAot>true</PublishAot>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
 		<EnablePreviewFeatures>true</EnablePreviewFeatures>
+		<Version>1.1.1</Version>
+		<Authors>snltty</Authors>
+		<Company>snltty</Company>
+		<Description>snltty</Description>
+		<Copyright>snltty</Copyright>
+		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
+		<PackageReleaseNotes>snltty service</PackageReleaseNotes>
+		<AssemblyVersion>1.1.1.2</AssemblyVersion>
+		<FileVersion>1.1.1.2</FileVersion>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

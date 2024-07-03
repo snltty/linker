@@ -224,11 +224,6 @@ namespace linker.tunnel.proxy
         {
             if (token.Proxy.TargetEP == null) return;
 
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            {
-                LoggerHelper.Instance.Warning($"connect {token.Proxy.ConnectId} {token.Proxy.TargetEP}");
-            }
-
             Socket socket = new Socket(token.Proxy.TargetEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.KeepAlive();
 
@@ -258,11 +253,7 @@ namespace linker.tunnel.proxy
 
                 token.Socket.EndConnect(result);
                 token.Socket.KeepAlive();
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Warning($"connect {token.Proxy.ConnectId} {token.Proxy.TargetEP} success");
-                }
-
+               
                 if (state.Data.Length > 0)
                 {
                     await token.Socket.SendAsync(state.Data.AsMemory(0, state.Length), SocketFlags.None).ConfigureAwait(false);

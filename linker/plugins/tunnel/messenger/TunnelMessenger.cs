@@ -95,8 +95,8 @@ namespace linker.plugins.tunnel.messenger
         [MessengerId((ushort)TunnelMessengerIds.Servers)]
         public void Servers(IConnection connection)
         {
-            TunnelWanPortInfo[] servers = MemoryPackSerializer.Deserialize<TunnelWanPortInfo[]>(connection.ReceiveRequestWrap.Payload.Span);
-            tunnelMessengerAdapter.SetTunnelWanPortProtocols(servers.ToList());
+            List<TunnelWanPortInfo> servers = MemoryPackSerializer.Deserialize<List<TunnelWanPortInfo>>(connection.ReceiveRequestWrap.Payload.Span);
+            tunnelMessengerAdapter.SetTunnelWanPortProtocols(servers);
         }
 
         [MessengerId((ushort)TunnelMessengerIds.ExcludeIPs)]

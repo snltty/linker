@@ -21,7 +21,7 @@
             <template #default="scope">
                 <div>
                     <el-select v-model="scope.row.ProtocolType" placeholder="Select" size="small" @change="handleEditBlur(scope.row, 'ProtocolType')">
-                        <el-option v-for="(item,index) in state.protocolTypes" :key="+index" :label="item" :value="+index"/>
+                        <el-option v-for="(item,index) in scope.row.Protocols" :key="+index" :label="item" :value="+index"/>
                     </el-select>
                 </div>
                 
@@ -87,17 +87,26 @@ import { computed, onMounted, reactive } from 'vue'
 export default {
     setup(props) {
         const globalData = injectGlobalData();
+        const list = ((globalData.value.config.Running.Tunnel || {Servers:[]}).Servers || []).sort((a,b)=>a.Disabled - b.Disabled);
         const state = reactive({
-            list:((globalData.value.config.Running.Tunnel || {Servers:[]}).Servers || []).sort((a,b)=>a.Disabled - b.Disabled),
+            list:list,
             types:[],
             height: computed(()=>globalData.value.height-130),
-            sync:true,
-            protocolTypes:{1:'tcp',2:'udp'},
+            sync:true
         });
 
         const _getTunnelTypes = ()=>{
             getTunnelTypes().then((res)=>{
                 state.types = res;
+                initProtocols(state.list);
+            });
+        }
+        const initProtocols = (list)=>{
+            list.forEach(c=>{
+                c.Protocols = state.types.filter(d=>d.Value == c.Type)[0].Protocols;
+                if(!c.Protocols[c.ProtocolType]){
+                    c.ProtocolType = +Object.keys(c.Protocols)[0];
+                }
             });
         }
 
@@ -105,6 +114,7 @@ export default {
             handleEdit(row, column.property);
         }
         const handleEdit = (row, p) => {
+            initProtocols([row])
             state.list.forEach(c => {
                 c[`NameEditing`] = false;
                 c[`TypeEditing`] = false;
@@ -114,6 +124,7 @@ export default {
             row[`${p}Editing`] = true;
         }
         const handleEditBlur = (row, p) => {
+            initProtocols([row])
             row[`${p}Editing`] = false;
             handleSave();
         }
@@ -126,7 +137,10 @@ export default {
             if(state.list.filter(c=>c.Host == '' || c.Name == '').length > 0){
                 return;
             }
-            state.list.splice(index+1,0,{Name:'',Host:'',Type:0,Disabled:false,ProtocolType:2});
+            const row = {Name:'',Host:'',Type:0,Disabled:false,ProtocolType:2};
+            initProtocols([row]);
+            state.list.splice(index+1,0,row);
+            
             handleSave();
         }
 

@@ -68,6 +68,7 @@ namespace linker.tunnel.wanport
     {
         public TunnelWanPortType Value { get; set; }
         public string Name { get; set; }
+        public Dictionary<int, string> Protocols { get; set; } = new Dictionary<int, string>();
     }
 
     public sealed class TunnelWanPortTypeInfoEqualityComparer : IEqualityComparer<TunnelWanPortTypeInfo>

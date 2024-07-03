@@ -18,9 +18,9 @@ namespace linker.tunnel.transport
         public string Label => "TCP、同时打开";
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Tcp;
         public TunnelWanPortProtocolType AllowWanPortProtocolType => TunnelWanPortProtocolType.Tcp;
-        public bool Reverse => false;
+        public bool Reverse => true;
 
-        public bool DisableReverse => true;
+        public bool DisableReverse => false;
 
         public bool SSL => true;
 
@@ -65,7 +65,10 @@ namespace linker.tunnel.transport
             {
                 return null;
             }
-            await Task.Delay(50).ConfigureAwait(false);
+            if(tunnelTransportInfo.Direction == TunnelDirection.Reverse)
+            {
+                await Task.Delay(50).ConfigureAwait(false);
+            }
             ITunnelConnection connection = await ConnectForward(tunnelTransportInfo, TunnelMode.Client).ConfigureAwait(false);
             if (connection != null)
             {

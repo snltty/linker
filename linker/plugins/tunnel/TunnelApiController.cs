@@ -82,7 +82,7 @@ namespace linker.plugins.tunnel
         {
             SetServersParamInfo info = param.Content.DeJson<SetServersParamInfo>();
 
-            tunnelMessengerAdapter.SetTunnelWanPortProtocols(info.List.ToList());
+            tunnelMessengerAdapter.SetTunnelWanPortProtocols(info.List);
             if (info.Sync)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
@@ -179,7 +179,7 @@ namespace linker.plugins.tunnel
         public sealed class SetServersParamInfo
         {
             public bool Sync { get; set; }
-            public TunnelWanPortInfo[] List { get; set; } = Array.Empty<TunnelWanPortInfo>();
+            public List<TunnelWanPortInfo> List { get; set; } =new List<TunnelWanPortInfo>();
         }
 
         public sealed class SetTransportsParamInfo

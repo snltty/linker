@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using System.Diagnostics;
 using System.Net;
 
@@ -27,7 +28,14 @@ namespace linker.tunnel.wanport
 
         public List<TunnelWanPortTypeInfo> GetTypes()
         {
-            return tunnelWanPorts.Select(c => new TunnelWanPortTypeInfo { Value = c.Type, Name = c.Type.ToString() }).Distinct(new TunnelWanPortTypeInfoEqualityComparer()).ToList();
+            List<TunnelWanPortTypeInfo> res = tunnelWanPorts.Select(c => new TunnelWanPortTypeInfo
+            {
+                Value = c.Type,
+                Name = c.Type.ToString(),
+                Protocols = tunnelWanPorts
+                .Where(d => d.Type == c.Type).ToList().Select(d => d.ProtocolType).Distinct().ToDictionary(c => (int)c, d => d.ToString()),
+            }).Distinct(new TunnelWanPortTypeInfoEqualityComparer()).ToList();
+            return res;
         }
 
         /// <summary>
@@ -39,6 +47,7 @@ namespace linker.tunnel.wanport
         {
             if (info == null) return null;
             var tunnelWanPort = tunnelWanPorts.FirstOrDefault(c => c.Type == info.Type && c.ProtocolType == info.ProtocolType);
+            if (tunnelWanPort == null) return null;
             try
             {
                 Stopwatch sw = new Stopwatch();
@@ -49,11 +58,11 @@ namespace linker.tunnel.wanport
                 {
                     LoggerHelper.Instance.Warning($"get domain ip time:{sw.ElapsedMilliseconds}ms");
                 }
-                TunnelWanPortEndPoint WanPort = await tunnelWanPort.GetAsync(server).ConfigureAwait(false);
-                if (WanPort != null)
+                TunnelWanPortEndPoint wanPort = await tunnelWanPort.GetAsync(server).ConfigureAwait(false);
+                if (wanPort != null)
                 {
-                    WanPort.Local.Address = localIP;
-                    return WanPort;
+                    wanPort.Local.Address = localIP;
+                    return wanPort;
                 }
             }
             catch (Exception ex)

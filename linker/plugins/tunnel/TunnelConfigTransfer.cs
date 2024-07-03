@@ -33,17 +33,27 @@ namespace linker.plugins.tunnel
                 GetRemoveRouteLevel();
             };
 
-            if (running.Data.Tunnel.Servers.Length == 0)
+            if (running.Data.Tunnel.Servers.FirstOrDefault(c => c.Type == TunnelWanPortType.Linker && c.ProtocolType == TunnelWanPortProtocolType.Udp) == null)
             {
-                running.Data.Tunnel.Servers = new TunnelWanPortInfo[]
+                running.Data.Tunnel.Servers.Add(new TunnelWanPortInfo
                 {
-                     new TunnelWanPortInfo{
-                         Name="Linker Udp",
-                         Type= TunnelWanPortType.Linker,
-                         Disabled = false,
-                         Host = running.Data.Client.Servers.FirstOrDefault().Host,
-                     }
-                };
+                    Name = "Linker Udp",
+                    Type = TunnelWanPortType.Linker,
+                    ProtocolType = TunnelWanPortProtocolType.Udp,
+                    Disabled = false,
+                    Host = running.Data.Client.Servers.FirstOrDefault().Host,
+                });
+            }
+            if (running.Data.Tunnel.Servers.FirstOrDefault(c => c.Type == TunnelWanPortType.Linker && c.ProtocolType == TunnelWanPortProtocolType.Tcp) == null)
+            {
+                running.Data.Tunnel.Servers.Add(new TunnelWanPortInfo
+                {
+                    Name = "Linker Tcp",
+                    Type = TunnelWanPortType.Linker,
+                    ProtocolType = TunnelWanPortProtocolType.Tcp,
+                    Disabled = false,
+                    Host = running.Data.Client.Servers.FirstOrDefault().Host,
+                });
             }
         }
 

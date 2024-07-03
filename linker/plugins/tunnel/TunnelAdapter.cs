@@ -42,11 +42,11 @@ namespace linker.plugins.tunnel
 
         public List<TunnelWanPortInfo> GetTunnelWanPortProtocols()
         {
-            return running.Data.Tunnel.Servers.ToList();
+            return running.Data.Tunnel.Servers;
         }
         public void SetTunnelWanPortProtocols(List<TunnelWanPortInfo> compacts)
         {
-            running.Data.Tunnel.Servers = compacts.ToArray();
+            running.Data.Tunnel.Servers = compacts;
             running.Data.Update();
         }
 

@@ -75,8 +75,8 @@ namespace linker.tunnel.wanport
             try
             {
                 Socket socket = new Socket(server.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+                socket.Reuse(true);
                 await socket.ConnectAsync(server).ConfigureAwait(false);
-
                 await socket.SendAsync(new byte[] { 0 });
                 int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
 

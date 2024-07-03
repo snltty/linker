@@ -170,8 +170,8 @@ namespace linker.tunnel
                                     LoggerHelper.Instance.Error($"tunnel {transport.Name} get remote {remoteMachineId} external ip fail ");
                                     break;
                                 }
-                                LoggerHelper.Instance.Info($"tunnel {transport.Name} got local external ip {localInfo.ToJson()}");
-                                LoggerHelper.Instance.Info($"tunnel {transport.Name} got remote external ip {remoteInfo.ToJson()}");
+                                LoggerHelper.Instance.Info($"tunnel {transport.Name} got local external ip {localInfo.Result.ToJson()}");
+                                LoggerHelper.Instance.Info($"tunnel {transport.Name} got remote external ip {remoteInfo.Result.ToJson()}");
 
 
                                 tunnelTransportInfo = new TunnelTransportInfo
@@ -265,10 +265,7 @@ namespace linker.tunnel
         public void OnFail(TunnelTransportInfo tunnelTransportInfo)
         {
             ITunnelTransport _transports = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
-            if (_transports != null)
-            {
-                _transports.OnFail(tunnelTransportInfo);
-            }
+            _transports?.OnFail(tunnelTransportInfo);
         }
         /// <summary>
         /// 收到对方发来的连接成功的消息
@@ -277,10 +274,7 @@ namespace linker.tunnel
         public void OnSuccess(TunnelTransportInfo tunnelTransportInfo)
         {
             ITunnelTransport _transports = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
-            if (_transports != null)
-            {
-                _transports.OnSuccess(tunnelTransportInfo);
-            }
+            _transports?.OnSuccess(tunnelTransportInfo);
         }
 
         /// <summary>
@@ -290,6 +284,7 @@ namespace linker.tunnel
         public async Task<TunnelTransportWanPortInfo> GetWanPort(TunnelWanPortProtocolInfo _info)
         {
             TunnelWanPortInfo info = tunnelAdapter.GetTunnelWanPortProtocols().FirstOrDefault(c => c.Type == _info.Type && c.ProtocolType == _info.ProtocolType);
+            if (info == null) return null;
             return await GetLocalInfo(info).ConfigureAwait(false);
         }
 

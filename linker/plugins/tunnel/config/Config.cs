@@ -19,7 +19,7 @@ namespace linker.client.config
     public sealed class TunnelRunningInfo
     {
         public ObjectId Id { get; set; }
-        public TunnelWanPortInfo[] Servers { get; set; } = Array.Empty<TunnelWanPortInfo>();
+        public List<TunnelWanPortInfo> Servers { get; set; } = new List<TunnelWanPortInfo>();
         public int RouteLevelPlus { get; set; } = 0;
 
         public ExcludeIPItem[] ExcludeIPs { get; set; } = Array.Empty<ExcludeIPItem>();
@@ -129,15 +129,18 @@ namespace linker.config
         TunnelWanPortType Type => tunnelCompactInfo.Type;
 
         [MemoryPackInclude]
+        TunnelWanPortProtocolType ProtocolType => tunnelCompactInfo.ProtocolType;
+
+        [MemoryPackInclude]
         string Host => tunnelCompactInfo.Host;
 
         [MemoryPackInclude]
         bool Disabled => tunnelCompactInfo.Disabled;
 
         [MemoryPackConstructor]
-        SerializableTunnelWanPortInfo(string name, TunnelWanPortType type, string host, bool disabled)
+        SerializableTunnelWanPortInfo(string name, TunnelWanPortType type, TunnelWanPortProtocolType protocolType, string host, bool disabled)
         {
-            var tunnelCompactInfo = new TunnelWanPortInfo { Name = name, Type = type, Host = host, Disabled = disabled };
+            var tunnelCompactInfo = new TunnelWanPortInfo { Name = name, Type = type, ProtocolType = protocolType, Host = host, Disabled = disabled };
             this.tunnelCompactInfo = tunnelCompactInfo;
         }
 

@@ -34,6 +34,8 @@ namespace linker.plugins.tunnel
             MemoryPackFormatterProvider.Register(new TunnelTransportWanPortInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportItemInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TunnelWanPortProtocolInfoFormatter());
+            
 
             //管理接口
             serviceCollection.AddSingleton<TunnelApiController>();
@@ -43,6 +45,7 @@ namespace linker.plugins.tunnel
             //外网端口协议
             serviceCollection.AddSingleton<TunnelWanPortTransfer>();
             serviceCollection.AddSingleton<TunnelWanPortProtocolLinkerUdp>();
+            serviceCollection.AddSingleton<TunnelWanPortProtocolLinkerTcp>();
             serviceCollection.AddSingleton<TunnelWanPortProtocolStun>();
 
             //打洞协议
@@ -69,6 +72,7 @@ namespace linker.plugins.tunnel
             MemoryPackFormatterProvider.Register(new TunnelTransportWanPortInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportItemInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TunnelWanPortProtocolInfoFormatter());
 
             serviceCollection.AddSingleton<TunnelServerMessenger>();
         }
