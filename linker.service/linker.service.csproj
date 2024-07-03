@@ -11,7 +11,7 @@
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 		<Configurations>Debug;Release</Configurations>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-		<PublishAot>true</PublishAot>
+		<PublishAot>false</PublishAot>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
 		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 		<Version>1.1.1</Version>
@@ -25,14 +25,17 @@
 		<AssemblyVersion>1.1.1.2</AssemblyVersion>
 		<FileVersion>1.1.1.2</FileVersion>
 	</PropertyGroup>
-	
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<DebugType>embedded</DebugType>
-	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<DebugType>embedded</DebugType>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
 	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DebugType>none</DebugType>
+		<DebugSymbols>false</DebugSymbols>
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+	
 	<ItemGroup>
 		<PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
 	</ItemGroup>

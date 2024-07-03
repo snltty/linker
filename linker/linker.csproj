@@ -29,11 +29,14 @@
 		<FileVersion>1.1.1.2</FileVersion>
 	</PropertyGroup>
 
+
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<DebugType>embedded</DebugType>
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<DebugType>embedded</DebugType>
+		<DebugType>none</DebugType>
+		<DebugSymbols>false</DebugSymbols>
 		<Optimize>True</Optimize>
 	</PropertyGroup>
 
