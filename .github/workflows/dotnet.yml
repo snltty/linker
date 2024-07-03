@@ -48,13 +48,14 @@ jobs:
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
-        tag_name: v1.1.1.1
-        release_name: v1.1.1.1.${{ steps.date.outputs.today }}
+        tag_name: v1.1.1.2
+        release_name: v1.1.1.2.${{ steps.date.outputs.today }}
         draft: false
         prerelease: false
         body: |
           1. 增加许多检测，检测监听端口和目标服务连通性
           2. 如果发现配置信息消失，请删除db.db再重新启动
+          3. 新增了一种基于同时打开的TCP打洞方式
 
     - name: upload win x64
       id: upload-win-x64
