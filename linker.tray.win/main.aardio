@@ -175,7 +175,7 @@ mainForm.runAsTask = function(run){
 	task = sys.runAsTask(mainForm.serviceName);
 	if(run)
 	{
-		task.register();
+		task.register("--task=1");
 	}else
 	{
 		task.delete();
@@ -198,5 +198,9 @@ mainForm.runAsTaskCommand = function()
 mainForm.checkService();
 mainForm.showPopmenu();
 
-mainForm.show();
+if(!_ARGV["task"])
+{
+	mainForm.show();
+}
+
 return win.loopMessage();
