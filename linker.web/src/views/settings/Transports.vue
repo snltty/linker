@@ -1,10 +1,4 @@
 <template>
-    <div class="flex">
-        <div class="pdr-10 pdb-6 flex-1">
-            <el-checkbox v-model="state.sync" label="将更改同步到所有客户端"  />
-        </div>
-        <div>将按顺序使用打洞协议进行打洞尝试</div>
-    </div>
     <el-table :data="state.list" border size="small" width="100%" :height="`${state.height}px`" >
         <el-table-column prop="Name" label="名称" width="120"></el-table-column>
         <el-table-column prop="Label" label="说明"></el-table-column>
@@ -49,15 +43,18 @@
 import { getTunnelTransports,setTunnelTransports } from '@/apis/tunnel';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import { computed, onMounted, reactive } from 'vue'
+import { computed, inject, onMounted, reactive } from 'vue'
 export default {
+    label:'打洞协议',
+    name:'transports',
+    order:2,
     setup(props) {
         const globalData = injectGlobalData();
+        const settingState = inject('setting');
         const state = reactive({
             list:[],
             height: computed(()=>globalData.value.height-130),
-            bufferSize:globalData.value.bufferSize,
-            sync:true,
+            bufferSize:globalData.value.bufferSize
         });
 
         const _getTunnelTransports = ()=>{
@@ -78,7 +75,7 @@ export default {
         const handleSave = ()=>{
             state.list = state.list.slice().sort((a,b)=>a.Disabled - b.Disabled);
             setTunnelTransports({
-                sync:state.sync,
+                sync:settingState.value.sync,
                 List:state.list
             }).then(()=>{
                 ElMessage.success('已操作');

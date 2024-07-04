@@ -19,7 +19,7 @@
                 </el-table-column>
                 <el-table-column prop="BufferSize" label="缓冲区" width="100">
                     <template #default="scope">
-                        <el-select v-model="scope.row.BufferSize" placeholder="Select" size="small" @change="handleEditBlur(scope.row, 'BufferSize')">
+                        <el-select v-model="scope.row.BufferSize" placeholder="Select" size="small" :disabled="scope.row.Started" @change="handleEditBlur(scope.row, 'BufferSize')">
                             <el-option v-for="(item,index) in state.bufferSize" :key="index" :label="item" :value="index"/>
                         </el-select>
                     </template>

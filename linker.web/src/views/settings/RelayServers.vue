@@ -1,10 +1,4 @@
 <template>
-    <div class="flex">
-        <div class="pdr-10 pdb-6 flex-1">
-            <el-checkbox v-model="state.sync" label="将更改同步到所有客户端"  />
-        </div>
-        <div>将按顺序进行中继，直到其中一个成功中继，秘钥用以确定服务器是否允许你进行中继</div>
-    </div>
     <el-table :data="state.list" border size="small" width="100%" :height="`${state.height}px`" @cell-dblclick="handleCellClick">
         <el-table-column prop="Name" label="名称" width="100">
             <template #default="scope">
@@ -86,15 +80,18 @@
 import { setRelayServers,getRelayTypes } from '@/apis/relay';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import { computed, onMounted, reactive } from 'vue'
+import { computed, inject, onMounted, reactive } from 'vue'
 export default {
+    label:'中继服务器',
+    name:'relayServers',
+    order:4,
     setup(props) {
         const globalData = injectGlobalData();
+        const settingState = inject('setting');
         const state = reactive({
             list:((globalData.value.config.Running.Relay || {Servers:[]}).Servers || []).sort((a,b)=>a.Disabled - b.Disabled),
             types:[],
-            height: computed(()=>globalData.value.height-130),
-            sync:true
+            height: computed(()=>globalData.value.height-130)
         });
 
         const _getRelayTypes = ()=>{
@@ -146,7 +143,7 @@ export default {
         const handleSave = ()=>{
             state.list = state.list.slice().sort((a,b)=>a.Disabled - b.Disabled);
             setRelayServers({
-                sync:state.sync,
+                sync:settingState.value.sync,
                 list:state.list
             }).then(()=>{
                 ElMessage.success('已操作');

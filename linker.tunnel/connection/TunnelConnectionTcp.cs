@@ -73,7 +73,7 @@ namespace linker.tunnel.connection
 
         private async Task ProcessWrite()
         {
-            byte[] buffer = new byte[(1<<BufferSize) * 1024];
+            byte[] buffer = new byte[(1 << BufferSize) * 1024];
             try
             {
                 int length = 0;
@@ -122,28 +122,32 @@ namespace linker.tunnel.connection
         }
         private async Task ReadPacket(Memory<byte> buffer)
         {
+            //不分包
             if (framing == false)
             {
                 await CallbackPacket(buffer).ConfigureAwait(false);
                 return;
             }
 
-            //是一个完整的包
+            //没有缓存，可能是一个完整的包
             if (bufferCache.Size == 0 && buffer.Length > 4)
             {
                 int packageLen = buffer.Span.ToInt32();
+                //数据足够，包长度+4，那就存在一个完整包 
                 if (packageLen + 4 <= buffer.Length)
                 {
                     await CallbackPacket(buffer.Slice(4, packageLen)).ConfigureAwait(false);
                     buffer = buffer.Slice(4 + packageLen);
                 }
+                //没有剩下的数据就不继续往下了
                 if (buffer.Length == 0)
                     return;
             }
-
+            //添加到缓存
             bufferCache.AddRange(buffer);
             do
             {
+                //取出一个一个包
                 int packageLen = bufferCache.Data.Span.ToInt32();
                 if (packageLen + 4 > bufferCache.Size)
                 {
@@ -151,8 +155,8 @@ namespace linker.tunnel.connection
                 }
                 await CallbackPacket(bufferCache.Data.Slice(4, packageLen)).ConfigureAwait(false);
 
-
                 bufferCache.RemoveRange(0, packageLen + 4);
+
             } while (bufferCache.Size > 4);
         }
         private async Task CallbackPacket(Memory<byte> packet)

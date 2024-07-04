@@ -1,10 +1,4 @@
 <template>
-    <div class="flex">
-        <div class="pdr-10 pdb-6 flex-1">
-            <el-checkbox v-model="state.sync" label="将更改同步到所有客户端"  />
-        </div>
-        <div>将按顺序获取IP，进行尝试打洞</div>
-    </div>
     <el-table :data="state.list" border size="small" width="100%" :height="`${state.height}px`" @cell-dblclick="handleCellClick">
         <el-table-column prop="Name" label="名称">
             <template #default="scope">
@@ -83,16 +77,19 @@
 import { setTunnelServers,getTunnelTypes } from '@/apis/tunnel';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import { computed, onMounted, reactive } from 'vue'
+import { computed, inject, onMounted, reactive } from 'vue'
 export default {
+    label:'外网端口服务器',
+    name:'tunnelServers',
+    order:1,
     setup(props) {
         const globalData = injectGlobalData();
+        const settingState = inject('setting');
         const list = ((globalData.value.config.Running.Tunnel || {Servers:[]}).Servers || []).sort((a,b)=>a.Disabled - b.Disabled);
         const state = reactive({
             list:list,
             types:[],
-            height: computed(()=>globalData.value.height-130),
-            sync:true
+            height: computed(()=>globalData.value.height-130)
         });
 
         const _getTunnelTypes = ()=>{
@@ -158,7 +155,7 @@ export default {
         const handleSave = ()=>{
             state.list = state.list.slice().sort((a,b)=>a.Disabled - b.Disabled);
             setTunnelServers({
-                sync:state.sync,
+                sync:settingState.value.sync,
                 list:state.list
             }).then(()=>{
                 ElMessage.success('已操作');

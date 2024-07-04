@@ -1,49 +1,40 @@
 <template>
     <div class="servers-wrap">
+        <div class="pdb-6 t-c">
+            <el-checkbox v-model="settingState.sync" label="自动同步更改"  />
+            <el-button type="primary" @click="handleSave">立即同步</el-button>
+        </div>
         <el-tabs type="border-card" style="width:100%" v-model="state.tab">
-            <el-tab-pane label="信标服务器" name="login">
-                <SignInServers v-if="state.connected"></SignInServers>
-            </el-tab-pane>
-            <el-tab-pane label="公网端口服务器" name="ip">
-                <TunnelServers v-if="state.connected"></TunnelServers>
-            </el-tab-pane>
-            <el-tab-pane label="打洞协议" name="hole">
-                <Transports v-if="state.connected"></Transports>
-            </el-tab-pane>
-            <el-tab-pane label="打洞排除IP" name="ips">
-                <ExcludeIP v-if="state.connected"></ExcludeIP>
-            </el-tab-pane>
-            <el-tab-pane label="中继服务器" name="relay">
-                <RelayServers v-if="state.connected"></RelayServers>
-            </el-tab-pane>
-            <el-tab-pane label="服务器代理穿透" name="sforward">
-                <SForward v-if="state.connected"></SForward>
-            </el-tab-pane>
+            <template v-if="state.connected" v-for="(item,index) in settingComponents" :key="index">
+                <el-tab-pane :label="item.label" :name="item.name">
+                    <component :is="item"></component>
+                </el-tab-pane>
+            </template>
         </el-tabs>
     </div>
 </template>
 <script>
-import { computed, reactive } from 'vue';
-import SignInServers from './SignInServers.vue'
-import RelayServers from './RelayServers.vue'
-import TunnelServers from './TunnelServers.vue'
-import Transports from './Transports.vue'
-import ExcludeIP from './ExcludeIP.vue'
-import SForward from './SForward.vue'
+import { computed, provide, reactive, ref } from 'vue';
 import { injectGlobalData } from '@/provide';
 export default {
-    components:{SignInServers,RelayServers,TunnelServers,Transports,ExcludeIP,SForward},
+    components:{},
     setup(props) {
-        
+        const files = require.context('./', true, /.+\.vue/);
+        const settingComponents = files.keys().filter(c=>c != './Index.vue').map(c => files(c).default).sort((a,b)=>a.order-b.order);
+
         const globalData = injectGlobalData();
         const state = reactive({
-            tab:'login',
-            connected:computed(()=>globalData.value.connected && globalData.value.configed)
+            tab:settingComponents[0].name,
+            connected:computed(()=>globalData.value.connected && globalData.value.configed),
         });
 
+        const settingState = ref({sync:true});
+        provide('setting',settingState);
+        const handleSave = ()=>{
+        }
+
         return {
-            state
-            
+            state,settingState,settingComponents,handleSave
         }
     }
 }
@@ -54,6 +45,10 @@ export default {
     font-size:1.3rem;
     color:#555;
     a{color:#333;}
+}
+.el-checkbox{
+    vertical-align:middle;
+    margin-right:1rem;
 }
 
 </style>

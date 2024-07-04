@@ -1,10 +1,4 @@
 <template>
-    <div class="flex">
-        <div class="pdr-10 pdb-6 flex-1">
-            <el-checkbox v-model="state.sync" label="将更改同步到所有客户端"  />
-        </div>
-        <div>信标服务器为交换数据服务器（用于登入），使用其中一条作为信标服务器</div>
-    </div>
     <el-table :data="state.list" border size="small" width="100%" :height="`${state.height}px`" @cell-dblclick="handleCellClick">
         <el-table-column prop="Name" label="名称">
             <template #default="scope">
@@ -55,15 +49,18 @@
 import { setSignInServers } from '@/apis/signin';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import { computed, reactive } from 'vue'
+import { computed, inject, reactive } from 'vue'
 export default {
+    label:'信标服务器',
+    name:'signInServers',
+    order:0,
     setup(props) {
         const globalData = injectGlobalData();
+        const settingState = inject('setting');
         const state = reactive({
             list:globalData.value.config.Running.Client.Servers || [],
             server:computed(()=>globalData.value.config.Client.Server),
             height: computed(()=>globalData.value.height-130),
-            sync:true,
         });
 
         const handleCellClick = (row, column) => {
@@ -101,7 +98,7 @@ export default {
 
         const handleSave = ()=>{
             setSignInServers({
-                sync:state.sync,
+                sync:settingState.value.sync,
                 list:state.list
             }).then(()=>{
                 ElMessage.success('已操作');

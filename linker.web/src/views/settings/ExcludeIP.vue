@@ -1,10 +1,4 @@
 <template>
-    <div class="flex">
-        <div class="pdr-10 pdb-6 flex-1">
-            <el-checkbox v-model="state.sync" label="将更改同步到所有客户端"  />
-        </div>
-        <div>打洞时，排除这些IP(比如VPN，虚拟网卡IP)</div>
-    </div>
     <el-table :data="state.list" border size="small" width="100%" :height="`${state.height}px`" @cell-dblclick="handleCellClick">
         <el-table-column prop="IPAddress" label="IP">
             <template #default="scope">
@@ -48,15 +42,18 @@
 import { setTunnelExcludeIPs } from '@/apis/tunnel';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import { computed, onMounted, reactive } from 'vue'
+import { computed, inject, onMounted, reactive } from 'vue'
 export default {
+    label:'打洞排除IP',
+    name:'excludeIP',
+    order:3,
     setup(props) {
         const globalData = injectGlobalData();
+        const settingState = inject('setting');
         const state = reactive({
             list:((globalData.value.config.Running.Tunnel || {ExcludeIPs:[]}).ExcludeIPs || [{IPAddress:'0.0.0.0',Mask:32}]),
             types:[],
-            height: computed(()=>globalData.value.height-130),
-            sync:true
+            height: computed(()=>globalData.value.height-130)
         });
 
         const handleCellClick = (row, column) => {
@@ -88,7 +85,7 @@ export default {
                 c.Mask = parseInt(c.Mask);
             })
             setTunnelExcludeIPs({
-                sync:state.sync,
+                sync:settingState.value.sync,
                 list:state.list
             }).then(()=>{
                 ElMessage.success('已操作');
