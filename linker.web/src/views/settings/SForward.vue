@@ -19,7 +19,6 @@ export default {
     order:5,
     setup(props) {
         const globalData = injectGlobalData();
-        const settingState = inject('setting');
         const state = reactive({
             SForwardSecretKey:''
         });
@@ -32,10 +31,7 @@ export default {
 
         const _setSForwardSecretKey = ()=>{
             if(!state.SForwardSecretKey) return;
-            setSForwardSecretKey({
-                sync:settingState.value.sync,
-                SForwardSecretKey:state.SForwardSecretKey
-            }).then(()=>{
+            setSForwardSecretKey(state.SForwardSecretKey).then(()=>{
                 ElMessage.success('已操作');
             }).catch(()=>{
                 ElMessage.success('操作失败');

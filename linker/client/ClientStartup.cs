@@ -22,6 +22,7 @@ namespace linker.client
         public void AddClient(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<RunningConfig>();
+            serviceCollection.AddSingleton<RunningConfigTransfer>();
 
             serviceCollection.AddSingleton<SignInArgsTransfer>();
 

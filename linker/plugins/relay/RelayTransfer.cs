@@ -8,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Reflection;
+using MemoryPack;
+using linker.client;
 
 namespace linker.plugins.relay
 {
@@ -20,15 +22,28 @@ namespace linker.plugins.relay
 
         private readonly RunningConfig running;
         private readonly ServiceProvider serviceProvider;
+        private readonly RunningConfigTransfer runningConfigTransfer;
+        private string configKey = "relayServers";
 
         private ConcurrentDictionary<string, bool> connectingDic = new ConcurrentDictionary<string, bool>();
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
-        public RelayTransfer(RunningConfig running, ServiceProvider serviceProvider, ConfigWrap config)
+        public RelayTransfer(ClientSignInState clientSignInState,RunningConfig running, ServiceProvider serviceProvider, RunningConfigTransfer runningConfigTransfer)
         {
             this.running = running;
             this.serviceProvider = serviceProvider;
+            this.runningConfigTransfer = runningConfigTransfer;
+            InitConfig();
 
+            runningConfigTransfer.Setter(configKey, SetServers);
+            runningConfigTransfer.Getter(configKey, () => MemoryPackSerializer.Serialize(running.Data.Relay.Servers));
+            clientSignInState.NetworkFirstEnabledHandle += () =>
+            {
+                SyncServers();
+            };
+        }
+        private void InitConfig()
+        {
             if (running.Data.Relay.Servers.Length == 0)
             {
                 running.Data.Relay.Servers = new RelayServerInfo[]
@@ -70,7 +85,19 @@ namespace linker.plugins.relay
         {
             running.Data.Relay.Servers = servers;
             running.Data.Update();
+            SyncServers();
         }
+        private void SetServers(Memory<byte> data)
+        {
+            running.Data.Relay.Servers = MemoryPackSerializer.Deserialize<RelayServerInfo[]>(data.Span);
+            running.Data.Update();
+        }
+        private void SyncServers()
+        {
+            runningConfigTransfer.Sync(configKey, MemoryPackSerializer.Serialize(running.Data.Relay.Servers));
+        }
+
+
         /// <summary>
         /// 设置中继成功回调
         /// </summary>

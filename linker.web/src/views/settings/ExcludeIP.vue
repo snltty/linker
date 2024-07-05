@@ -49,11 +49,10 @@ export default {
     order:3,
     setup(props) {
         const globalData = injectGlobalData();
-        const settingState = inject('setting');
         const state = reactive({
             list:((globalData.value.config.Running.Tunnel || {ExcludeIPs:[]}).ExcludeIPs || [{IPAddress:'0.0.0.0',Mask:32}]),
             types:[],
-            height: computed(()=>globalData.value.height-130)
+            height: computed(()=>globalData.value.height-92)
         });
 
         const handleCellClick = (row, column) => {
@@ -84,10 +83,7 @@ export default {
             state.list.forEach(c=>{
                 c.Mask = parseInt(c.Mask);
             })
-            setTunnelExcludeIPs({
-                sync:settingState.value.sync,
-                list:state.list
-            }).then(()=>{
+            setTunnelExcludeIPs(state.list).then(()=>{
                 ElMessage.success('已操作');
             }).catch(()=>{
                 ElMessage.success('操作失败');

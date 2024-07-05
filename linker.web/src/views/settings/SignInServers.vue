@@ -56,11 +56,10 @@ export default {
     order:0,
     setup(props) {
         const globalData = injectGlobalData();
-        const settingState = inject('setting');
         const state = reactive({
             list:globalData.value.config.Running.Client.Servers || [],
             server:computed(()=>globalData.value.config.Client.Server),
-            height: computed(()=>globalData.value.height-130),
+            height: computed(()=>globalData.value.height-92),
         });
 
         const handleCellClick = (row, column) => {
@@ -97,10 +96,7 @@ export default {
         }
 
         const handleSave = ()=>{
-            setSignInServers({
-                sync:settingState.value.sync,
-                list:state.list
-            }).then(()=>{
+            setSignInServers(state.list).then(()=>{
                 ElMessage.success('已操作');
             }).catch(()=>{
                 ElMessage.success('操作失败');

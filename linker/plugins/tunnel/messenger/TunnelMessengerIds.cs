@@ -22,15 +22,6 @@
         RouteLevel = 2011,
         RouteLevelForward = 2012,
 
-        Transport = 2013,
-        TransportForward = 2014,
-
-        Servers = 2015,
-        ServersForward = 2016,
-
-        ExcludeIPs = 2017,
-        ExcludeIPsForward = 2018,
-
         None = 2099
     }
 }

@@ -87,11 +87,10 @@ export default {
     order:4,
     setup(props) {
         const globalData = injectGlobalData();
-        const settingState = inject('setting');
         const state = reactive({
             list:((globalData.value.config.Running.Relay || {Servers:[]}).Servers || []).sort((a,b)=>a.Disabled - b.Disabled),
             types:[],
-            height: computed(()=>globalData.value.height-130)
+            height: computed(()=>globalData.value.height-92)
         });
 
         const _getRelayTypes = ()=>{
@@ -142,10 +141,7 @@ export default {
         
         const handleSave = ()=>{
             state.list = state.list.slice().sort((a,b)=>a.Disabled - b.Disabled);
-            setRelayServers({
-                sync:settingState.value.sync,
-                list:state.list
-            }).then(()=>{
+            setRelayServers(state.list).then(()=>{
                 ElMessage.success('已操作');
             }).catch(()=>{
                 ElMessage.success('操作失败');

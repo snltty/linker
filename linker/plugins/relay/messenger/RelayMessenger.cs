@@ -32,16 +32,6 @@ namespace linker.plugins.relay.messenger
             connection.Write(res ? Helper.TrueArray : Helper.FalseArray);
         }
 
-        /// <summary>
-        /// 设置中继协议列表，一般是别人同步过来的
-        /// </summary>
-        /// <param name="connection"></param>
-        [MessengerId((ushort)RelayMessengerIds.Servers)]
-        public void Servers(IConnection connection)
-        {
-            RelayServerInfo[] servers = MemoryPackSerializer.Deserialize<RelayServerInfo[]>(connection.ReceiveRequestWrap.Payload.Span);
-            relayTransfer.OnServers(servers);
-        }
     }
 
     /// <summary>
@@ -61,32 +51,6 @@ namespace linker.plugins.relay.messenger
             this.config = config;
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
-        }
-
-        /// <summary>
-        /// 同步中继协议给其它客户端
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <returns></returns>
-        [MessengerId((ushort)RelayMessengerIds.ServersForward)]
-        public async Task ServersForward(IConnection connection)
-        {
-            RelayServerInfo[] servers = MemoryPackSerializer.Deserialize<RelayServerInfo[]>(connection.ReceiveRequestWrap.Payload.Span);
-
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
-            {
-                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
-
-                foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected))
-                {
-                    await messengerSender.SendOnly(new MessageRequestWrap
-                    {
-                        Connection = item.Connection,
-                        MessengerId = (ushort)RelayMessengerIds.Servers,
-                        Payload = connection.ReceiveRequestWrap.Payload
-                    }).ConfigureAwait(false);
-                }
-            }
         }
 
         /// <summary>

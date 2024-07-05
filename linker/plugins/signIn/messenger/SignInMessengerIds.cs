@@ -9,9 +9,6 @@
         Name = 3,
         NameForward = 4,
 
-        Servers = 5,
-        ServersForward = 6,
-
         Version = 7,
 
         None = 99

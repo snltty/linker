@@ -85,26 +85,6 @@ namespace linker.plugins.tunnel.messenger
         }
 
 
-        [MessengerId((ushort)TunnelMessengerIds.Transport)]
-        public void Transport(IConnection connection)
-        {
-            List<TunnelTransportItemInfo> transports = MemoryPackSerializer.Deserialize<List<TunnelTransportItemInfo>>(connection.ReceiveRequestWrap.Payload.Span);
-            tunnelMessengerAdapter.SetTunnelTransports(transports);
-        }
-
-        [MessengerId((ushort)TunnelMessengerIds.Servers)]
-        public void Servers(IConnection connection)
-        {
-            List<TunnelWanPortInfo> servers = MemoryPackSerializer.Deserialize<List<TunnelWanPortInfo>>(connection.ReceiveRequestWrap.Payload.Span);
-            tunnelMessengerAdapter.SetTunnelWanPortProtocols(servers);
-        }
-
-        [MessengerId((ushort)TunnelMessengerIds.ExcludeIPs)]
-        public void ExcludeIPs(IConnection connection)
-        {
-            ExcludeIPItem[] ips = MemoryPackSerializer.Deserialize<ExcludeIPItem[]>(connection.ReceiveRequestWrap.Payload.Span);
-            tunnelConfigTransfer.SettExcludeIPs(ips);
-        }
     }
 
     public sealed class TunnelServerMessenger : IMessenger
@@ -245,63 +225,6 @@ namespace linker.plugins.tunnel.messenger
             }
         }
 
-
-        [MessengerId((ushort)TunnelMessengerIds.TransportForward)]
-        public async Task TransportForward(IConnection connection)
-        {
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
-            {
-                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
-
-                foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected))
-                {
-                    await messengerSender.SendOnly(new MessageRequestWrap
-                    {
-                        Connection = item.Connection,
-                        MessengerId = (ushort)TunnelMessengerIds.Transport,
-                        Payload = connection.ReceiveRequestWrap.Payload
-                    }).ConfigureAwait(false);
-                }
-            }
-        }
-
-        [MessengerId((ushort)TunnelMessengerIds.ServersForward)]
-        public async Task ServersForward(IConnection connection)
-        {
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
-            {
-                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
-
-                foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected))
-                {
-                    await messengerSender.SendOnly(new MessageRequestWrap
-                    {
-                        Connection = item.Connection,
-                        MessengerId = (ushort)TunnelMessengerIds.Servers,
-                        Payload = connection.ReceiveRequestWrap.Payload
-                    }).ConfigureAwait(false);
-                }
-            }
-        }
-
-        [MessengerId((ushort)TunnelMessengerIds.ExcludeIPsForward)]
-        public async Task ExcludeIPsForward(IConnection connection)
-        {
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
-            {
-                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
-
-                foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected))
-                {
-                    await messengerSender.SendOnly(new MessageRequestWrap
-                    {
-                        Connection = item.Connection,
-                        MessengerId = (ushort)TunnelMessengerIds.ExcludeIPs,
-                        Payload = connection.ReceiveRequestWrap.Payload
-                    }).ConfigureAwait(false);
-                }
-            }
-        }
     }
 
 

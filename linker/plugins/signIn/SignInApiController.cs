@@ -41,19 +41,8 @@ namespace linker.plugins.signin
         }
         public async Task<bool> SetServers(ApiControllerParamsInfo param)
         {
-            ConfigSetServersInfo configUpdateServersInfo = param.Content.DeJson<ConfigSetServersInfo>();
-
-
-            clientSignInTransfer.UpdateServers(configUpdateServersInfo.List);
-            if (configUpdateServersInfo.Sync)
-            {
-                await messengerSender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = clientSignInState.Connection,
-                    MessengerId = (ushort)SignInMessengerIds.ServersForward,
-                    Payload = MemoryPackSerializer.Serialize(configUpdateServersInfo.List)
-                }).ConfigureAwait(false);
-            }
+            ClientServerInfo[] servers = param.Content.DeJson<ClientServerInfo[]>();
+            await clientSignInTransfer.UpdateServers(servers);
             return true;
         }
 
@@ -86,7 +75,6 @@ namespace linker.plugins.signin
             return new SignInListResponseInfo { };
         }
 
-
         public async Task<bool> SetName(ApiControllerParamsInfo param)
         {
             ConfigSetNameInfo info = param.Content.DeJson<ConfigSetNameInfo>();
@@ -104,7 +92,6 @@ namespace linker.plugins.signin
             }
             return true;
         }
-
 
         public bool Install(ApiControllerParamsInfo param)
         {
@@ -132,12 +119,6 @@ namespace linker.plugins.signin
 
             return true;
         }
-    }
-
-    public sealed partial class ConfigSetServersInfo
-    {
-        public bool Sync { get; set; }
-        public ClientServerInfo[] List { get; set; } = Array.Empty<ClientServerInfo>();
     }
 
     [MemoryPackable]

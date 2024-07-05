@@ -50,10 +50,9 @@ export default {
     order:2,
     setup(props) {
         const globalData = injectGlobalData();
-        const settingState = inject('setting');
         const state = reactive({
             list:[],
-            height: computed(()=>globalData.value.height-130),
+            height: computed(()=>globalData.value.height-92),
             bufferSize:globalData.value.bufferSize
         });
 
@@ -74,10 +73,7 @@ export default {
         }    
         const handleSave = ()=>{
             state.list = state.list.slice().sort((a,b)=>a.Disabled - b.Disabled);
-            setTunnelTransports({
-                sync:settingState.value.sync,
-                List:state.list
-            }).then(()=>{
+            setTunnelTransports(state.list).then(()=>{
                 ElMessage.success('已操作');
             }).catch(()=>{
                 ElMessage.success('操作失败');

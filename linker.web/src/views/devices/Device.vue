@@ -3,6 +3,11 @@
     <template #header>
         <div class="flex">
             <span class="flex-1">设备</span>
+            <span> <el-input size="small" v-model="name" clearable @change="handleRefresh" >
+                <template #prefix>
+                    <el-icon><Search /></el-icon>
+                </template>
+            </el-input> </span>
             <el-button size="small" @click="handleRefresh"><el-icon><Refresh /></el-icon></el-button>
         </div>
     </template>
@@ -28,24 +33,27 @@
 </template>
 <script>
 import { injectGlobalData } from '@/provide';
-import { computed } from 'vue';
-import {WarnTriangleFilled,StarFilled} from '@element-plus/icons-vue'
+import { computed, ref } from 'vue';
+import {WarnTriangleFilled,StarFilled,Search} from '@element-plus/icons-vue'
+
 export default {
     emits:['edit','refresh'],
-    components:{WarnTriangleFilled,StarFilled},
+    components:{WarnTriangleFilled,StarFilled,Search},
     setup(props,{emit}) {
 
         const globalData = injectGlobalData();
         const version = computed(()=>globalData.value.signin.Version);
+        const name = ref('')
 
         const handleEdit = (row)=>{
             emit('edit',row)
         }
         const handleRefresh = ()=>{
-            emit('refresh')
+            emit('refresh',name.value)
         }
+
         return {
-            handleEdit,handleRefresh,version
+            handleEdit,handleRefresh,version,name
         }
     }
 }
@@ -61,5 +69,9 @@ a.green{color:green}
 .warning{
     color:#d65b03; font-weight:bold;
     .el-icon{vertical-align:middle}
+}
+.el-input{
+    width:8rem;
+    margin-right:.6rem
 }
 </style>

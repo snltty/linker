@@ -4,8 +4,7 @@
             <Device  @edit="handleDeviceEdit" @refresh="handlePageRefresh"></Device>
             <Tunnel  @edit="handleTunnelEdit" @refresh="handleTunnelRefresh" @connections="handleTunnelConnections"></Tunnel>
             <Tuntap  @edit="handleTuntapEdit" @refresh="handleTuntapRefresh"></Tuntap>
-            <Forward @edit="handleForwardEdit" @sedit="handleSForwardEdit" @refresh="handleForwardRefresh"></Forward>  
-            <!-- <Info></Info>           -->
+            <Forward @edit="handleForwardEdit" @sedit="handleSForwardEdit" @refresh="handleForwardRefresh"></Forward> 
             <el-table-column label="操作" width="54" fixed="right">
                 <template #default="scope">
                     <el-popconfirm v-if="scope.row.showDel" confirm-button-text="确认"
@@ -43,7 +42,6 @@ import { injectGlobalData } from '@/provide.js'
 import { reactive, onMounted, ref, nextTick, onUnmounted, computed, provide } from 'vue'
 import Device from './Device.vue'
 import DeviceEdit from './DeviceEdit.vue'
-import Info from './Info.vue'
 import Tuntap from './Tuntap.vue'
 import TuntapEdit from './TuntapEdit.vue'
 import Tunnel from './Tunnel.vue'
@@ -54,7 +52,7 @@ import SForwardEdit from './SForwardEdit.vue'
 import ConnectionsEdit from './ConnectionsEdit.vue'
 import { ElMessage } from 'element-plus'
 export default {
-    components: {Device,DeviceEdit,Info,Tunnel,TunnelEdit,ConnectionsEdit, Tuntap,TuntapEdit,  Forward,ForwardEdit,SForwardEdit },
+    components: {Device,DeviceEdit,Tunnel,TunnelEdit,ConnectionsEdit, Tuntap,TuntapEdit,  Forward,ForwardEdit,SForwardEdit },
     setup(props) {
 
         const globalData = injectGlobalData();
@@ -63,7 +61,7 @@ export default {
         const state = reactive({
             timer:0,
             page: {
-                Request: { Page: 1, Size: 10, GroupId: globalData.value.groupid },
+                Request: { Page: 1, Size: 10, GroupId: globalData.value.groupid,Name:'' },
                 Count: 0,
                 List: []
             },
@@ -333,7 +331,8 @@ export default {
             state.deviceInfo = row;
             state.showDeviceEdit = true;
         }
-        const handlePageRefresh = ()=>{
+        const handlePageRefresh = (name)=>{
+            state.page.Request.Name = name;
             handlePageChange();
             refreshTunnel();
             refreshTuntap();

@@ -24,22 +24,46 @@ namespace linker.plugins.tunnel
         private readonly MessengerSender messengerSender;
         private readonly ConfigWrap config;
         private readonly RunningConfig running;
+        private readonly RunningConfigTransfer runningConfigTransfer;
 
-        public TunnelAdapter(ClientSignInState clientSignInState, MessengerSender messengerSender, ConfigWrap config, RunningConfig running)
+        private string wanPortConfigKey = "tunnelWanPortProtocols";
+        private string transportConfigKey = "tunnelTransports";
+
+        public TunnelAdapter(ClientSignInState clientSignInState, MessengerSender messengerSender, ConfigWrap config, RunningConfig running, RunningConfigTransfer runningConfigTransfer)
         {
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
             this.config = config;
             this.running = running;
-
+            this.runningConfigTransfer = runningConfigTransfer;
 
             string path = Path.GetFullPath(config.Data.Client.Certificate);
             if (File.Exists(path))
             {
                 Certificate = new X509Certificate2(path, config.Data.Client.Password, X509KeyStorageFlags.Exportable);
             }
+
+
+            clientSignInState.NetworkFirstEnabledHandle += () =>
+            {
+                SyncWanPort();
+                SyncTransport();
+            };
+            runningConfigTransfer.Setter(wanPortConfigKey, SetTunnelWanPortProtocols);
+            runningConfigTransfer.Getter(wanPortConfigKey, () => MemoryPackSerializer.Serialize(GetTunnelWanPortProtocols()));
+
+            runningConfigTransfer.Setter(transportConfigKey, SetTunnelTransports);
+            runningConfigTransfer.Getter(transportConfigKey, () => MemoryPackSerializer.Serialize(GetTunnelTransports()));
         }
 
+        private void SyncWanPort()
+        {
+            runningConfigTransfer.Sync(wanPortConfigKey, MemoryPackSerializer.Serialize(GetTunnelWanPortProtocols()));
+        }
+        private void SyncTransport()
+        {
+            runningConfigTransfer.Sync(transportConfigKey, MemoryPackSerializer.Serialize(GetTunnelTransports()));
+        }
         public List<TunnelWanPortInfo> GetTunnelWanPortProtocols()
         {
             return running.Data.Tunnel.Servers;
@@ -47,6 +71,12 @@ namespace linker.plugins.tunnel
         public void SetTunnelWanPortProtocols(List<TunnelWanPortInfo> compacts)
         {
             running.Data.Tunnel.Servers = compacts;
+            running.Data.Update();
+            SyncWanPort();
+        }
+        private void SetTunnelWanPortProtocols(Memory<byte> data)
+        {
+            running.Data.Tunnel.Servers = MemoryPackSerializer.Deserialize<List<TunnelWanPortInfo>>(data.Span);
             running.Data.Update();
         }
 
@@ -58,7 +88,15 @@ namespace linker.plugins.tunnel
         {
             running.Data.Tunnel.Transports = transports;
             running.Data.Update();
+            SyncTransport();
         }
+        private void SetTunnelTransports(Memory<byte> data)
+        {
+            running.Data.Tunnel.Transports = MemoryPackSerializer.Deserialize<List<TunnelTransportItemInfo>>(data.Span);
+            running.Data.Update();
+        }
+
+
 
         public NetworkInfo GetLocalConfig()
         {

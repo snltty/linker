@@ -7,9 +7,6 @@
         Relay = 2101,
         RelayForward = 2102,
 
-        Servers = 2103,
-        ServersForward = 2104,
-
         Max = 2199
     }
 }

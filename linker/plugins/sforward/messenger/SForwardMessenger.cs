@@ -151,26 +151,6 @@ namespace linker.plugins.sforward.messenger
             }
         }
 
-
-        [MessengerId((ushort)SForwardMessengerIds.SecretKeyForward)]
-        public async void SecretKeyForward(IConnection connection)
-        {
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
-            {
-                var caches = signCaching.Get(cache.GroupId);
-
-                foreach (var item in caches)
-                {
-                    await sender.SendOnly(new MessageRequestWrap
-                    {
-                        Connection = item.Connection,
-                        MessengerId = (ushort)SForwardMessengerIds.SecretKey,
-                        Payload = connection.ReceiveRequestWrap.Payload
-                    }).ConfigureAwait(false);
-                }
-            }
-        }
-
         private async Task<bool> WebConnect(string host, int port, ulong id)
         {
             if (sForwardServerCahing.TryGet(host, out string machineId) && signCaching.TryGet(machineId, out SignCacheInfo sign) && sign.Connected)
@@ -257,15 +237,6 @@ namespace linker.plugins.sforward.messenger
                     _ = proxy.OnConnectUdp(sForwardProxyInfo.BufferSize, sForwardProxyInfo.Id, new System.Net.IPEndPoint(connection.Address.Address, sForwardProxyInfo.RemotePort), sForwardInfo.LocalEP);
                 }
             }
-        }
-
-
-        [MessengerId((ushort)SForwardMessengerIds.SecretKey)]
-        public void SecretKey(IConnection connection)
-        {
-            string sForwardSecretKey = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            runningConfig.Data.SForwardSecretKey = sForwardSecretKey;
-            runningConfig.Data.Update();
         }
     }
 }

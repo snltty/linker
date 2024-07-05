@@ -1,9 +1,5 @@
 <template>
     <div class="servers-wrap">
-        <div class="pdb-6 t-c">
-            <el-checkbox v-model="settingState.sync" label="自动同步更改"  />
-            <el-button type="primary" @click="handleSave">立即同步</el-button>
-        </div>
         <el-tabs type="border-card" style="width:100%" v-model="state.tab">
             <template v-if="state.connected" v-for="(item,index) in settingComponents" :key="index">
                 <el-tab-pane :label="item.label" :name="item.name">
@@ -14,7 +10,7 @@
     </div>
 </template>
 <script>
-import { computed, provide, reactive, ref } from 'vue';
+import { computed, reactive } from 'vue';
 import { injectGlobalData } from '@/provide';
 export default {
     components:{},
@@ -27,14 +23,8 @@ export default {
             tab:settingComponents[0].name,
             connected:computed(()=>globalData.value.connected && globalData.value.configed),
         });
-
-        const settingState = ref({sync:true});
-        provide('setting',settingState);
-        const handleSave = ()=>{
-        }
-
         return {
-            state,settingState,settingComponents,handleSave
+            state,settingComponents
         }
     }
 }

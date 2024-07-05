@@ -78,21 +78,10 @@ namespace linker.plugins.tunnel
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public async Task<bool> SetServers(ApiControllerParamsInfo param)
+        public bool SetServers(ApiControllerParamsInfo param)
         {
-            SetServersParamInfo info = param.Content.DeJson<SetServersParamInfo>();
-
-            tunnelMessengerAdapter.SetTunnelWanPortProtocols(info.List);
-            if (info.Sync)
-            {
-                await messengerSender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = clientSignInState.Connection,
-                    MessengerId = (ushort)TunnelMessengerIds.ServersForward,
-                    Payload = MemoryPackSerializer.Serialize(info.List)
-                }).ConfigureAwait(false);
-            }
-
+            List<TunnelWanPortInfo> info = param.Content.DeJson<List<TunnelWanPortInfo>>();
+            tunnelMessengerAdapter.SetTunnelWanPortProtocols(info);
             return true;
 
         }
@@ -135,38 +124,21 @@ namespace linker.plugins.tunnel
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public async Task SetTransports(ApiControllerParamsInfo param)
+        public bool SetTransports(ApiControllerParamsInfo param)
         {
-            SetTransportsParamInfo info = param.Content.DeJson<SetTransportsParamInfo>();
-            tunnelMessengerAdapter.SetTunnelTransports(info.List);
-            if (info.Sync)
-            {
-                await messengerSender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = clientSignInState.Connection,
-                    MessengerId = (ushort)TunnelMessengerIds.TransportForward,
-                    Payload = MemoryPackSerializer.Serialize(info.List)
-                }).ConfigureAwait(false);
-            }
+            List<TunnelTransportItemInfo> info = param.Content.DeJson<List<TunnelTransportItemInfo>>();
+            tunnelMessengerAdapter.SetTunnelTransports(info);
+            return true;
         }
 
         public ExcludeIPItem[] GetExcludeIPs(ApiControllerParamsInfo param)
         {
             return tunnelConfigTransfer.GetExcludeIPs();
         }
-        public async Task SetExcludeIPs(ApiControllerParamsInfo param)
+        public void SetExcludeIPs(ApiControllerParamsInfo param)
         {
-            SetExcludeIPsParamInfo info = param.Content.DeJson<SetExcludeIPsParamInfo>();
-            tunnelConfigTransfer.SettExcludeIPs(info.List);
-            if (info.Sync)
-            {
-                await messengerSender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = clientSignInState.Connection,
-                    MessengerId = (ushort)TunnelMessengerIds.ExcludeIPsForward,
-                    Payload = MemoryPackSerializer.Serialize(info.List)
-                }).ConfigureAwait(false);
-            }
+            ExcludeIPItem[] info = param.Content.DeJson<ExcludeIPItem[]>();
+            tunnelConfigTransfer.SettExcludeIPs(info);
         }
 
 
@@ -176,22 +148,6 @@ namespace linker.plugins.tunnel
             public uint HashCode { get; set; }
         }
 
-        public sealed class SetServersParamInfo
-        {
-            public bool Sync { get; set; }
-            public List<TunnelWanPortInfo> List { get; set; } =new List<TunnelWanPortInfo>();
-        }
-
-        public sealed class SetTransportsParamInfo
-        {
-            public bool Sync { get; set; }
-            public List<TunnelTransportItemInfo> List { get; set; } = new List<TunnelTransportItemInfo>();
-        }
-        public sealed class SetExcludeIPsParamInfo
-        {
-            public bool Sync { get; set; }
-            public ExcludeIPItem[] List { get; set; }  = Array.Empty<ExcludeIPItem>();
-        }
     }
 
 }

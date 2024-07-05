@@ -27,26 +27,11 @@ namespace linker.plugins.sforward
 
         public string GetSecretKey(ApiControllerParamsInfo param)
         {
-            return runningConfig.Data.SForwardSecretKey;
+            return forwardTransfer.GetSecretKey();
         }
-        public async Task SetSecretKey(ApiControllerParamsInfo param)
+        public void SetSecretKey(ApiControllerParamsInfo param)
         {
-            SecretKeySetInfo info = param.Content.DeJson<SecretKeySetInfo>();
-            if(info.SForwardSecretKey != runningConfig.Data.SForwardSecretKey)
-            {
-                runningConfig.Data.SForwardSecretKey = info.SForwardSecretKey;
-                runningConfig.Data.Update();
-
-                if (info.Sync)
-                {
-                    await messengerSender.SendOnly(new MessageRequestWrap
-                    {
-                        Connection = clientSignInState.Connection,
-                        MessengerId = (ushort)SForwardMessengerIds.SecretKeyForward,
-                        Payload = MemoryPackSerializer.Serialize(info.SForwardSecretKey)
-                    }).ConfigureAwait(false);
-                }
-            }
+            forwardTransfer.SetSecretKey(param.Content);
         }
 
         public List<SForwardInfo> Get(ApiControllerParamsInfo param)
@@ -74,10 +59,5 @@ namespace linker.plugins.sforward
             return true;
         }
 
-        public sealed class SecretKeySetInfo
-        {
-            public bool Sync { get; set; }
-            public string SForwardSecretKey { get; set; }
-        }
     }
 }

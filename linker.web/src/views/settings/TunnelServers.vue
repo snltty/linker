@@ -84,12 +84,11 @@ export default {
     order:1,
     setup(props) {
         const globalData = injectGlobalData();
-        const settingState = inject('setting');
         const list = ((globalData.value.config.Running.Tunnel || {Servers:[]}).Servers || []).sort((a,b)=>a.Disabled - b.Disabled);
         const state = reactive({
             list:list,
             types:[],
-            height: computed(()=>globalData.value.height-130)
+            height: computed(()=>globalData.value.height-92)
         });
 
         const _getTunnelTypes = ()=>{
@@ -154,10 +153,7 @@ export default {
      
         const handleSave = ()=>{
             state.list = state.list.slice().sort((a,b)=>a.Disabled - b.Disabled);
-            setTunnelServers({
-                sync:settingState.value.sync,
-                list:state.list
-            }).then(()=>{
+            setTunnelServers(state.list).then(()=>{
                 ElMessage.success('已操作');
             }).catch(()=>{
                 ElMessage.success('操作失败');

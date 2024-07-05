@@ -16,19 +16,46 @@ namespace linker.plugins.sforward
         private readonly RunningConfig running;
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
+        private readonly RunningConfigTransfer runningConfigTransfer;
+
+        private string configKey = "sforwardKey";
 
         private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
 
-        public SForwardTransfer(RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender)
+        public SForwardTransfer(RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, RunningConfigTransfer runningConfigTransfer)
         {
             this.running = running;
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
+            this.runningConfigTransfer = runningConfigTransfer;
 
+            runningConfigTransfer.Setter(configKey, SetSecretKey);
+            runningConfigTransfer.Getter(configKey, () => MemoryPackSerializer.Serialize(GetSecretKey()));
             clientSignInState.NetworkFirstEnabledHandle += () =>
             {
                 Start();
+                SyncKey();
             };
+        }
+
+        public string GetSecretKey()
+        {
+            return running.Data.SForwardSecretKey;
+        }
+        public void SetSecretKey(string key)
+        {
+            running.Data.SForwardSecretKey = key;
+            running.Data.Update();
+            SyncKey();
+        }
+        private void SetSecretKey(Memory<byte> data)
+        {
+            running.Data.SForwardSecretKey = MemoryPackSerializer.Deserialize<string>(data.Span);
+            running.Data.Update();
+        }
+        private void SyncKey()
+        {
+            runningConfigTransfer.Sync(configKey, MemoryPackSerializer.Serialize(GetSecretKey()));
         }
 
         private void Start()

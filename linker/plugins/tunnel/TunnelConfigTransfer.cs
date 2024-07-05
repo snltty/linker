@@ -15,24 +15,39 @@ namespace linker.plugins.tunnel
         private readonly RunningConfig running;
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
+        private readonly RunningConfigTransfer runningConfigTransfer;
+
+        private string exipConfigKey = "excludeIPConfig";
 
         private uint version = 0;
         public uint ConfigVersion => version;
         private ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> configs = new ConcurrentDictionary<string, TunnelTransportRouteLevelInfo>();
         public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> Config => configs;
 
-        public TunnelConfigTransfer(ConfigWrap config, RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelWanPortTransfer compactTransfer)
+        public TunnelConfigTransfer(ConfigWrap config, RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, RunningConfigTransfer runningConfigTransfer)
         {
             this.config = config;
             this.running = running;
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
+            this.runningConfigTransfer = runningConfigTransfer;
 
             clientSignInState.NetworkEnabledHandle += (times) =>
             {
                 GetRemoveRouteLevel();
             };
+            clientSignInState.NetworkFirstEnabledHandle += () =>
+            {
+                SyncExcludeIP();
+            };
+            InitConfig();
 
+            runningConfigTransfer.Setter(exipConfigKey, SettExcludeIPs);
+            runningConfigTransfer.Getter(exipConfigKey, () => MemoryPackSerializer.Serialize(GetExcludeIPs()));
+
+        }
+        private void InitConfig()
+        {
             if (running.Data.Tunnel.Servers.FirstOrDefault(c => c.Type == TunnelWanPortType.Linker && c.ProtocolType == TunnelWanPortProtocolType.Udp) == null)
             {
                 running.Data.Tunnel.Servers.Add(new TunnelWanPortInfo
@@ -120,7 +135,10 @@ namespace linker.plugins.tunnel
         }
 
 
-
+        private void SyncExcludeIP()
+        {
+            runningConfigTransfer.Sync(exipConfigKey, MemoryPackSerializer.Serialize(running.Data.Tunnel.ExcludeIPs));
+        }
         public ExcludeIPItem[] GetExcludeIPs()
         {
             return running.Data.Tunnel.ExcludeIPs;
@@ -128,6 +146,13 @@ namespace linker.plugins.tunnel
         public void SettExcludeIPs(ExcludeIPItem[] ips)
         {
             running.Data.Tunnel.ExcludeIPs = ips;
+            running.Data.Update();
+            SyncExcludeIP();
+        }
+        private void SettExcludeIPs(Memory<byte> data)
+        {
+            running.Data.Tunnel.ExcludeIPs = MemoryPackSerializer.Deserialize<ExcludeIPItem[]>(data.Span);
+            running.Data.Update();
         }
     }
 }

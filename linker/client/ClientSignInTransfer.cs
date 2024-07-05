@@ -22,8 +22,11 @@ namespace linker.client
         private readonly TcpServer tcpServer;
         private readonly MessengerSender messengerSender;
         private readonly SignInArgsTransfer signInArgsTransfer;
+        private readonly RunningConfigTransfer runningConfigTransfer;
 
-        public ClientSignInTransfer(ClientSignInState clientSignInState, RunningConfig runningConfig, ConfigWrap config, TcpServer tcpServer, MessengerSender messengerSender, SignInArgsTransfer signInArgsTransfer)
+        private string configKey = "signServers";
+
+        public ClientSignInTransfer(ClientSignInState clientSignInState, RunningConfig runningConfig, ConfigWrap config, TcpServer tcpServer, MessengerSender messengerSender, SignInArgsTransfer signInArgsTransfer, RunningConfigTransfer runningConfigTransfer)
         {
             this.clientSignInState = clientSignInState;
             this.runningConfig = runningConfig;
@@ -31,10 +34,18 @@ namespace linker.client
             this.tcpServer = tcpServer;
             this.messengerSender = messengerSender;
             this.signInArgsTransfer = signInArgsTransfer;
+            this.runningConfigTransfer = runningConfigTransfer;
 
             if (string.IsNullOrWhiteSpace(config.Data.Client.Server) && runningConfig.Data.Client.Servers.Length > 0)
                 config.Data.Client.Server = runningConfig.Data.Client.Servers.FirstOrDefault().Host;
-            //SignInTask();
+
+            runningConfigTransfer.Setter(configKey, SetServers);
+            runningConfigTransfer.Getter(configKey, () => MemoryPackSerializer.Serialize(runningConfig.Data.Client.Servers));
+
+            clientSignInState.NetworkFirstEnabledHandle += () =>
+            {
+                SyncServers();
+            };
         }
 
         /// <summary>
@@ -157,27 +168,40 @@ namespace linker.client
                 _ = SignIn();
             }
         }
+
         /// <summary>
         /// 修改信标服务器列表
         /// </summary>
         /// <param name="servers"></param>
-        public void UpdateServers(ClientServerInfo[] servers)
+        public async Task UpdateServers(ClientServerInfo[] servers)
+        {
+            await SetServers(servers);
+            SyncServers();
+        }
+        private void SetServers(Memory<byte> data)
+        {
+            _ = SetServers(MemoryPackSerializer.Deserialize<ClientServerInfo[]>(data.Span));
+        }
+        private async Task SetServers(ClientServerInfo[] servers)
         {
             string server = config.Data.Client.Server;
-
             runningConfig.Data.Client.Servers = servers;
             if (runningConfig.Data.Client.Servers.Length > 0)
             {
                 config.Data.Client.Server = runningConfig.Data.Client.Servers.FirstOrDefault().Host;
             }
             runningConfig.Data.Update();
-
             if (server != config.Data.Client.Server)
             {
                 SignOut();
-                _ = SignIn();
+                await SignIn();
             }
         }
+        private void SyncServers()
+        {
+            runningConfigTransfer.Sync(configKey, MemoryPackSerializer.Serialize(runningConfig.Data.Client.Servers));
+        }
+
 
         /// <summary>
         /// 连接到信标服务器

@@ -40,31 +40,12 @@ namespace linker.plugins.relay
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public async Task<bool> SetServers(ApiControllerParamsInfo param)
+        public bool SetServers(ApiControllerParamsInfo param)
         {
-            RelayCompactParamInfo info = param.Content.DeJson<RelayCompactParamInfo>();
-
-            relayTransfer.OnServers(info.List);
-
-            if (info.Sync)
-            {
-                await messengerSender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = clientSignInState.Connection,
-                    MessengerId = (ushort)RelayMessengerIds.ServersForward,
-                    Payload = MemoryPackSerializer.Serialize(info.List)
-                }).ConfigureAwait(false);
-            }
-
-
+            RelayServerInfo[] info = param.Content.DeJson<RelayServerInfo[]>();
+            relayTransfer.OnServers(info);
             return true;
         }
-    }
-
-    public sealed class RelayCompactParamInfo
-    {
-        public bool Sync { get; set; }
-        public RelayServerInfo[] List { get; set; } = Array.Empty<RelayServerInfo>();
     }
 
 }

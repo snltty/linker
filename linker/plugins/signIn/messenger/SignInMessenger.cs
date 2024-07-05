@@ -23,12 +23,6 @@ namespace linker.plugins.signin.messenger
             clientSignInTransfer.UpdateName(info.NewName);
         }
 
-        [MessengerId((ushort)SignInMessengerIds.Servers)]
-        public void Servers(IConnection connection)
-        {
-            ClientServerInfo[] servers = MemoryPackSerializer.Deserialize<ClientServerInfo[]>(connection.ReceiveRequestWrap.Payload.Span);
-            clientSignInTransfer.UpdateServers(servers);
-        }
     }
 
     public sealed class SignInServerMessenger : IMessenger
@@ -67,11 +61,15 @@ namespace linker.plugins.signin.messenger
 
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
-                List<SignCacheInfo> list = signCaching.Get(cache.GroupId).OrderByDescending(c => c.MachineName).OrderByDescending(c => c.LastSignIn).OrderByDescending(c => c.Version).ToList();
-                int count = list.Count;
-                list = list.Skip((request.Page - 1) * request.Size).Take(request.Size).ToList();
+                IEnumerable<SignCacheInfo> list = signCaching.Get(cache.GroupId).OrderByDescending(c => c.MachineName).OrderByDescending(c => c.LastSignIn).OrderByDescending(c => c.Version).ToList();
+                if (string.IsNullOrWhiteSpace(request.Name) == false)
+                {
+                    list = list.Where(c => c.MachineName.Contains(request.Name));
+                }
+                int count = list.Count();
+                list = list.Skip((request.Page - 1) * request.Size).Take(request.Size);
 
-                SignInListResponseInfo response = new SignInListResponseInfo { Request = request, Count = count, List = list };
+                SignInListResponseInfo response = new SignInListResponseInfo { Request = request, Count = count, List = list.ToList() };
 
                 connection.Write(MemoryPackSerializer.Serialize(response));
             }
@@ -83,7 +81,7 @@ namespace linker.plugins.signin.messenger
             string name = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(name, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
-                signCaching.TryRemove(name,out _);
+                signCaching.TryRemove(name, out _);
             }
         }
 
@@ -105,29 +103,6 @@ namespace linker.plugins.signin.messenger
             }
         }
 
-
-        [MessengerId((ushort)SignInMessengerIds.ServersForward)]
-        public async Task ServersForward(IConnection connection)
-        {
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
-            {
-                var clients = signCaching.Get(cache.GroupId);
-                foreach (var info in clients)
-                {
-                    if (info.MachineId != connection.Id)
-                    {
-                        await messengerSender.SendOnly(new MessageRequestWrap
-                        {
-                            Connection = info.Connection,
-                            MessengerId = (ushort)SignInMessengerIds.Servers,
-                            Payload = connection.ReceiveRequestWrap.Payload,
-                        }).ConfigureAwait(false);
-                    }
-                }
-            }
-        }
-
-
         [MessengerId((ushort)SignInMessengerIds.Version)]
         public void Version(IConnection connection)
         {
@@ -139,9 +114,22 @@ namespace linker.plugins.signin.messenger
     [MemoryPackable]
     public sealed partial class SignInListRequestInfo
     {
+        /// <summary>
+        /// 当前页
+        /// </summary>
         public int Page { get; set; } = 1;
+        /// <summary>
+        /// 每页大小
+        /// </summary>
         public int Size { get; set; } = 10;
+        /// <summary>
+        /// 所在分组
+        /// </summary>
         public string GroupId { get; set; }
+        /// <summary>
+        /// 按名称搜索
+        /// </summary>
+        public string Name { get; set; }
     }
 
     [MemoryPackable]
