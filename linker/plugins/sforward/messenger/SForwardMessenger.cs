@@ -296,8 +296,6 @@ namespace linker.plugins.sforward.messenger
         public string Domain { get; set; }
         public int RemotePort { get; set; }
 
-        public byte BufferSize { get; set; } = 3;
-
         [MemoryPackAllowSerialize]
         public IPEndPoint LocalEP { get; set; }
     }
