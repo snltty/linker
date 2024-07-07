@@ -1,9 +1,10 @@
 <template>
-  <el-dialog v-model="state.show" @open="handleOnShowList" append-to=".app-wrap" title="服务器端口转发到本机" top="1vh" width="700">
+  <el-dialog v-model="state.show" @open="handleOnShowList" append-to=".app-wrap" title="服务器代理穿透" top="1vh" width="700">
         <div>
             <div class="t-c head">
                 <el-button type="success" size="small" @click="handleAdd">添加</el-button>
                 <el-button size="small" @click="handleRefresh">刷新</el-button>
+                <el-button size="small" @click="handleCopy">复制穿透配置</el-button>
             </div>
             <el-table :data="state.data" size="small" border height="500" @cell-dblclick="handleCellClick">
                 <el-table-column property="Name" label="名称">
@@ -85,11 +86,12 @@
     </el-dialog>
 </template>
 <script>
-import { inject, onMounted, onUnmounted, reactive, watch } from 'vue';
+import { onMounted, onUnmounted, reactive, watch } from 'vue';
 import { getSForwardInfo, removeSForwardInfo, addSForwardInfo,testLocalSForwardInfo } from '@/apis/sforward'
 import { ElMessage } from 'element-plus';
 import {WarnTriangleFilled} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
+import { useSforward } from './sforward';
 export default {
     props: ['data','modelValue'],
     emits: ['update:modelValue'],
@@ -97,7 +99,7 @@ export default {
     setup(props, { emit }) {
 
         const globalData = injectGlobalData();
-        const sforward = inject('sforward');
+        const sforward = useSforward();
         const state = reactive({
             bufferSize:globalData.value.bufferSize,
             show: true,
@@ -197,6 +199,9 @@ export default {
                 ElMessage.error(err);
             });
         }
+        const handleCopy = ()=>{
+            sforward.value.showCopy = true;
+        }
 
         onMounted(()=>{
             _getSForwardInfo();
@@ -207,7 +212,7 @@ export default {
         })
 
         return {
-            state, handleOnShowList, handleCellClick, handleRefresh, handleAdd, handleEdit, handleEditBlur, handleDel, handleStartChange
+            state, handleOnShowList, handleCellClick, handleRefresh, handleAdd, handleEdit, handleEditBlur, handleDel, handleStartChange,handleCopy
         }
     }
 }

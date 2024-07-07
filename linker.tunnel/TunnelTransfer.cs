@@ -42,6 +42,7 @@ namespace linker.tunnel
             }
 
             var transportItems = tunnelAdapter.GetTunnelTransports();
+            var names = transportItems.Select(c => c.Name);
             transportItems = transportItems.Concat(transports.Select(c => new TunnelTransportItemInfo
             {
                 Label = c.Label,
@@ -74,8 +75,7 @@ namespace linker.tunnel
                 }
             }
 
-
-            tunnelAdapter.SetTunnelTransports(transportItems);
+            tunnelAdapter.SetTunnelTransports(transportItems, names.SequenceEqual(transportItems.Select(c => c.Name)) == false);
 
             LoggerHelper.Instance.Warning($"load tunnel transport:{string.Join(",", transports.Select(c => c.Name))}");
             LoggerHelper.Instance.Warning($"used tunnel transport:{string.Join(",", transportItems.Where(c => c.Disabled == false).Select(c => c.Name))}");
@@ -136,7 +136,7 @@ namespace linker.tunnel
 
                     foreach (var wanPortProtocol in tunnelAdapter.GetTunnelWanPortProtocols().Where(c => c.Disabled == false && string.IsNullOrWhiteSpace(c.Host) == false))
                     {
-                       
+
                         //这个打洞协议不支持这个外网端口协议
                         if ((transport.AllowWanPortProtocolType & wanPortProtocol.ProtocolType) != wanPortProtocol.ProtocolType)
                         {

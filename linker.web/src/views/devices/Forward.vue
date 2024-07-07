@@ -53,23 +53,27 @@
     </el-table-column>
 </template>
 <script>
-import { inject } from 'vue';
+import { useForward } from './forward';
+import { useSforward } from './sforward';
 
 export default {
     emits: ['edit','sedit'],
     setup(props, { emit }) {
 
-        const forward = inject('forward')
-        const sforward = inject('sforward')
+        const forward = useForward()
+        const sforward = useSforward()
         const handleEdit = (machineId)=>{
             emit('edit',machineId)
         }
         const handleSEdit = ()=>{
             emit('sedit')
         }
+        const handleForwardRefresh = ()=>{
+            emit('refresh');
+        }
 
         return {
-            forward,sforward, handleEdit,handleSEdit
+            forward,sforward, handleEdit,handleSEdit,handleForwardRefresh
         }
     }
 }

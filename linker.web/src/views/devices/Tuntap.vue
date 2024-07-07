@@ -1,11 +1,5 @@
 <template>
     <el-table-column prop="tuntap" label="虚拟网卡" width="150">
-        <template #header>
-            <div class="flex">
-                <span class="flex-1">虚拟网卡</span>
-                <el-button size="small" @click="handleRuntapRefresh"><el-icon><Refresh /></el-icon></el-button>
-            </div>
-        </template>
         <template #default="scope">
             <div v-if="tuntap.list[scope.row.MachineId]">
                 <div class="flex">
@@ -40,13 +34,13 @@
 <script>
 import { stopTuntap, runTuntap } from '@/apis/tuntap';
 import { ElMessage } from 'element-plus';
-import { inject, reactive } from 'vue';
+import { useTuntap } from './tuntap';
 
 export default {
     emits: ['edit','refresh'],
     setup(props, { emit }) {
 
-        const tuntap = inject('tuntap');
+        const tuntap = useTuntap();
         const handleTuntap = (tuntap) => {
             const fn = tuntap.running ? stopTuntap (tuntap.MachineId) : runTuntap(tuntap.MachineId);
             fn.then(() => {
@@ -58,12 +52,12 @@ export default {
         const handleTuntapIP = (tuntap) => {
             emit('edit',tuntap);
         }
-        const handleRuntapRefresh = ()=>{
+        const handleTuntapRefresh = ()=>{
             emit('refresh');
         }
        
         return {
-            tuntap,  handleTuntap, handleTuntapIP,handleRuntapRefresh
+            tuntap,  handleTuntap, handleTuntapIP,handleTuntapRefresh
         }
     }
 }
@@ -72,4 +66,7 @@ export default {
 .green{color:green;}
 .error{color:red;}
 .el-switch.is-disabled{opacity :1;}
+.el-input{
+    width:8rem;
+}
 </style>

@@ -1,7 +1,9 @@
 ﻿using linker.client.config;
 using linker.plugins.signin.messenger;
 using linker.server;
+using LiteDB;
 using MemoryPack;
+using System.Net;
 
 namespace linker.plugins.forward.messenger
 {
@@ -45,6 +47,34 @@ namespace linker.plugins.forward.messenger
                 });
             }
         }
+
+        [MessengerId((ushort)ForwardMessengerIds.GetForward)]
+        public void GetForward(IConnection connection)
+        {
+            GetForwardInfo info = MemoryPackSerializer.Deserialize<GetForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache1.GroupId == cache.GroupId)
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                sender.SendReply(new MessageRequestWrap
+                {
+                    Connection = cache.Connection,
+                    MessengerId = (ushort)ForwardMessengerIds.Get,
+                    Payload = connection.ReceiveRequestWrap.Payload
+                }).ContinueWith(async (result) =>
+                {
+                    if (result.Result.Code == MessageResponeCodes.OK)
+                    {
+                        await sender.ReplyOnly(new MessageResponseWrap
+                        {
+                            Connection = connection,
+                            Code = MessageResponeCodes.OK,
+                            Payload = result.Result.Data,
+                            RequestId = requestid
+                        }).ConfigureAwait(false);
+                    }
+                });
+            }
+        }
     }
 
     public sealed class ForwardClientMessenger : IMessenger
@@ -75,7 +105,31 @@ namespace linker.plugins.forward.messenger
                 }).ConfigureAwait(false);
             });
         }
+
+        [MessengerId((ushort)ForwardMessengerIds.Get)]
+        public void Get(IConnection connection)
+        {
+            GetForwardInfo info = MemoryPackSerializer.Deserialize<GetForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (forwardTransfer.Get().TryGetValue(info.ToMachineId, out List<ForwardInfo> list))
+            {
+                var result = list.Select(c => new ForwardRemoteInfo { BufferSize = c.BufferSize, Name = c.Name, Port = c.Port, TargetEP = c.TargetEP }).ToList();
+                connection.Write(MemoryPackSerializer.Serialize(result));
+                return;
+            }
+            connection.Write(MemoryPackSerializer.Serialize(new List<ForwardRemoteInfo>()));
+        }
     }
 
+    [MemoryPackable]
+    public sealed partial class ForwardRemoteInfo
+    {
+        public string Name { get; set; }
+        public int Port { get; set; }
+
+        [MemoryPackAllowSerialize]
+        public IPEndPoint TargetEP { get; set; }
+
+        public byte BufferSize { get; set; } = 3;
+    }
 
 }

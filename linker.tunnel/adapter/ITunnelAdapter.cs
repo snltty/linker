@@ -26,7 +26,7 @@ namespace linker.tunnel.adapter
         /// 保存外网端口协议列表
         /// </summary>
         /// <param name="compacts"></param>
-        public void SetTunnelWanPortProtocols(List<TunnelWanPortInfo> protocols);
+        public void SetTunnelWanPortProtocols(List<TunnelWanPortInfo> protocols,bool updateVersion);
 
         /// <summary>
         /// 获取打洞协议列表
@@ -37,7 +37,7 @@ namespace linker.tunnel.adapter
         /// 保存打洞协议列表
         /// </summary>
         /// <param name="transports"></param>
-        public void SetTunnelTransports(List<TunnelTransportItemInfo> transports);
+        public void SetTunnelTransports(List<TunnelTransportItemInfo> transports, bool updateVersion);
 
         /// <summary>
         /// 获取本地网络信息

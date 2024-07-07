@@ -10,6 +10,9 @@ export const removeForwardConnection = (id) => {
 export const getForwardInfo = () => {
     return sendWebsocketMsg('forwardclient/get');
 }
+export const getForwardRemoteInfo = (data) => {
+    return sendWebsocketMsg('forwardclient/getremote', data);
+}
 export const getForwardIpv4 = () => {
     return sendWebsocketMsg('forwardclient/bindips');
 }

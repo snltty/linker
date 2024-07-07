@@ -46,6 +46,7 @@ namespace linker.plugins.sforward
         {
             running.Data.SForwardSecretKey = key;
             running.Data.Update();
+            runningConfigTransfer.IncrementVersion(configKey);
             SyncKey();
         }
         private void SetSecretKey(Memory<byte> data)
@@ -237,7 +238,6 @@ namespace linker.plugins.sforward
             Start();
             running.Data.SForwards.Remove(old);
             running.Data.Update();
-
             return true;
         }
     }

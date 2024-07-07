@@ -10,6 +10,9 @@
         Proxy = 2303,
         ProxyUdp = 2304,
 
+        GetForward = 2305,
+        Get = 2306,
+
         Max = 2399
     }
 }

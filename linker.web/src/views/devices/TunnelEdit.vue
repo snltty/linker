@@ -36,14 +36,15 @@
 <script>
 import {setTunnelRouteLevel } from '@/apis/tunnel';
 import { ElMessage } from 'element-plus';
-import { inject, reactive, ref, watch } from 'vue';
+import { reactive, ref, watch } from 'vue';
+import { useTunnel } from './tunnel';
 
 export default {
     props: ['modelValue'],
     emits: ['change','update:modelValue'],
     setup(props, { emit }) {
 
-        const tunnel = inject('tunnel');
+        const tunnel = useTunnel();
         const ruleFormRef = ref(null);
         const state = reactive({
             show: true,

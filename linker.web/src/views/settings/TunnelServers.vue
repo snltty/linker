@@ -1,4 +1,5 @@
 <template>
+    <Version ckey="tunnelWanPortProtocols"/>
     <el-table :data="state.list" border size="small" width="100%" :height="`${state.height}px`" @cell-dblclick="handleCellClick">
         <el-table-column prop="Name" label="名称">
             <template #default="scope">
@@ -78,17 +79,19 @@ import { setTunnelServers,getTunnelTypes } from '@/apis/tunnel';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { computed, inject, onMounted, reactive } from 'vue'
+import Version from './Version.vue';
 export default {
     label:'外网端口服务器',
     name:'tunnelServers',
     order:1,
+    components:{Version},
     setup(props) {
         const globalData = injectGlobalData();
         const list = ((globalData.value.config.Running.Tunnel || {Servers:[]}).Servers || []).sort((a,b)=>a.Disabled - b.Disabled);
         const state = reactive({
             list:list,
             types:[],
-            height: computed(()=>globalData.value.height-92)
+            height: computed(()=>globalData.value.height-127)
         });
 
         const _getTunnelTypes = ()=>{

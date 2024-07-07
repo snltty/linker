@@ -37,7 +37,8 @@
 import {updateTuntap } from '@/apis/tuntap';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import { inject, reactive, ref, watch } from 'vue';
+import { reactive, ref, watch } from 'vue';
+import { useTuntap } from './tuntap';
 
 export default {
     props: ['modelValue'],
@@ -45,8 +46,7 @@ export default {
     setup(props, { emit }) {
 
         const globalData = injectGlobalData();
-
-        const tuntap = inject('tuntap');
+        const tuntap = useTuntap();
         const ruleFormRef = ref(null);
         const state = reactive({
             show: true,

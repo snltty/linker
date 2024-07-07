@@ -74,6 +74,21 @@ namespace linker.plugins.signin
             }
             return new SignInListResponseInfo { };
         }
+        public async Task<SignInIdsResponseInfo> Ids(ApiControllerParamsInfo param)
+        {
+            SignInIdsRequestInfo request = param.Content.DeJson<SignInIdsRequestInfo>();
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)SignInMessengerIds.Ids,
+                Payload = MemoryPackSerializer.Serialize(request)
+            }).ConfigureAwait(false);
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                return MemoryPackSerializer.Deserialize<SignInIdsResponseInfo>(resp.Data.Span);
+            }
+            return new SignInIdsResponseInfo { };
+        }
 
         public async Task<bool> SetName(ApiControllerParamsInfo param)
         {

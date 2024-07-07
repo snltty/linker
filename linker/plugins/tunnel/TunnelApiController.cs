@@ -81,7 +81,7 @@ namespace linker.plugins.tunnel
         public bool SetServers(ApiControllerParamsInfo param)
         {
             List<TunnelWanPortInfo> info = param.Content.DeJson<List<TunnelWanPortInfo>>();
-            tunnelMessengerAdapter.SetTunnelWanPortProtocols(info);
+            tunnelMessengerAdapter.SetTunnelWanPortProtocols(info,true);
             return true;
 
         }
@@ -127,7 +127,7 @@ namespace linker.plugins.tunnel
         public bool SetTransports(ApiControllerParamsInfo param)
         {
             List<TunnelTransportItemInfo> info = param.Content.DeJson<List<TunnelTransportItemInfo>>();
-            tunnelMessengerAdapter.SetTunnelTransports(info);
+            tunnelMessengerAdapter.SetTunnelTransports(info, true);
             return true;
         }
 

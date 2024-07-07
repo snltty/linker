@@ -4,6 +4,7 @@
             <div class="t-c head">
                 <el-button type="success" size="small" @click="handleAdd">添加</el-button>
                 <el-button size="small" @click="handleRefresh">刷新</el-button>
+                <el-button size="small" @click="handleCopy">复制转发配置</el-button>
             </div>
             <el-table :data="state.data" size="small" border height="500" @cell-dblclick="handleCellClick">
                 <el-table-column property="Name" label="名称">
@@ -96,11 +97,12 @@
     </el-dialog>
 </template>
 <script>
-import { inject, onMounted, onUnmounted, reactive, watch } from 'vue';
+import {  onMounted, onUnmounted, reactive, watch } from 'vue';
 import { getForwardInfo, removeForwardInfo, addForwardInfo ,getForwardIpv4,testTargetForwardInfo,testListenForwardInfo } from '@/apis/forward'
 import { ElMessage } from 'element-plus';
 import {WarnTriangleFilled} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
+import { useForward } from './forward';
 export default {
     props: ['data','modelValue'],
     emits: ['update:modelValue'],
@@ -108,7 +110,7 @@ export default {
     setup(props, { emit }) {
 
         const globalData = injectGlobalData();
-        const forward = inject('forward');
+        const forward = useForward();
         const state = reactive({
             show: true,
             machineId: forward.value.current,
@@ -210,11 +212,16 @@ export default {
             });
         }
 
+        const handleCopy = ()=>{
+            forward.value.showCopy = true;
+        }
+
         onMounted(()=>{
             _getForwardInfo();
             _getForwardIpv4();
             _testTargetForwardInfo();
             _testListenForwardInfo();
+            
         });
         onUnmounted(()=>{
             clearTimeout(state.timerTestTarget);
@@ -222,7 +229,7 @@ export default {
         });
 
         return {
-            state, handleOnShowList, handleCellClick, handleRefresh, handleAdd, handleEdit, handleEditBlur, handleDel, handleStartChange
+            state, handleOnShowList, handleCellClick, handleRefresh, handleAdd, handleEdit, handleEditBlur, handleDel, handleStartChange,handleCopy
         }
     }
 }

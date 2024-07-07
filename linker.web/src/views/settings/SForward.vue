@@ -1,4 +1,5 @@
 <template>
+    <Version ckey="sforwardKey"/>
     <div style="width: 30rem;padding: 5rem 0; margin:  0 auto;">
         <p class="t-c">
             服务器代理穿透密钥
@@ -13,10 +14,12 @@ import { getSForwardSecretKey,setSForwardSecretKey } from '@/apis/sforward';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { computed, inject, onMounted, reactive } from 'vue'
+import Version from './Version.vue';
 export default {
     label:'服务器代理穿透',
     name:'sforward',
     order:5,
+    components:{Version},
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({

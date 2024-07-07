@@ -14,6 +14,7 @@ namespace linker.tunnel.wanport
 
         public TunnelWanPortTransfer()
         {
+
         }
 
         /// <summary>

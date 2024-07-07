@@ -1,11 +1,5 @@
 <template>
-    <el-table-column prop="tuntap" label="隧道" width="90">
-        <template #header>
-            <div class="flex">
-                <span class="flex-1">隧道</span>
-                <el-button size="small" @click="handleTunnelRefresh"><el-icon><Refresh /></el-icon></el-button>
-            </div>
-        </template>
+    <el-table-column prop="tunnel" label="隧道" width="90">
         <template #default="scope">
             <div v-if="tunnel.list[scope.row.MachineId]">
                 <p>
@@ -23,16 +17,17 @@
     </el-table-column>
 </template>
 <script>
-import { computed, inject, reactive } from 'vue';
+import { useTunnel } from './tunnel';
+import { useConnections,useForwardConnections,useTuntapConnections } from './connections';
 
 export default {
     emits: ['edit','refresh'],
     setup(props, { emit }) {
 
-        const tunnel = inject('tunnel');
-
-        const forwardConnections = inject('forward-connections');
-        const tuntapConnections = inject('tuntap-connections');
+        const tunnel = useTunnel();
+        const connections = useConnections();
+        const forwardConnections =useForwardConnections();
+        const tuntapConnections = useTuntapConnections();
 
         const connectionCount = (machineId)=>{
                 return [

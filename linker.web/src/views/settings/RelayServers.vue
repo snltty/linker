@@ -1,4 +1,5 @@
 <template>
+    <Version ckey="relayServers"/>
     <el-table :data="state.list" border size="small" width="100%" :height="`${state.height}px`" @cell-dblclick="handleCellClick">
         <el-table-column prop="Name" label="名称" width="100">
             <template #default="scope">
@@ -81,16 +82,18 @@ import { setRelayServers,getRelayTypes } from '@/apis/relay';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { computed, inject, onMounted, reactive } from 'vue'
+import Version from './Version.vue';
 export default {
     label:'中继服务器',
     name:'relayServers',
     order:4,
+    components:{Version},
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({
             list:((globalData.value.config.Running.Relay || {Servers:[]}).Servers || []).sort((a,b)=>a.Disabled - b.Disabled),
             types:[],
-            height: computed(()=>globalData.value.height-92)
+            height: computed(()=>globalData.value.height-127)
         });
 
         const _getRelayTypes = ()=>{

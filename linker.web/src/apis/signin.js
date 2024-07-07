@@ -16,6 +16,9 @@ export const getSignInfo = () => {
 export const getSignInList = (data) => {
     return sendWebsocketMsg('signInclient/List', data);
 }
+export const getSignInIds = (data) => {
+    return sendWebsocketMsg('signInclient/ids', data);
+}
 export const signInDel = (machineId) => {
     return sendWebsocketMsg('signInclient/del', machineId);
 }

@@ -304,13 +304,10 @@ span.split-pad10 {
     background-color: #fafafa;
 }
 
-.el-table--border,
-.el-table--group,
-.el-table-filter,
-.el-table td,
-.el-table th.is-leaf {
-    border-color: var(--main-border-color);
+.el-table thead.is-group th.el-table__cell {
+    background: var(--el-table-header-bg-color) !important;
 }
+
 
 .el-pagination.is-background .el-pager li:not(.disabled).active {
     background-color: var(--main-color);

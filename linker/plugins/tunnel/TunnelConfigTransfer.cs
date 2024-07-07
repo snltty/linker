@@ -3,6 +3,7 @@ using linker.client.config;
 using linker.config;
 using linker.plugins.tunnel.messenger;
 using linker.server;
+using linker.tunnel.adapter;
 using linker.tunnel.wanport;
 using MemoryPack;
 using System.Collections.Concurrent;
@@ -16,6 +17,7 @@ namespace linker.plugins.tunnel
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
         private readonly RunningConfigTransfer runningConfigTransfer;
+        private readonly ITunnelAdapter tunnelAdapter;
 
         private string exipConfigKey = "excludeIPConfig";
 
@@ -24,13 +26,14 @@ namespace linker.plugins.tunnel
         private ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> configs = new ConcurrentDictionary<string, TunnelTransportRouteLevelInfo>();
         public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> Config => configs;
 
-        public TunnelConfigTransfer(ConfigWrap config, RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, RunningConfigTransfer runningConfigTransfer)
+        public TunnelConfigTransfer(ConfigWrap config, RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, RunningConfigTransfer runningConfigTransfer, ITunnelAdapter tunnelAdapter)
         {
             this.config = config;
             this.running = running;
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
             this.runningConfigTransfer = runningConfigTransfer;
+            this.tunnelAdapter = tunnelAdapter;
 
             clientSignInState.NetworkEnabledHandle += (times) =>
             {
@@ -48,9 +51,11 @@ namespace linker.plugins.tunnel
         }
         private void InitConfig()
         {
-            if (running.Data.Tunnel.Servers.FirstOrDefault(c => c.Type == TunnelWanPortType.Linker && c.ProtocolType == TunnelWanPortProtocolType.Udp) == null)
+            bool updateVersion = false;
+            List<TunnelWanPortInfo> server = running.Data.Tunnel.Servers;
+            if (server.FirstOrDefault(c => c.Type == TunnelWanPortType.Linker && c.ProtocolType == TunnelWanPortProtocolType.Udp) == null)
             {
-                running.Data.Tunnel.Servers.Add(new TunnelWanPortInfo
+                server.Add(new TunnelWanPortInfo
                 {
                     Name = "Linker Udp",
                     Type = TunnelWanPortType.Linker,
@@ -58,10 +63,11 @@ namespace linker.plugins.tunnel
                     Disabled = false,
                     Host = running.Data.Client.Servers.FirstOrDefault().Host,
                 });
+                updateVersion = true;
             }
-            if (running.Data.Tunnel.Servers.FirstOrDefault(c => c.Type == TunnelWanPortType.Linker && c.ProtocolType == TunnelWanPortProtocolType.Tcp) == null)
+            if (server.FirstOrDefault(c => c.Type == TunnelWanPortType.Linker && c.ProtocolType == TunnelWanPortProtocolType.Tcp) == null)
             {
-                running.Data.Tunnel.Servers.Add(new TunnelWanPortInfo
+                server.Add(new TunnelWanPortInfo
                 {
                     Name = "Linker Tcp",
                     Type = TunnelWanPortType.Linker,
@@ -69,7 +75,9 @@ namespace linker.plugins.tunnel
                     Disabled = false,
                     Host = running.Data.Client.Servers.FirstOrDefault().Host,
                 });
+                updateVersion = true;
             }
+            tunnelAdapter.SetTunnelWanPortProtocols(server, updateVersion);
         }
 
         /// <summary>
@@ -147,6 +155,7 @@ namespace linker.plugins.tunnel
         {
             running.Data.Tunnel.ExcludeIPs = ips;
             running.Data.Update();
+            runningConfigTransfer.IncrementVersion(exipConfigKey);
             SyncExcludeIP();
         }
         private void SettExcludeIPs(Memory<byte> data)

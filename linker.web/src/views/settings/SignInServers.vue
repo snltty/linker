@@ -1,4 +1,5 @@
 <template>
+    <Version ckey="signServers"/>
     <el-table :data="state.list" border size="small" width="100%" :height="`${state.height}px`" @cell-dblclick="handleCellClick">
         <el-table-column prop="Name" label="名称">
             <template #default="scope">
@@ -50,16 +51,18 @@ import { setSignInServers } from '@/apis/signin';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { computed, inject, reactive } from 'vue'
+import Version from './Version.vue';
 export default {
     label:'信标服务器',
     name:'signInServers',
     order:0,
+    components:{Version},
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({
             list:globalData.value.config.Running.Client.Servers || [],
             server:computed(()=>globalData.value.config.Client.Server),
-            height: computed(()=>globalData.value.height-92),
+            height: computed(()=>globalData.value.height-127),
         });
 
         const handleCellClick = (row, column) => {

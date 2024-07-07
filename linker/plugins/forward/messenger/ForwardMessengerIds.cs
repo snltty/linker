@@ -7,6 +7,9 @@
         TestForward = 2401,
         Test = 2402,
 
+        GetForward = 2403,
+        Get = 2404,
+
         Max = 2499
     }
 }

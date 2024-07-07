@@ -5,6 +5,7 @@ using System.Reflection;
 using linker.client.args;
 using linker.client.config;
 using linker.config;
+using linker.client.config.messenger;
 
 namespace linker.client
 {
@@ -23,6 +24,8 @@ namespace linker.client
         {
             serviceCollection.AddSingleton<RunningConfig>();
             serviceCollection.AddSingleton<RunningConfigTransfer>();
+            serviceCollection.AddSingleton<ConfigClientMessenger>();
+            serviceCollection.AddSingleton<RunningConfigApiController>();
 
             serviceCollection.AddSingleton<SignInArgsTransfer>();
 
@@ -43,7 +46,7 @@ namespace linker.client
 
         public void AddServer(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
         {
-
+            serviceCollection.AddSingleton<ConfigServerMessenger>();
         }
         public void UseServer(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
         {

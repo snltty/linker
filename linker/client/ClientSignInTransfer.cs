@@ -176,6 +176,7 @@ namespace linker.client
         public async Task UpdateServers(ClientServerInfo[] servers)
         {
             await SetServers(servers);
+            runningConfigTransfer.IncrementVersion(configKey);
             SyncServers();
         }
         private void SetServers(Memory<byte> data)

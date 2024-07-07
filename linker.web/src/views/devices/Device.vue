@@ -3,12 +3,10 @@
     <template #header>
         <div class="flex">
             <span class="flex-1">设备</span>
-            <span> <el-input size="small" v-model="name" clearable @change="handleRefresh" >
-                <template #prefix>
-                    <el-icon><Search /></el-icon>
-                </template>
-            </el-input> </span>
-            <el-button size="small" @click="handleRefresh"><el-icon><Refresh /></el-icon></el-button>
+            <span> <el-input size="small" v-model="name" clearable @input="handleRefresh" placeholder="设备/虚拟网卡/端口转发" ></el-input> </span>
+            <span>
+                <el-button size="small" @click="handleRefresh"><el-icon><Search /></el-icon></el-button>
+            </span>
         </div>
     </template>
     <template #default="scope">
@@ -71,7 +69,7 @@ a.green{color:green}
     .el-icon{vertical-align:middle}
 }
 .el-input{
-    width:8rem;
+    width:15rem;
     margin-right:.6rem
 }
 </style>

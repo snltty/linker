@@ -7,6 +7,10 @@ using linker.libs;
 using linker.plugins.forward.proxy;
 using linker.tunnel.connection;
 using System.Collections.Concurrent;
+using linker.plugins.forward.messenger;
+using linker.server;
+using linker.client;
+using MemoryPack;
 
 namespace linker.plugins.forward
 {
@@ -14,11 +18,15 @@ namespace linker.plugins.forward
     {
         private readonly ForwardTransfer forwardTransfer;
         private readonly ForwardProxy forwardProxy;
+        private readonly MessengerSender messengerSender;
+        private readonly ClientSignInState clientSignInState;
 
-        public ForwardClientApiController(ForwardTransfer forwardTransfer, ForwardProxy forwardProxy)
+        public ForwardClientApiController(ForwardTransfer forwardTransfer, ForwardProxy forwardProxy, MessengerSender messengerSender, ClientSignInState clientSignInState)
         {
             this.forwardTransfer = forwardTransfer;
             this.forwardProxy = forwardProxy;
+            this.messengerSender = messengerSender;
+            this.clientSignInState = clientSignInState;
         }
 
         public ConcurrentDictionary<string, ITunnelConnection> Connections(ApiControllerParamsInfo param)
@@ -51,6 +59,21 @@ namespace linker.plugins.forward
         {
             return forwardTransfer.Get();
         }
+        public async Task<List<ForwardRemoteInfo>> GetRemote(ApiControllerParamsInfo param)
+        {
+            GetForwardInfo request = param.Content.DeJson<GetForwardInfo>();
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)ForwardMessengerIds.GetForward,
+                Payload = MemoryPackSerializer.Serialize(request)
+            }).ConfigureAwait(false);
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                return MemoryPackSerializer.Deserialize<List<ForwardRemoteInfo>>(resp.Data.Span);
+            }
+            return new List<ForwardRemoteInfo>();
+        }
 
         public IPAddress[] BindIPs(ApiControllerParamsInfo param)
         {
@@ -62,7 +85,6 @@ namespace linker.plugins.forward
             ForwardInfo info = param.Content.DeJson<ForwardInfo>();
             return forwardTransfer.Add(info);
         }
-
         public bool Remove(ApiControllerParamsInfo param)
         {
             if (uint.TryParse(param.Content, out uint id))

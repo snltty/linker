@@ -8,11 +8,9 @@ namespace linker.plugins.signin.messenger
 {
     public sealed class SignInClientMessenger : IMessenger
     {
-        private readonly ConfigWrap config;
         private readonly ClientSignInTransfer clientSignInTransfer;
         public SignInClientMessenger(ConfigWrap config, ClientSignInTransfer clientSignInTransfer)
         {
-            this.config = config;
             this.clientSignInTransfer = clientSignInTransfer;
         }
 
@@ -58,13 +56,12 @@ namespace linker.plugins.signin.messenger
         public void List(IConnection connection)
         {
             SignInListRequestInfo request = MemoryPackSerializer.Deserialize<SignInListRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
-
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
                 IEnumerable<SignCacheInfo> list = signCaching.Get(cache.GroupId).OrderByDescending(c => c.MachineName).OrderByDescending(c => c.LastSignIn).OrderByDescending(c => c.Version).ToList();
                 if (string.IsNullOrWhiteSpace(request.Name) == false)
                 {
-                    list = list.Where(c => c.MachineName.Contains(request.Name));
+                    list = list.Where(c => c.Version.Contains(request.Name) || c.IP.ToString().Contains(request.Name) || c.MachineName.Contains(request.Name) || request.Ids.Contains(c.MachineId));
                 }
                 int count = list.Count();
                 list = list.Skip((request.Page - 1) * request.Size).Take(request.Size);
@@ -109,6 +106,31 @@ namespace linker.plugins.signin.messenger
             connection.Write(MemoryPackSerializer.Serialize(config.Data.Version));
         }
 
+
+        [MessengerId((ushort)SignInMessengerIds.Ids)]
+        public void Ids(IConnection connection)
+        {
+            SignInIdsRequestInfo request = MemoryPackSerializer.Deserialize<SignInIdsRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            {
+                IEnumerable<SignCacheInfo> list = signCaching.Get(cache.GroupId).OrderByDescending(c => c.MachineName).OrderByDescending(c => c.LastSignIn).OrderByDescending(c => c.Version).ToList();
+                if (string.IsNullOrWhiteSpace(request.Name) == false)
+                {
+                    list = list.Where(c => c.MachineName.Contains(request.Name));
+                }
+                int count = list.Count();
+                list = list.Skip((request.Page - 1) * request.Size).Take(request.Size);
+
+                SignInIdsResponseInfo response = new SignInIdsResponseInfo
+                {
+                    Request = request,
+                    Count = count,
+                    List = list.Select(c => new SignInIdsResponseItemInfo { MachineId = c.MachineId, MachineName = c.MachineName }).ToList()
+                };
+
+                connection.Write(MemoryPackSerializer.Serialize(response));
+            }
+        }
     }
 
     [MemoryPackable]
@@ -130,6 +152,10 @@ namespace linker.plugins.signin.messenger
         /// 按名称搜索
         /// </summary>
         public string Name { get; set; }
+        /// <summary>
+        /// 按id获取
+        /// </summary>
+        public string[] Ids { get; set; }
     }
 
     [MemoryPackable]
@@ -138,5 +164,38 @@ namespace linker.plugins.signin.messenger
         public SignInListRequestInfo Request { get; set; } = new SignInListRequestInfo();
         public int Count { get; set; }
         public List<SignCacheInfo> List { get; set; } = new List<SignCacheInfo>();
+    }
+
+
+    [MemoryPackable]
+    public sealed partial class SignInIdsRequestInfo
+    {
+        /// <summary>
+        /// 当前页
+        /// </summary>
+        public int Page { get; set; } = 1;
+        /// <summary>
+        /// 每页大小
+        /// </summary>
+        public int Size { get; set; } = 10;
+        /// <summary>
+        /// 按名称搜索
+        /// </summary>
+        public string Name { get; set; }
+    }
+
+    [MemoryPackable]
+    public sealed partial class SignInIdsResponseInfo
+    {
+        public SignInIdsRequestInfo Request { get; set; } = new SignInIdsRequestInfo();
+        public int Count { get; set; }
+        public List<SignInIdsResponseItemInfo> List { get; set; } = new List<SignInIdsResponseItemInfo>();
+    }
+
+    [MemoryPackable]
+    public sealed partial class SignInIdsResponseItemInfo
+    {
+        public string MachineId { get; set; }
+        public string MachineName { get; set; }
     }
 }

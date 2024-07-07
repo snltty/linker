@@ -68,10 +68,12 @@ namespace linker.plugins.tunnel
         {
             return running.Data.Tunnel.Servers;
         }
-        public void SetTunnelWanPortProtocols(List<TunnelWanPortInfo> compacts)
+        public void SetTunnelWanPortProtocols(List<TunnelWanPortInfo> compacts, bool updateVersion)
         {
             running.Data.Tunnel.Servers = compacts;
             running.Data.Update();
+            if (updateVersion)
+                runningConfigTransfer.IncrementVersion(wanPortConfigKey);
             SyncWanPort();
         }
         private void SetTunnelWanPortProtocols(Memory<byte> data)
@@ -84,10 +86,12 @@ namespace linker.plugins.tunnel
         {
             return running.Data.Tunnel.Transports;
         }
-        public void SetTunnelTransports(List<TunnelTransportItemInfo> transports)
+        public void SetTunnelTransports(List<TunnelTransportItemInfo> transports, bool updateVersion)
         {
             running.Data.Tunnel.Transports = transports;
             running.Data.Update();
+            if (updateVersion)
+                runningConfigTransfer.IncrementVersion(transportConfigKey);
             SyncTransport();
         }
         private void SetTunnelTransports(Memory<byte> data)

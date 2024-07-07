@@ -40,4 +40,10 @@ namespace linker.client.config
         public List<IPEndPoint> EndPoints { get; set; }
     }
 
+    [MemoryPackable]
+    public sealed partial class GetForwardInfo
+    {
+        public string MachineId { get; set; }
+        public string ToMachineId { get; set; }
+    }
 }

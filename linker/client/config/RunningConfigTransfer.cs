@@ -2,7 +2,6 @@
 using linker.libs;
 using linker.server;
 using MemoryPack;
-using System;
 using System.Collections.Concurrent;
 
 namespace linker.client.config
@@ -45,7 +44,7 @@ namespace linker.client.config
 
         public Memory<byte> InputConfig(ConfigVersionInfo info)
         {
-            CheckVersion(info.Key, out ulong version);
+            ulong version = GetVersion(info.Key);
 
             if (setters.TryGetValue(info.Key, out Action<Memory<byte>> setter) && info.Version > version)
             {
@@ -54,7 +53,12 @@ namespace linker.client.config
             }
             else if (getters.TryGetValue(info.Key, out Func<Memory<byte>> getter) && version > info.Version)
             {
-                return getter();
+                return MemoryPackSerializer.Serialize(new ConfigVersionInfo
+                {
+                    Data = getter(),
+                    Key = info.Key,
+                    Version = version
+                });
             }
 
             return Helper.EmptyArray;
@@ -64,8 +68,7 @@ namespace linker.client.config
         private object syncLockObj = new();
         public void Sync(string key, Memory<byte> data)
         {
-            CheckVersion(key, out ulong version);
-
+            ulong version = GetVersion(key);
             sender.SendReply(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,
@@ -93,31 +96,25 @@ namespace linker.client.config
             });
         }
 
-        private void CheckVersion(string key, out ulong version)
-        {
-            if (runningConfig.Data.Versions.TryGetValue(key, out version) == false)
-            {
-                version = 1;
-            }
-            else
-            {
-                version++;
-            }
-            runningConfig.Data.Versions[key] = version;
-            runningConfig.Data.Update();
-        }
         private ulong GetVersion(string key)
         {
             if (runningConfig.Data.Versions.TryGetValue(key, out ulong version) == false)
             {
-                return 0;
+                version = 1;
+                runningConfig.Data.Versions[key] = version;
+                runningConfig.Data.Update();
             }
             return version;
         }
-        private void UpdateVersion(string key, ulong version)
+        public void UpdateVersion(string key, ulong version)
         {
             runningConfig.Data.Versions[key] = version;
             runningConfig.Data.Update();
+        }
+        public void IncrementVersion(string key)
+        {
+            ulong version = GetVersion(key);
+            UpdateVersion(key, version + 1);
         }
     }
 }

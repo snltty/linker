@@ -85,6 +85,7 @@ namespace linker.plugins.relay
         {
             running.Data.Relay.Servers = servers;
             running.Data.Update();
+            runningConfigTransfer.IncrementVersion(configKey);
             SyncServers();
         }
         private void SetServers(Memory<byte> data)

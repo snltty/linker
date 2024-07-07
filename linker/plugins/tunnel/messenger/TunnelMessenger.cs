@@ -6,8 +6,6 @@ using linker.tunnel.adapter;
 using linker.tunnel.transport;
 using linker.libs;
 using MemoryPack;
-using linker.tunnel.wanport;
-using linker.client.config;
 
 namespace linker.plugins.tunnel.messenger
 {
@@ -15,13 +13,11 @@ namespace linker.plugins.tunnel.messenger
     {
         private readonly TunnelTransfer tunnel;
         private readonly TunnelConfigTransfer tunnelConfigTransfer;
-        private readonly ITunnelAdapter tunnelMessengerAdapter;
 
-        public TunnelClientMessenger(TunnelTransfer tunnel, TunnelConfigTransfer tunnelConfigTransfer, ITunnelAdapter tunnelMessengerAdapter)
+        public TunnelClientMessenger(TunnelTransfer tunnel, TunnelConfigTransfer tunnelConfigTransfer)
         {
             this.tunnel = tunnel;
             this.tunnelConfigTransfer = tunnelConfigTransfer;
-            this.tunnelMessengerAdapter = tunnelMessengerAdapter;
         }
 
         [MessengerId((ushort)TunnelMessengerIds.Begin)]

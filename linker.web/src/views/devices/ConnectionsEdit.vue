@@ -51,16 +51,17 @@
     </el-dialog>
 </template>
 <script>
-import { onMounted, reactive, watch,inject,computed } from 'vue';
+import { reactive, watch,computed } from 'vue';
 import { ElMessage } from 'element-plus';
+import { useConnections, useForwardConnections, useTuntapConnections } from './connections';
 export default {
     props: ['modelValue'],
     emits: ['change','update:modelValue'],
     setup(props, { emit }) {
 
-        const connections = inject('connections');
-        const forwardConnections = inject('forward-connections');
-        const tuntapConnections = inject('tuntap-connections');
+        const connections = useConnections();
+        const forwardConnections =useForwardConnections();
+        const tuntapConnections = useTuntapConnections();
         const state = reactive({
             show: true,
             protocolTypes:{1:'tcp',2:'udp',4:'msquic'},
