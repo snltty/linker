@@ -55,7 +55,10 @@ export const provideForward = () => {
     }
 
     const getForwardMachines = (name) => {
-        return Object.values(forward.value.list)
+        return Object.values(forward.value.list).reduce((arr, val) => {
+            arr = arr.concat(val);
+            return arr;
+        }, [])
             .filter(c => (c.Name || '').indexOf(name) >= 0 || (c.BindIPAddress || '').indexOf(name) >= 0 || (c.Port.toString()).indexOf(name) >= 0 || (c.TargetEP || '').indexOf(name) >= 0)
             .map(c => c.MachineId);
     }
