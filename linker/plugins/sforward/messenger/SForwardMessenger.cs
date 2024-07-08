@@ -278,7 +278,6 @@ namespace linker.plugins.sforward.messenger
         {
             List<SForwardRemoteInfo> result = sForwardTransfer.Get().Select(c => new SForwardRemoteInfo
             {
-                BufferSize = c.BufferSize,
                 Domain = c.Domain,
                 LocalEP = c.LocalEP,
                 Name = c.Name,
