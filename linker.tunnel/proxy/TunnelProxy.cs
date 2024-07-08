@@ -85,7 +85,16 @@ namespace linker.tunnel.proxy
                     ConnectBind(token);
                     break;
                 case ProxyStep.Forward:
-                    await SendToSocket(token).ConfigureAwait(false);
+                    {
+                        if (token.Proxy.Protocol == ProxyProtocol.Tcp)
+                        {
+                            await SendToSocketTcp(token).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            await SendToSocketUdp(token).ConfigureAwait(false);
+                        }
+                    }
                     break;
                 case ProxyStep.Receive:
                     ReceiveSocket(token);
@@ -95,22 +104,6 @@ namespace linker.tunnel.proxy
                     break;
                 default:
                     break;
-            }
-        }
-        /// <summary>
-        /// 发送数据到目标服务
-        /// </summary>
-        /// <param name="tunnelToken"></param>
-        /// <returns></returns>
-        private async Task SendToSocket(AsyncUserTunnelToken tunnelToken)
-        {
-            if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)
-            {
-                await SendToSocketTcp(tunnelToken).ConfigureAwait(false);
-            }
-            else
-            {
-                await SendToSocketUdp(tunnelToken).ConfigureAwait(false);
             }
         }
 

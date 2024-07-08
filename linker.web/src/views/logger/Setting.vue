@@ -65,7 +65,6 @@ export default {
         const loadConfig = () => {
             getLoggerConfig()
                 .then((json) => {
-                    console.log(json);
                     state.configInfo = json;
                     state.form.Size = json.Size;
                     state.form.LoggerType = json.LoggerType;
