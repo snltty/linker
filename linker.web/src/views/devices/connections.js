@@ -1,5 +1,5 @@
-import { getForwardConnections } from "@/apis/forward";
-import { getTuntapConnections } from "@/apis/tuntap";
+import { getForwardConnections, removeForwardConnection } from "@/apis/forward";
+import { getTuntapConnections, removeTuntapConnection } from "@/apis/tuntap";
 import { injectGlobalData } from "@/provide";
 import { inject, provide, ref } from "vue";
 
