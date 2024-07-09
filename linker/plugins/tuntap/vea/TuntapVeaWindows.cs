@@ -133,10 +133,10 @@ namespace linker.plugins.tuntap.vea
             {
                 string[] commands = ips.Where(c => c.IPAddress > 0).Select(item =>
                 {
-                    byte[] maskArr = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(item.MaskValue));
-                    byte[] ips = BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes();
-                    ips[3] = 0;
-                    return $"route add {string.Join(".", ips)} mask {string.Join(".", maskArr)} {ip} metric 5 if {interfaceNumber}";
+                    IPAddress mask = NetworkHelper.GetMaskIp(item.MaskValue);
+                    IPAddress _ip = NetworkHelper.ToNetworkIp(item.IPAddress, item.MaskValue);
+
+                    return $"route add {_ip} mask {mask} {ip} metric 5 if {interfaceNumber}";
                 }).ToArray();
                 if (commands.Length > 0)
                 {
@@ -154,9 +154,8 @@ namespace linker.plugins.tuntap.vea
             {
                 string[] commands = ip.Where(c => c.IPAddress > 0).Select(item =>
                 {
-                    byte[] ips = BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes();
-                    ips[3] = 0;
-                    return $"route delete {string.Join(".", ips)}";
+                    IPAddress _ip = NetworkHelper.ToNetworkIp(item.IPAddress, item.MaskValue);
+                    return $"route delete {_ip}";
                 }).ToArray();
                 if (commands.Length > 0)
                 {

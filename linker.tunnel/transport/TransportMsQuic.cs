@@ -20,7 +20,7 @@ namespace linker.tunnel.transport
         public string Label => "MsQuic，win10+、linux";
 
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Quic;
-        public TunnelWanPortProtocolType AllowWanPortProtocolType =>  TunnelWanPortProtocolType.Udp;
+        public TunnelWanPortProtocolType AllowWanPortProtocolType => TunnelWanPortProtocolType.Udp;
         public bool Reverse => true;
 
         public bool DisableReverse => false;
@@ -35,7 +35,7 @@ namespace linker.tunnel.transport
         public Func<TunnelTransportInfo, Task> OnSendConnectSuccess { get; set; } = async (info) => { await Task.CompletedTask; };
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
 
-       
+
 
         private ConcurrentDictionary<int, ListenAsyncToken> stateDic = new ConcurrentDictionary<int, ListenAsyncToken>();
         private byte[] authBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.ttl");
@@ -378,7 +378,7 @@ namespace linker.tunnel.transport
                 }
                 finally
                 {
-                   // ArrayPool<byte>.Shared.Return(buffer);
+                    // ArrayPool<byte>.Shared.Return(buffer);
                 }
             });
             return socketUdp;
@@ -431,7 +431,7 @@ namespace linker.tunnel.transport
             }
             finally
             {
-               // ArrayPool<byte>.Shared.Return(buffer);
+                // ArrayPool<byte>.Shared.Return(buffer);
             }
         }
 
@@ -513,7 +513,7 @@ namespace linker.tunnel.transport
             }
             finally
             {
-               // ArrayPool<byte>.Shared.Return(buffer);
+                // ArrayPool<byte>.Shared.Return(buffer);
             }
         }
         /// <summary>
@@ -584,7 +584,7 @@ namespace linker.tunnel.transport
             }
             finally
             {
-               // ArrayPool<byte>.Shared.Return(buffer);
+                // ArrayPool<byte>.Shared.Return(buffer);
             }
         }
 
@@ -662,9 +662,10 @@ namespace linker.tunnel.transport
         {
             if (OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
             {
+                TestQuic();
                 if (QuicListener.IsSupported == false)
                 {
-                    LoggerHelper.Instance.Error($"msquic not supported, need win11+,or linux");
+                    LoggerHelper.Instance.Error($"msquic not supported, need win11+,or linux, or try to restart linker");
                     return;
                 }
                 if (tunnelAdapter.Certificate == null)
@@ -726,6 +727,35 @@ namespace linker.tunnel.transport
                 }
             }
         }
+        private void TestQuic()
+        {
+            if (QuicListener.IsSupported == false)
+            {
+                if (OperatingSystem.IsWindows())
+                {
+                    try
+                    {
+                        LoggerHelper.Instance.Info($"move msquic-openssl.dll -> msquic.dll");
+                        File.Move("msquic-openssl.dll", "msquic.dll", true);
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+            }
+            else
+            {
+                try
+                {
+                    LoggerHelper.Instance.Info($"delete msquic-openssl.dll");
+                    File.Delete("msquic-openssl.dll");
+                }
+                catch (Exception)
+                {
+                }
+            }
+        }
+
 
         sealed class ListenAsyncToken
         {

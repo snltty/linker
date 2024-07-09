@@ -25,8 +25,12 @@
                     <el-switch v-model="tuntap.list[scope.row.MachineId].running" :loading="tuntap.list[scope.row.MachineId].loading" disabled @click="handleTuntap(tuntap.list[scope.row.MachineId])"  size="small" inline-prompt active-text="O" inactive-text="F" > 
                     </el-switch>
                 </div>
-                <div>{{ tuntap.list[scope.row.MachineId].LanIPs.join('、') }}</div>
-                <div>{{ 1<<tuntap.list[scope.row.MachineId].BufferSize}}KB</div>
+                <div>
+                    <div v-for="(item,index) in  tuntap.list[scope.row.MachineId].LanIPs" :key="index">
+                        {{ item }} / {{ tuntap.list[scope.row.MachineId].Masks[index] }}
+                    </div>
+                </div>
+                <div class="t-r">{{ 1<<tuntap.list[scope.row.MachineId].BufferSize}}KB</div>
             </div> 
         </template>
     </el-table-column>

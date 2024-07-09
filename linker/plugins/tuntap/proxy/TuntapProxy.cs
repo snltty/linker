@@ -25,7 +25,7 @@ namespace linker.plugins.tuntap.proxy
         private IPEndPoint proxyEP;
         public override IPAddress UdpBindAdress { get; set; }
 
-        private uint maskValue = NetworkHelper.MaskValue(24);
+        private uint[] maskValues = Array.Empty<uint>();
         private readonly ConcurrentDictionary<uint, string> dic = new ConcurrentDictionary<uint, string>();
         private readonly ConcurrentDictionary<string, ITunnelConnection> connections = new ConcurrentDictionary<string, ITunnelConnection>();
         private readonly ConcurrentDictionary<string, SemaphoreSlim> dicLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
@@ -78,6 +78,7 @@ namespace linker.plugins.tuntap.proxy
                     dic.AddOrUpdate(ip.NetWork, item.MachineId, (a, b) => item.MachineId);
                 }
             }
+            maskValues = ips.SelectMany(c => c.IPS.Select(c => c.MaskValue)).Distinct().OrderBy(c => c).ToArray();
             UdpBindAdress = runningConfig.Data.Tuntap.IP;
         }
         public void SetIP(string machineId, uint ip)
@@ -196,12 +197,24 @@ namespace linker.plugins.tuntap.proxy
         /// <returns></returns>
         private async ValueTask<ITunnelConnection> ConnectTunnel(uint ip)
         {
-            uint network = ip & maskValue;
-            if (dic.TryGetValue(ip, out string machineId) == false && dic.TryGetValue(network, out machineId) == false)
+            //直接按IP查找
+            if (dic.TryGetValue(ip, out string machineId) == false)
             {
-                return null;
+                return await ConnectTunnel(machineId).ConfigureAwait(false);
             }
-            return await ConnectTunnel(machineId).ConfigureAwait(false);
+
+            //匹配掩码查找
+            for (int i = 0; i < maskValues.Length; i++)
+            {
+                uint network = ip & maskValues[i];
+                if (dic.TryGetValue(network, out machineId))
+                {
+                    return await ConnectTunnel(machineId).ConfigureAwait(false);
+                }
+            }
+
+            return null;
+
         }
         /// <summary>
         /// 打洞或者中继

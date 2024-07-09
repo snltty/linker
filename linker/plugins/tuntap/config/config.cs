@@ -26,6 +26,7 @@ namespace linker.plugins.tuntap.config
         /// 局域网IP列表
         /// </summary>
         public IPAddress[] LanIPs { get; set; } = Array.Empty<IPAddress>();
+        public int[] Masks { get; set; } = Array.Empty<int>();
         public bool Running { get; set; }
     }
 }

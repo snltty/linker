@@ -23,7 +23,7 @@ namespace linker.plugins.tuntap.vea
         public async Task<bool> Run(int proxyPort, IPAddress ip)
         {
             CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap add mode tun dev {InterfaceName}" });
-            await SetIp(ip).ConfigureAwait(false); 
+            await SetIp(ip).ConfigureAwait(false);
             string str = CommandHelper.Linux(string.Empty, new string[] { $"ifconfig" });
             if (str.Contains(InterfaceName) == false)
             {
@@ -47,7 +47,7 @@ namespace linker.plugins.tuntap.vea
                     LoggerHelper.Instance.Error(Error);
                 }
 
-                await Task.Delay(10).ConfigureAwait(false); 
+                await Task.Delay(10).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -66,7 +66,7 @@ namespace linker.plugins.tuntap.vea
             }
             this.ip = ip;
             CommandHelper.Linux(string.Empty, new string[] { $"ip addr add {ip}/24 dev {InterfaceName}", $"ip link set dev {InterfaceName} up" });
-            return await Task.FromResult(true).ConfigureAwait(false); 
+            return await Task.FromResult(true).ConfigureAwait(false);
         }
 
         public void Kill()
@@ -101,9 +101,8 @@ namespace linker.plugins.tuntap.vea
         {
             string[] commands = ips.Where(c => c.IPAddress > 0).Select(item =>
             {
-                byte[] ips = BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes();
-                ips[3] = 0;
-                return $"ip route add {string.Join(".", ips)}/{item.MaskLength} via {ip} dev {InterfaceName} metric 1 ";
+                IPAddress _ip = NetworkHelper.ToNetworkIp(item.IPAddress, item.MaskValue);
+                return $"ip route add {_ip}/{item.MaskLength} via {ip} dev {InterfaceName} metric 1 ";
             }).ToArray();
             if (commands.Length > 0)
             {
@@ -118,9 +117,8 @@ namespace linker.plugins.tuntap.vea
         {
             string[] commands = ip.Select(item =>
             {
-                byte[] ips = BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes();
-                ips[3] = 0;
-                return $"ip route del {string.Join(".", ips)}/{item.MaskLength}";
+                IPAddress _ip = NetworkHelper.ToNetworkIp(item.IPAddress, item.MaskValue);
+                return $"ip route del {_ip}/{item.MaskLength}";
             }).ToArray();
 
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)

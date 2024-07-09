@@ -1,4 +1,6 @@
-﻿using System;
+﻿using linker.libs.extends;
+using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -87,7 +89,7 @@ namespace linker.libs
         }
         private static IEnumerable<IPAddress> GetTraceRoute(string hostNameOrAddress, int ttl)
         {
-            if(ttl > 5)
+            if (ttl > 5)
             {
                 return new List<IPAddress>();
             }
@@ -121,7 +123,7 @@ namespace linker.libs
                 {
                     //递归访问下一个地址
                     IEnumerable<IPAddress> tempResult = GetTraceRoute(hostNameOrAddress, ttl + 1);
-                    if(tempResult.Count() > 0)
+                    if (tempResult.Count() > 0)
                     {
                         result.AddRange(tempResult);
                     }
@@ -164,11 +166,24 @@ namespace linker.libs
             }
             return maskLength;
         }
+
         public static uint MaskValue(byte maskLength)
         {
             //最多<<31 所以0需要单独计算
             if (maskLength < 1) return 0;
             return 0xffffffff << (32 - maskLength);
+        }
+        public static IPAddress GetMaskIp(uint maskValue)
+        {
+            return new IPAddress(BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(maskValue)));
+        }
+        public static IPAddress ToNetworkIp(IPAddress ip, uint maskvalue)
+        {
+            return ToNetworkIp(BinaryPrimitives.ReadUInt32BigEndian(ip.GetAddressBytes()), maskvalue);
+        }
+        public static IPAddress ToNetworkIp(uint ip, uint maskvalue)
+        {
+            return new IPAddress(BinaryPrimitives.ReverseEndianness(ip & maskvalue).ToBytes());
         }
 
         public static bool NotIPv6Support(IPAddress ip)

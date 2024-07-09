@@ -1,5 +1,5 @@
 <template>
-     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" title="设置虚拟网卡IP" width="380">
+     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" title="设置虚拟网卡IP" width="420">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="80">
                 <el-form-item label="缓冲区" prop="BufferSize">
@@ -14,7 +14,7 @@
                     <template v-for="(item, index) in state.ruleForm.LanIPs" :key="index">
                         <div class="flex" style="margin-bottom:.6rem">
                             <div class="flex-1">
-                                <el-input v-model="state.ruleForm.LanIPs[index]" style="width:12rem" /> / 24
+                                <el-input v-model="state.ruleForm.LanIPs[index]" style="width:12rem" /> / <el-input @change="handleMaskChange(index)" v-model="state.ruleForm.Masks[index]" style="width:4rem" />
                             </div>
                             <div class="pdl-10">
                                 <el-button type="danger" @click="handleDel(index)"><el-icon><Delete /></el-icon></el-button>
@@ -47,6 +47,7 @@ export default {
 
         const globalData = injectGlobalData();
         const tuntap = useTuntap();
+        console.log(tuntap);
         const ruleFormRef = ref(null);
         const state = reactive({
             show: true,
@@ -54,12 +55,14 @@ export default {
             ruleForm: {
                 IP: tuntap.value.current.IP,
                 LanIPs: tuntap.value.current.LanIPs.slice(0),
+                Masks: tuntap.value.current.Masks.slice(0),
                 BufferSize: tuntap.value.current.BufferSize
             },
             rules: {}
         });
         if (state.ruleForm.LanIPs.length == 0) {
             state.ruleForm.LanIPs.push('');
+            state.ruleForm.Masks.push(24);
         }
         watch(() => state.show, (val) => {
             if (!val) {
@@ -69,17 +72,34 @@ export default {
             }
         });
 
+        const handleMaskChange = (index)=>{
+            var value = +state.ruleForm.Masks[index];
+            if(value>32 || value<16 || isNaN(value)){
+                value = 24;
+            }
+            state.ruleForm.Masks[index] = value;
+        }
         const handleDel = (index) => {
             if (state.ruleForm.LanIPs.length == 1) return;
             state.ruleForm.LanIPs.splice(index, 1);
+            state.ruleForm.Masks.splice(index, 1);
         }
         const handleAdd = (index) => {
             state.ruleForm.LanIPs.splice(index + 1, 0, '');
+            state.ruleForm.Masks.splice(index + 1, 0, 24);
         }
         const handleSave = () => {
             const json = JSON.parse(JSON.stringify(tuntap.value.current));
             json.IP = state.ruleForm.IP || '0.0.0.0';
-            json.LanIPs = state.ruleForm.LanIPs.filter(c => c);
+            const {lanips,masks} = state.ruleForm.LanIPs.reduce((json,ip,index)=>{
+                if(ip && state.ruleForm.Masks[index]){
+                    json.lanips.push(ip);
+                    json.masks.push(state.ruleForm.Masks[index]);
+                }
+                return json;
+            },{lanips:[],masks:[]});
+            json.LanIPs = lanips;
+            json.Masks = masks;
             json.BufferSize = state.ruleForm.BufferSize;
             updateTuntap(json).then(() => {
                 state.show = false;
@@ -91,7 +111,7 @@ export default {
         }
 
         return {
-           state, ruleFormRef,  handleDel, handleAdd, handleSave
+           state, ruleFormRef,handleMaskChange,  handleDel, handleAdd, handleSave
         }
     }
 }

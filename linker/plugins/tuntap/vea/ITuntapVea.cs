@@ -62,6 +62,7 @@ namespace linker.plugins.tuntap.vea
 
         [MemoryPackAllowSerialize]
         public IPAddress[] LanIPs { get; set; } = Array.Empty<IPAddress>();
+        public int[] Masks { get; set; } = Array.Empty<int>();
 
         public string Error { get; set; }
 

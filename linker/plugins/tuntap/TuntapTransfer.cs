@@ -168,6 +168,7 @@ namespace linker.plugins.tuntap
             {
                 runningConfig.Data.Tuntap.IP = info.IP;
                 runningConfig.Data.Tuntap.LanIPs = info.LanIPs;
+                runningConfig.Data.Tuntap.Masks = info.Masks;
                 runningConfig.Data.Tuntap.BufferSize = info.BufferSize;
                 runningConfig.Data.Update();
                 if (Status == TuntapStatus.Running)
@@ -228,15 +229,22 @@ namespace linker.plugins.tuntap
         /// <returns></returns>
         private TuntapInfo GetLocalInfo()
         {
-            return new TuntapInfo
+            TuntapInfo info = new TuntapInfo
             {
                 IP = runningConfig.Data.Tuntap.IP,
                 LanIPs = runningConfig.Data.Tuntap.LanIPs,
+                Masks = runningConfig.Data.Tuntap.Masks,
                 MachineId = config.Data.Client.Id,
                 Status = Status,
                 Error = tuntapVea.Error,
                 BufferSize = runningConfig.Data.Tuntap.BufferSize
             };
+            if (runningConfig.Data.Tuntap.Masks.Length != runningConfig.Data.Tuntap.LanIPs.Length)
+            {
+                runningConfig.Data.Tuntap.Masks = new byte[runningConfig.Data.Tuntap.LanIPs.Length].Select(c => 24).ToArray();
+            }
+
+            return info;
         }
         /// <summary>
         /// 获取别人的网卡信息
@@ -290,9 +298,8 @@ namespace linker.plugins.tuntap
 
         private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)
         {
-            uint maskValue = NetworkHelper.MaskValue(24);
-            uint[] networks = NetworkHelper.GetIPV4().Concat(new IPAddress[] { runningConfig.Data.Tuntap.IP })
-                .Select(c => BinaryPrimitives.ReadUInt32BigEndian(c.GetAddressBytes()) & maskValue)
+            uint[] localIps = NetworkHelper.GetIPV4().Concat(new IPAddress[] { runningConfig.Data.Tuntap.IP })
+                .Select(c => BinaryPrimitives.ReadUInt32BigEndian(c.GetAddressBytes()))
                 .ToArray();
 
             return infos
@@ -303,31 +310,17 @@ namespace linker.plugins.tuntap
                     return new TuntapVeaLanIPAddressList
                     {
                         MachineId = c.MachineId,
-                        IPS = ParseIPs(c.LanIPs)
+                        IPS = ParseIPs(c.LanIPs,c.Masks)
+                        //这边的局域网IP也不要，为了防止将本机局域网IP路由到别的地方
+                        .Where(c=> localIps.Select(d=>d & c.MaskValue ).Contains(c.NetWork) == false).ToList(),
                     };
-                })
-                //这边的局域网IP也不要，为了防止将本机局域网IP路由到别的地方
-                .Where(c =>
-                {
-                    for (int i = 0; i < c.IPS.Count; i++)
-                    {
-                        for (int j = 0; j < networks.Length; j++)
-                        {
-                            if (c.IPS[i].NetWork == networks[j])
-                            {
-                                return false;
-                            }
-                        }
-                    }
-
-                    return true;
                 }).ToList();
         }
-        private List<TuntapVeaLanIPAddress> ParseIPs(IPAddress[] lanIPs)
+        private List<TuntapVeaLanIPAddress> ParseIPs(IPAddress[] lanIPs, int[] masks)
         {
-            return lanIPs.Where(c => c.Equals(IPAddress.Any) == false).Select(c =>
+            return lanIPs.Where(c => c.Equals(IPAddress.Any) == false).Select((c,index) =>
             {
-                return ParseIPAddress(c, 24);
+                return ParseIPAddress(c, (byte)masks[index]);
 
             }).ToList();
         }
@@ -363,7 +356,7 @@ namespace linker.plugins.tuntap
                 {
                 }
 
-                await Task.Delay(15000).ConfigureAwait(false); 
+                await Task.Delay(15000).ConfigureAwait(false);
             }
         }
         private async Task CheckInterface()
@@ -373,7 +366,7 @@ namespace linker.plugins.tuntap
             {
                 LoggerHelper.Instance.Error($"tuntap inerface {tuntapVea.InterfaceName} is {networkInterface.OperationalStatus}, restarting");
                 Stop();
-                await Task.Delay(5000).ConfigureAwait(false); 
+                await Task.Delay(5000).ConfigureAwait(false);
                 Run();
             }
         }
@@ -383,14 +376,14 @@ namespace linker.plugins.tuntap
             try
             {
                 var socket = new Socket(tuntapProxy.LocalEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                await socket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, tuntapProxy.LocalEndpoint.Port)).WaitAsync(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false); 
+                await socket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, tuntapProxy.LocalEndpoint.Port)).WaitAsync(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
                 socket.SafeClose();
             }
             catch (Exception ex)
             {
                 LoggerHelper.Instance.Error($"tuntap proxy {ex.Message}, restarting");
                 Stop();
-                await Task.Delay(5000).ConfigureAwait(false); 
+                await Task.Delay(5000).ConfigureAwait(false);
                 Run();
             }
         }

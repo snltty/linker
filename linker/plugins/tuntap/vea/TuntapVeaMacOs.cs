@@ -1,6 +1,4 @@
 ﻿using linker.libs;
-using linker.libs.extends;
-using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Net;
 
@@ -46,10 +44,10 @@ namespace linker.plugins.tuntap.vea
                 {
                     break;
                 }
-                await Task.Delay(1000).ConfigureAwait(false); 
+                await Task.Delay(1000).ConfigureAwait(false);
             }
 
-            await SetIp(ip).ConfigureAwait(false); 
+            await SetIp(ip).ConfigureAwait(false);
 
             return string.IsNullOrWhiteSpace(interfaceOsx) == false;
         }
@@ -107,9 +105,8 @@ namespace linker.plugins.tuntap.vea
         {
             string[] commands = ips.Where(c => c.IPAddress > 0).Select(item =>
             {
-                byte[] ips = BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes();
-                ips[3] = 0;
-                return $"route add -net {string.Join(".", ips)}/{item.MaskLength} {ip}";
+                IPAddress _ip = NetworkHelper.ToNetworkIp(item.IPAddress, item.MaskValue);
+                return $"route add -net {_ip}/{item.MaskLength} {ip}";
             }).ToArray();
             if (commands.Length > 0)
             {
@@ -120,9 +117,8 @@ namespace linker.plugins.tuntap.vea
         {
             string[] commands = ip.Select(item =>
             {
-                byte[] ips = BinaryPrimitives.ReverseEndianness(item.IPAddress).ToBytes();
-                ips[3] = 0;
-                return $"route delete -net {string.Join(".", ips)}/{item.MaskLength}";
+                IPAddress _ip = NetworkHelper.ToNetworkIp(item.IPAddress, item.MaskValue);
+                return $"route delete -net {_ip}/{item.MaskLength}";
             }).ToArray();
             if (commands.Length > 0)
             {
