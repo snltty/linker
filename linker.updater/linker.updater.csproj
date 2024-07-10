@@ -41,6 +41,7 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <PackageReference Include="Fizzler.Systems.HtmlAgilityPack" Version="1.2.1" />
+	  <PackageReference Include="System.IO.Compression.ZipFile" Version="4.3.0" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\linker.libs\linker.libs.csproj" />

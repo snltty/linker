@@ -5,6 +5,7 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
+using System.Collections.Generic;
 
 namespace linker.tunnel.proxy
 {
@@ -106,7 +107,7 @@ namespace linker.tunnel.proxy
                 }
                 token.Proxy.Step = ProxyStep.Forward;
                 //绑定
-                tcpConnections.TryAdd(new ConnectId(token.Proxy.ConnectId, token.Connection.GetHashCode(), (byte)ProxyDirection.Reverse), token);
+                tcpConnections.TryAdd(token.GetConnectId(ProxyDirection.Reverse), token);
             }
             else if (closeConnect)
             {
@@ -253,12 +254,12 @@ namespace linker.tunnel.proxy
 
                 token.Socket.EndConnect(result);
                 token.Socket.KeepAlive();
-               
+
                 if (state.Data.Length > 0)
                 {
                     await token.Socket.SendAsync(state.Data.AsMemory(0, state.Length), SocketFlags.None).ConfigureAwait(false);
                 }
-                tcpConnections.TryAdd(new ConnectId(token.Proxy.ConnectId, token.Connection.GetHashCode(), (byte)ProxyDirection.Forward), token);
+                tcpConnections.TryAdd(token.GetConnectId(ProxyDirection.Forward), token);
 
                 await SendToConnection(token).ConfigureAwait(false);
                 token.Proxy.Step = ProxyStep.Forward;
@@ -286,7 +287,7 @@ namespace linker.tunnel.proxy
         {
             if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)
             {
-                ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.GetHashCode(), (byte)tunnelToken.Proxy.Direction);
+                ConnectId connectId = tunnelToken.GetTcpConnectId();
                 if (tcpConnections.TryGetValue(connectId, out AsyncUserToken token))
                 {
                     _ = ProcessReceive(token);
@@ -301,7 +302,7 @@ namespace linker.tunnel.proxy
         {
             if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)
             {
-                ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.GetHashCode(), (byte)tunnelToken.Proxy.Direction);
+                ConnectId connectId = tunnelToken.GetTcpConnectId();
                 if (tcpConnections.TryRemove(connectId, out AsyncUserToken token))
                 {
                     CloseClientSocket(token);
@@ -316,7 +317,7 @@ namespace linker.tunnel.proxy
         /// <returns></returns>
         private async Task SendToSocketTcp(AsyncUserTunnelToken tunnelToken)
         {
-            ConnectId connectId = new ConnectId(tunnelToken.Proxy.ConnectId, tunnelToken.Connection.GetHashCode(), (byte)tunnelToken.Proxy.Direction);
+            ConnectId connectId = tunnelToken.GetTcpConnectId();
             if (tunnelToken.Proxy.Step == ProxyStep.Close || tunnelToken.Proxy.Data.Length == 0)
             {
                 if (tcpConnections.TryRemove(connectId, out AsyncUserToken token))
@@ -329,6 +330,7 @@ namespace linker.tunnel.proxy
             {
                 try
                 {
+                    token1.Connection = tunnelToken.Connection;
                     await token1.Socket.SendAsync(tunnelToken.Proxy.Data, SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
                 }
                 catch (Exception ex)
@@ -348,14 +350,15 @@ namespace linker.tunnel.proxy
             if (token == null) return;
             if (token.Connection != null)
             {
-                tcpConnections.TryRemove(new ConnectId(token.Proxy.ConnectId, token.Connection.GetHashCode(), (byte)token.Proxy.Direction), out _);
+                tcpConnections.TryRemove(token.GetConnectId(), out _);
             }
             token.Clear();
         }
         private void CloseClientSocketTcp(ITunnelConnection connection)
         {
-            int hashcode = connection.GetHashCode();
-            var tokens = tcpConnections.Where(c => c.Key.hashcode == hashcode).ToList();
+            int hashcode1 = connection.RemoteMachineId.GetHashCode();
+            int hashcode2 = connection.TransactionId.GetHashCode();
+            var tokens = tcpConnections.Where(c => c.Key.hashcode1 == hashcode1 && c.Key.hashcode2 == hashcode2).ToList();
             foreach (var item in tokens)
             {
                 try
@@ -407,23 +410,25 @@ namespace linker.tunnel.proxy
     {
         public bool Equals(ConnectId x, ConnectId y)
         {
-            return x.connectId == y.connectId && x.hashcode == y.hashcode && x.direction == y.direction;
+            return x.connectId == y.connectId && x.hashcode1 == y.hashcode1 && x.hashcode2 == y.hashcode2 && x.direction == y.direction;
         }
         public int GetHashCode(ConnectId obj)
         {
-            return obj.connectId.GetHashCode() ^ obj.hashcode ^ obj.direction;
+            return obj.connectId.GetHashCode() ^ obj.hashcode1 ^ obj.hashcode2 ^ obj.direction;
         }
     }
     public record struct ConnectId
     {
         public ulong connectId;
-        public int hashcode;
+        public int hashcode1;
+        public int hashcode2;
         public byte direction;
 
-        public ConnectId(ulong connectId, int hashcode, byte direction)
+        public ConnectId(ulong connectId, int hashcode1, int hashcode2, byte direction)
         {
             this.connectId = connectId;
-            this.hashcode = hashcode;
+            this.hashcode1 = hashcode1;
+            this.hashcode2 = hashcode2;
             this.direction = direction;
         }
     }
@@ -449,6 +454,15 @@ namespace linker.tunnel.proxy
             Buffer = Helper.EmptyArray;
 
             GC.Collect();
+        }
+
+        public ConnectId GetConnectId()
+        {
+            return new ConnectId(Proxy.ConnectId, Connection.RemoteMachineId.GetHashCode(), Connection.TransactionId.GetHashCode(), (byte)Proxy.Direction);
+        }
+        public ConnectId GetConnectId(ProxyDirection proxyDirection)
+        {
+            return new ConnectId(Proxy.ConnectId, Connection.RemoteMachineId.GetHashCode(), Connection.TransactionId.GetHashCode(), (byte)proxyDirection);
         }
     }
     public sealed class ConnectState

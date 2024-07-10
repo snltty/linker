@@ -153,7 +153,7 @@ namespace linker.tunnel.proxy
 
             if (tunnelToken.Proxy.Direction == ProxyDirection.Forward)
             {
-                ConnectIdUdp connectId = new ConnectIdUdp(tunnelToken.Proxy.ConnectId, tunnelToken.Proxy.SourceEP, tunnelToken.Connection.GetHashCode());
+                ConnectIdUdp connectId = tunnelToken.GetUdpConnectId();
                 try
                 {
                     IPEndPoint target = new IPEndPoint(tunnelToken.Proxy.TargetEP.Address, tunnelToken.Proxy.TargetEP.Port);
@@ -185,6 +185,7 @@ namespace linker.tunnel.proxy
                 {
                     try
                     {
+                        asyncUserUdpToken.Connection = tunnelToken.Connection;
                         if (await ConnectionReceiveUdp(tunnelToken, asyncUserUdpToken).ConfigureAwait(false) == false)
                         {
                             await asyncUserUdpToken.SourceSocket.SendToAsync(tunnelToken.Proxy.Data, tunnelToken.Proxy.SourceEP).ConfigureAwait(false);
@@ -207,7 +208,7 @@ namespace linker.tunnel.proxy
             await socket.SendToAsync(tunnelToken.Proxy.Data, target).ConfigureAwait(false);
 
 
-            ConnectIdUdp connectId = new ConnectIdUdp(tunnelToken.Proxy.ConnectId, tunnelToken.Proxy.SourceEP, tunnelToken.Connection.GetHashCode());
+            ConnectIdUdp connectId = tunnelToken.GetUdpConnectId();
             AsyncUserUdpTokenTarget udpToken = new AsyncUserUdpTokenTarget
             {
                 Proxy = new ProxyInfo
@@ -270,8 +271,8 @@ namespace linker.tunnel.proxy
         /// <returns></returns>
         private async Task SendToConnection(AsyncUserUdpTokenTarget token)
         {
-           // SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
-           // await semaphoreSlim.WaitAsync();
+            // SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
+            // await semaphoreSlim.WaitAsync();
 
 
             byte[] connectData = token.Proxy.ToBytes(out int length);
@@ -290,7 +291,7 @@ namespace linker.tunnel.proxy
             finally
             {
                 token.Proxy.Return(connectData);
-               // semaphoreSlim.Release();
+                // semaphoreSlim.Release();
             }
         }
 
@@ -325,8 +326,9 @@ namespace linker.tunnel.proxy
 
         private void CloseClientSocketUdp(ITunnelConnection connection)
         {
-            int hashcode = connection.GetHashCode();
-            var tokens = udpConnections.Where(c => c.Key.hashcode == hashcode).ToList();
+            int hashcode1 = connection.RemoteMachineId.GetHashCode();
+            int hashcode2 = connection.TransactionId.GetHashCode();
+            var tokens = udpConnections.Where(c => c.Key.hashcode1 == hashcode1 && c.Key.hashcode2 == hashcode2).ToList();
             foreach (var item in tokens)
             {
                 try
@@ -437,25 +439,27 @@ namespace linker.tunnel.proxy
     {
         public bool Equals(ConnectIdUdp x, ConnectIdUdp y)
         {
-            return x.source != null && x.source.Equals(y.source) && x.connectId == y.connectId && x.hashcode == y.hashcode;
+            return x.source != null && x.source.Equals(y.source) && x.connectId == y.connectId && x.hashcode1 == y.hashcode1 && x.hashcode2 == y.hashcode2;
         }
         public int GetHashCode(ConnectIdUdp obj)
         {
             if (obj.source == null) return 0;
-            return obj.source.GetHashCode() ^ obj.connectId.GetHashCode() ^ obj.hashcode;
+            return obj.source.GetHashCode() ^ obj.connectId.GetHashCode() ^ obj.hashcode1 ^ obj.hashcode2;
         }
     }
     public readonly struct ConnectIdUdp
     {
         public readonly IPEndPoint source { get; }
         public readonly ulong connectId { get; }
-        public int hashcode { get; }
+        public int hashcode1 { get; }
+        public int hashcode2 { get; }
 
-        public ConnectIdUdp(ulong connectId, IPEndPoint source, int hashcode)
+        public ConnectIdUdp(ulong connectId, IPEndPoint source, int hashcode1, int hashcode2)
         {
             this.connectId = connectId;
             this.source = source;
-            this.hashcode = hashcode;
+            this.hashcode1 = hashcode1;
+            this.hashcode2 = hashcode2;
         }
     }
 }

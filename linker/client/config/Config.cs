@@ -67,7 +67,7 @@ namespace linker.config
             }
         }
 #if DEBUG
-        private string groupid = "snltty";
+        private string groupid = string.Empty;//"snltty";
 #else
         private string groupid = string.Empty;
 #endif

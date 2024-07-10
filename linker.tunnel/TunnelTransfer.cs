@@ -118,10 +118,8 @@ namespace linker.tunnel
         /// <returns></returns>
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId)
         {
-            if (connectingDic.TryAdd(remoteMachineId, true) == false)
-            {
-                return null;
-            }
+            if (connectingDic.TryAdd(remoteMachineId, true) == false) return null;
+            if (IsBackground(remoteMachineId, transactionId)) return null;
 
             try
             {
@@ -221,7 +219,6 @@ namespace linker.tunnel
             {
                 connectingDic.TryRemove(remoteMachineId, out _);
             }
-
             return null;
         }
         /// <summary>
@@ -392,6 +389,55 @@ namespace linker.tunnel
                 .ToList();
 
             tunnelTransportInfo.RemoteEndPoints = eps;
+        }
+
+
+
+        private ConcurrentDictionary<string, bool> backgroundDic = new ConcurrentDictionary<string, bool>();
+        public void StartBackground(string remoteMachineId, string transactionId)
+        {
+            if (IsBackground(remoteMachineId, transactionId)) return;
+            AddBackground(remoteMachineId, transactionId);
+            Task.Run(async () =>
+            {
+                try
+                {
+                    for (int i = 0; i < 10; i++)
+                    {
+                        await Task.Delay(3000);
+
+                        ITunnelConnection connection = await ConnectAsync(remoteMachineId, transactionId);
+                        if (connection != null)
+                        {
+                            break;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                }
+                finally
+                {
+                    RemoveBackground(remoteMachineId, transactionId);
+                }
+            });
+
+        }
+        private void AddBackground(string remoteMachineId, string transactionId)
+        {
+            backgroundDic.TryAdd(GetBackgroundKey(remoteMachineId, transactionId), true);
+        }
+        private void RemoveBackground(string remoteMachineId, string transactionId)
+        {
+            backgroundDic.TryRemove(GetBackgroundKey(remoteMachineId, transactionId), out _);
+        }
+        private bool IsBackground(string remoteMachineId, string transactionId)
+        {
+            return backgroundDic.ContainsKey(GetBackgroundKey(remoteMachineId, transactionId));
+        }
+        private string GetBackgroundKey(string remoteMachineId, string transactionId)
+        {
+            return $"{remoteMachineId}@{transactionId}";
         }
     }
 }

@@ -113,6 +113,8 @@ namespace linker.plugins.forward.proxy
                 if (connection == null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward relay to {machineId}");
+                    //转入后台打洞
+                    tunnelTransfer.StartBackground(machineId, "forward");
                     //尝试中继
                     connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, "forward").ConfigureAwait(false);
                     if (connection != null)

@@ -262,6 +262,7 @@ namespace linker.plugins.tuntap.proxy
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap relay to {machineId}");
 
+                    tunnelTransfer.StartBackground(machineId, "tuntap");
                     connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, "tuntap").ConfigureAwait(false);
                     if (connection != null)
                     {

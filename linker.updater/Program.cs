@@ -1,7 +1,10 @@
 ﻿using Fizzler.Systems.HtmlAgilityPack;
 using HtmlAgilityPack;
 using linker.libs;
+using System.Diagnostics;
+using System.IO.Compression;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace linker.updater
 {
@@ -13,17 +16,36 @@ namespace linker.updater
             await Helper.Await();
         }
 
-
+        static string rootPath = "./updater";
         static void Updater()
         {
             Task.Factory.StartNew(async () =>
             {
                 while (true)
                 {
-                    UpdateInfo updateInfo = GetUpdateInfo();
-                    if (updateInfo != null)
+                    try
                     {
-
+                        UpdateInfo updateInfo = GetUpdateInfo();
+                        if (updateInfo != null)
+                        {
+                            if (NeedDownload(updateInfo))
+                            {
+                                await DownloadUpdate(updateInfo);
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                    }
+                    try
+                    {
+                        if (NeedExtract())
+                        {
+                            ExtractUpdate();
+                        }
+                    }
+                    catch (Exception)
+                    {
                     }
 
                     await Task.Delay(15000);
@@ -32,7 +54,75 @@ namespace linker.updater
 
             }, TaskCreationOptions.LongRunning);
         }
+        static bool NeedExtract()
+        {
+            try
+            {
+                return File.Exists(Path.Join(rootPath, "version.txt"))
+                    && File.Exists(Path.Join(rootPath,"updater.zip"))
+                    && File.Exists(Path.Join(rootPath, "extract.txt"))
+                    && File.ReadAllText(Path.Join(rootPath, "version.txt")) != $"v{FileVersionInfo.GetVersionInfo("linker.exe").FileVersion}";
+            }
+            catch (Exception)
+            {
+            }
+            return false;
+        }
+        static void ExtractUpdate()
+        {
+            try
+            {
+                ZipFile.ExtractToDirectory(Path.Join(rootPath, "updater.zip"), "./", Encoding.UTF8, true);
 
+                File.Delete(Path.Join(rootPath, "version.txt"));
+                File.Delete(Path.Join(rootPath, "msg.txt"));
+                File.Delete(Path.Join(rootPath, "extract.txt"));
+                File.Delete(Path.Join(rootPath, "updater.zip"));
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        static bool NeedDownload(UpdateInfo updateInfo)
+        {
+            try
+            {
+                return true;
+                return (File.Exists(Path.Join(rootPath, "version.txt")) == false
+                    || File.ReadAllText(Path.Join(rootPath, "version.txt")) != updateInfo.Tag)
+                    && $"v{FileVersionInfo.GetVersionInfo("linker.exe").FileVersion}" != updateInfo.Tag;
+            }
+            catch (Exception)
+            {
+            }
+            return false;
+        }
+        static async Task DownloadUpdate(UpdateInfo updateInfo)
+        {
+            try
+            {
+                if (Directory.Exists(rootPath) == false)
+                {
+                    Directory.CreateDirectory(rootPath);
+                }
+
+                using FileStream fileStream = new FileStream(Path.Join(rootPath, "updater.zip"), FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                using HttpClient httpClient = new HttpClient();
+                using Stream stream = await httpClient.GetStreamAsync(updateInfo.Url);
+                await stream.CopyToAsync(fileStream);
+
+                fileStream.Flush();
+                fileStream.Close();
+                fileStream.Dispose();
+
+                File.WriteAllText(Path.Join(rootPath, "version.txt"), updateInfo.Tag);
+                File.WriteAllText(Path.Join(rootPath, "msg.txt"), updateInfo.Msg);
+            }
+            catch (Exception)
+            {
+            }
+        }
         static UpdateInfo GetUpdateInfo()
         {
             try

@@ -277,6 +277,15 @@ namespace linker.tunnel.proxy
         {
             GC.Collect();
         }
+
+        public ConnectId GetTcpConnectId()
+        {
+            return new ConnectId(Proxy.ConnectId, Connection.RemoteMachineId.GetHashCode(), Connection.TransactionId.GetHashCode(), (byte)Proxy.Direction);
+        }
+        public ConnectIdUdp GetUdpConnectId()
+        {
+            return new ConnectIdUdp(Proxy.ConnectId, Proxy.SourceEP, Connection.RemoteMachineId.GetHashCode(), Connection.TransactionId.GetHashCode());
+        }
     }
 
 }
