@@ -17,17 +17,17 @@ namespace linker.store
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
         bool loaded = false;
-        public void AddClient(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             Add(serviceCollection, config, assemblies);
         }
 
-        public void AddServer(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             Add(serviceCollection, config, assemblies);
         }
 
-        private void Add(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
+        private void Add(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             if (loaded == false)
             {
@@ -36,11 +36,11 @@ namespace linker.store
             }
         }
 
-        public void UseClient(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
         }
 
-        public void UseServer(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
         }
     }

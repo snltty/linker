@@ -26,7 +26,7 @@ namespace linker.plugins.relay.transport
         private X509Certificate2 certificate;
 
 
-        public TransportSelfHost(TcpServer tcpServer, MessengerSender messengerSender, ConfigWrap config)
+        public TransportSelfHost(TcpServer tcpServer, MessengerSender messengerSender, FileConfig config)
         {
             this.tcpServer = tcpServer;
             this.messengerSender = messengerSender;

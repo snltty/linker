@@ -19,7 +19,7 @@ namespace linker
             Init();
 
             //初始化配置文件
-            ConfigWrap config = new ConfigWrap();
+            FileConfig config = new FileConfig();
 
             LoggerHelper.Instance.Warning($"current version : {config.Data.Version}");
 

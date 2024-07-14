@@ -9,16 +9,16 @@ namespace linker.plugins.signin.messenger
     public sealed class SignInClientMessenger : IMessenger
     {
         private readonly ClientSignInTransfer clientSignInTransfer;
-        public SignInClientMessenger(ConfigWrap config, ClientSignInTransfer clientSignInTransfer)
+        public SignInClientMessenger(FileConfig config, ClientSignInTransfer clientSignInTransfer)
         {
             this.clientSignInTransfer = clientSignInTransfer;
         }
 
-        [MessengerId((ushort)SignInMessengerIds.Name)]
+        [MessengerId((ushort)SignInMessengerIds.SetName)]
         public void Name(IConnection connection)
         {
             ConfigSetNameInfo info = MemoryPackSerializer.Deserialize<ConfigSetNameInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            clientSignInTransfer.UpdateName(info.NewName);
+            clientSignInTransfer.SetName(info.NewName);
         }
 
     }
@@ -26,10 +26,10 @@ namespace linker.plugins.signin.messenger
     public sealed class SignInServerMessenger : IMessenger
     {
         private readonly SignCaching signCaching;
-        private readonly ConfigWrap config;
+        private readonly FileConfig config;
         private readonly MessengerSender messengerSender;
 
-        public SignInServerMessenger(SignCaching signCaching, ConfigWrap config, MessengerSender messengerSender)
+        public SignInServerMessenger(SignCaching signCaching, FileConfig config, MessengerSender messengerSender)
         {
             this.signCaching = signCaching;
             this.config = config;
@@ -82,7 +82,7 @@ namespace linker.plugins.signin.messenger
             }
         }
 
-        [MessengerId((ushort)SignInMessengerIds.NameForward)]
+        [MessengerId((ushort)SignInMessengerIds.SetNameForward)]
         public async Task NameForward(IConnection connection)
         {
             ConfigSetNameInfo info = MemoryPackSerializer.Deserialize<ConfigSetNameInfo>(connection.ReceiveRequestWrap.Payload.Span);
@@ -93,7 +93,7 @@ namespace linker.plugins.signin.messenger
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
                         Connection = cache.Connection,
-                        MessengerId = (ushort)SignInMessengerIds.Name,
+                        MessengerId = (ushort)SignInMessengerIds.SetName,
                         Payload = connection.ReceiveRequestWrap.Payload,
                     }).ConfigureAwait(false);
                 }

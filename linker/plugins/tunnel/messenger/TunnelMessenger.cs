@@ -68,15 +68,15 @@ namespace linker.plugins.tunnel.messenger
         [MessengerId((ushort)TunnelMessengerIds.RouteLevel)]
         public void RouteLevel(IConnection connection)
         {
-            TunnelTransportRouteLevelInfo tunnelTransportConfigWrapInfo = MemoryPackSerializer.Deserialize<TunnelTransportRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            tunnelConfigTransfer.OnLocalRouteLevel(tunnelTransportConfigWrapInfo);
+            TunnelTransportRouteLevelInfo tunnelTransportFileConfigInfo = MemoryPackSerializer.Deserialize<TunnelTransportRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            tunnelConfigTransfer.OnLocalRouteLevel(tunnelTransportFileConfigInfo);
         }
 
         [MessengerId((ushort)TunnelMessengerIds.Config)]
         public void Config(IConnection connection)
         {
-            TunnelTransportRouteLevelInfo tunnelTransportConfigWrapInfo = MemoryPackSerializer.Deserialize<TunnelTransportRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            TunnelTransportRouteLevelInfo result = tunnelConfigTransfer.OnRemoteRouteLevel(tunnelTransportConfigWrapInfo);
+            TunnelTransportRouteLevelInfo tunnelTransportFileConfigInfo = MemoryPackSerializer.Deserialize<TunnelTransportRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            TunnelTransportRouteLevelInfo result = tunnelConfigTransfer.OnRemoteRouteLevel(tunnelTransportFileConfigInfo);
             connection.Write(MemoryPackSerializer.Serialize(result));
         }
 

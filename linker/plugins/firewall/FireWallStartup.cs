@@ -13,7 +13,7 @@ namespace linker.plugins.firewall
         public string[] Dependent => new string[] { };
         public StartupLoadType LoadType => StartupLoadType.Dependent;
 
-        public void AddClient(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
 #if DEBUG
 #else
@@ -21,15 +21,15 @@ namespace linker.plugins.firewall
 #endif
         }
 
-        public void AddServer(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
         }
 
-        public void UseClient(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
         }
 
-        public void UseServer(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
         }
     }

@@ -8,17 +8,31 @@ namespace linker.client.config
 {
     public sealed partial class RunningConfigInfo
     {
+        /// <summary>
+        /// 同步配置的版本记录
+        /// </summary>
         public Dictionary<string, ulong> Versions { get; set; } = new Dictionary<string, ulong>();
     }
 
     [MemoryPackable]
     public sealed partial class ConfigVersionInfo
     {
+        /// <summary>
+        /// 配置key
+        /// </summary>
         public string Key { get; set; }
+        /// <summary>
+        /// 配置版本
+        /// </summary>
         public ulong Version { get; set; }
+        /// <summary>
+        /// 配置数据
+        /// </summary>
         public Memory<byte> Data { get; set; }
     }
-
+    /// <summary>
+    /// 配置同步
+    /// </summary>
     public sealed class RunningConfigTransfer
     {
         private ConcurrentDictionary<string, Action<Memory<byte>>> setters = new ConcurrentDictionary<string, Action<Memory<byte>>>();
@@ -33,15 +47,30 @@ namespace linker.client.config
             this.sender = sender;
             this.clientSignInState = clientSignInState;
         }
+        /// <summary>
+        /// 设置配置
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="callback"></param>
         public void Setter(string key, Action<Memory<byte>> callback)
         {
             setters.TryAdd(key, callback);
         }
+        /// <summary>
+        /// 获取配置
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="callback"></param>
         public void Getter(string key, Func<Memory<byte>> callback)
         {
             getters.TryAdd(key, callback);
         }
 
+        /// <summary>
+        /// 输入配置
+        /// </summary>
+        /// <param name="info"></param>
+        /// <returns></returns>
         public Memory<byte> InputConfig(ConfigVersionInfo info)
         {
             ulong version = GetVersion(info.Key);
@@ -66,6 +95,11 @@ namespace linker.client.config
 
 
         private object syncLockObj = new();
+        /// <summary>
+        /// 同步配置
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="data"></param>
         public void Sync(string key, Memory<byte> data)
         {
             ulong version = GetVersion(key);
@@ -106,11 +140,20 @@ namespace linker.client.config
             }
             return version;
         }
+        /// <summary>
+        /// 更新版本
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="version"></param>
         public void UpdateVersion(string key, ulong version)
         {
             runningConfig.Data.Versions[key] = version;
             runningConfig.Data.Update();
         }
+        /// <summary>
+        /// 版本+1
+        /// </summary>
+        /// <param name="key"></param>
         public void IncrementVersion(string key)
         {
             ulong version = GetVersion(key);

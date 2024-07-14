@@ -19,14 +19,14 @@ namespace linker.plugins.tunnel
     /// </summary>
     public sealed class TunnelApiController : IApiClientController
     {
-        private readonly ConfigWrap config;
+        private readonly FileConfig config;
         private readonly TunnelWanPortTransfer compactTransfer;
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
         private readonly TunnelConfigTransfer tunnelConfigTransfer;
         private readonly ITunnelAdapter tunnelMessengerAdapter;
 
-        public TunnelApiController(ConfigWrap config, TunnelWanPortTransfer compactTransfer, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelConfigTransfer tunnelConfigTransfer, ITunnelAdapter tunnelMessengerAdapter)
+        public TunnelApiController(FileConfig config, TunnelWanPortTransfer compactTransfer, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelConfigTransfer tunnelConfigTransfer, ITunnelAdapter tunnelMessengerAdapter)
         {
             this.config = config;
             this.compactTransfer = compactTransfer;
@@ -92,11 +92,11 @@ namespace linker.plugins.tunnel
         /// <returns></returns>
         public async Task<bool> SetRouteLevel(ApiControllerParamsInfo param)
         {
-            TunnelTransportRouteLevelInfo tunnelTransportConfigWrapInfo = param.Content.DeJson<TunnelTransportRouteLevelInfo>();
+            TunnelTransportRouteLevelInfo tunnelTransportFileConfigInfo = param.Content.DeJson<TunnelTransportRouteLevelInfo>();
 
-            if (tunnelTransportConfigWrapInfo.MachineId == config.Data.Client.Id)
+            if (tunnelTransportFileConfigInfo.MachineId == config.Data.Client.Id)
             {
-                tunnelConfigTransfer.OnLocalRouteLevel(tunnelTransportConfigWrapInfo);
+                tunnelConfigTransfer.OnLocalRouteLevel(tunnelTransportFileConfigInfo);
             }
             else
             {
@@ -104,7 +104,7 @@ namespace linker.plugins.tunnel
                 {
                     Connection = clientSignInState.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.RouteLevelForward,
-                    Payload = MemoryPackSerializer.Serialize(tunnelTransportConfigWrapInfo)
+                    Payload = MemoryPackSerializer.Serialize(tunnelTransportFileConfigInfo)
                 }).ConfigureAwait(false);
             }
 
@@ -140,7 +140,6 @@ namespace linker.plugins.tunnel
             ExcludeIPItem[] info = param.Content.DeJson<ExcludeIPItem[]>();
             tunnelConfigTransfer.SettExcludeIPs(info);
         }
-
 
         public sealed class TunnelListInfo
         {

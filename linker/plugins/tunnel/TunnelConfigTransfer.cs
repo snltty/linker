@@ -12,7 +12,7 @@ namespace linker.plugins.tunnel
 {
     public sealed class TunnelConfigTransfer
     {
-        private readonly ConfigWrap config;
+        private readonly FileConfig config;
         private readonly RunningConfig running;
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
@@ -26,7 +26,7 @@ namespace linker.plugins.tunnel
         private ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> configs = new ConcurrentDictionary<string, TunnelTransportRouteLevelInfo>();
         public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> Config => configs;
 
-        public TunnelConfigTransfer(ConfigWrap config, RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, RunningConfigTransfer runningConfigTransfer, ITunnelAdapter tunnelAdapter)
+        public TunnelConfigTransfer(FileConfig config, RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, RunningConfigTransfer runningConfigTransfer, ITunnelAdapter tunnelAdapter)
         {
             this.config = config;
             this.running = running;
@@ -90,21 +90,21 @@ namespace linker.plugins.tunnel
         /// <summary>
         /// 修改自己的网关层级信息
         /// </summary>
-        /// <param name="tunnelTransportConfigWrapInfo"></param>
-        public void OnLocalRouteLevel(TunnelTransportRouteLevelInfo tunnelTransportConfigWrapInfo)
+        /// <param name="tunnelTransportFileConfigInfo"></param>
+        public void OnLocalRouteLevel(TunnelTransportRouteLevelInfo tunnelTransportFileConfigInfo)
         {
-            running.Data.Tunnel.RouteLevelPlus = tunnelTransportConfigWrapInfo.RouteLevelPlus;
+            running.Data.Tunnel.RouteLevelPlus = tunnelTransportFileConfigInfo.RouteLevelPlus;
             running.Data.Update();
             GetRemoveRouteLevel();
         }
         /// <summary>
         /// 收到别人发给我的修改我的信息
         /// </summary>
-        /// <param name="tunnelTransportConfigWrapInfo"></param>
+        /// <param name="tunnelTransportFileConfigInfo"></param>
         /// <returns></returns>
-        public TunnelTransportRouteLevelInfo OnRemoteRouteLevel(TunnelTransportRouteLevelInfo tunnelTransportConfigWrapInfo)
+        public TunnelTransportRouteLevelInfo OnRemoteRouteLevel(TunnelTransportRouteLevelInfo tunnelTransportFileConfigInfo)
         {
-            configs.AddOrUpdate(tunnelTransportConfigWrapInfo.MachineId, tunnelTransportConfigWrapInfo, (a, b) => tunnelTransportConfigWrapInfo);
+            configs.AddOrUpdate(tunnelTransportFileConfigInfo.MachineId, tunnelTransportFileConfigInfo, (a, b) => tunnelTransportFileConfigInfo);
             Interlocked.Increment(ref version);
             return GetLocalRouteLevel();
         }

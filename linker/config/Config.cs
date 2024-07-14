@@ -1,11 +1,12 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using LiteDB;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
 namespace linker.config
 {
-    public sealed class ConfigWrap
+    public sealed class FileConfig
     {
         private SemaphoreSlim slim = new SemaphoreSlim(1);
         private string configPath = "./configs/";
@@ -14,11 +15,12 @@ namespace linker.config
 
         public ConfigInfo Data { get; private set; } = new ConfigInfo();
 
-        public ConfigWrap()
+        public FileConfig()
         {
             Init();
             Load();
             Save();
+            SaveTask();
         }
 
         private void Init()
@@ -46,7 +48,6 @@ namespace linker.config
                 });
             }
         }
-
         private void Load()
         {
             slim.Wait();
@@ -78,8 +79,7 @@ namespace linker.config
             }
 
         }
-
-        public void Save()
+        private void Save()
         {
             slim.Wait();
             try
@@ -106,7 +106,21 @@ namespace linker.config
             }
         }
 
-
+        private void SaveTask()
+        {
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    while (Data.Updated > 0)
+                    {
+                        Save();
+                        Data.Updated--;
+                    }
+                    await Task.Delay(1000).ConfigureAwait(false);
+                }
+            });
+        }
     }
 
     public sealed class FileReadWrite
@@ -129,16 +143,29 @@ namespace linker.config
         public string Version { get; set; } = $"v{Assembly.GetEntryAssembly().GetName().Version}";
         [JsonIgnore]
         public bool Elevated { get; set; }
+
+
+        [JsonIgnore, BsonIgnore]
+        public uint Updated { get; set; } = 1;
+
+        public void Update()
+        {
+            Updated++;
+        }
     }
 
     public sealed partial class ConfigCommonInfo
     {
         public string[] Modes { get; set; } = new string[] { "client", "server" };
 
+
+
 #if DEBUG
         private LoggerTypes loggerType { get; set; } = LoggerTypes.DEBUG;
+        public bool Install { get; set; } = true;
 #else
         private LoggerTypes loggerType { get; set; } = LoggerTypes.WARNING;
+        public bool Install { get; set; } = false;
 #endif
 
         [JsonIgnore]

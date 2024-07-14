@@ -27,7 +27,7 @@ namespace linker.plugins.tunnel
 
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
-        public void AddClient(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             //序列化扩展
             MemoryPackFormatterProvider.Register(new TunnelWanPortInfoFormatter());
@@ -66,7 +66,7 @@ namespace linker.plugins.tunnel
 
         }
 
-        public void AddServer(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             MemoryPackFormatterProvider.Register(new TunnelWanPortInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportWanPortInfoFormatter());
@@ -77,7 +77,7 @@ namespace linker.plugins.tunnel
             serviceCollection.AddSingleton<TunnelServerMessenger>();
         }
 
-        public void UseClient(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
             ITunnelAdapter tunnelAdapter = serviceProvider.GetService<ITunnelAdapter>();
 
@@ -95,7 +95,7 @@ namespace linker.plugins.tunnel
             TunnelConfigTransfer tunnelConfigTransfer = serviceProvider.GetService<TunnelConfigTransfer>();
         }
 
-        public void UseServer(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
 
         }

@@ -17,14 +17,14 @@ namespace linker.server
         public string[] Dependent => new string[] { "serialize", "firewall", "signin" };
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
-        public void AddClient(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<MessengerSender>();
             serviceCollection.AddSingleton<MessengerResolver>();
             serviceCollection.AddSingleton<TcpServer>();
         }
 
-        public void AddServer(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<MessengerSender>();
             serviceCollection.AddSingleton<MessengerResolver>();
@@ -34,7 +34,7 @@ namespace linker.server
 
 
         private bool loaded = false;
-        public void UseClient(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
             if (loaded == false)
             {
@@ -44,7 +44,7 @@ namespace linker.server
             }
         }
 
-        public void UseServer(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
             if (loaded == false)
             {
@@ -59,7 +59,10 @@ namespace linker.server
                 //服务
                 TcpServer tcpServer = serviceProvider.GetService<TcpServer>();
                 tcpServer.Init(config.Data.Server.Certificate, config.Data.Server.Password);
-                tcpServer.Start(config.Data.Server.ServicePort);
+                if(config.Data.Server.ServicePort > 0)
+                {
+                    tcpServer.Start(config.Data.Server.ServicePort);
+                }
             }
             catch (Exception ex)
             {

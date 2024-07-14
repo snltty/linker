@@ -19,10 +19,10 @@ namespace linker.plugins.tuntap
         private readonly MessengerSender messengerSender;
         private readonly TuntapTransfer tuntapTransfer;
         private readonly ClientSignInState clientSignInState;
-        private readonly ConfigWrap config;
+        private readonly FileConfig config;
         private readonly TuntapProxy tuntapProxy;
 
-        public TuntapClientApiController(MessengerSender messengerSender, TuntapTransfer tuntapTransfer, ClientSignInState clientSignInState, ConfigWrap config, TuntapProxy tuntapProxy)
+        public TuntapClientApiController(MessengerSender messengerSender, TuntapTransfer tuntapTransfer, ClientSignInState clientSignInState, FileConfig config, TuntapProxy tuntapProxy)
         {
             this.messengerSender = messengerSender;
             this.tuntapTransfer = tuntapTransfer;

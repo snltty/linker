@@ -115,16 +115,41 @@ namespace linker.tunnel.transport
 
     public sealed partial class TunnelTransportItemInfo
     {
+        /// <summary>
+        /// 协议名称
+        /// </summary>
         public string Name { get; set; }
+        /// <summary>
+        /// 协议描述
+        /// </summary>
         public string Label { get; set; }
+        /// <summary>
+        /// 协议
+        /// </summary>
         public string ProtocolType { get; set; }
-
+        /// <summary>
+        /// 是否禁用
+        /// </summary>
         public bool Disabled { get; set; } = false;
+        /// <summary>
+        /// 是否反向打洞
+        /// </summary>
         public bool Reverse { get; set; } = true;
+        /// <summary>
+        /// 是否允许修改反向打洞状态
+        /// </summary>
         public bool DisableReverse { get; set; } = false;
+        /// <summary>
+        /// 是否开启ssl
+        /// </summary>
         public bool SSL { get; set; } = true;
+        /// <summary>
+        /// 是否允许修改ssl配置
+        /// </summary>
         public bool DisableSSL { get; set; } = false;
-
+        /// <summary>
+        /// 缓冲区大小
+        /// </summary>
         public byte BufferSize { get; set; } = 4;
     }
     public sealed class TunnelTransportItemInfoEqualityComparer : IEqualityComparer<TunnelTransportItemInfo>
@@ -171,9 +196,13 @@ namespace linker.tunnel.transport
         /// 需要加密
         /// </summary>
         public bool SSL { get; set; }
-
+        /// <summary>
+        /// 缓冲区
+        /// </summary>
         public byte BufferSize { get; set; } = 3;
-
+        /// <summary>
+        /// 目标ip列表
+        /// </summary>
         public List<IPEndPoint> RemoteEndPoints { get; set; }
     }
 

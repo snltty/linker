@@ -17,24 +17,24 @@ namespace linker.serializes
         public string[] Dependent => Array.Empty<string>();
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
-        public void AddClient(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             MemoryPackFormatterProvider.Register(new IPEndPointFormatter());
             MemoryPackFormatterProvider.Register(new IPAddressFormatter());
         }
 
-        public void AddServer(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             MemoryPackFormatterProvider.Register(new IPEndPointFormatter());
             MemoryPackFormatterProvider.Register(new IPAddressFormatter());
         }
 
 
-        public void UseClient(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
         }
 
-        public void UseServer(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
         }
     }

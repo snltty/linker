@@ -22,7 +22,7 @@ namespace linker.plugins.sforward
 
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
-        public void AddClient(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             Add(serviceCollection, config, assemblies);
             serviceCollection.AddSingleton<SForwardClientApiController>();
@@ -30,7 +30,7 @@ namespace linker.plugins.sforward
             serviceCollection.AddSingleton<SForwardClientMessenger>();
         }
 
-        public void AddServer(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             Add(serviceCollection, config, assemblies);
             serviceCollection.AddSingleton<SForwardServerMessenger>();
@@ -40,7 +40,7 @@ namespace linker.plugins.sforward
         }
 
         bool added = false;
-        private void Add(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
+        private void Add(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             if (added == false)
             {
@@ -49,12 +49,12 @@ namespace linker.plugins.sforward
             }
         }
 
-        public void UseClient(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
             SForwardTransfer forwardTransfer = serviceProvider.GetService<SForwardTransfer>();
         }
 
-        public void UseServer(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
             SForwardProxy sForwardProxy = serviceProvider.GetService<SForwardProxy>();
             if (config.Data.Server.SForward.WebPort > 0)

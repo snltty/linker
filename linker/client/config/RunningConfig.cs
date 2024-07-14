@@ -5,6 +5,9 @@ using System.Text.Json.Serialization;
 
 namespace linker.client.config
 {
+    /// <summary>
+    /// 运行时配置
+    /// </summary>
     public sealed class RunningConfig
     {
         private readonly ILiteCollection<RunningConfigInfo> liteCollection;

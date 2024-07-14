@@ -14,12 +14,12 @@ namespace linker.plugins.relay
     /// </summary>
     public sealed class RelayApiController : IApiClientController
     {
-        private readonly ConfigWrap config;
+        private readonly FileConfig config;
         private readonly RelayTransfer relayTransfer;
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
 
-        public RelayApiController(ConfigWrap config, RelayTransfer relayTransfer, ClientSignInState clientSignInState, MessengerSender messengerSender)
+        public RelayApiController(FileConfig config, RelayTransfer relayTransfer, ClientSignInState clientSignInState, MessengerSender messengerSender)
         {
             this.config = config;
             this.relayTransfer = relayTransfer;

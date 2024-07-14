@@ -13,7 +13,7 @@ namespace linker.startup
         /// </summary>
         /// <param name="config"></param>
         /// <param name="assemblies"></param>
-        public static void Init(ConfigWrap config, Assembly[] assemblies)
+        public static void Init(FileConfig config, Assembly[] assemblies)
         {
             var types = ReflectionHelper.GetInterfaceSchieves(assemblies, typeof(IStartup));
             List<IStartup> temps = types.Select(c => Activator.CreateInstance(c) as IStartup).OrderByDescending(c => c.Level).ToList();
@@ -41,7 +41,7 @@ namespace linker.startup
         /// </summary>
         /// <param name="config"></param>
         /// <param name="temps"></param>
-        private static void LoadPlugins(ConfigWrap config, List<IStartup> temps)
+        private static void LoadPlugins(FileConfig config, List<IStartup> temps)
         {
             //只要哪些
             if (config.Data.Common.IncludePlugins.Length > 0)
@@ -84,7 +84,7 @@ namespace linker.startup
         /// <param name="serviceCollection"></param>
         /// <param name="config"></param>
         /// <param name="assemblies"></param>
-        public static void Add(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
+        public static void Add(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             foreach (var startup in startups)
             {
@@ -101,7 +101,7 @@ namespace linker.startup
         /// <param name="serviceProvider"></param>
         /// <param name="config"></param>
         /// <param name="assemblies"></param>
-        public static void Use(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
+        public static void Use(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
             foreach (var startup in startups)
             {

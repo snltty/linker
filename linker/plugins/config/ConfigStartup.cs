@@ -1,17 +1,15 @@
 ﻿using linker.config;
-using linker.libs;
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
-using System.Diagnostics;
 using System.Reflection;
 
-namespace linker.plugins.updater
+namespace linker.plugins.config
 {
-    public sealed class UpdaterStartup : IStartup
+    public sealed class ConfigStartup : IStartup
     {
-        public string Name => "updater";
+        public string Name => "config";
 
-        public bool Required => false;
+        public bool Required => true;
 
         public StartupLevel Level =>  StartupLevel.Normal;
 
@@ -21,6 +19,7 @@ namespace linker.plugins.updater
 
         public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
+            serviceCollection.AddSingleton<ConfigClientApiController>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
@@ -29,11 +28,6 @@ namespace linker.plugins.updater
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
-            foreach (var item in Process.GetProcessesByName("linker.updater"))
-            {
-                item.Kill();
-            }
-            //CommandHelper.Execute();
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)

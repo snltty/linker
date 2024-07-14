@@ -6,24 +6,37 @@ using MemoryPack;
 using System.Net;
 using System.Text.Json.Serialization;
 using linker.tunnel.adapter;
-using System.Net.Sockets;
 
 
 namespace linker.client.config
 {
     public sealed partial class RunningConfigInfo
     {
+        /// <summary>
+        /// 打洞配置
+        /// </summary>
         public TunnelRunningInfo Tunnel { get; set; } = new TunnelRunningInfo();
     }
 
     public sealed class TunnelRunningInfo
     {
         public ObjectId Id { get; set; }
+        /// <summary>
+        /// 外网端口服务器列表
+        /// </summary>
         public List<TunnelWanPortInfo> Servers { get; set; } = new List<TunnelWanPortInfo>();
+        /// <summary>
+        /// 附加的网关层级
+        /// </summary>
         public int RouteLevelPlus { get; set; } = 0;
-
+        /// <summary>
+        /// 打洞排除IP列表
+        /// </summary>
         public ExcludeIPItem[] ExcludeIPs { get; set; } = Array.Empty<ExcludeIPItem>();
 
+        /// <summary>
+        /// 打洞协议列表
+        /// </summary>
         public List<TunnelTransportItemInfo> Transports { get; set; } = new List<TunnelTransportItemInfo>();
     }
 

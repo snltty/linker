@@ -19,10 +19,10 @@ namespace linker.plugins.sforward.messenger
         private readonly ISForwardServerCahing sForwardServerCahing;
         private readonly MessengerSender sender;
         private readonly SignCaching signCaching;
-        private readonly ConfigWrap configWrap;
+        private readonly FileConfig configWrap;
         private readonly IValidator validator;
 
-        public SForwardServerMessenger(SForwardProxy proxy, ISForwardServerCahing sForwardServerCahing, MessengerSender sender, SignCaching signCaching, ConfigWrap configWrap, IValidator validator)
+        public SForwardServerMessenger(SForwardProxy proxy, ISForwardServerCahing sForwardServerCahing, MessengerSender sender, SignCaching signCaching, FileConfig configWrap, IValidator validator)
         {
             this.proxy = proxy;
             proxy.WebConnect = WebConnect;

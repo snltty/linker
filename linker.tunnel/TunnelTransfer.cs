@@ -119,7 +119,6 @@ namespace linker.tunnel
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId)
         {
             if (connectingDic.TryAdd(remoteMachineId, true) == false) return null;
-            if (IsBackground(remoteMachineId, transactionId)) return null;
 
             try
             {
@@ -394,15 +393,23 @@ namespace linker.tunnel
 
 
         private ConcurrentDictionary<string, bool> backgroundDic = new ConcurrentDictionary<string, bool>();
-        public void StartBackground(string remoteMachineId, string transactionId)
+        /// <summary>
+        /// 开始后台打洞
+        /// </summary>
+        /// <param name="remoteMachineId"></param>
+        /// <param name="transactionId"></param>
+        public void StartBackground(string remoteMachineId, string transactionId,int times = 10)
         {
-            if (IsBackground(remoteMachineId, transactionId)) return;
-            AddBackground(remoteMachineId, transactionId);
+            if (AddBackground(remoteMachineId, transactionId) == false)
+            {
+                LoggerHelper.Instance.Error($"tunnel background {remoteMachineId}@{transactionId} already exists");
+                return;
+            }
             Task.Run(async () =>
             {
                 try
                 {
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < times; i++)
                     {
                         await Task.Delay(3000);
 
@@ -423,9 +430,9 @@ namespace linker.tunnel
             });
 
         }
-        private void AddBackground(string remoteMachineId, string transactionId)
+        private bool AddBackground(string remoteMachineId, string transactionId)
         {
-            backgroundDic.TryAdd(GetBackgroundKey(remoteMachineId, transactionId), true);
+           return backgroundDic.TryAdd(GetBackgroundKey(remoteMachineId, transactionId), true);
         }
         private void RemoveBackground(string remoteMachineId, string transactionId)
         {

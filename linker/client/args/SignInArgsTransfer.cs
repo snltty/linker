@@ -9,7 +9,7 @@ namespace linker.client.args
     {
         private List<ISignInArgs> startups;
 
-        public SignInArgsTransfer(ServiceProvider serviceProvider, ConfigWrap config)
+        public SignInArgsTransfer(ServiceProvider serviceProvider, FileConfig config)
         {
             var types = ReflectionHelper.GetInterfaceSchieves(typeof(ISignInArgs));
             startups = types.Select(c => serviceProvider.GetService(c) as ISignInArgs).Where(c=>c != null).ToList();

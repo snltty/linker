@@ -13,9 +13,9 @@ namespace linker.plugins.capi
     public sealed class ApiClientServer : ApiServer, IApiClientServer
     {
         private readonly ServiceProvider serviceProvider;
-        private readonly ConfigWrap config;
+        private readonly FileConfig config;
 
-        public ApiClientServer(ServiceProvider serviceProvider, ConfigWrap config)
+        public ApiClientServer(ServiceProvider serviceProvider, FileConfig config)
         {
             this.serviceProvider = serviceProvider;
             this.config = config;

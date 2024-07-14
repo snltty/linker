@@ -18,7 +18,7 @@ namespace linker.client
     {
         private readonly ClientSignInState clientSignInState;
         private readonly RunningConfig runningConfig;
-        private readonly ConfigWrap config;
+        private readonly FileConfig config;
         private readonly TcpServer tcpServer;
         private readonly MessengerSender messengerSender;
         private readonly SignInArgsTransfer signInArgsTransfer;
@@ -26,7 +26,7 @@ namespace linker.client
 
         private string configKey = "signServers";
 
-        public ClientSignInTransfer(ClientSignInState clientSignInState, RunningConfig runningConfig, ConfigWrap config, TcpServer tcpServer, MessengerSender messengerSender, SignInArgsTransfer signInArgsTransfer, RunningConfigTransfer runningConfigTransfer)
+        public ClientSignInTransfer(ClientSignInState clientSignInState, RunningConfig runningConfig, FileConfig config, TcpServer tcpServer, MessengerSender messengerSender, SignInArgsTransfer signInArgsTransfer, RunningConfigTransfer runningConfigTransfer)
         {
             this.clientSignInState = clientSignInState;
             this.runningConfig = runningConfig;
@@ -122,89 +122,6 @@ namespace linker.client
             }
         }
         /// <summary>
-        /// 登出
-        /// </summary>
-        public void SignOut()
-        {
-            if (clientSignInState.Connected)
-                clientSignInState.Connection.Disponse(5);
-        }
-
-        /// <summary>
-        /// 修改客户端名称
-        /// </summary>
-        /// <param name="newName"></param>
-        public void UpdateName(string newName)
-        {
-            string name = config.Data.Client.Name;
-
-            if (name != newName)
-            {
-                config.Data.Client.Name = newName;
-                config.Save();
-
-                SignOut();
-                _ = SignIn();
-            }
-
-
-        }
-        /// <summary>
-        /// 修改客户端名称和分组编号
-        /// </summary>
-        /// <param name="newName"></param>
-        /// <param name="newGroupid"></param>
-        public void UpdateName(string newName, string newGroupid)
-        {
-            string name = config.Data.Client.Name;
-            string gid = config.Data.Client.GroupId;
-
-            if (name != newName || gid != newGroupid)
-            {
-                config.Data.Client.Name = newName;
-                config.Data.Client.GroupId = newGroupid;
-                config.Save();
-                SignOut();
-                _ = SignIn();
-            }
-        }
-
-        /// <summary>
-        /// 修改信标服务器列表
-        /// </summary>
-        /// <param name="servers"></param>
-        public async Task UpdateServers(ClientServerInfo[] servers)
-        {
-            await SetServers(servers);
-            runningConfigTransfer.IncrementVersion(configKey);
-            SyncServers();
-        }
-        private void SetServers(Memory<byte> data)
-        {
-            _ = SetServers(MemoryPackSerializer.Deserialize<ClientServerInfo[]>(data.Span));
-        }
-        private async Task SetServers(ClientServerInfo[] servers)
-        {
-            string server = config.Data.Client.Server;
-            runningConfig.Data.Client.Servers = servers;
-            if (runningConfig.Data.Client.Servers.Length > 0)
-            {
-                config.Data.Client.Server = runningConfig.Data.Client.Servers.FirstOrDefault().Host;
-            }
-            runningConfig.Data.Update();
-            if (server != config.Data.Client.Server)
-            {
-                SignOut();
-                await SignIn();
-            }
-        }
-        private void SyncServers()
-        {
-            runningConfigTransfer.Sync(configKey, MemoryPackSerializer.Serialize(runningConfig.Data.Client.Servers));
-        }
-
-
-        /// <summary>
         /// 连接到信标服务器
         /// </summary>
         /// <param name="remote"></param>
@@ -252,7 +169,6 @@ namespace linker.client
             clientSignInState.Connection?.Disponse(6);
             return false;
         }
-
         /// <summary>
         /// 获取服务器版本
         /// </summary>
@@ -273,5 +189,87 @@ namespace linker.client
                 clientSignInState.Version = "v1.0.0.0";
             }
         }
+        /// <summary>
+        /// 登出
+        /// </summary>
+        public void SignOut()
+        {
+            if (clientSignInState.Connected)
+                clientSignInState.Connection.Disponse(5);
+        }
+
+        /// <summary>
+        /// 修改客户端名称
+        /// </summary>
+        /// <param name="newName"></param>
+        public void SetName(string newName)
+        {
+            string name = config.Data.Client.Name;
+
+            if (name != newName)
+            {
+                config.Data.Client.Name = newName;
+                config.Save();
+
+                SignOut();
+                _ = SignIn();
+            }
+
+
+        }
+        /// <summary>
+        /// 修改客户端名称和分组编号
+        /// </summary>
+        /// <param name="newName"></param>
+        /// <param name="newGroupid"></param>
+        public void Set(string newName, string newGroupid)
+        {
+            string name = config.Data.Client.Name;
+            string gid = config.Data.Client.GroupId;
+
+            if (name != newName || gid != newGroupid)
+            {
+                config.Data.Client.Name = newName;
+                config.Data.Client.GroupId = newGroupid;
+                config.Save();
+                SignOut();
+                _ = SignIn();
+            }
+        }
+
+        /// <summary>
+        /// 修改信标服务器列表
+        /// </summary>
+        /// <param name="servers"></param>
+        public async Task SetServers(ClientServerInfo[] servers)
+        {
+            await SetServersReSignin(servers);
+            runningConfigTransfer.IncrementVersion(configKey);
+            SyncServers();
+        }
+        private void SetServers(Memory<byte> data)
+        {
+            _ = SetServersReSignin(MemoryPackSerializer.Deserialize<ClientServerInfo[]>(data.Span));
+        }
+        private async Task SetServersReSignin(ClientServerInfo[] servers)
+        {
+            string server = config.Data.Client.Server;
+            runningConfig.Data.Client.Servers = servers;
+            if (runningConfig.Data.Client.Servers.Length > 0)
+            {
+                config.Data.Client.Server = runningConfig.Data.Client.Servers.FirstOrDefault().Host;
+            }
+            runningConfig.Data.Update();
+            if (server != config.Data.Client.Server)
+            {
+                SignOut();
+                await SignIn();
+            }
+        }
+        private void SyncServers()
+        {
+            runningConfigTransfer.Sync(configKey, MemoryPackSerializer.Serialize(runningConfig.Data.Client.Servers));
+        }
+
     }
 }

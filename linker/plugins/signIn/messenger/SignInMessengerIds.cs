@@ -6,8 +6,8 @@
         List = 1,
         Delete = 2,
 
-        Name = 3,
-        NameForward = 4,
+        SetName = 3,
+        SetNameForward = 4,
 
         Version = 7,
 

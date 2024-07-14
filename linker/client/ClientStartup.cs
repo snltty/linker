@@ -20,7 +20,7 @@ namespace linker.client
         public string[] Dependent => new string[] { "firewall", "signin", "serialize" };
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
-        public void AddClient(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<RunningConfig>();
             serviceCollection.AddSingleton<RunningConfigTransfer>();
@@ -34,7 +34,7 @@ namespace linker.client
 
         }
 
-        public void UseClient(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
             LoggerHelper.Instance.Info($"start client");
 
@@ -44,11 +44,11 @@ namespace linker.client
         }
 
 
-        public void AddServer(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<ConfigServerMessenger>();
         }
-        public void UseServer(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
         }
     }

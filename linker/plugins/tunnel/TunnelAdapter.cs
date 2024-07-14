@@ -22,14 +22,14 @@ namespace linker.plugins.tunnel
 
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
-        private readonly ConfigWrap config;
+        private readonly FileConfig config;
         private readonly RunningConfig running;
         private readonly RunningConfigTransfer runningConfigTransfer;
 
         private string wanPortConfigKey = "tunnelWanPortProtocols";
         private string transportConfigKey = "tunnelTransports";
 
-        public TunnelAdapter(ClientSignInState clientSignInState, MessengerSender messengerSender, ConfigWrap config, RunningConfig running, RunningConfigTransfer runningConfigTransfer)
+        public TunnelAdapter(ClientSignInState clientSignInState, MessengerSender messengerSender, FileConfig config, RunningConfig running, RunningConfigTransfer runningConfigTransfer)
         {
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;

@@ -16,7 +16,7 @@ namespace linker.server
     public interface IConnection
     {
         /// <summary>
-        /// 连接id
+        /// 连接id，存的应该是客户端id
         /// </summary>
         public string Id { get; set; }
         /// <summary>

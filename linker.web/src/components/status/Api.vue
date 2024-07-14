@@ -29,7 +29,8 @@ import {useRoute,useRouter} from 'vue-router'
 import {injectGlobalData} from '../../provide'
 import { computed, onMounted, reactive } from 'vue';
 import { initWebsocket, subWebsocketState,closeWebsocket } from '../../apis/request'
-import { getConfig,getSignInfo } from '../../apis/signin'
+import { getSignInfo } from '../../apis/signin'
+import { getConfig } from '../../apis/config'
 import {Tools} from '@element-plus/icons-vue'
 export default {
     components:{Tools},
@@ -49,16 +50,13 @@ export default {
         const state = reactive({
             api:queryCache.api,
             psd:queryCache.psd,
-            groupid:globalData.value.groupid || queryCache.groupid,
             showPort: false
         });
         const showPort = computed(() => globalData.value.connected == false && state.showPort);
 
         const handleConnect = () => {
-            globalData.value.groupid = state.groupid;
             queryCache.api = state.api;
             queryCache.psd = state.psd;
-            queryCache.groupid = state.groupid;
             localStorage.setItem('api-cache',JSON.stringify(queryCache));
 
             closeWebsocket();
@@ -69,7 +67,6 @@ export default {
             window.location.reload();
         }
         const handleShow = ()=>{
-            //state.showPort = true;
             closeWebsocket();
             initWebsocket(`ws://${window.location.hostname}:12345`,state.psd);
         }
@@ -78,6 +75,7 @@ export default {
             getConfig().then((res)=>{
                 globalData.value.config.Common = res.Common;
                 globalData.value.config.Client = res.Client;
+                globalData.value.config.Server = res.Server;
                 globalData.value.config.Running = res.Running;
                 globalData.value.configed = true;
                 setTimeout(()=>{
@@ -114,7 +112,6 @@ export default {
             router.isReady().then(()=>{
                 state.api = route.query.api ?`${window.location.hostname}:${route.query.api}` :  state.api;
                 state.psd = route.query.psd || state.psd;
-                state.groupid = route.query.groupid || state.groupid;
                 handleConnect();
             });
         });

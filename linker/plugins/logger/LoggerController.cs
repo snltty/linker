@@ -10,8 +10,8 @@ namespace linker.plugins.logger
     {
         private readonly List<LoggerModel> loggers = new List<LoggerModel>();
 
-        private readonly ConfigWrap config;
-        public LoggerClientApiController(ConfigWrap config)
+        private readonly FileConfig config;
+        public LoggerClientApiController(FileConfig config)
         {
             this.config = config;
             LoggerHelper.Instance.OnLogger += (LoggerModel logger) =>

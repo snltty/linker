@@ -12,7 +12,7 @@ namespace linker.plugins.forward.proxy
 {
     public sealed class ForwardProxy : TunnelProxy
     {
-        private readonly ConfigWrap config;
+        private readonly FileConfig config;
         private readonly TunnelTransfer tunnelTransfer;
         private readonly RelayTransfer relayTransfer;
 
@@ -20,7 +20,7 @@ namespace linker.plugins.forward.proxy
         private readonly ConcurrentDictionary<string, ITunnelConnection> connections = new ConcurrentDictionary<string, ITunnelConnection>();
         private readonly ConcurrentDictionary<string, SemaphoreSlim> locks = new ConcurrentDictionary<string, SemaphoreSlim>();
 
-        public ForwardProxy(ConfigWrap config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer)
+        public ForwardProxy(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer)
         {
             this.config = config;
             this.tunnelTransfer = tunnelTransfer;
@@ -36,6 +36,10 @@ namespace linker.plugins.forward.proxy
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Warning($"TryAdd {connection.GetHashCode()} {connection.TransactionId} {connection.ToJson()}");
 
+            if (connections.TryGetValue(connection.RemoteMachineId, out ITunnelConnection connectionOld))
+            {
+                connectionOld?.Dispose();
+            }
             //把隧道对象添加到缓存，方便下次直接获取
             connections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
             BindConnectionReceive(connection);
@@ -113,12 +117,13 @@ namespace linker.plugins.forward.proxy
                 if (connection == null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward relay to {machineId}");
-                    //转入后台打洞
-                    tunnelTransfer.StartBackground(machineId, "forward");
+                    
                     //尝试中继
                     connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, "forward").ConfigureAwait(false);
                     if (connection != null)
                     {
+                        //转入后台打洞
+                        tunnelTransfer.StartBackground(machineId, "forward");
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward relay to {machineId} success");
                     }
                 }

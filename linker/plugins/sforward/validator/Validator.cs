@@ -6,8 +6,8 @@ namespace linker.plugins.sforward.validator
 {
     public sealed class Validator : IValidator
     {
-        private readonly ConfigWrap config;
-        public Validator(ConfigWrap config)
+        private readonly FileConfig config;
+        public Validator(FileConfig config)
         {
             this.config = config;
         }

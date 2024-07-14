@@ -21,7 +21,7 @@ namespace linker.plugins.tuntap
         private readonly MessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
         private readonly ITuntapVea tuntapVea;
-        private readonly ConfigWrap config;
+        private readonly FileConfig config;
         private readonly TuntapProxy tuntapProxy;
         private readonly RunningConfig runningConfig;
 
@@ -34,7 +34,7 @@ namespace linker.plugins.tuntap
         private bool starting = false;
         public TuntapStatus Status => tuntapVea.Running ? TuntapStatus.Running : (starting ? TuntapStatus.Starting : TuntapStatus.Normal);
 
-        public TuntapTransfer(MessengerSender messengerSender, ClientSignInState clientSignInState, ITuntapVea tuntapVea, ConfigWrap config, TuntapProxy tuntapProxy, RunningConfig runningConfig)
+        public TuntapTransfer(MessengerSender messengerSender, ClientSignInState clientSignInState, ITuntapVea tuntapVea, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig)
         {
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;

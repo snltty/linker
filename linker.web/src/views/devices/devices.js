@@ -10,8 +10,7 @@ export const provideDevices = () => {
         timer: 0,
         page: {
             Request: {
-                Page: 1, Size: +(localStorage.getItem('ps') || '10'),
-                GroupId: globalData.value.groupid, Name: '', Ids: []
+                Page: 1, Size: +(localStorage.getItem('ps') || '10'), Name: '', Ids: []
             },
             Count: 0,
             List: []
@@ -21,7 +20,6 @@ export const provideDevices = () => {
         deviceInfo: null
     });
     const _getSignList = () => {
-        devices.page.Request.GroupId = globalData.value.groupid;
         getSignInList(devices.page.Request).then((res) => {
             devices.page.Request = res.Request;
             devices.page.Count = res.Count;
@@ -37,7 +35,6 @@ export const provideDevices = () => {
     }
     const _getSignList1 = () => {
         if (globalData.value.connected) {
-            devices.page.Request.GroupId = globalData.value.groupid;
             getSignInList(devices.page.Request).then((res) => {
                 for (let j in res.List) {
                     const item = devices.page.List.filter(c => c.MachineId == res.List[j].MachineId)[0];

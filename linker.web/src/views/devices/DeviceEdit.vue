@@ -3,7 +3,7 @@
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="auto">
                 <el-form-item label="">
-                    <div>这将会关闭程序，如果以服务启动，稍后会自动启动，否则你需要手动重新运行</div>
+                    <div>修改后最好能重启一次客户端</div>
                 </el-form-item>
                 <el-form-item label="设备名" prop="MachineName">
                     <el-input maxlength="12" show-word-limit v-model="state.ruleForm.MachineName" />

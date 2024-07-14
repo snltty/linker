@@ -39,14 +39,14 @@ namespace linker.plugins.relay.messenger
     /// </summary>
     public sealed class RelayServerMessenger : IMessenger
     {
-        private readonly ConfigWrap config;
+        private readonly FileConfig config;
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;
         private readonly ConcurrentDictionary<ulong, TcsWrap> dic = new ConcurrentDictionary<ulong, TcsWrap>();
         private ulong flowingId = 0;
 
 
-        public RelayServerMessenger(ConfigWrap config, MessengerSender messengerSender, SignCaching signCaching)
+        public RelayServerMessenger(FileConfig config, MessengerSender messengerSender, SignCaching signCaching)
         {
             this.config = config;
             this.messengerSender = messengerSender;

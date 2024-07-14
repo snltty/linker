@@ -27,11 +27,11 @@ namespace linker.startup
         /// </summary>
         public StartupLoadType LoadType { get; }
 
-        public void AddClient(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies);
-        public void UseClient(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies);
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies);
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies);
 
-        public void AddServer(ServiceCollection serviceCollection, ConfigWrap config, Assembly[] assemblies);
-        public void UseServer(ServiceProvider serviceProvider, ConfigWrap config, Assembly[] assemblies);
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies);
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies);
     }
 
     public enum StartupLoadType
