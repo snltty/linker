@@ -121,7 +121,7 @@ namespace linker.libs.api
                     }
                     else
                     {
-                        resultObject = resultAsync;
+                        resultObject = resultAsync;   
                     }
                 }
                 return new ApiControllerResponseInfo
