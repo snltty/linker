@@ -43,7 +43,7 @@ namespace linker.plugins.tuntap
             this.tuntapProxy = tuntapProxy;
             this.runningConfig = runningConfig;
 
-
+            tuntapVea.Kill();
             clientSignInState.NetworkEnabledHandle += (times) =>
             {
                 OnChange();
@@ -54,13 +54,12 @@ namespace linker.plugins.tuntap
                 if (runningConfig.Data.Tuntap.Running)
                 {
                     Stop(); Run();
+                    _ = CheckVeaStatusTask();
                 }
             };
-
-            tuntapVea.Kill();
+            
             AppDomain.CurrentDomain.ProcessExit += (s, e) => OnExit();
             Console.CancelKeyPress += (s, e) => OnExit();
-            _ = CheckVeaStatusTask();
         }
 
         /// <summary>

@@ -30,7 +30,7 @@ namespace linker.plugins.signin
             ConfigSetInfo info = param.Content.DeJson<ConfigSetInfo>();
             clientSignInTransfer.Set(info.Name, info.GroupId);
         }
-        public async Task<bool> SeName(ApiControllerParamsInfo param)
+        public async Task<bool> SetName(ApiControllerParamsInfo param)
         {
             ConfigSetNameInfo info = param.Content.DeJson<ConfigSetNameInfo>();
 

@@ -65,7 +65,7 @@ namespace linker.plugins.logger
             LoggerSetParamInfo info = param.Content.DeJson<LoggerSetParamInfo>();
             config.Data.Common.LoggerSize = info.Size;
             config.Data.Common.LoggerType = info.LoggerType;
-            config.Save();
+            config.Data.Update();
             return true;
         }
 

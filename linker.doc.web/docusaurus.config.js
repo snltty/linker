@@ -26,6 +26,10 @@ const config = {
     onBrokenLinks: 'throw',
     onBrokenMarkdownLinks: 'warn',
 
+    scripts: [
+        { src: 'https://hm.baidu.com/hm.js?e990192bd30d5e0eea50b34444f911f8', async: true }
+    ],
+
     // Even if you don't use internationalization, you can use this field to set
     // useful metadata like html lang. For example, if your site is Chinese, you
     // may want to replace "en" with "zh-Hans".

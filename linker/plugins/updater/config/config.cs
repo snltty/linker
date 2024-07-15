@@ -43,7 +43,7 @@ namespace linker.plugins.updater.config
 }
 
 
-namespace linker.client.config
+namespace linker.config
 {
     public sealed partial class ConfigClientInfo
     {

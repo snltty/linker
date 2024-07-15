@@ -162,7 +162,7 @@ namespace linker.client
                 if (resp.Data.Span.SequenceEqual(Helper.FalseArray) == false)
                 {
                     config.Data.Client.Id = MemoryPackSerializer.Deserialize<string>(resp.Data.Span);
-                    config.Save();
+                    config.Data.Update();
                     return true;
                 }
             }
@@ -209,7 +209,7 @@ namespace linker.client
             if (name != newName)
             {
                 config.Data.Client.Name = newName;
-                config.Save();
+                config.Data.Update();
 
                 SignOut();
                 _ = SignIn();
@@ -231,7 +231,7 @@ namespace linker.client
             {
                 config.Data.Client.Name = newName;
                 config.Data.Client.GroupId = newGroupid;
-                config.Save();
+                config.Data.Update();
                 SignOut();
                 _ = SignIn();
             }

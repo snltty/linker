@@ -46,7 +46,7 @@ namespace linker.plugins.config
 
             config.Data.Common.Modes = info.Common.Modes;
             config.Data.Common.Install = true;
-            config.Save();
+            config.Data.Update();
             return true;
         }
     }

@@ -12,6 +12,10 @@ namespace linker.updater
     {
         static async Task Main(string[] args)
         {
+            if (args.Length > 0)
+            {
+                rootPath = args[0];
+            }
             Updater();
             await Helper.Await();
         }
@@ -59,7 +63,7 @@ namespace linker.updater
             try
             {
                 return File.Exists(Path.Join(rootPath, "version.txt"))
-                    && File.Exists(Path.Join(rootPath,"updater.zip"))
+                    && File.Exists(Path.Join(rootPath, "updater.zip"))
                     && File.Exists(Path.Join(rootPath, "extract.txt"))
                     && File.ReadAllText(Path.Join(rootPath, "version.txt")) != $"v{FileVersionInfo.GetVersionInfo("linker.exe").FileVersion}";
             }
@@ -72,12 +76,17 @@ namespace linker.updater
         {
             try
             {
+                string[] command = File.ReadAllText(Path.Join(rootPath, "extract.txt")).Split(Environment.NewLine);
+                CommandHelper.Execute(string.Empty, new string[] { command[0] });
+
                 ZipFile.ExtractToDirectory(Path.Join(rootPath, "updater.zip"), "./", Encoding.UTF8, true);
 
                 File.Delete(Path.Join(rootPath, "version.txt"));
                 File.Delete(Path.Join(rootPath, "msg.txt"));
                 File.Delete(Path.Join(rootPath, "extract.txt"));
                 File.Delete(Path.Join(rootPath, "updater.zip"));
+
+                CommandHelper.Execute(string.Empty, new string[] { command[1] });
             }
             catch (Exception)
             {
@@ -90,8 +99,8 @@ namespace linker.updater
             {
                 return true;
                 return (File.Exists(Path.Join(rootPath, "version.txt")) == false
-                    || File.ReadAllText(Path.Join(rootPath, "version.txt")) != updateInfo.Tag)
-                    && $"v{FileVersionInfo.GetVersionInfo("linker.exe").FileVersion}" != updateInfo.Tag;
+                    || File.ReadAllText(Path.Join(rootPath, "version.txt")) != updateInfo.Version)
+                    && $"v{FileVersionInfo.GetVersionInfo("linker.exe").FileVersion}" != updateInfo.Version;
             }
             catch (Exception)
             {
@@ -116,7 +125,7 @@ namespace linker.updater
                 fileStream.Close();
                 fileStream.Dispose();
 
-                File.WriteAllText(Path.Join(rootPath, "version.txt"), updateInfo.Tag);
+                File.WriteAllText(Path.Join(rootPath, "version.txt"), updateInfo.Version);
                 File.WriteAllText(Path.Join(rootPath, "msg.txt"), updateInfo.Msg);
             }
             catch (Exception)
@@ -146,7 +155,7 @@ namespace linker.updater
                 return new UpdateInfo
                 {
                     Msg = msg,
-                    Tag = tag,
+                    Version = tag,
                     Url = $"http://gh.snltty.com:1808/https://github.com{a.GetAttributeValue("href", "").Trim()}"
                 };
             }
@@ -159,9 +168,96 @@ namespace linker.updater
 
         sealed class UpdateInfo
         {
-            public string Tag { get; set; }
+            public string Version { get; set; }
             public string Msg { get; set; }
             public string Url { get; set; }
+        }
+    }
+
+
+    public sealed class CommandHelper
+    {
+
+        public static string Execute(string arg, string[] commands, bool readResult = true)
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                return Windows(arg, commands, readResult);
+            }
+            else if (OperatingSystem.IsLinux())
+            {
+                return Linux(arg, commands, readResult);
+            }
+            return Osx(arg, commands, readResult);
+        }
+        public static string Windows(string arg, string[] commands, bool readResult = true)
+        {
+            return Execute("cmd.exe", arg, commands, readResult);
+        }
+        public static string Linux(string arg, string[] commands, bool readResult = true)
+        {
+            return Execute("/bin/bash", arg, commands, readResult);
+        }
+        public static string Osx(string arg, string[] commands, bool readResult = true)
+        {
+            return Execute("/bin/bash", arg, commands, readResult);
+        }
+
+        public static Process Execute(string fileName, string arg)
+        {
+            Process proc = new Process();
+            proc.StartInfo.CreateNoWindow = true;
+            proc.StartInfo.FileName = fileName;
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.RedirectStandardError = true;
+            proc.StartInfo.RedirectStandardInput = true;
+            proc.StartInfo.RedirectStandardOutput = true;
+            proc.StartInfo.Arguments = arg;
+            proc.StartInfo.Verb = "runas";
+            proc.Start();
+
+            //Process proc = Process.Start(fileName, arg);
+            return proc;
+        }
+
+        public static string Execute(string fileName, string arg, string[] commands, bool readResult = true)
+        {
+            using Process proc = new Process();
+            proc.StartInfo.WorkingDirectory = Path.GetFullPath(Path.Join("./"));
+            proc.StartInfo.CreateNoWindow = true;
+            proc.StartInfo.FileName = fileName;
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.RedirectStandardError = true;
+            proc.StartInfo.RedirectStandardInput = true;
+            proc.StartInfo.RedirectStandardOutput = true;
+            proc.StartInfo.Arguments = arg;
+            proc.StartInfo.Verb = "runas";
+            proc.Start();
+
+            if (commands.Length > 0)
+            {
+                for (int i = 0; i < commands.Length; i++)
+                {
+                    proc.StandardInput.WriteLine(commands[i]);
+                }
+            }
+            proc.StandardInput.AutoFlush = true;
+            if (readResult)
+            {
+                proc.StandardInput.WriteLine("exit");
+                proc.StandardInput.Close();
+                string output = proc.StandardOutput.ReadToEnd();
+                string error = proc.StandardError.ReadToEnd();
+                proc.WaitForExit();
+                proc.Close();
+                proc.Dispose();
+
+                return output;
+            }
+            proc.StandardOutput.Read();
+            proc.Close();
+            proc.Dispose();
+            return string.Empty;
         }
     }
 }
