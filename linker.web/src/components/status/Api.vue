@@ -32,6 +32,7 @@ import { initWebsocket, subWebsocketState,closeWebsocket } from '../../apis/requ
 import { getSignInfo } from '../../apis/signin'
 import { getConfig } from '../../apis/config'
 import {Tools} from '@element-plus/icons-vue'
+import { getUpdater } from '@/apis/updater';
 export default {
     components:{Tools},
     setup(props) {
@@ -101,13 +102,21 @@ export default {
                 },1000);
             });
         }
-
+        const _getUpdater = ()=>{
+            getUpdater().then((res)=>{
+                if(res){
+                    globalData.value.updater.Version = res.Version;
+                    globalData.value.updater.Msg = res.Msg;
+                }
+            }).catch((err)=>{});
+        }
 
         onMounted(() => {
             setTimeout(() => { state.showPort = true; }, 100);
             subWebsocketState((state) => { if (state) {
                 _getConfig();
                 _getSignInfoInfo();
+                _getUpdater();
             }});
             router.isReady().then(()=>{
                 state.api = route.query.api ?`${window.location.hostname}:${route.query.api}` :  state.api;

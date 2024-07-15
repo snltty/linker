@@ -19,11 +19,25 @@ namespace linker.plugins.updater
 
         private void RestartUpdater()
         {
-            foreach (var item in Process.GetProcessesByName("linker.updater"))
+            try
+            {
+                if (OperatingSystem.IsWindows())
+                    File.Copy("linker.updater.exe", "linker.updater.temp.exe", true);
+                else
+                    File.Copy("linker.updater", "linker.updater.temp", true);
+
+            }
+            catch (Exception)
+            {
+            }
+            foreach (var item in Process.GetProcessesByName("linker.updater.temp"))
             {
                 item.Kill();
             }
-            CommandHelper.Execute("linker.updater.exe", rootPath);
+            if (OperatingSystem.IsWindows())
+                CommandHelper.Execute("linker.updater.temp.exe", rootPath);
+            else
+                CommandHelper.Execute("linker.updater.temp", rootPath);
         }
         private void LoadUpdater()
         {
@@ -47,10 +61,6 @@ namespace linker.plugins.updater
         }
         public void Update()
         {
-            if (updateInfo == null || string.IsNullOrWhiteSpace(updateInfo.Version))
-            {
-                return;
-            }
             File.WriteAllText(Path.Join(rootPath, "extract.txt"), $"{fileConfig.Data.Client.Updater.RunCommand}{Environment.NewLine}{fileConfig.Data.Client.Updater.StopCommand}");
         }
     }

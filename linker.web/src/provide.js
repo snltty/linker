@@ -12,7 +12,8 @@ export const provideGlobalData = () => {
         config: { Common: {}, Client: {}, Server: {}, Running: {} },
         configed: false,
         signin: { Connected: false, Connecting: false, Version: 'v1.0.0.0' },
-        bufferSize: ['1KB', '2KB', '4KB', '8KB', '16KB', '32KB', '64KB', '128KB', '256KB', '512KB', '1024KB']
+        bufferSize: ['1KB', '2KB', '4KB', '8KB', '16KB', '32KB', '64KB', '128KB', '256KB', '512KB', '1024KB'],
+        updater: { Msg: '', Version: '' }
     });
     subWebsocketState((state) => {
         globalData.value.connected = state;

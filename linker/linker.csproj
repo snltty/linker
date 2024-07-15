@@ -55,9 +55,6 @@
 		<None Update="Plugins\Tuntap\wintun.dll" Condition="'$(RuntimeIdentifier)'=='win-x64' or '$(RuntimeIdentifier)'=='win-arm64' or '$(Configuration)'=='Debug'">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="configs\common.json">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
 		<None Update="snltty.pfx">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>

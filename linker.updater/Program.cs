@@ -32,7 +32,7 @@ namespace linker.updater
                         UpdateInfo updateInfo = GetUpdateInfo();
                         if (updateInfo != null)
                         {
-                            if (NeedDownload(updateInfo))
+                            if (NeedDownload())
                             {
                                 await DownloadUpdate(updateInfo);
                             }
@@ -58,14 +58,12 @@ namespace linker.updater
 
             }, TaskCreationOptions.LongRunning);
         }
+
         static bool NeedExtract()
         {
             try
             {
-                return File.Exists(Path.Join(rootPath, "version.txt"))
-                    && File.Exists(Path.Join(rootPath, "updater.zip"))
-                    && File.Exists(Path.Join(rootPath, "extract.txt"))
-                    && File.ReadAllText(Path.Join(rootPath, "version.txt")) != $"v{FileVersionInfo.GetVersionInfo("linker.exe").FileVersion}";
+                return File.Exists(Path.Join(rootPath, "updater.zip")) && File.Exists(Path.Join(rootPath, "extract.txt"));
             }
             catch (Exception)
             {
@@ -79,10 +77,8 @@ namespace linker.updater
                 string[] command = File.ReadAllText(Path.Join(rootPath, "extract.txt")).Split(Environment.NewLine);
                 CommandHelper.Execute(string.Empty, new string[] { command[0] });
 
-                ZipFile.ExtractToDirectory(Path.Join(rootPath, "updater.zip"), "./", Encoding.UTF8, true);
+                ZipFile.ExtractToDirectory(Path.Join(rootPath, "updater.zip"), Path.Join(rootPath, "../"), Encoding.UTF8, true);
 
-                File.Delete(Path.Join(rootPath, "version.txt"));
-                File.Delete(Path.Join(rootPath, "msg.txt"));
                 File.Delete(Path.Join(rootPath, "extract.txt"));
                 File.Delete(Path.Join(rootPath, "updater.zip"));
 
@@ -93,14 +89,11 @@ namespace linker.updater
             }
         }
 
-        static bool NeedDownload(UpdateInfo updateInfo)
+        static bool NeedDownload()
         {
             try
             {
-                return true;
-                return (File.Exists(Path.Join(rootPath, "version.txt")) == false
-                    || File.ReadAllText(Path.Join(rootPath, "version.txt")) != updateInfo.Version)
-                    && $"v{FileVersionInfo.GetVersionInfo("linker.exe").FileVersion}" != updateInfo.Version;
+                return File.Exists(Path.Join(rootPath, "extract.txt"));
             }
             catch (Exception)
             {
@@ -124,14 +117,12 @@ namespace linker.updater
                 fileStream.Flush();
                 fileStream.Close();
                 fileStream.Dispose();
-
-                File.WriteAllText(Path.Join(rootPath, "version.txt"), updateInfo.Version);
-                File.WriteAllText(Path.Join(rootPath, "msg.txt"), updateInfo.Msg);
             }
             catch (Exception)
             {
             }
         }
+
         static UpdateInfo GetUpdateInfo()
         {
             try
@@ -152,6 +143,10 @@ namespace linker.updater
                 string zip = $"linker-{system}-{arch}.zip";
                 var a = hdc1.DocumentNode.QuerySelectorAll("a").FirstOrDefault(c => c.InnerText.Trim() == zip);
 
+
+                File.WriteAllText(Path.Join(rootPath, "version.txt"), tag);
+                File.WriteAllText(Path.Join(rootPath, "msg.txt"), msg);
+
                 return new UpdateInfo
                 {
                     Msg = msg,
@@ -164,8 +159,6 @@ namespace linker.updater
             }
             return null;
         }
-
-
         sealed class UpdateInfo
         {
             public string Version { get; set; }

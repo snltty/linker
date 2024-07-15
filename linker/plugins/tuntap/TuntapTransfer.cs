@@ -57,7 +57,7 @@ namespace linker.plugins.tuntap
                     _ = CheckVeaStatusTask();
                 }
             };
-            
+
             AppDomain.CurrentDomain.ProcessExit += (s, e) => OnExit();
             Console.CancelKeyPress += (s, e) => OnExit();
         }
@@ -240,7 +240,7 @@ namespace linker.plugins.tuntap
             };
             if (runningConfig.Data.Tuntap.Masks.Length != runningConfig.Data.Tuntap.LanIPs.Length)
             {
-                runningConfig.Data.Tuntap.Masks = new byte[runningConfig.Data.Tuntap.LanIPs.Length].Select(c => 24).ToArray();
+                runningConfig.Data.Tuntap.Masks = runningConfig.Data.Tuntap.LanIPs.Select(c => 24).ToArray();
             }
 
             return info;
@@ -309,15 +309,16 @@ namespace linker.plugins.tuntap
                     return new TuntapVeaLanIPAddressList
                     {
                         MachineId = c.MachineId,
-                        IPS = ParseIPs(c.LanIPs,c.Masks)
+                        IPS = ParseIPs(c.LanIPs, c.Masks)
                         //这边的局域网IP也不要，为了防止将本机局域网IP路由到别的地方
-                        .Where(c=> localIps.Select(d=>d & c.MaskValue ).Contains(c.NetWork) == false).ToList(),
+                        .Where(c => localIps.Select(d => d & c.MaskValue).Contains(c.NetWork) == false).ToList(),
                     };
                 }).ToList();
         }
         private List<TuntapVeaLanIPAddress> ParseIPs(IPAddress[] lanIPs, int[] masks)
         {
-            return lanIPs.Where(c => c.Equals(IPAddress.Any) == false).Select((c,index) =>
+            if (masks.Length != lanIPs.Length) masks = lanIPs.Select(c => 24).ToArray();
+            return lanIPs.Where(c => c.Equals(IPAddress.Any) == false).Select((c, index) =>
             {
                 return ParseIPAddress(c, (byte)masks[index]);
 

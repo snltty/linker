@@ -29,7 +29,7 @@ namespace linker.plugins.updater
         }
         public async Task Update(ApiControllerParamsInfo param)
         {
-            if (string.IsNullOrWhiteSpace(param.Content))
+            if (string.IsNullOrWhiteSpace(param.Content) || param.Content == config.Data.Client.Id)
             {
                 updaterTransfer.Update();
             }
