@@ -5,6 +5,7 @@ using linker.plugins.updater.messenger;
 using linker.server;
 using MemoryPack;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
@@ -31,7 +32,7 @@ namespace linker.plugins.updater
                 UpdateTask();
             };
 
-            ClearTempFile();
+            StartClearTempFile();
         }
 
         /// <summary>
@@ -269,11 +270,33 @@ namespace linker.plugins.updater
             }
         }
 
+        private void StartClearTempFile()
+        {
+            bool restart = false;
+            if (OperatingSystem.IsWindows())
+            {
+                Process[] trays = Process.GetProcessesByName("linker.tray.win");
+                restart = trays.Length > 0;
+                foreach (var tray in trays)
+                {
+                    tray.Kill();
+                }
+                CommandHelper.Windows(string.Empty, new string[] { "sc stop linker.service" });
+            }
+
+            ClearTempFile();
+
+            if (restart && OperatingSystem.IsWindows())
+            {
+                CommandHelper.Execute("linker.tray.win.exe", "--task=1");
+                CommandHelper.Windows(string.Empty, new string[] { "sc start linker.service" });
+            }
+        }
         private void ClearTempFile(string path = "./")
         {
             string fullPath = Path.GetFullPath(path);
 
-            foreach (var item in Directory.GetFiles(fullPath).Where(c=>c.EndsWith(".temp")))
+            foreach (var item in Directory.GetFiles(fullPath).Where(c => c.EndsWith(".temp")))
             {
                 try
                 {

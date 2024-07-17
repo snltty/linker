@@ -120,7 +120,9 @@ export default {
                     handlePageChange();
                     _getSignList();
                 } 
+                
             });
+            
             _getSignList();
             _getSignList1();
             _getTuntapInfo();

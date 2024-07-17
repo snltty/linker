@@ -21,6 +21,7 @@ export const provideDevices = () => {
     });
     const _getSignList = () => {
         getSignInList(devices.page.Request).then((res) => {
+            console.log(res);
             devices.page.Request = res.Request;
             devices.page.Count = res.Count;
             for (let j in res.List) {
