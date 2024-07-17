@@ -115,10 +115,6 @@ namespace linker.service
                 {
                     WorkingDirectory = dir,
                     FileName = Path.Combine(dir, $"{mainExeName}.tray.win.exe"),
-                    CreateNoWindow = false,
-                    ErrorDialog = false,
-                    UseShellExecute = true,
-                    WindowStyle = ProcessWindowStyle.Hidden,
                     Arguments = "--task=1",
                     Verb = "runas",
                 });
