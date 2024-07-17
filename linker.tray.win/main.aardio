@@ -78,12 +78,23 @@ mainForm.showPopmenu = function(){
 	});
 }
 
+
+
+mainForm.failureService = function()
+{
+	import process.popen;
+	var prcs = process.popen.cmd("sc failure " + mainForm.serviceName +" reset= 0 actions= restart/3000/restart/3000/restart/3000")
+	prcs.readAll();
+}
+
 mainForm.checkService = function(){
 	import service;
 	mainForm.btnInstall.text = service.isExist(mainForm.serviceName) ? "卸载服务" : "安装服务";
 	mainForm.btnRun.text = service.isRunning(mainForm.serviceName) ? "停止服务" : "运行服务";
 	mainForm.showPopmenu();
 	mainForm.runAsTaskCheck();
+	
+	mainForm.failureService();
 }
 mainForm.btnCheck.oncommand = function(id,event){
 	mainForm.checkService();

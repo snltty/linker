@@ -188,6 +188,7 @@ namespace linker.plugins.updater
                         }
                         catch (Exception)
                         {
+                            continue;
                         }
                     }
 
@@ -272,25 +273,7 @@ namespace linker.plugins.updater
 
         private void StartClearTempFile()
         {
-            if (OperatingSystem.IsWindows())
-            {
-                Process[] trays = Process.GetProcessesByName("linker.tray.win");
-                if (trays.Length > 0)
-                {
-                    foreach (var tray in trays)
-                    {
-                        tray.Kill();
-                    }
-                    CommandHelper.Windows(string.Empty, new string[] { "start linker.tray.win.exe --task=1" });
-                }
-            }
-
             ClearTempFile();
-
-            if (File.Exists("linker.service.exe.temp"))
-            {
-                CommandHelper.Windows(string.Empty, new string[] { "sc stop linker.service & sc start linker.service" });
-            }
         }
         private void ClearTempFile(string path = "./")
         {

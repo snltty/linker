@@ -17,8 +17,9 @@ namespace linker.service
 
         protected override void OnStart(string[] _args)
         {
+            OpenExe();
+            OpenExeTray();
             CheckMainProcess();
-            
         }
         protected override void OnStop()
         {
@@ -28,8 +29,10 @@ namespace linker.service
         }
 
         private Process proc;
+        private Process procTray;
         private void CheckMainProcess()
         {
+
             Task.Run(async () =>
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
@@ -38,8 +41,7 @@ namespace linker.service
                     {
                         if (Process.GetProcessesByName(mainExeName).Any() == false)
                         {
-                            KillExe();
-                            OpenExe();
+                            RestartService();
                         }
                     }
                     catch (Exception)
@@ -55,20 +57,17 @@ namespace linker.service
             {
                 string filename = Process.GetCurrentProcess().MainModule.FileName;
                 string dir = Path.GetDirectoryName(filename);
-                string file = Path.Combine(dir, $"{mainExeName}.exe");
-                ProcessStartInfo processStartInfo = new ProcessStartInfo()
+                proc = Process.Start(new ProcessStartInfo()
                 {
                     WorkingDirectory = dir,
-                    FileName = file,
+                    FileName = Path.Combine(dir, $"{mainExeName}.exe"),
                     CreateNoWindow = false,
                     ErrorDialog = false,
                     UseShellExecute = true,
                     WindowStyle = ProcessWindowStyle.Hidden,
                     //Arguments = string.Join(" ", this.args),
                     Verb = "runas",
-                };
-                proc = Process.Start(processStartInfo);
-
+                });
                 return true;
             }
             catch (Exception)
@@ -103,6 +102,76 @@ namespace linker.service
             finally
             {
                 proc = null;
+            }
+        }
+
+        private bool OpenExeTray()
+        {
+            try
+            {
+                string filename = Process.GetCurrentProcess().MainModule.FileName;
+                string dir = Path.GetDirectoryName(filename);
+                procTray = Process.Start(new ProcessStartInfo()
+                {
+                    WorkingDirectory = dir,
+                    FileName = Path.Combine(dir, $"{mainExeName}.tray.win.exe"),
+                    CreateNoWindow = false,
+                    ErrorDialog = false,
+                    UseShellExecute = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    Arguments = "--task=1",
+                    Verb = "runas",
+                });
+
+                return true;
+            }
+            catch (Exception)
+            {
+                try
+                {
+                    procTray.Kill();
+                    procTray.Dispose();
+                }
+                catch (Exception)
+                {
+                }
+                procTray = null;
+            }
+            return false;
+        }
+        private void KillExeTray()
+        {
+            try
+            {
+                procTray?.Close();
+                procTray?.Dispose();
+
+                foreach (var item in Process.GetProcessesByName($"{mainExeName}.tray.win"))
+                {
+                    item.Kill();
+                }
+            }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                procTray = null;
+            }
+        }
+
+
+        public void RestartService()
+        {
+            try
+            {
+                KillExe();
+                KillExeTray();
+
+                Environment.Exit(1);
+            }
+            catch (Exception)
+            {
             }
         }
     }
