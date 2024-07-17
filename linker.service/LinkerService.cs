@@ -18,6 +18,7 @@ namespace linker.service
         protected override void OnStart(string[] _args)
         {
             CheckMainProcess();
+            
         }
         protected override void OnStop()
         {

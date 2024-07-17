@@ -272,24 +272,24 @@ namespace linker.plugins.updater
 
         private void StartClearTempFile()
         {
-            bool restart = false;
             if (OperatingSystem.IsWindows())
             {
                 Process[] trays = Process.GetProcessesByName("linker.tray.win");
-                restart = trays.Length > 0;
-                foreach (var tray in trays)
+                if (trays.Length > 0)
                 {
-                    tray.Kill();
+                    foreach (var tray in trays)
+                    {
+                        tray.Kill();
+                    }
+                    CommandHelper.Windows(string.Empty, new string[] { "start linker.tray.win.exe --task=1" });
                 }
-                CommandHelper.Windows(string.Empty, new string[] { "sc stop linker.service" });
             }
 
             ClearTempFile();
 
-            if (restart && OperatingSystem.IsWindows())
+            if (File.Exists("linker.service.exe.temp"))
             {
-                CommandHelper.Execute("linker.tray.win.exe", "--task=1");
-                CommandHelper.Windows(string.Empty, new string[] { "sc start linker.service" });
+                CommandHelper.Windows(string.Empty, new string[] { "sc stop linker.service & sc start linker.service" });
             }
         }
         private void ClearTempFile(string path = "./")
