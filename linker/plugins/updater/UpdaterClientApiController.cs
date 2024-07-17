@@ -5,6 +5,7 @@ using linker.client.capi;
 using linker.config;
 using linker.plugins.updater.messenger;
 using MemoryPack;
+using System.Collections.Concurrent;
 
 namespace linker.plugins.updater
 {
@@ -23,22 +24,38 @@ namespace linker.plugins.updater
             this.config = config;
         }
 
-        public UpdateInfo Get(ApiControllerParamsInfo param)
+        public ConcurrentDictionary<string, UpdateInfo> Get(ApiControllerParamsInfo param)
         {
             return updaterTransfer.Get();
         }
-        public async Task Update(ApiControllerParamsInfo param)
+        public async Task Confirm(ApiControllerParamsInfo param)
         {
             if (string.IsNullOrWhiteSpace(param.Content) || param.Content == config.Data.Client.Id)
             {
-                updaterTransfer.Update();
+                updaterTransfer.Confirm();
             }
             else
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = clientSignInState.Connection,
-                    MessengerId = (ushort)UpdaterMessengerIds.UpdateForward,
+                    MessengerId = (ushort)UpdaterMessengerIds.ConfirmForward,
+                    Payload = MemoryPackSerializer.Serialize(param.Content)
+                });
+            }
+        }
+        public async Task Exit(ApiControllerParamsInfo param)
+        {
+            if (string.IsNullOrWhiteSpace(param.Content) || param.Content == config.Data.Client.Id)
+            {
+                updaterTransfer.Exit();
+            }
+            else
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = clientSignInState.Connection,
+                    MessengerId = (ushort)UpdaterMessengerIds.ExitForward,
                     Payload = MemoryPackSerializer.Serialize(param.Content)
                 });
             }

@@ -7,6 +7,12 @@
         UpdateForward = 2601,
         Update = 2602,
 
+        ConfirmForward = 2603,
+        Confirm = 2604,
+
+        ExitForward = 2605,
+        Exit = 2606,
+
         Max = 2299
     }
 }

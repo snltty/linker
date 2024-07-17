@@ -21,7 +21,7 @@ export const provideConnections = () => {
     });
     provide(forwardConnectionsSymbol, forwardConnections);
     const _getForwardConnections = () => {
-        if (globalData.value.connected) {
+        if (globalData.value.api.connected) {
             getForwardConnections().then((res) => {
                 parseConnections(res, removeForwardConnection);
                 forwardConnections.value.list = res;
@@ -39,7 +39,7 @@ export const provideConnections = () => {
     });
     provide(tuntapConnectionsSymbol, tuntapConnections);
     const _getTuntapConnections = () => {
-        if (globalData.value.connected) {
+        if (globalData.value.api.connected) {
             getTuntapConnections().then((res) => {
                 parseConnections(res, removeTuntapConnection);
                 tuntapConnections.value.list = res;

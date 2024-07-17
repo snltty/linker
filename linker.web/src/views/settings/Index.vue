@@ -21,7 +21,7 @@ export default {
         const globalData = injectGlobalData();
         const state = reactive({
             tab:settingComponents[0].name,
-            connected:computed(()=>globalData.value.connected && globalData.value.configed),
+            connected:computed(()=>globalData.value.api.connected && globalData.value.config.configed),
         });
         return {
             state,settingComponents

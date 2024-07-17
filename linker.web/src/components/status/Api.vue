@@ -1,6 +1,6 @@
 <template>
     <div class="status-api-wrap" :class="{connected:connected}">
-        <el-popconfirm confirm-button-text="清除" cancel-button-text="更改" title="确定你的惭怍？" @cancel="handleShow" @confirm="handleResetConnect" >
+        <el-popconfirm confirm-button-text="清除" cancel-button-text="更改" title="确定你的操作？" @cancel="handleShow" @confirm="handleResetConnect" >
             <template #reference>
                 <a href="javascript:;" >
                     <el-icon size="16"><Tools /></el-icon>
@@ -32,29 +32,28 @@ import { initWebsocket, subWebsocketState,closeWebsocket } from '../../apis/requ
 import { getSignInfo } from '../../apis/signin'
 import { getConfig } from '../../apis/config'
 import {Tools} from '@element-plus/icons-vue'
-import { getUpdater } from '@/apis/updater';
 export default {
     components:{Tools},
     setup(props) {
         const globalData = injectGlobalData();
-        const connected = computed(()=>globalData.value.connected);
+        const connected = computed(()=>globalData.value.api.connected);
         const router = useRouter();
         const route = useRoute();
 
         const defaultInfo = {api:`${window.location.hostname}:1803`,psd:'snltty'};
-        const handleResetConnect = () => {
-            localStorage.setItem('api-cache', '');
-            router.push({name:route.name});
-            window.location.reload();
-        }
         const queryCache = JSON.parse(localStorage.getItem('api-cache') || JSON.stringify(defaultInfo));
         const state = reactive({
             api:queryCache.api,
             psd:queryCache.psd,
             showPort: false
         });
-        const showPort = computed(() => globalData.value.connected == false && state.showPort);
+        const showPort = computed(() => globalData.value.api.connected == false && state.showPort);
 
+        const handleResetConnect = () => {
+            localStorage.setItem('api-cache', '');
+            router.push({name:route.name});
+            window.location.reload();
+        }
         const handleConnect = () => {
             queryCache.api = state.api;
             queryCache.psd = state.psd;
@@ -78,7 +77,7 @@ export default {
                 globalData.value.config.Client = res.Client;
                 globalData.value.config.Server = res.Server;
                 globalData.value.config.Running = res.Running;
-                globalData.value.configed = true;
+                globalData.value.config.configed = true;
                 setTimeout(()=>{
                     _getConfig();
                 },1000);
@@ -102,21 +101,12 @@ export default {
                 },1000);
             });
         }
-        const _getUpdater = ()=>{
-            getUpdater().then((res)=>{
-                if(res){
-                    globalData.value.updater.Version = res.Version;
-                    globalData.value.updater.Msg = res.Msg;
-                }
-            }).catch((err)=>{});
-        }
 
         onMounted(() => {
-            setTimeout(() => { state.showPort = true; }, 100);
+            setTimeout(() => { state.showPort = true; }, 500);
             subWebsocketState((state) => { if (state) {
                 _getConfig();
                 _getSignInfoInfo();
-                _getUpdater();
             }});
             router.isReady().then(()=>{
                 state.api = route.query.api ?`${window.location.hostname}:${route.query.api}` :  state.api;

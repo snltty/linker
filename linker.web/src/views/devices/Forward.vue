@@ -2,7 +2,7 @@
 
     <el-table-column prop="forward" label="端口转发">
         <template #default="scope">
-            <template v-if="scope.row.showForward">
+            <template v-if="!scope.row.isSelf">
                 <div>
                     <ul class="list forward">
                         <template v-if="forward.list[scope.row.MachineId] && forward.list[scope.row.MachineId].length > 0">
@@ -25,7 +25,7 @@
                     </ul>
                 </div>
             </template>
-            <template v-else-if="scope.row.showSForward">
+            <template v-else-if="!scope.row.isSelf">
                 <div>
                     <ul class="list sforward">
                         <template v-if="sforward.list && sforward.list.length > 0">

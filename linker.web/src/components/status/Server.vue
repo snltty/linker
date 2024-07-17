@@ -63,7 +63,6 @@ export default {
                 state.loading = false;
                 state.show = false;
                 ElMessage.success('已操作');
-                globalData.value.updateFlag = Date.now();
             }).catch((err) => {
                 state.loading = false;
                 ElMessage.success('操作失败!');

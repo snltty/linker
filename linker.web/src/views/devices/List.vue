@@ -55,6 +55,7 @@ import { provideForward } from './forward'
 import { provideConnections } from './connections'
 import { provideSforward } from './sforward'
 import { provideDevices } from './devices'
+import { provideUpdater } from './updater'
 export default {
     components: {Device,DeviceEdit,Tunnel,TunnelEdit,ConnectionsEdit, Tuntap,TuntapEdit,  Forward,ForwardEdit,ForwardCopy,SForwardEdit,SForwardCopy },
     setup(props) {
@@ -77,6 +78,7 @@ export default {
             handleTunnelConnections,clearConnectionsTimeout
         } = provideConnections();
 
+        const {_getUpdater,clearUpdaterTimeout} = provideUpdater();
 
         const _handleForwardEdit = (machineId) => {
             handleForwardEdit(machineId,devices.page.List.filter(c => c.MachineId == machineId)[0].MachineName);
@@ -85,8 +87,11 @@ export default {
         const handlePageRefresh = (name)=>{
             devices.page.Request.Name = name || '';
             if(devices.page.Request.Name){
+                //从虚拟网卡里查找
                 devices.page.Request.Ids = getTuntapMachines(devices.page.Request.Name)
+                //从端口转发里查找
                 .concat(getForwardMachines(devices.page.Request.Name))
+                //从服务器代理穿透里查找
                 .concat(getSForwardMachines(devices.page.Request.Name))
                 .reduce((arr,id)=>{
                     if(arr.indexOf(id) == -1){
@@ -125,6 +130,8 @@ export default {
             _getForwardInfo();
             _getSForwardInfo();
 
+            _getUpdater();
+
             _testTargetForwardInfo();
             _testListenForwardInfo();
             _testLocalSForwardInfo();
@@ -136,6 +143,8 @@ export default {
             clearTunnelTimeout();
             clearForwardTimeout();
             clearSForwardTimeout();
+
+            clearUpdaterTimeout();
         });
 
         return {

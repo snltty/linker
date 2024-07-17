@@ -3,6 +3,7 @@ using linker.libs.extends;
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Net;
+using System.Net.NetworkInformation;
 
 namespace linker.plugins.tuntap.vea
 {
@@ -173,24 +174,14 @@ namespace linker.plugins.tuntap.vea
         {
             for (int i = 0; i < 10; i++)
             {
-                string output = CommandHelper.Windows(string.Empty, new string[] { "route print" });
-                if (output.Contains("IPv4") == false)
+                NetworkInterface adapter = NetworkInterface.GetAllNetworkInterfaces()
+                    .FirstOrDefault(c => c.Name == InterfaceName);
+                if (adapter != null)
                 {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        Error = $"route command not found";
-                        LoggerHelper.Instance.Error(Error);
-                    }
-                    return false;
+                    interfaceNumber = adapter.GetIPProperties().GetIPv4Properties().Index;
+                    return true;
                 }
-                foreach (var item in output.Split(Environment.NewLine))
-                {
-                    if (item.Contains("WireGuard Tunnel"))
-                    {
-                        interfaceNumber = int.Parse(item.Substring(0, item.IndexOf('.')).Trim());
-                        return true;
-                    }
-                }
+
                 await Task.Delay(1000).ConfigureAwait(false);
             }
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)

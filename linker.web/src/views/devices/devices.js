@@ -24,9 +24,6 @@ export const provideDevices = () => {
             devices.page.Request = res.Request;
             devices.page.Count = res.Count;
             for (let j in res.List) {
-                res.List[j].showTunnel = machineId.value != res.List[j].MachineId;
-                res.List[j].showForward = machineId.value != res.List[j].MachineId;
-                res.List[j].showSForward = machineId.value == res.List[j].MachineId;
                 res.List[j].showDel = machineId.value != res.List[j].MachineId && res.List[j].Connected == false;
                 res.List[j].isSelf = machineId.value == res.List[j].MachineId;
             }
@@ -34,7 +31,7 @@ export const provideDevices = () => {
         }).catch((err) => { });
     }
     const _getSignList1 = () => {
-        if (globalData.value.connected) {
+        if (globalData.value.api.connected) {
             getSignInList(devices.page.Request).then((res) => {
                 for (let j in res.List) {
                     const item = devices.page.List.filter(c => c.MachineId == res.List[j].MachineId)[0];
@@ -43,9 +40,6 @@ export const provideDevices = () => {
                         item.Version = res.List[j].Version;
                         item.LastSignIn = res.List[j].LastSignIn;
                         item.Args = res.List[j].Args;
-                        item.showTunnel = machineId.value != res.List[j].MachineId;
-                        item.showForward = machineId.value != res.List[j].MachineId;
-                        item.showSForward = machineId.value == res.List[j].MachineId;
                         item.showDel = machineId.value != res.List[j].MachineId && res.List[j].Connected == false;
                         item.isSelf = machineId.value == res.List[j].MachineId;
                     }

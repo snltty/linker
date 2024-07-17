@@ -50,9 +50,9 @@ export default {
             steps:['选择模式','服务端','客户端','完成']
         });
         
-        watch(() => globalData.value.configed, (val) => {
+        watch(() => globalData.value.config.configed, (val) => {
             if (val) {
-                state.show = globalData.value.connected && globalData.value.configed && globalData.value.config.Common.Install == false;
+                state.show = globalData.value.api.connected && globalData.value.config.configed && globalData.value.config.Common.Install == false;
             }
         });
 

@@ -16,15 +16,15 @@ export const provideSforward = () => {
     });
     provide(sforwardSymbol, sforward);
     const _getSForwardInfo = () => {
-        if (globalData.value.connected) {
+        if (globalData.value.api.connected) {
             getSForwardInfo().then((res) => {
                 sforward.value.list = res;
-                sforward.value.timer = setTimeout(_getSForwardInfo, 1000);
+                sforward.value.timer = setTimeout(_getSForwardInfo, 1040);
             }).catch(() => {
-                sforward.value.timer = setTimeout(_getSForwardInfo, 1000);
+                sforward.value.timer = setTimeout(_getSForwardInfo, 1040);
             });
         } else {
-            sforward.value.timer = setTimeout(_getSForwardInfo, 1000);
+            sforward.value.timer = setTimeout(_getSForwardInfo, 1040);
         }
     }
     const handleSForwardEdit = () => {

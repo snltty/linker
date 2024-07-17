@@ -15,18 +15,18 @@ export const provideTunnel = () => {
     });
     provide(tunnelSymbol, tunnel);
     const _getTunnelInfo = () => {
-        if (globalData.value.connected) {
+        if (globalData.value.api.connected) {
             getTunnelInfo(tunnel.value.hashcode.toString()).then((res) => {
                 tunnel.value.hashcode = res.HashCode;
                 if (res.List) {
                     tunnel.value.list = res.List;
                 }
-                tunnel.value.timer = setTimeout(_getTunnelInfo, 1000);
+                tunnel.value.timer = setTimeout(_getTunnelInfo, 1060);
             }).catch(() => {
-                tunnel.value.timer = setTimeout(_getTunnelInfo, 1000);
+                tunnel.value.timer = setTimeout(_getTunnelInfo, 1060);
             });
         } else {
-            tunnel.value.timer = setTimeout(_getTunnelInfo, 1000);
+            tunnel.value.timer = setTimeout(_getTunnelInfo, 1060);
         }
     }
     const handleTunnelEdit = (_tunnel) => {

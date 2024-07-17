@@ -16,15 +16,15 @@ export const provideForward = () => {
     });
     provide(forwardSymbol, forward);
     const _getForwardInfo = () => {
-        if (globalData.value.connected) {
+        if (globalData.value.api.connected) {
             getForwardInfo().then((res) => {
                 forward.value.list = res;
-                forward.value.timer = setTimeout(_getForwardInfo, 1000);
+                forward.value.timer = setTimeout(_getForwardInfo, 1020);
             }).catch(() => {
-                forward.value.timer = setTimeout(_getForwardInfo, 1000);
+                forward.value.timer = setTimeout(_getForwardInfo, 1020);
             });
         } else {
-            forward.value.timer = setTimeout(_getForwardInfo, 1000);
+            forward.value.timer = setTimeout(_getForwardInfo, 1020);
         }
     }
     const handleForwardEdit = (machineId, machineName) => {

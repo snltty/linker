@@ -18,16 +18,29 @@
             <p class="flex">
                 <span>{{ scope.row.IP }}</span>
                 <span class="flex-1"></span>
-                <a href="javascript:;" class="download" title="下载更新" @click="handleUpdate">
-                    <template v-if="scope.row.Version != version && scope.row.Version == updater.Version">
-                        <span title="与服务器版本不一致，建议更新">{{scope.row.Version}}<el-icon size="14"><Download /></el-icon></span>
-                    </template>
-                    <template v-else-if="scope.row.Version != updater.Version">
-                        <span title="不是最新版本，建议更新">{{scope.row.Version}}<el-icon size="14"><Download /></el-icon></span>
-                    </template>
-                    <template v-else>
-                        <span title="版本一致，但我无法阻止你喜欢更新" class="green">{{scope.row.Version}}</span>
-                    </template>
+                <a href="javascript:;" class="download" title="下载更新" @click="handleUpdate(scope.row)">
+                    <span :title="updateText(scope.row)" :class="updateColor(scope.row)">
+                        <span>{{scope.row.Version}}</span>
+                        <template v-if="updater.list[scope.row.MachineId]">
+                            <template v-if="updater.list[scope.row.MachineId].Status == 1">
+                                <el-icon size="14" class="loading"><Loading /></el-icon>
+                            </template>
+                            <template v-else-if="updater.list[scope.row.MachineId].Status == 2">
+                                <el-icon size="14"><Download /></el-icon>
+                            </template>
+                            <template v-else-if="updater.list[scope.row.MachineId].Status == 3 || updater.list[scope.row.MachineId].Status == 5">
+                                <el-icon size="14" class="loading"><Loading /></el-icon>
+                                <span class="progress" v-if="updater.list[scope.row.MachineId].Length ==0">0%</span>
+                                <span class="progress" v-else>{{parseInt(updater.list[scope.row.MachineId].Current/updater.list[scope.row.MachineId].Length*100)}}%</span>
+                            </template>
+                            <template v-else-if="updater.list[scope.row.MachineId].Status == 6">
+                                <el-icon size="14" class="green"><CircleCheck /></el-icon>
+                            </template>
+                        </template>
+                        <template v-else>
+                            <el-icon size="14"><Download /></el-icon>
+                        </template>
+                    </span>
                 </a>
             </p>
         </div>
@@ -37,51 +50,124 @@
 <script>
 import { injectGlobalData } from '@/provide';
 import { computed, ref } from 'vue';
-import {WarnTriangleFilled,StarFilled,Search,Download} from '@element-plus/icons-vue'
-import { ElMessageBox } from 'element-plus';
+import {StarFilled,Search,Download,Loading,CircleCheck} from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { confirm, exit } from '@/apis/updater';
+import { useUpdater } from './updater';
 
 export default {
     emits:['edit','refresh'],
-    components:{WarnTriangleFilled,StarFilled,Search,Download},
+    components:{StarFilled,Search,Download,Loading,CircleCheck},
     setup(props,{emit}) {
 
         const globalData = injectGlobalData();
         const version = computed(()=>globalData.value.signin.Version);
-        const updater = computed(()=>globalData.value.updater);
-        const name = ref('')
+        const name = ref(sessionStorage.getItem('search-name') || '');
+        const updater = useUpdater();
+
+        const updateText = (row)=>{
+            if(!updater.value.list[row.MachineId]){
+                return '未检测到更新';
+            }
+            if(updater.value.list[row.MachineId].Status <= 2) {
+                return row.Version != version.value 
+                ? '与服务器版本不一致，建议更新' 
+                : updater.value.list[row.MachineId].Version != row.Version 
+                    ? '不是最新版本，建议更新' : '版本一致，但我无法阻止你喜欢更新'
+            }
+            return {
+                3:'正在下载',
+                4:'已下载',
+                5:'正在解压',
+                6:'已解压，请重启',
+            }[updater.value.list[row.MachineId].Status];
+        }
+        const updateColor = (row)=>{
+            return row.Version != version.value 
+            ? 'red' 
+            : updater.value.list[row.MachineId] && updater.value.list[row.MachineId].Version != row.Version 
+                ? 'yellow' :'green'
+        }
 
         const handleEdit = (row)=>{
             emit('edit',row)
         }
         const handleRefresh = ()=>{
+            sessionStorage.setItem('search-name',name.value);
             emit('refresh',name.value)
         }
 
-        const handleUpdate = ()=>{
-            ElMessageBox.confirm('将进入后台自动更新，更新完成后自动重启', '是否下载更新?', {
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
-                type: 'warning'
-            }).then(() => {
-            }).catch(() => {});
+        const handleUpdate = (row)=>{
+            const updateInfo =updater.value.list[row.MachineId];
+            if(!updateInfo){
+                ElMessage.error('未检测到更新');
+                return;
+            }
+            //未检测，检测中，下载中，解压中
+            if([0,1,3,5].indexOf(updateInfo.Status)>=0){
+                ElMessage.error('操作中，请稍后!');
+                return;
+            }
+            //已检测
+            if(updateInfo.Status == 2){
+                ElMessageBox.confirm('确定要更新吗？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    confirm(row.MachineId);
+                }).catch(() => {});
+            }
+            //已解压
+            else if(updateInfo.Status == 6){
+                
+                ElMessageBox.confirm('确定关闭程序吗？如果你是以服务形式安装，关闭后应该会自动再次启动', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    exit(row.MachineId);
+                }).catch(() => {});
+            }
         }
 
         return {
-            updater, handleEdit,handleRefresh,version,name,handleUpdate
+             handleEdit,handleRefresh,version,name,updater,updateText,updateColor,handleUpdate
         }
     }
 }
 </script>
 <style lang="stylus" scoped>
+
+@keyframes loading {
+    from{transform:rotate(0deg)}
+    to{transform:rotate(360deg)}
+}
+
 a{
     color:#666;
     text-decoration: underline;
+    &.green{color:green;font-weight:bold;}
 }
-a.green{color:green}
+
 
 a.download{
     margin-left:.6rem
-    .el-icon{vertical-align:middle;color:red;font-weight:bold;}
+    .el-icon{
+        vertical-align:middle;font-weight:bold;
+        &.green{color:green}
+        &.red{color:red}
+
+        &.loading{
+            animation:loading 1s linear infinite;
+        }
+    }
+    
+    span{
+        &.green{color:green}
+        &.red{color:red}
+        &.yellow{color:#e68906}
+    }
 }
 
 .el-input{
