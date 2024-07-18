@@ -40,15 +40,8 @@ namespace linker.plugins.signin.messenger
         public void SignIn(IConnection connection)
         {
             SignInfo info = MemoryPackSerializer.Deserialize<SignInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (info.Version == config.Data.Version)
-            {
-                signCaching.Sign(connection, info);
-                connection.Write(MemoryPackSerializer.Serialize(info.MachineId));
-            }
-            else
-            {
-                connection.Write(Helper.FalseArray);
-            }
+            signCaching.Sign(connection, info);
+            connection.Write(MemoryPackSerializer.Serialize(info.MachineId));
         }
 
 
