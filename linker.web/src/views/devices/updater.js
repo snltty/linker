@@ -7,12 +7,17 @@ export const provideUpdater = () => {
     const globalData = injectGlobalData();
     const updater = ref({
         timer: 0,
-        list: {}
+        list: {},
+        version: ''
     });
     provide(updaterSymbol, updater);
     const _getUpdater = () => {
         if (globalData.value.api.connected) {
             getUpdater().then((res) => {
+                const self = Object.values(res).filter(c => !!c.Version)[0];
+                if (self) {
+                    updater.value.version = self.Version;
+                }
                 updater.value.list = res;
                 updater.value.timer = setTimeout(_getUpdater, 800);
             }).catch(() => {

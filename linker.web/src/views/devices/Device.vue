@@ -60,19 +60,20 @@ export default {
     components:{StarFilled,Search,Download,Loading,CircleCheck},
     setup(props,{emit}) {
 
-        const globalData = injectGlobalData();
-        const version = computed(()=>globalData.value.signin.Version);
         const name = ref(sessionStorage.getItem('search-name') || '');
+        const globalData = injectGlobalData();
         const updater = useUpdater();
-
+        const serverVersion = computed(()=>globalData.value.signin.Version);
+        const updaterVersion = computed(()=>updater.value.version);
+        
         const updateText = (row)=>{
             if(!updater.value.list[row.MachineId]){
                 return '未检测到更新';
             }
             if(updater.value.list[row.MachineId].Status <= 2) {
-                return row.Version != version.value 
+                return row.Version != serverVersion.value 
                 ? '与服务器版本不一致，建议更新' 
-                : updater.value.list[row.MachineId].Version != row.Version 
+                : updaterVersion.value != row.Version 
                     ? '不是最新版本，建议更新' : '版本一致，但我无法阻止你喜欢更新'
             }
             return {
@@ -83,9 +84,9 @@ export default {
             }[updater.value.list[row.MachineId].Status];
         }
         const updateColor = (row)=>{
-            return row.Version != version.value 
+            return row.Version != serverVersion.value 
             ? 'red' 
-            : updater.value.list[row.MachineId] && updater.value.list[row.MachineId].Version != row.Version 
+            : updater.value.list[row.MachineId] && updaterVersion.value != row.Version 
                 ? 'yellow' :'green'
         }
 
@@ -132,7 +133,7 @@ export default {
         }
 
         return {
-             handleEdit,handleRefresh,version,name,updater,updateText,updateColor,handleUpdate
+             handleEdit,handleRefresh,name,updater,updateText,updateColor,handleUpdate
         }
     }
 }
