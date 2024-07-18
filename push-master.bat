@@ -1,8 +1,8 @@
 @echo off 
 
 git checkout master
-git reset --hard origin/dev
-git pull origin
+git reset --hard origin-github/dev
+git pull origin-github
 git add .
-git push origin master --tags
+git push origin-github master --tags
 git checkout dev
