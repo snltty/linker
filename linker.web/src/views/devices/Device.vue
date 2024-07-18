@@ -161,6 +161,8 @@ a.download{
         &.loading{
             animation:loading 1s linear infinite;
         }
+
+        margin-left:.6rem
     }
     
     span{
