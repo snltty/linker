@@ -238,7 +238,7 @@ mainForm.setInterval(
 			{
 				var prcs = process.popen.cmd("tasklist | findstr "+mainForm.serviceName);
 				var str = prcs.readAll();
-				if(!!string.indexOf(str,mainForm.serviceName))
+				if(!!!string.indexOf(str,mainForm.serviceName))
 				{
 					mainForm.reStart();
 				}
