@@ -121,7 +121,7 @@ export default {
             //已解压
             else if(updateInfo.Status == 6){
                 
-                ElMessageBox.confirm('确定关闭程序吗？如果你是以服务形式安装，关闭后应该会自动再次启动', '提示', {
+                ElMessageBox.confirm('确定关闭程序吗？', '提示', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
                     type: 'warning'

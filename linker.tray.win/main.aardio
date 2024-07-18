@@ -15,6 +15,15 @@ if(!atom){
 	/*为窗口设置原子值可以避免一个程序重复运行多个实例*/
 	win.quitMessage();	return;
 };
+import fsys;
+import fsys.file;
+try{
+	fsys.delete(io._exefile+".temp");
+}
+catch(e){
+	
+}
+
 
 mainForm.serviceName = "linker.service";
 mainForm.exeName = "linker.service.exe";
@@ -79,7 +88,13 @@ mainForm.showPopmenu = function(){
 }
 
 
-
+mainForm.reStart = function()
+{
+	win.quitMessage();
+   	mainForm.close();
+   	import process.popen;
+	var prcs = process.popen.cmd("start "+io._exefile+" --task=1");
+}
 mainForm.failureService = function()
 {
 	import process.popen;
@@ -213,5 +228,27 @@ if(!_ARGV["task"])
 {
 	mainForm.show();
 }
+
+mainForm.setInterval( 
+	function(){
+		import fsys;
+		import process.popen;
+		try{
+			if(io.exist(io._exefile+".temp"))
+			{
+				var prcs = process.popen.cmd("tasklist | findstr "+mainForm.serviceName);
+				var str = prcs.readAll();
+				if(!!string.indexOf(str,mainForm.serviceName))
+				{
+					mainForm.reStart();
+				}
+			}
+		}catch(e)
+		{
+		}	
+		return true;
+	},1000
+)
+
 
 return win.loopMessage();

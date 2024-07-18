@@ -18,7 +18,6 @@ namespace linker.service
         protected override void OnStart(string[] _args)
         {
             OpenExe();
-            OpenExeTray();
             CheckMainProcess();
         }
         protected override void OnStop()
@@ -29,7 +28,6 @@ namespace linker.service
         }
 
         private Process proc;
-        private Process procTray;
         private void CheckMainProcess()
         {
 
@@ -105,65 +103,11 @@ namespace linker.service
             }
         }
 
-        private bool OpenExeTray()
-        {
-            try
-            {
-                string filename = Process.GetCurrentProcess().MainModule.FileName;
-                string dir = Path.GetDirectoryName(filename);
-                procTray = Process.Start(new ProcessStartInfo()
-                {
-                    WorkingDirectory = dir,
-                    FileName = Path.Combine(dir, $"{mainExeName}.tray.win.exe"),
-                    Arguments = "--task=1",
-                    Verb = "runas",
-                });
-
-                return true;
-            }
-            catch (Exception)
-            {
-                try
-                {
-                    procTray.Kill();
-                    procTray.Dispose();
-                }
-                catch (Exception)
-                {
-                }
-                procTray = null;
-            }
-            return false;
-        }
-        private void KillExeTray()
-        {
-            try
-            {
-                procTray?.Close();
-                procTray?.Dispose();
-
-                foreach (var item in Process.GetProcessesByName($"{mainExeName}.tray.win"))
-                {
-                    item.Kill();
-                }
-            }
-            catch (Exception)
-            {
-            }
-            finally
-            {
-                procTray = null;
-            }
-        }
-
-
         public void RestartService()
         {
             try
             {
                 KillExe();
-                KillExeTray();
-
                 Environment.Exit(1);
             }
             catch (Exception)
