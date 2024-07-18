@@ -50,8 +50,19 @@ namespace linker.plugins.updater
         {
             Task.Run(async () =>
             {
+                string fileName = Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName);
+
                 await DownloadUpdate();
                 await ExtractUpdate();
+
+                if (OperatingSystem.IsLinux())
+                {
+                    string result = CommandHelper.Linux(string.Empty, new string[] { $"chmod a+x {fileName}" });
+                }
+                else if (OperatingSystem.IsMacOS())
+                {
+                    string result = CommandHelper.Osx(string.Empty, new string[] { $"chmod a+x {fileName}" });
+                }
             });
         }
         /// <summary>

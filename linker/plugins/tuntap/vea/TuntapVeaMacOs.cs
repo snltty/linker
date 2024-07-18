@@ -16,6 +16,7 @@ namespace linker.plugins.tuntap.vea
 
         public TuntapVeaMacOs()
         {
+            CommandHelper.Osx(string.Empty, new string[] { $"chmod a+x ./plugins/tuntap/tun2socks" });
         }
 
         public async Task<bool> Run(int proxyPort, IPAddress ip)

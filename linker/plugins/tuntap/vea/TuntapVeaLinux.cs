@@ -1,6 +1,4 @@
 ﻿using linker.libs;
-using linker.libs.extends;
-using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Net;
 
@@ -18,6 +16,7 @@ namespace linker.plugins.tuntap.vea
 
         public TuntapVeaLinux()
         {
+            CommandHelper.Linux(string.Empty, new string[] { $"chmod a+x ./plugins/tuntap/tun2socks" });
         }
 
         public async Task<bool> Run(int proxyPort, IPAddress ip)
