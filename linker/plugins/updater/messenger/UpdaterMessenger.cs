@@ -1,4 +1,5 @@
 ﻿using linker.plugins.signin.messenger;
+using linker.plugins.updater.config;
 using linker.server;
 using MemoryPack;
 
@@ -19,7 +20,8 @@ namespace linker.plugins.updater.messenger
         [MessengerId((ushort)UpdaterMessengerIds.Confirm)]
         public void Confirm(IConnection connection)
         {
-            updaterTransfer.Confirm();
+            UpdaterConfirmInfo confirm = MemoryPackSerializer.Deserialize<UpdaterConfirmInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            updaterTransfer.Confirm(confirm.Version);
         }
 
         /// <summary>
@@ -63,13 +65,14 @@ namespace linker.plugins.updater.messenger
         [MessengerId((ushort)UpdaterMessengerIds.ConfirmForward)]
         public async Task ConfirmForward(IConnection connection)
         {
-            string machineId = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) && signCaching.TryGet(machineId, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            UpdaterConfirmInfo confirm = MemoryPackSerializer.Deserialize<UpdaterConfirmInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) && signCaching.TryGet(confirm.MachineId, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = cache1.Connection,
-                    MessengerId = (ushort)UpdaterMessengerIds.Confirm
+                    MessengerId = (ushort)UpdaterMessengerIds.Confirm,
+                    Payload = connection.ReceiveRequestWrap.Payload
                 });
             }
         }

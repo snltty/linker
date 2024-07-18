@@ -49,9 +49,9 @@
 </template>
 <script>
 import { injectGlobalData } from '@/provide';
-import { computed, ref } from 'vue';
+import { computed, ref,h } from 'vue';
 import {StarFilled,Search,Download,Loading,CircleCheck} from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ElMessage, ElMessageBox,ElSelect,ElOption, arrowMiddleware } from 'element-plus';
 import { confirm, exit } from '@/apis/updater';
 import { useUpdater } from './updater';
 
@@ -99,7 +99,7 @@ export default {
         }
 
         const handleUpdate = (row)=>{
-            const updateInfo =updater.value.list[row.MachineId];
+            const updateInfo = updater.value.list[row.MachineId];
             if(!updateInfo){
                 ElMessage.error('未检测到更新');
                 return;
@@ -109,25 +109,41 @@ export default {
                 ElMessage.error('操作中，请稍后!');
                 return;
             }
-            //已检测
-            if(updateInfo.Status == 2){
-                ElMessageBox.confirm('确定要更新吗？', '提示', {
-                    confirmButtonText: '确定',
-                    cancelButtonText: '取消',
-                    type: 'warning'
-                }).then(() => {
-                    confirm(row.MachineId);
-                }).catch(() => {});
-            }
             //已解压
-            else if(updateInfo.Status == 6){
-                
+            if(updateInfo.Status == 6){
                 ElMessageBox.confirm('确定关闭程序吗？', '提示', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
                     type: 'warning'
                 }).then(() => {
                     exit(row.MachineId);
+                }).catch(() => {});
+                return;
+            }
+
+            //已检测
+            if(updateInfo.Status == 2){
+
+                const selectedValue = ref(updaterVersion.value);
+                const selectOptions = [h(ElOption, { label: `${updaterVersion.value} - 最新版本`, value: updaterVersion.value })];
+                if(row.Version != serverVersion.value && updaterVersion.value != serverVersion.value){
+                    selectOptions.push(h(ElOption, { label: `${serverVersion.value} - 服务器版本`, value: serverVersion.value }));
+                }
+
+                ElMessageBox({
+                    title: '选择版本',
+                    message: () => h(ElSelect, {
+                        modelValue: selectedValue.value,
+                        placeholder: '请选择',
+                        style:'width:20rem;',
+                        'onUpdate:modelValue': (val) => {
+                            selectedValue.value = val
+                        }
+                    }, selectOptions),
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消'
+                }).then(() => {
+                    confirm(row.MachineId,selectedValue.value);
                 }).catch(() => {});
             }
         }

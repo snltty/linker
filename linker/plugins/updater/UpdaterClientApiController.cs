@@ -6,6 +6,8 @@ using linker.config;
 using linker.plugins.updater.messenger;
 using MemoryPack;
 using System.Collections.Concurrent;
+using linker.plugins.updater.config;
+using linker.libs.extends;
 
 namespace linker.plugins.updater
 {
@@ -30,9 +32,11 @@ namespace linker.plugins.updater
         }
         public async Task Confirm(ApiControllerParamsInfo param)
         {
-            if (string.IsNullOrWhiteSpace(param.Content) || param.Content == config.Data.Client.Id)
+            UpdaterConfirmInfo confirm = param.Content.DeJson<UpdaterConfirmInfo>();
+
+            if (string.IsNullOrWhiteSpace(confirm.MachineId) || confirm.MachineId == config.Data.Client.Id)
             {
-                updaterTransfer.Confirm();
+                updaterTransfer.Confirm(confirm.Version);
             }
             else
             {
@@ -40,7 +44,7 @@ namespace linker.plugins.updater
                 {
                     Connection = clientSignInState.Connection,
                     MessengerId = (ushort)UpdaterMessengerIds.ConfirmForward,
-                    Payload = MemoryPackSerializer.Serialize(param.Content)
+                    Payload = MemoryPackSerializer.Serialize(confirm)
                 });
             }
         }

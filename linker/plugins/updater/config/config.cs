@@ -1,18 +1,11 @@
-﻿using linker.plugins.updater.config;
+﻿using MemoryPack;
 
 namespace linker.plugins.updater.config
 {
-    public sealed class UpdaterConfigInfo
+    [MemoryPackable]
+    public sealed partial class UpdaterConfirmInfo
     {
-
-    }
-}
-
-
-namespace linker.config
-{
-    public sealed partial class ConfigClientInfo
-    {
-        public UpdaterConfigInfo Updater { get; set; } = new UpdaterConfigInfo();
+        public string MachineId { get; set; }
+        public string Version { get; set; }
     }
 }

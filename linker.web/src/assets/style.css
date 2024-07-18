@@ -383,8 +383,8 @@ h3.title {
 }
 
 .el-message-box {
-    max-width: 90%;
-    width: fit-content;
+    max-width: 90% !important;
+    width: fit-content !important;
 }
 
 .el-select-dropdown__item {

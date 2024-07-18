@@ -2,9 +2,10 @@
     <div class="status-server-wrap" :class="{ connected: state.connected }">
         <a href="javascript:;" @click="handleConfig">
             <el-icon size="16"><Promotion /></el-icon>
-            <template v-if="state.connected">信标服务器 {{state.version}}</template>
+            <template v-if="state.connected">信标服务器</template>
             <template v-else>信标服务器</template>
         </a>
+        <a href="javascript:;" class="">{{state.version}}</a>
     </div>
     <el-dialog v-model="state.show" title="连接设置" width="300">
         <div>
@@ -36,7 +37,6 @@ export default {
     setup(props) {
 
         const globalData = injectGlobalData();
-
         const state = reactive({
             show: false,
             loading: false,
@@ -80,6 +80,7 @@ export default {
 .status-server-wrap{
     padding-right:.5rem;
     a{color:#333;}
+    a+a{margin-left:.6rem;}
     span{border-radius:1rem;background-color:rgba(0,0,0,0.1);padding:0 .6rem; margin-left:.2rem}
 
     &.connected {

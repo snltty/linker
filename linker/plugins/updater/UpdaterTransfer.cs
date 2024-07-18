@@ -46,13 +46,13 @@ namespace linker.plugins.updater
         /// <summary>
         /// 确认更新
         /// </summary>
-        public void Confirm()
+        public void Confirm(string version)
         {
             Task.Run(async () =>
             {
                 string fileName = Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName);
 
-                await DownloadUpdate();
+                await DownloadUpdate(version);
                 await ExtractUpdate();
 
                 if (OperatingSystem.IsLinux())
@@ -137,15 +137,7 @@ namespace linker.plugins.updater
                 string tag = match.Groups[1].Value;
                 string[] msg = new Regex(@"<li>(.+)</li>").Matches(str).Select(c => c.Groups[1].Value).ToArray();
 
-                str = await httpClient.GetStringAsync($"http://gh.snltty.com:1808/https://github.com/snltty/linker/releases/expanded_assets/{tag}").WaitAsync(TimeSpan.FromSeconds(15));
-                string[] urls = new Regex(@"/snltty/linker/releases/(.+)\.zip").Matches(str)
-                    .Select(c => $"http://gh.snltty.com:1808/https://github.com{c.Groups[0].Value}").ToArray();
-
-                string system = OperatingSystem.IsWindows() ? "win" : OperatingSystem.IsLinux() ? "linux" : "osx";
-                string arch = RuntimeInformation.ProcessArchitecture.ToString().ToLower();
-
                 updateInfo.Msg = msg;
-                updateInfo.Url = urls.FirstOrDefault(c => c.Contains($"linker-{system}-{arch}.zip"));
                 updateInfo.Version = tag;
 
                 updateInfo.Status = UpdateStatus.Checked;
@@ -233,9 +225,8 @@ namespace linker.plugins.updater
                 updateInfo.Status = status;
             }
         }
-        private async Task DownloadUpdate()
+        private async Task DownloadUpdate(string version)
         {
-
             if (updateInfo.Status != UpdateStatus.Checked)
             {
                 return;
@@ -247,8 +238,13 @@ namespace linker.plugins.updater
                 updateInfo.Current = 0;
                 updateInfo.Length = 0;
 
+
+                string system = OperatingSystem.IsWindows() ? "win" : OperatingSystem.IsLinux() ? "linux" : "osx";
+                string arch = RuntimeInformation.ProcessArchitecture.ToString().ToLower();
+                string url = $"http://gh.snltty.com:1808/https://github.com/snltty/linker/releases/download/{version}/linker-{system}-{arch}.zip";
+
                 using HttpClient httpClient = new HttpClient();
-                using HttpResponseMessage response = await httpClient.GetAsync(updateInfo.Url, HttpCompletionOption.ResponseHeadersRead);
+                using HttpResponseMessage response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
                 response.EnsureSuccessStatusCode();
                 updateInfo.Length = response.Content.Headers.ContentLength ?? 0;
                 using Stream contentStream = await response.Content.ReadAsStreamAsync();
@@ -315,8 +311,6 @@ namespace linker.plugins.updater
         public string Version { get; set; }
         [MemoryPackIgnore]
         public string[] Msg { get; set; }
-        [MemoryPackIgnore]
-        public string Url { get; set; }
 
         public string MachineId { get; set; }
         public UpdateStatus Status { get; set; } = UpdateStatus.None;
