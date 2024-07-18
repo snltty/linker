@@ -72,9 +72,9 @@ export default {
             }
             if(updater.value.list[row.MachineId].Status <= 2) {
                 return row.Version != serverVersion.value 
-                ? '与服务器版本不一致，建议更新' 
+                ? `与服务器版本(${serverVersion.value})不一致，建议更新` 
                 : updaterVersion.value != row.Version 
-                    ? '不是最新版本，建议更新' : '版本一致，但我无法阻止你喜欢更新'
+                    ? `不是最新版本(${updaterVersion.value})，建议更新` : '版本一致，但我无法阻止你喜欢更新'
             }
             return {
                 3:'正在下载',
