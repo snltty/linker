@@ -1,6 +1,6 @@
 <template>
     <div class="running-version-wrap">
-        <span>配置版本 : {{version}}</span>
+        <span>配置版本 : {{version || 1}}</span>
         <el-button size="small" @click=handleEdit>手动修改版本</el-button>
         <span>高版本一端自动同步到低版本一端</span>
     </div>

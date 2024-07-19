@@ -6,14 +6,16 @@ RUN echo "https://mirrors.tuna.tsinghua.edu.cn/alpine/latest-stable/main/" > /et
     && ln -snf /usr/share/zoneinfo/$clTZ /etc/localtime \
     && echo $TZ > /etc/timezone
 
-EXPOSE 1800/tcp
-EXPOSE 1801/tcp
 EXPOSE 1802/tcp
 EXPOSE 1802/udp
+EXPOSE 1803/tcp
+EXPOSE 1803/udp
+EXPOSE 1804/tcp
+EXPOSE 1804/udp
 
 WORKDIR /app
 COPY . .
 
 
 
-ENTRYPOINT ["./linker.run"]
+ENTRYPOINT ["./linker"]

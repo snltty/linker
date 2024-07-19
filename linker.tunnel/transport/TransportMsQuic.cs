@@ -10,6 +10,8 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Text;
 using linker.tunnel.wanport;
+using System.Runtime.InteropServices;
+using System.IO;
 
 namespace linker.tunnel.transport
 {
@@ -729,29 +731,21 @@ namespace linker.tunnel.transport
         }
         private void TestQuic()
         {
-            if (QuicListener.IsSupported == false)
+            if (OperatingSystem.IsWindows())
             {
-                if (OperatingSystem.IsWindows())
+                if (QuicListener.IsSupported == false)
                 {
                     try
                     {
-                        LoggerHelper.Instance.Info($"move msquic-openssl.dll -> msquic.dll");
-                        File.Move("msquic-openssl.dll", "msquic.dll", true);
+                        if (File.Exists("msquic-openssl.dll"))
+                        {
+                            LoggerHelper.Instance.Info($"copy msquic-openssl.dll -> msquic.dll");
+                            File.Move("msquic-openssl.dll", "msquic.dll", true);
+                        }
                     }
                     catch (Exception)
                     {
                     }
-                }
-            }
-            else
-            {
-                try
-                {
-                    LoggerHelper.Instance.Info($"delete msquic-openssl.dll");
-                    File.Delete("msquic-openssl.dll");
-                }
-                catch (Exception)
-                {
                 }
             }
         }

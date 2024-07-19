@@ -23,24 +23,29 @@ namespace linker.plugins.updater
 
         public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
-            serviceCollection.AddSingleton<UpdaterTransfer>();
+            serviceCollection.AddSingleton<UpdaterHelper>();
+            serviceCollection.AddSingleton<UpdaterClientTransfer>();
 
-            serviceCollection.AddSingleton<UpdaterClientApiController>();
             serviceCollection.AddSingleton<UpdaterClientMessenger>();
+            serviceCollection.AddSingleton<UpdaterClientApiController>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
+            serviceCollection.AddSingleton<UpdaterHelper>();
+            serviceCollection.AddSingleton<UpdaterServerTransfer>();
+
             serviceCollection.AddSingleton<UpdaterServerMessenger>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
-            UpdaterTransfer updaterTransfer = serviceProvider.GetService<UpdaterTransfer>();
+            _ = serviceProvider.GetService<UpdaterClientTransfer>();
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
+            _ = serviceProvider.GetService<UpdaterServerTransfer>();
         }
     }
 }

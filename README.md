@@ -38,3 +38,10 @@
 请作者喝一杯咖啡，使其更有精力更新代码
 <p><img src="./readme/qr.jpg" width="360"></p> 
 </div>
+
+## 感谢支持 
+
+<a href="https://mi-d.cn" target="_blank">
+<img src="https://mi-d.cn/wp-content/uploads/2021/12/cropped-1639494965-网站LOGO无字.png" width="40" style="vertical-align: middle;"> 米多贝克</a>
+
+

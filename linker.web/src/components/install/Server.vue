@@ -46,6 +46,9 @@
                     </el-col>
                 </el-row>
             </el-form-item>
+            <el-form-item label="更新密钥" prop="updaterSecretKey">
+                <el-input v-model="state.form.updaterSecretKey" maxlength="36" show-word-limit />
+            </el-form-item>
         </el-form>
     </div>
 </template>
@@ -66,6 +69,8 @@ export default {
                 webPort:globalData.value.config.Server.SForward.WebPort,
                 tunnelPort1:globalData.value.config.Server.SForward.TunnelPortRange[0],
                 tunnelPort2:globalData.value.config.Server.SForward.TunnelPortRange[1],
+
+                updaterSecretKey:globalData.value.config.Server.Updater.SecretKey,
             },
             rules: {
                 relaySecretKey: [{ required: true, message: "必填", trigger: "blur" }],
@@ -142,6 +147,9 @@ export default {
                                     SecretKey: state.form.sForwardSecretKey,
                                     WebPort: +state.form.webPort,
                                     TunnelPortRange: [+state.form.tunnelPort1, +state.form.tunnelPort2]
+                                },
+                                Updater:{
+                                    SecretKey: state.form.updaterSecretKey
                                 }
                             }  
                         });

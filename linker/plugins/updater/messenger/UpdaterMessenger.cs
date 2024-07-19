@@ -1,4 +1,5 @@
-﻿using linker.plugins.signin.messenger;
+﻿using linker.config;
+using linker.plugins.signin.messenger;
 using linker.plugins.updater.config;
 using linker.server;
 using MemoryPack;
@@ -7,8 +8,8 @@ namespace linker.plugins.updater.messenger
 {
     public sealed class UpdaterClientMessenger : IMessenger
     {
-        private readonly UpdaterTransfer updaterTransfer;
-        public UpdaterClientMessenger(UpdaterTransfer updaterTransfer)
+        private readonly UpdaterClientTransfer updaterTransfer;
+        public UpdaterClientMessenger(UpdaterClientTransfer updaterTransfer)
         {
             this.updaterTransfer = updaterTransfer;
         }
@@ -41,7 +42,7 @@ namespace linker.plugins.updater.messenger
         [MessengerId((ushort)UpdaterMessengerIds.Exit)]
         public void Exit(IConnection connection)
         {
-            updaterTransfer.Exit();
+            Environment.Exit(1);
         }
     }
 
@@ -50,12 +51,52 @@ namespace linker.plugins.updater.messenger
     {
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;
+        private readonly UpdaterServerTransfer updaterServerTransfer;
+        private readonly FileConfig fileConfig;
 
-        public UpdaterServerMessenger(MessengerSender messengerSender, SignCaching signCaching)
+        public UpdaterServerMessenger(MessengerSender messengerSender, SignCaching signCaching, UpdaterServerTransfer updaterServerTransfer, FileConfig fileConfig)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
+            this.updaterServerTransfer = updaterServerTransfer;
+            this.fileConfig = fileConfig;
         }
+        /// <summary>
+        /// 获取服务器的更新信息
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)UpdaterMessengerIds.UpdateServer)]
+        public void UpdateServer(IConnection connection)
+        {
+            connection.Write(MemoryPackSerializer.Serialize(updaterServerTransfer.Get()));
+        }
+        /// <summary>
+        /// 开始更新服务器
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)UpdaterMessengerIds.ConfirmServer)]
+        public void ConfirmServer(IConnection connection)
+        {
+            UpdaterConfirmServerInfo confirm = MemoryPackSerializer.Deserialize<UpdaterConfirmServerInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if(fileConfig.Data.Server.Updater.SecretKey == confirm.SecretKey)
+            {
+                updaterServerTransfer.Confirm(confirm.Version);
+            }
+        }
+        /// <summary>
+        /// 关闭服务器
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)UpdaterMessengerIds.ExitServer)]
+        public void ExitServer(IConnection connection)
+        {
+            UpdaterConfirmServerInfo confirm = MemoryPackSerializer.Deserialize<UpdaterConfirmServerInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (fileConfig.Data.Server.Updater.SecretKey == confirm.SecretKey)
+            {
+                Environment.Exit(1);
+            }
+        }
+
 
         /// <summary>
         /// 转发确认更新消息

@@ -18,8 +18,8 @@
             <p class="flex">
                 <span>{{ scope.row.IP }}</span>
                 <span class="flex-1"></span>
-                <a href="javascript:;" class="download" title="下载更新" @click="handleUpdate(scope.row)">
-                    <span :title="updateText(scope.row)" :class="updateColor(scope.row)">
+                <a href="javascript:;" class="download" title="下载更新" @click="handleUpdate(scope.row)" :title="updateText(scope.row)" :class="updateColor(scope.row)">
+                    <span>
                         <span>{{scope.row.Version}}</span>
                         <template v-if="updater.list[scope.row.MachineId]">
                             <template v-if="updater.list[scope.row.MachineId].Status == 1">
@@ -34,7 +34,7 @@
                                 <span class="progress" v-else>{{parseInt(updater.list[scope.row.MachineId].Current/updater.list[scope.row.MachineId].Length*100)}}%</span>
                             </template>
                             <template v-else-if="updater.list[scope.row.MachineId].Status == 6">
-                                <el-icon size="14" class="green"><CircleCheck /></el-icon>
+                                <el-icon size="14" class="yellow"><CircleCheck /></el-icon>
                             </template>
                         </template>
                         <template v-else>
@@ -51,7 +51,7 @@
 import { injectGlobalData } from '@/provide';
 import { computed, ref,h } from 'vue';
 import {StarFilled,Search,Download,Loading,CircleCheck} from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox,ElSelect,ElOption, arrowMiddleware } from 'element-plus';
+import { ElMessage, ElMessageBox,ElSelect,ElOption } from 'element-plus';
 import { confirm, exit } from '@/apis/updater';
 import { useUpdater } from './updater';
 
@@ -64,7 +64,7 @@ export default {
         const globalData = injectGlobalData();
         const updater = useUpdater();
         const serverVersion = computed(()=>globalData.value.signin.Version);
-        const updaterVersion = computed(()=>updater.value.version);
+        const updaterVersion = computed(()=>updater.value.current.Version);
         
         const updateText = (row)=>{
             if(!updater.value.list[row.MachineId]){
@@ -74,7 +74,7 @@ export default {
                 return row.Version != serverVersion.value 
                 ? `与服务器版本(${serverVersion.value})不一致，建议更新` 
                 : updaterVersion.value != row.Version 
-                    ? `不是最新版本(${updaterVersion.value})，建议更新` : '版本一致，但我无法阻止你喜欢更新'
+                    ? `不是最新版本(${updaterVersion.value})，建议更新` : '是最新版本，但我无法阻止你喜欢更新'
             }
             return {
                 3:'正在下载',
@@ -170,22 +170,17 @@ a{
 
 a.download{
     margin-left:.6rem
+    &.green{color:green}
+    &.red{color:red}
+    &.yellow{color:#e68906}
     .el-icon{
         vertical-align:middle;font-weight:bold;
-        &.green{color:green}
-        &.red{color:red}
-
+        &.yellow{color:#e68906}
         &.loading{
             animation:loading 1s linear infinite;
         }
 
-        margin-left:.6rem
-    }
-    
-    span{
-        &.green{color:green}
-        &.red{color:red}
-        &.yellow{color:#e68906}
+        margin-left:.3rem
     }
 }
 

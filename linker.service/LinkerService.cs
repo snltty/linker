@@ -39,7 +39,15 @@ namespace linker.service
                     {
                         if (Process.GetProcessesByName(mainExeName).Any() == false)
                         {
-                            RestartService();
+                            if (File.Exists($"{mainExeName}.exe.temp"))
+                            {
+                                RestartService();
+                            }
+                            else
+                            {
+                                KillExe();
+                                OpenExe();
+                            }
                         }
                     }
                     catch (Exception)

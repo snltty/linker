@@ -1,51 +1,51 @@
 <template>
-    <Version ckey="sforwardKey"/>
+    <Version ckey="updater"/>
     <div style="width: 30rem;padding: 5rem 0; margin:  0 auto;">
         <p class="t-c">
-            服务器代理穿透密钥
+            服务器更新密钥
         </p>
         <p>
-            <el-input type="password" show-password v-model="state.SForwardSecretKey" maxlength="36" @blur="handleChange" />
+            <el-input type="password" show-password v-model="state.secretKey" maxlength="36" @blur="handleChange" />
         </p>
     </div>
 </template>
 <script>
-import { getSForwardSecretKey,setSForwardSecretKey } from '@/apis/sforward';
+import { getSecretKey,setSecretKey } from '@/apis/updater';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { computed, inject, onMounted, reactive } from 'vue'
 import Version from './Version.vue';
 export default {
-    label:'服务器穿透',
-    name:'sforward',
-    order:5,
+    label:'服务器更新',
+    name:'updater',
+    order:6,
     components:{Version},
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({
-            SForwardSecretKey:''
+            secretKey:''
         });
 
-        const _getSForwardSecretKey = ()=>{
-            getSForwardSecretKey().then((res)=>{
-                state.SForwardSecretKey = res;
+        const _getSecretKey = ()=>{
+            getSecretKey().then((res)=>{
+                state.secretKey = res;
             });
         }
 
-        const _setSForwardSecretKey = ()=>{
-            if(!state.SForwardSecretKey) return;
-            setSForwardSecretKey(state.SForwardSecretKey).then(()=>{
+        const _setSecretKey = ()=>{
+            if(!state.secretKey) return;
+            setSecretKey(state.secretKey).then(()=>{
                 ElMessage.success('已操作');
             }).catch(()=>{
                 ElMessage.success('操作失败');
             });
         }
         const handleChange = ()=>{
-            _setSForwardSecretKey();
+            _setSecretKey();
         }
 
         onMounted(()=>{
-            _getSForwardSecretKey();
+            _getSecretKey();
         });
 
         return {state,handleChange}

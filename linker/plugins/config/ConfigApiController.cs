@@ -39,9 +39,12 @@ namespace linker.plugins.config
             {
                 config.Data.Server.ServicePort = info.Server.ServicePort;
                 config.Data.Server.Relay.SecretKey = info.Server.Relay.SecretKey;
+
                 config.Data.Server.SForward.SecretKey = info.Server.SForward.SecretKey;
                 config.Data.Server.SForward.WebPort = info.Server.SForward.WebPort;
                 config.Data.Server.SForward.TunnelPortRange = info.Server.SForward.TunnelPortRange;
+
+                config.Data.Server.Updater.SecretKey = info.Server.Updater.SecretKey;
             }
 
             config.Data.Common.Modes = info.Common.Modes;
@@ -70,6 +73,11 @@ namespace linker.plugins.config
         public int ServicePort { get; set; }
         public ConfigInstallServerRelayInfo Relay { get; set; }
         public ConfigInstallServerSForwardInfo SForward { get; set; }
+        public ConfigInstallServerUpdaterInfo Updater { get; set; }
+    }
+    public sealed class ConfigInstallServerUpdaterInfo
+    {
+        public string SecretKey { get; set; }
     }
     public sealed class ConfigInstallServerRelayInfo
     {

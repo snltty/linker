@@ -13,6 +13,10 @@
         ExitForward = 2605,
         Exit = 2606,
 
+        UpdateServer = 2607,
+        ConfirmServer = 2608,
+        ExitServer = 2609,
+
         Max = 2299
     }
 }

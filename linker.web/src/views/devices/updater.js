@@ -8,7 +8,7 @@ export const provideUpdater = () => {
     const updater = ref({
         timer: 0,
         list: {},
-        version: ''
+        current: { Version: '', Status: 0, Length: 0, Current: 0 }
     });
     provide(updaterSymbol, updater);
     const _getUpdater = () => {
@@ -16,7 +16,10 @@ export const provideUpdater = () => {
             getUpdater().then((res) => {
                 const self = Object.values(res).filter(c => !!c.Version)[0];
                 if (self) {
-                    updater.value.version = self.Version;
+                    updater.value.current.Version = self.Version;
+                    updater.value.current.Status = self.Status;
+                    updater.value.current.Length = self.Length;
+                    updater.value.current.Current = self.Current;
                 }
                 updater.value.list = res;
                 updater.value.timer = setTimeout(_getUpdater, 800);

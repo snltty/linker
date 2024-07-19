@@ -1,11 +1,28 @@
 <template>
     <div class="status-server-wrap" :class="{ connected: state.connected }">
-        <a href="javascript:;" @click="handleConfig">
-            <el-icon size="16"><Promotion /></el-icon>
-            <template v-if="state.connected">信标服务器</template>
-            <template v-else>信标服务器</template>
+        <a href="javascript:;" @click="handleConfig"> <el-icon size="16"><Promotion /></el-icon> 信标服务器</a>
+        <a href="javascript:;" @click="handleUpdate" class="download" :title="updateText()" :class="updateColor()">
+            <span>{{state.version}}</span>
+            <template v-if="updaterCurrent.Version">
+                <template v-if="updaterCurrent.Status == 1">
+                    <el-icon size="14" class="loading"><Loading /></el-icon>
+                </template>
+                <template v-else-if="updaterServer.Status == 2">
+                    <el-icon size="14"><Download /></el-icon>
+                </template>
+                <template v-else-if="updaterServer.Status == 3 || updaterServer.Status == 5">
+                    <el-icon size="14" class="loading"><Loading /></el-icon>
+                    <span class="progress" v-if="updaterServer.Length ==0">0%</span>
+                    <span class="progress" v-else>{{parseInt(updaterServer.Current/updaterServer.Length*100)}}%</span>
+                </template>
+                <template v-else-if="updaterServer.Status == 6">
+                    <el-icon size="14" class="yellow"><CircleCheck /></el-icon>
+                </template>
+            </template>
+            <template v-else>
+                <el-icon size="14"><Download /></el-icon>
+            </template>
         </a>
-        <a href="javascript:;" class="">{{state.version}}</a>
     </div>
     <el-dialog v-model="state.show" title="连接设置" width="300">
         <div>
@@ -29,28 +46,121 @@
 <script>
 import { setSignIn } from '@/apis/signin';
 import { injectGlobalData } from '@/provide';
-import { ElMessage } from 'element-plus';
-import { computed, reactive } from 'vue';
-import {Promotion} from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { computed, onMounted, reactive, ref } from 'vue';
+import {Promotion,Download,Loading,CircleCheck} from '@element-plus/icons-vue'
+import { confirmServer, exitServer, getUpdaterCurrent, getUpdaterServer } from '@/apis/updater';
+import { subWebsocketState } from '@/apis/request';
 export default {
-    components:{Promotion},
+    components:{Promotion,Download,Loading,CircleCheck},
     setup(props) {
 
         const globalData = injectGlobalData();
+        const updaterCurrent = ref({Version: '', Status: 0, Length: 0, Current: 0});
+        const updaterServer = ref({Version: '', Status: 0, Length: 0, Current: 0});
+
         const state = reactive({
             show: false,
             loading: false,
+
             connected: computed(() => globalData.value.signin.Connected),
-            connecting: computed(() => globalData.value.signin.Connecting),
             version: computed(() => globalData.value.signin.Version),
-            server: computed(() => globalData.value.config.Client.Server),
-            serverLength: computed(() => (globalData.value.config.Running.Client.Servers || []).length),
+
             form: {
                 name: globalData.value.config.Client.Name,
                 groupid: globalData.value.config.Client.GroupId,
             },
             rules: {},
         });
+
+        const _getUpdaterCurrent = ()=>{
+            getUpdaterCurrent().then((res)=>{
+                updaterCurrent.value.Version = res.Version;
+                updaterCurrent.value.Status = res.Status;
+                updaterCurrent.value.Length = res.Length;
+                updaterCurrent.value.Current = res.Current;
+                setTimeout(()=>{
+                    _getUpdaterCurrent();
+                },1000);
+            }).catch(()=>{
+                setTimeout(()=>{
+                    _getUpdaterCurrent();
+                },1000);
+            })
+        }
+        const _getUpdaterServer = ()=>{
+            getUpdaterServer().then((res)=>{
+                updaterServer.value.Version = res.Version;
+                updaterServer.value.Status = res.Status;
+                updaterServer.value.Length = res.Length;
+                updaterServer.value.Current = res.Current;
+                if(updaterServer.value.Status > 2 && updaterServer.value.Status < 6){
+                    setTimeout(()=>{
+                        _getUpdaterServer();
+                    },1000);
+                }
+            }).catch(()=>{
+                setTimeout(()=>{
+                    _getUpdaterServer();
+                },1000);
+            });
+        }
+        const updateText = ()=>{
+            if(!updaterCurrent.value.Version){
+                return '未检测到更新';
+            }
+            if(updaterServer.value.Status <= 2) {
+                return state.version != updaterCurrent.value.Version  
+                ? `不是最新版本(${updaterCurrent.value.Version})，建议更新` 
+                : '是最新版本，但我无法阻止你喜欢更新'
+            }
+            return {
+                3:'正在下载',
+                4:'已下载',
+                5:'正在解压',
+                6:'已解压，请重启',
+            }[updaterServer.value.Status];
+        }
+        const updateColor = ()=>{
+            return state.version != updaterCurrent.value.Version  ? 'yellow' :'green'
+        }
+        const handleUpdate = ()=>{
+            if(!updaterCurrent.value.Version){
+                ElMessage.error('未检测到更新');
+                return;
+            }
+            //未检测，检测中，下载中，解压中
+            if([0,1,3,5].indexOf(updaterServer.value.Status)>=0){
+                ElMessage.error('操作中，请稍后!');
+                return;
+            }
+            //已解压
+            if(updaterServer.value.Status == 6){
+                ElMessageBox.confirm('确定关闭服务端吗？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    exitServer();
+                }).catch(() => {});
+                return;
+            }
+
+            //已检测
+            if(updaterCurrent.value.Status == 2){
+                ElMessageBox.confirm('确定更新服务端吗？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    confirmServer(updaterCurrent.value.Version).then(()=>{
+                        setTimeout(()=>{
+                            _getUpdaterServer();
+                        },1000);
+                    });
+                }).catch(() => {});
+            }
+        }
 
         const handleConfig = () => {
             state.form.name = globalData.value.config.Client.Name;
@@ -69,19 +179,33 @@ export default {
             });
         }
 
+        onMounted(() => {
+            subWebsocketState((state)=>{
+                if(state){
+                    _getUpdaterCurrent();
+                    _getUpdaterServer();
+                };
+            });
+        });
+
         return {
-            state, handleConfig, handleSave,
+            state, handleConfig, handleSave,updaterCurrent,updaterServer,handleUpdate,updateText,updateColor
 
         }
     }
 }
 </script>
 <style lang="stylus" scoped>
+
+@keyframes loading {
+    from{transform:rotate(0deg)}
+    to{transform:rotate(360deg)}
+}
+
 .status-server-wrap{
     padding-right:.5rem;
     a{color:#333;}
     a+a{margin-left:.6rem;}
-    span{border-radius:1rem;background-color:rgba(0,0,0,0.1);padding:0 .6rem; margin-left:.2rem}
 
     &.connected {
        a{color:green;font-weight:bold;}
@@ -89,6 +213,20 @@ export default {
 
     .el-icon{
         vertical-align:text-bottom;
+    }
+
+    a.download{
+        &.green{color:green}
+        &.red{color:red}
+        &.yellow{color:#e68906}
+        .el-icon{
+            font-weight:bold;
+            &.yellow{color:#e68906}
+            &.loading{
+                animation:loading 1s linear infinite;
+            }
+            margin-left:.3rem
+        }
     }
 }
 

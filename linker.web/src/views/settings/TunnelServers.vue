@@ -81,7 +81,7 @@ import { ElMessage } from 'element-plus';
 import { computed, inject, onMounted, reactive } from 'vue'
 import Version from './Version.vue';
 export default {
-    label:'外网端口服务器',
+    label:'端口服务器',
     name:'tunnelServers',
     order:1,
     components:{Version},

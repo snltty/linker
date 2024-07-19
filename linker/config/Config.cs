@@ -162,7 +162,7 @@ namespace linker.config
 
 #if DEBUG
         private LoggerTypes loggerType { get; set; } = LoggerTypes.DEBUG;
-        public bool Install { get; set; } = true;
+        public bool Install { get; set; } = false;
 #else
         private LoggerTypes loggerType { get; set; } = LoggerTypes.WARNING;
         public bool Install { get; set; } = false;
