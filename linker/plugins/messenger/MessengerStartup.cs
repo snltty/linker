@@ -37,7 +37,7 @@ namespace linker.plugins.messenger
             {
                 MessengerResolver messengerResolver = serviceProvider.GetService<MessengerResolver>();
                 messengerResolver.LoadMessenger(assemblies);
-                messengerResolver.Init(config.Data.Server.Certificate, config.Data.Server.Password);
+                messengerResolver.Init(config.Data.Client.Certificate, config.Data.Client.Password);
                 loaded = true;
             }
         }
