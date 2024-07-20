@@ -154,15 +154,15 @@ span.split-pad10 {
 }
 
 .red {
-    color: red;
+    color: red !important;
 }
 
 .green {
-    color: green;
+    color: green !important;
 }
 
 .yellow {
-    color: #e68906
+    color: #e68906 !important;
 }
 
 .scrollbar,
