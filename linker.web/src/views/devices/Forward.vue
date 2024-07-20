@@ -10,9 +10,9 @@
                                 <li>
                                     <a href="javascript:;" @click="handleEdit(scope.row.MachineId)" :class="{ green: item.Started }">
                                         <span>
-                                            <span :class="{error:!!item.Msg}">{{item.Port}}</span>
+                                            <span :class="{red:!!item.Msg}">{{item.Port}}</span>
                                             ->
-                                            <span :class="{error:!!item.TargetMsg}">{{ item.TargetEP }}</span>
+                                            <span :class="{red:!!item.TargetMsg}">{{ item.TargetEP }}</span>
                                         </span>
                                     </a>
                                     <span> ({{ 1<<item.BufferSize }}KB)</span>
@@ -30,12 +30,12 @@
                     <ul class="list sforward">
                         <template v-if="sforward.list && sforward.list.length > 0">
                             <template v-for="(item, index) in sforward.list" :key="index">
-                                <li :class="{error:!!item.Msg}">
+                                <li :class="{red:!!item.Msg}">
                                     <a href="javascript:;" @click="handleSEdit()" :class="{ green: item.Started }">
                                         <span>
-                                            <span :class="{error:!!item.Msg}">{{item.Domain || item.RemotePort}}</span>
+                                            <span :class="{red:!!item.Msg}">{{item.Domain || item.RemotePort}}</span>
                                             ->
-                                            <span :class="{error:!!item.LocalMsg}">{{ item.LocalEP }}</span>
+                                            <span :class="{red:!!item.LocalMsg}">{{ item.LocalEP }}</span>
                                         </span>
                                     </a>
                                     <span> ({{ 1<<item.BufferSize }}KB)</span>
@@ -82,5 +82,4 @@ a{
     text-decoration: underline;
     font-weight:bold;
 }
-span.error{color:red}
 </style>

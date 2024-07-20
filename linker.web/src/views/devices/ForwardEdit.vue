@@ -42,7 +42,7 @@
                             <template v-if="scope.row.Msg">
                                 <el-popover placement="top" title="msg" width="20rem"  trigger="hover" :content="scope.row.Msg">
                                     <template #reference>
-                                        <div class="error">
+                                        <div class="error red">
                                             <span>{{ scope.row.Port }}</span>
                                             <el-icon size="20"><WarnTriangleFilled /></el-icon>
                                         </div>
@@ -65,7 +65,7 @@
                             <template v-if="scope.row.TargetMsg">
                                 <el-popover placement="top" title="msg" width="20rem"  trigger="hover" :content="scope.row.TargetMsg">
                                     <template #reference>
-                                        <span class="error">{{ scope.row.TargetEP }}</span>
+                                        <span class="error red">{{ scope.row.TargetEP }}</span>
                                         <el-icon size="20"><WarnTriangleFilled /></el-icon>
                                     </template>
                                 </el-popover>
@@ -239,7 +239,6 @@ export default {
 .head{padding-bottom:1rem}
 .green{color:green;font-weight:bold;}
 .error{
-    color:red;
     font-weight:bold;
     .el-icon{
         vertical-align:text-bottom
