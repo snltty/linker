@@ -189,15 +189,6 @@ namespace linker.plugins.updater
                 }
                 updateInfo.Status = status;
             }
-
-            if (OperatingSystem.IsLinux())
-            {
-                string result = CommandHelper.Linux(string.Empty, new string[] { $"chmod a+x {fileName}" });
-            }
-            else if (OperatingSystem.IsMacOS())
-            {
-                string result = CommandHelper.Osx(string.Empty, new string[] { $"chmod a+x {fileName}" });
-            }
         }
 
         public void Confirm(UpdateInfo updateInfo, string version)
