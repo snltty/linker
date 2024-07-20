@@ -82,6 +82,5 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
-.green{color:green;}
 .el-switch.is-disabled{opacity :1;}
 </style>

@@ -3,7 +3,7 @@ using linker.libs;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace linker.client.args
+namespace linker.plugins.client.args
 {
     public sealed class SignInArgsTransfer
     {
@@ -12,7 +12,7 @@ namespace linker.client.args
         public SignInArgsTransfer(ServiceProvider serviceProvider, FileConfig config)
         {
             var types = ReflectionHelper.GetInterfaceSchieves(typeof(ISignInArgs));
-            startups = types.Select(c => serviceProvider.GetService(c) as ISignInArgs).Where(c=>c != null).ToList();
+            startups = types.Select(c => serviceProvider.GetService(c) as ISignInArgs).Where(c => c != null).ToList();
         }
 
         public void Invoke(Dictionary<string, string> args)

@@ -2,7 +2,7 @@
 using MemoryPack;
 using System.Net;
 
-namespace linker.serializes
+namespace linker.plugins.serializes
 {
     /// <summary>
     ///  MemoryPack 的 IPEndPoint序列化扩展

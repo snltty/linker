@@ -1,15 +1,16 @@
-﻿using linker.client.args;
-using linker.client.config;
+﻿using linker.client.config;
 using linker.config;
 using linker.plugins.signin.messenger;
-using linker.server;
 using linker.libs;
 using linker.libs.extends;
 using MemoryPack;
 using System.Net;
 using System.Net.Sockets;
+using linker.plugins.client.args;
+using linker.plugins.server;
+using linker.plugins.messenger;
 
-namespace linker.client
+namespace linker.plugins.client
 {
     /// <summary>
     /// 登入
@@ -19,20 +20,20 @@ namespace linker.client
         private readonly ClientSignInState clientSignInState;
         private readonly RunningConfig runningConfig;
         private readonly FileConfig config;
-        private readonly TcpServer tcpServer;
         private readonly MessengerSender messengerSender;
+        private readonly MessengerResolver messengerResolver;
         private readonly SignInArgsTransfer signInArgsTransfer;
         private readonly RunningConfigTransfer runningConfigTransfer;
 
         private string configKey = "signServers";
 
-        public ClientSignInTransfer(ClientSignInState clientSignInState, RunningConfig runningConfig, FileConfig config, TcpServer tcpServer, MessengerSender messengerSender, SignInArgsTransfer signInArgsTransfer, RunningConfigTransfer runningConfigTransfer)
+        public ClientSignInTransfer(ClientSignInState clientSignInState, RunningConfig runningConfig, FileConfig config,  MessengerSender messengerSender, MessengerResolver messengerResolver, SignInArgsTransfer signInArgsTransfer, RunningConfigTransfer runningConfigTransfer)
         {
             this.clientSignInState = clientSignInState;
             this.runningConfig = runningConfig;
             this.config = config;
-            this.tcpServer = tcpServer;
             this.messengerSender = messengerSender;
+            this.messengerResolver = messengerResolver;
             this.signInArgsTransfer = signInArgsTransfer;
             this.runningConfigTransfer = runningConfigTransfer;
 
@@ -131,7 +132,7 @@ namespace linker.client
             Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.KeepAlive();
             await socket.ConnectAsync(remote).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
-            clientSignInState.Connection = await tcpServer.BeginReceive(socket).ConfigureAwait(false);
+            clientSignInState.Connection = await messengerResolver.BeginReceiveClient(socket).ConfigureAwait(false);
 
             return true;
         }
@@ -169,6 +170,16 @@ namespace linker.client
             clientSignInState.Connection?.Disponse(6);
             return false;
         }
+        
+        /// <summary>
+        /// 登出
+        /// </summary>
+        public void SignOut()
+        {
+            if (clientSignInState.Connected)
+                clientSignInState.Connection.Disponse(5);
+        }
+
         /// <summary>
         /// 获取服务器版本
         /// </summary>
@@ -189,14 +200,7 @@ namespace linker.client
                 clientSignInState.Version = "v1.0.0.0";
             }
         }
-        /// <summary>
-        /// 登出
-        /// </summary>
-        public void SignOut()
-        {
-            if (clientSignInState.Connected)
-                clientSignInState.Connection.Disponse(5);
-        }
+
 
         /// <summary>
         /// 修改客户端名称

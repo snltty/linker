@@ -1,11 +1,11 @@
 ﻿using linker.libs.api;
 using linker.libs.extends;
-using linker.client.capi;
 using linker.client.config;
-using linker.client;
-using linker.server;
 using MemoryPack;
 using linker.plugins.sforward.messenger;
+using linker.plugins.client;
+using linker.plugins.capi;
+using linker.plugins.messenger;
 
 namespace linker.plugins.sforward
 {

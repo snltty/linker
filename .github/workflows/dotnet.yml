@@ -48,18 +48,15 @@ jobs:
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
-        tag_name: v1.1.2.2
-        release_name: v1.1.2.2.${{ steps.date.outputs.today }}
+        tag_name: v1.1.2.3
+        release_name: v1.1.2.3.${{ steps.date.outputs.today }}
         draft: false
         prerelease: false
         body: |
-          1. 更新配置同步方式，以版本同步
-          2. 设备列表搜索，按 设备名/设备IP/虚拟网卡IP/端口转发端口和IP 搜索
-          3. 端口转发配置复制，可以将A转发到B的配置复制给C转发到B
-          4. 服务器代理穿透配置复制
-          5. 修复虚拟网卡添加路由错误
-          6. 自动更新，管理所有客户端更新
-          7. 请更新服务端
+          1. 修复虚拟网卡添加路由错误
+          2. 自动更新，客户端和服务端
+          3. 更多的消息提醒，需要重启时提醒
+          4. 请更新服务端
 
     - name: upload win x64
       id: upload-win-x64

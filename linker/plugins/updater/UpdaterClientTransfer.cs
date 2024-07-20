@@ -1,8 +1,9 @@
-﻿using linker.client;
-using linker.client.config;
+﻿using linker.client.config;
 using linker.config;
+using linker.plugins.client;
+using linker.plugins.messenger;
+using linker.plugins.server;
 using linker.plugins.updater.messenger;
-using linker.server;
 using MemoryPack;
 using System.Collections.Concurrent;
 
@@ -78,7 +79,6 @@ namespace linker.plugins.updater
         {
             updaterHelper.Confirm(updateInfo, version);
         }
-       
         /// <summary>
         /// 来自别的客户端的更新信息
         /// </summary>

@@ -10,8 +10,6 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Text;
 using linker.tunnel.wanport;
-using System.Runtime.InteropServices;
-using System.IO;
 
 namespace linker.tunnel.transport
 {
@@ -664,7 +662,6 @@ namespace linker.tunnel.transport
         {
             if (OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
             {
-                TestQuic();
                 if (QuicListener.IsSupported == false)
                 {
                     LoggerHelper.Instance.Error($"msquic not supported, need win11+,or linux, or try to restart linker");
@@ -729,28 +726,7 @@ namespace linker.tunnel.transport
                 }
             }
         }
-        private void TestQuic()
-        {
-            if (OperatingSystem.IsWindows())
-            {
-                if (QuicListener.IsSupported == false)
-                {
-                    try
-                    {
-                        if (File.Exists("msquic-openssl.dll"))
-                        {
-                            LoggerHelper.Instance.Info($"copy msquic-openssl.dll -> msquic.dll");
-                            File.Move("msquic-openssl.dll", "msquic.dll", true);
-                        }
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
-            }
-        }
-
-
+        
         sealed class ListenAsyncToken
         {
             /// <summary>
@@ -773,10 +749,5 @@ namespace linker.tunnel.transport
             }
         }
 
-        enum ListenStep : byte
-        {
-            Auth = 0,
-            Forward = 1
-        }
     }
 }

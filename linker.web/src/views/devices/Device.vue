@@ -18,7 +18,7 @@
             <p class="flex">
                 <span>{{ scope.row.IP }}</span>
                 <span class="flex-1"></span>
-                <a href="javascript:;" class="download" title="下载更新" @click="handleUpdate(scope.row)" :title="updateText(scope.row)" :class="updateColor(scope.row)">
+                <a href="javascript:;" class="download" @click="handleUpdate(scope.row)" :title="updateText(scope.row)" :class="updateColor(scope.row)">
                     <span>
                         <span>{{scope.row.Version}}</span>
                         <template v-if="updater.list[scope.row.MachineId]">
@@ -65,16 +65,21 @@ export default {
         const updater = useUpdater();
         const serverVersion = computed(()=>globalData.value.signin.Version);
         const updaterVersion = computed(()=>updater.value.current.Version);
+        const updaterMsg = computed(()=>{
+            return `${updaterVersion.value}->${updater.value.current.DateTime}\n${updater.value.current.Msg.map((value,index)=>`${index+1}、${value}`).join('\n')}`;
+        });
         
         const updateText = (row)=>{
             if(!updater.value.list[row.MachineId]){
                 return '未检测到更新';
             }
+            
             if(updater.value.list[row.MachineId].Status <= 2) {
                 return row.Version != serverVersion.value 
                 ? `与服务器版本(${serverVersion.value})不一致，建议更新` 
                 : updaterVersion.value != row.Version 
-                    ? `不是最新版本(${updaterVersion.value})，建议更新` : '是最新版本，但我无法阻止你喜欢更新'
+                    ? `不是最新版本(${updaterVersion.value})，建议更新\n${updaterMsg.value}` 
+                    : `是最新版本，但我无法阻止你喜欢更新\n${updaterMsg.value}`
             }
             return {
                 3:'正在下载',
@@ -170,12 +175,8 @@ a{
 
 a.download{
     margin-left:.6rem
-    &.green{color:green}
-    &.red{color:red}
-    &.yellow{color:#e68906}
     .el-icon{
         vertical-align:middle;font-weight:bold;
-        &.yellow{color:#e68906}
         &.loading{
             animation:loading 1s linear infinite;
         }

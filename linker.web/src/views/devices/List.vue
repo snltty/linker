@@ -5,15 +5,7 @@
             <Tunnel  @edit="handleTunnelEdit" @refresh="handleTunnelRefresh" @connections="handleTunnelConnections"></Tunnel>
             <Tuntap  @edit="handleTuntapEdit" @refresh="handleTuntapRefresh"></Tuntap>
             <Forward @edit="_handleForwardEdit" @sedit="handleSForwardEdit"></Forward> 
-            <el-table-column label="操作" width="54" fixed="right">
-                <template #default="scope">
-                    <el-popconfirm v-if="scope.row.showDel" confirm-button-text="确认" cancel-button-text="取消" title="删除不可逆，是否确认?" @confirm="handleDel(scope.row.MachineId)">
-                        <template #reference>
-                            <el-button type="danger" size="small"><el-icon><Delete /></el-icon></el-button>
-                        </template>
-                    </el-popconfirm>
-                </template>
-            </el-table-column>
+            <Oper  @refresh="handlePageRefresh"></Oper>
         </el-table>
         <div class="page t-c">
             <div class="page-wrap">
@@ -36,6 +28,7 @@
 import { subWebsocketState } from '@/apis/request.js'
 import { injectGlobalData } from '@/provide.js'
 import { reactive, onMounted,  onUnmounted, computed } from 'vue'
+import Oper from './Oper.vue'
 import Device from './Device.vue'
 import DeviceEdit from './DeviceEdit.vue'
 import Tuntap from './Tuntap.vue'
@@ -57,7 +50,7 @@ import { provideSforward } from './sforward'
 import { provideDevices } from './devices'
 import { provideUpdater } from './updater'
 export default {
-    components: {Device,DeviceEdit,Tunnel,TunnelEdit,ConnectionsEdit, Tuntap,TuntapEdit,  Forward,ForwardEdit,ForwardCopy,SForwardEdit,SForwardCopy },
+    components: {Oper,Device,DeviceEdit,Tunnel,TunnelEdit,ConnectionsEdit, Tuntap,TuntapEdit,  Forward,ForwardEdit,ForwardCopy,SForwardEdit,SForwardCopy },
     setup(props) {
 
         const globalData = injectGlobalData();
@@ -163,8 +156,6 @@ export default {
 <style lang="stylus" scoped>
 .home-list-wrap{
     padding:1rem;
-
-    .green{color:green;}
 
     .page{padding-top:1rem}
     .page-wrap{

@@ -54,9 +54,11 @@
 import { reactive, watch,computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useConnections, useForwardConnections, useTuntapConnections } from './connections';
+import { Delete } from '@element-plus/icons-vue';
 export default {
     props: ['modelValue'],
     emits: ['change','update:modelValue'],
+    components: {Delete},
     setup(props, { emit }) {
 
         const connections = useConnections();
@@ -97,5 +99,4 @@ export default {
 <style lang="stylus" scoped>
 
 .head{padding-bottom:1rem}
-.green{color:green}
 </style>

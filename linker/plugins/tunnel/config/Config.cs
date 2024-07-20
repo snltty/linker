@@ -72,6 +72,8 @@ namespace linker.config
         public string MachineId { get; set; }
         public int RouteLevel { get; set; } = 0;
         public int RouteLevelPlus { get; set; } = 0;
+
+        public bool NeedReboot { get; set; }
     }
 
 

@@ -4,7 +4,7 @@ using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace linker.serializes
+namespace linker.plugins.serializes
 {
     /// <summary>
     /// MemoryPack 序列化扩展加载插件

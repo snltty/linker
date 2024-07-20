@@ -1,34 +1,31 @@
 ﻿using linker.config;
 using linker.startup;
-using linker.libs;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace linker.server
+namespace linker.plugins.messenger
 {
     /// <summary>
     /// 服务端插件
     /// </summary>
-    public sealed class ServerStartup : IStartup
+    public sealed class MessengerStartup : IStartup
     {
         public StartupLevel Level => StartupLevel.Normal;
-        public string Name => "server";
+        public string Name => "messenger";
         public bool Required => true;
-        public string[] Dependent => new string[] { "serialize", "firewall", "signin" };
+        public string[] Dependent => new string[] { };
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
         public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<MessengerSender>();
             serviceCollection.AddSingleton<MessengerResolver>();
-            serviceCollection.AddSingleton<TcpServer>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<MessengerSender>();
             serviceCollection.AddSingleton<MessengerResolver>();
-            serviceCollection.AddSingleton<TcpServer>();
 
         }
 
@@ -40,6 +37,7 @@ namespace linker.server
             {
                 MessengerResolver messengerResolver = serviceProvider.GetService<MessengerResolver>();
                 messengerResolver.LoadMessenger(assemblies);
+                messengerResolver.Init(config.Data.Server.Certificate, config.Data.Server.Password);
                 loaded = true;
             }
         }
@@ -50,26 +48,9 @@ namespace linker.server
             {
                 MessengerResolver messengerResolver = serviceProvider.GetService<MessengerResolver>();
                 messengerResolver.LoadMessenger(assemblies);
+                messengerResolver.Init(config.Data.Server.Certificate, config.Data.Server.Password);
                 loaded = true;
             }
-
-            LoggerHelper.Instance.Info($"start server");
-            try
-            {
-                //服务
-                TcpServer tcpServer = serviceProvider.GetService<TcpServer>();
-                tcpServer.Init(config.Data.Server.Certificate, config.Data.Server.Password);
-                if(config.Data.Server.ServicePort > 0)
-                {
-                    tcpServer.Start(config.Data.Server.ServicePort);
-                }
-            }
-            catch (Exception ex)
-            {
-                LoggerHelper.Instance.Error(ex);
-            }
-            LoggerHelper.Instance.Info($"server listen:{config.Data.Server.ServicePort}");
-
         }
     }
 }

@@ -2,7 +2,7 @@
 using System.Buffers;
 using System.ComponentModel;
 
-namespace linker.server
+namespace linker.plugins.messenger
 {
     /// <summary>
     /// 请求数据包

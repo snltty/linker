@@ -1,7 +1,7 @@
 ﻿using MemoryPack;
 using System.Net;
 
-namespace linker.serializes
+namespace linker.plugins.serializes
 {
     /// <summary>
     /// MemoryPack 的 IPAddress序列化扩展
@@ -25,7 +25,7 @@ namespace linker.serializes
             span[0] = (byte)bytesWritten;
 
             writer.WriteCollectionHeader(bytesWritten + 4);
-            writer.WriteSpan(span.Slice(0, bytesWritten+1));
+            writer.WriteSpan(span.Slice(0, bytesWritten + 1));
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref IPAddress value)

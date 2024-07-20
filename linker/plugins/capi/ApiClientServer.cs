@@ -1,5 +1,4 @@
-﻿using linker.client.capi;
-using linker.config;
+﻿using linker.config;
 using linker.libs;
 using linker.libs.api;
 using Microsoft.Extensions.DependencyInjection;

@@ -78,13 +78,14 @@
 import { setTunnelServers,getTunnelTypes } from '@/apis/tunnel';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import { computed, inject, onMounted, reactive } from 'vue'
+import { computed, onMounted, reactive } from 'vue'
 import Version from './Version.vue';
+import { Delete,Plus,Top,Bottom } from '@element-plus/icons-vue';
 export default {
     label:'端口服务器',
     name:'tunnelServers',
     order:1,
-    components:{Version},
+    components:{Version,Delete,Plus,Top,Bottom},
     setup(props) {
         const globalData = injectGlobalData();
         const list = ((globalData.value.config.Running.Tunnel || {Servers:[]}).Servers || []).sort((a,b)=>a.Disabled - b.Disabled);

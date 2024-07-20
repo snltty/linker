@@ -12,7 +12,7 @@ namespace linker.plugins.forward
         public StartupLevel Level => StartupLevel.Normal;
         public string Name => "forward";
         public bool Required => false;
-        public string[] Dependent => new string[] { "relay", "tunnel" };
+        public string[] Dependent => new string[] { "messenger", "relay", "tunnel", "signin", "serialize", "config" };
 
         public StartupLoadType LoadType => StartupLoadType.Normal;
 

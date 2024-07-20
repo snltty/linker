@@ -1,11 +1,11 @@
-﻿using linker.client;
-using linker.client.capi;
-using linker.config;
+﻿using linker.config;
 using linker.plugins.relay.messenger;
-using linker.server;
 using linker.libs.api;
 using linker.libs.extends;
 using MemoryPack;
+using linker.plugins.client;
+using linker.plugins.capi;
+using linker.plugins.messenger;
 
 namespace linker.plugins.relay
 {

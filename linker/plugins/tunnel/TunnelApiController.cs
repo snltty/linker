@@ -1,8 +1,5 @@
-﻿using linker.client;
-using linker.client.capi;
-using linker.config;
+﻿using linker.config;
 using linker.plugins.tunnel.messenger;
-using linker.server;
 using linker.tunnel.adapter;
 using linker.tunnel.transport;
 using linker.libs.api;
@@ -11,6 +8,10 @@ using MemoryPack;
 using System.Collections.Concurrent;
 using linker.tunnel.wanport;
 using linker.client.config;
+using linker.plugins.client;
+using linker.plugins.server;
+using linker.plugins.capi;
+using linker.plugins.messenger;
 
 namespace linker.plugins.tunnel
 {

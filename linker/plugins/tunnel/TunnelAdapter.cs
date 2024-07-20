@@ -1,8 +1,6 @@
-﻿using linker.client;
-using linker.client.config;
+﻿using linker.client.config;
 using linker.config;
 using linker.plugins.tunnel.messenger;
-using linker.server;
 using linker.tunnel.adapter;
 using linker.tunnel.transport;
 using linker.libs;
@@ -11,6 +9,8 @@ using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using linker.tunnel.wanport;
 using System.Buffers.Binary;
+using linker.plugins.client;
+using linker.plugins.messenger;
 
 namespace linker.plugins.tunnel
 {

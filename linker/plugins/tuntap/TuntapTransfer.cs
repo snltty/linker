@@ -1,10 +1,8 @@
-﻿using linker.client;
-using linker.client.config;
+﻿using linker.client.config;
 using linker.config;
 using linker.plugins.tuntap.messenger;
 using linker.plugins.tuntap.proxy;
 using linker.plugins.tuntap.vea;
-using linker.server;
 using linker.libs;
 using MemoryPack;
 using System.Buffers.Binary;
@@ -13,6 +11,8 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using linker.libs.extends;
+using linker.plugins.client;
+using linker.plugins.messenger;
 
 namespace linker.plugins.tuntap
 {

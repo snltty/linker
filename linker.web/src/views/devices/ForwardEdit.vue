@@ -100,13 +100,13 @@
 import {  onMounted, onUnmounted, reactive, watch } from 'vue';
 import { getForwardInfo, removeForwardInfo, addForwardInfo ,getForwardIpv4,testTargetForwardInfo,testListenForwardInfo } from '@/apis/forward'
 import { ElMessage } from 'element-plus';
-import {WarnTriangleFilled} from '@element-plus/icons-vue'
+import {WarnTriangleFilled,Delete} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
 import { useForward } from './forward';
 export default {
     props: ['data','modelValue'],
     emits: ['update:modelValue'],
-    components:{WarnTriangleFilled},
+    components:{WarnTriangleFilled,Delete},
     setup(props, { emit }) {
 
         const globalData = injectGlobalData();

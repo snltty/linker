@@ -45,11 +45,12 @@ import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { computed, inject, onMounted, reactive } from 'vue'
 import Version from './Version.vue';
+import { Delete,Plus } from '@element-plus/icons-vue';
 export default {
     label:'打洞排除IP',
     name:'excludeIP',
     order:3,
-    components:{Version},
+    components:{Version,Delete,Plus},
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({

@@ -1,7 +1,4 @@
-﻿using linker.server;
-using linker.libs.api;
-using linker.client;
-using linker.client.capi;
+﻿using linker.libs.api;
 using linker.config;
 using linker.plugins.updater.messenger;
 using MemoryPack;
@@ -9,6 +6,9 @@ using System.Collections.Concurrent;
 using linker.plugins.updater.config;
 using linker.libs.extends;
 using linker.client.config;
+using linker.plugins.client;
+using linker.plugins.capi;
+using linker.plugins.messenger;
 
 namespace linker.plugins.updater
 {

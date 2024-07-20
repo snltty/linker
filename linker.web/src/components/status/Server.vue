@@ -56,8 +56,11 @@ export default {
     setup(props) {
 
         const globalData = injectGlobalData();
-        const updaterCurrent = ref({Version: '', Status: 0, Length: 0, Current: 0});
+        const updaterCurrent = ref({Version: '', Msg: [], DateTime: '', Status: 0, Length: 0, Current: 0});
         const updaterServer = ref({Version: '', Status: 0, Length: 0, Current: 0});
+        const updaterMsg = computed(()=>{
+            return `${updaterCurrent.value.Version}->${updaterCurrent.value.DateTime}\n${updaterCurrent.value.Msg.map((value,index)=>`${index+1}、${value}`).join('\n')}`;
+        });
 
         const state = reactive({
             show: false,
@@ -75,10 +78,12 @@ export default {
 
         const _getUpdaterCurrent = ()=>{
             getUpdaterCurrent().then((res)=>{
+                updaterCurrent.value.DateTime = res.DateTime;
                 updaterCurrent.value.Version = res.Version;
                 updaterCurrent.value.Status = res.Status;
                 updaterCurrent.value.Length = res.Length;
                 updaterCurrent.value.Current = res.Current;
+                updaterCurrent.value.Msg = res.Msg;
                 setTimeout(()=>{
                     _getUpdaterCurrent();
                 },1000);
@@ -111,8 +116,8 @@ export default {
             }
             if(updaterServer.value.Status <= 2) {
                 return state.version != updaterCurrent.value.Version  
-                ? `不是最新版本(${updaterCurrent.value.Version})，建议更新` 
-                : '是最新版本，但我无法阻止你喜欢更新'
+                ? `不是最新版本(${updaterCurrent.value.Version})，建议更新\n${updaterMsg.value}` 
+                : `是最新版本，但我无法阻止你喜欢更新\n${updaterMsg.value}`
             }
             return {
                 3:'正在下载',
@@ -216,12 +221,8 @@ export default {
     }
 
     a.download{
-        &.green{color:green}
-        &.red{color:red}
-        &.yellow{color:#e68906}
         .el-icon{
             font-weight:bold;
-            &.yellow{color:#e68906}
             &.loading{
                 animation:loading 1s linear infinite;
             }

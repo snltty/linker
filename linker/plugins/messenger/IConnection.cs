@@ -6,7 +6,7 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
 
-namespace linker.server
+namespace linker.plugins.messenger
 {
     public interface IConnectionReceiveCallback
     {
@@ -405,7 +405,7 @@ namespace linker.server
             {
                 try
                 {
-                    await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
+                    await callback.Receive(this, packet, userToken).ConfigureAwait(false);
                 }
                 catch (Exception)
                 {
@@ -422,7 +422,7 @@ namespace linker.server
                     if (Environment.TickCount64 - ticks > 3000)
                     {
                         pingStart = Environment.TickCount64;
-                        await SendPingPong(pingBytes).ConfigureAwait(false); 
+                        await SendPingPong(pingBytes).ConfigureAwait(false);
 
                     }
                     await Task.Delay(3000).ConfigureAwait(false);
@@ -442,7 +442,7 @@ namespace linker.server
             data.Length.ToBytes(heartData);
             data.AsMemory().CopyTo(heartData.AsMemory(4));
 
-            await semaphoreSlim.WaitAsync().ConfigureAwait(false); 
+            await semaphoreSlim.WaitAsync().ConfigureAwait(false);
             try
             {
                 if (SourceStream != null)
@@ -451,7 +451,7 @@ namespace linker.server
                 }
                 else
                 {
-                    await SourceSocket.SendAsync(heartData.AsMemory(0, length), cancellationTokenSource.Token).ConfigureAwait(false); 
+                    await SourceSocket.SendAsync(heartData.AsMemory(0, length), cancellationTokenSource.Token).ConfigureAwait(false);
                 }
 
             }
@@ -481,7 +481,7 @@ namespace linker.server
                 if (SourceStream != null)
                     await SourceStream.WriteAsync(data, cancellationTokenSourceWrite.Token).ConfigureAwait(false);
                 else
-                    await SourceSocket.SendAsync(data, cancellationTokenSourceWrite.Token).ConfigureAwait(false); 
+                    await SourceSocket.SendAsync(data, cancellationTokenSourceWrite.Token).ConfigureAwait(false);
                 SendBytes += data.Length;
                 ticks = Environment.TickCount64;
             }
@@ -505,7 +505,7 @@ namespace linker.server
         }
         public override async Task<bool> SendAsync(byte[] data, int length)
         {
-            return await SendAsync(data.AsMemory(0, length)).ConfigureAwait(false); 
+            return await SendAsync(data.AsMemory(0, length)).ConfigureAwait(false);
         }
 
         public override async Task RelayAsync(byte bufferSize)
@@ -529,7 +529,7 @@ namespace linker.server
                         TryLimit(ref length);
                         while (length > 0)
                         {
-                            await Task.Delay(30).ConfigureAwait(false); 
+                            await Task.Delay(30).ConfigureAwait(false);
                             TryLimit(ref length);
                         }
                     }

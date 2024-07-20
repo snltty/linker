@@ -1,6 +1,5 @@
 ﻿using linker.config;
 using linker.plugins.relay.messenger;
-using linker.server;
 using linker.tunnel.connection;
 using linker.libs;
 using linker.libs.extends;
@@ -11,6 +10,8 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using linker.plugins.server;
+using linker.plugins.messenger;
 
 namespace linker.plugins.relay.transport
 {
@@ -20,15 +21,15 @@ namespace linker.plugins.relay.transport
         public RelayType Type => RelayType.Linker;
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Tcp;
 
-        private readonly TcpServer tcpServer;
+        private readonly MessengerResolver messengerResolver;
         private readonly MessengerSender messengerSender;
 
         private X509Certificate2 certificate;
 
 
-        public TransportSelfHost(TcpServer tcpServer, MessengerSender messengerSender, FileConfig config)
+        public TransportSelfHost(MessengerResolver messengerResolver, MessengerSender messengerSender, FileConfig config)
         {
-            this.tcpServer = tcpServer;
+            this.messengerResolver = messengerResolver;
             this.messengerSender = messengerSender;
 
             string path = Path.GetFullPath(config.Data.Client.Certificate);
@@ -46,7 +47,7 @@ namespace linker.plugins.relay.transport
                 socket.KeepAlive();
                 await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
 
-                IConnection connection = await tcpServer.BeginReceive(socket);
+                IConnection connection = await messengerResolver.BeginReceiveClient(socket);
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = connection,
@@ -114,7 +115,7 @@ namespace linker.plugins.relay.transport
                 socket.KeepAlive();
                 await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
 
-                IConnection connection = await tcpServer.BeginReceive(socket);
+                IConnection connection = await messengerResolver.BeginReceiveClient(socket);
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = connection,

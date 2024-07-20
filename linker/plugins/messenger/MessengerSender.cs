@@ -1,7 +1,7 @@
 ﻿using linker.libs;
 using System.Collections.Concurrent;
 
-namespace linker.server
+namespace linker.plugins.messenger
 {
     /// <summary>
     /// 消息发送器

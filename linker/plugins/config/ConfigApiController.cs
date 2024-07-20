@@ -1,8 +1,8 @@
 ﻿using linker.config;
 using linker.libs.api;
 using linker.libs.extends;
-using linker.client.capi;
 using linker.client.config;
+using linker.plugins.capi;
 
 namespace linker.plugins.config
 {

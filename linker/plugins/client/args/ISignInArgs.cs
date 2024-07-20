@@ -1,4 +1,4 @@
-﻿namespace linker.client.args
+﻿namespace linker.plugins.client.args
 {
     public interface ISignInArgs
     {

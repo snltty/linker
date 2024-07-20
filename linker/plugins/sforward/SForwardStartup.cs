@@ -18,7 +18,7 @@ namespace linker.plugins.sforward
 
         public StartupLevel Level => StartupLevel.Normal;
 
-        public string[] Dependent => Array.Empty<string>();
+        public string[] Dependent => new string[] { "messenger", "signin", "serialize", "config" };
 
         public StartupLoadType LoadType => StartupLoadType.Normal;
 

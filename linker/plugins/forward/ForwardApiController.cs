@@ -1,6 +1,5 @@
 ﻿using linker.libs.api;
 using linker.libs.extends;
-using linker.client.capi;
 using linker.client.config;
 using System.Net;
 using linker.libs;
@@ -8,9 +7,10 @@ using linker.plugins.forward.proxy;
 using linker.tunnel.connection;
 using System.Collections.Concurrent;
 using linker.plugins.forward.messenger;
-using linker.server;
-using linker.client;
 using MemoryPack;
+using linker.plugins.client;
+using linker.plugins.capi;
+using linker.plugins.messenger;
 
 namespace linker.plugins.forward
 {

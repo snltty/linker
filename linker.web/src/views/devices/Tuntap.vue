@@ -9,7 +9,7 @@
                                 <template v-if="tuntap.list[scope.row.MachineId].Error">
                                     <el-popover placement="top" title="msg" width="20rem"  trigger="hover" :content="tuntap.list[scope.row.MachineId].Error">
                                         <template #reference>
-                                            <strong class="error">{{ tuntap.list[scope.row.MachineId].IP }}</strong>
+                                            <strong class="red">{{ tuntap.list[scope.row.MachineId].IP }}</strong>
                                         </template>
                                     </el-popover>
                                 </template>
@@ -67,8 +67,6 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
-.green{color:green;}
-.error{color:red;}
 .el-switch.is-disabled{opacity :1;}
 .el-input{
     width:8rem;

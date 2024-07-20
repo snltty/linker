@@ -2,17 +2,18 @@
     <el-table-column prop="tunnel" label="隧道" width="90">
         <template #default="scope">
             <div v-if="tunnel.list[scope.row.MachineId]">
-                <p>
-                    <a href="javascript:;" class="a-line" @click="handleTunnel(tunnel.list[scope.row.MachineId])">
+                <a href="javascript:;" class="a-line" 
+                :class="{yellow:tunnel.list[scope.row.MachineId].NeedReboot}" 
+                :title="tunnel.list[scope.row.MachineId].NeedReboot?'需要重启':''"
+                @click="handleTunnel(tunnel.list[scope.row.MachineId])">
                     <span>网关 : {{tunnel.list[scope.row.MachineId].RouteLevel}} + {{tunnel.list[scope.row.MachineId].RouteLevelPlus}}</span>
-                    </a>
-                </p>
+                </a>
             </div> 
-            <p>
+            <div>
                 <a href="javascript:;" class="a-line" @click="handleConnections(scope.row.MachineId)">
                     <span>连接数 : {{connectionCount(scope.row.MachineId)}}</span>
-                    </a>
-            </p>
+                </a>
+            </div>
         </template>
     </el-table-column>
 </template>
@@ -54,6 +55,6 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
-.green{color:green;}
+
 .el-switch.is-disabled{opacity :1;}
 </style>

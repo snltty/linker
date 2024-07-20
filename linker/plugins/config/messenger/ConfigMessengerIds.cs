@@ -1,4 +1,4 @@
-﻿namespace linker.client.config.messenger
+﻿namespace linker.plugins.config.messenger
 {
     public enum ConfigMessengerIds : ushort
     {

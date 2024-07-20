@@ -46,11 +46,12 @@ import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { computed, inject, onMounted, reactive } from 'vue'
 import Version from './Version.vue';
+import { Delete,Plus,Top,Bottom } from '@element-plus/icons-vue';
 export default {
     label:'打洞协议',
     name:'transports',
     order:2,
-    components:{Version},
+    components:{Version, Delete,Plus,Top,Bottom},
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({

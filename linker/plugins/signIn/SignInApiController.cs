@@ -2,10 +2,10 @@
 using linker.plugins.signin.messenger;
 using linker.libs.api;
 using linker.libs.extends;
-using linker.client;
-using linker.server;
 using MemoryPack;
-using linker.client.capi;
+using linker.plugins.client;
+using linker.plugins.capi;
+using linker.plugins.messenger;
 
 namespace linker.plugins.signin
 {

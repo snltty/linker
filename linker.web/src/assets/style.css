@@ -157,6 +157,14 @@ span.split-pad10 {
     color: red;
 }
 
+.green {
+    color: green;
+}
+
+.yellow {
+    color: #e68906
+}
+
 .scrollbar,
 .scrollbar-1,
 .scrollbar-4,
@@ -214,6 +222,9 @@ span.split-pad10 {
     --el-color-primary-dark-2: var(--el-color-success-dark-2) !important;
 }
 
+.el-table .cell {
+    overflow: visible !important;
+}
 
 .el-table--scrollable-y .el-table__body-wrapper::-webkit-scrollbar {
     background: #f5f5f5

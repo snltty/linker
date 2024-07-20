@@ -17,7 +17,7 @@ namespace linker.plugins.relay
 
         public bool Required => false;
 
-        public string[] Dependent => new string[] { };
+        public string[] Dependent => new string[] { "messenger", "signin", "serialize",  "config" };
 
         public StartupLoadType LoadType => StartupLoadType.Normal;
 

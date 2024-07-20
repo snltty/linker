@@ -16,7 +16,7 @@ namespace linker.plugins.tuntap
         public StartupLevel Level => StartupLevel.Normal;
         public string Name => "tuntap";
         public bool Required => false;
-        public string[] Dependent => new string[] { "relay", "tunnel" };
+        public string[] Dependent => new string[] {"messenger", "relay", "tunnel", "signin", "serialize", "config" };
 
         public StartupLoadType LoadType => StartupLoadType.Normal;
 

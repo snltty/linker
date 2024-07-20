@@ -9,7 +9,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Reflection;
 using MemoryPack;
-using linker.client;
+using linker.plugins.client;
 
 namespace linker.plugins.relay
 {

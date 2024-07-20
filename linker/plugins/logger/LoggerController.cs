@@ -2,7 +2,7 @@
 using linker.libs.api;
 using linker.libs;
 using linker.config;
-using linker.client.capi;
+using linker.plugins.capi;
 
 namespace linker.plugins.logger
 {

@@ -13,7 +13,7 @@ namespace linker.plugins.signin
 
         public bool Required => false;
 
-        public string[] Dependent => new string[] { };
+        public string[] Dependent => new string[] { "messenger", };
 
         public StartupLoadType LoadType => StartupLoadType.Normal;
 

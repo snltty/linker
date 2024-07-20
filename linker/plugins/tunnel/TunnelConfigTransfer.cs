@@ -1,12 +1,14 @@
-﻿using linker.client;
-using linker.client.config;
+﻿using linker.client.config;
 using linker.config;
+using linker.libs;
+using linker.plugins.client;
+using linker.plugins.messenger;
 using linker.plugins.tunnel.messenger;
-using linker.server;
 using linker.tunnel.adapter;
 using linker.tunnel.wanport;
 using MemoryPack;
 using System.Collections.Concurrent;
+using System.Net.Quic;
 
 namespace linker.plugins.tunnel
 {
@@ -35,20 +37,14 @@ namespace linker.plugins.tunnel
             this.runningConfigTransfer = runningConfigTransfer;
             this.tunnelAdapter = tunnelAdapter;
 
-            clientSignInState.NetworkEnabledHandle += (times) =>
-            {
-                GetRemoveRouteLevel();
-            };
-            clientSignInState.NetworkFirstEnabledHandle += () =>
-            {
-                SyncExcludeIP();
-            };
+
+            InitRouteLevel();
+            InitExcludeIP();
             InitConfig();
 
-            runningConfigTransfer.Setter(exipConfigKey, SettExcludeIPs);
-            runningConfigTransfer.Getter(exipConfigKey, () => MemoryPackSerializer.Serialize(GetExcludeIPs()));
-
+            TestQuic();
         }
+
         private void InitConfig()
         {
             bool updateVersion = false;
@@ -85,7 +81,7 @@ namespace linker.plugins.tunnel
         /// </summary>
         public void RefreshConfig()
         {
-            GetRemoveRouteLevel();
+            GetRemoteRouteLevel();
         }
         /// <summary>
         /// 修改自己的网关层级信息
@@ -95,7 +91,7 @@ namespace linker.plugins.tunnel
         {
             running.Data.Tunnel.RouteLevelPlus = tunnelTransportFileConfigInfo.RouteLevelPlus;
             running.Data.Update();
-            GetRemoveRouteLevel();
+            GetRemoteRouteLevel();
         }
         /// <summary>
         /// 收到别人发给我的修改我的信息
@@ -108,7 +104,7 @@ namespace linker.plugins.tunnel
             Interlocked.Increment(ref version);
             return GetLocalRouteLevel();
         }
-        private void GetRemoveRouteLevel()
+        private void GetRemoteRouteLevel()
         {
             TunnelTransportRouteLevelInfo config = GetLocalRouteLevel();
             messengerSender.SendReply(new MessageRequestWrap
@@ -138,11 +134,28 @@ namespace linker.plugins.tunnel
             {
                 MachineId = config.Data.Client.Id,
                 RouteLevel = config.Data.Client.Tunnel.RouteLevel,
-                RouteLevelPlus = running.Data.Tunnel.RouteLevelPlus
+                RouteLevelPlus = running.Data.Tunnel.RouteLevelPlus,
+                NeedReboot = reboot
+            };
+        }
+        private void InitRouteLevel()
+        {
+            clientSignInState.NetworkEnabledHandle += (times) =>
+            {
+                GetRemoteRouteLevel();
             };
         }
 
 
+        private void InitExcludeIP()
+        {
+            clientSignInState.NetworkFirstEnabledHandle += () =>
+            {
+                SyncExcludeIP();
+            };
+            runningConfigTransfer.Setter(exipConfigKey, SettExcludeIPs);
+            runningConfigTransfer.Getter(exipConfigKey, () => MemoryPackSerializer.Serialize(GetExcludeIPs()));
+        }
         private void SyncExcludeIP()
         {
             runningConfigTransfer.Sync(exipConfigKey, MemoryPackSerializer.Serialize(running.Data.Tunnel.ExcludeIPs));
@@ -162,6 +175,37 @@ namespace linker.plugins.tunnel
         {
             running.Data.Tunnel.ExcludeIPs = MemoryPackSerializer.Deserialize<ExcludeIPItem[]>(data.Span);
             running.Data.Update();
+        }
+
+
+        bool reboot = false;
+        private void TestQuic()
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                if (QuicListener.IsSupported == false)
+                {
+                    try
+                    {
+                        if (File.Exists("msquic-openssl.dll"))
+                        {
+                            LoggerHelper.Instance.Warning($"copy msquic-openssl.dll -> msquic.dll，please restart linker");
+                            File.Move("msquic.dll", "msquic.dll.temp", true);
+                            File.Move("msquic-openssl.dll", "msquic.dll", true);
+
+                            reboot = true;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+
+                if (File.Exists("msquic.dll.temp"))
+                {
+                    File.Delete("msquic.dll.temp");
+                }
+            }
         }
     }
 }

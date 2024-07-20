@@ -52,11 +52,12 @@ import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { computed, inject, reactive } from 'vue'
 import Version from './Version.vue';
+import { Delete,Plus,Select } from '@element-plus/icons-vue';
 export default {
     label:'信标服务器',
     name:'signInServers',
     order:0,
-    components:{Version},
+    components:{Version,Delete,Plus,Select },
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({

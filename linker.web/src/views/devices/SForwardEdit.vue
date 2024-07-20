@@ -89,13 +89,13 @@
 import { onMounted, onUnmounted, reactive, watch } from 'vue';
 import { getSForwardInfo, removeSForwardInfo, addSForwardInfo,testLocalSForwardInfo } from '@/apis/sforward'
 import { ElMessage } from 'element-plus';
-import {WarnTriangleFilled} from '@element-plus/icons-vue'
+import {WarnTriangleFilled,Delete} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
 import { useSforward } from './sforward';
 export default {
     props: ['data','modelValue'],
     emits: ['update:modelValue'],
-    components:{WarnTriangleFilled},
+    components:{WarnTriangleFilled,Delete},
     setup(props, { emit }) {
 
         const globalData = injectGlobalData();

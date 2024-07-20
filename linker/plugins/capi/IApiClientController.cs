@@ -1,7 +1,7 @@
 ﻿using linker.libs.api;
 using System.Reflection;
 
-namespace linker.client.capi
+namespace linker.plugins.capi
 {
     public interface IApiClientController : IApiController
     {

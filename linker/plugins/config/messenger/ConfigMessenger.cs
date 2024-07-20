@@ -1,8 +1,9 @@
-﻿using linker.plugins.signin.messenger;
-using linker.server;
+﻿using linker.client.config;
+using linker.plugins.messenger;
+using linker.plugins.signin.messenger;
 using MemoryPack;
 
-namespace linker.client.config.messenger
+namespace linker.plugins.config.messenger
 {
     public sealed class ConfigServerMessenger : IMessenger
     {

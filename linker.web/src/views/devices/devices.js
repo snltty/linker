@@ -25,6 +25,7 @@ export const provideDevices = () => {
             devices.page.Count = res.Count;
             for (let j in res.List) {
                 res.List[j].showDel = machineId.value != res.List[j].MachineId && res.List[j].Connected == false;
+                res.List[j].showReboot = res.List[j].Connected;
                 res.List[j].isSelf = machineId.value == res.List[j].MachineId;
             }
             devices.page.List = res.List.sort((a, b) => b.Connected - a.Connected);
@@ -41,6 +42,7 @@ export const provideDevices = () => {
                         item.LastSignIn = res.List[j].LastSignIn;
                         item.Args = res.List[j].Args;
                         item.showDel = machineId.value != res.List[j].MachineId && res.List[j].Connected == false;
+                        item.showReboot = res.List[j].Connected;
                         item.isSelf = machineId.value == res.List[j].MachineId;
                     }
                 }

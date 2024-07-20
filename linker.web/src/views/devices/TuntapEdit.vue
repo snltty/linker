@@ -39,10 +39,11 @@ import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { reactive, ref, watch } from 'vue';
 import { useTuntap } from './tuntap';
-
+import { Delete, Plus } from '@element-plus/icons-vue'
 export default {
     props: ['modelValue'],
     emits: ['change','update:modelValue'],
+    components: {Delete,Plus},
     setup(props, { emit }) {
 
         const globalData = injectGlobalData();
@@ -117,6 +118,5 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
-.green{color:green;}
 .el-switch.is-disabled{opacity :1;}
 </style>

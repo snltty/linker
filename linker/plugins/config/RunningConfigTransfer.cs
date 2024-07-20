@@ -1,6 +1,7 @@
-﻿using linker.client.config.messenger;
-using linker.libs;
-using linker.server;
+﻿using linker.libs;
+using linker.plugins.client;
+using linker.plugins.config.messenger;
+using linker.plugins.messenger;
 using MemoryPack;
 using System.Collections.Concurrent;
 
@@ -30,6 +31,7 @@ namespace linker.client.config
         /// </summary>
         public Memory<byte> Data { get; set; }
     }
+
     /// <summary>
     /// 配置同步
     /// </summary>

@@ -25,7 +25,7 @@
                     </ul>
                 </div>
             </template>
-            <template v-else-if="!scope.row.isSelf">
+            <template v-else>
                 <div>
                     <ul class="list sforward">
                         <template v-if="sforward.list && sforward.list.length > 0">
@@ -48,7 +48,6 @@
                     </ul>
                 </div>
             </template>
-            <template v-else>--</template>
         </template>
     </el-table-column>
 </template>
@@ -83,6 +82,5 @@ a{
     text-decoration: underline;
     font-weight:bold;
 }
-span.green,a.green{color:green}
 span.error{color:red}
 </style>

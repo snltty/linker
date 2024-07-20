@@ -1,12 +1,13 @@
 ﻿using linker.libs.api;
-using linker.client.capi;
 using linker.libs.extends;
+using linker.client.config;
+using linker.plugins.capi;
 
-namespace linker.client.config
+namespace linker.plugins.config
 {
     public sealed class RunningConfigApiController : IApiClientController
     {
-        private readonly RunningConfigTransfer  runningConfigTransfer;
+        private readonly RunningConfigTransfer runningConfigTransfer;
 
         public RunningConfigApiController(RunningConfigTransfer runningConfigTransfer)
         {

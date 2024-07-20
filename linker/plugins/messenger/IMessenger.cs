@@ -1,4 +1,4 @@
-﻿namespace linker.server
+﻿namespace linker.plugins.messenger
 {
     /// <summary>
     /// 消息接口
