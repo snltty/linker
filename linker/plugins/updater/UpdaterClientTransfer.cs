@@ -2,7 +2,6 @@
 using linker.config;
 using linker.plugins.client;
 using linker.plugins.messenger;
-using linker.plugins.server;
 using linker.plugins.updater.messenger;
 using MemoryPack;
 using System.Collections.Concurrent;

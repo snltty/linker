@@ -46,8 +46,9 @@ namespace linker.plugins.updater
 
                 updateInfo.Status = UpdateStatus.Checked;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                LoggerHelper.Instance.Error(ex);
                 updateInfo.Status = status;
             }
         }
@@ -95,10 +96,7 @@ namespace linker.plugins.updater
             }
             catch (Exception ex)
             {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Error(ex);
-                }
+                LoggerHelper.Instance.Error(ex);
                 try
                 {
                     File.Delete("updater.zip");
@@ -183,10 +181,7 @@ namespace linker.plugins.updater
             }
             catch (Exception ex)
             {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Error(ex);
-                }
+                LoggerHelper.Instance.Error(ex);
                 updateInfo.Status = status;
             }
         }
@@ -197,6 +192,7 @@ namespace linker.plugins.updater
             {
                 await DownloadUpdate(updateInfo, version);
                 await ExtractUpdate(updateInfo);
+                Environment.Exit(1);
             });
         }
 
