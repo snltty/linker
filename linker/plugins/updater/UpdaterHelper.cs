@@ -3,13 +3,15 @@ using MemoryPack;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace linker.plugins.updater
 {
     public sealed class UpdaterHelper
     {
-        private string[] extractExcludeFiles = new string[] { "msquic.dll", "msquic-openssl.dll", "tun2socks", "tun2socks.exe" };
+        private string[] extractExcludeFiles = ["msquic.dll", "msquic-openssl.dll", "tun2socks", "tun2socks.exe"];
+
         public UpdaterHelper()
         {
             ClearFiles();
@@ -70,7 +72,6 @@ namespace linker.plugins.updater
                 updateInfo.Status = UpdateStatus.Downloading;
                 updateInfo.Current = 0;
                 updateInfo.Length = 0;
-
 
                 string system = OperatingSystem.IsWindows() ? "win" : OperatingSystem.IsLinux() ? "linux" : "osx";
                 string arch = RuntimeInformation.ProcessArchitecture.ToString().ToLower();
@@ -169,7 +170,6 @@ namespace linker.plugins.updater
                     }
 
                     entryStream.Dispose();
-
                     fileStream.Flush();
                     fileStream.Dispose();
                 }
@@ -186,6 +186,11 @@ namespace linker.plugins.updater
             }
         }
 
+        /// <summary>
+        /// 提交更新，开始下载和解压
+        /// </summary>
+        /// <param name="updateInfo"></param>
+        /// <param name="version"></param>
         public void Confirm(UpdateInfo updateInfo, string version)
         {
             Task.Run(async () =>
@@ -235,21 +240,19 @@ namespace linker.plugins.updater
         public string DateTime { get; set; }
 
         public string MachineId { get; set; }
-        public UpdateStatus Status { get; set; } = UpdateStatus.None;
-        public long Length { get; set; }
-        public long Current { get; set; }
+
+        private ulong counter = 0;
+        [MemoryPackIgnore, JsonIgnore]
+        public bool Updated => Interlocked.And(ref counter, 0x0) > 0;
 
 
-        private int statusCode = 0;
-        public bool StatusChanged()
-        {
-            int code = (byte)Status ^ Length.GetHashCode() ^ Current.GetHashCode();
+        private UpdateStatus status = UpdateStatus.None;
+        public UpdateStatus Status { get => status; set { status = value; Interlocked.Increment(ref counter); } }
 
-            bool res = statusCode != code;
-            statusCode = code;
-
-            return res;
-        }
+        private long length = 0;
+        public long Length { get => length; set { length = value; Interlocked.Increment(ref counter); } }
+        private long current = 0;
+        public long Current { get => current; set { current = value; Interlocked.Increment(ref counter); } }
     }
 
     public enum UpdateStatus : byte

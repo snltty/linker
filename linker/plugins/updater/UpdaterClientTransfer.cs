@@ -39,7 +39,7 @@ namespace linker.plugins.updater
                 LoadTask();
                 UpdateTask();
             };
-            
+
         }
         public string GetSecretKey()
         {
@@ -96,7 +96,7 @@ namespace linker.plugins.updater
             {
                 while (true)
                 {
-                    if (updateInfo.StatusChanged())
+                    if (updateInfo.Updated)
                     {
                         updateInfo.MachineId = fileConfig.Data.Client.Id;
                         await messengerSender.SendOnly(new MessageRequestWrap
@@ -110,6 +110,7 @@ namespace linker.plugins.updater
                     await Task.Delay(1000);
                 }
             });
+
         }
         private void LoadTask()
         {
@@ -124,5 +125,5 @@ namespace linker.plugins.updater
         }
     }
 
-   
+
 }
