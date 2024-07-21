@@ -113,8 +113,6 @@ namespace linker
                         {
                         }
                     }
-
-
                     await Task.Delay(60 * 1000);
                 }
             });
