@@ -39,7 +39,9 @@ namespace linker.service
                     {
                         if (Process.GetProcessesByName(mainExeName).Any() == false)
                         {
-                            if (File.Exists($"{mainExeName}.exe.temp"))
+                            string filename = Process.GetCurrentProcess().MainModule.FileName;
+                            string dir = Path.GetDirectoryName(filename);
+                            if (File.Exists(Path.Combine(dir, $"{mainExeName}.exe.temp")))
                             {
                                 RestartService();
                             }

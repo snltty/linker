@@ -48,8 +48,8 @@ jobs:
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
-        tag_name: v1.1.2.3
-        release_name: v1.1.2.3.${{ steps.date.outputs.today }}
+        tag_name: v1.1.2.4
+        release_name: v1.1.2.4.${{ steps.date.outputs.today }}
         draft: false
         prerelease: false
         body: |
