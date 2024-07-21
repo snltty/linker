@@ -202,7 +202,7 @@ namespace linker.plugins.tuntap.proxy
         private async ValueTask<ITunnelConnection> ConnectTunnel(uint ip)
         {
             //直接按IP查找
-            if (dic.TryGetValue(ip, out string machineId) == false)
+            if (dic.TryGetValue(ip, out string machineId))
             {
                 return await ConnectTunnel(machineId).ConfigureAwait(false);
             }
