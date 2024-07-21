@@ -98,6 +98,26 @@ namespace linker
                 {
                 }
             };
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    string[] files = Directory.GetFiles("logs").OrderBy(c => c).ToArray();
+                    for (int i = 0; i < files.Length - 30; i++)
+                    {
+                        try
+                        {
+                            File.Delete(files[i]);
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+
+
+                    await Task.Delay(60 * 1000);
+                }
+            });
         }
 
     }
