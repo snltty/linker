@@ -1,7 +1,8 @@
-FROM debian:latest
+FROM debian:bookworm
 
 ENV TZ=Asia/Shanghai DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
 RUN apt update \
+    && apt-get install -y --no-install-recommends net-tools \
     && apt-get install -y --no-install-recommends curl \
     && curl -sSL -O https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb \
     && dpkg -i packages-microsoft-prod.deb \
