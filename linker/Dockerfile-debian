@@ -1,9 +1,10 @@
 FROM debian:bookworm
 
-ENV TZ=Asia/Shanghai DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && echo Asia/Shanghai > /etc/timezone
 RUN apt update \
     && apt-get install -y --no-install-recommends net-tools \
     && apt-get install -y --no-install-recommends curl \
+    && apt-get install -y --no-install-recommends ca-certificates \
     && curl -sSL -O https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb \
     && dpkg -i packages-microsoft-prod.deb \
     && rm packages-microsoft-prod.deb \
