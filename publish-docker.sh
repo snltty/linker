@@ -3,7 +3,7 @@ image="snltty/linker"
 
 
 fs=('linker')
-ps=('alpine')
+ps=('musl')
 rs=('x64' 'arm64')
 
 cd linker.web 
