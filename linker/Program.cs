@@ -103,7 +103,7 @@ namespace linker
                 while (true)
                 {
                     string[] files = Directory.GetFiles("logs").OrderBy(c => c).ToArray();
-                    for (int i = 0; i < files.Length - 30; i++)
+                    for (int i = 0; i < files.Length - 7; i++)
                     {
                         try
                         {
