@@ -12,6 +12,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using linker.plugins.messenger;
 using linker.plugins.client;
+using System.Diagnostics;
 
 namespace linker.plugins.relay.transport
 {
@@ -219,7 +220,8 @@ namespace linker.plugins.relay.transport
 
                 connection = await messengerResolver.BeginReceiveClient(socket);
 
-                long start = Environment.TickCount64;
+                var sw = new Stopwatch();
+                sw.Start();
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = connection,
@@ -227,8 +229,9 @@ namespace linker.plugins.relay.transport
                     Payload = MemoryPackSerializer.Serialize(relayTestInfo),
                     Timeout = 2000
                 }).ConfigureAwait(false);
+                sw.Stop();
 
-                result.Delay = resp.Code == MessageResponeCodes.OK ? (int)(Environment.TickCount64 - start) : -1;
+                result.Delay = resp.Code == MessageResponeCodes.OK ? (int)sw.ElapsedMilliseconds : -1;
                 result.Available = resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
                 return result;
             }
