@@ -16,6 +16,13 @@ namespace linker.plugins.tuntap.vea
 
         public TuntapVeaLinux()
         {
+            try
+            {
+                File.SetUnixFileMode("./plugins/tuntap/tun2socks", UnixFileMode.GroupExecute | UnixFileMode.OtherExecute | UnixFileMode.UserExecute);
+            }
+            catch (Exception)
+            {
+            }
         }
 
         public async Task<bool> Run(int proxyPort, IPAddress ip)

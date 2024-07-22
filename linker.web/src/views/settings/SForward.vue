@@ -13,7 +13,7 @@
 import { getSForwardSecretKey,setSForwardSecretKey } from '@/apis/sforward';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import { computed, inject, onMounted, reactive } from 'vue'
+import { computed, inject, onMounted, reactive, watch } from 'vue'
 import Version from './Version.vue';
 export default {
     label:'服务器穿透',

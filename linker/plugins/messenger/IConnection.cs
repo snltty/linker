@@ -348,7 +348,7 @@ namespace linker.plugins.messenger
                 //ArrayPool<byte>.Shared.Return(buffer);
                 //SourceStream?.Close();
                 //SourceStream?.Dispose();
-                // TargetStream?.Close();
+                //TargetStream?.Close();
                 //TargetStream?.Dispose();
             }
         }
@@ -578,6 +578,7 @@ namespace linker.plugins.messenger
             cancellationTokenSource?.Cancel();
             bufferCache.Clear(true);
 
+           // Console.WriteLine($"{Id}-{Address}-{this.GetHashCode()}-cancel");
         }
         public override void Disponse(int value = 0)
         {

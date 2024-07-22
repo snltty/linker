@@ -77,6 +77,15 @@ namespace linker.config
         /// 开启ssl
         /// </summary>
         public bool SSL { get; set; } = true;
+
+        /// <summary>
+        /// 延迟
+        /// </summary>
+        public int Delay { get; set; }
+        /// <summary>
+        /// 可用
+        /// </summary>
+        public bool Available { get; set; }
     }
 
     public enum RelayType : byte

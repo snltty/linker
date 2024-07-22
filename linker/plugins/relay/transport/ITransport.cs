@@ -33,7 +33,39 @@ namespace linker.plugins.relay.transport
         /// </summary>
         /// <param name="relayInfo"></param>
         /// <returns></returns>
-        public Task<ITunnelConnection> OnBeginAsync(RelayInfo relayInfo);
+        public Task<bool> OnBeginAsync(RelayInfo relayInfo, Action<ITunnelConnection> callback);
+
+        /// <summary>
+        /// 测试一下中继通不通 
+        /// </summary>
+        /// <param name="relayTestInfo"></param>
+        /// <returns>延迟，-1则不通</returns>
+        public Task<RelayTestResultInfo> RelayTestAsync(RelayTestInfo relayTestInfo);
+    }
+
+    /// <summary>
+    /// 中继测试
+    /// </summary>
+    [MemoryPackable]
+    public sealed partial class RelayTestInfo
+    {
+        public string MachineId { get; set; }
+        public string SecretKey { get; set; }
+
+        [MemoryPackAllowSerialize]
+        public IPEndPoint Server { get; set; }
+    }
+
+    public struct RelayTestResultInfo
+    {
+        /// <summary>
+        /// 延迟
+        /// </summary>
+        public int Delay { get; set; }
+        /// <summary>
+        /// 可用
+        /// </summary>
+        public bool Available { get; set; }
     }
 
     /// <summary>

@@ -4,8 +4,8 @@ using linker.plugins.signin.messenger;
 using linker.libs;
 using MemoryPack;
 using System.Collections.Concurrent;
-using linker.plugins.server;
 using linker.plugins.messenger;
+using System.Text.Json.Serialization;
 
 namespace linker.plugins.relay.messenger
 {
@@ -55,6 +55,85 @@ namespace linker.plugins.relay.messenger
         }
 
         /// <summary>
+        /// 测试一下中继通不通
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)RelayMessengerIds.RelayTest)]
+        public void RelayTest(IConnection connection)
+        {
+            RelayTestInfo info = MemoryPackSerializer.Deserialize<RelayTestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (info.SecretKey != config.Data.Server.Relay.SecretKey)
+            {
+                connection.Write(Helper.FalseArray);
+                return;
+            }
+            connection.Write(Helper.TrueArray);
+        }
+
+
+        /// <summary>
+        /// 请求中继
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)RelayMessengerIds.RelayAsk)]
+        public void RelayAsk(IConnection connection)
+        {
+            RelayInfo info = MemoryPackSerializer.Deserialize<RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (info.SecretKey != config.Data.Server.Relay.SecretKey)
+            {
+                connection.Write(ulong.MinValue);
+                return;
+            }
+
+            info.FlowingId = Interlocked.Increment(ref flowingId);
+            _ = WaitConfirm(connection, info);
+
+            connection.Write(info.FlowingId);
+        }
+        private async Task WaitConfirm(IConnection connection, RelayInfo info)
+        {
+            try
+            {
+                TcsWrap tcsWrap = new TcsWrap { Connection = connection, Tcs = new TaskCompletionSource<IConnection>() };
+                dic.TryAdd(info.FlowingId, tcsWrap);
+                IConnection targetConnection = await tcsWrap.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(3000)).ConfigureAwait(false);
+                _ = Relay(connection, targetConnection, info.SecretKey);
+            }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                dic.TryRemove(info.FlowingId, out _);
+            }
+        }
+
+        /// <summary>
+        /// 回复，确认中继
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)RelayMessengerIds.RelayConfirm)]
+        public void RelayConfirm(IConnection connection)
+        {
+            RelayInfo info = MemoryPackSerializer.Deserialize<RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (info.SecretKey != config.Data.Server.Relay.SecretKey)
+            {
+                connection.Write(Helper.FalseArray);
+                return;
+            }
+
+            if (dic.TryRemove(info.FlowingId, out TcsWrap tcsWrap))
+            {
+                tcsWrap.Tcs.SetResult(connection);
+                connection.Write(Helper.TrueArray);
+            }
+            else
+            {
+                connection.Write(Helper.FalseArray);
+            }
+        }
+
+        /// <summary>
         /// 收到中继请求
         /// </summary>
         /// <param name="connection"></param>
@@ -63,80 +142,46 @@ namespace linker.plugins.relay.messenger
         public async Task RelayForward(IConnection connection)
         {
             RelayInfo info = MemoryPackSerializer.Deserialize<RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (info.FlowingId == 0)
+            if (signCaching.TryGet(info.FromMachineId, out SignCacheInfo cacheFrom) == false || signCaching.TryGet(info.RemoteMachineId, out SignCacheInfo cacheTo) == false)
             {
-                if (info.SecretKey != config.Data.Server.Relay.SecretKey)
-                {
-                    connection.Write(Helper.FalseArray);
-                    return;
-                }
-                if (signCaching.TryGet(info.FromMachineId, out SignCacheInfo cacheFrom) == false || signCaching.TryGet(info.RemoteMachineId, out SignCacheInfo cacheTo) == false)
-                {
-                    connection.Write(Helper.FalseArray);
-                    return;
-                }
-                if (cacheFrom.GroupId != cacheTo.GroupId)
-                {
-                    connection.Write(Helper.FalseArray);
-                    return;
-                }
-
-                info.FlowingId = Interlocked.Increment(ref flowingId);
-                info.RemoteMachineId = info.FromMachineId;
-                info.FromMachineId = info.RemoteMachineId;
-                info.RemoteMachineName = cacheFrom.MachineName;
-                info.FromMachineName = cacheTo.MachineName;
-
-                TcsWrap tcsWrap = new TcsWrap { Connection = connection, Tcs = new TaskCompletionSource<IConnection>() };
-                dic.TryAdd(info.FlowingId, tcsWrap);
-
-                try
-                {
-                    bool res = await messengerSender.SendOnly(new MessageRequestWrap
-                    {
-                        Connection = cacheTo.Connection,
-                        MessengerId = (ushort)RelayMessengerIds.Relay,
-                        Payload = MemoryPackSerializer.Serialize(info)
-                    }).ConfigureAwait(false);
-                    if (res == false)
-                    {
-                        connection.Write(Helper.FalseArray);
-                        return;
-                    }
-
-                    IConnection targetConnection = await tcsWrap.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(3000)).ConfigureAwait(false);
-
-                    _ = Relay(connection, targetConnection, info.SecretKey);
-
-                    connection.Write(Helper.TrueArray);
-                }
-                catch (Exception)
-                {
-                    connection.Write(Helper.FalseArray);
-                }
-                finally
-                {
-                    dic.TryRemove(info.FlowingId, out _);
-                }
-            }
-            else
-            {
-                if (dic.TryRemove(info.FlowingId, out TcsWrap tcsWrap))
-                {
-                    tcsWrap.Tcs.SetResult(connection);
-                    connection.Write(Helper.TrueArray);
-                }
-                else
-                {
-                    connection.Write(Helper.FalseArray);
-                }
+                connection.Write(Helper.FalseArray);
                 return;
+            }
+            if (cacheFrom.GroupId != cacheTo.GroupId)
+            {
+                connection.Write(Helper.FalseArray);
+                return;
+            }
+            info.RemoteMachineId = cacheFrom.MachineId;
+            info.FromMachineId = cacheTo.MachineId;
+            info.RemoteMachineName = cacheFrom.MachineName;
+            info.FromMachineName = cacheTo.MachineName;
+
+            try
+            {
+                MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = cacheTo.Connection,
+                    MessengerId = (ushort)RelayMessengerIds.Relay,
+                    Payload = MemoryPackSerializer.Serialize(info)
+                }).ConfigureAwait(false);
+                if (resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray))
+                {
+                    connection.Write(Helper.TrueArray);
+                    return;
+                }
+                connection.Write(Helper.FalseArray);
+            }
+            catch (Exception)
+            {
+                connection.Write(Helper.FalseArray);
             }
         }
 
         private async Task Relay(IConnection source, IConnection target, string secretKey)
         {
-            await Task.Delay(100).ConfigureAwait(false);
+            source.Cancel();
+            target.Cancel();
 
             source.TargetStream = target.SourceStream;
             source.TargetSocket = target.SourceSocket;
@@ -147,17 +192,14 @@ namespace linker.plugins.relay.messenger
             target.TargetNetworkStream = source.SourceNetworkStream;
             target.RelayLimit = 0;
 
-            source.Cancel();
-            target.Cancel();
-
-            await Task.Delay(200).ConfigureAwait(false);
-
+            //await Task.Delay(100).ConfigureAwait(false);
             await Task.WhenAll(source.RelayAsync(config.Data.Server.Relay.BufferSize), target.RelayAsync(config.Data.Server.Relay.BufferSize)).ConfigureAwait(false);
         }
-
         public sealed class TcsWrap
         {
+            [JsonIgnore]
             public TaskCompletionSource<IConnection> Tcs { get; set; }
+            [JsonIgnore]
             public IConnection Connection { get; set; }
         }
     }

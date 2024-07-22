@@ -20,6 +20,7 @@ namespace linker.plugins.relay
     {
         private List<ITransport> transports;
 
+        private readonly FileConfig fileConfig;
         private readonly RunningConfig running;
         private readonly ServiceProvider serviceProvider;
         private readonly RunningConfigTransfer runningConfigTransfer;
@@ -28,12 +29,14 @@ namespace linker.plugins.relay
         private ConcurrentDictionary<string, bool> connectingDic = new ConcurrentDictionary<string, bool>();
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
-        public RelayTransfer(ClientSignInState clientSignInState,RunningConfig running, ServiceProvider serviceProvider, RunningConfigTransfer runningConfigTransfer)
+        public RelayTransfer(FileConfig fileConfig, ClientSignInState clientSignInState, RunningConfig running, ServiceProvider serviceProvider, RunningConfigTransfer runningConfigTransfer)
         {
+            this.fileConfig = fileConfig;
             this.running = running;
             this.serviceProvider = serviceProvider;
             this.runningConfigTransfer = runningConfigTransfer;
             InitConfig();
+            TestTask();
 
             runningConfigTransfer.Setter(configKey, SetServers);
             runningConfigTransfer.Getter(configKey, () => MemoryPackSerializer.Serialize(running.Data.Relay.Servers));
@@ -87,11 +90,13 @@ namespace linker.plugins.relay
             running.Data.Update();
             runningConfigTransfer.IncrementVersion(configKey);
             SyncServers();
+            _ = TaskRelay();
         }
         private void SetServers(Memory<byte> data)
         {
             running.Data.Relay.Servers = MemoryPackSerializer.Deserialize<RelayServerInfo[]>(data.Span);
             running.Data.Update();
+            _ = TaskRelay();
         }
         private void SyncServers()
         {
@@ -206,19 +211,21 @@ namespace linker.plugins.relay
                 ITransport _transports = transports.FirstOrDefault(c => c.Name == relayInfo.TransportName);
                 if (_transports != null)
                 {
-                    ITunnelConnection connection = await _transports.OnBeginAsync(relayInfo).ConfigureAwait(false);
-                    if (connection != null)
+                    await _transports.OnBeginAsync(relayInfo, (ITunnelConnection connection) =>
                     {
-                        LoggerHelper.Instance.Debug($"relay from {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
-                        ConnectedCallback(relayInfo, connection);
-                        return true;
-                    }
+                        if (connection != null)
+                        {
+                            LoggerHelper.Instance.Debug($"relay from {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
+                            ConnectedCallback(relayInfo, connection);
+                        }
+                    }).ConfigureAwait(false);
+                    return true;
                 }
 
             }
             catch (Exception ex)
             {
-                if(LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
@@ -250,6 +257,72 @@ namespace linker.plugins.relay
                     callabck(connection);
                 }
             }
+        }
+
+
+        private async Task TaskRelay()
+        {
+            try
+            {
+                var tasks = running.Data.Relay.Servers.Select(c =>
+                {
+                    try
+                    {
+                        ITransport transport = transports.FirstOrDefault(d => d.Type == c.RelayType);
+                        if (transport == null) return null;
+
+                        IPEndPoint server = NetworkHelper.GetEndPoint(c.Host, 3478);
+
+                        return new TestInfo
+                        {
+                            Server = c,
+                            Task = transport.RelayTestAsync(new RelayTestInfo
+                            {
+                                MachineId = fileConfig.Data.Client.Id,
+                                SecretKey = c.SecretKey,
+                                Server = server,
+                            })
+                        };
+                    }
+                    catch (Exception)
+                    {
+                    }
+                    return null;
+                });
+
+                try
+                {
+                    await Task.WhenAll(tasks.Where(c => c != null).Select(c => c.Task)).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                    foreach (var item in tasks.Where(c => c != null))
+                    {
+                        item.Server.Delay = item.Task.Result.Delay;
+                        item.Server.Available = item.Task.Result.Available;
+                    }
+                }
+                catch (Exception)
+                {
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+        private void TestTask()
+        {
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    await TaskRelay();
+                    await Task.Delay(5000);
+                }
+
+            });
+        }
+        sealed class TestInfo
+        {
+            public RelayServerInfo Server { get; set; }
+            public Task<RelayTestResultInfo> Task { get; set; }
         }
     }
 }

@@ -197,6 +197,17 @@ namespace linker.plugins.updater
             {
                 await DownloadUpdate(updateInfo, version);
                 await ExtractUpdate(updateInfo);
+
+                if(OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
+                {
+                    try
+                    {
+                        File.SetUnixFileMode("./linker", UnixFileMode.GroupExecute | UnixFileMode.OtherExecute | UnixFileMode.UserExecute);
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
                 Environment.Exit(1);
             });
         }

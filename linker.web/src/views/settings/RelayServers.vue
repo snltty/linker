@@ -25,7 +25,8 @@
                     <el-input autofocus size="small" v-model="scope.row.Host"  @blur="handleEditBlur(scope.row, 'Host')"></el-input>
                 </template>
                 <template v-else>
-                    {{ scope.row.Host }}
+                    <span :class="{red:!scope.row.Available,green:scope.row.Available}">{{ scope.row.Host }}</span>
+                    <span :class="{red:scope.row.Delay==-1,green:scope.row.Delay<500 &&scope.row.Delay>=0 ,yellow:scope.row.Delay>=500}"> - {{scope.row.Delay}}ms</span>
                 </template>
             </template>
         </el-table-column>
@@ -81,7 +82,7 @@
 import { setRelayServers,getRelayTypes } from '@/apis/relay';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import { computed, inject, onMounted, reactive } from 'vue'
+import { computed, inject, onMounted, reactive, watch } from 'vue'
 import Version from './Version.vue';
 import { Delete,Plus,Top,Bottom } from '@element-plus/icons-vue';
 export default {
@@ -92,10 +93,15 @@ export default {
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({
-            list:((globalData.value.config.Running.Relay || {Servers:[]}).Servers || []).sort((a,b)=>a.Disabled - b.Disabled),
+            list:globalData.value.config.Running.Relay.Servers.sort((a,b)=>a.Disabled - b.Disabled),
             types:[],
             height: computed(()=>globalData.value.height-127)
         });
+        watch(()=>globalData.value.config.Running.Relay.Servers,()=>{
+            if(state.list.filter(c=>c['__editing']).length == 0){
+                state.list = globalData.value.config.Running.Relay.Servers.sort((a,b)=>a.Disabled - b.Disabled);
+            }
+        })
 
         const _getRelayTypes = ()=>{
             getRelayTypes().then((res)=>{
@@ -113,10 +119,12 @@ export default {
                 c[`HostEditing`] = false;
                 c[`SecretKeyEditing`] = false;
             })
+            row[`__editing`] = true;
             row[`${p}Editing`] = true;
         }
         const handleEditBlur = (row, p) => {
             row[`${p}Editing`] = false;
+            row[`__editing`] = false;
             handleSave();
         }
 
@@ -161,5 +169,5 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
-    
+.green,.red{font-weight:bold;}
 </style>

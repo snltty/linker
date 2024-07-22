@@ -78,7 +78,7 @@
 import { setTunnelServers,getTunnelTypes } from '@/apis/tunnel';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import { computed, onMounted, reactive } from 'vue'
+import { computed, onMounted, reactive, watch } from 'vue'
 import Version from './Version.vue';
 import { Delete,Plus,Top,Bottom } from '@element-plus/icons-vue';
 export default {
@@ -88,12 +88,17 @@ export default {
     components:{Version,Delete,Plus,Top,Bottom},
     setup(props) {
         const globalData = injectGlobalData();
-        const list = ((globalData.value.config.Running.Tunnel || {Servers:[]}).Servers || []).sort((a,b)=>a.Disabled - b.Disabled);
+        const list = globalData.value.config.Running.Tunnel.Servers.sort((a,b)=>a.Disabled - b.Disabled);
         const state = reactive({
             list:list,
             types:[],
             height: computed(()=>globalData.value.height-127)
         });
+        watch(()=>globalData.value.config.Running.Tunnel.Servers,()=>{
+            if(state.list.filter(c=>c['__editing']).length == 0){
+                state.list = globalData.value.config.Running.Tunnel.Servers.sort((a,b)=>a.Disabled - b.Disabled);
+            }
+        })
 
         const _getTunnelTypes = ()=>{
             getTunnelTypes().then((res)=>{
@@ -122,10 +127,12 @@ export default {
                 c[`ProtocolTypeEditing`] = false;
             })
             row[`${p}Editing`] = true;
+            row[`__editing`] = true;
         }
         const handleEditBlur = (row, p) => {
             initProtocols([row])
             row[`${p}Editing`] = false;
+            row[`__editing`] = false;
             handleSave();
         }
 

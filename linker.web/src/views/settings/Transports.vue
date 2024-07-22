@@ -44,7 +44,7 @@
 import { getTunnelTransports,setTunnelTransports } from '@/apis/tunnel';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import { computed, inject, onMounted, reactive } from 'vue'
+import { computed, inject, onMounted, reactive, watch } from 'vue'
 import Version from './Version.vue';
 import { Delete,Plus,Top,Bottom } from '@element-plus/icons-vue';
 export default {
@@ -55,16 +55,14 @@ export default {
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({
-            list:[],
+            list:globalData.value.config.Running.Tunnel.Transports.sort((a,b)=>a.Disabled - b.Disabled),
             height: computed(()=>globalData.value.height-127),
             bufferSize:globalData.value.bufferSize
         });
+        watch(()=>globalData.value.config.Running.Tunnel.Transports,()=>{
+            state.list = globalData.value.config.Running.Tunnel.Transports;
+        });
 
-        const _getTunnelTransports = ()=>{
-            getTunnelTransports().then((res)=>{
-                state.list = res;
-            });
-        }
         const handleSort = (index,oper)=>{
             const current = state.list[index];
             const outher = state.list[index+oper];
@@ -84,15 +82,9 @@ export default {
             });
         }
 
-
-        onMounted(()=>{
-            _getTunnelTransports();
-        });
-
         return {state,handleSort,handleSave}
     }
 }
 </script>
 <style lang="stylus" scoped>
-    
 </style>

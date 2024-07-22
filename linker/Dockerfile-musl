@@ -16,6 +16,8 @@ EXPOSE 1804/udp
 WORKDIR /app
 COPY . .
 
+RUN chmod +x ./linker \
+    && chmod +x ./plugins/tuntap/tun2socks
 
 
 ENTRYPOINT ["./linker"]

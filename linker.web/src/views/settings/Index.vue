@@ -15,8 +15,11 @@ import { injectGlobalData } from '@/provide';
 export default {
     components:{},
     setup(props) {
+
+        const excludes = ['./Index.vue','./Version.vue']
+
         const files = require.context('./', true, /.+\.vue/);
-        const settingComponents = files.keys().filter(c=>c != './Index.vue' && c != './Version.vue').map(c => files(c).default).sort((a,b)=>a.order-b.order);
+        const settingComponents = files.keys().filter(c=>excludes.includes(c)==false).map(c => files(c).default).sort((a,b)=>a.order-b.order);
         const globalData = injectGlobalData();
         const state = reactive({
             tab:settingComponents[0].name,

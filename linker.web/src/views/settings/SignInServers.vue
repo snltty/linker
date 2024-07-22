@@ -50,7 +50,7 @@
 import { setSignInServers } from '@/apis/signin';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import { computed, inject, reactive } from 'vue'
+import { computed, inject, reactive, watch } from 'vue'
 import Version from './Version.vue';
 import { Delete,Plus,Select } from '@element-plus/icons-vue';
 export default {
@@ -65,6 +65,11 @@ export default {
             server:computed(()=>globalData.value.config.Client.Server),
             height: computed(()=>globalData.value.height-127),
         });
+        watch(()=>globalData.value.config.Running.Client.Servers,()=>{
+            if(state.list.filter(c=>c['__editing']).length == 0){
+                state.list = globalData.value.config.Running.Client.Servers;
+            }
+        })
 
         const handleCellClick = (row, column) => {
             handleEdit(row, column.property);
@@ -75,9 +80,11 @@ export default {
                 c[`HostEditing`] = false;
             })
             row[`${p}Editing`] = true;
+            row[`__editing`] = true;
         }
         const handleEditBlur = (row, p) => {
             row[`${p}Editing`] = false;
+            row[`__editing`] = false;
             handleSave();
         }
 
