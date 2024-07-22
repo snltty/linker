@@ -3,7 +3,7 @@ image="snltty/linker"
 
 
 fs=('linker')
-ps=('musl')
+ps=('musl' 'debian')
 rs=('x64' 'arm64')
 
 cd linker.web 
@@ -17,7 +17,12 @@ do
 	do
 		for r in ${rs[@]} 
 		do
-			dotnet publish ./${f} -c release -f net8.0 -o ./public/publish/docker/linux-${p}-${r}/${f}  -r linux-${p}-${r}  --self-contained true -p:TieredPGO=true  -p:DebugType=none -p:DebugSymbols=false  -p:PublishSingleFile=true -p:PublishTrimmed=true -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true  -p:TrimMode=partial
+            rr=linux-${p}-${r}
+            if [ $p = "debian" ]
+            then
+                rr=linux-${r}
+            fi
+			dotnet publish ./${f} -c release -f net8.0 -o ./public/publish/docker/linux-${p}-${r}/${f}  -r ${rr}  --self-contained true -p:TieredPGO=true  -p:DebugType=none -p:DebugSymbols=false  -p:PublishSingleFile=true -p:PublishTrimmed=true -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true  -p:TrimMode=partial
 			cp -rf linker/Dockerfile-${p} public/publish/docker/linux-${p}-${r}/${f}/Dockerfile-${p}
 			cp -rf public/extends/any/web public/publish/docker/linux-${p}-${r}/${f}/web
             mkdir -p public/publish/docker/linux-${p}-${r}/${f}/plugins/tuntap

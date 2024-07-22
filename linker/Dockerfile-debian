@@ -1,0 +1,28 @@
+FROM debian:latest
+
+ENV TZ=Asia/Shanghai DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+RUN apt update \
+    && apt-get install -y --no-install-recommends curl \
+    && curl -sSL -O https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb \
+    && dpkg -i packages-microsoft-prod.deb \
+    && rm packages-microsoft-prod.deb \
+    && apt-get update \
+    && apt-get install -y libmsquic \
+    && apt-get purge -y --auto-remove wget && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+
+EXPOSE 1802/tcp
+EXPOSE 1802/udp
+EXPOSE 1803/tcp
+EXPOSE 1803/udp
+EXPOSE 1804/tcp
+EXPOSE 1804/udp
+
+WORKDIR /app
+COPY . .
+
+RUN chmod +x ./linker \
+    && chmod +x ./plugins/tuntap/tun2socks
+
+
+ENTRYPOINT ["./linker"]
