@@ -140,17 +140,31 @@ namespace linker.libs
         private static byte[] ipv6LocalBytes = new byte[] { 254, 128, 0, 0, 0, 0, 0, 0 };
         public static IPAddress[] GetIPV6()
         {
-            return Dns.GetHostAddresses(Dns.GetHostName())
+            try
+            {
+                return Dns.GetHostAddresses(Dns.GetHostName())
                  .Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
                  .Where(c => c.GetAddressBytes().AsSpan(0, 8).SequenceEqual(ipv6LocalBytes) == false).Distinct().ToArray();
+            }
+            catch (Exception)
+            {
+            }
+            return Array.Empty<IPAddress>();
         }
         public static IPAddress[] GetIPV4()
         {
-            return Dns.GetHostEntry(Dns.GetHostName()).AddressList
+            try
+            {
+                return Dns.GetHostEntry(Dns.GetHostName()).AddressList
                 .Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                 .Where(c => c.IsIPv4MappedToIPv6 == false)
                 .Where(c => c.Equals(IPAddress.Loopback) == false)
                 .Distinct().ToArray();
+            }
+            catch (Exception)
+            {
+            }
+            return Array.Empty<IPAddress>();
         }
 
         public static byte MaskLength(uint ip)
