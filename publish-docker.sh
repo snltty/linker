@@ -31,7 +31,7 @@ do
 			cp -rf linker/plugins/tuntap/tun2socks-linux-${r} public/publish/docker/linux-${p}-${r}/${f}/plugins/tuntap/tun2socks
             if [ $p = "musl" ]
             then
-                cp -rf linker/libmsquic-${r}.so public/publish/docker/linux-${p}-${r}/${f}/libmsquic.so
+                cp -rf linker/libmsquic-musl-${r}.so public/publish/docker/linux-${p}-${r}/${f}/libmsquic.so
             fi
 		done
 
