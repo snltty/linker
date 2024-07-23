@@ -10,7 +10,6 @@
                 <el-col :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
                     <el-form-item label="日志等级" prop="LoggerType">
                         <el-select v-model="state.form.LoggerType">
-                            <el-option :value="-1" label="all"></el-option>
                             <el-option :value="0" label="debug"></el-option>
                             <el-option :value="1" label="info"></el-option>
                             <el-option :value="2" label="warning"></el-option>

@@ -90,7 +90,7 @@ namespace linker.plugins.updater
         {
             UpdaterConfirmInfo confirm = param.Content.DeJson<UpdaterConfirmInfo>();
 
-            if (confirm.All)
+            if (confirm.MachineId != config.Data.Client.Id)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -98,9 +98,8 @@ namespace linker.plugins.updater
                     MessengerId = (ushort)UpdaterMessengerIds.ConfirmForward,
                     Payload = MemoryPackSerializer.Serialize(confirm)
                 });
-                updaterTransfer.Confirm(confirm.Version);
             }
-            else if (confirm.MachineId == config.Data.Client.Id)
+            if (confirm.MachineId == config.Data.Client.Id || confirm.All)
             {
                 updaterTransfer.Confirm(confirm.Version);
             }
