@@ -1,4 +1,5 @@
-FROM m.daocloud.io/docker.io/library/debian:latest
+FROM debian:latest
+#FROM m.daocloud.io/docker.io/library/debian:latest
 
 RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && echo Asia/Shanghai > /etc/timezone
 RUN apt update \
@@ -23,9 +24,6 @@ EXPOSE 1804/udp
 
 WORKDIR /app
 COPY . .
-
-RUN chmod +x ./linker \
-    && chmod +x ./plugins/tuntap/tun2socks
 
 ENV SNLTTY_LINKER_IS_DOCKER="linker"
 

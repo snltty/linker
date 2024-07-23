@@ -29,6 +29,10 @@ do
             mkdir -p public/publish/docker/linux-${p}-${r}/${f}/configs
             mkdir -p public/publish/docker/linux-${p}-${r}/${f}/logs
 			cp -rf linker/plugins/tuntap/tun2socks-linux-${r} public/publish/docker/linux-${p}-${r}/${f}/plugins/tuntap/tun2socks
+            if [ $p = "musl" ]
+            then
+                cp -rf linker/libmsquic-${r}.so public/publish/docker/linux-${p}-${r}/${f}/libmsquic.so
+            fi
 		done
 
 		cd public/publish/docker/linux-${p}-x64/${f}

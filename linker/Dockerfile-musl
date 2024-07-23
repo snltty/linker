@@ -1,10 +1,12 @@
 FROM alpine:latest
+#FROM m.daocloud.io/docker.io/library/alpine:latest
 
 ENV TZ=Asia/Shanghai DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
 RUN echo "https://mirrors.ustc.edu.cn/alpine/latest-stable/main/" > /etc/apk/repositories \
-    && apk add --no-cache libstdc++ libintl tzdata zeromq bash net-tools iproute2 \
+    && apk add --no-cache libstdc++ libintl tzdata zeromq bash net-tools iproute2 numactl-dev \
     && ln -snf /usr/share/zoneinfo/$clTZ /etc/localtime \
     && echo $TZ > /etc/timezone
+
 
 EXPOSE 1802/tcp
 EXPOSE 1802/udp
@@ -15,9 +17,6 @@ EXPOSE 1804/udp
 
 WORKDIR /app
 COPY . .
-
-RUN chmod +x ./linker \
-    && chmod +x ./plugins/tuntap/tun2socks
 
 RUN mkdir -p /dev/net && mknod /dev/net/tun c 10 200 && chmod 600 /dev/net/tun
 
