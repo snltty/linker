@@ -15,8 +15,8 @@ for %%r in (win-x64,win-arm64) do (
 	dotnet publish ./linker.service -c release -f net8.0 -o public/extends/%%r/linker-%%r/  -r %%r -p:PublishAot=true -p:PublishTrimmed=true  --self-contained true -p:TieredPGO=true  -p:DebugType=none -p:DebugSymbols=false  -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true
 	echo F|xcopy "linker.tray.win\\dist\\*" "public\\extends\\%%r\\linker-%%r\\*"  /s /f /h /y
 	echo F|xcopy "linker\\msquic.dll" "public\\extends\\%%r\\linker-%%r\\msquic.dll"  /s /f /h /y
-	echo F|xcopy "linker\\msquic-openssl3-x64.dll" "public\\extends\\%%r\\linker-%%r\\msquic-openssl.dll"  /s /f /h /y)
-	echo F|xcopy "linker\\plugins\\tuntap\\tun2socks-%%r" "public\\extends\\%%r\\linker-%%r\\plugins\\tuntap\\tun2socks.exe"  /s /f /h /y
+	echo F|xcopy "linker\\msquic-openssl3-x64.dll" "public\\extends\\%%r\\linker-%%r\\msquic-openssl.dll"  /s /f /h /y
+        echo F|xcopy "linker\\plugins\\tuntap\\tun2socks-%%r" "public\\extends\\%%r\\linker-%%r\\plugins\\tuntap\\tun2socks.exe"  /s /f /h /y
 )
 echo F|xcopy "linker\\msquic-arm64.dll" "public\\extends\\win-arm64\\linker-win-arm64\\msquic.dll"  /s /f /h /y
 echo F|xcopy "linker\\msquic-openssl3-arm64.dll" "public\\extends\\win-arm64\\linker-win-arm64\\msquic-openssl.dll"  /s /f /h /y
