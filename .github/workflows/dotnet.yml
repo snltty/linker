@@ -102,6 +102,28 @@ jobs:
         asset_name: linker-linux-arm64.zip
         asset_content_type: application/zip
 
+    - name: upload linux musl x64
+      id: upload-linux-musl-x64
+      uses: actions/upload-release-asset@master
+      env:
+          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./public/publish-zip/linker-linux-musl-x64.zip
+        asset_name: linker-linux-musl-x64.zip
+        asset_content_type: application/zip
+
+    - name: upload linux musl arm64
+      id: upload-linux-musl-arm64
+      uses: actions/upload-release-asset@master
+      env:
+          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./public/publish-zip/linker-linux-musl-arm64.zip
+        asset_name: linker-linux-musl-arm64.zip
+        asset_content_type: application/zip
+
     - name: upload osx x64
       id: upload-osx-x64
       uses: actions/upload-release-asset@master
