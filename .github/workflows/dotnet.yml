@@ -48,17 +48,15 @@ jobs:
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
-        tag_name: v1.1.2.4
-        release_name: v1.1.2.4.${{ steps.date.outputs.today }}
+        tag_name: v1.1.2.5
+        release_name: v1.1.2.5.${{ steps.date.outputs.today }}
         draft: false
         prerelease: false
         body: |
-          1. 修复虚拟网卡添加路由错误
-          2. 自动更新，客户端和服务端
-          3. 更多的消息提醒，需要重启时提醒
-          4. 脑抽
-          5. 更新完自动重启
-          6. 请更新服务端
+          1. 脑抽
+          2. 更新错误
+          3. 中继错误
+          4. 请更新服务端
 
     - name: upload win x64
       id: upload-win-x64
