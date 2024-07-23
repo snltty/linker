@@ -3,6 +3,7 @@ using MemoryPack;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
@@ -73,9 +74,15 @@ namespace linker.plugins.updater
                 updateInfo.Current = 0;
                 updateInfo.Length = 0;
 
-                string system = OperatingSystem.IsWindows() ? "win" : OperatingSystem.IsLinux() ? "linux" : "osx";
-                string arch = RuntimeInformation.ProcessArchitecture.ToString().ToLower();
-                string url = $"http://gh.snltty.com:1808/https://github.com/snltty/linker/releases/download/{version}/linker-{system}-{arch}.zip";
+                StringBuilder sb = new StringBuilder("linker-");
+                sb.Append($"{(OperatingSystem.IsWindows() ? "win" : OperatingSystem.IsLinux() ? "linux" : "osx")}-");
+                if (RuntimeInformation.OSDescription.Contains("Alpine"))
+                {
+                    sb.Append($"musl-");
+                }
+                sb.Append(RuntimeInformation.ProcessArchitecture.ToString().ToLower());
+
+                string url = $"http://gh.snltty.com:1808/https://github.com/snltty/linker/releases/download/{version}/{sb.ToString()}.zip";
 
                 using HttpClient httpClient = new HttpClient();
                 using HttpResponseMessage response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
@@ -198,7 +205,7 @@ namespace linker.plugins.updater
                 await DownloadUpdate(updateInfo, version);
                 await ExtractUpdate(updateInfo);
 
-                if(OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
+                if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
                 {
                     try
                     {

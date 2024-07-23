@@ -21,5 +21,6 @@ RUN chmod +x ./linker \
 
 RUN mkdir -p /dev/net && mknod /dev/net/tun c 10 200 && chmod 600 /dev/net/tun
 
+ENV SNLTTY_LINKER_IS_DOCKER="linker"
 
 ENTRYPOINT ["./linker"]
