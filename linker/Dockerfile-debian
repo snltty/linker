@@ -27,5 +27,6 @@ COPY . .
 RUN chmod +x ./linker \
     && chmod +x ./plugins/tuntap/tun2socks
 
+ENV LINKER_IS_DOCKER="linker"
 
 ENTRYPOINT ["./linker"]

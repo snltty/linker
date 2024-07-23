@@ -6,6 +6,7 @@ using MemoryPack;
 using linker.plugins.client;
 using linker.plugins.capi;
 using linker.plugins.messenger;
+using linker.client.config;
 
 namespace linker.plugins.relay
 {
@@ -42,7 +43,7 @@ namespace linker.plugins.relay
         /// <returns></returns>
         public bool SetServers(ApiControllerParamsInfo param)
         {
-            RelayServerInfo[] info = param.Content.DeJson<RelayServerInfo[]>();
+            RelayRunningSyncInfo info = param.Content.DeJson<RelayRunningSyncInfo>();
             relayTransfer.OnServers(info);
             return true;
         }

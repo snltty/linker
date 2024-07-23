@@ -21,6 +21,19 @@ namespace linker.client.config
         /// 中继服务器列表
         /// </summary>
         public RelayServerInfo[] Servers { get; set; } = Array.Empty<RelayServerInfo>();
+
+        public bool ByRelay { get; set; }
+    }
+
+    [MemoryPackable]
+    public sealed partial class RelayRunningSyncInfo
+    {
+        /// <summary>
+        /// 中继服务器列表
+        /// </summary>
+        public RelayServerInfo[] Servers { get; set; } = Array.Empty<RelayServerInfo>();
+
+        public bool ByRelay { get; set; }
     }
 }
 

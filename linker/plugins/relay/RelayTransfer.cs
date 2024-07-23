@@ -84,9 +84,10 @@ namespace linker.plugins.relay
         /// 收到中继协议列表
         /// </summary>
         /// <param name="servers"></param>
-        public void OnServers(RelayServerInfo[] servers)
+        public void OnServers(RelayRunningSyncInfo info)
         {
-            running.Data.Relay.Servers = servers;
+            running.Data.Relay.Servers = info.Servers;
+            running.Data.Relay.ByRelay = info.ByRelay;
             running.Data.Update();
             runningConfigTransfer.IncrementVersion(configKey);
             SyncServers();
@@ -94,13 +95,19 @@ namespace linker.plugins.relay
         }
         private void SetServers(Memory<byte> data)
         {
-            running.Data.Relay.Servers = MemoryPackSerializer.Deserialize<RelayServerInfo[]>(data.Span);
+            RelayRunningSyncInfo relayRunningSyncInfo = MemoryPackSerializer.Deserialize<RelayRunningSyncInfo>(data.Span);
+            running.Data.Relay.Servers = relayRunningSyncInfo.Servers;
+            running.Data.Relay.ByRelay = relayRunningSyncInfo.ByRelay;
             running.Data.Update();
             _ = TaskRelay();
         }
         private void SyncServers()
         {
-            runningConfigTransfer.Sync(configKey, MemoryPackSerializer.Serialize(running.Data.Relay.Servers));
+            runningConfigTransfer.Sync(configKey, MemoryPackSerializer.Serialize(new RelayRunningSyncInfo
+            {
+                Servers = running.Data.Relay.Servers,
+                ByRelay = running.Data.Relay.ByRelay,
+            }));
         }
 
 
@@ -145,10 +152,13 @@ namespace linker.plugins.relay
             }
             try
             {
-                IEnumerable<ITransport> _transports = transports.OrderBy(c => c.Type);
-                foreach (RelayServerInfo item in running.Data.Relay.Servers.Where(c => c.Disabled == false && string.IsNullOrWhiteSpace(c.Host) == false))
+                var servers = running.Data.Relay.Servers
+                    .Where(c => c.Disabled == false)
+                    .Where(c => string.IsNullOrWhiteSpace(c.Host) == false)
+                    .Where(c => c.Delay >= 0).OrderBy(c => c.Delay);
+                foreach (RelayServerInfo item in servers)
                 {
-                    ITransport transport = _transports.FirstOrDefault(c => c.Type == item.RelayType);
+                    ITransport transport = transports.FirstOrDefault(c => c.Type == item.RelayType);
                     if (transport == null)
                     {
                         continue;
@@ -217,6 +227,10 @@ namespace linker.plugins.relay
                         {
                             LoggerHelper.Instance.Debug($"relay from {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
                             ConnectedCallback(relayInfo, connection);
+                        }
+                        else
+                        {
+                            LoggerHelper.Instance.Error($"relay from {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} error,{relayInfo.ToJson()}");
                         }
                     }).ConfigureAwait(false);
                     return true;

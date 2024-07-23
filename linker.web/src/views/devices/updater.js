@@ -14,7 +14,6 @@ export const provideUpdater = () => {
     const _getUpdater = () => {
         if (globalData.value.api.connected) {
             getUpdater().then((res) => {
-                console.log(res);
                 const self = Object.values(res).filter(c => !!c.Version)[0];
                 if (self) {
                     updater.value.current.DateTime = self.DateTime;

@@ -79,7 +79,7 @@ namespace linker.plugins.updater.messenger
         public void ConfirmServer(IConnection connection)
         {
             UpdaterConfirmServerInfo confirm = MemoryPackSerializer.Deserialize<UpdaterConfirmServerInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if(fileConfig.Data.Server.Updater.SecretKey == confirm.SecretKey)
+            if (fileConfig.Data.Server.Updater.SecretKey == confirm.SecretKey)
             {
                 updaterServerTransfer.Confirm(confirm.Version);
             }
@@ -108,7 +108,26 @@ namespace linker.plugins.updater.messenger
         public async Task ConfirmForward(IConnection connection)
         {
             UpdaterConfirmInfo confirm = MemoryPackSerializer.Deserialize<UpdaterConfirmInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) && signCaching.TryGet(confirm.MachineId, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
+            {
+                return;
+            }
+
+            if (confirm.All)
+            {
+                var tasks = signCaching.Get(cache.GroupId).Where(c => c.MachineId != connection.Id).Select(c =>
+                {
+                    return messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = c.Connection,
+                        MessengerId = (ushort)UpdaterMessengerIds.Confirm,
+                        Payload = connection.ReceiveRequestWrap.Payload
+                    });
+                });
+
+                await Task.WhenAll(tasks);
+            }
+            else if (signCaching.TryGet(confirm.MachineId, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {

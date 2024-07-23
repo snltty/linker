@@ -2,10 +2,9 @@ FROM alpine:latest
 
 ENV TZ=Asia/Shanghai DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
 RUN echo "https://mirrors.ustc.edu.cn/alpine/latest-stable/main/" > /etc/apk/repositories \
-    && apk add --no-cache libstdc++ libintl tzdata zeromq bash \
+    && apk add --no-cache libstdc++ libintl tzdata zeromq bash net-tools iproute2 \
     && ln -snf /usr/share/zoneinfo/$clTZ /etc/localtime \
     && echo $TZ > /etc/timezone
-
 
 EXPOSE 1802/tcp
 EXPOSE 1802/udp
@@ -19,6 +18,8 @@ COPY . .
 
 RUN chmod +x ./linker \
     && chmod +x ./plugins/tuntap/tun2socks
+
+RUN mkdir -p /dev/net && mknod /dev/net/tun c 10 200 && chmod 600 /dev/net/tun
 
 
 ENTRYPOINT ["./linker"]

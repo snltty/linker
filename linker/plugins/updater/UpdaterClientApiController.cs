@@ -43,7 +43,7 @@ namespace linker.plugins.updater
         public UpdateInfo GetCurrent(ApiControllerParamsInfo param)
         {
             var updaters = updaterTransfer.Get();
-            if(updaters.TryGetValue(config.Data.Client.Id,out UpdateInfo info))
+            if (updaters.TryGetValue(config.Data.Client.Id, out UpdateInfo info))
             {
                 return info;
             }
@@ -90,11 +90,7 @@ namespace linker.plugins.updater
         {
             UpdaterConfirmInfo confirm = param.Content.DeJson<UpdaterConfirmInfo>();
 
-            if (string.IsNullOrWhiteSpace(confirm.MachineId) || confirm.MachineId == config.Data.Client.Id)
-            {
-                updaterTransfer.Confirm(confirm.Version);
-            }
-            else
+            if (confirm.All)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -102,6 +98,11 @@ namespace linker.plugins.updater
                     MessengerId = (ushort)UpdaterMessengerIds.ConfirmForward,
                     Payload = MemoryPackSerializer.Serialize(confirm)
                 });
+                updaterTransfer.Confirm(confirm.Version);
+            }
+            else if (confirm.MachineId == config.Data.Client.Id)
+            {
+                updaterTransfer.Confirm(confirm.Version);
             }
         }
         public async Task Exit(ApiControllerParamsInfo param)

@@ -1,5 +1,12 @@
 <template>
-    <Version ckey="relayServers"/>
+    <Version ckey="relayServers">
+        <div>
+            <el-radio-group v-model="state.byRelay" size="small" style="vertical-align:bottom" @change="handleByRelayChange">
+                <el-radio-button label="延迟优先" :value="true" />
+                <el-radio-button label="顺序优先" :value="false" />
+            </el-radio-group>
+        </div>
+    </Version>
     <el-table :data="state.list" border size="small" width="100%" :height="`${state.height}px`" @cell-dblclick="handleCellClick">
         <el-table-column prop="Name" label="名称" width="100">
             <template #default="scope">
@@ -94,12 +101,14 @@ export default {
         const globalData = injectGlobalData();
         const state = reactive({
             list:globalData.value.config.Running.Relay.Servers.sort((a,b)=>a.Disabled - b.Disabled),
+            byRelay:globalData.value.config.Running.Relay.ByRelay,
             types:[],
             height: computed(()=>globalData.value.height-127)
         });
         watch(()=>globalData.value.config.Running.Relay.Servers,()=>{
             if(state.list.filter(c=>c['__editing']).length == 0){
                 state.list = globalData.value.config.Running.Relay.Servers.sort((a,b)=>a.Disabled - b.Disabled);
+                state.byRelay = globalData.value.config.Running.Relay.ByRelay;
             }
         })
 
@@ -151,9 +160,15 @@ export default {
             handleSave(state.list);
         }
         
+        const handleByRelayChange = ()=>{
+            handleSave();
+        }
         const handleSave = ()=>{
             state.list = state.list.slice().sort((a,b)=>a.Disabled - b.Disabled);
-            setRelayServers(state.list).then(()=>{
+            setRelayServers({
+                servers:state.list,
+                byRelay:state.byRelay
+            }).then(()=>{
                 ElMessage.success('已操作');
             }).catch(()=>{
                 ElMessage.success('操作失败');
@@ -164,7 +179,7 @@ export default {
             _getRelayTypes();
         });
 
-        return {state,handleCellClick,handleEditBlur,handleDel,handleAdd,handleSort}
+        return {state,handleCellClick,handleEditBlur,handleDel,handleAdd,handleSort,handleByRelayChange}
     }
 }
 </script>

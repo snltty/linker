@@ -71,7 +71,6 @@ namespace linker.plugins.relay.transport
                     return null;
                 }
                 connection.Cancel();
-                ClearSocket(socket);
 
                 //通知对方，确认中继
                 resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -85,6 +84,7 @@ namespace linker.plugins.relay.transport
                     connection.Disponse(7);
                     return null;
                 }
+                ClearSocket(socket);
 
                 SslStream sslStream = null;
                 if (relayInfo.SSL)
@@ -133,7 +133,6 @@ namespace linker.plugins.relay.transport
                 Socket socket = new Socket(relayInfo.Server.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 socket.KeepAlive();
                 await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
-
                 IConnection connection = await messengerResolver.BeginReceiveClient(socket);
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -141,10 +140,9 @@ namespace linker.plugins.relay.transport
                     MessengerId = (ushort)RelayMessengerIds.RelayConfirm,
                     Payload = MemoryPackSerializer.Serialize(relayInfo)
                 }).ConfigureAwait(false);
-
                 connection.Cancel();
+                await Task.Delay(30).ConfigureAwait(false);
                 ClearSocket(socket);
-
                 _ = WaitSSL(connection, socket, relayInfo).ContinueWith((result) =>
                 {
                     callback(result.Result);
@@ -164,33 +162,46 @@ namespace linker.plugins.relay.transport
 
         private async Task<TunnelConnectionTcp> WaitSSL(IConnection connection, Socket socket, RelayInfo relayInfo)
         {
-            SslStream sslStream = null;
-            if (relayInfo.SSL)
+            try
             {
-                if (certificate == null)
+                SslStream sslStream = null;
+                if (relayInfo.SSL)
                 {
-                    connection.Disponse(8);
-                    return null;
+                    if (certificate == null)
+                    {
+                        connection.Disponse(8);
+                        return null;
+                    }
+                    sslStream = new SslStream(connection.SourceNetworkStream, false);
+                    Console.WriteLine(socket.Available);
+                    await sslStream.AuthenticateAsServerAsync(certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false).ConfigureAwait(false);
                 }
-                sslStream = new SslStream(connection.SourceNetworkStream, false);
-                await sslStream.AuthenticateAsServerAsync(certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false).ConfigureAwait(false);
+                return new TunnelConnectionTcp
+                {
+                    Direction = TunnelDirection.Reverse,
+                    ProtocolType = TunnelProtocolType.Tcp,
+                    RemoteMachineId = relayInfo.RemoteMachineId,
+                    RemoteMachineName = relayInfo.RemoteMachineName,
+                    Stream = sslStream,
+                    Socket = socket,
+                    Mode = TunnelMode.Server,
+                    IPEndPoint = socket.RemoteEndPoint as IPEndPoint,
+                    TransactionId = relayInfo.TransactionId,
+                    TransportName = Name,
+                    Type = TunnelType.Relay,
+                    SSL = relayInfo.SSL,
+                    BufferSize = 3,
+                };
             }
-            return new TunnelConnectionTcp
+            catch (Exception ex)
             {
-                Direction = TunnelDirection.Reverse,
-                ProtocolType = TunnelProtocolType.Tcp,
-                RemoteMachineId = relayInfo.RemoteMachineId,
-                RemoteMachineName = relayInfo.RemoteMachineName,
-                Stream = sslStream,
-                Socket = socket,
-                Mode = TunnelMode.Server,
-                IPEndPoint = socket.RemoteEndPoint as IPEndPoint,
-                TransactionId = relayInfo.TransactionId,
-                TransportName = Name,
-                Type = TunnelType.Relay,
-                SSL = relayInfo.SSL,
-                BufferSize = 3,
-            };
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
+                connection?.Disponse();
+            }
+            return null;
         }
         private void ClearSocket(Socket socket)
         {

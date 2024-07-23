@@ -130,9 +130,13 @@ export default {
             if(updateInfo.Status == 2){
 
                 const selectedValue = ref(updaterVersion.value);
-                const selectOptions = [h(ElOption, { label: `${updaterVersion.value} - 最新版本`, value: updaterVersion.value })];
+                const selectOptions = [
+                    h(ElOption, { label: `仅[${row.MachineName}] -> ${updaterVersion.value}(最新版本)`, value: updaterVersion.value }),
+                    h(ElOption, { label: `[所有] -> ${updaterVersion.value}(最新版本)`, value: `all->${updaterVersion.value}` }),
+                ];
                 if(row.Version != serverVersion.value && updaterVersion.value != serverVersion.value){
-                    selectOptions.push(h(ElOption, { label: `${serverVersion.value} - 服务器版本`, value: serverVersion.value }));
+                    selectOptions.push(h(ElOption, { label: `仅[${row.MachineName}] -> ${serverVersion.value}(服务器版本)`, value: serverVersion.value }));
+                    selectOptions.push(h(ElOption, { label: `[所有] -> ${serverVersion.value}(服务器版本)`, value: `all->${serverVersion.value}` }));
                 }
 
                 ElMessageBox({
@@ -148,7 +152,15 @@ export default {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消'
                 }).then(() => {
-                    confirm(row.MachineId,selectedValue.value);
+                    const data = {
+                        MachineId:row.MachineId,
+                        Version:selectedValue.value.replace('all->',''),
+                        All:selectedValue.value.indexOf('all->') >= 0
+                    };
+                    if(data.All){
+                        data.MachineId = '';
+                    }
+                    confirm(data);
                 }).catch(() => {});
             }
         }

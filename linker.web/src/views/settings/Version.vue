@@ -1,8 +1,10 @@
 <template>
-    <div class="running-version-wrap">
+    <div class="running-version-wrap flex">
         <span>配置版本 : {{version || 1}}</span>
         <el-button size="small" @click=handleEdit>手动修改版本</el-button>
         <span>高版本一端自动同步到低版本一端</span>
+        <span class="flex-1"></span>
+        <slot></slot>
     </div>
 </template>
 <script>
