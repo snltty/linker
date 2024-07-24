@@ -36,9 +36,9 @@ namespace linker.plugins.forward.proxy
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Warning($"TryAdd {connection.GetHashCode()} {connection.TransactionId} {connection.ToJson()}");
 
-            if (connections.TryGetValue(connection.RemoteMachineId, out ITunnelConnection connectionOld))
+            if (connections.TryGetValue(connection.RemoteMachineId, out ITunnelConnection connectionOld) && connection.Equals(connectionOld) == false)
             {
-                //connectionOld?.Dispose();
+                connectionOld?.Dispose();
             }
             //把隧道对象添加到缓存，方便下次直接获取
             connections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
@@ -117,13 +117,13 @@ namespace linker.plugins.forward.proxy
                 if (connection == null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward relay to {machineId}");
-                    
+
                     //尝试中继
                     connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, "forward").ConfigureAwait(false);
                     if (connection != null)
                     {
                         //转入后台打洞
-                        //tunnelTransfer.StartBackground(machineId, "forward");
+                        tunnelTransfer.StartBackground(machineId, "forward");
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward relay to {machineId} success");
                     }
                 }
@@ -145,7 +145,7 @@ namespace linker.plugins.forward.proxy
         }
 
 
-        public void Start(IPEndPoint ep, IPEndPoint targetEP, string machineId,byte bufferSize)
+        public void Start(IPEndPoint ep, IPEndPoint targetEP, string machineId, byte bufferSize)
         {
             Stop(ep.Port);
             base.Start(ep, bufferSize);

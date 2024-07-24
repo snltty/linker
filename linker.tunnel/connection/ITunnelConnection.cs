@@ -146,6 +146,8 @@ namespace linker.tunnel.connection
         public void Dispose();
 
         public string ToString();
+
+        public bool Equals(ITunnelConnection connection);
     }
 
 

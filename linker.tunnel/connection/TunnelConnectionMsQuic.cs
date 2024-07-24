@@ -153,7 +153,7 @@ namespace linker.tunnel.connection
             {
                 if (packet.Span.SequenceEqual(pingBytes))
                 {
-                    await SendPingPong(pongBytes).ConfigureAwait(false); 
+                    await SendPingPong(pongBytes).ConfigureAwait(false);
                 }
                 else if (packet.Span.SequenceEqual(pongBytes))
                 {
@@ -199,7 +199,7 @@ namespace linker.tunnel.connection
             data.Length.ToBytes(heartData);
             data.AsMemory().CopyTo(heartData.AsMemory(4));
 
-            await semaphoreSlim.WaitAsync().ConfigureAwait(false); 
+            await semaphoreSlim.WaitAsync().ConfigureAwait(false);
             try
             {
                 await Stream.WriteAsync(heartData.AsMemory(0, length), cancellationTokenSource.Token).ConfigureAwait(false);
@@ -274,6 +274,11 @@ namespace linker.tunnel.connection
         public override string ToString()
         {
             return this.ToJsonFormat();
+        }
+
+        public bool Equals(ITunnelConnection connection)
+        {
+            return connection != null && GetHashCode() == connection.GetHashCode() && IPEndPoint.Equals(connection.IPEndPoint);
         }
     }
 }

@@ -208,5 +208,9 @@ namespace linker.tunnel.connection
         {
             return this.ToJsonFormat();
         }
+        public bool Equals(ITunnelConnection connection)
+        {
+            return connection != null && GetHashCode() == connection.GetHashCode() && IPEndPoint.Equals(connection.IPEndPoint);
+        }
     }
 }

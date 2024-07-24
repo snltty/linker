@@ -304,5 +304,9 @@ namespace linker.tunnel.connection
         {
             return this.ToJson();
         }
+        public bool Equals(ITunnelConnection connection)
+        {
+            return connection != null && GetHashCode() == connection.GetHashCode() && IPEndPoint.Equals(connection.IPEndPoint);
+        }
     }
 }
