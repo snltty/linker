@@ -48,15 +48,13 @@ jobs:
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
-        tag_name: v1.1.2.5
-        release_name: v1.1.2.5.${{ steps.date.outputs.today }}
+        tag_name: v1.1.2.6
+        release_name: v1.1.2.6.${{ steps.date.outputs.today }}
         draft: false
         prerelease: false
         body: |
-          1. 脑抽
-          2. 更新错误
-          3. 中继错误
-          4. 请更新服务端
+          1. 托盘检查
+          2. 停止服务清理网卡
 
     - name: upload win x64
       id: upload-win-x64

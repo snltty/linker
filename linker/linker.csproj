@@ -25,8 +25,8 @@
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<AssemblyVersion>1.1.2.5</AssemblyVersion>
-		<FileVersion>1.1.2.5</FileVersion>
+		<AssemblyVersion>1.1.2.6</AssemblyVersion>
+		<FileVersion>1.1.2.6</FileVersion>
 	</PropertyGroup>
 
 

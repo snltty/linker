@@ -101,6 +101,19 @@ namespace linker.service
 
                 foreach (var item in Process.GetProcessesByName(mainExeName))
                 {
+                    try
+                    {
+                        item.Close();
+                        item.WaitForExit(TimeSpan.FromMilliseconds(2000));
+                        item.Kill();
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+
+                foreach (var item in Process.GetProcessesByName("tun2socks"))
+                {
                     item.Kill();
                 }
             }

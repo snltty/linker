@@ -78,7 +78,7 @@ mainForm.showPopmenu = function(){
 	mainForm.popmenu=win.ui.popmenu(mainForm);
 	
 	mainForm.popmenu.add(mainForm.ckAutoStart.checked ? '取消托盘自启动':'开启托盘自启动',function(id){mainForm.runAsTaskCommand()});
-	mainForm.popmenu.add(service.isRunning(mainForm.serviceName) ? '停止服务':'运行服务',function(id){mainForm.installCommand()});
+	mainForm.popmenu.add(service.isRunning(mainForm.serviceName) ? '停止服务':'运行服务',function(id){mainForm.runCommand()});
 	mainForm.popmenu.add(service.isExist(mainForm.serviceName) ? '卸载服务':'安装服务',function(id){mainForm.installCommand()});
 	
 	mainForm.popmenu.add('退出托盘',function(id){
@@ -111,6 +111,24 @@ mainForm.checkService = function(){
 	
 	mainForm.failureService();
 }
+
+mainForm.checkServiceInstall = "";
+mainForm.checkServiceRun = "";
+
+mainForm.checkService1 = function(){
+	import service;
+	
+	mainForm.btnInstall.text = service.isExist(mainForm.serviceName) ? "卸载服务" : "安装服务";
+	mainForm.btnRun.text = service.isRunning(mainForm.serviceName) ? "停止服务" : "运行服务";
+	if(mainForm.checkServiceInstall != mainForm.btnInstall.text || mainForm.checkServiceRun != mainForm.btnRun.text)
+	{
+		mainForm.showPopmenu();
+	}
+	
+	mainForm.checkServiceInstall = mainForm.btnInstall.text;
+	mainForm.checkServiceRun = mainForm.btnRun.text ; 
+}
+
 mainForm.btnCheck.oncommand = function(id,event){
 	mainForm.checkService();
 	win.msgbox('已检查');
@@ -246,6 +264,12 @@ mainForm.setInterval(
 		}catch(e)
 		{
 		}	
+		try{
+			mainForm.checkService1();	
+		}
+		catch(e){
+			
+		}
 		return true;
 	},1000
 )
