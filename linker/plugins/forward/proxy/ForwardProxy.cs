@@ -38,7 +38,7 @@ namespace linker.plugins.forward.proxy
 
             if (connections.TryGetValue(connection.RemoteMachineId, out ITunnelConnection connectionOld))
             {
-                connectionOld?.Dispose();
+                //connectionOld?.Dispose();
             }
             //把隧道对象添加到缓存，方便下次直接获取
             connections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
@@ -123,7 +123,7 @@ namespace linker.plugins.forward.proxy
                     if (connection != null)
                     {
                         //转入后台打洞
-                        //tunnelTransfer.StartBackground(machineId, "forward");
+                        tunnelTransfer.StartBackground(machineId, "forward");
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward relay to {machineId} success");
                     }
                 }

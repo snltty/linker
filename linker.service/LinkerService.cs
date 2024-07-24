@@ -103,8 +103,6 @@ namespace linker.service
                 {
                     try
                     {
-                        item.Close();
-                        item.WaitForExit(TimeSpan.FromMilliseconds(2000));
                         item.Kill();
                     }
                     catch (Exception)

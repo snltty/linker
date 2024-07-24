@@ -62,7 +62,7 @@ namespace linker.plugins.tuntap.proxy
                 LoggerHelper.Instance.Warning($"tuntap add connection {connection.GetHashCode()} {connection.ToJson()}");
             if(connections.TryGetValue(connection.RemoteMachineId,out ITunnelConnection connectionOld))
             {
-                connectionOld?.Dispose();
+                //connectionOld?.Dispose();
             }
             connections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
             BindConnectionReceive(connection);
@@ -268,7 +268,7 @@ namespace linker.plugins.tuntap.proxy
                     connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, "tuntap").ConfigureAwait(false);
                     if (connection != null)
                     {
-                        //tunnelTransfer.StartBackground(machineId, "tuntap");
+                        tunnelTransfer.StartBackground(machineId, "tuntap");
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap relay success,{connection.ToString()}");
                     }
                 }
