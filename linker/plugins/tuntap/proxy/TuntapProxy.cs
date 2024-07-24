@@ -60,8 +60,9 @@ namespace linker.plugins.tuntap.proxy
         {
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Warning($"tuntap add connection {connection.GetHashCode()} {connection.ToJson()}");
-            if (connections.TryGetValue(connection.RemoteMachineId, out ITunnelConnection connectionOld) && connection.Equals(connectionOld) == false)
+            if (connections.TryGetValue(connection.RemoteMachineId, out ITunnelConnection connectionOld))
             {
+                LoggerHelper.Instance.Error($"new tunnel del {connection.Equals(connectionOld)}->{connectionOld.GetHashCode()}:{connectionOld.IPEndPoint}->{connection.GetHashCode()}:{connection.IPEndPoint}");
                 //connectionOld?.Dispose();
             }
             connections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);

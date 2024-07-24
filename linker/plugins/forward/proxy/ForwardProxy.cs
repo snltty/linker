@@ -36,8 +36,9 @@ namespace linker.plugins.forward.proxy
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Warning($"TryAdd {connection.GetHashCode()} {connection.TransactionId} {connection.ToJson()}");
 
-            if (connections.TryGetValue(connection.RemoteMachineId, out ITunnelConnection connectionOld) && connection.Equals(connectionOld) == false)
+            if (connections.TryGetValue(connection.RemoteMachineId, out ITunnelConnection connectionOld))
             {
+                LoggerHelper.Instance.Error($"new tunnel del {connection.Equals(connectionOld)}->{connectionOld.GetHashCode()}:{connectionOld.IPEndPoint}->{connection.GetHashCode()}:{connection.IPEndPoint}");
                 //connectionOld?.Dispose();
             }
             //把隧道对象添加到缓存，方便下次直接获取
