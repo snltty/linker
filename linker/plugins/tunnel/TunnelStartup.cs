@@ -56,7 +56,7 @@ namespace linker.plugins.tunnel
             serviceCollection.AddSingleton<TransportTcpP2PNAT>();
 
             
-            serviceCollection.AddSingleton<ExcludeIPTransfer>();
+            serviceCollection.AddSingleton<TunnelExcludeIPTransfer>();
             serviceCollection.AddSingleton<TunnelConfigTransfer>();
             serviceCollection.AddSingleton<ITunnelAdapter, TunnelAdapter>();
 
@@ -98,7 +98,7 @@ namespace linker.plugins.tunnel
             TunnelConfigTransfer tunnelConfigTransfer = serviceProvider.GetService<TunnelConfigTransfer>();
 
 
-            ExcludeIPTransfer excludeIPTransfer = serviceProvider.GetService<ExcludeIPTransfer>();
+            TunnelExcludeIPTransfer excludeIPTransfer = serviceProvider.GetService<TunnelExcludeIPTransfer>();
             excludeIPTransfer.Load(assemblies);
         }
 

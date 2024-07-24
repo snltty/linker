@@ -17,8 +17,8 @@
 	  <PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 	  <PackageReleaseNotes>linker tunnel</PackageReleaseNotes>
-	  <AssemblyVersion>1.1.3.1</AssemblyVersion>
-	  <FileVersion>1.1.3.1</FileVersion>
+	  <AssemblyVersion>1.1.3.2</AssemblyVersion>
+	  <FileVersion>1.1.3.2</FileVersion>
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

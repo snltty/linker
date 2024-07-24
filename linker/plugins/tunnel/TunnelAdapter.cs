@@ -26,12 +26,12 @@ namespace linker.plugins.tunnel
         private readonly FileConfig config;
         private readonly RunningConfig running;
         private readonly RunningConfigTransfer runningConfigTransfer;
-        private readonly ExcludeIPTransfer excludeIPTransfer;
+        private readonly TunnelExcludeIPTransfer excludeIPTransfer;
 
         private string wanPortConfigKey = "tunnelWanPortProtocols";
         private string transportConfigKey = "tunnelTransports";
 
-        public TunnelAdapter(ClientSignInState clientSignInState, MessengerSender messengerSender, FileConfig config, RunningConfig running, RunningConfigTransfer runningConfigTransfer, ExcludeIPTransfer excludeIPTransfer)
+        public TunnelAdapter(ClientSignInState clientSignInState, MessengerSender messengerSender, FileConfig config, RunningConfig running, RunningConfigTransfer runningConfigTransfer, TunnelExcludeIPTransfer excludeIPTransfer)
         {
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;

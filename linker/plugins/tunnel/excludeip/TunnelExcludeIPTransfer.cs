@@ -7,9 +7,9 @@ using System.Reflection;
 
 namespace linker.plugins.tunnel.excludeip
 {
-    public sealed class ExcludeIPTransfer
+    public sealed class TunnelExcludeIPTransfer
     {
-        private List<IExcludeIP> excludeIPs;
+        private List<ITunnelExcludeIP> excludeIPs;
         private string exipConfigKey = "excludeIPConfig";
 
         private readonly RunningConfig running;
@@ -17,7 +17,7 @@ namespace linker.plugins.tunnel.excludeip
         private readonly RunningConfigTransfer runningConfigTransfer;
 
         private readonly ServiceProvider serviceProvider;
-        public ExcludeIPTransfer(RunningConfig running, ClientSignInState clientSignInState, RunningConfigTransfer runningConfigTransfer, ServiceProvider serviceProvider)
+        public TunnelExcludeIPTransfer(RunningConfig running, ClientSignInState clientSignInState, RunningConfigTransfer runningConfigTransfer, ServiceProvider serviceProvider)
         {
             this.running = running;
             this.clientSignInState = clientSignInState;
@@ -28,8 +28,8 @@ namespace linker.plugins.tunnel.excludeip
 
         public void Load(Assembly[] assembs)
         {
-            IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs, typeof(IExcludeIP));
-            excludeIPs = types.Select(c => (IExcludeIP)serviceProvider.GetService(c)).Where(c => c != null).ToList();
+            IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs, typeof(ITunnelExcludeIP));
+            excludeIPs = types.Select(c => (ITunnelExcludeIP)serviceProvider.GetService(c)).Where(c => c != null).ToList();
 
             LoggerHelper.Instance.Warning($"load tunnel excludeips :{string.Join(",", types.Select(c => c.Name))}");
         }

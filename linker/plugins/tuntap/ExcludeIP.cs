@@ -3,7 +3,7 @@ using linker.plugins.tunnel.excludeip;
 
 namespace linker.plugins.tuntap
 {
-    public sealed class ExcludeIP : IExcludeIP
+    public sealed class ExcludeIP : ITunnelExcludeIP
     {
         private readonly RunningConfig runningConfig;
         public ExcludeIP(RunningConfig runningConfig)
