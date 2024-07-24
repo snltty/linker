@@ -16,7 +16,7 @@ namespace linker.plugins.tuntap
         public StartupLevel Level => StartupLevel.Normal;
         public string Name => "tuntap";
         public bool Required => false;
-        public string[] Dependent => new string[] {"messenger", "relay", "tunnel", "signin", "serialize", "config" };
+        public string[] Dependent => new string[] { "messenger", "relay", "tunnel", "signin", "serialize", "config" };
 
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
@@ -33,6 +33,9 @@ namespace linker.plugins.tuntap
             serviceCollection.AddSingleton<TuntapProxy>();
 
             serviceCollection.AddSingleton<TuntapClientMessenger>();
+
+
+            serviceCollection.AddSingleton<ExcludeIP>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)

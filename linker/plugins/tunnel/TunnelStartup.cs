@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Reflection;
 using linker.tunnel.wanport;
+using linker.plugins.tunnel.excludeip;
 
 namespace linker.plugins.tunnel
 {
@@ -54,6 +55,8 @@ namespace linker.plugins.tunnel
             serviceCollection.AddSingleton<TransportMsQuic>();
             serviceCollection.AddSingleton<TransportTcpP2PNAT>();
 
+            
+            serviceCollection.AddSingleton<ExcludeIPTransfer>();
             serviceCollection.AddSingleton<TunnelConfigTransfer>();
             serviceCollection.AddSingleton<ITunnelAdapter, TunnelAdapter>();
 
@@ -93,6 +96,10 @@ namespace linker.plugins.tunnel
             tunnel.Init(compack, tunnelAdapter, transports);
 
             TunnelConfigTransfer tunnelConfigTransfer = serviceProvider.GetService<TunnelConfigTransfer>();
+
+
+            ExcludeIPTransfer excludeIPTransfer = serviceProvider.GetService<ExcludeIPTransfer>();
+            excludeIPTransfer.Load(assemblies);
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)

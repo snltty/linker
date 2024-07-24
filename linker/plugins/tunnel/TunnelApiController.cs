@@ -12,6 +12,7 @@ using linker.plugins.client;
 using linker.plugins.server;
 using linker.plugins.capi;
 using linker.plugins.messenger;
+using linker.plugins.tunnel.excludeip;
 
 namespace linker.plugins.tunnel
 {
@@ -26,8 +27,9 @@ namespace linker.plugins.tunnel
         private readonly MessengerSender messengerSender;
         private readonly TunnelConfigTransfer tunnelConfigTransfer;
         private readonly ITunnelAdapter tunnelMessengerAdapter;
+        private readonly ExcludeIPTransfer excludeIPTransfer;
 
-        public TunnelApiController(FileConfig config, TunnelWanPortTransfer compactTransfer, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelConfigTransfer tunnelConfigTransfer, ITunnelAdapter tunnelMessengerAdapter)
+        public TunnelApiController(FileConfig config, TunnelWanPortTransfer compactTransfer, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelConfigTransfer tunnelConfigTransfer, ITunnelAdapter tunnelMessengerAdapter, ExcludeIPTransfer excludeIPTransfer)
         {
             this.config = config;
             this.compactTransfer = compactTransfer;
@@ -35,6 +37,7 @@ namespace linker.plugins.tunnel
             this.messengerSender = messengerSender;
             this.tunnelConfigTransfer = tunnelConfigTransfer;
             this.tunnelMessengerAdapter = tunnelMessengerAdapter;
+            this.excludeIPTransfer = excludeIPTransfer;
         }
 
         /// <summary>
@@ -134,12 +137,12 @@ namespace linker.plugins.tunnel
 
         public ExcludeIPItem[] GetExcludeIPs(ApiControllerParamsInfo param)
         {
-            return tunnelConfigTransfer.GetExcludeIPs();
+            return excludeIPTransfer.GetExcludeIPs();
         }
         public void SetExcludeIPs(ApiControllerParamsInfo param)
         {
             ExcludeIPItem[] info = param.Content.DeJson<ExcludeIPItem[]>();
-            tunnelConfigTransfer.SettExcludeIPs(info);
+            excludeIPTransfer.SettExcludeIPs(info);
         }
 
         public sealed class TunnelListInfo

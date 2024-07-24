@@ -21,7 +21,7 @@ namespace linker.plugins.tunnel
         private readonly RunningConfigTransfer runningConfigTransfer;
         private readonly ITunnelAdapter tunnelAdapter;
 
-        private string exipConfigKey = "excludeIPConfig";
+       
 
         private uint version = 0;
         public uint ConfigVersion => version;
@@ -39,7 +39,7 @@ namespace linker.plugins.tunnel
 
 
             InitRouteLevel();
-            InitExcludeIP();
+           
             InitConfig();
 
             TestQuic();
@@ -144,37 +144,6 @@ namespace linker.plugins.tunnel
             {
                 GetRemoteRouteLevel();
             };
-        }
-
-
-        private void InitExcludeIP()
-        {
-            clientSignInState.NetworkFirstEnabledHandle += () =>
-            {
-                SyncExcludeIP();
-            };
-            runningConfigTransfer.Setter(exipConfigKey, SettExcludeIPs);
-            runningConfigTransfer.Getter(exipConfigKey, () => MemoryPackSerializer.Serialize(GetExcludeIPs()));
-        }
-        private void SyncExcludeIP()
-        {
-            runningConfigTransfer.Sync(exipConfigKey, MemoryPackSerializer.Serialize(running.Data.Tunnel.ExcludeIPs));
-        }
-        public ExcludeIPItem[] GetExcludeIPs()
-        {
-            return running.Data.Tunnel.ExcludeIPs;
-        }
-        public void SettExcludeIPs(ExcludeIPItem[] ips)
-        {
-            running.Data.Tunnel.ExcludeIPs = ips;
-            running.Data.Update();
-            runningConfigTransfer.IncrementVersion(exipConfigKey);
-            SyncExcludeIP();
-        }
-        private void SettExcludeIPs(Memory<byte> data)
-        {
-            running.Data.Tunnel.ExcludeIPs = MemoryPackSerializer.Deserialize<ExcludeIPItem[]>(data.Span);
-            running.Data.Update();
         }
 
 

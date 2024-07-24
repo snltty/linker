@@ -48,13 +48,14 @@ jobs:
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
-        tag_name: v1.1.2.6
-        release_name: v1.1.2.6.${{ steps.date.outputs.today }}
+        tag_name: v1.1.3.1
+        release_name: v1.1.3.1.${{ steps.date.outputs.today }}
         draft: false
         prerelease: false
         body: |
           1. 托盘检查
           2. 停止服务清理网卡
+          3. 打洞错误
 
     - name: upload win x64
       id: upload-win-x64

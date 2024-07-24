@@ -11,6 +11,7 @@ using linker.tunnel.wanport;
 using System.Buffers.Binary;
 using linker.plugins.client;
 using linker.plugins.messenger;
+using linker.plugins.tunnel.excludeip;
 
 namespace linker.plugins.tunnel
 {
@@ -25,17 +26,19 @@ namespace linker.plugins.tunnel
         private readonly FileConfig config;
         private readonly RunningConfig running;
         private readonly RunningConfigTransfer runningConfigTransfer;
+        private readonly ExcludeIPTransfer excludeIPTransfer;
 
         private string wanPortConfigKey = "tunnelWanPortProtocols";
         private string transportConfigKey = "tunnelTransports";
 
-        public TunnelAdapter(ClientSignInState clientSignInState, MessengerSender messengerSender, FileConfig config, RunningConfig running, RunningConfigTransfer runningConfigTransfer)
+        public TunnelAdapter(ClientSignInState clientSignInState, MessengerSender messengerSender, FileConfig config, RunningConfig running, RunningConfigTransfer runningConfigTransfer, ExcludeIPTransfer excludeIPTransfer)
         {
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
             this.config = config;
             this.running = running;
             this.runningConfigTransfer = runningConfigTransfer;
+            this.excludeIPTransfer = excludeIPTransfer;
 
             string path = Path.GetFullPath(config.Data.Client.Certificate);
             if (File.Exists(path))
@@ -104,16 +107,15 @@ namespace linker.plugins.tunnel
 
         public NetworkInfo GetLocalConfig()
         {
+            var excludeips = excludeIPTransfer.Get();
             return new NetworkInfo
             {
-                LocalIps = config.Data.Client.Tunnel.LocalIPs
-                .Where(c => c.Equals(running.Data.Tuntap.IP) == false)
-                .Where(c =>
+                LocalIps = config.Data.Client.Tunnel.LocalIPs.Where(c =>
                 {
                     if (c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                     {
                         uint ip = BinaryPrimitives.ReadUInt32BigEndian(c.GetAddressBytes());
-                        foreach (var item in running.Data.Tunnel.ExcludeIPs)
+                        foreach (var item in excludeips)
                         {
                             uint maskValue = NetworkHelper.MaskValue(item.Mask);
                             uint ip1 = BinaryPrimitives.ReadUInt32BigEndian(item.IPAddress.GetAddressBytes());

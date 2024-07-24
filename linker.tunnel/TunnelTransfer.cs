@@ -352,15 +352,17 @@ namespace linker.tunnel
         private void ParseRemoteEndPoint(TunnelTransportInfo tunnelTransportInfo)
         {
             //要连接哪些IP
-            IPAddress[] localIps = tunnelTransportInfo.Remote.LocalIps.Where(c => c.Equals(tunnelTransportInfo.Remote.Local.Address) == false).ToArray();
             List<IPEndPoint> eps = new List<IPEndPoint>();
 
             //先尝试内网ipv4
-            foreach (IPAddress item in localIps.Where(c => c.AddressFamily == AddressFamily.InterNetwork))
+            //if (tunnelTransportInfo.Local.Remote.Address.Equals(tunnelTransportInfo.Remote.Remote.Address))
             {
-                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Local.Port));
-                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port));
-                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port + 1));
+                foreach (IPAddress item in tunnelTransportInfo.Remote.LocalIps.Where(c => c.AddressFamily == AddressFamily.InterNetwork))
+                {
+                    eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Local.Port));
+                    eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port));
+                    eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port + 1));
+                }
             }
             //在尝试外网
             eps.AddRange(new List<IPEndPoint>{
@@ -368,7 +370,7 @@ namespace linker.tunnel
                 new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port+1),
             });
             //再尝试IPV6
-            foreach (IPAddress item in localIps.Where(c => c.AddressFamily == AddressFamily.InterNetworkV6))
+            foreach (IPAddress item in tunnelTransportInfo.Remote.LocalIps.Where(c => c.AddressFamily == AddressFamily.InterNetworkV6))
             {
                 eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Local.Port));
                 eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port));
@@ -398,7 +400,7 @@ namespace linker.tunnel
         /// </summary>
         /// <param name="remoteMachineId"></param>
         /// <param name="transactionId"></param>
-        public void StartBackground(string remoteMachineId, string transactionId,int times = 10)
+        public void StartBackground(string remoteMachineId, string transactionId, int times = 10)
         {
             if (AddBackground(remoteMachineId, transactionId) == false)
             {
@@ -432,7 +434,7 @@ namespace linker.tunnel
         }
         private bool AddBackground(string remoteMachineId, string transactionId)
         {
-           return backgroundDic.TryAdd(GetBackgroundKey(remoteMachineId, transactionId), true);
+            return backgroundDic.TryAdd(GetBackgroundKey(remoteMachineId, transactionId), true);
         }
         private void RemoveBackground(string remoteMachineId, string transactionId)
         {
