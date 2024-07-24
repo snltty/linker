@@ -123,7 +123,7 @@ namespace linker.plugins.forward.proxy
                     if (connection != null)
                     {
                         //转入后台打洞
-                        tunnelTransfer.StartBackground(machineId, "forward");
+                        //tunnelTransfer.StartBackground(machineId, "forward");
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward relay to {machineId} success");
                     }
                 }
