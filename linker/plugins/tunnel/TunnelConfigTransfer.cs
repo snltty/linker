@@ -37,7 +37,6 @@ namespace linker.plugins.tunnel
             this.runningConfigTransfer = runningConfigTransfer;
             this.tunnelAdapter = tunnelAdapter;
 
-
             InitRouteLevel();
            
             InitConfig();
