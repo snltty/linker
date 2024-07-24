@@ -53,9 +53,7 @@ jobs:
         draft: false
         prerelease: false
         body: |
-          1. 托盘检查
-          2. 停止服务清理网卡
-          3. 打洞错误
+          1. 测试，请勿更新
 
     - name: upload win x64
       id: upload-win-x64
