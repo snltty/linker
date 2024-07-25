@@ -13,6 +13,7 @@ using System.Net.Sockets;
 using linker.libs.extends;
 using linker.plugins.client;
 using linker.plugins.messenger;
+using System;
 
 namespace linker.plugins.tuntap
 {
@@ -43,6 +44,7 @@ namespace linker.plugins.tuntap
             this.tuntapProxy = tuntapProxy;
             this.runningConfig = runningConfig;
 
+            GetRouteIps();
             tuntapVea.Kill();
             clientSignInState.NetworkEnabledHandle += (times) =>
             {
@@ -297,7 +299,10 @@ namespace linker.plugins.tuntap
 
         private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)
         {
-            uint[] localIps = NetworkHelper.GetIPV4().Concat(new IPAddress[] { runningConfig.Data.Tuntap.IP })
+            uint[] localIps = NetworkHelper.GetIPV4()
+                .Concat(new IPAddress[] { runningConfig.Data.Tuntap.IP })
+                .Concat(runningConfig.Data.Tuntap.LanIPs)
+                .Concat(routeIps)
                 .Select(c => BinaryPrimitives.ReadUInt32BigEndian(c.GetAddressBytes()))
                 .ToArray();
 
@@ -337,6 +342,13 @@ namespace linker.plugins.tuntap
                 NetWork = ipInt & maskValue,
                 Broadcast = ipInt | (~maskValue),
             };
+        }
+
+
+        List<IPAddress> routeIps = new List<IPAddress>();
+        private void GetRouteIps()
+        {
+            NetworkHelper.GetRouteLevel(out routeIps);
         }
 
         private async Task CheckVeaStatusTask()

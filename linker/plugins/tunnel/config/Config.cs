@@ -63,6 +63,9 @@ namespace linker.config
 
         [JsonIgnore]
         public IPAddress[] LocalIPs { get; set; }
+
+        [JsonIgnore]
+        public IPAddress[] RouteIPs { get; set; }
     }
 
 

@@ -1,8 +1,10 @@
 ﻿using linker.client.config;
+using linker.config;
 using linker.libs;
 using linker.plugins.client;
 using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace linker.plugins.tunnel.excludeip
@@ -15,13 +17,15 @@ namespace linker.plugins.tunnel.excludeip
         private readonly RunningConfig running;
         private readonly ClientSignInState clientSignInState;
         private readonly RunningConfigTransfer runningConfigTransfer;
+        private readonly FileConfig fileConfig;
 
         private readonly ServiceProvider serviceProvider;
-        public TunnelExcludeIPTransfer(RunningConfig running, ClientSignInState clientSignInState, RunningConfigTransfer runningConfigTransfer, ServiceProvider serviceProvider)
+        public TunnelExcludeIPTransfer(RunningConfig running, ClientSignInState clientSignInState, RunningConfigTransfer runningConfigTransfer, FileConfig fileConfig, ServiceProvider serviceProvider)
         {
             this.running = running;
             this.clientSignInState = clientSignInState;
             this.runningConfigTransfer = runningConfigTransfer;
+            this.fileConfig = fileConfig;
             this.serviceProvider = serviceProvider;
             InitExcludeIP();
         }
@@ -49,6 +53,7 @@ namespace linker.plugins.tunnel.excludeip
             {
                 result.AddRange(running.Data.Tunnel.ExcludeIPs);
             }
+            
             return result;
         }
 

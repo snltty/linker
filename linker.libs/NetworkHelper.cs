@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace linker.libs
 {
@@ -57,24 +58,61 @@ namespace linker.libs
             return new IPEndPoint(ip, port);
         }
 
-        public static ushort GetRouteLevel(out List<IPAddress> ips)
+
+
+        static List<string> starts = new() { "10.", "100.", "192.168.", "172." };
+        static string domain = "linker.snltty.com";
+        public static ushort GetRouteLevel(out List<IPAddress> result)
         {
-            ips = new List<IPAddress>();
+            if (OperatingSystem.IsWindows())
+            {
+                return GetRouteLevelWindows(out result);
+            }
+            return GetRouteLevelLinux(out result);
+        }
+        public static ushort GetRouteLevelLinux(out List<IPAddress> result)
+        {
+            result = new List<IPAddress>();
+
+            string str = CommandHelper.Linux(string.Empty, new string[] { $"traceroute {domain} -4 -m 5" });
+            string[] lines = str.Split(Environment.NewLine);
+
+            Regex regex = new Regex(@"(\d+\.\d+\.\d+\.\d+)");
+            for (ushort i = 1; i < lines.Length; i++)
+            {
+                string ip = regex.Match(lines[i]).Groups[1].Value;
+                if (starts.Any(c => ip.ToString().StartsWith(c)))
+                {
+                    result.Add(IPAddress.Parse(ip));
+                }
+                else
+                {
+                    return i;
+                }
+            }
+
+            return 3;
+        }
+
+        public static ushort GetRouteLevelWindows(out List<IPAddress> result)
+        {
+            result = new List<IPAddress>();
             try
             {
-                List<string> starts = new() { "10.", "100.", "192.168.", "172." };
-                var list = GetTraceRoute("www.baidu.com").ToList();
-                for (ushort i = 0; i < list.Count(); i++)
+                IPAddress target = Dns.GetHostEntry(domain).AddressList.FirstOrDefault(c => c.AddressFamily == AddressFamily.InterNetwork);
+
+                for (ushort i = 1; i <= 5; i++)
                 {
-                    string ip = list.ElementAt(i).ToString();
-                    if (starts.Any(c => ip.StartsWith(c)))
+                    using Ping pinger = new();
+                    PingReply reply = pinger.Send(target, 100, Encoding.ASCII.GetBytes("snltty"), new PingOptions { Ttl = i, DontFragment = true });
+
+                    if (starts.Any(c => reply.Address.ToString().StartsWith(c)))
                     {
-                        ips.Add(list.ElementAt(i));
+                        result.Add(reply.Address);
                     }
                     else
                     {
-                        if (i <= 2) return 3;
-                        return (ushort)(i + 1);
+                        return i;
                     }
                 }
             }
@@ -83,58 +121,7 @@ namespace linker.libs
             }
             return 3;
         }
-        public static IEnumerable<IPAddress> GetTraceRoute(string hostNameOrAddress)
-        {
-            return GetTraceRoute(hostNameOrAddress, 1);
-        }
-        private static IEnumerable<IPAddress> GetTraceRoute(string hostNameOrAddress, int ttl)
-        {
-            if (ttl > 5)
-            {
-                return new List<IPAddress>();
-            }
 
-            IPAddress target = Dns.GetHostEntry(hostNameOrAddress).AddressList.FirstOrDefault(c => c.AddressFamily == AddressFamily.InterNetwork);
-
-            using Ping pinger = new();
-            // 创建PingOptions对象
-            PingOptions pingerOptions = new(ttl, true);
-            int timeout = 100;
-            byte[] buffer = Encoding.ASCII.GetBytes("11");
-            // 创建PingReply对象
-            // 发送ping命令
-            PingReply reply = pinger.Send(target, timeout, buffer, pingerOptions);
-
-            // 处理返回结果
-            List<IPAddress> result = new();
-            if (reply.Status == IPStatus.Success)
-            {
-                result.Add(reply.Address);
-            }
-            else if (reply.Status == IPStatus.TtlExpired || reply.Status == IPStatus.TimedOut)
-            {
-                //增加当前这个访问地址
-                if (reply.Status == IPStatus.TtlExpired)
-                {
-                    result.Add(reply.Address);
-                }
-
-                if (ttl <= 10)
-                {
-                    //递归访问下一个地址
-                    IEnumerable<IPAddress> tempResult = GetTraceRoute(hostNameOrAddress, ttl + 1);
-                    if (tempResult.Count() > 0)
-                    {
-                        result.AddRange(tempResult);
-                    }
-                }
-            }
-            else
-            {
-                //失败
-            }
-            return result;
-        }
 
 
         private static byte[] ipv6LocalBytes = new byte[] { 254, 128, 0, 0, 0, 0, 0, 0 };
