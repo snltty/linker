@@ -51,14 +51,10 @@ namespace linker.tunnel.wanport
             if (tunnelWanPort == null) return null;
             try
             {
-                Stopwatch sw = new Stopwatch();
-                sw.Start();
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Debug($"get domain ip {info.Host}");
                 IPEndPoint server = NetworkHelper.GetEndPoint(info.Host, 3478);
-                sw.Stop();
-                if (sw.ElapsedMilliseconds > 1000)
-                {
-                    LoggerHelper.Instance.Warning($"get domain ip time:{sw.ElapsedMilliseconds}ms");
-                }
+                if(server == null) return null;
                 TunnelWanPortEndPoint wanPort = await tunnelWanPort.GetAsync(server).ConfigureAwait(false);
                 if (wanPort != null)
                 {

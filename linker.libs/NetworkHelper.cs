@@ -31,31 +31,30 @@ namespace linker.libs
                 {
                     return ip;
                 }
-                IPAddress[] ips = Dns.GetHostEntry(domain).AddressList;
-                ip = ips.FirstOrDefault(c => c.AddressFamily == AddressFamily.InterNetwork);
-                if (ip == null)
-                {
-                    ip = ips.FirstOrDefault(c => c.AddressFamily == AddressFamily.InterNetworkV6);
-                }
-                return ip;
+                return Dns.GetHostEntry(domain, AddressFamily.InterNetwork).AddressList.FirstOrDefault();
             }
             catch (Exception)
             {
             }
             return null;
         }
-
         public static IPEndPoint GetEndPoint(string host, int defaultPort)
         {
-            string[] hostArr = host.Split(':');
-            int port = defaultPort;
-            if (hostArr.Length == 2)
+            try
             {
-                port = int.Parse(hostArr[1]);
+                string[] hostArr = host.Split(':');
+                int port = defaultPort;
+                if (hostArr.Length == 2)
+                {
+                    port = int.Parse(hostArr[1]);
+                }
+                IPAddress ip = GetDomainIp(hostArr[0]);
+                return new IPEndPoint(ip, port);
             }
-            IPAddress ip = GetDomainIp(hostArr[0]);
-
-            return new IPEndPoint(ip, port);
+            catch (Exception)
+            {
+            }
+            return null;
         }
 
 

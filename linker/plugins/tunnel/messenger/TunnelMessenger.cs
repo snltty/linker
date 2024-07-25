@@ -13,11 +13,13 @@ namespace linker.plugins.tunnel.messenger
     {
         private readonly TunnelTransfer tunnel;
         private readonly TunnelConfigTransfer tunnelConfigTransfer;
+        private readonly MessengerSender messengerSender;
 
-        public TunnelClientMessenger(TunnelTransfer tunnel, TunnelConfigTransfer tunnelConfigTransfer)
+        public TunnelClientMessenger(TunnelTransfer tunnel, TunnelConfigTransfer tunnelConfigTransfer, MessengerSender messengerSender)
         {
             this.tunnel = tunnel;
             this.tunnelConfigTransfer = tunnelConfigTransfer;
+            this.messengerSender = messengerSender;
         }
 
         [MessengerId((ushort)TunnelMessengerIds.Begin)]
@@ -33,14 +35,34 @@ namespace linker.plugins.tunnel.messenger
         }
 
         [MessengerId((ushort)TunnelMessengerIds.Info)]
-        public async Task Info(IConnection connection)
+        public void Info(IConnection connection)
         {
             TunnelWanPortProtocolInfo info = MemoryPackSerializer.Deserialize<TunnelWanPortProtocolInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            TunnelTransportWanPortInfo tunnelTransportPortInfo = await tunnel.GetWanPort(info).ConfigureAwait(false);
-            if (tunnelTransportPortInfo != null)
+
+            uint requestid = connection.ReceiveRequestWrap.RequestId;
+            tunnel.GetWanPort(info).ContinueWith(async (result) =>
             {
-                connection.Write(MemoryPackSerializer.Serialize(tunnelTransportPortInfo));
-            }
+                if (result.Result == null)
+                {
+                    await messengerSender.ReplyOnly(new MessageResponseWrap
+                    {
+                        Connection = connection,
+                        Code = MessageResponeCodes.ERROR,
+                        Payload = Helper.EmptyArray,
+                        RequestId = requestid
+                    });
+                }
+                else
+                {
+                    await messengerSender.ReplyOnly(new MessageResponseWrap
+                    {
+                        Connection = connection,
+                        Code = MessageResponeCodes.OK,
+                        Payload = MemoryPackSerializer.Serialize(result.Result),
+                        RequestId = requestid
+                    });
+                }
+            });
         }
 
         [MessengerId((ushort)TunnelMessengerIds.Fail)]
