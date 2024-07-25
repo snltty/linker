@@ -70,7 +70,7 @@ namespace linker.libs
             }
             return GetRouteLevelLinux(out result);
         }
-        public static ushort GetRouteLevelLinux(out List<IPAddress> result)
+        private static ushort GetRouteLevelLinux(out List<IPAddress> result)
         {
             result = new List<IPAddress>();
 
@@ -93,8 +93,7 @@ namespace linker.libs
 
             return 3;
         }
-
-        public static ushort GetRouteLevelWindows(out List<IPAddress> result)
+        private static ushort GetRouteLevelWindows(out List<IPAddress> result)
         {
             result = new List<IPAddress>();
             try
