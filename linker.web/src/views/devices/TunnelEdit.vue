@@ -20,7 +20,7 @@
                     </el-row>
                 </el-form-item>
                 <el-form-item label="" prop="alert">
-                    <div>光猫映射了端口后，可以直接连接，需要把TcpPortMap调到第一</div>
+                    <div>光猫映射了端口后，可以直接连接，把TcpPortMap调到第一</div>
                 </el-form-item>
                 <el-form-item label="">
                     <el-row>

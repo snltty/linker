@@ -48,16 +48,16 @@ jobs:
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
-        tag_name: v1.2.0.0
-        release_name: v1.2.0.0.${{ steps.date.outputs.today }}
+        tag_name: v1.2.0.1
+        release_name: v1.2.0.1.${{ steps.date.outputs.today }}
         draft: false
         prerelease: false
         body: |
-          1. 托盘检查
-          2. 停止服务清理网卡
-          3. 打洞错误
-          4. 网关层级计算修复(在linux下计算错误导致打洞失败)
-          5. 修复在IPV6环境下域名解析缓慢问题
+          1. 网关层级计算修复(在linux下计算错误导致打洞失败)
+          2. 修复在IPV6环境下域名解析缓慢问题
+          3. 新增基于端口映射的打洞协议
+          4. 修复端口转发潜在BUG
+          5. 请更新服务端
 
     - name: upload win x64
       id: upload-win-x64
