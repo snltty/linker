@@ -150,11 +150,14 @@ namespace linker.plugins.tunnel.messenger
 
             if (signCaching.TryGet(tunnelTransportInfo.Remote.MachineId, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
+                tunnelTransportInfo.Local.MachineName = cache1.MachineName;
+                tunnelTransportInfo.Remote.MachineName = cache.MachineName;
+
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = cache.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.Begin,
-                    Payload = connection.ReceiveRequestWrap.Payload
+                    Payload = MemoryPackSerializer.Serialize(tunnelTransportInfo)
                 }).ConfigureAwait(false);
                 connection.Write(Helper.TrueArray);
             }
@@ -167,11 +170,13 @@ namespace linker.plugins.tunnel.messenger
             TunnelTransportInfo tunnelTransportInfo = MemoryPackSerializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(tunnelTransportInfo.Remote.MachineId, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
+                tunnelTransportInfo.Local.MachineName = cache1.MachineName;
+                tunnelTransportInfo.Remote.MachineName = cache.MachineName;
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = cache.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.Fail,
-                    Payload = connection.ReceiveRequestWrap.Payload
+                    Payload = MemoryPackSerializer.Serialize(tunnelTransportInfo)
                 }).ConfigureAwait(false);
             }
         }
@@ -183,11 +188,13 @@ namespace linker.plugins.tunnel.messenger
             TunnelTransportInfo tunnelTransportInfo = MemoryPackSerializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(tunnelTransportInfo.Remote.MachineId, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
+                tunnelTransportInfo.Local.MachineName = cache1.MachineName;
+                tunnelTransportInfo.Remote.MachineName = cache.MachineName;
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = cache.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.Success,
-                    Payload = connection.ReceiveRequestWrap.Payload
+                    Payload = MemoryPackSerializer.Serialize(tunnelTransportInfo)
                 }).ConfigureAwait(false);
             }
         }

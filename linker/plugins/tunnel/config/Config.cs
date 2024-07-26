@@ -28,7 +28,7 @@ namespace linker.client.config
         /// <summary>
         /// 附加的网关层级
         /// </summary>
-        public int RouteLevelPlus { get; set; } = 0;
+        public int RouteLevelPlus { get; set; }
         /// <summary>
         /// 打洞排除IP列表
         /// </summary>
@@ -38,6 +38,9 @@ namespace linker.client.config
         /// 打洞协议列表
         /// </summary>
         public List<TunnelTransportItemInfo> Transports { get; set; } = new List<TunnelTransportItemInfo>();
+
+        public int PortMapWan { get; set; }
+        public int PortMapLan { get; set; }
     }
 
     [MemoryPackable]
@@ -73,10 +76,13 @@ namespace linker.config
     public sealed partial class TunnelTransportRouteLevelInfo
     {
         public string MachineId { get; set; }
-        public int RouteLevel { get; set; } = 0;
-        public int RouteLevelPlus { get; set; } = 0;
+        public int RouteLevel { get; set; }
+        public int RouteLevelPlus { get; set; }
 
         public bool NeedReboot { get; set; }
+
+        public int PortMapWan { get; set; }
+        public int PortMapLan { get; set; } 
     }
 
 
@@ -219,10 +225,26 @@ namespace linker.config
         [MemoryPackInclude]
         string MachineName => tunnelTransportWanPortInfo.MachineName;
 
+        [MemoryPackInclude]
+        int PortMapWan => tunnelTransportWanPortInfo.PortMapWan;
+
+        [MemoryPackInclude]
+        int PortMapLan => tunnelTransportWanPortInfo.PortMapLan;
+
         [MemoryPackConstructor]
-        SerializableTunnelTransportWanPortInfo(IPEndPoint local, IPEndPoint remote, IPAddress[] localIps, int routeLevel, string machineId, string machineName)
+        SerializableTunnelTransportWanPortInfo(IPEndPoint local, IPEndPoint remote, IPAddress[] localIps, int routeLevel, string machineId, string machineName, int portMapWan, int portMapLan)
         {
-            var tunnelTransportWanPortInfo = new TunnelTransportWanPortInfo { Local = local, Remote = remote, LocalIps = localIps, RouteLevel = routeLevel, MachineId = machineId, MachineName = machineName };
+            var tunnelTransportWanPortInfo = new TunnelTransportWanPortInfo
+            {
+                Local = local,
+                Remote = remote,
+                LocalIps = localIps,
+                RouteLevel = routeLevel,
+                MachineId = machineId,
+                MachineName = machineName,
+                PortMapWan = portMapWan,
+                PortMapLan = portMapLan
+            };
             this.tunnelTransportWanPortInfo = tunnelTransportWanPortInfo;
         }
 
@@ -257,7 +279,6 @@ namespace linker.config
             value = wrapped.tunnelTransportWanPortInfo;
         }
     }
-
 
 
     [MemoryPackable]
@@ -357,9 +378,12 @@ namespace linker.config
         [MemoryPackInclude]
         byte BufferSize => tunnelTransportInfo.BufferSize;
 
+        [MemoryPackInclude]
+        uint FlowId => tunnelTransportInfo.FlowId;
+
 
         [MemoryPackConstructor]
-        SerializableTunnelTransportInfo(TunnelTransportWanPortInfo local, TunnelTransportWanPortInfo remote, string transactionId, TunnelProtocolType transportType, string transportName, TunnelDirection direction, bool ssl, byte bufferSize)
+        SerializableTunnelTransportInfo(TunnelTransportWanPortInfo local, TunnelTransportWanPortInfo remote, string transactionId, TunnelProtocolType transportType, string transportName, TunnelDirection direction, bool ssl, byte bufferSize, uint flowid)
         {
             var tunnelTransportInfo = new TunnelTransportInfo
             {
@@ -371,6 +395,7 @@ namespace linker.config
                 Direction = direction,
                 SSL = ssl,
                 BufferSize = bufferSize,
+                FlowId = flowid
             };
             this.tunnelTransportInfo = tunnelTransportInfo;
         }

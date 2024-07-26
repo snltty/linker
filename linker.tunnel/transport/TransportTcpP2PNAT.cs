@@ -65,7 +65,7 @@ namespace linker.tunnel.transport
             {
                 return null;
             }
-            if(tunnelTransportInfo.Direction == TunnelDirection.Reverse)
+            if (tunnelTransportInfo.Direction == TunnelDirection.Reverse)
             {
                 await Task.Delay(50).ConfigureAwait(false);
             }
@@ -88,7 +88,7 @@ namespace linker.tunnel.transport
             if (tunnelTransportInfo.SSL && tunnelAdapter.Certificate == null)
             {
                 LoggerHelper.Instance.Error($"{Name}->ssl Certificate not found");
-                await OnSendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
+                await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                 return;
             }
             ITunnelConnection connection = await ConnectForward(tunnelTransportInfo, TunnelMode.Server).ConfigureAwait(false);

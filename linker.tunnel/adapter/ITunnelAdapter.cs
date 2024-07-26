@@ -12,6 +12,8 @@ namespace linker.tunnel.adapter
         /// </summary>
         public IPAddress LocalIP { get; }
 
+        public PortMapInfo PortMap { get; }
+
         /// <summary>
         /// ssl加密证书
         /// </summary>
@@ -26,7 +28,7 @@ namespace linker.tunnel.adapter
         /// 保存外网端口协议列表
         /// </summary>
         /// <param name="compacts"></param>
-        public void SetTunnelWanPortProtocols(List<TunnelWanPortInfo> protocols,bool updateVersion);
+        public void SetTunnelWanPortProtocols(List<TunnelWanPortInfo> protocols, bool updateVersion);
 
         /// <summary>
         /// 获取打洞协议列表
@@ -85,6 +87,12 @@ namespace linker.tunnel.adapter
         /// 本机名
         /// </summary>
         public string MachineId { get; set; }
+    }
+
+    public sealed class PortMapInfo
+    {
+        public int WanPort { get; set; }
+        public int LanPort { get; set; }
     }
 
     public sealed class TunnelWanPortProtocolInfo

@@ -5,6 +5,7 @@ using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.plugins.tunnel.messenger;
 using linker.tunnel.adapter;
+using linker.tunnel.transport;
 using linker.tunnel.wanport;
 using MemoryPack;
 using System.Collections.Concurrent;
@@ -20,15 +21,15 @@ namespace linker.plugins.tunnel
         private readonly MessengerSender messengerSender;
         private readonly RunningConfigTransfer runningConfigTransfer;
         private readonly ITunnelAdapter tunnelAdapter;
+        private readonly TransportTcpPortMap transportTcpPortMap;
 
-       
 
         private uint version = 0;
         public uint ConfigVersion => version;
         private ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> configs = new ConcurrentDictionary<string, TunnelTransportRouteLevelInfo>();
         public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> Config => configs;
 
-        public TunnelConfigTransfer(FileConfig config, RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, RunningConfigTransfer runningConfigTransfer, ITunnelAdapter tunnelAdapter)
+        public TunnelConfigTransfer(FileConfig config, RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, RunningConfigTransfer runningConfigTransfer, ITunnelAdapter tunnelAdapter, TransportTcpPortMap transportTcpPortMap)
         {
             this.config = config;
             this.running = running;
@@ -36,12 +37,15 @@ namespace linker.plugins.tunnel
             this.messengerSender = messengerSender;
             this.runningConfigTransfer = runningConfigTransfer;
             this.tunnelAdapter = tunnelAdapter;
+            this.transportTcpPortMap = transportTcpPortMap;
 
             InitRouteLevel();
-           
+
             InitConfig();
 
             TestQuic();
+
+            RefreshPortMap();
         }
 
         private void InitConfig()
@@ -89,8 +93,11 @@ namespace linker.plugins.tunnel
         public void OnLocalRouteLevel(TunnelTransportRouteLevelInfo tunnelTransportFileConfigInfo)
         {
             running.Data.Tunnel.RouteLevelPlus = tunnelTransportFileConfigInfo.RouteLevelPlus;
+            running.Data.Tunnel.PortMapWan = tunnelTransportFileConfigInfo.PortMapWan;
+            running.Data.Tunnel.PortMapLan = tunnelTransportFileConfigInfo.PortMapLan;
             running.Data.Update();
             GetRemoteRouteLevel();
+            RefreshPortMap();
         }
         /// <summary>
         /// 收到别人发给我的修改我的信息
@@ -134,6 +141,8 @@ namespace linker.plugins.tunnel
                 MachineId = config.Data.Client.Id,
                 RouteLevel = config.Data.Client.Tunnel.RouteLevel,
                 RouteLevelPlus = running.Data.Tunnel.RouteLevelPlus,
+                PortMapWan = running.Data.Tunnel.PortMapWan,
+                PortMapLan = running.Data.Tunnel.PortMapLan,
                 NeedReboot = reboot
             };
         }
@@ -174,6 +183,12 @@ namespace linker.plugins.tunnel
                     File.Delete("msquic.dll.temp");
                 }
             }
+        }
+
+
+        private void RefreshPortMap()
+        {
+            _ = transportTcpPortMap.Listen(running.Data.Tunnel.PortMapLan);
         }
     }
 }

@@ -3,11 +3,7 @@
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="auto">
                 <el-form-item label="" prop="alert">
-                    <div>
-                        <p>网关层级自动计算，可能并不符合实际情况</p>
-                        <p>你可以调整层级加减，得到最终层级数以符合你的实际环境</p>
-                        <p>这有助于提高TCP打洞成功率</p>
-                    </div>
+                    <div>网关层级为你的设备与外网的距离，你可以手动调整数值</div>
                 </el-form-item>
                 <el-form-item label="">
                     <el-row>
@@ -19,6 +15,23 @@
                         <el-col :span="12">
                             <el-form-item label="调整层级" prop="RouteLevelPlus">
                                 <el-input-number v-model="state.ruleForm.RouteLevelPlus" />
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                </el-form-item>
+                <el-form-item label="" prop="alert">
+                    <div>光猫映射了端口后，可以直接连接，需要把TcpPortMap调到第一</div>
+                </el-form-item>
+                <el-form-item label="">
+                    <el-row>
+                        <el-col :span="12">
+                            <el-form-item label="外网端口" prop="PortMapWan">
+                                <el-input-number v-model="state.ruleForm.PortMapWan" />
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="12">
+                            <el-form-item label="内网端口" prop="PortMapLan">
+                                <el-input-number v-model="state.ruleForm.PortMapLan" />
                             </el-form-item>
                         </el-col>
                     </el-row>
@@ -51,6 +64,8 @@ export default {
             ruleForm: {
                 RouteLevel: tunnel.value.current.RouteLevel,
                 RouteLevelPlus: tunnel.value.current.RouteLevelPlus,
+                PortMapWan: tunnel.value.current.PortMapWan,
+                PortMapLan: tunnel.value.current.PortMapLan,
             },
             rules: {}
         });
@@ -66,6 +81,8 @@ export default {
             const json = JSON.parse(JSON.stringify(tunnel.value.current));
             json.RouteLevel = +state.ruleForm.RouteLevel;
             json.RouteLevelPlus = +state.ruleForm.RouteLevelPlus;
+            json.PortMapWan = +state.ruleForm.PortMapWan;
+            json.PortMapLan = +state.ruleForm.PortMapLan;
             setTunnelRouteLevel(json).then(() => {
                 state.show = false;
                 ElMessage.success('已操作！');

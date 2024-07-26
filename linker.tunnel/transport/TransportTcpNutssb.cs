@@ -104,7 +104,7 @@ namespace linker.tunnel.transport
             if (tunnelTransportInfo.SSL && tunnelAdapter.Certificate == null)
             {
                 LoggerHelper.Instance.Error($"{Name}->ssl Certificate not found");
-                await OnSendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
+                await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                 return;
             }
             //正向连接，也就是它要连接我，那我就监听

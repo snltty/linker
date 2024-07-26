@@ -17,6 +17,7 @@ namespace linker.tunnel
         private ITunnelAdapter tunnelAdapter;
 
         private ConcurrentDictionary<string, bool> connectingDic = new ConcurrentDictionary<string, bool>();
+        private uint flowid = 1;
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
         public TunnelTransfer()
@@ -181,7 +182,8 @@ namespace linker.tunnel
                                     TransportType = transport.ProtocolType,
                                     Local = localInfo.Result,
                                     Remote = remoteInfo.Result,
-                                    SSL = transportItem.SSL
+                                    SSL = transportItem.SSL,
+                                    FlowId = Interlocked.Increment(ref flowid)
                                 };
                                 OnConnecting(tunnelTransportInfo);
                                 ParseRemoteEndPoint(tunnelTransportInfo);
@@ -295,6 +297,7 @@ namespace linker.tunnel
             TunnelWanPortEndPoint ip = await compactTransfer.GetWanPortAsync(tunnelAdapter.LocalIP, info).ConfigureAwait(false);
             if (ip != null)
             {
+                PortMapInfo portMapInfo = tunnelAdapter.PortMap ?? new PortMapInfo { LanPort = 0, WanPort = 0 };
                 var config = tunnelAdapter.GetLocalConfig();
                 return new TunnelTransportWanPortInfo
                 {
@@ -302,7 +305,9 @@ namespace linker.tunnel
                     Remote = ip.Remote,
                     LocalIps = config.LocalIps,
                     RouteLevel = config.RouteLevel,
-                    MachineId = config.MachineId
+                    MachineId = config.MachineId,
+                    PortMapLan = portMapInfo.LanPort,
+                    PortMapWan = portMapInfo.WanPort,
                 };
             }
             return null;

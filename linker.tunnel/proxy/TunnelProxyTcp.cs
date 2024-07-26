@@ -5,7 +5,6 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
-using System.Collections.Generic;
 
 namespace linker.tunnel.proxy
 {
@@ -91,13 +90,6 @@ namespace linker.tunnel.proxy
         }
         private async Task BeginReceive(AsyncUserToken token)
         {
-            int length = await token.Socket.ReceiveAsync(token.Buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
-            if (length == 0)
-            {
-                CloseClientSocket(token);
-                return;
-            }
-            token.Proxy.Data = token.Buffer.AsMemory(0, length);
             bool closeConnect = await ConnectTunnelConnection(token).ConfigureAwait(false);
             if (token.Connection != null)
             {

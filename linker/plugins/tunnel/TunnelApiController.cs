@@ -9,7 +9,6 @@ using System.Collections.Concurrent;
 using linker.tunnel.wanport;
 using linker.client.config;
 using linker.plugins.client;
-using linker.plugins.server;
 using linker.plugins.capi;
 using linker.plugins.messenger;
 using linker.plugins.tunnel.excludeip;
@@ -87,7 +86,6 @@ namespace linker.plugins.tunnel
             List<TunnelWanPortInfo> info = param.Content.DeJson<List<TunnelWanPortInfo>>();
             tunnelMessengerAdapter.SetTunnelWanPortProtocols(info,true);
             return true;
-
         }
         /// <summary>
         /// 设置网关层级
@@ -144,7 +142,6 @@ namespace linker.plugins.tunnel
             ExcludeIPItem[] info = param.Content.DeJson<ExcludeIPItem[]>();
             excludeIPTransfer.SettExcludeIPs(info);
         }
-
         public sealed class TunnelListInfo
         {
             public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> List { get; set; }

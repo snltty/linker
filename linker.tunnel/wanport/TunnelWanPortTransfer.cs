@@ -1,6 +1,4 @@
 ﻿using linker.libs;
-using linker.libs.extends;
-using System.Diagnostics;
 using System.Net;
 
 namespace linker.tunnel.wanport
@@ -54,7 +52,7 @@ namespace linker.tunnel.wanport
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Debug($"get domain ip {info.Host}");
                 IPEndPoint server = NetworkHelper.GetEndPoint(info.Host, 3478);
-                if(server == null) return null;
+                if (server == null) return null;
                 TunnelWanPortEndPoint wanPort = await tunnelWanPort.GetAsync(server).ConfigureAwait(false);
                 if (wanPort != null)
                 {

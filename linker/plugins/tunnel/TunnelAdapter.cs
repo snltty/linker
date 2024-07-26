@@ -19,7 +19,7 @@ namespace linker.plugins.tunnel
     {
         public IPAddress LocalIP => clientSignInState.Connection?.LocalAddress.Address ?? IPAddress.Any;
         public X509Certificate2 Certificate { get; private set; }
-
+        public PortMapInfo PortMap => new PortMapInfo { WanPort = running.Data.Tunnel.PortMapWan, LanPort = running.Data.Tunnel.PortMapLan };
 
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
@@ -104,7 +104,6 @@ namespace linker.plugins.tunnel
         }
 
 
-
         public NetworkInfo GetLocalConfig()
         {
             var excludeips = excludeIPTransfer.Get();
@@ -179,7 +178,6 @@ namespace linker.plugins.tunnel
             }).ConfigureAwait(false);
             return true;
         }
-
 
     }
 }

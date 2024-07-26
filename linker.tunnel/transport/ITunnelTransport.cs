@@ -25,7 +25,7 @@ namespace linker.tunnel.transport
         /// <summary>
         /// 是否反向打洞
         /// </summary>
-        public bool Reverse { get;  } 
+        public bool Reverse { get; }
         /// <summary>
         /// 是否允许修改反向打洞配置
         /// </summary>
@@ -37,7 +37,7 @@ namespace linker.tunnel.transport
         /// <summary>
         /// 是否允许修改ssl配置
         /// </summary>
-        public bool DisableSSL { get; } 
+        public bool DisableSSL { get; }
 
         /// <summary>
         /// 发送连接开始信息
@@ -111,6 +111,15 @@ namespace linker.tunnel.transport
         /// 我的名称
         /// </summary>
         public string MachineName { get; set; }
+
+        /// <summary>
+        /// 固定端口，外网
+        /// </summary>
+        public int PortMapWan { get; set; }
+        /// <summary>
+        /// 固定端口，内网
+        /// </summary>
+        public int PortMapLan { get; set; }
     }
 
     public sealed partial class TunnelTransportItemInfo
@@ -200,6 +209,12 @@ namespace linker.tunnel.transport
         /// 缓冲区
         /// </summary>
         public byte BufferSize { get; set; } = 3;
+
+        /// <summary>
+        /// 流id
+        /// </summary>
+        public uint FlowId { get; set; }
+
         /// <summary>
         /// 目标ip列表
         /// </summary>

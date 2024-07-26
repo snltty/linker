@@ -48,13 +48,15 @@ namespace linker.plugins.tunnel
             serviceCollection.AddSingleton<TunnelWanPortProtocolLinkerUdp>();
             serviceCollection.AddSingleton<TunnelWanPortProtocolLinkerTcp>();
             serviceCollection.AddSingleton<TunnelWanPortProtocolStun>();
+            
 
             //打洞协议
             serviceCollection.AddSingleton<TunnelTransfer>();
             serviceCollection.AddSingleton<TunnelTransportTcpNutssb>();
             serviceCollection.AddSingleton<TransportMsQuic>();
             serviceCollection.AddSingleton<TransportTcpP2PNAT>();
-
+            serviceCollection.AddSingleton<TransportTcpPortMap>();
+            
 
             serviceCollection.AddSingleton<TunnelExcludeIPTransfer>();
             serviceCollection.AddSingleton<TunnelConfigTransfer>();
@@ -101,6 +103,7 @@ namespace linker.plugins.tunnel
 
             TunnelExcludeIPTransfer excludeIPTransfer = serviceProvider.GetService<TunnelExcludeIPTransfer>();
             excludeIPTransfer.Load(assemblies);
+
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
