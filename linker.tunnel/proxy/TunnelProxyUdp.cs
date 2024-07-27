@@ -59,7 +59,7 @@ namespace linker.tunnel.proxy
                         {
                             await SendToConnection(token).ConfigureAwait(false);
                         }
-                        else if (token.Connections != null)
+                        else if (token.Connections != null && token.Connections.Count > 0)
                         {
                             await SendToConnections(token).ConfigureAwait(false);
                         }
