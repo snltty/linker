@@ -154,7 +154,7 @@ namespace linker.plugins.tuntap.proxy
             token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
 
             //在docker内，我们不应该直接访问自己的虚拟IP，而是去访问宿主机的IP
-            if (hostipCic.TryGetValue(token.TargetIP, out IPAddress hostip))
+            if (hostipCic.TryGetValue(token.TargetIP, out IPAddress hostip) && hostip.Equals(IPAddress.Any) == false)
             {
                 token.Proxy.TargetEP.Address = hostip;
             }
@@ -194,7 +194,7 @@ namespace linker.plugins.tuntap.proxy
             else
             {
                 //在docker内，我们不应该直接访问自己的虚拟IP，而是去访问宿主机的IP
-                if (hostipCic.TryGetValue(token.TargetIP, out IPAddress hostip))
+                if (hostipCic.TryGetValue(token.TargetIP, out IPAddress hostip) && hostip.Equals(IPAddress.Any)==false)
                 {
                     token.Proxy.TargetEP.Address = hostip;
                 }

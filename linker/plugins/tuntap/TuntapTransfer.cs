@@ -417,7 +417,7 @@ namespace linker.plugins.tuntap
                 {
                 }
             }
-            return null;
+            return IPAddress.Any;
         }
     }
 }
