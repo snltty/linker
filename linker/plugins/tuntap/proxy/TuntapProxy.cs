@@ -100,6 +100,14 @@ namespace linker.plugins.tuntap.proxy
         /// <returns></returns>
         protected override async ValueTask<bool> ConnectTunnelConnection(AsyncUserToken token)
         {
+            int length = await token.Socket.ReceiveAsync(token.Buffer.AsMemory(), SocketFlags.None);
+            if (length == 0)
+            {
+                return true;
+            }
+            token.Proxy.Data = token.Buffer.AsMemory(0, length);
+            
+
             token.Proxy.TargetEP = null;
             token.Proxy.Rsv = (byte)Socks5EnumStep.Request;
             //步骤，request
