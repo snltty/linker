@@ -124,6 +124,16 @@ namespace linker.plugins.signin.messenger
                 connection.Write(MemoryPackSerializer.Serialize(response));
             }
         }
+
+        [MessengerId((ushort)SignInMessengerIds.Exists)]
+        public void Exists(IConnection connection)
+        {
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            {
+                IEnumerable<string> list = signCaching.Get(cache.GroupId).Select(c => c.MachineId);
+                connection.Write(MemoryPackSerializer.Serialize(list));
+            }
+        }
     }
 
     [MemoryPackable]

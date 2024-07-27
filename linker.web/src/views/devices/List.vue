@@ -63,7 +63,7 @@ export default {
 
         const {tuntap,_getTuntapInfo,handleTuntapEdit,handleTuntapRefresh,clearTuntapTimeout,getTuntapMachines}  = provideTuntap();
         const {tunnel,_getTunnelInfo,handleTunnelEdit,handleTunnelRefresh,clearTunnelTimeout} = provideTunnel();
-        const {forward,_getForwardInfo,handleForwardEdit,_testTargetForwardInfo,_testListenForwardInfo,clearForwardTimeout,getForwardMachines} = provideForward();
+        const {forward,_getForwardInfo,handleForwardEdit,_testTargetForwardInfo,clearForwardTimeout,getForwardMachines} = provideForward();
         const {sforward,_getSForwardInfo,handleSForwardEdit,_testLocalSForwardInfo,clearSForwardTimeout,getSForwardMachines} = provideSforward();
         const {connections,
             forwardConnections,_getForwardConnections,
@@ -128,7 +128,6 @@ export default {
             _getUpdater();
 
             _testTargetForwardInfo();
-            _testListenForwardInfo();
             _testLocalSForwardInfo();
         });
         onUnmounted(() => {

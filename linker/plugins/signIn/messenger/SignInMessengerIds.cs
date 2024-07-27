@@ -12,6 +12,7 @@
         Version = 7,
 
         Ids = 8,
+        Exists = 9,
 
         None = 99
     }

@@ -38,10 +38,6 @@ namespace linker.plugins.forward
             forwardProxy.RemoveConnection(param.Content);
         }
 
-        public void TestListen(ApiControllerParamsInfo param)
-        {
-            forwardTransfer.TestListen();
-        }
         public void TestTarget(ApiControllerParamsInfo param)
         {
             if (string.IsNullOrWhiteSpace(param.Content))

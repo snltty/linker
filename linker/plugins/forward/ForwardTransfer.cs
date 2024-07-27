@@ -5,6 +5,7 @@ using linker.plugins.client;
 using linker.plugins.forward.messenger;
 using linker.plugins.forward.proxy;
 using linker.plugins.messenger;
+using linker.plugins.signin.messenger;
 using MemoryPack;
 using System.Collections.Concurrent;
 using System.Net;
@@ -35,6 +36,7 @@ namespace linker.plugins.forward
         {
             Task.Run(async () =>
             {
+                await TestListen();
                 Stop();
                 await Task.Delay(5000).ConfigureAwait(false);
                 Start();
@@ -193,59 +195,31 @@ namespace linker.plugins.forward
             }
         }
 
-        bool testing = false;
-        public void TestListen()
+
+        int testing = 0;
+        public async Task TestListen()
         {
-            if (testing) return;
-            testing = true;
-            Task.Run(async () =>
+            if (Interlocked.CompareExchange(ref testing, 1, 0) == 1)
             {
-                try
-                {
-                    foreach (var item in running.Data.Forwards.Where(c => c.Port > 0))
-                    {
-                        string msg = await ConnectAsync(new IPEndPoint(item.BindIPAddress, item.Port)).ConfigureAwait(false);
-                        item.Msg = msg;
-                        if (string.IsNullOrWhiteSpace(msg) == false)
-                        {
-                            try
-                            {
-                                forwardProxy.Stop(item.Port);
-                                forwardProxy.Start(new IPEndPoint(item.BindIPAddress, item.Port), item.TargetEP, item.MachineId, item.BufferSize);
-                            }
-                            catch (Exception ex)
-                            {
-                                item.Msg = ex.Message;
-                                item.Started = false;
-                            }
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                }
-                testing = false;
+                return;
+            }
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)SignInMessengerIds.Exists,
+                Timeout = 2000
             });
-            async Task<string> ConnectAsync(IPEndPoint ep)
+            Interlocked.CompareExchange(ref testing, 0, 1);
+            if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
-                if (ep.Address.Equals(IPAddress.Any))
+                List<string> machineIds = MemoryPackSerializer.Deserialize<List<string>>(resp.Data.Span);
+                foreach (ForwardInfo forward in running.Data.Forwards.Where(c => machineIds.Contains(c.MachineId) == false))
                 {
-                    ep.Address = IPAddress.Loopback;
-                }
-                try
-                {
-                    using Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                    await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
-                    socket.SafeClose();
-                    return string.Empty;
-                }
-                catch (Exception ex)
-                {
-                    return ex.Message;
+                    running.Data.Forwards.Remove(forward);
+                    Stop(forward);
                 }
             }
         }
-
 
         public Dictionary<string, List<ForwardInfo>> Get()
         {

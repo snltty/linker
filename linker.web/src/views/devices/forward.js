@@ -1,4 +1,4 @@
-import { getForwardInfo, testListenForwardInfo, testTargetForwardInfo } from "@/apis/forward";
+import { getForwardInfo, testTargetForwardInfo } from "@/apis/forward";
 import { injectGlobalData } from "@/provide";
 import { inject, provide, ref } from "vue";
 
@@ -40,14 +40,6 @@ export const provideForward = () => {
             forward.value.testTargetTimer = setTimeout(_testTargetForwardInfo, 5000);
         });
     }
-    const _testListenForwardInfo = () => {
-        clearTimeout(forward.value.testTimer)
-        testListenForwardInfo(forward.value.current).then((res) => {
-            forward.value.testTimer = setTimeout(_testListenForwardInfo, 5000);
-        }).catch(() => {
-            forward.value.testTimer = setTimeout(_testListenForwardInfo, 5000);
-        });
-    }
     const clearForwardTimeout = () => {
         clearTimeout(forward.value.timer);
         clearTimeout(forward.value.testTimer);
@@ -64,7 +56,7 @@ export const provideForward = () => {
     }
 
     return {
-        forward, _getForwardInfo, handleForwardEdit, _testTargetForwardInfo, _testListenForwardInfo, clearForwardTimeout, getForwardMachines
+        forward, _getForwardInfo, handleForwardEdit, _testTargetForwardInfo, clearForwardTimeout, getForwardMachines
     }
 }
 export const useForward = () => {

@@ -98,7 +98,7 @@
 </template>
 <script>
 import {  onMounted, onUnmounted, reactive, watch } from 'vue';
-import { getForwardInfo, removeForwardInfo, addForwardInfo ,getForwardIpv4,testTargetForwardInfo,testListenForwardInfo } from '@/apis/forward'
+import { getForwardInfo, removeForwardInfo, addForwardInfo ,getForwardIpv4,testTargetForwardInfo } from '@/apis/forward'
 import { ElMessage } from 'element-plus';
 import {WarnTriangleFilled,Delete} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
@@ -142,13 +142,6 @@ export default {
                state.timerTestTarget = setTimeout(_testTargetForwardInfo,1000);
             }).catch(()=>{
                 state.timerTestTarget = setTimeout(_testTargetForwardInfo,1000);
-            });
-        }
-        const _testListenForwardInfo = ()=>{
-            testListenForwardInfo(forward.value.current).then((res)=>{
-               state.timerTestListen = setTimeout(_testListenForwardInfo,1000);
-            }).catch(()=>{
-                state.timerTestListen = setTimeout(_testListenForwardInfo,1000);
             });
         }
         
@@ -220,7 +213,6 @@ export default {
             _getForwardInfo();
             _getForwardIpv4();
             _testTargetForwardInfo();
-            _testListenForwardInfo();
             
         });
         onUnmounted(()=>{
