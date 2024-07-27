@@ -23,12 +23,12 @@ namespace linker.plugins.tuntap.proxy
         private readonly FileConfig config;
 
         private IPEndPoint proxyEP;
-        private IPAddress hostIP;
 
         public override IPAddress UdpBindAdress { get; set; }
 
         private uint[] maskValues = Array.Empty<uint>();
         private readonly ConcurrentDictionary<uint, string> dic = new ConcurrentDictionary<uint, string>();
+        private readonly ConcurrentDictionary<uint, IPAddress> hostipCic = new ConcurrentDictionary<uint, IPAddress>();
         private readonly ConcurrentDictionary<string, ITunnelConnection> connections = new ConcurrentDictionary<string, ITunnelConnection>();
         private readonly ConcurrentDictionary<string, SemaphoreSlim> dicLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
 
@@ -52,8 +52,6 @@ namespace linker.plugins.tuntap.proxy
             }
             Start(new IPEndPoint(IPAddress.Any, 0), runningConfig.Data.Tuntap.BufferSize);
             proxyEP = new IPEndPoint(IPAddress.Any, LocalEndpoint.Port);
-
-            GetHostIP();
         }
 
         /// <summary>
@@ -95,6 +93,10 @@ namespace linker.plugins.tuntap.proxy
             dic.AddOrUpdate(ip, machineId, (a, b) => machineId);
 
             UdpBindAdress = runningConfig.Data.Tuntap.IP;
+        }
+        public void SetHostIP(uint ip, IPAddress hostip)
+        {
+            hostipCic.AddOrUpdate(ip, hostip, (a, b) => hostip);
         }
 
         /// <summary>
@@ -150,9 +152,11 @@ namespace linker.plugins.tuntap.proxy
             }
 
             token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
-            if (hostIP != null && token.Proxy.TargetEP.Address.Equals(runningConfig.Data.Tuntap.IP))
+
+            //在docker内，我们不应该直接访问自己的虚拟IP，而是去访问宿主机的IP
+            if (hostipCic.TryGetValue(token.TargetIP, out IPAddress hostip))
             {
-                token.Proxy.TargetEP.Address = hostIP;
+                token.Proxy.TargetEP.Address = hostip;
             }
 
             token.Connection = await ConnectTunnel(token.TargetIP).ConfigureAwait(false);
@@ -178,14 +182,24 @@ namespace linker.plugins.tuntap.proxy
 
             token.TargetIP = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
             token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
-            if (hostIP != null && token.Proxy.TargetEP.Address.Equals(runningConfig.Data.Tuntap.IP))
-            {
-                token.Proxy.TargetEP.Address = hostIP;
-            }
-
             //解析出udp包的数据部分
             token.Proxy.Data = Socks5Parser.GetUdpData(token.Proxy.Data);
-            token.Connection = await ConnectTunnel(token.TargetIP).ConfigureAwait(false);
+
+            //是广播消息
+            if (ipArray.Span[3] == 255 || token.Proxy.TargetEP.Address.GetIsBroadcastAddress())
+            {
+                token.Proxy.TargetEP.Address = IPAddress.Loopback;
+                token.Connections = connections.Values.ToList();
+            }
+            else
+            {
+                //在docker内，我们不应该直接访问自己的虚拟IP，而是去访问宿主机的IP
+                if (hostipCic.TryGetValue(token.TargetIP, out IPAddress hostip))
+                {
+                    token.Proxy.TargetEP.Address = hostip;
+                }
+                token.Connection = await ConnectTunnel(token.TargetIP).ConfigureAwait(false);
+            }
         }
 
         /// <summary>
@@ -370,20 +384,5 @@ namespace linker.plugins.tuntap.proxy
             }
         }
 
-
-        private void GetHostIP()
-        {
-            string hostip = Environment.GetEnvironmentVariable("SNLTTY_LINKER_HOST_IP");
-            if (string.IsNullOrWhiteSpace(hostip) == false)
-            {
-                try
-                {
-                    hostIP = IPAddress.Parse(hostip);
-                }
-                catch (Exception)
-                {
-                }
-            }
-        }
     }
 }

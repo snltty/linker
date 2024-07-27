@@ -67,6 +67,9 @@ namespace linker.plugins.tuntap.vea
         public string Error { get; set; }
 
         public byte BufferSize { get; set; } = 3;
+
+        [MemoryPackAllowSerialize]
+        public IPAddress HostIP { get; set; }
     }
 
     [MemoryPackable]

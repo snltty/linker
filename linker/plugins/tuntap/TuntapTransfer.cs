@@ -238,7 +238,8 @@ namespace linker.plugins.tuntap
                 MachineId = config.Data.Client.Id,
                 Status = Status,
                 Error = tuntapVea.Error,
-                BufferSize = runningConfig.Data.Tuntap.BufferSize
+                BufferSize = runningConfig.Data.Tuntap.BufferSize,
+                HostIP = GetHostIP()
             };
             if (runningConfig.Data.Tuntap.Masks.Length != runningConfig.Data.Tuntap.LanIPs.Length)
             {
@@ -293,8 +294,11 @@ namespace linker.plugins.tuntap
             foreach (var item in tuntapInfos.Values)
             {
                 tuntapProxy.SetIP(item.MachineId, BinaryPrimitives.ReadUInt32BigEndian(item.IP.GetAddressBytes()));
+                if (item.HostIP != null)
+                {
+                    tuntapProxy.SetHostIP(BinaryPrimitives.ReadUInt32BigEndian(item.IP.GetAddressBytes()), item.HostIP);
+                }
             }
-
         }
 
         private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)
@@ -398,6 +402,22 @@ namespace linker.plugins.tuntap
                 await Task.Delay(5000).ConfigureAwait(false);
                 Run();
             }
+        }
+
+        private IPAddress GetHostIP()
+        {
+            string hostip = Environment.GetEnvironmentVariable("SNLTTY_LINKER_HOST_IP");
+            if (string.IsNullOrWhiteSpace(hostip) == false)
+            {
+                try
+                {
+                    return IPAddress.Parse(hostip);
+                }
+                catch (Exception)
+                {
+                }
+            }
+            return null;
         }
     }
 }
