@@ -23,10 +23,9 @@ namespace linker
 
             LoggerHelper.Instance.Warning($"current version : {config.Data.Version}");
             LoggerHelper.Instance.Warning($"linker env is docker : {Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")}");
+            LoggerHelper.Instance.Warning($"linker env host ip : {Environment.GetEnvironmentVariable("SNLTTY_LINKER_HOST_IP")}");
             LoggerHelper.Instance.Warning($"linker env os : {System.Runtime.InteropServices.RuntimeInformation.OSDescription}");
             
-
-
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
             StartupTransfer.Init(config, assemblies);
 

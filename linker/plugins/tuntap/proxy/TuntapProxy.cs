@@ -23,6 +23,8 @@ namespace linker.plugins.tuntap.proxy
         private readonly FileConfig config;
 
         private IPEndPoint proxyEP;
+        private IPAddress hostIP;
+
         public override IPAddress UdpBindAdress { get; set; }
 
         private uint[] maskValues = Array.Empty<uint>();
@@ -50,6 +52,8 @@ namespace linker.plugins.tuntap.proxy
             }
             Start(new IPEndPoint(IPAddress.Any, 0), runningConfig.Data.Tuntap.BufferSize);
             proxyEP = new IPEndPoint(IPAddress.Any, LocalEndpoint.Port);
+
+            GetHostIP();
         }
 
         /// <summary>
@@ -106,7 +110,7 @@ namespace linker.plugins.tuntap.proxy
                 return true;
             }
             token.Proxy.Data = token.Buffer.AsMemory(0, length);
-            
+
 
             token.Proxy.TargetEP = null;
             token.Proxy.Rsv = (byte)Socks5EnumStep.Request;
@@ -146,6 +150,11 @@ namespace linker.plugins.tuntap.proxy
             }
 
             token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
+            if (hostIP != null && token.Proxy.TargetEP.Address.Equals(runningConfig.Data.Tuntap.IP))
+            {
+                token.Proxy.TargetEP.Address = hostIP;
+            }
+
             token.Connection = await ConnectTunnel(token.TargetIP).ConfigureAwait(false);
 
             Socks5EnumResponseCommand resp = token.Connection != null && token.Connection.Connected ? Socks5EnumResponseCommand.ConnecSuccess : Socks5EnumResponseCommand.NetworkError;
@@ -169,6 +178,11 @@ namespace linker.plugins.tuntap.proxy
 
             token.TargetIP = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
             token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
+            if (hostIP != null && token.Proxy.TargetEP.Address.Equals(runningConfig.Data.Tuntap.IP))
+            {
+                token.Proxy.TargetEP.Address = hostIP;
+            }
+
             //解析出udp包的数据部分
             token.Proxy.Data = Socks5Parser.GetUdpData(token.Proxy.Data);
             token.Connection = await ConnectTunnel(token.TargetIP).ConfigureAwait(false);
@@ -338,8 +352,6 @@ namespace linker.plugins.tuntap.proxy
             };
         }
 
-
-
         public ConcurrentDictionary<string, ITunnelConnection> GetConnections()
         {
             return connections;
@@ -351,6 +363,22 @@ namespace linker.plugins.tuntap.proxy
                 try
                 {
                     _connection.Dispose();
+                }
+                catch (Exception)
+                {
+                }
+            }
+        }
+
+
+        private void GetHostIP()
+        {
+            string hostip = Environment.GetEnvironmentVariable("SNLTTY_LINKER_HOST_IP");
+            if (string.IsNullOrWhiteSpace(hostip) == false)
+            {
+                try
+                {
+                    hostIP = IPAddress.Parse(hostip);
                 }
                 catch (Exception)
                 {
