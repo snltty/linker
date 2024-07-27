@@ -180,7 +180,7 @@ namespace linker.tunnel.proxy
             ConnectId.ToBytes(memory.Slice(index));
             index += 8;
 
-            bytes[index] = (byte)((byte)Step << 4 | (byte)Protocol << 2 | (byte)Direction);
+            bytes[index] = (byte)(((byte)Step << 4) | ((byte)Protocol << 2) | (byte)Direction);
             index += 1;
 
             bytes[index] = BufferSize;
@@ -234,7 +234,7 @@ namespace linker.tunnel.proxy
             index += 8;
 
             Step = (ProxyStep)(span[index] >> 4);
-            Protocol = (ProxyProtocol)(span[index] & 0b1100);
+            Protocol = (ProxyProtocol)((span[index] & 0b1100)>>2);
             Direction = (ProxyDirection)(span[index] & 0b0011);
             index++;
 
@@ -284,7 +284,7 @@ namespace linker.tunnel.proxy
         }
         public ConnectIdUdp GetUdpConnectId()
         {
-            return new ConnectIdUdp(Proxy.ConnectId, Proxy.SourceEP, Connection.RemoteMachineId.GetHashCode(), Connection.TransactionId.GetHashCode());
+            return new ConnectIdUdp(Proxy.SourceEP, Connection.RemoteMachineId.GetHashCode(), Connection.TransactionId.GetHashCode());
         }
     }
 

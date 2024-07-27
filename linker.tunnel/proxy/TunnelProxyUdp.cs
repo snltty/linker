@@ -43,12 +43,12 @@ namespace linker.tunnel.proxy
         private async Task ReceiveUdp(AsyncUserUdpToken token, byte buffersize)
         {
             byte[] bytes = new byte[(1 << buffersize) * 1024];
-            IPEndPoint TempRemoteEP = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
+            IPEndPoint tempRemoteEP = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
             while (true)
             {
                 try
                 {
-                    SocketReceiveFromResult result = await token.SourceSocket.ReceiveFromAsync(bytes, TempRemoteEP).ConfigureAwait(false);
+                    SocketReceiveFromResult result = await token.SourceSocket.ReceiveFromAsync(bytes, tempRemoteEP).ConfigureAwait(false);
 
                     token.Proxy.SourceEP = result.RemoteEndPoint as IPEndPoint;
                     token.Proxy.Data = bytes.AsMemory(0, result.ReceivedBytes);
@@ -164,6 +164,7 @@ namespace linker.tunnel.proxy
                         token.Update();
                         return;
                     }
+
                     _ = ConnectUdp(tunnelToken, target);
 
                 }
@@ -218,7 +219,7 @@ namespace linker.tunnel.proxy
                     Protocol = tunnelToken.Proxy.Protocol,
                     SourceEP = tunnelToken.Proxy.SourceEP,
                     TargetEP = tunnelToken.Proxy.TargetEP,
-                    Step = tunnelToken.Proxy.Step,
+                    Step =  ProxyStep.Forward,
                     Port = tunnelToken.Proxy.Port,
                     BufferSize = tunnelToken.Proxy.BufferSize,
                 },
@@ -271,9 +272,8 @@ namespace linker.tunnel.proxy
         /// <returns></returns>
         private async Task SendToConnection(AsyncUserUdpTokenTarget token)
         {
-            // SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
-            // await semaphoreSlim.WaitAsync();
-
+            SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
+            await semaphoreSlim.WaitAsync();
 
             byte[] connectData = token.Proxy.ToBytes(out int length);
             try
@@ -291,7 +291,7 @@ namespace linker.tunnel.proxy
             finally
             {
                 token.Proxy.Return(connectData);
-                // semaphoreSlim.Release();
+                semaphoreSlim.Release();
             }
         }
 
@@ -399,8 +399,6 @@ namespace linker.tunnel.proxy
         public List<ITunnelConnection> Connections { get; set; }
         public ProxyInfo Proxy { get; set; }
 
-        public uint TargetIP { get; set; }
-
         public void Clear()
         {
             SourceSocket?.SafeClose();
@@ -439,24 +437,22 @@ namespace linker.tunnel.proxy
     {
         public bool Equals(ConnectIdUdp x, ConnectIdUdp y)
         {
-            return x.source != null && x.source.Equals(y.source) && x.connectId == y.connectId && x.hashcode1 == y.hashcode1 && x.hashcode2 == y.hashcode2;
+            return x.source != null && x.source.Equals(y.source)  && x.hashcode1 == y.hashcode1 && x.hashcode2 == y.hashcode2;
         }
         public int GetHashCode(ConnectIdUdp obj)
         {
             if (obj.source == null) return 0;
-            return obj.source.GetHashCode() ^ obj.connectId.GetHashCode() ^ obj.hashcode1 ^ obj.hashcode2;
+            return obj.source.GetHashCode() ^  obj.hashcode1 ^ obj.hashcode2;
         }
     }
     public readonly struct ConnectIdUdp
     {
         public readonly IPEndPoint source { get; }
-        public readonly ulong connectId { get; }
         public int hashcode1 { get; }
         public int hashcode2 { get; }
 
-        public ConnectIdUdp(ulong connectId, IPEndPoint source, int hashcode1, int hashcode2)
+        public ConnectIdUdp(IPEndPoint source, int hashcode1, int hashcode2)
         {
-            this.connectId = connectId;
             this.source = source;
             this.hashcode1 = hashcode1;
             this.hashcode2 = hashcode2;

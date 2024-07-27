@@ -31,6 +31,7 @@ namespace linker.plugins.tuntap.proxy
         private readonly ConcurrentDictionary<uint, IPAddress> hostipCic = new ConcurrentDictionary<uint, IPAddress>();
         private readonly ConcurrentDictionary<string, ITunnelConnection> connections = new ConcurrentDictionary<string, ITunnelConnection>();
         private readonly ConcurrentDictionary<string, SemaphoreSlim> dicLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
+        private ConcurrentDictionary<IPEndPoint, BroadcastCacheInfo> broadcastDic = new(new IPEndpointComparer());
 
         public TuntapProxy(TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, RunningConfig runningConfig, FileConfig config)
         {
@@ -52,6 +53,8 @@ namespace linker.plugins.tuntap.proxy
             }
             Start(new IPEndPoint(IPAddress.Any, 0), runningConfig.Data.Tuntap.BufferSize);
             proxyEP = new IPEndPoint(IPAddress.Any, LocalEndpoint.Port);
+
+            ClearTask();
         }
 
         /// <summary>
@@ -147,7 +150,7 @@ namespace linker.plugins.tuntap.proxy
             //是UDP中继，不做连接操作，等UDP数据过去的时候再绑定
             if (token.TargetIP == 0 || command == Socks5EnumRequestCommand.UdpAssociate)
             {
-                await token.Socket.SendAsync(Socks5Parser.MakeConnectResponse(new IPEndPoint(IPAddress.Any, 0), (byte)Socks5EnumResponseCommand.ConnecSuccess).AsMemory()).ConfigureAwait(false);
+                await token.Socket.SendAsync(Socks5Parser.MakeConnectResponse(new IPEndPoint(IPAddress.Any, proxyEP.Port), (byte)Socks5EnumResponseCommand.ConnecSuccess).AsMemory()).ConfigureAwait(false);
                 return false;
             }
 
@@ -180,8 +183,9 @@ namespace linker.plugins.tuntap.proxy
                 return;
             }
 
-            token.TargetIP = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
+            uint targetIP = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
             token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
+            IPEndPoint target = new IPEndPoint(new IPAddress(ipArray.Span), port);
             //解析出udp包的数据部分
             token.Proxy.Data = Socks5Parser.GetUdpData(token.Proxy.Data);
 
@@ -189,16 +193,31 @@ namespace linker.plugins.tuntap.proxy
             if (ipArray.Span[3] == 255 || token.Proxy.TargetEP.Address.GetIsBroadcastAddress())
             {
                 token.Proxy.TargetEP.Address = IPAddress.Loopback;
+
+                if (broadcastDic.TryGetValue(token.Proxy.SourceEP, out BroadcastCacheInfo cache) == false)
+                {
+                    cache = new BroadcastCacheInfo { TargetEP = target };
+                    broadcastDic.TryAdd(token.Proxy.SourceEP, cache);
+                }
+                cache.LastTime = Environment.TickCount64;
+
                 token.Connections = connections.Values.ToList();
             }
             else
             {
                 //在docker内，我们不应该直接访问自己的虚拟IP，而是去访问宿主机的IP
-                if (hostipCic.TryGetValue(token.TargetIP, out IPAddress hostip) && hostip.Equals(IPAddress.Any)==false)
+                if (hostipCic.TryGetValue(targetIP, out IPAddress hostip) && hostip.Equals(IPAddress.Any) == false)
                 {
                     token.Proxy.TargetEP.Address = hostip;
+
+                    if (broadcastDic.TryGetValue(token.Proxy.SourceEP, out BroadcastCacheInfo cache) == false)
+                    {
+                        cache = new BroadcastCacheInfo { TargetEP = target };
+                        broadcastDic.TryAdd(token.Proxy.SourceEP, cache);
+                    }
+                    cache.LastTime = Environment.TickCount64;
                 }
-                token.Connection = await ConnectTunnel(token.TargetIP).ConfigureAwait(false);
+                token.Connection = await ConnectTunnel(targetIP).ConfigureAwait(false);
             }
         }
 
@@ -210,7 +229,12 @@ namespace linker.plugins.tuntap.proxy
         /// <returns></returns>
         protected override async ValueTask<bool> ConnectionReceiveUdp(AsyncUserTunnelToken token, AsyncUserUdpToken asyncUserUdpToken)
         {
-            byte[] data = Socks5Parser.MakeUdpResponse(token.Proxy.TargetEP, token.Proxy.Data, out int length);
+            IPEndPoint target = token.Proxy.TargetEP;
+            if (broadcastDic.TryGetValue(token.Proxy.SourceEP, out BroadcastCacheInfo cache))
+            {
+                target = cache.TargetEP;
+            }
+            byte[] data = Socks5Parser.MakeUdpResponse(target, token.Proxy.Data, out int length);
             try
             {
                 await asyncUserUdpToken.SourceSocket.SendToAsync(data.AsMemory(0, length), token.Proxy.SourceEP).ConfigureAwait(false);
@@ -227,6 +251,21 @@ namespace linker.plugins.tuntap.proxy
                 Socks5Parser.Return(data);
             }
             return true;
+        }
+        private void ClearTask()
+        {
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    long time = Environment.TickCount64;
+                    foreach (var item in broadcastDic.Where(c => time - c.Value.LastTime > 30000).Select(c => c.Key).ToList())
+                    {
+                        broadcastDic.TryRemove(item, out _);
+                    };
+                    await Task.Delay(30000);
+                }
+            });
         }
 
 
@@ -384,5 +423,24 @@ namespace linker.plugins.tuntap.proxy
             }
         }
 
+    }
+
+    public sealed class BroadcastCacheInfo
+    {
+        public IPEndPoint TargetEP { get; set; }
+        public long LastTime { get; set; } = Environment.TickCount64;
+
+    }
+
+    public sealed class IPEndpointComparer : IEqualityComparer<IPEndPoint>
+    {
+        public bool Equals(IPEndPoint x, IPEndPoint y)
+        {
+            return x.Equals(y);
+        }
+        public int GetHashCode(IPEndPoint obj)
+        {
+            return obj.GetHashCode();
+        }
     }
 }
