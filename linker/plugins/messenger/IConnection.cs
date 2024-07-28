@@ -234,6 +234,7 @@ namespace linker.plugins.messenger
 
         public abstract Task<bool> SendAsync(ReadOnlyMemory<byte> data);
         public abstract Task<bool> SendAsync(byte[] data, int length);
+
         public abstract Task RelayAsync(byte bufferSize);
 
 
@@ -577,8 +578,6 @@ namespace linker.plugins.messenger
             userToken = null;
             cancellationTokenSource?.Cancel();
             bufferCache.Clear(true);
-
-           // Console.WriteLine($"{Id}-{Address}-{this.GetHashCode()}-cancel");
         }
         public override void Disponse(int value = 0)
         {
