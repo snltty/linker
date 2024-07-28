@@ -214,7 +214,7 @@ namespace linker.plugins.tuntap.proxy
         /// <param name="targetIP"></param>
         private void ReplaceTargetIP(IPEndPoint targetEP, uint targetIP)
         {
-            if (targetEP.Address.Equals(runningConfig.Data.Tuntap.IP) && hostipCic.TryGetValue(targetIP, out IPAddress hostip) && hostip.Equals(IPAddress.Any) == false)
+            if (hostipCic.TryGetValue(targetIP, out IPAddress hostip) && hostip.Equals(IPAddress.Any) == false)
             {
                 targetEP.Address = hostip;
             }

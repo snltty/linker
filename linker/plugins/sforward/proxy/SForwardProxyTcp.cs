@@ -1,6 +1,5 @@
 ﻿using linker.libs;
 using linker.libs.extends;
-using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -107,6 +106,7 @@ namespace linker.plugins.sforward.proxy
             try
             {
                 int length = await token.SourceSocket.ReceiveAsync(buffer1.AsMemory(), SocketFlags.None).ConfigureAwait(false);
+                //是回复连接。传过来了id，去配一下
                 if (length > flagBytes.Length && buffer1.AsSpan(0, flagBytes.Length).SequenceEqual(flagBytes))
                 {
                     ulong _id = buffer1.AsSpan(flagBytes.Length).ToUInt64();
@@ -117,6 +117,7 @@ namespace linker.plugins.sforward.proxy
                     return;
                 }
 
+                //是web的，去获取host请求头，匹配不同的服务
                 if (token.IsWeb)
                 {
 
@@ -134,6 +135,7 @@ namespace linker.plugins.sforward.proxy
                 }
                 else
                 {
+                    //纯TCP的，直接拿端口去匹配
                     if (await TunnelConnect(token.ListenPort, id).ConfigureAwait(false) == false)
                     {
                         CloseClientSocket(token);
@@ -141,11 +143,15 @@ namespace linker.plugins.sforward.proxy
                     }
                 }
 
+                //等待回复
                 TaskCompletionSource<Socket> tcs = new TaskCompletionSource<Socket>();
                 tcpConnections.TryAdd(id, tcs);
                 token.TargetSocket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(2000)).ConfigureAwait(false);
 
+                //数据
                 await token.TargetSocket.SendAsync(buffer1.AsMemory(0, length)).ConfigureAwait(false);
+
+                //两端交换数据
                 await Task.WhenAll(CopyToAsync(buffer1, token.SourceSocket, token.TargetSocket), CopyToAsync(buffer2, token.TargetSocket, token.SourceSocket)).ConfigureAwait(false);
 
                 CloseClientSocket(token);
@@ -157,11 +163,18 @@ namespace linker.plugins.sforward.proxy
             finally
             {
                 tcpConnections.TryRemove(id, out _);
-                // ArrayPool<byte>.Shared.Return(buffer1);
-                // ArrayPool<byte>.Shared.Return(buffer2);
 
             }
         }
+
+        /// <summary>
+        /// 从服务器来消息了，有人要连接我的服务
+        /// </summary>
+        /// <param name="bufferSize"></param>
+        /// <param name="id"></param>
+        /// <param name="server"></param>
+        /// <param name="service"></param>
+        /// <returns></returns>
         public async Task OnConnectTcp(byte bufferSize, ulong id, IPEndPoint server, IPEndPoint service)
         {
             Socket sourceSocket = null;
@@ -170,18 +183,22 @@ namespace linker.plugins.sforward.proxy
             byte[] buffer2 = new byte[(1 << bufferSize) * 1024];
             try
             {
+                //连接服务器
                 sourceSocket = new Socket(server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 sourceSocket.IPv6Only(server.AddressFamily, false);
                 await sourceSocket.ConnectAsync(server).ConfigureAwait(false);
 
+                //连接本地服务
                 targetSocket = new Socket(service.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 targetSocket.IPv6Only(service.AddressFamily, false);
                 await targetSocket.ConnectAsync(service).ConfigureAwait(false);
 
+                //给服务器回复，带上id
                 flagBytes.AsMemory().CopyTo(buffer1);
                 id.ToBytes(buffer1.AsMemory(flagBytes.Length));
                 await sourceSocket.SendAsync(buffer1.AsMemory(0, flagBytes.Length + 8)).ConfigureAwait(false);
 
+                //交换数据即可
                 await Task.WhenAll(CopyToAsync(buffer1, sourceSocket, targetSocket), CopyToAsync(buffer2, targetSocket, sourceSocket)).ConfigureAwait(false);
 
             }
@@ -192,15 +209,18 @@ namespace linker.plugins.sforward.proxy
             }
             finally
             {
-                //ArrayPool<byte>.Shared.Return(buffer1);
-                //ArrayPool<byte>.Shared.Return(buffer2);
             }
         }
 
 
-        private byte[] hostBytes = Encoding.UTF8.GetBytes("Host: ");
-        private byte[] wrapBytes = Encoding.UTF8.GetBytes("\r\n");
-        private byte[] colonBytes = Encoding.UTF8.GetBytes(":");
+        private readonly byte[] hostBytes = Encoding.UTF8.GetBytes("Host: ");
+        private readonly byte[] wrapBytes = Encoding.UTF8.GetBytes("\r\n");
+        private readonly byte[] colonBytes = Encoding.UTF8.GetBytes(":");
+        /// <summary>
+        /// 截取http请求头的host内容
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
         private string GetHost(Memory<byte> buffer)
         {
             int start = buffer.Span.IndexOf(hostBytes);
@@ -215,6 +235,13 @@ namespace linker.plugins.sforward.proxy
             return Encoding.UTF8.GetString(buffer.Slice(start, length).Span);
         }
 
+        /// <summary>
+        /// 读取数据，然后发送给对方，用户两端交换数据
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="source"></param>
+        /// <param name="target"></param>
+        /// <returns></returns>
         private async Task CopyToAsync(Memory<byte> buffer, Socket source, Socket target)
         {
             try

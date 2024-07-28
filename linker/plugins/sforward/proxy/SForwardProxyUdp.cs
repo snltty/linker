@@ -125,6 +125,7 @@ namespace linker.plugins.sforward.proxy
                 }
             }
         }
+
         public async Task OnConnectUdp(byte bufferSize, ulong id, IPEndPoint server, IPEndPoint service)
         {
             Socket socketUdp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
