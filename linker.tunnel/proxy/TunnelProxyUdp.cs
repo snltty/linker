@@ -86,8 +86,8 @@ namespace linker.tunnel.proxy
         {
             if (token.Connection == null) return;
 
-            SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
-            await semaphoreSlim.WaitAsync().ConfigureAwait(false);
+            //SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
+            //await semaphoreSlim.WaitAsync().ConfigureAwait(false);
 
             byte[] connectData = token.Proxy.ToBytes(out int length);
             try
@@ -105,7 +105,7 @@ namespace linker.tunnel.proxy
             finally
             {
                 token.Proxy.Return(connectData);
-                semaphoreSlim.Release();
+                //semaphoreSlim.Release();
             }
         }
         /// <summary>
@@ -115,8 +115,8 @@ namespace linker.tunnel.proxy
         /// <returns></returns>
         private async Task SendToConnections(AsyncUserUdpToken token)
         {
-            SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
-            await semaphoreSlim.WaitAsync().ConfigureAwait(false);
+            //SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
+            //await semaphoreSlim.WaitAsync().ConfigureAwait(false);
 
             byte[] connectData = token.Proxy.ToBytes(out int length);
             try
@@ -130,7 +130,7 @@ namespace linker.tunnel.proxy
             finally
             {
                 token.Proxy.Return(connectData);
-                semaphoreSlim.Release();
+                //semaphoreSlim.Release();
             }
         }
         /// <summary>
@@ -208,7 +208,6 @@ namespace linker.tunnel.proxy
             socket.WindowsUdpBug();
             await socket.SendToAsync(tunnelToken.Proxy.Data, target).ConfigureAwait(false);
 
-
             ConnectIdUdp connectId = tunnelToken.GetUdpConnectId();
             AsyncUserUdpTokenTarget udpToken = new AsyncUserUdpTokenTarget
             {
@@ -219,7 +218,7 @@ namespace linker.tunnel.proxy
                     Protocol = tunnelToken.Proxy.Protocol,
                     SourceEP = tunnelToken.Proxy.SourceEP,
                     TargetEP = tunnelToken.Proxy.TargetEP,
-                    Step =  ProxyStep.Forward,
+                    Step = ProxyStep.Forward,
                     Port = tunnelToken.Proxy.Port,
                     BufferSize = tunnelToken.Proxy.BufferSize,
                 },
@@ -272,8 +271,8 @@ namespace linker.tunnel.proxy
         /// <returns></returns>
         private async Task SendToConnection(AsyncUserUdpTokenTarget token)
         {
-            SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
-            await semaphoreSlim.WaitAsync();
+            //SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
+            //await semaphoreSlim.WaitAsync();
 
             byte[] connectData = token.Proxy.ToBytes(out int length);
             try
@@ -291,7 +290,7 @@ namespace linker.tunnel.proxy
             finally
             {
                 token.Proxy.Return(connectData);
-                semaphoreSlim.Release();
+                //semaphoreSlim.Release();
             }
         }
 
@@ -437,12 +436,12 @@ namespace linker.tunnel.proxy
     {
         public bool Equals(ConnectIdUdp x, ConnectIdUdp y)
         {
-            return x.source != null && x.source.Equals(y.source)  && x.hashcode1 == y.hashcode1 && x.hashcode2 == y.hashcode2;
+            return x.source != null && x.source.Equals(y.source) && x.hashcode1 == y.hashcode1 && x.hashcode2 == y.hashcode2;
         }
         public int GetHashCode(ConnectIdUdp obj)
         {
             if (obj.source == null) return 0;
-            return obj.source.GetHashCode() ^  obj.hashcode1 ^ obj.hashcode2;
+            return obj.source.GetHashCode() ^ obj.hashcode1 ^ obj.hashcode2;
         }
     }
     public readonly struct ConnectIdUdp

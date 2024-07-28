@@ -103,8 +103,11 @@ namespace linker.tunnel.proxy
             }
             else if (closeConnect)
             {
-                CloseClientSocket(token);
-                return;
+                CloseClientSocket(token, 7);
+            }
+            else
+            {
+                _ = ProcessReceive(token, false);
             }
         }
 
@@ -112,7 +115,7 @@ namespace linker.tunnel.proxy
         /// 接收连接数据
         /// </summary>
         /// <param name="e"></param>
-        private async Task ProcessReceive(AsyncUserToken token)
+        private async Task ProcessReceive(AsyncUserToken token, bool send = true)
         {
             if (token.Received) return;
             token.Received = true;
@@ -128,7 +131,8 @@ namespace linker.tunnel.proxy
                     }
 
                     token.Proxy.Data = token.Buffer.AsMemory(0, length);
-                    await SendToConnection(token).ConfigureAwait(false);
+                    if (send)
+                        await SendToConnection(token).ConfigureAwait(false);
 
                     while (token.Socket.Available > 0)
                     {
@@ -138,7 +142,8 @@ namespace linker.tunnel.proxy
                             break;
                         }
                         token.Proxy.Data = token.Buffer.AsMemory(0, length);
-                        await SendToConnection(token).ConfigureAwait(false);
+                        if (send)
+                            await SendToConnection(token).ConfigureAwait(false);
                     }
                 }
             }
@@ -149,8 +154,9 @@ namespace linker.tunnel.proxy
             }
             finally
             {
-                await SendToConnectionClose(token).ConfigureAwait(false);
-                CloseClientSocket(token);
+                if (send)
+                    await SendToConnectionClose(token).ConfigureAwait(false);
+                CloseClientSocket(token, 6);
             }
 
         }
@@ -176,7 +182,7 @@ namespace linker.tunnel.proxy
                 return;
             }
             //SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
-            // await semaphoreSlim.WaitAsync();
+           // await semaphoreSlim.WaitAsync();
 
             byte[] connectData = token.Proxy.ToBytes(out int length);
             try
@@ -184,11 +190,15 @@ namespace linker.tunnel.proxy
                 bool res = await token.Connection.SendAsync(connectData.AsMemory(0, length)).ConfigureAwait(false);
                 if (res == false)
                 {
-                    CloseClientSocket(token);
+                    CloseClientSocket(token, 5);
                 }
             }
             catch (Exception)
             {
+            }
+            finally
+            {
+                //semaphoreSlim.Release();
             }
             token.Proxy.Return(connectData);
         }
@@ -262,7 +272,7 @@ namespace linker.tunnel.proxy
             {
                 LoggerHelper.Instance.Error($"connect {state.IPEndPoint} error -> {ex}");
                 await SendToConnectionClose(token).ConfigureAwait(false);
-                CloseClientSocket(token);
+                CloseClientSocket(token, 4);
             }
             finally
             {
@@ -297,7 +307,7 @@ namespace linker.tunnel.proxy
                 ConnectId connectId = tunnelToken.GetTcpConnectId();
                 if (tcpConnections.TryRemove(connectId, out AsyncUserToken token))
                 {
-                    CloseClientSocket(token);
+                    CloseClientSocket(token, 3);
                 }
             }
         }
@@ -314,7 +324,7 @@ namespace linker.tunnel.proxy
             {
                 if (tcpConnections.TryRemove(connectId, out AsyncUserToken token))
                 {
-                    CloseClientSocket(token);
+                    CloseClientSocket(token, 2);
                 }
                 return;
             }
@@ -332,12 +342,12 @@ namespace linker.tunnel.proxy
                         LoggerHelper.Instance.Error(ex);
                     }
                     await SendToConnectionClose(token1).ConfigureAwait(false);
-                    CloseClientSocket(token1);
+                    CloseClientSocket(token1, 1);
                 }
             }
         }
 
-        private void CloseClientSocket(AsyncUserToken token)
+        private void CloseClientSocket(AsyncUserToken token, int index)
         {
             if (token == null) return;
             if (token.Connection != null)
@@ -370,7 +380,7 @@ namespace linker.tunnel.proxy
         {
             foreach (var item in tcpListens)
             {
-                CloseClientSocket(item.Value);
+                CloseClientSocket(item.Value, 0);
             }
             tcpListens.Clear();
             foreach (var item in tcpConnections)
@@ -383,7 +393,7 @@ namespace linker.tunnel.proxy
         {
             if (tcpListens.TryRemove(port, out AsyncUserToken userToken))
             {
-                CloseClientSocket(userToken);
+                CloseClientSocket(userToken, 0);
             }
             if (tcpListens.Count == 0)
             {

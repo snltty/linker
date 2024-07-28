@@ -116,7 +116,6 @@ namespace linker.plugins.tuntap.proxy
             }
             token.Proxy.Data = token.Buffer.AsMemory(0, length);
 
-
             token.Proxy.TargetEP = null;
             token.Proxy.Rsv = (byte)Socks5EnumStep.Request;
             //步骤，request
@@ -143,7 +142,6 @@ namespace linker.plugins.tuntap.proxy
                 await token.Socket.SendAsync(response1.AsMemory()).ConfigureAwait(false);
                 return true;
             }
-
 
             token.Proxy.Data = token.Proxy.Data.Slice(index);
             token.TargetIP = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
