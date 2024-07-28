@@ -117,17 +117,19 @@ namespace linker.plugins.tuntap.proxy
             token.Proxy.Data = token.Buffer.AsMemory(0, length);
 
             token.Proxy.TargetEP = null;
-            token.Proxy.Rsv = (byte)Socks5EnumStep.Request;
+
             //步骤，request
-            bool result = await ReceiveCommandData(token);
-            if (result == false) return true;
+            token.Proxy.Rsv = (byte)Socks5EnumStep.Request;
+            if (await ReceiveCommandData(token) == false)
+            {
+                return true;
+            }
             await token.Socket.SendAsync(new byte[] { 0x05, 0x00 }).ConfigureAwait(false);
-            token.Proxy.Rsv = (byte)Socks5EnumStep.Command;
-            token.Proxy.Data = Helper.EmptyArray;
 
             //步骤，command
-            result = await ReceiveCommandData(token).ConfigureAwait(false);
-            if (result == false)
+            token.Proxy.Data = Helper.EmptyArray;
+            token.Proxy.Rsv = (byte)Socks5EnumStep.Command;
+            if (await ReceiveCommandData(token).ConfigureAwait(false) == false)
             {
                 return true;
             }
@@ -135,6 +137,10 @@ namespace linker.plugins.tuntap.proxy
 
             //获取远端地址
             ReadOnlyMemory<byte> ipArray = Socks5Parser.GetRemoteEndPoint(token.Proxy.Data, out Socks5EnumAddressType addressType, out ushort port, out int index);
+            token.Proxy.Data = token.Proxy.Data.Slice(index);
+            token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
+            uint targetIP = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
+
             //不支持域名 和 IPV6
             if (addressType == Socks5EnumAddressType.Domain || addressType == Socks5EnumAddressType.IPV6)
             {
@@ -143,24 +149,15 @@ namespace linker.plugins.tuntap.proxy
                 return true;
             }
 
-            token.Proxy.Data = token.Proxy.Data.Slice(index);
-            token.TargetIP = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
             //是UDP中继，不做连接操作，等UDP数据过去的时候再绑定
-            if (token.TargetIP == 0 || command == Socks5EnumRequestCommand.UdpAssociate)
+            if (targetIP == 0 || command == Socks5EnumRequestCommand.UdpAssociate)
             {
                 await token.Socket.SendAsync(Socks5Parser.MakeConnectResponse(new IPEndPoint(IPAddress.Any, proxyEP.Port), (byte)Socks5EnumResponseCommand.ConnecSuccess).AsMemory()).ConfigureAwait(false);
                 return false;
             }
 
-            token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
-
-            //在docker内，我们不应该直接访问自己的虚拟IP，而是去访问宿主机的IP
-            if (hostipCic.TryGetValue(token.TargetIP, out IPAddress hostip) && hostip.Equals(IPAddress.Any) == false)
-            {
-                token.Proxy.TargetEP.Address = hostip;
-            }
-
-            token.Connection = await ConnectTunnel(token.TargetIP).ConfigureAwait(false);
+            ReplaceTargetIP(token.Proxy.TargetEP, targetIP);
+            token.Connection = await ConnectTunnel(targetIP).ConfigureAwait(false);
 
             Socks5EnumResponseCommand resp = token.Connection != null && token.Connection.Connected ? Socks5EnumResponseCommand.ConnecSuccess : Socks5EnumResponseCommand.NetworkError;
             byte[] response = Socks5Parser.MakeConnectResponse(new IPEndPoint(IPAddress.Any, 0), (byte)resp);
@@ -192,6 +189,7 @@ namespace linker.plugins.tuntap.proxy
             {
                 token.Proxy.TargetEP.Address = IPAddress.Loopback;
 
+                //我们替换了IP，但是等下要回复UDP数据给socks5时，要用原来的IP，所以缓存一下，等下回复要用
                 if (broadcastDic.TryGetValue(token.Proxy.SourceEP, out BroadcastCacheInfo cache) == false)
                 {
                     cache = new BroadcastCacheInfo { TargetEP = target };
@@ -199,23 +197,26 @@ namespace linker.plugins.tuntap.proxy
                 }
                 cache.LastTime = Environment.TickCount64;
 
+                //广播不去连接，直接获取已经有的所有连接
                 token.Connections = connections.Values.ToList();
             }
             else
             {
-                //在docker内，我们不应该直接访问自己的虚拟IP，而是去访问宿主机的IP
-                if (hostipCic.TryGetValue(targetIP, out IPAddress hostip) && hostip.Equals(IPAddress.Any) == false)
-                {
-                    token.Proxy.TargetEP.Address = hostip;
-
-                    if (broadcastDic.TryGetValue(token.Proxy.SourceEP, out BroadcastCacheInfo cache) == false)
-                    {
-                        cache = new BroadcastCacheInfo { TargetEP = target };
-                        broadcastDic.TryAdd(token.Proxy.SourceEP, cache);
-                    }
-                    cache.LastTime = Environment.TickCount64;
-                }
+                ReplaceTargetIP(token.Proxy.TargetEP, targetIP);
                 token.Connection = await ConnectTunnel(targetIP).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
+        /// //在docker内，我们不应该直接访问自己的虚拟IP，而是去访问宿主机的IP
+        /// </summary>
+        /// <param name="targetEP"></param>
+        /// <param name="targetIP"></param>
+        private void ReplaceTargetIP(IPEndPoint targetEP, uint targetIP)
+        {
+            if (targetEP.Address.Equals(runningConfig.Data.Tuntap.IP) && hostipCic.TryGetValue(targetIP, out IPAddress hostip) && hostip.Equals(IPAddress.Any) == false)
+            {
+                targetEP.Address = hostip;
             }
         }
 
@@ -231,6 +232,7 @@ namespace linker.plugins.tuntap.proxy
             if (broadcastDic.TryGetValue(token.Proxy.SourceEP, out BroadcastCacheInfo cache))
             {
                 target = cache.TargetEP;
+                cache.LastTime = Environment.TickCount64;
             }
             byte[] data = Socks5Parser.MakeUdpResponse(target, token.Proxy.Data, out int length);
             try

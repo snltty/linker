@@ -443,8 +443,6 @@ namespace linker.tunnel.proxy
 
         public bool Received { get; set; }
 
-        public uint TargetIP { get; set; }
-
         public byte[] Buffer { get; set; }
 
         public byte BufferSize { get; set; } = 3;
