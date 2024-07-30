@@ -4,32 +4,29 @@ import styles from './styles.module.css';
 
 const FeatureList = [
     {
-        title: '放',
+        title: '跨平台、易操作、且安全',
         Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
         description: (
             <>
-                Docusaurus was designed from the ground up to be easily installed and
-                used to get your website up and running quickly.
+                <code>.NET8</code>，高性能<code>MemoryPack</code>序列化，易操作web管理页面，所有通信均SSL加密
             </>
         ),
     },
     {
-        title: '啥',
+        title: '打洞、中继、和穿透',
         Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
         description: (
             <>
-                Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-                ahead and move your docs into the <code>docs</code> directory.
+                3TCP打洞 + 1UDP打洞 + 1TCP端口映射连接 + 1TCP服务器中继连接 + 1TCP+UDP服务器穿透穿透
             </>
         ),
     },
     {
-        title: '呢',
+        title: 'TCP、UDP、什么P',
         Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
         description: (
             <>
-                Extend or customize your website layout by reusing React. Docusaurus can
-                be extended while reusing the same header and footer.
+                虚拟网卡组网，端口转发访问，均支持TCP+UDP及其上层协议
             </>
         ),
     },
@@ -38,12 +35,14 @@ const FeatureList = [
 function Feature({ Svg, title, description }) {
     return (
         <div className={clsx('col col--4')}>
-            <div className="text--center">
-                <Svg className={styles.featureSvg} role="img" />
-            </div>
-            <div className="text--center padding-horiz--md">
-                <Heading as="h3">{title}</Heading>
-                <p>{description}</p>
+            <div style={{ border: '1px solid #ddd' }}>
+                <div className="text--center">
+                    <Svg className={styles.featureSvg} role="img" />
+                </div>
+                <div className="text--center padding-horiz--md">
+                    <Heading as="h3">{title}</Heading>
+                    <p>{description}</p>
+                </div>
             </div>
         </div>
     );

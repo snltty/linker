@@ -128,7 +128,7 @@ namespace linker.plugins.messenger
             {
                 byte[] data = new byte[wrap.Payload.Length];
                 wrap.Payload.CopyTo(data);
-                tcs.SetResult(new MessageResponeInfo { Code = wrap.Code, Data = data });
+                tcs.SetResult(new MessageResponeInfo { Code = wrap.Code, Data = data, Connection = wrap.Connection });
             }
         }
     }
@@ -137,6 +137,7 @@ namespace linker.plugins.messenger
     {
         public MessageResponeCodes Code { get; set; }
         public ReadOnlyMemory<byte> Data { get; set; }
+        public IConnection Connection { get; set; }
     }
 }
 
