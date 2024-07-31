@@ -18,9 +18,29 @@ namespace linker.tun
     }
 
 
+    public interface ILinkerTunDeviceCallback
+    {
+        public void Callback(LinkerTunDevicPacket packet);
+    }
+
+    public struct LinkerTunDevicPacket
+    {
+        public byte Version;
+        public ReadOnlyMemory<byte> SourceIPAddress;
+        public ReadOnlyMemory<byte> DistIPAddress;
+        public ReadOnlyMemory<byte> Packet;
+    }
+
     public sealed class LinkerTunDeviceRouteItem
     {
         public IPAddress Address { get; }
         public byte Mask { get; }
+    }
+
+    public enum LinkerTunDeviceStatus
+    {
+        Normal = 0,
+        Starting = 1,
+        Running = 2
     }
 }
