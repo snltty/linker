@@ -1,8 +1,8 @@
 ﻿using linker.config;
 using linker.plugins.tuntap.messenger;
 using linker.plugins.tuntap.proxy;
-using linker.plugins.tuntap.vea;
 using linker.startup;
+using linker.tun;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
@@ -23,12 +23,8 @@ namespace linker.plugins.tuntap
 
         public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
-            //不同平台下的虚拟网卡
-            if (OperatingSystem.IsWindows()) serviceCollection.AddSingleton<ITuntapVea, TuntapVeaWindows>();
-            if (OperatingSystem.IsLinux()) serviceCollection.AddSingleton<ITuntapVea, TuntapVeaLinux>();
-            if (OperatingSystem.IsMacOS()) serviceCollection.AddSingleton<ITuntapVea, TuntapVeaMacOs>();
-
             serviceCollection.AddSingleton<TuntapClientApiController>();
+            serviceCollection.AddSingleton<LinkerTunDeviceAdapter>();
             serviceCollection.AddSingleton<TuntapTransfer>();
             serviceCollection.AddSingleton<TuntapProxy>();
 

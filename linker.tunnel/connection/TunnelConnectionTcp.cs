@@ -68,7 +68,7 @@ namespace linker.tunnel.connection
 
             cancellationTokenSource = new CancellationTokenSource();
             _ = ProcessWrite();
-            _ = ProcessHeart();
+            //_ = ProcessHeart();
         }
 
         private async Task ProcessWrite()

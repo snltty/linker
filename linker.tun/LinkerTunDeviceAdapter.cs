@@ -1,8 +1,9 @@
-﻿using System.Net;
+﻿using linker.libs;
+using System.Net;
 
 namespace linker.tun
 {
-    public unsafe sealed class LinkerTunDeviceAdapter
+    public sealed class LinkerTunDeviceAdapter
     {
         private ILinkerTunDevice linkerTunDevice;
         private ILinkerTunDeviceCallback linkerTunDeviceCallback;
@@ -13,16 +14,33 @@ namespace linker.tun
 
 
         private bool starting = false;
-        public LinkerTunDeviceStatus Status => linkerTunDevice.Running ? LinkerTunDeviceStatus.Running : (starting ? LinkerTunDeviceStatus.Starting : LinkerTunDeviceStatus.Normal);
+        public LinkerTunDeviceStatus Status
+        {
+            get
+            {
+                if (linkerTunDevice == null) return LinkerTunDeviceStatus.Normal;
+
+                return linkerTunDevice.Running
+                    ? LinkerTunDeviceStatus.Running
+                    : starting
+                        ? LinkerTunDeviceStatus.Starting
+                        : LinkerTunDeviceStatus.Normal;
+            }
+        }
 
         /// <summary>
         /// 构造
         /// </summary>
         /// <param name="linkerTunDeviceCallback">数据包回调</param>
-        public LinkerTunDeviceAdapter(ILinkerTunDeviceCallback linkerTunDeviceCallback)
+        public LinkerTunDeviceAdapter()
+        {
+        }
+
+        public void SetCallback(ILinkerTunDeviceCallback linkerTunDeviceCallback)
         {
             this.linkerTunDeviceCallback = linkerTunDeviceCallback;
         }
+
 
         /// <summary>
         /// 开启网卡
@@ -30,14 +48,11 @@ namespace linker.tun
         /// <param name="name">网卡名，如果是osx，需要utunX的命名，X是一个数字</param>
         /// <param name="guid">windows的时候，需要一个固定guid，不然网卡编号一直递增，注册表一直新增记录</param>
         /// <param name="address">网卡IP</param>
-        /// <param name="gateway">网卡网关</param>
         /// <param name="mask">掩码。一般24即可</param>
-        public void SetUp(string name, Guid guid, IPAddress address, IPAddress gateway, byte mask)
+        public void SetUp(string name, Guid guid, IPAddress address, byte mask)
         {
             if (starting) return;
-
             Shutdown();
-
             starting = true;
             try
             {
@@ -55,7 +70,8 @@ namespace linker.tun
                 if (linkerTunDevice != null)
                 {
                     linkerTunDevice.Shutdown();
-                    linkerTunDevice.SetUp(address, gateway, mask, out error);
+
+                    linkerTunDevice.SetUp(address, NetworkHelper.ToGatewayIP(address, mask), mask, out error);
                     if (string.IsNullOrWhiteSpace(error))
                     {
                         cancellationTokenSource = new CancellationTokenSource();
@@ -63,28 +79,35 @@ namespace linker.tun
                         {
                             while (cancellationTokenSource.IsCancellationRequested == false)
                             {
-                                ReadOnlyMemory<byte> buffer = linkerTunDevice.Read();
-                                if (buffer.Length == 0)
+                                try
+                                {
+                                    ReadOnlyMemory<byte> buffer = linkerTunDevice.Read();
+                                    if (buffer.Length == 0)
+                                    {
+                                        break;
+                                    }
+
+                                    LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
+                                    packet.Packet = buffer;
+                                    packet.Version = (byte)(buffer.Span[0] >> 4 & 0b1111);
+
+                                    if (packet.Version == 4)
+                                    {
+                                        packet.SourceIPAddress = buffer.Slice(12, 4);
+                                        packet.DistIPAddress = buffer.Slice(16, 4);
+                                    }
+                                    else if (packet.Version == 6)
+                                    {
+                                        packet.SourceIPAddress = buffer.Slice(8, 16);
+                                        packet.DistIPAddress = buffer.Slice(24, 16);
+                                    }
+
+                                    await linkerTunDeviceCallback.Callback(packet);
+                                }
+                                catch (Exception)
                                 {
                                     break;
                                 }
-
-                                LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
-                                packet.Packet = buffer;
-                                packet.Version = (byte)(buffer.Span[0] >> 4 & 0b1111);
-
-                                if (packet.Version == 4)
-                                {
-                                    packet.SourceIPAddress = buffer.Slice(12, 4);
-                                    packet.DistIPAddress = buffer.Slice(16, 4);
-                                }
-                                else if (packet.Version == 6)
-                                {
-                                    packet.SourceIPAddress = buffer.Slice(8, 16);
-                                    packet.DistIPAddress = buffer.Slice(24, 16);
-                                }
-
-                                linkerTunDeviceCallback.Callback(packet);
                             }
                         });
                     }
@@ -157,7 +180,7 @@ namespace linker.tun
         /// <param name="addr">包头开始位置</param>
         /// <param name="count">包头长度</param>
         /// <returns></returns>
-        public ushort Checksum(ushort* addr, uint count)
+        public unsafe ushort Checksum(ushort* addr, uint count)
         {
             ulong sum = 0;
             while (count > 1)
@@ -167,7 +190,7 @@ namespace linker.tun
             }
             if (count > 0)
             {
-                sum += (ulong)((*addr) & Ntohs(0xFF00));
+                sum += (ulong)((*addr) & ((((0xff00) & 0xff) << 8) | (((0xff00) & 0xff00) >> 8)));
             }
             while ((sum >> 16) != 0)
             {
@@ -175,10 +198,6 @@ namespace linker.tun
             }
             sum = ~sum;
             return ((ushort)sum);
-        }
-        private ushort Ntohs(ushort value)
-        {
-            return ((ushort)((((value) & 0xff) << 8) | (((value) & 0xff00) >> 8)));
         }
     }
 }

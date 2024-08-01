@@ -2,18 +2,16 @@
 using linker.config;
 using linker.plugins.tuntap.messenger;
 using linker.plugins.tuntap.proxy;
-using linker.plugins.tuntap.vea;
 using linker.libs;
 using MemoryPack;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Net.Sockets;
-using linker.libs.extends;
 using linker.plugins.client;
 using linker.plugins.messenger;
-using System;
+using linker.plugins.tuntap.config;
+using linker.tun;
 
 namespace linker.plugins.tuntap
 {
@@ -21,31 +19,31 @@ namespace linker.plugins.tuntap
     {
         private readonly MessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
-        private readonly ITuntapVea tuntapVea;
         private readonly FileConfig config;
         private readonly TuntapProxy tuntapProxy;
         private readonly RunningConfig runningConfig;
+        private readonly LinkerTunDeviceAdapter linkerTunDeviceAdapter;
+
+        private string interfaceName = "linker";
 
         private uint infosVersion = 0;
-        private readonly ConcurrentDictionary<string, TuntapInfo> tuntapInfos = new ConcurrentDictionary<string, TuntapInfo>();
-        public ConcurrentDictionary<string, TuntapInfo> Infos => tuntapInfos;
         public uint InfosVersion => infosVersion;
 
+        private readonly ConcurrentDictionary<string, TuntapInfo> tuntapInfos = new ConcurrentDictionary<string, TuntapInfo>();
+        public ConcurrentDictionary<string, TuntapInfo> Infos => tuntapInfos;
 
-        private bool starting = false;
-        public TuntapStatus Status => tuntapVea.Running ? TuntapStatus.Running : (starting ? TuntapStatus.Starting : TuntapStatus.Normal);
+        public TuntapStatus Status => (TuntapStatus)(byte)linkerTunDeviceAdapter.Status;
 
-        public TuntapTransfer(MessengerSender messengerSender, ClientSignInState clientSignInState, ITuntapVea tuntapVea, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig)
+        public TuntapTransfer(MessengerSender messengerSender, ClientSignInState clientSignInState, LinkerTunDeviceAdapter linkerTunDeviceAdapter, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig)
         {
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
-            this.tuntapVea = tuntapVea;
+            this.linkerTunDeviceAdapter = linkerTunDeviceAdapter;
             this.config = config;
             this.tuntapProxy = tuntapProxy;
             this.runningConfig = runningConfig;
 
             GetRouteIps();
-            tuntapVea.Kill();
             clientSignInState.NetworkEnabledHandle += (times) =>
             {
                 OnChange();
@@ -60,14 +58,16 @@ namespace linker.plugins.tuntap
                 }
             };
 
-            AppDomain.CurrentDomain.ProcessExit += (s, e) => OnExit();
-            Console.CancelKeyPress += (s, e) => OnExit();
+            linkerTunDeviceAdapter.SetCallback(tuntapProxy);
+            linkerTunDeviceAdapter.Shutdown();
+            AppDomain.CurrentDomain.ProcessExit += (s, e) => Shutdown();
+            Console.CancelKeyPress += (s, e) => Shutdown();
         }
 
         /// <summary>
         /// 程序关闭
         /// </summary>
-        private void OnExit()
+        private void Shutdown()
         {
             bool running = runningConfig.Data.Tuntap.Running;
             Stop();
@@ -80,12 +80,7 @@ namespace linker.plugins.tuntap
         /// </summary>
         public void Run()
         {
-            if (BooleanHelper.CompareExchange(ref starting, true, false))
-            {
-                return;
-            }
-
-            Task.Run(async () =>
+            Task.Run(() =>
             {
                 OnChange();
                 try
@@ -95,18 +90,13 @@ namespace linker.plugins.tuntap
                         return;
                     }
 
-                    tuntapProxy.Start();
-                    while (tuntapProxy.LocalEndpoint == null)
-                    {
-                        await Task.Delay(1000).ConfigureAwait(false);
-                    }
-
-                    bool result = await tuntapVea.Run(tuntapProxy.LocalEndpoint.Port, runningConfig.Data.Tuntap.IP).ConfigureAwait(false);
+                    linkerTunDeviceAdapter.SetUp(interfaceName, runningConfig.Data.Tuntap.InterfaceGuid, runningConfig.Data.Tuntap.IP, 24);
                     runningConfig.Data.Tuntap.Running = Status == TuntapStatus.Running;
                     runningConfig.Data.Update();
-                    if (result == false)
+
+                    if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.Error) == false)
                     {
-                        Stop();
+                        LoggerHelper.Instance.Error(linkerTunDeviceAdapter.Error);
                     }
                 }
                 catch (Exception ex)
@@ -115,7 +105,6 @@ namespace linker.plugins.tuntap
                 }
                 finally
                 {
-                    BooleanHelper.CompareExchange(ref starting, false, true);
                     OnChange();
                 }
             });
@@ -125,15 +114,10 @@ namespace linker.plugins.tuntap
         /// </summary>
         public void Stop()
         {
-            if (BooleanHelper.CompareExchange(ref starting, true, false))
-            {
-                return;
-            }
             try
             {
-                tuntapProxy.Stop();
                 OnChange();
-                tuntapVea.Kill();
+                linkerTunDeviceAdapter.Shutdown();
                 runningConfig.Data.Tuntap.Running = Status == TuntapStatus.Running;
                 runningConfig.Data.Update();
             }
@@ -146,7 +130,6 @@ namespace linker.plugins.tuntap
             }
             finally
             {
-                BooleanHelper.CompareExchange(ref starting, false, true);
                 OnChange();
             }
         }
@@ -237,7 +220,7 @@ namespace linker.plugins.tuntap
                 Masks = runningConfig.Data.Tuntap.Masks,
                 MachineId = config.Data.Client.Id,
                 Status = Status,
-                Error = tuntapVea.Error,
+                Error = linkerTunDeviceAdapter.Error,
                 BufferSize = runningConfig.Data.Tuntap.BufferSize,
                 HostIP = GetHostIP()
             };
@@ -279,7 +262,7 @@ namespace linker.plugins.tuntap
         {
             List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.ToList());
             TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
-            tuntapVea.DelRoute(ips);
+            linkerTunDeviceAdapter.DelRoute(ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, Mask = c.MaskLength }).ToArray());
         }
         /// <summary>
         /// 添加路由
@@ -288,7 +271,7 @@ namespace linker.plugins.tuntap
         {
             List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.ToList());
             TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
-            tuntapVea.AddRoute(ips, runningConfig.Data.Tuntap.IP);
+            linkerTunDeviceAdapter.AddRoute(ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, Mask = c.MaskLength }).ToArray(), runningConfig.Data.Tuntap.IP);
 
             tuntapProxy.SetIPs(ipsList);
             foreach (var item in tuntapInfos.Values)
@@ -345,6 +328,7 @@ namespace linker.plugins.tuntap
                 MaskValue = maskValue,
                 NetWork = ipInt & maskValue,
                 Broadcast = ipInt | (~maskValue),
+                OriginIPAddress = ip,
             };
         }
 
@@ -361,9 +345,8 @@ namespace linker.plugins.tuntap
             {
                 try
                 {
-                    if (tuntapVea.Running)
+                    if (Status == TuntapStatus.Running)
                     {
-                        await CheckProxy().ConfigureAwait(false);
                         await Task.Delay(5000).ConfigureAwait(false);
                         await CheckInterface().ConfigureAwait(false);
                     }
@@ -377,33 +360,15 @@ namespace linker.plugins.tuntap
         }
         private async Task CheckInterface()
         {
-            NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == tuntapVea.InterfaceName);
+            NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == interfaceName);
             if (networkInterface != null && networkInterface.OperationalStatus != OperationalStatus.Up)
             {
-                LoggerHelper.Instance.Error($"tuntap inerface {tuntapVea.InterfaceName} is {networkInterface.OperationalStatus}, restarting");
+                LoggerHelper.Instance.Error($"tuntap inerface {interfaceName} is {networkInterface.OperationalStatus}, restarting");
                 Stop();
                 await Task.Delay(5000).ConfigureAwait(false);
                 Run();
             }
         }
-        private async Task CheckProxy()
-        {
-            if (tuntapProxy.LocalEndpoint == null || tuntapProxy.LocalEndpoint.Port == 0) return;
-            try
-            {
-                var socket = new Socket(tuntapProxy.LocalEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                await socket.ConnectAsync(new IPEndPoint(IPAddress.Loopback, tuntapProxy.LocalEndpoint.Port)).WaitAsync(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
-                socket.SafeClose();
-            }
-            catch (Exception ex)
-            {
-                LoggerHelper.Instance.Error($"tuntap proxy {ex.Message}, restarting");
-                Stop();
-                await Task.Delay(5000).ConfigureAwait(false);
-                Run();
-            }
-        }
-
         private IPAddress GetHostIP()
         {
             string hostip = Environment.GetEnvironmentVariable("SNLTTY_LINKER_HOST_IP");

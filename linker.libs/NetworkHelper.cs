@@ -8,6 +8,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace linker.libs
 {
@@ -183,6 +184,18 @@ namespace linker.libs
         public static IPAddress ToNetworkIp(uint ip, uint maskvalue)
         {
             return new IPAddress(BinaryPrimitives.ReverseEndianness(ip & maskvalue).ToBytes());
+        }
+        public static IPAddress ToGatewayIP(IPAddress ip, byte maskLength)
+        {
+            uint network = BinaryPrimitives.ReadUInt32BigEndian(ToNetworkIp(ip, NetworkHelper.MaskValue(maskLength)).GetAddressBytes());
+            IPAddress gateway = new IPAddress(BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(network + 1)));
+            return gateway;
+        }
+        public static IPAddress ToGatewayIP(uint ip, uint maskValue)
+        {
+            uint network = BinaryPrimitives.ReadUInt32BigEndian(ToNetworkIp(ip, maskValue).GetAddressBytes());
+            IPAddress gateway = new IPAddress(BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(network + 1)));
+            return gateway;
         }
 
         public static bool NotIPv6Support(IPAddress ip)

@@ -187,10 +187,7 @@ namespace linker.tunnel.proxy
                     try
                     {
                         asyncUserUdpToken.Connection = tunnelToken.Connection;
-                        if (await ConnectionReceiveUdp(tunnelToken, asyncUserUdpToken).ConfigureAwait(false) == false)
-                        {
-                            await asyncUserUdpToken.SourceSocket.SendToAsync(tunnelToken.Proxy.Data, tunnelToken.Proxy.SourceEP).ConfigureAwait(false);
-                        }
+                        await asyncUserUdpToken.SourceSocket.SendToAsync(tunnelToken.Proxy.Data, tunnelToken.Proxy.SourceEP).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {

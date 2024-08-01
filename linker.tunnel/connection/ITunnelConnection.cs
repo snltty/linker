@@ -102,7 +102,7 @@ namespace linker.tunnel.connection
         /// <summary>
         /// 缓冲区大小
         /// </summary>
-        public byte BufferSize { get; } 
+        public byte BufferSize { get; }
 
         /// <summary>
         /// 已连接

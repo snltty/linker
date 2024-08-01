@@ -1,5 +1,4 @@
-﻿using System;
-using System.Buffers.Binary;
+﻿using System.Buffers.Binary;
 using System.Net;
 using System.Runtime.InteropServices;
 
@@ -10,25 +9,28 @@ namespace linker.tun.test
         public static LinkerTunDeviceAdapter linkerTunDeviceAdapter;
         static void Main(string[] args)
         {
-
-            linkerTunDeviceAdapter = new LinkerTunDeviceAdapter(new LinkerTunDeviceCallback());
+            linkerTunDeviceAdapter = new LinkerTunDeviceAdapter();
+            linkerTunDeviceAdapter.SetCallback(new LinkerTunDeviceCallback());
             linkerTunDeviceAdapter.SetUp("linker111"
                 , Guid.Parse("dc6d4efa-2b53-41bd-a403-f416c9bf7129")
-                , IPAddress.Parse("192.168.55.2")
-                , IPAddress.Parse("192.168.55.1"), 24);
+                , IPAddress.Parse("192.168.55.2"), 24);
 
             if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.Error))
             {
                 Console.WriteLine(linkerTunDeviceAdapter.Error);
             }
-
             Console.ReadLine();
         }
     }
 
-    public unsafe sealed class LinkerTunDeviceCallback : ILinkerTunDeviceCallback
+    public sealed class LinkerTunDeviceCallback : ILinkerTunDeviceCallback
     {
-        public void Callback(LinkerTunDevicPacket packet)
+        public async Task Callback(LinkerTunDevicPacket packet)
+        {
+            ICMPAnswer(packet);
+            await Task.CompletedTask;
+        }
+        private unsafe void ICMPAnswer(LinkerTunDevicPacket packet)
         {
             Memory<byte> writableMemory = MemoryMarshal.AsMemory(packet.Packet);
             fixed (byte* ptr = writableMemory.Span)
@@ -36,12 +38,12 @@ namespace linker.tun.test
                 //icmp && request
                 if (ptr[9] == 1 && ptr[20] == 8)
                 {
-                    Console.WriteLine($"ICMP to {new IPAddress(writableMemory.Span.Slice(16,4))}");
+                    Console.WriteLine($"ICMP to {new IPAddress(writableMemory.Span.Slice(16, 4))}");
 
                     uint dist = BinaryPrimitives.ReadUInt32LittleEndian(writableMemory.Span.Slice(16, 4));
 
                     //目的地址变源地址，
-                    * (uint*)(ptr + 16) = *(uint*)(ptr + 12);
+                    *(uint*)(ptr + 16) = *(uint*)(ptr + 12);
                     //假装是网关回复的
                     *(uint*)(ptr + 12) = dist;
 

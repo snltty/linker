@@ -1,5 +1,4 @@
 ﻿using linker.libs.api;
-using linker.plugins.tuntap.vea;
 using linker.plugins.tuntap.messenger;
 using MemoryPack;
 using linker.libs.extends;
@@ -8,9 +7,9 @@ using linker.config;
 using linker.tunnel.connection;
 using linker.plugins.tuntap.proxy;
 using linker.plugins.client;
-using linker.plugins.server;
 using linker.plugins.capi;
 using linker.plugins.messenger;
+using linker.plugins.tuntap.config;
 
 namespace linker.plugins.tuntap
 {

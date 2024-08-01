@@ -20,7 +20,7 @@ namespace linker.tun
 
     public interface ILinkerTunDeviceCallback
     {
-        public void Callback(LinkerTunDevicPacket packet);
+        public Task Callback(LinkerTunDevicPacket packet);
     }
 
     public struct LinkerTunDevicPacket
@@ -33,8 +33,8 @@ namespace linker.tun
 
     public sealed class LinkerTunDeviceRouteItem
     {
-        public IPAddress Address { get; }
-        public byte Mask { get; }
+        public IPAddress Address { get; set; }
+        public byte Mask { get; set; }
     }
 
     public enum LinkerTunDeviceStatus

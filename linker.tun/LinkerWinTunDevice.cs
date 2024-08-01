@@ -3,6 +3,7 @@ using System.Buffers.Binary;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
+using static linker.libs.winapis.SECUR32;
 
 namespace linker.tun
 {
@@ -12,9 +13,11 @@ namespace linker.tun
         public string Name => name;
         public bool Running => session != 0;
 
-        private IntPtr waitHandle = IntPtr.Zero, adapter = IntPtr.Zero, session = IntPtr.Zero;
+        private IntPtr waitHandle = IntPtr.Zero, adapter = IntPtr.Zero, session = IntPtr.Zero, session1 = IntPtr.Zero;
         private Guid guid;
         private int interfaceNumber = 0;
+
+        private CancellationTokenSource tokenSource;
 
         public LinkerWinTunDevice(string name, Guid guid)
         {
@@ -24,6 +27,7 @@ namespace linker.tun
 
         public bool SetUp(IPAddress address, IPAddress gateway, byte prefixLength, out string error)
         {
+           
             error = string.Empty;
             if (adapter != 0)
             {
@@ -47,6 +51,11 @@ namespace linker.tun
 
             waitHandle = WintunGetReadWaitEvent(session);
 
+            WintunSetLogger((WINTUN_LOGGER_LEVEL level, ulong timestamp,string message) =>
+            {
+                Console.WriteLine($"[{level}]->{timestamp}->{message}");
+            });
+
             WintunGetAdapterLUID(adapter, out ulong luid);
             {
                 MIB_UNICASTIPADDRESS_ROW AddressRow = default;
@@ -59,6 +68,7 @@ namespace linker.tun
                 uint LastError = CreateUnicastIpAddressEntry(ref AddressRow);
                 if (LastError != 0) throw new InvalidOperationException();
             }
+            /*
             {
                 MIB_IPFORWARD_ROW2 row = default;
                 InitializeIpForwardEntry(ref row);
@@ -71,13 +81,20 @@ namespace linker.tun
                 uint LastError = CreateIpForwardEntry2(ref row);
                 if (LastError != 0) throw new InvalidOperationException();
             }
-
+            */
             GetWindowsInterfaceNum();
 
+            tokenSource = new CancellationTokenSource();
             return true;
         }
         public void Shutdown()
         {
+            tokenSource?.Cancel();
+            if (waitHandle != 0)
+            {
+                SetEvent(waitHandle);
+                waitHandle = 0;
+            }
             if (session != 0)
             {
                 WintunEndSession(session);
@@ -126,8 +143,7 @@ namespace linker.tun
         private byte[] buffer = new byte[2 * 1024];
         public unsafe ReadOnlyMemory<byte> Read()
         {
-            if (session == 0) return Helper.EmptyArray;
-            for (; ; )
+            for (; tokenSource.IsCancellationRequested == false;)
             {
                 IntPtr packet = WintunReceivePacket(session, out var packetSize);
                 if (packet != 0)
@@ -144,6 +160,7 @@ namespace linker.tun
                     }
                 }
             }
+            return Helper.EmptyArray;
         }
         public unsafe bool Write(ReadOnlyMemory<byte> buffer)
         {
@@ -220,6 +237,8 @@ namespace linker.tun
         private static extern uint CreateIpForwardEntry2(ref MIB_IPFORWARD_ROW2 Row);
         [DllImport("kernel32.dll")]
         private static extern uint WaitForSingleObject(IntPtr hHandle, uint dwMilliseconds);
+        [DllImport("kernel32.dll")]
+        public static extern bool SetEvent(IntPtr hEvent);
 
         [DllImport("wintun.dll", SetLastError = true)]
         private static extern IntPtr WintunCreateAdapter(

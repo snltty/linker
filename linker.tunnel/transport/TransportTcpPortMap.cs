@@ -91,7 +91,6 @@ namespace linker.tunnel.transport
                                 if (length > 0)
                                 {
                                     string key = bytes.AsMemory(0, length).GetString();
-                                    LoggerHelper.Instance.Debug(key);
                                     if (distDic.TryRemove(key, out TaskCompletionSource<Socket> tcs))
                                     {
                                         await client.SendAsync(bytes.AsMemory(0, length));

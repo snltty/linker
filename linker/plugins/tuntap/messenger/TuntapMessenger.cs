@@ -1,6 +1,6 @@
 ﻿using linker.plugins.messenger;
 using linker.plugins.signin.messenger;
-using linker.plugins.tuntap.vea;
+using linker.plugins.tuntap.config;
 using MemoryPack;
 
 namespace linker.plugins.tuntap.messenger
