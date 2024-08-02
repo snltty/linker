@@ -3,6 +3,7 @@ using Microsoft.Win32.SafeHandles;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace linker.tun
 {
@@ -15,6 +16,9 @@ namespace linker.tun
 
         private string interfaceLinux = string.Empty;
         private FileStream fs = null;
+        private string iptableLineNumber = string.Empty;
+        private IPAddress address;
+        private byte prefixLength = 24;
 
         public LinkerLinuxTunDevice(string name)
         {
@@ -23,6 +27,8 @@ namespace linker.tun
 
         public bool SetUp(IPAddress address, IPAddress gateway, byte prefixLength, out string error)
         {
+            this.address = address;
+            this.prefixLength = prefixLength;
             error = string.Empty;
             if (fs != null)
             {
@@ -68,6 +74,28 @@ namespace linker.tun
             }
             CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap del mode tun dev {Name}" });
         }
+
+        public void SetMtu(int value)
+        {
+            CommandHelper.Linux(string.Empty, new string[] { $"ip link set dev {Name} mtu {value}" });
+        }
+        public void SetNat()
+        {
+            IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.MaskValue(prefixLength));
+            CommandHelper.PowerShell(string.Empty, new string[] {
+                $"sysctl -w net.ipv4.ip_forward=1",
+                $"iptables -t nat -A POSTROUTING ! -o {Name} -s {network}/{prefixLength} -j MASQUERADE",
+            });
+            iptableLineNumber = CommandHelper.Linux(string.Empty, new string[] { $"iptables -t nat -L --line-numbers | grep {network}/{prefixLength} | cut -d' ' -f1" });
+        }
+        public void RemoveNat()
+        {
+            if (string.IsNullOrWhiteSpace(iptableLineNumber) == false)
+            {
+                CommandHelper.PowerShell(string.Empty, new string[] { $"iptables -t nat -D POSTROUTING {iptableLineNumber}" });
+            }
+        }
+
 
         public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
         {

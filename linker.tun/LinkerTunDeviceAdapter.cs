@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using System.Net;
+using System.Xml.Linq;
 
 namespace linker.tun
 {
@@ -11,7 +12,6 @@ namespace linker.tun
 
         private string error = string.Empty;
         public string Error => error;
-
 
         private bool starting = false;
         public LinkerTunDeviceStatus Status
@@ -48,11 +48,12 @@ namespace linker.tun
         /// <param name="name">网卡名，如果是osx，需要utunX的命名，X是一个数字</param>
         /// <param name="guid">windows的时候，需要一个固定guid，不然网卡编号一直递增，注册表一直新增记录</param>
         /// <param name="address">网卡IP</param>
-        /// <param name="mask">掩码。一般24即可</param>
-        public void SetUp(string name, Guid guid, IPAddress address, byte mask)
+        /// <param name="prefixLength">掩码。一般24即可</param>
+        public void SetUp(string name, Guid guid, IPAddress address, byte prefixLength)
         {
             if (starting) return;
             Shutdown();
+
             starting = true;
             try
             {
@@ -70,8 +71,8 @@ namespace linker.tun
                 if (linkerTunDevice != null)
                 {
                     linkerTunDevice.Shutdown();
+                    linkerTunDevice.SetUp(address, NetworkHelper.ToGatewayIP(address, prefixLength), prefixLength, out error);
 
-                    linkerTunDevice.SetUp(address, NetworkHelper.ToGatewayIP(address, mask), mask, out error);
                     if (string.IsNullOrWhiteSpace(error))
                     {
                         cancellationTokenSource = new CancellationTokenSource();
@@ -87,22 +88,25 @@ namespace linker.tun
                                         break;
                                     }
 
+
                                     LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
                                     packet.Packet = buffer;
-                                    packet.Version = (byte)(buffer.Span[0] >> 4 & 0b1111);
+
+                                    ReadOnlyMemory<byte> ipPacket = buffer.Slice(4);
+
+                                    packet.Version = (byte)(ipPacket.Span[0] >> 4 & 0b1111);
 
                                     if (packet.Version == 4)
                                     {
-                                        packet.SourceIPAddress = buffer.Slice(12, 4);
-                                        packet.DistIPAddress = buffer.Slice(16, 4);
+                                        packet.SourceIPAddress = ipPacket.Slice(12, 4);
+                                        packet.DistIPAddress = ipPacket.Slice(16, 4);
                                     }
                                     else if (packet.Version == 6)
                                     {
-                                        packet.SourceIPAddress = buffer.Slice(8, 16);
-                                        packet.DistIPAddress = buffer.Slice(24, 16);
+                                        packet.SourceIPAddress = ipPacket.Slice(8, 16);
+                                        packet.DistIPAddress = ipPacket.Slice(24, 16);
                                     }
-
-                                    await linkerTunDeviceCallback.Callback(packet);
+                                    await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
                                 }
                                 catch (Exception)
                                 {
@@ -131,9 +135,33 @@ namespace linker.tun
             if (linkerTunDevice != null)
             {
                 linkerTunDevice.Shutdown();
+                linkerTunDevice.RemoveNat();
             }
 
             error = string.Empty;
+        }
+
+
+        public void SetMtu(int value)
+        {
+            if (linkerTunDevice != null)
+            {
+                linkerTunDevice.SetMtu(value);
+            }
+        }
+        public void SetNat()
+        {
+            if (linkerTunDevice != null)
+            {
+                linkerTunDevice.SetNat();
+            }
+        }
+        public void RemoveNat()
+        {
+            if (linkerTunDevice != null)
+            {
+                linkerTunDevice.RemoveNat();
+            }
         }
 
         /// <summary>

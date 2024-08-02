@@ -10,6 +10,10 @@ namespace linker.tun
         public bool SetUp(IPAddress address, IPAddress gateway, byte prefixLength, out string error);
         public void Shutdown();
 
+        public void SetMtu(int value);
+        public void SetNat();
+        public void RemoveNat();
+
         public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip);
         public void DelRoute(LinkerTunDeviceRouteItem[] ip);
 

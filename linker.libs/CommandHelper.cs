@@ -9,6 +9,11 @@ namespace linker.libs
         {
             return Execute("cmd.exe", arg, commands, readResult);
         }
+        public static string PowerShell(string arg, string[] commands, bool readResult = true)
+        {
+            return Execute("powershell.exe", arg, commands, readResult);
+        }
+
         public static string Linux(string arg, string[] commands, bool readResult = true)
         {
             return Execute("/bin/bash", arg, commands, readResult);

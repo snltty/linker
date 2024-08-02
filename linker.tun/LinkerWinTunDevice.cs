@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using System.Buffers.Binary;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -16,6 +17,8 @@ namespace linker.tun
         private IntPtr waitHandle = IntPtr.Zero, adapter = IntPtr.Zero, session = IntPtr.Zero, session1 = IntPtr.Zero;
         private Guid guid;
         private int interfaceNumber = 0;
+        private IPAddress address;
+        private byte prefixLength = 24;
 
         private CancellationTokenSource tokenSource;
 
@@ -27,7 +30,9 @@ namespace linker.tun
 
         public bool SetUp(IPAddress address, IPAddress gateway, byte prefixLength, out string error)
         {
-           
+            this.address = address;
+            this.prefixLength = prefixLength;
+
             error = string.Empty;
             if (adapter != 0)
             {
@@ -50,11 +55,6 @@ namespace linker.tun
             }
 
             waitHandle = WintunGetReadWaitEvent(session);
-
-            WintunSetLogger((WINTUN_LOGGER_LEVEL level, ulong timestamp,string message) =>
-            {
-                Console.WriteLine($"[{level}]->{timestamp}->{message}");
-            });
 
             WintunGetAdapterLUID(adapter, out ulong luid);
             {
@@ -106,6 +106,22 @@ namespace linker.tun
             interfaceNumber = 0;
         }
 
+
+        public void SetMtu(int value)
+        {
+            CommandHelper.Windows(string.Empty, new string[] { $"netsh interface ipv4 set subinterface {interfaceNumber}  mtu={value} store=persistent" });
+        }
+        public void SetNat()
+        {
+            IPAddress network = NetworkHelper.ToNetworkIp(this.address, NetworkHelper.MaskValue(prefixLength));
+            CommandHelper.PowerShell(string.Empty, new string[] { $"New-NetNat -Name {Name} -InternalIPInterfaceAddressPrefix {network}/{prefixLength}" });
+        }
+        public void RemoveNat()
+        {
+            CommandHelper.PowerShell(string.Empty, new string[] { $"Remove-NetNat -Name {Name}" });
+        }
+
+
         public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
         {
             if (interfaceNumber > 0)
@@ -146,11 +162,13 @@ namespace linker.tun
             for (; tokenSource.IsCancellationRequested == false;)
             {
                 IntPtr packet = WintunReceivePacket(session, out var packetSize);
+
                 if (packet != 0)
                 {
-                    new Span<byte>((byte*)packet, (int)packetSize).CopyTo(buffer.AsSpan(0, (int)packetSize));
+                    new Span<byte>((byte*)packet, (int)packetSize).CopyTo(buffer.AsSpan(4, (int)packetSize));
+                    ((int)packetSize).ToBytes(buffer);
                     WintunReleaseReceivePacket(session, packet);
-                    return buffer.AsMemory(0, (int)packetSize);
+                    return buffer.AsMemory(0, (int)packetSize + 4);
                 }
                 else
                 {
@@ -164,7 +182,7 @@ namespace linker.tun
         }
         public unsafe bool Write(ReadOnlyMemory<byte> buffer)
         {
-            if (session == 0) return false;
+            if (session == 0 || tokenSource.IsCancellationRequested) return false;
 
             IntPtr packet = WintunAllocateSendPacket(session, (uint)buffer.Length);
             if (packet != 0)
@@ -191,6 +209,8 @@ namespace linker.tun
                 interfaceNumber = adapter.GetIPProperties().GetIPv4Properties().Index;
             }
         }
+
+
 
         [StructLayout(LayoutKind.Explicit, Pack = 1, Size = 80)]
         private struct MIB_UNICASTIPADDRESS_ROW
@@ -288,7 +308,6 @@ namespace linker.tun
 
         [DllImport("wintun.dll", SetLastError = true)]
         private static extern void WintunSetLogger(WINTUN_LOGGER_CALLBACK newLogger);
-
 
         private delegate void WINTUN_LOGGER_CALLBACK(
             WINTUN_LOGGER_LEVEL level,

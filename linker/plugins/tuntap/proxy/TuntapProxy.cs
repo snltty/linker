@@ -10,7 +10,7 @@ using System.Net;
 using linker.plugins.tuntap.config;
 using linker.tun;
 using System.Buffers.Binary;
-using System.Text;
+using System.Net.Sockets;
 
 namespace linker.plugins.tuntap.proxy
 {
@@ -29,6 +29,10 @@ namespace linker.plugins.tuntap.proxy
 
         SemaphoreSlim slimGlobal = new SemaphoreSlim(1);
         private readonly ConcurrentDictionary<string, SemaphoreSlim> dicLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
+
+
+        private ITunnelConnection[] cache = new ITunnelConnection[255];
+
 
         public TuntapProxy(TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, RunningConfig runningConfig, FileConfig config, LinkerTunDeviceAdapter linkerTunDeviceAdapter)
         {
@@ -60,7 +64,7 @@ namespace linker.plugins.tuntap.proxy
             }
             connections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
 
-            connection.BeginReceive(this, null, false);
+            connection.BeginReceive(this, null);
         }
         public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer, object state)
         {
@@ -86,7 +90,13 @@ namespace linker.plugins.tuntap.proxy
                 }
                 else
                 {
-                    ITunnelConnection connection = await ConnectTunnel(ip);
+                    ITunnelConnection connection = cache[packet.DistIPAddress.Span[3]];
+                    if (connection == null || connection.Connected == false)
+                    {
+                        connection = await ConnectTunnel(ip);
+                        cache[packet.DistIPAddress.Span[3]] = connection;
+                    }
+                    cache[packet.DistIPAddress.Span[3]] = connection;
                     if (connection != null)
                     {
                         await connection.SendAsync(packet.Packet);
@@ -100,8 +110,6 @@ namespace linker.plugins.tuntap.proxy
                     await Task.WhenAll(connections.Values.Select(c => c.SendAsync(packet.Packet)));
                 }
             }
-
-            Console.WriteLine($"IPV{packet.Version}->{new IPAddress(packet.SourceIPAddress.Span)}->{new IPAddress(packet.DistIPAddress.Span)}->{packet.Packet.Length}");
         }
 
 

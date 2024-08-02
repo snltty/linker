@@ -91,6 +91,8 @@ namespace linker.plugins.tuntap
                     }
 
                     linkerTunDeviceAdapter.SetUp(interfaceName, runningConfig.Data.Tuntap.InterfaceGuid, runningConfig.Data.Tuntap.IP, 24);
+                    linkerTunDeviceAdapter.SetMtu(1416);
+                    linkerTunDeviceAdapter.SetNat();
                     runningConfig.Data.Tuntap.Running = Status == TuntapStatus.Running;
                     runningConfig.Data.Update();
 
@@ -118,6 +120,7 @@ namespace linker.plugins.tuntap
             {
                 OnChange();
                 linkerTunDeviceAdapter.Shutdown();
+                linkerTunDeviceAdapter.RemoveNat();
                 runningConfig.Data.Tuntap.Running = Status == TuntapStatus.Running;
                 runningConfig.Data.Update();
             }

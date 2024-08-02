@@ -172,6 +172,7 @@ namespace linker.tunnel
                                 }
                                 LoggerHelper.Instance.Info($"tunnel {transport.Name} got local external ip {localInfo.Result.ToJson()}");
                                 LoggerHelper.Instance.Info($"tunnel {transport.Name} got remote external ip {remoteInfo.Result.ToJson()}");
+                                LoggerHelper.Instance.Info($"tunnel {transportItem.ToJson()}");
 
 
                                 tunnelTransportInfo = new TunnelTransportInfo
