@@ -120,7 +120,6 @@ namespace linker.plugins.tuntap
             {
                 OnChange();
                 linkerTunDeviceAdapter.Shutdown();
-                linkerTunDeviceAdapter.RemoveNat();
                 runningConfig.Data.Tuntap.Running = Status == TuntapStatus.Running;
                 runningConfig.Data.Update();
             }
@@ -225,7 +224,7 @@ namespace linker.plugins.tuntap
                 Status = Status,
                 Error = linkerTunDeviceAdapter.Error,
                 BufferSize = runningConfig.Data.Tuntap.BufferSize,
-                HostIP = GetHostIP()
+                HostIP = IPAddress.Any
             };
             if (runningConfig.Data.Tuntap.Masks.Length != runningConfig.Data.Tuntap.LanIPs.Length)
             {
@@ -280,10 +279,6 @@ namespace linker.plugins.tuntap
             foreach (var item in tuntapInfos.Values)
             {
                 tuntapProxy.SetIP(item.MachineId, BinaryPrimitives.ReadUInt32BigEndian(item.IP.GetAddressBytes()));
-                if (item.HostIP != null)
-                {
-                    tuntapProxy.SetHostIP(BinaryPrimitives.ReadUInt32BigEndian(item.IP.GetAddressBytes()), item.HostIP);
-                }
             }
         }
 
@@ -348,7 +343,7 @@ namespace linker.plugins.tuntap
             {
                 try
                 {
-                    if (Status == TuntapStatus.Running)
+                    if (runningConfig.Data.Tuntap.Running)
                     {
                         await Task.Delay(5000).ConfigureAwait(false);
                         await CheckInterface().ConfigureAwait(false);
@@ -364,28 +359,14 @@ namespace linker.plugins.tuntap
         private async Task CheckInterface()
         {
             NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == interfaceName);
-            if (networkInterface != null && networkInterface.OperationalStatus != OperationalStatus.Up)
+
+            if (networkInterface == null || networkInterface.OperationalStatus != OperationalStatus.Up)
             {
-                LoggerHelper.Instance.Error($"tuntap inerface {interfaceName} is {networkInterface.OperationalStatus}, restarting");
+                LoggerHelper.Instance.Error($"tuntap inerface {interfaceName} is {networkInterface?.OperationalStatus ?? OperationalStatus.Unknown}, restarting");
                 Stop();
                 await Task.Delay(5000).ConfigureAwait(false);
                 Run();
             }
-        }
-        private IPAddress GetHostIP()
-        {
-            string hostip = Environment.GetEnvironmentVariable("SNLTTY_LINKER_HOST_IP");
-            if (string.IsNullOrWhiteSpace(hostip) == false)
-            {
-                try
-                {
-                    return IPAddress.Parse(hostip);
-                }
-                catch (Exception)
-                {
-                }
-            }
-            return IPAddress.Any;
         }
     }
 }

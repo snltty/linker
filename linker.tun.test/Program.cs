@@ -14,6 +14,7 @@ namespace linker.tun.test
             linkerTunDeviceAdapter.SetUp("linker111"
                 , Guid.Parse("dc6d4efa-2b53-41bd-a403-f416c9bf7129")
                 , IPAddress.Parse("192.168.55.2"), 24);
+            linkerTunDeviceAdapter.SetMtu(1420);
 
             if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.Error))
             {
@@ -32,7 +33,7 @@ namespace linker.tun.test
         }
         private unsafe void ICMPAnswer(LinkerTunDevicPacket packet)
         {
-            Memory<byte> writableMemory = MemoryMarshal.AsMemory(packet.Packet);
+            Memory<byte> writableMemory = MemoryMarshal.AsMemory(packet.Packet.Slice(4));
             fixed (byte* ptr = writableMemory.Span)
             {
                 //icmp && request
@@ -41,6 +42,7 @@ namespace linker.tun.test
                     Console.WriteLine($"ICMP to {new IPAddress(writableMemory.Span.Slice(16, 4))}");
 
                     uint dist = BinaryPrimitives.ReadUInt32LittleEndian(writableMemory.Span.Slice(16, 4));
+
 
                     //目的地址变源地址，
                     *(uint*)(ptr + 16) = *(uint*)(ptr + 12);

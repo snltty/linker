@@ -25,10 +25,8 @@ do
 			dotnet publish ./${f} -c release -f net8.0 -o ./public/publish/docker/linux-${p}-${r}/${f}  -r ${rr}  --self-contained true -p:TieredPGO=true  -p:DebugType=none -p:DebugSymbols=false  -p:PublishSingleFile=true -p:PublishTrimmed=true -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true  -p:TrimMode=partial
 			cp -rf linker/Dockerfile-${p} public/publish/docker/linux-${p}-${r}/${f}/Dockerfile-${p}
 			cp -rf public/extends/any/web public/publish/docker/linux-${p}-${r}/${f}/web
-            mkdir -p public/publish/docker/linux-${p}-${r}/${f}/plugins/tuntap
             mkdir -p public/publish/docker/linux-${p}-${r}/${f}/configs
             mkdir -p public/publish/docker/linux-${p}-${r}/${f}/logs
-			cp -rf linker/plugins/tuntap/tun2socks-linux-${r} public/publish/docker/linux-${p}-${r}/${f}/plugins/tuntap/tun2socks
             if [ $p = "musl" ]
             then
                 cp -rf linker/libmsquic-musl-${r}.so public/publish/docker/linux-${p}-${r}/${f}/libmsquic.so

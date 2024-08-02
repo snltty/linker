@@ -1,13 +1,13 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using Microsoft.Win32.SafeHandles;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace linker.tun
 {
-    public sealed class LinkerLinuxTunDevice : ILinkerTunDevice
+    internal sealed class LinkerLinuxTunDevice : ILinkerTunDevice
     {
 
         private string name = string.Empty;
@@ -126,13 +126,28 @@ namespace linker.tun
         private byte[] buffer = new byte[2 * 1024];
         public ReadOnlyMemory<byte> Read()
         {
-            int length = fs.Read(buffer, 0, buffer.Length);
-            return buffer.AsMemory(0, length);
+            try
+            {
+                int length = fs.Read(buffer.AsSpan(4));
+                length.ToBytes(buffer);
+                return buffer.AsMemory(0, length + 4);
+            }
+            catch (Exception)
+            {
+            }
+            return Helper.EmptyArray;
         }
         public bool Write(ReadOnlyMemory<byte> buffer)
         {
-            fs.Write(buffer.Span);
-            return true;
+            try
+            {
+                fs.Write(buffer.Span);
+                return true;
+            }
+            catch (Exception)
+            {
+            }
+            return false;
         }
 
         private string GetLinuxInterfaceNum()

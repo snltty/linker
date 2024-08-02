@@ -11,7 +11,7 @@ namespace linker.plugins.updater
 {
     public sealed class UpdaterHelper
     {
-        private string[] extractExcludeFiles = ["msquic.dll", "msquic-openssl.dll", "tun2socks", "tun2socks.exe"];
+        private string[] extractExcludeFiles = [];
 
         public UpdaterHelper()
         {

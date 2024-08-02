@@ -6,11 +6,9 @@ using linker.tunnel.connection;
 using linker.libs;
 using linker.libs.extends;
 using System.Collections.Concurrent;
-using System.Net;
 using linker.plugins.tuntap.config;
 using linker.tun;
 using System.Buffers.Binary;
-using System.Net.Sockets;
 
 namespace linker.plugins.tuntap.proxy
 {
@@ -24,15 +22,11 @@ namespace linker.plugins.tuntap.proxy
 
         private uint[] maskValues = Array.Empty<uint>();
         private readonly ConcurrentDictionary<uint, string> ip2MachineCic = new ConcurrentDictionary<uint, string>();
-        private readonly ConcurrentDictionary<uint, IPAddress> hostipCic = new ConcurrentDictionary<uint, IPAddress>();
         private readonly ConcurrentDictionary<string, ITunnelConnection> connections = new ConcurrentDictionary<string, ITunnelConnection>();
+        private readonly ConcurrentDictionary<uint, ITunnelConnection> ipConnections = new ConcurrentDictionary<uint, ITunnelConnection>();
 
         SemaphoreSlim slimGlobal = new SemaphoreSlim(1);
         private readonly ConcurrentDictionary<string, SemaphoreSlim> dicLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
-
-
-        private ITunnelConnection[] cache = new ITunnelConnection[255];
-
 
         public TuntapProxy(TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, RunningConfig runningConfig, FileConfig config, LinkerTunDeviceAdapter linkerTunDeviceAdapter)
         {
@@ -90,13 +84,14 @@ namespace linker.plugins.tuntap.proxy
                 }
                 else
                 {
-                    ITunnelConnection connection = cache[packet.DistIPAddress.Span[3]];
-                    if (connection == null || connection.Connected == false)
+                    if (ipConnections.TryGetValue(ip, out ITunnelConnection connection) == false || connection == null || connection.Connected == false)
                     {
                         connection = await ConnectTunnel(ip);
-                        cache[packet.DistIPAddress.Span[3]] = connection;
+                        if (connection != null)
+                        {
+                            ipConnections.TryAdd(ip, connection);
+                        }
                     }
-                    cache[packet.DistIPAddress.Span[3]] = connection;
                     if (connection != null)
                     {
                         await connection.SendAsync(packet.Packet);
@@ -132,10 +127,6 @@ namespace linker.plugins.tuntap.proxy
         public void SetIP(string machineId, uint ip)
         {
             ip2MachineCic.AddOrUpdate(ip, machineId, (a, b) => machineId);
-        }
-        public void SetHostIP(uint ip, IPAddress hostip)
-        {
-            hostipCic.AddOrUpdate(ip, hostip, (a, b) => hostip);
         }
 
         /// <summary>

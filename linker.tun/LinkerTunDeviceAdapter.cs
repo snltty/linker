@@ -1,6 +1,5 @@
 ﻿using linker.libs;
 using System.Net;
-using System.Xml.Linq;
 
 namespace linker.tun
 {
@@ -13,7 +12,7 @@ namespace linker.tun
         private string error = string.Empty;
         public string Error => error;
 
-        private bool starting = false;
+        private uint starting = 0;
         public LinkerTunDeviceStatus Status
         {
             get
@@ -22,7 +21,7 @@ namespace linker.tun
 
                 return linkerTunDevice.Running
                     ? LinkerTunDeviceStatus.Running
-                    : starting
+                    : starting == 1
                         ? LinkerTunDeviceStatus.Starting
                         : LinkerTunDeviceStatus.Normal;
             }
@@ -51,10 +50,11 @@ namespace linker.tun
         /// <param name="prefixLength">掩码。一般24即可</param>
         public void SetUp(string name, Guid guid, IPAddress address, byte prefixLength)
         {
-            if (starting) return;
+            if (Interlocked.CompareExchange(ref starting, 1, 0) == 1)
+            {
+                return;
+            }
             Shutdown();
-
-            starting = true;
             try
             {
                 if (linkerTunDevice == null)
@@ -67,55 +67,66 @@ namespace linker.tun
                     {
                         linkerTunDevice = new LinkerLinuxTunDevice(name);
                     }
-                }
-                if (linkerTunDevice != null)
-                {
-                    linkerTunDevice.Shutdown();
-                    linkerTunDevice.SetUp(address, NetworkHelper.ToGatewayIP(address, prefixLength), prefixLength, out error);
-
-                    if (string.IsNullOrWhiteSpace(error))
+                    else if (OperatingSystem.IsMacOS())
                     {
-                        cancellationTokenSource = new CancellationTokenSource();
-                        Task.Run(async () =>
-                        {
-                            while (cancellationTokenSource.IsCancellationRequested == false)
-                            {
-                                try
-                                {
-                                    ReadOnlyMemory<byte> buffer = linkerTunDevice.Read();
-                                    if (buffer.Length == 0)
-                                    {
-                                        break;
-                                    }
-
-
-                                    LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
-                                    packet.Packet = buffer;
-
-                                    ReadOnlyMemory<byte> ipPacket = buffer.Slice(4);
-
-                                    packet.Version = (byte)(ipPacket.Span[0] >> 4 & 0b1111);
-
-                                    if (packet.Version == 4)
-                                    {
-                                        packet.SourceIPAddress = ipPacket.Slice(12, 4);
-                                        packet.DistIPAddress = ipPacket.Slice(16, 4);
-                                    }
-                                    else if (packet.Version == 6)
-                                    {
-                                        packet.SourceIPAddress = ipPacket.Slice(8, 16);
-                                        packet.DistIPAddress = ipPacket.Slice(24, 16);
-                                    }
-                                    await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
-                                }
-                                catch (Exception)
-                                {
-                                    break;
-                                }
-                            }
-                        });
+                        linkerTunDevice = new LinkerOsxTunDevice("utun12138");
                     }
                 }
+                if (linkerTunDevice == null)
+                {
+                    error = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} not support";
+                    return;
+                }
+
+                linkerTunDevice.Shutdown();
+                linkerTunDevice.SetUp(address, NetworkHelper.ToGatewayIP(address, prefixLength), prefixLength, out error);
+                if (string.IsNullOrWhiteSpace(error) == false)
+                {
+                    return;
+                }
+
+                cancellationTokenSource = new CancellationTokenSource();
+                Task.Run(async () =>
+                {
+                    while (cancellationTokenSource.IsCancellationRequested == false)
+                    {
+                        try
+                        {
+                            ReadOnlyMemory<byte> buffer = linkerTunDevice.Read();
+                            if (buffer.Length == 0)
+                            {
+                                Shutdown();
+                                break;
+                            }
+
+
+                            LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
+                            packet.Packet = buffer;
+
+                            ReadOnlyMemory<byte> ipPacket = buffer.Slice(4);
+
+                            packet.Version = (byte)(ipPacket.Span[0] >> 4 & 0b1111);
+
+                            if (packet.Version == 4)
+                            {
+                                packet.SourceIPAddress = ipPacket.Slice(12, 4);
+                                packet.DistIPAddress = ipPacket.Slice(16, 4);
+                            }
+                            else if (packet.Version == 6)
+                            {
+                                packet.SourceIPAddress = ipPacket.Slice(8, 16);
+                                packet.DistIPAddress = ipPacket.Slice(24, 16);
+                            }
+                            await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
+                        }
+                        catch (Exception ex)
+                        {
+                            error = ex.Message;
+                            Shutdown();
+                            break;
+                        }
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -123,7 +134,7 @@ namespace linker.tun
             }
             finally
             {
-                starting = false;
+                Interlocked.Exchange(ref starting, 0);
             }
         }
         /// <summary>
@@ -144,24 +155,15 @@ namespace linker.tun
 
         public void SetMtu(int value)
         {
-            if (linkerTunDevice != null)
-            {
-                linkerTunDevice.SetMtu(value);
-            }
+            linkerTunDevice?.SetMtu(value);
         }
         public void SetNat()
         {
-            if (linkerTunDevice != null)
-            {
-                linkerTunDevice.SetNat();
-            }
+            linkerTunDevice?.SetNat();
         }
         public void RemoveNat()
         {
-            if (linkerTunDevice != null)
-            {
-                linkerTunDevice.RemoveNat();
-            }
+            linkerTunDevice?.RemoveNat();
         }
 
         /// <summary>

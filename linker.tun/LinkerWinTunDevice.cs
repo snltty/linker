@@ -4,11 +4,10 @@ using System.Buffers.Binary;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
-using static linker.libs.winapis.SECUR32;
 
 namespace linker.tun
 {
-    public sealed class LinkerWinTunDevice : ILinkerTunDevice
+    internal sealed class LinkerWinTunDevice : ILinkerTunDevice
     {
         private string name = string.Empty;
         public string Name => name;
@@ -175,6 +174,10 @@ namespace linker.tun
                     if (Marshal.GetLastWin32Error() == 259L)
                     {
                         WaitForSingleObject(waitHandle, 0xFFFFFFFF);
+                    }
+                    else
+                    {
+                        return Helper.EmptyArray;
                     }
                 }
             }
