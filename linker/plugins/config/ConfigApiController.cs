@@ -34,6 +34,21 @@ namespace linker.plugins.config
                 config.Data.Client.CApi.WebPort = info.Client.Web;
                 config.Data.Client.CApi.ApiPort = info.Client.Api;
                 config.Data.Client.CApi.ApiPassword = info.Client.Password;
+
+                if (info.Client.HasServer)
+                {
+                    config.Data.Client.Server = info.Client.Server;
+                    runningConfig.Data.SForwardSecretKey = info.Client.SForwardSecretKey;
+                    runningConfig.Data.UpdaterSecretKey = info.Client.UpdaterSecretKey;
+                    foreach (var item in runningConfig.Data.Relay.Servers)
+                    {
+                        item.SecretKey = info.Client.RelaySecretKey;
+                    }
+                    foreach (var item in runningConfig.Data.Tunnel.Servers)
+                    {
+                        item.Host = info.Client.Server;
+                    }
+                }
             }
             if (info.Common.Modes.Contains("server"))
             {
@@ -50,6 +65,9 @@ namespace linker.plugins.config
             config.Data.Common.Modes = info.Common.Modes;
             config.Data.Common.Install = true;
             config.Data.Update();
+
+            runningConfig.Data.Update();
+
             return true;
         }
     }
@@ -67,6 +85,12 @@ namespace linker.plugins.config
         public int Api { get; set; }
         public int Web { get; set; }
         public string Password { get; set; }
+
+        public bool HasServer { get; set; }
+        public string Server { get; set; }
+        public string SForwardSecretKey { get; set; }
+        public string RelaySecretKey { get; set; }
+        public string UpdaterSecretKey { get; set; }
     }
     public sealed class ConfigInstallServerInfo
     {

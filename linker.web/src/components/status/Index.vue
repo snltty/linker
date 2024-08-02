@@ -1,6 +1,6 @@
 <template>
     <div class="status-wrap flex">
-        <div class="copy"><a href="https://github.com/snltty/linker" target="_blank">snltty©linker v1.2.0.0</a></div>
+        <div class="copy"><a href="https://github.com/snltty/linker" target="_blank">snltty©linker v1.2.0.3</a></div>
         <div class="flex-1"></div>
         <div class="api"><Api></Api></div>
         <div class="server"><Server></Server></div>

@@ -48,19 +48,13 @@ jobs:
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
-        tag_name: v1.2.0.2
-        release_name: v1.2.0.2.${{ steps.date.outputs.today }}
+        tag_name: v1.2.0.3
+        release_name: v1.2.0.3.${{ steps.date.outputs.today }}
         draft: false
         prerelease: false
         body: |
-          1. 网关层级计算修复(在linux下计算错误导致打洞失败)
-          2. 修复在IPV6环境下域名解析缓慢问题
-          3. 新增基于端口映射的打洞协议
-          4. 修复端口转发潜在BUG
-          5. 虚拟网卡支持广播组播了
-          6. 修复了socks5的一些问题
-          7. 增加了docker宿主机访问策略，docker也可以用虚拟网卡通信了
-          8. 请更新服务端
+          1. 这是一个测试版本，请使用v1.2.0.2版本
+          2. 请勿更新
 
     - name: upload win x64
       id: upload-win-x64

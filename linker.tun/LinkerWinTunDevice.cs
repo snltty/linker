@@ -120,7 +120,6 @@ namespace linker.tun
             CommandHelper.PowerShell(string.Empty, new string[] { $"Remove-NetNat -Name {Name}" });
         }
 
-
         public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
         {
             if (interfaceNumber > 0)

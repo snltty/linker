@@ -30,7 +30,6 @@
                         {{ item }} / {{ tuntap.list[scope.row.MachineId].Masks[index] }}
                     </div>
                 </div>
-                <div class="t-r">{{ 1<<tuntap.list[scope.row.MachineId].BufferSize}}KB</div>
             </div> 
         </template>
     </el-table-column>

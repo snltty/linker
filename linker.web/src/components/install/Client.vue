@@ -3,8 +3,7 @@
         <el-form ref="formDom" :model="state.form" :rules="state.rules" label-width="8rem">
             <el-form-item label="" label-width="0">
                 <div class="t-c w-100">
-                    <p>端口为0则不监听</p>
-                    <p>相同分组名之间的客户端相互可见</p>
+                    <p>端口为0则不监听，相同分组名之间的客户端相互可见</p>
                 </div>
             </el-form-item>
             <el-form-item label="" label-width="0">
@@ -36,10 +35,47 @@
                 </el-row>
             </el-form-item>
             <el-form-item label="" label-width="0">
-                <el-form-item label="接口密码" prop="password">
-                    <el-input type="password" v-model="state.form.password" show-password maxlength="36"
-                        show-word-limit />
-                </el-form-item>
+                <el-row>
+                    <el-col :span="12">
+                        <el-form-item label="接口密码" prop="password">
+                            <el-input  style="width:42rem"  type="password" v-model="state.form.password" show-password maxlength="36" show-word-limit/>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label-width="8rem" prop="hasServer">
+                            <el-checkbox v-model="state.form.hasServer" label="我有服务器" size="large" />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form-item>
+
+            <el-form-item label="" label-width="0" v-if="state.form.hasServer">
+                <el-row>
+                    <el-col :span="12">
+                        <el-form-item label="服务器" prop="server">
+                            <el-input v-model="state.form.server"/>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="更新密钥" prop="updaterSecretKey">
+                            <el-input v-model="state.form.updaterSecretKey" maxlength="36" show-word-limit />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form-item>
+            <el-form-item label="" label-width="0" v-if="state.form.hasServer">
+                <el-row>
+                    <el-col :span="12">
+                        <el-form-item label="穿透密钥" prop="sForwardSecretKey">
+                            <el-input v-model="state.form.sForwardSecretKey" maxlength="36" show-word-limit />
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="中继密钥" prop="relaySecretKey">
+                            <el-input v-model="state.form.relaySecretKey" maxlength="36" show-word-limit />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
             </el-form-item>
         </el-form>
     </div>
@@ -55,11 +91,17 @@ export default {
 
         const state = reactive({
             form: {
-                name: globalData.value.config.Client.Name,
-                groupid: globalData.value.config.Client.GroupId,
-                api: globalData.value.config.Client.CApi.ApiPort,
-                web: globalData.value.config.Client.CApi.WebPort,
-                password: globalData.value.config.Client.CApi.ApiPassword
+                name:step.value.form.client.name || globalData.value.config.Client.Name,
+                groupid: step.value.form.client.groupid ||globalData.value.config.Client.GroupId,
+                api: step.value.form.client.api ||globalData.value.config.Client.CApi.ApiPort,
+                web: step.value.form.client.web ||globalData.value.config.Client.CApi.WebPort,
+                password:step.value.form.client.password || globalData.value.config.Client.CApi.ApiPassword,
+
+                hasServer:step.value.form.client.hasServer ||false,
+                server:step.value.form.client.server ||globalData.value.config.Client.Server,
+                sForwardSecretKey:step.value.form.client.sForwardSecretKey ||globalData.value.config.Running.SForwardSecretKey,
+                relaySecretKey:step.value.form.client.relaySecretKey ||(globalData.value.config.Running.Relay.Servers[0] || {SecretKey:'snltty'}).SecretKey,
+                updaterSecretKey:step.value.form.client.updaterSecretKey ||globalData.value.config.Running.UpdaterSecretKey,
             },
             rules: {
                 name: [{ required: true, message: "必填", trigger: "blur" }],
@@ -99,12 +141,23 @@ export default {
                 formDom.value.validate((valid) => {
                     if (valid) {
                         resolve({
-                            Client:{
-                                name: state.form.name,
-                                groupid: state.form.groupid,
-                                api: +state.form.api,
-                                web: +state.form.web,
-                                password: state.form.password
+                            json:{
+                                Client:{
+                                    name: state.form.name,
+                                    groupid: state.form.groupid,
+                                    api: +state.form.api,
+                                    web: +state.form.web,
+                                    password: state.form.password,
+
+                                    hasServer: state.form.hasServer,
+                                    server: state.form.server,
+                                    sForwardSecretKey: state.form.sForwardSecretKey,
+                                    relaySecretKey: state.form.relaySecretKey,
+                                    updaterSecretKey: state.form.updaterSecretKey,
+                                }
+                            },
+                            form:{
+                                client:JSON.parse(JSON.stringify(state.form))
                             }
                         });
                     } else {

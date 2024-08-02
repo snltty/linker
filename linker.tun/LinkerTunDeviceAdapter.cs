@@ -3,6 +3,9 @@ using System.Net;
 
 namespace linker.tun
 {
+    /// <summary>
+    /// linker tun网卡适配器，自动选择不同平台的实现
+    /// </summary>
     public sealed class LinkerTunDeviceAdapter
     {
         private ILinkerTunDevice linkerTunDevice;
@@ -27,19 +30,18 @@ namespace linker.tun
             }
         }
 
-        /// <summary>
-        /// 构造
-        /// </summary>
-        /// <param name="linkerTunDeviceCallback">数据包回调</param>
         public LinkerTunDeviceAdapter()
         {
         }
 
-        public void SetCallback(ILinkerTunDeviceCallback linkerTunDeviceCallback)
+        /// <summary>
+        /// 设置网卡读取回调
+        /// </summary>
+        /// <param name="linkerTunDeviceCallback"></param>
+        public void SetReadCallback(ILinkerTunDeviceCallback linkerTunDeviceCallback)
         {
             this.linkerTunDeviceCallback = linkerTunDeviceCallback;
         }
-
 
         /// <summary>
         /// 开启网卡
@@ -48,11 +50,12 @@ namespace linker.tun
         /// <param name="guid">windows的时候，需要一个固定guid，不然网卡编号一直递增，注册表一直新增记录</param>
         /// <param name="address">网卡IP</param>
         /// <param name="prefixLength">掩码。一般24即可</param>
-        public void SetUp(string name, Guid guid, IPAddress address, byte prefixLength)
+        public bool SetUp(string name, Guid guid, IPAddress address, byte prefixLength)
         {
             if (Interlocked.CompareExchange(ref starting, 1, 0) == 1)
             {
-                return;
+                error = $"setup are operating";
+                return false;
             }
             Shutdown();
             try
@@ -75,14 +78,14 @@ namespace linker.tun
                 if (linkerTunDevice == null)
                 {
                     error = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} not support";
-                    return;
+                    return false;
                 }
 
                 linkerTunDevice.Shutdown();
                 linkerTunDevice.SetUp(address, NetworkHelper.ToGatewayIP(address, prefixLength), prefixLength, out error);
                 if (string.IsNullOrWhiteSpace(error) == false)
                 {
-                    return;
+                    return false;
                 }
 
                 cancellationTokenSource = new CancellationTokenSource();
@@ -127,6 +130,7 @@ namespace linker.tun
                         }
                     }
                 });
+                return true;
             }
             catch (Exception ex)
             {
@@ -136,6 +140,7 @@ namespace linker.tun
             {
                 Interlocked.Exchange(ref starting, 0);
             }
+            return false;
         }
         /// <summary>
         /// 关闭网卡
@@ -152,15 +157,24 @@ namespace linker.tun
             error = string.Empty;
         }
 
-
+        /// <summary>
+        /// 设置MTU
+        /// </summary>
+        /// <param name="value"></param>
         public void SetMtu(int value)
         {
             linkerTunDevice?.SetMtu(value);
         }
+        /// <summary>
+        /// 添加NAT转发
+        /// </summary>
         public void SetNat()
         {
             linkerTunDevice?.SetNat();
         }
+        /// <summary>
+        /// 移除NAT转发
+        /// </summary>
         public void RemoveNat()
         {
             linkerTunDevice?.RemoveNat();

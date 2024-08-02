@@ -58,7 +58,7 @@ namespace linker.plugins.tuntap
                 }
             };
 
-            linkerTunDeviceAdapter.SetCallback(tuntapProxy);
+            linkerTunDeviceAdapter.SetReadCallback(tuntapProxy);
             linkerTunDeviceAdapter.Shutdown();
             AppDomain.CurrentDomain.ProcessExit += (s, e) => Shutdown();
             Console.CancelKeyPress += (s, e) => Shutdown();

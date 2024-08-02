@@ -31,7 +31,7 @@
                     <el-input v-model="state.form.name" maxlength="12" show-word-limit />
                 </el-form-item>
                 <el-form-item label="分组名" prop="groupid">
-                    <el-input v-model="state.form.groupid" maxlength="36" show-word-limit />
+                    <el-input v-model="state.form.groupid" type="password" show-password maxlength="36" show-word-limit />
                 </el-form-item>
             </el-form>
         </div>

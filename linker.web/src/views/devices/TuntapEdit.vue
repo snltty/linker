@@ -2,12 +2,15 @@
      <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" title="设置虚拟网卡IP" width="420">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="80">
-                <el-form-item label="缓冲区" prop="BufferSize">
+                <!-- <el-form-item label="缓冲区" prop="BufferSize">
                     <el-select v-model="state.ruleForm.BufferSize" placeholder="Select" style="width:12rem">
                         <el-option v-for="(item,index) in state.bufferSize" :key="index" :label="item" :value="index"/>
                     </el-select>
+                </el-form-item> -->
+                <el-form-item label="">
+                    <div>局域网IP选填，不懂是啥的时候，不要填</div>
                 </el-form-item>
-                <el-form-item label="网卡IP" prop="IP">
+                <el-form-item label="虚拟网卡IP" prop="IP">
                     <el-input v-model="state.ruleForm.IP" style="width:12rem" /> / 24
                 </el-form-item>
                 <el-form-item label="局域网IP" prop="LanIP">

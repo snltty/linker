@@ -63,14 +63,14 @@ export default {
         const state = reactive({
             show: false,
             form: {
-                relaySecretKey:globalData.value.config.Server.Relay.SecretKey,
-                sForwardSecretKey:globalData.value.config.Server.SForward.SecretKey,
-                servicePort:globalData.value.config.Server.ServicePort,
-                webPort:globalData.value.config.Server.SForward.WebPort,
-                tunnelPort1:globalData.value.config.Server.SForward.TunnelPortRange[0],
-                tunnelPort2:globalData.value.config.Server.SForward.TunnelPortRange[1],
+                relaySecretKey:step.value.form.server.relaySecretKey || globalData.value.config.Server.Relay.SecretKey,
+                sForwardSecretKey:step.value.form.server.sForwardSecretKey ||globalData.value.config.Server.SForward.SecretKey,
+                servicePort:step.value.form.server.servicePort ||globalData.value.config.Server.ServicePort,
+                webPort:step.value.form.server.webPort ||globalData.value.config.Server.SForward.WebPort,
+                tunnelPort1:step.value.form.server.tunnelPort1 ||globalData.value.config.Server.SForward.TunnelPortRange[0],
+                tunnelPort2:step.value.form.server.tunnelPort2 ||globalData.value.config.Server.SForward.TunnelPortRange[1],
 
-                updaterSecretKey:globalData.value.config.Server.Updater.SecretKey,
+                updaterSecretKey:step.value.form.server.updaterSecretKey ||globalData.value.config.Server.Updater.SecretKey,
             },
             rules: {
                 relaySecretKey: [{ required: true, message: "必填", trigger: "blur" }],
@@ -138,20 +138,23 @@ export default {
                         reject();
                     }else{
                         resolve({
-                            Server:{
-                                ServicePort: +state.form.servicePort,
-                                Relay:{
-                                    SecretKey: state.form.relaySecretKey
-                                },
-                                SForward:{
-                                    SecretKey: state.form.sForwardSecretKey,
-                                    WebPort: +state.form.webPort,
-                                    TunnelPortRange: [+state.form.tunnelPort1, +state.form.tunnelPort2]
-                                },
-                                Updater:{
-                                    SecretKey: state.form.updaterSecretKey
-                                }
-                            }  
+                            json:{
+                                Server:{
+                                    ServicePort: +state.form.servicePort,
+                                    Relay:{
+                                        SecretKey: state.form.relaySecretKey
+                                    },
+                                    SForward:{
+                                        SecretKey: state.form.sForwardSecretKey,
+                                        WebPort: +state.form.webPort,
+                                        TunnelPortRange: [+state.form.tunnelPort1, +state.form.tunnelPort2]
+                                    },
+                                    Updater:{
+                                        SecretKey: state.form.updaterSecretKey
+                                    }
+                                }  
+                            },
+                            form:{server:JSON.parse(JSON.stringify(state.form))}
                         });
                     }
                     

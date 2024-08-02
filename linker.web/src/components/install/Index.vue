@@ -1,6 +1,6 @@
 <template>
     <div>
-        <el-dialog v-model="state.show" title="初始化配置" width="500" top="2vh">
+        <el-dialog v-model="state.show" title="初始化配置" width="600" top="2vh">
             <div>
                 <div class="head">
                     <el-steps :active="step.step" finish-status="success">
@@ -60,7 +60,8 @@ export default {
         const step = ref({
             step:1,
             increment:1,
-            json:{}
+            json:{},
+            form:{server:{},client:{},common:{}}
         });
         provide('step',step);
         const handlePrev = ()=>{
@@ -70,7 +71,9 @@ export default {
         const handleNext = ()=>{
             step.value.increment = 1;
             currentDom.value.handleValidate().then((json)=>{
-                step.value.json = Object.assign(step.value.json,json);
+                step.value.json = Object.assign(step.value.json,json.json);
+                step.value.form = Object.assign(step.value.form,json.form);
+                console.log(step.value);
                 step.value.step ++;
             }).catch(()=>{
             });

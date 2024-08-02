@@ -15,8 +15,8 @@ export default {
         const step = inject('step');
         const state =  reactive({
             form: {
-                client: (step.value.json.Common && step.value.json.Common.client) || false,
-                server: (step.value.json.Common && step.value.json.Common.server) || false,
+                client:step.value.form.common.client ||  (step.value.json.Common && step.value.json.Common.client) || false,
+                server:step.value.form.common.server ||  (step.value.json.Common && step.value.json.Common.server) || false,
             }
         });
         const handleValidate = (prevJson) => {
@@ -26,14 +26,17 @@ export default {
                     reject();
                 }else{
                     resolve({
-                        Common:{
-                            client: state.form.client,
-                            server: state.form.server,
-                            modes:[
-                            state.form.client ? 'client' : '',
-                            state.form.server ? 'server' : ''
-                            ].filter(c=>!!c)
-                        }
+                        json:{
+                            Common:{
+                                client: state.form.client,
+                                server: state.form.server,
+                                modes:[
+                                state.form.client ? 'client' : '',
+                                state.form.server ? 'server' : ''
+                                ].filter(c=>!!c)
+                            }
+                        },
+                        form:{common:JSON.parse(JSON.stringify(state.form))}
                     });
                 }
             });
