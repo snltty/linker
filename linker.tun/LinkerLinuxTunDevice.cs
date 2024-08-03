@@ -106,6 +106,7 @@ namespace linker.tun
             try
             {
                 safeFileHandle?.Dispose();
+                safeFileHandle = null;
 
                 fs?.Flush();
                 fs?.Close();
