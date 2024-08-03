@@ -118,7 +118,7 @@ namespace linker.tun
 
             interfaceLinux = string.Empty;
 
-            CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap del mode tun dev {Name}" });
+            CommandHelper.Linux(string.Empty, new string[] {$"ip tuntap del mode tun dev {Name}" });
         }
 
         public void SetMtu(int value)
