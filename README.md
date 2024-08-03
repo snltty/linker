@@ -11,7 +11,7 @@
 <div align="center">
 <p><img src="./readme/logo.png" height="150"></p> 
 
-# linker、link anywhere
+# .NET8.0、linker、link anywhere
 
 ![GitHub Repo stars](https://img.shields.io/github/stars/snltty/linker?style=social)
 ![GitHub Repo forks](https://img.shields.io/github/forks/snltty/linker?style=social)
@@ -27,8 +27,10 @@
 ## 主要功能
 
 - [x] 打洞连接，客户端之间打洞连接，TCP打洞、UDP+MsQuic打洞
+- [x] 打洞类库，你可以nuget安装 `linker.tunnel` 将打洞功能集成到你的项目中
 - [x] 中继连接，客户端之间通过服务器转发连接
-- [x] 异地组网，使用虚拟网卡，将各个客户端组建为局域网络，使用 **tun2socks**
+- [x] 异地组网，使用虚拟网卡，将各个客户端组建为局域网络
+- [x] 网卡类库，你可以nuget安装 `linker.tun` 将tun网卡功能集成到你的项目中
 - [x] 端口转发，将客户端的端口转发到其它客户端的端口
 - [x] 服务器穿透，在服务器注册端口或域名，通过访问服务器端口或域名，访问内网服务 
 

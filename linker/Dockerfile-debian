@@ -7,6 +7,7 @@ RUN apt update \
     && apt-get install -y --no-install-recommends net-tools \
     && apt-get install -y --no-install-recommends curl \
     && apt-get install -y --no-install-recommends traceroute \
+    && apt-get install -y --no-install-recommends iptables \
     && apt-get install -y --no-install-recommends ca-certificates \
     && curl -sSL -O https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb \
     && dpkg -i packages-microsoft-prod.deb \

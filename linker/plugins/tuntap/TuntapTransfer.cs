@@ -91,12 +91,14 @@ namespace linker.plugins.tuntap
                     }
 
                     linkerTunDeviceAdapter.SetUp(interfaceName, runningConfig.Data.Tuntap.InterfaceGuid, runningConfig.Data.Tuntap.IP, 24);
-                    linkerTunDeviceAdapter.SetMtu(1416);
-                    linkerTunDeviceAdapter.SetNat();
-                    runningConfig.Data.Tuntap.Running = Status == TuntapStatus.Running;
-                    runningConfig.Data.Update();
-
-                    if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.Error) == false)
+                    if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.Error))
+                    {
+                        linkerTunDeviceAdapter.SetMtu(1416);
+                        linkerTunDeviceAdapter.SetNat();
+                        runningConfig.Data.Tuntap.Running = Status == TuntapStatus.Running;
+                        runningConfig.Data.Update();
+                    }
+                    else
                     {
                         LoggerHelper.Instance.Error(linkerTunDeviceAdapter.Error);
                     }
@@ -118,10 +120,11 @@ namespace linker.plugins.tuntap
         {
             try
             {
+                runningConfig.Data.Tuntap.Running = false;
+                runningConfig.Data.Update();
+
                 OnChange();
                 linkerTunDeviceAdapter.Shutdown();
-                runningConfig.Data.Tuntap.Running = Status == TuntapStatus.Running;
-                runningConfig.Data.Update();
             }
             catch (Exception ex)
             {
@@ -345,7 +348,6 @@ namespace linker.plugins.tuntap
                 {
                     if (runningConfig.Data.Tuntap.Running)
                     {
-                        await Task.Delay(5000).ConfigureAwait(false);
                         await CheckInterface().ConfigureAwait(false);
                     }
                 }
@@ -365,7 +367,12 @@ namespace linker.plugins.tuntap
                 LoggerHelper.Instance.Error($"tuntap inerface {interfaceName} is {networkInterface?.OperationalStatus ?? OperationalStatus.Unknown}, restarting");
                 Stop();
                 await Task.Delay(5000).ConfigureAwait(false);
-                Run();
+
+                networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == interfaceName);
+                if (networkInterface == null || networkInterface.OperationalStatus != OperationalStatus.Up)
+                {
+                    Run();
+                }
             }
         }
     }

@@ -8,13 +8,16 @@ sidebar_position: 8
 
 ## 1、windows
 
-[下载wintun](https://www.wintun.net/)，选择适合你系统的 `wintun.dll`放到项目根目录，然后nuget 安装 `linker.tun`
+[下载wintun](https://www.wintun.net/)，选择适合你系统的 `wintun.dll`放到项目根目录
 
 ## 2、linux
 
-请确保你的系统拥有`tuntap`模块，`ifconfig`、`ip`命令
+请确保你的系统拥有`tuntap`模块，`ifconfig`、`ip`、`iptables`命令
 
 ## 3、编写一个简单的代码
+
+nuget 安装 `linker.tun`，然后编写代码
+
 ```c#
 
 internal class Program

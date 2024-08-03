@@ -16,6 +16,7 @@ namespace linker.tun
         public string Error => error;
 
         private uint starting = 0;
+        private uint stoping = 0;
         public LinkerTunDeviceStatus Status
         {
             get
@@ -52,6 +53,12 @@ namespace linker.tun
         /// <param name="prefixLength">掩码。一般24即可</param>
         public bool SetUp(string name, Guid guid, IPAddress address, byte prefixLength)
         {
+            if (starting == 1)
+            {
+                error = $"shutdown are operating";
+                return false;
+            }
+
             if (Interlocked.CompareExchange(ref starting, 1, 0) == 1)
             {
                 error = $"setup are operating";
@@ -145,8 +152,20 @@ namespace linker.tun
         /// <summary>
         /// 关闭网卡
         /// </summary>
-        public void Shutdown()
+        public bool Shutdown()
         {
+            if (starting == 1)
+            {
+                error = $"setup are operating";
+                return false;
+            }
+
+            if (Interlocked.CompareExchange(ref stoping, 1, 0) == 1)
+            {
+                error = $"shutdown are operating";
+                return false;
+            }
+
             cancellationTokenSource?.Cancel();
             if (linkerTunDevice != null)
             {
@@ -155,6 +174,9 @@ namespace linker.tun
             }
 
             error = string.Empty;
+            Interlocked.Exchange(ref stoping, 0);
+
+            return true;
         }
 
         /// <summary>
