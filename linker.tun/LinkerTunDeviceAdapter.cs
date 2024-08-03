@@ -64,7 +64,6 @@ namespace linker.tun
                 error = $"setup are operating";
                 return false;
             }
-            Shutdown();
             try
             {
                 if (linkerTunDevice == null)
@@ -88,7 +87,6 @@ namespace linker.tun
                     return false;
                 }
 
-                linkerTunDevice.Shutdown();
                 linkerTunDevice.SetUp(address, NetworkHelper.ToGatewayIP(address, prefixLength), prefixLength, out error);
                 if (string.IsNullOrWhiteSpace(error) == false)
                 {
@@ -98,6 +96,7 @@ namespace linker.tun
                 cancellationTokenSource = new CancellationTokenSource();
                 Task.Run(async () =>
                 {
+                    await Task.Delay(1000);
                     while (cancellationTokenSource.IsCancellationRequested == false)
                     {
                         try
@@ -105,7 +104,7 @@ namespace linker.tun
                             ReadOnlyMemory<byte> buffer = linkerTunDevice.Read();
                             if (buffer.Length == 0)
                             {
-                                Shutdown();
+                                Shutdown(4);
                                 break;
                             }
 
@@ -132,7 +131,7 @@ namespace linker.tun
                         catch (Exception ex)
                         {
                             error = ex.Message;
-                            Shutdown();
+                            Shutdown(5);
                             break;
                         }
                     }
@@ -152,7 +151,7 @@ namespace linker.tun
         /// <summary>
         /// 关闭网卡
         /// </summary>
-        public bool Shutdown()
+        public bool Shutdown(int index)
         {
             if (starting == 1)
             {

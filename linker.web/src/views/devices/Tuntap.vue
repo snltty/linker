@@ -5,21 +5,22 @@
                 <div class="flex">
                     <div class="flex-1">
                         <a href="javascript:;" class="a-line" @click="handleTuntapIP(tuntap.list[scope.row.MachineId])">
-                            <template v-if="tuntap.list[scope.row.MachineId].running">
-                                <template v-if="tuntap.list[scope.row.MachineId].Error">
-                                    <el-popover placement="top" title="msg" width="20rem"  trigger="hover" :content="tuntap.list[scope.row.MachineId].Error">
-                                        <template #reference>
-                                            <strong class="red">{{ tuntap.list[scope.row.MachineId].IP }}</strong>
-                                        </template>
-                                    </el-popover>
-                                </template>
-                                <template v-else>
-                                    <strong class="green">{{ tuntap.list[scope.row.MachineId].IP }}</strong>
-                                </template>
+                            <template v-if="tuntap.list[scope.row.MachineId].Error">
+                                <el-popover placement="top" title="msg" width="20rem"  trigger="hover" :content="tuntap.list[scope.row.MachineId].Error">
+                                    <template #reference>
+                                        <strong class="red">{{ tuntap.list[scope.row.MachineId].IP }}</strong>
+                                    </template>
+                                </el-popover>
                             </template>
                             <template v-else>
-                                <span>{{ tuntap.list[scope.row.MachineId].IP }}</span>
+                                <template v-if="tuntap.list[scope.row.MachineId].running">
+                                    <strong class="green">{{ tuntap.list[scope.row.MachineId].IP }}</strong>
+                                </template>
+                                <template v-else>
+                                    <span>{{ tuntap.list[scope.row.MachineId].IP }}</span>
+                                </template>
                             </template>
+                            
                         </a>
                     </div>
                     <el-switch v-model="tuntap.list[scope.row.MachineId].running" :loading="tuntap.list[scope.row.MachineId].loading" disabled @click="handleTuntap(tuntap.list[scope.row.MachineId])"  size="small" inline-prompt active-text="O" inactive-text="F" > 

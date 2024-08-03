@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using linker.plugins.tuntap.config;
 using linker.tun;
 using System.Buffers.Binary;
+using System.Net.Sockets;
 
 namespace linker.plugins.tuntap.proxy
 {

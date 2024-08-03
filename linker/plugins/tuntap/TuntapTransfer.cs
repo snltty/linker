@@ -25,6 +25,7 @@ namespace linker.plugins.tuntap
         private readonly LinkerTunDeviceAdapter linkerTunDeviceAdapter;
 
         private string interfaceName = "linker";
+        private uint operating = 0;
 
         private uint infosVersion = 0;
         public uint InfosVersion => infosVersion;
@@ -43,7 +44,9 @@ namespace linker.plugins.tuntap
             this.tuntapProxy = tuntapProxy;
             this.runningConfig = runningConfig;
 
-            GetRouteIps();
+            Shutdown();
+            linkerTunDeviceAdapter.SetReadCallback(tuntapProxy);
+
             clientSignInState.NetworkEnabledHandle += (times) =>
             {
                 OnChange();
@@ -58,10 +61,10 @@ namespace linker.plugins.tuntap
                 }
             };
 
-            linkerTunDeviceAdapter.SetReadCallback(tuntapProxy);
-            linkerTunDeviceAdapter.Shutdown();
             AppDomain.CurrentDomain.ProcessExit += (s, e) => Shutdown();
             Console.CancelKeyPress += (s, e) => Shutdown();
+
+            GetRouteIps();
         }
 
         /// <summary>
@@ -80,6 +83,10 @@ namespace linker.plugins.tuntap
         /// </summary>
         public void Run()
         {
+            if (Interlocked.CompareExchange(ref operating, 1, 0) == 1)
+            {
+                return;
+            }
             Task.Run(() =>
             {
                 OnChange();
@@ -89,7 +96,6 @@ namespace linker.plugins.tuntap
                     {
                         return;
                     }
-
                     linkerTunDeviceAdapter.SetUp(interfaceName, runningConfig.Data.Tuntap.InterfaceGuid, runningConfig.Data.Tuntap.IP, 24);
                     if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.Error))
                     {
@@ -109,6 +115,7 @@ namespace linker.plugins.tuntap
                 }
                 finally
                 {
+                    Interlocked.Exchange(ref operating, 0);
                     OnChange();
                 }
             });
@@ -118,13 +125,17 @@ namespace linker.plugins.tuntap
         /// </summary>
         public void Stop()
         {
+            if (Interlocked.CompareExchange(ref operating, 1, 0) == 1)
+            {
+                return;
+            }
             try
             {
-                runningConfig.Data.Tuntap.Running = false;
-                runningConfig.Data.Update();
-
                 OnChange();
-                linkerTunDeviceAdapter.Shutdown();
+                linkerTunDeviceAdapter.Shutdown(3);
+
+                runningConfig.Data.Tuntap.Running = Status == TuntapStatus.Running;
+                runningConfig.Data.Update();
             }
             catch (Exception ex)
             {
@@ -135,6 +146,7 @@ namespace linker.plugins.tuntap
             }
             finally
             {
+                Interlocked.Exchange(ref operating, 0);
                 OnChange();
             }
         }
@@ -243,6 +255,7 @@ namespace linker.plugins.tuntap
         private async Task<List<TuntapInfo>> GetRemoteInfo()
         {
             TuntapInfo info = GetLocalInfo();
+            tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,
@@ -346,7 +359,7 @@ namespace linker.plugins.tuntap
             {
                 try
                 {
-                    if (runningConfig.Data.Tuntap.Running)
+                    if (runningConfig.Data.Tuntap.Running && OperatingSystem.IsWindows())
                     {
                         await CheckInterface().ConfigureAwait(false);
                     }

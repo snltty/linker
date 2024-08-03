@@ -16,6 +16,7 @@ namespace linker.tun
 
         private string interfaceLinux = string.Empty;
         private FileStream fs = null;
+        private SafeFileHandle safeFileHandle;
         private string iptableLineNumber = string.Empty;
         private IPAddress address;
         private byte prefixLength = 24;
@@ -27,14 +28,31 @@ namespace linker.tun
 
         public bool SetUp(IPAddress address, IPAddress gateway, byte prefixLength, out string error)
         {
+            error = string.Empty;
             this.address = address;
             this.prefixLength = prefixLength;
-            error = string.Empty;
-            if (fs != null)
+
+            if (Running)
             {
                 error = ($"Adapter already exists");
                 return false;
             }
+            if (Create(out error) == false)
+            {
+                return false;
+            }
+            if (Open(out error) == false)
+            {
+                Shutdown();
+                return false;
+            }
+
+            interfaceLinux = GetLinuxInterfaceNum();
+            return true;
+        }
+        private bool Create(out string error)
+        {
+            error = string.Empty;
 
             CommandHelper.Linux(string.Empty, new string[] {
                 $"ip tuntap add mode tun dev {Name}",
@@ -50,28 +68,57 @@ namespace linker.tun
                 return false;
             }
 
-            interfaceLinux = GetLinuxInterfaceNum();
+            return true;
+        }
+        private bool Open(out string error)
+        {
+            error = string.Empty;
 
-            SafeFileHandle safeFileHandle = File.OpenHandle("/dev/net/tun", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite, FileOptions.Asynchronous);
+            SafeFileHandle _safeFileHandle = File.OpenHandle("/dev/net/tun", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite, FileOptions.Asynchronous);
+            if (_safeFileHandle.IsInvalid)
+            {
+                _safeFileHandle?.Dispose();
+                Shutdown();
+                error = $"open file /dev/net/tun fail {Marshal.GetLastWin32Error()}";
+                return false;
+            }
+
 
             byte[] ifreqFREG0 = Encoding.ASCII.GetBytes(this.Name);
             Array.Resize(ref ifreqFREG0, 16);
             byte[] ifreqFREG1 = { 0x01, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
             byte[] ifreq = BytesPlusBytes(ifreqFREG0, ifreqFREG1);
-            Ioctl(safeFileHandle, 1074025674, ifreq);
-            fs = new FileStream(safeFileHandle, FileAccess.ReadWrite, 1500);
+            int ioctl = Ioctl(_safeFileHandle, 1074025674, ifreq);
 
+            if (ioctl != 0)
+            {
+                _safeFileHandle?.Dispose();
+                Shutdown();
+                error = $"Ioctl fail : {ioctl}，{Marshal.GetLastWin32Error()}";
+                return false;
+            }
+            safeFileHandle = _safeFileHandle;
+            fs = new FileStream(safeFileHandle, FileAccess.ReadWrite, 1500);
             return true;
         }
+
         public void Shutdown()
         {
-            if (fs != null)
+            try
             {
-                interfaceLinux = string.Empty;
-                fs.Close();
-                fs.Dispose();
+                safeFileHandle?.Dispose();
+
+                fs?.Flush();
+                fs?.Close();
+                fs?.Dispose();
                 fs = null;
             }
+            catch (Exception)
+            {
+            }
+
+            interfaceLinux = string.Empty;
+
             CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap del mode tun dev {Name}" });
         }
 
@@ -82,7 +129,7 @@ namespace linker.tun
         public void SetNat()
         {
             IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.MaskValue(prefixLength));
-            CommandHelper.PowerShell(string.Empty, new string[] {
+            CommandHelper.Linux(string.Empty, new string[] {
                 $"sysctl -w net.ipv4.ip_forward=1",
                 $"iptables -t nat -A POSTROUTING ! -o {Name} -s {network}/{prefixLength} -j MASQUERADE",
             });
@@ -92,10 +139,9 @@ namespace linker.tun
         {
             if (string.IsNullOrWhiteSpace(iptableLineNumber) == false)
             {
-                CommandHelper.PowerShell(string.Empty, new string[] { $"iptables -t nat -D POSTROUTING {iptableLineNumber}" });
+                CommandHelper.Linux(string.Empty, new string[] { $"iptables -t nat -D POSTROUTING {iptableLineNumber}" });
             }
         }
-
 
         public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
         {
@@ -124,6 +170,7 @@ namespace linker.tun
 
 
         private byte[] buffer = new byte[2 * 1024];
+        private object writeLockObj = new object();
         public ReadOnlyMemory<byte> Read()
         {
             try
@@ -136,18 +183,23 @@ namespace linker.tun
             {
             }
             return Helper.EmptyArray;
+
         }
         public bool Write(ReadOnlyMemory<byte> buffer)
         {
-            try
+            lock (writeLockObj)
             {
-                fs.Write(buffer.Span);
-                return true;
+                try
+                {
+                    fs.Write(buffer.Span);
+                    fs.Flush();
+                    return true;
+                }
+                catch (Exception)
+                {
+                }
+                return false;
             }
-            catch (Exception)
-            {
-            }
-            return false;
         }
 
         private string GetLinuxInterfaceNum()
@@ -171,6 +223,32 @@ namespace linker.tun
         }
 
 
+        public const int O_ACCMODE = 0x00000003;
+        public const int O_RDONLY = 0x00000000;
+        public const int O_WRONLY = 0x00000001;
+        public const int O_RDWR = 0x00000002;
+        public const int O_CREAT = 0x00000040;
+        public const int O_EXCL = 0x00000080;
+        public const int O_NOCTTY = 0x00000100;
+        public const int O_TRUNC = 0x00000200;
+        public const int O_APPEND = 0x00000400;
+        public const int O_NONBLOCK = 0x00000800;
+        public const int O_NDELAY = 0x00000800;
+        public const int O_SYNC = 0x00101000;
+        public const int O_ASYNC = 0x00002000;
+
+        [DllImport("libc.so.6", EntryPoint = "open", SetLastError = true)]
+        public static extern int Open(string fileName, int mode);
+
+        [DllImport("libc.so.6", EntryPoint = "ioctl", SetLastError = true)]
+        public static extern int Ioctl(int fd, UInt32 request, byte[] dat);
+
+        [DllImport("libc.so.6", EntryPoint = "read", SetLastError = true)]
+        internal static extern int Read(int handle, byte[] data, int length);
+
+        [DllImport("libc.so.6", EntryPoint = "write", SetLastError = true)]
+        internal static extern int Write(int handle, byte[] data, int length);
+
         [DllImport("libc.so.6", EntryPoint = "ioctl", SetLastError = true)]
         private static extern int Ioctl(SafeHandle device, UInt32 request, byte[] dat);
         private byte[] BytesPlusBytes(byte[] A, byte[] B)
@@ -184,7 +262,6 @@ namespace linker.tun
                 ret[i] = B[i - k];
             return ret;
         }
-
 
     }
 }
