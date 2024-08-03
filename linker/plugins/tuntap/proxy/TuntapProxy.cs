@@ -116,6 +116,7 @@ namespace linker.plugins.tuntap.proxy
         public void SetIPs(List<TuntapVeaLanIPAddressList> ips)
         {
             ip2MachineCic.Clear();
+            ipConnections.Clear();
             foreach (var item in ips)
             {
                 foreach (var ip in item.IPS)

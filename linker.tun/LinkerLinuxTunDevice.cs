@@ -4,6 +4,7 @@ using Microsoft.Win32.SafeHandles;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.tun
 {
@@ -46,6 +47,7 @@ namespace linker.tun
                 return false;
             }
 
+            fs = new FileStream(safeFileHandle, FileAccess.ReadWrite, 1500, false);
             interfaceLinux = GetLinuxInterfaceNum();
             return true;
         }
@@ -69,6 +71,7 @@ namespace linker.tun
 
             return true;
         }
+
         private bool Open(out string error)
         {
             error = string.Empty;
@@ -81,8 +84,6 @@ namespace linker.tun
                 error = $"open file /dev/net/tun fail {Marshal.GetLastWin32Error()}";
                 return false;
             }
-
-
             byte[] ifreqFREG0 = Encoding.ASCII.GetBytes(this.Name);
             Array.Resize(ref ifreqFREG0, 16);
             byte[] ifreqFREG1 = { 0x01, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
@@ -97,7 +98,7 @@ namespace linker.tun
                 return false;
             }
             safeFileHandle = _safeFileHandle;
-            fs = new FileStream(safeFileHandle, FileAccess.ReadWrite, 1500);
+
             return true;
         }
 
@@ -111,15 +112,15 @@ namespace linker.tun
                 fs?.Flush();
                 fs?.Close();
                 fs?.Dispose();
-                fs = null;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.ToString());
             }
 
+            fs = null;
             interfaceLinux = string.Empty;
-
-            CommandHelper.Linux(string.Empty, new string[] {$"ip tuntap del mode tun dev {Name}" });
+            CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap del mode tun dev {Name}" });
         }
 
         public void SetMtu(int value)
@@ -183,8 +184,9 @@ namespace linker.tun
                 length.ToBytes(buffer);
                 return buffer.AsMemory(0, length + 4);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.ToString());
             }
             return Helper.EmptyArray;
 
@@ -199,8 +201,9 @@ namespace linker.tun
                     fs.Flush();
                     return true;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Console.WriteLine(ex.ToString());
                 }
                 return false;
             }
@@ -226,7 +229,6 @@ namespace linker.tun
             return string.Empty;
         }
 
-
         public const int O_ACCMODE = 0x00000003;
         public const int O_RDONLY = 0x00000000;
         public const int O_WRONLY = 0x00000001;
@@ -243,12 +245,16 @@ namespace linker.tun
 
         [DllImport("libc.so.6", EntryPoint = "open", SetLastError = true)]
         public static extern int Open(string fileName, int mode);
+        [DllImport("libc.so.6", EntryPoint = "close", SetLastError = true)]
+        public static extern int Close(int fd);
 
         [DllImport("libc.so.6", EntryPoint = "ioctl", SetLastError = true)]
         public static extern int Ioctl(int fd, UInt32 request, byte[] dat);
 
         [DllImport("libc.so.6", EntryPoint = "read", SetLastError = true)]
         internal static extern int Read(int handle, byte[] data, int length);
+        [DllImport("libc.so.6", EntryPoint = "read", SetLastError = true)]
+        internal static extern int Read(int handle, IntPtr data, int length);
 
         [DllImport("libc.so.6", EntryPoint = "write", SetLastError = true)]
         internal static extern int Write(int handle, byte[] data, int length);
@@ -266,6 +272,41 @@ namespace linker.tun
                 ret[i] = B[i - k];
             return ret;
         }
+
+    }
+
+    public static class LinuxAPI
+    {
+
+        public const int O_ACCMODE = 0x00000003;
+        public const int O_RDONLY = 0x00000000;
+        public const int O_WRONLY = 0x00000001;
+        public const int O_RDWR = 0x00000002;
+        public const int O_CREAT = 0x00000040;
+        public const int O_EXCL = 0x00000080;
+        public const int O_NOCTTY = 0x00000100;
+        public const int O_TRUNC = 0x00000200;
+        public const int O_APPEND = 0x00000400;
+        public const int O_NONBLOCK = 0x00000800;
+        public const int O_NDELAY = 0x00000800;
+        public const int O_SYNC = 0x00101000;
+        public const int O_ASYNC = 0x00002000;
+
+        [DllImport("libc.so.6", EntryPoint = "open", SetLastError = true)]
+        public static extern int Open(string fileName, int mode);
+        [DllImport("libc.so.6", EntryPoint = "close", SetLastError = true)]
+        public static extern int Close(int fd);
+
+        [DllImport("libc.so.6", EntryPoint = "ioctl", SetLastError = true)]
+        public static extern int Ioctl(int fd, UInt32 request, byte[] dat);
+
+        [DllImport("libc.so.6", EntryPoint = "read", SetLastError = true)]
+        internal static extern int Read(int handle, byte[] data, int length);
+        [DllImport("libc.so.6", EntryPoint = "read", SetLastError = true)]
+        internal static extern int Read(int handle, IntPtr data, int length);
+
+        [DllImport("libc.so.6", EntryPoint = "write", SetLastError = true)]
+        internal static extern int Write(int handle, byte[] data, int length);
 
     }
 }
