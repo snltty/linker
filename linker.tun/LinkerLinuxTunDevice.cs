@@ -17,7 +17,6 @@ namespace linker.tun
         private string interfaceLinux = string.Empty;
         private FileStream fs = null;
         private SafeFileHandle safeFileHandle;
-        private string iptableLineNumber = string.Empty;
         private IPAddress address;
         private byte prefixLength = 24;
 
@@ -133,13 +132,17 @@ namespace linker.tun
                 $"sysctl -w net.ipv4.ip_forward=1",
                 $"iptables -t nat -A POSTROUTING ! -o {Name} -s {network}/{prefixLength} -j MASQUERADE",
             });
-            iptableLineNumber = CommandHelper.Linux(string.Empty, new string[] { $"iptables -t nat -L --line-numbers | grep {network}/{prefixLength} | cut -d' ' -f1" });
         }
         public void RemoveNat()
         {
-            if (string.IsNullOrWhiteSpace(iptableLineNumber) == false)
+            IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.MaskValue(prefixLength));
+            string iptableLineNumbers = CommandHelper.Linux(string.Empty, new string[] { $"iptables -t nat -L --line-numbers | grep {network}/{prefixLength} | cut -d' ' -f1" });
+            if (string.IsNullOrWhiteSpace(iptableLineNumbers) == false)
             {
-                CommandHelper.Linux(string.Empty, new string[] { $"iptables -t nat -D POSTROUTING {iptableLineNumber}" });
+                string[] commands = iptableLineNumbers.Split(Environment.NewLine)
+                    .Where(c => string.IsNullOrWhiteSpace(c) == false)
+                    .Select(c => $"iptables -t nat -D POSTROUTING {c}").ToArray();
+                CommandHelper.Linux(string.Empty, commands);
             }
         }
 
