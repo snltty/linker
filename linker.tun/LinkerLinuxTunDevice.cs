@@ -47,7 +47,7 @@ namespace linker.tun
                 return false;
             }
 
-            fs = new FileStream(safeFileHandle, FileAccess.ReadWrite, 1500, false);
+            fs = new FileStream(safeFileHandle, FileAccess.ReadWrite, 1500);
             interfaceLinux = GetLinuxInterfaceNum();
             return true;
         }
@@ -109,7 +109,13 @@ namespace linker.tun
                 safeFileHandle?.Dispose();
                 safeFileHandle = null;
 
-                fs?.Flush();
+                try
+                {
+                    fs?.Flush();
+                }
+                catch (Exception)
+                {
+                }
                 fs?.Close();
                 fs?.Dispose();
             }
@@ -120,7 +126,7 @@ namespace linker.tun
 
             fs = null;
             interfaceLinux = string.Empty;
-            CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap del mode tun dev {Name}" });
+            CommandHelper.Linux(string.Empty, new string[] { $"ip link del {Name}", $"ip tuntap del mode tun dev {Name}" });
         }
 
         public void SetMtu(int value)
