@@ -24,8 +24,9 @@ namespace linker.plugins.tuntap
         private readonly RunningConfig runningConfig;
         private readonly LinkerTunDeviceAdapter linkerTunDeviceAdapter;
 
-        private string interfaceName = "linker";
+        private string deviceName = "linker";
         private uint operating = 0;
+        private List<IPAddress> routeIps = new List<IPAddress>();
 
         private uint infosVersion = 0;
         public uint InfosVersion => infosVersion;
@@ -44,26 +45,27 @@ namespace linker.plugins.tuntap
             this.tuntapProxy = tuntapProxy;
             this.runningConfig = runningConfig;
 
+            linkerTunDeviceAdapter.Initialize(deviceName, tuntapProxy);
             linkerTunDeviceAdapter.Shutdown();
             linkerTunDeviceAdapter.Clear();
-            linkerTunDeviceAdapter.SetReadCallback(tuntapProxy);
             AppDomain.CurrentDomain.ProcessExit += (s, e) => linkerTunDeviceAdapter.Shutdown();
             Console.CancelKeyPress += (s, e) => linkerTunDeviceAdapter.Shutdown();
 
-            clientSignInState.NetworkEnabledHandle += (times) =>
+            clientSignInState.NetworkFirstEnabledHandle += Initialize;
+
+        }
+        private void Initialize()
+        {
+            Task.Run(() =>
             {
-                NotifyConfig();
-            };
-            clientSignInState.NetworkFirstEnabledHandle += () =>
-            {
+                NetworkHelper.GetRouteLevel(out routeIps);
                 NotifyConfig();
                 CheckTuntapStatusTask();
                 if (runningConfig.Data.Tuntap.Running)
                 {
                     Setup();
                 }
-            };
-            GetRouteIps();
+            });
         }
 
         /// <summary>
@@ -84,12 +86,11 @@ namespace linker.plugins.tuntap
                     {
                         return;
                     }
-                    linkerTunDeviceAdapter.Setup(interfaceName, runningConfig.Data.Tuntap.IP, 24);
+                    linkerTunDeviceAdapter.Setup(runningConfig.Data.Tuntap.IP, 24, 1416);
                     if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.Error))
                     {
-                        linkerTunDeviceAdapter.SetMtu(1416);
                         linkerTunDeviceAdapter.SetNat();
-                        runningConfig.Data.Tuntap.Running = Status == TuntapStatus.Running;
+                        runningConfig.Data.Tuntap.Running = true;
                         runningConfig.Data.Update();
                     }
                     else
@@ -122,7 +123,7 @@ namespace linker.plugins.tuntap
                 NotifyConfig();
                 linkerTunDeviceAdapter.Shutdown();
 
-                runningConfig.Data.Tuntap.Running = Status == TuntapStatus.Running;
+                runningConfig.Data.Tuntap.Running = false;
                 runningConfig.Data.Update();
             }
             catch (Exception ex)
@@ -288,8 +289,6 @@ namespace linker.plugins.tuntap
             }
         }
 
-
-        List<IPAddress> routeIps = new List<IPAddress>();
         private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)
         {
             uint[] localIps = NetworkHelper.GetIPV4()
@@ -336,10 +335,6 @@ namespace linker.plugins.tuntap
                 Broadcast = ipInt | (~maskValue),
                 OriginIPAddress = ip,
             };
-        }  
-        private void GetRouteIps()
-        {
-            NetworkHelper.GetRouteLevel(out routeIps);
         }
 
         private void CheckTuntapStatusTask()
@@ -364,15 +359,15 @@ namespace linker.plugins.tuntap
         }
         private async Task CheckInterface()
         {
-            NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == interfaceName);
+            NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == deviceName);
 
             if (networkInterface == null || networkInterface.OperationalStatus != OperationalStatus.Up)
             {
-                LoggerHelper.Instance.Error($"tuntap inerface {interfaceName} is {networkInterface?.OperationalStatus ?? OperationalStatus.Unknown}, restarting");
+                LoggerHelper.Instance.Error($"tuntap inerface {deviceName} is {networkInterface?.OperationalStatus ?? OperationalStatus.Unknown}, restarting");
                 Shutdown();
                 await Task.Delay(5000).ConfigureAwait(false);
 
-                networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == interfaceName);
+                networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == deviceName);
                 if (networkInterface == null || networkInterface.OperationalStatus != OperationalStatus.Up)
                 {
                     Setup();

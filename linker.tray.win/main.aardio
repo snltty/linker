@@ -10,10 +10,15 @@ ckAutoStart={cls="checkbox";text="托盘自启动";left=189;top=160;right=269;bo
 /*}}*/
 
 import win.ui.atom;
+import thread;
 var atom,hwndConflict = mainForm.atom("36E2C876-A68F-456C-98B7-CBE08C5B8B06");
 if(!atom){
-	/*为窗口设置原子值可以避免一个程序重复运行多个实例*/
-	win.quitMessage();	return;
+	thread.delay(1000);
+	var atom,hwndConflict = mainForm.atom("36E2C876-A68F-456C-98B7-CBE08C5B8B06");
+	if(!atom){
+		/*为窗口设置原子值可以避免一个程序重复运行多个实例*/
+		win.quitMessage();	return;
+	}
 };
 import fsys;
 import fsys.file;
@@ -21,7 +26,6 @@ try{
 	fsys.delete(io._exefile+".temp");
 }
 catch(e){
-	
 }
 
 
@@ -87,13 +91,12 @@ mainForm.showPopmenu = function(){
 	});
 }
 
-
 mainForm.reStart = function()
 {
+	import process.popen;
+	var prcs = process.popen.cmd("start "+io._exefile+" --task=1");
 	win.quitMessage();
    	mainForm.close();
-   	import process.popen;
-	var prcs = process.popen.cmd("start "+io._exefile+" --task=1");
 }
 mainForm.failureService = function()
 {

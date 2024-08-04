@@ -10,10 +10,8 @@ namespace linker.tun.test
         static void Main(string[] args)
         {
             linkerTunDeviceAdapter = new LinkerTunDeviceAdapter();
-            linkerTunDeviceAdapter.SetReadCallback(new LinkerTunDeviceCallback());
-            linkerTunDeviceAdapter.Setup("linker111"
-                , IPAddress.Parse("192.168.55.2"), 24);
-            linkerTunDeviceAdapter.SetMtu(1420);
+            linkerTunDeviceAdapter.Initialize("linker111", new LinkerTunDeviceCallback());
+            linkerTunDeviceAdapter.Setup(IPAddress.Parse("192.168.55.2"), 24, 1416);
 
             if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.Error))
             {

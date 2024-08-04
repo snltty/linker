@@ -35,6 +35,33 @@ namespace linker.tun
         }
 
         /// <summary>
+        /// 初始化
+        /// </summary>
+        /// <param name="deviceName">设备名</param>
+        /// <param name="linkerTunDeviceCallback">读取数据回调</param>
+        public void Initialize(string deviceName, ILinkerTunDeviceCallback linkerTunDeviceCallback)
+        {
+            this.linkerTunDeviceCallback = linkerTunDeviceCallback;
+            if (linkerTunDevice == null)
+            {
+                if (OperatingSystem.IsWindows())
+                {
+                    linkerTunDevice = new LinkerWinTunDevice(deviceName, Guid.NewGuid());
+                }
+                else if (OperatingSystem.IsLinux())
+                {
+                    linkerTunDevice = new LinkerLinuxTunDevice(deviceName);
+                }
+                /*
+                else if (OperatingSystem.IsMacOS())
+                {
+                    linkerTunDevice = new LinkerOsxTunDevice("utun12138");
+                }
+                */
+            }
+        }
+
+        /// <summary>
         /// 清理额外的数据，具体看不同平台的实现
         /// </summary>
         public void Clear()
@@ -42,22 +69,14 @@ namespace linker.tun
             linkerTunDevice?.Clear();
         }
 
-        /// <summary>
-        /// 设置网卡读取回调
-        /// </summary>
-        /// <param name="linkerTunDeviceCallback"></param>
-        public void SetReadCallback(ILinkerTunDeviceCallback linkerTunDeviceCallback)
-        {
-            this.linkerTunDeviceCallback = linkerTunDeviceCallback;
-        }
 
         /// <summary>
         /// 开启网卡
         /// </summary>
-        /// <param name="name">网卡名，如果是osx，需要utunX的命名，X是一个数字</param>
         /// <param name="address">网卡IP</param>
         /// <param name="prefixLength">掩码。一般24即可</param>
-        public bool Setup(string name, IPAddress address, byte prefixLength)
+        /// <param name="mtu">mtu</param>
+        public bool Setup(IPAddress address, byte prefixLength,int mtu)
         {
             if (Interlocked.CompareExchange(ref operating, 1, 0) == 1)
             {
@@ -66,13 +85,13 @@ namespace linker.tun
             }
             try
             {
-                InitInstance(name);
                 if (linkerTunDevice == null)
                 {
                     error = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} not support";
                     return false;
                 }
                 linkerTunDevice.Setup(address, NetworkHelper.ToGatewayIP(address, prefixLength), prefixLength, out error);
+                linkerTunDevice.SetMtu(mtu);
                 if (string.IsNullOrWhiteSpace(error) == false)
                 {
                     return false;
@@ -90,27 +109,7 @@ namespace linker.tun
             }
             return false;
         }
-        private void InitInstance(string name)
-        {
-            if (linkerTunDevice == null)
-            {
-                if (OperatingSystem.IsWindows())
-                {
-                    linkerTunDevice = new LinkerWinTunDevice(name, Guid.NewGuid());
-                }
-                else if (OperatingSystem.IsLinux())
-                {
-                    linkerTunDevice = new LinkerLinuxTunDevice(name);
-                }
-                /*
-                else if (OperatingSystem.IsMacOS())
-                {
-                    linkerTunDevice = new LinkerOsxTunDevice("utun12138");
-                }
-                */
-            }
-        }
-
+        
         /// <summary>
         /// 关闭网卡
         /// </summary>
@@ -131,14 +130,6 @@ namespace linker.tun
             return true;
         }
 
-        /// <summary>
-        /// 设置MTU
-        /// </summary>
-        /// <param name="value"></param>
-        public void SetMtu(int value)
-        {
-            linkerTunDevice?.SetMtu(value);
-        }
         /// <summary>
         /// 添加NAT转发,这会将来到本网卡且目标IP不是本网卡IP的包转发到其它网卡
         /// </summary>

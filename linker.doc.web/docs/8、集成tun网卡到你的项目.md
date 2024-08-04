@@ -32,20 +32,15 @@ internal class Program
     static void Main(string[] args)
     {
         linkerTunDeviceAdapter = new LinkerTunDeviceAdapter();
-
-        //清理一些数据，在windows，将会清理适配器的注册表信息
+        //初始化设备名，和读取数据回调
+        linkerTunDeviceAdapter.Initialize("linker111", new LinkerTunDeviceCallback());
+        //在初始化后，可以清理一些数据，在windows，将会清理适配器的注册表信息
         //linkerTunDeviceAdapter.Clear();
 
-        //设置网卡IP包回调
-        linkerTunDeviceAdapter.SetReadCallback(new LinkerTunDeviceCallback());
-        //启动网卡
-        linkerTunDeviceAdapter.SetUp(
-            "linker" //网卡名称
-            , IPAddress.Parse("192.168.54.2"), 24); //网卡IP和掩码
-        //设置MTU
-        linkerTunDeviceAdapter.SetMtu(1420);
+        //启动网卡，ip，掩码，mtu
+        linkerTunDeviceAdapter.Setup(IPAddress.Parse("192.168.55.2"), 24, 1416);
         //设置NAT转发，这会将来到本网卡且目标IP不是本网卡IP的包转发到其它网卡
-        linkerTunDeviceAdapter.SetNat();
+        //linkerTunDeviceAdapter.SetNat();
 
         //如果存在错误
         if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.Error))
@@ -68,16 +63,14 @@ public sealed class LinkerTunDeviceCallback : ILinkerTunDeviceCallback
     }
     private unsafe void ICMPAnswer(LinkerTunDevicPacket packet)
     {
-        //去掉首部表示包长度的4字节，
-        Memory<byte> writableMemory = MemoryMarshal.AsMemory(packet.Packet.Slice(4));
-        fixed (byte* ptr = writableMemory.Span)
+        fixed (byte* ptr = packet.IPPacket.Span)
         {
             //ICMP包，且是 Request
             if (ptr[9] == 1 && ptr[20] == 8)
             {
-                Console.WriteLine($"ICMP to {new IPAddress(writableMemory.Span.Slice(16, 4))}");
+                Console.WriteLine($"ICMP to {new IPAddress(packet.IPPacket.Span.Slice(16, 4))}");
 
-                uint dist = BinaryPrimitives.ReadUInt32LittleEndian(writableMemory.Span.Slice(16, 4));
+                uint dist = BinaryPrimitives.ReadUInt32LittleEndian(packet.IPPacket.Span.Slice(16, 4));
                 //目的地址变源地址，
                 *(uint*)(ptr + 16) = *(uint*)(ptr + 12);
                 //假装是网关回复的
@@ -92,10 +85,10 @@ public sealed class LinkerTunDeviceCallback : ILinkerTunDeviceCallback
 
                 //计算ICMP校验和
                 *(ushort*)(ptr + 22) = 0;
-                *(ushort*)(ptr + 22) = Program.linkerTunDeviceAdapter.Checksum((ushort*)(ptr + 20), (uint)(writableMemory.Length - 20));
+                *(ushort*)(ptr + 22) = Program.linkerTunDeviceAdapter.Checksum((ushort*)(ptr + 20), (uint)(packet.IPPacket.Length - 20));
 
                 //写入网卡，回应这个ICMP请求
-                Program.linkerTunDeviceAdapter.Write(writableMemory);
+                Program.linkerTunDeviceAdapter.Write(packet.IPPacket);
             }
         }
     }
