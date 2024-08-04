@@ -29,7 +29,7 @@
                 <div>
                     <ul class="list sforward">
                         <template v-if="sforward.list && sforward.list.length > 0">
-                            <template v-for="(item, index) in sforward.list" :key="index">
+                            <template v-for="(item, index) in sforward.list.slice(0,5)" :key="index">
                                 <li :class="{red:!!item.Msg}">
                                     <a href="javascript:;" @click="handleSEdit()" :class="{ green: item.Started }">
                                         <span>

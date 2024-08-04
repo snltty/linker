@@ -125,28 +125,40 @@ namespace linker.tun
         {
             CommandHelper.Linux(string.Empty, new string[] { $"ip link set dev {Name} mtu {value}" });
         }
-        public void SetNat()
+        public void SetNat(out string error)
         {
-            if (address == null) return;
-
-            IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.MaskValue(prefixLength));
-            CommandHelper.Linux(string.Empty, new string[] {
-                $"sysctl -w net.ipv4.ip_forward=1",
-                $"iptables -t nat -A POSTROUTING ! -o {Name} -s {network}/{prefixLength} -j MASQUERADE",
-            });
-        }
-        public void RemoveNat()
-        {
-            if (address == null) return;
-
-            IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.MaskValue(prefixLength));
-            string iptableLineNumbers = CommandHelper.Linux(string.Empty, new string[] { $"iptables -t nat -L --line-numbers | grep {network}/{prefixLength} | cut -d' ' -f1" });
-            if (string.IsNullOrWhiteSpace(iptableLineNumbers) == false)
+            error = string.Empty;
+            try
             {
-                string[] commands = iptableLineNumbers.Split(Environment.NewLine)
-                    .Where(c => string.IsNullOrWhiteSpace(c) == false)
-                    .Select(c => $"iptables -t nat -D POSTROUTING {c}").ToArray();
-                CommandHelper.Linux(string.Empty, commands);
+                IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.MaskValue(prefixLength));
+                    CommandHelper.Linux(string.Empty, new string[] {
+                    $"sysctl -w net.ipv4.ip_forward=1",
+                    $"iptables -t nat -A POSTROUTING ! -o {Name} -s {network}/{prefixLength} -j MASQUERADE",
+                });
+            }
+            catch (Exception ex)
+            {
+                error = ex.Message;
+            }
+        }
+        public void RemoveNat(out string error)
+        {
+            error = string.Empty;
+            try
+            {
+                IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.MaskValue(prefixLength));
+                string iptableLineNumbers = CommandHelper.Linux(string.Empty, new string[] { $"iptables -t nat -L --line-numbers | grep {network}/{prefixLength} | cut -d' ' -f1" });
+                if (string.IsNullOrWhiteSpace(iptableLineNumbers) == false)
+                {
+                    string[] commands = iptableLineNumbers.Split(Environment.NewLine)
+                        .Where(c => string.IsNullOrWhiteSpace(c) == false)
+                        .Select(c => $"iptables -t nat -D POSTROUTING {c}").ToArray();
+                    CommandHelper.Linux(string.Empty, commands);
+                }
+            }
+            catch (Exception ex)
+            {
+                error = ex.Message;
             }
         }
 
@@ -264,7 +276,7 @@ namespace linker.tun
 
         public void Clear()
         {
-           
+
         }
     }
 

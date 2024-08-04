@@ -122,7 +122,7 @@ namespace linker.tun
             }
             cancellationTokenSource?.Cancel();
             linkerTunDevice?.Shutdown();
-            linkerTunDevice?.RemoveNat();
+            linkerTunDevice?.RemoveNat(out error);
 
             error = string.Empty;
             Interlocked.Exchange(ref operating, 0);
@@ -135,14 +135,14 @@ namespace linker.tun
         /// </summary>
         public void SetNat()
         {
-            linkerTunDevice?.SetNat();
+            linkerTunDevice?.SetNat(out error);
         }
         /// <summary>
         /// 移除NAT转发
         /// </summary>
         public void RemoveNat()
         {
-            linkerTunDevice?.RemoveNat();
+            linkerTunDevice?.RemoveNat(out error);
         }
 
         /// <summary>

@@ -43,11 +43,11 @@ namespace linker.tun
         /// <summary>
         /// 设置NAT转发
         /// </summary>
-        public void SetNat();
+        public void SetNat(out string error);
         /// <summary>
         /// 移除NAT转发
         /// </summary>
-        public void RemoveNat();
+        public void RemoveNat(out string error);
 
         /// <summary>
         /// 添加路由

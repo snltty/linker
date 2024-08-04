@@ -86,8 +86,9 @@ namespace linker.tun
             CommandHelper.Osx(string.Empty, new string[] { $"ifconfig {Name} mtu {value}" });
         }
 
-        public void SetNat()
+        public void SetNat(out string error)
         {
+            error = string.Empty;
             /*
               # 开启ip转发
               sudo sysctl -w net.ipv4.ip_forward=1
@@ -103,8 +104,9 @@ namespace linker.tun
             });
             */
         }
-        public void RemoveNat()
+        public void RemoveNat(out string error)
         {
+            error = string.Empty;
         }
 
         private byte[] buffer = new byte[2 * 1024];
