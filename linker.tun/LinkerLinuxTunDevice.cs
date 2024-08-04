@@ -150,10 +150,10 @@ namespace linker.tun
         {
             string[] commands = ips.Select(item =>
             {
-                uint maskValue = NetworkHelper.MaskValue(item.Mask);
+                uint maskValue = NetworkHelper.MaskValue(item.PrefixLength);
                 IPAddress _ip = NetworkHelper.ToNetworkIp(item.Address, maskValue);
 
-                return $"ip route add {_ip}/{item.Mask} via {ip} dev {Name} metric 1 ";
+                return $"ip route add {_ip}/{item.PrefixLength} via {ip} dev {Name} metric 1 ";
             }).ToArray();
             if (commands.Length > 0)
             {
@@ -164,9 +164,9 @@ namespace linker.tun
         {
             string[] commands = ip.Select(item =>
             {
-                uint maskValue = NetworkHelper.MaskValue(item.Mask);
+                uint maskValue = NetworkHelper.MaskValue(item.PrefixLength);
                 IPAddress _ip = NetworkHelper.ToNetworkIp(item.Address, maskValue);
-                return $"ip route del {_ip}/{item.Mask}";
+                return $"ip route del {_ip}/{item.PrefixLength}";
             }).ToArray();
             CommandHelper.Linux(string.Empty, commands);
         }

@@ -280,7 +280,7 @@ namespace linker.plugins.tuntap
         {
             List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.ToList());
             TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
-            linkerTunDeviceAdapter.DelRoute(ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, Mask = c.MaskLength }).ToArray());
+            linkerTunDeviceAdapter.DelRoute(ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.MaskLength }).ToArray());
         }
         /// <summary>
         /// 添加路由
@@ -289,7 +289,7 @@ namespace linker.plugins.tuntap
         {
             List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.ToList());
             TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
-            linkerTunDeviceAdapter.AddRoute(ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, Mask = c.MaskLength }).ToArray(), runningConfig.Data.Tuntap.IP);
+            linkerTunDeviceAdapter.AddRoute(ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.MaskLength }).ToArray(), runningConfig.Data.Tuntap.IP);
 
             tuntapProxy.SetIPs(ipsList);
             foreach (var item in tuntapInfos.Values)

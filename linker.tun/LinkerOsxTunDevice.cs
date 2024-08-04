@@ -60,8 +60,8 @@ namespace linker.tun
         {
             string[] commands = ips.Select(item =>
             {
-                IPAddress _ip = NetworkHelper.ToNetworkIp(item.Address, item.Mask);
-                return $"route add -net {_ip}/{item.Mask} {ip}";
+                IPAddress _ip = NetworkHelper.ToNetworkIp(item.Address, item.PrefixLength);
+                return $"route add -net {_ip}/{item.PrefixLength} {ip}";
             }).ToArray();
             if (commands.Length > 0)
             {
@@ -72,8 +72,8 @@ namespace linker.tun
         {
             string[] commands = ip.Select(item =>
             {
-                IPAddress _ip = NetworkHelper.ToNetworkIp(item.Address, item.Mask);
-                return $"route delete -net {_ip}/{item.Mask}";
+                IPAddress _ip = NetworkHelper.ToNetworkIp(item.Address, item.PrefixLength);
+                return $"route delete -net {_ip}/{item.PrefixLength}";
             }).ToArray();
             if (commands.Length > 0)
             {

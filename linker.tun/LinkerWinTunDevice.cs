@@ -125,7 +125,7 @@ namespace linker.tun
             {
                 string[] commands = ips.Select(item =>
                 {
-                    uint maskValue = NetworkHelper.MaskValue(item.Mask);
+                    uint maskValue = NetworkHelper.MaskValue(item.PrefixLength);
                     IPAddress mask = NetworkHelper.GetMaskIp(maskValue);
                     IPAddress _ip = NetworkHelper.ToNetworkIp(item.Address, maskValue);
 
@@ -141,7 +141,7 @@ namespace linker.tun
         {
             string[] commands = ip.Select(item =>
             {
-                uint maskValue = NetworkHelper.MaskValue(item.Mask);
+                uint maskValue = NetworkHelper.MaskValue(item.PrefixLength);
                 IPAddress mask = NetworkHelper.GetMaskIp(maskValue);
                 IPAddress _ip = NetworkHelper.ToNetworkIp(item.Address, maskValue);
                 return $"route delete {_ip}";

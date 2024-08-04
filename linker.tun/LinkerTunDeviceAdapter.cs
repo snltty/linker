@@ -23,7 +23,7 @@ namespace linker.tun
                 if (linkerTunDevice == null) return LinkerTunDeviceStatus.Normal;
 
                 return operating == 1
-                    ? LinkerTunDeviceStatus.Starting
+                    ? LinkerTunDeviceStatus.Operating
                     : linkerTunDevice.Running
                         ? LinkerTunDeviceStatus.Running 
                         : LinkerTunDeviceStatus.Normal;

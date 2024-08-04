@@ -73,7 +73,6 @@ export default {
             currentDom.value.handleValidate().then((json)=>{
                 step.value.json = Object.assign(step.value.json,json.json);
                 step.value.form = Object.assign(step.value.form,json.form);
-                console.log(step.value);
                 step.value.step ++;
             }).catch(()=>{
             });

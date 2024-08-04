@@ -51,7 +51,6 @@ export default {
 
         const globalData = injectGlobalData();
         const tuntap = useTuntap();
-        console.log(tuntap);
         const ruleFormRef = ref(null);
         const state = reactive({
             show: true,
