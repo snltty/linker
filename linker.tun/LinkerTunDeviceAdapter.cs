@@ -185,20 +185,19 @@ namespace linker.tun
 
                         LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
                         packet.Packet = buffer;
+                        packet.IPPacket = buffer.Slice(4);
 
-                        ReadOnlyMemory<byte> ipPacket = buffer.Slice(4);
-
-                        packet.Version = (byte)(ipPacket.Span[0] >> 4 & 0b1111);
+                        packet.Version = (byte)(packet.IPPacket.Span[0] >> 4 & 0b1111);
 
                         if (packet.Version == 4)
                         {
-                            packet.SourceIPAddress = ipPacket.Slice(12, 4);
-                            packet.DistIPAddress = ipPacket.Slice(16, 4);
+                            packet.SourceIPAddress = packet.IPPacket.Slice(12, 4);
+                            packet.DistIPAddress = packet.IPPacket.Slice(16, 4);
                         }
                         else if (packet.Version == 6)
                         {
-                            packet.SourceIPAddress = ipPacket.Slice(8, 16);
-                            packet.DistIPAddress = ipPacket.Slice(24, 16);
+                            packet.SourceIPAddress = packet.IPPacket.Slice(8, 16);
+                            packet.DistIPAddress = packet.IPPacket.Slice(24, 16);
                         }
                         await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
                     }

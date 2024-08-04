@@ -33,7 +33,7 @@ namespace linker.tun.test
         }
         private unsafe void ICMPAnswer(LinkerTunDevicPacket packet)
         {
-            Memory<byte> writableMemory = MemoryMarshal.AsMemory(packet.Packet.Slice(4));
+            Memory<byte> writableMemory = MemoryMarshal.AsMemory(packet.IPPacket);
             fixed (byte* ptr = writableMemory.Span)
             {
                 //icmp && request

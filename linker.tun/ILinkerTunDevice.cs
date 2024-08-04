@@ -33,6 +33,7 @@ namespace linker.tun
         public ReadOnlyMemory<byte> SourceIPAddress;
         public ReadOnlyMemory<byte> DistIPAddress;
         public ReadOnlyMemory<byte> Packet;
+        public ReadOnlyMemory<byte> IPPacket;
     }
 
     public sealed class LinkerTunDeviceRouteItem
