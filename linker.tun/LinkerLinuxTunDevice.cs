@@ -24,7 +24,7 @@ namespace linker.tun
             this.name = name;
         }
 
-        public bool SetUp(IPAddress address, IPAddress gateway, byte prefixLength, out string error)
+        public bool Setup(IPAddress address, IPAddress gateway, byte prefixLength, out string error)
         {
             error = string.Empty;
             this.address = address;

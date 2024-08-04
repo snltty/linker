@@ -29,7 +29,7 @@ namespace linker.tun
         /// <param name="prefixLength"></param>
         /// <param name="error"></param>
         /// <returns></returns>
-        public bool SetUp(IPAddress address, IPAddress gateway, byte prefixLength, out string error);
+        public bool Setup(IPAddress address, IPAddress gateway, byte prefixLength, out string error);
         /// <summary>
         /// 关闭
         /// </summary>

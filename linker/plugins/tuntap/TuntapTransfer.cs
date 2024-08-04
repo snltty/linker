@@ -44,45 +44,32 @@ namespace linker.plugins.tuntap
             this.tuntapProxy = tuntapProxy;
             this.runningConfig = runningConfig;
 
-            Shutdown();
+            linkerTunDeviceAdapter.Shutdown();
             linkerTunDeviceAdapter.Clear();
             linkerTunDeviceAdapter.SetReadCallback(tuntapProxy);
+            AppDomain.CurrentDomain.ProcessExit += (s, e) => linkerTunDeviceAdapter.Shutdown();
+            Console.CancelKeyPress += (s, e) => linkerTunDeviceAdapter.Shutdown();
 
             clientSignInState.NetworkEnabledHandle += (times) =>
             {
-                OnChange();
+                NotifyConfig();
             };
             clientSignInState.NetworkFirstEnabledHandle += () =>
             {
-                OnChange();
+                NotifyConfig();
+                CheckTuntapStatusTask();
                 if (runningConfig.Data.Tuntap.Running)
                 {
-                    Stop(); Run();
-                    _ = CheckVeaStatusTask();
+                    Setup();
                 }
             };
-
-            AppDomain.CurrentDomain.ProcessExit += (s, e) => Shutdown();
-            Console.CancelKeyPress += (s, e) => Shutdown();
-
             GetRouteIps();
-        }
-
-        /// <summary>
-        /// 程序关闭
-        /// </summary>
-        private void Shutdown()
-        {
-            bool running = runningConfig.Data.Tuntap.Running;
-            Stop();
-            runningConfig.Data.Tuntap.Running = running;
-            runningConfig.Data.Update();
         }
 
         /// <summary>
         /// 运行网卡
         /// </summary>
-        public void Run()
+        public void Setup()
         {
             if (Interlocked.CompareExchange(ref operating, 1, 0) == 1)
             {
@@ -90,14 +77,14 @@ namespace linker.plugins.tuntap
             }
             Task.Run(() =>
             {
-                OnChange();
+                NotifyConfig();
                 try
                 {
                     if (runningConfig.Data.Tuntap.IP.Equals(IPAddress.Any))
                     {
                         return;
                     }
-                    linkerTunDeviceAdapter.SetUp(interfaceName, runningConfig.Data.Tuntap.IP, 24);
+                    linkerTunDeviceAdapter.Setup(interfaceName, runningConfig.Data.Tuntap.IP, 24);
                     if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.Error))
                     {
                         linkerTunDeviceAdapter.SetMtu(1416);
@@ -117,14 +104,14 @@ namespace linker.plugins.tuntap
                 finally
                 {
                     Interlocked.Exchange(ref operating, 0);
-                    OnChange();
+                    NotifyConfig();
                 }
             });
         }
         /// <summary>
         /// 停止网卡
         /// </summary>
-        public void Stop()
+        public void Shutdown()
         {
             if (Interlocked.CompareExchange(ref operating, 1, 0) == 1)
             {
@@ -132,8 +119,8 @@ namespace linker.plugins.tuntap
             }
             try
             {
-                OnChange();
-                linkerTunDeviceAdapter.Shutdown(3);
+                NotifyConfig();
+                linkerTunDeviceAdapter.Shutdown();
 
                 runningConfig.Data.Tuntap.Running = Status == TuntapStatus.Running;
                 runningConfig.Data.Update();
@@ -148,23 +135,22 @@ namespace linker.plugins.tuntap
             finally
             {
                 Interlocked.Exchange(ref operating, 0);
-                OnChange();
+                NotifyConfig();
             }
         }
 
         /// <summary>
         /// 刷新信息，把自己的网卡配置发给别人，顺便把别人的网卡信息带回来
         /// </summary>
-        public void Refresh()
+        public void RefreshConfig()
         {
-            OnChange();
+            NotifyConfig();
         }
-
         /// <summary>
         /// 更新本机网卡信息
         /// </summary>
         /// <param name="info"></param>
-        public void OnUpdate(TuntapInfo info)
+        public void UpdateConfig(TuntapInfo info)
         {
             Task.Run(() =>
             {
@@ -175,12 +161,12 @@ namespace linker.plugins.tuntap
                 runningConfig.Data.Update();
                 if (Status == TuntapStatus.Running)
                 {
-                    Stop();
-                    Run();
+                    Shutdown();
+                    Setup();
                 }
                 else
                 {
-                    OnChange();
+                    NotifyConfig();
                 }
             });
         }
@@ -201,17 +187,16 @@ namespace linker.plugins.tuntap
 
             return GetLocalInfo();
         }
-
         /// <summary>
         /// 信息有变化，刷新信息，把自己的网卡配置发给别人，顺便把别人的网卡信息带回来
         /// </summary>
-        private void OnChange()
+        private void NotifyConfig()
         {
             GetRemoteInfo().ContinueWith((result) =>
             {
                 if (result.Result == null)
                 {
-                    OnChange();
+                    NotifyConfig();
                 }
                 else
                 {
@@ -303,6 +288,8 @@ namespace linker.plugins.tuntap
             }
         }
 
+
+        List<IPAddress> routeIps = new List<IPAddress>();
         private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)
         {
             uint[] localIps = NetworkHelper.GetIPV4()
@@ -349,32 +336,31 @@ namespace linker.plugins.tuntap
                 Broadcast = ipInt | (~maskValue),
                 OriginIPAddress = ip,
             };
-        }
-
-
-        List<IPAddress> routeIps = new List<IPAddress>();
+        }  
         private void GetRouteIps()
         {
             NetworkHelper.GetRouteLevel(out routeIps);
         }
 
-        private async Task CheckVeaStatusTask()
+        private void CheckTuntapStatusTask()
         {
-            while (true)
+            Task.Run(async () =>
             {
-                try
+                while (true)
                 {
-                    if (runningConfig.Data.Tuntap.Running && OperatingSystem.IsWindows())
+                    await Task.Delay(15000).ConfigureAwait(false);
+                    try
                     {
-                        await CheckInterface().ConfigureAwait(false);
+                        if (runningConfig.Data.Tuntap.Running && OperatingSystem.IsWindows())
+                        {
+                            await CheckInterface().ConfigureAwait(false);
+                        }
+                    }
+                    catch (Exception)
+                    {
                     }
                 }
-                catch (Exception)
-                {
-                }
-
-                await Task.Delay(15000).ConfigureAwait(false);
-            }
+            });
         }
         private async Task CheckInterface()
         {
@@ -383,13 +369,13 @@ namespace linker.plugins.tuntap
             if (networkInterface == null || networkInterface.OperationalStatus != OperationalStatus.Up)
             {
                 LoggerHelper.Instance.Error($"tuntap inerface {interfaceName} is {networkInterface?.OperationalStatus ?? OperationalStatus.Unknown}, restarting");
-                Stop();
+                Shutdown();
                 await Task.Delay(5000).ConfigureAwait(false);
 
                 networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == interfaceName);
                 if (networkInterface == null || networkInterface.OperationalStatus != OperationalStatus.Up)
                 {
-                    Run();
+                    Setup();
                 }
             }
         }

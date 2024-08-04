@@ -28,7 +28,7 @@ namespace linker.tun
             this.guid = guid;
         }
 
-        public bool SetUp(IPAddress address, IPAddress gateway, byte prefixLength, out string error)
+        public bool Setup(IPAddress address, IPAddress gateway, byte prefixLength, out string error)
         {
             this.address = address;
             this.prefixLength = prefixLength;

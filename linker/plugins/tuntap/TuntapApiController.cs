@@ -64,7 +64,7 @@ namespace linker.plugins.tuntap
         /// <param name="param"></param>
         public void Refresh(ApiControllerParamsInfo param)
         {
-            tuntapTransfer.Refresh();
+            tuntapTransfer.RefreshConfig();
         }
 
         /// <summary>
@@ -77,8 +77,8 @@ namespace linker.plugins.tuntap
             //运行自己的
             if (param.Content == config.Data.Client.Id)
             {
-                tuntapTransfer.Stop();
-                tuntapTransfer.Run();
+                tuntapTransfer.Shutdown();
+                tuntapTransfer.Setup();
             }
             else
             {
@@ -102,7 +102,7 @@ namespace linker.plugins.tuntap
             //停止自己的
             if (param.Content == config.Data.Client.Id)
             {
-                tuntapTransfer.Stop();
+                tuntapTransfer.Shutdown();
             }
             else
             {
@@ -124,7 +124,7 @@ namespace linker.plugins.tuntap
             //更新自己的
             if (info.MachineId == config.Data.Client.Id)
             {
-                tuntapTransfer.OnUpdate(info);
+                tuntapTransfer.UpdateConfig(info);
             }
             else
             {

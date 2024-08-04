@@ -57,7 +57,7 @@ namespace linker.tun
         /// <param name="name">网卡名，如果是osx，需要utunX的命名，X是一个数字</param>
         /// <param name="address">网卡IP</param>
         /// <param name="prefixLength">掩码。一般24即可</param>
-        public bool SetUp(string name, IPAddress address, byte prefixLength)
+        public bool Setup(string name, IPAddress address, byte prefixLength)
         {
             if (Interlocked.CompareExchange(ref operating, 1, 0) == 1)
             {
@@ -72,7 +72,7 @@ namespace linker.tun
                     error = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} not support";
                     return false;
                 }
-                linkerTunDevice.SetUp(address, NetworkHelper.ToGatewayIP(address, prefixLength), prefixLength, out error);
+                linkerTunDevice.Setup(address, NetworkHelper.ToGatewayIP(address, prefixLength), prefixLength, out error);
                 if (string.IsNullOrWhiteSpace(error) == false)
                 {
                     return false;
@@ -114,7 +114,7 @@ namespace linker.tun
         /// <summary>
         /// 关闭网卡
         /// </summary>
-        public bool Shutdown(int index)
+        public bool Shutdown()
         {
             if (Interlocked.CompareExchange(ref operating, 1, 0) == 1)
             {
@@ -187,7 +187,7 @@ namespace linker.tun
                         ReadOnlyMemory<byte> buffer = linkerTunDevice.Read();
                         if (buffer.Length == 0)
                         {
-                            Shutdown(4);
+                            Shutdown();
                             break;
                         }
 
@@ -213,7 +213,7 @@ namespace linker.tun
                     catch (Exception ex)
                     {
                         error = ex.Message;
-                        Shutdown(5);
+                        Shutdown();
                         break;
                     }
                 }

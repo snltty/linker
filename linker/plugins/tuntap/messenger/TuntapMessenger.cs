@@ -20,8 +20,8 @@ namespace linker.plugins.tuntap.messenger
         [MessengerId((ushort)TuntapMessengerIds.Run)]
         public void Run(IConnection connection)
         {
-            tuntapTransfer.Stop();
-            tuntapTransfer.Run();
+            tuntapTransfer.Shutdown();
+            tuntapTransfer.Setup();
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace linker.plugins.tuntap.messenger
         [MessengerId((ushort)TuntapMessengerIds.Stop)]
         public void Stop(IConnection connection)
         {
-            tuntapTransfer.Stop();
+            tuntapTransfer.Shutdown();
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace linker.plugins.tuntap.messenger
         public void Update(IConnection connection)
         {
             TuntapInfo info = MemoryPackSerializer.Deserialize<TuntapInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            tuntapTransfer.OnUpdate(info);
+            tuntapTransfer.UpdateConfig(info);
         }
 
         /// <summary>
