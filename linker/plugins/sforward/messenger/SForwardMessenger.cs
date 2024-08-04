@@ -7,8 +7,9 @@ using linker.plugins.sforward.proxy;
 using linker.config;
 using LiteDB;
 using System.Net;
-using linker.plugins.forward.messenger;
 using linker.plugins.messenger;
+using System.Buffers.Binary;
+using linker.libs;
 
 namespace linker.plugins.sforward.messenger
 {
@@ -51,14 +52,33 @@ namespace linker.plugins.sforward.messenger
 
                 if (string.IsNullOrWhiteSpace(sForwardAddInfo.Domain) == false)
                 {
-                    if (sForwardServerCahing.TryAdd(sForwardAddInfo.Domain, connection.Id) == false)
+                    if (PortRange(sForwardAddInfo.Domain, out int min, out int max))
                     {
-                        result.Success = false;
-                        result.Message = $"domain 【{sForwardAddInfo.Domain}】 already exists";
+                        for (int port = min; port <= max; port++)
+                        {
+                            if (sForwardServerCahing.TryAdd(port, connection.Id))
+                            {
+                                result.Message = proxy.Start(port, false, configWrap.Data.Server.SForward.BufferSize);
+                                if (string.IsNullOrWhiteSpace(result.Message) == false)
+                                {
+                                    LoggerHelper.Instance.Error(result.Message);
+                                    sForwardServerCahing.TryRemove(port, connection.Id, out _);
+                                }
+                            }
+                        }
                     }
                     else
                     {
-                        result.Message = $"domain 【{sForwardAddInfo.Domain}】 add success";
+                        if (sForwardServerCahing.TryAdd(sForwardAddInfo.Domain, connection.Id) == false)
+                        {
+                            result.Success = false;
+                            result.Message = $"domain 【{sForwardAddInfo.Domain}】 already exists";
+                            LoggerHelper.Instance.Error(result.Message);
+                        }
+                        else
+                        {
+                            result.Message = $"domain 【{sForwardAddInfo.Domain}】 add success";
+                        }
                     }
                     return;
                 }
@@ -69,6 +89,7 @@ namespace linker.plugins.sforward.messenger
 
                         result.Success = false;
                         result.Message = $"port 【{sForwardAddInfo.RemotePort}】 already exists";
+                        LoggerHelper.Instance.Error(result.Message);
                     }
                     else
                     {
@@ -78,6 +99,7 @@ namespace linker.plugins.sforward.messenger
                             result.Success = false;
                             result.Message = $"port 【{sForwardAddInfo.RemotePort}】 add fail : {msg}";
                             sForwardServerCahing.TryRemove(sForwardAddInfo.RemotePort, connection.Id, out _);
+                            LoggerHelper.Instance.Error(result.Message);
                         }
                         else
                         {
@@ -91,6 +113,7 @@ namespace linker.plugins.sforward.messenger
             {
                 result.Success = false;
                 result.Message = $"sforward fail : {ex.Message}";
+                LoggerHelper.Instance.Error(result.Message);
             }
             finally
             {
@@ -116,15 +139,29 @@ namespace linker.plugins.sforward.messenger
 
                 if (string.IsNullOrWhiteSpace(sForwardAddInfo.Domain) == false)
                 {
-                    if (sForwardServerCahing.TryRemove(sForwardAddInfo.Domain, connection.Id, out _) == false)
+                    if (PortRange(sForwardAddInfo.Domain, out int min, out int max))
                     {
-                        result.Success = false;
-                        result.Message = $"domain 【{sForwardAddInfo.Domain}】 remove fail";
+                        for (int port = min; port <= max; port++)
+                        {
+                            if (sForwardServerCahing.TryRemove(port, connection.Id, out _))
+                            {
+                                proxy.Stop(port);
+                            }
+                        }
                     }
                     else
                     {
-                        result.Message = $"domain 【{sForwardAddInfo.Domain}】 remove success";
+                        if (sForwardServerCahing.TryRemove(sForwardAddInfo.Domain, connection.Id, out _) == false)
+                        {
+                            result.Success = false;
+                            result.Message = $"domain 【{sForwardAddInfo.Domain}】 remove fail";
+                        }
+                        else
+                        {
+                            result.Message = $"domain 【{sForwardAddInfo.Domain}】 remove success";
+                        }
                     }
+
                     return;
                 }
 
@@ -221,6 +258,13 @@ namespace linker.plugins.sforward.messenger
             }
             return false;
         }
+
+        private bool PortRange(string str, out int min, out int max)
+        {
+            min = 0; max = 0;
+            string[] arr = str.Split('/');
+            return arr.Length == 2 && int.TryParse(arr[0], out min) && int.TryParse(arr[1], out max);
+        }
     }
 
     public sealed class SForwardClientMessenger : IMessenger
@@ -251,10 +295,11 @@ namespace linker.plugins.sforward.messenger
             }
             else if (sForwardProxyInfo.RemotePort > 0)
             {
-                SForwardInfo sForwardInfo = runningConfig.Data.SForwards.FirstOrDefault(c => c.RemotePort == sForwardProxyInfo.RemotePort);
-                if (sForwardInfo != null)
+                IPEndPoint localEP = GetLocalEP(sForwardProxyInfo);
+                if (localEP != null)
                 {
-                    _ = proxy.OnConnectTcp(sForwardProxyInfo.BufferSize, sForwardProxyInfo.Id, new System.Net.IPEndPoint(connection.Address.Address, sForwardProxyInfo.RemotePort), sForwardInfo.LocalEP);
+                    IPEndPoint server = new IPEndPoint(connection.Address.Address, sForwardProxyInfo.RemotePort);
+                    _ = proxy.OnConnectTcp(sForwardProxyInfo.BufferSize, sForwardProxyInfo.Id, server, localEP);
                 }
             }
         }
@@ -265,12 +310,30 @@ namespace linker.plugins.sforward.messenger
             SForwardProxyInfo sForwardProxyInfo = MemoryPackSerializer.Deserialize<SForwardProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (sForwardProxyInfo.RemotePort > 0)
             {
-                SForwardInfo sForwardInfo = runningConfig.Data.SForwards.FirstOrDefault(c => c.RemotePort == sForwardProxyInfo.RemotePort);
-                if (sForwardInfo != null)
+                IPEndPoint localEP = GetLocalEP(sForwardProxyInfo);
+                if (localEP != null)
                 {
-                    _ = proxy.OnConnectUdp(sForwardProxyInfo.BufferSize, sForwardProxyInfo.Id, new System.Net.IPEndPoint(connection.Address.Address, sForwardProxyInfo.RemotePort), sForwardInfo.LocalEP);
+                    IPEndPoint server = new IPEndPoint(connection.Address.Address, sForwardProxyInfo.RemotePort);
+                    _ = proxy.OnConnectUdp(sForwardProxyInfo.BufferSize, sForwardProxyInfo.Id, server, localEP);
                 }
             }
+        }
+
+        private IPEndPoint GetLocalEP(SForwardProxyInfo sForwardProxyInfo)
+        {
+            SForwardInfo sForwardInfo = runningConfig.Data.SForwards.FirstOrDefault(c => c.RemotePort == sForwardProxyInfo.RemotePort || (c.RemotePortMin <= sForwardProxyInfo.RemotePort && c.RemotePortMax >= sForwardProxyInfo.RemotePort));
+            if (sForwardInfo != null)
+            {
+                IPEndPoint localEP = IPEndPoint.Parse(sForwardInfo.LocalEP.ToString());
+                if (sForwardInfo.RemotePortMin != 0 && sForwardInfo.RemotePortMax != 0)
+                {
+                    uint plus = (uint)(sForwardProxyInfo.RemotePort - sForwardInfo.RemotePortMin);
+                    uint newIP = BinaryPrimitives.ReadUInt32BigEndian(localEP.Address.GetAddressBytes()) + plus;
+                    localEP.Address = new IPAddress(BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(newIP)));
+                }
+                return localEP;
+            }
+            return null;
         }
 
         [MessengerId((ushort)SForwardMessengerIds.Get)]

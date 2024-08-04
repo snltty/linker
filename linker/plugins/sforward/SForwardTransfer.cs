@@ -217,12 +217,24 @@ namespace linker.plugins.sforward
                 old.LocalEP = forwardInfo.LocalEP;
                 old.Domain = forwardInfo.Domain;
                 old.Started = forwardInfo.Started;
+
+                if (PortRange(forwardInfo.Domain, out int min, out int max))
+                {
+                    old.RemotePortMin = min;
+                    old.RemotePortMax = max;
+                }
             }
             else
             {
                 forwardInfo.Id = ns.Increment();
+                if (PortRange(forwardInfo.Domain, out int min, out int max))
+                {
+                    forwardInfo.RemotePortMin = min;
+                    forwardInfo.RemotePortMax = max;
+                }
                 running.Data.SForwards.Add(forwardInfo);
             }
+
             running.Data.Update();
             Start();
 
@@ -239,6 +251,17 @@ namespace linker.plugins.sforward
             running.Data.SForwards.Remove(old);
             running.Data.Update();
             return true;
+        }
+
+
+        private bool PortRange(string str, out int min, out int max)
+        {
+            min = 0; max = 0;
+
+            if (string.IsNullOrWhiteSpace(str)) return false;
+
+            string[] arr = str.Split('/');
+            return arr.Length == 2 && int.TryParse(arr[0], out min) && int.TryParse(arr[1], out max);
         }
     }
 }

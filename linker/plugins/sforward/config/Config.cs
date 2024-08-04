@@ -59,6 +59,9 @@ namespace linker.client.config
 
         [JsonIgnore, BsonIgnore]
         public bool Proxy { get; set; }
+
+        public int RemotePortMin { get; set; }
+        public int RemotePortMax { get; set; }
     }
 
 }
