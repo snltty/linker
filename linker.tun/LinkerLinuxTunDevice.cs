@@ -3,8 +3,6 @@ using linker.libs.extends;
 using Microsoft.Win32.SafeHandles;
 using System.Net;
 using System.Runtime.InteropServices;
-using System.Text;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.tun
 {
@@ -71,7 +69,6 @@ namespace linker.tun
 
             return true;
         }
-
         private bool Open(out string error)
         {
             error = string.Empty;
@@ -84,12 +81,8 @@ namespace linker.tun
                 error = $"open file /dev/net/tun fail {Marshal.GetLastWin32Error()}";
                 return false;
             }
-            byte[] ifreqFREG0 = Encoding.ASCII.GetBytes(this.Name);
-            Array.Resize(ref ifreqFREG0, 16);
-            byte[] ifreqFREG1 = { 0x01, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-            byte[] ifreq = BytesPlusBytes(ifreqFREG0, ifreqFREG1);
-            int ioctl = Ioctl(_safeFileHandle, 1074025674, ifreq);
 
+            int ioctl = LinuxAPI.Ioctl(Name, _safeFileHandle, 1074025674);
             if (ioctl != 0)
             {
                 _safeFileHandle?.Dispose();
@@ -119,9 +112,8 @@ namespace linker.tun
                 fs?.Close();
                 fs?.Dispose();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine(ex.ToString());
             }
 
             fs = null;
@@ -235,84 +227,7 @@ namespace linker.tun
             return string.Empty;
         }
 
-        public const int O_ACCMODE = 0x00000003;
-        public const int O_RDONLY = 0x00000000;
-        public const int O_WRONLY = 0x00000001;
-        public const int O_RDWR = 0x00000002;
-        public const int O_CREAT = 0x00000040;
-        public const int O_EXCL = 0x00000080;
-        public const int O_NOCTTY = 0x00000100;
-        public const int O_TRUNC = 0x00000200;
-        public const int O_APPEND = 0x00000400;
-        public const int O_NONBLOCK = 0x00000800;
-        public const int O_NDELAY = 0x00000800;
-        public const int O_SYNC = 0x00101000;
-        public const int O_ASYNC = 0x00002000;
-
-        [DllImport("libc.so.6", EntryPoint = "open", SetLastError = true)]
-        public static extern int Open(string fileName, int mode);
-        [DllImport("libc.so.6", EntryPoint = "close", SetLastError = true)]
-        public static extern int Close(int fd);
-
-        [DllImport("libc.so.6", EntryPoint = "ioctl", SetLastError = true)]
-        public static extern int Ioctl(int fd, UInt32 request, byte[] dat);
-
-        [DllImport("libc.so.6", EntryPoint = "read", SetLastError = true)]
-        internal static extern int Read(int handle, byte[] data, int length);
-        [DllImport("libc.so.6", EntryPoint = "read", SetLastError = true)]
-        internal static extern int Read(int handle, IntPtr data, int length);
-
-        [DllImport("libc.so.6", EntryPoint = "write", SetLastError = true)]
-        internal static extern int Write(int handle, byte[] data, int length);
-
-        [DllImport("libc.so.6", EntryPoint = "ioctl", SetLastError = true)]
-        private static extern int Ioctl(SafeHandle device, UInt32 request, byte[] dat);
-        private byte[] BytesPlusBytes(byte[] A, byte[] B)
-        {
-            byte[] ret = new byte[A.Length + B.Length - 1 + 1];
-            int k = 0;
-            for (var i = 0; i <= A.Length - 1; i++)
-                ret[i] = A[i];
-            k = A.Length;
-            for (var i = k; i <= ret.Length - 1; i++)
-                ret[i] = B[i - k];
-            return ret;
-        }
-
     }
 
-    public static class LinuxAPI
-    {
 
-        public const int O_ACCMODE = 0x00000003;
-        public const int O_RDONLY = 0x00000000;
-        public const int O_WRONLY = 0x00000001;
-        public const int O_RDWR = 0x00000002;
-        public const int O_CREAT = 0x00000040;
-        public const int O_EXCL = 0x00000080;
-        public const int O_NOCTTY = 0x00000100;
-        public const int O_TRUNC = 0x00000200;
-        public const int O_APPEND = 0x00000400;
-        public const int O_NONBLOCK = 0x00000800;
-        public const int O_NDELAY = 0x00000800;
-        public const int O_SYNC = 0x00101000;
-        public const int O_ASYNC = 0x00002000;
-
-        [DllImport("libc.so.6", EntryPoint = "open", SetLastError = true)]
-        public static extern int Open(string fileName, int mode);
-        [DllImport("libc.so.6", EntryPoint = "close", SetLastError = true)]
-        public static extern int Close(int fd);
-
-        [DllImport("libc.so.6", EntryPoint = "ioctl", SetLastError = true)]
-        public static extern int Ioctl(int fd, UInt32 request, byte[] dat);
-
-        [DllImport("libc.so.6", EntryPoint = "read", SetLastError = true)]
-        internal static extern int Read(int handle, byte[] data, int length);
-        [DllImport("libc.so.6", EntryPoint = "read", SetLastError = true)]
-        internal static extern int Read(int handle, IntPtr data, int length);
-
-        [DllImport("libc.so.6", EntryPoint = "write", SetLastError = true)]
-        internal static extern int Write(int handle, byte[] data, int length);
-
-    }
 }
