@@ -16,7 +16,7 @@ export const provideTuntap = () => {
     provide(tuntapSymbol, tuntap);
 
     const systems = {
-        linux: ['debian', 'ubuntu', 'rocky', 'centos'],
+        linux: ['debian', 'ubuntu', 'alpine', 'rocky', 'centos'],
         windows: ['windows'],
         android: ['android'],
         ios: ['ios'],
@@ -36,9 +36,9 @@ export const provideTuntap = () => {
                         const systemStr = res.List[j].System.toLowerCase();
                         res.List[j].systemDocker = systemStr.indexOf('docker') >= 0;
 
-                        for (let j in systems) {
-                            if (systemStr.indexOf(j) >= 0) {
-                                const items = systems[j];
+                        for (let jj in systems) {
+                            if (systemStr.indexOf(jj) >= 0) {
+                                const items = systems[jj];
                                 if (items.length == 1) {
                                     res.List[j].system = items[0];
                                 } else {
@@ -56,7 +56,7 @@ export const provideTuntap = () => {
                     tuntap.value.list = res.List;
                 }
                 tuntap.value.timer = setTimeout(_getTuntapInfo, 200);
-            }).catch(() => {
+            }).catch((e) => {
                 tuntap.value.timer = setTimeout(_getTuntapInfo, 200);
             });
         } else {

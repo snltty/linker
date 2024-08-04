@@ -38,6 +38,7 @@ namespace linker.plugins.updater
             {
                 LoadTask();
                 UpdateTask();
+                updateInfo.Update();
             };
 
         }

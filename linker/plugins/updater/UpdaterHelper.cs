@@ -271,6 +271,11 @@ namespace linker.plugins.updater
         public long Length { get => length; set { length = value; Interlocked.Increment(ref counter); } }
         private long current = 0;
         public long Current { get => current; set { current = value; Interlocked.Increment(ref counter); } }
+
+        public void Update()
+        {
+            Interlocked.Increment(ref counter);
+        }
     }
 
     public enum UpdateStatus : byte
