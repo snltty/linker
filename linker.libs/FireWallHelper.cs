@@ -19,18 +19,19 @@ namespace linker.libs
 
         private static void Linux(string fileName)
         {
-            CommandHelper.Linux(string.Empty,new string[] {
+            CommandHelper.Linux(string.Empty, new string[] {
                 $"firewall-cmd --permanent --new-service={fileName}",
                 $"firewall-cmd --permanent --service={fileName} --set-short=\"My Application {fileName}\"",
                 $"firewall-cmd --permanent --service={fileName} --set-description=\"Allow all ports for My Application {fileName}\"",
                 $"firewall-cmd --permanent --service={fileName} --add-port=0-65535/tcp",
                 $"firewall-cmd --permanent --service={fileName} --add-port=0-65535/udp",
+                $"firewall-cmd --permanent --service={fileName} --add-port=0-65535/icmp",
                 $"firewall-cmd --permanent --add-service={fileName}",
                 $"firewall-cmd --reload",
             });
         }
 
-        private static void Windows(string fileName,string distPath)
+        private static void Windows(string fileName, string distPath)
         {
             try
             {
@@ -47,20 +48,23 @@ goto end
 cmd /c netsh advfirewall firewall delete rule name=""{fileName}""
 cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=tcp enable=yes profile=public
 cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=udp enable=yes profile=public
+cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=icmp enable=yes profile=public
 cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=tcp enable=yes profile=domain
 cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=udp enable=yes profile=domain
+cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=icmp enable=yes profile=domain
 cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=tcp enable=yes profile=private
 cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=udp enable=yes profile=private
+cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=icmp enable=yes profile=private
 :end";
-                if(Directory.Exists(distPath) == false)
+                if (Directory.Exists(distPath) == false)
                 {
                     Directory.CreateDirectory(distPath);
                 }
                 string firewall = Path.Join(distPath, "firewall.bat");
 
-                System.IO.File.WriteAllText(firewall, content);
+                File.WriteAllText(firewall, content);
                 CommandHelper.Execute(firewall, string.Empty, new string[0]);
-                System.IO.File.Delete(firewall);
+                File.Delete(firewall);
             }
             catch (Exception)
             {
