@@ -127,6 +127,8 @@ namespace linker.tun
         }
         public void SetNat()
         {
+            if (address == null) return;
+
             IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.MaskValue(prefixLength));
             CommandHelper.Linux(string.Empty, new string[] {
                 $"sysctl -w net.ipv4.ip_forward=1",
@@ -135,6 +137,8 @@ namespace linker.tun
         }
         public void RemoveNat()
         {
+            if (address == null) return;
+
             IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.MaskValue(prefixLength));
             string iptableLineNumbers = CommandHelper.Linux(string.Empty, new string[] { $"iptables -t nat -L --line-numbers | grep {network}/{prefixLength} | cut -d' ' -f1" });
             if (string.IsNullOrWhiteSpace(iptableLineNumbers) == false)

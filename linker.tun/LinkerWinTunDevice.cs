@@ -108,10 +108,12 @@ namespace linker.tun
 
         public void SetMtu(int value)
         {
+            if (address == null) return;
             CommandHelper.Windows(string.Empty, new string[] { $"netsh interface ipv4 set subinterface {interfaceNumber}  mtu={value} store=persistent" });
         }
         public void SetNat()
         {
+            if (address == null) return;
             IPAddress network = NetworkHelper.ToNetworkIp(this.address, NetworkHelper.MaskValue(prefixLength));
             CommandHelper.PowerShell(string.Empty, new string[] { $"New-NetNat -Name {Name} -InternalIPInterfaceAddressPrefix {network}/{prefixLength}" });
         }
