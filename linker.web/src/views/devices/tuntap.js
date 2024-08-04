@@ -14,6 +14,14 @@ export const provideTuntap = () => {
         hashcode: 0
     });
     provide(tuntapSymbol, tuntap);
+
+    const systems = {
+        linux: ['debian', 'ubuntu', 'rocky', 'centos'],
+        windows: ['windows'],
+        android: ['android'],
+        ios: ['ios'],
+    }
+
     const _getTuntapInfo = () => {
         clearTimeout(tuntap.value.timer);
         if (globalData.value.api.connected) {
@@ -24,24 +32,26 @@ export const provideTuntap = () => {
                     for (let j in res.List) {
                         res.List[j].running = res.List[j].Status == 2;
                         res.List[j].loading = res.List[j].Status == 1;
-                        res.List[j].system = '';
-                        res.List[j].systemDocker = '';
+                        res.List[j].system = 'system';
 
                         const systemStr = res.List[j].System.toLowerCase();
                         res.List[j].systemDocker = systemStr.indexOf('docker') >= 0;
 
-                        if (systemStr.indexOf('linux') >= 0) {
-                            res.List[j].system = 'linux';
-                            if (systemStr.indexOf('debian') >= 0) {
-                                res.List[j].system = 'debian';
-                            } else if (systemStr.indexOf('ubuntu') >= 0) {
-                                res.List[j].system = 'ubuntu';
+                        for (let j in systems) {
+                            if (systemStr.indexOf(j) >= 0) {
+                                const items = systems[j];
+                                if (items.length == 1) {
+                                    res.List[j].system = items[0];
+                                } else {
+                                    for (let i = 0; i < items.length; i++) {
+                                        if (systemStr.indexOf(items[i]) >= 0) {
+                                            res.List[j].system = items[i];
+                                            break;
+                                        }
+                                    }
+                                }
+                                break;
                             }
-                            else if (systemStr.indexOf('centos') >= 0) {
-                                res.List[j].system = 'centos';
-                            }
-                        } else if (systemStr.indexOf('windows') >= 0) {
-                            res.List[j].system = 'windows';
                         }
                     }
                     tuntap.value.list = res.List;

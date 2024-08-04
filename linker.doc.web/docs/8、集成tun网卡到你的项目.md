@@ -4,13 +4,13 @@ sidebar_position: 8
 
 # 8、集成tun网卡到你的项目
 
-在你的.NET8.0+项目中，集成tun网卡，适用于`windows`、`linux`
+在你的.NET8.0+项目中，集成tun网卡，适用于`windows`、`linux`，源码在[https://github.com/snltty/linker/tree/master/linker.tun](https://github.com/snltty/linker/tree/master/linker.tun)
 
 ## 1、windows
 
 [下载wintun](https://www.wintun.net/)，选择适合你系统的 `wintun.dll`放到项目根目录
 
-:::tip[一个很有意思的点]
+:::tip[一个重要的点]
 1. 在windows下，使用 wintun`WintunCreateAdapter`创建适配器，可以提供一个guid，如果不提供，将随机一个，这会导致注册表不断的产生新的记录
 2. 如果提供一个固定的guid，在程序的一次会话内可以重复删除和创建适配器，但是，如果你在多个会话内使用同一个guid，将会非常大概率创建适配器失败
 3. 所以`linker.tun`选择每次运行程序时生成guid，在本次会话内重复使用，且提供了`LinkerTunDeviceAdapter.Clear()`让你选择在合适的适合清理注册表
