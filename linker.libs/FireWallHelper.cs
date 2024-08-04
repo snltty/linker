@@ -48,13 +48,13 @@ goto end
 cmd /c netsh advfirewall firewall delete rule name=""{fileName}""
 cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=tcp enable=yes profile=public
 cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=udp enable=yes profile=public
-cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=icmp enable=yes profile=public
+cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=icmpv4 enable=yes profile=public
 cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=tcp enable=yes profile=domain
 cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=udp enable=yes profile=domain
-cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=icmp enable=yes profile=domain
+cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=icmpv4 enable=yes profile=domain
 cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=tcp enable=yes profile=private
 cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=udp enable=yes profile=private
-cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=icmp enable=yes profile=private
+cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=icmpv4 enable=yes profile=private
 :end";
                 if (Directory.Exists(distPath) == false)
                 {
