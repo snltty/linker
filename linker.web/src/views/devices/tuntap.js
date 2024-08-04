@@ -26,7 +26,6 @@ export const provideTuntap = () => {
         clearTimeout(tuntap.value.timer);
         if (globalData.value.api.connected) {
             getTuntapInfo(tuntap.value.hashcode.toString()).then((res) => {
-                console.log(res);
                 tuntap.value.hashcode = res.HashCode;
                 if (res.List) {
                     for (let j in res.List) {

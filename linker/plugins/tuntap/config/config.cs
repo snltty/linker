@@ -86,6 +86,7 @@ namespace linker.plugins.tuntap.config
 
         public string Error { get; set; }
         public string System { get; set; }
+
         public bool Gateway { get; set; }
     }
 
