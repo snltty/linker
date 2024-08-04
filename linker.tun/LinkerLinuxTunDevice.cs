@@ -146,29 +146,62 @@ namespace linker.tun
             }
         }
 
-        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
+        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip, bool gateway)
         {
-            string[] commands = ips.Select(item =>
+            if (gateway)
             {
-                uint maskValue = NetworkHelper.MaskValue(item.PrefixLength);
-                IPAddress _ip = NetworkHelper.ToNetworkIp(item.Address, maskValue);
+                var commands = ips.Select(c =>
+                {
+                    uint maskValue = NetworkHelper.MaskValue(c.PrefixLength);
+                    IPAddress network = NetworkHelper.ToNetworkIp(c.Address, maskValue);
+                    return $"iptables -t nat -A POSTROUTING -o {Name} -s {network}/{c.PrefixLength} -j MASQUERADE";
+                }).ToList();
+                commands.Insert(0, "sysctl -w net.ipv4.ip_forward=1");
 
-                return $"ip route add {_ip}/{item.PrefixLength} via {ip} dev {Name} metric 1 ";
-            }).ToArray();
-            if (commands.Length > 0)
+                CommandHelper.Linux(string.Empty, commands.ToArray());
+            }
+            else
             {
-                CommandHelper.Linux(string.Empty, commands);
+                string[] commands = ips.Select(item =>
+                {
+                    uint maskValue = NetworkHelper.MaskValue(item.PrefixLength);
+                    IPAddress network = NetworkHelper.ToNetworkIp(item.Address, maskValue);
+
+                    return $"ip route add {network}/{item.PrefixLength} via {ip} dev {Name} metric 1 ";
+                }).ToArray();
+                if (commands.Length > 0)
+                {
+                    CommandHelper.Linux(string.Empty, commands);
+                }
             }
         }
-        public void DelRoute(LinkerTunDeviceRouteItem[] ip)
+        public void DelRoute(LinkerTunDeviceRouteItem[] ip, bool gateway)
         {
-            string[] commands = ip.Select(item =>
+            if (gateway)
             {
-                uint maskValue = NetworkHelper.MaskValue(item.PrefixLength);
-                IPAddress _ip = NetworkHelper.ToNetworkIp(item.Address, maskValue);
-                return $"ip route del {_ip}/{item.PrefixLength}";
-            }).ToArray();
-            CommandHelper.Linux(string.Empty, commands);
+                foreach (var item in ip)
+                {
+                    IPAddress network = NetworkHelper.ToNetworkIp(item.Address, NetworkHelper.MaskValue(item.PrefixLength));
+                    string iptableLineNumbers = CommandHelper.Linux(string.Empty, new string[] { $"iptables -t nat -L --line-numbers | grep {network}/{item.PrefixLength} | cut -d' ' -f1" });
+                    if (string.IsNullOrWhiteSpace(iptableLineNumbers) == false)
+                    {
+                        string[] commands = iptableLineNumbers.Split(Environment.NewLine)
+                            .Where(c => string.IsNullOrWhiteSpace(c) == false)
+                            .Select(c => $"iptables -t nat -D POSTROUTING {c}").ToArray();
+                        CommandHelper.Linux(string.Empty, commands);
+                    }
+                }
+            }
+            else
+            {
+                string[] commands = ip.Select(item =>
+                {
+                    uint maskValue = NetworkHelper.MaskValue(item.PrefixLength);
+                    IPAddress network = NetworkHelper.ToNetworkIp(item.Address, maskValue);
+                    return $"ip route del {network}/{item.PrefixLength}";
+                }).ToArray();
+                CommandHelper.Linux(string.Empty, commands);
+            }
         }
 
 
@@ -182,9 +215,8 @@ namespace linker.tun
                 length.ToBytes(buffer);
                 return buffer.AsMemory(0, length + 4);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine(ex.ToString());
             }
             return Helper.EmptyArray;
 
@@ -199,9 +231,8 @@ namespace linker.tun
                     fs.Flush();
                     return true;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    Console.WriteLine(ex.ToString());
                 }
                 return false;
             }
@@ -227,6 +258,10 @@ namespace linker.tun
             return string.Empty;
         }
 
+        public void Clear()
+        {
+           
+        }
     }
 
 

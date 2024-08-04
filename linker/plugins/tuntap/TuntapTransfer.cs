@@ -33,7 +33,7 @@ namespace linker.plugins.tuntap
         private readonly ConcurrentDictionary<string, TuntapInfo> tuntapInfos = new ConcurrentDictionary<string, TuntapInfo>();
         public ConcurrentDictionary<string, TuntapInfo> Infos => tuntapInfos;
 
-        public TuntapStatus Status => (TuntapStatus)(byte)linkerTunDeviceAdapter.Status;
+        public TuntapStatus Status => operating == 1 ? TuntapStatus.Operating : (TuntapStatus)(byte)linkerTunDeviceAdapter.Status;
 
         public TuntapTransfer(MessengerSender messengerSender, ClientSignInState clientSignInState, LinkerTunDeviceAdapter linkerTunDeviceAdapter, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig)
         {
@@ -45,6 +45,7 @@ namespace linker.plugins.tuntap
             this.runningConfig = runningConfig;
 
             Shutdown();
+            linkerTunDeviceAdapter.Clear();
             linkerTunDeviceAdapter.SetReadCallback(tuntapProxy);
 
             clientSignInState.NetworkEnabledHandle += (times) =>
@@ -96,7 +97,7 @@ namespace linker.plugins.tuntap
                     {
                         return;
                     }
-                    linkerTunDeviceAdapter.SetUp(interfaceName, runningConfig.Data.Tuntap.InterfaceGuid, runningConfig.Data.Tuntap.IP, 24);
+                    linkerTunDeviceAdapter.SetUp(interfaceName, runningConfig.Data.Tuntap.IP, 24);
                     if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.Error))
                     {
                         linkerTunDeviceAdapter.SetMtu(1416);
@@ -170,7 +171,7 @@ namespace linker.plugins.tuntap
                 runningConfig.Data.Tuntap.IP = info.IP;
                 runningConfig.Data.Tuntap.LanIPs = info.LanIPs;
                 runningConfig.Data.Tuntap.Masks = info.Masks;
-                runningConfig.Data.Tuntap.BufferSize = info.BufferSize;
+                runningConfig.Data.Tuntap.Gateway = info.Gateway;
                 runningConfig.Data.Update();
                 if (Status == TuntapStatus.Running)
                 {
@@ -238,8 +239,8 @@ namespace linker.plugins.tuntap
                 MachineId = config.Data.Client.Id,
                 Status = Status,
                 Error = linkerTunDeviceAdapter.Error,
-                BufferSize = runningConfig.Data.Tuntap.BufferSize,
-                HostIP = IPAddress.Any
+                System = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} {(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")) == false ? "Docker" : "")}",
+                Gateway = runningConfig.Data.Tuntap.Gateway,
             };
             if (runningConfig.Data.Tuntap.Masks.Length != runningConfig.Data.Tuntap.LanIPs.Length)
             {
@@ -280,7 +281,9 @@ namespace linker.plugins.tuntap
         {
             List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.ToList());
             TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
-            linkerTunDeviceAdapter.DelRoute(ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.MaskLength }).ToArray());
+
+            var items = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.MaskLength }).ToArray();
+            linkerTunDeviceAdapter.DelRoute(items, runningConfig.Data.Tuntap.Gateway);
         }
         /// <summary>
         /// 添加路由
@@ -289,7 +292,9 @@ namespace linker.plugins.tuntap
         {
             List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.ToList());
             TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
-            linkerTunDeviceAdapter.AddRoute(ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.MaskLength }).ToArray(), runningConfig.Data.Tuntap.IP);
+
+            var items = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.MaskLength }).ToArray();
+            linkerTunDeviceAdapter.AddRoute(items, runningConfig.Data.Tuntap.IP, runningConfig.Data.Tuntap.Gateway);
 
             tuntapProxy.SetIPs(ipsList);
             foreach (var item in tuntapInfos.Values)

@@ -10,6 +10,12 @@ sidebar_position: 8
 
 [下载wintun](https://www.wintun.net/)，选择适合你系统的 `wintun.dll`放到项目根目录
 
+:::tip[一个很有意思的点]
+1. 在windows下，使用 wintun`WintunCreateAdapter`创建适配器，可以提供一个guid，如果不提供，将随机一个，这会导致注册表不断的产生新的记录
+2. 如果提供一个固定的guid，在程序的一次会话内可以重复删除和创建适配器，但是，如果你在多个会话内使用同一个guid，将会非常大概率创建适配器失败
+3. 所以`linker.tun`选择每次运行程序时生成guid，在本次会话内重复使用，且提供了`LinkerTunDeviceAdapter.Clear()`让你选择在合适的适合清理注册表
+:::
+
 ## 2、linux
 
 请确保你的系统拥有`tuntap`模块，`ifconfig`、`ip`、`iptables`命令
@@ -26,16 +32,20 @@ internal class Program
     static void Main(string[] args)
     {
         linkerTunDeviceAdapter = new LinkerTunDeviceAdapter();
+
+        //清理一些数据，在windows，将会清理适配器的注册表信息
+        //linkerTunDeviceAdapter.Clear();
+
         //设置网卡IP包回调
         linkerTunDeviceAdapter.SetReadCallback(new LinkerTunDeviceCallback());
         //启动网卡
         linkerTunDeviceAdapter.SetUp(
             "linker" //网卡名称
-             //windows下，使用一个固定guid，否则网卡编号会不断递增，注册表不断产生新纪录
-            , Guid.Parse("dc6d4efa-2b53-41bd-a403-f416c9bf7129")
             , IPAddress.Parse("192.168.54.2"), 24); //网卡IP和掩码
         //设置MTU
         linkerTunDeviceAdapter.SetMtu(1420);
+        //设置NAT转发，这会将来到本网卡且目标IP不是本网卡IP的包转发到其它网卡
+        linkerTunDeviceAdapter.SetNat();
 
         //如果存在错误
         if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.Error))

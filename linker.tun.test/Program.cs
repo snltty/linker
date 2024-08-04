@@ -12,7 +12,6 @@ namespace linker.tun.test
             linkerTunDeviceAdapter = new LinkerTunDeviceAdapter();
             linkerTunDeviceAdapter.SetReadCallback(new LinkerTunDeviceCallback());
             linkerTunDeviceAdapter.SetUp("linker111"
-                , Guid.Parse("dc6d4efa-2b53-41bd-a403-f416c9bf7129")
                 , IPAddress.Parse("192.168.55.2"), 24);
             linkerTunDeviceAdapter.SetMtu(1420);
 

@@ -56,7 +56,7 @@ namespace linker.tun
             CommandHelper.Osx(string.Empty, new string[] { $"route delete -net {network}/{prefixLength} {address}" });
         }
 
-        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
+        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip, bool gateway)
         {
             string[] commands = ips.Select(item =>
             {
@@ -68,7 +68,7 @@ namespace linker.tun
                 CommandHelper.Osx(string.Empty, commands.ToArray());
             }
         }
-        public void DelRoute(LinkerTunDeviceRouteItem[] ip)
+        public void DelRoute(LinkerTunDeviceRouteItem[] ip, bool gateway)
         {
             string[] commands = ip.Select(item =>
             {
@@ -156,6 +156,11 @@ namespace linker.tun
 
             }
             return string.Empty;
+        }
+
+        public void Clear()
+        {
+
         }
     }
 }

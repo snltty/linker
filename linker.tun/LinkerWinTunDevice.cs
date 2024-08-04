@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using Microsoft.Win32;
 using System.Buffers.Binary;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -119,7 +120,7 @@ namespace linker.tun
             CommandHelper.PowerShell(string.Empty, new string[] { $"Remove-NetNat -Name {Name}" });
         }
 
-        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
+        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip, bool gateway)
         {
             if (interfaceNumber > 0)
             {
@@ -137,7 +138,7 @@ namespace linker.tun
                 }
             }
         }
-        public void DelRoute(LinkerTunDeviceRouteItem[] ip)
+        public void DelRoute(LinkerTunDeviceRouteItem[] ip, bool gateway)
         {
             string[] commands = ip.Select(item =>
             {
@@ -211,5 +212,56 @@ namespace linker.tun
             }
         }
 
+        public void Clear()
+        {
+            ClearRegistry();
+        }
+        private void ClearRegistry()
+        {
+            string[] delValues = [Name];
+            try
+            {
+                RegistryKey key = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\NetworkList\\Profiles");
+                foreach (var item in key.GetSubKeyNames())
+                {
+                    RegistryKey itemKey = key.OpenSubKey(item);
+                    string value = itemKey.GetValue("Description", string.Empty).ToString();
+                    itemKey.Close();
+                    if (delValues.Contains(value))
+                    {
+                        try
+                        {
+                            Registry.LocalMachine.DeleteSubKey($"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\NetworkList\\Profiles\\{item}");
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                }
+                key.Close();
+
+                key = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\NetworkList\\Signatures\\Unmanaged");
+                foreach (var item in key.GetSubKeyNames())
+                {
+                    RegistryKey itemKey = key.OpenSubKey(item);
+                    string value = itemKey.GetValue("Description", string.Empty).ToString();
+                    itemKey.Close();
+                    if (delValues.Any(c => value.Contains($"{c} ") || value == c))
+                    {
+                        try
+                        {
+                            Registry.LocalMachine.DeleteSubKey($"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\NetworkList\\Signatures\\Unmanaged\\{item}");
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                }
+                key.Close();
+            }
+            catch (Exception)
+            {
+            }
+        }
     }
 }

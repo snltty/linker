@@ -17,6 +17,11 @@ namespace linker.tun
         public bool Running { get; }
 
         /// <summary>
+        /// 清理额外的数据
+        /// </summary>
+        public void Clear();
+
+        /// <summary>
         /// 启动
         /// </summary>
         /// <param name="address"></param>
@@ -49,12 +54,14 @@ namespace linker.tun
         /// </summary>
         /// <param name="ips"></param>
         /// <param name="ip"></param>
-        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip);
+        /// <param name="gateway">是不是网关，是网关，将使用NAT转发，不是网关将添加路由</param>
+        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip,bool gateway);
         /// <summary>
         /// 删除路由
         /// </summary>
         /// <param name="ip"></param>
-        public void DelRoute(LinkerTunDeviceRouteItem[] ip);
+        /// <param name="gateway">是不是网关，是网关，将删除NAT转发，不是网关将删除路由</param>
+        public void DelRoute(LinkerTunDeviceRouteItem[] ip, bool gateway);
 
         /// <summary>
         /// 读取数据包

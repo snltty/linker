@@ -20,12 +20,6 @@ namespace linker.plugins.tuntap.config
             }
         }
         public uint IpInt { get; private set; }
-
-        /// <summary>
-        /// 缓冲区大小
-        /// </summary>
-        public byte BufferSize { get; set; } = 3;
-
         /// <summary>
         /// 局域网IP列表
         /// </summary>
@@ -39,7 +33,7 @@ namespace linker.plugins.tuntap.config
         /// </summary>
         public bool Running { get; set; }
 
-        public Guid InterfaceGuid { get; set; } = Guid.NewGuid();
+        public bool Gateway { get; set; }
     }
 
 
@@ -72,7 +66,7 @@ namespace linker.plugins.tuntap.config
     public enum TuntapStatus : byte
     {
         Normal = 0,
-        Starting = 1,
+        Operating = 1,
         Running = 2
     }
 
@@ -91,11 +85,8 @@ namespace linker.plugins.tuntap.config
         public int[] Masks { get; set; } = Array.Empty<int>();
 
         public string Error { get; set; }
-
-        public byte BufferSize { get; set; } = 3;
-
-        [MemoryPackAllowSerialize]
-        public IPAddress HostIP { get; set; }
+        public string System { get; set; }
+        public bool Gateway { get; set; }
     }
 
 }

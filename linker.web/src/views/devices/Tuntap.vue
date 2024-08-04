@@ -4,7 +4,7 @@
             <div v-if="tuntap.list[scope.row.MachineId]">
                 <div class="flex">
                     <div class="flex-1">
-                        <a href="javascript:;" class="a-line" @click="handleTuntapIP(tuntap.list[scope.row.MachineId])">
+                        <a href="javascript:;" class="a-line" @click="handleTuntapIP(tuntap.list[scope.row.MachineId])" :title="tuntap.list[scope.row.MachineId].Gateway?'我在路由器上，所以略有不同':''">
                             <template v-if="tuntap.list[scope.row.MachineId].Error">
                                 <el-popover placement="top" title="msg" width="20rem"  trigger="hover" :content="tuntap.list[scope.row.MachineId].Error">
                                     <template #reference>
@@ -14,10 +14,10 @@
                             </template>
                             <template v-else>
                                 <template v-if="tuntap.list[scope.row.MachineId].running">
-                                    <strong class="green">{{ tuntap.list[scope.row.MachineId].IP }}</strong>
+                                    <strong class="green" :class="{gateway:tuntap.list[scope.row.MachineId].Gateway}">{{ tuntap.list[scope.row.MachineId].IP }}</strong>
                                 </template>
                                 <template v-else>
-                                    <span>{{ tuntap.list[scope.row.MachineId].IP }}</span>
+                                    <strong :class="{gateway:tuntap.list[scope.row.MachineId].Gateway}">{{ tuntap.list[scope.row.MachineId].IP }}</strong>
                                 </template>
                             </template>
                         </a>
@@ -89,4 +89,16 @@ export default {
 .el-input{
     width:8rem;
 }
+
+.gateway{
+    background:linear-gradient(90deg, #c5b260, #858585, #c5b260, #858585);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:hsla(0,0%,100%,0);
+    &.green{
+        background:linear-gradient(90deg, #e4bb10, #008000, #e4bb10, #008000);
+        -webkit-background-clip:text;
+        -webkit-text-fill-color:hsla(0,0%,100%,0);
+    }
+}
+
 </style>

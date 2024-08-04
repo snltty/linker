@@ -18,11 +18,31 @@ export const provideTuntap = () => {
         clearTimeout(tuntap.value.timer);
         if (globalData.value.api.connected) {
             getTuntapInfo(tuntap.value.hashcode.toString()).then((res) => {
+                console.log(res);
                 tuntap.value.hashcode = res.HashCode;
                 if (res.List) {
                     for (let j in res.List) {
                         res.List[j].running = res.List[j].Status == 2;
                         res.List[j].loading = res.List[j].Status == 1;
+                        res.List[j].system = '';
+                        res.List[j].systemDocker = '';
+
+                        const systemStr = res.List[j].System.toLowerCase();
+                        res.List[j].systemDocker = systemStr.indexOf('docker') >= 0;
+
+                        if (systemStr.indexOf('linux') >= 0) {
+                            res.List[j].system = 'linux';
+                            if (systemStr.indexOf('debian') >= 0) {
+                                res.List[j].system = 'debian';
+                            } else if (systemStr.indexOf('ubuntu') >= 0) {
+                                res.List[j].system = 'ubuntu';
+                            }
+                            else if (systemStr.indexOf('centos') >= 0) {
+                                res.List[j].system = 'centos';
+                            }
+                        } else if (systemStr.indexOf('windows') >= 0) {
+                            res.List[j].system = 'windows';
+                        }
                     }
                     tuntap.value.list = res.List;
                 }

@@ -25,13 +25,21 @@ namespace linker.tun
                 return operating == 1
                     ? LinkerTunDeviceStatus.Operating
                     : linkerTunDevice.Running
-                        ? LinkerTunDeviceStatus.Running 
+                        ? LinkerTunDeviceStatus.Running
                         : LinkerTunDeviceStatus.Normal;
             }
         }
 
         public LinkerTunDeviceAdapter()
         {
+        }
+
+        /// <summary>
+        /// 清理额外的数据，具体看不同平台的实现
+        /// </summary>
+        public void Clear()
+        {
+            linkerTunDevice?.Clear();
         }
 
         /// <summary>
@@ -47,10 +55,9 @@ namespace linker.tun
         /// 开启网卡
         /// </summary>
         /// <param name="name">网卡名，如果是osx，需要utunX的命名，X是一个数字</param>
-        /// <param name="guid">windows的时候，需要一个固定guid，不然网卡编号一直递增，注册表一直新增记录</param>
         /// <param name="address">网卡IP</param>
         /// <param name="prefixLength">掩码。一般24即可</param>
-        public bool SetUp(string name, Guid guid, IPAddress address, byte prefixLength)
+        public bool SetUp(string name, IPAddress address, byte prefixLength)
         {
             if (Interlocked.CompareExchange(ref operating, 1, 0) == 1)
             {
@@ -59,7 +66,7 @@ namespace linker.tun
             }
             try
             {
-                InitInstance(name, guid);
+                InitInstance(name);
                 if (linkerTunDevice == null)
                 {
                     error = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} not support";
@@ -83,13 +90,13 @@ namespace linker.tun
             }
             return false;
         }
-        private void InitInstance(string name, Guid guid)
+        private void InitInstance(string name)
         {
             if (linkerTunDevice == null)
             {
                 if (OperatingSystem.IsWindows())
                 {
-                    linkerTunDevice = new LinkerWinTunDevice(name, guid);
+                    linkerTunDevice = new LinkerWinTunDevice(name, Guid.NewGuid());
                 }
                 else if (OperatingSystem.IsLinux())
                 {
@@ -133,7 +140,7 @@ namespace linker.tun
             linkerTunDevice?.SetMtu(value);
         }
         /// <summary>
-        /// 添加NAT转发
+        /// 添加NAT转发,这会将来到本网卡且目标IP不是本网卡IP的包转发到其它网卡
         /// </summary>
         public void SetNat()
         {
@@ -150,19 +157,21 @@ namespace linker.tun
         /// <summary>
         /// 添加路由
         /// </summary>
-        /// <param name="ips">路由记录，ip和掩码</param>
-        /// <param name="ip">目标IP</param>
-        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
+        /// <param name="ips">路由IP</param>
+        /// <param name="ip">网卡IP</param>
+        /// <param name="gateway">是否网关，true添加NAT转发，false添加路由</param>
+        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip, bool gateway)
         {
-            linkerTunDevice?.AddRoute(ips, ip);
+            linkerTunDevice?.AddRoute(ips, ip, gateway);
         }
         /// <summary>
         /// 删除路由
         /// </summary>
-        /// <param name="ips">路由记录，ip和掩码</param>
-        public void DelRoute(LinkerTunDeviceRouteItem[] ips)
+        /// <param name="ips">路由IP</param>
+        /// <param name="gateway">是否网关，true删除NAT转发，false删除路由</param>
+        public void DelRoute(LinkerTunDeviceRouteItem[] ips, bool gateway)
         {
-            linkerTunDevice?.DelRoute(ips);
+            linkerTunDevice?.DelRoute(ips, gateway);
         }
 
 

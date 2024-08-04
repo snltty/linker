@@ -12,6 +12,12 @@
     <template #default="scope">
         <div>
             <p>
+                <template v-if="tuntap.list[scope.row.MachineId] && tuntap.list[scope.row.MachineId].system">
+                    <span :title="tuntap.list[scope.row.MachineId].System">
+                        <img class="system":src="`/${tuntap.list[scope.row.MachineId].system}.svg`" />
+                        <img v-if="tuntap.list[scope.row.MachineId].systemDocker" class="system" src="/docker.svg" />
+                    </span>
+                </template>
                 <a href="javascript:;" @click="handleEdit(scope.row)" :class="{green:scope.row.Connected}">{{scope.row.MachineName }}</a>
                 <strong v-if="scope.row.isSelf"> - (<el-icon><StarFilled /></el-icon> 本机) </strong>
             </p>
@@ -54,6 +60,7 @@ import {StarFilled,Search,Download,Loading,CircleCheck} from '@element-plus/icon
 import { ElMessage, ElMessageBox,ElSelect,ElOption } from 'element-plus';
 import { confirm, exit } from '@/apis/updater';
 import { useUpdater } from './updater';
+import { useTuntap } from './tuntap';
 
 export default {
     emits:['edit','refresh'],
@@ -63,6 +70,7 @@ export default {
         const name = ref(sessionStorage.getItem('search-name') || '');
         const globalData = injectGlobalData();
         const updater = useUpdater();
+        const tuntap = useTuntap();
         const serverVersion = computed(()=>globalData.value.signin.Version);
         const updaterVersion = computed(()=>updater.value.current.Version);
         const updaterMsg = computed(()=>{
@@ -166,7 +174,7 @@ export default {
         }
 
         return {
-             handleEdit,handleRefresh,name,updater,updateText,updateColor,handleUpdate
+            tuntap, handleEdit,handleRefresh,name,updater,updateText,updateColor,handleUpdate
         }
     }
 }
@@ -182,6 +190,12 @@ a{
     color:#666;
     text-decoration: underline;
     &.green{color:green;font-weight:bold;}
+}
+
+img.system{
+    height:2rem;
+    vertical-align: middle;
+    margin-right:.6rem
 }
 
 
