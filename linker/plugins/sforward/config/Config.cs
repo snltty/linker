@@ -64,6 +64,11 @@ namespace linker.client.config
         public int RemotePortMax { get; set; }
     }
 
+
+    public sealed class SForwardSetStatusInfo
+    {
+
+    }
 }
 
 namespace linker.config
