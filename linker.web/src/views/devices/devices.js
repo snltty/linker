@@ -2,8 +2,10 @@ import { getSignInList, signInDel } from "@/apis/signin";
 import { injectGlobalData } from "@/provide";
 import { computed, reactive } from "vue";
 
-export const provideDevices = () => {
+const queue = [];
 
+export const provideDevices = () => {
+    //https://api.ipbase.com/v1/json/8.8.8.8
     const globalData = injectGlobalData();
     const machineId = computed(() => globalData.value.config.Client.Id);
     const devices = reactive({
@@ -21,14 +23,20 @@ export const provideDevices = () => {
     });
     const _getSignList = () => {
         getSignInList(devices.page.Request).then((res) => {
+            console.log(res);
             devices.page.Request = res.Request;
             devices.page.Count = res.Count;
             for (let j in res.List) {
                 res.List[j].showDel = machineId.value != res.List[j].MachineId && res.List[j].Connected == false;
                 res.List[j].showReboot = res.List[j].Connected;
                 res.List[j].isSelf = machineId.value == res.List[j].MachineId;
+
+
             }
             devices.page.List = res.List.sort((a, b) => b.Connected - a.Connected);
+            for (let i = 0; i < devices.page.List.length; i++) {
+                queue.push(devices.page.List[i]);
+            }
         }).catch((err) => { });
     }
     const _getSignList1 = () => {
@@ -54,6 +62,28 @@ export const provideDevices = () => {
             devices.timer = setTimeout(_getSignList1, 5000);
         }
     }
+
+    const getCountryFlag = () => {
+        try {
+            if (queue.length == 0) {
+                setTimeout(getCountryFlag, 1000);
+                return;
+            }
+            const device = queue.shift();
+            fetch(`http://ip-api.com/json/${device.IP.split(':')[0]}`).then(async (response) => {
+                try {
+                    const json = await response.json();
+                    device.countryFlag = `https://unpkg.com/flag-icons@7.2.3/flags/4x3/${json.countryCode.toLowerCase()}.svg`;
+                } catch (e) { }
+                setTimeout(getCountryFlag, 1000);
+            }).catch(() => {
+                setTimeout(getCountryFlag, 1000);
+            });
+        } catch (e) {
+            setTimeout(getCountryFlag, 1000);
+        }
+    }
+    getCountryFlag();
 
     const handleDeviceEdit = (row) => {
         devices.deviceInfo = row;

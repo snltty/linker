@@ -14,6 +14,7 @@
             <p>
                 <template v-if="tuntap.list[scope.row.MachineId] && tuntap.list[scope.row.MachineId].system">
                     <span :title="tuntap.list[scope.row.MachineId].System">
+                        <img v-if="scope.row.countryFlag" class="system" :src="scope.row.countryFlag" />
                         <img class="system":src="`/${tuntap.list[scope.row.MachineId].system}.svg`" />
                         <img v-if="tuntap.list[scope.row.MachineId].systemDocker" class="system" src="/docker.svg" />
                     </span>
@@ -193,9 +194,9 @@ a{
 }
 
 img.system{
-    height:2rem;
+    height:1.6rem;
     vertical-align: middle;
-    margin-right:.6rem
+    margin-right:.4rem
 }
 
 
