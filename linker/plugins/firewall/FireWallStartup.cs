@@ -17,7 +17,7 @@ namespace linker.plugins.firewall
         {
 #if DEBUG
 #else
-            linker.libs.FireWallHelper.Write(Path.GetFileNameWithoutExtension(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName), "./plugins/firewall");
+            linker.libs.FireWallHelper.Write(Path.GetFileNameWithoutExtension(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName), "./");
 #endif
         }
 
