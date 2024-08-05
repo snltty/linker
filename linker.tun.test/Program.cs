@@ -1,6 +1,7 @@
 ﻿using System.Buffers.Binary;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace linker.tun.test
 {
@@ -10,7 +11,7 @@ namespace linker.tun.test
         static void Main(string[] args)
         {
             linkerTunDeviceAdapter = new LinkerTunDeviceAdapter();
-            linkerTunDeviceAdapter.Initialize("linker111", new LinkerTunDeviceCallback());
+            linkerTunDeviceAdapter.Initialize("linker0", new LinkerTunDeviceCallbackTCPUDP());
             linkerTunDeviceAdapter.Setup(IPAddress.Parse("192.168.55.2"), 24, 1416);
 
             if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.Error))
@@ -21,7 +22,38 @@ namespace linker.tun.test
         }
     }
 
-    public sealed class LinkerTunDeviceCallback : ILinkerTunDeviceCallback
+    public sealed class LinkerTunDeviceCallbackTCPUDP : ILinkerTunDeviceCallback
+    {
+        public async Task Callback(LinkerTunDevicPacket packet)
+        {
+            TCPUDPRead(packet);
+            await Task.CompletedTask;
+        }
+        private unsafe void TCPUDPRead(LinkerTunDevicPacket packet)
+        {
+            if (packet.Version != 4) return;
+
+            Memory<byte> writableMemory = MemoryMarshal.AsMemory(packet.IPPacket);
+            fixed (byte* ptr = writableMemory.Span)
+            {
+                Console.WriteLine($"IPv{packet.Version} {ptr[9]}");
+                //6tcp  17udp
+                if (ptr[9] == 6 || ptr[9] == 17)
+                {
+                    IPAddress sourceIP = new IPAddress(packet.SourceIPAddress.Span);
+                    IPAddress distIP = new IPAddress(packet.DistIPAddress.Span);
+
+                    ushort sourcePort = *(ushort*)(ptr + 20);
+                    ushort distPort = *(ushort*)(ptr + 22);
+
+                    Console.WriteLine($"IPv{packet.Version}:[{(ptr[9] == 6 ? "TCP" : "UDP")}]  {new IPEndPoint(sourceIP, sourcePort)}->{new IPEndPoint(distIP, distPort)}");
+                    //Program.linkerTunDeviceAdapter.Write(writableMemory);
+                }
+            }
+        }
+    }
+
+    public sealed class LinkerTunDeviceCallbackICMP : ILinkerTunDeviceCallback
     {
         public async Task Callback(LinkerTunDevicPacket packet)
         {
@@ -33,6 +65,7 @@ namespace linker.tun.test
             Memory<byte> writableMemory = MemoryMarshal.AsMemory(packet.IPPacket);
             fixed (byte* ptr = writableMemory.Span)
             {
+
                 //icmp && request
                 if (ptr[9] == 1 && ptr[20] == 8)
                 {
