@@ -53,8 +53,13 @@ jobs:
         draft: false
         prerelease: false
         body: |
-          1. 这是一个测试版本，请使用v1.2.0.2版本
-          2. 请勿更新
+          1. 重要更新
+          2. 重写的虚拟网卡，不再依赖tun2socks，仅windows、linux，暂时的
+          3. 虚拟网卡支持广播、点对网、网对网了
+          4. 公开`linker.tun`库，可以nuget安装，将网卡集成到你的项目中
+          5. webui显示设备区域，设备系统，及是否docker
+          6. 服务器穿透支持端口范围
+          7. 要更新服务器，要更新服务器，要更新服务器
 
     - name: upload win x64
       id: upload-win-x64
