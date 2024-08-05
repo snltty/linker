@@ -89,9 +89,15 @@ namespace linker.startup
             foreach (var startup in startups)
             {
                 if (config.Data.Common.Modes.Contains("client"))
+                {
+                    LoggerHelper.Instance.Warning($"add startup {startup.Name} client");
                     startup.AddClient(serviceCollection, config, assemblies);
+                }
                 if (config.Data.Common.Modes.Contains("server"))
+                {
+                    LoggerHelper.Instance.Warning($"add startup {startup.Name} server");
                     startup.AddServer(serviceCollection, config, assemblies);
+                }
             }
         }
 
@@ -106,9 +112,15 @@ namespace linker.startup
             foreach (var startup in startups)
             {
                 if (config.Data.Common.Modes.Contains("client"))
+                {
+                    LoggerHelper.Instance.Warning($"use startup {startup.Name} client");
                     startup.UseClient(serviceProvider, config, assemblies);
+                }
                 if (config.Data.Common.Modes.Contains("server"))
+                {
+                    LoggerHelper.Instance.Warning($"use startup {startup.Name} server");
                     startup.UseServer(serviceProvider, config, assemblies);
+                }
             }
         }
     }

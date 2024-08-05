@@ -126,7 +126,14 @@ namespace linker.tun
         public void RemoveNat(out string error)
         {
             error = string.Empty;
-            CommandHelper.PowerShell(string.Empty, new string[] { $"Remove-NetNat -Name {Name}" });
+            try
+            {
+                CommandHelper.PowerShell(string.Empty, new string[] { $"Remove-NetNat -Name {Name}" });
+            }
+            catch (Exception ex)
+            {
+                error = ex.Message;
+            }
         }
 
         public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip, bool gateway)

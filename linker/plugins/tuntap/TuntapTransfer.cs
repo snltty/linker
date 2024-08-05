@@ -44,13 +44,11 @@ namespace linker.plugins.tuntap
             this.config = config;
             this.tuntapProxy = tuntapProxy;
             this.runningConfig = runningConfig;
-
             linkerTunDeviceAdapter.Initialize(deviceName, tuntapProxy);
             linkerTunDeviceAdapter.Shutdown();
             linkerTunDeviceAdapter.Clear();
             AppDomain.CurrentDomain.ProcessExit += (s, e) => linkerTunDeviceAdapter.Shutdown();
             Console.CancelKeyPress += (s, e) => linkerTunDeviceAdapter.Shutdown();
-
             clientSignInState.NetworkFirstEnabledHandle += Initialize;
 
         }

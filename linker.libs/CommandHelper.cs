@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace linker.libs
@@ -11,6 +12,7 @@ namespace linker.libs
         }
         public static string PowerShell(string arg, string[] commands, bool readResult = true)
         {
+            if (IsPowerShellInstalled() == false) return string.Empty;
             return Execute("powershell.exe", arg, commands, readResult);
         }
 
@@ -79,5 +81,24 @@ namespace linker.libs
             proc.Dispose();
             return string.Empty;
         }
+
+        public static bool IsPowerShellInstalled()
+        {
+            string[] powerShellPaths = {
+                Environment.ExpandEnvironmentVariables(@"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"),
+                Environment.ExpandEnvironmentVariables(@"%SystemRoot%\SysWOW64\WindowsPowerShell\v1.0\powershell.exe")
+             };
+
+            foreach (string path in powerShellPaths)
+            {
+                if (File.Exists(path))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
     }
 }

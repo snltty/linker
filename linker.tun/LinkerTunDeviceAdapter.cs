@@ -120,9 +120,15 @@ namespace linker.tun
                 error = $"shutdown are operating";
                 return false;
             }
-            cancellationTokenSource?.Cancel();
-            linkerTunDevice?.Shutdown();
-            linkerTunDevice?.RemoveNat(out error);
+            try
+            {
+                cancellationTokenSource?.Cancel();
+                linkerTunDevice?.Shutdown();
+                linkerTunDevice?.RemoveNat(out error);
+            }
+            catch (Exception)
+            {
+            }
 
             error = string.Empty;
             Interlocked.Exchange(ref operating, 0);
