@@ -76,7 +76,7 @@ namespace linker.tun
         /// <param name="address">网卡IP</param>
         /// <param name="prefixLength">掩码。一般24即可</param>
         /// <param name="mtu">mtu</param>
-        public bool Setup(IPAddress address, byte prefixLength,int mtu)
+        public bool Setup(IPAddress address, byte prefixLength, int mtu)
         {
             if (Interlocked.CompareExchange(ref operating, 1, 0) == 1)
             {
@@ -109,7 +109,7 @@ namespace linker.tun
             }
             return false;
         }
-        
+
         /// <summary>
         /// 关闭网卡
         /// </summary>

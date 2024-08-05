@@ -6,23 +6,26 @@ namespace linker.libs
 {
     public sealed class CommandHelper
     {
-        public static string Windows(string arg, string[] commands, bool readResult = true)
+        public static string Windows(string arg, string[] commands)
         {
-            return Execute("cmd.exe", arg, commands, readResult);
+            return Execute("cmd.exe", arg, commands);
         }
-        public static string PowerShell(string arg, string[] commands, bool readResult = true)
+        public static string PowerShell(string arg, string[] commands)
         {
-            if (IsPowerShellInstalled() == false) return string.Empty;
-            return Execute("powershell.exe", arg, commands, readResult);
+            if (IsPowerShellInstalled() == false)
+            {
+                return string.Empty;
+            }
+            return Execute("powershell.exe", arg, commands);
         }
 
-        public static string Linux(string arg, string[] commands, bool readResult = true)
+        public static string Linux(string arg, string[] commands)
         {
-            return Execute("/bin/bash", arg, commands, readResult);
+            return Execute("/bin/bash", arg, commands);
         }
-        public static string Osx(string arg, string[] commands, bool readResult = true)
+        public static string Osx(string arg, string[] commands)
         {
-            return Execute("/bin/bash", arg, commands, readResult);
+            return Execute("/bin/bash", arg, commands);
         }
 
         public static Process Execute(string fileName, string arg)
@@ -42,7 +45,7 @@ namespace linker.libs
             return proc;
         }
 
-        public static string Execute(string fileName, string arg, string[] commands, bool readResult = true)
+        public static string Execute(string fileName, string arg, string[] commands)
         {
             using Process proc = new Process();
             proc.StartInfo.WorkingDirectory = Path.GetFullPath(Path.Join("./"));
@@ -55,7 +58,6 @@ namespace linker.libs
             proc.StartInfo.Arguments = arg;
             proc.StartInfo.Verb = "runas";
             proc.Start();
-
             if (commands.Length > 0)
             {
                 for (int i = 0; i < commands.Length; i++)
@@ -64,22 +66,23 @@ namespace linker.libs
                 }
             }
             proc.StandardInput.AutoFlush = true;
-            if (readResult)
+            proc.StandardInput.WriteLine("exit");
+            proc.StandardInput.Close();
+            string error = proc.StandardError.ReadToEnd();
+            string output = string.Empty;
+            if (string.IsNullOrWhiteSpace(error))
             {
-                proc.StandardInput.WriteLine("exit");
-                proc.StandardInput.Close();
-                string output = proc.StandardOutput.ReadToEnd();
-                string error = proc.StandardError.ReadToEnd();
-                proc.WaitForExit();
-                proc.Close();
-                proc.Dispose();
-
-                return output;
+                output = proc.StandardOutput.ReadToEnd();
             }
-            proc.StandardOutput.Read();
+            else
+            {
+                LoggerHelper.Instance.Warning(error);
+            }
+            proc.WaitForExit();
             proc.Close();
             proc.Dispose();
-            return string.Empty;
+
+            return output;
         }
 
         public static bool IsPowerShellInstalled()

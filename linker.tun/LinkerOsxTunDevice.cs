@@ -15,6 +15,7 @@ namespace linker.tun
         private FileStream fs = null;
         private IPAddress address;
         private byte prefixLength = 24;
+        private SafeFileHandle safeFileHandle;
 
         private string interfaceOsx = string.Empty;
 
@@ -31,7 +32,7 @@ namespace linker.tun
             this.address = address;
             this.prefixLength = prefixLength;
 
-            SafeFileHandle safeFileHandle = File.OpenHandle($"/dev/{Name}", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite, FileOptions.Asynchronous);
+            safeFileHandle = File.OpenHandle($"/dev/{Name}", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite, FileOptions.Asynchronous);
             fs = new FileStream(safeFileHandle, FileAccess.ReadWrite, 1500);
 
             IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.MaskValue(prefixLength));
@@ -47,6 +48,8 @@ namespace linker.tun
         {
             if (fs != null)
             {
+                safeFileHandle?.Dispose();
+
                 interfaceOsx = string.Empty;
                 fs.Close();
                 fs.Dispose();

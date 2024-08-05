@@ -115,8 +115,9 @@ namespace linker.tun
             error = string.Empty;
             try
             {
+
                 IPAddress network = NetworkHelper.ToNetworkIp(this.address, NetworkHelper.MaskValue(prefixLength));
-                CommandHelper.PowerShell(string.Empty, new string[] { $"New-NetNat -Name {Name} -InternalIPInterfaceAddressPrefix {network}/{prefixLength}" });
+                CommandHelper.PowerShell($"New-NetNat -Name {Name} -InternalIPInterfaceAddressPrefix {network}/{prefixLength}", []);
             }
             catch (Exception ex)
             {
@@ -126,9 +127,10 @@ namespace linker.tun
         public void RemoveNat(out string error)
         {
             error = string.Empty;
+
             try
             {
-                CommandHelper.PowerShell(string.Empty, new string[] { $"Remove-NetNat -Name {Name}" });
+                CommandHelper.PowerShell($"Remove-NetNat -Name {Name} -Confirm:$false", []);
             }
             catch (Exception ex)
             {
