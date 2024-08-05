@@ -6,10 +6,10 @@ rd /s /q public\\publish-zip
 mkdir public\\publish-zip
 
 
-rem cd linker.web
-rem call npm install
-rem call npm run build 
-rem cd ../
+cd linker.web
+call npm install
+call npm run build 
+cd ../
 
 for %%r in (win-x64,win-arm64) do (
 	dotnet publish ./linker.service -c release -f net8.0 -o public/extends/%%r/linker-%%r/  -r %%r -p:PublishAot=true -p:PublishTrimmed=true  --self-contained true -p:TieredPGO=true  -p:DebugType=none -p:DebugSymbols=false  -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true
