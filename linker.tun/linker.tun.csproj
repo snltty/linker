@@ -31,7 +31,11 @@
 		<Optimize>True</Optimize>
 	</PropertyGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\linker.libs\linker.libs.csproj" />
+		<PackageReference Include="System.Management" Version="8.0.0" />
+		<TrimmerRootAssembly Include="System.Management" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\linker.libs\linker.libs.csproj" />
 	</ItemGroup>
 
 </Project>

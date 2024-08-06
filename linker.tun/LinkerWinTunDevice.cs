@@ -1,13 +1,17 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using linker.libs.winapis;
 using Microsoft.Win32;
 using System.Buffers.Binary;
+using System.Management;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 namespace linker.tun
 {
+    [SupportedOSPlatform("windows")]
     internal sealed class LinkerWinTunDevice : ILinkerTunDevice
     {
         private string name = string.Empty;
@@ -115,9 +119,24 @@ namespace linker.tun
             error = string.Empty;
             try
             {
-
+                CommandHelper.PowerShell($"start-service WinNat", []);
                 IPAddress network = NetworkHelper.ToNetworkIp(this.address, NetworkHelper.MaskValue(prefixLength));
                 CommandHelper.PowerShell($"New-NetNat -Name {Name} -InternalIPInterfaceAddressPrefix {network}/{prefixLength}", []);
+
+                try
+                {
+                    var scope = new ManagementScope(@"root\StandardCimv2");
+
+                    using var netNatClass = new ManagementClass($"{scope.Path}:MSFT_NetNat");
+                    using var netNat = netNatClass.CreateInstance();
+                    netNat.Properties["Name"].Value = Name;
+                    netNat.Properties["Active"].Value = true;
+                    netNat.Properties["InternalIPInterfaceAddressPrefix"].Value = $"{network}/{prefixLength}";
+                    netNat.Put();
+                }
+                catch (Exception)
+                {
+                }
             }
             catch (Exception ex)
             {
@@ -130,7 +149,27 @@ namespace linker.tun
 
             try
             {
+                CommandHelper.PowerShell($"start-service WinNat", []);
                 CommandHelper.PowerShell($"Remove-NetNat -Name {Name} -Confirm:$false", []);
+                
+                try
+                {
+                    var scope = new ManagementScope(@"root\StandardCimv2");
+                    var query = new ObjectQuery("SELECT * FROM MSFT_NetNat");
+                    using var searcher = new ManagementObjectSearcher(scope, query);
+                    using var natObjects = searcher.Get();
+                    foreach (ManagementObject natObject in natObjects)
+                    {
+                        var name = (string)natObject["Name"];
+                        if (name == Name)
+                        {
+                            natObject.Delete();
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                }
             }
             catch (Exception ex)
             {
