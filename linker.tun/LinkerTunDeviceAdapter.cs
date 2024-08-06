@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using System.Net;
+using System.Net.Sockets;
 
 namespace linker.tun
 {

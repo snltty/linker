@@ -90,7 +90,7 @@ namespace linker.plugins.tuntap.proxy
                         connection = await ConnectTunnel(ip);
                         if (connection != null)
                         {
-                            ipConnections.TryAdd(ip, connection);
+                            ipConnections.AddOrUpdate(ip, connection, (a, b) => connection);
                         }
                     }
                     if (connection != null)

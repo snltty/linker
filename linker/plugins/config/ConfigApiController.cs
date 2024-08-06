@@ -48,6 +48,10 @@ namespace linker.plugins.config
                     {
                         item.Host = info.Client.Server;
                     }
+                    foreach (var item in runningConfig.Data.Client.Servers)
+                    {
+                        item.Host = info.Client.Server;
+                    }
                 }
             }
             if (info.Common.Modes.Contains("server"))

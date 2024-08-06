@@ -248,6 +248,7 @@ namespace linker.tun
             {
                 buffer.Span.CopyTo(new Span<byte>((byte*)packet, buffer.Length));
                 WinTun.WintunSendPacket(session, packet);
+                return true;
             }
             else
             {
@@ -256,7 +257,7 @@ namespace linker.tun
                     return false;
                 }
             }
-            return true;
+            return false;
         }
 
         private void GetWindowsInterfaceNum()
