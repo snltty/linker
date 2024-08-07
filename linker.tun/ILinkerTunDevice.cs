@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.Sockets;
 
 namespace linker.tun
 {
@@ -55,7 +56,7 @@ namespace linker.tun
         /// <param name="ips"></param>
         /// <param name="ip"></param>
         /// <param name="gateway">是不是网关，是网关，将使用NAT转发，不是网关将添加路由</param>
-        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip,bool gateway);
+        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip, bool gateway);
         /// <summary>
         /// 删除路由
         /// </summary>
@@ -114,6 +115,24 @@ namespace linker.tun
         /// 原始IP包
         /// </summary>
         public ReadOnlyMemory<byte> IPPacket;
+
+        public void Unpacket(ReadOnlyMemory<byte> buffer)
+        {
+            Packet = buffer;
+            IPPacket = buffer.Slice(4);
+            Version = (byte)(IPPacket.Span[0] >> 4 & 0b1111);
+
+            if (Version == 4)
+            {
+                SourceIPAddress = IPPacket.Slice(12, 4);
+                DistIPAddress = IPPacket.Slice(16, 4);
+            }
+            else if (Version == 6)
+            {
+                SourceIPAddress = IPPacket.Slice(8, 16);
+                DistIPAddress = IPPacket.Slice(24, 16);
+            }
+        }
     }
 
     /// <summary>

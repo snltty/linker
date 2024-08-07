@@ -191,21 +191,8 @@ namespace linker.tun
 
 
                         LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
-                        packet.Packet = buffer;
-                        packet.IPPacket = buffer.Slice(4);
+                        packet.Unpacket(buffer);
 
-                        packet.Version = (byte)(packet.IPPacket.Span[0] >> 4 & 0b1111);
-
-                        if (packet.Version == 4)
-                        {
-                            packet.SourceIPAddress = packet.IPPacket.Slice(12, 4);
-                            packet.DistIPAddress = packet.IPPacket.Slice(16, 4);
-                        }
-                        else if (packet.Version == 6)
-                        {
-                            packet.SourceIPAddress = packet.IPPacket.Slice(8, 16);
-                            packet.DistIPAddress = packet.IPPacket.Slice(24, 16);
-                        }
                         await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
                     }
                     catch (Exception ex)

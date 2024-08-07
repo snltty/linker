@@ -10,6 +10,7 @@ using linker.plugins.tuntap.config;
 using linker.tun;
 using System.Buffers.Binary;
 using System.Net.Sockets;
+using System.Net;
 
 namespace linker.plugins.tuntap.proxy
 {
@@ -80,7 +81,7 @@ namespace linker.plugins.tuntap.proxy
                 {
                     if (connections.IsEmpty == false)
                     {
-                        await Task.WhenAll(connections.Values.Select(c => c.SendAsync(packet.Packet)));
+                        await Task.WhenAll(connections.Values.Where(c => c != null && c.Connected).Select(c => c.SendAsync(packet.Packet)));
                     }
                 }
                 else
@@ -97,13 +98,16 @@ namespace linker.plugins.tuntap.proxy
                     {
                         await connection.SendAsync(packet.Packet);
                     }
+                    else
+                    {
+                    }
                 }
             }
             else if (packet.Version == 6 && (packet.DistIPAddress.Span[0] & 0xFF) == 0xFF)
             {
                 if (connections.IsEmpty == false)
                 {
-                    await Task.WhenAll(connections.Values.Select(c => c.SendAsync(packet.Packet)));
+                    await Task.WhenAll(connections.Values.Where(c => c != null && c.Connected).Select(c => c.SendAsync(packet.Packet)));
                 }
             }
         }

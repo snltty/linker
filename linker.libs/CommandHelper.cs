@@ -76,7 +76,7 @@ namespace linker.libs
             }
             else
             {
-                LoggerHelper.Instance.Warning(error);
+                LoggerHelper.Instance.Warning($"file:{fileName},arg:{arg},commands:{string.Join(Environment.NewLine,commands)} -> {error}");
             }
             proc.WaitForExit();
             proc.Close();

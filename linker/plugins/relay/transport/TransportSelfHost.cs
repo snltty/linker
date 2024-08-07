@@ -156,6 +156,7 @@ namespace linker.plugins.relay.transport
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
+                callback(null);
             }
             return false;
         }
