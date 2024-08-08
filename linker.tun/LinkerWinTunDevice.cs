@@ -118,9 +118,9 @@ namespace linker.tun
             error = string.Empty;
             try
             {
-                CommandHelper.PowerShell($"start-service WinNat", []);
+                CommandHelper.PowerShell($"start-service WinNat", [], out error);
                 IPAddress network = NetworkHelper.ToNetworkIp(this.address, NetworkHelper.MaskValue(prefixLength));
-                CommandHelper.PowerShell($"New-NetNat -Name {Name} -InternalIPInterfaceAddressPrefix {network}/{prefixLength}", []);
+                CommandHelper.PowerShell($"New-NetNat -Name {Name} -InternalIPInterfaceAddressPrefix {network}/{prefixLength}", [], out error);
 
                 try
                 {
@@ -148,9 +148,9 @@ namespace linker.tun
 
             try
             {
-                CommandHelper.PowerShell($"start-service WinNat", []);
-                CommandHelper.PowerShell($"Remove-NetNat -Name {Name} -Confirm:$false", []);
-                
+                CommandHelper.PowerShell($"start-service WinNat", [], out error);
+                CommandHelper.PowerShell($"Remove-NetNat -Name {Name} -Confirm:$false", [], out error);
+
                 try
                 {
                     var scope = new ManagementScope(@"root\StandardCimv2");
@@ -175,6 +175,25 @@ namespace linker.tun
                 error = ex.Message;
             }
         }
+
+
+        public void AddForward(List<LinkerTunDeviceForwardItem> forwards)
+        {
+            string[] commands = forwards.Where(c => c != null && c.Enable).Select(c =>
+            {
+                return $"netsh interface portproxy add v4tov4 listenaddress={c.ListenAddr} listenport={c.ListenPort} connectaddress={c.ConnectAddr} connectport={c.ConnectPort}";
+            }).ToArray();
+            CommandHelper.Windows(string.Empty, commands);
+        }
+        public void RemoveForward(List<LinkerTunDeviceForwardItem> forwards)
+        {
+            string[] commands = forwards.Where(c => c != null && c.Enable).Select(c =>
+            {
+                return $"netsh interface portproxy delete v4tov4 listenport={c.ListenPort} listenaddress={c.ListenAddr}";
+            }).ToArray();
+            CommandHelper.Windows(string.Empty, commands);
+        }
+
 
         public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip, bool gateway)
         {

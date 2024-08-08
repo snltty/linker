@@ -3,6 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using linker.startup;
 using linker.config;
+using System.ServiceProcess;
+using System.Diagnostics;
 
 namespace linker
 {
@@ -10,8 +12,28 @@ namespace linker
     {
         static async Task Main(string[] args)
         {
-            Run(args);
-            await Helper.Await().ConfigureAwait(false);
+            if (Environment.UserInteractive == false && OperatingSystem.IsWindows())
+            {
+                AppDomain.CurrentDomain.UnhandledException += (a, b) =>
+                {
+                };
+
+                string serviceDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+                Directory.SetCurrentDirectory(serviceDirectory);
+               
+                ServiceBase[] ServicesToRun;
+                ServicesToRun = new ServiceBase[]
+                {
+                    new Service()
+                };
+                ServiceBase.Run(ServicesToRun);
+            }
+            else
+            {
+                Run(args);
+                await Helper.Await().ConfigureAwait(false);
+            }
+
         }
 
         public static void Run(string[] args)

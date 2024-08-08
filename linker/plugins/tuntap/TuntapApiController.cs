@@ -117,7 +117,11 @@ namespace linker.plugins.tuntap
             return true;
         }
 
-        //更新网卡信息
+        /// <summary>
+        /// 更新网卡信息
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> Update(ApiControllerParamsInfo param)
         {
             TuntapInfo info = param.Content.DeJson<TuntapInfo>();

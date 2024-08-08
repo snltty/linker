@@ -70,6 +70,15 @@ namespace linker.plugins.signin
                 Payload = MemoryPackSerializer.Serialize(param.Content)
             }).ConfigureAwait(false);
         }
+        public async Task SetIndex(ApiControllerParamsInfo param)
+        {
+            await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)SignInMessengerIds.SetIndex,
+                Payload = MemoryPackSerializer.Serialize(param.Content.DeJson<string[]>())
+            }).ConfigureAwait(false);
+        }
         public async Task<SignInListResponseInfo> List(ApiControllerParamsInfo param)
         {
             SignInListRequestInfo request = param.Content.DeJson<SignInListRequestInfo>();

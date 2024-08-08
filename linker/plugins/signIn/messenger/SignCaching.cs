@@ -94,7 +94,6 @@ namespace linker.plugins.signin.messenger
         public DateTime LastSignIn { get; set; } = DateTime.Now;
         public Dictionary<string, string> Args { get; set; } = new Dictionary<string, string>();
 
-
         private IPEndPoint ip = new IPEndPoint(IPAddress.Any, 0);
         [MemoryPackAllowSerialize]
         public IPEndPoint IP
@@ -132,6 +131,9 @@ namespace linker.plugins.signin.messenger
 
         [MemoryPackIgnore, JsonIgnore, BsonIgnore]
         public IConnection Connection { get; set; }
+
+        [MemoryPackIgnore, JsonIgnore, BsonIgnore]
+        public uint Index { get; set; } = 65535;
     }
 
 

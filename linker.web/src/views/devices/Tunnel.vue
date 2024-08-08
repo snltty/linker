@@ -10,8 +10,8 @@
                 </a>
             </div> 
             <div>
-                <a href="javascript:;" class="a-line" @click="handleConnections(scope.row.MachineId)">
-                    <span>连接数 : {{connectionCount(scope.row.MachineId)}}</span>
+                <a href="javascript:;" class="a-line" :class="{green:connectionCount(scope.row.MachineId)>0}" @click="handleConnections(scope.row.MachineId)">
+                    连接数 : <span>{{connectionCount(scope.row.MachineId)}}</span>
                 </a>
             </div>
         </template>
@@ -57,4 +57,6 @@ export default {
 <style lang="stylus" scoped>
 
 .el-switch.is-disabled{opacity :1;}
+
+.green{font-weight:bold;}
 </style>

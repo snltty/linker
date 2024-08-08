@@ -12,6 +12,7 @@ using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.plugins.tuntap.config;
 using linker.tun;
+using linker.libs.extends;
 
 namespace linker.plugins.tuntap
 {
@@ -56,7 +57,7 @@ namespace linker.plugins.tuntap
         {
             Task.Run(() =>
             {
-                NetworkHelper.GetRouteLevel(out routeIps);
+                NetworkHelper.GetRouteLevel(config.Data.Client.Server, out routeIps);
                 NotifyConfig();
                 CheckTuntapStatusTask();
                 if (runningConfig.Data.Tuntap.Running)
@@ -77,19 +78,17 @@ namespace linker.plugins.tuntap
             }
             Task.Run(() =>
             {
-                NotifyConfig();
+                SetupBefore();
                 try
                 {
                     if (runningConfig.Data.Tuntap.IP.Equals(IPAddress.Any))
                     {
                         return;
                     }
-                    linkerTunDeviceAdapter.Setup(runningConfig.Data.Tuntap.IP, 24, 1416);
+                    linkerTunDeviceAdapter.Setup(runningConfig.Data.Tuntap.IP, runningConfig.Data.Tuntap.PrefixLength, 1416);
                     if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.Error))
                     {
-                        linkerTunDeviceAdapter.SetNat();
-                        runningConfig.Data.Tuntap.Running = true;
-                        runningConfig.Data.Update();
+                        SetupSuccess();
                     }
                     else
                     {
@@ -102,11 +101,28 @@ namespace linker.plugins.tuntap
                 }
                 finally
                 {
-                    Interlocked.Exchange(ref operating, 0);
-                    NotifyConfig();
+                    SetupAfter();
                 }
             });
         }
+
+        private void SetupBefore()
+        {
+            NotifyConfig();
+        }
+        private void SetupAfter()
+        {
+            Interlocked.Exchange(ref operating, 0);
+            NotifyConfig();
+        }
+        private void SetupSuccess()
+        {
+            linkerTunDeviceAdapter.SetNat();
+            AddForward();
+            runningConfig.Data.Tuntap.Running = true;
+            runningConfig.Data.Update();
+        }
+
         /// <summary>
         /// 停止网卡
         /// </summary>
@@ -118,11 +134,9 @@ namespace linker.plugins.tuntap
             }
             try
             {
-                NotifyConfig();
+                ShutdownBefore();
                 linkerTunDeviceAdapter.Shutdown();
-
-                runningConfig.Data.Tuntap.Running = false;
-                runningConfig.Data.Update();
+                ShutdownSuccess();
             }
             catch (Exception ex)
             {
@@ -133,10 +147,27 @@ namespace linker.plugins.tuntap
             }
             finally
             {
-                Interlocked.Exchange(ref operating, 0);
-                NotifyConfig();
+                ShutdownAfter();
             }
         }
+        private void ShutdownBefore()
+        {
+            NotifyConfig();
+        }
+        private void ShutdownAfter()
+        {
+            Interlocked.Exchange(ref operating, 0);
+            NotifyConfig();
+        }
+        private void ShutdownSuccess()
+        {
+            linkerTunDeviceAdapter.RemoveNat();
+            DeleteForward();
+            runningConfig.Data.Tuntap.Running = false;
+            runningConfig.Data.Update();
+        }
+
+
 
         /// <summary>
         /// 刷新信息，把自己的网卡配置发给别人，顺便把别人的网卡信息带回来
@@ -153,10 +184,14 @@ namespace linker.plugins.tuntap
         {
             Task.Run(() =>
             {
+                DeleteForward();
                 runningConfig.Data.Tuntap.IP = info.IP;
                 runningConfig.Data.Tuntap.LanIPs = info.LanIPs;
                 runningConfig.Data.Tuntap.Masks = info.Masks;
+                runningConfig.Data.Tuntap.PrefixLength = info.PrefixLength;
                 runningConfig.Data.Tuntap.Gateway = info.Gateway;
+                runningConfig.Data.Tuntap.Upgrade = info.Upgrade;
+                runningConfig.Data.Tuntap.Forwards = info.Forwards;
                 runningConfig.Data.Update();
                 if (Status == TuntapStatus.Running)
                 {
@@ -165,6 +200,7 @@ namespace linker.plugins.tuntap
                 }
                 else
                 {
+                    AddForward();
                     NotifyConfig();
                 }
             });
@@ -204,9 +240,9 @@ namespace linker.plugins.tuntap
                     {
                         tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
                     }
-                    Interlocked.Increment(ref infosVersion);
                     AddRoute();
                 }
+                Interlocked.Increment(ref infosVersion);
             });
         }
         /// <summary>
@@ -220,11 +256,15 @@ namespace linker.plugins.tuntap
                 IP = runningConfig.Data.Tuntap.IP,
                 LanIPs = runningConfig.Data.Tuntap.LanIPs,
                 Masks = runningConfig.Data.Tuntap.Masks,
+                PrefixLength = runningConfig.Data.Tuntap.PrefixLength,
                 MachineId = config.Data.Client.Id,
                 Status = Status,
                 Error = linkerTunDeviceAdapter.Error,
-                System = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} {(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")) == false ? "Docker" : "")}",
+                Error1 = linkerTunDeviceAdapter.Error1,
+                SystemInfo = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} {(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")) == false ? "Docker" : "")}",
                 Gateway = runningConfig.Data.Tuntap.Gateway,
+                Upgrade = runningConfig.Data.Tuntap.Upgrade,
+                Forwards = runningConfig.Data.Tuntap.Forwards,
             };
             if (runningConfig.Data.Tuntap.Masks.Length != runningConfig.Data.Tuntap.LanIPs.Length)
             {
@@ -258,16 +298,38 @@ namespace linker.plugins.tuntap
             return infos;
         }
 
+
+        // <summary>
+        /// 添加端口转发
+        /// </summary>
+        private void AddForward()
+        {
+            linkerTunDeviceAdapter.AddForward(runningConfig.Data.Tuntap.Forwards.Select(c => new LinkerTunDeviceForwardItem { ListenAddr = c.ListenAddr, ListenPort = c.ListenPort, ConnectAddr = c.ConnectAddr, ConnectPort = c.ConnectPort }).ToList());
+        }
+        /// <summary>
+        /// 删除端口转发
+        /// </summary>
+        private void DeleteForward()
+        {
+            linkerTunDeviceAdapter.RemoveForward(runningConfig.Data.Tuntap.Forwards.Select(c => new LinkerTunDeviceForwardItem { ListenAddr = c.ListenAddr, ListenPort = c.ListenPort, ConnectAddr = c.ConnectAddr, ConnectPort = c.ConnectPort }).ToList());
+        }
+
         /// <summary>
         /// 删除路由
         /// </summary>
         private void DelRoute()
         {
-            List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.ToList());
-            TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
-
-            var items = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.MaskLength }).ToArray();
-            linkerTunDeviceAdapter.DelRoute(items, runningConfig.Data.Tuntap.Gateway);
+            try
+            {
+                List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.ToList());
+                TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
+                var items = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.MaskLength }).ToArray();
+                linkerTunDeviceAdapter.DelRoute(items, runningConfig.Data.Tuntap.Gateway);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
         /// <summary>
         /// 添加路由
@@ -291,7 +353,7 @@ namespace linker.plugins.tuntap
         {
             uint[] localIps = NetworkHelper.GetIPV4()
                 .Concat(new IPAddress[] { runningConfig.Data.Tuntap.IP })
-                .Concat(runningConfig.Data.Tuntap.LanIPs)
+                .Concat(runningConfig.Data.Tuntap.LanIPs.Where(c => c != null))
                 .Concat(routeIps)
                 .Select(c => BinaryPrimitives.ReadUInt32BigEndian(c.GetAddressBytes()))
                 .ToArray();
@@ -313,7 +375,7 @@ namespace linker.plugins.tuntap
         private List<TuntapVeaLanIPAddress> ParseIPs(IPAddress[] lanIPs, int[] masks)
         {
             if (masks.Length != lanIPs.Length) masks = lanIPs.Select(c => 24).ToArray();
-            return lanIPs.Where(c => c.Equals(IPAddress.Any) == false).Select((c, index) =>
+            return lanIPs.Where(c => c.Equals(IPAddress.Any) == false && c != null).Select((c, index) =>
             {
                 return ParseIPAddress(c, (byte)masks[index]);
 

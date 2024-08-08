@@ -1,6 +1,7 @@
 
 using linker.config;
 using linker.plugins.serializes;
+using linker.plugins.signin.messenger;
 using linker.plugins.tuntap.config;
 using linker.tunnel.connection;
 using linker.tunnel.transport;
@@ -19,29 +20,46 @@ namespace linker.Tests
             MemoryPackFormatterProvider.Register(new IPAddressFormatter());
 
 
-            TuntapInfo tuntapInfo = new TuntapInfo
+
+
+            byte[] bytes = MemoryPackSerializer.Serialize(new SignInListRequestInfo1
             {
-                Error = "dfgdgdfgdfgddfgdfhdhdhdhdfhdfdfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-                Gateway = false,
-                IP = IPAddress.Any,
-                LanIPs = new IPAddress[] { IPAddress.Any, IPAddress.Loopback, IPAddress.Broadcast },
-                Masks = [24, 24, 24],
-                MachineId = "dfgdgdfgdfgddfgdfhdhdhdhdfhdfdfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-                Status = TuntapStatus.Normal,
-                System = "dfgdgdfgdfgddfgdfhdhdhdhdfhdfdfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-            };
-            List<TuntapInfo> tuntapInfos = new List<TuntapInfo>();
-            for (int i = 0; i < 100; i++)
-            {
-                tuntapInfos.Add(tuntapInfo);
-            }
+                GroupId = string.Empty,
+                Ids =[],
+                Name = "11",
+                Page = 1,
+                Size = 1,
+            });
 
-            byte[] bytes = MemoryPackSerializer.Serialize(tuntapInfos);
+            SignInListRequestInfo tuntapInfos1 = MemoryPackSerializer.Deserialize<SignInListRequestInfo>(bytes);
 
-            List<TuntapInfo> tuntapInfos1 = MemoryPackSerializer.Deserialize<List<TuntapInfo>>(bytes);
-
-            Assert.AreEqual(tuntapInfos1.Count, tuntapInfos.Count);
+            Assert.AreEqual(tuntapInfos1.Name, "11");
         }
+    }
+
+    [MemoryPackable]
+    public sealed partial class SignInListRequestInfo1
+    {
+        /// <summary>
+        /// 当前页
+        /// </summary>
+        public int Page { get; set; } = 1;
+        /// <summary>
+        /// 每页大小
+        /// </summary>
+        public int Size { get; set; } = 10;
+        /// <summary>
+        /// 所在分组
+        /// </summary>
+        public string GroupId { get; set; }
+        /// <summary>
+        /// 按名称搜索
+        /// </summary>
+        public string Name { get; set; }
+        /// <summary>
+        /// 按id获取
+        /// </summary>
+        public string[] Ids { get; set; }
     }
 
 

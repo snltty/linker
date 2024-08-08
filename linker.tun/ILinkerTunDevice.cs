@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Sockets;
+using System.Text.Json.Serialization;
 
 namespace linker.tun
 {
@@ -50,6 +51,18 @@ namespace linker.tun
         /// </summary>
         public void RemoveNat(out string error);
 
+
+        /// <summary>
+        /// 添加端口转发
+        /// </summary>
+        /// <param name="forwards"></param>
+        public void AddForward(List<LinkerTunDeviceForwardItem> forwards);
+        /// <summary>
+        /// 删除端口转发
+        /// </summary>
+        /// <param name="forwards"></param>
+        public void RemoveForward(List<LinkerTunDeviceForwardItem> forwards);
+
         /// <summary>
         /// 添加路由
         /// </summary>
@@ -88,6 +101,17 @@ namespace linker.tun
         /// <param name="packet"></param>
         /// <returns></returns>
         public Task Callback(LinkerTunDevicPacket packet);
+    }
+
+    public sealed class LinkerTunDeviceForwardItem
+    {
+        public IPAddress ListenAddr { get; set; } = IPAddress.Any;
+        public int ListenPort { get; set; }
+        public IPAddress ConnectAddr { get; set; } = IPAddress.Any;
+        public int ConnectPort { get; set; }
+
+        [JsonIgnore]
+        public bool Enable => ListenPort > 0 && ConnectAddr.Equals(IPAddress.Any) == false && ConnectPort > 0;
     }
 
     /// <summary>

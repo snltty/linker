@@ -162,6 +162,15 @@ namespace linker.tun
             }
         }
 
+
+        public void AddForward(List<LinkerTunDeviceForwardItem> forwards)
+        {
+        }
+        public void RemoveForward(List<LinkerTunDeviceForwardItem> forwards)
+        {
+        }
+
+
         public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip, bool gateway)
         {
             if (gateway)
@@ -276,8 +285,9 @@ namespace linker.tun
 
         public void Clear()
         {
-
         }
+
+        
     }
 
 

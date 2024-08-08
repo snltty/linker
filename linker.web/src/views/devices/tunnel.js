@@ -40,8 +40,13 @@ export const provideTunnel = () => {
     const clearTunnelTimeout = () => {
         clearTimeout(tunnel.value.timer);
     }
+    const sortTunnel = (asc) => {
+        return Object.values(tunnel.value.list).sort((a, b) => {
+            return asc ? a.RouteLevel - b.RouteLevel : b.RouteLevel - a.RouteLevel;
+        }).map(c => c.MachineId);
+    }
     return {
-        tunnel, _getTunnelInfo, handleTunnelEdit, handleTunnelRefresh, clearTunnelTimeout
+        tunnel, _getTunnelInfo, handleTunnelEdit, handleTunnelRefresh, clearTunnelTimeout, sortTunnel
     }
 }
 export const useTunnel = () => {

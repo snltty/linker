@@ -44,6 +44,27 @@ namespace linker.plugins.signin.messenger
             connection.Write(MemoryPackSerializer.Serialize(info.MachineId));
         }
 
+        [MessengerId((ushort)SignInMessengerIds.SetIndex)]
+        public void SetIndex(IConnection connection)
+        {
+            string[] ids = MemoryPackSerializer.Deserialize<string[]>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            {
+                IEnumerable<SignCacheInfo> list = signCaching.Get(cache.GroupId);
+                foreach (var item in list)
+                {
+                    item.Index = uint.MaxValue;
+                }
+
+                for (uint i = 0; i < ids.Length; i++)
+                {
+                    SignCacheInfo item = list.FirstOrDefault(c => c.MachineId == ids[i]);
+                    if (item != null)
+                        item.Index = i;
+                }
+            }
+        }
+
 
         [MessengerId((ushort)SignInMessengerIds.List)]
         public void List(IConnection connection)
@@ -51,15 +72,51 @@ namespace linker.plugins.signin.messenger
             SignInListRequestInfo request = MemoryPackSerializer.Deserialize<SignInListRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
-                IEnumerable<SignCacheInfo> list = signCaching.Get(cache.GroupId).OrderByDescending(c => c.MachineName).OrderByDescending(c => c.LastSignIn).OrderByDescending(c => c.Version).ToList();
+                IEnumerable<SignCacheInfo> list = signCaching.Get(cache.GroupId).Where(c => c.MachineId != cache.MachineId);
                 if (string.IsNullOrWhiteSpace(request.Name) == false)
                 {
                     list = list.Where(c => c.Version.Contains(request.Name) || c.IP.ToString().Contains(request.Name) || c.MachineName.Contains(request.Name) || request.Ids.Contains(c.MachineId));
                 }
+
+                if (string.IsNullOrWhiteSpace(request.Prop) == false)
+                {
+                    if (request.Asc)
+                    {
+                        switch (request.Prop)
+                        {
+                            case "MachineId":
+                                list = list.OrderBy(c => c.MachineName);
+                                break;
+                            case "Version":
+                                list = list.OrderBy(c => c.Version);
+                                break;
+                            default:
+                                list = list.OrderBy(c => c.Index);
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        switch (request.Prop)
+                        {
+                            case "MachineId":
+                                list = list.OrderByDescending(c => c.MachineName);
+                                break;
+                            case "Version":
+                                list = list.OrderByDescending(c => c.Version);
+                                break;
+                            default:
+                                list = list.OrderByDescending(c => c.Index);
+                                break;
+                        }
+                    }
+                }
+
                 int count = list.Count();
                 list = list.Skip((request.Page - 1) * request.Size).Take(request.Size);
 
-                SignInListResponseInfo response = new SignInListResponseInfo { Request = request, Count = count, List = list.ToList() };
+                List<SignCacheInfo> result = [cache, .. list];
+                SignInListResponseInfo response = new SignInListResponseInfo { Request = request, Count = count, List = result };
 
                 connection.Write(MemoryPackSerializer.Serialize(response));
             }
@@ -148,10 +205,6 @@ namespace linker.plugins.signin.messenger
         /// </summary>
         public int Size { get; set; } = 10;
         /// <summary>
-        /// 所在分组
-        /// </summary>
-        public string GroupId { get; set; }
-        /// <summary>
         /// 按名称搜索
         /// </summary>
         public string Name { get; set; }
@@ -159,6 +212,15 @@ namespace linker.plugins.signin.messenger
         /// 按id获取
         /// </summary>
         public string[] Ids { get; set; }
+
+        /// <summary>
+        /// 排序
+        /// </summary>
+        public bool Asc { get; set; }
+        /// <summary>
+        /// 排序字段
+        /// </summary>
+        public string Prop { get; set; }
     }
 
     [MemoryPackable]

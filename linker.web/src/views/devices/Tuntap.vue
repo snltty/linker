@@ -33,9 +33,28 @@
                     </template>
                 </div>
                 <div>
-                    <div v-for="(item,index) in  tuntap.list[scope.row.MachineId].LanIPs" :key="index">
-                        {{ item }} / {{ tuntap.list[scope.row.MachineId].Masks[index] }}
-                    </div>
+                    <template v-if="tuntap.list[scope.row.MachineId].Error1">
+                        <el-popover placement="top" title="msg" width="20rem"  trigger="hover" :content="tuntap.list[scope.row.MachineId].Error1">
+                            <template #reference>
+                                <div class="yellow">
+                                    <template v-for="(item,index) in  tuntap.list[scope.row.MachineId].LanIPs" :key="index">
+                                        <div>
+                                            {{ item }} / {{ tuntap.list[scope.row.MachineId].Masks[index] }}
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                        </el-popover>
+                    </template>
+                    <template v-else>
+                        <div>
+                            <template v-for="(item,index) in  tuntap.list[scope.row.MachineId].LanIPs" :key="index">
+                                <div>
+                                    {{ item }} / {{ tuntap.list[scope.row.MachineId].Masks[index] }}
+                                </div>
+                            </template>
+                        </div>
+                    </template>
                 </div>
             </div> 
         </template>

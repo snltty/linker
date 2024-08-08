@@ -1,4 +1,4 @@
-import { getSignInList, signInDel } from "@/apis/signin";
+import { getSignInList, signInDel, setSignInIndex } from "@/apis/signin";
 import { injectGlobalData } from "@/provide";
 import { computed, reactive } from "vue";
 
@@ -12,7 +12,7 @@ export const provideDevices = () => {
         timer: 0,
         page: {
             Request: {
-                Page: 1, Size: +(localStorage.getItem('ps') || '10'), Name: '', Ids: []
+                Page: 1, Size: +(localStorage.getItem('ps') || '10'), Name: '', Ids: [], Prop: '', Asc: true
             },
             Count: 0,
             List: []
@@ -23,7 +23,6 @@ export const provideDevices = () => {
     });
     const _getSignList = () => {
         getSignInList(devices.page.Request).then((res) => {
-            console.log(res);
             devices.page.Request = res.Request;
             devices.page.Count = res.Count;
             for (let j in res.List) {
@@ -33,7 +32,7 @@ export const provideDevices = () => {
 
 
             }
-            devices.page.List = res.List.sort((a, b) => b.Connected - a.Connected);
+            devices.page.List = res.List;
             for (let i = 0; i < devices.page.List.length; i++) {
                 queue.push(devices.page.List[i]);
             }
@@ -112,7 +111,12 @@ export const provideDevices = () => {
         devices.timer = 0;
     }
 
+    const setSort = (ids) => {
+        return setSignInIndex(ids);
+    }
+
     return {
-        devices, machineId, _getSignList, _getSignList1, handleDeviceEdit, handlePageChange, handlePageSizeChange, handleDel, clearDevicesTimeout
+        devices, machineId, _getSignList, _getSignList1, handleDeviceEdit, handlePageChange, handlePageSizeChange, handleDel, clearDevicesTimeout,
+        setSort
     }
 }

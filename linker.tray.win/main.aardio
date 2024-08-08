@@ -30,7 +30,7 @@ catch(e){
 
 
 mainForm.serviceName = "linker.service";
-mainForm.exeName = "linker.service.exe";
+mainForm.exeName = "linker.exe";
 
 import win.image;
 hIcon = win.image.loadIconFromFile("/res/favicon.ico",true);
@@ -51,6 +51,8 @@ mainForm.wndproc = function(hwnd,message,wParam,lParam){
 			//左键
 			if(lParam === 0x0202){
 				mainForm.show();
+				win.setTopmost(mainForm.hwnd);
+				win.setTopmost(mainForm.hwnd,false);
 			} 
 		}
 		//关闭
@@ -248,6 +250,8 @@ mainForm.showPopmenu();
 if(!_ARGV["task"])
 {
 	mainForm.show();
+	win.setTopmost(mainForm.hwnd);
+	win.setTopmost(mainForm.hwnd,false);
 }
 
 mainForm.setInterval( 
@@ -257,12 +261,15 @@ mainForm.setInterval(
 		try{
 			if(io.exist(io._exefile+".temp"))
 			{
+				mainForm.reStart();
+				/*
 				var prcs = process.popen.cmd("tasklist | findstr "+mainForm.serviceName);
 				var str = prcs.readAll();
 				if(!!!string.indexOf(str,mainForm.serviceName))
 				{
 					mainForm.reStart();
 				}
+				*/
 			}
 		}catch(e)
 		{

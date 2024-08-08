@@ -61,20 +61,24 @@ namespace linker.libs
 
 
         static List<string> starts = new() { "10.", "100.", "192.168.", "172." };
-        static string domain = "linker.snltty.com";
-        public static ushort GetRouteLevel(out List<IPAddress> result)
+        public static ushort GetRouteLevel(string server, out List<IPAddress> result)
         {
+            if (string.IsNullOrWhiteSpace(server) == false)
+            {
+                server = server.Split(':')[0];
+            }
+
             if (OperatingSystem.IsWindows())
             {
-                return GetRouteLevelWindows(out result);
+                return GetRouteLevelWindows(server, out result);
             }
-            return GetRouteLevelLinux(out result);
+            return GetRouteLevelLinux(server, out result);
         }
-        private static ushort GetRouteLevelLinux(out List<IPAddress> result)
+        private static ushort GetRouteLevelLinux(string server, out List<IPAddress> result)
         {
             result = new List<IPAddress>();
 
-            string str = CommandHelper.Linux(string.Empty, new string[] { $"traceroute {domain} -4 -m 5" });
+            string str = CommandHelper.Linux(string.Empty, new string[] { $"traceroute {server} -4 -m 5" });
             string[] lines = str.Split(Environment.NewLine);
 
             Regex regex = new Regex(@"(\d+\.\d+\.\d+\.\d+)");
@@ -93,12 +97,12 @@ namespace linker.libs
 
             return 3;
         }
-        private static ushort GetRouteLevelWindows(out List<IPAddress> result)
+        private static ushort GetRouteLevelWindows(string server, out List<IPAddress> result)
         {
             result = new List<IPAddress>();
             try
             {
-                IPAddress target = Dns.GetHostEntry(domain).AddressList.FirstOrDefault(c => c.AddressFamily == AddressFamily.InterNetwork);
+                IPAddress target = Dns.GetHostEntry(server).AddressList.FirstOrDefault(c => c.AddressFamily == AddressFamily.InterNetwork);
 
                 for (ushort i = 1; i <= 5; i++)
                 {

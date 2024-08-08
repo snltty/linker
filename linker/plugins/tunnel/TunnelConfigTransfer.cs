@@ -177,10 +177,19 @@ namespace linker.plugins.tunnel
                     {
                     }
                 }
-
-                if (File.Exists("msquic.dll.temp"))
+                try
                 {
-                    File.Delete("msquic.dll.temp");
+                    if (File.Exists("msquic.dll.temp"))
+                    {
+                        File.Delete("msquic.dll.temp");
+                    }
+                    if (File.Exists("msquic-openssl.dll"))
+                    {
+                        File.Delete("msquic-openssl.dll");
+                    }
+                }
+                catch (Exception)
+                {
                 }
             }
         }

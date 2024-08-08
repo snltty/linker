@@ -8,24 +8,26 @@ namespace linker.libs
     {
         public static string Windows(string arg, string[] commands)
         {
-            return Execute("cmd.exe", arg, commands);
+            return Execute("cmd.exe", arg, commands,out string error);
         }
-        public static string PowerShell(string arg, string[] commands)
+        public static string PowerShell(string arg, string[] commands, out string error)
         {
+            error = string.Empty;
             if (IsPowerShellInstalled() == false)
             {
+                error = "PowerShell is not installed";
                 return string.Empty;
             }
-            return Execute("powershell.exe", arg, commands);
+            return Execute("powershell.exe", arg, commands,out error);
         }
 
         public static string Linux(string arg, string[] commands)
         {
-            return Execute("/bin/bash", arg, commands);
+            return Execute("/bin/bash", arg, commands, out string error);
         }
         public static string Osx(string arg, string[] commands)
         {
-            return Execute("/bin/bash", arg, commands);
+            return Execute("/bin/bash", arg, commands, out string error);
         }
 
         public static Process Execute(string fileName, string arg)
@@ -45,7 +47,7 @@ namespace linker.libs
             return proc;
         }
 
-        public static string Execute(string fileName, string arg, string[] commands)
+        public static string Execute(string fileName, string arg, string[] commands,out string error)
         {
             using Process proc = new Process();
             proc.StartInfo.WorkingDirectory = Path.GetFullPath(Path.Join("./"));
@@ -68,7 +70,7 @@ namespace linker.libs
             proc.StandardInput.AutoFlush = true;
             proc.StandardInput.WriteLine("exit");
             proc.StandardInput.Close();
-            string error = proc.StandardError.ReadToEnd();
+            error = proc.StandardError.ReadToEnd();
             string output = string.Empty;
             if (string.IsNullOrWhiteSpace(error))
             {

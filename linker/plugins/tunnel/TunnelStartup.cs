@@ -63,7 +63,7 @@ namespace linker.plugins.tunnel
             serviceCollection.AddSingleton<ITunnelAdapter, TunnelAdapter>();
 
             LoggerHelper.Instance.Info($"tunnel route level getting.");
-            config.Data.Client.Tunnel.RouteLevel = NetworkHelper.GetRouteLevel(out List<IPAddress> ips);
+            config.Data.Client.Tunnel.RouteLevel = NetworkHelper.GetRouteLevel(config.Data.Client.Server, out List<IPAddress> ips);
             config.Data.Client.Tunnel.RouteIPs = ips.ToArray();
             LoggerHelper.Instance.Warning($"route ips:{string.Join(",", ips.Select(c => c.ToString()))}");
             config.Data.Client.Tunnel.LocalIPs = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();

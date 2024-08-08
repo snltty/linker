@@ -1,5 +1,13 @@
 <template>
     <div class="home-list-wrap absolute" >
+        <el-table border style="width: 100%" height="32px" size="small" @sort-change="handleSortChange" class="table-sort">
+            <el-table-column prop="MachineId" label="设备名" width="120" sortable ></el-table-column>
+            <el-table-column prop="Version" label="版本" width="120" sortable></el-table-column>
+            <el-table-column prop="tunnel" label="网关" width="90" sortable></el-table-column>
+            <el-table-column prop="tuntap" label="网卡IP" width="150" sortable></el-table-column>
+            <el-table-column prop="forward" label=""></el-table-column>
+            <el-table-column label="" width="74" fixed="right"></el-table-column>
+        </el-table>
         <el-table :data="devices.page.List" stripe border style="width: 100%" :height="`${state.height}px`" size="small">
             <Device  @edit="handleDeviceEdit" @refresh="handlePageRefresh"></Device>
             <Tunnel  @edit="handleTunnelEdit" @refresh="handleTunnelRefresh" @connections="handleTunnelConnections"></Tunnel>
@@ -55,14 +63,14 @@ export default {
 
         const globalData = injectGlobalData();
         const state = reactive({
-            height: computed(()=>globalData.value.height-60),
+            height: computed(()=>globalData.value.height-90),
         });
 
-        const {devices, machineId, _getSignList, _getSignList1, 
-            handleDeviceEdit, handlePageChange, handlePageSizeChange, handleDel,clearDevicesTimeout} = provideDevices();
+        const {devices, machineId, _getSignList, _getSignList1,
+            handleDeviceEdit, handlePageChange, handlePageSizeChange, handleDel,clearDevicesTimeout,setSort} = provideDevices();
 
-        const {tuntap,_getTuntapInfo,handleTuntapEdit,handleTuntapRefresh,clearTuntapTimeout,getTuntapMachines}  = provideTuntap();
-        const {tunnel,_getTunnelInfo,handleTunnelEdit,handleTunnelRefresh,clearTunnelTimeout} = provideTunnel();
+        const {tuntap,_getTuntapInfo,handleTuntapEdit,handleTuntapRefresh,clearTuntapTimeout,getTuntapMachines,sortTuntapIP}  = provideTuntap();
+        const {tunnel,_getTunnelInfo,handleTunnelEdit,handleTunnelRefresh,clearTunnelTimeout,sortTunnel} = provideTunnel();
         const {forward,_getForwardInfo,handleForwardEdit,_testTargetForwardInfo,clearForwardTimeout,getForwardMachines} = provideForward();
         const {sforward,_getSForwardInfo,handleSForwardEdit,_testLocalSForwardInfo,clearSForwardTimeout,getSForwardMachines} = provideSforward();
         const {connections,
@@ -72,6 +80,30 @@ export default {
         } = provideConnections();
 
         const {_getUpdater,clearUpdaterTimeout} = provideUpdater();
+
+        const handleSortChange = (row)=>{
+
+            devices.page.Request.Prop = row.prop;
+            devices.page.Request.Asc = row.order == 'ascending';
+
+            let fn = new Promise((resolve,reject)=>{
+                resolve();
+            });
+            if(row.prop == 'tunnel'){   
+                const ids = sortTunnel(devices.page.Request.Asc);
+                if(ids .length > 0){
+                    fn = setSort(ids);
+                }
+            }else if(row.prop == 'tuntap'){
+                const ids = sortTuntapIP(devices.page.Request.Asc);
+                if(ids .length > 0){
+                    fn = setSort(ids);
+                }
+            }
+            fn.then(()=>{
+                handlePageChange();
+            }).catch(()=>{});
+        }
 
         const _handleForwardEdit = (machineId) => {
             handleForwardEdit(machineId,devices.page.List.filter(c => c.MachineId == machineId)[0].MachineName);
@@ -142,7 +174,7 @@ export default {
         });
 
         return {
-            state,devices, machineId,
+            state,devices, machineId,handleSortChange,
             handleDeviceEdit,handlePageRefresh,handlePageSearch, handlePageChange,handlePageSizeChange, handleDel,
             tuntap, handleTuntapEdit, handleTuntapRefresh,
             tunnel,connections, handleTunnelEdit, handleTunnelRefresh,handleTunnelConnections,
@@ -152,7 +184,18 @@ export default {
     }
 }
 </script>
+<style lang="stylus">
+.table-sort.el-table
+{
+    th.el-table__cell.is-leaf{border-bottom:0}
+    .el-table__inner-wrapper:before{height:0}
+}
+</style>
 <style lang="stylus" scoped>
+.table-sort 
+{
+    th{border-bottom:0}
+}
 .home-list-wrap{
     padding:1rem;
 

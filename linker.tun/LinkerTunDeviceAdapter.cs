@@ -16,6 +16,10 @@ namespace linker.tun
         private string error = string.Empty;
         public string Error => error;
 
+        private string error1 = string.Empty;
+        public string Error1 => error1;
+
+
         private uint operating = 0;
         public LinkerTunDeviceStatus Status
         {
@@ -125,7 +129,6 @@ namespace linker.tun
             {
                 cancellationTokenSource?.Cancel();
                 linkerTunDevice?.Shutdown();
-                linkerTunDevice?.RemoveNat(out error);
             }
             catch (Exception)
             {
@@ -142,14 +145,31 @@ namespace linker.tun
         /// </summary>
         public void SetNat()
         {
-            linkerTunDevice?.SetNat(out error);
+            linkerTunDevice?.SetNat(out error1);
         }
         /// <summary>
         /// 移除NAT转发
         /// </summary>
         public void RemoveNat()
         {
-            linkerTunDevice?.RemoveNat(out error);
+            linkerTunDevice?.RemoveNat(out error1);
+        }
+
+        /// <summary>
+        /// 添加端口转发
+        /// </summary>
+        /// <param name="forwards"></param>
+        public void AddForward(List<LinkerTunDeviceForwardItem> forwards)
+        {
+            linkerTunDevice?.AddForward(forwards);
+        }
+        /// <summary>
+        /// 移除端口转发
+        /// </summary>
+        /// <param name="forwards"></param>
+        public void RemoveForward(List<LinkerTunDeviceForwardItem> forwards)
+        {
+            linkerTunDevice?.RemoveForward(forwards);
         }
 
         /// <summary>

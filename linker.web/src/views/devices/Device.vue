@@ -1,5 +1,5 @@
 <template>
-<el-table-column prop="MachineId" label="设备">
+<el-table-column prop="MachineId" label="设备" width="240">
     <template #header>
         <div class="flex">
             <span class="flex-1">设备</span>
@@ -13,7 +13,7 @@
         <div>
             <p>
                 <template v-if="tuntap.list[scope.row.MachineId] && tuntap.list[scope.row.MachineId].system">
-                    <span :title="tuntap.list[scope.row.MachineId].System">
+                    <span :title="tuntap.list[scope.row.MachineId].SystemInfo">
                         <img v-if="scope.row.countryFlag" class="system" :src="scope.row.countryFlag" />
                         <img class="system":src="`/${tuntap.list[scope.row.MachineId].system}.svg`" />
                         <img v-if="tuntap.list[scope.row.MachineId].systemDocker" class="system" src="/docker.svg" />

@@ -25,8 +25,8 @@
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<AssemblyVersion>1.2.0.3</AssemblyVersion>
-		<FileVersion>1.2.0.3</FileVersion>
+		<AssemblyVersion>1.2.0.4</AssemblyVersion>
+		<FileVersion>1.2.0.4</FileVersion>
 	</PropertyGroup>
 
 
@@ -65,5 +65,6 @@
 		<PackageReference Include="LiteDB" Version="5.0.17" />
 		<PackageReference Include="MemoryPack" Version="1.10.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+		<PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
 	</ItemGroup>
 </Project>

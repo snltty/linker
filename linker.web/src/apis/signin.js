@@ -11,6 +11,9 @@ export const setSignInServers = (servers) => {
 export const getSignInfo = () => {
     return sendWebsocketMsg('signInclient/info');
 }
+export const setSignInIndex = (ids) => {
+    return sendWebsocketMsg('signInclient/setindex', ids);
+}
 export const getSignInList = (data) => {
     return sendWebsocketMsg('signInclient/List', data);
 }

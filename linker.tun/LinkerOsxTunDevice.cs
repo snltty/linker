@@ -112,6 +112,14 @@ namespace linker.tun
             error = string.Empty;
         }
 
+        public void AddForward(List<LinkerTunDeviceForwardItem> forwards)
+        {
+        }
+        public void RemoveForward(List<LinkerTunDeviceForwardItem> forwards)
+        {
+        }
+
+
         private byte[] buffer = new byte[2 * 1024];
         public ReadOnlyMemory<byte> Read()
         {

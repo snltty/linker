@@ -57,7 +57,7 @@ cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=all
                 string firewall = Path.Join(distPath, "firewall.bat");
 
                 File.WriteAllText(firewall, content);
-                CommandHelper.Execute(firewall, string.Empty, new string[0]);
+                CommandHelper.Execute(firewall, string.Empty, new string[0],out string error);
                 File.Delete(firewall);
             }
             catch (Exception)

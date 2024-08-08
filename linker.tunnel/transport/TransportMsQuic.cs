@@ -230,7 +230,7 @@ namespace linker.tunnel.transport
                             return true;
                         }
                     }
-                }).AsTask().WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                }).AsTask().WaitAsync(TimeSpan.FromMilliseconds(1000)).ConfigureAwait(false);
                 QuicStream quicStream = await connection.OpenOutboundStreamAsync(QuicStreamType.Bidirectional).ConfigureAwait(false);
                 return new TunnelConnectionMsQuic
                 {

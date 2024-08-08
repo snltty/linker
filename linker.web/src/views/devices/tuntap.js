@@ -27,13 +27,14 @@ export const provideTuntap = () => {
         if (globalData.value.api.connected) {
             getTuntapInfo(tuntap.value.hashcode.toString()).then((res) => {
                 tuntap.value.hashcode = res.HashCode;
+                console.log(res);
                 if (res.List) {
                     for (let j in res.List) {
                         res.List[j].running = res.List[j].Status == 2;
                         res.List[j].loading = res.List[j].Status == 1;
                         res.List[j].system = 'system';
 
-                        const systemStr = res.List[j].System.toLowerCase();
+                        const systemStr = res.List[j].SystemInfo.toLowerCase();
                         res.List[j].systemDocker = systemStr.indexOf('docker') >= 0;
 
                         for (let jj in systems) {
@@ -81,8 +82,22 @@ export const provideTuntap = () => {
             .filter(c => c.IP.indexOf(name) >= 0 || (c.LanIPs.filter(d => d.indexOf(name) >= 0).length > 0))
             .map(c => c.MachineId);
     }
+    const sortTuntapIP = (asc) => {
+        return Object.values(tuntap.value.list).sort((a, b) => {
+            const arrA = a.IP.split('.').map(c => Number(c));
+            const arrB = b.IP.split('.').map(c => Number(c));
+            for (let i = 0; i < arrA.length; i++) {
+                if (arrA[i] != arrB[i]) {
+                    return asc ? arrA[i] - arrB[i] : arrB[i] - arrA[i];
+                }
+            }
+            return 0;
+        }).map(c => c.MachineId);
+    }
+
+
     return {
-        tuntap, _getTuntapInfo, handleTuntapEdit, handleTuntapRefresh, clearTuntapTimeout, getTuntapMachines
+        tuntap, _getTuntapInfo, handleTuntapEdit, handleTuntapRefresh, clearTuntapTimeout, getTuntapMachines, sortTuntapIP
     }
 }
 
