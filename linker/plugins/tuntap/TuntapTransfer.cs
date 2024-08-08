@@ -406,7 +406,7 @@ namespace linker.plugins.tuntap
                     await Task.Delay(15000).ConfigureAwait(false);
                     try
                     {
-                        if (runningConfig.Data.Tuntap.Running && OperatingSystem.IsWindows())
+                        if (runningConfig.Data.Tuntap.Running && OperatingSystem.IsWindows() && operating == 0)
                         {
                             await CheckInterface().ConfigureAwait(false);
                         }
@@ -421,14 +421,14 @@ namespace linker.plugins.tuntap
         {
             NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == deviceName);
 
-            if (networkInterface == null || networkInterface.OperationalStatus != OperationalStatus.Up)
+            if (networkInterface == null || networkInterface.OperationalStatus != OperationalStatus.Up && operating == 0)
             {
                 LoggerHelper.Instance.Error($"tuntap inerface {deviceName} is {networkInterface?.OperationalStatus ?? OperationalStatus.Unknown}, restarting");
                 Shutdown();
                 await Task.Delay(5000).ConfigureAwait(false);
 
                 networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == deviceName);
-                if (networkInterface == null || networkInterface.OperationalStatus != OperationalStatus.Up)
+                if (networkInterface == null || networkInterface.OperationalStatus != OperationalStatus.Up && operating == 0)
                 {
                     Setup();
                 }
