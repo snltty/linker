@@ -5,6 +5,7 @@
                 <el-button type="success" size="small" @click="handleAdd">添加</el-button>
                 <el-button size="small" @click="handleRefresh">刷新</el-button>
                 <el-button size="small" @click="handleCopy">复制穿透配置</el-button>
+                <!-- <el-button size="small" @click="handle10000">一万条</el-button> -->
             </div>
             <el-table :data="state.data" size="small" border height="500" @cell-dblclick="handleCellClick">
                 <el-table-column property="Name" label="名称">
@@ -203,6 +204,34 @@ export default {
             sforward.value.showCopy = true;
         }
 
+        const handle10000 = ()=>{
+
+            const fn = (port = 10000)=>{
+                if(port > 20000){
+                    return;
+                }
+                const json = {
+                    Name:`s-${port}`,
+                    RemotePort:port,
+                    LocalEP:'127.0.0.1:80',
+                    Started:true
+                }
+                addSForwardInfo(json).then((res) => {
+                    console.log(JSON.stringify(json));
+                    setTimeout(()=>{
+                        fn(++port);
+                    },50)
+                }).catch((err) => {
+                    console.log(err);
+                    ElMessage.error(err);
+                    setTimeout(()=>{
+                        fn(++port);
+                    },100)
+                });
+            }
+            fn();
+        }
+
         onMounted(()=>{
             _getSForwardInfo();
             _testLocalSForwardInfo();
@@ -212,7 +241,8 @@ export default {
         })
 
         return {
-            state, handleOnShowList, handleCellClick, handleRefresh, handleAdd, handleEdit, handleEditBlur, handleDel, handleStartChange,handleCopy
+            state, handleOnShowList, handleCellClick, handleRefresh, handleAdd, handleEdit, handleEditBlur, handleDel, handleStartChange,
+            handleCopy,handle10000
         }
     }
 }

@@ -62,6 +62,17 @@ jobs:
           7. windows下，需要重新卸载安装服务
           8. 还在测试，不要更新！不要更新！不要更新！
 
+    - name: upload win x86
+      id: upload-win-x86
+      uses: actions/upload-release-asset@master
+      env:
+          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./public/publish-zip/linker-win-x86.zip
+        asset_name: linker-win-x86.zip
+        asset_content_type: application/zip
+
     - name: upload win x64
       id: upload-win-x64
       uses: actions/upload-release-asset@master
@@ -95,6 +106,17 @@ jobs:
         asset_name: linker-linux-x64.zip
         asset_content_type: application/zip
 
+    - name: upload linux arm
+      id: upload-linux-arm
+      uses: actions/upload-release-asset@master
+      env:
+          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./public/publish-zip/linker-linux-arm.zip
+        asset_name: linker-linux-arm.zip
+        asset_content_type: application/zip
+
     - name: upload linux arm64
       id: upload-linux-arm64
       uses: actions/upload-release-asset@master
@@ -115,6 +137,17 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./public/publish-zip/linker-linux-musl-x64.zip
         asset_name: linker-linux-musl-x64.zip
+        asset_content_type: application/zip
+
+    - name: upload linux musl arm
+      id: upload-linux-musl-arm
+      uses: actions/upload-release-asset@master
+      env:
+          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./public/publish-zip/linker-linux-musl-arm.zip
+        asset_name: linker-linux-musl-arm.zip
         asset_content_type: application/zip
 
     - name: upload linux musl arm64

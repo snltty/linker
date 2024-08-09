@@ -722,6 +722,7 @@ namespace linker.tunnel.transport
                         {
                             LoggerHelper.Instance.Error(ex);
                         }
+                        break;
                     }
                 }
             }
