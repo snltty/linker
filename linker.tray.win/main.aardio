@@ -52,7 +52,6 @@ mainForm.wndproc = function(hwnd,message,wParam,lParam){
 			if(lParam === 0x0202){
 				mainForm.show();
 				win.setTopmost(mainForm.hwnd);
-				win.setTopmost(mainForm.hwnd,false);
 			} 
 		}
 		//关闭
@@ -136,7 +135,7 @@ mainForm.checkService1 = function(){
 
 mainForm.btnCheck.oncommand = function(id,event){
 	mainForm.checkService();
-	win.msgbox('已检查');
+	win.msgbox('已检查',null,null,mainForm.hwnd,1000);
 }
 mainForm.runCommand = function(id,event){
 	import thread;
@@ -155,7 +154,7 @@ mainForm.runCommand = function(id,event){
 							thread.delay(100);
 						}
 					}else{
-						win.msgbox("停止失败");	
+						win.msgbox("停止失败",null,null,mainForm.hwnd,1000);	
 					}
 					
 				}else{
@@ -165,7 +164,7 @@ mainForm.runCommand = function(id,event){
 							thread.delay(100);
 						}
 					}else{
-						win.msgbox("运行失败");	
+						win.msgbox("运行失败",null,null,mainForm.hwnd,1000);	
 					}
 				}
 				
@@ -196,7 +195,7 @@ mainForm.installCommand = function(id,event){
 							thread.delay(100);
 						}
 					}else{
-						win.msgbox("卸载失败");	
+						win.msgbox("卸载失败",null,null,mainForm.hwnd,1000);	
 					}
 				}else{
 					if(service.create(io.fullpath(mainForm.exeName),mainForm.serviceName,mainForm.serviceName,mainForm.serviceName)){
@@ -206,7 +205,7 @@ mainForm.installCommand = function(id,event){
 						}
 						service.manager().startDelayed(mainForm.serviceName,true);
 					}else{
-						win.msgbox("安装失败");	
+						win.msgbox("安装失败",null,null,mainForm.hwnd,1000);	
 					}
 				}
 				mainForm.checkService();	
@@ -251,7 +250,6 @@ if(!_ARGV["task"])
 {
 	mainForm.show();
 	win.setTopmost(mainForm.hwnd);
-	win.setTopmost(mainForm.hwnd,false);
 }
 
 mainForm.setInterval( 
