@@ -3,6 +3,7 @@ using MemoryPack;
 using linker.plugins.client;
 using linker.plugins.server;
 using linker.plugins.messenger;
+using linker.libs.extends;
 
 namespace linker.plugins.signin.messenger
 {
@@ -44,8 +45,8 @@ namespace linker.plugins.signin.messenger
             connection.Write(MemoryPackSerializer.Serialize(info.MachineId));
         }
 
-        [MessengerId((ushort)SignInMessengerIds.SetIndex)]
-        public void SetIndex(IConnection connection)
+        [MessengerId((ushort)SignInMessengerIds.SetOrder)]
+        public void SetOrder(IConnection connection)
         {
             string[] ids = MemoryPackSerializer.Deserialize<string[]>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
@@ -53,14 +54,16 @@ namespace linker.plugins.signin.messenger
                 IEnumerable<SignCacheInfo> list = signCaching.Get(cache.GroupId);
                 foreach (var item in list)
                 {
-                    item.Index = uint.MaxValue;
+                    item.Order = uint.MaxValue;
                 }
 
                 for (uint i = 0; i < ids.Length; i++)
                 {
                     SignCacheInfo item = list.FirstOrDefault(c => c.MachineId == ids[i]);
                     if (item != null)
-                        item.Index = i;
+                    {
+                        item.Order = i;
+                    }
                 }
             }
         }
@@ -82,33 +85,21 @@ namespace linker.plugins.signin.messenger
                 {
                     if (request.Asc)
                     {
-                        switch (request.Prop)
+                        list = request.Prop switch
                         {
-                            case "MachineId":
-                                list = list.OrderBy(c => c.MachineName);
-                                break;
-                            case "Version":
-                                list = list.OrderBy(c => c.Version);
-                                break;
-                            default:
-                                list = list.OrderBy(c => c.Index);
-                                break;
-                        }
+                            "MachineId" => list.OrderBy(c => c.MachineName),
+                            "Version" => list.OrderBy(c => c.Version),
+                            _ => list.OrderBy(c => c.Order)
+                        };
                     }
                     else
                     {
-                        switch (request.Prop)
+                        list = request.Prop switch
                         {
-                            case "MachineId":
-                                list = list.OrderByDescending(c => c.MachineName);
-                                break;
-                            case "Version":
-                                list = list.OrderByDescending(c => c.Version);
-                                break;
-                            default:
-                                list = list.OrderByDescending(c => c.Index);
-                                break;
-                        }
+                            "MachineId" => list.OrderByDescending(c => c.MachineName),
+                            "Version" => list.OrderByDescending(c => c.Version),
+                            _ => list.OrderByDescending(c => c.Order)
+                        };
                     }
                 }
 

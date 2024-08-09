@@ -27,7 +27,6 @@ export const provideTuntap = () => {
         if (globalData.value.api.connected) {
             getTuntapInfo(tuntap.value.hashcode.toString()).then((res) => {
                 tuntap.value.hashcode = res.HashCode;
-                console.log(res);
                 if (res.List) {
                     for (let j in res.List) {
                         res.List[j].running = res.List[j].Status == 2;
@@ -83,16 +82,17 @@ export const provideTuntap = () => {
             .map(c => c.MachineId);
     }
     const sortTuntapIP = (asc) => {
-        return Object.values(tuntap.value.list).sort((a, b) => {
+        const sort = Object.values(tuntap.value.list).sort((a, b) => {
             const arrA = a.IP.split('.').map(c => Number(c));
             const arrB = b.IP.split('.').map(c => Number(c));
             for (let i = 0; i < arrA.length; i++) {
                 if (arrA[i] != arrB[i]) {
-                    return asc ? arrA[i] - arrB[i] : arrB[i] - arrA[i];
+                    return arrA[i] - arrB[i];
                 }
             }
             return 0;
-        }).map(c => c.MachineId);
+        });
+        return sort.map(c => c.MachineId);
     }
 
 

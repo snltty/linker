@@ -14,7 +14,7 @@
         Ids = 8,
         Exists = 9,
 
-        SetIndex = 10,
+        SetOrder = 10,
 
         None = 99
     }

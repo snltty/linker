@@ -1,4 +1,4 @@
-import { getSignInList, signInDel, setSignInIndex } from "@/apis/signin";
+import { getSignInList, signInDel, setSignInOrder } from "@/apis/signin";
 import { injectGlobalData } from "@/provide";
 import { computed, reactive } from "vue";
 
@@ -29,8 +29,6 @@ export const provideDevices = () => {
                 res.List[j].showDel = machineId.value != res.List[j].MachineId && res.List[j].Connected == false;
                 res.List[j].showReboot = res.List[j].Connected;
                 res.List[j].isSelf = machineId.value == res.List[j].MachineId;
-
-
             }
             devices.page.List = res.List;
             for (let i = 0; i < devices.page.List.length; i++) {
@@ -112,7 +110,7 @@ export const provideDevices = () => {
     }
 
     const setSort = (ids) => {
-        return setSignInIndex(ids);
+        return setSignInOrder(ids);
     }
 
     return {

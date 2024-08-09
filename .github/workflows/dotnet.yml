@@ -53,13 +53,14 @@ jobs:
         draft: false
         prerelease: false
         body: |
-          1. 修复poershell卡死问题
-          2. 新增排序
-          3. 新增网卡IP自定义掩码
-          4. 新增网卡端口转发
-          5. 新增托盘置顶
-          6. 移除linker.service，将windows service内置
-          7. 还在测试，不要更新！不要更新！不要更新！
+          1. 新增排序
+          2. 新增网卡IP自定义掩码
+          3. 新增网卡端口转发
+          4. 新增托盘置顶
+          5. 移除linker.service，将windows service内置
+          6. 先更新所有客户端，再更新服务端
+          7. windows下，需要重新卸载安装服务
+          8. 还在测试，不要更新！不要更新！不要更新！
 
     - name: upload win x64
       id: upload-win-x64

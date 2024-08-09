@@ -144,6 +144,7 @@ namespace linker.tun
         /// </summary>
         public void SetNat()
         {
+            linkerTunDevice?.RemoveNat(out string error);
             linkerTunDevice?.SetNat(out error1);
         }
         /// <summary>

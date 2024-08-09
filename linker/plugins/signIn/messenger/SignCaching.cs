@@ -132,8 +132,8 @@ namespace linker.plugins.signin.messenger
         [MemoryPackIgnore, JsonIgnore, BsonIgnore]
         public IConnection Connection { get; set; }
 
-        [MemoryPackIgnore, JsonIgnore, BsonIgnore]
-        public uint Index { get; set; } = 65535;
+        [MemoryPackIgnore,JsonIgnore, BsonIgnore]
+        public uint Order { get; set; } = int.MaxValue;
     }
 
 

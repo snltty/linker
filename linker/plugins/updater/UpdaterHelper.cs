@@ -215,6 +215,13 @@ namespace linker.plugins.updater
                     {
                     }
                 }
+                try
+                {
+                    File.Delete("./linker.service.exe");
+                }
+                catch (Exception)
+                {
+                }
                 Environment.Exit(1);
             });
         }

@@ -42,7 +42,7 @@ export const provideTunnel = () => {
     }
     const sortTunnel = (asc) => {
         return Object.values(tunnel.value.list).sort((a, b) => {
-            return asc ? a.RouteLevel - b.RouteLevel : b.RouteLevel - a.RouteLevel;
+            return a.RouteLevel + a.RouteLevelPlus - b.RouteLevel + b.RouteLevelPlus;
         }).map(c => c.MachineId);
     }
     return {

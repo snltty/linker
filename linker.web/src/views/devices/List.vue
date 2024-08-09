@@ -1,10 +1,10 @@
 <template>
     <div class="home-list-wrap absolute" >
         <el-table border style="width: 100%" height="32px" size="small" @sort-change="handleSortChange" class="table-sort">
-            <el-table-column prop="MachineId" label="设备名" width="120" sortable ></el-table-column>
-            <el-table-column prop="Version" label="版本" width="120" sortable></el-table-column>
-            <el-table-column prop="tunnel" label="网关" width="90" sortable></el-table-column>
-            <el-table-column prop="tuntap" label="网卡IP" width="150" sortable></el-table-column>
+            <el-table-column prop="MachineId" label="设备名" width="120" sortable="custom" ></el-table-column>
+            <el-table-column prop="Version" label="版本" width="120" sortable="custom"></el-table-column>
+            <el-table-column prop="tunnel" label="网关" width="90" sortable="custom"></el-table-column>
+            <el-table-column prop="tuntap" label="网卡IP" width="150" sortable="custom"></el-table-column>
             <el-table-column prop="forward" label=""></el-table-column>
             <el-table-column label="" width="74" fixed="right"></el-table-column>
         </el-table>
@@ -85,7 +85,7 @@ export default {
 
             devices.page.Request.Prop = row.prop;
             devices.page.Request.Asc = row.order == 'ascending';
-
+            
             let fn = new Promise((resolve,reject)=>{
                 resolve();
             });
@@ -103,6 +103,7 @@ export default {
             fn.then(()=>{
                 handlePageChange();
             }).catch(()=>{});
+            
         }
 
         const _handleForwardEdit = (machineId) => {
