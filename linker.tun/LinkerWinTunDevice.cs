@@ -2,7 +2,6 @@
 using linker.libs.extends;
 using Microsoft.Win32;
 using System.Buffers.Binary;
-using System.Management;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
@@ -17,7 +16,7 @@ namespace linker.tun
         public string Name => name;
         public bool Running => session != 0;
 
-        private IntPtr waitHandle = IntPtr.Zero, adapter = IntPtr.Zero, session = IntPtr.Zero, session1 = IntPtr.Zero;
+        private IntPtr waitHandle = IntPtr.Zero, adapter = IntPtr.Zero, session = IntPtr.Zero;
         private Guid guid;
         private int interfaceNumber = 0;
         private IPAddress address;
@@ -59,17 +58,28 @@ namespace linker.tun
 
             waitHandle = WinTun.WintunGetReadWaitEvent(session);
 
-            WinTun.WintunGetAdapterLUID(adapter, out ulong luid);
+            for (int i = 0; i < 5; i++)
             {
-                WinTun.MIB_UNICASTIPADDRESS_ROW AddressRow = default;
-                WinTun.InitializeUnicastIpAddressEntry(ref AddressRow);
-                AddressRow.sin_family = 2;
-                AddressRow.sin_addr = BinaryPrimitives.ReadUInt32LittleEndian(address.GetAddressBytes());
-                AddressRow.OnLinkPrefixLength = prefixLength;
-                AddressRow.DadState = 4;
-                AddressRow.InterfaceLuid = luid;
-                uint LastError = WinTun.CreateUnicastIpAddressEntry(ref AddressRow);
-                if (LastError != 0) throw new InvalidOperationException();
+                try
+                {
+                    WinTun.WintunGetAdapterLUID(adapter, out ulong luid);
+                    {
+                        WinTun.MIB_UNICASTIPADDRESS_ROW AddressRow = default;
+                        WinTun.InitializeUnicastIpAddressEntry(ref AddressRow);
+                        AddressRow.sin_family = 2;
+                        AddressRow.sin_addr = BinaryPrimitives.ReadUInt32LittleEndian(address.GetAddressBytes());
+                        AddressRow.OnLinkPrefixLength = prefixLength;
+                        AddressRow.DadState = 4;
+                        AddressRow.InterfaceLuid = luid;
+                        uint LastError = WinTun.CreateUnicastIpAddressEntry(ref AddressRow);
+                        if (LastError != 0) throw new InvalidOperationException();
+                    }
+                    break;
+                }
+                catch (Exception)
+                {
+                    Thread.Sleep(1000);
+                }
             }
             /*
             {
@@ -86,7 +96,6 @@ namespace linker.tun
             }
             */
             GetWindowsInterfaceNum();
-
             tokenSource = new CancellationTokenSource();
             return true;
         }
@@ -122,19 +131,18 @@ namespace linker.tun
                 IPAddress network = NetworkHelper.ToNetworkIp(this.address, NetworkHelper.MaskValue(prefixLength));
                 CommandHelper.PowerShell($"New-NetNat -Name {Name} -InternalIPInterfaceAddressPrefix {network}/{prefixLength}", [], out error);
 
-                try
+                if (string.IsNullOrWhiteSpace(error) == false)
                 {
-                    var scope = new ManagementScope(@"root\StandardCimv2");
-
-                    using var netNatClass = new ManagementClass($"{scope.Path}:MSFT_NetNat");
-                    using var netNat = netNatClass.CreateInstance();
-                    netNat.Properties["Name"].Value = Name;
-                    netNat.Properties["Active"].Value = true;
-                    netNat.Properties["InternalIPInterfaceAddressPrefix"].Value = $"{network}/{prefixLength}";
-                    netNat.Put();
-                }
-                catch (Exception)
-                {
+                    error = "NetNat Not Supported";
+                    string result = CommandHelper.Windows(string.Empty, ["netsh routing"]);
+                    if (result.Contains("netsh routing ip"))
+                    {
+                        error = string.Empty;
+                    }
+                    else
+                    {
+                        error += "，RRAS Not Supported";
+                    }
                 }
             }
             catch (Exception ex)
@@ -150,25 +158,6 @@ namespace linker.tun
             {
                 CommandHelper.PowerShell($"start-service WinNat", [], out error);
                 CommandHelper.PowerShell($"Remove-NetNat -Name {Name} -Confirm:$false", [], out error);
-
-                try
-                {
-                    var scope = new ManagementScope(@"root\StandardCimv2");
-                    var query = new ObjectQuery("SELECT * FROM MSFT_NetNat");
-                    using var searcher = new ManagementObjectSearcher(scope, query);
-                    using var natObjects = searcher.Get();
-                    foreach (ManagementObject natObject in natObjects)
-                    {
-                        var name = (string)natObject["Name"];
-                        if (name == Name)
-                        {
-                            natObject.Delete();
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                }
             }
             catch (Exception ex)
             {

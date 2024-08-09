@@ -12,7 +12,6 @@ using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.plugins.tuntap.config;
 using linker.tun;
-using linker.libs.extends;
 
 namespace linker.plugins.tuntap
 {
@@ -166,7 +165,6 @@ namespace linker.plugins.tuntap
             runningConfig.Data.Tuntap.Running = false;
             runningConfig.Data.Update();
         }
-
 
 
         /// <summary>

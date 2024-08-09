@@ -1,6 +1,5 @@
 ﻿using linker.libs;
 using System.Net;
-using System.Net.Sockets;
 
 namespace linker.tun
 {
@@ -106,7 +105,7 @@ namespace linker.tun
             }
             catch (Exception ex)
             {
-                error = ex.Message;
+                error = ex + "";
             }
             finally
             {
@@ -152,7 +151,7 @@ namespace linker.tun
         /// </summary>
         public void RemoveNat()
         {
-            linkerTunDevice?.RemoveNat(out error1);
+            linkerTunDevice?.RemoveNat(out string error);
         }
 
         /// <summary>

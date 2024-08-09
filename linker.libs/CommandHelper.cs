@@ -76,10 +76,6 @@ namespace linker.libs
             {
                 output = proc.StandardOutput.ReadToEnd();
             }
-            else
-            {
-                LoggerHelper.Instance.Warning($"file:{fileName},arg:{arg},commands:{string.Join(Environment.NewLine,commands)} -> {error}");
-            }
             proc.WaitForExit();
             proc.Close();
             proc.Dispose();

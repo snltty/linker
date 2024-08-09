@@ -144,8 +144,9 @@ export default {
                 if (state){
                     handlePageChange();
                     _getSignList();
+                    handleTunnelRefresh();
+                    handleTuntapRefresh();
                 } 
-                
             });
             
             _getSignList();
