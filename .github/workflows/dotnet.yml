@@ -54,13 +54,12 @@ jobs:
         prerelease: false
         body: |
           1. 新增排序
-          2. 新增网卡IP自定义掩码
+          2. 新增网卡自定义掩码
           3. 新增网卡端口转发
           4. 新增托盘置顶
           5. 移除linker.service，将windows service内置
-          6. 先更新所有客户端，再更新服务端
-          7. windows下，需要重新卸载安装服务
-          8. 还在测试，不要更新！不要更新！不要更新！
+          6. windows下，需要重新卸载安装服务
+          7. 先更新所有客户端，再更新服务端(先更新服务端会获取不到客户端列表)
 
     - name: upload win x86
       id: upload-win-x86
