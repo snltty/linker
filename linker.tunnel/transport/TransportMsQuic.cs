@@ -181,7 +181,7 @@ namespace linker.tunnel.transport
             }
 
             IPEndPoint local = new IPEndPoint(tunnelTransportInfo.Local.Local.Address, tunnelTransportInfo.Local.Local.Port);
-            TaskCompletionSource<IPEndPoint> taskCompletionSource = new TaskCompletionSource<IPEndPoint>();
+            TaskCompletionSource<IPEndPoint> taskCompletionSource = new TaskCompletionSource<IPEndPoint>(TaskCreationOptions.RunContinuationsAsynchronously);
             //接收远端数据，收到了就是成功了
             Socket remoteUdp = ListenRemoteCallback(tunnelTransportInfo.BufferSize, local, taskCompletionSource);
 
@@ -204,7 +204,7 @@ namespace linker.tunnel.transport
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        LoggerHelper.Instance.Error(ex.Message);
+                        LoggerHelper.Instance.Error(ex);
                     }
                 }
             }
@@ -307,7 +307,7 @@ namespace linker.tunnel.transport
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        LoggerHelper.Instance.Error(ex.Message);
+                        LoggerHelper.Instance.Error(ex);
                     }
                 }
                 finally
@@ -324,7 +324,7 @@ namespace linker.tunnel.transport
         /// <returns></returns>
         private async Task<ITunnelConnection> WaitReverse(TunnelTransportInfo tunnelTransportInfo)
         {
-            TaskCompletionSource<ITunnelConnection> tcs = new TaskCompletionSource<ITunnelConnection>();
+            TaskCompletionSource<ITunnelConnection> tcs = new TaskCompletionSource<ITunnelConnection>(TaskCreationOptions.RunContinuationsAsynchronously);
             reverseDic.TryAdd(tunnelTransportInfo.Remote.MachineId, tcs);
 
             try
@@ -453,7 +453,7 @@ namespace linker.tunnel.transport
             };
             try
             {
-                TaskCompletionSource<AddressFamily> tcs = new TaskCompletionSource<AddressFamily>();
+                TaskCompletionSource<AddressFamily> tcs = new TaskCompletionSource<AddressFamily>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                 udpClient.ReuseBind(local);
                 udpClient.WindowsUdpBug();

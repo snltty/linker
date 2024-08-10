@@ -7,22 +7,19 @@ using linker.libs.extends;
 using System.Collections.Concurrent;
 using linker.libs;
 using linker.tunnel.adapter;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
-using System.Security.Authentication;
 
 namespace linker.tunnel.transport
 {
     /// <summary>
     /// 基于端口映射
     /// </summary>
-    public sealed class TransportTcpPortMap : ITunnelTransport
+    public sealed class TransportUdpPortMap : ITunnelTransport
     {
-        public string Name => "TcpPortMap";
+        public string Name => "UdpPortMap";
 
-        public string Label => "TCP、端口映射";
+        public string Label => "UDP、端口映射";
 
-        public TunnelProtocolType ProtocolType => TunnelProtocolType.Tcp;
+        public TunnelProtocolType ProtocolType => TunnelProtocolType.Udp;
 
         public TunnelWanPortProtocolType AllowWanPortProtocolType => TunnelWanPortProtocolType.Tcp | TunnelWanPortProtocolType.Udp;
 
@@ -30,9 +27,9 @@ namespace linker.tunnel.transport
 
         public bool DisableReverse => false;
 
-        public bool SSL => true;
+        public bool SSL => false;
 
-        public bool DisableSSL => false;
+        public bool DisableSSL => true;
 
         public Func<TunnelTransportInfo, Task<bool>> OnSendConnectBegin { get; set; } = async (info) => { return await Task.FromResult<bool>(false); };
         public Func<TunnelTransportInfo, Task> OnSendConnectFail { get; set; } = async (info) => { await Task.CompletedTask; };
@@ -40,9 +37,10 @@ namespace linker.tunnel.transport
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
 
 
-        private readonly ConcurrentDictionary<string, TaskCompletionSource<Socket>> distDic = new ConcurrentDictionary<string, TaskCompletionSource<Socket>>();
+        private readonly ConcurrentDictionary<string, TaskCompletionSource<State>> distDic = new ConcurrentDictionary<string, TaskCompletionSource<State>>();
+        private readonly ConcurrentDictionary<IPEndPoint, TunnelConnectionUdp> connectionsDic = new ConcurrentDictionary<IPEndPoint, TunnelConnectionUdp>(new IPEndPointComparer());
         private readonly ITunnelAdapter tunnelAdapter;
-        public TransportTcpPortMap(ITunnelAdapter tunnelAdapter)
+        public TransportUdpPortMap(ITunnelAdapter tunnelAdapter)
         {
             this.tunnelAdapter = tunnelAdapter;
         }
@@ -66,48 +64,60 @@ namespace linker.tunnel.transport
 
                 IPAddress localIP = IPAddress.Any;
 
-                socket = new Socket(localIP.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
-                socket.IPv6Only(localIP.AddressFamily, false);
+                socket = new Socket(localIP.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
+                socket.WindowsUdpBug();
                 socket.ReuseBind(new IPEndPoint(localIP, localPort));
-                socket.Listen(int.MaxValue);
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     LoggerHelper.Instance.Debug($"{Name} listen {localPort}");
                 }
 
+                byte[] bytes = new byte[65 * 1024];
+                IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
                 while (true)
                 {
                     try
                     {
-                        Socket client = await socket.AcceptAsync();
-
-                        _ = Task.Run(async () =>
+                        SocketReceiveFromResult result = await socket.ReceiveFromAsync(bytes.AsMemory(), ep);
+                        if (result.ReceivedBytes == 0)
                         {
-                            try
+                            break;
+                        }
+
+                        IPEndPoint remoteEP = result.RemoteEndPoint as IPEndPoint;
+
+                        if (connectionsDic.TryGetValue(remoteEP, out TunnelConnectionUdp connection) == false)
+                        {
+                            connectionsDic.TryAdd(remoteEP, null);
+                            string key = bytes.AsMemory(0, result.ReceivedBytes).GetString();
+                            if (distDic.TryRemove(key, out TaskCompletionSource<State> tcs))
                             {
-                                byte[] bytes = new byte[1024];
-                                int length = await client.ReceiveAsync(bytes.AsMemory()).AsTask().WaitAsync(TimeSpan.FromMilliseconds(3000));
-                                if (length > 0)
+                                await socket.SendToAsync(bytes.AsMemory(0, result.ReceivedBytes), result.RemoteEndPoint);
+                                try
                                 {
-                                    string key = bytes.AsMemory(0, length).GetString();
-                                    if (distDic.TryRemove(key, out TaskCompletionSource<Socket> tcs))
-                                    {
-                                        await client.SendAsync(bytes.AsMemory(0, length));
-                                        tcs.SetResult(client);
-                                        return;
-                                    }
+                                    State state = new State { Socket = socket, RemoteEndPoint = remoteEP };
+                                    tcs.SetResult(state);
                                 }
-                                client.SafeClose();
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine(ex);
+                                }
                             }
-                            catch (Exception)
+                        }
+                        else if (connection != null)
+                        {
+                            bool success = await connection.ProcessWrite(bytes.AsMemory(0, result.ReceivedBytes));
+                            if (success == false)
                             {
-                                client.SafeClose();
+                                connectionsDic.TryRemove(remoteEP, out _);
                             }
-                        });
+                        }
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        Console.WriteLine(ex.ToString());
+                        socket.SafeClose();
                         break;
                     }
                 }
@@ -228,45 +238,31 @@ namespace linker.tunnel.transport
 
         private async Task<ITunnelConnection> WaitConnect(TunnelTransportInfo tunnelTransportInfo)
         {
-            TaskCompletionSource<Socket> tcs = new TaskCompletionSource<Socket>(TaskCreationOptions.RunContinuationsAsynchronously);
+            TaskCompletionSource<State> tcs = new TaskCompletionSource<State>(TaskCreationOptions.RunContinuationsAsynchronously);
             string key = $"{tunnelTransportInfo.Remote.MachineId}-{tunnelTransportInfo.FlowId}";
             distDic.TryAdd(key, tcs);
             try
             {
-                Socket socket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000));
+                State state = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
 
-                socket.KeepAlive();
-                SslStream sslStream = null;
-                if (tunnelTransportInfo.SSL)
-                {
-                    if (tunnelAdapter.Certificate == null)
-                    {
-                        LoggerHelper.Instance.Error($"{Name}-> ssl Certificate not found");
-                        socket.SafeClose();
-                        return null;
-                    }
-
-                    sslStream = new SslStream(new NetworkStream(socket, false), false);
-                    await sslStream.AuthenticateAsServerAsync(tunnelAdapter.Certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false).ConfigureAwait(false);
-                }
-
-                TunnelConnectionTcp result = new TunnelConnectionTcp
+                TunnelConnectionUdp result = new TunnelConnectionUdp
                 {
                     RemoteMachineId = tunnelTransportInfo.Remote.MachineId,
                     RemoteMachineName = tunnelTransportInfo.Remote.MachineName,
                     Direction = tunnelTransportInfo.Direction,
-                    ProtocolType = TunnelProtocolType.Tcp,
-                    Stream = sslStream,
-                    Socket = socket,
+                    ProtocolType = TunnelProtocolType.Udp,
                     Type = TunnelType.P2P,
                     Mode = TunnelMode.Server,
                     TransactionId = tunnelTransportInfo.TransactionId,
                     TransportName = tunnelTransportInfo.TransportName,
-                    IPEndPoint = socket.RemoteEndPoint as IPEndPoint,
+                    IPEndPoint = state.RemoteEndPoint,
                     Label = string.Empty,
-                    SSL = tunnelTransportInfo.SSL,
                     BufferSize = tunnelTransportInfo.BufferSize,
+                    Receive = false,
+                    UdpClient = state.Socket,
                 };
+                connectionsDic.AddOrUpdate(state.RemoteEndPoint, result, (a, b) => result);
+
                 return result;
             }
             catch (Exception)
@@ -286,46 +282,39 @@ namespace linker.tunnel.transport
             }
 
             IPEndPoint ep = new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address, tunnelTransportInfo.Remote.PortMapWan);
-            Socket targetSocket = new(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+            Socket targetSocket = new(ep.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
             try
             {
-                targetSocket.KeepAlive();
+                targetSocket.WindowsUdpBug();
                 targetSocket.ReuseBind(new IPEndPoint(tunnelTransportInfo.Local.Local.Address, tunnelTransportInfo.Local.Local.Port));
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
                 }
-                await targetSocket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                await targetSocket.SendToAsync($"{tunnelTransportInfo.Local.MachineId}-{tunnelTransportInfo.FlowId}".ToBytes(), ep).ConfigureAwait(false);
+                await targetSocket.ReceiveFromAsync(new byte[1024], new IPEndPoint(IPAddress.Any, 0)).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                LoggerHelper.Instance.Debug($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep} success");
 
-                await targetSocket.SendAsync($"{tunnelTransportInfo.Local.MachineId}-{tunnelTransportInfo.FlowId}".ToBytes());
-                await targetSocket.ReceiveAsync(new byte[1024]).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false); ;
-
-                //需要ssl
-                SslStream sslStream = null;
-                if (tunnelTransportInfo.SSL)
+                TunnelConnectionUdp result = new TunnelConnectionUdp
                 {
-                    sslStream = new SslStream(new NetworkStream(targetSocket, false), false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
-                    await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 }).ConfigureAwait(false);
-                }
-
-                return new TunnelConnectionTcp
-                {
-                    Stream = sslStream,
-                    Socket = targetSocket,
-                    IPEndPoint = targetSocket.RemoteEndPoint as IPEndPoint,
+                    IPEndPoint = ep,
                     TransactionId = tunnelTransportInfo.TransactionId,
                     RemoteMachineId = tunnelTransportInfo.Remote.MachineId,
                     RemoteMachineName = tunnelTransportInfo.Remote.MachineName,
                     TransportName = Name,
                     Direction = tunnelTransportInfo.Direction,
-                    ProtocolType = ProtocolType,
+                    ProtocolType = TunnelProtocolType.Udp,
                     Type = TunnelType.P2P,
                     Mode = TunnelMode.Client,
                     Label = string.Empty,
-                    SSL = tunnelTransportInfo.SSL,
                     BufferSize = tunnelTransportInfo.BufferSize,
+
+                    Receive = true,
+                    UdpClient = targetSocket
                 };
+                connectionsDic.AddOrUpdate(ep, result, (a, b) => result);
+                return result;
             }
             catch (Exception ex)
             {
@@ -337,9 +326,24 @@ namespace linker.tunnel.transport
             }
             return null;
         }
-        private bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+    }
+
+    public sealed class State
+    {
+        public IPEndPoint RemoteEndPoint { get; set; }
+        public Socket Socket { get; set; }
+    }
+
+    public sealed class IPEndPointComparer : IEqualityComparer<IPEndPoint>
+    {
+        public bool Equals(IPEndPoint x, IPEndPoint y)
         {
-            return true;
+            return x.Equals(y);
+        }
+        public int GetHashCode(IPEndPoint obj)
+        {
+            if (obj == null) return 0;
+            return obj.GetHashCode();
         }
     }
 }

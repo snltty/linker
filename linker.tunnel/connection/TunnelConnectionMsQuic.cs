@@ -37,6 +37,7 @@ namespace linker.tunnel.connection
         public long SendBytes { get; private set; }
         public long ReceiveBytes { get; private set; }
 
+        public long LastTicks { get; private set; } = Environment.TickCount64;
 
         [JsonIgnore]
         public QuicStream Stream { get; init; }
@@ -55,7 +56,6 @@ namespace linker.tunnel.connection
         private bool framing;
         private ReceiveDataBuffer bufferCache = new ReceiveDataBuffer();
 
-        private long ticks = Environment.TickCount64;
         private long pingStart = Environment.TickCount64;
         private static byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ping");
         private static byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.pong");
@@ -90,7 +90,7 @@ namespace linker.tunnel.connection
                 {
                     int length = await Stream.ReadAsync(buffer, cancellationTokenSource.Token).ConfigureAwait(false);
                     ReceiveBytes += length;
-                    ticks = Environment.TickCount64;
+                    LastTicks = Environment.TickCount64;
                     if (length == 0)
                     {
                         break;
@@ -179,7 +179,7 @@ namespace linker.tunnel.connection
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
-                    if (Environment.TickCount64 - ticks > 3000)
+                    if (Environment.TickCount64 - LastTicks > 3000)
                     {
                         pingStart = Environment.TickCount64;
                         await SendPingPong(pingBytes).ConfigureAwait(false);
@@ -232,7 +232,7 @@ namespace linker.tunnel.connection
             {
                 await Stream.WriteAsync(data, cancellationTokenSource.Token).ConfigureAwait(false);
                 SendBytes += data.Length;
-                ticks = Environment.TickCount64;
+                LastTicks = Environment.TickCount64;
                 return true;
             }
             catch (Exception ex)
@@ -253,7 +253,7 @@ namespace linker.tunnel.connection
 
         public void Dispose()
         {
-            ticks = 0;
+            LastTicks = 0;
 
             LoggerHelper.Instance.Error($"tunnel connection writer offline {ToString()}");
 

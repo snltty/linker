@@ -56,7 +56,9 @@ namespace linker.plugins.tunnel
             serviceCollection.AddSingleton<TransportMsQuic>();
             serviceCollection.AddSingleton<TransportTcpP2PNAT>();
             serviceCollection.AddSingleton<TransportTcpPortMap>();
-            
+            serviceCollection.AddSingleton<TransportUdpPortMap>();
+            serviceCollection.AddSingleton<TransportUdp>();
+
 
             serviceCollection.AddSingleton<TunnelExcludeIPTransfer>();
             serviceCollection.AddSingleton<TunnelConfigTransfer>();

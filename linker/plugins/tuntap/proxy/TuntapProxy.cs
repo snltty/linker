@@ -198,7 +198,7 @@ namespace linker.plugins.tuntap.proxy
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap tunnel to {machineId}");
 
-                connection = await tunnelTransfer.ConnectAsync(machineId, "tuntap").ConfigureAwait(false);
+                connection = await tunnelTransfer.ConnectAsync(machineId, "tuntap", TunnelProtocolType.None).ConfigureAwait(false);
                 if (connection != null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap tunnel success,{connection.ToString()}");

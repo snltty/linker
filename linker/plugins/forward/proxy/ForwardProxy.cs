@@ -109,7 +109,7 @@ namespace linker.plugins.forward.proxy
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward tunnel to {machineId}");
                 //打洞
-                connection = await tunnelTransfer.ConnectAsync(machineId, "forward").ConfigureAwait(false);
+                connection = await tunnelTransfer.ConnectAsync(machineId, "forward", TunnelProtocolType.Udp).ConfigureAwait(false);
                 if (connection != null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward tunnel to {machineId} success");

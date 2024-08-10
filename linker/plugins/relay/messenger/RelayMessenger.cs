@@ -94,7 +94,7 @@ namespace linker.plugins.relay.messenger
         {
             try
             {
-                TcsWrap tcsWrap = new TcsWrap { Connection = connection, Tcs = new TaskCompletionSource<IConnection>() };
+                TcsWrap tcsWrap = new TcsWrap { Connection = connection, Tcs = new TaskCompletionSource<IConnection>(TaskCreationOptions.RunContinuationsAsynchronously) };
                 dic.TryAdd(info.FlowingId, tcsWrap);
                 IConnection targetConnection = await tcsWrap.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(3000)).ConfigureAwait(false);
                 _ = Relay(connection, targetConnection, info.SecretKey);

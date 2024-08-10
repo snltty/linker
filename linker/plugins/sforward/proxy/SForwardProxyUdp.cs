@@ -85,7 +85,7 @@ namespace linker.plugins.sforward.proxy
                             {
                                 if (await UdpConnect(token.ListenPort, id).ConfigureAwait(false))
                                 {
-                                    TaskCompletionSource<IPEndPoint> tcs = new TaskCompletionSource<IPEndPoint>();
+                                    TaskCompletionSource<IPEndPoint> tcs = new TaskCompletionSource<IPEndPoint>(TaskCreationOptions.RunContinuationsAsynchronously);
                                     udptcss.TryAdd(id, tcs);
 
                                     IPEndPoint remote = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);

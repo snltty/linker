@@ -22,6 +22,7 @@ namespace linker.plugins.tunnel
         private readonly RunningConfigTransfer runningConfigTransfer;
         private readonly ITunnelAdapter tunnelAdapter;
         private readonly TransportTcpPortMap transportTcpPortMap;
+        private readonly TransportUdpPortMap transportUdpPortMap;
 
 
         private uint version = 0;
@@ -29,7 +30,7 @@ namespace linker.plugins.tunnel
         private ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> configs = new ConcurrentDictionary<string, TunnelTransportRouteLevelInfo>();
         public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> Config => configs;
 
-        public TunnelConfigTransfer(FileConfig config, RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, RunningConfigTransfer runningConfigTransfer, ITunnelAdapter tunnelAdapter, TransportTcpPortMap transportTcpPortMap)
+        public TunnelConfigTransfer(FileConfig config, RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, RunningConfigTransfer runningConfigTransfer, ITunnelAdapter tunnelAdapter, TransportTcpPortMap transportTcpPortMap, TransportUdpPortMap transportUdpPortMap)
         {
             this.config = config;
             this.running = running;
@@ -38,6 +39,7 @@ namespace linker.plugins.tunnel
             this.runningConfigTransfer = runningConfigTransfer;
             this.tunnelAdapter = tunnelAdapter;
             this.transportTcpPortMap = transportTcpPortMap;
+            this.transportUdpPortMap = transportUdpPortMap;
 
             InitRouteLevel();
 
@@ -198,6 +200,8 @@ namespace linker.plugins.tunnel
         private void RefreshPortMap()
         {
             _ = transportTcpPortMap.Listen(running.Data.Tunnel.PortMapLan);
+            _ = transportUdpPortMap.Listen(running.Data.Tunnel.PortMapLan);
+            
         }
     }
 }

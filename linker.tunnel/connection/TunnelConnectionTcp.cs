@@ -27,11 +27,12 @@ namespace linker.tunnel.connection
         public IPEndPoint IPEndPoint { get; init; }
         public bool SSL { get; init; }
         public byte BufferSize { get; init; } = 3;
-        public bool Connected => Socket != null && Environment.TickCount64 - ticks < 15000;
+        public bool Connected => Socket != null && Environment.TickCount64 - LastTicks < 15000;
         public int Delay { get; private set; }
         public long SendBytes { get; private set; }
         public long ReceiveBytes { get; private set; }
 
+        public long LastTicks { get; private set; } = Environment.TickCount64;
 
         [JsonIgnore]
         public SslStream Stream { get; init; }
@@ -46,7 +47,6 @@ namespace linker.tunnel.connection
         private bool framing;
         private ReceiveDataBuffer bufferCache = new ReceiveDataBuffer();
 
-        private long ticks = Environment.TickCount64;
         private long pingStart = Environment.TickCount64;
         private static byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ping");
         private static byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.pong");
@@ -85,7 +85,7 @@ namespace linker.tunnel.connection
                         length = await Stream.ReadAsync(buffer).ConfigureAwait(false);
                         if (length == 0) break;
                         ReceiveBytes += length;
-                        ticks = Environment.TickCount64;
+                        LastTicks = Environment.TickCount64;
                         await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
                     }
                     else
@@ -93,7 +93,7 @@ namespace linker.tunnel.connection
                         length = await Socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
                         if (length == 0) break;
                         ReceiveBytes += length;
-                        ticks = Environment.TickCount64;
+                        LastTicks = Environment.TickCount64;
                         await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
 
                         while (Socket.Available > 0)
@@ -101,7 +101,7 @@ namespace linker.tunnel.connection
                             length = Socket.Receive(buffer);
                             if (length == 0) break;
                             ReceiveBytes += length;
-                            ticks = Environment.TickCount64;
+                            LastTicks = Environment.TickCount64;
                             await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
                         }
                     }
@@ -190,7 +190,7 @@ namespace linker.tunnel.connection
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
-                    if (Environment.TickCount64 - ticks > 3000)
+                    if (Environment.TickCount64 - LastTicks > 3000)
                     {
                         pingStart = Environment.TickCount64;
                         await SendPingPong(pingBytes).ConfigureAwait(false);
@@ -263,7 +263,7 @@ namespace linker.tunnel.connection
                     await Socket.SendAsync(data, SocketFlags.None).ConfigureAwait(false);
                 }
                 SendBytes += data.Length;
-                ticks = Environment.TickCount64;
+                LastTicks = Environment.TickCount64;
                 return true;
             }
             catch (Exception ex)
@@ -284,7 +284,7 @@ namespace linker.tunnel.connection
 
         public void Dispose()
         {
-            ticks = 0;
+            LastTicks = 0;
             LoggerHelper.Instance.Error($"tunnel connection {this.GetHashCode()} writer offline {ToString()}");
 
             callback?.Closed(this, userToken);

@@ -39,7 +39,7 @@ namespace linker.plugins.messenger
             {
                 msg.Timeout = 15000;
             }
-            TaskCompletionSource<MessageResponeInfo> tcs = new TaskCompletionSource<MessageResponeInfo>();
+            TaskCompletionSource<MessageResponeInfo> tcs = new TaskCompletionSource<MessageResponeInfo>(TaskCreationOptions.RunContinuationsAsynchronously);
             sends.TryAdd(msg.RequestId, tcs);
 
             bool res = await SendOnly(msg).ConfigureAwait(false);

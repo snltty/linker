@@ -27,20 +27,22 @@ namespace linker.tunnel.connection
         public bool SSL => false;
         public byte BufferSize { get; init; } = 3;
 
-        public bool Connected => UdpClient != null && Environment.TickCount64 - ticks < 15000;
+        public bool Connected => UdpClient != null && Environment.TickCount64 - LastTicks < 15000;
         public int Delay { get; private set; }
         public long SendBytes { get; private set; }
         public long ReceiveBytes { get; private set; }
+        public long LastTicks { get; private set; } = Environment.TickCount64;
+
+        public bool Receive { get; init; }
 
         [JsonIgnore]
-        public UdpClient UdpClient { get; init; }
+        public Socket UdpClient { get; init; }
 
 
         private ITunnelConnectionReceiveCallback callback;
         private CancellationTokenSource cancellationTokenSource;
         private object userToken;
 
-        private long ticks = Environment.TickCount64;
         private long pingStart = Environment.TickCount64;
         private static byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ping");
         private static byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.pong");
@@ -61,25 +63,29 @@ namespace linker.tunnel.connection
             this.userToken = userToken;
 
             cancellationTokenSource = new CancellationTokenSource();
-            _ = ProcessWrite();
+
+            if (Receive)
+            {
+                _ = ProcessWrite();
+            }
             _ = ProcessHeart();
 
         }
         private async Task ProcessWrite()
         {
-            byte[] buffer = new byte[(1 << BufferSize) * 1024];
+            byte[] buffer = new byte[65 * 1024];
+            IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
             try
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
-                    UdpReceiveResult result = await UdpClient.ReceiveAsync(cancellationTokenSource.Token).ConfigureAwait(false);
-                    ReceiveBytes += result.Buffer.Length;
-                    ticks = Environment.TickCount64;
-                    if (result.Buffer.Length == 0)
+                    SocketReceiveFromResult result = await UdpClient.ReceiveFromAsync(buffer.AsMemory(), ep, cancellationTokenSource.Token).ConfigureAwait(false);
+
+                    if (result.ReceivedBytes == 0)
                     {
                         break;
                     }
-                    await CallbackPacket(result.Buffer).ConfigureAwait(false);
+                    await CallbackPacket(buffer.AsMemory(0, result.ReceivedBytes)).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -91,13 +97,25 @@ namespace linker.tunnel.connection
             }
             finally
             {
-               // ArrayPool<byte>.Shared.Return(buffer);
                 Dispose();
                 LoggerHelper.Instance.Error($"tunnel connection writer offline {ToString()}");
             }
         }
+
+        public async Task<bool> ProcessWrite(Memory<byte> packet)
+        {
+            if (callback == null)
+            {
+                return false;
+            }
+            await CallbackPacket(packet).ConfigureAwait(false);
+            return true;
+        }
         private async Task CallbackPacket(Memory<byte> packet)
         {
+            ReceiveBytes += packet.Length;
+            packet = packet.Slice(4);
+            LastTicks = Environment.TickCount64;
             if (packet.Length == pingBytes.Length && (packet.Span.SequenceEqual(pingBytes) || packet.Span.SequenceEqual(pongBytes)))
             {
                 if (packet.Span.SequenceEqual(pingBytes))
@@ -128,7 +146,7 @@ namespace linker.tunnel.connection
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
-                    if (Environment.TickCount64 - ticks > 3000)
+                    if (Environment.TickCount64 - LastTicks > 3000)
                     {
                         pingStart = Environment.TickCount64;
                         await SendPingPong(pingBytes).ConfigureAwait(false);
@@ -150,7 +168,7 @@ namespace linker.tunnel.connection
 
             try
             {
-                await UdpClient.SendAsync(heartData.AsMemory(0, length), IPEndPoint, cancellationTokenSource.Token).ConfigureAwait(false);
+                await UdpClient.SendToAsync(heartData.AsMemory(0, length), IPEndPoint, cancellationTokenSource.Token).ConfigureAwait(false);
             }
             catch (Exception)
             {
@@ -163,7 +181,6 @@ namespace linker.tunnel.connection
             ArrayPool<byte>.Shared.Return(heartData);
         }
 
-
         public async Task SendPing()
         {
             if (pong == false) return;
@@ -175,9 +192,9 @@ namespace linker.tunnel.connection
         {
             try
             {
-                await UdpClient.SendAsync(data, IPEndPoint, cancellationTokenSource.Token).ConfigureAwait(false);
+                await UdpClient.SendToAsync(data, IPEndPoint, cancellationTokenSource.Token).ConfigureAwait(false);
                 SendBytes += data.Length;
-                ticks = Environment.TickCount64;
+                LastTicks = Environment.TickCount64;
                 return true;
             }
             catch (Exception ex)
@@ -200,8 +217,7 @@ namespace linker.tunnel.connection
             userToken = null;
             cancellationTokenSource?.Cancel();
 
-            UdpClient?.Close();
-            UdpClient?.Dispose();
+            UdpClient?.SafeClose();
         }
 
         public override string ToString()

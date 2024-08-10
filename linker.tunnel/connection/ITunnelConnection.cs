@@ -5,8 +5,10 @@ namespace linker.tunnel.connection
     /// <summary>
     /// 隧道协议
     /// </summary>
+    [Flags]
     public enum TunnelProtocolType : byte
     {
+        None = 0,
         Tcp = 1,
         Udp = 2,
         Quic = 4,
@@ -120,6 +122,11 @@ namespace linker.tunnel.connection
         /// 已接受字节数
         /// </summary>
         public long ReceiveBytes { get; }
+
+        /// <summary>
+        /// 最后通信时间
+        /// </summary>
+        public long LastTicks { get; }
 
         /// <summary>
         /// 发送ping

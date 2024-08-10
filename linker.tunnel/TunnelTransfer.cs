@@ -65,6 +65,8 @@ namespace linker.tunnel
                 {
                     item.DisableReverse = transport.DisableReverse;
                     item.DisableSSL = transport.DisableSSL;
+                    item.Name = transport.Name;
+                    item.Label = transport.Label;
                     if (transport.DisableReverse)
                     {
                         item.Reverse = transport.Reverse;
@@ -117,7 +119,7 @@ namespace linker.tunnel
         /// <param name="remoteMachineId">对方id</param>
         /// <param name="transactionId">事务id，随便起，你喜欢就好</param>
         /// <returns></returns>
-        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId)
+        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols)
         {
             if (connectingDic.TryAdd(remoteMachineId, true) == false) return null;
 
@@ -405,7 +407,7 @@ namespace linker.tunnel
         /// </summary>
         /// <param name="remoteMachineId"></param>
         /// <param name="transactionId"></param>
-        public void StartBackground(string remoteMachineId, string transactionId, int times = 10)
+        public void StartBackground(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols, int times = 10)
         {
             if (AddBackground(remoteMachineId, transactionId) == false)
             {
@@ -420,7 +422,7 @@ namespace linker.tunnel
                     {
                         await Task.Delay(3000);
 
-                        ITunnelConnection connection = await ConnectAsync(remoteMachineId, transactionId);
+                        ITunnelConnection connection = await ConnectAsync(remoteMachineId, transactionId, denyProtocols);
                         if (connection != null)
                         {
                             break;

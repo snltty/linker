@@ -144,7 +144,7 @@ namespace linker.plugins.sforward.proxy
                 }
 
                 //等待回复
-                TaskCompletionSource<Socket> tcs = new TaskCompletionSource<Socket>();
+                TaskCompletionSource<Socket> tcs = new TaskCompletionSource<Socket>(TaskCreationOptions.RunContinuationsAsynchronously);
                 tcpConnections.TryAdd(id, tcs);
                 token.TargetSocket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(2000)).ConfigureAwait(false);
 
