@@ -25,7 +25,7 @@ namespace linker.tunnel.transport
 
         public bool DisableSSL => true;
 
-        public byte Order => 4;
+        public byte Order => 3;
 
 
         public Func<TunnelTransportInfo, Task<bool>> OnSendConnectBegin { get; set; } = async (info) => { return await Task.FromResult<bool>(false); };
