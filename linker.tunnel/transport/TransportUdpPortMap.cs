@@ -39,12 +39,17 @@ namespace linker.tunnel.transport
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
 
 
+        private const string flagTexts = $"{Helper.GlobalString}.udp.portmap.tunnel";
+        private byte[] flagBytes = Encoding.UTF8.GetBytes(flagTexts);
+
+
         private readonly ConcurrentDictionary<string, TaskCompletionSource<State>> distDic = new ConcurrentDictionary<string, TaskCompletionSource<State>>();
-        private readonly ConcurrentDictionary<IPEndPoint, TunnelConnectionUdp> connectionsDic = new ConcurrentDictionary<IPEndPoint, TunnelConnectionUdp>(new IPEndPointComparer());
+        private readonly ConcurrentDictionary<IPEndPoint, ConnectionCacheInfo> connectionsDic = new ConcurrentDictionary<IPEndPoint, ConnectionCacheInfo>(new IPEndPointComparer());
         private readonly ITunnelAdapter tunnelAdapter;
         public TransportUdpPortMap(ITunnelAdapter tunnelAdapter)
         {
             this.tunnelAdapter = tunnelAdapter;
+            CleanTask();
         }
 
         Socket socket;
@@ -88,28 +93,31 @@ namespace linker.tunnel.transport
                         }
 
                         IPEndPoint remoteEP = result.RemoteEndPoint as IPEndPoint;
+                        Memory<byte> memory = bytes.AsMemory(0, result.ReceivedBytes);
 
-                        if (connectionsDic.TryGetValue(remoteEP, out TunnelConnectionUdp connection) == false)
+                        if (connectionsDic.TryGetValue(remoteEP, out ConnectionCacheInfo cache) == false)
                         {
-                            connectionsDic.TryAdd(remoteEP, null);
-                            string key = bytes.AsMemory(0, result.ReceivedBytes).GetString();
-                            if (distDic.TryRemove(key, out TaskCompletionSource<State> tcs))
+                            if (memory.Length > flagBytes.Length && memory.Span.Slice(0, flagBytes.Length).SequenceEqual(flagBytes))
                             {
-                                await socket.SendToAsync(bytes.AsMemory(0, result.ReceivedBytes), result.RemoteEndPoint);
-                                try
+                                connectionsDic.TryAdd(remoteEP, new ConnectionCacheInfo { });
+                                string key = memory.GetString();
+                                if (distDic.TryRemove(key, out TaskCompletionSource<State> tcs))
                                 {
-                                    State state = new State { Socket = socket, RemoteEndPoint = remoteEP };
-                                    tcs.SetResult(state);
-                                }
-                                catch (Exception ex)
-                                {
-                                    Console.WriteLine(ex);
+                                    await socket.SendToAsync(memory, result.RemoteEndPoint);
+                                    try
+                                    {
+                                        State state = new State { Socket = socket, RemoteEndPoint = remoteEP };
+                                        tcs.SetResult(state);
+                                    }
+                                    catch (Exception)
+                                    {
+                                    }
                                 }
                             }
                         }
-                        else if (connection != null)
+                        else if (cache.Connection != null)
                         {
-                            bool success = await connection.ProcessWrite(bytes.AsMemory(0, result.ReceivedBytes));
+                            bool success = await cache.Connection.ProcessWrite(memory);
                             if (success == false)
                             {
                                 connectionsDic.TryRemove(remoteEP, out _);
@@ -241,7 +249,7 @@ namespace linker.tunnel.transport
         private async Task<ITunnelConnection> WaitConnect(TunnelTransportInfo tunnelTransportInfo)
         {
             TaskCompletionSource<State> tcs = new TaskCompletionSource<State>(TaskCreationOptions.RunContinuationsAsynchronously);
-            string key = $"{tunnelTransportInfo.Remote.MachineId}-{tunnelTransportInfo.FlowId}";
+            string key = $"{flagTexts}-{tunnelTransportInfo.Remote.MachineId}-{tunnelTransportInfo.FlowId}";
             distDic.TryAdd(key, tcs);
             try
             {
@@ -263,9 +271,11 @@ namespace linker.tunnel.transport
                     Receive = false,
                     UdpClient = state.Socket,
                 };
-                connectionsDic.AddOrUpdate(state.RemoteEndPoint, result, (a, b) => result);
-
-                return result;
+                if (connectionsDic.TryGetValue(state.RemoteEndPoint, out ConnectionCacheInfo cache))
+                {
+                    cache.Connection = result;
+                    return result;
+                }
             }
             catch (Exception)
             {
@@ -294,7 +304,8 @@ namespace linker.tunnel.transport
                 {
                     LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
                 }
-                await targetSocket.SendToAsync($"{tunnelTransportInfo.Local.MachineId}-{tunnelTransportInfo.FlowId}".ToBytes(), ep).ConfigureAwait(false);
+
+                await targetSocket.SendToAsync($"{flagTexts}-{tunnelTransportInfo.Local.MachineId}-{tunnelTransportInfo.FlowId}".ToBytes(), ep).ConfigureAwait(false);
                 await targetSocket.ReceiveFromAsync(new byte[1024], new IPEndPoint(IPAddress.Any, 0)).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
                 LoggerHelper.Instance.Debug($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep} success");
 
@@ -315,7 +326,8 @@ namespace linker.tunnel.transport
                     Receive = true,
                     UdpClient = targetSocket
                 };
-                connectionsDic.AddOrUpdate(ep, result, (a, b) => result);
+                ConnectionCacheInfo cache = new ConnectionCacheInfo { Connection = result };
+                connectionsDic.AddOrUpdate(ep, cache, (a, b) => cache);
                 return result;
             }
             catch (Exception ex)
@@ -328,12 +340,37 @@ namespace linker.tunnel.transport
             }
             return null;
         }
+
+
+        private void CleanTask()
+        {
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    long ticks = Environment.TickCount64;
+                    var keys = connectionsDic.Where(c => (c.Value.Connection == null && ticks - c.Value.LastTicks > 5000) || (c.Value.Connection != null && c.Value.Connection.Connected == false)).Select(c => c.Key).ToList();
+                    foreach (var item in keys)
+                    {
+                        connectionsDic.TryRemove(item, out _);
+                    }
+
+                    await Task.Delay(30000);
+                }
+            });
+        }
     }
 
     public sealed class State
     {
         public IPEndPoint RemoteEndPoint { get; set; }
         public Socket Socket { get; set; }
+    }
+
+    public sealed class ConnectionCacheInfo
+    {
+        public long LastTicks { get; set; } = Environment.TickCount64;
+        public TunnelConnectionUdp Connection { get; set; }
     }
 
     public sealed class IPEndPointComparer : IEqualityComparer<IPEndPoint>
