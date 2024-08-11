@@ -87,9 +87,9 @@ export default {
                 Gateway: tuntap.value.current.Gateway,
                 Upgrade: tuntap.value.current.Upgrade,
 
-                Forwards:tuntap.value.current.Forwards.slice(0) || [
+                Forwards:tuntap.value.current.Forwards.length == 0 ? [
                     {ListenAddr:'0.0.0.0',ListenPort:0,ConnectAddr:'0.0.0.0',ConnectPort:0}
-                ]
+                ] : tuntap.value.current.Forwards.slice(0)
             },
             rules: {}
         });

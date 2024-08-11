@@ -55,6 +55,7 @@ export default {
             bufferSize:globalData.value.bufferSize
         });
         watch(()=>globalData.value.config.Running.Tunnel.Transports,()=>{
+            console.log(globalData.value.config.Running.Tunnel.Transports);
             state.list = globalData.value.config.Running.Tunnel.Transports.sort((a,b)=>a.Order - b.Order);
         });
 
