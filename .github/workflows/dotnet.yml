@@ -48,18 +48,16 @@ jobs:
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
-        tag_name: v1.2.0.4
-        release_name: v1.2.0.4.${{ steps.date.outputs.today }}
+        tag_name: v1.2.0.5
+        release_name: v1.2.0.5.${{ steps.date.outputs.today }}
         draft: false
         prerelease: false
         body: |
-          1. 新增排序
-          2. 新增网卡自定义掩码
-          3. 新增网卡端口转发
-          4. 新增托盘置顶
-          5. 移除linker.service，将windows service内置
-          6. windows下，需要重新卸载安装服务
-          7. 先更新所有客户端，再更新服务端(先更新服务端会获取不到客户端列表)
+          1. UDP端口映射连接(无ssl加密)
+          2. UDP打洞，纯净版(无ssl加密)
+          3. 如果当前版本小于v1.2.0.4，则windows下需要重新卸载安装服务
+          4. 先更新所有客户端，再更新服务端(先更新服务端会获取不到客户端列表)
+          5. 用不上无加密UDP打洞的可以不更新
 
     - name: upload win x86
       id: upload-win-x86
