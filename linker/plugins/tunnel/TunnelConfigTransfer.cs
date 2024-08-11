@@ -173,6 +173,7 @@ namespace linker.plugins.tunnel
                             File.Move("msquic-openssl.dll", "msquic.dll", true);
 
                             reboot = true;
+                            Environment.Exit(1);
                         }
                     }
                     catch (Exception)
@@ -201,7 +202,7 @@ namespace linker.plugins.tunnel
         {
             _ = transportTcpPortMap.Listen(running.Data.Tunnel.PortMapLan);
             _ = transportUdpPortMap.Listen(running.Data.Tunnel.PortMapLan);
-            
+
         }
     }
 }
