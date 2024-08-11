@@ -222,6 +222,10 @@ span.split-pad10 {
     --el-color-primary-dark-2: var(--el-color-success-dark-2) !important;
 }
 
+.el-input-number--small {
+    width: 100% !important;
+}
+
 .el-table .cell {
     overflow: visible !important;
 }

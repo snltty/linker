@@ -75,6 +75,10 @@ namespace linker.tunnel
                     {
                         item.SSL = transport.SSL;
                     }
+                    if (item.Order == 0)
+                    {
+                        item.Order = transport.Order;
+                    }
                 }
             }
 
@@ -125,7 +129,7 @@ namespace linker.tunnel
 
             try
             {
-                foreach (TunnelTransportItemInfo transportItem in tunnelAdapter.GetTunnelTransports().Where(c => c.Disabled == false))
+                foreach (TunnelTransportItemInfo transportItem in tunnelAdapter.GetTunnelTransports().OrderBy(c=>c.Order).Where(c => c.Disabled == false))
                 {
                     ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == transportItem.Name);
                     //找不到这个打洞协议

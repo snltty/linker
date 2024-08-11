@@ -26,15 +26,10 @@
                 <el-switch v-model="scope.row.Disabled" @change="handleSave" inline-prompt active-text="是" inactive-text="否" style="--el-switch-on-color: red; --el-switch-off-color: #ddd" />
             </template>
         </el-table-column>
-        <el-table-column prop="Sort" label="调序" width="104" fixed="right">
+        <el-table-column prop="Order" label="调序" width="104" fixed="right">
             <template #default="scope">
                 <div>
-                    <el-button size="small" @click="handleSort(scope.$index,-1)">
-                        <el-icon><Top /></el-icon>
-                    </el-button>
-                    <el-button size="small" @click="handleSort(scope.$index,1)">
-                        <el-icon><Bottom /></el-icon>
-                    </el-button>
+                    <el-input-number v-model="scope.row.Order" :min="1" :max="255" @change="handleOrderChange" size="small" />
                 </div>
             </template>
         </el-table-column>
@@ -55,26 +50,19 @@ export default {
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({
-            list:globalData.value.config.Running.Tunnel.Transports.sort((a,b)=>a.Disabled - b.Disabled),
+            list:globalData.value.config.Running.Tunnel.Transports.sort((a,b)=>a.Order - b.Order),
             height: computed(()=>globalData.value.height-127),
             bufferSize:globalData.value.bufferSize
         });
         watch(()=>globalData.value.config.Running.Tunnel.Transports,()=>{
-            state.list = globalData.value.config.Running.Tunnel.Transports;
+            state.list = globalData.value.config.Running.Tunnel.Transports.sort((a,b)=>a.Order - b.Order);
         });
 
-        const handleSort = (index,oper)=>{
-            const current = state.list[index];
-            const outher = state.list[index+oper];
-
-            if(current && outher){
-                state.list[index+oper] = current;
-                state.list[index] = outher;
-            }
+        const handleOrderChange = ()=>{
             handleSave(state.list);
         }    
         const handleSave = ()=>{
-            state.list = state.list.slice().sort((a,b)=>a.Disabled - b.Disabled);
+            state.list = state.list.slice().sort((a,b)=>a.Order - b.Order);
             setTunnelTransports(state.list).then(()=>{
                 ElMessage.success('已操作');
             }).catch(()=>{
@@ -82,7 +70,7 @@ export default {
             });
         }
 
-        return {state,handleSort,handleSave}
+        return {state,handleOrderChange,handleSave}
     }
 }
 </script>

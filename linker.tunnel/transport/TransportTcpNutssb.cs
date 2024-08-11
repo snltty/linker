@@ -26,6 +26,8 @@ namespace linker.tunnel.transport
 
         public bool DisableSSL => false;
 
+        public byte Order => 2;
+
 
         /// <summary>
         /// 发送开始连接消息

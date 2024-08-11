@@ -40,6 +40,11 @@ namespace linker.tunnel.transport
         public bool DisableSSL { get; }
 
         /// <summary>
+        /// 默认排序
+        /// </summary>
+        public byte Order { get; }
+
+        /// <summary>
         /// 发送连接开始信息
         /// </summary>
         public Func<TunnelTransportInfo, Task<bool>> OnSendConnectBegin { get; set; }
@@ -160,6 +165,10 @@ namespace linker.tunnel.transport
         /// 缓冲区大小
         /// </summary>
         public byte BufferSize { get; set; } = 4;
+        /// <summary>
+        /// 排序
+        /// </summary>
+        public byte Order { get; set; }
     }
     public sealed class TunnelTransportItemInfoEqualityComparer : IEqualityComparer<TunnelTransportItemInfo>
     {
