@@ -48,16 +48,24 @@ jobs:
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
-        tag_name: v1.2.0.5
-        release_name: v1.2.0.5.${{ steps.date.outputs.today }}
+        tag_name: v1.2.0.6
+        release_name: v1.2.0.6.${{ steps.date.outputs.today }}
         draft: false
         prerelease: false
         body: |
-          1. UDP端口映射连接(无ssl加密)
-          2. UDP打洞，纯净版(无ssl加密)
-          3. 如果当前版本小于v1.2.0.4，则windows下需要重新卸载安装服务
-          4. 先更新所有客户端，再更新服务端(先更新服务端会获取不到客户端列表)
-          5. 用不上无加密UDP打洞的可以不更新
+          1. 显示虚拟网卡ping值
+          2. 更新服务器，更新服务器，更新服务器
+    
+    #- name: upload win x86 oss
+    #  id: upload-win-x86-oss
+    #  uses: tvrcgo/oss-action@v0.1.1
+    #  with:
+    #    region: oss-cn-guangzhou
+    #    key-id: '${{ secrets.ALIYUN_OSS_ID }}'
+    #    key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
+    #    bucket: snltty
+    #    asset-path: ./public/publish-zip/linker-win-x86.zip
+    #    target-path: /linker/v1.2.0.6/linker-win-x86.zip
 
     - name: upload win x86
       id: upload-win-x86

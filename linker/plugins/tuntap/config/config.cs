@@ -4,15 +4,18 @@ using System.Net;
 
 namespace linker.plugins.tuntap.config
 {
-    public sealed class TuntapConfigInfo
+    [MemoryPackable]
+    public sealed partial class TuntapConfigInfo
     {
         /// <summary>
         /// 网卡IP
         /// </summary>
+        [MemoryPackAllowSerialize]
         public IPAddress IP { get; set; } = IPAddress.Any;
         /// <summary>
         /// 局域网IP列表
         /// </summary>
+        [MemoryPackAllowSerialize]
         public IPAddress[] LanIPs { get; set; } = Array.Empty<IPAddress>();
         /// <summary>
         /// 局域网掩码列表，与IP列表一一对应
@@ -33,9 +36,19 @@ namespace linker.plugins.tuntap.config
         /// </summary>
         public bool Gateway { get; set; }
         /// <summary>
+        /// 显示延迟
+        /// </summary>
+        public bool ShowDelay { get; set; }
+        /// <summary>
+        /// 自动连接
+        /// </summary>
+        public bool AutoConnect { get; set; }
+        /// <summary>
         /// 使用高级功能
         /// </summary>
         public bool Upgrade { get; set; }
+
+
         /// <summary>
         /// 端口转发列表
         /// </summary>
@@ -104,6 +117,12 @@ namespace linker.plugins.tuntap.config
         [MemoryPackAllowSerialize]
         public IPAddress IP { get; set; }
         /// <summary>
+        /// 前缀长度
+        /// </summary>
+        public byte PrefixLength { get; set; } = 24;
+
+
+        /// <summary>
         /// 局域网IP
         /// </summary>
 
@@ -114,11 +133,6 @@ namespace linker.plugins.tuntap.config
         /// </summary>
         public int[] Masks { get; set; } = Array.Empty<int>();
 
-
-        /// <summary>
-        /// 前缀长度
-        /// </summary>
-        public byte PrefixLength { get; set; } = 24;
 
         /// <summary>
         /// 网卡安装错误
@@ -132,18 +146,120 @@ namespace linker.plugins.tuntap.config
         /// 系统信息
         /// </summary>
         public string SystemInfo { get; set; }
-        /// <summary>
-        /// 是否网关
-        /// </summary>
-        public bool Gateway { get; set; }
-        /// <summary>
-        /// 使用高级功能
-        /// </summary>
-        public bool Upgrade { get; set; }
+
         /// <summary>
         /// 端口转发列表
         /// </summary>
         public List<TuntapForwardInfo> Forwards { get; set; } = new List<TuntapForwardInfo>();
+
+        /// <summary>
+        /// 延迟ms
+        /// </summary>
+        public int Delay { get; set; } = -1;
+
+        /// <summary>
+        /// 开关，多个bool集合
+        /// </summary>
+        public TuntapSwitch Switch { get; set; }
+
+        /// <summary>
+        /// 是否网关
+        /// </summary>
+        [MemoryPackIgnore]
+        public bool Gateway
+        {
+            get
+            {
+                return (Switch & TuntapSwitch.Gateway) == TuntapSwitch.Gateway;
+            }
+            set
+            {
+                if (value)
+                {
+                    Switch |= TuntapSwitch.Gateway;
+                }
+                else
+                {
+                    Switch &= ~TuntapSwitch.Gateway;
+                }
+            }
+        }
+        /// <summary>
+        /// 显示延迟
+        /// </summary>
+        [MemoryPackIgnore]
+        public bool ShowDelay
+        {
+            get
+            {
+                return (Switch & TuntapSwitch.ShowDelay) == TuntapSwitch.ShowDelay;
+            }
+            set
+            {
+                if (value)
+                {
+                    Switch |= TuntapSwitch.ShowDelay;
+                }
+                else
+                {
+                    Switch &= ~TuntapSwitch.ShowDelay;
+                }
+            }
+        }
+        /// <summary>
+        /// 自动连接
+        /// </summary>
+        [MemoryPackIgnore]
+        public bool AutoConnect
+        {
+            get
+            {
+                return (Switch & TuntapSwitch.AutoConnect) == TuntapSwitch.AutoConnect;
+            }
+            set
+            {
+                if (value)
+                {
+                    Switch |= TuntapSwitch.AutoConnect;
+                }
+                else
+                {
+                    Switch &= ~TuntapSwitch.AutoConnect;
+                }
+            }
+        }
+        /// <summary>
+        /// 使用高级功能
+        /// </summary>
+        [MemoryPackIgnore]
+        public bool Upgrade
+        {
+            get
+            {
+                return (Switch & TuntapSwitch.Upgrade) == TuntapSwitch.Upgrade;
+            }
+            set
+            {
+                if (value)
+                {
+                    Switch |= TuntapSwitch.Upgrade;
+                }
+                else
+                {
+                    Switch &= ~TuntapSwitch.Upgrade;
+                }
+            }
+        }
+
+    }
+
+    [Flags]
+    public enum TuntapSwitch
+    {
+        Gateway = 1,
+        ShowDelay = 2,
+        Upgrade = 4,
+        AutoConnect = 8,
     }
 
 

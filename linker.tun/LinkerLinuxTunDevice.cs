@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using Microsoft.Win32.SafeHandles;
+using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 
@@ -131,7 +132,7 @@ namespace linker.tun
             try
             {
                 IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.MaskValue(prefixLength));
-                    CommandHelper.Linux(string.Empty, new string[] {
+                CommandHelper.Linux(string.Empty, new string[] {
                     $"sysctl -w net.ipv4.ip_forward=1",
                     $"iptables -t nat -A POSTROUTING ! -o {Name} -s {network}/{prefixLength} -j MASQUERADE",
                 });
@@ -165,9 +166,33 @@ namespace linker.tun
 
         public void AddForward(List<LinkerTunDeviceForwardItem> forwards)
         {
+            string[] commands = forwards.Where(c => c != null && c.Enable).SelectMany(c =>
+            {
+                return new string[] {
+                    $"sysctl -w net.ipv4.ip_forward=1",
+                    $"iptables -t nat -A PREROUTING -p tcp --dport {c.ListenPort} -j DNAT --to-destination {c.ConnectAddr}:{c.ConnectPort}",
+                    $"iptables -t nat -A POSTROUTING -p tcp --dport {c.ConnectPort} -j MASQUERADE",
+                    $"iptables -t nat -A PREROUTING -p udp --dport {c.ListenPort} -j DNAT --to-destination {c.ConnectAddr}:{c.ConnectPort}",
+                    $"iptables -t nat -A POSTROUTING -p udp --dport {c.ConnectPort} -j MASQUERADE",
+                };
+
+            }).ToArray();
+            CommandHelper.Windows(string.Empty, commands);
         }
         public void RemoveForward(List<LinkerTunDeviceForwardItem> forwards)
         {
+            string[] commands = forwards.Where(c => c != null && c.Enable).SelectMany(c =>
+            {
+                return new string[] {
+                    $"sysctl -w net.ipv4.ip_forward=1",
+                    $"iptables -t nat -D PREROUTING -p tcp --dport {c.ListenPort} -j DNAT --to-destination {c.ConnectAddr}:{c.ConnectPort}",
+                    $"iptables -t nat -D POSTROUTING -p tcp --dport {c.ConnectPort} -j MASQUERADE",
+                    $"iptables -t nat -D PREROUTING -p udp --dport {c.ListenPort} -j DNAT --to-destination {c.ConnectAddr}:{c.ConnectPort}",
+                    $"iptables -t nat -D POSTROUTING -p udp --dport {c.ConnectPort} -j MASQUERADE"
+                };
+
+            }).ToArray();
+            CommandHelper.Windows(string.Empty, commands);
         }
 
 
@@ -287,7 +312,7 @@ namespace linker.tun
         {
         }
 
-        
+
     }
 
 

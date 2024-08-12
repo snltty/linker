@@ -12,6 +12,7 @@ using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.plugins.tuntap.config;
 using linker.tun;
+using linker.tunnel.connection;
 
 namespace linker.plugins.tuntap
 {
@@ -25,16 +26,15 @@ namespace linker.plugins.tuntap
         private readonly LinkerTunDeviceAdapter linkerTunDeviceAdapter;
 
         private string deviceName = "linker";
-        private uint operating = 0;
         private List<IPAddress> routeIps = new List<IPAddress>();
 
-        private uint infosVersion = 0;
-        public uint InfosVersion => infosVersion;
-
+        public VersionManager Version { get; } = new VersionManager();
         private readonly ConcurrentDictionary<string, TuntapInfo> tuntapInfos = new ConcurrentDictionary<string, TuntapInfo>();
         public ConcurrentDictionary<string, TuntapInfo> Infos => tuntapInfos;
 
-        public TuntapStatus Status => operating == 1 ? TuntapStatus.Operating : (TuntapStatus)(byte)linkerTunDeviceAdapter.Status;
+
+        private OperatingManager operatingManager = new OperatingManager();
+        public TuntapStatus Status => operatingManager.Operating ? TuntapStatus.Operating : (TuntapStatus)(byte)linkerTunDeviceAdapter.Status;
 
         public TuntapTransfer(MessengerSender messengerSender, ClientSignInState clientSignInState, LinkerTunDeviceAdapter linkerTunDeviceAdapter, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig)
         {
@@ -59,6 +59,7 @@ namespace linker.plugins.tuntap
                 NetworkHelper.GetRouteLevel(config.Data.Client.Server, out routeIps);
                 NotifyConfig();
                 CheckTuntapStatusTask();
+                PingTask();
                 if (runningConfig.Data.Tuntap.Running)
                 {
                     Setup();
@@ -71,7 +72,7 @@ namespace linker.plugins.tuntap
         /// </summary>
         public void Setup()
         {
-            if (Interlocked.CompareExchange(ref operating, 1, 0) == 1)
+            if (operatingManager.StartOperation() == false)
             {
                 return;
             }
@@ -111,7 +112,7 @@ namespace linker.plugins.tuntap
         }
         private void SetupAfter()
         {
-            Interlocked.Exchange(ref operating, 0);
+            operatingManager.StopOperation();
             NotifyConfig();
         }
         private void SetupSuccess()
@@ -127,7 +128,7 @@ namespace linker.plugins.tuntap
         /// </summary>
         public void Shutdown()
         {
-            if (Interlocked.CompareExchange(ref operating, 1, 0) == 1)
+            if (operatingManager.StartOperation() == false)
             {
                 return;
             }
@@ -155,7 +156,7 @@ namespace linker.plugins.tuntap
         }
         private void ShutdownAfter()
         {
-            Interlocked.Exchange(ref operating, 0);
+            operatingManager.StopOperation();
             NotifyConfig();
         }
         private void ShutdownSuccess()
@@ -188,6 +189,8 @@ namespace linker.plugins.tuntap
                 runningConfig.Data.Tuntap.Masks = info.Masks;
                 runningConfig.Data.Tuntap.PrefixLength = info.PrefixLength;
                 runningConfig.Data.Tuntap.Gateway = info.Gateway;
+                runningConfig.Data.Tuntap.ShowDelay = info.ShowDelay;
+                runningConfig.Data.Tuntap.AutoConnect = info.AutoConnect;
                 runningConfig.Data.Tuntap.Upgrade = info.Upgrade;
                 runningConfig.Data.Tuntap.Forwards = info.Forwards;
                 runningConfig.Data.Update();
@@ -214,7 +217,7 @@ namespace linker.plugins.tuntap
             {
                 DelRoute();
                 tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
-                Interlocked.Increment(ref infosVersion);
+                Version.Add();
                 AddRoute();
             });
 
@@ -240,7 +243,7 @@ namespace linker.plugins.tuntap
                     }
                     AddRoute();
                 }
-                Interlocked.Increment(ref infosVersion);
+                Version.Add();
             });
         }
         /// <summary>
@@ -260,9 +263,12 @@ namespace linker.plugins.tuntap
                 Error = linkerTunDeviceAdapter.Error,
                 Error1 = linkerTunDeviceAdapter.Error1,
                 SystemInfo = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} {(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")) == false ? "Docker" : "")}",
-                Gateway = runningConfig.Data.Tuntap.Gateway,
-                Upgrade = runningConfig.Data.Tuntap.Upgrade,
+
                 Forwards = runningConfig.Data.Tuntap.Forwards,
+                Switch = (runningConfig.Data.Tuntap.Gateway ? TuntapSwitch.Gateway : 0)
+                 | (runningConfig.Data.Tuntap.Upgrade ? TuntapSwitch.Upgrade : 0)
+                 | (runningConfig.Data.Tuntap.ShowDelay ? TuntapSwitch.ShowDelay : 0)
+                 | (runningConfig.Data.Tuntap.AutoConnect ? TuntapSwitch.AutoConnect : 0)
             };
             if (runningConfig.Data.Tuntap.Masks.Length != runningConfig.Data.Tuntap.LanIPs.Length)
             {
@@ -404,7 +410,7 @@ namespace linker.plugins.tuntap
                     await Task.Delay(15000).ConfigureAwait(false);
                     try
                     {
-                        if (runningConfig.Data.Tuntap.Running && OperatingSystem.IsWindows() && operating == 0)
+                        if (runningConfig.Data.Tuntap.Running && OperatingSystem.IsWindows() && operatingManager.Operating == false)
                         {
                             await CheckInterface().ConfigureAwait(false);
                         }
@@ -419,18 +425,64 @@ namespace linker.plugins.tuntap
         {
             NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == deviceName);
 
-            if (networkInterface == null || networkInterface.OperationalStatus != OperationalStatus.Up && operating == 0)
+            if (networkInterface == null || networkInterface.OperationalStatus != OperationalStatus.Up && operatingManager.Operating == false)
             {
                 LoggerHelper.Instance.Error($"tuntap inerface {deviceName} is {networkInterface?.OperationalStatus ?? OperationalStatus.Unknown}, restarting");
                 Shutdown();
                 await Task.Delay(5000).ConfigureAwait(false);
 
                 networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == deviceName);
-                if (networkInterface == null || networkInterface.OperationalStatus != OperationalStatus.Up && operating == 0)
+                if (networkInterface == null || networkInterface.OperationalStatus != OperationalStatus.Up && operatingManager.Operating == false)
                 {
                     Setup();
                 }
             }
+        }
+
+
+        private void PingTask()
+        {
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    if (Status == TuntapStatus.Running && runningConfig.Data.Tuntap.ShowDelay)
+                    {
+                        var items = tuntapInfos.Values.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false);
+                        if (runningConfig.Data.Tuntap.AutoConnect == false)
+                        {
+                            var connections = tuntapProxy.GetConnections();
+                            items = items.Where(c => (connections.TryGetValue(c.MachineId, out ITunnelConnection connection) && connection.Connected) || c.MachineId == config.Data.Client.Id);
+                        }
+
+
+                        var tasks = items.Select(c =>
+                         {
+                             Ping ping = new Ping();
+                             return new PingTaskInfo
+                             {
+                                 TuntapInfo = c,
+                                 Ping = ping,
+                                 Task = ping.SendPingAsync(c.IP, 1000)
+                             };
+                         });
+                        await Task.WhenAll(tasks.Select(c => c.Task));
+                        foreach (var item in tasks.Where(c => c.Task.Result != null))
+                        {
+                            item.TuntapInfo.Delay = item.Task.Result.Status == IPStatus.Success ? (int)item.Task.Result.RoundtripTime : -1;
+                            item.Ping.Dispose();
+                        }
+                        Version.Add();
+                    }
+                    await Task.Delay(3000);
+                }
+            });
+        }
+        public sealed class PingTaskInfo
+        {
+            public TuntapInfo TuntapInfo { get; set; }
+            public Ping Ping { get; set; }
+            public Task<PingReply> Task { get; set; }
         }
     }
 }

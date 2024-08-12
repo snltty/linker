@@ -55,6 +55,14 @@
                             </template>
                         </div>
                     </template>
+                    <template v-if="showDelay">
+                        <template v-if="tuntap.list[scope.row.MachineId].Delay>=0 && tuntap.list[scope.row.MachineId].Delay<=100">
+                            <div class="delay green">{{ tuntap.list[scope.row.MachineId].Delay }}ms</div>
+                        </template>
+                        <template>
+                            <div class="delay yellow">{{ tuntap.list[scope.row.MachineId].Delay }}ms</div>
+                        </template>
+                    </template>
                 </div>
             </div> 
         </template>
@@ -65,12 +73,17 @@ import { stopTuntap, runTuntap } from '@/apis/tuntap';
 import { ElMessage } from 'element-plus';
 import { useTuntap } from './tuntap';
 import {Loading} from '@element-plus/icons-vue'
+import { injectGlobalData } from '@/provide';
+import { computed } from 'vue';
 export default {
     emits: ['edit','refresh'],
     components:{Loading},
     setup(props, { emit }) {
 
         const tuntap = useTuntap();
+        const globalData = injectGlobalData();
+
+        const showDelay = computed(()=>globalData.value.config.Running.Tuntap.ShowDelay);
         const handleTuntap = (tuntap) => {
             const fn = tuntap.running ? stopTuntap (tuntap.MachineId) : runTuntap(tuntap.MachineId);
             tuntap.loading = true;
@@ -88,7 +101,7 @@ export default {
         }
        
         return {
-            tuntap,  handleTuntap, handleTuntapIP,handleTuntapRefresh
+            tuntap,showDelay,  handleTuntap, handleTuntapIP,handleTuntapRefresh
         }
     }
 }
@@ -119,5 +132,7 @@ export default {
         -webkit-text-fill-color:hsla(0,0%,100%,0);
     }
 }
+.delay{position: absolute;right:0;bottom:0;line-height:normal}
+
 
 </style>

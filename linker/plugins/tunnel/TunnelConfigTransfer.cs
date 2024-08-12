@@ -24,11 +24,8 @@ namespace linker.plugins.tunnel
         private readonly TransportTcpPortMap transportTcpPortMap;
         private readonly TransportUdpPortMap transportUdpPortMap;
 
-
-        private uint version = 0;
-        public uint ConfigVersion => version;
-        private ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> configs = new ConcurrentDictionary<string, TunnelTransportRouteLevelInfo>();
-        public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> Config => configs;
+        public VersionManager Version { get; } = new VersionManager();
+        public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> Config { get; } = new ConcurrentDictionary<string, TunnelTransportRouteLevelInfo>();
 
         public TunnelConfigTransfer(FileConfig config, RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, RunningConfigTransfer runningConfigTransfer, ITunnelAdapter tunnelAdapter, TransportTcpPortMap transportTcpPortMap, TransportUdpPortMap transportUdpPortMap)
         {
@@ -108,8 +105,8 @@ namespace linker.plugins.tunnel
         /// <returns></returns>
         public TunnelTransportRouteLevelInfo OnRemoteRouteLevel(TunnelTransportRouteLevelInfo tunnelTransportFileConfigInfo)
         {
-            configs.AddOrUpdate(tunnelTransportFileConfigInfo.MachineId, tunnelTransportFileConfigInfo, (a, b) => tunnelTransportFileConfigInfo);
-            Interlocked.Increment(ref version);
+            Config.AddOrUpdate(tunnelTransportFileConfigInfo.MachineId, tunnelTransportFileConfigInfo, (a, b) => tunnelTransportFileConfigInfo);
+            Version.Add();
             return GetLocalRouteLevel();
         }
         private void GetRemoteRouteLevel()
@@ -128,11 +125,11 @@ namespace linker.plugins.tunnel
                     List<TunnelTransportRouteLevelInfo> list = MemoryPackSerializer.Deserialize<List<TunnelTransportRouteLevelInfo>>(result.Result.Data.Span);
                     foreach (var item in list)
                     {
-                        configs.AddOrUpdate(item.MachineId, item, (a, b) => item);
+                        Config.AddOrUpdate(item.MachineId, item, (a, b) => item);
                     }
                     TunnelTransportRouteLevelInfo config = GetLocalRouteLevel();
-                    configs.AddOrUpdate(config.MachineId, config, (a, b) => config);
-                    Interlocked.Increment(ref version);
+                    Config.AddOrUpdate(config.MachineId, config, (a, b) => config);
+                    Version.Add();
                 }
             });
         }
@@ -145,7 +142,7 @@ namespace linker.plugins.tunnel
                 RouteLevelPlus = running.Data.Tunnel.RouteLevelPlus,
                 PortMapWan = running.Data.Tunnel.PortMapWan,
                 PortMapLan = running.Data.Tunnel.PortMapLan,
-                NeedReboot = reboot
+                NeedReboot = false
             };
         }
         private void InitRouteLevel()
@@ -157,7 +154,6 @@ namespace linker.plugins.tunnel
         }
 
 
-        bool reboot = false;
         private void TestQuic()
         {
             if (OperatingSystem.IsWindows())
@@ -172,7 +168,6 @@ namespace linker.plugins.tunnel
                             File.Move("msquic.dll", "msquic.dll.temp", true);
                             File.Move("msquic-openssl.dll", "msquic.dll", true);
 
-                            reboot = true;
                             Environment.Exit(1);
                         }
                     }

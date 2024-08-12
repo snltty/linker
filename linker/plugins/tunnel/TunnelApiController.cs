@@ -46,17 +46,16 @@ namespace linker.plugins.tunnel
         /// <returns></returns>
         public TunnelListInfo Get(ApiControllerParamsInfo param)
         {
-            uint hashCode = uint.Parse(param.Content);
-            uint _hashCode = tunnelConfigTransfer.ConfigVersion;
-            if (_hashCode != hashCode)
+            ulong hashCode = ulong.Parse(param.Content);
+            if (tunnelConfigTransfer.Version.Eq(hashCode,out ulong version))
             {
                 return new TunnelListInfo
                 {
                     List = tunnelConfigTransfer.Config,
-                    HashCode = _hashCode
+                    HashCode = version
                 };
             }
-            return new TunnelListInfo { HashCode = _hashCode };
+            return new TunnelListInfo { HashCode = version };
         }
         /// <summary>
         /// 刷新隧道信息
@@ -145,7 +144,7 @@ namespace linker.plugins.tunnel
         public sealed class TunnelListInfo
         {
             public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> List { get; set; }
-            public uint HashCode { get; set; }
+            public ulong HashCode { get; set; }
         }
 
     }

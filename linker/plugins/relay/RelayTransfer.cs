@@ -155,7 +155,12 @@ namespace linker.plugins.relay
                 var servers = running.Data.Relay.Servers
                     .Where(c => c.Disabled == false)
                     .Where(c => string.IsNullOrWhiteSpace(c.Host) == false)
-                    .Where(c => c.Delay >= 0).OrderBy(c => c.Delay);
+                    .Where(c => c.Delay >= 0);
+                if (running.Data.Relay.ByRelay)
+                {
+                    servers = servers.OrderBy(c => c.Delay);
+                }
+
                 foreach (RelayServerInfo item in servers)
                 {
                     ITransport transport = transports.FirstOrDefault(c => c.Type == item.RelayType);
@@ -278,43 +283,20 @@ namespace linker.plugins.relay
         {
             try
             {
-                var tasks = running.Data.Relay.Servers.Select(c =>
+                foreach (var server in running.Data.Relay.Servers)
                 {
-                    try
-                    {
-                        ITransport transport = transports.FirstOrDefault(d => d.Type == c.RelayType);
-                        if (transport == null) return null;
+                    ITransport transport = transports.FirstOrDefault(d => d.Type == server.RelayType);
+                    if (transport == null) continue;
 
-                        IPEndPoint server = NetworkHelper.GetEndPoint(c.Host, 3478);
-
-                        return new TestInfo
-                        {
-                            Server = c,
-                            Task = transport.RelayTestAsync(new RelayTestInfo
-                            {
-                                MachineId = fileConfig.Data.Client.Id,
-                                SecretKey = c.SecretKey,
-                                Server = server,
-                            })
-                        };
-                    }
-                    catch (Exception)
+                    IPEndPoint serverEP = NetworkHelper.GetEndPoint(server.Host, 3478);
+                    RelayTestResultInfo result = await transport.RelayTestAsync(new RelayTestInfo
                     {
-                    }
-                    return null;
-                });
-
-                try
-                {
-                    await Task.WhenAll(tasks.Where(c => c != null).Select(c => c.Task)).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
-                    foreach (var item in tasks.Where(c => c != null))
-                    {
-                        item.Server.Delay = item.Task.Result.Delay;
-                        item.Server.Available = item.Task.Result.Available;
-                    }
-                }
-                catch (Exception)
-                {
+                        MachineId = fileConfig.Data.Client.Id,
+                        SecretKey = server.SecretKey,
+                        Server = serverEP,
+                    });
+                    server.Delay = result.Delay;
+                    server.Available = result.Available;
                 }
             }
             catch (Exception)

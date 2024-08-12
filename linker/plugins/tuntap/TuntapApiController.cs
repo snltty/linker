@@ -46,17 +46,16 @@ namespace linker.plugins.tuntap
         /// <returns></returns>
         public TuntabListInfo Get(ApiControllerParamsInfo param)
         {
-            uint hashCode = uint.Parse(param.Content);
-            uint _hashCode = tuntapTransfer.InfosVersion;
-            if (_hashCode != hashCode)
+            ulong hashCode = ulong.Parse(param.Content);
+            if (tuntapTransfer.Version.Eq(hashCode, out ulong version))
             {
                 return new TuntabListInfo
                 {
                     List = tuntapTransfer.Infos,
-                    HashCode = _hashCode
+                    HashCode = version
                 };
             }
-            return new TuntabListInfo { HashCode = _hashCode };
+            return new TuntabListInfo { HashCode = version };
         }
         /// <summary>
         /// 刷新网卡信息
@@ -147,7 +146,7 @@ namespace linker.plugins.tuntap
         public sealed class TuntabListInfo
         {
             public ConcurrentDictionary<string, TuntapInfo> List { get; set; }
-            public uint HashCode { get; set; }
+            public ulong HashCode { get; set; }
         }
     }
 }

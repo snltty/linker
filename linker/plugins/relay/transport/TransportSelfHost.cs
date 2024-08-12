@@ -228,7 +228,7 @@ namespace linker.plugins.relay.transport
             {
                 Socket socket = new Socket(relayTestInfo.Server.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 socket.KeepAlive();
-                await socket.ConnectAsync(relayTestInfo.Server).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                await socket.ConnectAsync(relayTestInfo.Server).WaitAsync(TimeSpan.FromMilliseconds(1000)).ConfigureAwait(false);
 
                 connection = await messengerResolver.BeginReceiveClient(socket);
 
@@ -249,7 +249,6 @@ namespace linker.plugins.relay.transport
             }
             catch (Exception)
             {
-
             }
             finally
             {

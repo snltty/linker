@@ -9,8 +9,6 @@ using System.Collections.Concurrent;
 using linker.plugins.tuntap.config;
 using linker.tun;
 using System.Buffers.Binary;
-using System.Net.Sockets;
-using System.Net;
 
 namespace linker.plugins.tuntap.proxy
 {
@@ -27,8 +25,7 @@ namespace linker.plugins.tuntap.proxy
         private readonly ConcurrentDictionary<string, ITunnelConnection> connections = new ConcurrentDictionary<string, ITunnelConnection>();
         private readonly ConcurrentDictionary<uint, ITunnelConnection> ipConnections = new ConcurrentDictionary<uint, ITunnelConnection>();
 
-        SemaphoreSlim slimGlobal = new SemaphoreSlim(1);
-        private readonly ConcurrentDictionary<string, SemaphoreSlim> dicLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
+        private readonly OperatingMultipleManager operatingMultipleManager = new OperatingMultipleManager();
 
         public TuntapProxy(TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, RunningConfig runningConfig, FileConfig config, LinkerTunDeviceAdapter linkerTunDeviceAdapter)
         {
@@ -112,7 +109,6 @@ namespace linker.plugins.tuntap.proxy
             }
         }
 
-
         /// <summary>
         /// 设置IP，等下有连接进来，用IP匹配，才能知道这个连接是要连谁
         /// </summary>
@@ -179,23 +175,13 @@ namespace linker.plugins.tuntap.proxy
                 return connection;
             }
 
-            await slimGlobal.WaitAsync().ConfigureAwait(false);
-            if (dicLocks.TryGetValue(machineId, out SemaphoreSlim slim) == false)
+            if(operatingMultipleManager.StartOperation(machineId) ==false)
             {
-                slim = new SemaphoreSlim(1);
-                dicLocks.TryAdd(machineId, slim);
+                return null;
             }
-            slimGlobal.Release();
-
-            await slim.WaitAsync().ConfigureAwait(false);
 
             try
             {
-                if (connections.TryGetValue(machineId, out connection) && connection.Connected)
-                {
-                    return connection;
-                }
-
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap tunnel to {machineId}");
 
                 connection = await tunnelTransfer.ConnectAsync(machineId, "tuntap", TunnelProtocolType.None).ConfigureAwait(false);
@@ -210,7 +196,6 @@ namespace linker.plugins.tuntap.proxy
                     connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, "tuntap").ConfigureAwait(false);
                     if (connection != null)
                     {
-                        //tunnelTransfer.StartBackground(machineId, "tuntap");
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap relay success,{connection.ToString()}");
                     }
                 }
@@ -224,7 +209,7 @@ namespace linker.plugins.tuntap.proxy
             }
             finally
             {
-                slim.Release();
+                operatingMultipleManager.StopOperation(machineId);
             }
             return connection;
         }
