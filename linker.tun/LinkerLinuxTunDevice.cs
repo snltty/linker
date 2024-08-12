@@ -1,7 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using Microsoft.Win32.SafeHandles;
-using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 
