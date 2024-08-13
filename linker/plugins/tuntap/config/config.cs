@@ -31,23 +31,11 @@ namespace linker.plugins.tuntap.config
         /// 是否在运行中
         /// </summary>
         public bool Running { get; set; }
-        /// <summary>
-        /// 是否网关
-        /// </summary>
-        public bool Gateway { get; set; }
-        /// <summary>
-        /// 显示延迟
-        /// </summary>
-        public bool ShowDelay { get; set; }
-        /// <summary>
-        /// 自动连接
-        /// </summary>
-        public bool AutoConnect { get; set; }
-        /// <summary>
-        /// 使用高级功能
-        /// </summary>
-        public bool Upgrade { get; set; }
 
+        /// <summary>
+        /// 开关，多个bool集合
+        /// </summary>
+        public TuntapSwitch Switch { get; set; }
 
         /// <summary>
         /// 端口转发列表
@@ -153,14 +141,15 @@ namespace linker.plugins.tuntap.config
         public List<TuntapForwardInfo> Forwards { get; set; } = new List<TuntapForwardInfo>();
 
         /// <summary>
-        /// 延迟ms
-        /// </summary>
-        public int Delay { get; set; } = -1;
-
-        /// <summary>
         /// 开关，多个bool集合
         /// </summary>
         public TuntapSwitch Switch { get; set; }
+
+        /// <summary>
+        /// 延迟ms
+        /// </summary>
+        [MemoryPackIgnore]
+        public int Delay { get; set; } = -1;
 
         /// <summary>
         /// 是否网关

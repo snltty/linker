@@ -188,10 +188,7 @@ namespace linker.plugins.tuntap
                 runningConfig.Data.Tuntap.LanIPs = info.LanIPs;
                 runningConfig.Data.Tuntap.Masks = info.Masks;
                 runningConfig.Data.Tuntap.PrefixLength = info.PrefixLength;
-                runningConfig.Data.Tuntap.Gateway = info.Gateway;
-                runningConfig.Data.Tuntap.ShowDelay = info.ShowDelay;
-                runningConfig.Data.Tuntap.AutoConnect = info.AutoConnect;
-                runningConfig.Data.Tuntap.Upgrade = info.Upgrade;
+                runningConfig.Data.Tuntap.Switch = info.Switch;
                 runningConfig.Data.Tuntap.Forwards = info.Forwards;
                 runningConfig.Data.Update();
                 if (Status == TuntapStatus.Running)
@@ -265,10 +262,7 @@ namespace linker.plugins.tuntap
                 SystemInfo = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} {(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")) == false ? "Docker" : "")}",
 
                 Forwards = runningConfig.Data.Tuntap.Forwards,
-                Switch = (runningConfig.Data.Tuntap.Gateway ? TuntapSwitch.Gateway : 0)
-                 | (runningConfig.Data.Tuntap.Upgrade ? TuntapSwitch.Upgrade : 0)
-                 | (runningConfig.Data.Tuntap.ShowDelay ? TuntapSwitch.ShowDelay : 0)
-                 | (runningConfig.Data.Tuntap.AutoConnect ? TuntapSwitch.AutoConnect : 0)
+                Switch = runningConfig.Data.Tuntap.Switch
             };
             if (runningConfig.Data.Tuntap.Masks.Length != runningConfig.Data.Tuntap.LanIPs.Length)
             {
@@ -328,7 +322,7 @@ namespace linker.plugins.tuntap
                 List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.ToList());
                 TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
                 var items = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.MaskLength }).ToArray();
-                linkerTunDeviceAdapter.DelRoute(items, runningConfig.Data.Tuntap.Gateway);
+                linkerTunDeviceAdapter.DelRoute(items, (runningConfig.Data.Tuntap.Switch & TuntapSwitch.Gateway) == TuntapSwitch.Gateway);
             }
             catch (Exception ex)
             {
@@ -344,7 +338,7 @@ namespace linker.plugins.tuntap
             TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
 
             var items = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.MaskLength }).ToArray();
-            linkerTunDeviceAdapter.AddRoute(items, runningConfig.Data.Tuntap.IP, runningConfig.Data.Tuntap.Gateway);
+            linkerTunDeviceAdapter.AddRoute(items, runningConfig.Data.Tuntap.IP, (runningConfig.Data.Tuntap.Switch & TuntapSwitch.Gateway) == TuntapSwitch.Gateway);
 
             tuntapProxy.SetIPs(ipsList);
             foreach (var item in tuntapInfos.Values)
@@ -446,10 +440,10 @@ namespace linker.plugins.tuntap
             {
                 while (true)
                 {
-                    if (Status == TuntapStatus.Running && runningConfig.Data.Tuntap.ShowDelay)
+                    if (Status == TuntapStatus.Running && (runningConfig.Data.Tuntap.Switch & TuntapSwitch.ShowDelay) == TuntapSwitch.ShowDelay)
                     {
                         var items = tuntapInfos.Values.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false);
-                        if (runningConfig.Data.Tuntap.AutoConnect == false)
+                        if ((runningConfig.Data.Tuntap.Switch & TuntapSwitch.AutoConnect) != TuntapSwitch.AutoConnect)
                         {
                             var connections = tuntapProxy.GetConnections();
                             items = items.Where(c => (connections.TryGetValue(c.MachineId, out ITunnelConnection connection) && connection.Connected) || c.MachineId == config.Data.Client.Id);
