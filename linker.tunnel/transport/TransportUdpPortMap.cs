@@ -270,6 +270,8 @@ namespace linker.tunnel.transport
                     BufferSize = tunnelTransportInfo.BufferSize,
                     Receive = false,
                     UdpClient = state.Socket,
+                    SSL = tunnelTransportInfo.SSL,
+                    Crypto = CryptoFactory.CreateSymmetric(tunnelTransportInfo.Remote.MachineId)
                 };
                 if (connectionsDic.TryGetValue(state.RemoteEndPoint, out ConnectionCacheInfo cache))
                 {
@@ -322,9 +324,10 @@ namespace linker.tunnel.transport
                     Mode = TunnelMode.Client,
                     Label = string.Empty,
                     BufferSize = tunnelTransportInfo.BufferSize,
-
                     Receive = true,
-                    UdpClient = targetSocket
+                    UdpClient = targetSocket,
+                    SSL = tunnelTransportInfo.SSL,
+                    Crypto = CryptoFactory.CreateSymmetric(tunnelTransportInfo.Remote.MachineId)
                 };
                 ConnectionCacheInfo cache = new ConnectionCacheInfo { Connection = result };
                 connectionsDic.AddOrUpdate(ep, cache, (a, b) => cache);

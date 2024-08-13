@@ -85,7 +85,7 @@ namespace linker.plugins.tuntap
                     {
                         return;
                     }
-                    linkerTunDeviceAdapter.Setup(runningConfig.Data.Tuntap.IP, runningConfig.Data.Tuntap.PrefixLength, 1416);
+                    linkerTunDeviceAdapter.Setup(runningConfig.Data.Tuntap.IP, runningConfig.Data.Tuntap.PrefixLength, 1400);
                     if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.Error))
                     {
                         SetupSuccess();

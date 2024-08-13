@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Net.Sockets;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.tunnel.connection
 {
@@ -24,7 +25,7 @@ namespace linker.tunnel.connection
         public TunnelType Type { get; init; }
         public TunnelDirection Direction { get; init; }
         public IPEndPoint IPEndPoint { get; init; }
-        public bool SSL => false;
+        public bool SSL { get; init; }
         public byte BufferSize { get; init; } = 3;
 
         public bool Connected => UdpClient != null && Environment.TickCount64 - LastTicks < 15000;
@@ -37,6 +38,8 @@ namespace linker.tunnel.connection
 
         [JsonIgnore]
         public Socket UdpClient { get; init; }
+        [JsonIgnore]
+        public ICrypto Crypto { get; init; }
 
 
         private ITunnelConnectionReceiveCallback callback;
@@ -44,8 +47,8 @@ namespace linker.tunnel.connection
         private object userToken;
 
         private long pingStart = Environment.TickCount64;
-        private static byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ping");
-        private static byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.pong");
+        private byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ping");
+        private byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.pong");
         private bool pong = true;
 
 
@@ -114,15 +117,16 @@ namespace linker.tunnel.connection
         private async Task CallbackPacket(Memory<byte> packet)
         {
             ReceiveBytes += packet.Length;
-            packet = packet.Slice(4);
             LastTicks = Environment.TickCount64;
-            if (packet.Length == pingBytes.Length && (packet.Span.SequenceEqual(pingBytes) || packet.Span.SequenceEqual(pongBytes)))
+
+            Memory<byte> memory = packet.Slice(4);
+            if (memory.Length == pingBytes.Length && (memory.Span.SequenceEqual(pingBytes) || memory.Span.SequenceEqual(pongBytes)))
             {
-                if (packet.Span.SequenceEqual(pingBytes))
+                if (memory.Span.SequenceEqual(pingBytes))
                 {
                     await SendPingPong(pongBytes).ConfigureAwait(false);
                 }
-                else if (packet.Span.SequenceEqual(pongBytes))
+                else if (memory.Span.SequenceEqual(pongBytes))
                 {
                     Delay = (int)(Environment.TickCount64 - pingStart);
                     pong = true;
@@ -132,7 +136,13 @@ namespace linker.tunnel.connection
             {
                 try
                 {
-                    await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
+                    if (SSL)
+                    {
+                        packet.CopyTo(encodeBuffer);
+                        packet = Crypto.Decode(decodeBuffer, 0, packet.Length);
+                    }
+
+                    await callback.Receive(this, packet.Slice(4), this.userToken).ConfigureAwait(false);
                 }
                 catch (Exception)
                 {
@@ -188,10 +198,19 @@ namespace linker.tunnel.connection
             pingStart = Environment.TickCount64;
             await SendPingPong(pingBytes).ConfigureAwait(false);
         }
+
+
+        private byte[] encodeBuffer = new byte[2 * 1024];
+        private byte[] decodeBuffer = new byte[2 * 2014];
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             try
             {
+                if (SSL)
+                {
+                    data.CopyTo(encodeBuffer);
+                    data = Crypto.Encode(encodeBuffer, 0, data.Length);
+                }
                 await UdpClient.SendToAsync(data, IPEndPoint, cancellationTokenSource.Token).ConfigureAwait(false);
                 SendBytes += data.Length;
                 LastTicks = Environment.TickCount64;
@@ -218,6 +237,8 @@ namespace linker.tunnel.connection
             cancellationTokenSource?.Cancel();
 
             UdpClient?.SafeClose();
+
+            Crypto?.Dispose();
         }
 
         public override string ToString()

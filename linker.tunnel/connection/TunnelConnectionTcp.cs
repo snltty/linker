@@ -48,8 +48,8 @@ namespace linker.tunnel.connection
         private ReceiveDataBuffer bufferCache = new ReceiveDataBuffer();
 
         private long pingStart = Environment.TickCount64;
-        private static byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ping");
-        private static byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.pong");
+        private byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ping");
+        private byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.pong");
         private bool pong = true;
 
         /// <summary>

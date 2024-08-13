@@ -156,6 +156,8 @@ namespace linker.tunnel.transport
                     Mode = TunnelMode.Client,
                     Label = string.Empty,
                     Receive = true,
+                    SSL = tunnelTransportInfo.SSL,
+                    Crypto = CryptoFactory.CreateSymmetric(tunnelTransportInfo.Remote.MachineId)
                 };
             }
             catch (Exception ex)
@@ -338,6 +340,8 @@ namespace linker.tunnel.transport
                         IPEndPoint = remoteEP,
                         Label = string.Empty,
                         Receive = true,
+                        SSL = state.SSL,
+                        Crypto = CryptoFactory.CreateSymmetric(state.Local.MachineId)
                     };
                     if (reverseDic.TryRemove(state.Remote.MachineId, out TaskCompletionSource<ITunnelConnection> tcs))
                     {
