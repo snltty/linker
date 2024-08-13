@@ -323,12 +323,12 @@ namespace linker.tunnel
         private void OnConnecting(TunnelTransportInfo tunnelTransportInfo)
         {
             //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            LoggerHelper.Instance.Info($"tunnel connecting {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
+            LoggerHelper.Instance.Info($"tunnel connecting {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName}");
         }
         private void OnConnectBegin(TunnelTransportInfo tunnelTransportInfo)
         {
             //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            LoggerHelper.Instance.Info($"tunnel connecting from {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName},{tunnelTransportInfo.ToJson()}");
+            LoggerHelper.Instance.Info($"tunnel connecting from {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName}");
         }
 
         /// <summary>
@@ -338,7 +338,7 @@ namespace linker.tunnel
         private void _OnConnected(ITunnelConnection connection)
         {
             //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            LoggerHelper.Instance.Debug($"tunnel connect {connection.RemoteMachineId}->{connection.RemoteMachineName} success->{connection.IPEndPoint},{connection.ToJsonFormat()}");
+            LoggerHelper.Instance.Debug($"tunnel connect {connection.RemoteMachineId}->{connection.RemoteMachineName} success->{connection.IPEndPoint}");
 
             //调用以下别人注册的回调
             if (OnConnected.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))
@@ -358,7 +358,7 @@ namespace linker.tunnel
         }
         private void OnConnectFail(TunnelTransportInfo tunnelTransportInfo)
         {
-            LoggerHelper.Instance.Error($"tunnel connect {tunnelTransportInfo.Remote.MachineId} fail->{tunnelTransportInfo.ToJsonFormat()}");
+            LoggerHelper.Instance.Error($"tunnel connect {tunnelTransportInfo.Remote.MachineId} fail");
         }
 
         private void ParseRemoteEndPoint(TunnelTransportInfo tunnelTransportInfo)

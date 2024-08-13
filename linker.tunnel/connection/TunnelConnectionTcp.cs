@@ -84,24 +84,19 @@ namespace linker.tunnel.connection
                     {
                         length = await Stream.ReadAsync(buffer).ConfigureAwait(false);
                         if (length == 0) break;
-                        ReceiveBytes += length;
-                        LastTicks = Environment.TickCount64;
                         await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
                     }
                     else
                     {
                         length = await Socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
                         if (length == 0) break;
-                        ReceiveBytes += length;
-                        LastTicks = Environment.TickCount64;
                         await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
 
                         while (Socket.Available > 0)
                         {
                             length = Socket.Receive(buffer);
                             if (length == 0) break;
-                            ReceiveBytes += length;
-                            LastTicks = Environment.TickCount64;
+                           
                             await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
                         }
                     }
@@ -161,7 +156,9 @@ namespace linker.tunnel.connection
         }
         private async Task CallbackPacket(Memory<byte> packet)
         {
-            if (packet.Length == pingBytes.Length && (packet.Span.SequenceEqual(pingBytes) || packet.Span.SequenceEqual(pongBytes)))
+            ReceiveBytes += packet.Length;
+            LastTicks = Environment.TickCount64;
+            if (packet.Length == pingBytes.Length)
             {
                 if (packet.Span.SequenceEqual(pingBytes))
                 {
@@ -205,11 +202,13 @@ namespace linker.tunnel.connection
         }
         private async Task SendPingPong(byte[] data)
         {
-            int length = 4 + pingBytes.Length;
+            int length = 4 + data.Length;
 
             byte[] heartData = ArrayPool<byte>.Shared.Rent(length);
             data.Length.ToBytes(heartData);
             data.AsMemory().CopyTo(heartData.AsMemory(4));
+
+            SendBytes += data.Length;
 
             await semaphoreSlim.WaitAsync().ConfigureAwait(false);
             try
@@ -228,6 +227,7 @@ namespace linker.tunnel.connection
             catch (Exception)
             {
                 pong = true;
+                Dispose();
             }
             finally
             {
@@ -263,7 +263,6 @@ namespace linker.tunnel.connection
                     await Socket.SendAsync(data, SocketFlags.None).ConfigureAwait(false);
                 }
                 SendBytes += data.Length;
-                LastTicks = Environment.TickCount64;
                 return true;
             }
             catch (Exception ex)

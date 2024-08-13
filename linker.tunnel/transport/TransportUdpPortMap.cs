@@ -27,9 +27,9 @@ namespace linker.tunnel.transport
 
         public bool DisableReverse => false;
 
-        public bool SSL => false;
+        public bool SSL => true;
 
-        public bool DisableSSL => true;
+        public bool DisableSSL => false;
 
         public byte Order => 5;
 
@@ -271,7 +271,7 @@ namespace linker.tunnel.transport
                     Receive = false,
                     UdpClient = state.Socket,
                     SSL = tunnelTransportInfo.SSL,
-                    Crypto = CryptoFactory.CreateSymmetric(tunnelTransportInfo.Remote.MachineId)
+                    Crypto = CryptoFactory.CreateSymmetric(tunnelTransportInfo.Local.MachineId)
                 };
                 if (connectionsDic.TryGetValue(state.RemoteEndPoint, out ConnectionCacheInfo cache))
                 {

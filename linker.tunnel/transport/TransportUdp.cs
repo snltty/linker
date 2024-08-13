@@ -21,9 +21,9 @@ namespace linker.tunnel.transport
 
         public bool DisableReverse => false;
 
-        public bool SSL => false;
+        public bool SSL => true;
 
-        public bool DisableSSL => true;
+        public bool DisableSSL => false;
 
         public byte Order => 3;
 

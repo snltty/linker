@@ -89,8 +89,7 @@ namespace linker.tunnel.connection
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
                     int length = await Stream.ReadAsync(buffer, cancellationTokenSource.Token).ConfigureAwait(false);
-                    ReceiveBytes += length;
-                    LastTicks = Environment.TickCount64;
+
                     if (length == 0)
                     {
                         break;
@@ -107,7 +106,6 @@ namespace linker.tunnel.connection
             }
             finally
             {
-                //  ArrayPool<byte>.Shared.Return(buffer);
                 Dispose();
 
             }
@@ -149,6 +147,8 @@ namespace linker.tunnel.connection
         }
         private async Task CallbackPacket(Memory<byte> packet)
         {
+            ReceiveBytes += packet.Length;
+            LastTicks = Environment.TickCount64;
             if (packet.Length == pingBytes.Length && (packet.Span.SequenceEqual(pingBytes) || packet.Span.SequenceEqual(pongBytes)))
             {
                 if (packet.Span.SequenceEqual(pingBytes))
@@ -193,11 +193,12 @@ namespace linker.tunnel.connection
         }
         private async Task SendPingPong(byte[] data)
         {
-            int length = 4 + pingBytes.Length;
+            int length = 4 + data.Length;
 
             byte[] heartData = ArrayPool<byte>.Shared.Rent(length);
             data.Length.ToBytes(heartData);
             data.AsMemory().CopyTo(heartData.AsMemory(4));
+            SendBytes += data.Length;
 
             await semaphoreSlim.WaitAsync().ConfigureAwait(false);
             try
@@ -207,6 +208,7 @@ namespace linker.tunnel.connection
             catch (Exception)
             {
                 pong = true;
+                Dispose();
             }
             finally
             {
@@ -232,7 +234,6 @@ namespace linker.tunnel.connection
             {
                 await Stream.WriteAsync(data, cancellationTokenSource.Token).ConfigureAwait(false);
                 SendBytes += data.Length;
-                LastTicks = Environment.TickCount64;
                 return true;
             }
             catch (Exception ex)

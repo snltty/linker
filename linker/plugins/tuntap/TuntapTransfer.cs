@@ -455,34 +455,18 @@ namespace linker.plugins.tuntap
                             items = items.Where(c => (connections.TryGetValue(c.MachineId, out ITunnelConnection connection) && connection.Connected) || c.MachineId == config.Data.Client.Id);
                         }
 
-
-                        var tasks = items.Select(c =>
-                         {
-                             Ping ping = new Ping();
-                             return new PingTaskInfo
-                             {
-                                 TuntapInfo = c,
-                                 Ping = ping,
-                                 Task = ping.SendPingAsync(c.IP, 1000)
-                             };
-                         });
-                        await Task.WhenAll(tasks.Select(c => c.Task));
-                        foreach (var item in tasks.Where(c => c.Task.Result != null))
+                        foreach (var item in items)
                         {
-                            item.TuntapInfo.Delay = item.Task.Result.Status == IPStatus.Success ? (int)item.Task.Result.RoundtripTime : -1;
-                            item.Ping.Dispose();
+                            using Ping ping = new Ping();
+                            PingReply pingReply = await ping.SendPingAsync(item.IP, 500);
+                            item.Delay = pingReply.Status == IPStatus.Success ? (int)pingReply.RoundtripTime : -1;
+
+                            Version.Add();
                         }
-                        Version.Add();
                     }
                     await Task.Delay(3000);
                 }
             });
-        }
-        public sealed class PingTaskInfo
-        {
-            public TuntapInfo TuntapInfo { get; set; }
-            public Ping Ping { get; set; }
-            public Task<PingReply> Task { get; set; }
         }
     }
 }
