@@ -132,8 +132,8 @@ namespace linker.tunnel
                 foreach (TunnelTransportItemInfo transportItem in tunnelAdapter.GetTunnelTransports().OrderBy(c=>c.Order).Where(c => c.Disabled == false))
                 {
                     ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == transportItem.Name);
-                    //找不到这个打洞协议
-                    if (transport == null)
+                    //找不到这个打洞协议，或者是不支持的协议
+                    if (transport == null || (transport.ProtocolType & denyProtocols) == transport.ProtocolType)
                     {
                         continue;
                     }

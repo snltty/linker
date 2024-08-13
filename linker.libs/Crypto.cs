@@ -194,7 +194,7 @@ namespace linker.libs
 
         public string Password { get; set; }
 
-        public AesCrypto(in string password)
+        public AesCrypto(string password)
         {
             Password = password;
             using Aes aes = Aes.Create();
@@ -226,7 +226,7 @@ namespace linker.libs
             decryptoTransform.Dispose();
         }
 
-        private (byte[] Key, byte[] IV) GenerateKeyAndIV(in string password)
+        private (byte[] Key, byte[] IV) GenerateKeyAndIV(string password)
         {
             byte[] key = new byte[32];
             byte[] iv = new byte[16];
