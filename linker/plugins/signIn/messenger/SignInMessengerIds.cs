@@ -16,6 +16,8 @@
 
         SetOrder = 10,
 
+        Online = 11,
+
         None = 99
     }
 }

@@ -12,6 +12,9 @@ namespace linker.tunnel.adapter
         /// </summary>
         public IPAddress LocalIP { get; }
 
+        /// <summary>
+        /// 端口映射
+        /// </summary>
         public PortMapInfo PortMap { get; }
 
         /// <summary>
@@ -46,6 +49,7 @@ namespace linker.tunnel.adapter
         /// </summary>
         /// <returns></returns>
         public NetworkInfo GetLocalConfig();
+
         /// <summary>
         /// 获取远端的外网信息，比如你是A，你要获取B的信息，可以在B调用  TunnelTransfer.GetWanPort() 发送回来
         /// </summary>

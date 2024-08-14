@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using linker.plugins.tuntap.config;
 using linker.tun;
 using System.Buffers.Binary;
+using linker.plugins.client;
 
 namespace linker.plugins.tuntap.proxy
 {
@@ -19,6 +20,7 @@ namespace linker.plugins.tuntap.proxy
         private readonly RunningConfig runningConfig;
         private readonly FileConfig config;
         private readonly LinkerTunDeviceAdapter linkerTunDeviceAdapter;
+        private readonly ClientSignInTransfer clientSignInTransfer;
 
         private uint[] maskValues = Array.Empty<uint>();
         private readonly ConcurrentDictionary<uint, string> ip2MachineCic = new ConcurrentDictionary<uint, string>();
@@ -27,13 +29,14 @@ namespace linker.plugins.tuntap.proxy
 
         private readonly OperatingMultipleManager operatingMultipleManager = new OperatingMultipleManager();
 
-        public TuntapProxy(TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, RunningConfig runningConfig, FileConfig config, LinkerTunDeviceAdapter linkerTunDeviceAdapter)
+        public TuntapProxy(TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, RunningConfig runningConfig, FileConfig config, LinkerTunDeviceAdapter linkerTunDeviceAdapter, ClientSignInTransfer clientSignInTransfer)
         {
             this.tunnelTransfer = tunnelTransfer;
             this.relayTransfer = relayTransfer;
             this.runningConfig = runningConfig;
             this.config = config;
             this.linkerTunDeviceAdapter = linkerTunDeviceAdapter;
+            this.clientSignInTransfer = clientSignInTransfer;
 
             //监听打洞连接成功
             tunnelTransfer.SetConnectedCallback("tuntap", OnConnected);
@@ -175,13 +178,18 @@ namespace linker.plugins.tuntap.proxy
                 return connection;
             }
 
-            if(operatingMultipleManager.StartOperation(machineId) ==false)
+            if (operatingMultipleManager.StartOperation(machineId) == false)
             {
                 return null;
             }
 
             try
             {
+                if (await clientSignInTransfer.GetOnline(machineId) == false)
+                {
+                    return null;
+                }
+
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap tunnel to {machineId}");
 
                 connection = await tunnelTransfer.ConnectAsync(machineId, "tuntap", TunnelProtocolType.None).ConfigureAwait(false);

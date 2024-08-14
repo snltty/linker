@@ -1,9 +1,8 @@
 ﻿using linker.config;
 using MemoryPack;
 using linker.plugins.client;
-using linker.plugins.server;
 using linker.plugins.messenger;
-using linker.libs.extends;
+using linker.libs;
 
 namespace linker.plugins.signin.messenger
 {
@@ -180,6 +179,21 @@ namespace linker.plugins.signin.messenger
             {
                 IEnumerable<string> list = signCaching.Get(cache.GroupId).Select(c => c.MachineId);
                 connection.Write(MemoryPackSerializer.Serialize(list));
+            }
+        }
+
+        [MessengerId((ushort)SignInMessengerIds.Online)]
+        public void Online(IConnection connection)
+        {
+            string machineId = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) && signCaching.TryGet(machineId, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId && cache1.Connected)
+            {
+                connection.Write(Helper.TrueArray);
+            }
+            else
+            {
+                connection.Write(Helper.FalseArray);
             }
         }
     }

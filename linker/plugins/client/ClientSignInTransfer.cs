@@ -7,7 +7,6 @@ using MemoryPack;
 using System.Net;
 using System.Net.Sockets;
 using linker.plugins.client.args;
-using linker.plugins.server;
 using linker.plugins.messenger;
 
 namespace linker.plugins.client
@@ -27,7 +26,7 @@ namespace linker.plugins.client
 
         private string configKey = "signServers";
 
-        public ClientSignInTransfer(ClientSignInState clientSignInState, RunningConfig runningConfig, FileConfig config,  MessengerSender messengerSender, MessengerResolver messengerResolver, SignInArgsTransfer signInArgsTransfer, RunningConfigTransfer runningConfigTransfer)
+        public ClientSignInTransfer(ClientSignInState clientSignInState, RunningConfig runningConfig, FileConfig config, MessengerSender messengerSender, MessengerResolver messengerResolver, SignInArgsTransfer signInArgsTransfer, RunningConfigTransfer runningConfigTransfer)
         {
             this.clientSignInState = clientSignInState;
             this.runningConfig = runningConfig;
@@ -170,7 +169,7 @@ namespace linker.plugins.client
             clientSignInState.Connection?.Disponse(6);
             return false;
         }
-        
+
         /// <summary>
         /// 登出
         /// </summary>
@@ -240,6 +239,31 @@ namespace linker.plugins.client
                 _ = SignIn();
             }
         }
+
+
+        /// <summary>
+        /// 获取是否在线
+        /// </summary>
+        /// <param name="machineId"></param>
+        /// <returns></returns>
+        public async Task<bool> GetOnline(string machineId)
+        {
+            if (string.IsNullOrWhiteSpace(machineId))
+            {
+                return false;
+            }
+
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)SignInMessengerIds.Online,
+                Payload = MemoryPackSerializer.Serialize(machineId),
+                Timeout = 3000
+            });
+
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
+
 
         /// <summary>
         /// 修改信标服务器列表

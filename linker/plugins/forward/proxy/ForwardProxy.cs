@@ -7,6 +7,7 @@ using linker.libs;
 using linker.libs.extends;
 using System.Collections.Concurrent;
 using System.Net;
+using linker.plugins.client;
 
 namespace linker.plugins.forward.proxy
 {
@@ -15,16 +16,20 @@ namespace linker.plugins.forward.proxy
         private readonly FileConfig config;
         private readonly TunnelTransfer tunnelTransfer;
         private readonly RelayTransfer relayTransfer;
+        private readonly ClientSignInTransfer clientSignInTransfer;
+
+        //private readonly OperatingMultipleManager operatingMultipleManager = new OperatingMultipleManager();
 
         private readonly ConcurrentDictionary<int, ForwardProxyCacheInfo> caches = new ConcurrentDictionary<int, ForwardProxyCacheInfo>();
         private readonly ConcurrentDictionary<string, ITunnelConnection> connections = new ConcurrentDictionary<string, ITunnelConnection>();
         private readonly ConcurrentDictionary<string, SemaphoreSlim> locks = new ConcurrentDictionary<string, SemaphoreSlim>();
 
-        public ForwardProxy(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer)
+        public ForwardProxy(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer)
         {
             this.config = config;
             this.tunnelTransfer = tunnelTransfer;
             this.relayTransfer = relayTransfer;
+            this.clientSignInTransfer = clientSignInTransfer;
 
             //监听打洞成功
             tunnelTransfer.SetConnectedCallback("forward", OnConnected);
@@ -90,6 +95,13 @@ namespace linker.plugins.forward.proxy
             {
                 return connection;
             }
+
+            if (await clientSignInTransfer.GetOnline(machineId) == false)
+            {
+                return null;
+            }
+
+
             //不要同时去连太多，锁以下
             await slimGlobal.WaitAsync().ConfigureAwait(false);
             if (locks.TryGetValue(machineId, out SemaphoreSlim slim) == false)
