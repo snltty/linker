@@ -13,7 +13,7 @@ namespace linker.tunnel.transport
     {
         public string Name => "udp";
 
-        public string Label => "UDP、非常纯，无ssl";
+        public string Label => "UDP、非常纯";
 
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Udp;
         public TunnelWanPortProtocolType AllowWanPortProtocolType => TunnelWanPortProtocolType.Udp;

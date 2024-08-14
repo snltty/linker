@@ -17,7 +17,7 @@ namespace linker.tunnel.transport
     {
         public string Name => "UdpPortMap";
 
-        public string Label => "UDP、端口映射，无ssl";
+        public string Label => "UDP、端口映射";
 
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Udp;
 

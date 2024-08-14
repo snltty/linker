@@ -45,7 +45,7 @@ namespace linker.tun
             Array.Resize(ref ifreqFREG0, 16);
             byte[] ifreqFREG1 = { 0x01, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
             byte[] ifreq = BytesPlusBytes(ifreqFREG0, ifreqFREG1);
-            return LinuxAPI.Ioctl(device, 1074025674, ifreq);
+            return LinuxAPI.Ioctl(device, request, ifreq);
         }
         internal static byte[] BytesPlusBytes(byte[] A, byte[] B)
         {
