@@ -5,7 +5,6 @@ using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Net.Sockets;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.tunnel.connection
 {
@@ -248,6 +247,8 @@ namespace linker.tunnel.connection
 
         public void Dispose()
         {
+            if (uUdpClient == null) return;
+
             SendPingPong(finBytes).ContinueWith((result) =>
             {
                 if (Receive == true)
