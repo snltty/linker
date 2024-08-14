@@ -53,8 +53,12 @@ jobs:
         draft: false
         prerelease: false
         body: |
-          1. 测试上传OSS，请勿更新
-    
+          1. 显示虚拟网卡ping值
+          2. 修复UDP打洞，UDP端口映射，UDP打洞加密
+          3. 更改虚拟网卡打洞逻辑
+          4. 先更新客户端，再更新服务端
+          5. 更新服务端，更新服务端，更新服务端
+
     - name: upload win x86 oss
       id: upload-win-x86-oss
       uses: tvrcgo/oss-action@v0.1.1
