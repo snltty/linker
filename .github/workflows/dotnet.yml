@@ -53,19 +53,18 @@ jobs:
         draft: false
         prerelease: false
         body: |
-          1. 显示虚拟网卡ping值
-          2. 更新服务器，更新服务器，更新服务器
+          1. 测试上传OSS，请勿更新
     
-    #- name: upload win x86 oss
-    #  id: upload-win-x86-oss
-    #  uses: tvrcgo/oss-action@v0.1.1
-    #  with:
-    #    region: oss-cn-guangzhou
-    #    key-id: '${{ secrets.ALIYUN_OSS_ID }}'
-    #    key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
-    #    bucket: snltty
-    #    asset-path: ./public/publish-zip/linker-win-x86.zip
-    #    target-path: /linker/v1.2.0.6/linker-win-x86.zip
+    - name: upload win x86 oss
+      id: upload-win-x86-oss
+      uses: tvrcgo/oss-action@v0.1.1
+      with:
+        region: oss-cn-guangzhou
+        key-id: '${{ secrets.ALIYUN_OSS_ID }}'
+        key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
+        bucket: snltty
+        asset-path: ./public/publish-zip/linker-win-x86.zip
+        target-path: /linker/v1.2.0.6/linker-win-x86.zip
 
     - name: upload win x86
       id: upload-win-x86
