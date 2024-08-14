@@ -59,12 +59,12 @@ jobs:
       id: upload-win-x86-oss
       uses: tvrcgo/oss-action@v0.1.1
       with:
-        region: oss-cn-guangzhou
+        region: oss-cn-shenzhen
         key-id: '${{ secrets.ALIYUN_OSS_ID }}'
         key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
-        bucket: snltty
+        bucket: ide-qbcode
         asset-path: ./public/publish-zip/linker-win-x86.zip
-        target-path: /linker/v1.2.0.6/linker-win-x86.zip
+        target-path: /downloads/linker/v1.2.0.6/linker-win-x86.zip
 
     - name: upload win x86
       id: upload-win-x86

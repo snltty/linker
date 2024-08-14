@@ -82,7 +82,7 @@ namespace linker.plugins.updater
                 }
                 sb.Append(RuntimeInformation.ProcessArchitecture.ToString().ToLower());
 
-                string url = $"http://gh.snltty.com:1808/https://github.com/snltty/linker/releases/download/{version}/{sb.ToString()}.zip";
+                string url = $"https://static.qbcode.cn/downloads/linker/{version}/{sb.ToString()}.zip";
 
                 using HttpClient httpClient = new HttpClient();
                 using HttpResponseMessage response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
