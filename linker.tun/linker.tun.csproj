@@ -17,8 +17,8 @@
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker tun</PackageReleaseNotes>
-		<AssemblyVersion>1.2.0.5</AssemblyVersion>
-		<FileVersion>1.2.0.5</FileVersion>
+		<AssemblyVersion>1.2.0.6</AssemblyVersion>
+		<FileVersion>1.2.0.6</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
