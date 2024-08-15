@@ -27,14 +27,14 @@ export default {
 
         const tunnel = useTunnel();
         const connections = useConnections();
-        const forwardConnections =useForwardConnections();
+        const forwardConnections = useForwardConnections();
         const tuntapConnections = useTuntapConnections();
 
         const connectionCount = (machineId)=>{
                 return [
                     forwardConnections.value.list[machineId],
                     tuntapConnections.value.list[machineId],
-                ].filter(c=>!!c).length;
+                ].filter(c=>!!c && c.Connected).length;
         };
        
         const handleTunnel = (tunnel) => {
