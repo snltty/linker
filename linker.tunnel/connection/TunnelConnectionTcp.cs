@@ -186,6 +186,12 @@ namespace linker.tunnel.connection
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
+                    if(Connected == false)
+                    {
+                        Dispose();
+                        break;
+                    }
+
                     if (Environment.TickCount64 - LastTicks > 3000)
                     {
                         pingStart = Environment.TickCount64;
