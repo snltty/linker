@@ -367,7 +367,7 @@ namespace linker.tunnel
             List<IPEndPoint> eps = new List<IPEndPoint>();
 
             //先尝试内网ipv4
-            //if (tunnelTransportInfo.Local.Remote.Address.Equals(tunnelTransportInfo.Remote.Remote.Address))
+            if (tunnelTransportInfo.Local.Remote.Address.Equals(tunnelTransportInfo.Remote.Remote.Address))
             {
                 foreach (IPAddress item in tunnelTransportInfo.Remote.LocalIps.Where(c => c.AddressFamily == AddressFamily.InterNetwork))
                 {

@@ -95,11 +95,11 @@ namespace linker.tun
                     return false;
                 }
                 linkerTunDevice.Setup(address, NetworkHelper.ToGatewayIP(address, prefixLength), prefixLength, out error);
-                linkerTunDevice.SetMtu(mtu);
                 if (string.IsNullOrWhiteSpace(error) == false)
                 {
                     return false;
                 }
+                linkerTunDevice.SetMtu(mtu);
                 Read();
                 return true;
             }

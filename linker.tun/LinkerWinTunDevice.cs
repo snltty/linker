@@ -46,6 +46,7 @@ namespace linker.tun
             if (adapter == 0)
             {
                 error = ($"Failed to create adapter {Marshal.GetLastWin32Error():x2}");
+                Shutdown();
                 return false;
             }
             uint version = WinTun.WintunGetRunningDriverVersion();
@@ -53,6 +54,7 @@ namespace linker.tun
             if (session == 0)
             {
                 error = ($"Failed to start session");
+                Shutdown();
                 return false;
             }
 
@@ -80,6 +82,12 @@ namespace linker.tun
                 {
                     Thread.Sleep(1000);
                 }
+                if(i == 4)
+                {
+                    error = ($"Failed to set adapter ip {Marshal.GetLastWin32Error():x2}");
+                    Shutdown();
+                    return false;
+                }
             }
             /*
             {
@@ -105,13 +113,16 @@ namespace linker.tun
             if (waitHandle != 0)
             {
                 WinTun.SetEvent(waitHandle);
-                waitHandle = 0;
             }
             if (session != 0)
             {
                 WinTun.WintunEndSession(session);
+            }
+            if (adapter != 0)
+            {
                 WinTun.WintunCloseAdapter(adapter);
             }
+            waitHandle = 0;
             session = 0;
             adapter = 0;
             interfaceNumber = 0;

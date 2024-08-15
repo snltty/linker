@@ -175,9 +175,8 @@ namespace linker.tunnel.connection
             {
                 await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine(ex);
             }
         }
 
@@ -208,8 +207,6 @@ namespace linker.tunnel.connection
             data.Length.ToBytes(heartData);
             data.AsMemory().CopyTo(heartData.AsMemory(4));
 
-            SendBytes += data.Length;
-
             await semaphoreSlim.WaitAsync().ConfigureAwait(false);
             try
             {
@@ -222,7 +219,7 @@ namespace linker.tunnel.connection
                 {
                     await Socket.SendAsync(heartData.AsMemory(0, length)).ConfigureAwait(false);
                 }
-
+                SendBytes += data.Length;
             }
             catch (Exception)
             {
