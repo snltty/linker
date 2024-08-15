@@ -404,9 +404,9 @@ namespace linker.plugins.tuntap
                     await Task.Delay(15000).ConfigureAwait(false);
                     try
                     {
-                        if (runningConfig.Data.Tuntap.Running && OperatingSystem.IsWindows() && operatingManager.Operating == false)
+                        if (runningConfig.Data.Tuntap.Running && OperatingSystem.IsWindows())
                         {
-                            await CheckInterface().ConfigureAwait(false);
+                            await InterfaceCheck().ConfigureAwait(false);
                         }
                     }
                     catch (Exception)
@@ -415,21 +415,35 @@ namespace linker.plugins.tuntap
                 }
             });
         }
-        private async Task CheckInterface()
+        private async Task InterfaceCheck()
         {
-            NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == deviceName);
-
-            if (networkInterface == null || networkInterface.OperationalStatus != OperationalStatus.Up && operatingManager.Operating == false)
+            if (await InterfaceAvailable() == false && operatingManager.Operating == false)
             {
-                LoggerHelper.Instance.Error($"tuntap inerface {deviceName} is {networkInterface?.OperationalStatus ?? OperationalStatus.Unknown}, restarting");
+                LoggerHelper.Instance.Error($"tuntap inerface {deviceName} is down, restarting");
                 Shutdown();
                 await Task.Delay(5000).ConfigureAwait(false);
-
-                networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == deviceName);
-                if (networkInterface == null || networkInterface.OperationalStatus != OperationalStatus.Up && operatingManager.Operating == false)
+                if (await InterfaceAvailable() == false && operatingManager.Operating == false)
                 {
                     Setup();
                 }
+            }
+        }
+        private async Task<bool> InterfaceAvailable()
+        {
+            NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == deviceName);
+            return networkInterface != null && networkInterface.OperationalStatus == OperationalStatus.Up && await InterfacePing();
+        }
+        private async Task<bool> InterfacePing()
+        {
+            try
+            {
+                using Ping ping = new Ping();
+                PingReply pingReply = await ping.SendPingAsync(runningConfig.Data.Tuntap.IP, 500);
+                return pingReply.Status == IPStatus.Success;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
 
