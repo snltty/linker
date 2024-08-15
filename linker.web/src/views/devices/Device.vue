@@ -23,7 +23,12 @@
                 <strong v-if="scope.row.isSelf"> - (<el-icon><StarFilled /></el-icon> 本机) </strong>
             </p>
             <p class="flex">
-                <span>{{ scope.row.IP }}</span>
+                <template v-if="scope.row.showip">
+                    <span class="ipaddress"><span>{{ scope.row.IP }}</span> <el-icon @click="scope.row.showip=flase"><View /></el-icon></span>
+                </template>
+                <template v-else>
+                    <span class="ipaddress"><span>{{ scope.row.IP.replace(/(\d+\.\d+\.\d+\.\d+)/,'***.***.***.***') }}</span> <el-icon @click="scope.row.showip=true"><Hide /></el-icon></span>
+                </template>
                 <span class="flex-1"></span>
                 <a href="javascript:;" class="download" @click="handleUpdate(scope.row)" :title="updateText(scope.row)" :class="updateColor(scope.row)">
                     <span>
@@ -57,7 +62,7 @@
 <script>
 import { injectGlobalData } from '@/provide';
 import { computed, ref,h } from 'vue';
-import {StarFilled,Search,Download,Loading,CircleCheck} from '@element-plus/icons-vue'
+import {StarFilled,Search,Download,Loading,CircleCheck,View,Hide} from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox,ElSelect,ElOption } from 'element-plus';
 import { confirm, exit } from '@/apis/updater';
 import { useUpdater } from './updater';
@@ -65,7 +70,7 @@ import { useTuntap } from './tuntap';
 
 export default {
     emits:['edit','refresh'],
-    components:{StarFilled,Search,Download,Loading,CircleCheck},
+    components:{StarFilled,Search,Download,Loading,CircleCheck,View,Hide},
     setup(props,{emit}) {
 
         const name = ref(sessionStorage.getItem('search-name') || '');
@@ -197,6 +202,10 @@ img.system{
     height:1.6rem;
     vertical-align: middle;
     margin-right:.4rem
+}
+
+.ipaddress{
+    span,.el-icon{vertical-align:middle}
 }
 
 

@@ -11,7 +11,7 @@ namespace linker.tun.test
         static void Main(string[] args)
         {
             linkerTunDeviceAdapter = new LinkerTunDeviceAdapter();
-            linkerTunDeviceAdapter.Initialize("linker0", new LinkerTunDeviceCallbackTCPUDP());
+            linkerTunDeviceAdapter.Initialize("linker0", new LinkerTunDeviceCallbackICMP());
             linkerTunDeviceAdapter.Setup(IPAddress.Parse("192.168.55.2"), 24, 1416);
 
             if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.Error))

@@ -29,6 +29,7 @@ export const provideDevices = () => {
                 res.List[j].showDel = machineId.value != res.List[j].MachineId && res.List[j].Connected == false;
                 res.List[j].showReboot = res.List[j].Connected;
                 res.List[j].isSelf = machineId.value == res.List[j].MachineId;
+                res.List[j].showip = false;
             }
             devices.page.List = res.List;
             for (let i = 0; i < devices.page.List.length; i++) {
