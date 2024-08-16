@@ -40,11 +40,13 @@ namespace linker.plugins.updater
                 updateInfo.Status = UpdateStatus.Checking;
 
                 using HttpClient httpClient = new HttpClient();
-                string str = await httpClient.GetStringAsync("http://gh.snltty.com:1808/https://github.com/snltty/linker/releases/latest").WaitAsync(TimeSpan.FromSeconds(15));
+                string str = await httpClient.GetStringAsync($"{fileConfig.Data.Common.UpdateUrl}/version.txt").WaitAsync(TimeSpan.FromSeconds(15));
 
-                string datetime = DateTime.Parse(new Regex("datetime=\"(.+)\"").Match(str).Groups[1].Value).ToString("yyyy-MM-dd HH:mm:ss");
-                string tag = new Regex(@"/snltty/linker/tree/(v[\d.]+)").Match(str).Groups[1].Value;
-                string[] msg = new Regex(@"<li>(.+)</li>").Matches(str).Select(c => c.Groups[1].Value).ToArray();
+                string[] arr = str.Split(Environment.NewLine);
+
+                string datetime = DateTime.Parse(arr[1]).ToString("yyyy-MM-dd HH:mm:ss");
+                string tag = arr[0];
+                string[] msg = arr.Skip(2).ToArray();
 
                 updateInfo.DateTime = datetime;
                 updateInfo.Msg = msg;
