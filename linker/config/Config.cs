@@ -34,14 +34,12 @@ namespace linker.config
             Type typeAttr = typeof(JsonIgnoreAttribute);
             foreach (var item in type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(c => c.GetCustomAttribute(typeAttr) == null))
             {
-                FileStream fs = new FileStream(Path.Join(configPath, $"{item.Name.ToLower()}.json"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+
                 object property = item.GetValue(Data);
                 MethodInfo method = property.GetType().GetMethod("Load");
                 fsDic.Add(item.Name.ToLower(), new FileReadWrite
                 {
-                    FS = fs,
-                    SR = new StreamReader(fs, System.Text.Encoding.UTF8),
-                    SW = new StreamWriter(fs, System.Text.Encoding.UTF8),
+                    Path = Path.Join(configPath, $"{item.Name.ToLower()}.json"),
                     Property = item,
                     PropertyObject = property,
                     PropertyLoadMethod = method
@@ -59,8 +57,8 @@ namespace linker.config
                     {
                         continue;
                     }
-                    item.Value.FS.Seek(0, SeekOrigin.Begin);
-                    string text = item.Value.SR.ReadToEnd();
+
+                    string text = File.ReadAllText(item.Value.Path);
                     if (string.IsNullOrWhiteSpace(text))
                     {
                         continue;
@@ -90,10 +88,7 @@ namespace linker.config
                     {
                         continue;
                     }
-                    item.Value.FS.Seek(0, SeekOrigin.Begin);
-                    item.Value.FS.SetLength(0);
-                    item.Value.SW.Write(item.Value.Property.GetValue(Data).ToJsonFormat());
-                    item.Value.SW.Flush();
+                    File.WriteAllText(item.Value.Path, item.Value.Property.GetValue(Data).ToJsonFormat());
                 }
             }
             catch (Exception ex)
@@ -125,9 +120,7 @@ namespace linker.config
 
     public sealed class FileReadWrite
     {
-        public FileStream FS { get; set; }
-        public StreamReader SR { get; set; }
-        public StreamWriter SW { get; set; }
+        public string Path { get; set; }
 
         public PropertyInfo Property { get; set; }
         public object PropertyObject { get; set; }

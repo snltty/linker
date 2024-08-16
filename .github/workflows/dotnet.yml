@@ -51,6 +51,8 @@ jobs:
       - name: upload-win-x86
         id: upload-win-x86
         uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./public/publish-zip/linker-win-x86.zip
@@ -69,6 +71,8 @@ jobs:
       - name: upload-win-x64
         id: upload-win-x64
         uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./public/publish-zip/linker-win-x64.zip
@@ -87,6 +91,8 @@ jobs:
       - name: upload-win-arm64
         id: upload-win-arm64
         uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./public/publish-zip/linker-win-arm64.zip
@@ -105,6 +111,8 @@ jobs:
       - name: upload-linux-x64
         id: upload-linux-x64
         uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./public/publish-zip/linker-linux-x64.zip
@@ -123,6 +131,8 @@ jobs:
       - name: upload-linux-arm
         id: upload-linux-arm
         uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./public/publish-zip/linker-linux-arm.zip
@@ -141,6 +151,8 @@ jobs:
       - name: upload-linux-arm64
         id: upload-linux-arm64
         uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./public/publish-zip/linker-linux-arm64.zip
@@ -159,6 +171,8 @@ jobs:
       - name: upload-linux-musl-x64
         id: upload-linux-musl-x64
         uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./public/publish-zip/linker-linux-musl-x64.zip
@@ -177,6 +191,8 @@ jobs:
       - name: upload-linux-musl-arm
         id: upload-linux-musl-arm
         uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./public/publish-zip/linker-linux-musl-arm.zip
@@ -195,6 +211,8 @@ jobs:
       - name: upload-linux-musl-arm64
         id: upload-linux-musl-arm64
         uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./public/publish-zip/linker-linux-musl-arm64.zip
@@ -213,6 +231,8 @@ jobs:
       - name: upload-osx-x64
         id: upload-osx-x64
         uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./public/publish-zip/linker-osx-x64.zip
@@ -231,6 +251,8 @@ jobs:
       - name: upload-osx-arm64
         id: upload-osx-arm64
         uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./public/publish-zip/linker-osx-arm64.zip
