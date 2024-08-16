@@ -98,7 +98,7 @@ readVersionDesc().then((desc) => {
 
     data.jobs.build.steps.filter(c => c.id == 'create_release')[0].with.body = desc.desc;
     data.jobs.build.steps.filter(c => c.id == 'create_release')[0].with.tag_name = `v${desc.version}`;
-    data.jobs.build.steps.filter(c => c.id == 'create_release')[0].with.release_name = `v${desc.version}.\${steps.date.outputs.today}`;
+    data.jobs.build.steps.filter(c => c.id == 'create_release')[0].with.release_name = `v${desc.version}.\${{ steps.date.outputs.today }}`;
 
     fs.writeFileSync('../version.txt', `v${desc.version}\n${new Date().toISOString().split('T')[0]}\n${desc.desc}`, 'utf8');
 
