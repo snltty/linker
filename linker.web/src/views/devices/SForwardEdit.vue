@@ -217,7 +217,6 @@ export default {
                     Started:true
                 }
                 addSForwardInfo(json).then((res) => {
-                    console.log(JSON.stringify(json));
                     setTimeout(()=>{
                         fn(++port);
                     },50)

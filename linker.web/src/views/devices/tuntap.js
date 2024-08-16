@@ -31,7 +31,7 @@ export const provideTuntap = () => {
                     for (let j in res.List) {
                         res.List[j].running = res.List[j].Status == 2;
                         res.List[j].loading = res.List[j].Status == 1;
-                        res.List[j].system = 'system';
+                        res.List[j].system = 'debian';
 
                         const systemStr = res.List[j].SystemInfo.toLowerCase();
                         res.List[j].systemDocker = systemStr.indexOf('docker') >= 0;
@@ -55,9 +55,9 @@ export const provideTuntap = () => {
                     }
                     tuntap.value.list = res.List;
                 }
-                tuntap.value.timer = setTimeout(_getTuntapInfo, 200);
+                tuntap.value.timer = setTimeout(_getTuntapInfo, 1100);
             }).catch((e) => {
-                tuntap.value.timer = setTimeout(_getTuntapInfo, 200);
+                tuntap.value.timer = setTimeout(_getTuntapInfo, 1100);
             });
         } else {
             tuntap.value.timer = setTimeout(_getTuntapInfo, 1000);
