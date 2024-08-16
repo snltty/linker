@@ -66,7 +66,7 @@ function writeUpload(data) {
                 uses: 'actions/upload-release-asset@master',
                 with: {
                     'upload_url': '${{ steps.create_release.outputs.upload_url }}',
-                    'asset_path': `/public/publish-zip/linker-${plat}-${arch}.zip`,
+                    'asset_path': `./public/publish-zip/linker-${plat}-${arch}.zip`,
                     'asset_name': `linker-${plat}-${arch}.zip`,
                     'asset_content_type': 'application/zip'
                 }
