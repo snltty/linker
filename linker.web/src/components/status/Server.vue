@@ -1,7 +1,7 @@
 <template>
     <div class="status-server-wrap" :class="{ connected: state.connected }">
-        <a href="javascript:;" @click="handleConfig"> <el-icon size="16"><Promotion /></el-icon> 信标服务器</a>
-        <a href="javascript:;" @click="handleUpdate" class="download" :title="updateText()" :class="updateColor()">
+        <a href="javascript:;" title="更改你的连接设置" @click="handleConfig"> <el-icon size="16"><Promotion /></el-icon> 信标服务器</a>
+        <a href="javascript:;" title="服务端的程序版本" @click="handleUpdate" class="download" :title="updateText()" :class="updateColor()">
             <span>{{state.version}}</span>
             <template v-if="updaterCurrent.Version">
                 <template v-if="updaterCurrent.Status == 1">

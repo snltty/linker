@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Net;
 using linker.tunnel.wanport;
+using System.Collections.Generic;
 
 namespace linker.tunnel
 {
@@ -43,21 +44,32 @@ namespace linker.tunnel
             }
 
             var transportItems = tunnelAdapter.GetTunnelTransports();
-            var names = transportItems.Select(c => c.Name);
-            transportItems = transportItems.Concat(transports.Select(c => new TunnelTransportItemInfo
+            //有新的协议
+            var newTransportNames = transports.Select(c => c.Name).Except(transportItems.Select(c => c.Name));
+            if (newTransportNames.Any())
             {
-                Label = c.Label,
-                Name = c.Name,
-                ProtocolType = c.ProtocolType.ToString(),
-                Reverse = c.Reverse,
-                DisableReverse = c.DisableReverse,
-                SSL = c.SSL,
-                DisableSSL = c.DisableSSL
-            }))
-                .Distinct(new TunnelTransportItemInfoEqualityComparer())
-                .Where(c => transports.Select(c => c.Name).Contains(c.Name))
-                .ToList();
-
+                transportItems.AddRange(transports.Where(c => newTransportNames.Contains(c.Name)).Select(c => new TunnelTransportItemInfo
+                {
+                    Label = c.Label,
+                    Name = c.Name,
+                    ProtocolType = c.ProtocolType.ToString(),
+                    Reverse = c.Reverse,
+                    DisableReverse = c.DisableReverse,
+                    SSL = c.SSL,
+                    DisableSSL = c.DisableSSL,
+                    Order = c.Order
+                }));
+            }
+            //有已移除的协议
+            var oldTransportNames = transportItems.Select(c => c.Name).Except(transports.Select(c => c.Name));
+            if (oldTransportNames.Any())
+            {
+                foreach (var item in transportItems.Where(c => oldTransportNames.Contains(c.Name)))
+                {
+                    transportItems.Remove(item);
+                }
+            }
+            //强制更新一些信息
             foreach (var item in transportItems)
             {
                 var transport = transports.FirstOrDefault(c => c.Name == item.Name);
@@ -82,10 +94,8 @@ namespace linker.tunnel
                 }
             }
 
-            tunnelAdapter.SetTunnelTransports(transportItems, names.SequenceEqual(transportItems.Select(c => c.Name)) == false);
-
+            tunnelAdapter.SetTunnelTransports(transportItems, true);
             LoggerHelper.Instance.Warning($"load tunnel transport:{string.Join(",", transports.Select(c => c.Name))}");
-            LoggerHelper.Instance.Warning($"used tunnel transport:{string.Join(",", transportItems.Where(c => c.Disabled == false).Select(c => c.Name))}");
         }
 
 

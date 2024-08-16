@@ -44,9 +44,8 @@ namespace linker.plugins.tuntap
             this.config = config;
             this.tuntapProxy = tuntapProxy;
             this.runningConfig = runningConfig;
+
             linkerTunDeviceAdapter.Initialize(deviceName, tuntapProxy);
-            linkerTunDeviceAdapter.Shutdown();
-            linkerTunDeviceAdapter.Clear();
             AppDomain.CurrentDomain.ProcessExit += (s, e) => linkerTunDeviceAdapter.Shutdown();
             Console.CancelKeyPress += (s, e) => linkerTunDeviceAdapter.Shutdown();
             clientSignInState.NetworkFirstEnabledHandle += Initialize;
@@ -56,12 +55,16 @@ namespace linker.plugins.tuntap
         {
             Task.Run(() =>
             {
+                LoggerHelper.Instance.Debug($"tuntap initialize");
+                linkerTunDeviceAdapter.Shutdown();
+                linkerTunDeviceAdapter.Clear();
                 NetworkHelper.GetRouteLevel(config.Data.Client.Server, out routeIps);
                 NotifyConfig();
                 CheckTuntapStatusTask();
                 PingTask();
                 if (runningConfig.Data.Tuntap.Running)
                 {
+                    LoggerHelper.Instance.Debug($"tuntap should be run");
                     Setup();
                 }
             });
@@ -105,7 +108,6 @@ namespace linker.plugins.tuntap
                 }
             });
         }
-
         private void SetupBefore()
         {
             NotifyConfig();
@@ -302,14 +304,18 @@ namespace linker.plugins.tuntap
         /// </summary>
         private void AddForward()
         {
-            linkerTunDeviceAdapter.AddForward(runningConfig.Data.Tuntap.Forwards.Select(c => new LinkerTunDeviceForwardItem { ListenAddr = c.ListenAddr, ListenPort = c.ListenPort, ConnectAddr = c.ConnectAddr, ConnectPort = c.ConnectPort }).ToList());
+            linkerTunDeviceAdapter.AddForward(ParseForwardItems());
         }
         /// <summary>
         /// 删除端口转发
         /// </summary>
         private void DeleteForward()
         {
-            linkerTunDeviceAdapter.RemoveForward(runningConfig.Data.Tuntap.Forwards.Select(c => new LinkerTunDeviceForwardItem { ListenAddr = c.ListenAddr, ListenPort = c.ListenPort, ConnectAddr = c.ConnectAddr, ConnectPort = c.ConnectPort }).ToList());
+            linkerTunDeviceAdapter.RemoveForward(ParseForwardItems());
+        }
+        private List<LinkerTunDeviceForwardItem> ParseForwardItems()
+        {
+            return runningConfig.Data.Tuntap.Forwards.Select(c => new LinkerTunDeviceForwardItem { ListenAddr = c.ListenAddr, ListenPort = c.ListenPort, ConnectAddr = c.ConnectAddr, ConnectPort = c.ConnectPort }).ToList();
         }
 
         /// <summary>
@@ -322,6 +328,7 @@ namespace linker.plugins.tuntap
                 List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.ToList());
                 TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
                 var items = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.MaskLength }).ToArray();
+
                 linkerTunDeviceAdapter.DelRoute(items, (runningConfig.Data.Tuntap.Switch & TuntapSwitch.Gateway) == TuntapSwitch.Gateway);
             }
             catch (Exception ex)
@@ -336,8 +343,8 @@ namespace linker.plugins.tuntap
         {
             List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.ToList());
             TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
-
             var items = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.MaskLength }).ToArray();
+
             linkerTunDeviceAdapter.AddRoute(items, runningConfig.Data.Tuntap.IP, (runningConfig.Data.Tuntap.Switch & TuntapSwitch.Gateway) == TuntapSwitch.Gateway);
 
             tuntapProxy.SetIPs(ipsList);
@@ -420,7 +427,7 @@ namespace linker.plugins.tuntap
             if (await InterfaceAvailable() == false && operatingManager.Operating == false)
             {
                 LoggerHelper.Instance.Error($"tuntap inerface {deviceName} is down, restarting");
-                Shutdown();
+                linkerTunDeviceAdapter.Shutdown();
                 await Task.Delay(5000).ConfigureAwait(false);
                 if (await InterfaceAvailable() == false && operatingManager.Operating == false)
                 {

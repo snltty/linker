@@ -4,13 +4,13 @@
             <div v-if="tunnel.list[scope.row.MachineId]">
                 <a href="javascript:;" class="a-line" 
                 :class="{yellow:tunnel.list[scope.row.MachineId].NeedReboot}" 
-                :title="tunnel.list[scope.row.MachineId].NeedReboot?'需要重启':''"
+                :title="tunnel.list[scope.row.MachineId].NeedReboot?'需要重启':'调整网关层级有助于打洞成功'"
                 @click="handleTunnel(tunnel.list[scope.row.MachineId])">
                     <span>网关 : {{tunnel.list[scope.row.MachineId].RouteLevel}} + {{tunnel.list[scope.row.MachineId].RouteLevelPlus}}</span>
                 </a>
             </div> 
             <div>
-                <a href="javascript:;" class="a-line" :class="{green:connectionCount(scope.row.MachineId)>0}" @click="handleConnections(scope.row.MachineId)">
+                <a href="javascript:;" title="与此设备的隧道连接" class="a-line" :class="{green:connectionCount(scope.row.MachineId)>0}" @click="handleConnections(scope.row.MachineId)">
                     连接数 : <span>{{connectionCount(scope.row.MachineId)}}</span>
                 </a>
             </div>

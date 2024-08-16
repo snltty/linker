@@ -1,4 +1,5 @@
 ﻿using linker.plugins.messenger;
+using linker.tun;
 using System.Text.Json.Serialization;
 
 namespace linker.plugins.client
@@ -8,6 +9,13 @@ namespace linker.plugins.client
     /// </summary>
     public sealed class ClientSignInState
     {
+
+        public ClientSignInState()
+        {
+            AppDomain.CurrentDomain.ProcessExit += (s, e) => Disponse();
+            Console.CancelKeyPress += (s, e) => Disponse();
+        }
+
         /// <summary>
         /// 登入服务器的连接对象
         /// </summary>
@@ -43,6 +51,11 @@ namespace linker.plugins.client
             }
             NetworkEnabledHandle?.Invoke(networdkEnabledTimes);
             networdkEnabledTimes++;
+        }
+
+        public void Disponse()
+        {
+            Connection?.Disponse();
         }
     }
 }

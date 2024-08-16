@@ -48,16 +48,13 @@ jobs:
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
-        tag_name: v1.2.0.6
-        release_name: v1.2.0.6.${{ steps.date.outputs.today }}
+        tag_name: v1.2.0.7
+        release_name: v1.2.0.7.${{ steps.date.outputs.today }}
         draft: false
         prerelease: false
         body: |
-          1. 显示虚拟网卡ping值
-          2. 修复UDP打洞，UDP端口映射，UDP打洞加密
-          3. 更改虚拟网卡打洞逻辑
-          4. 先更新客户端，再更新服务端
-          5. 更新服务端，更新服务端，更新服务端
+          1. 优化重启系统后网卡自动启动逻辑
+          2. Web UI 优化
 
     - name: upload win x86 oss
       id: upload-win-x86-oss
@@ -68,7 +65,7 @@ jobs:
         key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
         bucket: ide-qbcode
         asset-path: ./public/publish-zip/linker-win-x86.zip
-        target-path: /downloads/linker/v1.2.0.6/linker-win-x86.zip
+        target-path: /downloads/linker/v1.2.0.7/linker-win-x86.zip
 
     - name: upload win x86
       id: upload-win-x86
@@ -90,7 +87,7 @@ jobs:
         key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
         bucket: ide-qbcode
         asset-path: ./public/publish-zip/linker-win-x64.zip
-        target-path: /downloads/linker/v1.2.0.6/linker-win-x64.zip
+        target-path: /downloads/linker/v1.2.0.7/linker-win-x64.zip
 
     - name: upload win x64
       id: upload-win-x64
@@ -112,7 +109,7 @@ jobs:
         key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
         bucket: ide-qbcode
         asset-path: ./public/publish-zip/linker-win-arm64.zip
-        target-path: /downloads/linker/v1.2.0.6/linker-win-arm64.zip
+        target-path: /downloads/linker/v1.2.0.7/linker-win-arm64.zip
 
     - name: upload win arm64
       id: upload-win-arm64
@@ -134,7 +131,7 @@ jobs:
         key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
         bucket: ide-qbcode
         asset-path: ./public/publish-zip/linker-linux-x64.zip
-        target-path: /downloads/linker/v1.2.0.6/linker-linux-x64.zip
+        target-path: /downloads/linker/v1.2.0.7/linker-linux-x64.zip
 
     - name: upload linux x64
       id: upload-linux-x64
@@ -156,7 +153,7 @@ jobs:
         key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
         bucket: ide-qbcode
         asset-path: ./public/publish-zip/linker-linux-arm.zip
-        target-path: /downloads/linker/v1.2.0.6/linker-linux-arm.zip
+        target-path: /downloads/linker/v1.2.0.7/linker-linux-arm.zip
 
     - name: upload linux arm
       id: upload-linux-arm
@@ -178,7 +175,7 @@ jobs:
         key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
         bucket: ide-qbcode
         asset-path: ./public/publish-zip/linker-linux-arm64.zip
-        target-path: /downloads/linker/v1.2.0.6/linker-linux-arm64.zip
+        target-path: /downloads/linker/v1.2.0.7/linker-linux-arm64.zip
 
     - name: upload linux arm64
       id: upload-linux-arm64
@@ -200,7 +197,7 @@ jobs:
         key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
         bucket: ide-qbcode
         asset-path: ./public/publish-zip/linker-linux-musl-x64.zip
-        target-path: /downloads/linker/v1.2.0.6/linker-linux-musl-x64.zip
+        target-path: /downloads/linker/v1.2.0.7/linker-linux-musl-x64.zip
 
     - name: upload linux musl x64
       id: upload-linux-musl-x64
@@ -222,7 +219,7 @@ jobs:
         key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
         bucket: ide-qbcode
         asset-path: ./public/publish-zip/linker-linux-musl-arm.zip
-        target-path: /downloads/linker/v1.2.0.6/linker-linux-musl-arm.zip
+        target-path: /downloads/linker/v1.2.0.7/linker-linux-musl-arm.zip
 
     - name: upload linux musl arm
       id: upload-linux-musl-arm
@@ -244,7 +241,7 @@ jobs:
         key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
         bucket: ide-qbcode
         asset-path: ./public/publish-zip/linker-linux-musl-arm64.zip
-        target-path: /downloads/linker/v1.2.0.6/linker-linux-musl-arm64.zip
+        target-path: /downloads/linker/v1.2.0.7/linker-linux-musl-arm64.zip
 
     - name: upload linux musl arm64
       id: upload-linux-musl-arm64
@@ -266,7 +263,7 @@ jobs:
         key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
         bucket: ide-qbcode
         asset-path: ./public/publish-zip/linker-osx-x64.zip
-        target-path: /downloads/linker/v1.2.0.6/linker-osx-x64.zip
+        target-path: /downloads/linker/v1.2.0.7/linker-osx-x64.zip
 
     - name: upload osx x64
       id: upload-osx-x64
@@ -288,7 +285,7 @@ jobs:
         key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
         bucket: ide-qbcode
         asset-path: ./public/publish-zip/linker-osx-arm64.zip
-        target-path: /downloads/linker/v1.2.0.6/linker-osx-arm64.zip
+        target-path: /downloads/linker/v1.2.0.7/linker-osx-arm64.zip
 
     - name: upload osx arm64
       id: upload-osx-arm64

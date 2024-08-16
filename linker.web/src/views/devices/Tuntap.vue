@@ -4,7 +4,7 @@
             <div v-if="tuntap.list[scope.row.MachineId]">
                 <div class="flex">
                     <div class="flex-1">
-                        <a href="javascript:;" class="a-line" @click="handleTuntapIP(tuntap.list[scope.row.MachineId])" :title="tuntap.list[scope.row.MachineId].Gateway?'我在路由器上，所以略有不同':''">
+                        <a href="javascript:;" class="a-line" @click="handleTuntapIP(tuntap.list[scope.row.MachineId])" :title="tuntap.list[scope.row.MachineId].Gateway?'我在路由器上，所以略有不同':'此设备的虚拟网卡IP'">
                             <template v-if="tuntap.list[scope.row.MachineId].Error">
                                 <el-popover placement="top" title="msg" width="20rem"  trigger="hover" :content="tuntap.list[scope.row.MachineId].Error">
                                     <template #reference>

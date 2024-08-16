@@ -20,7 +20,7 @@
                             </template>
                         </template>
                         <template v-else>
-                            <li><a href="javascript:;" @click="handleEdit(scope.row.MachineId)">暂无配置</a></li>
+                            <li><a href="javascript:;" title="管理你的端口转发" @click="handleEdit(scope.row.MachineId)">暂无配置</a></li>
                         </template>
                     </ul>
                 </div>
@@ -43,7 +43,7 @@
                             </template>
                         </template>
                         <template v-else>
-                            <li><a href="javascript:;" @click="handleSEdit()">暂无配置</a></li>
+                            <li><a href="javascript:;" title="管理你的服务器穿透" @click="handleSEdit()">暂无配置</a></li>
                         </template>
                     </ul>
                 </div>

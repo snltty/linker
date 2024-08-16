@@ -19,15 +19,15 @@
                         <img v-if="tuntap.list[scope.row.MachineId].systemDocker" class="system" src="/docker.svg" />
                     </span>
                 </template>
-                <a href="javascript:;" @click="handleEdit(scope.row)" :class="{green:scope.row.Connected}">{{scope.row.MachineName }}</a>
+                <a href="javascript:;" title="此客户端的设备名" @click="handleEdit(scope.row)" :class="{green:scope.row.Connected}">{{scope.row.MachineName }}</a>
                 <strong v-if="scope.row.isSelf"> - (<el-icon><StarFilled /></el-icon> 本机) </strong>
             </p>
             <p class="flex">
                 <template v-if="scope.row.showip">
-                    <span class="ipaddress"><span>{{ scope.row.IP }}</span> <el-icon @click="scope.row.showip=flase"><View /></el-icon></span>
+                    <span title="此设备的外网IP端口" class="ipaddress"><span>{{ scope.row.IP }}</span> <el-icon @click="scope.row.showip=flase"><View /></el-icon></span>
                 </template>
                 <template v-else>
-                    <span class="ipaddress"><span>{{ scope.row.IP.replace(/(\d+\.\d+\.\d+\.\d+)/,'***.***.***.***') }}</span> <el-icon @click="scope.row.showip=true"><Hide /></el-icon></span>
+                    <span title="此设备的外网IP端口" class="ipaddress"><span>{{ scope.row.IP.replace(/(\d+\.\d+\.\d+\.\d+)/,'***.***.***.***') }}</span> <el-icon @click="scope.row.showip=true"><Hide /></el-icon></span>
                 </template>
                 <span class="flex-1"></span>
                 <a href="javascript:;" class="download" @click="handleUpdate(scope.row)" :title="updateText(scope.row)" :class="updateColor(scope.row)">
