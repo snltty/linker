@@ -64,6 +64,9 @@ function writeUpload(data) {
                 name: `upload-${plat}-${arch}`,
                 id: `upload-${plat}-${arch}`,
                 uses: 'actions/upload-release-asset@master',
+                env: {
+                    'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
+                },
                 with: {
                     'upload_url': '${{ steps.create_release.outputs.upload_url }}',
                     'asset_path': `./public/publish-zip/linker-${plat}-${arch}.zip`,
