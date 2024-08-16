@@ -82,7 +82,7 @@ namespace linker.config
         public bool NeedReboot { get; set; }
 
         public int PortMapWan { get; set; }
-        public int PortMapLan { get; set; } 
+        public int PortMapLan { get; set; }
     }
 
 
@@ -304,13 +304,19 @@ namespace linker.config
         bool Reverse => tunnelTransportItemInfo.Reverse;
 
         [MemoryPackInclude]
+        bool SSL => tunnelTransportItemInfo.SSL;
+
+        [MemoryPackInclude]
         byte BufferSize => tunnelTransportItemInfo.BufferSize;
+
+        [MemoryPackInclude]
+        byte Order => tunnelTransportItemInfo.Order;
 
 
         [MemoryPackConstructor]
-        SerializableTunnelTransportItemInfo(string name, string label, string protocolType, bool disabled, bool reverse, byte buffersize)
+        SerializableTunnelTransportItemInfo(string name, string label, string protocolType, bool disabled, bool reverse, bool ssl, byte buffersize, byte order)
         {
-            var tunnelTransportItemInfo = new TunnelTransportItemInfo { Name = name, Label = label, ProtocolType = protocolType, Disabled = disabled, Reverse = reverse, BufferSize = buffersize };
+            var tunnelTransportItemInfo = new TunnelTransportItemInfo { Name = name, Label = label, ProtocolType = protocolType, Disabled = disabled, Reverse = reverse, SSL = ssl, BufferSize = buffersize, Order = order };
             this.tunnelTransportItemInfo = tunnelTransportItemInfo;
         }
 
