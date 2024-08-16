@@ -1,299 +1,248 @@
 name: Publich
-
-on:
+'on':
   push:
-    branches: [ "master" ]
-
+    branches:
+      - master
 jobs:
   build:
-
     runs-on: windows-latest
-
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: setup node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '16'
-
-    - name: setup dotnet7
-      uses: actions/setup-dotnet@v2
-      env:
-          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
-      with:
-        dotnet-version: 7.0.x
-
-    - name: setup dotnet8
-      uses: actions/setup-dotnet@v2
-      env:
-          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
-      with:
-        dotnet-version: 8.0.x
-    - name: setup msbuild
-      uses: microsoft/setup-msbuild@v2
-      with:
-        msbuild-architecture: x64
-  
-    - name: publish projects
-      run: ./publish.bat
-
-    - name: get current date
-      id: date
-      run: echo "::set-output name=today::$(date +'%Y-%m-%d')"
-    
-    - name: create release
-      id: create_release
-      uses: GongT/actions-recreate-release@v1
-      env:
-          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
-      with:
-        tag_name: v1.2.0.7
-        release_name: v1.2.0.7.${{ steps.date.outputs.today }}
-        draft: false
-        prerelease: false
-        body: |
-          1. 优化重启系统后网卡自动启动逻辑
-          2. Web UI 优化
-
-    - name: upload win x86 oss
-      id: upload-win-x86-oss
-      uses: tvrcgo/oss-action@v0.1.1
-      with:
-        region: oss-cn-shenzhen
-        key-id: '${{ secrets.ALIYUN_OSS_ID }}'
-        key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
-        bucket: ide-qbcode
-        asset-path: ./public/publish-zip/linker-win-x86.zip
-        target-path: /downloads/linker/v1.2.0.7/linker-win-x86.zip
-
-    - name: upload win x86
-      id: upload-win-x86
-      uses: actions/upload-release-asset@master
-      env:
-          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/linker-win-x86.zip
-        asset_name: linker-win-x86.zip
-        asset_content_type: application/zip
-
-    - name: upload win x64 oss
-      id: upload-win-x64-oss
-      uses: tvrcgo/oss-action@v0.1.1
-      with:
-        region: oss-cn-shenzhen
-        key-id: '${{ secrets.ALIYUN_OSS_ID }}'
-        key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
-        bucket: ide-qbcode
-        asset-path: ./public/publish-zip/linker-win-x64.zip
-        target-path: /downloads/linker/v1.2.0.7/linker-win-x64.zip
-
-    - name: upload win x64
-      id: upload-win-x64
-      uses: actions/upload-release-asset@master
-      env:
-          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/linker-win-x64.zip
-        asset_name: linker-win-x64.zip
-        asset_content_type: application/zip
-
-    - name: upload win arm64 oss
-      id: upload-win-arm64-oss
-      uses: tvrcgo/oss-action@v0.1.1
-      with:
-        region: oss-cn-shenzhen
-        key-id: '${{ secrets.ALIYUN_OSS_ID }}'
-        key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
-        bucket: ide-qbcode
-        asset-path: ./public/publish-zip/linker-win-arm64.zip
-        target-path: /downloads/linker/v1.2.0.7/linker-win-arm64.zip
-
-    - name: upload win arm64
-      id: upload-win-arm64
-      uses: actions/upload-release-asset@master
-      env:
-          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/linker-win-arm64.zip
-        asset_name: linker-win-arm64.zip
-        asset_content_type: application/zip
-
-    - name: upload linux x64 oss
-      id: upload-linux-x64-oss
-      uses: tvrcgo/oss-action@v0.1.1
-      with:
-        region: oss-cn-shenzhen
-        key-id: '${{ secrets.ALIYUN_OSS_ID }}'
-        key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
-        bucket: ide-qbcode
-        asset-path: ./public/publish-zip/linker-linux-x64.zip
-        target-path: /downloads/linker/v1.2.0.7/linker-linux-x64.zip
-
-    - name: upload linux x64
-      id: upload-linux-x64
-      uses: actions/upload-release-asset@master
-      env:
-          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/linker-linux-x64.zip
-        asset_name: linker-linux-x64.zip
-        asset_content_type: application/zip
-
-    - name: upload linux arm oss
-      id: upload-linux-arm-oss
-      uses: tvrcgo/oss-action@v0.1.1
-      with:
-        region: oss-cn-shenzhen
-        key-id: '${{ secrets.ALIYUN_OSS_ID }}'
-        key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
-        bucket: ide-qbcode
-        asset-path: ./public/publish-zip/linker-linux-arm.zip
-        target-path: /downloads/linker/v1.2.0.7/linker-linux-arm.zip
-
-    - name: upload linux arm
-      id: upload-linux-arm
-      uses: actions/upload-release-asset@master
-      env:
-          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/linker-linux-arm.zip
-        asset_name: linker-linux-arm.zip
-        asset_content_type: application/zip
-
-    - name: upload linux arm64 oss
-      id: upload-linux-arm64-oss
-      uses: tvrcgo/oss-action@v0.1.1
-      with:
-        region: oss-cn-shenzhen
-        key-id: '${{ secrets.ALIYUN_OSS_ID }}'
-        key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
-        bucket: ide-qbcode
-        asset-path: ./public/publish-zip/linker-linux-arm64.zip
-        target-path: /downloads/linker/v1.2.0.7/linker-linux-arm64.zip
-
-    - name: upload linux arm64
-      id: upload-linux-arm64
-      uses: actions/upload-release-asset@master
-      env:
-          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/linker-linux-arm64.zip
-        asset_name: linker-linux-arm64.zip
-        asset_content_type: application/zip
-
-    - name: upload linux musl x64 oss
-      id: upload-linux-musl-x64-oss
-      uses: tvrcgo/oss-action@v0.1.1
-      with:
-        region: oss-cn-shenzhen
-        key-id: '${{ secrets.ALIYUN_OSS_ID }}'
-        key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
-        bucket: ide-qbcode
-        asset-path: ./public/publish-zip/linker-linux-musl-x64.zip
-        target-path: /downloads/linker/v1.2.0.7/linker-linux-musl-x64.zip
-
-    - name: upload linux musl x64
-      id: upload-linux-musl-x64
-      uses: actions/upload-release-asset@master
-      env:
-          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/linker-linux-musl-x64.zip
-        asset_name: linker-linux-musl-x64.zip
-        asset_content_type: application/zip
-
-    - name: upload linux musl arm oss
-      id: upload-linux-musl-arm-oss
-      uses: tvrcgo/oss-action@v0.1.1
-      with:
-        region: oss-cn-shenzhen
-        key-id: '${{ secrets.ALIYUN_OSS_ID }}'
-        key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
-        bucket: ide-qbcode
-        asset-path: ./public/publish-zip/linker-linux-musl-arm.zip
-        target-path: /downloads/linker/v1.2.0.7/linker-linux-musl-arm.zip
-
-    - name: upload linux musl arm
-      id: upload-linux-musl-arm
-      uses: actions/upload-release-asset@master
-      env:
-          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/linker-linux-musl-arm.zip
-        asset_name: linker-linux-musl-arm.zip
-        asset_content_type: application/zip
-
-    - name: upload linux musl arm64 oss
-      id: upload-linux-musl-arm64-oss
-      uses: tvrcgo/oss-action@v0.1.1
-      with:
-        region: oss-cn-shenzhen
-        key-id: '${{ secrets.ALIYUN_OSS_ID }}'
-        key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
-        bucket: ide-qbcode
-        asset-path: ./public/publish-zip/linker-linux-musl-arm64.zip
-        target-path: /downloads/linker/v1.2.0.7/linker-linux-musl-arm64.zip
-
-    - name: upload linux musl arm64
-      id: upload-linux-musl-arm64
-      uses: actions/upload-release-asset@master
-      env:
-          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/linker-linux-musl-arm64.zip
-        asset_name: linker-linux-musl-arm64.zip
-        asset_content_type: application/zip
-
-    - name: upload osx x64 oss
-      id: upload-osx-x64-oss
-      uses: tvrcgo/oss-action@v0.1.1
-      with:
-        region: oss-cn-shenzhen
-        key-id: '${{ secrets.ALIYUN_OSS_ID }}'
-        key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
-        bucket: ide-qbcode
-        asset-path: ./public/publish-zip/linker-osx-x64.zip
-        target-path: /downloads/linker/v1.2.0.7/linker-osx-x64.zip
-
-    - name: upload osx x64
-      id: upload-osx-x64
-      uses: actions/upload-release-asset@master
-      env:
-          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/linker-osx-x64.zip
-        asset_name: linker-osx-x64.zip
-        asset_content_type: application/zip
-
-    - name: upload osx arm64 oss
-      id: upload-osx-arm64-oss
-      uses: tvrcgo/oss-action@v0.1.1
-      with:
-        region: oss-cn-shenzhen
-        key-id: '${{ secrets.ALIYUN_OSS_ID }}'
-        key-secret: '${{ secrets.ALIYUN_OSS_SECRET }}'
-        bucket: ide-qbcode
-        asset-path: ./public/publish-zip/linker-osx-arm64.zip
-        target-path: /downloads/linker/v1.2.0.7/linker-osx-arm64.zip
-
-    - name: upload osx arm64
-      id: upload-osx-arm64
-      uses: actions/upload-release-asset@master
-      env:
-          GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./public/publish-zip/linker-osx-arm64.zip
-        asset_name: linker-osx-arm64.zip
-        asset_content_type: application/zip
+      - uses: actions/checkout@v3
+      - name: setup node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+      - name: setup dotnet8
+        uses: actions/setup-dotnet@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        with:
+          dotnet-version: 8.0.x
+      - name: setup msbuild
+        uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
+      - name: publish projects
+        run: ./publish.bat
+      - name: get current date
+        id: date
+        run: echo "::set-output name=today::$(date +'%Y-%m-%d')"
+      - name: create release
+        id: create_release
+        uses: GongT/actions-recreate-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        with:
+          tag_name: v1.2.0.7
+          release_name: v1.2.0.7.${steps.date.outputs.today}
+          draft: false
+          prerelease: false
+          body: 1. 测试，不要更新
+      - name: upload-win-x86-oss
+        id: upload-win-x86-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/publish-zip/linker-win-x86.zip
+          target-path: /downloads/linker/v1.2.0.7/linker-win-x86.zip
+      - name: upload-win-x86
+        id: upload-win-x86
+        uses: actions/upload-release-asset@master
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: /public/publish-zip/linker-win-x86.zip
+          asset_name: linker-win-x86.zip
+          asset_content_type: application/zip
+      - name: upload-win-x64-oss
+        id: upload-win-x64-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/publish-zip/linker-win-x64.zip
+          target-path: /downloads/linker/v1.2.0.7/linker-win-x64.zip
+      - name: upload-win-x64
+        id: upload-win-x64
+        uses: actions/upload-release-asset@master
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: /public/publish-zip/linker-win-x64.zip
+          asset_name: linker-win-x64.zip
+          asset_content_type: application/zip
+      - name: upload-win-arm64-oss
+        id: upload-win-arm64-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/publish-zip/linker-win-arm64.zip
+          target-path: /downloads/linker/v1.2.0.7/linker-win-arm64.zip
+      - name: upload-win-arm64
+        id: upload-win-arm64
+        uses: actions/upload-release-asset@master
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: /public/publish-zip/linker-win-arm64.zip
+          asset_name: linker-win-arm64.zip
+          asset_content_type: application/zip
+      - name: upload-linux-x64-oss
+        id: upload-linux-x64-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/publish-zip/linker-linux-x64.zip
+          target-path: /downloads/linker/v1.2.0.7/linker-linux-x64.zip
+      - name: upload-linux-x64
+        id: upload-linux-x64
+        uses: actions/upload-release-asset@master
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: /public/publish-zip/linker-linux-x64.zip
+          asset_name: linker-linux-x64.zip
+          asset_content_type: application/zip
+      - name: upload-linux-arm-oss
+        id: upload-linux-arm-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/publish-zip/linker-linux-arm.zip
+          target-path: /downloads/linker/v1.2.0.7/linker-linux-arm.zip
+      - name: upload-linux-arm
+        id: upload-linux-arm
+        uses: actions/upload-release-asset@master
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: /public/publish-zip/linker-linux-arm.zip
+          asset_name: linker-linux-arm.zip
+          asset_content_type: application/zip
+      - name: upload-linux-arm64-oss
+        id: upload-linux-arm64-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/publish-zip/linker-linux-arm64.zip
+          target-path: /downloads/linker/v1.2.0.7/linker-linux-arm64.zip
+      - name: upload-linux-arm64
+        id: upload-linux-arm64
+        uses: actions/upload-release-asset@master
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: /public/publish-zip/linker-linux-arm64.zip
+          asset_name: linker-linux-arm64.zip
+          asset_content_type: application/zip
+      - name: upload-linux-musl-x64-oss
+        id: upload-linux-musl-x64-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/publish-zip/linker-linux-musl-x64.zip
+          target-path: /downloads/linker/v1.2.0.7/linker-linux-musl-x64.zip
+      - name: upload-linux-musl-x64
+        id: upload-linux-musl-x64
+        uses: actions/upload-release-asset@master
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: /public/publish-zip/linker-linux-musl-x64.zip
+          asset_name: linker-linux-musl-x64.zip
+          asset_content_type: application/zip
+      - name: upload-linux-musl-arm-oss
+        id: upload-linux-musl-arm-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/publish-zip/linker-linux-musl-arm.zip
+          target-path: /downloads/linker/v1.2.0.7/linker-linux-musl-arm.zip
+      - name: upload-linux-musl-arm
+        id: upload-linux-musl-arm
+        uses: actions/upload-release-asset@master
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: /public/publish-zip/linker-linux-musl-arm.zip
+          asset_name: linker-linux-musl-arm.zip
+          asset_content_type: application/zip
+      - name: upload-linux-musl-arm64-oss
+        id: upload-linux-musl-arm64-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/publish-zip/linker-linux-musl-arm64.zip
+          target-path: /downloads/linker/v1.2.0.7/linker-linux-musl-arm64.zip
+      - name: upload-linux-musl-arm64
+        id: upload-linux-musl-arm64
+        uses: actions/upload-release-asset@master
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: /public/publish-zip/linker-linux-musl-arm64.zip
+          asset_name: linker-linux-musl-arm64.zip
+          asset_content_type: application/zip
+      - name: upload-osx-x64-oss
+        id: upload-osx-x64-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/publish-zip/linker-osx-x64.zip
+          target-path: /downloads/linker/v1.2.0.7/linker-osx-x64.zip
+      - name: upload-osx-x64
+        id: upload-osx-x64
+        uses: actions/upload-release-asset@master
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: /public/publish-zip/linker-osx-x64.zip
+          asset_name: linker-osx-x64.zip
+          asset_content_type: application/zip
+      - name: upload-osx-arm64-oss
+        id: upload-osx-arm64-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/publish-zip/linker-osx-arm64.zip
+          target-path: /downloads/linker/v1.2.0.7/linker-osx-arm64.zip
+      - name: upload-osx-arm64
+        id: upload-osx-arm64
+        uses: actions/upload-release-asset@master
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: /public/publish-zip/linker-osx-arm64.zip
+          asset_name: linker-osx-arm64.zip
+          asset_content_type: application/zip
+      - name: upload-version-oss
+        id: upload-version-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/version.txt
+          target-path: /downloads/linker/version.txt

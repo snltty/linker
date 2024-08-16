@@ -1,4 +1,5 @@
-﻿using MemoryPack;
+﻿using linker.libs;
+using MemoryPack;
 
 
 namespace linker.client.config
@@ -8,11 +9,20 @@ namespace linker.client.config
         /// <summary>
         /// 自动更新密钥
         /// </summary>
-        public string UpdaterSecretKey { get; set; } = "snltty";
+        public string UpdaterSecretKey { get; set; } = Helper.GlobalString;
     }
 
 }
 
+
+
+namespace linker.config
+{
+    public sealed partial class ConfigCommonInfo
+    {
+        public string UpdateUrl { get; set; } = "https://static.qbcode.cn/downloads/linker";
+    }
+}
 
 namespace linker.plugins.updater.config
 {

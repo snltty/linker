@@ -1,4 +1,5 @@
-﻿using linker.libs;
+﻿using linker.config;
+using linker.libs;
 using MemoryPack;
 using System.Diagnostics;
 using System.IO.Compression;
@@ -13,8 +14,10 @@ namespace linker.plugins.updater
     {
         private string[] extractExcludeFiles = [];
 
-        public UpdaterHelper()
+        private readonly FileConfig fileConfig;
+        public UpdaterHelper(FileConfig fileConfig)
         {
+            this.fileConfig = fileConfig;
             ClearFiles();
         }
 
@@ -82,7 +85,7 @@ namespace linker.plugins.updater
                 }
                 sb.Append(RuntimeInformation.ProcessArchitecture.ToString().ToLower());
 
-                string url = $"https://static.qbcode.cn/downloads/linker/{version}/{sb.ToString()}.zip";
+                string url = $"{fileConfig.Data.Common.UpdateUrl}/{version}/{sb.ToString()}.zip";
 
                 using HttpClient httpClient = new HttpClient();
                 using HttpResponseMessage response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
