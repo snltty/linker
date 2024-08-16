@@ -53,7 +53,7 @@ jobs:
         uses: actions/upload-release-asset@master
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /public/publish-zip/linker-win-x86.zip
+          asset_path: ./public/publish-zip/linker-win-x86.zip
           asset_name: linker-win-x86.zip
           asset_content_type: application/zip
       - name: upload-win-x64-oss
@@ -71,7 +71,7 @@ jobs:
         uses: actions/upload-release-asset@master
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /public/publish-zip/linker-win-x64.zip
+          asset_path: ./public/publish-zip/linker-win-x64.zip
           asset_name: linker-win-x64.zip
           asset_content_type: application/zip
       - name: upload-win-arm64-oss
@@ -89,7 +89,7 @@ jobs:
         uses: actions/upload-release-asset@master
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /public/publish-zip/linker-win-arm64.zip
+          asset_path: ./public/publish-zip/linker-win-arm64.zip
           asset_name: linker-win-arm64.zip
           asset_content_type: application/zip
       - name: upload-linux-x64-oss
@@ -107,7 +107,7 @@ jobs:
         uses: actions/upload-release-asset@master
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /public/publish-zip/linker-linux-x64.zip
+          asset_path: ./public/publish-zip/linker-linux-x64.zip
           asset_name: linker-linux-x64.zip
           asset_content_type: application/zip
       - name: upload-linux-arm-oss
@@ -125,7 +125,7 @@ jobs:
         uses: actions/upload-release-asset@master
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /public/publish-zip/linker-linux-arm.zip
+          asset_path: ./public/publish-zip/linker-linux-arm.zip
           asset_name: linker-linux-arm.zip
           asset_content_type: application/zip
       - name: upload-linux-arm64-oss
@@ -143,7 +143,7 @@ jobs:
         uses: actions/upload-release-asset@master
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /public/publish-zip/linker-linux-arm64.zip
+          asset_path: ./public/publish-zip/linker-linux-arm64.zip
           asset_name: linker-linux-arm64.zip
           asset_content_type: application/zip
       - name: upload-linux-musl-x64-oss
@@ -161,7 +161,7 @@ jobs:
         uses: actions/upload-release-asset@master
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /public/publish-zip/linker-linux-musl-x64.zip
+          asset_path: ./public/publish-zip/linker-linux-musl-x64.zip
           asset_name: linker-linux-musl-x64.zip
           asset_content_type: application/zip
       - name: upload-linux-musl-arm-oss
@@ -179,7 +179,7 @@ jobs:
         uses: actions/upload-release-asset@master
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /public/publish-zip/linker-linux-musl-arm.zip
+          asset_path: ./public/publish-zip/linker-linux-musl-arm.zip
           asset_name: linker-linux-musl-arm.zip
           asset_content_type: application/zip
       - name: upload-linux-musl-arm64-oss
@@ -197,7 +197,7 @@ jobs:
         uses: actions/upload-release-asset@master
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /public/publish-zip/linker-linux-musl-arm64.zip
+          asset_path: ./public/publish-zip/linker-linux-musl-arm64.zip
           asset_name: linker-linux-musl-arm64.zip
           asset_content_type: application/zip
       - name: upload-osx-x64-oss
@@ -215,7 +215,7 @@ jobs:
         uses: actions/upload-release-asset@master
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /public/publish-zip/linker-osx-x64.zip
+          asset_path: ./public/publish-zip/linker-osx-x64.zip
           asset_name: linker-osx-x64.zip
           asset_content_type: application/zip
       - name: upload-osx-arm64-oss
@@ -233,7 +233,7 @@ jobs:
         uses: actions/upload-release-asset@master
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /public/publish-zip/linker-osx-arm64.zip
+          asset_path: ./public/publish-zip/linker-osx-arm64.zip
           asset_name: linker-osx-arm64.zip
           asset_content_type: application/zip
       - name: upload-version-oss
