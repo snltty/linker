@@ -27,7 +27,7 @@
                     <span title="此设备的外网IP端口" class="ipaddress"><span>{{ scope.row.IP }}</span> <el-icon @click="scope.row.showip=flase"><View /></el-icon></span>
                 </template>
                 <template v-else>
-                    <span title="此设备的外网IP端口" class="ipaddress"><span>{{ scope.row.IP.replace(/(\d+\.\d+\.\d+\.\d+)/,'***.***.***.***') }}</span> <el-icon @click="scope.row.showip=true"><Hide /></el-icon></span>
+                    <span title="此设备的外网IP端口" class="ipaddress"><span>{{ scope.row.IP1 }}</span> <el-icon @click="scope.row.showip=true"><Hide /></el-icon></span>
                 </template>
                 <span class="flex-1"></span>
                 <a href="javascript:;" class="download" @click="handleUpdate(scope.row)" :title="updateText(scope.row)" :class="updateColor(scope.row)">

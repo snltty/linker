@@ -16,12 +16,14 @@ export const provideUpdater = () => {
             getUpdater().then((res) => {
                 const self = Object.values(res).filter(c => !!c.Version)[0];
                 if (self) {
-                    updater.value.current.DateTime = self.DateTime;
-                    updater.value.current.Version = self.Version;
-                    updater.value.current.Status = self.Status;
-                    updater.value.current.Length = self.Length;
-                    updater.value.current.Current = self.Current;
-                    updater.value.current.Msg = self.Msg;
+                    Object.assign(updater.value.current, {
+                        DateTime: self.DateTime,
+                        Version: self.Version,
+                        Status: self.Status,
+                        Length: self.Length,
+                        Current: self.Current,
+                        Msg: self.Msg,
+                    });
                 }
                 updater.value.list = res;
                 updater.value.timer = setTimeout(_getUpdater, 800);

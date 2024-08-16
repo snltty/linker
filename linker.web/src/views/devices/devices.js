@@ -26,10 +26,13 @@ export const provideDevices = () => {
             devices.page.Request = res.Request;
             devices.page.Count = res.Count;
             for (let j in res.List) {
-                res.List[j].showDel = machineId.value != res.List[j].MachineId && res.List[j].Connected == false;
-                res.List[j].showReboot = res.List[j].Connected;
-                res.List[j].isSelf = machineId.value == res.List[j].MachineId;
-                res.List[j].showip = false;
+                Object.assign(res.List[j], {
+                    showDel: machineId.value != res.List[j].MachineId && res.List[j].Connected == false,
+                    showReboot: res.List[j].Connected,
+                    isSelf: machineId.value == res.List[j].MachineId,
+                    showip: false,
+                    IP1: res.List[j].IP.replace(/(\d+\.\d+\.\d+\.\d+)/, '***.***.***.***'),
+                });
             }
             devices.page.List = res.List;
             for (let i = 0; i < devices.page.List.length; i++) {
@@ -43,13 +46,15 @@ export const provideDevices = () => {
                 for (let j in res.List) {
                     const item = devices.page.List.filter(c => c.MachineId == res.List[j].MachineId)[0];
                     if (item) {
-                        item.Connected = res.List[j].Connected;
-                        item.Version = res.List[j].Version;
-                        item.LastSignIn = res.List[j].LastSignIn;
-                        item.Args = res.List[j].Args;
-                        item.showDel = machineId.value != res.List[j].MachineId && res.List[j].Connected == false;
-                        item.showReboot = res.List[j].Connected;
-                        item.isSelf = machineId.value == res.List[j].MachineId;
+                        Object.assign(item, {
+                            Connected: res.List[j].Connected,
+                            Version: res.List[j].Version,
+                            LastSignIn: res.List[j].LastSignIn,
+                            Args: res.List[j].Args,
+                            showDel: machineId.value != res.List[j].MachineId && res.List[j].Connected == false,
+                            showReboot: res.List[j].Connected,
+                            isSelf: machineId.value == res.List[j].MachineId,
+                        });
                     }
                 }
                 devices.timer = setTimeout(_getSignList1, 5000);

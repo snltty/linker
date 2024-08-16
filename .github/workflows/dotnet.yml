@@ -37,7 +37,7 @@ jobs:
           release_name: v1.2.0.7.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 测试，不要更新\r\n2. 测试上传oss"
+          body: "1. 修复重启设备启动重启网卡失败BUG\r\n2. 更改更新服务器\r\n3. 修复管理页面内存溢出导致页面崩溃的BUG"
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
         uses: tvrcgo/oss-action@v0.1.1

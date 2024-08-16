@@ -20,8 +20,9 @@
 		<Version>1.2.0</Version>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 测试，不要更新
-2. 测试上传oss</Description>
+		<Description>1. 修复重启设备启动重启网卡失败BUG
+2. 更改更新服务器
+3. 修复管理页面内存溢出导致页面崩溃的BUG</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
