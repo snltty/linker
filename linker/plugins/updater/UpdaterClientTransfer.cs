@@ -120,7 +120,7 @@ namespace linker.plugins.updater
                 while (true)
                 {
                     await updaterHelper.GetUpdateInfo(updateInfo);
-                    await Task.Delay(60000);
+                    await Task.Delay(15000);
                 }
             });
         }
