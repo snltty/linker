@@ -6,8 +6,8 @@ export const getSForwardSecretKey = () => {
 export const setSForwardSecretKey = (data) => {
     return sendWebsocketMsg('sforwardclient/SetSecretKey', data);
 }
-export const getSForwardInfo = () => {
-    return sendWebsocketMsg('sforwardclient/get');
+export const getSForwardInfo = (hashcode = '0') => {
+    return sendWebsocketMsg('sforwardclient/get', hashcode);
 }
 export const getSForwardRemoteInfo = (data) => {
     return sendWebsocketMsg('sforwardclient/getremote', data);

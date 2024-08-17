@@ -60,7 +60,7 @@ export const provideTuntap = () => {
                 tuntap.value.timer = setTimeout(_getTuntapInfo, 1100);
             });
         } else {
-            tuntap.value.timer = setTimeout(_getTuntapInfo, 1000);
+            tuntap.value.timer = setTimeout(_getTuntapInfo, 50);
         }
     }
     const handleTuntapEdit = (_tuntap) => {

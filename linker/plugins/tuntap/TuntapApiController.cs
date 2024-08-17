@@ -30,9 +30,18 @@ namespace linker.plugins.tuntap
             this.tuntapProxy = tuntapProxy;
         }
 
-        public ConcurrentDictionary<string, ITunnelConnection> Connections(ApiControllerParamsInfo param)
+        public ConnectionListInfo Connections(ApiControllerParamsInfo param)
         {
-            return tuntapProxy.GetConnections();
+            ulong hashCode = ulong.Parse(param.Content);
+            if (tuntapProxy.Version.Eq(hashCode, out ulong version) == false)
+            {
+                return new ConnectionListInfo
+                {
+                    List = tuntapProxy.GetConnections(),
+                    HashCode = version
+                };
+            }
+            return new ConnectionListInfo { HashCode = version };
         }
         public void RemoveConnection(ApiControllerParamsInfo param)
         {
@@ -47,7 +56,7 @@ namespace linker.plugins.tuntap
         public TuntabListInfo Get(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);
-            if (tuntapTransfer.Version.Eq(hashCode, out ulong version))
+            if (tuntapTransfer.Version.Eq(hashCode, out ulong version) == false)
             {
                 return new TuntabListInfo
                 {
@@ -147,6 +156,12 @@ namespace linker.plugins.tuntap
         public sealed class TuntabListInfo
         {
             public ConcurrentDictionary<string, TuntapInfo> List { get; set; }
+            public ulong HashCode { get; set; }
+        }
+
+        public sealed class ConnectionListInfo
+        {
+            public ConcurrentDictionary<string, ITunnelConnection> List { get; set; }
             public ulong HashCode { get; set; }
         }
     }

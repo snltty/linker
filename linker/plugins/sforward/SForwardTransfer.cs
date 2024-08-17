@@ -22,6 +22,8 @@ namespace linker.plugins.sforward
 
         private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
 
+        public VersionManager Version { get; } = new VersionManager();
+
         public SForwardTransfer(RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, RunningConfigTransfer runningConfigTransfer)
         {
             this.running = running;
@@ -74,6 +76,7 @@ namespace linker.plugins.sforward
                 {
                     Stop(item);
                 }
+               
             }
         }
         private void Start(SForwardInfo forwardInfo)
@@ -115,6 +118,7 @@ namespace linker.plugins.sforward
                     LoggerHelper.Instance.Error(ex);
                 }
             }
+            Version.Add();
         }
         private void Stop(SForwardInfo forwardInfo)
         {
@@ -151,6 +155,7 @@ namespace linker.plugins.sforward
             {
                 LoggerHelper.Instance.Error(ex);
             }
+            Version.Add();
         }
 
         bool testing = false;
@@ -174,6 +179,7 @@ namespace linker.plugins.sforward
                             forward.LocalMsg = item.Item2;
                         }
                     }
+                    Version.Add();
                 }
                 catch (Exception)
                 {
@@ -247,9 +253,12 @@ namespace linker.plugins.sforward
             if (old == null) return false;
 
             old.Started = false;
-            Start();
+           
             running.Data.SForwards.Remove(old);
             running.Data.Update();
+
+            Start();
+
             return true;
         }
 

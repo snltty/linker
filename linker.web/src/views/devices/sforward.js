@@ -12,13 +12,17 @@ export const provideSforward = () => {
         showEdit: false,
         showCopy: false,
         list: [],
-        testTimer: 0
+        testTimer: 0,
+        hashcode: 0,
     });
     provide(sforwardSymbol, sforward);
     const _getSForwardInfo = () => {
         if (globalData.value.api.connected) {
-            getSForwardInfo().then((res) => {
-                sforward.value.list = res;
+            getSForwardInfo(sforward.value.hashcode.toString()).then((res) => {
+                sforward.value.hashcode = res.HashCode;
+                if (res.List) {
+                    sforward.value.list = res.List;
+                }
                 sforward.value.timer = setTimeout(_getSForwardInfo, 1040);
             }).catch(() => {
                 sforward.value.timer = setTimeout(_getSForwardInfo, 1040);

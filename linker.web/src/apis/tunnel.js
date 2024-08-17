@@ -7,7 +7,7 @@ export const setTunnelServers = (servers) => {
     return sendWebsocketMsg('tunnel/SetServers', servers);
 }
 
-export const getTunnelInfo = (hashcode) => {
+export const getTunnelInfo = (hashcode = '0') => {
     return sendWebsocketMsg('tunnel/get', hashcode);
 }
 export const refreshTunnel = () => {

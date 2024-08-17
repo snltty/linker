@@ -28,6 +28,7 @@ namespace linker.plugins.tuntap.proxy
         private readonly ConcurrentDictionary<uint, ITunnelConnection> ipConnections = new ConcurrentDictionary<uint, ITunnelConnection>();
 
         private readonly OperatingMultipleManager operatingMultipleManager = new OperatingMultipleManager();
+        public VersionManager Version { get; } = new VersionManager();
 
         public TuntapProxy(TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, RunningConfig runningConfig, FileConfig config, LinkerTunDeviceAdapter linkerTunDeviceAdapter, ClientSignInTransfer clientSignInTransfer)
         {
@@ -61,6 +62,8 @@ namespace linker.plugins.tuntap.proxy
             connections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
 
             connection.BeginReceive(this, null);
+
+            Version.Add();
         }
         public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer, object state)
         {
@@ -69,6 +72,7 @@ namespace linker.plugins.tuntap.proxy
         }
         public async Task Closed(ITunnelConnection connection, object state)
         {
+            Version.Add();
             await Task.CompletedTask;
         }
 
@@ -237,6 +241,7 @@ namespace linker.plugins.tuntap.proxy
                 catch (Exception)
                 {
                 }
+                Version.Add();
             }
         }
 

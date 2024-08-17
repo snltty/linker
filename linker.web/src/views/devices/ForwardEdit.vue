@@ -148,7 +148,10 @@ export default {
 
         const _getForwardInfo = () => {
             getForwardInfo().then((res) => {
-                state.data = res[state.machineId] || [];
+                if( res.List)
+                {
+                    state.data = res.List[state.machineId] || [];
+                }
             }).catch(() => {
             });
         }

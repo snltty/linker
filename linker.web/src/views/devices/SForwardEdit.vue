@@ -123,7 +123,7 @@ export default {
         }
         const _getSForwardInfo = () => {
             getSForwardInfo().then((res) => {
-                let arr = (res|| []);
+                let arr = (res.List|| []);
                 arr.forEach(c=>{
                     c.Temp = (c.Domain || c.RemotePort).toString();
                     c.RemotePort = 0;

@@ -47,7 +47,7 @@ namespace linker.plugins.tunnel
         public TunnelListInfo Get(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);
-            if (tunnelConfigTransfer.Version.Eq(hashCode,out ulong version))
+            if (tunnelConfigTransfer.Version.Eq(hashCode, out ulong version) == false)
             {
                 return new TunnelListInfo
                 {
@@ -83,7 +83,7 @@ namespace linker.plugins.tunnel
         public bool SetServers(ApiControllerParamsInfo param)
         {
             List<TunnelWanPortInfo> info = param.Content.DeJson<List<TunnelWanPortInfo>>();
-            tunnelMessengerAdapter.SetTunnelWanPortProtocols(info,true);
+            tunnelMessengerAdapter.SetTunnelWanPortProtocols(info, true);
             return true;
         }
         /// <summary>

@@ -18,7 +18,7 @@ namespace linker.plugins.forward.proxy
         private readonly RelayTransfer relayTransfer;
         private readonly ClientSignInTransfer clientSignInTransfer;
 
-        //private readonly OperatingMultipleManager operatingMultipleManager = new OperatingMultipleManager();
+        public VersionManager Version { get; } = new VersionManager();
 
         private readonly ConcurrentDictionary<int, ForwardProxyCacheInfo> caches = new ConcurrentDictionary<int, ForwardProxyCacheInfo>();
         private readonly ConcurrentDictionary<string, ITunnelConnection> connections = new ConcurrentDictionary<string, ITunnelConnection>();
@@ -49,6 +49,13 @@ namespace linker.plugins.forward.proxy
             //把隧道对象添加到缓存，方便下次直接获取
             connections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
             BindConnectionReceive(connection);
+
+            Version.Add();
+        }
+
+        protected override void TunnelClosed(ITunnelConnection connection, object userToken)
+        {
+            Version.Add();
         }
 
         /// <summary>
@@ -163,6 +170,7 @@ namespace linker.plugins.forward.proxy
             Stop(ep.Port);
             base.Start(ep, bufferSize);
             caches.TryAdd(LocalEndpoint.Port, new ForwardProxyCacheInfo { Port = LocalEndpoint.Port, TargetEP = targetEP, MachineId = machineId });
+            Version.Add();
         }
         public override void Stop(int port)
         {
@@ -170,6 +178,7 @@ namespace linker.plugins.forward.proxy
             {
                 base.Stop(port);
             }
+            Version.Add();
         }
 
         public ConcurrentDictionary<string, ITunnelConnection> GetConnections()
@@ -187,6 +196,7 @@ namespace linker.plugins.forward.proxy
                 catch (Exception)
                 {
                 }
+                Version.Add();
             }
         }
 

@@ -60,6 +60,7 @@ namespace linker.tunnel.proxy
         /// <returns></returns>
         public async Task Closed(ITunnelConnection connection, object userToken)
         {
+            TunnelClosed(connection, userToken);
             try
             {
                 CloseClientSocketTcp(connection);
@@ -72,6 +73,11 @@ namespace linker.tunnel.proxy
             }
             await Task.CompletedTask;
         }
+        protected virtual void TunnelClosed(ITunnelConnection connection, object userToken)
+        {
+        }
+
+
         /// <summary>
         /// 根据不同的消息类型做不同的事情
         /// </summary>

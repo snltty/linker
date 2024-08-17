@@ -23,7 +23,8 @@
 		<Description>1. 修复重启设备启动重启网卡失败BUG
 2. 更改更新服务器
 3. 修复管理页面内存溢出导致页面崩溃的BUG
-4. 修复linux添加NAT</Description>
+4. 修复linux添加NAT
+5. 减少管理页面渲染</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

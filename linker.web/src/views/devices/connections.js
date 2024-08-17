@@ -11,7 +11,9 @@ export const provideConnections = () => {
     const connections = ref({
         showEdit: false,
         speedCache: {},
-        current: ''
+        current: '',
+        hashcode: 0,
+        hashcode1: 0,
     });
     provide(connectionsSymbol, connections);
 
@@ -22,9 +24,13 @@ export const provideConnections = () => {
     provide(forwardConnectionsSymbol, forwardConnections);
     const _getForwardConnections = () => {
         if (globalData.value.api.connected) {
-            getForwardConnections().then((res) => {
-                parseConnections(res, removeForwardConnection);
-                forwardConnections.value.list = res;
+            getForwardConnections(connections.value.hashcode.toString()).then((res) => {
+                connections.value.hashcode = res.HashCode;
+                if (res.List) {
+                    parseConnections(res.List, removeForwardConnection);
+                    forwardConnections.value.list = res.List;
+                }
+
                 forwardConnections.value.timer = setTimeout(_getForwardConnections, 1000);
             }).catch((e) => {
                 forwardConnections.value.timer = setTimeout(_getForwardConnections, 1000);
@@ -40,9 +46,13 @@ export const provideConnections = () => {
     provide(tuntapConnectionsSymbol, tuntapConnections);
     const _getTuntapConnections = () => {
         if (globalData.value.api.connected) {
-            getTuntapConnections().then((res) => {
-                parseConnections(res, removeTuntapConnection);
-                tuntapConnections.value.list = res;
+            getTuntapConnections(connections.value.hashcode1.toString()).then((res) => {
+                connections.value.hashcode1 = res.HashCode;
+                if (res.List) {
+                    parseConnections(res.List, removeTuntapConnection);
+                    tuntapConnections.value.list = res.List;
+                }
+
                 tuntapConnections.value.timer = setTimeout(_getTuntapConnections, 1000);
             }).catch((e) => {
                 tuntapConnections.value.timer = setTimeout(_getTuntapConnections, 1000);

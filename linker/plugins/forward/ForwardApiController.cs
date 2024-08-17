@@ -21,6 +21,8 @@ namespace linker.plugins.forward
         private readonly MessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
 
+
+
         public ForwardClientApiController(ForwardTransfer forwardTransfer, ForwardProxy forwardProxy, MessengerSender messengerSender, ClientSignInState clientSignInState)
         {
             this.forwardTransfer = forwardTransfer;
@@ -29,9 +31,18 @@ namespace linker.plugins.forward
             this.clientSignInState = clientSignInState;
         }
 
-        public ConcurrentDictionary<string, ITunnelConnection> Connections(ApiControllerParamsInfo param)
+        public ConnectionListInfo Connections(ApiControllerParamsInfo param)
         {
-            return forwardProxy.GetConnections();
+            ulong hashCode = ulong.Parse(param.Content);
+            if (forwardProxy.Version.Eq(hashCode, out ulong version) == false)
+            {
+                return new ConnectionListInfo
+                {
+                    List = forwardProxy.GetConnections(),
+                    HashCode = version
+                };
+            }
+            return new ConnectionListInfo { HashCode = version };
         }
         public void RemoveConnection(ApiControllerParamsInfo param)
         {
@@ -51,9 +62,18 @@ namespace linker.plugins.forward
 
         }
 
-        public Dictionary<string, List<ForwardInfo>> Get(ApiControllerParamsInfo param)
+        public ForwardListInfo Get(ApiControllerParamsInfo param)
         {
-            return forwardTransfer.Get();
+            ulong hashCode = ulong.Parse(param.Content);
+            if (forwardTransfer.Version.Eq(hashCode, out ulong version) == false)
+            {
+                return new ForwardListInfo
+                {
+                    List = forwardTransfer.Get(),
+                    HashCode = version
+                };
+            }
+            return new ForwardListInfo { HashCode = version };
         }
         public async Task<List<ForwardRemoteInfo>> GetRemote(ApiControllerParamsInfo param)
         {
@@ -89,5 +109,16 @@ namespace linker.plugins.forward
             }
             return false;
         }
+    }
+
+    public sealed class ForwardListInfo
+    {
+        public Dictionary<string, List<ForwardInfo>> List { get; set; }
+        public ulong HashCode { get; set; }
+    }
+    public sealed class ConnectionListInfo
+    {
+        public ConcurrentDictionary<string, ITunnelConnection> List { get; set; }
+        public ulong HashCode { get; set; }
     }
 }

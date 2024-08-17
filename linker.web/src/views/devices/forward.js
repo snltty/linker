@@ -13,12 +13,17 @@ export const provideForward = () => {
         list: {},
         testTimer: 0,
         testTargetTimer: 0,
+        hashcode: 0,
+        hashcode1: 0,
     });
     provide(forwardSymbol, forward);
     const _getForwardInfo = () => {
         if (globalData.value.api.connected) {
-            getForwardInfo().then((res) => {
-                forward.value.list = res;
+            getForwardInfo(forward.value.hashcode.toString()).then((res) => {
+                forward.value.hashcode = res.HashCode;
+                if (res.List) {
+                    forward.value.list = res.List;
+                }
                 forward.value.timer = setTimeout(_getForwardInfo, 1020);
             }).catch(() => {
                 forward.value.timer = setTimeout(_getForwardInfo, 1020);

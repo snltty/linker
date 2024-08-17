@@ -134,7 +134,7 @@ namespace linker.libs.api
             }
             catch (Exception ex)
             {
-                LoggerHelper.Instance.Error(ex);
+                LoggerHelper.Instance.Error($"{model.Path} -> {ex.Message}");
                 return new ApiControllerResponseInfo
                 {
                     Content = ex.Message,

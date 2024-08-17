@@ -1,5 +1,6 @@
 ﻿using linker.client.config;
 using linker.config;
+using linker.libs;
 using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.plugins.updater.messenger;
@@ -21,6 +22,8 @@ namespace linker.plugins.updater
         private readonly RunningConfig running;
         private readonly RunningConfigTransfer runningConfigTransfer;
         private string configKey = "updater";
+
+        public VersionManager Version { get; } = new VersionManager();
 
         public UpdaterClientTransfer(FileConfig fileConfig, MessengerSender messengerSender, ClientSignInState clientSignInState, UpdaterHelper updaterHelper, RunningConfig running, RunningConfigTransfer runningConfigTransfer)
         {
@@ -88,6 +91,7 @@ namespace linker.plugins.updater
             if (string.IsNullOrWhiteSpace(info.MachineId) == false)
             {
                 updateInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
+                Version.Add();
             }
         }
 

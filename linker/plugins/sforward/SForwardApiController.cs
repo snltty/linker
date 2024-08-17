@@ -32,9 +32,18 @@ namespace linker.plugins.sforward
             forwardTransfer.SetSecretKey(param.Content);
         }
 
-        public List<SForwardInfo> Get(ApiControllerParamsInfo param)
+        public SForwardListInfo Get(ApiControllerParamsInfo param)
         {
-            return forwardTransfer.Get();
+            ulong hashCode = ulong.Parse(param.Content);
+            if (forwardTransfer.Version.Eq(hashCode, out ulong version) == false)
+            {
+                return new SForwardListInfo
+                {
+                    List = forwardTransfer.Get(),
+                    HashCode = version
+                };
+            }
+            return new SForwardListInfo { HashCode = version };
         }
         public async Task<List<SForwardRemoteInfo>> GetRemote(ApiControllerParamsInfo param)
         {
@@ -71,5 +80,11 @@ namespace linker.plugins.sforward
             return true;
         }
 
+    }
+
+    public sealed class SForwardListInfo
+    {
+        public List<SForwardInfo> List { get; set; }
+        public ulong HashCode { get; set; }
     }
 }

@@ -82,9 +82,19 @@ namespace linker.plugins.updater
         }
 
 
-        public ConcurrentDictionary<string, UpdateInfo> Get(ApiControllerParamsInfo param)
+        public UpdaterListInfo Get(ApiControllerParamsInfo param)
         {
-            return updaterTransfer.Get();
+            ulong hashCode = ulong.Parse(param.Content);
+            if (updaterTransfer.Version.Eq(hashCode, out ulong version) == false)
+            {
+                return new UpdaterListInfo
+                {
+                    List = updaterTransfer.Get(),
+                    HashCode = version
+                };
+            }
+            return new UpdaterListInfo { HashCode = version };
+
         }
         public async Task Confirm(ApiControllerParamsInfo param)
         {
@@ -120,5 +130,11 @@ namespace linker.plugins.updater
                 });
             }
         }
+    }
+
+    public sealed class UpdaterListInfo
+    {
+        public ConcurrentDictionary<string, UpdateInfo> List { get; set; }
+        public ulong HashCode { get; set; }
     }
 }

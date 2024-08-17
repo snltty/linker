@@ -153,7 +153,6 @@ export const sendWebsocketMsg = (path, msg = {}, errHandle = false, timeout = 15
                 ws.send(str);
             } else {
                 reject('网络错误~');
-                //queues.push(str);
             }
         } catch (e) {
             console.log(e);

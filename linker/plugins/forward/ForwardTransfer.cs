@@ -22,6 +22,8 @@ namespace linker.plugins.forward
 
         private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
 
+        public VersionManager Version { get; } = new VersionManager();
+
         public ForwardTransfer(RunningConfig running, ForwardProxy forwardProxy, ClientSignInState clientSignInState, MessengerSender messengerSender)
         {
             this.running = running;
@@ -89,6 +91,7 @@ namespace linker.plugins.forward
                     LoggerHelper.Instance.Error(ex);
                 }
             }
+            Version.Add();
         }
 
         private void Stop()
@@ -113,6 +116,7 @@ namespace linker.plugins.forward
             {
                 LoggerHelper.Instance.Error(ex);
             }
+            Version.Add();
         }
 
 
@@ -172,6 +176,7 @@ namespace linker.plugins.forward
             {
                 testingDic.TryRemove(machineId, out _);
             }
+            Version.Add();
         }
         public async Task<Dictionary<IPEndPoint, string>> Test(ForwardTestInfo forwardTestInfo)
         {
@@ -219,6 +224,7 @@ namespace linker.plugins.forward
                     Stop(forward);
                 }
             }
+            Version.Add();
         }
 
         public Dictionary<string, List<ForwardInfo>> Get()
@@ -263,10 +269,10 @@ namespace linker.plugins.forward
 
             old.Started = false;
 
-            Start();
-
             running.Data.Forwards.Remove(old);
             running.Data.Update();
+
+            Start();
 
             return true;
         }

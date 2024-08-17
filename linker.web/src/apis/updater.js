@@ -1,8 +1,8 @@
 import { sendWebsocketMsg } from './request'
 
 
-export const getUpdater = () => {
-    return sendWebsocketMsg('updaterclient/get');
+export const getUpdater = (hashcode = '0') => {
+    return sendWebsocketMsg('updaterclient/get', hashcode);
 }
 export const confirm = (data) => {
     return sendWebsocketMsg('updaterclient/confirm', data);
