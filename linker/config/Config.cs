@@ -134,7 +134,7 @@ namespace linker.config
         public ConfigCommonInfo Common { get; set; } = new ConfigCommonInfo();
 
         [JsonIgnore]
-        public string Version { get; set; } = $"v{Assembly.GetEntryAssembly().GetName().Version}";
+        public string Version { get; set; } = $"v{string.Join(".", Assembly.GetEntryAssembly().GetName().Version.ToString().Split('.').Take(3))}";
         [JsonIgnore]
         public bool Elevated { get; set; }
 
