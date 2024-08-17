@@ -133,6 +133,8 @@ namespace linker.tun
                 IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.MaskValue(prefixLength));
                 CommandHelper.Linux(string.Empty, new string[] {
                     $"sysctl -w net.ipv4.ip_forward=1",
+                    $"iptables -A FORWARD -i {Name} -j ACCEPT",
+                    $"iptables -A FORWARD -o {Name} -m state --state ESTABLISHED,RELATED -j ACCEPT",
                     $"iptables -t nat -A POSTROUTING ! -o {Name} -s {network}/{prefixLength} -j MASQUERADE",
                 });
             }
@@ -146,6 +148,11 @@ namespace linker.tun
             error = string.Empty;
             try
             {
+                CommandHelper.Linux(string.Empty, new string[] {
+                    $"iptables -D FORWARD -i {Name} -j ACCEPT",
+                    $"iptables -D FORWARD -o {Name} -m state --state ESTABLISHED,RELATED -j ACCEPT"
+                });
+
                 IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.MaskValue(prefixLength));
                 string iptableLineNumbers = CommandHelper.Linux(string.Empty, new string[] { $"iptables -t nat -L --line-numbers | grep {network}/{prefixLength} | cut -d' ' -f1" });
                 if (string.IsNullOrWhiteSpace(iptableLineNumbers) == false)
