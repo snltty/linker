@@ -123,6 +123,7 @@ namespace linker.plugins.tuntap
         /// <returns></returns>
         public async Task<bool> Update(ApiControllerParamsInfo param)
         {
+
             TuntapInfo info = param.Content.DeJson<TuntapInfo>();
             //更新自己的
             if (info.MachineId == config.Data.Client.Id)

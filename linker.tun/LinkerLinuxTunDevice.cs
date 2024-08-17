@@ -176,7 +176,7 @@ namespace linker.tun
                 };
 
             }).ToArray();
-            CommandHelper.Windows(string.Empty, commands);
+            CommandHelper.Linux(string.Empty, commands);
         }
         public void RemoveForward(List<LinkerTunDeviceForwardItem> forwards)
         {
@@ -191,7 +191,7 @@ namespace linker.tun
                 };
 
             }).ToArray();
-            CommandHelper.Windows(string.Empty, commands);
+            CommandHelper.Linux(string.Empty, commands);
         }
 
 

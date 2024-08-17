@@ -79,7 +79,7 @@ namespace linker.plugins.tuntap.messenger
         public async Task RunForward(IConnection connection)
         {
             string name = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(name, out SignCacheInfo cache))
+            if (signCaching.TryGet(name, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -99,7 +99,7 @@ namespace linker.plugins.tuntap.messenger
         public async Task StopForward(IConnection connection)
         {
             string name = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(name, out SignCacheInfo cache))
+            if (signCaching.TryGet(name, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -119,7 +119,7 @@ namespace linker.plugins.tuntap.messenger
         public async Task UpdateForward(IConnection connection)
         {
             TuntapInfo info = MemoryPackSerializer.Deserialize<TuntapInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cache))
+            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -156,7 +156,7 @@ namespace linker.plugins.tuntap.messenger
                     }));
                 }
 
-               
+
 
                 Task.WhenAll(tasks).ContinueWith(async (result) =>
                 {

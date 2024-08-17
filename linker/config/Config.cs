@@ -57,6 +57,7 @@ namespace linker.config
                     {
                         continue;
                     }
+                    if (File.Exists(item.Value.Path) == false) continue;
 
                     string text = File.ReadAllText(item.Value.Path);
                     if (string.IsNullOrWhiteSpace(text))
