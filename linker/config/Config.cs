@@ -135,6 +135,7 @@ namespace linker.config
 
         [JsonIgnore]
         public string Version { get; set; } = $"v{string.Join(".", Assembly.GetEntryAssembly().GetName().Version.ToString().Split('.').Take(3))}";
+
         [JsonIgnore]
         public bool Elevated { get; set; }
 
