@@ -29,22 +29,18 @@ export const provideTuntap = () => {
                 tuntap.value.hashcode = res.HashCode;
                 if (res.List) {
                     for (let j in res.List) {
-                        res.List[j].running = res.List[j].Status == 2;
-                        res.List[j].loading = res.List[j].Status == 1;
-                        res.List[j].system = 'debian';
 
+                        let system = 'system';
                         const systemStr = res.List[j].SystemInfo.toLowerCase();
-                        res.List[j].systemDocker = systemStr.indexOf('docker') >= 0;
-
                         for (let jj in systems) {
                             if (systemStr.indexOf(jj) >= 0) {
                                 const items = systems[jj];
                                 if (items.length == 1) {
-                                    res.List[j].system = items[0];
+                                    system = items[0];
                                 } else {
                                     for (let i = 0; i < items.length; i++) {
                                         if (systemStr.indexOf(items[i]) >= 0) {
-                                            res.List[j].system = items[i];
+                                            system = items[i];
                                             break;
                                         }
                                     }
@@ -52,6 +48,12 @@ export const provideTuntap = () => {
                                 break;
                             }
                         }
+                        Object.assign(res.List[j], {
+                            running: res.List[j].Status == 2,
+                            loading: res.List[j].Status == 1,
+                            system: system,
+                            systemDocker: systemStr.indexOf('docker') >= 0,
+                        });
                     }
                     tuntap.value.list = res.List;
                 }
