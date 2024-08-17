@@ -341,7 +341,7 @@ namespace linker.plugins.tuntap
         /// </summary>
         private void AddRoute()
         {
-            List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.ToList());
+            List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.Where(c => c.Status == TuntapStatus.Running).ToList());
             TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
             var items = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.MaskLength }).ToArray();
 

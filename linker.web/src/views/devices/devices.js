@@ -26,12 +26,12 @@ export const provideDevices = () => {
             devices.page.Request = res.Request;
             devices.page.Count = res.Count;
             for (let j in res.List) {
+                res.List[j].IP = res.List[j].IP.split(':')[0];
                 Object.assign(res.List[j], {
                     showDel: machineId.value != res.List[j].MachineId && res.List[j].Connected == false,
                     showReboot: res.List[j].Connected,
                     isSelf: machineId.value == res.List[j].MachineId,
-                    showip: false,
-                    IP1: res.List[j].IP.replace(/(\d+\.\d+\.\d+\.\d+)/, '***.***.***.***'),
+                    showip: false
                 });
             }
             devices.page.List = res.List;
