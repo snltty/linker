@@ -24,10 +24,10 @@
             </p>
             <p class="flex">
                 <template v-if="scope.row.showip">
-                    <span title="此设备的外网IP端口" class="ipaddress"><span>{{ scope.row.IP }}</span> <el-icon @click="scope.row.showip=flase"><View /></el-icon></span>
+                    <span title="此设备的外网IP" class="ipaddress" @click="scope.row.showip=!scope.row.showip"><span>😀{{ scope.row.IP }}</span></span>
                 </template>
                 <template v-else>
-                    <span title="此设备的外网IP端口" class="ipaddress"><span>***.***.***.***</span> <el-icon @click="scope.row.showip=true"><Hide /></el-icon></span>
+                    <span title="此设备的外网IP" class="ipaddress" @click="scope.row.showip=!scope.row.showip"><span>😴㊙.㊙.㊙.㊙</span></span>
                 </template>
                 <span class="flex-1"></span>
                 <a href="javascript:;" class="download" @click="handleUpdate(scope.row)" :title="updateText(scope.row)" :class="updateColor(scope.row)">
@@ -204,10 +204,6 @@ img.system{
     margin-right:.4rem
 }
 
-.ipaddress{
-    span,.el-icon{vertical-align:middle}
-}
-
 
 a.download{
     margin-left:.6rem
@@ -219,6 +215,9 @@ a.download{
 
         margin-left:.3rem
     }
+}
+.ipaddress{
+    span{vertical-align:middle}
 }
 
 .el-input{

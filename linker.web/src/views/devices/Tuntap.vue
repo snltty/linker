@@ -28,7 +28,7 @@
                         </div>
                     </template>
                     <template v-else>
-                        <el-switch v-model="tuntap.list[scope.row.MachineId].running" :loading="tuntap.list[scope.row.MachineId].loading" disabled @click="handleTuntap(tuntap.list[scope.row.MachineId])"  size="small" inline-prompt active-text="O" inactive-text="F" > 
+                        <el-switch v-model="tuntap.list[scope.row.MachineId].running" :loading="tuntap.list[scope.row.MachineId].loading" disabled @click="handleTuntap(tuntap.list[scope.row.MachineId])"  size="small" inline-prompt active-text="😀" inactive-text="😣" > 
                         </el-switch>
                     </template>
                 </div>
@@ -111,7 +111,7 @@ export default {
     from{transform:rotate(0deg)}
     to{transform:rotate(360deg)}
 }
-.el-icon.loading{
+.el-icon.loading,a.loading{
     vertical-align:middle;font-weight:bold;
     animation:loading 1s linear infinite;
 }
@@ -133,5 +133,8 @@ export default {
 }
 .delay{position: absolute;right:0;bottom:0;line-height:normal}
 
+.switch-btn{
+    font-size:1.5rem;
+}
 
 </style>
