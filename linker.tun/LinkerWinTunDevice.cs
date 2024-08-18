@@ -64,49 +64,60 @@ namespace linker.tun
             {
                 try
                 {
-                    WinTun.WintunGetAdapterLUID(adapter, out ulong luid);
-                    {
-                        WinTun.MIB_UNICASTIPADDRESS_ROW AddressRow = default;
-                        WinTun.InitializeUnicastIpAddressEntry(ref AddressRow);
-                        AddressRow.sin_family = 2;
-                        AddressRow.sin_addr = BinaryPrimitives.ReadUInt32LittleEndian(address.GetAddressBytes());
-                        AddressRow.OnLinkPrefixLength = prefixLength;
-                        AddressRow.DadState = 4;
-                        AddressRow.InterfaceLuid = luid;
-                        uint LastError = WinTun.CreateUnicastIpAddressEntry(ref AddressRow);
-                        if (LastError != 0) throw new InvalidOperationException();
-                    }
+                    AddIPV4();
+                    AddIPV6();
                     break;
                 }
                 catch (Exception)
                 {
                     Thread.Sleep(1000);
                 }
-                if(i == 4)
+                if (i == 4)
                 {
                     error = ($"Failed to set adapter ip {Marshal.GetLastWin32Error():x2}");
                     Shutdown();
                     return false;
                 }
             }
-            /*
-            {
-                MIB_IPFORWARD_ROW2 row = default;
-                InitializeIpForwardEntry(ref row);
-                row.InterfaceLuid = luid;
-                row.PrefixLength = 0;
-                row.si_family = 2;
-                row.NextHop_si_family = 2;
-                row.sin_addr = 0;
-                row.NextHop_sin_addr = BinaryPrimitives.ReadUInt32LittleEndian(gateway.GetAddressBytes());
-                uint LastError = CreateIpForwardEntry2(ref row);
-                if (LastError != 0) throw new InvalidOperationException();
-            }
-            */
             GetWindowsInterfaceNum();
             tokenSource = new CancellationTokenSource();
             return true;
         }
+
+        private void AddIPV4()
+        {
+            WinTun.WintunGetAdapterLUID(adapter, out ulong luid);
+            {
+                WinTun.MIB_UNICASTIPADDRESS_ROW AddressRow = default;
+                WinTun.InitializeUnicastIpAddressEntry(ref AddressRow);
+                AddressRow.sin_family = 2;
+                AddressRow.sin_addr = BinaryPrimitives.ReadUInt32LittleEndian(address.GetAddressBytes());
+                AddressRow.OnLinkPrefixLength = prefixLength;
+                AddressRow.DadState = 4;
+                AddressRow.InterfaceLuid = luid;
+                uint LastError = WinTun.CreateUnicastIpAddressEntry(ref AddressRow);
+                if (LastError != 0) throw new InvalidOperationException();
+            }
+        }
+        private void AddIPV6()
+        {
+            NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == Name);
+            if (networkInterface != null)
+            {
+                var commands = networkInterface.GetIPProperties()
+                    .UnicastAddresses
+                    .Where(c => c.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+                    .Select(c => new IPAddress(c.Address.GetAddressBytes(), 0))
+                    .Select(c => $"netsh interface ipv6 delete address \"{Name}\" address=\"{c}\"").ToList();
+
+                byte[] ipv6 = IPAddress.Parse("fe80::1818:1818:1818:1818").GetAddressBytes();
+                address.GetAddressBytes().CopyTo(ipv6, ipv6.Length - 4);
+                commands.Add($"netsh interface ipv6 add address \"{Name}\" address=\"{new IPAddress(ipv6)}\"");
+                CommandHelper.Windows(string.Empty, [.. commands]);
+            }
+        }
+
+
         public void Shutdown()
         {
             tokenSource?.Cancel();
@@ -341,3 +352,5 @@ namespace linker.tun
         }
     }
 }
+
+

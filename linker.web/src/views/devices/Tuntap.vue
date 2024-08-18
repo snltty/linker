@@ -82,7 +82,7 @@ export default {
 
         const tuntap = useTuntap();
         const globalData = injectGlobalData();
-        const showDelay = computed(()=>(globalData.value.config.Running.Tuntap.Switch & 2) == 2);
+        const showDelay = computed(()=>((globalData.value.config.Running.Tuntap || {Switch:0}).Switch & 2) == 2);
         const handleTuntap = (tuntap) => {
             const fn = tuntap.running ? stopTuntap (tuntap.MachineId) : runTuntap(tuntap.MachineId);
             tuntap.loading = true;

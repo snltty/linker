@@ -78,41 +78,41 @@ namespace linker.plugins.tuntap.proxy
 
         public async Task Callback(LinkerTunDevicPacket packet)
         {
+            //IPV4
             if (packet.Version == 4)
             {
-                uint ip = BinaryPrimitives.ReadUInt32BigEndian(packet.DistIPAddress.Span);
+                // 广播组播
                 if (packet.DistIPAddress.GetIsBroadcastAddress())
                 {
                     if (connections.IsEmpty == false)
                     {
                         await Task.WhenAll(connections.Values.Where(c => c != null && c.Connected).Select(c => c.SendAsync(packet.Packet)));
                     }
+                    return;
                 }
-                else
+
+                uint ip = BinaryPrimitives.ReadUInt32BigEndian(packet.DistIPAddress.Span);
+                if (ipConnections.TryGetValue(ip, out ITunnelConnection connection) == false || connection == null || connection.Connected == false)
                 {
-                    if (ipConnections.TryGetValue(ip, out ITunnelConnection connection) == false || connection == null || connection.Connected == false)
-                    {
-                        connection = await ConnectTunnel(ip);
-                        if (connection != null)
-                        {
-                            ipConnections.AddOrUpdate(ip, connection, (a, b) => connection);
-                        }
-                    }
+                    connection = await ConnectTunnel(ip);
                     if (connection != null)
                     {
-                        await connection.SendAsync(packet.Packet);
-                    }
-                    else
-                    {
+                        ipConnections.AddOrUpdate(ip, connection, (a, b) => connection);
                     }
                 }
+                if (connection != null)
+                {
+                    await connection.SendAsync(packet.Packet);
+                }
             }
+            //IPV6 多播
             else if (packet.Version == 6 && (packet.DistIPAddress.Span[0] & 0xFF) == 0xFF)
             {
                 if (connections.IsEmpty == false)
                 {
                     await Task.WhenAll(connections.Values.Where(c => c != null && c.Connected).Select(c => c.SendAsync(packet.Packet)));
                 }
+                return;
             }
         }
 

@@ -53,10 +53,13 @@ namespace linker.tun
         {
             error = string.Empty;
 
+            byte[] ipv6 = IPAddress.Parse("fe80::1818:1818:1818:1818").GetAddressBytes();
+            address.GetAddressBytes().CopyTo(ipv6, ipv6.Length - 4);
+
             CommandHelper.Linux(string.Empty, new string[] {
                 $"ip tuntap add mode tun dev {Name}",
-                $"ip addr del {address}/{prefixLength} dev {Name}",
                 $"ip addr add {address}/{prefixLength} dev {Name}",
+                $"ip addr add {new IPAddress(ipv6)}/64 dev {Name}",
                 $"ip link set dev {Name} up"
             });
 

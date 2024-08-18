@@ -4,6 +4,7 @@ namespace linker.tun
 {
     internal static class WinTun
     {
+       
 
         [StructLayout(LayoutKind.Explicit, Pack = 1, Size = 80)]
         internal struct MIB_UNICASTIPADDRESS_ROW
@@ -19,6 +20,7 @@ namespace linker.tun
             [FieldOffset(64)]
             public int DadState;
         }
+       
 
         [StructLayout(LayoutKind.Explicit, Pack = 1, Size = 104)]
         internal struct MIB_IPFORWARD_ROW2
@@ -42,6 +44,7 @@ namespace linker.tun
 
         [DllImport("iphlpapi.dll", SetLastError = true)]
         internal static extern uint CreateUnicastIpAddressEntry(ref MIB_UNICASTIPADDRESS_ROW Row);
+
 
         [DllImport("iphlpapi.dll", SetLastError = true)]
         internal static extern void InitializeIpForwardEntry(ref MIB_IPFORWARD_ROW2 Row);
