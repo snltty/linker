@@ -133,7 +133,7 @@ namespace linker.tun
             error = string.Empty;
             try
             {
-                IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.MaskValue(prefixLength));
+                IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.GetPrefixIP(prefixLength));
                 CommandHelper.Linux(string.Empty, new string[] {
                     $"sysctl -w net.ipv4.ip_forward=1",
                     $"iptables -A FORWARD -i {Name} -j ACCEPT",
@@ -156,7 +156,7 @@ namespace linker.tun
                     $"iptables -D FORWARD -o {Name} -m state --state ESTABLISHED,RELATED -j ACCEPT"
                 });
 
-                IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.MaskValue(prefixLength));
+                IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.GetPrefixIP(prefixLength));
                 string iptableLineNumbers = CommandHelper.Linux(string.Empty, new string[] { $"iptables -t nat -L --line-numbers | grep {network}/{prefixLength} | cut -d' ' -f1" });
                 if (string.IsNullOrWhiteSpace(iptableLineNumbers) == false)
                 {
@@ -211,8 +211,8 @@ namespace linker.tun
             {
                 var commands = ips.Select(c =>
                 {
-                    uint maskValue = NetworkHelper.MaskValue(c.PrefixLength);
-                    IPAddress network = NetworkHelper.ToNetworkIp(c.Address, maskValue);
+                    uint prefixValue = NetworkHelper.GetPrefixIP(c.PrefixLength);
+                    IPAddress network = NetworkHelper.ToNetworkIp(c.Address, prefixValue);
                     return $"iptables -t nat -A POSTROUTING -o {Name} -s {network}/{c.PrefixLength} -j MASQUERADE";
                 }).ToList();
                 commands.Insert(0, "sysctl -w net.ipv4.ip_forward=1");
@@ -223,8 +223,8 @@ namespace linker.tun
             {
                 string[] commands = ips.Select(item =>
                 {
-                    uint maskValue = NetworkHelper.MaskValue(item.PrefixLength);
-                    IPAddress network = NetworkHelper.ToNetworkIp(item.Address, maskValue);
+                    uint prefixValue = NetworkHelper.GetPrefixIP(item.PrefixLength);
+                    IPAddress network = NetworkHelper.ToNetworkIp(item.Address, prefixValue);
 
                     return $"ip route add {network}/{item.PrefixLength} via {ip} dev {Name} metric 1 ";
                 }).ToArray();
@@ -240,7 +240,7 @@ namespace linker.tun
             {
                 foreach (var item in ip)
                 {
-                    IPAddress network = NetworkHelper.ToNetworkIp(item.Address, NetworkHelper.MaskValue(item.PrefixLength));
+                    IPAddress network = NetworkHelper.ToNetworkIp(item.Address, NetworkHelper.GetPrefixIP(item.PrefixLength));
                     string iptableLineNumbers = CommandHelper.Linux(string.Empty, new string[] { $"iptables -t nat -L --line-numbers | grep {network}/{item.PrefixLength} | cut -d' ' -f1" });
                     if (string.IsNullOrWhiteSpace(iptableLineNumbers) == false)
                     {
@@ -255,8 +255,8 @@ namespace linker.tun
             {
                 string[] commands = ip.Select(item =>
                 {
-                    uint maskValue = NetworkHelper.MaskValue(item.PrefixLength);
-                    IPAddress network = NetworkHelper.ToNetworkIp(item.Address, maskValue);
+                    uint prefixValue = NetworkHelper.GetPrefixIP(item.PrefixLength);
+                    IPAddress network = NetworkHelper.ToNetworkIp(item.Address, prefixValue);
                     return $"ip route del {network}/{item.PrefixLength}";
                 }).ToArray();
                 CommandHelper.Linux(string.Empty, commands);

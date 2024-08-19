@@ -79,7 +79,7 @@ namespace linker.plugins.tuntap.proxy
         public async Task Callback(LinkerTunDevicPacket packet)
         {
             //IPV4广播组播
-            if (packet.Version == 4 && packet.DistIPAddress.GetIsBroadcastAddress())
+            if (packet.IPV4Broadcast)
             {
                 if (connections.IsEmpty == false)
                 {
@@ -88,7 +88,7 @@ namespace linker.plugins.tuntap.proxy
                 return;
             }
             //IPV6 多播
-            else if (packet.Version == 6 && (packet.DistIPAddress.Span[0] & 0xFF) == 0xFF)
+            else if (packet.IPV6Multicast)
             {
                 if (connections.IsEmpty == false)
                 {

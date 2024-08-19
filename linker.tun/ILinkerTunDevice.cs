@@ -165,6 +165,9 @@ namespace linker.tun
         /// </summary>
         public readonly IPEndPoint Dist => new IPEndPoint(new IPAddress(DistIPAddress.Span), DistPort);
 
+        public readonly bool IPV4Broadcast => Version == 4 && DistIPAddress.GetIsBroadcastAddress();
+        public readonly bool IPV6Multicast => Version == 6 && (DistIPAddress.Span[0] & 0xFF) == 0xFF;
+
         public void Unpacket(ReadOnlyMemory<byte> buffer)
         {
             Packet = buffer;

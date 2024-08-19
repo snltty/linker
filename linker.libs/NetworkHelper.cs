@@ -133,7 +133,7 @@ namespace linker.libs
             try
             {
                 return Dns.GetHostAddresses(Dns.GetHostName())
-                 .Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+                 .Where(c => c.AddressFamily == AddressFamily.InterNetworkV6)
                  .Where(c => c.GetAddressBytes().AsSpan(0, 8).SequenceEqual(ipv6LocalBytes) == false).Distinct().ToArray();
             }
             catch (Exception)
@@ -157,7 +157,7 @@ namespace linker.libs
             return Array.Empty<IPAddress>();
         }
 
-        public static byte MaskLength(uint ip)
+        public static byte GetPrefixLength(uint ip)
         {
             byte maskLength = 32;
             for (int i = 0; i < sizeof(uint); i++)
@@ -171,40 +171,35 @@ namespace linker.libs
             return maskLength;
         }
 
-        public static uint MaskValue(byte maskLength)
+        public static uint GetPrefixIP(byte prefixLength)
         {
             //最多<<31 所以0需要单独计算
-            if (maskLength < 1) return 0;
-            return 0xffffffff << (32 - maskLength);
+            if (prefixLength < 1) return 0;
+            return 0xffffffff << (32 - prefixLength);
         }
-        public static IPAddress GetMaskIp(uint maskValue)
+        public static IPAddress GetPrefixIp(uint prefixIP)
         {
-            return new IPAddress(BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(maskValue)));
+            return new IPAddress(BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(prefixIP)));
         }
-        public static IPAddress ToNetworkIp(IPAddress ip, uint maskvalue)
+        public static IPAddress ToNetworkIp(IPAddress ip, uint prefixIP)
         {
-            return ToNetworkIp(BinaryPrimitives.ReadUInt32BigEndian(ip.GetAddressBytes()), maskvalue);
+            return ToNetworkIp(BinaryPrimitives.ReadUInt32BigEndian(ip.GetAddressBytes()), prefixIP);
         }
-        public static IPAddress ToNetworkIp(uint ip, uint maskvalue)
+        public static IPAddress ToNetworkIp(uint ip, uint prefixIP)
         {
-            return new IPAddress(BinaryPrimitives.ReverseEndianness(ip & maskvalue).ToBytes());
+            return new IPAddress(BinaryPrimitives.ReverseEndianness(ip & prefixIP).ToBytes());
         }
-        public static IPAddress ToGatewayIP(IPAddress ip, byte maskLength)
+        public static IPAddress ToGatewayIP(IPAddress ip, byte prefixLength)
         {
-            uint network = BinaryPrimitives.ReadUInt32BigEndian(ToNetworkIp(ip, NetworkHelper.MaskValue(maskLength)).GetAddressBytes());
+            uint network = BinaryPrimitives.ReadUInt32BigEndian(ToNetworkIp(ip, NetworkHelper.GetPrefixIP(prefixLength)).GetAddressBytes());
             IPAddress gateway = new IPAddress(BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(network + 1)));
             return gateway;
         }
-        public static IPAddress ToGatewayIP(uint ip, uint maskValue)
+        public static IPAddress ToGatewayIP(uint ip, uint prefixIP)
         {
-            uint network = BinaryPrimitives.ReadUInt32BigEndian(ToNetworkIp(ip, maskValue).GetAddressBytes());
+            uint network = BinaryPrimitives.ReadUInt32BigEndian(ToNetworkIp(ip, prefixIP).GetAddressBytes());
             IPAddress gateway = new IPAddress(BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(network + 1)));
             return gateway;
-        }
-
-        public static bool NotIPv6Support(IPAddress ip)
-        {
-            return ip.AddressFamily == AddressFamily.InterNetworkV6 && (IPv6Support == false);
         }
 
 

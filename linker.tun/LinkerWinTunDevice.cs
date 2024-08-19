@@ -153,7 +153,7 @@ namespace linker.tun
             try
             {
                 CommandHelper.PowerShell($"start-service WinNat", [], out error);
-                IPAddress network = NetworkHelper.ToNetworkIp(this.address, NetworkHelper.MaskValue(prefixLength));
+                IPAddress network = NetworkHelper.ToNetworkIp(this.address, NetworkHelper.GetPrefixIP(prefixLength));
                 CommandHelper.PowerShell($"New-NetNat -Name {Name} -InternalIPInterfaceAddressPrefix {network}/{prefixLength}", [], out error);
 
                 if (string.IsNullOrWhiteSpace(error) == false)
@@ -215,8 +215,8 @@ namespace linker.tun
             {
                 string[] commands = ips.Select(item =>
                 {
-                    uint maskValue = NetworkHelper.MaskValue(item.PrefixLength);
-                    IPAddress mask = NetworkHelper.GetMaskIp(maskValue);
+                    uint maskValue = NetworkHelper.GetPrefixIP(item.PrefixLength);
+                    IPAddress mask = NetworkHelper.GetPrefixIp(maskValue);
                     IPAddress _ip = NetworkHelper.ToNetworkIp(item.Address, maskValue);
 
                     return $"route add {_ip} mask {mask} {ip} metric 5 if {interfaceNumber}";
@@ -231,8 +231,8 @@ namespace linker.tun
         {
             string[] commands = ip.Select(item =>
             {
-                uint maskValue = NetworkHelper.MaskValue(item.PrefixLength);
-                IPAddress mask = NetworkHelper.GetMaskIp(maskValue);
+                uint maskValue = NetworkHelper.GetPrefixIP(item.PrefixLength);
+                IPAddress mask = NetworkHelper.GetPrefixIp(maskValue);
                 IPAddress _ip = NetworkHelper.ToNetworkIp(item.Address, maskValue);
                 return $"route delete {_ip}";
             }).ToArray();

@@ -390,7 +390,7 @@ namespace linker.plugins.tuntap
         {
             uint ipInt = BinaryPrimitives.ReadUInt32BigEndian(ip.GetAddressBytes());
             //掩码十进制
-            uint maskValue = NetworkHelper.MaskValue(maskLength);
+            uint maskValue = NetworkHelper.GetPrefixIP(maskLength);
             return new TuntapVeaLanIPAddress
             {
                 IPAddress = ipInt,

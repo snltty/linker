@@ -35,7 +35,7 @@ namespace linker.tun
             safeFileHandle = File.OpenHandle($"/dev/{Name}", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite, FileOptions.Asynchronous);
             fs = new FileStream(safeFileHandle, FileAccess.ReadWrite, 1500);
 
-            IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.MaskValue(prefixLength));
+            IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.GetPrefixIP(prefixLength));
             CommandHelper.Osx(string.Empty, new string[] {
                 $"route delete -net {network}/{prefixLength} {address}",
                 $"ifconfig {Name} {address} {address} up",
@@ -55,7 +55,7 @@ namespace linker.tun
                 fs.Dispose();
                 fs = null;
             }
-            IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.MaskValue(this.prefixLength));
+            IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.GetPrefixIP(this.prefixLength));
             CommandHelper.Osx(string.Empty, new string[] { $"route delete -net {network}/{prefixLength} {address}" });
         }
 

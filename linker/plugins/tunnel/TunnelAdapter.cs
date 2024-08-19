@@ -116,7 +116,7 @@ namespace linker.plugins.tunnel
                         uint ip = BinaryPrimitives.ReadUInt32BigEndian(c.GetAddressBytes());
                         foreach (var item in excludeips)
                         {
-                            uint maskValue = NetworkHelper.MaskValue(item.Mask);
+                            uint maskValue = NetworkHelper.GetPrefixIP(item.Mask);
                             uint ip1 = BinaryPrimitives.ReadUInt32BigEndian(item.IPAddress.GetAddressBytes());
                             if ((ip & maskValue) == (ip1 & maskValue))
                             {
