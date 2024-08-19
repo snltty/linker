@@ -37,7 +37,7 @@ namespace linker.plugins.capi
                 {
                     continue;
                 }
-                LoggerHelper.Instance.Warning($"load client api:{item.Name}");
+                LoggerHelper.Instance.Info($"load client api:{item.Name}");
 
                 string path = item.Name.Replace("ApiController", "").Replace("ApiController", "");
                 foreach (MethodInfo method in item.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))

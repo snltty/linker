@@ -77,13 +77,13 @@ namespace linker.tunnel.transport
             {
                 if (QuicListener.IsSupported == false)
                 {
-                    LoggerHelper.Instance.Error($"msquic not supported, need win11+,or linux");
+                    LoggerHelper.Instance.Warning($"msquic not supported, need win11+,or linux");
                     await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                     return null;
                 }
                 if (tunnelAdapter.Certificate == null)
                 {
-                    LoggerHelper.Instance.Error($"msquic need ssl");
+                    LoggerHelper.Instance.Warning($"msquic need ssl");
                     await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                     return null;
                 }
@@ -137,13 +137,13 @@ namespace linker.tunnel.transport
             {
                 if (QuicListener.IsSupported == false)
                 {
-                    LoggerHelper.Instance.Error($"msquic not supported, need win11+,or linux");
+                    LoggerHelper.Instance.Warning($"msquic not supported, need win11+,or linux");
                     await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                     return;
                 }
                 if (tunnelAdapter.Certificate == null)
                 {
-                    LoggerHelper.Instance.Error($"msquic need ssl");
+                    LoggerHelper.Instance.Warning($"msquic need ssl");
                     await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                     return;
                 }
@@ -665,12 +665,12 @@ namespace linker.tunnel.transport
             {
                 if (QuicListener.IsSupported == false)
                 {
-                    LoggerHelper.Instance.Error($"msquic not supported, need win11+,or linux, or try to restart linker");
+                    LoggerHelper.Instance.Warning($"msquic not supported, need win11+,or linux, or try to restart linker");
                     return;
                 }
                 if (tunnelAdapter.Certificate == null)
                 {
-                    LoggerHelper.Instance.Error($"msquic need ssl");
+                    LoggerHelper.Instance.Warning($"msquic need ssl");
                     return;
                 }
 

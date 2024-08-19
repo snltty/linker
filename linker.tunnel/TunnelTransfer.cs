@@ -95,7 +95,7 @@ namespace linker.tunnel
             }
 
             tunnelAdapter.SetTunnelTransports(transportItems, true);
-            LoggerHelper.Instance.Warning($"load tunnel transport:{string.Join(",", transports.Select(c => c.Name))}");
+            LoggerHelper.Instance.Info($"load tunnel transport:{string.Join(",", transports.Select(c => c.Name))}");
         }
 
 

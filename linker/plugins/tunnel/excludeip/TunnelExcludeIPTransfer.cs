@@ -35,7 +35,7 @@ namespace linker.plugins.tunnel.excludeip
             IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs, typeof(ITunnelExcludeIP));
             excludeIPs = types.Select(c => (ITunnelExcludeIP)serviceProvider.GetService(c)).Where(c => c != null).ToList();
 
-            LoggerHelper.Instance.Warning($"load tunnel excludeips :{string.Join(",", types.Select(c => c.Name))}");
+            LoggerHelper.Instance.Info($"load tunnel excludeips :{string.Join(",", types.Select(c => c.Name))}");
         }
 
         public List<ExcludeIPItem> Get()

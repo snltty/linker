@@ -142,7 +142,10 @@ namespace linker.tun
 
         public void SetMtu(int value)
         {
-            CommandHelper.Windows(string.Empty, new string[] { $"netsh interface ipv4 set subinterface {interfaceNumber}  mtu={value} store=persistent" });
+            CommandHelper.Windows(string.Empty, new string[] {
+                $"netsh interface ipv4 set subinterface {interfaceNumber}  mtu={value} store=persistent" ,
+                 $"netsh interface ipv6 set subinterface {interfaceNumber}  mtu={value} store=persistent"
+            });
         }
         public void SetNat(out string error)
         {
@@ -256,7 +259,9 @@ namespace linker.tun
                 }
                 else
                 {
-                    if (Marshal.GetLastWin32Error() == 259L)
+                    int error = Marshal.GetLastWin32Error();
+
+                    if (error == 0 || error == 259L)
                     {
                         WinTun.WaitForSingleObject(waitHandle, 0xFFFFFFFF);
                     }

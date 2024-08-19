@@ -70,7 +70,7 @@ namespace linker.plugins.relay
             IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs, typeof(ITransport));
             transports = types.Select(c => (ITransport)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
 
-            LoggerHelper.Instance.Warning($"load relay transport:{string.Join(",", transports.Select(c => c.Name))}");
+            LoggerHelper.Instance.Info($"load relay transport:{string.Join(",", transports.Select(c => c.Name))}");
         }
         /// <summary>
         /// 获取所有中继协议

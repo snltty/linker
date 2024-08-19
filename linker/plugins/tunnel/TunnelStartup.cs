@@ -69,8 +69,8 @@ namespace linker.plugins.tunnel
             config.Data.Client.Tunnel.RouteIPs = ips.ToArray();
             LoggerHelper.Instance.Warning($"route ips:{string.Join(",", ips.Select(c => c.ToString()))}");
             config.Data.Client.Tunnel.LocalIPs = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
-            LoggerHelper.Instance.Info($"tunnel local ips :{string.Join(",", config.Data.Client.Tunnel.LocalIPs.Select(c => c.ToString()))}");
-            LoggerHelper.Instance.Info($"tunnel route level:{config.Data.Client.Tunnel.RouteLevel}");
+            LoggerHelper.Instance.Warning($"tunnel local ips :{string.Join(",", config.Data.Client.Tunnel.LocalIPs.Select(c => c.ToString()))}");
+            LoggerHelper.Instance.Warning($"tunnel route level:{config.Data.Client.Tunnel.RouteLevel}");
 
         }
 

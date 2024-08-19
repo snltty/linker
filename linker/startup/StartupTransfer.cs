@@ -59,7 +59,7 @@ namespace linker.startup
 
             config.Data.Common.Plugins = startups.Select(c => c.Name).ToArray();
 
-            LoggerHelper.Instance.Warning($"load startup : {string.Join(",", startups.Select(c => c.Name))}");
+            LoggerHelper.Instance.Info($"load startup : {string.Join(",", startups.Select(c => c.Name))}");
         }
         /// <summary>
         /// 加载插件依赖
@@ -90,12 +90,12 @@ namespace linker.startup
             {
                 if (config.Data.Common.Modes.Contains("client"))
                 {
-                    LoggerHelper.Instance.Warning($"add startup {startup.Name} client");
+                    LoggerHelper.Instance.Info($"add startup {startup.Name} client");
                     startup.AddClient(serviceCollection, config, assemblies);
                 }
                 if (config.Data.Common.Modes.Contains("server"))
                 {
-                    LoggerHelper.Instance.Warning($"add startup {startup.Name} server");
+                    LoggerHelper.Instance.Info($"add startup {startup.Name} server");
                     startup.AddServer(serviceCollection, config, assemblies);
                 }
             }
@@ -113,12 +113,12 @@ namespace linker.startup
             {
                 if (config.Data.Common.Modes.Contains("client"))
                 {
-                    LoggerHelper.Instance.Warning($"use startup {startup.Name} client");
+                    LoggerHelper.Instance.Info($"use startup {startup.Name} client");
                     startup.UseClient(serviceProvider, config, assemblies);
                 }
                 if (config.Data.Common.Modes.Contains("server"))
                 {
-                    LoggerHelper.Instance.Warning($"use startup {startup.Name} server");
+                    LoggerHelper.Instance.Info($"use startup {startup.Name} server");
                     startup.UseServer(serviceProvider, config, assemblies);
                 }
             }

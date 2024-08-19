@@ -170,7 +170,7 @@ namespace linker.plugins.messenger
                 {
                     continue;
                 }
-                LoggerHelper.Instance.Warning($"load messenger:{type.Name}");
+                LoggerHelper.Instance.Info($"load messenger:{type.Name}");
 
                 foreach (var method in type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
                 {
@@ -198,7 +198,7 @@ namespace linker.plugins.messenger
                         }
                         else
                         {
-                            LoggerHelper.Instance.Error($"{type.Name}->{method.Name}->{mid.Id} 消息id已存在");
+                            LoggerHelper.Instance.Warning($"{type.Name}->{method.Name}->{mid.Id} 消息id已存在");
                         }
                     }
                 }

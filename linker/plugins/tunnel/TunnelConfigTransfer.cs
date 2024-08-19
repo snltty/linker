@@ -168,7 +168,7 @@ namespace linker.plugins.tunnel
                             File.Move("msquic.dll", "msquic.dll.temp", true);
                             File.Move("msquic-openssl.dll", "msquic.dll", true);
 
-                            Environment.Exit(1);
+                            //Environment.Exit(1);
                         }
                     }
                     catch (Exception)

@@ -22,7 +22,7 @@ namespace linker.tunnel.wanport
         public void Init(List<ITunnelWanPortProtocol> tunnelWanPorts)
         {
             this.tunnelWanPorts = tunnelWanPorts;
-            LoggerHelper.Instance.Warning($"load tunnel wanport compacts:{string.Join(",", tunnelWanPorts.Select(c => c.Name))}");
+            LoggerHelper.Instance.Info($"load tunnel wanport compacts:{string.Join(",", tunnelWanPorts.Select(c => c.Name))}");
         }
 
         public List<TunnelWanPortTypeInfo> GetTypes()

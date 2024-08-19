@@ -126,7 +126,6 @@ namespace linker.tunnel.transport
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex.ToString());
                         socket.SafeClose();
                         break;
                     }
