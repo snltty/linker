@@ -34,6 +34,15 @@
 - [x] 端口转发，将客户端的端口转发到其它客户端的端口
 - [x] 服务器穿透，在服务器注册端口或域名，通过访问服务器端口或域名，访问内网服务 
 
+## 打洞理论
+
+除了`NAT4+NAT4`理论上都能通，但是也有例外，路由器可能有特殊限制，比如`SYN out, SYN in`和`ICMP Time Exceeded`
+|     | NAT1 (Full Cone)  | NAT2 (Address-Restricted Cone)  | NAT3 (Port-Restricted Cone)  | NAT4 (Symmetric)  |
+|  ----  | ----  | ----  | ----  | ----  |
+| NAT1 (Full Cone)  | √   | √  | √  | √ | 
+| NAT2 (Address-Restricted Cone)  | √   | √  | √  | √ | 
+| NAT3 (Port-Restricted Cone)  | √   | √  | √  | √ | 
+| NAT4 (Symmetric)  | √   | √  | √  | × | 
 ## 支持作者
 
 <div align="center">
