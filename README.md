@@ -39,10 +39,10 @@
 除了`NAT4+NAT4`理论上都能通，但是也有例外，路由器可能有特殊限制，比如`SYN out, SYN in`和`ICMP Time Exceeded`
 |     | NAT1<br/>(Full Cone)  | NAT2<br/>(Address-Restricted Cone)  | NAT3<br/>(Port-Restricted Cone)  | NAT4<br/>(Symmetric)  |
 |  ----  | ----  | ----  | ----  | ----  |
-| NAT1  | √   | √  | √  | √ | 
-| NAT2  | √   | √  | √  | √ | 
-| NAT3  | √   | √  | √  | √ | 
-| NAT4  | √   | √  | √  | × | 
+| NAT1(Full Cone)  | √   | √  | √  | √ | 
+| NAT2(Address-Restricted Cone)  | √   | √  | √  | √ | 
+| NAT3(Port-Restricted Cone)  | √   | √  | √  | √ | 
+| NAT4(Symmetric)  | √   | √  | √  | × | 
 ## 支持作者
 
 <div align="center">
