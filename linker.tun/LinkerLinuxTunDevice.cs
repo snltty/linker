@@ -128,14 +128,26 @@ namespace linker.tun
         {
             CommandHelper.Linux(string.Empty, new string[] { $"ip link set dev {Name} mtu {value}" });
         }
+
+        private string GetDefaultInterface()
+        {
+            return CommandHelper.Linux(string.Empty, ["ip route show default | awk '{print $5}'"]);
+        }
         public void SetNat(out string error)
         {
             error = string.Empty;
             try
             {
+                string defaultInterface = GetDefaultInterface();
+
                 IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.GetPrefixIP(prefixLength));
                 CommandHelper.Linux(string.Empty, new string[] {
                     $"sysctl -w net.ipv4.ip_forward=1",
+
+                    $"iptables -t nat -A POSTROUTING -o {Name} -j MASQUERADE",
+                    $"iptables -A FORWARD -i {defaultInterface} -o {Name} -j ACCEPT",
+                    $"iptables -A FORWARD -i {Name} -o {defaultInterface} -m state --state ESTABLISHED,RELATED -j ACCEPT",
+
                     $"iptables -A FORWARD -i {Name} -j ACCEPT",
                     $"iptables -A FORWARD -o {Name} -m state --state ESTABLISHED,RELATED -j ACCEPT",
                     $"iptables -t nat -A POSTROUTING ! -o {Name} -s {network}/{prefixLength} -j MASQUERADE",
@@ -151,7 +163,13 @@ namespace linker.tun
             error = string.Empty;
             try
             {
+                string defaultInterface = GetDefaultInterface();
+
                 CommandHelper.Linux(string.Empty, new string[] {
+                    $"iptables -t nat -D POSTROUTING -o {Name} -j MASQUERADE",
+                    $"iptables -D FORWARD -i {defaultInterface} -o {Name} -j ACCEPT",
+                    $"iptables -D FORWARD -i {Name} -o {defaultInterface} -m state --state ESTABLISHED,RELATED -j ACCEPT",
+
                     $"iptables -D FORWARD -i {Name} -j ACCEPT",
                     $"iptables -D FORWARD -o {Name} -m state --state ESTABLISHED,RELATED -j ACCEPT"
                 });
@@ -205,62 +223,29 @@ namespace linker.tun
         }
 
 
-        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip, bool gateway)
+        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
         {
-            if (gateway)
+            string[] commands = ips.Select(item =>
             {
-                var commands = ips.Select(c =>
-                {
-                    uint prefixValue = NetworkHelper.GetPrefixIP(c.PrefixLength);
-                    IPAddress network = NetworkHelper.ToNetworkIp(c.Address, prefixValue);
-                    return $"iptables -t nat -A POSTROUTING -o {Name} -s {network}/{c.PrefixLength} -j MASQUERADE";
-                }).ToList();
-                commands.Insert(0, "sysctl -w net.ipv4.ip_forward=1");
+                uint prefixValue = NetworkHelper.GetPrefixIP(item.PrefixLength);
+                IPAddress network = NetworkHelper.ToNetworkIp(item.Address, prefixValue);
 
-                CommandHelper.Linux(string.Empty, commands.ToArray());
-            }
-            else
+                return $"ip route add {network}/{item.PrefixLength} via {ip} dev {Name} metric 1 ";
+            }).ToArray();
+            if (commands.Length > 0)
             {
-                string[] commands = ips.Select(item =>
-                {
-                    uint prefixValue = NetworkHelper.GetPrefixIP(item.PrefixLength);
-                    IPAddress network = NetworkHelper.ToNetworkIp(item.Address, prefixValue);
-
-                    return $"ip route add {network}/{item.PrefixLength} via {ip} dev {Name} metric 1 ";
-                }).ToArray();
-                if (commands.Length > 0)
-                {
-                    CommandHelper.Linux(string.Empty, commands);
-                }
-            }
-        }
-        public void DelRoute(LinkerTunDeviceRouteItem[] ip, bool gateway)
-        {
-            if (gateway)
-            {
-                foreach (var item in ip)
-                {
-                    IPAddress network = NetworkHelper.ToNetworkIp(item.Address, NetworkHelper.GetPrefixIP(item.PrefixLength));
-                    string iptableLineNumbers = CommandHelper.Linux(string.Empty, new string[] { $"iptables -t nat -L --line-numbers | grep {network}/{item.PrefixLength} | cut -d' ' -f1" });
-                    if (string.IsNullOrWhiteSpace(iptableLineNumbers) == false)
-                    {
-                        string[] commands = iptableLineNumbers.Split(Environment.NewLine)
-                            .Where(c => string.IsNullOrWhiteSpace(c) == false)
-                            .Select(c => $"iptables -t nat -D POSTROUTING {c}").ToArray();
-                        CommandHelper.Linux(string.Empty, commands);
-                    }
-                }
-            }
-            else
-            {
-                string[] commands = ip.Select(item =>
-                {
-                    uint prefixValue = NetworkHelper.GetPrefixIP(item.PrefixLength);
-                    IPAddress network = NetworkHelper.ToNetworkIp(item.Address, prefixValue);
-                    return $"ip route del {network}/{item.PrefixLength}";
-                }).ToArray();
                 CommandHelper.Linux(string.Empty, commands);
             }
+        }
+        public void DelRoute(LinkerTunDeviceRouteItem[] ip)
+        {
+            string[] commands = ip.Select(item =>
+            {
+                uint prefixValue = NetworkHelper.GetPrefixIP(item.PrefixLength);
+                IPAddress network = NetworkHelper.ToNetworkIp(item.Address, prefixValue);
+                return $"ip route del {network}/{item.PrefixLength}";
+            }).ToArray();
+            CommandHelper.Linux(string.Empty, commands);
         }
 
 

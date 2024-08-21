@@ -329,7 +329,7 @@ namespace linker.plugins.tuntap
                 TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
                 var items = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.MaskLength }).ToArray();
 
-                linkerTunDeviceAdapter.DelRoute(items, (runningConfig.Data.Tuntap.Switch & TuntapSwitch.Gateway) == TuntapSwitch.Gateway);
+                linkerTunDeviceAdapter.DelRoute(items);
             }
             catch (Exception ex)
             {
@@ -345,7 +345,7 @@ namespace linker.plugins.tuntap
             TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
             var items = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.MaskLength }).ToArray();
 
-            linkerTunDeviceAdapter.AddRoute(items, runningConfig.Data.Tuntap.IP, (runningConfig.Data.Tuntap.Switch & TuntapSwitch.Gateway) == TuntapSwitch.Gateway);
+            linkerTunDeviceAdapter.AddRoute(items, runningConfig.Data.Tuntap.IP);
 
             tuntapProxy.SetIPs(ipsList);
             foreach (var item in tuntapInfos.Values)

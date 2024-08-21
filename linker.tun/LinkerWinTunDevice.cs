@@ -209,7 +209,7 @@ namespace linker.tun
         }
 
 
-        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip, bool gateway)
+        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
         {
             if (interfaceNumber > 0)
             {
@@ -227,7 +227,7 @@ namespace linker.tun
                 }
             }
         }
-        public void DelRoute(LinkerTunDeviceRouteItem[] ip, bool gateway)
+        public void DelRoute(LinkerTunDeviceRouteItem[] ip)
         {
             string[] commands = ip.Select(item =>
             {

@@ -17,17 +17,17 @@
 		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 		<ServerGarbageCollection>false</ServerGarbageCollection>
 		<Title>linker</Title>
-		<Version>1.2.2</Version>
+		<Version>1.2.3</Version>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 支持局域网IPV6
-2. 不重要，可以不更新</Description>
+		<Description>1. 非网关支持网对网
+2. 我在测试，先不要更新</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<AssemblyVersion>1.2.2</AssemblyVersion>
-		<FileVersion>1.2.2</FileVersion>
+		<AssemblyVersion>1.2.3</AssemblyVersion>
+		<FileVersion>1.2.3</FileVersion>
 	</PropertyGroup>
 
 

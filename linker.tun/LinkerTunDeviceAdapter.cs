@@ -178,18 +178,18 @@ namespace linker.tun
         /// <param name="ips">路由IP</param>
         /// <param name="ip">网卡IP</param>
         /// <param name="gateway">是否网关，true添加NAT转发，false添加路由</param>
-        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip, bool gateway)
+        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
         {
-            linkerTunDevice?.AddRoute(ips, ip, gateway);
+            linkerTunDevice?.AddRoute(ips, ip);
         }
         /// <summary>
         /// 删除路由
         /// </summary>
         /// <param name="ips">路由IP</param>
         /// <param name="gateway">是否网关，true删除NAT转发，false删除路由</param>
-        public void DelRoute(LinkerTunDeviceRouteItem[] ips, bool gateway)
+        public void DelRoute(LinkerTunDeviceRouteItem[] ips)
         {
-            linkerTunDevice?.DelRoute(ips, gateway);
+            linkerTunDevice?.DelRoute(ips);
         }
 
 

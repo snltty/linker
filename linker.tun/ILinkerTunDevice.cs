@@ -71,13 +71,13 @@ namespace linker.tun
         /// <param name="ips"></param>
         /// <param name="ip"></param>
         /// <param name="gateway">是不是网关，是网关，将使用NAT转发，不是网关将添加路由</param>
-        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip, bool gateway);
+        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip);
         /// <summary>
         /// 删除路由
         /// </summary>
         /// <param name="ip"></param>
         /// <param name="gateway">是不是网关，是网关，将删除NAT转发，不是网关将删除路由</param>
-        public void DelRoute(LinkerTunDeviceRouteItem[] ip, bool gateway);
+        public void DelRoute(LinkerTunDeviceRouteItem[] ip);
 
         /// <summary>
         /// 读取数据包

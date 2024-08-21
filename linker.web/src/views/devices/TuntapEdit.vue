@@ -25,9 +25,9 @@
                     <el-checkbox v-model="state.ruleForm.Upgrade" label="我很懂，我要使用高级功能(点对网和网对网)" size="large" />
                 </el-form-item>
                 <div class="upgrade-wrap" v-if="state.ruleForm.Upgrade">
-                    <el-form-item prop="gateway" style="border-bottom: 1px solid #ddd;margin-bottom:0">
+                    <!-- <el-form-item prop="gateway" style="border-bottom: 1px solid #ddd;margin-bottom:0">
                         <el-checkbox v-model="state.ruleForm.Gateway" label="此设备在路由器(网对网)" size="large" />
-                    </el-form-item>
+                    </el-form-item> -->
                     <el-form-item prop="nat" style="margin-bottom:0">
                         <span class="yellow">此设备能使用NAT转发，只需局域网IP，剩下的交给NAT(linux、macos、win10+)</span>
                     </el-form-item>
