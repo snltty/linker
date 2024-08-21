@@ -140,6 +140,8 @@ namespace linker.tun
             {
                 string defaultInterface = GetDefaultInterface();
 
+                Console.Write($"defaultInterface-{defaultInterface}-defaultInterface");
+
                 IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.GetPrefixIP(prefixLength));
                 CommandHelper.Linux(string.Empty, new string[] {
                     $"sysctl -w net.ipv4.ip_forward=1",
