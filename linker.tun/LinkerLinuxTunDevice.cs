@@ -138,17 +138,13 @@ namespace linker.tun
             error = string.Empty;
             try
             {
-                string defaultInterface = GetDefaultInterface();
-
-                Console.Write($"defaultInterface-{defaultInterface}-defaultInterface");
-
                 IPAddress network = NetworkHelper.ToNetworkIp(address, NetworkHelper.GetPrefixIP(prefixLength));
                 CommandHelper.Linux(string.Empty, new string[] {
                     $"sysctl -w net.ipv4.ip_forward=1",
 
                     $"iptables -t nat -A POSTROUTING -o {Name} -j MASQUERADE",
-                    $"iptables -A FORWARD -i {defaultInterface} -o {Name} -j ACCEPT",
-                    $"iptables -A FORWARD -i {Name} -o {defaultInterface} -m state --state ESTABLISHED,RELATED -j ACCEPT",
+                    $"iptables -A FORWARD -i {interfaceLinux} -o {Name} -j ACCEPT",
+                    $"iptables -A FORWARD -i {Name} -o {interfaceLinux} -m state --state ESTABLISHED,RELATED -j ACCEPT",
 
                     $"iptables -A FORWARD -i {Name} -j ACCEPT",
                     $"iptables -A FORWARD -o {Name} -m state --state ESTABLISHED,RELATED -j ACCEPT",
@@ -165,12 +161,10 @@ namespace linker.tun
             error = string.Empty;
             try
             {
-                string defaultInterface = GetDefaultInterface();
-
                 CommandHelper.Linux(string.Empty, new string[] {
                     $"iptables -t nat -D POSTROUTING -o {Name} -j MASQUERADE",
-                    $"iptables -D FORWARD -i {defaultInterface} -o {Name} -j ACCEPT",
-                    $"iptables -D FORWARD -i {Name} -o {defaultInterface} -m state --state ESTABLISHED,RELATED -j ACCEPT",
+                    $"iptables -D FORWARD -i {interfaceLinux} -o {Name} -j ACCEPT",
+                    $"iptables -D FORWARD -i {Name} -o {interfaceLinux} -m state --state ESTABLISHED,RELATED -j ACCEPT",
 
                     $"iptables -D FORWARD -i {Name} -j ACCEPT",
                     $"iptables -D FORWARD -o {Name} -m state --state ESTABLISHED,RELATED -j ACCEPT"
@@ -286,7 +280,7 @@ namespace linker.tun
 
         private string GetLinuxInterfaceNum()
         {
-            string output = CommandHelper.Linux(string.Empty, new string[] { "ip route" });
+            string output = CommandHelper.Linux(string.Empty, new string[] { "ip route show default" });
             foreach (var item in output.Split(Environment.NewLine))
             {
                 if (item.StartsWith("default via"))
@@ -296,7 +290,7 @@ namespace linker.tun
                     {
                         if (strs[i] == "dev")
                         {
-                            return strs[i + 1];
+                            return strs[i + 1].Trim();
                         }
                     }
                 }
