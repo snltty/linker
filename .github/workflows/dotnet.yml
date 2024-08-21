@@ -36,7 +36,7 @@ jobs:
           tag_name: v1.2.3
           release_name: v1.2.3.${{ steps.date.outputs.today }}
           draft: false
-          prerelease: false
+          prerelease: true
           body: "1. 非网关支持网对网\r\n2. 我在测试，先不要更新"
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
