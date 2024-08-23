@@ -243,6 +243,13 @@ mainForm.runCommand = function()
 	}
 	catch(e){}
 	mainForm.checkService();
+	if(mainForm.running)
+	{
+		mainForm.addRoute();
+	}else
+	{
+		mainForm.delRoute();
+	}
 }
 mainForm.btnRun.oncommand = function(id,event){
 	mainForm.runCommand();
@@ -263,7 +270,7 @@ mainForm.setInterval(
 			{
 				mainForm.ws.send(web.json.stringify({
 					Path: "tuntapclient/routeitems",
-                	RequestId: 1,
+                	RequestId: 0,
                 	Content:mainForm.hashCode+""
 				}));
 			}	
