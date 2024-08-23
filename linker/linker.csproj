@@ -21,7 +21,7 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 非网关支持网对网
-2. 正在测试自动添加路由</Description>
+2. 运行linker.route.win.exe既可自动添加路由实现"网对网"</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

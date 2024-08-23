@@ -37,7 +37,7 @@ jobs:
           release_name: v1.2.4.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 非网关支持网对网\r\n2. 正在测试自动添加路由"
+          body: "1. 非网关支持网对网\r\n2. 运行linker.route.win.exe既可自动添加路由实现\"网对网\""
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
         uses: tvrcgo/oss-action@v0.1.1
