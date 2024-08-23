@@ -33,6 +33,9 @@ namespace linker.plugins.tuntap
         public ConcurrentDictionary<string, TuntapInfo> Infos => tuntapInfos;
 
 
+        public LinkerTunDeviceRouteItem[] RouteItems { get; private set; } = [];
+
+
         private OperatingManager operatingManager = new OperatingManager();
         public TuntapStatus Status => operatingManager.Operating ? TuntapStatus.Operating : (TuntapStatus)(byte)linkerTunDeviceAdapter.Status;
 
@@ -344,6 +347,7 @@ namespace linker.plugins.tuntap
             List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.Where(c => c.Status == TuntapStatus.Running).ToList());
             TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
             var items = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.MaskLength }).ToArray();
+            RouteItems = items;
 
             linkerTunDeviceAdapter.AddRoute(items, runningConfig.Data.Tuntap.IP);
 

@@ -15,6 +15,7 @@ echo F|xcopy "version.txt" "public\\version.txt" /f /h /y
 
 for %%r in (win-x86,win-x64,win-arm64) do (
 	echo F|xcopy "linker.tray.win\\dist\\*" "public\\extends\\%%r\\linker-%%r\\*"  /s /f /h /y
+	echo F|xcopy "linker.route.win\\dist\\*" "public\\extends\\%%r\\linker-%%r\\*"  /s /f /h /y
 	echo F|xcopy "linker\\msquic.dll" "public\\extends\\%%r\\linker-%%r\\msquic.dll"  /s /f /h /y
 	echo F|xcopy "linker\\msquic-%%r.dll" "public\\extends\\%%r\\linker-%%r\\msquic.dll"  /s /f /h /y
 	echo F|xcopy "linker\\msquic-openssl3-%%r.dll" "public\\extends\\%%r\\linker-%%r\\msquic-openssl.dll"  /s /f /h /y

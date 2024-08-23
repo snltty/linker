@@ -10,6 +10,9 @@ using linker.plugins.client;
 using linker.plugins.capi;
 using linker.plugins.messenger;
 using linker.plugins.tuntap.config;
+using linker.libs;
+using System.Net;
+using linker.client.config;
 
 namespace linker.plugins.tuntap
 {
@@ -20,15 +23,46 @@ namespace linker.plugins.tuntap
         private readonly ClientSignInState clientSignInState;
         private readonly FileConfig config;
         private readonly TuntapProxy tuntapProxy;
+        private readonly RunningConfig runningConfig;
 
-        public TuntapClientApiController(MessengerSender messengerSender, TuntapTransfer tuntapTransfer, ClientSignInState clientSignInState, FileConfig config, TuntapProxy tuntapProxy)
+        public TuntapClientApiController(MessengerSender messengerSender, TuntapTransfer tuntapTransfer, ClientSignInState clientSignInState, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig)
         {
             this.messengerSender = messengerSender;
             this.tuntapTransfer = tuntapTransfer;
             this.clientSignInState = clientSignInState;
             this.config = config;
             this.tuntapProxy = tuntapProxy;
+            this.runningConfig = runningConfig;
         }
+
+        public RouteItemListInfo RouteItems(ApiControllerParamsInfo param)
+        {
+            ulong hashCode = ulong.Parse(param.Content);
+            if (tuntapTransfer.Version.Eq(hashCode, out ulong version) == false)
+            {
+                return new RouteItemListInfo
+                {
+                    List = tuntapTransfer.RouteItems.Select(c =>
+                    {
+                        uint maskValue = NetworkHelper.GetPrefixIP(c.PrefixLength);
+                        IPAddress mask = NetworkHelper.GetPrefixIp(maskValue);
+                        IPAddress _ip = NetworkHelper.ToNetworkIp(c.Address, maskValue);
+                        return new
+                        {
+                            IP = c.Address,
+                            Network = _ip,
+                            PrefixLength = c.PrefixLength,
+                            PrefixIP = mask,
+                        };
+                    }).ToArray(),
+                    HashCode = version,
+                    Running = tuntapTransfer.Status == TuntapStatus.Running,
+                    IP = runningConfig.Data.Tuntap.IP,
+                };
+            }
+            return new RouteItemListInfo { HashCode = version };
+        }
+
 
         public ConnectionListInfo Connections(ApiControllerParamsInfo param)
         {
@@ -153,12 +187,18 @@ namespace linker.plugins.tuntap
         }
 
 
+        public sealed class RouteItemListInfo
+        {
+            public object[] List { get; set; }
+            public IPAddress IP { get; set; }
+            public bool Running { get; set; }
+            public ulong HashCode { get; set; }
+        }
         public sealed class TuntabListInfo
         {
             public ConcurrentDictionary<string, TuntapInfo> List { get; set; }
             public ulong HashCode { get; set; }
         }
-
         public sealed class ConnectionListInfo
         {
             public ConcurrentDictionary<string, ITunnelConnection> List { get; set; }

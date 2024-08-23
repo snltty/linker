@@ -17,17 +17,18 @@
 		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 		<ServerGarbageCollection>false</ServerGarbageCollection>
 		<Title>linker</Title>
-		<Version>1.2.3</Version>
+		<Version>1.2.4</Version>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 非网关支持网对网
-2. 我在测试，先不要更新</Description>
+		<Description>
+1. 非网关支持网对网
+2. 正在测试自动添加路由</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<AssemblyVersion>1.2.3</AssemblyVersion>
-		<FileVersion>1.2.3</FileVersion>
+		<AssemblyVersion>1.2.4</AssemblyVersion>
+		<FileVersion>1.2.4</FileVersion>
 	</PropertyGroup>
 
 
@@ -42,13 +43,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Content Include="favicon.ico" />
-		<EmbeddedResource Include="favicon.ico" />
 		<None Update="msquic-openssl.dll" Condition="'$(RuntimeIdentifier)'=='win-x64' or '$(RuntimeIdentifier)'=='win-arm64'">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="msquic.dll" Condition="'$(RuntimeIdentifier)'=='win-x64' or '$(RuntimeIdentifier)'=='win-arm64'">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="Plugins\Tuntap\wintun.dll" Condition="'$(RuntimeIdentifier)'=='win-x64' or '$(RuntimeIdentifier)'=='win-arm64' or '$(Configuration)'=='Debug'">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

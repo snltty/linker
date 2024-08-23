@@ -1,0 +1,284 @@
+//RUNAS//
+/*
+启动参数名前导字符可以为任意个数 / 或 - 。
+参数值可以空格或等号分开，例如： "/opt test" 或 "--opt=test" 。
+*/
+import win.ui;
+/*DSG{{*/
+mainForm = win.form(text="linker网对网路由工具";right=269;bottom=177;border="thin";max=false;min=false)
+mainForm.add(
+btnRun={cls="button";text="启动";left=94;top=91;right=188;bottom=129;z=5};
+ckAutoStart={cls="checkbox";text="自启动";left=197;top=103;right=257;bottom=119;z=6};
+static={cls="static";text="接口地址";left=13;top=23;right=77;bottom=49;align="center";center=1;transparent=1;z=3};
+static2={cls="static";text="接口密钥";left=13;top=58;right=77;bottom=84;align="center";center=1;transparent=1;z=4};
+static3={cls="static";text="从linker接口获取信息添加到本机路由表";left=21;top=147;right=248;bottom=167;transparent=1;z=8};
+tbPassword={cls="edit";text="snltty";left=95;top=57;right=241;bottom=83;edge=1;multiline=1;password=1;z=2};
+tbUrl={cls="edit";text="ws://127.0.0.1:1803";left=95;top=21;right=241;bottom=47;edge=1;multiline=1;z=1};
+textStatus={cls="static";left=15;top=102;right=85;bottom=118;color=255;transparent=1;z=7}
+)
+/*}}*/
+
+import win.ui.atom;
+import thread;
+var atom,hwndConflict = mainForm.atom("36E2C876-A68F-456C-98B7-CBE08C5B8B07");
+if(!atom){
+	thread.delay(1000);
+	var atom,hwndConflict = mainForm.atom("36E2C876-A68F-456C-98B7-CBE08C5B8B07");
+	if(!atom){
+		win.quitMessage();	return;
+	}
+};
+
+import web.json;
+import console;
+import dotNet;  
+mainForm.compiler = dotNet.createCompiler("C#");
+mainForm.compiler.Source = string.load("/res/Program.cs");
+mainForm.compiler.import("LinkerRoute");  
+mainForm.netObj = LinkerRoute.LinkerRoute();
+mainForm.ipv4 = mainForm.netObj.GetIPV4("linker.snltty.com");
+
+mainForm.serviceName = "linker.route.service";
+mainForm.exeName = "linker.route.win.exe";
+import win.image;
+hIcon = win.image.loadIconFromFile("/res/favicon.ico",true);
+hIcon1 = win.image.loadIconFromFile("/res/favicon1.ico",true);
+mainForm.myTray = null;
+mainForm.wndproc = function(hwnd,message,wParam,lParam){
+		//托盘菜单
+		if(message === 0xACCF ){
+			//右键
+			if( lParam === 0x205){
+				
+    			var pt = ::POINT();
+        		::User32.GetCursorPos(pt);
+        		win.setForeground(mainForm.hwnd)
+        		mainForm.popmenu.popup(pt.x,pt.y,true );
+        		
+			} 
+			//左键
+			if(lParam === 0x0202){
+				mainForm.show();
+				win.setTopmost(mainForm.hwnd);
+			} 
+		}
+		//关闭
+		if(message === 0x10){
+			mainForm.show(false);
+			return 0;
+		}
+}
+mainForm.showPopmenu = function(){
+	import win.util.tray;
+	import win.ui.menu;
+	
+	if(mainForm.myTray != null){
+		mainForm.myTray.delete();
+		mainForm.myTray = null;
+	}
+	tray = win.util.tray(mainForm);
+	mainForm.myTray = tray;
+	if(mainForm.running)
+	{
+		tray.icon = hIcon; 
+	}else
+	{
+		tray.icon = hIcon1; 
+	}
+	tray.tip = mainForm.text;
+	tray.message = 0xACCF;
+	mainForm.popmenu=win.ui.popmenu(mainForm);
+	
+	mainForm.popmenu.add(mainForm.ckAutoStart.checked ? '取消自启动':'开启自启动',function(id){mainForm.runAsTaskCommand()});
+	mainForm.popmenu.add(mainForm.running ? '停止':'运行',function(id){mainForm.runCommand()});
+	
+	mainForm.popmenu.add('退出托盘',function(id){
+		mainForm.delRoute();
+		win.quitMessage();
+   		mainForm.close();
+	});
+}
+
+
+import web.socket.client;
+import process.popen;
+import win.reg;
+mainForm.reg = win.reg("HKEY_CURRENT_USER\Software\linker.route.win") 
+
+mainForm.ws = web.socket.client();
+mainForm.ws.protocol = mainForm.reg.queryValue("password") || mainForm.tbPassword.text;
+mainForm.wsUrl = mainForm.reg.queryValue("url") || mainForm.tbUrl.text;
+mainForm.wsConnected = false;
+mainForm.running = true;
+mainForm.hashCode = 0;
+mainForm.routeContent = {List={}};
+
+
+mainForm.ws.onOpen = function(){
+	mainForm.wsConnected = true;
+	mainForm.textStatus.color=32768;
+	mainForm.textStatus.text = "已连接服务";
+	mainForm.reg.setValue("url",mainForm.wsUrl);
+	mainForm.reg.setValue("password",mainForm.tbPassword.text);
+}
+mainForm.ws.onClose = function(event){
+	mainForm.wsConnected = false;
+	mainForm.textStatus.color=255;
+	mainForm.textStatus.text = "未连接服务";
+}
+mainForm.ws.onError = function(err){
+	mainForm.wsConnected = false;
+	mainForm.textStatus.color=255;
+	mainForm.textStatus.text = "未连接服务";
+}
+
+
+mainForm.alreadyExists = function(ip,prefixLength){
+	for(i=1;table.len(mainForm.ipv4);1){
+		if(mainForm.netObj.GetIsSameNetwork(mainForm.ipv4[i],ip,prefixLength)){
+			return true;
+		}
+	}
+	return false;
+}
+mainForm.addRoute = function(){
+	for(i=1;table.len(mainForm.routeContent.List) ;1){
+		var item = mainForm.routeContent.List[i];
+		if(mainForm.alreadyExists(item.IP,item.PrefixLength) == false){
+			process.popen.cmd("route add "+item.Network+" mask "+item.PrefixIP+" "+mainForm.routeContent.IP);
+			//console.log("route add "+item.Network+" mask "+item.PrefixIP+" "+mainForm.routeContent.IP);	
+		}
+	}
+}
+mainForm.delRoute = function(){
+	for(i=1;table.len(mainForm.routeContent.List) ;1){
+		var item = mainForm.routeContent.List[i];
+		//console.log("route delete "+item.Network+" mask "+item.PrefixIP+" "+mainForm.routeContent.IP);
+		process.popen.cmd("route delete "+item.Network+" mask "+item.PrefixIP+" "+mainForm.routeContent.IP);
+	}
+}
+mainForm.sameRoute = function(content){
+	var same = true;
+		if(content.List && table.len(content.List) > 0)
+		{
+			same = table.len(content.List) == table.len(mainForm.routeContent.List);
+			if(same)
+			{
+				for(i=1;table.len(content.List) ;1)
+				{
+					same = content.List[i].IP == mainForm.routeContent.List[i].IP 
+					&& content.List[i].PrefixLength == mainForm.routeContent.List[i].PrefixLength;	
+					if(!same)
+					{
+						break;	
+					}
+				}	
+			}
+		}
+		return same;
+}
+
+mainForm.ws.onMessage = function(msg){
+	try{
+		var content = web.json.parse(msg.data).Content;
+		var same = mainForm.sameRoute(content);
+		if(!same){
+			mainForm.delRoute();
+			mainForm.routeContent = content;
+			mainForm.addRoute();
+		}
+	}
+	catch(e){
+	}
+}
+
+
+mainForm.failureService = function()
+{
+	import process.popen;
+	var prcs = process.popen.cmd("sc failure " + mainForm.serviceName +" reset= 0 actions= restart/3000/restart/3000/restart/3000")
+	prcs.readAll();
+}
+mainForm.checkService = function(){
+	import service;
+	mainForm.btnRun.text = mainForm.running ? "停止" : "运行";
+	mainForm.runAsTaskCheck();
+	mainForm.failureService();
+	mainForm.showPopmenu();
+	
+	mainForm.tbUrl.disabled = mainForm.running;
+	mainForm.tbPassword.disabled = mainForm.running;
+}
+mainForm.runAsTask = function(run){
+	import sys.runAsTask;
+	task = sys.runAsTask(mainForm.serviceName);
+	if(run)
+	{
+		task.register("--task=1");
+	}else
+	{
+		task.delete();
+	}
+	mainForm.checkService();
+}
+mainForm.runAsTaskCheck = function(){
+	import sys.runAsTask;
+	task = sys.runAsTask(mainForm.serviceName);
+	mainForm.ckAutoStart.checked = task.get() != null;
+}
+mainForm.ckAutoStart.oncommand = function(id,event){
+	mainForm.runAsTask(mainForm.ckAutoStart.checked);
+}
+mainForm.runAsTaskCommand = function()
+{
+	mainForm.runAsTask(!mainForm.ckAutoStart.checked);
+}
+
+mainForm.runCommand = function()
+{
+	mainForm.wsUrl = mainForm.tbUrl.text;
+	mainForm.running = !mainForm.running;
+	try{
+		mainForm.ws.close();
+	}
+	catch(e){}
+	mainForm.checkService();
+}
+mainForm.btnRun.oncommand = function(id,event){
+	mainForm.runCommand();
+}
+
+
+mainForm.setInterval( 
+	function(){
+		try{
+			if(mainForm.wsConnected == false)
+			{
+				if(mainForm.running )
+				{
+					mainForm.ws.protocol = mainForm.tbPassword.text;
+					mainForm.ws.connect(mainForm.wsUrl);
+				}
+			}else
+			{
+				mainForm.ws.send(web.json.stringify({
+					Path: "tuntapclient/routeitems",
+                	RequestId: 1,
+                	Content:mainForm.hashCode+""
+				}));
+			}	
+		}
+		catch(e){
+		}
+		return true;
+	},1000
+)
+
+if(!_ARGV["task"])
+{
+	mainForm.show();
+	win.setTopmost(mainForm.hwnd);
+}
+
+mainForm.checkService();
+return win.loopMessage();
