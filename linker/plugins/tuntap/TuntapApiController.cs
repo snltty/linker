@@ -13,6 +13,7 @@ using linker.plugins.tuntap.config;
 using linker.libs;
 using System.Net;
 using linker.client.config;
+using linker.tun;
 
 namespace linker.plugins.tuntap
 {
@@ -38,11 +39,17 @@ namespace linker.plugins.tuntap
         public RouteItemListInfo RouteItems(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);
-            if (tuntapTransfer.Version.Eq(hashCode, out ulong version) == false)
+            if (tuntapTransfer.Version.Eq(hashCode, out ulong version) == false && clientSignInState.Connected)
             {
                 return new RouteItemListInfo
                 {
-                    List = tuntapTransfer.RouteItems.Select(c =>
+                    List = tuntapTransfer.RouteItems
+                    .Concat(new LinkerTunDeviceRouteItem[] {
+                        new LinkerTunDeviceRouteItem {
+                            Address = runningConfig.Data.Tuntap.IP,
+                            PrefixLength = runningConfig.Data.Tuntap.PrefixLength,
+                        }
+                    }).Select(c =>
                     {
                         uint maskValue = NetworkHelper.GetPrefixIP(c.PrefixLength);
                         IPAddress mask = NetworkHelper.GetPrefixIp(maskValue);
@@ -57,7 +64,7 @@ namespace linker.plugins.tuntap
                     }).ToArray(),
                     HashCode = version,
                     Running = tuntapTransfer.Status == TuntapStatus.Running,
-                    IP = runningConfig.Data.Tuntap.IP,
+                    IP = clientSignInState.Connection.LocalAddress.Address,
                 };
             }
             return new RouteItemListInfo { HashCode = version };
