@@ -20,8 +20,7 @@
 		<Version>1.2.4</Version>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>
-1. 非网关支持网对网
+		<Description>1. 非网关支持网对网
 2. 正在测试自动添加路由</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>

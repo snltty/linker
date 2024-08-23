@@ -10,6 +10,7 @@
   "description": "",
   "dependencies": {
     "js-yaml": "^4.1.0",
+    "moment": "^2.30.1",
     "xml2js": "^0.6.2"
   }
 }

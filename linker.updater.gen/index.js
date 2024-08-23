@@ -1,6 +1,8 @@
 const fs = require('fs');
 const yaml = require('js-yaml');
 const xml2js = require('xml2js');
+const moment = require('moment');
+
 const parser = new xml2js.Parser();
 
 const path = '../.github/workflows/dotnet.yml';
@@ -100,7 +102,7 @@ readVersionDesc().then((desc) => {
     data.jobs.build.steps.filter(c => c.id == 'create_release')[0].with.tag_name = `v${desc.version}`;
     data.jobs.build.steps.filter(c => c.id == 'create_release')[0].with.release_name = `v${desc.version}.\${{ steps.date.outputs.today }}`;
 
-    fs.writeFileSync('../version.txt', `v${desc.version}\n${new Date().toISOString().split('T')[0]}\n${desc.desc}`, 'utf8');
+    fs.writeFileSync('../version.txt', `v${desc.version}\n${moment().format('YYYY-MM-DD HH:mm:ss')}\n${desc.desc}`, 'utf8');
 
     writeUpload(data);
     writeYaml(data);
