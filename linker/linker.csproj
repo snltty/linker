@@ -17,17 +17,16 @@
 		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 		<ServerGarbageCollection>false</ServerGarbageCollection>
 		<Title>linker</Title>
-		<Version>1.2.4</Version>
+		<Version>1.2.5</Version>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 非网关支持网对网
-2. 运行linker.route.win.exe既可自动添加路由实现"网对网"</Description>
+		<Description>1. 更改图标</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<AssemblyVersion>1.2.4</AssemblyVersion>
-		<FileVersion>1.2.4</FileVersion>
+		<AssemblyVersion>1.2.5</AssemblyVersion>
+		<FileVersion>1.2.5</FileVersion>
 	</PropertyGroup>
 
 
