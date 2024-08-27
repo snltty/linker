@@ -21,6 +21,7 @@ for %%r in (win-x86,win-x64,win-arm64) do (
 	echo F|xcopy "linker\\msquic-openssl3-%%r.dll" "public\\extends\\%%r\\linker-%%r\\msquic-openssl.dll"  /s /f /h /y
 	echo F|xcopy "linker\\wintun-%%r.dll" "public\\extends\\%%r\\linker-%%r\\wintun.dll"  /s /f /h /y
 )
+7z a -tzip ./public/publish-zip/linker-windows-route.zip ./linker.route.win/dist/*
 
 for %%r in (win-x86,win-x64,win-arm64,linux-x64,linux-arm,linux-arm64,linux-musl-x64,linux-musl-arm,linux-musl-arm64,osx-x64,osx-arm64) do (
 	

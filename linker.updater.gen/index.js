@@ -91,6 +91,33 @@ function writeUpload(data) {
             'target-path': `/downloads/linker/version.txt`
         }
     });
+    data.jobs.build.steps.push({
+        name: `upload-windows-route-oss`,
+        id: `upload-windows-route-oss`,
+        uses: 'tvrcgo/oss-action@v0.1.1',
+        with: {
+            'region': 'oss-cn-shenzhen',
+            'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
+            'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
+            'bucket': 'ide-qbcode',
+            'asset-path': `./public/publish-zip/linker-windows-route.zip`,
+            'target-path': `/downloads/linker/${tagName}/linker-windows-route.zip`
+        }
+    });
+    data.jobs.build.steps.push({
+        name: `upload-windows-route`,
+        id: `upload-windows-route`,
+        uses: 'actions/upload-release-asset@master',
+        env: {
+            'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
+        },
+        with: {
+            'upload_url': '${{ steps.create_release.outputs.upload_url }}',
+            'asset_path': `./public/publish-zip/linker-windows-route.zip`,
+            'asset_name': `linker-windows-route.zip`,
+            'asset_content_type': 'application/zip'
+        }
+    });
 }
 
 readVersionDesc().then((desc) => {
