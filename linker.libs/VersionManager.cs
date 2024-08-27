@@ -15,7 +15,10 @@ namespace linker.libs
 
         public void Add()
         {
-            Interlocked.Increment(ref version);
+            if(Interlocked.Increment(ref version) > ulong.MaxValue - ushort.MaxValue)
+            {
+                Interlocked.Exchange(ref version, 0);
+            }
         }
     }
 }

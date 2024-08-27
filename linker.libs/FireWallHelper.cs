@@ -22,7 +22,7 @@ namespace linker.libs
             CommandHelper.Linux(string.Empty, new string[] {
                 $"firewall-cmd --permanent --new-service={fileName}",
                 $"firewall-cmd --permanent --service={fileName} --set-short=\"My Application {fileName}\"",
-                $"firewall-cmd --permanent --service={fileName} --set-description=\"Allow all ports for My Application {fileName}\"",
+                $"firewall-cmd --permanent --service={fileName} --set-description=\"Allow all ports for my application {fileName}\"",
                 $"firewall-cmd --permanent --service={fileName} --add-port=0-65535/tcp",
                 $"firewall-cmd --permanent --service={fileName} --add-port=0-65535/udp",
                 $"firewall-cmd --permanent --service={fileName} --add-port=0-65535/icmp",
