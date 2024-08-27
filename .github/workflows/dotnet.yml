@@ -37,7 +37,7 @@ jobs:
           release_name: v1.2.6.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: 1. 修复BUG，打洞导致的网卡读取数据堵塞，表现为连接失败
+          body: "1. 修复BUG，打洞导致的网卡读取数据堵塞，表现为连接失败\r\n2. windows 路由工具单独下载"
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
         uses: tvrcgo/oss-action@v0.1.1
@@ -268,3 +268,23 @@ jobs:
           bucket: ide-qbcode
           asset-path: ./public/version.txt
           target-path: /downloads/linker/version.txt
+      - name: upload-windows-route-oss
+        id: upload-windows-route-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/publish-zip/linker-windows-route.zip
+          target-path: /downloads/linker/v1.2.6/linker-windows-route.zip
+      - name: upload-windows-route
+        id: upload-windows-route
+        uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./public/publish-zip/linker-windows-route.zip
+          asset_name: linker-windows-route.zip
+          asset_content_type: application/zip
