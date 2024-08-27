@@ -2,20 +2,20 @@
     <div>
         <div class="head flex">
             <div class="logo">
-                <router-link :to="{name:'Index'}">
-                    <img src="../assets/logo.png" alt="">
+                <router-link :to="{name:'FullIndex'}">
+                    <img src="@/assets/logo.png" alt="">
                 </router-link>
             </div>
             <div class="menu flex-1">
                 <ul class="flex">
                     <li>
-                        <router-link :to="{name:'Index'}"><el-icon size="16"><StarFilled /></el-icon> 首页</router-link>
+                        <router-link :to="{name:'FullIndex'}"><el-icon size="16"><StarFilled /></el-icon> 首页</router-link>
                     </li>
                     <li>
-                        <router-link :to="{name:'Settings'}"><el-icon size="16"><Tools /></el-icon> 配置</router-link>
+                        <router-link :to="{name:'FullSettings'}"><el-icon size="16"><Tools /></el-icon> 配置</router-link>
                     </li>
                     <li>
-                        <router-link :to="{name:'Logger'}"><el-icon size="16"><WarnTriangleFilled /></el-icon> 日志</router-link>
+                        <router-link :to="{name:'FullLogger'}"><el-icon size="16"><WarnTriangleFilled /></el-icon> 日志</router-link>
                     </li>
                 </ul>
             </div>

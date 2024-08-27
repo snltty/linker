@@ -1,8 +1,8 @@
 ---
-sidebar_position: 8
+sidebar_position: 7
 ---
 
-# 8、集成tun网卡到你的项目
+# 7、集成tun网卡到你的项目
 
 在你的.NET8.0+项目中，集成tun网卡，适用于`windows`、`linux`，源码在[https://github.com/snltty/linker/tree/master/linker.tun](https://github.com/snltty/linker/tree/master/linker.tun)
 

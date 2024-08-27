@@ -53,6 +53,7 @@ import { confirmServer, exitServer, getUpdaterCurrent, getUpdaterServer } from '
 import { subWebsocketState } from '@/apis/request';
 export default {
     components:{Promotion,Download,Loading,CircleCheck},
+    props:['config'],
     setup(props) {
 
         const globalData = injectGlobalData();
@@ -130,6 +131,9 @@ export default {
             return state.version != updaterCurrent.value.Version  ? 'yellow' :'green'
         }
         const handleUpdate = ()=>{
+            if(!props.config){
+                return;
+            }
             if(!updaterCurrent.value.Version){
                 ElMessage.error('未检测到更新');
                 return;
@@ -168,6 +172,9 @@ export default {
         }
 
         const handleConfig = () => {
+            if(!props.config){
+                return;
+            }
             state.form.name = globalData.value.config.Client.Name;
             state.form.groupid = globalData.value.config.Client.GroupId;
             state.show = true;
@@ -194,8 +201,7 @@ export default {
         });
 
         return {
-            state, handleConfig, handleSave,updaterCurrent,updaterServer,handleUpdate,updateText,updateColor
-
+         config:props.config,   state, handleConfig, handleSave,updaterCurrent,updaterServer,handleUpdate,updateText,updateColor
         }
     }
 }

@@ -27,6 +27,7 @@ export const provideUpdater = () => {
                             Current: self.Current,
                             Msg: self.Msg,
                         });
+                        globalData.value.updater = updater.value.current;
                     }
                     updater.value.list = res.List;
                 }

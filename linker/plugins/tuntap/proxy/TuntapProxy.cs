@@ -23,7 +23,7 @@ namespace linker.plugins.tuntap.proxy
         private readonly ClientSignInTransfer clientSignInTransfer;
 
         private uint[] maskValues = Array.Empty<uint>();
-        private readonly ConcurrentDictionary<uint, string> ip2MachineCic = new ConcurrentDictionary<uint, string>();
+        private readonly ConcurrentDictionary<uint, string> ip2MachineDic = new ConcurrentDictionary<uint, string>();
         private readonly ConcurrentDictionary<string, ITunnelConnection> connections = new ConcurrentDictionary<string, ITunnelConnection>();
         private readonly ConcurrentDictionary<uint, ITunnelConnection> ipConnections = new ConcurrentDictionary<uint, ITunnelConnection>();
 
@@ -78,6 +78,8 @@ namespace linker.plugins.tuntap.proxy
 
         public async Task Callback(LinkerTunDevicPacket packet)
         {
+            //if(LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"got packet to {packet.Dist}");
+
             //IPV4广播组播
             if (packet.IPV4Broadcast)
             {
@@ -101,16 +103,18 @@ namespace linker.plugins.tuntap.proxy
             uint ip = BinaryPrimitives.ReadUInt32BigEndian(packet.DistIPAddress.Span[^4..]);
             if (ipConnections.TryGetValue(ip, out ITunnelConnection connection) == false || connection == null || connection.Connected == false)
             {
-                connection = await ConnectTunnel(ip);
-                if (connection != null)
+                //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"got packet to {packet.Dist} 1");
+                _ = ConnectTunnel(ip).ContinueWith((result,state) =>
                 {
-                    ipConnections.AddOrUpdate(ip, connection, (a, b) => connection);
-                }
+                    if (result.Result != null)
+                    {
+                        ipConnections.AddOrUpdate((uint)state, result.Result, (a, b) => result.Result);
+                    }
+                },ip);
+                return;
             }
-            if (connection != null)
-            {
-                await connection.SendAsync(packet.Packet);
-            }
+            //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"got packet to {packet.Dist} 2")
+            await connection.SendAsync(packet.Packet);
         }
 
         /// <summary>
@@ -119,20 +123,20 @@ namespace linker.plugins.tuntap.proxy
         /// <param name="ips"></param>
         public void SetIPs(List<TuntapVeaLanIPAddressList> ips)
         {
-            ip2MachineCic.Clear();
+            ip2MachineDic.Clear();
             ipConnections.Clear();
             foreach (var item in ips)
             {
                 foreach (var ip in item.IPS)
                 {
-                    ip2MachineCic.AddOrUpdate(ip.NetWork, item.MachineId, (a, b) => item.MachineId);
+                    ip2MachineDic.AddOrUpdate(ip.NetWork, item.MachineId, (a, b) => item.MachineId);
                 }
             }
             maskValues = ips.SelectMany(c => c.IPS.Select(c => c.MaskValue)).Distinct().OrderBy(c => c).ToArray();
         }
         public void SetIP(string machineId, uint ip)
         {
-            ip2MachineCic.AddOrUpdate(ip, machineId, (a, b) => machineId);
+            ip2MachineDic.AddOrUpdate(ip, machineId, (a, b) => machineId);
         }
 
         /// <summary>
@@ -140,10 +144,10 @@ namespace linker.plugins.tuntap.proxy
         /// </summary>
         /// <param name="ip"></param>
         /// <returns></returns>
-        private async ValueTask<ITunnelConnection> ConnectTunnel(uint ip)
+        private async Task<ITunnelConnection> ConnectTunnel(uint ip)
         {
             //直接按IP查找
-            if (ip2MachineCic.TryGetValue(ip, out string machineId))
+            if (ip2MachineDic.TryGetValue(ip, out string machineId))
             {
                 return await ConnectTunnel(machineId).ConfigureAwait(false);
             }
@@ -152,13 +156,13 @@ namespace linker.plugins.tuntap.proxy
             for (int i = 0; i < maskValues.Length; i++)
             {
                 uint network = ip & maskValues[i];
-                if (ip2MachineCic.TryGetValue(network, out machineId))
+                if (ip2MachineDic.TryGetValue(network, out machineId))
                 {
-                    ip2MachineCic.TryAdd(ip, machineId);
+                    ip2MachineDic.TryAdd(ip, machineId);
                     return await ConnectTunnel(machineId).ConfigureAwait(false);
                 }
             }
-
+            //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"got packet ConnectTunnel {machineId}  not found");
             return null;
 
         }
@@ -167,8 +171,10 @@ namespace linker.plugins.tuntap.proxy
         /// </summary>
         /// <param name="machineId"></param>
         /// <returns></returns>
-        private async ValueTask<ITunnelConnection> ConnectTunnel(string machineId)
+        private async Task<ITunnelConnection> ConnectTunnel(string machineId)
         {
+            //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"got packet ConnectTunnel {machineId} ");
+
             if (config.Data.Client.Id == machineId)
             {
                 return null;
@@ -176,6 +182,8 @@ namespace linker.plugins.tuntap.proxy
 
             if (connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected)
             {
+                //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"got packet ConnectTunnel {machineId}  1");
+
                 return connection;
             }
 
@@ -183,11 +191,13 @@ namespace linker.plugins.tuntap.proxy
             {
                 return null;
             }
+            //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"got packet ConnectTunnel {machineId} 2");
 
             try
             {
                 if (await clientSignInTransfer.GetOnline(machineId) == false)
                 {
+                    //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"got packet ConnectTunnel {machineId} 3");
                     return null;
                 }
 

@@ -2,19 +2,33 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 const routes = [
     {
         path: '/',
-        name: 'Index',
-        component: () => import('../views/devices/Index.vue')
+        name: 'Full',
+        component: () => import('@/views/full/Index.vue'),
+        redirect: '/full/index.html',
+        children: [
+            {
+                path: '/full/index.html',
+                name: 'FullIndex',
+                component: () => import('@/views/full/devices/List.vue')
+            },
+            {
+                path: '/full/settings.html',
+                name: 'FullSettings',
+                component: () => import('@/views/full/settings/Index.vue')
+            },
+            {
+                path: '/full/logger.html',
+                name: 'FullLogger',
+                component: () => import('@/views/full/logger/Index.vue')
+            }
+        ]
     },
     {
-        path: '/settings.html',
-        name: 'Settings',
-        component: () => import('../views/settings/Index.vue')
+        path: '/net/index.html',
+        name: 'Network',
+        component: () => import('@/views/net/Index.vue')
     },
-    {
-        path: '/logger.html',
-        name: 'Logger',
-        component: () => import('../views/logger/Index.vue')
-    }
+
 ]
 
 const router = createRouter({

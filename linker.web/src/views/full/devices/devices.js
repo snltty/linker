@@ -33,6 +33,9 @@ export const provideDevices = () => {
                     isSelf: machineId.value == res.List[j].MachineId,
                     showip: false
                 });
+                if (res.List[j].isSelf) {
+                    globalData.value.self = res.List[j];
+                }
             }
             devices.page.List = res.List;
             for (let i = 0; i < devices.page.List.length; i++) {
@@ -55,6 +58,9 @@ export const provideDevices = () => {
                             showReboot: res.List[j].Connected,
                             isSelf: machineId.value == res.List[j].MachineId,
                         });
+                        if (item.isSelf) {
+                            globalData.value.self = item;
+                        }
                     }
                 }
                 devices.timer = setTimeout(_getSignList1, 5000);

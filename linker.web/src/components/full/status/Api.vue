@@ -1,13 +1,15 @@
 <template>
     <div class="status-api-wrap" :class="{connected:connected}">
-        <el-popconfirm confirm-button-text="清除" cancel-button-text="更改" title="确定你的操作？" @cancel="handleShow" @confirm="handleResetConnect" >
-            <template #reference>
-                <a href="javascript:;" title="此设备的管理接口">
-                    <el-icon size="16"><Tools /></el-icon>
-                    管理接口
-                </a>
-            </template>
-        </el-popconfirm>
+        <template v-if="config">
+            <el-popconfirm confirm-button-text="清除" cancel-button-text="更改" title="确定你的操作？" @cancel="handleShow" @confirm="handleResetConnect" >
+                <template #reference>
+                    <a href="javascript:;" title="此设备的管理接口">
+                        <el-icon size="16"><Tools /></el-icon>
+                        管理接口
+                    </a>
+                </template>
+            </el-popconfirm>
+        </template>
         <el-dialog class="options-center" title="管理接口" destroy-on-close v-model="showPort" center :show-close="false"
             :close-on-click-modal="false" align-center width="200">
             <div class="port-wrap t-c">
@@ -26,21 +28,22 @@
 </template>
 <script>
 import {useRoute,useRouter} from 'vue-router'
-import {injectGlobalData} from '../../provide'
+import {injectGlobalData} from '@/provide'
 import { computed, onMounted, reactive } from 'vue';
-import { initWebsocket, subWebsocketState,closeWebsocket } from '../../apis/request'
-import { getSignInfo } from '../../apis/signin'
-import { getConfig } from '../../apis/config'
+import { initWebsocket, subWebsocketState,closeWebsocket } from '@/apis/request'
+import { getSignInfo } from '@/apis/signin'
+import { getConfig } from '@/apis/config'
 import {Tools} from '@element-plus/icons-vue'
 export default {
     components:{Tools},
+    props:['config'],
     setup(props) {
         const globalData = injectGlobalData();
         const connected = computed(()=>globalData.value.api.connected);
         const router = useRouter();
         const route = useRoute();
 
-        const defaultInfo = {api:`${window.location.hostname}:1803`,psd:'snltty'};
+        const defaultInfo = {api:`127.0.0.1:1803`,psd:'snltty'};
         const queryCache = JSON.parse(localStorage.getItem('api-cache') || JSON.stringify(defaultInfo));
         const state = reactive({
             api:queryCache.api,
@@ -68,7 +71,7 @@ export default {
         }
         const handleShow = ()=>{
             closeWebsocket();
-            initWebsocket(`ws://${window.location.hostname}:12345`,state.psd);
+            initWebsocket(`ws://127.0.0.1:12345`,state.psd);
         }
 
         const _getConfig = ()=>{
@@ -109,13 +112,13 @@ export default {
                 _getSignInfoInfo();
             }});
             router.isReady().then(()=>{
-                state.api = route.query.api ?`${window.location.hostname}:${route.query.api}` :  state.api;
+                state.api = route.query.api ?`127.0.0.1:${route.query.api}` :  state.api;
                 state.psd = route.query.psd || state.psd;
                 handleConnect();
             });
         });
 
-        return { state,  showPort,  handleConnect1,connected,handleShow,handleResetConnect};
+        return {config:props.config, state,  showPort,  handleConnect1,connected,handleShow,handleResetConnect};
     }
 }
 </script>
