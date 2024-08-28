@@ -41,6 +41,7 @@ export const provideUpdater = () => {
         }
     }
 
+
     const clearUpdaterTimeout = () => {
         clearTimeout(updater.value.timer);
     }

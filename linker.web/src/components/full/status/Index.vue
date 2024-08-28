@@ -104,15 +104,18 @@ export default {
 
             //已检测
             if(updater.value.Status == 2){
-
                 const selectedValue = ref(updaterVersion.value);
                 const selectOptions = [
                     h(ElOption, { label: `仅[${self.value.MachineName}] -> ${updaterVersion.value}(最新版本)`, value: updaterVersion.value }),
-                    //h(ElOption, { label: `[所有] -> ${updaterVersion.value}(最新版本)`, value: `all->${updaterVersion.value}` }),
                 ];
+                if(props.config){
+                    selectOptions.push(h(ElOption, { label: `[所有] -> ${updaterVersion.value}(最新版本)`, value: `all->${updaterVersion.value}` }))
+                }
                 if(self.value.Version != serverVersion.value && updaterVersion.value != serverVersion.value){
                     selectOptions.push(h(ElOption, { label: `仅[${self.value.MachineName}] -> ${serverVersion.value}(服务器版本)`, value: serverVersion.value }));
-                    //selectOptions.push(h(ElOption, { label: `[所有] -> ${serverVersion.value}(服务器版本)`, value: `all->${serverVersion.value}` }));
+                    if(props.config){
+                        selectOptions.push(h(ElOption, { label: `[所有] -> ${serverVersion.value}(服务器版本)`, value: `all->${serverVersion.value}` }));
+                    }
                 }
 
                 ElMessageBox({

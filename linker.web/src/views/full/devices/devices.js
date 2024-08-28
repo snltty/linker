@@ -26,7 +26,6 @@ export const provideDevices = () => {
             devices.page.Request = res.Request;
             devices.page.Count = res.Count;
             for (let j in res.List) {
-                //res.List[j].IP = res.List[j].IP.split(':')[0];
                 Object.assign(res.List[j], {
                     showDel: machineId.value != res.List[j].MachineId && res.List[j].Connected == false,
                     showReboot: res.List[j].Connected,

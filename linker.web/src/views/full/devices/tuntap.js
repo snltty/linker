@@ -66,6 +66,7 @@ export const provideTuntap = () => {
         }
     }
     const handleTuntapEdit = (_tuntap) => {
+        console.log(_tuntap);
         tuntap.value.current = _tuntap;
         tuntap.value.showEdit = true;
 

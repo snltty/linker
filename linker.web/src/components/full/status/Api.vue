@@ -112,7 +112,7 @@ export default {
                 _getSignInfoInfo();
             }});
             router.isReady().then(()=>{
-                state.api = route.query.api ?`127.0.0.1:${route.query.api}` :  state.api;
+                state.api = route.query.api || state.api;
                 state.psd = route.query.psd || state.psd;
                 handleConnect();
             });
