@@ -9,7 +9,7 @@
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
 		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 		<Title>linker tun</Title>
-		<Version>1.2.6</Version>
+		<Version>1.2.7</Version>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>linker tun</Description>
@@ -17,8 +17,8 @@
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker tun</PackageReleaseNotes>
-		<AssemblyVersion>1.2.6</AssemblyVersion>
-		<FileVersion>1.2.6</FileVersion>
+		<AssemblyVersion>1.2.7</AssemblyVersion>
+		<FileVersion>1.2.7</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

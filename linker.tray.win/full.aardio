@@ -6,10 +6,12 @@ winform.add()
 
 if(!_WIN10_LATER) import web.view.7; //兼容 Win7 以及之后版本，不支持新版 WebView2 的功能。 
 else import web.view;//支持 Win10 以及之后版本，导入这个就别导入前面的 web.view.7;  
-
 var wb = web.view(winform);
+import wsock.tcp.simpleHttpServer;
+
+
 wb.enableDevTools(false);
-wb.go("http://127.0.0.1:1804");
+wb.go("/web/index.html#/full/index.html",8081);
 
 winform.show();
 win.loopMessage();

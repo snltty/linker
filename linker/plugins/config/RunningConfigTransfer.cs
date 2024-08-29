@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.plugins.client;
 using linker.plugins.config.messenger;
 using linker.plugins.messenger;
@@ -75,6 +76,7 @@ namespace linker.client.config
         /// <returns></returns>
         public Memory<byte> InputConfig(ConfigVersionInfo info)
         {
+            Console.WriteLine(info.ToJson());
             ulong version = GetVersion(info.Key);
 
             if (setters.TryGetValue(info.Key, out Action<Memory<byte>> setter) && info.Version > version)

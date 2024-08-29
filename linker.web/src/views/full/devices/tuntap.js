@@ -85,7 +85,7 @@ export const provideTuntap = () => {
             .map(c => c.MachineId);
     }
     const sortTuntapIP = (asc) => {
-        const sort = Object.values(tuntap.value.list).sort((a, b) => {
+        const sort = Object.values(tuntap.value.list).filter(c => c.IP).sort((a, b) => {
             const arrA = a.IP.split('.').map(c => Number(c));
             const arrB = b.IP.split('.').map(c => Number(c));
             for (let i = 0; i < arrA.length; i++) {

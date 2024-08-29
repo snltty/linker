@@ -43,7 +43,7 @@ export default {
         const router = useRouter();
         const route = useRoute();
 
-        const defaultInfo = {api:`127.0.0.1:1803`,psd:'snltty'};
+        const defaultInfo = {api:`${window.location.hostname}:1803`,psd:'snltty'};
         const queryCache = JSON.parse(localStorage.getItem('api-cache') || JSON.stringify(defaultInfo));
         const state = reactive({
             api:queryCache.api,
@@ -71,7 +71,7 @@ export default {
         }
         const handleShow = ()=>{
             closeWebsocket();
-            initWebsocket(`ws://127.0.0.1:12345`,state.psd);
+            initWebsocket(`ws://${window.location.hostname}:12345`,state.psd);
         }
 
         const _getConfig = ()=>{
@@ -112,7 +112,7 @@ export default {
                 _getSignInfoInfo();
             }});
             router.isReady().then(()=>{
-                state.api = route.query.api || state.api;
+                state.api = route.query.api ? `${window.location.hostname}:${route.query.api}`  : state.api;
                 state.psd = route.query.psd || state.psd;
                 handleConnect();
             });
