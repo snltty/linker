@@ -92,9 +92,15 @@ namespace linker.plugins.client
             try
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Info($"connect to signin server :{config.Data.Client.Server}");
+                    LoggerHelper.Instance.Info($"connect to signin server:{config.Data.Client.Server}");
 
                 IPEndPoint ip = NetworkHelper.GetEndPoint(config.Data.Client.Server, 1802);
+                if(ip == null)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        LoggerHelper.Instance.Error($"get domain ip fail:{config.Data.Client.Server}");
+                    return;
+                }
 
                 if (await ConnectServer(ip).ConfigureAwait(false) == false)
                 {

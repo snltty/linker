@@ -15,7 +15,7 @@
                                 </div>
                             </dt>
                             <dd class="tuntap">
-                                <TuntapShow @edit="handleTuntapEdit" :item="item"></TuntapShow>
+                                <TuntapShow v-if="tuntap.list[item.MachineId]" @edit="handleTuntapEdit" :item="item"></TuntapShow>
                             </dd>
                         </dl>
                     </li>
@@ -24,7 +24,7 @@
         </div>
         <div class="page t-c">
             <div class="page-wrap t-c">
-                <el-pagination small background layout="total,sizes,prev,pager, next"  :pager-count="1" :total="devices.page.Count"
+                <el-pagination size="small" background layout="prev,pager, next"  :pager-count="5" :total="devices.page.Count"
                     :page-size="devices.page.Request.Size" :current-page="devices.page.Request.Page"
                     @current-change="handlePageChange" @size-change="handlePageSizeChange" :page-sizes="[10, 20, 50, 100,255]" />
             </div>

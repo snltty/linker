@@ -5,5 +5,8 @@
 		<file name="favicon.ico" path="res\favicon.ico" comment="res\favicon.ico"/>
 		<file name="favicon1.ico" path="res\favicon1.ico" comment="res\favicon1.ico"/>
 	</folder>
-	<folder name="窗体文件" path="dlg" comment="目录" embed="true" local="false" ignored="false"/>
+	<folder name="窗体文件" path="dlg" comment="目录" embed="true" local="false" ignored="false">
+		<file name="net.aardio" path="net.aardio" comment="net.aardio"/>
+		<file name="full.aardio" path="full.aardio" comment="full.aardio"/>
+	</folder>
 </project>

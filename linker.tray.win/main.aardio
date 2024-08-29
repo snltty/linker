@@ -1,11 +1,13 @@
 import win.ui;
 /*DSG{{*/
-mainForm = win.form(text="linker tray";right=279;bottom=186;max=false)
+mainForm = win.form(text="linker tray";right=279;bottom=212;max=false)
 mainForm.add(
-btnCheck={cls="button";text="检查安装";left=104;top=130;right=173;bottom=153;z=1};
-btnInstall={cls="button";text="安装服务";left=95;top=23;right=183;bottom=65;z=2};
-btnRun={cls="button";text="运行服务";left=95;top=74;right=183;bottom=113;z=3};
-ckAutoStart={cls="checkbox";text="托盘自启动";left=189;top=160;right=269;bottom=177;z=4}
+btnCheck={cls="button";text="检查安装";left=8;top=183;right=77;bottom=206;z=1};
+btnInstall={cls="button";text="安装服务";left=99;top=23;right=187;bottom=65;z=2};
+btnRun={cls="button";text="运行服务";left=99;top=74;right=187;bottom=113;z=3};
+btnWebFull={cls="button";text="管理(专业)";left=152;top=135;right=224;bottom=164;z=6};
+btnWebNet={cls="button";text="管理(简单)";left=66;top=135;right=138;bottom=164;z=5};
+ckAutoStart={cls="checkbox";text="托盘自启动";left=187;top=186;right=273;bottom=203;z=4}
 )
 /*}}*/
 
@@ -92,15 +94,13 @@ mainForm.showPopmenu = function(){
 	});
 }
 
-mainForm.reStart = function()
-{
+mainForm.reStart = function(){
 	import process.popen;
 	var prcs = process.popen.cmd("start "+io._exefile+" --task=1");
 	win.quitMessage();
    	mainForm.close();
 }
-mainForm.failureService = function()
-{
+mainForm.failureService = function(){
 	import process.popen;
 	var prcs = process.popen.cmd("sc failure " + mainForm.serviceName +" reset= 0 actions= restart/3000/restart/3000/restart/3000")
 	prcs.readAll();
@@ -238,9 +238,17 @@ mainForm.runAsTaskCheck = function(){
 mainForm.ckAutoStart.oncommand = function(id,event){
 	mainForm.runAsTask(mainForm.ckAutoStart.checked);
 }
-mainForm.runAsTaskCommand = function()
-{
+mainForm.runAsTaskCommand = function(){
 	mainForm.runAsTask(!mainForm.ckAutoStart.checked);
+}
+
+mainForm.btnWebNet.oncommand = function(id,event){
+	var netFrm = mainForm.loadForm("/net.aardio");
+	netFrm.show();
+}
+mainForm.btnWebFull.oncommand = function(id,event){
+	var fullFrm = mainForm.loadForm("/full.aardio");
+	fullFrm.show();
 }
 
 mainForm.checkService();

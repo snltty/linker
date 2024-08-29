@@ -46,6 +46,18 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
+@media screen and (max-width: 1000px) {
+    body .app-wrap{
+        border:0;
+        height:100%;
+        width 100%;
+        left:0; top:0;
+        right:0;
+        bottom:0;
+        transform:none;
+        max-width:100%;
+    }
+}
 .app-wrap{
     box-sizing:border-box;
     background-color:#fff;

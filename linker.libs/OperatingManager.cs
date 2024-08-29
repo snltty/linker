@@ -21,6 +21,7 @@ namespace linker.libs
     public sealed class OperatingMultipleManager
     {
         private readonly ConcurrentDictionary<string, bool> dicOperating = new ConcurrentDictionary<string, bool>();
+        private readonly ConcurrentDictionary<uint, bool> dicOperating1 = new ConcurrentDictionary<uint, bool>();
 
         public bool StartOperation(string key)
         {
@@ -31,5 +32,13 @@ namespace linker.libs
             dicOperating.TryRemove(key, out _);
         }
 
+        public bool StartOperation(uint key)
+        {
+            return dicOperating1.TryAdd(key, true);
+        }
+        public void StopOperation(uint key)
+        {
+            dicOperating1.TryRemove(key, out _);
+        }
     }
 }

@@ -103,21 +103,21 @@ namespace linker.plugins.tuntap.proxy
             uint ip = BinaryPrimitives.ReadUInt32BigEndian(packet.DistIPAddress.Span[^4..]);
             if (ipConnections.TryGetValue(ip, out ITunnelConnection connection) == false || connection == null || connection.Connected == false)
             {
-                /*
-                if(operatingMultipleManager.StartOperation(ip) == false)
+
+                if (operatingMultipleManager.StartOperation(ip) == false)
                 {
                     return;
                 }
-                */
+
                 //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"got packet to {packet.Dist} 1");
-                _ = ConnectTunnel(ip).ContinueWith((result,state) =>
+                _ = ConnectTunnel(ip).ContinueWith((result, state) =>
                 {
-                    //operatingMultipleManager.StopOperation((uint)state);
+                    operatingMultipleManager.StopOperation((uint)state);
                     if (result.Result != null)
                     {
                         ipConnections.AddOrUpdate((uint)state, result.Result, (a, b) => result.Result);
                     }
-                },ip);
+                }, ip);
                 return;
             }
             //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"got packet to {packet.Dist} 2")

@@ -183,6 +183,8 @@ namespace linker.plugins.relay.messenger
             source.Cancel();
             target.Cancel();
 
+            await Task.Delay(100);
+
             source.TargetStream = target.SourceStream;
             source.TargetSocket = target.SourceSocket;
             source.TargetNetworkStream = target.SourceNetworkStream;

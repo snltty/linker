@@ -84,6 +84,7 @@ namespace linker.plugins.relay.transport
                     connection.Disponse(7);
                     return null;
                 }
+                await Task.Delay(100).ConfigureAwait(false);
                 ClearSocket(socket);
 
                 SslStream sslStream = null;
@@ -141,7 +142,7 @@ namespace linker.plugins.relay.transport
                     Payload = MemoryPackSerializer.Serialize(relayInfo)
                 }).ConfigureAwait(false);
                 connection.Cancel();
-                await Task.Delay(30).ConfigureAwait(false);
+                await Task.Delay(100).ConfigureAwait(false);
                 ClearSocket(socket);
                 _ = WaitSSL(connection, socket, relayInfo).ContinueWith((result) =>
                 {

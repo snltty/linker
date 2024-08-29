@@ -578,6 +578,9 @@ namespace linker.plugins.messenger
             userToken = null;
             cancellationTokenSource?.Cancel();
             bufferCache.Clear(true);
+
+            //var bytes = new byte[1024];
+            // while (SourceSocket.Receive(bytes) > 0) ;
         }
         public override void Disponse(int value = 0)
         {
