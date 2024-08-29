@@ -21,7 +21,7 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 修复BUG，打洞导致的网卡读取数据堵塞，表现为连接失败
-2. windows 路由工具单独下载</Description>
+2. windows路由工具单独下载</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
