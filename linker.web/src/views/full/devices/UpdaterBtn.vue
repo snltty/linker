@@ -141,7 +141,7 @@ export default {
         }
 
         return {
-            item:props.item,updater,updaterText,updaterColor,handleUpdate
+            item:computed(()=>props.item),updater,updaterText,updaterColor,handleUpdate
         }
     }
 }

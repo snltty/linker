@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<project ver="10" name="linker.tray.win" libEmbed="true" icon="..\linker\favicon.ico" ui="win" output="linker.tray.win.exe" CompanyName="snltty" FileDescription="linker.tray.win" LegalCopyright="Copyright (C) snltty 2024" ProductName="linker.tray.win" InternalName="linker.install.win" FileVersion="0.0.0.72" ProductVersion="0.0.0.72" publishDir="/dist/" dstrip="false" local="false" ignored="false">
+<project ver="10" name="linker.tray.win" libEmbed="true" icon="..\linker\favicon.ico" ui="win" output="linker.tray.win.exe" CompanyName="snltty" FileDescription="linker.tray.win" LegalCopyright="Copyright (C) snltty 2024" ProductName="linker.tray.win" InternalName="linker.install.win" FileVersion="0.0.0.80" ProductVersion="0.0.0.80" publishDir="/dist/" dstrip="false" local="false" ignored="false">
 	<file name="main.aardio" path="main.aardio" comment="main.aardio"/>
 	<folder name="资源文件" path="res" embed="true" local="false" ignored="false">
 		<file name="favicon.ico" path="res\favicon.ico" comment="res\favicon.ico"/>
@@ -8,5 +8,48 @@
 	<folder name="窗体文件" path="dlg" comment="目录" embed="true" local="false" ignored="false">
 		<file name="net.aardio" path="net.aardio" comment="net.aardio"/>
 		<file name="full.aardio" path="full.aardio" comment="full.aardio"/>
+	</folder>
+	<folder name="web" path="web" comment="web" local="true" embed="true" ignored="false">
+		<file name="alpine.svg" path="web\alpine.svg" comment="web\alpine.svg"/>
+		<file name="android.svg" path="web\android.svg" comment="web\android.svg"/>
+		<file name="centos.svg" path="web\centos.svg" comment="web\centos.svg"/>
+		<file name="debian.svg" path="web\debian.svg" comment="web\debian.svg"/>
+		<file name="docker.svg" path="web\docker.svg" comment="web\docker.svg"/>
+		<file name="favicon.ico" path="web\favicon.ico" comment="web\favicon.ico"/>
+		<file name="favicon1.ico" path="web\favicon1.ico" comment="web\favicon1.ico"/>
+		<file name="index.html" path="web\index.html" comment="web\index.html"/>
+		<file name="ios.svg" path="web\ios.svg" comment="web\ios.svg"/>
+		<file name="linux.svg" path="web\linux.svg" comment="web\linux.svg"/>
+		<file name="logo.png" path="web\logo.png" comment="web\logo.png"/>
+		<file name="logo1.png" path="web\logo1.png" comment="web\logo1.png"/>
+		<file name="rocky.svg" path="web\rocky.svg" comment="web\rocky.svg"/>
+		<file name="system.svg" path="web\system.svg" comment="web\system.svg"/>
+		<file name="ubuntu.svg" path="web\ubuntu.svg" comment="web\ubuntu.svg"/>
+		<file name="windows.svg" path="web\windows.svg" comment="web\windows.svg"/>
+		<file name="细胞.png" path="web\细胞.png" comment="web\细胞.png"/>
+		<file name="细胞1.png" path="web\细胞1.png" comment="web\细胞1.png"/>
+		<folder name="css" path="web\css" comment="web\css">
+			<file name="161.1904d0c1.css" path="web\css\161.1904d0c1.css" comment="web\css\161.1904d0c1.css"/>
+			<file name="193.8536a4ec.css" path="web\css\193.8536a4ec.css" comment="web\css\193.8536a4ec.css"/>
+			<file name="295.0d822e3c.css" path="web\css\295.0d822e3c.css" comment="web\css\295.0d822e3c.css"/>
+			<file name="603.93ce4b66.css" path="web\css\603.93ce4b66.css" comment="web\css\603.93ce4b66.css"/>
+			<file name="904.54641a6b.css" path="web\css\904.54641a6b.css" comment="web\css\904.54641a6b.css"/>
+			<file name="app.0f5db304.css" path="web\css\app.0f5db304.css" comment="web\css\app.0f5db304.css"/>
+			<file name="chunk-vendors.d8267b33.css" path="web\css\chunk-vendors.d8267b33.css" comment="web\css\chunk-vendors.d8267b33.css"/>
+		</folder>
+		<folder name="img" path="web\img" comment="web\img">
+			<file name="logo.892cb2fb.png" path="web\img\logo.892cb2fb.png" comment="web\img\logo.892cb2fb.png"/>
+		</folder>
+		<folder name="js" path="web\js" comment="web\js">
+			<file name="161.19dd185b.js" path="web\js\161.19dd185b.js" comment="web\js\161.19dd185b.js"/>
+			<file name="193.41d776e6.js" path="web\js\193.41d776e6.js" comment="web\js\193.41d776e6.js"/>
+			<file name="295.b146a038.js" path="web\js\295.b146a038.js" comment="web\js\295.b146a038.js"/>
+			<file name="370.0a2511bc.js" path="web\js\370.0a2511bc.js" comment="web\js\370.0a2511bc.js"/>
+			<file name="422.5c525d61.js" path="web\js\422.5c525d61.js" comment="web\js\422.5c525d61.js"/>
+			<file name="603.2a1eab70.js" path="web\js\603.2a1eab70.js" comment="web\js\603.2a1eab70.js"/>
+			<file name="904.a5d7ab42.js" path="web\js\904.a5d7ab42.js" comment="web\js\904.a5d7ab42.js"/>
+			<file name="app.842662e0.js" path="web\js\app.842662e0.js" comment="web\js\app.842662e0.js"/>
+			<file name="chunk-vendors.710dc716.js" path="web\js\chunk-vendors.710dc716.js" comment="web\js\chunk-vendors.710dc716.js"/>
+		</folder>
 	</folder>
 </project>

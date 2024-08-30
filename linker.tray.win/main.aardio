@@ -247,8 +247,14 @@ mainForm.btnWebNet.oncommand = function(id,event){
 	netFrm.show();
 }
 mainForm.btnWebFull.oncommand = function(id,event){
-	var fullFrm = mainForm.loadForm("/full.aardio");
-	fullFrm.show();
+	import fsys;
+	if(io.exist("./web/index.html"))
+	{
+		var fullFrm = mainForm.loadForm("/full.aardio");
+		fullFrm.show();
+	}else{
+		win.msgbox("不存在",null,null,mainForm.hwnd,1000);
+	}
 }
 
 mainForm.checkService();

@@ -17,20 +17,17 @@
 		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 		<ServerGarbageCollection>false</ServerGarbageCollection>
 		<Title>linker</Title>
-		<Version>1.2.7</Version>
+		<Version>1.2.8</Version>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 修复BUG，打洞导致的网卡读取数据堵塞，表现为连接失败
-2. windows路由工具单独下载
-3. 修复配置信息同步错误
-4. 新增简单管理页面
-5. 修复域名解析失败的问题</Description>
+		<Description>1. 修复管理页面数据表格绑定错误，导致的信息显示错误
+2. 将程序分发给他人进行组网时，可删除web文件夹，让其仅能使用简单管理页面管理自身</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<AssemblyVersion>1.2.7</AssemblyVersion>
-		<FileVersion>1.2.7</FileVersion>
+		<AssemblyVersion>1.2.8</AssemblyVersion>
+		<FileVersion>1.2.8</FileVersion>
 	</PropertyGroup>
 
 

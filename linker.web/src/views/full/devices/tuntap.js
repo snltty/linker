@@ -88,6 +88,7 @@ export const provideTuntap = () => {
         const sort = Object.values(tuntap.value.list).filter(c => c.IP).sort((a, b) => {
             const arrA = a.IP.split('.').map(c => Number(c));
             const arrB = b.IP.split('.').map(c => Number(c));
+
             for (let i = 0; i < arrA.length; i++) {
                 if (arrA[i] != arrB[i]) {
                     return arrA[i] - arrB[i];

@@ -9,6 +9,7 @@
         </template>
         <a href="javascript:;" @click="handleEdit" title="此客户端的设备名" :class="{green:item.Connected}">{{item.MachineName }}</a>
         <strong v-if="item.isSelf"> - (<el-icon><StarFilled /></el-icon> 本机) </strong>
+        <!-- <p>{{ item }}</p> -->
     </div>
 </template>
 
@@ -34,7 +35,7 @@ export default {
 
 
         return {
-            item:props.item,tuntap,handleEdit
+            item:computed(()=>props.item),tuntap,handleEdit
         }
     }
 }

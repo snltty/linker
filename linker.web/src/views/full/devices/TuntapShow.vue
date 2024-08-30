@@ -105,7 +105,7 @@ export default {
         }
 
         return {
-            item:props.item,tuntap,showDelay,  handleTuntap, handleTuntapIP,handleTuntapRefresh
+            item:computed(()=>props.item),tuntap,showDelay,  handleTuntap, handleTuntapIP,handleTuntapRefresh
         }
     }
 }
