@@ -20,8 +20,8 @@
 		<Version>1.2.8</Version>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 修复管理页面数据表格绑定错误，导致的信息显示错误
-2. 将程序分发给他人进行组网时，可删除web文件夹，让其仅能使用简单管理页面管理自身</Description>
+		<Description>1. 修复管理页面数据表格绑定显示信息错误
+2. 将程序分发给他人进行组网时，可删除web文件夹，使其其仅能使用简单管理页面管理自身</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
