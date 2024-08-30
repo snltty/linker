@@ -1,6 +1,6 @@
 <template>
-    <div class="status-api-wrap" :class="{connected:connected}">
-        <template v-if="config">
+    <div v-if="config" class="status-api-wrap" :class="{connected:connected}">
+        <template >
             <el-popconfirm confirm-button-text="清除" cancel-button-text="更改" title="确定你的操作？" @cancel="handleShow" @confirm="handleResetConnect" >
                 <template #reference>
                     <a href="javascript:;" title="此设备的管理接口">
