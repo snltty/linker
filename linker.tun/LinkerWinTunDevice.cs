@@ -66,22 +66,21 @@ namespace linker.tun
                 {
                     AddIPV4();
                     AddIPV6();
-                    break;
+
+                    GetWindowsInterfaceNum();
+                    tokenSource = new CancellationTokenSource();
+                    return true;
                 }
                 catch (Exception)
                 {
                     Thread.Sleep(1000);
                 }
-                if (i == 4)
-                {
-                    error = ($"Failed to set adapter ip {Marshal.GetLastWin32Error():x2}");
-                    Shutdown();
-                    return false;
-                }
             }
-            GetWindowsInterfaceNum();
-            tokenSource = new CancellationTokenSource();
-            return true;
+
+            error = ($"Failed to set adapter ip {Marshal.GetLastWin32Error():x2}");
+            Shutdown();
+            return false;
+
         }
 
         private void AddIPV4()

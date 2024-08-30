@@ -1,6 +1,10 @@
 <template>
     <div class="status-wrap flex">
         <div class="copy">
+            <a href="javascript:;" class="memory" title="赞助一笔，让作者饱餐一顿" @click="state.showPay = true">
+                <img src="@/assets/memory.svg" alt="memory" />
+                <span>赞助</span>
+            </a>
             <a href="https://github.com/snltty/linker" target="_blank">snltty©linker</a>
             <a href="javascript:;" class="download" @click="handleUpdate()" :title="updateText" :class="updateColor">
                 <span>
@@ -31,10 +35,17 @@
         <div class="flex-1"></div>
         <div class="api"><Api :config="config"></Api></div>
         <div class="server" ><Server :config="config"></Server></div>
+
+        <el-dialog v-model="state.showPay" title="赞助linker" width="300" top="1vh">
+            <div class="pay">
+                <img src="@/assets/wechat.jpg" alt=""/>
+                <img src="@/assets/alipay.jpg" alt=""/>
+            </div>
+        </el-dialog>
     </div>
 </template>
 <script>
-import { computed, h, ref } from 'vue';
+import { computed, h, reactive, ref } from 'vue';
 import Api from './Api.vue'
 import Server from './Server.vue'
 import { injectGlobalData } from '@/provide';
@@ -144,8 +155,12 @@ export default {
             }
         }
 
+        const state = reactive({
+            showPay:false
+        })
+
         return {
-            config:props.config,self,updater,updateText,updateColor,handleUpdate
+            state,config:props.config,self,updater,updateText,updateColor,handleUpdate
         }
     }
 }
@@ -158,11 +173,21 @@ export default {
     line-height:3rem;
     font-size:1.2rem;
     color:#555;
+
+    .pay{
+        font-size:xxx-large;
+        img{width:100%;margin:0;}
+    }
     
 
     .copy{
         padding-left:.5rem;
         a{color:#555;}
+    }
+
+    a.memory{
+        img{height:3rem;vertical-align:bottom;margin-right:.1rem;}
+        margin-right:.6rem;
     }
 
     a.download{
