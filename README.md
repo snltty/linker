@@ -43,6 +43,14 @@
 | NAT2 (IP限制锥型) | √   | √  | √  | √ | 
 | NAT3 (IP+端口限制锥型) | √   | √  | √  | √ | 
 | NAT4 (对称型) | √   | √  | √  | × | 
+
+## 界面预览
+
+<div align="center">
+<p><img src="./readme/full.png"></p> 
+<p><img src="./readme/net.png"></p> 
+</div>
+
 ## 支持作者
 
 <div align="center">
