@@ -20,8 +20,7 @@ namespace linker.tunnel.wanport
         public async Task<TunnelWanPortEndPoint> GetAsync(IPAddress localIP, IPEndPoint server)
         {
             UdpClient udpClient = new UdpClient(AddressFamily.InterNetwork);
-            //udpClient.Client.Bind(new IPEndPoint(localIP, 0));
-            udpClient.Client.Reuse();
+            udpClient.Client.ReuseBind(new IPEndPoint(localIP, 0));
             udpClient.Client.WindowsUdpBug();
 
             for (int i = 0; i < 5; i++)
@@ -76,8 +75,7 @@ namespace linker.tunnel.wanport
             try
             {
                 Socket socket = new Socket(server.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
-                // socket.Bind(new IPEndPoint(localIP, 0));
-                socket.Reuse(true);
+                socket.ReuseBind(new IPEndPoint(localIP, 0));
                 await socket.ConnectAsync(server).ConfigureAwait(false);
                 await socket.SendAsync(new byte[] { 0 });
                 int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
