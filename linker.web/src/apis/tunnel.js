@@ -31,3 +31,10 @@ export const getTunnelExcludeIPs = () => {
 export const setTunnelExcludeIPs = (data) => {
     return sendWebsocketMsg('tunnel/SetExcludeIPs', data);
 }
+
+export const getInterfaces = () => {
+    return sendWebsocketMsg('tunnel/GeInterfaces');
+}
+export const setInterface = (ip) => {
+    return sendWebsocketMsg('tunnel/SetInterface', ip);
+}

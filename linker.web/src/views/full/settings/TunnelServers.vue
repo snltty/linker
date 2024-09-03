@@ -1,5 +1,16 @@
 <template>
-    <Version ckey="tunnelWanPortProtocols"/>
+    <Version ckey="tunnelWanPortProtocols">
+        <div class="interface">
+            <span>网络接口 : </span>
+            <el-select v-model="state.interface" @change="handleInterfaceChange" placeholder="Select" size="small" style="width:12rem" >
+                <el-option
+                    v-for="item in state.interfaces"
+                    :key="item"
+                    :label="item"
+                    :value="item"/>
+            </el-select>
+        </div>
+    </Version>
     <el-table :data="state.list" border size="small" width="100%" :height="`${state.height}px`" @cell-dblclick="handleCellClick">
         <el-table-column prop="Name" label="名称">
             <template #default="scope">
@@ -75,7 +86,7 @@
     </el-table>
 </template>
 <script>
-import { setTunnelServers,getTunnelTypes } from '@/apis/tunnel';
+import { setTunnelServers,getTunnelTypes,getInterfaces,setInterface } from '@/apis/tunnel';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { computed, onMounted, reactive, watch } from 'vue'
@@ -88,17 +99,30 @@ export default {
     components:{Version,Delete,Plus,Top,Bottom},
     setup(props) {
         const globalData = injectGlobalData();
-        const list = globalData.value.config.Running.Tunnel.Servers.sort((a,b)=>a.Disabled - b.Disabled);
         const state = reactive({
-            list:list,
+            list:globalData.value.config.Running.Tunnel.Servers.sort((a,b)=>a.Disabled - b.Disabled),
             types:[],
-            height: computed(()=>globalData.value.height-127)
+            height: computed(()=>globalData.value.height-127),
+            interfaces:[],
+            interface:globalData.value.config.Running.Tunnel.Interface
         });
         watch(()=>globalData.value.config.Running.Tunnel.Servers,()=>{
             if(state.list.filter(c=>c['__editing']).length == 0){
                 state.list = globalData.value.config.Running.Tunnel.Servers.sort((a,b)=>a.Disabled - b.Disabled);
             }
-        })
+            state.interface = globalData.value.config.Running.Tunnel.Interface;
+        });
+        console.log(state.interface);
+
+        const _getInterfaces = ()=>{
+            getInterfaces().then((res)=>{
+                res.splice(0,0,'0.0.0.0');
+                state.interfaces = res;
+            }).catch(()=>{});
+        }
+        const handleInterfaceChange = ()=>{
+            setInterface(state.interface).then(()=>{}).catch(()=>{});
+        }
 
         const _getTunnelTypes = ()=>{
             getTunnelTypes().then((res)=>{
@@ -173,12 +197,12 @@ export default {
 
         onMounted(()=>{
             _getTunnelTypes();
+            _getInterfaces();
         });
 
-        return {state,handleCellClick,handleEditBlur,handleDel,handleAdd,handleSort}
+        return {state,handleCellClick,handleEditBlur,handleDel,handleAdd,handleSort,handleInterfaceChange}
     }
 }
 </script>
 <style lang="stylus" scoped>
-    
 </style>

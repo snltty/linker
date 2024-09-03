@@ -9,6 +9,7 @@ using linker.tunnel.transport;
 using linker.tunnel.wanport;
 using MemoryPack;
 using System.Collections.Concurrent;
+using System.Net;
 using System.Net.Quic;
 
 namespace linker.plugins.tunnel
@@ -153,6 +154,12 @@ namespace linker.plugins.tunnel
             };
         }
 
+
+        public void SetInterface(IPAddress ip)
+        {
+            running.Data.Tunnel.Interface = ip;
+            running.Data.Update();
+        }
 
         private void TestQuic()
         {

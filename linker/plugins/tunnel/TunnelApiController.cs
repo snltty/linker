@@ -12,6 +12,8 @@ using linker.plugins.client;
 using linker.plugins.capi;
 using linker.plugins.messenger;
 using linker.plugins.tunnel.excludeip;
+using System.Net;
+using linker.libs;
 
 namespace linker.plugins.tunnel
 {
@@ -147,6 +149,28 @@ namespace linker.plugins.tunnel
             public ulong HashCode { get; set; }
         }
 
+        /// <summary>
+        /// 获取网卡接口列表
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public IPAddress[] GeInterfaces(ApiControllerParamsInfo param)
+        {
+            return NetworkHelper.GetIPV4();
+        }
+        /// <summary>
+        /// 设置网卡接口
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public bool SetInterface(ApiControllerParamsInfo param)
+        {
+            IPAddress ip = IPAddress.Parse(param.Content);
+
+            tunnelConfigTransfer.SetInterface(ip);
+
+            return true;
+        }
     }
 
 }

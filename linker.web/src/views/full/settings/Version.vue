@@ -1,10 +1,8 @@
 <template>
     <div class="running-version-wrap flex">
-        <span>配置版本 : {{version || 1}}</span>
-        <el-button size="small" @click=handleEdit>手动修改版本</el-button>
-        <span>高版本一端自动同步到低版本一端</span>
+        <span><a href="javascript:;" @click="handleEdit">配置版本 : {{version || 1}}</a></span>
+        <div><span>，配置自动同步，除非</span><el-checkbox v-model="disableSyncValue" @change="handleSync">关闭自动同步</el-checkbox></div>
         <span class="flex-1"></span>
-        <el-checkbox v-model="disableSyncValue" @change="handleSync">关闭自动同步</el-checkbox>
         <slot></slot>
     </div>
 </template>
@@ -54,9 +52,9 @@ export default {
 <style lang="stylus" scoped>
     .running-version-wrap{
         span{
-            vertical-align:middle
+            vertical-align top
         }
         padding:0 0 1rem 0;
-        line-height:2.4rem
+        line-height:3.2rem
     }
 </style>

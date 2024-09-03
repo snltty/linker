@@ -53,7 +53,7 @@ namespace linker.tunnel.wanport
                     LoggerHelper.Instance.Debug($"get domain ip {info.Host}");
                 IPEndPoint server = NetworkHelper.GetEndPoint(info.Host, 3478);
                 if (server == null) return null;
-                TunnelWanPortEndPoint wanPort = await tunnelWanPort.GetAsync(server).ConfigureAwait(false);
+                TunnelWanPortEndPoint wanPort = await tunnelWanPort.GetAsync(localIP, server).ConfigureAwait(false);
                 if (wanPort != null)
                 {
                     wanPort.Local.Address = localIP;
