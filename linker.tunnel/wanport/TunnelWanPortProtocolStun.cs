@@ -19,7 +19,7 @@ namespace linker.tunnel.wanport
         public async Task<TunnelWanPortEndPoint> GetAsync(IPAddress localIP, IPEndPoint server)
         {
             UdpClient udpClient = new UdpClient(AddressFamily.InterNetwork);
-            udpClient.Client.Bind(new IPEndPoint(localIP,0));
+            //udpClient.Client.Bind(new IPEndPoint(localIP,0));
             udpClient.Client.Reuse();
             udpClient.Client.WindowsUdpBug();
             try
