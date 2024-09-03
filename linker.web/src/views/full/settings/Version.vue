@@ -4,19 +4,26 @@
         <el-button size="small" @click=handleEdit>手动修改版本</el-button>
         <span>高版本一端自动同步到低版本一端</span>
         <span class="flex-1"></span>
+        <el-checkbox v-model="disableSyncValue" @change="handleSync">关闭自动同步</el-checkbox>
         <slot></slot>
     </div>
 </template>
 <script>
-import {updateVersion} from '@/apis/running'
+import {updateDisableSync, updateVersion} from '@/apis/running'
 import { injectGlobalData } from '@/provide';
 import { ElMessageBox } from 'element-plus';
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 export default {
     props:['ckey'],
     setup(props) {
         const globalData = injectGlobalData();
         const version = computed(()=>globalData.value.config.Running.Versions[props.ckey]);
+        
+        const disableSync = computed(()=>globalData.value.config.Running.DisableSyncs[props.ckey] || false);
+        watch(()=>disableSync.value,()=>{
+            disableSyncValue.value = disableSync.value;
+        });
+        const disableSyncValue = ref(disableSync.value);
 
 
         const handleEdit = () => {
@@ -34,9 +41,12 @@ export default {
 
             });
         }
+        const handleSync = ()=>{
+            updateDisableSync({key:props.ckey,sync:disableSyncValue.value})
+        }
 
         return {
-            version,handleEdit
+            version,disableSyncValue,handleEdit,handleSync
         }
     }
 }

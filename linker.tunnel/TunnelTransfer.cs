@@ -388,8 +388,11 @@ namespace linker.tunnel
             }
             //在尝试外网
             eps.AddRange(new List<IPEndPoint>{
+                //有NAT
                 new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port),
                 new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port+1),
+                //无NAT
+                new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Local.Port),
             });
             //再尝试IPV6
             foreach (IPAddress item in tunnelTransportInfo.Remote.LocalIps.Where(c => c.AddressFamily == AddressFamily.InterNetworkV6))

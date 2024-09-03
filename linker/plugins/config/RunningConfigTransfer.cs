@@ -1,5 +1,4 @@
 ﻿using linker.libs;
-using linker.libs.extends;
 using linker.plugins.client;
 using linker.plugins.config.messenger;
 using linker.plugins.messenger;
@@ -14,6 +13,7 @@ namespace linker.client.config
         /// 同步配置的版本记录
         /// </summary>
         public Dictionary<string, ulong> Versions { get; set; } = new Dictionary<string, ulong>();
+        public Dictionary<string, bool> DisableSyncs { get; set; } = new Dictionary<string, bool>();
     }
 
     [MemoryPackable]
@@ -76,7 +76,10 @@ namespace linker.client.config
         /// <returns></returns>
         public Memory<byte> InputConfig(ConfigVersionInfo info)
         {
-            Console.WriteLine(info.ToJson());
+            if (GetDisableSync(info.Key))
+            {
+                return Helper.EmptyArray;
+            }
             ulong version = GetVersion(info.Key);
 
             if (setters.TryGetValue(info.Key, out Action<Memory<byte>> setter) && info.Version > version)
@@ -106,6 +109,11 @@ namespace linker.client.config
         /// <param name="data"></param>
         public void Sync(string key, Memory<byte> data)
         {
+            if (GetDisableSync(key))
+            {
+                return;
+            }
+
             ulong version = GetVersion(key);
             sender.SendReply(new MessageRequestWrap
             {
@@ -162,6 +170,16 @@ namespace linker.client.config
         {
             ulong version = GetVersion(key);
             UpdateVersion(key, version + 1);
+        }
+
+        private bool GetDisableSync(string key)
+        {
+            return runningConfig.Data.DisableSyncs.TryGetValue(key, out bool sync) && sync;
+        }
+        public void UpdateDisableSync(string key, bool sync)
+        {
+            runningConfig.Data.DisableSyncs[key] = sync;
+            runningConfig.Data.Update();
         }
     }
 }

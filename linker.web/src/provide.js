@@ -16,6 +16,7 @@ export const provideGlobalData = () => {
                 Relay: { Servers: [] },
                 Tuntap: { IP: '', PrefixLength: 24 },
                 Client: { Servers: [] },
+                AutoSyncs: {}
             },
             configed: false
         },

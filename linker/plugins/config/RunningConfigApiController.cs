@@ -20,10 +20,20 @@ namespace linker.plugins.config
             runningConfigTransfer.UpdateVersion(info.Key, info.Version);
         }
 
+        public void UpdateDisableSync(ApiControllerParamsInfo param)
+        {
+            UpdateDisableSyncInfo info = param.Content.DeJson<UpdateDisableSyncInfo>();
+            runningConfigTransfer.UpdateDisableSync(info.Key, info.Sync);
+        }
         public sealed class UpdateVersionInfo
         {
             public string Key { get; set; }
             public ulong Version { get; set; }
+        }
+        public sealed class UpdateDisableSyncInfo
+        {
+            public string Key { get; set; }
+            public bool Sync { get; set; }
         }
     }
 }
