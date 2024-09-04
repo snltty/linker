@@ -11,7 +11,7 @@ namespace linker.plugins.capi
         public StartupLevel Level => StartupLevel.Normal;
         public string Name => "capi";
         public bool Required => false;
-        public string[] Dependent => new string[] {};
+        public string[] Dependent => new string[] { };
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
         public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
@@ -29,10 +29,11 @@ namespace linker.plugins.capi
                 clientServer.LoadPlugins(assemblies);
                 clientServer.Websocket(config.Data.Client.CApi.ApiPort, config.Data.Client.CApi.ApiPassword);
                 LoggerHelper.Instance.Warning($"client api listen:{config.Data.Client.CApi.ApiPort}");
-                LoggerHelper.Instance.Warning($"client api password:{config.Data.Client.CApi.ApiPassword}");
+                if (config.Data.Client.OnlyNode == false)
+                    LoggerHelper.Instance.Warning($"client api password:{config.Data.Client.CApi.ApiPassword}");
             }
 
-            if (config.Data.Client.CApi.WebPort > 0)
+            if (config.Data.Client.CApi.WebPort > 0 && config.Data.Client.OnlyNode == false)
             {
                 IWebClientServer webServer = serviceProvider.GetService<IWebClientServer>();
                 webServer.Start(config.Data.Client.CApi.WebPort, config.Data.Client.CApi.WebRoot);

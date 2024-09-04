@@ -7,7 +7,6 @@ using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Net;
 using linker.tunnel.wanport;
-using System.Collections.Generic;
 
 namespace linker.tunnel
 {
@@ -186,9 +185,12 @@ namespace linker.tunnel
                                     LoggerHelper.Instance.Error($"tunnel {transport.Name} get remote {remoteMachineId} external ip fail ");
                                     break;
                                 }
-                                LoggerHelper.Instance.Info($"tunnel {transport.Name} got local external ip {localInfo.Result.ToJson()}");
-                                LoggerHelper.Instance.Info($"tunnel {transport.Name} got remote external ip {remoteInfo.Result.ToJson()}");
-                                LoggerHelper.Instance.Info($"tunnel {transportItem.ToJson()}");
+                                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                    LoggerHelper.Instance.Info($"tunnel {transport.Name} got local external ip {localInfo.Result.ToJson()}");
+                                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                    LoggerHelper.Instance.Info($"tunnel {transport.Name} got remote external ip {remoteInfo.Result.ToJson()}");
+                                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                    LoggerHelper.Instance.Info($"tunnel {transportItem.ToJson()}");
 
 
                                 tunnelTransportInfo = new TunnelTransportInfo
@@ -332,13 +334,13 @@ namespace linker.tunnel
 
         private void OnConnecting(TunnelTransportInfo tunnelTransportInfo)
         {
-            //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            LoggerHelper.Instance.Info($"tunnel connecting {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName}");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Info($"tunnel connecting {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName}");
         }
         private void OnConnectBegin(TunnelTransportInfo tunnelTransportInfo)
         {
-            //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            LoggerHelper.Instance.Info($"tunnel connecting from {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName}");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Info($"tunnel connecting from {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName}");
         }
 
         /// <summary>
@@ -347,8 +349,8 @@ namespace linker.tunnel
         /// <param name="connection"></param>
         private void _OnConnected(ITunnelConnection connection)
         {
-            //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            LoggerHelper.Instance.Debug($"tunnel connect {connection.RemoteMachineId}->{connection.RemoteMachineName} success->{connection.IPEndPoint}");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Debug($"tunnel connect {connection.RemoteMachineId}->{connection.RemoteMachineName} success->{connection.IPEndPoint}");
 
             //调用以下别人注册的回调
             if (OnConnected.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))
@@ -368,7 +370,8 @@ namespace linker.tunnel
         }
         private void OnConnectFail(TunnelTransportInfo tunnelTransportInfo)
         {
-            LoggerHelper.Instance.Error($"tunnel connect {tunnelTransportInfo.Remote.MachineId} fail");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Error($"tunnel connect {tunnelTransportInfo.Remote.MachineId} fail");
         }
 
         private void ParseRemoteEndPoint(TunnelTransportInfo tunnelTransportInfo)
@@ -425,7 +428,8 @@ namespace linker.tunnel
         {
             if (AddBackground(remoteMachineId, transactionId) == false)
             {
-                LoggerHelper.Instance.Error($"tunnel background {remoteMachineId}@{transactionId} already exists");
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error($"tunnel background {remoteMachineId}@{transactionId} already exists");
                 return;
             }
             Task.Run(async () =>

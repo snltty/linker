@@ -6,7 +6,6 @@ using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 
 namespace linker.plugins.updater
 {
@@ -142,6 +141,7 @@ namespace linker.plugins.updater
 
                 using ZipArchive archive = ZipFile.OpenRead("updater.zip");
                 updateInfo.Length = archive.Entries.Sum(c => c.Length);
+
 
                 foreach (ZipArchiveEntry entry in archive.Entries)
                 {

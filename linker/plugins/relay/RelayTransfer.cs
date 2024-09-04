@@ -10,6 +10,7 @@ using System.Net;
 using System.Reflection;
 using MemoryPack;
 using linker.plugins.client;
+using System.Net.Sockets;
 
 namespace linker.plugins.relay
 {
@@ -180,7 +181,7 @@ namespace linker.plugins.relay
                         SecretKey = item.SecretKey,
                         Server = server,
                         TransactionId = transactionId,
-                        TransportName = transport.Name,
+                        TransportName = $"{transport.Name}|{item.Name}",
                         SSL = item.SSL
                     };
 
@@ -223,6 +224,7 @@ namespace linker.plugins.relay
 
             try
             {
+                await TestServer(relayInfo);
                 ITransport _transports = transports.FirstOrDefault(c => c.Name == relayInfo.TransportName);
                 if (_transports != null)
                 {
@@ -255,6 +257,29 @@ namespace linker.plugins.relay
             }
             return false;
         }
+        private async Task TestServer(RelayInfo relayInfo)
+        {
+            string[] arr = relayInfo.TransportName.Split('|');
+            relayInfo.TransportName = arr[0];
+
+            try
+            {
+                Socket socket = new Socket(relayInfo.Server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                socket.SafeClose();
+            }
+            catch (Exception)
+            {
+                RelayServerInfo server = null;
+                if (arr.Length > 1)
+                {
+                    server = running.Data.Relay.Servers.FirstOrDefault(c => c.Name == arr[1]);
+                }
+                server ??= running.Data.Relay.Servers.FirstOrDefault();
+                relayInfo.Server = NetworkHelper.GetEndPoint(server.Host, 3478);
+            }
+        }
+
         /// <summary>
         /// 回调
         /// </summary>

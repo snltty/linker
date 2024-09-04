@@ -7,7 +7,7 @@
                         <dl>
                             <dt class="flex">
                                 <div>
-                                    <DeviceName @edit="handleDeviceEdit" :item="item"></DeviceName>
+                                    <DeviceName :item="item"></DeviceName>
                                 </div>
                                 <div class="flex-1"></div>
                                 <div>
@@ -15,7 +15,7 @@
                                 </div>
                             </dt>
                             <dd class="tuntap">
-                                <TuntapShow v-if="tuntap.list[item.MachineId]" @edit="handleTuntapEdit" :item="item"></TuntapShow>
+                                <TuntapShow v-if="tuntap.list[item.MachineId]" :item="item"></TuntapShow>
                             </dd>
                         </dl>
                     </li>
@@ -29,8 +29,6 @@
                     @current-change="handlePageChange" @size-change="handlePageSizeChange" :page-sizes="[10, 20, 50, 100,255]" />
             </div>
         </div>
-        <TuntapEdit v-if="tuntap.showEdit" v-model="tuntap.showEdit"  @change="handleTuntapRefresh"></TuntapEdit>
-        <DeviceEdit v-if="devices.showDeviceEdit" v-model="devices.showDeviceEdit"  @change="handlePageChange" :data="devices.deviceInfo"></DeviceEdit>
     </div>
 </template>
 <script>
@@ -43,11 +41,9 @@ import { provideUpdater } from '../full/devices/updater'
 import { StarFilled} from '@element-plus/icons-vue'
 import UpdaterBtn from '../full/devices/UpdaterBtn.vue'
 import DeviceName from '../full/devices/DeviceName.vue'
-import DeviceEdit from '../full/devices/DeviceEdit.vue'
 import TuntapShow from '../full/devices/TuntapShow.vue';
-import TuntapEdit from './TuntapEdit.vue'
 export default {
-    components: {StarFilled,UpdaterBtn,DeviceName,DeviceEdit,TuntapShow,TuntapEdit},
+    components: {StarFilled,UpdaterBtn,DeviceName,TuntapShow},
     setup(props) {
 
         const globalData = injectGlobalData();
@@ -81,8 +77,8 @@ export default {
         });
         
         return {
-            state,devices,handleDeviceEdit, machineId, handlePageChange,handlePageSizeChange, handleDel,
-            tuntap,handleTuntapEdit,handleTuntapRefresh
+            state,devices, machineId, handlePageChange,handlePageSizeChange,
+            tuntap
         }
     }
 }

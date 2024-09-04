@@ -1,15 +1,13 @@
 <template>
     <div v-if="config" class="status-api-wrap" :class="{connected:connected}">
-        <template >
-            <el-popconfirm confirm-button-text="清除" cancel-button-text="更改" title="确定你的操作？" @cancel="handleShow" @confirm="handleResetConnect" >
-                <template #reference>
-                    <a href="javascript:;" title="此设备的管理接口">
-                        <el-icon size="16"><Tools /></el-icon>
-                        管理接口
-                    </a>
-                </template>
-            </el-popconfirm>
-        </template>
+        <el-popconfirm confirm-button-text="清除" cancel-button-text="更改" title="确定你的操作？" @cancel="handleShow" @confirm="handleResetConnect" >
+            <template #reference>
+                <a href="javascript:;" title="此设备的管理接口">
+                    <el-icon size="16"><Tools /></el-icon>
+                    管理接口
+                </a>
+            </template>
+        </el-popconfirm>
         <el-dialog class="options-center" title="管理接口" destroy-on-close v-model="showPort" center :show-close="false"
             :close-on-click-modal="false" align-center width="200">
             <div class="port-wrap t-c">

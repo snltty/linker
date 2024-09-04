@@ -4,6 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using linker.config;
 using linker.plugins.client.args;
+using System.Net;
+using linker.libs.extends;
 
 namespace linker.plugins.client
 {
@@ -20,6 +22,11 @@ namespace linker.plugins.client
 
         public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
+            if (string.IsNullOrWhiteSpace(config.Data.Client.Name))
+            {
+                config.Data.Client.Name = Dns.GetHostName().SubStr(0, 12);
+            }
+
             serviceCollection.AddSingleton<SignInArgsTransfer>();
 
             serviceCollection.AddSingleton<ClientSignInState>();

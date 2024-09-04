@@ -1,8 +1,10 @@
 ﻿using linker.config;
+using linker.libs;
 using linker.libs.extends;
 using LiteDB;
 using MemoryPack;
 using System.Net;
+using System.Text;
 
 namespace linker.client.config
 {
@@ -41,6 +43,13 @@ namespace linker.config
 
     public sealed partial class ConfigClientInfo
     {
+        private ICrypto crypto;
+        public ConfigClientInfo()
+        {
+            crypto = CryptoFactory.CreateSymmetric(Helper.GlobalString);
+        }
+
+        public bool OnlyNode {  get; set; }
 
 #if DEBUG
         public string Server { get; set; } = new IPEndPoint(IPAddress.Loopback, 1802).ToString();
@@ -84,7 +93,16 @@ namespace linker.config
 
         public ConfigClientInfo Load(string text)
         {
-            return text.DeJson<ConfigClientInfo>();
+            if (text.Contains("ApiPassword"))
+            {
+                return text.DeJson<ConfigClientInfo>();
+            }
+            return Encoding.UTF8.GetString(crypto.Decode(Convert.FromBase64String(text)).ToArray()).DeJson<ConfigClientInfo>();
+        }
+
+        public string Set(object obj)
+        {
+            return Convert.ToBase64String(crypto.Encode(Encoding.UTF8.GetBytes(obj.ToJson())));
         }
 
     }

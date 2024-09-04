@@ -20,6 +20,10 @@ namespace linker.plugins.logger
         public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<LoggerClientApiController>();
+            if (config.Data.Client.OnlyNode)
+            {
+                config.Data.Common.LoggerType = libs.LoggerTypes.WARNING;
+            }
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
@@ -30,6 +34,7 @@ namespace linker.plugins.logger
         public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
             LoggerClientApiController logger = serviceProvider.GetService<LoggerClientApiController>();
+
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)

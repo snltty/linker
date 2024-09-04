@@ -37,12 +37,14 @@ namespace linker.config
 
                 object property = item.GetValue(Data);
                 MethodInfo method = property.GetType().GetMethod("Load");
+                MethodInfo method1 = property.GetType().GetMethod("Set");
                 fsDic.Add(item.Name.ToLower(), new FileReadWrite
                 {
                     Path = Path.Join(configPath, $"{item.Name.ToLower()}.json"),
                     Property = item,
                     PropertyObject = property,
-                    PropertyLoadMethod = method
+                    PropertyLoadMethod = method,
+                    PropertySetMethod = method1,
                 });
             }
         }
@@ -89,7 +91,16 @@ namespace linker.config
                     {
                         continue;
                     }
-                    File.WriteAllText(item.Value.Path, item.Value.Property.GetValue(Data).ToJsonFormat());
+                    string text = string.Empty;
+                    if (item.Value.PropertySetMethod != null)
+                    {
+                        text = item.Value.PropertySetMethod.Invoke(item.Value.PropertyObject, new object[] { item.Value.Property.GetValue(Data) }).ToString();
+                    }
+                    else
+                    {
+                        text = item.Value.Property.GetValue(Data).ToJsonFormat();
+                    }
+                    File.WriteAllText(item.Value.Path, text);
                 }
             }
             catch (Exception ex)
@@ -126,6 +137,7 @@ namespace linker.config
         public PropertyInfo Property { get; set; }
         public object PropertyObject { get; set; }
         public MethodInfo PropertyLoadMethod { get; set; }
+        public MethodInfo PropertySetMethod { get; set; }
     }
 
 
@@ -176,7 +188,9 @@ namespace linker.config
         }
         public int LoggerSize { get; set; } = 100;
 
+        [JsonIgnore]
         public string[] IncludePlugins { get; set; } = Array.Empty<string>();
+        [JsonIgnore]
         public string[] ExcludePlugins { get; set; } = Array.Empty<string>();
 
 

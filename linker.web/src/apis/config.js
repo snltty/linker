@@ -7,3 +7,6 @@ export const getConfig = () => {
 export const install = (data) => {
     return sendWebsocketMsg('configclient/install', data);
 }
+export const exportConfig = () => {
+    return sendWebsocketMsg('configclient/export');
+}

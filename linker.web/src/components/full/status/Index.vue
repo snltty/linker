@@ -33,6 +33,7 @@
         </div>
         
         <div class="flex-1"></div>
+        <div class="share"><Share :config="config"></Share></div>
         <div class="api"><Api :config="config"></Api></div>
         <div class="server" ><Server :config="config"></Server></div>
 
@@ -48,12 +49,13 @@
 import { computed, h, reactive, ref } from 'vue';
 import Api from './Api.vue'
 import Server from './Server.vue'
+import Share from './Share.vue'
 import { injectGlobalData } from '@/provide';
 import {Download,Loading,CircleCheck} from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox,ElSelect,ElOption } from 'element-plus';
 import { confirm, exit } from '@/apis/updater';
 export default {
-    components:{Api,Server,Download,Loading,CircleCheck},
+    components:{Api,Server,Share,Download,Loading,CircleCheck},
     props:['config'],
     setup(props) {
 
@@ -92,6 +94,7 @@ export default {
                 ? 'yellow' :'green'
         });
         const handleUpdate = ()=>{
+            if(!props.config) return;
             if(!updater.value.Version){
                 ElMessage.error('未检测到更新');
                 return;

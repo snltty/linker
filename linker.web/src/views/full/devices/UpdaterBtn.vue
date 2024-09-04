@@ -72,7 +72,7 @@ export default {
                 ? 'yellow' :'green'
         })
         const handleUpdate = ()=>{
-            if(!props.config && machineId.value != props.item.MachineId){
+            if(!props.config){
                 return;
             }
             const updateInfo = updater.value.list[props.item.MachineId];

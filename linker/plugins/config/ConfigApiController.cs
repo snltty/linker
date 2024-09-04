@@ -3,6 +3,8 @@ using linker.libs.api;
 using linker.libs.extends;
 using linker.client.config;
 using linker.plugins.capi;
+using System.IO.Compression;
+using linker.libs;
 
 namespace linker.plugins.config
 {
@@ -73,6 +75,101 @@ namespace linker.plugins.config
             runningConfig.Data.Update();
 
             return true;
+        }
+
+
+        public bool Export(ApiControllerParamsInfo param)
+        {
+            try
+            {
+                string dirName = "client-node-export";
+                string rootPath = Path.GetFullPath($"./web/{dirName}");
+                string zipPath = Path.GetFullPath($"./web/{dirName}.zip");
+
+                try
+                {
+                    File.Delete(zipPath);
+                }
+                catch (Exception)
+                {
+                }
+                DeleteDirectory(rootPath);
+                CopyDirectory(Path.GetFullPath("./"), rootPath, dirName);
+                DeleteDirectory(Path.Combine(rootPath, $"configs"));
+
+                string configPath = Path.Combine(rootPath, $"configs");
+                Directory.CreateDirectory(configPath);
+                ConfigClientInfo client = config.Data.Client.ToJson().DeJson<ConfigClientInfo>();
+                client.Name = string.Empty;
+                client.Id = string.Empty;
+                client.CApi.WebPort = 0;
+                client.OnlyNode = true;
+                File.WriteAllText(Path.Combine(configPath, $"client.json"), client.Set(client));
+
+
+                ConfigCommonInfo common = config.Data.Common.ToJson().DeJson<ConfigCommonInfo>();
+                common.Install = true;
+                common.Modes = ["client"];
+                File.WriteAllText(Path.Combine(configPath, $"common.json"), common.ToJsonFormat());
+
+
+                ZipFile.CreateFromDirectory(rootPath, zipPath);
+
+                Task.Run(async () =>
+                {
+                    await Task.Delay(5000);
+                    try
+                    {
+                        File.Delete(zipPath);
+                    }
+                    catch (Exception)
+                    {
+                    }
+                    DeleteDirectory(rootPath);
+                });
+            }
+            catch (Exception ex)
+            {
+                LoggerHelper.Instance.Error(ex);
+            }
+            return true;
+        }
+        private void DeleteDirectory(string sourceDir)
+        {
+            if (Directory.Exists(sourceDir) == false) return;
+
+            foreach (string file in Directory.GetFiles(sourceDir))
+            {
+                File.Delete(Path.Combine(sourceDir, file));
+            }
+            foreach (string subDir in Directory.GetDirectories(sourceDir))
+            {
+                DeleteDirectory(Path.Combine(sourceDir, subDir));
+            }
+            Directory.Delete(sourceDir);
+        }
+        private void CopyDirectory(string sourceDir, string destDir, string excludeDir)
+        {
+            // 创建目标目录
+            Directory.CreateDirectory(destDir);
+
+            // 复制所有文件
+            foreach (string file in Directory.GetFiles(sourceDir))
+            {
+                string fileName = Path.GetFileName(file);
+                string destFile = Path.Combine(destDir, fileName);
+                File.Copy(file, destFile, true); // true 表示如果目标文件已存在则覆盖
+            }
+
+            // 递归复制所有子目录
+            foreach (string subDir in Directory.GetDirectories(sourceDir))
+            {
+                if (subDir.EndsWith(excludeDir)) continue;
+
+                string subDirName = Path.GetFileName(subDir);
+                string destSubDir = Path.Combine(destDir, subDirName);
+                CopyDirectory(subDir, destSubDir, excludeDir);
+            }
         }
     }
 

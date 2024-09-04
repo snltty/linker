@@ -83,7 +83,7 @@ export default {
         const machineId = computed(() => globalData.value.config.Client.Id);
         const showDelay = computed(()=>((globalData.value.config.Running.Tuntap || {Switch:0}).Switch & 2) == 2);
         const handleTuntap = (tuntap) => {
-            if(!props.config && machineId.value != tuntap.MachineId){
+            if(!props.config){
                 return;
             }
             const fn = tuntap.running ? stopTuntap (tuntap.MachineId) : runTuntap(tuntap.MachineId);
