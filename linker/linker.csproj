@@ -17,16 +17,21 @@
 		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 		<ServerGarbageCollection>false</ServerGarbageCollection>
 		<Title>linker</Title>
-		<Version>1.2.9</Version>
+		<Version>1.3.0</Version>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 选择是否自动同步配置文件</Description>
+		<Description>1. 选择是否自动同步配置文件
+2. 优化中继
+3. 客户端配置文件加密
+4. 导出无管理权限的客户端节点配置文件
+5. 需要更新服务端
+6. 测试中，，请稍等再更新</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<AssemblyVersion>1.2.9</AssemblyVersion>
-		<FileVersion>1.2.9</FileVersion>
+		<AssemblyVersion>1.3.0</AssemblyVersion>
+		<FileVersion>1.3.0</FileVersion>
 	</PropertyGroup>
 
 

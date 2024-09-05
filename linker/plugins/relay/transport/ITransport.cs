@@ -117,5 +117,10 @@ namespace linker.plugins.relay.transport
         /// 是否ssl
         /// </summary>
         public bool SSL { get; set; } = true;
+
+        /// <summary>
+        /// 服务器名
+        /// </summary>
+        public string ServerName { get; set; }
     }
 }
