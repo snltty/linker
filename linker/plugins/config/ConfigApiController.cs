@@ -78,6 +78,7 @@ namespace linker.plugins.config
         }
 
 
+        bool running = false;
         public bool Export(ApiControllerParamsInfo param)
         {
             try
@@ -86,6 +87,7 @@ namespace linker.plugins.config
                 string rootPath = Path.GetFullPath($"./web/{dirName}");
                 string zipPath = Path.GetFullPath($"./web/{dirName}.zip");
 
+                running = true;
                 try
                 {
                     File.Delete(zipPath);
@@ -118,20 +120,24 @@ namespace linker.plugins.config
                 Task.Run(async () =>
                 {
                     await Task.Delay(60000);
-                    try
+                    if(running == false)
                     {
-                        File.Delete(zipPath);
+                        try
+                        {
+                            File.Delete(zipPath);
+                        }
+                        catch (Exception)
+                        {
+                        }
+                        DeleteDirectory(rootPath);
                     }
-                    catch (Exception)
-                    {
-                    }
-                    DeleteDirectory(rootPath);
                 });
             }
             catch (Exception ex)
             {
                 LoggerHelper.Instance.Error(ex);
             }
+            running = false;
             return true;
         }
         private void DeleteDirectory(string sourceDir)
