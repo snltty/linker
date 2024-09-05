@@ -18,7 +18,7 @@ namespace linker.plugins.tunnel
     public sealed class TunnelAdapter : ITunnelAdapter
     {
         public IPAddress LocalIP => running.Data.Tunnel.Interface != null && running.Data.Tunnel.Interface.Equals(IPAddress.Any) == false
-            ? (clientSignInState.Connection?.LocalAddress.Address ?? IPAddress.Any) : running.Data.Tunnel.Interface;
+            ? running.Data.Tunnel.Interface : (clientSignInState.Connection?.LocalAddress.Address ?? IPAddress.Any);
 
         public X509Certificate2 Certificate { get; private set; }
         public PortMapInfo PortMap => new PortMapInfo { WanPort = running.Data.Tunnel.PortMapWan, LanPort = running.Data.Tunnel.PortMapLan };
