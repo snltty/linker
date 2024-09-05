@@ -210,7 +210,7 @@ namespace linker.plugins.tuntap.proxy
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap tunnel to {machineId}");
 
-                connection = await tunnelTransfer.ConnectAsync(machineId, "tuntap", TunnelProtocolType.None).ConfigureAwait(false);
+                connection = await tunnelTransfer.ConnectAsync(machineId, "tuntap", TunnelProtocolType.Quic).ConfigureAwait(false);
                 if (connection != null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap tunnel success,{connection.ToString()}");
@@ -224,6 +224,7 @@ namespace linker.plugins.tuntap.proxy
                     {
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap relay success,{connection.ToString()}");
                     }
+                    tunnelTransfer.StartBackground(machineId, "tuntap", TunnelProtocolType.Quic,()=> connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected);
                 }
                 if (connection != null)
                 {
