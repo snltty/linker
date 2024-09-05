@@ -117,7 +117,7 @@ namespace linker.plugins.config
 
                 Task.Run(async () =>
                 {
-                    await Task.Delay(5000);
+                    await Task.Delay(60000);
                     try
                     {
                         File.Delete(zipPath);
