@@ -94,6 +94,7 @@ namespace linker.libs.web
             { ".js","text/javascript; charset=utf-8"},
             { ".html","text/html; charset=utf-8"},
             { ".css","text/css; charset=utf-8"},
+            { ".zip","application/zip"},
             { ".pac","application/x-ns-proxy-autoconfig; charset=utf-8"},
         };
         private string GetContentType(string path)
