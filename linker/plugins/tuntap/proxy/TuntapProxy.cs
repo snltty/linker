@@ -224,7 +224,7 @@ namespace linker.plugins.tuntap.proxy
                     {
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap relay success,{connection.ToString()}");
                     }
-                    tunnelTransfer.StartBackground(machineId, "tuntap", TunnelProtocolType.Quic,()=> connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected);
+                    //tunnelTransfer.StartBackground(machineId, "tuntap", TunnelProtocolType.Quic,()=> connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected);
                 }
                 if (connection != null)
                 {
