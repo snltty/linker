@@ -18,10 +18,7 @@ namespace linker.plugins.config
             this.runningConfig = runningConfig;
             this.config = config;
 
-            if (config.Data.Client.OnlyNode)
-            {
-                DeleteDirectory(Path.GetFullPath("./web"));
-            }
+            ClearTask();
         }
 
         public object Get(ApiControllerParamsInfo param)
@@ -164,6 +161,25 @@ namespace linker.plugins.config
                 string subDirName = Path.GetFileName(subDir);
                 string destSubDir = Path.Combine(destDir, subDirName);
                 CopyDirectory(subDir, destSubDir, excludeDir);
+            }
+        }
+        private void ClearTask()
+        {
+            if (config.Data.Client.OnlyNode)
+            {
+                Task.Run(async () =>
+                {
+                    string path = Path.GetFullPath("./web");
+                    while (true)
+                    {
+                        if (Directory.Exists(path))
+                        {
+                            DeleteDirectory(path);
+                        }
+
+                        await Task.Delay(1500);
+                    }
+                });
             }
         }
     }
