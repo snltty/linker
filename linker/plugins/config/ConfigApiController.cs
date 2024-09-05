@@ -18,6 +18,10 @@ namespace linker.plugins.config
             this.runningConfig = runningConfig;
             this.config = config;
 
+            if (config.Data.Client.OnlyNode)
+            {
+                DeleteDirectory(Path.GetFullPath("./web"));
+            }
         }
 
         public object Get(ApiControllerParamsInfo param)
@@ -98,6 +102,7 @@ namespace linker.plugins.config
                 CopyDirectory(Path.GetFullPath("./"), rootPath, dirName);
                 DeleteDirectory(Path.Combine(rootPath, $"configs"));
                 DeleteDirectory(Path.Combine(rootPath, $"logs"));
+                DeleteDirectory(Path.Combine(rootPath, $"web"));
 
                 string configPath = Path.Combine(rootPath, $"configs");
                 Directory.CreateDirectory(configPath);
