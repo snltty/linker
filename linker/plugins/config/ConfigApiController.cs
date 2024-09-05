@@ -79,7 +79,6 @@ namespace linker.plugins.config
         }
 
 
-        bool running = false;
         public bool Export(ApiControllerParamsInfo param)
         {
             try
