@@ -97,6 +97,7 @@ namespace linker.plugins.config
                 DeleteDirectory(rootPath);
                 CopyDirectory(Path.GetFullPath("./"), rootPath, dirName);
                 DeleteDirectory(Path.Combine(rootPath, $"configs"));
+                DeleteDirectory(Path.Combine(rootPath, $"logs"));
 
                 string configPath = Path.Combine(rootPath, $"configs");
                 Directory.CreateDirectory(configPath);
