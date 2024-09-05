@@ -87,7 +87,6 @@ namespace linker.plugins.config
                 string rootPath = Path.GetFullPath($"./web/{dirName}");
                 string zipPath = Path.GetFullPath($"./web/{dirName}.zip");
 
-                running = true;
                 try
                 {
                     File.Delete(zipPath);
@@ -116,28 +115,12 @@ namespace linker.plugins.config
 
 
                 ZipFile.CreateFromDirectory(rootPath, zipPath);
-
-                Task.Run(async () =>
-                {
-                    await Task.Delay(60000);
-                    if(running == false)
-                    {
-                        try
-                        {
-                            File.Delete(zipPath);
-                        }
-                        catch (Exception)
-                        {
-                        }
-                        DeleteDirectory(rootPath);
-                    }
-                });
+                DeleteDirectory(rootPath);
             }
             catch (Exception ex)
             {
                 LoggerHelper.Instance.Error(ex);
             }
-            running = false;
             return true;
         }
         private void DeleteDirectory(string sourceDir)
