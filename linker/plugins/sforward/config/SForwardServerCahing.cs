@@ -2,6 +2,9 @@
 
 namespace linker.plugins.sforward.config
 {
+    /// <summary>
+    /// 服务器穿透缓存，用于识别不同的客户端
+    /// </summary>
     public sealed class SForwardServerCahing : ISForwardServerCahing
     {
         private ConcurrentDictionary<string, string> serverDoamins = new ConcurrentDictionary<string, string>();
@@ -9,7 +12,6 @@ namespace linker.plugins.sforward.config
 
         public SForwardServerCahing()
         {
-
         }
 
         public bool TryAdd(string domain, string machineId)

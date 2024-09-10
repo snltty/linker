@@ -16,7 +16,9 @@ namespace linker.plugins.sforward.proxy
         public Func<int, ulong, Task<bool>> TunnelConnect { get; set; } = async (port, id) => { return await Task.FromResult(false); };
         public Func<string, int, ulong, Task<bool>> WebConnect { get; set; } = async (host, port, id) => { return await Task.FromResult(false); };
 
+        #region 服务端
 
+       
         private void StartTcp(int port, bool isweb, byte bufferSize)
         {
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
@@ -167,8 +169,55 @@ namespace linker.plugins.sforward.proxy
             }
         }
 
+        private void CloseClientSocket(AsyncUserToken token)
+        {
+            if (token == null) return;
+            token.Clear();
+        }
+        public void StopTcp()
+        {
+            foreach (var item in tcpListens)
+            {
+                CloseClientSocket(item.Value);
+            }
+            tcpListens.Clear();
+        }
+        public void StopTcp(int port)
+        {
+            if (tcpListens.TryRemove(port, out AsyncUserToken userToken))
+            {
+                CloseClientSocket(userToken);
+            }
+        }
+
+        private readonly byte[] hostBytes = Encoding.UTF8.GetBytes("Host: ");
+        private readonly byte[] wrapBytes = Encoding.UTF8.GetBytes("\r\n");
+        private readonly byte[] colonBytes = Encoding.UTF8.GetBytes(":");
         /// <summary>
-        /// 从服务器来消息了，有人要连接我的服务
+        /// 截取http请求头的host内容
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        private string GetHost(Memory<byte> buffer)
+        {
+            int start = buffer.Span.IndexOf(hostBytes);
+            if (start < 0) return string.Empty;
+            start += hostBytes.Length;
+
+            int length = buffer.Span.Slice(start).IndexOf(wrapBytes);
+
+            int length1 = buffer.Span.Slice(start, length).IndexOf(colonBytes);
+            if (length1 > 0) length = length1;
+
+            return Encoding.UTF8.GetString(buffer.Slice(start, length).Span);
+        }
+
+
+        #endregion
+
+
+        /// <summary>
+        /// 客户端，收到服务端的连接请求
         /// </summary>
         /// <param name="bufferSize"></param>
         /// <param name="id"></param>
@@ -213,28 +262,6 @@ namespace linker.plugins.sforward.proxy
         }
 
 
-        private readonly byte[] hostBytes = Encoding.UTF8.GetBytes("Host: ");
-        private readonly byte[] wrapBytes = Encoding.UTF8.GetBytes("\r\n");
-        private readonly byte[] colonBytes = Encoding.UTF8.GetBytes(":");
-        /// <summary>
-        /// 截取http请求头的host内容
-        /// </summary>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        private string GetHost(Memory<byte> buffer)
-        {
-            int start = buffer.Span.IndexOf(hostBytes);
-            if (start < 0) return string.Empty;
-            start += hostBytes.Length;
-
-            int length = buffer.Span.Slice(start).IndexOf(wrapBytes);
-
-            int length1 = buffer.Span.Slice(start, length).IndexOf(colonBytes);
-            if (length1 > 0) length = length1;
-
-            return Encoding.UTF8.GetString(buffer.Slice(start, length).Span);
-        }
-
         /// <summary>
         /// 读取数据，然后发送给对方，用户两端交换数据
         /// </summary>
@@ -266,27 +293,7 @@ namespace linker.plugins.sforward.proxy
             }
         }
 
-        private void CloseClientSocket(AsyncUserToken token)
-        {
-            if (token == null) return;
-            token.Clear();
-        }
-        public void StopTcp()
-        {
-            foreach (var item in tcpListens)
-            {
-                CloseClientSocket(item.Value);
-            }
-            tcpListens.Clear();
-        }
-        public void StopTcp(int port)
-        {
-            if (tcpListens.TryRemove(port, out AsyncUserToken userToken))
-            {
-                CloseClientSocket(userToken);
-            }
-        }
-
+       
     }
 
     public sealed class AsyncUserToken

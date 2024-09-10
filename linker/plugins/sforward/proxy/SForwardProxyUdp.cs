@@ -16,6 +16,8 @@ namespace linker.plugins.sforward.proxy
 
         public Func<int, ulong, Task<bool>> UdpConnect { get; set; } = async (port, id) => { return await Task.FromResult(false); };
 
+        #region 服务端
+
         private void StartUdp(int port, byte bufferSize)
         {
             Socket socketUdp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -32,7 +34,6 @@ namespace linker.plugins.sforward.proxy
 
             udpListens.AddOrUpdate(port, asyncUserUdpToken, (a, b) => asyncUserUdpToken);
         }
-
         private async Task BindReceive(AsyncUserUdpToken token, byte bufferSize)
         {
             try
@@ -125,7 +126,32 @@ namespace linker.plugins.sforward.proxy
                 }
             }
         }
+        public void StopUdp()
+        {
+            foreach (var item in udpListens)
+            {
+                item.Value.Clear();
+            }
+            udpListens.Clear();
+        }
+        public virtual void StopUdp(int port)
+        {
+            if (udpListens.TryRemove(port, out AsyncUserUdpToken udpClient))
+            {
+                udpClient.Clear();
+            }
+        }
 
+        #endregion
+
+        /// <summary>
+        /// 客户端，收到服务端的udp请求
+        /// </summary>
+        /// <param name="bufferSize"></param>
+        /// <param name="id"></param>
+        /// <param name="server"></param>
+        /// <param name="service"></param>
+        /// <returns></returns>
         public async Task OnConnectUdp(byte bufferSize, ulong id, IPEndPoint server, IPEndPoint service)
         {
             Socket socketUdp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -233,21 +259,7 @@ namespace linker.plugins.sforward.proxy
                 }
             });
         }
-        public void StopUdp()
-        {
-            foreach (var item in udpListens)
-            {
-                item.Value.Clear();
-            }
-            udpListens.Clear();
-        }
-        public virtual void StopUdp(int port)
-        {
-            if (udpListens.TryRemove(port, out AsyncUserUdpToken udpClient))
-            {
-                udpClient.Clear();
-            }
-        }
+     
 
     }
 

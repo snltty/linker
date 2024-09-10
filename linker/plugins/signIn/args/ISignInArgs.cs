@@ -47,7 +47,7 @@ namespace linker.plugins.signIn.args
                 //之前的登录有唯一编号的，则验证，唯一编号不一样，不允许登录
                 if (string.IsNullOrWhiteSpace(keyOld) == false && keyNew != keyOld)
                 {
-                    msg = "Machine key verification failed";
+                    msg = "your machine key is already online";
                     return false;
                 }
             }

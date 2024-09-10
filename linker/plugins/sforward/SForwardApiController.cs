@@ -23,18 +23,30 @@ namespace linker.plugins.sforward
             this.clientSignInState = clientSignInState;
         }
 
-
+        /// <summary>
+        /// 获取密钥
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public string GetSecretKey(ApiControllerParamsInfo param)
         {
             return forwardTransfer.GetSecretKey();
         }
-
+        /// <summary>
+        /// 设置密钥
+        /// </summary>
+        /// <param name="param"></param>
         [ClientApiAccessAttribute(ClientApiAccess.Config)]
         public void SetSecretKey(ApiControllerParamsInfo param)
         {
             forwardTransfer.SetSecretKey(param.Content);
         }
 
+        /// <summary>
+        /// 获取本机的穿透列表
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public SForwardListInfo Get(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);
@@ -48,7 +60,11 @@ namespace linker.plugins.sforward
             }
             return new SForwardListInfo { HashCode = version };
         }
-
+        /// <summary>
+        /// 获取别的客户端穿透列表
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<List<SForwardRemoteInfo>> GetRemote(ApiControllerParamsInfo param)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -64,6 +80,11 @@ namespace linker.plugins.sforward
             return new List<SForwardRemoteInfo>();
         }
 
+        /// <summary>
+        /// 添加穿透
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         [ClientApiAccessAttribute(ClientApiAccess.Config)]
         public bool Add(ApiControllerParamsInfo param)
         {
@@ -71,6 +92,11 @@ namespace linker.plugins.sforward
             return forwardTransfer.Add(info);
         }
 
+        /// <summary>
+        /// 删除穿透
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         [ClientApiAccessAttribute(ClientApiAccess.Config)]
         public bool Remove(ApiControllerParamsInfo param)
         {
@@ -80,6 +106,12 @@ namespace linker.plugins.sforward
             }
             return false;
         }
+
+        /// <summary>
+        /// 测试本机服务
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public bool TestLocal(ApiControllerParamsInfo param)
         {
             forwardTransfer.TestLocal();

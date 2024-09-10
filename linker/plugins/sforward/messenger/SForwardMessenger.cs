@@ -13,6 +13,9 @@ using linker.libs;
 
 namespace linker.plugins.sforward.messenger
 {
+    /// <summary>
+    /// 穿透服务端
+    /// </summary>
     public sealed class SForwardServerMessenger : IMessenger
     {
 
@@ -36,6 +39,10 @@ namespace linker.plugins.sforward.messenger
             this.validator = validator;
         }
 
+        /// <summary>
+        /// 添加穿透
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)SForwardMessengerIds.Add)]
         public void Add(IConnection connection)
         {
@@ -50,8 +57,10 @@ namespace linker.plugins.sforward.messenger
                     return;
                 }
 
+                //有域名，
                 if (string.IsNullOrWhiteSpace(sForwardAddInfo.Domain) == false)
                 {
+                    //有可能是 端口范围，不是真的域名
                     if (PortRange(sForwardAddInfo.Domain, out int min, out int max))
                     {
                         for (int port = min; port <= max; port++)
@@ -82,6 +91,7 @@ namespace linker.plugins.sforward.messenger
                     }
                     return;
                 }
+                //如果是端口
                 if (sForwardAddInfo.RemotePort > 0)
                 {
                     if (sForwardServerCahing.TryAdd(sForwardAddInfo.RemotePort, connection.Id) == false)
@@ -122,6 +132,10 @@ namespace linker.plugins.sforward.messenger
 
         }
 
+        /// <summary>
+        /// 删除穿透
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)SForwardMessengerIds.Remove)]
         public void Remove(IConnection connection)
         {
@@ -191,6 +205,11 @@ namespace linker.plugins.sforward.messenger
             }
         }
 
+
+        /// <summary>
+        /// 获取对端的穿透记录
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)SForwardMessengerIds.GetForward)]
         public void GetForward(IConnection connection)
         {
@@ -219,8 +238,16 @@ namespace linker.plugins.sforward.messenger
             }
         }
 
+        /// <summary>
+        /// 服务器收到http连接
+        /// </summary>
+        /// <param name="host"></param>
+        /// <param name="port"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
         private async Task<bool> WebConnect(string host, int port, ulong id)
         {
+            //发给对应的客户端
             if (sForwardServerCahing.TryGet(host, out string machineId) && signCaching.TryGet(machineId, out SignCacheInfo sign) && sign.Connected)
             {
                 return await sender.SendOnly(new MessageRequestWrap
@@ -232,8 +259,15 @@ namespace linker.plugins.sforward.messenger
             }
             return false;
         }
+        /// <summary>
+        /// 服务器收到tcp连接
+        /// </summary>
+        /// <param name="port"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
         private async Task<bool> TunnelConnect(int port, ulong id)
         {
+            //发给对应的客户端
             if (sForwardServerCahing.TryGet(port, out string machineId) && signCaching.TryGet(machineId, out SignCacheInfo sign) && sign.Connected)
             {
                 return await sender.SendOnly(new MessageRequestWrap
@@ -245,8 +279,15 @@ namespace linker.plugins.sforward.messenger
             }
             return false;
         }
+        /// <summary>
+        /// 服务器收到udp数据
+        /// </summary>
+        /// <param name="port"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
         private async Task<bool> UdpConnect(int port, ulong id)
         {
+            //发给对应的客户端
             if (sForwardServerCahing.TryGet(port, out string machineId) && signCaching.TryGet(machineId, out SignCacheInfo sign) && sign.Connected)
             {
                 return await sender.SendOnly(new MessageRequestWrap
@@ -267,6 +308,9 @@ namespace linker.plugins.sforward.messenger
         }
     }
 
+    /// <summary>
+    /// 服务器穿透客户端
+    /// </summary>
     public sealed class SForwardClientMessenger : IMessenger
     {
         private readonly SForwardProxy proxy;
@@ -280,11 +324,16 @@ namespace linker.plugins.sforward.messenger
             this.sForwardTransfer = sForwardTransfer;
         }
 
+        /// <summary>
+        /// 收到服务器发来的连接
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)SForwardMessengerIds.Proxy)]
         public void Proxy(IConnection connection)
         {
             SForwardProxyInfo sForwardProxyInfo = MemoryPackSerializer.Deserialize<SForwardProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
 
+            //是http
             if (string.IsNullOrWhiteSpace(sForwardProxyInfo.Domain) == false)
             {
                 SForwardInfo sForwardInfo = runningConfig.Data.SForwards.FirstOrDefault(c => c.Domain == sForwardProxyInfo.Domain);
@@ -293,6 +342,7 @@ namespace linker.plugins.sforward.messenger
                     _ = proxy.OnConnectTcp(sForwardProxyInfo.BufferSize, sForwardProxyInfo.Id, new System.Net.IPEndPoint(connection.Address.Address, sForwardProxyInfo.RemotePort), sForwardInfo.LocalEP);
                 }
             }
+            //是tcp
             else if (sForwardProxyInfo.RemotePort > 0)
             {
                 IPEndPoint localEP = GetLocalEP(sForwardProxyInfo);
@@ -304,6 +354,10 @@ namespace linker.plugins.sforward.messenger
             }
         }
 
+        /// <summary>
+        /// 收到服务器发来的udp请求
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)SForwardMessengerIds.ProxyUdp)]
         public void ProxyUdp(IConnection connection)
         {
@@ -319,6 +373,11 @@ namespace linker.plugins.sforward.messenger
             }
         }
 
+        /// <summary>
+        /// 获取这个连接请求对应的本机服务
+        /// </summary>
+        /// <param name="sForwardProxyInfo"></param>
+        /// <returns></returns>
         private IPEndPoint GetLocalEP(SForwardProxyInfo sForwardProxyInfo)
         {
             SForwardInfo sForwardInfo = runningConfig.Data.SForwards.FirstOrDefault(c => c.RemotePort == sForwardProxyInfo.RemotePort || (c.RemotePortMin <= sForwardProxyInfo.RemotePort && c.RemotePortMax >= sForwardProxyInfo.RemotePort));
@@ -336,6 +395,10 @@ namespace linker.plugins.sforward.messenger
             return null;
         }
 
+        /// <summary>
+        /// 别人来获取穿透记录
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)SForwardMessengerIds.Get)]
         public void Get(IConnection connection)
         {

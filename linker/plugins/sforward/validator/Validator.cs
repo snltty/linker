@@ -4,6 +4,9 @@ using linker.plugins.sforward.config;
 
 namespace linker.plugins.sforward.validator
 {
+    /// <summary>
+    /// 服务端穿透验证
+    /// </summary>
     public sealed class Validator : IValidator
     {
         private readonly FileConfig config;

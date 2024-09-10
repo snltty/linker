@@ -60,15 +60,16 @@ namespace linker.client.config
         [JsonIgnore, BsonIgnore]
         public bool Proxy { get; set; }
 
+        /// <summary>
+        /// 端口范围
+        /// </summary>
         public int RemotePortMin { get; set; }
+        /// <summary>
+        /// 端口范围
+        /// </summary>
         public int RemotePortMax { get; set; }
     }
 
-
-    public sealed class SForwardSetStatusInfo
-    {
-
-    }
 }
 
 namespace linker.config
@@ -106,29 +107,67 @@ namespace linker.config
 
 namespace linker.plugins.sforward.config
 {
+    /// <summary>
+    /// 往服务器添加穿透
+    /// </summary>
     [MemoryPackable]
     public sealed partial class SForwardAddInfo
     {
+        /// <summary>
+        /// 域名
+        /// </summary>
         public string Domain { get; set; }
+        /// <summary>
+        /// 或者端口。域名优先
+        /// </summary>
         public int RemotePort { get; set; }
+        /// <summary>
+        /// 密钥
+        /// </summary>
         public string SecretKey { get; set; }
     }
 
+    /// <summary>
+    /// 添加穿透结果
+    /// </summary>
     [MemoryPackable]
     public sealed partial class SForwardAddResultInfo
     {
+        /// <summary>
+        /// 是否成功
+        /// </summary>
         public bool Success { get; set; }
+        /// <summary>
+        /// 失败信息
+        /// </summary>
         public string Message { get; set; }
+        /// <summary>
+        /// buffsize
+        /// </summary>
         public byte BufferSize { get; set; }
     }
 
-
+    /// <summary>
+    /// 服务器穿透代理信息
+    /// </summary>
     [MemoryPackable]
     public sealed partial class SForwardProxyInfo
     {
+        /// <summary>
+        /// 请求编号
+        /// </summary>
         public ulong Id { get; set; }
+        /// <summary>
+        /// 域名
+        /// </summary>
         public string Domain { get; set; }
+        /// <summary>
+        /// 端口
+        /// </summary>
         public int RemotePort { get; set; }
+        /// <summary>
+        /// bufsize
+        /// </summary>
         public byte BufferSize { get; set; } = 3;
     }
 }

@@ -40,6 +40,7 @@ namespace linker.plugins.sforward
             };
         }
 
+        #region 同步配置
         public string GetSecretKey()
         {
             return running.Data.SForwardSecretKey;
@@ -60,6 +61,9 @@ namespace linker.plugins.sforward
         {
             runningConfigTransfer.Sync(configKey, MemoryPackSerializer.Serialize(GetSecretKey()));
         }
+        #endregion
+
+        #region 启动穿透
 
         private void Start()
         {
@@ -158,50 +162,9 @@ namespace linker.plugins.sforward
             Version.Add();
         }
 
-        bool testing = false;
-        public void TestLocal()
-        {
-            if (testing) return;
-            testing = true;
+        #endregion
 
-            Task.Run(async () =>
-            {
-                try
-                {
-                    var results = running.Data.SForwards.Select(c => c.LocalEP).Select(ConnectAsync);
-                    await Task.Delay(200).ConfigureAwait(false);
-
-                    foreach (var item in results.Select(c => c.Result))
-                    {
-                        var forward = running.Data.SForwards.FirstOrDefault(c => c.LocalEP.Equals(item.Item1));
-                        if (forward != null)
-                        {
-                            forward.LocalMsg = item.Item2;
-                        }
-                    }
-                    Version.Add();
-                }
-                catch (Exception)
-                {
-                }
-                testing = false;
-            });
-
-            async Task<(IPEndPoint, string)> ConnectAsync(IPEndPoint ep)
-            {
-                try
-                {
-                    using Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                    await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
-                    socket.SafeClose();
-                    return (ep, string.Empty);
-                }
-                catch (Exception ex)
-                {
-                    return (ep, ex.Message);
-                }
-            }
-        }
+        #region 添加删除本机的穿透记录
 
         public List<SForwardInfo> Get()
         {
@@ -261,7 +224,7 @@ namespace linker.plugins.sforward
 
             return true;
         }
-
+        #endregion
 
         private bool PortRange(string str, out int min, out int max)
         {
@@ -271,6 +234,55 @@ namespace linker.plugins.sforward
 
             string[] arr = str.Split('/');
             return arr.Length == 2 && int.TryParse(arr[0], out min) && int.TryParse(arr[1], out max);
+        }
+
+
+        bool testing = false;
+        /// <summary>
+        /// 测试本机服务
+        /// </summary>
+        public void TestLocal()
+        {
+            if (testing) return;
+            testing = true;
+
+            Task.Run(async () =>
+            {
+                try
+                {
+                    var results = running.Data.SForwards.Select(c => c.LocalEP).Select(ConnectAsync);
+                    await Task.Delay(200).ConfigureAwait(false);
+
+                    foreach (var item in results.Select(c => c.Result))
+                    {
+                        var forward = running.Data.SForwards.FirstOrDefault(c => c.LocalEP.Equals(item.Item1));
+                        if (forward != null)
+                        {
+                            forward.LocalMsg = item.Item2;
+                        }
+                    }
+                    Version.Add();
+                }
+                catch (Exception)
+                {
+                }
+                testing = false;
+            });
+
+            async Task<(IPEndPoint, string)> ConnectAsync(IPEndPoint ep)
+            {
+                try
+                {
+                    using Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                    await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+                    socket.SafeClose();
+                    return (ep, string.Empty);
+                }
+                catch (Exception ex)
+                {
+                    return (ep, ex.Message);
+                }
+            }
         }
     }
 }
