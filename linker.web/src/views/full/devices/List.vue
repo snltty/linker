@@ -34,7 +34,6 @@
     </div>
 </template>
 <script>
-import { subWebsocketState } from '@/apis/request.js'
 import { injectGlobalData } from '@/provide.js'
 import { reactive, onMounted,  onUnmounted, computed } from 'vue'
 import Oper from './Oper.vue'
@@ -143,15 +142,9 @@ export default {
         }
 
         onMounted(() => {
-            subWebsocketState((state) => { 
-                if (state){
-                    handlePageChange();
-                    _getSignList();
-                    handleTunnelRefresh();
-                    handleTuntapRefresh();
-                } 
-            });
-            
+            handlePageChange();
+            handleTunnelRefresh();
+            handleTuntapRefresh();
             _getSignList();
             _getSignList1();
             _getTuntapInfo();

@@ -33,7 +33,6 @@ import { ref, reactive } from "@vue/reactivity";
 import { getLoggerConfig, setLoggerConfig } from "@/apis/logger";
 import { onMounted } from "@vue/runtime-core";
 import { ElMessage } from 'element-plus';
-import {subWebsocketState} from '@/apis/request.js'
 export default {
     setup() {
         const formDom = ref(null);
@@ -102,7 +101,6 @@ export default {
         };
 
         onMounted(() => {
-            subWebsocketState((state)=>{ if(state)loadConfig();});
             loadConfig();
         });
 

@@ -32,7 +32,6 @@
     </div>
 </template>
 <script>
-import { subWebsocketState } from '@/apis/request.js'
 import { injectGlobalData } from '@/provide.js'
 import { reactive, onMounted,  onUnmounted } from 'vue'
 import { provideTuntap } from '../full/devices/tuntap'
@@ -56,13 +55,8 @@ export default {
         const {_getUpdater,clearUpdaterTimeout} = provideUpdater();
 
         onMounted(() => {
-            subWebsocketState((state) => { 
-                if (state){
-                    handlePageChange();
-                    _getSignList();
-                    handleTuntapRefresh();
-                } 
-            });
+            handlePageChange();
+            handleTuntapRefresh();
             
             _getSignList();
             _getSignList1();

@@ -52,11 +52,10 @@
 <script>
 import { reactive,computed } from '@vue/reactivity'
 import { getLogger, clearLogger } from '@/apis/logger'
-import { onMounted,onUnmounted } from '@vue/runtime-core'
+import { onMounted } from '@vue/runtime-core'
 import Setting from './Setting.vue'
 import { ElMessageBox } from 'element-plus'
-import {subWebsocketState} from '@/apis/request.js'
-import { nextTick, ref } from 'vue'
+import {  ref } from 'vue'
 import { injectGlobalData } from '@/provide'
 export default {
     components: { Setting },
@@ -117,7 +116,6 @@ export default {
         }
 
         onMounted(()=>{
-            subWebsocketState((state)=>{ if(state)loadData();});
             loadData();
         });
 

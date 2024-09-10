@@ -50,7 +50,6 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed, onMounted, reactive, ref } from 'vue';
 import {Promotion,Download,Loading,CircleCheck} from '@element-plus/icons-vue'
 import { confirmServer, exitServer, getUpdaterCurrent, getUpdaterServer } from '@/apis/updater';
-import { subWebsocketState } from '@/apis/request';
 export default {
     components:{Promotion,Download,Loading,CircleCheck},
     props:['config'],
@@ -81,6 +80,7 @@ export default {
 
         const _getUpdaterCurrent = ()=>{
             getUpdaterCurrent().then((res)=>{
+                console.log(res);
                 updaterCurrent.value.DateTime = res.DateTime;
                 updaterCurrent.value.Version = res.Version;
                 updaterCurrent.value.Status = res.Status;
@@ -194,12 +194,8 @@ export default {
         }
 
         onMounted(() => {
-            subWebsocketState((state)=>{
-                if(state){
-                    _getUpdaterCurrent();
-                    _getUpdaterServer();
-                };
-            });
+            _getUpdaterCurrent();
+            _getUpdaterServer();
         });
 
         return {
