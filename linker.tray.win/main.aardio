@@ -237,11 +237,11 @@ mainForm.runAsTaskCommand = function(){
 	mainForm.runAsTask(!mainForm.ckAutoStart.checked);
 }
 
-mainForm.btnWebNet.oncommand = function(id,event){
+mainForm.btnWebFull.oncommand = function(id,event){
 	var fullFrm = mainForm.loadForm("/full.aardio");
 	fullFrm.show();
 }
-mainForm.btnWebFull.oncommand = function(id,event){
+mainForm.btnWebNet.oncommand = function(id,event){
 	var netFrm = mainForm.loadForm("/net.aardio");
 	netFrm.show();
 }
