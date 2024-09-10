@@ -19,6 +19,7 @@ export const provideDevices = () => {
         },
 
         showDeviceEdit: false,
+        showAccessEdit: false,
         deviceInfo: null
     });
     const _getSignList = () => {
@@ -28,6 +29,7 @@ export const provideDevices = () => {
             for (let j in res.List) {
                 Object.assign(res.List[j], {
                     showDel: machineId.value != res.List[j].MachineId && res.List[j].Connected == false,
+                    showAccess: machineId.value != res.List[j].MachineId && res.List[j].Connected,
                     showReboot: res.List[j].Connected,
                     isSelf: machineId.value == res.List[j].MachineId,
                     showip: false
@@ -43,32 +45,29 @@ export const provideDevices = () => {
         }).catch((err) => { });
     }
     const _getSignList1 = () => {
-        if (globalData.value.api.connected) {
-            getSignInList(devices.page.Request).then((res) => {
-                for (let j in res.List) {
-                    const item = devices.page.List.filter(c => c.MachineId == res.List[j].MachineId)[0];
-                    if (item) {
-                        Object.assign(item, {
-                            Connected: res.List[j].Connected,
-                            Version: res.List[j].Version,
-                            LastSignIn: res.List[j].LastSignIn,
-                            Args: res.List[j].Args,
-                            showDel: machineId.value != res.List[j].MachineId && res.List[j].Connected == false,
-                            showReboot: res.List[j].Connected,
-                            isSelf: machineId.value == res.List[j].MachineId,
-                        });
-                        if (item.isSelf) {
-                            globalData.value.self = item;
-                        }
+        getSignInList(devices.page.Request).then((res) => {
+            for (let j in res.List) {
+                const item = devices.page.List.filter(c => c.MachineId == res.List[j].MachineId)[0];
+                if (item) {
+                    Object.assign(item, {
+                        Connected: res.List[j].Connected,
+                        Version: res.List[j].Version,
+                        LastSignIn: res.List[j].LastSignIn,
+                        Args: res.List[j].Args,
+                        showDel: machineId.value != res.List[j].MachineId && res.List[j].Connected == false,
+                        showAccess: machineId.value != res.List[j].MachineId && res.List[j].Connected,
+                        showReboot: res.List[j].Connected,
+                        isSelf: machineId.value == res.List[j].MachineId,
+                    });
+                    if (item.isSelf) {
+                        globalData.value.self = item;
                     }
                 }
-                devices.timer = setTimeout(_getSignList1, 5000);
-            }).catch((err) => {
-                devices.timer = setTimeout(_getSignList1, 5000);
-            });
-        } else {
+            }
             devices.timer = setTimeout(_getSignList1, 5000);
-        }
+        }).catch((err) => {
+            devices.timer = setTimeout(_getSignList1, 5000);
+        });
     }
 
     const getCountryFlag = () => {
@@ -96,6 +95,10 @@ export const provideDevices = () => {
     const handleDeviceEdit = (row) => {
         devices.deviceInfo = row;
         devices.showDeviceEdit = true;
+    }
+    const handleAccessEdit = (row) => {
+        devices.deviceInfo = row;
+        devices.showAccessEdit = true;
     }
     const handlePageChange = (page) => {
         if (page) {
@@ -125,7 +128,7 @@ export const provideDevices = () => {
     }
 
     return {
-        devices, machineId, _getSignList, _getSignList1, handleDeviceEdit, handlePageChange, handlePageSizeChange, handleDel, clearDevicesTimeout,
+        devices, machineId, _getSignList, _getSignList1, handleDeviceEdit, handleAccessEdit, handlePageChange, handlePageSizeChange, handleDel, clearDevicesTimeout,
         setSort
     }
 }

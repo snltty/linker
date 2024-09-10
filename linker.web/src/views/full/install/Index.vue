@@ -35,7 +35,7 @@
 <script>
 import { injectGlobalData } from '@/provide';
 import { install } from '@/apis/config';
-import { reactive,  watch, ref, provide } from 'vue';
+import { reactive,   ref, provide } from 'vue';
 import { ElMessage } from 'element-plus';
 import Common from './Common.vue'
 import Client from './Client.vue'
@@ -46,14 +46,8 @@ export default {
 
         const globalData = injectGlobalData();
         const state = reactive({
-            show: false,
+            show: globalData.value.config.Common.Install == false,
             steps:['选择模式','服务端','客户端','完成']
-        });
-        
-        watch(() => globalData.value.config.configed, (val) => {
-            if (val) {
-                state.show = globalData.value.api.connected && globalData.value.config.configed && globalData.value.config.Common.Install == false;
-            }
         });
 
         const currentDom = ref(null);

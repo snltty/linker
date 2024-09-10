@@ -29,11 +29,11 @@ namespace linker.plugins.capi
                 clientServer.LoadPlugins(assemblies);
                 clientServer.Websocket(config.Data.Client.CApi.ApiPort, config.Data.Client.CApi.ApiPassword);
                 LoggerHelper.Instance.Warning($"client api listen:{config.Data.Client.CApi.ApiPort}");
-                if (config.Data.Client.OnlyNode == false)
+                if (config.Data.Client.HasAccess(ClientApiAccess.Api))
                     LoggerHelper.Instance.Warning($"client api password:{config.Data.Client.CApi.ApiPassword}");
             }
 
-            if (config.Data.Client.CApi.WebPort > 0 && config.Data.Client.OnlyNode == false)
+            if (config.Data.Client.CApi.WebPort > 0 && config.Data.Client.HasAccess(ClientApiAccess.Web))
             {
                 IWebClientServer webServer = serviceProvider.GetService<IWebClientServer>();
                 webServer.Start(config.Data.Client.CApi.WebPort, config.Data.Client.CApi.WebRoot);

@@ -30,16 +30,21 @@ namespace linker.plugins.signin
             ConfigSetInfo info = param.Content.DeJson<ConfigSetInfo>();
             clientSignInTransfer.Set(info.Name, info.GroupId);
         }
+
         public async Task<bool> SetName(ApiControllerParamsInfo param)
         {
             ConfigSetNameInfo info = param.Content.DeJson<ConfigSetNameInfo>();
 
             if (info.Id == config.Data.Client.Id)
             {
+                if (config.Data.Client.HasAccess(ClientApiAccess.RenameSelf) == false) return false;
+
                 clientSignInTransfer.SetName(info.NewName);
             }
             else
             {
+                if (config.Data.Client.HasAccess(ClientApiAccess.RenameOther) == false) return false;
+
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = clientSignInState.Connection,
@@ -49,6 +54,8 @@ namespace linker.plugins.signin
             }
             return true;
         }
+
+        [ClientApiAccessAttribute(ClientApiAccess.Config)]
         public async Task<bool> SetServers(ApiControllerParamsInfo param)
         {
             ClientServerInfo[] servers = param.Content.DeJson<ClientServerInfo[]>();
@@ -61,6 +68,8 @@ namespace linker.plugins.signin
         {
             return clientSignInState;
         }
+
+        [ClientApiAccessAttribute(ClientApiAccess.RenameOther)]
         public async Task Del(ApiControllerParamsInfo param)
         {
             await messengerSender.SendOnly(new MessageRequestWrap

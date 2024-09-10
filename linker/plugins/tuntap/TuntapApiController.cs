@@ -84,6 +84,8 @@ namespace linker.plugins.tuntap
             }
             return new ConnectionListInfo { HashCode = version };
         }
+
+        [ClientApiAccessAttribute(ClientApiAccess.TunnelRemove)]
         public void RemoveConnection(ApiControllerParamsInfo param)
         {
             tuntapProxy.RemoveConnection(param.Content);
@@ -126,11 +128,14 @@ namespace linker.plugins.tuntap
             //运行自己的
             if (param.Content == config.Data.Client.Id)
             {
+                if (config.Data.Client.HasAccess(ClientApiAccess.TuntapStatusSelf) == false) return false;
+
                 tuntapTransfer.Shutdown();
                 tuntapTransfer.Setup();
             }
             else
             {
+                if (config.Data.Client.HasAccess(ClientApiAccess.TuntapStatusOther) == false) return false;
                 //运行别人的
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -151,10 +156,12 @@ namespace linker.plugins.tuntap
             //停止自己的
             if (param.Content == config.Data.Client.Id)
             {
+                if (config.Data.Client.HasAccess(ClientApiAccess.TuntapStatusSelf) == false) return false;
                 tuntapTransfer.Shutdown();
             }
             else
             {
+                if (config.Data.Client.HasAccess(ClientApiAccess.TuntapStatusOther) == false) return false;
                 //停止别人的
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -178,10 +185,12 @@ namespace linker.plugins.tuntap
             //更新自己的
             if (info.MachineId == config.Data.Client.Id)
             {
+                if (config.Data.Client.HasAccess(ClientApiAccess.TuntapChangeSelf) == false) return false;
                 tuntapTransfer.UpdateConfig(info);
             }
             else
             {
+                if (config.Data.Client.HasAccess(ClientApiAccess.TuntapChangeOther) == false) return false;
                 //更新别人的
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {

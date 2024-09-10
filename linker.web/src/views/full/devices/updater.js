@@ -13,32 +13,28 @@ export const provideUpdater = () => {
     });
     provide(updaterSymbol, updater);
     const _getUpdater = () => {
-        if (globalData.value.api.connected) {
-            getUpdater(updater.value.hashcode.toString()).then((res) => {
-                updater.value.hashcode = res.HashCode;
-                if (res.List) {
-                    const self = Object.values(res.List).filter(c => !!c.Version)[0];
-                    if (self) {
-                        Object.assign(updater.value.current, {
-                            DateTime: self.DateTime,
-                            Version: self.Version,
-                            Status: self.Status,
-                            Length: self.Length,
-                            Current: self.Current,
-                            Msg: self.Msg,
-                        });
-                        globalData.value.updater = updater.value.current;
-                    }
-                    updater.value.list = res.List;
+        getUpdater(updater.value.hashcode.toString()).then((res) => {
+            updater.value.hashcode = res.HashCode;
+            if (res.List) {
+                const self = Object.values(res.List).filter(c => !!c.Version)[0];
+                if (self) {
+                    Object.assign(updater.value.current, {
+                        DateTime: self.DateTime,
+                        Version: self.Version,
+                        Status: self.Status,
+                        Length: self.Length,
+                        Current: self.Current,
+                        Msg: self.Msg,
+                    });
+                    globalData.value.updater = updater.value.current;
                 }
+                updater.value.list = res.List;
+            }
 
-                updater.value.timer = setTimeout(_getUpdater, 800);
-            }).catch(() => {
-                updater.value.timer = setTimeout(_getUpdater, 800);
-            });
-        } else {
             updater.value.timer = setTimeout(_getUpdater, 800);
-        }
+        }).catch(() => {
+            updater.value.timer = setTimeout(_getUpdater, 800);
+        });
     }
 
 

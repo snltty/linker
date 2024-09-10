@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Text.Json.Serialization;
 using linker.plugins.messenger;
+using linker.plugins.signIn.args;
 
 namespace linker.plugins.signin.messenger
 {
@@ -13,12 +14,16 @@ namespace linker.plugins.signin.messenger
     {
         private readonly Storefactory dBfactory;
         private readonly ILiteCollection<SignCacheInfo> liteCollection;
+        private readonly SignInArgsTransfer signInArgsTransfer;
+
         public ConcurrentDictionary<string, SignCacheInfo> Clients { get; set; } = new ConcurrentDictionary<string, SignCacheInfo>();
 
-        public SignCaching(Storefactory dBfactory)
+        public SignCaching(Storefactory dBfactory, SignInArgsTransfer signInArgsTransfer)
         {
             this.dBfactory = dBfactory;
             liteCollection = dBfactory.GetCollection<SignCacheInfo>("signs");
+
+            this.signInArgsTransfer = signInArgsTransfer;
 
             foreach (var item in liteCollection.FindAll())
             {
@@ -27,8 +32,9 @@ namespace linker.plugins.signin.messenger
             }
         }
 
-        public void Sign(IConnection connection, SignInfo signInfo)
+        public bool Sign(SignInfo signInfo, out string msg)
         {
+            msg = string.Empty;
             if (string.IsNullOrWhiteSpace(signInfo.MachineId))
             {
                 signInfo.MachineId = ObjectId.NewObjectId().ToString();
@@ -42,17 +48,27 @@ namespace linker.plugins.signin.messenger
                 liteCollection.Insert(cache);
                 Clients.TryAdd(signInfo.MachineId, cache);
             }
+
+            //参数验证失败
+            if (signInArgsTransfer.Verify(signInfo, cache, out msg) == false)
+            {
+                signInfo.Connection.Disponse();
+                return false;
+            }
+            //无限制，则挤压下线
             cache.Connection?.Disponse(9);
 
-            connection.Id = signInfo.MachineId;
-            connection.Name = signInfo.MachineName;
+            signInfo.Connection.Id = signInfo.MachineId;
+            signInfo.Connection.Name = signInfo.MachineName;
             cache.MachineName = signInfo.MachineName;
-            cache.Connection = connection;
+            cache.Connection = signInfo.Connection;
             cache.Version = signInfo.Version;
             cache.Args = signInfo.Args;
             cache.GroupId = signInfo.GroupId;
             liteCollection.Update(cache);
             dBfactory.Confirm();
+
+            return true;
         }
 
         public bool TryGet(string machineId, out SignCacheInfo cache)
@@ -132,7 +148,7 @@ namespace linker.plugins.signin.messenger
         [MemoryPackIgnore, JsonIgnore, BsonIgnore]
         public IConnection Connection { get; set; }
 
-        [MemoryPackIgnore,JsonIgnore, BsonIgnore]
+        [MemoryPackIgnore, JsonIgnore, BsonIgnore]
         public uint Order { get; set; } = int.MaxValue;
     }
 
@@ -147,5 +163,9 @@ namespace linker.plugins.signin.messenger
         public string Version { get; set; } = string.Empty;
 
         public Dictionary<string, string> Args { get; set; } = new Dictionary<string, string>();
+
+        [MemoryPackIgnore]
+        [JsonIgnore]
+        public IConnection Connection { get; set; }
     }
 }

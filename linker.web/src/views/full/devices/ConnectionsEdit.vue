@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="state.show" append-to=".app-wrap" title="隧道链接" top="1vh" width="700">
+  <el-dialog v-model="state.show" append-to=".app-wrap" :title="`与[${state.machineName}]的链接`" top="1vh" width="700">
         <div>
             <el-table :data="state.data" size="small" border height="500">
                 <el-table-column property="RemoteMachineId" label="目标">
@@ -38,7 +38,7 @@
                 </el-table-column>
                 <el-table-column label="操作" width="54">
                     <template #default="scope">
-                        <el-popconfirm confirm-button-text="确认" cancel-button-text="取消" title="确定关闭此连接?"
+                        <el-popconfirm v-if="hasTunnelRemove" confirm-button-text="确认" cancel-button-text="取消" title="确定关闭此连接?"
                             @confirm="handleDel(scope.row)">
                             <template #reference>
                                 <el-button type="danger" size="small"><el-icon><Delete /></el-icon></el-button>
@@ -51,15 +51,19 @@
     </el-dialog>
 </template>
 <script>
-import { reactive, watch,computed } from 'vue';
+import { reactive, watch,computed, inject } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useConnections, useForwardConnections, useTuntapConnections } from './connections';
 import { Delete } from '@element-plus/icons-vue';
+import { injectGlobalData } from '@/provide';
 export default {
     props: ['modelValue'],
     emits: ['change','update:modelValue'],
     components: {Delete},
     setup(props, { emit }) {
+
+        const globalData = injectGlobalData();
+        const hasTunnelRemove = computed(()=>globalData.value.hasAccess('TunnelRemove')); 
 
         const connections = useConnections();
         const forwardConnections =useForwardConnections();
@@ -69,6 +73,7 @@ export default {
             protocolTypes:{1:'tcp',2:'udp',4:'msquic'},
             types:{0:'打洞',1:'中继'},
             transactions:{'forward':'端口转发','tuntap':'虚拟网卡'},
+            machineName:connections.value.currentName,
             data: computed(()=>{
                 return [
                     forwardConnections.value.list[connections.value.current],
@@ -85,13 +90,14 @@ export default {
             }
         });
         const handleDel = (row)=>{
+            if(!hasTunnelRemove.value) return;
             row.removeFunc(row.RemoteMachineId).then(()=>{
                 ElMessage.success('删除成功');
             }).catch(()=>{});
         }
 
         return {
-            state,handleDel
+            state,handleDel,hasTunnelRemove
         }
     }
 }

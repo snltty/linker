@@ -31,10 +31,13 @@ namespace linker.plugins.updater
             this.runningConfig = runningConfig;
         }
 
+        [ClientApiAccessAttribute(ClientApiAccess.Config)]
         public string GetSecretKey(ApiControllerParamsInfo param)
         {
             return updaterClientTransfer.GetSecretKey();
         }
+
+        [ClientApiAccessAttribute(ClientApiAccess.Config)]
         public void SetSecretKey(ApiControllerParamsInfo param)
         {
             updaterClientTransfer.SetSecretKey(param.Content);
@@ -62,6 +65,8 @@ namespace linker.plugins.updater
             }
             return new UpdateInfo();
         }
+
+        [ClientApiAccessAttribute(ClientApiAccess.UpdateServer)]
         public async Task ConfirmServer(ApiControllerParamsInfo param)
         {
             await messengerSender.SendOnly(new MessageRequestWrap
@@ -71,6 +76,7 @@ namespace linker.plugins.updater
                 Payload = MemoryPackSerializer.Serialize(new UpdaterConfirmServerInfo { SecretKey = runningConfig.Data.UpdaterSecretKey, Version = param.Content })
             });
         }
+        [ClientApiAccessAttribute(ClientApiAccess.UpdateServer)]
         public async Task ExitServer(ApiControllerParamsInfo param)
         {
             await messengerSender.SendOnly(new MessageRequestWrap
@@ -96,12 +102,14 @@ namespace linker.plugins.updater
             return new UpdaterListInfo { HashCode = version };
 
         }
-        public async Task Confirm(ApiControllerParamsInfo param)
+        public async Task<bool> Confirm(ApiControllerParamsInfo param)
         {
             UpdaterConfirmInfo confirm = param.Content.DeJson<UpdaterConfirmInfo>();
 
             if (confirm.MachineId != config.Data.Client.Id)
             {
+                if (config.Data.Client.HasAccess(ClientApiAccess.UpdateSelf) == false) return false;
+
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = clientSignInState.Connection,
@@ -111,17 +119,24 @@ namespace linker.plugins.updater
             }
             if (confirm.MachineId == config.Data.Client.Id || confirm.All)
             {
+                if (config.Data.Client.HasAccess(ClientApiAccess.UpdateOther) == false) return false;
+
                 updaterTransfer.Confirm(confirm.Version);
             }
+
+            return true;
         }
-        public async Task Exit(ApiControllerParamsInfo param)
+        public async Task<bool> Exit(ApiControllerParamsInfo param)
         {
             if (string.IsNullOrWhiteSpace(param.Content) || param.Content == config.Data.Client.Id)
             {
+                if (config.Data.Client.HasAccess(ClientApiAccess.UpdateSelf) == false) return false;
+
                 Environment.Exit(1);
             }
             else
             {
+                if (config.Data.Client.HasAccess(ClientApiAccess.UpdateOther) == false) return false;
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = clientSignInState.Connection,
@@ -129,6 +144,7 @@ namespace linker.plugins.updater
                     Payload = MemoryPackSerializer.Serialize(param.Content)
                 });
             }
+            return true;
         }
     }
 

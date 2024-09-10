@@ -57,7 +57,6 @@ namespace linker.plugins.tuntap.proxy
             if (connections.TryGetValue(connection.RemoteMachineId, out ITunnelConnection connectionOld))
             {
                 LoggerHelper.Instance.Error($"new tunnel del {connection.Equals(connectionOld)}->{connectionOld.GetHashCode()}:{connectionOld.IPEndPoint}->{connection.GetHashCode()}:{connection.IPEndPoint}");
-                //connectionOld?.Dispose();
             }
             connections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
 
@@ -140,6 +139,7 @@ namespace linker.plugins.tuntap.proxy
                 }
             }
             maskValues = ips.SelectMany(c => c.IPS.Select(c => c.MaskValue)).Distinct().OrderBy(c => c).ToArray();
+
         }
         public void SetIP(string machineId, uint ip)
         {
@@ -169,7 +169,6 @@ namespace linker.plugins.tuntap.proxy
                     return await ConnectTunnel(machineId).ConfigureAwait(false);
                 }
             }
-            //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"got packet ConnectTunnel {machineId}  not found");
             return null;
 
         }
@@ -180,8 +179,6 @@ namespace linker.plugins.tuntap.proxy
         /// <returns></returns>
         private async Task<ITunnelConnection> ConnectTunnel(string machineId)
         {
-            //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"got packet ConnectTunnel {machineId} ");
-
             if (config.Data.Client.Id == machineId)
             {
                 return null;
@@ -189,8 +186,6 @@ namespace linker.plugins.tuntap.proxy
 
             if (connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected)
             {
-                //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"got packet ConnectTunnel {machineId}  1");
-
                 return connection;
             }
 
@@ -198,13 +193,10 @@ namespace linker.plugins.tuntap.proxy
             {
                 return null;
             }
-            //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"got packet ConnectTunnel {machineId} 2");
-
             try
             {
                 if (await clientSignInTransfer.GetOnline(machineId) == false)
                 {
-                    //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"got packet ConnectTunnel {machineId} 3");
                     return null;
                 }
 
@@ -224,7 +216,6 @@ namespace linker.plugins.tuntap.proxy
                     {
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap relay success,{connection.ToString()}");
                     }
-                    //tunnelTransfer.StartBackground(machineId, "tuntap", TunnelProtocolType.Quic,()=> connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected);
                 }
                 if (connection != null)
                 {

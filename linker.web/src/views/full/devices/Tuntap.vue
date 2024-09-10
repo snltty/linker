@@ -17,8 +17,8 @@ export default {
 
         const tuntap = useTuntap();
 
-        const handleTuntapIP = (tuntap) => {
-            emit('edit',tuntap);
+        const handleTuntapIP = (_tuntap) => {
+            emit('edit',_tuntap);
         }
         const handleTuntapRefresh = ()=>{
             emit('refresh');

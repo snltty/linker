@@ -82,6 +82,7 @@ namespace linker.plugins.tunnel
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
+        [ClientApiAccessAttribute(ClientApiAccess.Config)]
         public bool SetServers(ApiControllerParamsInfo param)
         {
             List<TunnelWanPortInfo> info = param.Content.DeJson<List<TunnelWanPortInfo>>();
@@ -99,10 +100,13 @@ namespace linker.plugins.tunnel
 
             if (tunnelTransportFileConfigInfo.MachineId == config.Data.Client.Id)
             {
+                if (config.Data.Client.HasAccess(ClientApiAccess.TunnelChangeSelf) == false) return false;
                 tunnelConfigTransfer.OnLocalRouteLevel(tunnelTransportFileConfigInfo);
             }
             else
             {
+                if (config.Data.Client.HasAccess(ClientApiAccess.TunnelChangeOther) == false) return false;
+
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = clientSignInState.Connection,
@@ -127,6 +131,7 @@ namespace linker.plugins.tunnel
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
+        [ClientApiAccessAttribute(ClientApiAccess.Config)]
         public bool SetTransports(ApiControllerParamsInfo param)
         {
             List<TunnelTransportItemInfo> info = param.Content.DeJson<List<TunnelTransportItemInfo>>();
@@ -138,6 +143,8 @@ namespace linker.plugins.tunnel
         {
             return excludeIPTransfer.GetExcludeIPs();
         }
+
+        [ClientApiAccessAttribute(ClientApiAccess.Config)]
         public void SetExcludeIPs(ApiControllerParamsInfo param)
         {
             ExcludeIPItem[] info = param.Content.DeJson<ExcludeIPItem[]>();
@@ -163,6 +170,7 @@ namespace linker.plugins.tunnel
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
+        [ClientApiAccessAttribute(ClientApiAccess.Config)]
         public bool SetInterface(ApiControllerParamsInfo param)
         {
             IPAddress ip = IPAddress.Parse(param.Content);

@@ -18,19 +18,15 @@ export const provideForward = () => {
     });
     provide(forwardSymbol, forward);
     const _getForwardInfo = () => {
-        if (globalData.value.api.connected) {
-            getForwardInfo(forward.value.hashcode.toString()).then((res) => {
-                forward.value.hashcode = res.HashCode;
-                if (res.List) {
-                    forward.value.list = res.List;
-                }
-                forward.value.timer = setTimeout(_getForwardInfo, 1020);
-            }).catch(() => {
-                forward.value.timer = setTimeout(_getForwardInfo, 1020);
-            });
-        } else {
+        getForwardInfo(forward.value.hashcode.toString()).then((res) => {
+            forward.value.hashcode = res.HashCode;
+            if (res.List) {
+                forward.value.list = res.List;
+            }
             forward.value.timer = setTimeout(_getForwardInfo, 1020);
-        }
+        }).catch(() => {
+            forward.value.timer = setTimeout(_getForwardInfo, 1020);
+        });
     }
     const handleForwardEdit = (machineId, machineName) => {
         forward.value.current = machineId;

@@ -43,21 +43,34 @@ namespace linker.plugins.capi
                 foreach (MethodInfo method in item.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
                 {
                     string key = $"{path}/{method.Name}".ToLower();
-                    if (!plugins.ContainsKey(key))
+                    if (plugins.ContainsKey(key) == false)
                     {
                         bool istask = method.ReturnType.GetProperty("IsCompleted") != null && method.ReturnType.GetMethod("GetAwaiter") != null;
                         bool isTaskResult = method.ReturnType.GetProperty("Result") != null;
+                        ClientApiAccessAttribute accessAttr = method.GetCustomAttribute<ClientApiAccessAttribute>();
+                        ulong access = 0;
+                        if (accessAttr != null)
+                        {
+                            access = (ulong)accessAttr.Value;
+                        }
+
                         plugins.TryAdd(key, new PluginPathCacheInfo
                         {
                             IsVoid = method.ReturnType == voidType,
                             Method = method,
                             Target = obj,
                             IsTask = istask,
-                            IsTaskResult = isTaskResult
+                            IsTaskResult = isTaskResult,
+                            Access = access,
+                            HasAccess = HasAccess,
                         });
                     }
                 }
             }
+        }
+        private bool HasAccess(ulong access)
+        {
+            return config.Data.Client.HasAccess((ClientApiAccess)access);
         }
     }
 }

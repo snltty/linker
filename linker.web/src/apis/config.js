@@ -7,6 +7,13 @@ export const getConfig = () => {
 export const install = (data) => {
     return sendWebsocketMsg('configclient/install', data);
 }
-export const exportConfig = () => {
-    return sendWebsocketMsg('configclient/export');
+export const exportConfig = (data) => {
+    return sendWebsocketMsg('configclient/export', data);
+}
+
+export const getAccesss = (machineid) => {
+    return sendWebsocketMsg('configclient/GetAccess', machineid);
+}
+export const setAccesss = (data) => {
+    return sendWebsocketMsg('configclient/SetAccess', data);
 }

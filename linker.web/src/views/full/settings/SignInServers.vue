@@ -63,7 +63,7 @@ export default {
         const state = reactive({
             list:globalData.value.config.Running.Client.Servers || [],
             server:computed(()=>globalData.value.config.Client.Server),
-            height: computed(()=>globalData.value.height-127),
+            height: computed(()=>globalData.value.height-135),
         });
         watch(()=>globalData.value.config.Running.Client.Servers,()=>{
             if(state.list.filter(c=>c['__editing']).length == 0){

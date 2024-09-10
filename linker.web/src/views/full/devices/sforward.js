@@ -17,19 +17,15 @@ export const provideSforward = () => {
     });
     provide(sforwardSymbol, sforward);
     const _getSForwardInfo = () => {
-        if (globalData.value.api.connected) {
-            getSForwardInfo(sforward.value.hashcode.toString()).then((res) => {
-                sforward.value.hashcode = res.HashCode;
-                if (res.List) {
-                    sforward.value.list = res.List;
-                }
-                sforward.value.timer = setTimeout(_getSForwardInfo, 1040);
-            }).catch(() => {
-                sforward.value.timer = setTimeout(_getSForwardInfo, 1040);
-            });
-        } else {
+        getSForwardInfo(sforward.value.hashcode.toString()).then((res) => {
+            sforward.value.hashcode = res.HashCode;
+            if (res.List) {
+                sforward.value.list = res.List;
+            }
             sforward.value.timer = setTimeout(_getSForwardInfo, 1040);
-        }
+        }).catch(() => {
+            sforward.value.timer = setTimeout(_getSForwardInfo, 1040);
+        });
     }
     const handleSForwardEdit = () => {
         sforward.value.showEdit = true;

@@ -5,6 +5,10 @@ using linker.client.config;
 using linker.plugins.capi;
 using System.IO.Compression;
 using linker.libs;
+using linker.plugins.client;
+using linker.plugins.messenger;
+using linker.plugins.config.messenger;
+using MemoryPack;
 
 namespace linker.plugins.config
 {
@@ -12,20 +16,23 @@ namespace linker.plugins.config
     {
         private readonly RunningConfig runningConfig;
         private readonly FileConfig config;
+        private readonly ClientSignInTransfer clientSignInTransfer;
+        private readonly MessengerSender sender;
+        private readonly ClientSignInState clientSignInState;
 
-        public ConfigClientApiController(RunningConfig runningConfig, FileConfig config)
+        public ConfigClientApiController(RunningConfig runningConfig, FileConfig config, ClientSignInTransfer clientSignInTransfer, MessengerSender sender, ClientSignInState clientSignInState)
         {
             this.runningConfig = runningConfig;
             this.config = config;
-
-            ClearTask();
+            this.clientSignInTransfer = clientSignInTransfer;
+            this.sender = sender;
+            this.clientSignInState = clientSignInState;
         }
 
         public object Get(ApiControllerParamsInfo param)
         {
             return new { Common = config.Data.Common, Client = config.Data.Client, Server = config.Data.Server, Running = runningConfig.Data };
         }
-
         public bool Install(ApiControllerParamsInfo param)
         {
             ConfigInstallInfo info = param.Content.DeJson<ConfigInstallInfo>();
@@ -79,11 +86,47 @@ namespace linker.plugins.config
         }
 
 
-        public bool Export(ApiControllerParamsInfo param)
+        public async Task<ulong> GetAccess(ApiControllerParamsInfo param)
+        {
+            MessageResponeInfo resp = await sender.SendReply(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)ConfigMessengerIds.AccessForward,
+                Payload = MemoryPackSerializer.Serialize(param.Content)
+            });
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                return MemoryPackSerializer.Deserialize<ulong>(resp.Data.Span);
+            }
+            return 0;
+        }
+
+        [ClientApiAccessAttribute(ClientApiAccess.Access)]
+        public async Task<bool> SetAccess(ApiControllerParamsInfo param)
+        {
+            ConfigUpdateAccessInfo configUpdateAccessInfo = param.Content.DeJson<ConfigUpdateAccessInfo>();
+            if(configUpdateAccessInfo.MachineId == config.Data.Client.Id)
+            {
+                return false;
+            }
+
+            MessageResponeInfo resp = await sender.SendReply(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)ConfigMessengerIds.AccessUpdateForward,
+                Payload = MemoryPackSerializer.Serialize(configUpdateAccessInfo)
+            });
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
+
+        [ClientApiAccessAttribute(ClientApiAccess.Export)]
+        public async Task<bool> Export(ApiControllerParamsInfo param)
         {
             try
             {
-                string dirName = "client-node-export";
+                ConfigExportInfo configExportInfo = param.Content.DeJson<ConfigExportInfo>();
+
+                string dirName = $"client-node-export";
                 string rootPath = Path.GetFullPath($"./web/{dirName}");
                 string zipPath = Path.GetFullPath($"./web/{dirName}.zip");
 
@@ -98,17 +141,23 @@ namespace linker.plugins.config
                 CopyDirectory(Path.GetFullPath("./"), rootPath, dirName);
                 DeleteDirectory(Path.Combine(rootPath, $"configs"));
                 DeleteDirectory(Path.Combine(rootPath, $"logs"));
-                DeleteDirectory(Path.Combine(rootPath, $"web"));
 
                 string configPath = Path.Combine(rootPath, $"configs");
                 Directory.CreateDirectory(configPath);
+
                 ConfigClientInfo client = config.Data.Client.ToJson().DeJson<ConfigClientInfo>();
-                client.Name = string.Empty;
-                client.Id = string.Empty;
-                client.CApi.WebPort = 0;
+                if (configExportInfo.Single || client.OnlyNode)
+                {
+                    client.Id = await clientSignInTransfer.GetNewId();
+                }
+                if (client.OnlyNode == false)
+                {
+                    client.CApi.ApiPassword = configExportInfo.ApiPassword;
+                }
+                client.Name = configExportInfo.Name;
+                client.Access = (ClientApiAccess)configExportInfo.Access & client.Access;
                 client.OnlyNode = true;
                 File.WriteAllText(Path.Combine(configPath, $"client.json"), client.Set(client));
-
 
                 ConfigCommonInfo common = config.Data.Common.ToJson().DeJson<ConfigCommonInfo>();
                 common.Install = true;
@@ -118,12 +167,14 @@ namespace linker.plugins.config
 
                 ZipFile.CreateFromDirectory(rootPath, zipPath);
                 DeleteDirectory(rootPath);
+
+                return string.IsNullOrWhiteSpace(client.Id) == false;
             }
             catch (Exception ex)
             {
                 LoggerHelper.Instance.Error(ex);
             }
-            return true;
+            return false;
         }
         private void DeleteDirectory(string sourceDir)
         {
@@ -160,25 +211,6 @@ namespace linker.plugins.config
                 string subDirName = Path.GetFileName(subDir);
                 string destSubDir = Path.Combine(destDir, subDirName);
                 CopyDirectory(subDir, destSubDir, excludeDir);
-            }
-        }
-        private void ClearTask()
-        {
-            if (config.Data.Client.OnlyNode)
-            {
-                Task.Run(async () =>
-                {
-                    string path = Path.GetFullPath("./web");
-                    while (true)
-                    {
-                        if (Directory.Exists(path))
-                        {
-                            DeleteDirectory(path);
-                        }
-
-                        await Task.Delay(1500);
-                    }
-                });
             }
         }
     }
@@ -228,5 +260,14 @@ namespace linker.plugins.config
     public sealed class ConfigInstallCommonInfo
     {
         public string[] Modes { get; set; }
+    }
+
+
+    public sealed class ConfigExportInfo
+    {
+        public string Name { get; set; }
+        public string ApiPassword { get; set; }
+        public bool Single { get; set; }
+        public ulong Access { get; set; }
     }
 }

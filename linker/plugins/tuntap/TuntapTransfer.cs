@@ -243,6 +243,15 @@ namespace linker.plugins.tuntap
                     {
                         tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
                     }
+                    var removes = tuntapInfos.Keys.Except(result.Result.Select(c => c.MachineId)).ToList();
+                    foreach (var item in removes)
+                    {
+                        if (tuntapInfos.TryGetValue(item, out TuntapInfo tuntapInfo))
+                        {
+                            tuntapInfo.Status = TuntapStatus.Normal;
+                        }
+                    }
+
                     AddRoute();
                 }
                 Version.Add();

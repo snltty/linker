@@ -11,6 +11,7 @@ using MemoryPack;
 using linker.plugins.client;
 using linker.plugins.capi;
 using linker.plugins.messenger;
+using linker.config;
 
 namespace linker.plugins.forward
 {
@@ -44,6 +45,8 @@ namespace linker.plugins.forward
             }
             return new ConnectionListInfo { HashCode = version };
         }
+
+        [ClientApiAccessAttribute(ClientApiAccess.TunnelRemove)]
         public void RemoveConnection(ApiControllerParamsInfo param)
         {
             forwardProxy.RemoveConnection(param.Content);
@@ -96,11 +99,14 @@ namespace linker.plugins.forward
             return NetworkHelper.GetIPV4();
         }
 
+        [ClientApiAccessAttribute(ClientApiAccess.ForwardSelf)]
         public bool Add(ApiControllerParamsInfo param)
         {
             ForwardInfo info = param.Content.DeJson<ForwardInfo>();
             return forwardTransfer.Add(info);
         }
+
+        [ClientApiAccessAttribute(ClientApiAccess.ForwardSelf)]
         public bool Remove(ApiControllerParamsInfo param)
         {
             if (uint.TryParse(param.Content, out uint id))

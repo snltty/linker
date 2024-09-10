@@ -57,6 +57,8 @@ export default {
     setup(props) {
 
         const globalData = injectGlobalData();
+        const hasConfig = computed(()=>globalData.value.hasAccess('Config')); 
+        const hasUpdateServer = computed(()=>globalData.value.hasAccess('UpdateServer')); 
         const updaterCurrent = ref({Version: '', Msg: [], DateTime: '', Status: 0, Length: 0, Current: 0});
         const updaterServer = ref({Version: '', Status: 0, Length: 0, Current: 0});
         const updaterMsg = computed(()=>{
@@ -131,7 +133,7 @@ export default {
             return state.version != updaterCurrent.value.Version  ? 'yellow' :'green'
         }
         const handleUpdate = ()=>{
-            if(!props.config){
+            if(!props.config || !hasUpdateServer.value){
                 return;
             }
             if(!updaterCurrent.value.Version){
@@ -172,7 +174,7 @@ export default {
         }
 
         const handleConfig = () => {
-            if(!props.config){
+            if(!props.config || !hasConfig.value){
                 return;
             }
             state.form.name = globalData.value.config.Client.Name;
@@ -201,7 +203,7 @@ export default {
         });
 
         return {
-         config:props.config,   state, handleConfig, handleSave,updaterCurrent,updaterServer,handleUpdate,updateText,updateColor
+         config:props.config,  state, handleConfig, handleSave,updaterCurrent,updaterServer,handleUpdate,updateText,updateColor
         }
     }
 }

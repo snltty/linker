@@ -437,5 +437,14 @@ namespace linker.libs.extends
             return new string(src);
         }
 
+
+        public static string TrimNewLineAndWhiteSapce(this string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return string.Empty;
+            }
+            return input.Trim('\r').Trim('\n').Trim();
+        }
     }
 }

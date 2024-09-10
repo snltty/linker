@@ -1,5 +1,5 @@
 <template>
-     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" title="组网设置" top="1vh" width="700">
+     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" :title="`设置[${state.machineName}]组网`" top="1vh" width="700">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="140">
                 <el-form-item prop="gateway" style="margin-bottom:0">
@@ -93,6 +93,7 @@ export default {
         const ruleFormRef = ref(null);
         const state = reactive({
             show: true,
+            machineName:tuntap.value.current.device.MachineName,
             bufferSize:globalData.value.bufferSize,
             ruleForm: {
                 IP: tuntap.value.current.IP,

@@ -6,6 +6,7 @@ using linker.plugins.sforward.messenger;
 using linker.plugins.client;
 using linker.plugins.capi;
 using linker.plugins.messenger;
+using linker.config;
 
 namespace linker.plugins.sforward
 {
@@ -27,6 +28,8 @@ namespace linker.plugins.sforward
         {
             return forwardTransfer.GetSecretKey();
         }
+
+        [ClientApiAccessAttribute(ClientApiAccess.Config)]
         public void SetSecretKey(ApiControllerParamsInfo param)
         {
             forwardTransfer.SetSecretKey(param.Content);
@@ -45,6 +48,7 @@ namespace linker.plugins.sforward
             }
             return new SForwardListInfo { HashCode = version };
         }
+
         public async Task<List<SForwardRemoteInfo>> GetRemote(ApiControllerParamsInfo param)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -60,12 +64,14 @@ namespace linker.plugins.sforward
             return new List<SForwardRemoteInfo>();
         }
 
+        [ClientApiAccessAttribute(ClientApiAccess.Config)]
         public bool Add(ApiControllerParamsInfo param)
         {
             SForwardInfo info = param.Content.DeJson<SForwardInfo>();
             return forwardTransfer.Add(info);
         }
 
+        [ClientApiAccessAttribute(ClientApiAccess.Config)]
         public bool Remove(ApiControllerParamsInfo param)
         {
             if (uint.TryParse(param.Content, out uint id))

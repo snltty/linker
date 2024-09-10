@@ -103,7 +103,7 @@ export default {
             list:globalData.value.config.Running.Relay.Servers.sort((a,b)=>a.Disabled - b.Disabled),
             byRelay:globalData.value.config.Running.Relay.ByRelay,
             types:[],
-            height: computed(()=>globalData.value.height-127)
+            height: computed(()=>globalData.value.height-135)
         });
         watch(()=>globalData.value.config.Running.Relay.Servers,()=>{
             if(state.list.filter(c=>c['__editing']).length == 0){

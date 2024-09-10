@@ -1,7 +1,7 @@
 <template>
     <div class="logger-setting-wrap flex flex-column h-100" ref="wrap">
         <el-tabs type="border-card">
-            <el-tab-pane label="主页">
+            <el-tab-pane label="主页" v-if="hasLogger">
                 <div class="inner">
                     <div class="head flex">
                         <div>
@@ -41,7 +41,7 @@
                     </div>
                 </div>
             </el-tab-pane>
-            <el-tab-pane label="配置">
+            <el-tab-pane label="配置" v-if="hasLoggerLevel">
                 <Setting></Setting>
             </el-tab-pane>
         </el-tabs>
@@ -62,6 +62,8 @@ export default {
     components: { Setting },
     setup() {
         const globalData = injectGlobalData();
+        const hasLogger = computed(()=>globalData.value.hasAccess('LoggerShow'));
+        const hasLoggerLevel = computed(()=>globalData.value.hasAccess('LoggerLevel'));
         const wrap = ref(null);
         const state = reactive({
             loading: true,
@@ -120,7 +122,7 @@ export default {
         });
 
         return {
-            wrap,state, loadData, clearData, tableRowClassName, handleRowClick,handlePageChange
+            hasLogger,hasLoggerLevel,wrap,state, loadData, clearData, tableRowClassName, handleRowClick,handlePageChange
         }
     }
 }

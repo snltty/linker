@@ -3,7 +3,7 @@
     <el-table-column prop="forward" label="端口转发">
         <template #default="scope">
             <template v-if="!scope.row.isSelf">
-                <div>
+                <div v-if="hasForwardShowOther">
                     <ul class="list forward">
                         <template v-if="forward.list[scope.row.MachineId] && forward.list[scope.row.MachineId].length > 0">
                             <template v-for="(item, index) in forward.list[scope.row.MachineId]" :key="index">
@@ -26,7 +26,7 @@
                 </div>
             </template>
             <template v-else>
-                <div>
+                <div v-if="hasForwardShowSelf">
                     <ul class="list sforward">
                         <template v-if="sforward.list && sforward.list.length > 0">
                             <template v-for="(item, index) in sforward.list.slice(0,5)" :key="index">
@@ -52,8 +52,10 @@
     </el-table-column>
 </template>
 <script>
+import { injectGlobalData } from '@/provide';
 import { useForward } from './forward';
 import { useSforward } from './sforward';
+import { computed } from 'vue';
 
 export default {
     emits: ['edit','sedit'],
@@ -61,10 +63,29 @@ export default {
 
         const forward = useForward()
         const sforward = useSforward()
-        const handleEdit = (machineId)=>{
-            emit('edit',machineId)
+        const globalData = injectGlobalData();
+        const machineId = computed(() => globalData.value.config.Client.Id);
+        const hasForwardShowSelf = computed(()=>globalData.value.hasAccess('ForwardShowSelf')); 
+        const hasForwardShowOther = computed(()=>globalData.value.hasAccess('ForwardShowOther')); 
+        const hasForwardSelf = computed(()=>globalData.value.hasAccess('ForwardSelf')); 
+        const hasForwardOther = computed(()=>globalData.value.hasAccess('Accesss')); 
+
+        const handleEdit = (_machineId)=>{
+            if(machineId.value === _machineId){
+                if(!hasForwardSelf.value){
+                    return;
+                }
+            }else{
+                if(!hasForwardOther.value){
+                    return;
+                }
+            }
+            emit('edit',_machineId)
         }
         const handleSEdit = ()=>{
+            if(!hasForwardSelf.value){
+                return;
+            }
             emit('sedit')
         }
         const handleForwardRefresh = ()=>{
@@ -72,7 +93,7 @@ export default {
         }
 
         return {
-            forward,sforward, handleEdit,handleSEdit,handleForwardRefresh
+            forward,sforward,hasForwardShowSelf,hasForwardShowOther, handleEdit,handleSEdit,handleForwardRefresh
         }
     }
 }

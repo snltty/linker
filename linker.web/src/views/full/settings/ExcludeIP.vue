@@ -56,7 +56,7 @@ export default {
         const state = reactive({
             list:globalData.value.config.Running.Tunnel.ExcludeIPs || [{IPAddress:'0.0.0.0',Mask:32}],
             types:[],
-            height: computed(()=>globalData.value.height-127)
+            height: computed(()=>globalData.value.height-135)
         });
 
         const handleCellClick = (row, column) => {

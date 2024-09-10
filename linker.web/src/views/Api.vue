@@ -1,28 +1,18 @@
 <template>
-    <div v-if="config" class="status-api-wrap" :class="{connected:connected}">
-        <el-popconfirm confirm-button-text="清除" cancel-button-text="更改" title="确定你的操作？" @cancel="handleShow" @confirm="handleResetConnect" >
-            <template #reference>
-                <a href="javascript:;" title="此设备的管理接口">
-                    <el-icon size="16"><Tools /></el-icon>
-                    管理接口
-                </a>
-            </template>
-        </el-popconfirm>
-        <el-dialog class="options-center" title="管理接口" destroy-on-close v-model="showPort" center :show-close="false"
+    <el-dialog class="options-center" title="管理接口" destroy-on-close v-model="showPort" center :show-close="false"
             :close-on-click-modal="false" align-center width="200">
-            <div class="port-wrap t-c">
-                <div>
-                   接口 : <el-input v-model="state.api" style="width:70%"></el-input>
-                </div>
-                <div class="pdt-10">
-                   秘钥 : <el-input type="password" v-model="state.psd" style="width:70%"></el-input>
-                </div>
+        <div class="port-wrap t-c">
+            <div>
+                接口 : <el-input v-model="state.api" style="width:70%"></el-input>
             </div>
-            <template #footer>
-                <el-button type="success" @click="handleConnect1" plain>确 定</el-button>
-            </template>
-        </el-dialog>
-    </div>
+            <div class="pdt-10">
+                秘钥 : <el-input type="password" v-model="state.psd" style="width:70%"></el-input>
+            </div>
+        </div>
+        <template #footer>
+            <el-button type="success" @click="handleConnect1" plain>确 定</el-button>
+        </template>
+    </el-dialog>
 </template>
 <script>
 import {useRoute,useRouter} from 'vue-router'
@@ -37,7 +27,6 @@ export default {
     props:['config'],
     setup(props) {
         const globalData = injectGlobalData();
-        const connected = computed(()=>globalData.value.api.connected);
         const router = useRouter();
         const route = useRoute();
 
@@ -50,26 +39,16 @@ export default {
         });
         const showPort = computed(() => globalData.value.api.connected == false && state.showPort);
 
-        const handleResetConnect = () => {
-            localStorage.setItem('api-cache', '');
-            router.push({name:route.name});
-            window.location.reload();
-        }
         const handleConnect = () => {
             queryCache.api = state.api;
             queryCache.psd = state.psd;
             localStorage.setItem('api-cache',JSON.stringify(queryCache));
-
             closeWebsocket();
             initWebsocket(`ws://${state.api}`,state.psd);
         }
         const handleConnect1 = ()=>{
             handleConnect();
             window.location.reload();
-        }
-        const handleShow = ()=>{
-            closeWebsocket();
-            initWebsocket(`ws://${window.location.hostname}:12345`,state.psd);
         }
 
         const _getConfig = ()=>{
@@ -116,7 +95,7 @@ export default {
             });
         });
 
-        return {config:props.config, state,  showPort,  handleConnect1,connected,handleShow,handleResetConnect};
+        return {state,  showPort, handleConnect1};
     }
 }
 </script>

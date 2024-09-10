@@ -3,9 +3,9 @@ using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using linker.config;
-using linker.plugins.client.args;
 using System.Net;
 using linker.libs.extends;
+using linker.plugins.signIn.args;
 
 namespace linker.plugins.client
 {
@@ -27,8 +27,6 @@ namespace linker.plugins.client
                 config.Data.Client.Name = Dns.GetHostName().SubStr(0, 12);
             }
 
-            serviceCollection.AddSingleton<SignInArgsTransfer>();
-
             serviceCollection.AddSingleton<ClientSignInState>();
             serviceCollection.AddSingleton<ClientSignInTransfer>();
 
@@ -46,7 +44,6 @@ namespace linker.plugins.client
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
-
         }
         public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {

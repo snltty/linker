@@ -1,7 +1,7 @@
 <template>
-    <div class="servers-wrap">
+    <div class="servers-wrap" v-if="hasConfig">
         <el-tabs type="border-card" style="width:100%" v-model="state.tab">
-            <template v-if="state.connected" v-for="(item,index) in settingComponents" :key="index">
+            <template v-for="(item,index) in settingComponents" :key="index">
                 <el-tab-pane :label="item.label" :name="item.name">
                     <component :is="item"></component>
                 </el-tab-pane>
@@ -21,12 +21,13 @@ export default {
         const files = require.context('./', true, /.+\.vue/);
         const settingComponents = files.keys().filter(c=>excludes.includes(c)==false).map(c => files(c).default).sort((a,b)=>a.order-b.order);
         const globalData = injectGlobalData();
+        const hasConfig = computed(()=>globalData.value.hasAccess('Config'))
         const state = reactive({
-            tab:settingComponents[0].name,
-            connected:computed(()=>globalData.value.api.connected && globalData.value.config.configed),
+            tab:settingComponents[0].name
         });
+
         return {
-            state,settingComponents
+            state,settingComponents,hasConfig
         }
     }
 }

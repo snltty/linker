@@ -16,10 +16,10 @@
             </p>
             <p class="flex">
                 <template v-if="scope.row.showip">
-                    <span title="此设备的外网IP" class="ipaddress" @click="scope.row.showip=!scope.row.showip"><span>😀{{ scope.row.IP }}</span></span>
+                    <span title="此设备的外网IP" class="ipaddress" @click="handleExternal(scope.row)"><span>😀{{ scope.row.IP }}</span></span>
                 </template>
                 <template v-else>
-                    <span title="此设备的外网IP" class="ipaddress" @click="scope.row.showip=!scope.row.showip"><span>😴㊙.㊙.㊙.㊙</span></span>
+                    <span title="此设备的外网IP" class="ipaddress" @click="handleExternal(scope.row)"><span>😴㊙.㊙.㊙.㊙</span></span>
                 </template>
                 <span class="flex-1"></span>
                 <UpdaterBtn :config="true" :item="scope.row"></UpdaterBtn>
@@ -29,22 +29,25 @@
 </el-table-column>
 </template>
 <script>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import {Search} from '@element-plus/icons-vue'
-import { useUpdater } from './updater';
-import { useTuntap } from './tuntap';
 import UpdaterBtn from './UpdaterBtn.vue';
 import DeviceName from './DeviceName.vue';
+import { injectGlobalData } from '@/provide';
 
 export default {
     emits:['edit','refresh'],
     components:{Search,UpdaterBtn,DeviceName},
     setup(props,{emit}) {
 
+        const globalData = injectGlobalData();
+        const hasExternal = computed(()=>globalData.value.hasAccess('ExternalShow')); 
         const name = ref(sessionStorage.getItem('search-name') || '');
-        const updater = useUpdater();
-        const tuntap = useTuntap();
         
+        const handleExternal = (row)=>{
+            if(!hasExternal.value) return;
+            row.showip=!row.showip;
+        }
         const handleEdit = (row)=>{
             emit('edit',row)
         }
@@ -54,7 +57,7 @@ export default {
         }
 
         return {
-            tuntap, handleEdit,handleRefresh,name,updater,
+             handleEdit,handleRefresh,name,handleExternal
         }
     }
 }

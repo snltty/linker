@@ -2,6 +2,7 @@
 using linker.libs.extends;
 using linker.client.config;
 using linker.plugins.capi;
+using linker.config;
 
 namespace linker.plugins.config
 {
@@ -14,12 +15,14 @@ namespace linker.plugins.config
             this.runningConfigTransfer = runningConfigTransfer;
         }
 
+        [ClientApiAccessAttribute(ClientApiAccess.Config)]
         public void UpdateVersion(ApiControllerParamsInfo param)
         {
             UpdateVersionInfo info = param.Content.DeJson<UpdateVersionInfo>();
             runningConfigTransfer.UpdateVersion(info.Key, info.Version);
         }
 
+        [ClientApiAccessAttribute(ClientApiAccess.Config)]
         public void UpdateDisableSync(ApiControllerParamsInfo param)
         {
             UpdateDisableSyncInfo info = param.Content.DeJson<UpdateDisableSyncInfo>();

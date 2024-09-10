@@ -6,8 +6,8 @@ using linker.libs.extends;
 using MemoryPack;
 using System.Net;
 using System.Net.Sockets;
-using linker.plugins.client.args;
 using linker.plugins.messenger;
+using linker.plugins.signIn.args;
 
 namespace linker.plugins.client
 {
@@ -95,7 +95,7 @@ namespace linker.plugins.client
                     LoggerHelper.Instance.Info($"connect to signin server:{config.Data.Client.Server}");
 
                 IPEndPoint ip = NetworkHelper.GetEndPoint(config.Data.Client.Server, 1802);
-                if(ip == null)
+                if (ip == null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         LoggerHelper.Instance.Error($"get domain ip fail:{config.Data.Client.Server}");
@@ -147,13 +147,17 @@ namespace linker.plugins.client
         /// <returns></returns>
         private async Task<bool> SignIn2Server()
         {
-            Dictionary<string, string> args = new Dictionary<string, string>();
-            signInArgsTransfer.Invoke(args);
+            Dictionary<string, string> args = [];
+            if (signInArgsTransfer.Invoke(args) == false)
+            {
+                clientSignInState.Connection?.Disponse(6);
+                return false;
+            }
 
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,
-                MessengerId = (ushort)SignInMessengerIds.SignIn,
+                MessengerId = (ushort)SignInMessengerIds.SignIn_V_1_3_1,
                 Payload = MemoryPackSerializer.Serialize(new SignInfo
                 {
                     MachineName = config.Data.Client.Name,
@@ -163,17 +167,24 @@ namespace linker.plugins.client
                     GroupId = config.Data.Client.GroupId,
                 })
             }).ConfigureAwait(false);
-            if (resp.Code == MessageResponeCodes.OK)
+            if (resp.Code != MessageResponeCodes.OK)
             {
-                if (resp.Data.Span.SequenceEqual(Helper.FalseArray) == false)
-                {
-                    config.Data.Client.Id = MemoryPackSerializer.Deserialize<string>(resp.Data.Span);
-                    config.Data.Update();
-                    return true;
-                }
+                LoggerHelper.Instance.Error($"sign in fail : {resp.Code}");
+                clientSignInState.Connection?.Disponse(6);
+                return false;
             }
-            clientSignInState.Connection?.Disponse(6);
-            return false;
+
+            SignInResponseInfo signResp = MemoryPackSerializer.Deserialize<string>(resp.Data.Span).DeJson<SignInResponseInfo>();
+            if (signResp.Status == false)
+            {
+                LoggerHelper.Instance.Error($"sign in fail : {signResp.Msg}");
+                clientSignInState.Connection?.Disponse(6);
+                return false;
+            }
+
+            config.Data.Client.Id = signResp.MachineId;
+            config.Data.Update();
+            return true;
         }
 
         /// <summary>
@@ -202,7 +213,7 @@ namespace linker.plugins.client
             }
             else
             {
-                clientSignInState.Version = "v1.0.0.0";
+                clientSignInState.Version = "v1.0.0";
             }
         }
 
@@ -270,6 +281,25 @@ namespace linker.plugins.client
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
 
+        /// <summary>
+        /// 获取一个新的id
+        /// </summary>
+        /// <returns></returns>
+        public async Task<string> GetNewId()
+        {
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)SignInMessengerIds.NewId,
+                Timeout = 3000
+            });
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                return MemoryPackSerializer.Deserialize<string>(resp.Data.Span);
+            }
+
+            return string.Empty;
+        }
 
         /// <summary>
         /// 修改信标服务器列表

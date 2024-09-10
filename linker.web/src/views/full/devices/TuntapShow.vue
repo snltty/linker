@@ -81,11 +81,26 @@ export default {
         const tuntap = useTuntap();
         const globalData = injectGlobalData();
         const machineId = computed(() => globalData.value.config.Client.Id);
+        const hasTuntapChangeSelf = computed(()=>globalData.value.hasAccess('TuntapChangeSelf')); 
+        const hasTuntapChangeOther = computed(()=>globalData.value.hasAccess('TuntapChangeOther')); 
+        const hasTuntapStatusSelf = computed(()=>globalData.value.hasAccess('TuntapStatusSelf')); 
+        const hasTuntapStatusOther = computed(()=>globalData.value.hasAccess('TuntapStatusOther')); 
+
         const showDelay = computed(()=>((globalData.value.config.Running.Tuntap || {Switch:0}).Switch & 2) == 2);
         const handleTuntap = (tuntap) => {
             if(!props.config){
                 return;
             }
+            if(machineId.value === tuntap.MachineId){
+                if(!hasTuntapStatusSelf.value){
+                    return;
+                }
+            }else{
+                if(!hasTuntapStatusOther.value){
+                    return;
+                }
+            }
+
             const fn = tuntap.running ? stopTuntap (tuntap.MachineId) : runTuntap(tuntap.MachineId);
             tuntap.loading = true;
             fn.then(() => {
@@ -98,6 +113,16 @@ export default {
             if(!props.config && machineId.value != tuntap.MachineId){
                 return;
             }
+            if(machineId.value === tuntap.MachineId){
+                if(!hasTuntapChangeSelf.value){
+                    return;
+                }
+            }else{
+                if(!hasTuntapChangeOther.value){
+                    return;
+                }
+            }
+            tuntap.device = props.item;
             emit('edit',tuntap);
         }
         const handleTuntapRefresh = ()=>{

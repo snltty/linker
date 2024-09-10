@@ -13,7 +13,7 @@
             <Tunnel  @edit="handleTunnelEdit" @refresh="handleTunnelRefresh" @connections="handleTunnelConnections"></Tunnel>
             <Tuntap  @edit="handleTuntapEdit" @refresh="handleTuntapRefresh"></Tuntap>
             <Forward @edit="_handleForwardEdit" @sedit="handleSForwardEdit"></Forward> 
-            <Oper  @refresh="handlePageRefresh"></Oper>
+            <Oper  @refresh="handlePageRefresh" @access="handleAccessEdit"></Oper>
         </el-table>
         <div class="page t-c">
             <div class="page-wrap">
@@ -23,6 +23,7 @@
             </div>
         </div>
         <DeviceEdit v-if="devices.showDeviceEdit" v-model="devices.showDeviceEdit"  @change="handlePageChange" :data="devices.deviceInfo"></DeviceEdit>
+        <AccessEdit v-if="devices.showAccessEdit" v-model="devices.showAccessEdit"  @change="handlePageChange" :data="devices.deviceInfo"></AccessEdit>
         <TunnelEdit v-if="tunnel.showEdit" v-model="tunnel.showEdit"  @change="handleTunnelRefresh"></TunnelEdit>
         <ConnectionsEdit v-if="connections.showEdit" v-model="connections.showEdit" ></ConnectionsEdit>
         <TuntapEdit v-if="tuntap.showEdit" v-model="tuntap.showEdit"  @change="handleTuntapRefresh"></TuntapEdit>
@@ -39,6 +40,7 @@ import { reactive, onMounted,  onUnmounted, computed } from 'vue'
 import Oper from './Oper.vue'
 import Device from './Device.vue'
 import DeviceEdit from './DeviceEdit.vue'
+import AccessEdit from './AccessEdit.vue'
 import Tuntap from './Tuntap.vue'
 import TuntapEdit from './TuntapEdit.vue'
 import Tunnel from './Tunnel.vue'
@@ -58,7 +60,7 @@ import { provideSforward } from './sforward'
 import { provideDevices } from './devices'
 import { provideUpdater } from './updater'
 export default {
-    components: {Oper,Device,DeviceEdit,Tunnel,TunnelEdit,ConnectionsEdit, Tuntap,TuntapEdit,  Forward,ForwardEdit,ForwardCopy,SForwardEdit,SForwardCopy },
+    components: {Oper,Device,DeviceEdit,AccessEdit,Tunnel,TunnelEdit,ConnectionsEdit, Tuntap,TuntapEdit,  Forward,ForwardEdit,ForwardCopy,SForwardEdit,SForwardCopy },
     setup(props) {
 
         const globalData = injectGlobalData();
@@ -67,7 +69,7 @@ export default {
         });
 
         const {devices, machineId, _getSignList, _getSignList1,
-            handleDeviceEdit, handlePageChange, handlePageSizeChange, handleDel,clearDevicesTimeout,setSort} = provideDevices();
+            handleDeviceEdit,handleAccessEdit, handlePageChange, handlePageSizeChange, handleDel,clearDevicesTimeout,setSort} = provideDevices();
 
         const {tuntap,_getTuntapInfo,handleTuntapEdit,handleTuntapRefresh,clearTuntapTimeout,getTuntapMachines,sortTuntapIP}  = provideTuntap();
         const {tunnel,_getTunnelInfo,handleTunnelEdit,handleTunnelRefresh,clearTunnelTimeout,sortTunnel} = provideTunnel();
@@ -177,7 +179,7 @@ export default {
 
         return {
             state,devices, machineId,handleSortChange,
-            handleDeviceEdit,handlePageRefresh,handlePageSearch, handlePageChange,handlePageSizeChange, handleDel,
+            handleDeviceEdit,handleAccessEdit,handlePageRefresh,handlePageSearch, handlePageChange,handlePageSizeChange, handleDel,
             tuntap, handleTuntapEdit, handleTuntapRefresh,
             tunnel,connections, handleTunnelEdit, handleTunnelRefresh,handleTunnelConnections,
             forward,_handleForwardEdit,

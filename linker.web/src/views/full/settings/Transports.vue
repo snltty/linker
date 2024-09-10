@@ -51,7 +51,7 @@ export default {
         const globalData = injectGlobalData();
         const state = reactive({
             list:globalData.value.config.Running.Tunnel.Transports.sort((a,b)=>a.Order - b.Order),
-            height: computed(()=>globalData.value.height-127),
+            height: computed(()=>globalData.value.height-135),
             bufferSize:globalData.value.bufferSize
         });
         watch(()=>globalData.value.config.Running.Tunnel.Transports,()=>{

@@ -1,5 +1,5 @@
 <template>
-     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" title="设置设备" width="300">
+     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" :title="`设置[${state.ruleForm.MachineName}]设备`" width="300">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="auto">
                 <el-form-item label="">
@@ -31,7 +31,8 @@ export default {
         const state = reactive({
             show: true,
             ruleForm: {
-                MachineName: props.data.MachineName
+                MachineName1: props.data.MachineName,
+                MachineName: props.data.MachineName,
             },
             rules: {}
         });

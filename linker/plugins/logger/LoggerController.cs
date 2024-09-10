@@ -24,6 +24,7 @@ namespace linker.plugins.logger
             };
         }
 
+        [ClientApiAccessAttribute(ClientApiAccess.LoggerShow)]
         public LoggerPageInfo Get(ApiControllerParamsInfo param)
         {
             LoggerPageParamInfo info = param.Content.DeJson<LoggerPageParamInfo>();
@@ -60,6 +61,7 @@ namespace linker.plugins.logger
             };
         }
 
+        [ClientApiAccessAttribute(ClientApiAccess.LoggerLevel)]
         public bool SetConfig(ApiControllerParamsInfo param)
         {
             LoggerSetParamInfo info = param.Content.DeJson<LoggerSetParamInfo>();

@@ -3,7 +3,6 @@
         <template #default="scope">
             <el-dropdown size="small">
                 <div class="dropdown">
-                    <!-- <span class="badge">1</span> -->
                     <span>操作</span>
                     <el-icon class="el-icon--right">
                         <ArrowDown />
@@ -11,8 +10,9 @@
                 </div>
                 <template #dropdown>
                 <el-dropdown-menu>
-                    <el-dropdown-item v-if="scope.row.showReboot" @click="handleExit(scope.row.MachineId,scope.row.MachineName)"><el-icon><SwitchButton /></el-icon> 重启</el-dropdown-item>
-                    <el-dropdown-item v-if="scope.row.showDel" @click="handleDel(scope.row.MachineId,scope.row.MachineName)"><el-icon><Delete /></el-icon> 删除</el-dropdown-item>
+                    <el-dropdown-item v-if="scope.row.showReboot && hasReboot" @click="handleExit(scope.row.MachineId,scope.row.MachineName)"><el-icon><SwitchButton /></el-icon> 重启</el-dropdown-item>
+                    <el-dropdown-item v-if="scope.row.showDel && hasRemove" @click="handleDel(scope.row.MachineId,scope.row.MachineName)"><el-icon><Delete /></el-icon> 删除</el-dropdown-item>
+                    <el-dropdown-item v-if="scope.row.showAccess && hasAccess" @click="handleAccess(scope.row)"><el-icon><Flag /></el-icon> 权限</el-dropdown-item>
                 </el-dropdown-menu>
                 </template>
             </el-dropdown>
@@ -24,14 +24,21 @@
 <script>
 import { signInDel } from '@/apis/signin';
 import { exit } from '@/apis/updater';
-import { Delete,SwitchButton,ArrowDown } from '@element-plus/icons-vue'
+import { injectGlobalData } from '@/provide';
+import { Delete,SwitchButton,ArrowDown, Flag } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus';
+import { computed } from 'vue';
 
 export default {
-    emits:['refresh'],
-    components:{Delete,SwitchButton,ArrowDown},
+    emits:['refresh','access'],
+    components:{Delete,SwitchButton,ArrowDown,Flag},
     setup (props,{emit}) {
         
+        const globalData = injectGlobalData();
+        const hasReboot = computed(()=>globalData.value.hasAccess('Reboot')); 
+        const hasRemove = computed(()=>globalData.value.hasAccess('Remove')); 
+        const hasAccess = computed(()=>globalData.value.hasAccess('Access')); 
+
         const handleDel = (machineId,machineName)=>{
             ElMessageBox.confirm(`确认删除[${machineName}]?`, '提示', {
                 confirmButtonText: '确定',
@@ -54,8 +61,11 @@ export default {
                 })
             }).catch(() => {});
         }
+        const handleAccess = (row)=>{
+            emit('access',row);
+        }
 
-        return {handleDel,handleExit}
+        return {handleDel,handleExit,hasReboot,hasRemove,hasAccess,handleAccess}
     }
 }
 </script>

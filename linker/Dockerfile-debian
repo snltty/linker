@@ -4,6 +4,7 @@ FROM debian:latest
 RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && echo Asia/Shanghai > /etc/timezone
 RUN apt update \
     && apt-get install -y --no-install-recommends iproute2 \
+    && apt-get install -y --no-install-recommends dmidecode \
     && apt-get install -y --no-install-recommends net-tools \
     && apt-get install -y --no-install-recommends curl \
     && apt-get install -y --no-install-recommends traceroute \

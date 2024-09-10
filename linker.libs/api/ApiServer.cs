@@ -98,6 +98,16 @@ namespace linker.libs.api
                     Code = ApiControllerResponseCodes.NotFound
                 };
             }
+            if (plugin.HasAccess(plugin.Access) == false)
+            {
+                return new ApiControllerResponseInfo
+                {
+                    Content = "no permission",
+                    RequestId = model.RequestId,
+                    Path = model.Path,
+                    Code = ApiControllerResponseCodes.Error
+                };
+            }
 
             try
             {
@@ -121,7 +131,7 @@ namespace linker.libs.api
                     }
                     else
                     {
-                        resultObject = resultAsync;   
+                        resultObject = resultAsync;
                     }
                 }
                 return new ApiControllerResponseInfo
@@ -286,5 +296,9 @@ namespace linker.libs.api
         /// 是否task result
         /// </summary>
         public bool IsTaskResult { get; set; }
+
+        public ulong Access { get; set; }
+        public Func<ulong, bool> HasAccess { get; set; }
     }
+
 }

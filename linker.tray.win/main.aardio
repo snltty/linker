@@ -1,13 +1,12 @@
 import win.ui;
 /*DSG{{*/
-mainForm = win.form(text="linker tray";right=279;bottom=212;max=false)
+mainForm = win.form(text="linker tray";right=241;bottom=193;border="thin";max=false;min=false)
 mainForm.add(
-btnCheck={cls="button";text="检查安装";left=8;top=183;right=77;bottom=206;hide=1;z=1};
-btnInstall={cls="button";text="安装服务";left=99;top=23;right=187;bottom=65;z=2};
-btnRun={cls="button";text="运行服务";left=99;top=74;right=187;bottom=113;z=3};
-btnWebFull={cls="button";text="管理(专业)";left=152;top=135;right=224;bottom=164;z=6};
-btnWebNet={cls="button";text="管理(简单)";left=66;top=135;right=138;bottom=164;z=5};
-ckAutoStart={cls="checkbox";text="托盘自启动";left=106;top=185;right=192;bottom=202;z=4}
+btnInstall={cls="button";text="安装服务";left=79;top=12;right=167;bottom=54;z=1};
+btnRun={cls="button";text="运行服务";left=79;top=63;right=167;bottom=102;z=2};
+btnWebFull={cls="button";text="管理(专业)";left=130;top=116;right=202;bottom=145;z=5};
+btnWebNet={cls="button";text="管理(简单)";left=45;top=116;right=117;bottom=145;z=4};
+ckAutoStart={cls="checkbox";text="托盘自启动";left=90;top=166;right=176;bottom=183;z=3}
 )
 /*}}*/
 
@@ -133,10 +132,6 @@ mainForm.checkService1 = function(){
 	mainForm.checkServiceRun = mainForm.btnRun.text ; 
 }
 
-mainForm.btnCheck.oncommand = function(id,event){
-	mainForm.checkService();
-	win.msgbox('已检查',null,null,mainForm.hwnd,1000);
-}
 mainForm.runCommand = function(id,event){
 	import thread;
 	thread.invoke( 
@@ -243,18 +238,12 @@ mainForm.runAsTaskCommand = function(){
 }
 
 mainForm.btnWebNet.oncommand = function(id,event){
-	var netFrm = mainForm.loadForm("/net.aardio");
-	netFrm.show();
+	var fullFrm = mainForm.loadForm("/full.aardio");
+	fullFrm.show();
 }
 mainForm.btnWebFull.oncommand = function(id,event){
-	import fsys;
-	if(io.exist("./web/index.html"))
-	{
-		var fullFrm = mainForm.loadForm("/full.aardio");
-		fullFrm.show();
-	}else{
-		win.msgbox("不存在",null,null,mainForm.hwnd,1000);
-	}
+	var netFrm = mainForm.loadForm("/net.aardio");
+	netFrm.show();
 }
 
 mainForm.checkService();

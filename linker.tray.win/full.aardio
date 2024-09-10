@@ -1,6 +1,6 @@
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="linker 管理(专业)";right=859;bottom=699;border="thin";max=false;min=false;topmost=1)
+var winform = win.form(text="linker 管理";right=859;bottom=699;border="thin";max=false;min=false;topmost=1)
 winform.add()
 /*}}*/
 
@@ -8,7 +8,6 @@ if(!_WIN10_LATER) import web.view.7; //兼容 Win7 以及之后版本，不支�
 else import web.view;//支持 Win10 以及之后版本，导入这个就别导入前面的 web.view.7;  
 var wb = web.view(winform);
 import wsock.tcp.simpleHttpServer;
-
 
 wb.enableDevTools(false);
 wb.go("/web/index.html#/full/index.html",8081);

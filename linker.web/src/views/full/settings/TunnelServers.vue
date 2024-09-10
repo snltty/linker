@@ -102,7 +102,7 @@ export default {
         const state = reactive({
             list:globalData.value.config.Running.Tunnel.Servers.sort((a,b)=>a.Disabled - b.Disabled),
             types:[],
-            height: computed(()=>globalData.value.height-127),
+            height: computed(()=>globalData.value.height-135),
             interfaces:[],
             interface:globalData.value.config.Running.Tunnel.Interface
         });

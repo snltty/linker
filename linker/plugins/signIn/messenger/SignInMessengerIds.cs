@@ -18,6 +18,11 @@
 
         Online = 11,
 
+        NewId = 12,
+
+
+        SignIn_V_1_3_1 = 13,
+
         None = 99
     }
 }

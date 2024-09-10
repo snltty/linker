@@ -11,10 +11,10 @@
                     <li>
                         <router-link :to="{name:'FullIndex'}"><el-icon size="16"><StarFilled /></el-icon> 首页</router-link>
                     </li>
-                    <li>
+                    <li v-if="hasConfig">
                         <router-link :to="{name:'FullSettings'}"><el-icon size="16"><Tools /></el-icon> 配置</router-link>
                     </li>
-                    <li>
+                    <li v-if="hasLogger">
                         <router-link :to="{name:'FullLogger'}"><el-icon size="16"><WarnTriangleFilled /></el-icon> 日志</router-link>
                     </li>
                 </ul>
@@ -25,11 +25,19 @@
 
 <script>
 import {Tools,StarFilled,WarnTriangleFilled} from '@element-plus/icons-vue'
+import { injectGlobalData } from '@/provide';
+import { computed } from 'vue';
 export default {
     components:{Tools,StarFilled,WarnTriangleFilled},
     setup() {
 
+        const globalData = injectGlobalData();
+        const hasConfig = computed(()=>globalData.value.hasAccess('Config')); 
+        const hasLogger = computed(()=>globalData.value.hasAccess('LoggerShow')); 
+
         return {
+            hasConfig,
+            hasLogger
         }
     }
 }

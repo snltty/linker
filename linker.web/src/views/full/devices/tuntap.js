@@ -24,49 +24,44 @@ export const provideTuntap = () => {
 
     const _getTuntapInfo = () => {
         clearTimeout(tuntap.value.timer);
-        if (globalData.value.api.connected) {
-            getTuntapInfo(tuntap.value.hashcode.toString()).then((res) => {
-                tuntap.value.hashcode = res.HashCode;
-                if (res.List) {
-                    for (let j in res.List) {
+        getTuntapInfo(tuntap.value.hashcode.toString()).then((res) => {
+            tuntap.value.hashcode = res.HashCode;
+            if (res.List) {
+                for (let j in res.List) {
 
-                        let system = 'system';
-                        const systemStr = res.List[j].SystemInfo.toLowerCase();
-                        for (let jj in systems) {
-                            if (systemStr.indexOf(jj) >= 0) {
-                                const items = systems[jj];
-                                if (items.length == 1) {
-                                    system = items[0];
-                                } else {
-                                    for (let i = 0; i < items.length; i++) {
-                                        if (systemStr.indexOf(items[i]) >= 0) {
-                                            system = items[i];
-                                            break;
-                                        }
+                    let system = 'system';
+                    const systemStr = res.List[j].SystemInfo.toLowerCase();
+                    for (let jj in systems) {
+                        if (systemStr.indexOf(jj) >= 0) {
+                            const items = systems[jj];
+                            if (items.length == 1) {
+                                system = items[0];
+                            } else {
+                                for (let i = 0; i < items.length; i++) {
+                                    if (systemStr.indexOf(items[i]) >= 0) {
+                                        system = items[i];
+                                        break;
                                     }
                                 }
-                                break;
                             }
+                            break;
                         }
-                        Object.assign(res.List[j], {
-                            running: res.List[j].Status == 2,
-                            loading: res.List[j].Status == 1,
-                            system: system,
-                            systemDocker: systemStr.indexOf('docker') >= 0,
-                        });
                     }
-                    tuntap.value.list = res.List;
+                    Object.assign(res.List[j], {
+                        running: res.List[j].Status == 2,
+                        loading: res.List[j].Status == 1,
+                        system: system,
+                        systemDocker: systemStr.indexOf('docker') >= 0,
+                    });
                 }
-                tuntap.value.timer = setTimeout(_getTuntapInfo, 1100);
-            }).catch((e) => {
-                tuntap.value.timer = setTimeout(_getTuntapInfo, 1100);
-            });
-        } else {
-            tuntap.value.timer = setTimeout(_getTuntapInfo, 50);
-        }
+                tuntap.value.list = res.List;
+            }
+            tuntap.value.timer = setTimeout(_getTuntapInfo, 1100);
+        }).catch((e) => {
+            tuntap.value.timer = setTimeout(_getTuntapInfo, 1100);
+        });
     }
     const handleTuntapEdit = (_tuntap) => {
-        console.log(_tuntap);
         tuntap.value.current = _tuntap;
         tuntap.value.showEdit = true;
 

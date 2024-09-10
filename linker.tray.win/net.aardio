@@ -11,7 +11,6 @@ var wb = web.view(winform);
 import wsock.tcp.simpleHttpServer;
 
 wb.enableDevTools(false);
-//wb.go("http://127.0.0.1:8081#/net/index.html");
 wb.go("/web/index.html#/net/index.html",8081);
 
 winform.show();

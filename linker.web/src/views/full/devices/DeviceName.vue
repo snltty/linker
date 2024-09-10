@@ -9,7 +9,6 @@
         </template>
         <a href="javascript:;" @click="handleEdit" title="此客户端的设备名" :class="{green:item.Connected}">{{item.MachineName }}</a>
         <strong v-if="item.isSelf"> - (<el-icon><StarFilled /></el-icon> 本机) </strong>
-        <!-- <p>{{ item }}</p> -->
     </div>
 </template>
 
@@ -25,11 +24,23 @@ export default {
     setup (props,{emit}) {
         const tuntap = useTuntap();
         const globalData = injectGlobalData();
+        const hasRenameSelf = computed(()=>globalData.value.hasAccess('RenameSelf')); 
+        const hasRenameOther = computed(()=>globalData.value.hasAccess('RenameOther')); 
         const machineId = computed(() => globalData.value.config.Client.Id);
         const handleEdit = ()=>{
-            if(!props.config && machineId.value != props.item.MachineId){
+            if(!props.config){
                 return;
             }
+            if(machineId.value === props.item.MachineId){
+                if(!hasRenameSelf.value){
+                    return;
+                }
+            }else{
+                if(!hasRenameOther.value){
+                    return;
+                }
+            }
+
             emit('edit',props.item)
         }
 

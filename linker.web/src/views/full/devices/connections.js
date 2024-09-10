@@ -12,6 +12,7 @@ export const provideConnections = () => {
         showEdit: false,
         speedCache: {},
         current: '',
+        currentName: '',
         hashcode: 0,
         hashcode1: 0,
     });
@@ -23,21 +24,17 @@ export const provideConnections = () => {
     });
     provide(forwardConnectionsSymbol, forwardConnections);
     const _getForwardConnections = () => {
-        if (globalData.value.api.connected) {
-            getForwardConnections(connections.value.hashcode.toString()).then((res) => {
-                connections.value.hashcode = res.HashCode;
-                if (res.List) {
-                    parseConnections(res.List, removeForwardConnection);
-                    forwardConnections.value.list = res.List;
-                }
+        getForwardConnections(connections.value.hashcode.toString()).then((res) => {
+            connections.value.hashcode = res.HashCode;
+            if (res.List) {
+                parseConnections(res.List, removeForwardConnection);
+                forwardConnections.value.list = res.List;
+            }
 
-                forwardConnections.value.timer = setTimeout(_getForwardConnections, 1000);
-            }).catch((e) => {
-                forwardConnections.value.timer = setTimeout(_getForwardConnections, 1000);
-            })
-        } else {
             forwardConnections.value.timer = setTimeout(_getForwardConnections, 1000);
-        }
+        }).catch((e) => {
+            forwardConnections.value.timer = setTimeout(_getForwardConnections, 1000);
+        })
     }
     const tuntapConnections = ref({
         timer: 0,
@@ -45,21 +42,17 @@ export const provideConnections = () => {
     });
     provide(tuntapConnectionsSymbol, tuntapConnections);
     const _getTuntapConnections = () => {
-        if (globalData.value.api.connected) {
-            getTuntapConnections(connections.value.hashcode1.toString()).then((res) => {
-                connections.value.hashcode1 = res.HashCode;
-                if (res.List) {
-                    parseConnections(res.List, removeTuntapConnection);
-                    tuntapConnections.value.list = res.List;
-                }
+        getTuntapConnections(connections.value.hashcode1.toString()).then((res) => {
+            connections.value.hashcode1 = res.HashCode;
+            if (res.List) {
+                parseConnections(res.List, removeTuntapConnection);
+                tuntapConnections.value.list = res.List;
+            }
 
-                tuntapConnections.value.timer = setTimeout(_getTuntapConnections, 1000);
-            }).catch((e) => {
-                tuntapConnections.value.timer = setTimeout(_getTuntapConnections, 1000);
-            })
-        } else {
             tuntapConnections.value.timer = setTimeout(_getTuntapConnections, 1000);
-        }
+        }).catch((e) => {
+            tuntapConnections.value.timer = setTimeout(_getTuntapConnections, 1000);
+        })
     }
     const parseConnections = (_connections, removeFunc) => {
         const caches = connections.value.speedCache;
@@ -86,8 +79,9 @@ export const provideConnections = () => {
         }
         return `${num.toFixed(2)}${['B/s', 'KB/s', 'MB/s', 'GB/s', 'TB/s'][index]}`;
     }
-    const handleTunnelConnections = (machineId) => {
-        connections.value.current = machineId;
+    const handleTunnelConnections = (device) => {
+        connections.value.current = device.MachineId;
+        connections.value.currentName = device.MachineName;
         connections.value.showEdit = true;
     }
     const clearConnectionsTimeout = () => {

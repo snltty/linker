@@ -20,7 +20,7 @@ namespace linker.plugins.logger
         public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<LoggerClientApiController>();
-            if (config.Data.Client.OnlyNode)
+            if (config.Data.Client.HasAccess(ClientApiAccess.LoggerLevel) == false)
             {
                 config.Data.Common.LoggerType = libs.LoggerTypes.WARNING;
             }

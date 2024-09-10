@@ -17,16 +17,18 @@
 </template>
 
 <script>
-import Head from '@/components/full/Head.vue'
-import Status from '@/components/full/status/Index.vue'
-import Install from '@/components/full/install/Index.vue'
-import { provideGlobalData } from '@/provide';
+import Head from '@/views/full/Head.vue'
+import Status from '@/views/full/status/Index.vue'
+import Install from '@/views/full/install/Index.vue'
+import { injectGlobalData } from '@/provide';
 import { nextTick, onMounted, onUnmounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 export default {
     name: 'Index',
     components: {Head, Status, Install},
     setup(props) {
-        const globalData = provideGlobalData();
+        const globalData = injectGlobalData();
+        const router = useRouter();
 
         const wrap = ref(null);
         const resizeTable = () => {
@@ -35,8 +37,14 @@ export default {
             });
         }
         onMounted(() => {
+
+            if(globalData.value.hasAccess('FullManager') == false){
+                router.push({name:'NoPermission'});
+            }
+
             window.addEventListener('resize', resizeTable);
             resizeTable();
+
         });
         onUnmounted(() => {
             window.removeEventListener('resize', resizeTable);

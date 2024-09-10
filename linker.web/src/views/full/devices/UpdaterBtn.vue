@@ -27,11 +27,11 @@
 
 <script>
 import { injectGlobalData } from '@/provide';
-import { useUpdater } from './updater';
 import { computed, h, ref } from 'vue';
 import { ElMessage, ElMessageBox, ElOption, ElSelect } from 'element-plus';
 import { confirm } from '@/apis/updater';
 import {Download,Loading,CircleCheck} from '@element-plus/icons-vue'
+import { useUpdater } from './updater';
 
 export default {
     props:['item','config'],
@@ -39,7 +39,8 @@ export default {
     setup (props) {
 
         const globalData = injectGlobalData();
-        const machineId = computed(() => globalData.value.config.Client.Id);
+        const hasUpdateSelf = computed(()=>globalData.value.hasAccess('UpdateSelf')); 
+        const hasUpdateOther = computed(()=>globalData.value.hasAccess('UpdateOther')); 
         const updater = useUpdater();
         const serverVersion = computed(()=>globalData.value.signin.Version);
         const updaterVersion = computed(()=>updater.value.current.Version);
@@ -75,6 +76,10 @@ export default {
             if(!props.config){
                 return;
             }
+            if(!hasUpdateSelf.value){
+                return;
+            }
+
             const updateInfo = updater.value.list[props.item.MachineId];
             if(!updateInfo){
                 ElMessage.error('未检测到更新');
@@ -104,12 +109,12 @@ export default {
                 const selectOptions = [
                     h(ElOption, { label: `仅[${props.item.MachineName}] -> ${updaterVersion.value}(最新版本)`, value: updaterVersion.value }),
                 ];
-                if(props.config){
+                if(props.config && hasUpdateOther.value){
                     selectOptions.push(h(ElOption, { label: `[所有] -> ${updaterVersion.value}(最新版本)`, value: `all->${updaterVersion.value}` }));
                 }
                 if(props.item.Version != serverVersion.value && updaterVersion.value != serverVersion.value){
                     selectOptions.push(h(ElOption, { label: `仅[${props.item.MachineName}] -> ${serverVersion.value}(服务器版本)`, value: serverVersion.value }));
-                    if(props.config){
+                    if(props.config && hasUpdateOther.value){
                         selectOptions.push(h(ElOption, { label: `[所有] -> ${serverVersion.value}(服务器版本)`, value: `all->${serverVersion.value}` }));
                     }
                 }

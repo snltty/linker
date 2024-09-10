@@ -3,6 +3,8 @@ using MemoryPack;
 using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.libs;
+using LiteDB;
+using linker.libs.extends;
 
 namespace linker.plugins.signin.messenger
 {
@@ -40,9 +42,39 @@ namespace linker.plugins.signin.messenger
         public void SignIn(IConnection connection)
         {
             SignInfo info = MemoryPackSerializer.Deserialize<SignInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            signCaching.Sign(connection, info);
-            connection.Write(MemoryPackSerializer.Serialize(info.MachineId));
+            info.Connection = connection;
+
+            SignInResponseInfo resp = new SignInResponseInfo();
+            resp.Status = signCaching.Sign(info, out string msg);
+            resp.Msg = msg;
+            if (resp.Status)
+            {
+                connection.Write(MemoryPackSerializer.Serialize(info.MachineId));
+            }
+            else
+            {
+                connection.Write(Helper.EmptyArray);
+            }
         }
+
+        /// <summary>
+        /// v1.3.1版本之后的登录接口
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)SignInMessengerIds.SignIn_V_1_3_1)]
+        public void SignIn_V_1_3_1(IConnection connection)
+        {
+            SignInfo info = MemoryPackSerializer.Deserialize<SignInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            info.Connection = connection;
+
+            SignInResponseInfo resp = new SignInResponseInfo();
+            resp.Status = signCaching.Sign(info, out string msg);
+            resp.Msg = msg;
+            resp.MachineId = info.MachineId;
+
+            connection.Write(MemoryPackSerializer.Serialize(resp.ToJson()));
+        }
+
 
         [MessengerId((ushort)SignInMessengerIds.SetOrder)]
         public void SetOrder(IConnection connection)
@@ -196,6 +228,12 @@ namespace linker.plugins.signin.messenger
                 connection.Write(Helper.FalseArray);
             }
         }
+
+        [MessengerId((ushort)SignInMessengerIds.NewId)]
+        public void NewId(IConnection connection)
+        {
+            connection.Write(MemoryPackSerializer.Serialize(ObjectId.NewObjectId().ToString()));
+        }
     }
 
     [MemoryPackable]
@@ -267,5 +305,13 @@ namespace linker.plugins.signin.messenger
     {
         public string MachineId { get; set; }
         public string MachineName { get; set; }
+    }
+
+    [MemoryPackable]
+    public sealed partial class SignInResponseInfo
+    {
+        public bool Status { get; set; }
+        public string MachineId { get; set; }
+        public string Msg { get; set; }
     }
 }

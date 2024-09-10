@@ -28,6 +28,11 @@ const routes = [
         name: 'Network',
         component: () => import('@/views/net/Index.vue')
     },
+    {
+        path: '/no-permission.html',
+        name: 'NoPermission',
+        component: () => import('@/views/NoPermission.vue')
+    }
 
 ]
 

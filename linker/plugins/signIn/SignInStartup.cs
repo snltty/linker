@@ -1,5 +1,6 @@
 ﻿using linker.config;
 using linker.plugins.signin.messenger;
+using linker.plugins.signIn.args;
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -22,12 +23,18 @@ namespace linker.plugins.signin
         {
             serviceCollection.AddSingleton<SignInClientMessenger>();
             serviceCollection.AddSingleton<SignInClientApiController>();
+
+            serviceCollection.AddSingleton<SignInArgsTransfer>();
+            serviceCollection.AddSingleton<SignInArgsMachineKey>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<SignCaching>();
             serviceCollection.AddSingleton<SignInServerMessenger>();
+
+            serviceCollection.AddSingleton<SignInArgsTransfer>();
+            serviceCollection.AddSingleton<SignInArgsMachineKey>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
