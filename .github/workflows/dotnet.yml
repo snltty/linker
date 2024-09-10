@@ -37,7 +37,7 @@ jobs:
           release_name: v1.3.1.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 优化网卡(设备下线后路由指向错误)\r\n2. 管理页面配置权限\r\n3. 导出配置及指定节点配置权限\r\n4. 实时配置客户端管理权限\r\n5. 重复连接，同设备挤压，不同设备禁止连接"
+          body: "1. 优化网卡(设备下线后路由指向错误)\r\n2. 管理页面配置权限\r\n3. 导出配置及指定节点配置权限\r\n4. 实时配置客户端管理权限\r\n5. 重复连接，同设备挤压，不同设备禁止连接\r\n6. 测试中，请勿更新...."
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
         uses: tvrcgo/oss-action@v0.1.1

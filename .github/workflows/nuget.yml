@@ -38,6 +38,6 @@ jobs:
 
     - name: Push
       run: |
-        nuget push ./linker.tunnel/bin/release/linker.tunnel.1.3.0.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate -ApiKey ${{ secrets.NUGET_KEY }} -NoSymbol
-        nuget push ./linker.libs/bin/release/linker.libs.1.3.0.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate -ApiKey ${{ secrets.NUGET_KEY }} -NoSymbol
-        nuget push ./linker.tun/bin/release/linker.tun.1.3.0.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate -ApiKey ${{ secrets.NUGET_KEY }} -NoSymbol
+        nuget push ./linker.tunnel/bin/release/linker.tunnel.1.3.1.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate -ApiKey ${{ secrets.NUGET_KEY }} -NoSymbol
+        nuget push ./linker.libs/bin/release/linker.libs.1.3.1.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate -ApiKey ${{ secrets.NUGET_KEY }} -NoSymbol
+        nuget push ./linker.tun/bin/release/linker.tun.1.3.1.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate -ApiKey ${{ secrets.NUGET_KEY }} -NoSymbol
