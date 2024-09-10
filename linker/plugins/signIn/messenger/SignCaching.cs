@@ -34,29 +34,29 @@ namespace linker.plugins.signin.messenger
 
         public bool Sign(SignInfo signInfo, out string msg)
         {
-            msg = string.Empty;
             if (string.IsNullOrWhiteSpace(signInfo.MachineId))
             {
                 signInfo.MachineId = ObjectId.NewObjectId().ToString();
             }
 
-            if (Clients.TryGetValue(signInfo.MachineId, out SignCacheInfo cache) == false)
+            bool has = Clients.TryGetValue(signInfo.MachineId, out SignCacheInfo cache);
+            if (has == false) cache = new SignCacheInfo();
+
+            //参数验证失败
+            if (signInArgsTransfer.Verify(signInfo, cache, out msg) == false)
             {
-                cache = new SignCacheInfo();
+                return false;
+            }
+            //无限制，则挤压下线
+            cache.Connection?.Disponse(9);
+
+            if(has == false)
+            {
                 cache.Id = new ObjectId(signInfo.MachineId);
                 cache.MachineId = signInfo.MachineId;
                 liteCollection.Insert(cache);
                 Clients.TryAdd(signInfo.MachineId, cache);
             }
-
-            //参数验证失败
-            if (signInArgsTransfer.Verify(signInfo, cache, out msg) == false)
-            {
-                signInfo.Connection.Disponse();
-                return false;
-            }
-            //无限制，则挤压下线
-            cache.Connection?.Disponse(9);
 
             signInfo.Connection.Id = signInfo.MachineId;
             signInfo.Connection.Name = signInfo.MachineName;
