@@ -14,7 +14,6 @@ export const provideAccess = () => {
             access.value.hashcode = res.HashCode;
             if (res.List) {
                 access.value.list = res.List;
-                console.log(res.List);
             }
             access.value.timer = setTimeout(_getAccessInfo, 1000);
         }).catch(() => {
