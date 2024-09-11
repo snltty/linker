@@ -38,7 +38,6 @@ namespace linker.plugins.config
         {
             accesss[access.MachineId] = access.Access;
             Version.Add();
-            //Sync();
         }
         public void SetAccess(ConfigUpdateAccessInfo info)
         {

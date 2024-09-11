@@ -58,6 +58,7 @@ namespace linker.plugins.config.messenger
         [MessengerId((ushort)ConfigMessengerIds.AccessForward)]
         public void AccessForward(IConnection connection)
         {
+            return;
             ConfigAccessInfo info = MemoryPackSerializer.Deserialize<ConfigAccessInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
