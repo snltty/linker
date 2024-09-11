@@ -58,24 +58,34 @@ namespace linker.plugins.config.messenger
         [MessengerId((ushort)ConfigMessengerIds.AccessForward)]
         public void AccessForward(IConnection connection)
         {
-            string machineId = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) && signCaching.TryGet(machineId, out SignCacheInfo cache1) && cache1.GroupId == cache.GroupId)
+            ConfigAccessInfo info = MemoryPackSerializer.Deserialize<ConfigAccessInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
                 uint requiestid = connection.ReceiveRequestWrap.RequestId;
 
-                sender.SendReply(new MessageRequestWrap
+                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
+                List<Task<MessageResponeInfo>> tasks = new List<Task<MessageResponeInfo>>();
+                foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected))
                 {
-                    Connection = cache1.Connection,
-                    MessengerId = (ushort)ConfigMessengerIds.Access,
-                    Payload = connection.ReceiveRequestWrap.Payload,
-                    Timeout = 3000,
-                }).ContinueWith(async (result) =>
+                    tasks.Add(sender.SendReply(new MessageRequestWrap
+                    {
+                        Connection = item.Connection,
+                        MessengerId = (ushort)ConfigMessengerIds.Access,
+                        Payload = connection.ReceiveRequestWrap.Payload,
+                        Timeout = 1000,
+                    }));
+                }
+
+                Task.WhenAll(tasks).ContinueWith(async (result) =>
                 {
+                    List<ConfigAccessInfo> results = tasks.Where(c => c.Result.Code == MessageResponeCodes.OK)
+                    .Select(c => MemoryPackSerializer.Deserialize<ConfigAccessInfo>(c.Result.Data.Span)).ToList();
+
                     await sender.ReplyOnly(new MessageResponseWrap
                     {
                         RequestId = requiestid,
                         Connection = connection,
-                        Payload = result.Result.Data
+                        Payload = MemoryPackSerializer.Serialize(results)
                     }).ConfigureAwait(false);
                 });
             }
@@ -85,7 +95,8 @@ namespace linker.plugins.config.messenger
         public void AccessUpdateForward(IConnection connection)
         {
             ConfigUpdateAccessInfo info = MemoryPackSerializer.Deserialize<ConfigUpdateAccessInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) && signCaching.TryGet(info.MachineId, out SignCacheInfo cache1) && cache1.GroupId == cache.GroupId)
+            info.FromMachineId = connection.Id;
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) && signCaching.TryGet(info.ToMachineId, out SignCacheInfo cache1) && cache1.GroupId == cache.GroupId)
             {
                 uint requiestid = connection.ReceiveRequestWrap.RequestId;
 
@@ -93,7 +104,7 @@ namespace linker.plugins.config.messenger
                 {
                     Connection = cache1.Connection,
                     MessengerId = (ushort)ConfigMessengerIds.AccessUpdate,
-                    Payload = connection.ReceiveRequestWrap.Payload,
+                    Payload = MemoryPackSerializer.Serialize(info),
                     Timeout = 3000,
                 }).ContinueWith(async (result) =>
                 {
@@ -112,12 +123,12 @@ namespace linker.plugins.config.messenger
     public sealed class ConfigClientMessenger : IMessenger
     {
         private readonly RunningConfigTransfer runningConfigTransfer;
-        private readonly FileConfig fileConfig;
+        private readonly AccessTransfer accessTransfer;
 
-        public ConfigClientMessenger(RunningConfigTransfer runningConfigTransfer, FileConfig fileConfig)
+        public ConfigClientMessenger(RunningConfigTransfer runningConfigTransfer, AccessTransfer accessTransfer)
         {
             this.runningConfigTransfer = runningConfigTransfer;
-            this.fileConfig = fileConfig;
+            this.accessTransfer = accessTransfer;
         }
 
         [MessengerId((ushort)ConfigMessengerIds.Update)]
@@ -128,20 +139,19 @@ namespace linker.plugins.config.messenger
             connection.Write(data);
         }
 
-
         [MessengerId((ushort)ConfigMessengerIds.Access)]
         public void Access(IConnection connection)
         {
-            connection.Write(MemoryPackSerializer.Serialize(((ulong)fileConfig.Data.Client.Access)));
+            ConfigAccessInfo info = MemoryPackSerializer.Deserialize<ConfigAccessInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            accessTransfer.SetAccess(info);
+            connection.Write(MemoryPackSerializer.Serialize((accessTransfer.GetAccess())));
         }
 
         [MessengerId((ushort)ConfigMessengerIds.AccessUpdate)]
         public void AccessUpdate(IConnection connection)
         {
             ConfigUpdateAccessInfo info = MemoryPackSerializer.Deserialize<ConfigUpdateAccessInfo>(connection.ReceiveRequestWrap.Payload.Span);
-
-            fileConfig.Data.Client.Access = (ClientApiAccess)info.Access;
-            fileConfig.Data.Update();
+            accessTransfer.SetAccess(info);
             connection.Write(Helper.TrueArray);
         }
     }

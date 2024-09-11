@@ -10,7 +10,7 @@
     </el-dialog>
 </template>
 <script>
-import { setAccesss } from '@/apis/config';
+import { setAccess } from '@/apis/config';
 import { ElMessage } from 'element-plus';
 import { reactive, ref, watch } from 'vue';
 import Access from '@/views/full/devices/Access.vue'
@@ -35,8 +35,8 @@ export default {
         const accessDom = ref(null);
         const handleSave = () => {
             state.loading = true;
-            setAccesss({
-                MachineId:props.data.MachineId,
+            setAccess({
+                ToMachineId:props.data.MachineId,
                 Access:accessDom.value.getValue()
             }).then(() => {
                 state.loading = false;

@@ -12,8 +12,8 @@ export const exportConfig = (data) => {
 }
 
 export const getAccesss = (machineid) => {
-    return sendWebsocketMsg('configclient/GetAccess', machineid);
+    return sendWebsocketMsg('configclient/GetAccesss', machineid);
 }
-export const setAccesss = (data) => {
+export const setAccess = (data) => {
     return sendWebsocketMsg('configclient/SetAccess', data);
 }

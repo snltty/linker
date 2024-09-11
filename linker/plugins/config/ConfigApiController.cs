@@ -9,6 +9,13 @@ using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.plugins.config.messenger;
 using MemoryPack;
+using linker.plugins.tuntap.config;
+using linker.plugins.tuntap;
+using linker.tun;
+using static linker.plugins.tuntap.TuntapClientApiController;
+using System.Net;
+using linker.tunnel.connection;
+using System.Collections.Concurrent;
 
 namespace linker.plugins.config
 {
@@ -19,14 +26,16 @@ namespace linker.plugins.config
         private readonly ClientSignInTransfer clientSignInTransfer;
         private readonly MessengerSender sender;
         private readonly ClientSignInState clientSignInState;
+        private readonly AccessTransfer accessTransfer;
 
-        public ConfigClientApiController(RunningConfig runningConfig, FileConfig config, ClientSignInTransfer clientSignInTransfer, MessengerSender sender, ClientSignInState clientSignInState)
+        public ConfigClientApiController(RunningConfig runningConfig, FileConfig config, ClientSignInTransfer clientSignInTransfer, MessengerSender sender, ClientSignInState clientSignInState, AccessTransfer accessTransfer)
         {
             this.runningConfig = runningConfig;
             this.config = config;
             this.clientSignInTransfer = clientSignInTransfer;
             this.sender = sender;
             this.clientSignInState = clientSignInState;
+            this.accessTransfer = accessTransfer;
         }
 
         public object Get(ApiControllerParamsInfo param)
@@ -86,30 +95,32 @@ namespace linker.plugins.config
         }
 
 
-        public async Task<ulong> GetAccess(ApiControllerParamsInfo param)
+        public AccessListInfo GetAccesss(ApiControllerParamsInfo param)
         {
-            MessageResponeInfo resp = await sender.SendReply(new MessageRequestWrap
+            ulong hashCode = ulong.Parse(param.Content);
+            if (accessTransfer.Version.Eq(hashCode, out ulong version) == false)
             {
-                Connection = clientSignInState.Connection,
-                MessengerId = (ushort)ConfigMessengerIds.AccessForward,
-                Payload = MemoryPackSerializer.Serialize(param.Content)
-            });
-            if (resp.Code == MessageResponeCodes.OK)
-            {
-                return MemoryPackSerializer.Deserialize<ulong>(resp.Data.Span);
+                return new AccessListInfo
+                {
+
+                    HashCode = version,
+                    List = accessTransfer.GetAccesss()
+
+                };
             }
-            return 0;
+            return new AccessListInfo { HashCode = version };
         }
+
 
         [ClientApiAccessAttribute(ClientApiAccess.Access)]
         public async Task<bool> SetAccess(ApiControllerParamsInfo param)
         {
             ConfigUpdateAccessInfo configUpdateAccessInfo = param.Content.DeJson<ConfigUpdateAccessInfo>();
-            if(configUpdateAccessInfo.MachineId == config.Data.Client.Id)
+            if (configUpdateAccessInfo.ToMachineId == config.Data.Client.Id)
             {
                 return false;
             }
-
+            configUpdateAccessInfo.FromMachineId = config.Data.Client.Id;
             MessageResponeInfo resp = await sender.SendReply(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,
@@ -155,7 +166,7 @@ namespace linker.plugins.config
                     client.CApi.ApiPassword = configExportInfo.ApiPassword;
                 }
                 client.Name = configExportInfo.Name;
-                client.Access = (ClientApiAccess)configExportInfo.Access & client.Access;
+                client.Access = accessTransfer.AssignAccess((ClientApiAccess)configExportInfo.Access);
                 client.OnlyNode = true;
                 File.WriteAllText(Path.Combine(configPath, $"client.json"), client.Set(client));
 
@@ -269,5 +280,11 @@ namespace linker.plugins.config
         public string ApiPassword { get; set; }
         public bool Single { get; set; }
         public ulong Access { get; set; }
+    }
+
+    public sealed class AccessListInfo
+    {
+        public Dictionary<string, ClientApiAccess> List { get; set; }
+        public ulong HashCode { get; set; }
     }
 }

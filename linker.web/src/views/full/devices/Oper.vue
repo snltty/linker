@@ -12,7 +12,7 @@
                 <el-dropdown-menu>
                     <el-dropdown-item v-if="scope.row.showReboot && hasReboot" @click="handleExit(scope.row.MachineId,scope.row.MachineName)"><el-icon><SwitchButton /></el-icon> 重启</el-dropdown-item>
                     <el-dropdown-item v-if="scope.row.showDel && hasRemove" @click="handleDel(scope.row.MachineId,scope.row.MachineName)"><el-icon><Delete /></el-icon> 删除</el-dropdown-item>
-                    <el-dropdown-item v-if="scope.row.showAccess && hasAccess" @click="handleAccess(scope.row)"><el-icon><Flag /></el-icon> 权限</el-dropdown-item>
+                    <el-dropdown-item v-if="handleShowAccess(scope.row,accessList[scope.row.MachineId] || 0)" @click="handleAccess(scope.row)"><el-icon><Flag /></el-icon> 权限</el-dropdown-item>
                 </el-dropdown-menu>
                 </template>
             </el-dropdown>
@@ -28,6 +28,7 @@ import { injectGlobalData } from '@/provide';
 import { Delete,SwitchButton,ArrowDown, Flag } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus';
 import { computed } from 'vue';
+import { useAccess } from './access';
 
 export default {
     emits:['refresh','access'],
@@ -35,9 +36,16 @@ export default {
     setup (props,{emit}) {
         
         const globalData = injectGlobalData();
+
+        const allAccess = useAccess();
+        const myAccess = computed(()=>globalData.value.config.Client.Accesss);
+        const hasAccess = computed(()=>globalData.value.hasAccess('Access')); 
+        const accessList = computed(()=>allAccess.value.list);
+        
         const hasReboot = computed(()=>globalData.value.hasAccess('Reboot')); 
         const hasRemove = computed(()=>globalData.value.hasAccess('Remove')); 
-        const hasAccess = computed(()=>globalData.value.hasAccess('Access')); 
+        
+        
 
         const handleDel = (machineId,machineName)=>{
             ElMessageBox.confirm(`确认删除[${machineName}]?`, '提示', {
@@ -61,11 +69,20 @@ export default {
                 })
             }).catch(() => {});
         }
+
+
+        const handleShowAccess = (row,rowAccess)=>{
+            return row.showAccess 
+            && hasAccess.value 
+            && rowAccess > 0 
+            // 它的权限删掉我的权限==0，我至少拥有它的全部权限，它是我的子集，我有权管它
+            && (((~myAccess.value) & rowAccess)>>>0) == 0;
+        }
         const handleAccess = (row)=>{
             emit('access',row);
         }
 
-        return {handleDel,handleExit,hasReboot,hasRemove,hasAccess,handleAccess}
+        return {accessList,handleDel,handleExit,hasReboot,hasRemove,hasAccess,handleShowAccess,handleAccess}
     }
 }
 </script>

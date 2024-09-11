@@ -28,6 +28,9 @@ namespace linker.plugins.config
 
             serviceCollection.AddSingleton<RunningConfig>();
             serviceCollection.AddSingleton<RunningConfigTransfer>();
+
+
+            serviceCollection.AddSingleton<AccessTransfer>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)

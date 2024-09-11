@@ -112,7 +112,6 @@ export default {
             }
             state.interface = globalData.value.config.Running.Tunnel.Interface;
         });
-        console.log(state.interface);
 
         const _getInterfaces = ()=>{
             getInterfaces().then((res)=>{

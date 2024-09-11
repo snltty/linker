@@ -7,7 +7,7 @@
         <el-dialog class="options-center" title="导出配置" destroy-on-close v-model="state.show" center  width="580" top="1vh">
             <div class="port-wrap">
                 <div class="text">
-                    导出配置，作为节点客户端运行，如果使用docker，容器映射configs文件夹即可
+                    导出配置，作为子设备运行，如果使用docker，容器映射configs文件夹即可
                 </div>
                 <div class="body">
                     <el-card shadow="never">

@@ -80,7 +80,6 @@ export default {
 
         const _getUpdaterCurrent = ()=>{
             getUpdaterCurrent().then((res)=>{
-                console.log(res);
                 updaterCurrent.value.DateTime = res.DateTime;
                 updaterCurrent.value.Version = res.Version;
                 updaterCurrent.value.Status = res.Status;

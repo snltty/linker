@@ -19,7 +19,8 @@ namespace linker.plugins.signIn.args
         public bool Invoke(Dictionary<string, string> args)
         {
             string machineKey = GetMachineKey();
-            LoggerHelper.Instance.Error($"machine key :{machineKey}");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Debug($"machine key :{machineKey}");
             if (string.IsNullOrWhiteSpace(machineKey))
             {
                 return false;

@@ -266,10 +266,27 @@ namespace linker.config
         /// <summary>
         /// 设备
         /// </summary>
-        public string MachineId { get; set; }
+        public string FromMachineId { get; set; }
+        /// <summary>
+        /// 设备
+        /// </summary>
+        public string ToMachineId { get; set; }
         /// <summary>
         /// 权限
         /// </summary>
         public ulong Access { get; set; }
+    }
+
+    [MemoryPackable]
+    public sealed partial class ConfigAccessInfo
+    {
+        /// <summary>
+        /// 设备
+        /// </summary>
+        public string MachineId { get; set; }
+        /// <summary>
+        /// 权限
+        /// </summary>
+        public ClientApiAccess Access { get; set; }
     }
 }

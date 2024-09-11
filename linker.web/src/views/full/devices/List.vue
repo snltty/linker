@@ -58,6 +58,7 @@ import { provideConnections } from './connections'
 import { provideSforward } from './sforward'
 import { provideDevices } from './devices'
 import { provideUpdater } from './updater'
+import { provideAccess } from './access'
 export default {
     components: {Oper,Device,DeviceEdit,AccessEdit,Tunnel,TunnelEdit,ConnectionsEdit, Tuntap,TuntapEdit,  Forward,ForwardEdit,ForwardCopy,SForwardEdit,SForwardCopy },
     setup(props) {
@@ -81,6 +82,8 @@ export default {
         } = provideConnections();
 
         const {_getUpdater,clearUpdaterTimeout} = provideUpdater();
+
+        const {_getAccessInfo,clearAccessTimeout} = provideAccess();
 
         const handleSortChange = (row)=>{
 
@@ -156,6 +159,8 @@ export default {
 
             _getUpdater();
 
+            _getAccessInfo();
+
             _testTargetForwardInfo();
             _testLocalSForwardInfo();
         });
@@ -168,6 +173,8 @@ export default {
             clearSForwardTimeout();
 
             clearUpdaterTimeout();
+
+            clearAccessTimeout();
         });
 
         return {
