@@ -38,7 +38,7 @@ export default {
         const globalData = injectGlobalData();
 
         const allAccess = useAccess();
-        const myAccess = computed(()=>globalData.value.config.Client.Accesss);
+        const myAccess = computed(()=>globalData.value.config.Client.Access);
         const hasAccess = computed(()=>globalData.value.hasAccess('Access')); 
         const accessList = computed(()=>allAccess.value.list);
         
