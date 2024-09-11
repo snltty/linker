@@ -3,7 +3,6 @@ using linker.libs;
 using linker.plugins.client;
 using linker.plugins.config.messenger;
 using linker.plugins.messenger;
-using linker.plugins.tunnel.messenger;
 using MemoryPack;
 
 namespace linker.plugins.config
