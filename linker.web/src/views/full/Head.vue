@@ -19,6 +19,9 @@
                     </li>
                 </ul>
             </div>
+            <div class="image">
+                <Background name="full"></Background>
+            </div>
         </div>
     </div>
 </template>
@@ -26,9 +29,10 @@
 <script>
 import {Tools,StarFilled,WarnTriangleFilled} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
-import { computed } from 'vue';
+import { computed} from 'vue';
+import Background from './Background.vue';
 export default {
-    components:{Tools,StarFilled,WarnTriangleFilled},
+    components:{Tools,StarFilled,WarnTriangleFilled,Background},
     setup() {
 
         const globalData = injectGlobalData();
@@ -44,6 +48,7 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+#file-input{opacity :0;position absolute;z-index :-1}
 .head{
     background-color:#f6f8fa;
     border-bottom:1px solid #d0d7de;
@@ -72,6 +77,54 @@ export default {
             }
         }
     }
+
+    .image{
+        padding-right:1rem;
+    }
 }
 
+</style>
+<style lang="stylus">
+body.sunny{
+    background-image:url(../../../public/bg.jpg);
+    background-repeat:no-repeat;
+    background-size:cover;  
+    background-position:center bottom;
+
+    position:absolute;
+    left:0;
+    top:0;
+    right:0;
+    bottom:0;
+}
+body.sunny .app-wrap{
+    background-color:rgba(255,255,255,0.5);
+}
+body.sunny .status-wrap{
+    background-color:rgba(245,245,245,0.3);
+}
+body.sunny .status-wrap .copy a{
+    color:#333;
+}
+body.sunny .el-table{
+    background-color:rgba(255,255,255,0.5);
+}
+body.sunny .head{
+    background-color:rgba(246 248 250,0.5);
+}
+body.sunny .el-table tr{
+    background-color:rgba(246 248 250,0.2);
+}
+body.sunny .el-table--striped .el-table__body tr.el-table__row--striped td.el-table__cell{
+    background-color:rgba(246 248 250,0.2);
+}
+body.sunny .el-pagination__sizes, .el-pagination__total{
+    color:#000;
+}
+body.sunny .status-wrap .copy a{
+    color:#000;
+}
+body.sunny a{
+    color:#576acf;
+}
 </style>

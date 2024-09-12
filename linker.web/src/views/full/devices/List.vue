@@ -4,7 +4,7 @@
             <el-table-column prop="MachineId" label="设备名" width="120" sortable="custom" ></el-table-column>
             <el-table-column prop="Version" label="版本" width="120" sortable="custom"></el-table-column>
             <el-table-column prop="tunnel" label="网关" width="90" sortable="custom"></el-table-column>
-            <el-table-column prop="tuntap" label="网卡IP" width="150" sortable="custom"></el-table-column>
+            <el-table-column prop="tuntap" label="网卡IP" width="160" sortable="custom"></el-table-column>
             <el-table-column prop="forward" label=""></el-table-column>
             <el-table-column label="" width="74" fixed="right"></el-table-column>
         </el-table>

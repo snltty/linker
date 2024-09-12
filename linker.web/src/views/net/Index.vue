@@ -42,17 +42,15 @@ export default {
     }
 }
 </script>
-
 <style lang="stylus" scoped>
 .net-wrap{
     box-sizing:border-box;
     background-color:#fafafa;
-    width:100%;
-    max-width : 39rem;
-    height:100%;
+    border:1px solid #d0d7de;
+    width:calc(100% - 40px);
+    height:calc(100% - 40px);
     position:absolute;
-    left:50%;
-    top:50%;
-    transform:translateX(-50%) translateY(-50%);
+    left:20px;
+    top:20px;
 }
 </style>

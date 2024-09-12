@@ -5,7 +5,7 @@
                 <img src="@/assets/memory.svg" alt="memory" />
                 <span>赞助</span>
             </a>
-            <a href="https://github.com/snltty/linker" target="_blank">snltty©linker {{ self.Version }}</a>
+            <a href="https://github.com/snltty/linker" target="_blank">©linker {{ self.Version }}</a>
         </div>
         
         <div class="flex-1"></div>

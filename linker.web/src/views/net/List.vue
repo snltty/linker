@@ -90,7 +90,7 @@ export default {
         }
     }
 
-    .page{padding:.6rem 0;border-top:1px solid #ddd;background-color:#f5f5f5;box-shadow:-1px -2px 3px rgba(0,0,0,.05);}
+    .page{padding:.6rem 0;border-top:1px solid #ddd;background-color:rgba(250,250,250,0.5);box-shadow:-1px -2px 3px rgba(0,0,0,.05);}
     .page-wrap{
         display:inline-block;
     }

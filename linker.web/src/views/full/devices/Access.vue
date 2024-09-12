@@ -13,11 +13,13 @@
 import {  computed, onMounted, reactive } from 'vue';
 import { injectGlobalData } from '@/provide';
 import { getAccesss } from '@/apis/config';
+import { useAccess } from './access';
 export default {
     props:['machineid'],
     setup(props) {
 
         const globalData = injectGlobalData();
+        const allAccess = useAccess();
         const access = computed(()=>{
             const json = globalData.value.config.Client.Accesss;
             return Object.keys(json).reduce((arr,key,index)=>{
@@ -44,16 +46,14 @@ export default {
         }
 
         onMounted(()=>{
-            if(props.machineid != globalData.value.config.Client.Id)
-            {
-                getAccesss(props.machineid).then((res)=>{
-                    state.checkList = access.value.reduce((arr,item)=>{
-                        if(((res & item.Value) >>> 0) == item.Value){
-                            arr.push(item.Value);
-                        }
-                        return arr;
-                    },[]);
-                }).catch(()=>{})
+            if(allAccess.value.list[props.machineid]){
+                const res = allAccess.value.list[props.machineid];
+                state.checkList = access.value.reduce((arr,item)=>{
+                    if(((res & item.Value) >>> 0) == item.Value){
+                        arr.push(item.Value);
+                    }
+                    return arr;
+                },[]);
             }
         })
 

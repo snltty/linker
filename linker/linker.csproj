@@ -17,7 +17,7 @@
 		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 		<ServerGarbageCollection>false</ServerGarbageCollection>
 		<Title>linker</Title>
-		<Version>1.3.1</Version>
+		<Version>1.3.2</Version>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 优化网卡(设备下线后路由指向错误)
@@ -25,13 +25,13 @@
 3. 导出配置及指定节点配置权限
 4. 实时配置客户端管理权限
 5. 重复连接，同设备挤压，不同设备禁止连接
-6. 测试中，请勿更新....</Description>
+6. 自定义背景图片</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<AssemblyVersion>1.3.1</AssemblyVersion>
-		<FileVersion>1.3.1</FileVersion>
+		<AssemblyVersion>1.3.2</AssemblyVersion>
+		<FileVersion>1.3.2</FileVersion>
 	</PropertyGroup>
 
 

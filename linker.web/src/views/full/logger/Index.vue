@@ -69,7 +69,7 @@ export default {
             type:-1,
             page: { Page: 1, Size: 20, Count: 0, List: [] },
             types: ['debug', 'info', 'warning', 'error', 'fatal'],
-            height:computed(()=>globalData.value.height - 200),
+            height:computed(()=>globalData.value.height - 180),
         })
         const loadData = () => {
             state.loading = true;
@@ -135,7 +135,7 @@ export default {
     }
 
 .logger-setting-wrap {
-    padding: 2rem;
+    padding: 1rem;
     box-sizing: border-box;
 
     .inner {

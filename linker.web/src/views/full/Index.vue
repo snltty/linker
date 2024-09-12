@@ -56,14 +56,15 @@ export default {
 <style lang="stylus" scoped>
 @media screen and (max-width: 1000px) {
     body .app-wrap{
-        border:0;
-        height:100%;
-        width 100%;
-        left:0; top:0;
+        width:calc(100% - 40px);
+        height:calc(100% - 40px);
+        position:absolute;
+        left:20px;
+        top:20px;
         right:0;
         bottom:0;
         transform:none;
-        max-width:100%;
+        max-width:calc(100% - 40px);
     }
 }
 .app-wrap{
