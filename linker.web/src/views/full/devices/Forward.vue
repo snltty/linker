@@ -68,7 +68,7 @@ export default {
         const hasForwardShowSelf = computed(()=>globalData.value.hasAccess('ForwardShowSelf')); 
         const hasForwardShowOther = computed(()=>globalData.value.hasAccess('ForwardShowOther')); 
         const hasForwardSelf = computed(()=>globalData.value.hasAccess('ForwardSelf')); 
-        const hasForwardOther = computed(()=>globalData.value.hasAccess('Accesss')); 
+        const hasForwardOther = computed(()=>globalData.value.hasAccess('ForwardOther')); 
 
         const handleEdit = (_machineId)=>{
             if(machineId.value === _machineId){

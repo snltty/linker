@@ -12,7 +12,6 @@
 <script>
 import {  computed, onMounted, reactive } from 'vue';
 import { injectGlobalData } from '@/provide';
-import { getAccesss } from '@/apis/config';
 import { useAccess } from './access';
 export default {
     props:['machineid'],
