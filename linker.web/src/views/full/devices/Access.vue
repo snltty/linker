@@ -1,5 +1,10 @@
 <template>
-     <el-checkbox-group v-model="state.checkList">
+    <el-row>
+        <el-col :span="8">
+            <el-checkbox v-model="state.checkAll" @change="handleCheckAllChange" label="全选" :indeterminate="state.isIndeterminate" />
+        </el-col>
+    </el-row>
+    <el-checkbox-group v-model="state.checkList" @change="handleCheckedChange">
         <el-row>
             <template v-for="(item,index) in access" :key="index">
                 <el-col :span="8">
@@ -35,7 +40,9 @@ export default {
                 globalData.value.config.Client.Accesss.Api.Value,
                 globalData.value.config.Client.Accesss.Web.Value,
                 globalData.value.config.Client.Accesss.NetManager.Value,
-            ]
+            ],
+            checkAll:false,
+            isIndeterminate:false
         });
 
         const getValue = ()=>{
@@ -43,9 +50,19 @@ export default {
                 return (sum | item) >>> 0;
             },0);
         }
+        const handleCheckedChange = (value)=>{
+            const checkedCount = value.length;
+            state.checkAll = checkedCount === access.value.length;
+            state.isIndeterminate = checkedCount > 0 && checkedCount < access.value.length;
+        }
+        const handleCheckAllChange = (value)=>{
+            state.checkAll = value;
+            state.checkList = value ? access.value.map(item=>item.Value) : [];
+            state.isIndeterminate = false;
+        }
 
         onMounted(()=>{
-            if(allAccess.value.list[props.machineid]){
+            if(allAccess && allAccess.value.list[props.machineid]){
                 const res = allAccess.value.list[props.machineid];
                 state.checkList = access.value.reduce((arr,item)=>{
                     if(((res & item.Value) >>> 0) == item.Value){
@@ -54,9 +71,10 @@ export default {
                     return arr;
                 },[]);
             }
+            handleCheckedChange(state.checkList);
         })
 
-        return {state,access,getValue};
+        return {state,access,getValue,handleCheckAllChange,handleCheckedChange};
     }
 }
 </script>

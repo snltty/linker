@@ -148,8 +148,10 @@ namespace linker.plugins.client
         private async Task<bool> SignIn2Server()
         {
             Dictionary<string, string> args = [];
-            if (signInArgsTransfer.Invoke(args) == false)
+            string argResult = await signInArgsTransfer.Invoke(args);
+            if (string.IsNullOrWhiteSpace(argResult) == false)
             {
+                LoggerHelper.Instance.Error(argResult);
                 clientSignInState.Connection?.Disponse(6);
                 return false;
             }

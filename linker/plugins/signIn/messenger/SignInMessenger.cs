@@ -39,13 +39,14 @@ namespace linker.plugins.signin.messenger
         }
 
         [MessengerId((ushort)SignInMessengerIds.SignIn)]
-        public void SignIn(IConnection connection)
+        public async Task SignIn(IConnection connection)
         {
             SignInfo info = MemoryPackSerializer.Deserialize<SignInfo>(connection.ReceiveRequestWrap.Payload.Span);
             info.Connection = connection;
 
             SignInResponseInfo resp = new SignInResponseInfo();
-            resp.Status = signCaching.Sign(info, out string msg);
+            string msg = await signCaching.Sign(info);
+            resp.Status = string.IsNullOrWhiteSpace(msg);
             resp.Msg = msg;
             if (resp.Status)
             {
@@ -62,13 +63,14 @@ namespace linker.plugins.signin.messenger
         /// </summary>
         /// <param name="connection"></param>
         [MessengerId((ushort)SignInMessengerIds.SignIn_V_1_3_1)]
-        public void SignIn_V_1_3_1(IConnection connection)
+        public async Task SignIn_V_1_3_1(IConnection connection)
         {
             SignInfo info = MemoryPackSerializer.Deserialize<SignInfo>(connection.ReceiveRequestWrap.Payload.Span);
             info.Connection = connection;
 
             SignInResponseInfo resp = new SignInResponseInfo();
-            resp.Status = signCaching.Sign(info, out string msg);
+            string msg = await signCaching.Sign(info);
+            resp.Status = string.IsNullOrWhiteSpace(msg);
             resp.Msg = msg;
             resp.MachineId = info.MachineId;
 

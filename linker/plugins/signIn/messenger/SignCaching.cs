@@ -32,7 +32,7 @@ namespace linker.plugins.signin.messenger
             }
         }
 
-        public bool Sign(SignInfo signInfo, out string msg)
+        public async Task<string> Sign(SignInfo signInfo)
         {
             if (string.IsNullOrWhiteSpace(signInfo.MachineId))
             {
@@ -43,10 +43,12 @@ namespace linker.plugins.signin.messenger
             if (has == false) cache = new SignCacheInfo();
 
             //参数验证失败
-            if (signInArgsTransfer.Verify(signInfo, cache, out msg) == false)
+            string verifyResult = await signInArgsTransfer.Verify(signInfo, cache);
+            if (string.IsNullOrWhiteSpace(verifyResult) == false)
             {
-                return false;
+                return verifyResult;
             }
+
             //无限制，则挤压下线
             cache.Connection?.Disponse(9);
 
@@ -68,7 +70,7 @@ namespace linker.plugins.signin.messenger
             liteCollection.Update(cache);
             dBfactory.Confirm();
 
-            return true;
+            return string.Empty;
         }
 
         public bool TryGet(string machineId, out SignCacheInfo cache)

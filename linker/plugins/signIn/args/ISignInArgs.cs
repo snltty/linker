@@ -6,8 +6,8 @@ namespace linker.plugins.signIn.args
 {
     public interface ISignInArgs
     {
-        public bool Invoke(Dictionary<string, string> args);
-        public bool Verify(SignInfo signInfo, SignCacheInfo cache, out string msg);
+        public Task<string> Invoke(Dictionary<string, string> args);
+        public Task<string> Verify(SignInfo signInfo, SignCacheInfo cache);
     }
 
 
@@ -16,18 +16,21 @@ namespace linker.plugins.signIn.args
     /// </summary>
     public sealed class SignInArgsMachineKey : ISignInArgs
     {
-        public bool Invoke(Dictionary<string, string> args)
+        public async Task<string> Invoke(Dictionary<string, string> args)
         {
             string machineKey = GetMachineKey();
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Debug($"machine key :{machineKey}");
             if (string.IsNullOrWhiteSpace(machineKey))
             {
-                return false;
+                return $"get machine key fail";
             }
 
             args.TryAdd("machineKey", machineKey.Md5());
-            return true;
+
+            await Task.CompletedTask;
+
+            return string.Empty;
         }
 
         /// <summary>
@@ -36,9 +39,8 @@ namespace linker.plugins.signIn.args
         /// <param name="signInfo">新登录参数</param>
         /// <param name="cache">之前的登录信息</param>
         /// <returns></returns>
-        public bool Verify(SignInfo signInfo, SignCacheInfo cache, out string msg)
+        public async Task<string> Verify(SignInfo signInfo, SignCacheInfo cache)
         {
-            msg = string.Empty;
             //放宽条件，只有已经登录时不能再次登录
             if (cache.Connected)
             {
@@ -48,11 +50,11 @@ namespace linker.plugins.signIn.args
                 //之前的登录有唯一编号的，则验证，唯一编号不一样，不允许登录
                 if (string.IsNullOrWhiteSpace(keyOld) == false && keyNew != keyOld)
                 {
-                    msg = "your machine key is already online";
-                    return false;
+                    return "your machine key is already online";
                 }
             }
-            return true;
+            await Task.CompletedTask;
+            return string.Empty;
         }
 
         private string GetMachineKey()

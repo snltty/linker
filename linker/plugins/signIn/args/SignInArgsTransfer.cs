@@ -14,28 +14,29 @@ namespace linker.plugins.signIn.args
             startups = types.Select(c => serviceProvider.GetService(c) as ISignInArgs).Where(c => c != null).ToList();
         }
 
-        public bool Invoke(Dictionary<string, string> args)
+        public async Task<string> Invoke(Dictionary<string, string> args)
         {
             foreach (var item in startups)
             {
-                if(item.Invoke(args) == false)
+                string result = await item.Invoke(args);
+                if (string.IsNullOrWhiteSpace(result) == false)
                 {
-                    return false;
+                    return result;
                 }
             }
-            return true;
+            return string.Empty;
         }
-        public bool Verify(SignInfo signInfo, SignCacheInfo cache, out string msg)
+        public async Task<string> Verify(SignInfo signInfo, SignCacheInfo cache)
         {
-            msg = string.Empty;
             foreach (var item in startups)
             {
-                if (item.Verify(signInfo, cache,out msg) == false)
+                string result = await item.Verify(signInfo, cache);
+                if (string.IsNullOrWhiteSpace(result) == false)
                 {
-                    return false;
+                    return result;
                 }
             }
-            return true;
+            return string.Empty;
         }
     }
 }

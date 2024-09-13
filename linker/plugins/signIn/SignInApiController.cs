@@ -22,7 +22,6 @@ namespace linker.plugins.signin
             this.clientSignInState = clientSignInState;
             this.clientSignInTransfer = clientSignInTransfer;
             this.messengerSender = messengerSender;
-
         }
 
         public void Set(ApiControllerParamsInfo param)
@@ -62,7 +61,6 @@ namespace linker.plugins.signin
             await clientSignInTransfer.SetServers(servers);
             return true;
         }
-
 
         public ClientSignInState Info(ApiControllerParamsInfo param)
         {
@@ -118,6 +116,7 @@ namespace linker.plugins.signin
             }
             return new SignInIdsResponseInfo { };
         }
+
 
     }
 
