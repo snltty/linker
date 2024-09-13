@@ -9,7 +9,7 @@ namespace linker.plugins.signin
     public sealed class ActionApiController : IApiClientController
     {
         private readonly ActionTransfer actionTransfer;
-        private readonly ClientSignInTransfer clientSignInTransfer; 
+        private readonly ClientSignInTransfer clientSignInTransfer;
 
         public ActionApiController(ActionTransfer actionTransfer, ClientSignInTransfer clientSignInTransfer)
         {
@@ -17,11 +17,13 @@ namespace linker.plugins.signin
             this.clientSignInTransfer = clientSignInTransfer;
         }
 
-        public void SetArgs(ApiControllerParamsInfo param)
+        public bool SetArgs(ApiControllerParamsInfo param)
         {
             actionTransfer.SetActions(param.Content.DeJson<List<ActionInfo>>());
             clientSignInTransfer.SignOut();
             _ = clientSignInTransfer.SignIn();
+
+            return true;
         }
     }
 
