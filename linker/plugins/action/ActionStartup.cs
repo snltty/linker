@@ -28,6 +28,7 @@ namespace linker.plugins.signin
         public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<SignInArgsAction>();
+            serviceCollection.AddSingleton<ActionTransfer>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
