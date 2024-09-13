@@ -1,5 +1,6 @@
 ﻿using linker.config;
 using linker.libs;
+using linker.libs.extends;
 using linker.plugins.client;
 using linker.plugins.config.messenger;
 using linker.plugins.messenger;
@@ -43,7 +44,7 @@ namespace linker.plugins.config
             //我的权限删掉它的权限==0，说明它至少拥有我的全部权限，我是它的子集，它有权管我
             if (accesss.TryGetValue(info.FromMachineId, out ClientApiAccess access) && ((~access) & fileConfig.Data.Client.Access) == 0)
             {
-                fileConfig.Data.Client.Access = access;
+                fileConfig.Data.Client.Access = (ClientApiAccess)info.Access;
                 fileConfig.Data.Update();
                 Version.Add();
                 Sync();
