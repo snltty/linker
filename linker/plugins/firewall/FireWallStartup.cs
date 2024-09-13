@@ -15,9 +15,10 @@ namespace linker.plugins.firewall
 
         public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
+            //linker.libs.FireWallHelper.Write(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
 #if DEBUG
 #else
-            linker.libs.FireWallHelper.Write(Path.GetFileNameWithoutExtension(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName), "./");
+            linker.libs.FireWallHelper.Write(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
 #endif
         }
 

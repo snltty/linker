@@ -5,11 +5,11 @@ namespace linker.libs
 {
     public static class FireWallHelper
     {
-        public static void Write(string fileName, string distPatt)
+        public static void Write(string fileName)
         {
             if (OperatingSystem.IsWindows())
             {
-                Windows(fileName, distPatt);
+                Windows(fileName);
             }
             else if (OperatingSystem.IsLinux())
             {
@@ -19,6 +19,7 @@ namespace linker.libs
 
         private static void Linux(string fileName)
         {
+            fileName = Path.GetFileNameWithoutExtension(fileName);
             CommandHelper.Linux(string.Empty, new string[] {
                 $"firewall-cmd --permanent --new-service={fileName}",
                 $"firewall-cmd --permanent --service={fileName} --set-short=\"My Application {fileName}\"",
@@ -31,34 +32,17 @@ namespace linker.libs
             });
         }
 
-        private static void Windows(string fileName, string distPath)
+        private static void Windows(string fileName)
         {
             try
             {
-                string content = $@"@echo off
-cd  ""%CD%""
-for /f ""tokens=4,5 delims=. "" %%a in ('ver') do if %%a%%b geq 60 goto new
-
-:old
-cmd /c netsh firewall delete allowedprogram program=""%CD%\{fileName}.exe"" profile=ALL
-cmd /c netsh firewall add allowedprogram program=""%CD%\{fileName}.exe"" name=""{fileName}"" ENABLE
-cmd /c netsh firewall add allowedprogram program=""%CD%\{fileName}.exe"" name=""{fileName}"" ENABLE profile=ALL
-goto end
-:new
-cmd /c netsh advfirewall firewall delete rule name=""{fileName}""
-cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=tcp enable=yes
-cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=udp enable=yes
-cmd /c netsh advfirewall firewall add rule name=""{fileName}"" dir=in action=allow program=""%CD%\{fileName}.exe"" protocol=icmpv4 enable=yes
-:end";
-                if (Directory.Exists(distPath) == false)
-                {
-                    Directory.CreateDirectory(distPath);
-                }
-                string firewall = Path.Join(distPath, "firewall.bat");
-
-                File.WriteAllText(firewall, content);
-                CommandHelper.Execute(firewall, string.Empty, new string[0],out string error);
-                File.Delete(firewall);
+                string name = Path.GetFileNameWithoutExtension(fileName);
+                CommandHelper.Windows(string.Empty, new string[] {
+                    $"netsh advfirewall firewall delete rule name=\"{name}\"",
+                    $"netsh advfirewall firewall add rule name=\"{name}\" dir=in action=allow program=\"{fileName}\" protocol=tcp enable=yes",
+                    $"netsh advfirewall firewall add rule name=\"{name}\" dir=in action=allow program=\"{fileName}\" protocol=udp enable=yes",
+                    $"netsh advfirewall firewall add rule name=\"{name}\" dir=in action=allow program=\"{fileName}\" protocol=icmpv4 enable=yes",
+                });
             }
             catch (Exception)
             {
