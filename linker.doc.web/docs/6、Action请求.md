@@ -5,12 +5,7 @@ sidebar_position: 6
 # 6、Action请求
 
 :::tip[说明]
-1. 在客户端连接服务器时，可以发出HTTP POST请求，当赶回`ok`时继续连接服务器，当`非ok`时断开连接
-:::
-
-## 1、使用ws向linker提交Action参数
-
-以 javascript为例，提交Action参数
+如果你设置了Action参数。则在客户端连接服务器时，发出HTTP POST请求，当获得`ok`结果时继续连接服务器，当`非ok`时断开连接，以 javascript为例，提交Action参数
 ```
 const ws = new WebSocket(`ws://127.0.0.1:1803`, ['接口密钥']);
 ws.onopen = () => {
@@ -26,3 +21,5 @@ ws.onopen = () => {
 ``` 
 
 ![Docusaurus Plushie](./img/action.png)
+:::
+
