@@ -37,7 +37,7 @@ jobs:
           release_name: v1.3.6.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 重构中继\r\n2. action，用于动态验证，当服务端设置action url时，在登入，中继，穿透时将执行post\r\n3. 增加信标服务器密钥，服务端设置密钥时，客户端连接信标服务器需要提供密钥\r\n4. 测试中，请勿更新"
+          body: "1. 重构中继\r\n2. action，用于动态验证，当服务端设置action url时，在登入，中继，穿透时将执行post\r\n3. 增加信标服务器密钥，服务端设置密钥时，客户端连接信标服务器需要提供密钥\r\n4. 先更新服务端，先更新服务端，先更新服务端\r\n5. 测试中，请勿更新"
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
         uses: tvrcgo/oss-action@v0.1.1
