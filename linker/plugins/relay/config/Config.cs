@@ -54,7 +54,6 @@ namespace linker.config
         /// 中继密钥
         /// </summary>
         public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
-        public string ActionUrl { get; set; } = string.Empty;
         /// <summary>
         /// 缓冲区
         /// </summary>

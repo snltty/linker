@@ -10,7 +10,6 @@
 
     public sealed class SignInConfigServerInfo
     {
-        public string ActionUrl { get; set; } = string.Empty;
         public string SecretKey { get; set; } = string.Empty;
     }
 }

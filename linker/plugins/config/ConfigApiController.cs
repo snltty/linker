@@ -167,7 +167,7 @@ namespace linker.plugins.config
                 client.Name = configExportInfo.Name;
                 client.Access = accessTransfer.AssignAccess((ClientApiAccess)configExportInfo.Access);
                 client.OnlyNode = true;
-                File.WriteAllText(Path.Combine(configPath, $"client.json"), client.Set(client));
+                File.WriteAllText(Path.Combine(configPath, $"client.json"), client.Serialize(client));
 
                 ConfigCommonInfo common = config.Data.Common.ToJson().DeJson<ConfigCommonInfo>();
                 common.Install = true;

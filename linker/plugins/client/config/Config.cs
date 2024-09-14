@@ -42,7 +42,7 @@ namespace linker.config
         public ConfigClientInfo Client { get; set; } = new ConfigClientInfo();
     }
 
-    public sealed partial class ConfigClientInfo
+    public sealed partial class ConfigClientInfo: IConfig
     {
         private ICrypto crypto;
         public ConfigClientInfo()
@@ -134,15 +134,7 @@ namespace linker.config
         public string Certificate { get; set; } = "./snltty.pfx";
         public string Password { get; set; } = "oeq9tw1o";
 
-        public ConfigClientInfo Load(string text)
-        {
-            if (text.Contains("ApiPassword"))
-            {
-                return text.DeJson<ConfigClientInfo>();
-            }
-            return Encoding.UTF8.GetString(crypto.Decode(Convert.FromBase64String(text)).ToArray()).DeJson<ConfigClientInfo>();
-        }
-        public string Set(object obj)
+        public string Serialize(object obj)
         {
 #if DEBUG
             return obj.ToJsonFormat();
@@ -151,6 +143,14 @@ namespace linker.config
 #endif
         }
 
+        public object Deserialize(string text)
+        {
+            if (text.Contains("ApiPassword"))
+            {
+                return text.DeJson<ConfigClientInfo>();
+            }
+            return Encoding.UTF8.GetString(crypto.Decode(Convert.FromBase64String(text)).ToArray()).DeJson<ConfigClientInfo>();
+        }
     }
 
     [MemoryPackable]

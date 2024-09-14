@@ -30,7 +30,7 @@ namespace linker.plugins.action
         {
             if (signInfo.Args.TryGetValue(ActionTransfer.ACTION_ARG_KEY, out string str))
             {
-                return await actionTransfer.ExcuteActions(str, fileConfig.Data.Server.SignIn.ActionUrl);
+                return await actionTransfer.ExcuteActions(str, fileConfig.Data.Action.SignInActionUrl);
             }
 
             return string.Empty;
@@ -50,7 +50,7 @@ namespace linker.plugins.action
 
         public async Task<string> Validate(SignCacheInfo fromMachine, SignCacheInfo toMachine)
         {
-            if (string.IsNullOrWhiteSpace(fileConfig.Data.Server.Relay.ActionUrl) == false)
+            if (string.IsNullOrWhiteSpace(fileConfig.Data.Action.RelayActionUrl) == false)
             {
                 if (fromMachine.Args.TryGetValue(ActionTransfer.ACTION_ARG_KEY, out string str) == false || string.IsNullOrWhiteSpace(str))
                 {
@@ -60,7 +60,7 @@ namespace linker.plugins.action
                 {
                     return $"action URL exists, but [{toMachine.MachineName}]e action value is not configured";
                 }
-                return await actionTransfer.ExcuteActions(str, fileConfig.Data.Server.Relay.ActionUrl);
+                return await actionTransfer.ExcuteActions(str, fileConfig.Data.Action.RelayActionUrl);
             }
             return string.Empty;
         }
@@ -79,13 +79,13 @@ namespace linker.plugins.action
 
         public async Task<string> Validate(SignCacheInfo cache, SForwardAddInfo sForwardAddInfo)
         {
-            if (string.IsNullOrWhiteSpace(fileConfig.Data.Server.SForward.ActionUrl) == false)
+            if (string.IsNullOrWhiteSpace(fileConfig.Data.Action.SForwardActionUrl) == false)
             {
                 if (cache.Args.TryGetValue(ActionTransfer.ACTION_ARG_KEY, out string str) == false || string.IsNullOrWhiteSpace(str))
                 {
                     return "action URL exists, but action value is not configured";
                 }
-                return await actionTransfer.ExcuteActions(str, fileConfig.Data.Server.SForward.ActionUrl);
+                return await actionTransfer.ExcuteActions(str, fileConfig.Data.Action.SForwardActionUrl);
             }
             return string.Empty;
         }

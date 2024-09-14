@@ -36,15 +36,12 @@ namespace linker.config
             {
 
                 object property = item.GetValue(Data);
-                MethodInfo method = property.GetType().GetMethod("Load");
-                MethodInfo method1 = property.GetType().GetMethod("Set");
                 fsDic.Add(item.Name.ToLower(), new FileReadWrite
                 {
                     Path = Path.Join(configPath, $"{item.Name.ToLower()}.json"),
                     Property = item,
                     PropertyObject = property,
-                    PropertyLoadMethod = method,
-                    PropertySetMethod = method1,
+                    PropertyMethod = (IConfig)property,
                 });
             }
         }
@@ -55,7 +52,7 @@ namespace linker.config
             {
                 foreach (var item in fsDic)
                 {
-                    if (item.Value.PropertyObject == null || item.Value.PropertyLoadMethod == null)
+                    if (item.Value.PropertyObject == null)
                     {
                         continue;
                     }
@@ -66,7 +63,7 @@ namespace linker.config
                     {
                         continue;
                     }
-                    object value = item.Value.PropertyLoadMethod.Invoke(item.Value.PropertyObject, new object[] { text });
+                    object value = item.Value.PropertyMethod.Deserialize(text);
                     item.Value.Property.SetValue(Data, value);
                 }
             }
@@ -87,19 +84,11 @@ namespace linker.config
             {
                 foreach (var item in fsDic)
                 {
-                    if (item.Value.PropertyObject == null || item.Value.PropertyLoadMethod == null)
+                    if (item.Value.PropertyObject == null)
                     {
                         continue;
                     }
-                    string text = string.Empty;
-                    if (item.Value.PropertySetMethod != null)
-                    {
-                        text = item.Value.PropertySetMethod.Invoke(item.Value.PropertyObject, new object[] { item.Value.Property.GetValue(Data) }).ToString();
-                    }
-                    else
-                    {
-                        text = item.Value.Property.GetValue(Data).ToJsonFormat();
-                    }
+                    string text = item.Value.PropertyMethod.Serialize(item.Value.Property.GetValue(Data));
                     File.WriteAllText(item.Value.Path, text);
                 }
             }
@@ -136,11 +125,15 @@ namespace linker.config
 
         public PropertyInfo Property { get; set; }
         public object PropertyObject { get; set; }
-        public MethodInfo PropertyLoadMethod { get; set; }
-        public MethodInfo PropertySetMethod { get; set; }
+        public IConfig PropertyMethod { get; set; }
     }
 
 
+    public interface IConfig
+    {
+        public string Serialize(object obj);
+        public object Deserialize(string text);
+    }
     public sealed partial class ConfigInfo
     {
         public ConfigCommonInfo Common { get; set; } = new ConfigCommonInfo();
@@ -161,7 +154,7 @@ namespace linker.config
         }
     }
 
-    public sealed partial class ConfigCommonInfo
+    public sealed partial class ConfigCommonInfo : IConfig
     {
         public string[] Modes { get; set; } = new string[] { "client", "server" };
 
@@ -195,6 +188,16 @@ namespace linker.config
 
 
         public ConfigCommonInfo Load(string text)
+        {
+            return text.DeJson<ConfigCommonInfo>();
+        }
+
+        public string Serialize(object obj)
+        {
+            return obj.ToJsonFormat();
+        }
+
+        public object Deserialize(string text)
         {
             return text.DeJson<ConfigCommonInfo>();
         }
