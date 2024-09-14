@@ -1,5 +1,6 @@
 ﻿using linker.libs.extends;
 using linker.plugins.messenger;
+using linker.plugins.resolver;
 using System.Net;
 using System.Net.Sockets;
 
@@ -10,11 +11,11 @@ namespace linker.plugins.server
         private Socket socket;
         private Socket socketUdp;
         private CancellationTokenSource cancellationTokenSource;
-        private readonly MessengerResolver messengerResolver;
+        private readonly ResolverTransfer resolverTransfer;
 
-        public TcpServer(MessengerResolver messengerResolver)
+        public TcpServer(ResolverTransfer resolverTransfer)
         {
-            this.messengerResolver = messengerResolver;
+            this.resolverTransfer = resolverTransfer;
             cancellationTokenSource = new CancellationTokenSource();
 
         }
@@ -33,8 +34,7 @@ namespace linker.plugins.server
             socketUdp.Bind(new IPEndPoint(IPAddress.Any, port));
             socketUdp.WindowsUdpBug();
             IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
-            byte[] buffer = new byte[1024];
-            byte[] sendData = new byte[20];
+            byte[] buffer = new byte[1 * 1024 * 1024];
             while (true)
             {
                 try
@@ -43,9 +43,8 @@ namespace linker.plugins.server
                     IPEndPoint ep = result.RemoteEndPoint as IPEndPoint;
                     try
                     {
-                        Memory<byte> memory = messengerResolver.BuildSendData(sendData, ep);
+                        await resolverTransfer.BeginReceive(socketUdp, ep, buffer.AsMemory(0, result.ReceivedBytes)).ConfigureAwait(false);
 
-                        await socketUdp.SendToAsync(memory, ep).ConfigureAwait(false);
                     }
                     catch (Exception)
                     {
@@ -108,7 +107,7 @@ namespace linker.plugins.server
         {
             if (e.AcceptSocket != null)
             {
-                _ = messengerResolver.BeginReceiveServer(e.AcceptSocket);
+                _ = resolverTransfer.BeginReceive(e.AcceptSocket);
                 StartAccept(e);
             }
         }

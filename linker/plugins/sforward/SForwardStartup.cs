@@ -36,7 +36,7 @@ namespace linker.plugins.sforward
             Add(serviceCollection, config, assemblies);
             serviceCollection.AddSingleton<SForwardServerMessenger>();
             serviceCollection.AddSingleton<ISForwardServerCahing, SForwardServerCahing>();
-            serviceCollection.AddSingleton<IValidator, Validator>();
+            serviceCollection.AddSingleton<ISForwardValidator, Validator>();
 
         }
 

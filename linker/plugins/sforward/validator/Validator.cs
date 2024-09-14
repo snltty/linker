@@ -1,13 +1,13 @@
 ﻿using linker.config;
-using linker.plugins.messenger;
 using linker.plugins.sforward.config;
+using linker.plugins.signin.messenger;
 
 namespace linker.plugins.sforward.validator
 {
     /// <summary>
     /// 服务端穿透验证
     /// </summary>
-    public sealed class Validator : IValidator
+    public sealed class Validator : ISForwardValidator
     {
         private readonly FileConfig config;
         public Validator(FileConfig config)
@@ -15,26 +15,22 @@ namespace linker.plugins.sforward.validator
             this.config = config;
         }
 
-        public bool Valid(IConnection connection, SForwardAddInfo sForwardAddInfo, out string error)
+        public async Task<string> Validate(SignCacheInfo signCacheInfo, SForwardAddInfo sForwardAddInfo)
         {
-            error = string.Empty;
-
             if (config.Data.Server.SForward.SecretKey != sForwardAddInfo.SecretKey)
             {
-                error = $"sforward secretKey 【{sForwardAddInfo.SecretKey}】 valid fail";
-                return false;
+                return $"sforward secretKey 【{sForwardAddInfo.SecretKey}】 valid fail";
             }
 
             if (sForwardAddInfo.RemotePort > 0)
             {
                 if (sForwardAddInfo.RemotePort < config.Data.Server.SForward.TunnelPortRange[0] || sForwardAddInfo.RemotePort > config.Data.Server.SForward.TunnelPortRange[1])
                 {
-                    error = $"sforward tunnel port range {string.Join("-", config.Data.Server.SForward.TunnelPortRange)}";
-                    return false;
+                    return $"sforward tunnel port range {string.Join("-", config.Data.Server.SForward.TunnelPortRange)}";
                 }
             }
-
-            return true;
+            await Task.CompletedTask;
+            return string.Empty;
         }
     }
 }

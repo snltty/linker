@@ -1,6 +1,7 @@
 ﻿using linker.config;
 using linker.plugins.relay.messenger;
 using linker.plugins.relay.transport;
+using linker.plugins.relay.validator;
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -17,7 +18,7 @@ namespace linker.plugins.relay
 
         public bool Required => false;
 
-        public string[] Dependent => new string[] { "messenger", "signin", "serialize",  "config" };
+        public string[] Dependent => new string[] { "messenger", "signin", "serialize", "config" };
 
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
@@ -33,6 +34,11 @@ namespace linker.plugins.relay
         public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<RelayServerMessenger>();
+
+            serviceCollection.AddSingleton<RelayResolver>();
+
+            serviceCollection.AddSingleton<RelayValidatorTransfer>();
+
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
@@ -43,6 +49,7 @@ namespace linker.plugins.relay
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
+            RelayValidatorTransfer relayValidatorTransfer = serviceProvider.GetService<RelayValidatorTransfer>();
         }
     }
 }

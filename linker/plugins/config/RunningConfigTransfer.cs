@@ -84,8 +84,14 @@ namespace linker.client.config
 
             if (setters.TryGetValue(info.Key, out Action<Memory<byte>> setter) && info.Version > version)
             {
-                UpdateVersion(info.Key, info.Version);
-                setter(info.Data);
+                try
+                {
+                    setter(info.Data);
+                    UpdateVersion(info.Key, info.Version);
+                }
+                catch (Exception)
+                {
+                }
             }
             else if (getters.TryGetValue(info.Key, out Func<Memory<byte>> getter) && version > info.Version)
             {
@@ -134,8 +140,15 @@ namespace linker.client.config
                         ConfigVersionInfo info = MemoryPackSerializer.Deserialize<ConfigVersionInfo>(result.Result.Data.Span);
                         if (setters.TryGetValue(info.Key, out Action<Memory<byte>> setter) && info.Version > GetVersion(info.Key))
                         {
-                            UpdateVersion(info.Key, info.Version);
-                            setter(info.Data);
+                           
+                            try
+                            {
+                                setter(info.Data);
+                                UpdateVersion(info.Key, info.Version);
+                            }
+                            catch (Exception)
+                            {
+                            }
                         }
                     }
                 }

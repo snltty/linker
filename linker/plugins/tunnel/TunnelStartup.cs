@@ -83,6 +83,8 @@ namespace linker.plugins.tunnel
             MemoryPackFormatterProvider.Register(new TunnelWanPortProtocolInfoFormatter());
 
             serviceCollection.AddSingleton<TunnelServerMessenger>();
+
+            serviceCollection.AddSingleton<ExternalResolver>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)

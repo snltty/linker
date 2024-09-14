@@ -57,12 +57,13 @@
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="更新密钥" prop="updaterSecretKey">
-                            <el-input v-model="state.form.updaterSecretKey" maxlength="36" show-word-limit />
+                        <el-form-item label="服务器密钥" prop="serverSecretKey">
+                            <el-input v-model="state.form.serverSecretKey" maxlength="36" show-word-limit />
                         </el-form-item>
                     </el-col>
                 </el-row>
             </el-form-item>
+            
             <el-form-item label="" label-width="0" v-if="state.form.hasServer">
                 <el-row>
                     <el-col :span="12">
@@ -73,6 +74,20 @@
                     <el-col :span="12">
                         <el-form-item label="中继密钥" prop="relaySecretKey">
                             <el-input v-model="state.form.relaySecretKey" maxlength="36" show-word-limit />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form-item>
+            <el-form-item label="" label-width="0" v-if="state.form.hasServer">
+                <el-row>
+                    <el-col :span="12">
+                        <el-form-item label="更新密钥" prop="updaterSecretKey">
+                            <el-input v-model="state.form.updaterSecretKey" maxlength="36" show-word-limit />
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="占位">
+                            <el-input disabled maxlength="36" show-word-limit />
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -99,6 +114,7 @@ export default {
 
                 hasServer:step.value.form.client.hasServer ||false,
                 server:step.value.form.client.server ||globalData.value.config.Client.Server,
+                serverSecretKey:step.value.form.client.serverSecretKey ||globalData.value.config.Client.ServerSecretKey,
                 sForwardSecretKey:step.value.form.client.sForwardSecretKey ||globalData.value.config.Running.SForwardSecretKey,
                 relaySecretKey:step.value.form.client.relaySecretKey ||(globalData.value.config.Running.Relay.Servers[0] || {SecretKey:'snltty'}).SecretKey,
                 updaterSecretKey:step.value.form.client.updaterSecretKey ||globalData.value.config.Running.UpdaterSecretKey,
@@ -151,6 +167,7 @@ export default {
 
                                     hasServer: state.form.hasServer,
                                     server: state.form.server,
+                                    serverSecretKey: state.form.serverSecretKey,
                                     sForwardSecretKey: state.form.sForwardSecretKey,
                                     relaySecretKey: state.form.relaySecretKey,
                                     updaterSecretKey: state.form.updaterSecretKey,

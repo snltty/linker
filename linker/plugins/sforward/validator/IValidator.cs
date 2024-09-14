@@ -1,10 +1,16 @@
-﻿using linker.plugins.messenger;
-using linker.plugins.sforward.config;
+﻿using linker.plugins.sforward.config;
+using linker.plugins.signin.messenger;
 
 namespace linker.plugins.sforward.validator
 {
-    public interface IValidator
+    public interface ISForwardValidator
     {
-        public bool Valid(IConnection connection, SForwardAddInfo sForwardAddInfo,out string error);
+        /// <summary>
+        /// 验证
+        /// </summary>
+        /// <param name="signCacheInfo">来源客户端</param>
+        /// <param name="sForwardAddInfo">穿透信息</param>
+        /// <returns></returns>
+        public Task<string> Validate(SignCacheInfo signCacheInfo, SForwardAddInfo sForwardAddInfo);
     }
 }

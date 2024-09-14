@@ -6,16 +6,18 @@ using System.Net;
 using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
-using System.Buffers;
 using linker.libs.extends;
+using linker.plugins.resolver;
 
 namespace linker.plugins.messenger
 {
     /// <summary>
     /// 消息处理总线
     /// </summary>
-    public sealed class MessengerResolver : IConnectionReceiveCallback
+    public sealed class MessengerResolver : IConnectionReceiveCallback, IResolver
     {
+        public ResolverType Type =>  ResolverType.Messenger;
+
         delegate void VoidDelegate(IConnection connection);
         delegate Task TaskDelegate(IConnection connection);
 
@@ -44,21 +46,11 @@ namespace linker.plugins.messenger
                 Environment.Exit(0);
             }
         }
-        public async Task BeginReceiveServer(Socket socket)
+
+        public async Task Resolve(Socket socket)
         {
             try
             {
-                if (socket == null || socket.RemoteEndPoint == null)
-                {
-                    return;
-                }
-                socket.KeepAlive();
-
-                if (await ReceiveType(socket).ConfigureAwait(false) == 0)
-                {
-                    return;
-                }
-
                 NetworkStream networkStream = new NetworkStream(socket, false);
                 SslStream sslStream = new SslStream(networkStream, true);
                 await sslStream.AuthenticateAsServerAsync(serverCertificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false).ConfigureAwait(false);
@@ -71,7 +63,12 @@ namespace linker.plugins.messenger
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error(ex);
             }
-        }     
+        }
+        public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
+        {
+            await Task.CompletedTask;
+        }
+
         public async Task<IConnection> BeginReceiveClient(Socket socket)
         {
             try
@@ -81,7 +78,7 @@ namespace linker.plugins.messenger
                     return null;
                 }
                 socket.KeepAlive();
-                await socket.SendAsync(new byte[] { 1 }).ConfigureAwait(false);
+                await socket.SendAsync(new byte[] { (byte)ResolverType.Messenger }).ConfigureAwait(false);
                 NetworkStream networkStream = new NetworkStream(socket, false);
                 SslStream sslStream = new SslStream(networkStream, true, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                 await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
@@ -114,44 +111,6 @@ namespace linker.plugins.messenger
                 ReceiveResponseWrap = new MessageResponseWrap()
             };
         }
-        public Memory<byte> BuildSendData(byte[] data, IPEndPoint ep)
-        {
-            //给客户端返回他的IP+端口
-            data[0] = (byte)ep.AddressFamily;
-            ep.Address.TryWriteBytes(data.AsSpan(1), out int length);
-            ((ushort)ep.Port).ToBytes(data.AsMemory(1 + length));
-
-            //防止一些网关修改掉它的外网IP
-            for (int i = 0; i < 1 + length + 2; i++)
-            {
-                data[i] = (byte)(data[i] ^ byte.MaxValue);
-            }
-            return data.AsMemory(0, 1 + length + 2);
-        }
-        private async Task<byte> ReceiveType(Socket socket)
-        {
-            byte[] sendData = ArrayPool<byte>.Shared.Rent(20);
-            try
-            {
-                await socket.ReceiveAsync(sendData.AsMemory(0, 1), SocketFlags.None).ConfigureAwait(false);
-                byte type = sendData[0];
-                if (type == 0)
-                {
-                    Memory<byte> memory = BuildSendData(sendData, socket.RemoteEndPoint as IPEndPoint);
-                    await socket.SendAsync(memory, SocketFlags.None).ConfigureAwait(false);
-                }
-                return type;
-            }
-            catch (Exception)
-            {
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(sendData);
-            }
-            return 1;
-        }
-
 
         /// <summary>
         /// 加载所有消息处理器

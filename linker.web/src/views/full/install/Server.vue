@@ -34,6 +34,15 @@
             </el-form-item>
             <el-form-item label="" label-width="0">
                 <el-row>
+                    <el-col :span="24">
+                        <el-form-item label="服务器密钥" prop="signinSecretKey">
+                            <el-input v-model="state.form.signinSecretKey" maxlength="36" show-word-limit />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form-item>
+            <el-form-item label="" label-width="0">
+                <el-row>
                     <el-col :span="12">
                         <el-form-item label="穿透密钥" prop="sForwardSecretKey">
                             <el-input v-model="state.form.sForwardSecretKey" maxlength="36" show-word-limit />
@@ -46,15 +55,22 @@
                     </el-col>
                 </el-row>
             </el-form-item>
-            <el-form-item label="更新密钥" prop="updaterSecretKey">
-                <el-input v-model="state.form.updaterSecretKey" maxlength="36" show-word-limit />
+            <el-form-item label="" label-width="0">
+                <el-row>
+                    <el-col :span="24">
+                        <el-form-item label="更新密钥" prop="updaterSecretKey">
+                            <el-input v-model="state.form.updaterSecretKey" maxlength="36" show-word-limit />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
             </el-form-item>
+            
         </el-form>
     </div>
 </template>
 <script>
 import { injectGlobalData } from '@/provide';
-import { reactive,  watch, ref, inject, onMounted } from 'vue';
+import { reactive,  ref, inject, onMounted } from 'vue';
 export default {
     setup(props) {
 
@@ -63,6 +79,7 @@ export default {
         const state = reactive({
             show: false,
             form: {
+                signinSecretKey:step.value.form.server.signinSecretKey || globalData.value.config.Server.SignIn.SecretKey,
                 relaySecretKey:step.value.form.server.relaySecretKey || globalData.value.config.Server.Relay.SecretKey,
                 sForwardSecretKey:step.value.form.server.sForwardSecretKey ||globalData.value.config.Server.SForward.SecretKey,
                 servicePort:step.value.form.server.servicePort ||globalData.value.config.Server.ServicePort,
@@ -151,6 +168,9 @@ export default {
                                     },
                                     Updater:{
                                         SecretKey: state.form.updaterSecretKey
+                                    },
+                                    SignIn:{
+                                        SecretKey: state.form.signinSecretKey
                                     }
                                 }  
                             },

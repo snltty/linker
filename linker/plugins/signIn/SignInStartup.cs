@@ -25,7 +25,7 @@ namespace linker.plugins.signin
             serviceCollection.AddSingleton<SignInClientApiController>();
 
             serviceCollection.AddSingleton<SignInArgsTransfer>();
-            serviceCollection.AddSingleton<SignInArgsMachineKey>();
+            serviceCollection.AddSingleton<SignInArgsMachineKeyClient>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
@@ -34,7 +34,7 @@ namespace linker.plugins.signin
             serviceCollection.AddSingleton<SignInServerMessenger>();
 
             serviceCollection.AddSingleton<SignInArgsTransfer>();
-            serviceCollection.AddSingleton<SignInArgsMachineKey>();
+            serviceCollection.AddSingleton<SignInArgsMachineKeyServer>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)

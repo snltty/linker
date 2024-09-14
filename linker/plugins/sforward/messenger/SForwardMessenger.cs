@@ -24,9 +24,9 @@ namespace linker.plugins.sforward.messenger
         private readonly MessengerSender sender;
         private readonly SignCaching signCaching;
         private readonly FileConfig configWrap;
-        private readonly IValidator validator;
+        private readonly ISForwardValidator validator;
 
-        public SForwardServerMessenger(SForwardProxy proxy, ISForwardServerCahing sForwardServerCahing, MessengerSender sender, SignCaching signCaching, FileConfig configWrap, IValidator validator)
+        public SForwardServerMessenger(SForwardProxy proxy, ISForwardServerCahing sForwardServerCahing, MessengerSender sender, SignCaching signCaching, FileConfig configWrap, ISForwardValidator validator)
         {
             this.proxy = proxy;
             proxy.WebConnect = WebConnect;
@@ -44,13 +44,22 @@ namespace linker.plugins.sforward.messenger
         /// </summary>
         /// <param name="connection"></param>
         [MessengerId((ushort)SForwardMessengerIds.Add)]
-        public void Add(IConnection connection)
+        public async Task Add(IConnection connection)
         {
             SForwardAddInfo sForwardAddInfo = MemoryPackSerializer.Deserialize<SForwardAddInfo>(connection.ReceiveRequestWrap.Payload.Span);
             SForwardAddResultInfo result = new SForwardAddResultInfo { Success = true, BufferSize = configWrap.Data.Server.SForward.BufferSize };
+
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
+            {
+                result.Success = false;
+                result.Message = "need sign in";
+                return;
+            }
+
             try
             {
-                if (validator.Valid(connection, sForwardAddInfo, out string error) == false)
+                string error = await validator.Validate(cache, sForwardAddInfo);
+                if (string.IsNullOrWhiteSpace(error) == false)
                 {
                     result.Success = false;
                     result.Message = error;
@@ -137,14 +146,21 @@ namespace linker.plugins.sforward.messenger
         /// </summary>
         /// <param name="connection"></param>
         [MessengerId((ushort)SForwardMessengerIds.Remove)]
-        public void Remove(IConnection connection)
+        public async Task Remove(IConnection connection)
         {
             SForwardAddInfo sForwardAddInfo = MemoryPackSerializer.Deserialize<SForwardAddInfo>(connection.ReceiveRequestWrap.Payload.Span);
             SForwardAddResultInfo result = new SForwardAddResultInfo { Success = true };
 
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
+            {
+                result.Success = false;
+                result.Message = "need sign in";
+                return;
+            }
             try
             {
-                if (validator.Valid(connection, sForwardAddInfo, out string error) == false)
+                string error = await validator.Validate(cache, sForwardAddInfo);
+                if (string.IsNullOrWhiteSpace(error) == false)
                 {
                     result.Success = false;
                     result.Message = error;

@@ -71,10 +71,6 @@ namespace linker.plugins.messenger
         /// 已接收字节数
         /// </summary>
         public long ReceiveBytes { get; }
-        /// <summary>
-        /// 中继限速 byte/s
-        /// </summary>
-        public uint RelayLimit { get; set; }
 
         #region 接收数据
         public MessageRequestWrap ReceiveRequestWrap { get; }
@@ -104,16 +100,6 @@ namespace linker.plugins.messenger
         /// <returns></returns>
         public Task<bool> SendAsync(byte[] data, int length);
 
-        /// <summary>
-        /// 开始中继，不再处理包，在此之前，应该先调用Cancel取消处理包，在等待一段时间后，再开始中继
-        /// </summary>
-        /// <returns></returns>
-        public Task RelayAsync(byte bufferSize);
-
-        /// <summary>
-        /// 取消处理包
-        /// </summary>
-        public void Cancel();
         public void Disponse(int value = 0);
 
         #region 回复消息相关
@@ -152,7 +138,6 @@ namespace linker.plugins.messenger
         public int Delay { get; protected set; }
         public long SendBytes { get; protected set; }
         public long ReceiveBytes { get; protected set; }
-        public virtual uint RelayLimit { get; set; } = 0;
 
         #region 接收数据
         public MessageRequestWrap ReceiveRequestWrap { get; set; }
@@ -235,12 +220,6 @@ namespace linker.plugins.messenger
         public abstract Task<bool> SendAsync(ReadOnlyMemory<byte> data);
         public abstract Task<bool> SendAsync(byte[] data, int length);
 
-        public abstract Task RelayAsync(byte bufferSize);
-
-
-        public virtual void Cancel()
-        {
-        }
         public virtual void Disponse(int value = 0)
         {
         }
@@ -269,17 +248,6 @@ namespace linker.plugins.messenger
 
         public override bool Connected => SourceSocket != null && Environment.TickCount64 - ticks < 15000;
 
-        private uint relayLimit = 0;
-        private double relayLimitToken = 0;
-        public override uint RelayLimit
-        {
-            get => relayLimit; set
-            {
-                relayLimit = value;
-                relayLimitToken = relayLimit / 1000.0;
-                relayLimitBucket = relayLimit;
-            }
-        }
 
         private IConnectionReceiveCallback callback;
         private CancellationTokenSource cancellationTokenSource;
@@ -342,15 +310,11 @@ namespace linker.plugins.messenger
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
-                Disponse(2);
+               
             }
             finally
             {
-                //ArrayPool<byte>.Shared.Return(buffer);
-                //SourceStream?.Close();
-                //SourceStream?.Dispose();
-                //TargetStream?.Close();
-                //TargetStream?.Dispose();
+                Disponse(2);
             }
         }
         private async Task ReadPacket(Memory<byte> buffer)
@@ -509,82 +473,13 @@ namespace linker.plugins.messenger
             return await SendAsync(data.AsMemory(0, length)).ConfigureAwait(false);
         }
 
-        public override async Task RelayAsync(byte bufferSize)
-        {
-            if (TargetNetworkStream != null)
-            {
-                await CopyToAsync(bufferSize, SourceNetworkStream, TargetNetworkStream).ConfigureAwait(false);
-            }
-        }
-        private async Task CopyToAsync(byte bufferSize, NetworkStream source, NetworkStream destination)
-        {
-            byte[] buffer = new byte[(1 << bufferSize) * 1024];
-            try
-            {
-                int bytesRead;
-                while ((bytesRead = await source.ReadAsync(buffer.AsMemory()).ConfigureAwait(false)) != 0)
-                {
-                    if (RelayLimit > 0)
-                    {
-                        int length = bytesRead;
-                        TryLimit(ref length);
-                        while (length > 0)
-                        {
-                            await Task.Delay(30).ConfigureAwait(false);
-                            TryLimit(ref length);
-                        }
-                    }
-                    await destination.WriteAsync(buffer.AsMemory(0, bytesRead)).ConfigureAwait(false);
-                }
-            }
-            catch (Exception ex)
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Error(ex);
-                }
-                Disponse(4);
-            }
-            finally
-            {
-                // ArrayPool<byte>.Shared.Return(buffer);
-            }
-        }
-        private double relayLimitBucket = 0;
-        private long relayLimitTicks = Environment.TickCount64;
-        private void TryLimit(ref int length)
-        {
-            long _relayLimitTicks = Environment.TickCount64;
-            long relayLimitTicksTemp = _relayLimitTicks - relayLimitTicks;
-            relayLimitTicks = _relayLimitTicks;
-            relayLimitBucket += relayLimitTicksTemp * relayLimitToken;
-            if (relayLimitBucket > relayLimit) relayLimitBucket = relayLimit;
-
-            if (relayLimitBucket >= length)
-            {
-                relayLimitBucket -= length;
-                length = 0;
-            }
-            else
-            {
-                length -= (int)relayLimitBucket;
-                relayLimitBucket = 0;
-            }
-        }
-
-        public override void Cancel()
+        public override void Disponse(int value = 0)
         {
             callback = null;
             userToken = null;
             cancellationTokenSource?.Cancel();
             bufferCache.Clear(true);
 
-            //var bytes = new byte[1024];
-            // while (SourceSocket.Receive(bytes) > 0) ;
-        }
-        public override void Disponse(int value = 0)
-        {
-            Cancel();
             cancellationTokenSourceWrite?.Cancel();
             base.Disponse();
 

@@ -23,6 +23,14 @@
                 </template>
             </template>
         </el-table-column>
+        <el-table-column prop="SecretKey" label="秘钥" >
+            <template #default="scope">
+                <template v-if="scope.row.SecretKeyEditing">
+                    <el-input type="password" show-password size="small" v-model="scope.row.SecretKey" @blur="handleEditBlur(scope.row, 'SecretKey')"></el-input>
+                </template>
+                <template v-else></template>
+            </template>
+        </el-table-column>
         <el-table-column prop="Oper" label="操作" width="150">
             <template #default="scope">
                 <div>
@@ -78,6 +86,7 @@ export default {
             state.list.forEach(c => {
                 c[`NameEditing`] = false;
                 c[`HostEditing`] = false;
+                c[`SecretKeyEditing`] = false;
             })
             row[`${p}Editing`] = true;
             row[`__editing`] = true;

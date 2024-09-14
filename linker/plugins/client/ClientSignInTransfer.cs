@@ -37,7 +37,10 @@ namespace linker.plugins.client
             this.runningConfigTransfer = runningConfigTransfer;
 
             if (string.IsNullOrWhiteSpace(config.Data.Client.Server) && runningConfig.Data.Client.Servers.Length > 0)
+            {
                 config.Data.Client.Server = runningConfig.Data.Client.Servers.FirstOrDefault().Host;
+                config.Data.Client.ServerSecretKey = runningConfig.Data.Client.Servers.FirstOrDefault().SecretKey;
+            }
 
             runningConfigTransfer.Setter(configKey, SetServers);
             runningConfigTransfer.Getter(configKey, () => MemoryPackSerializer.Serialize(runningConfig.Data.Client.Servers));
@@ -324,6 +327,7 @@ namespace linker.plugins.client
             if (runningConfig.Data.Client.Servers.Length > 0)
             {
                 config.Data.Client.Server = runningConfig.Data.Client.Servers.FirstOrDefault().Host;
+                config.Data.Client.ServerSecretKey = runningConfig.Data.Client.Servers.FirstOrDefault().SecretKey;
             }
             runningConfig.Data.Update();
             if (server != config.Data.Client.Server)

@@ -3,9 +3,8 @@ using linker.plugins.relay.transport;
 using linker.plugins.signin.messenger;
 using linker.libs;
 using MemoryPack;
-using System.Collections.Concurrent;
 using linker.plugins.messenger;
-using System.Text.Json.Serialization;
+using linker.plugins.relay.validator;
 
 namespace linker.plugins.relay.messenger
 {
@@ -43,15 +42,17 @@ namespace linker.plugins.relay.messenger
         private readonly FileConfig config;
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;
-        private readonly ConcurrentDictionary<ulong, TcsWrap> dic = new ConcurrentDictionary<ulong, TcsWrap>();
-        private ulong flowingId = 0;
+        private readonly RelayResolver relayResolver;
+        private readonly RelayValidatorTransfer relayValidatorTransfer;
 
 
-        public RelayServerMessenger(FileConfig config, MessengerSender messengerSender, SignCaching signCaching)
+        public RelayServerMessenger(FileConfig config, MessengerSender messengerSender, SignCaching signCaching, RelayResolver relayResolver, RelayValidatorTransfer relayValidatorTransfer)
         {
             this.config = config;
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
+            this.relayResolver = relayResolver;
+            this.relayValidatorTransfer = relayValidatorTransfer;
         }
 
         /// <summary>
@@ -59,7 +60,7 @@ namespace linker.plugins.relay.messenger
         /// </summary>
         /// <param name="connection"></param>
         [MessengerId((ushort)RelayMessengerIds.RelayTest)]
-        public void RelayTest(IConnection connection)
+        public async Task RelayTest(IConnection connection)
         {
             RelayTestInfo info = MemoryPackSerializer.Deserialize<RelayTestInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (info.SecretKey != config.Data.Server.Relay.SecretKey)
@@ -67,6 +68,18 @@ namespace linker.plugins.relay.messenger
                 connection.Write(Helper.FalseArray);
                 return;
             }
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
+            {
+                connection.Write(Helper.FalseArray);
+                return;
+            }
+            string result = await relayValidatorTransfer.Validate(cache, null);
+            if (string.IsNullOrWhiteSpace(result) == false)
+            {
+                connection.Write(ulong.MinValue);
+                return;
+            }
+
             connection.Write(Helper.TrueArray);
         }
 
@@ -76,7 +89,7 @@ namespace linker.plugins.relay.messenger
         /// </summary>
         /// <param name="connection"></param>
         [MessengerId((ushort)RelayMessengerIds.RelayAsk)]
-        public void RelayAsk(IConnection connection)
+        public async Task RelayAsk(IConnection connection)
         {
             RelayInfo info = MemoryPackSerializer.Deserialize<RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (info.SecretKey != config.Data.Server.Relay.SecretKey)
@@ -85,52 +98,21 @@ namespace linker.plugins.relay.messenger
                 return;
             }
 
-            info.FlowingId = Interlocked.Increment(ref flowingId);
-            _ = WaitConfirm(connection, info);
-
-            connection.Write(info.FlowingId);
-        }
-        private async Task WaitConfirm(IConnection connection, RelayInfo info)
-        {
-            try
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false || signCaching.TryGet(info.RemoteMachineId, out SignCacheInfo cache1) == false || cache.GroupId != cache1.GroupId)
             {
-                TcsWrap tcsWrap = new TcsWrap { Connection = connection, Tcs = new TaskCompletionSource<IConnection>(TaskCreationOptions.RunContinuationsAsynchronously) };
-                dic.TryAdd(info.FlowingId, tcsWrap);
-                IConnection targetConnection = await tcsWrap.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(3000)).ConfigureAwait(false);
-                _ = Relay(connection, targetConnection, info.SecretKey);
-            }
-            catch (Exception)
-            {
-            }
-            finally
-            {
-                dic.TryRemove(info.FlowingId, out _);
-            }
-        }
-
-        /// <summary>
-        /// 回复，确认中继
-        /// </summary>
-        /// <param name="connection"></param>
-        [MessengerId((ushort)RelayMessengerIds.RelayConfirm)]
-        public void RelayConfirm(IConnection connection)
-        {
-            RelayInfo info = MemoryPackSerializer.Deserialize<RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (info.SecretKey != config.Data.Server.Relay.SecretKey)
-            {
-                connection.Write(Helper.FalseArray);
+                connection.Write(ulong.MinValue);
                 return;
             }
 
-            if (dic.TryRemove(info.FlowingId, out TcsWrap tcsWrap))
+            string result = await relayValidatorTransfer.Validate(cache, cache1);
+            if (string.IsNullOrWhiteSpace(result) == false)
             {
-                tcsWrap.Tcs.SetResult(connection);
-                connection.Write(Helper.TrueArray);
+                connection.Write(ulong.MinValue);
+                return;
             }
-            else
-            {
-                connection.Write(Helper.FalseArray);
-            }
+
+            ulong flowingId = relayResolver.NewRelay(info.FromMachineId, info.RemoteMachineId);
+            connection.Write(flowingId);
         }
 
         /// <summary>
@@ -152,6 +134,14 @@ namespace linker.plugins.relay.messenger
                 connection.Write(Helper.FalseArray);
                 return;
             }
+            string result = await relayValidatorTransfer.Validate(cacheFrom, cacheTo);
+            if (string.IsNullOrWhiteSpace(result) == false)
+            {
+                connection.Write(Helper.FalseArray);
+                return;
+            }
+
+
             info.RemoteMachineId = cacheFrom.MachineId;
             info.FromMachineId = cacheTo.MachineId;
             info.RemoteMachineName = cacheFrom.MachineName;
@@ -178,32 +168,6 @@ namespace linker.plugins.relay.messenger
             }
         }
 
-        private async Task Relay(IConnection source, IConnection target, string secretKey)
-        {
-            source.Cancel();
-            target.Cancel();
-
-            await Task.Delay(100);
-
-            source.TargetStream = target.SourceStream;
-            source.TargetSocket = target.SourceSocket;
-            source.TargetNetworkStream = target.SourceNetworkStream;
-            source.RelayLimit = 0;
-            target.TargetStream = source.SourceStream;
-            target.TargetSocket = source.SourceSocket;
-            target.TargetNetworkStream = source.SourceNetworkStream;
-            target.RelayLimit = 0;
-
-            //await Task.Delay(100).ConfigureAwait(false);
-            await Task.WhenAll(source.RelayAsync(config.Data.Server.Relay.BufferSize), target.RelayAsync(config.Data.Server.Relay.BufferSize)).ConfigureAwait(false);
-        }
-        public sealed class TcsWrap
-        {
-            [JsonIgnore]
-            public TaskCompletionSource<IConnection> Tcs { get; set; }
-            [JsonIgnore]
-            public IConnection Connection { get; set; }
-        }
     }
 
 

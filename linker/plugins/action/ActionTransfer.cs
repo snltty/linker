@@ -1,45 +1,47 @@
-﻿using System.Net.Http.Json;
+﻿using linker.libs;
+using linker.libs.extends;
+using System.Net.Http.Json;
+using System.Text.Json.Nodes;
 namespace linker.plugins.action
 {
     public sealed class ActionTransfer
     {
+        public const string ACTION_ARG_KEY = "ACTION_ARGS";
 
-        private List<ActionInfo> actions = new List<ActionInfo>();
-        public void SetActions(List<ActionInfo> actions)
+        private string action = new ActionInfo { Key = "token", Value = Helper.GlobalString }.ToJson();
+        public void SetActions(string action)
         {
-            this.actions = actions;
+            this.action = action;
         }
-        public List<ActionInfo> GetActions()
+        public string GetAction()
         {
-            return actions;
+            return action;
         }
 
-        public async Task<string> ExcuteActions(List<ActionInfo> actions)
+        public async Task<string> ExcuteActions(string actionJson, string url)
         {
-            foreach (var action in actions)
+            if (string.IsNullOrWhiteSpace(url)) return string.Empty;
+            try
             {
-                try
+                using HttpClient client = new HttpClient();
+                JsonContent json = JsonContent.Create(JsonObject.Parse(actionJson));
+                HttpResponseMessage resp = await client.PostAsync(url, json);
+                if (resp.IsSuccessStatusCode)
                 {
-                    using HttpClient client = new HttpClient();
-                    JsonContent json = JsonContent.Create(new { Key = action.Key, Value = action.Value });
-                    HttpResponseMessage resp = await client.PostAsync(action.Url, json);
-                    if (resp.IsSuccessStatusCode)
+                    string result = await resp.Content.ReadAsStringAsync();
+                    if (result.Equals("ok", StringComparison.CurrentCultureIgnoreCase) == false)
                     {
-                        string result = await resp.Content.ReadAsStringAsync();
-                        if (result.Equals("ok", StringComparison.CurrentCultureIgnoreCase) == false)
-                        {
-                            return $"post {action.Url} fail->{result}";
-                        }
-                    }
-                    else
-                    {
-                        return $"post {action.Url} fail->{resp.StatusCode}";
+                        return $"post {url} fail->{result}";
                     }
                 }
-                catch (Exception ex)
+                else
                 {
-                    return $"post {action.Url} fail->{ex.Message}";
+                    return $"post {url} fail->{resp.StatusCode}";
                 }
+            }
+            catch (Exception ex)
+            {
+                return $"post {url} fail->{ex.Message}";
             }
             return string.Empty;
         }
@@ -47,8 +49,7 @@ namespace linker.plugins.action
 
     public sealed class ActionInfo
     {
-        public string Key { get; set; }
-        public string Value { get; set; }
-        public string Url { get; set; }
+        public string Key { get; set; } = string.Empty;
+        public string Value { get; set; } = string.Empty;
     }
 }

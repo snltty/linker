@@ -1,18 +1,17 @@
 ﻿using linker.config;
-using linker.plugins.resolver;
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace linker.plugins.messenger
+namespace linker.plugins.resolver
 {
     /// <summary>
     /// 服务端插件
     /// </summary>
-    public sealed class MessengerStartup : IStartup
+    public sealed class ResolverStartup : IStartup
     {
         public StartupLevel Level => StartupLevel.Normal;
-        public string Name => "messenger";
+        public string Name => "resolver";
         public bool Required => true;
         public string[] Dependent => new string[] { };
         public StartupLoadType LoadType => StartupLoadType.Normal;
@@ -20,15 +19,13 @@ namespace linker.plugins.messenger
         public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
 
-            serviceCollection.AddSingleton<MessengerSender>();
-            serviceCollection.AddSingleton<MessengerResolver>();
+            serviceCollection.AddSingleton<ResolverTransfer>();
 
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
-            serviceCollection.AddSingleton<MessengerSender>();
-            serviceCollection.AddSingleton<MessengerResolver>();
+            serviceCollection.AddSingleton<ResolverTransfer>();
 
         }
 
@@ -40,9 +37,8 @@ namespace linker.plugins.messenger
             {
                 loaded = true;
 
-                MessengerResolver messengerResolver = serviceProvider.GetService<MessengerResolver>();
-                messengerResolver.LoadMessenger(assemblies);
-                messengerResolver.Init(config.Data.Client.Certificate, config.Data.Client.Password);
+                ResolverTransfer resolver = serviceProvider.GetService<ResolverTransfer>();
+                resolver.LoadResolvers(assemblies);
 
             }
         }
@@ -53,10 +49,8 @@ namespace linker.plugins.messenger
             {
                 loaded = true;
 
-                MessengerResolver messengerResolver = serviceProvider.GetService<MessengerResolver>();
-                messengerResolver.LoadMessenger(assemblies);
-                messengerResolver.Init(config.Data.Server.Certificate, config.Data.Server.Password);
-
+                ResolverTransfer resolver = serviceProvider.GetService<ResolverTransfer>();
+                resolver.LoadResolvers(assemblies);
             }
         }
     }

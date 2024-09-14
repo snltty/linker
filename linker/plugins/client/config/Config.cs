@@ -98,6 +98,7 @@ namespace linker.config
 #else
         public string Server { get; set; } = "linker.snltty.com:1802";
 #endif
+        public string ServerSecretKey { get; set; } = string.Empty;
 
         private string id = string.Empty;
         public string Id
@@ -143,7 +144,11 @@ namespace linker.config
         }
         public string Set(object obj)
         {
+#if DEBUG
+            return obj.ToJsonFormat();
+#else
             return Convert.ToBase64String(crypto.Encode(Encoding.UTF8.GetBytes(obj.ToJson())));
+#endif
         }
 
     }
@@ -153,6 +158,7 @@ namespace linker.config
     {
         public string Name { get; set; } = string.Empty;
         public string Host { get; set; } = string.Empty;
+        public string SecretKey { get; set; } = string.Empty;
     }
 
     [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]

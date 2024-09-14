@@ -9,13 +9,6 @@ using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.plugins.config.messenger;
 using MemoryPack;
-using linker.plugins.tuntap.config;
-using linker.plugins.tuntap;
-using linker.tun;
-using static linker.plugins.tuntap.TuntapClientApiController;
-using System.Net;
-using linker.tunnel.connection;
-using System.Collections.Concurrent;
 
 namespace linker.plugins.config
 {
@@ -57,6 +50,8 @@ namespace linker.plugins.config
                 if (info.Client.HasServer)
                 {
                     config.Data.Client.Server = info.Client.Server;
+                    config.Data.Client.ServerSecretKey = info.Client.ServerSecretKey;
+
                     runningConfig.Data.SForwardSecretKey = info.Client.SForwardSecretKey;
                     runningConfig.Data.UpdaterSecretKey = info.Client.UpdaterSecretKey;
                     foreach (var item in runningConfig.Data.Relay.Servers)
@@ -70,13 +65,17 @@ namespace linker.plugins.config
                     foreach (var item in runningConfig.Data.Client.Servers)
                     {
                         item.Host = info.Client.Server;
+                        item.SecretKey = info.Client.ServerSecretKey;
                     }
                 }
             }
             if (info.Common.Modes.Contains("server"))
             {
                 config.Data.Server.ServicePort = info.Server.ServicePort;
+
                 config.Data.Server.Relay.SecretKey = info.Server.Relay.SecretKey;
+
+                config.Data.Server.SignIn.SecretKey = info.Server.SignIn.SecretKey;
 
                 config.Data.Server.SForward.SecretKey = info.Server.SForward.SecretKey;
                 config.Data.Server.SForward.WebPort = info.Server.SForward.WebPort;
@@ -242,6 +241,8 @@ namespace linker.plugins.config
 
         public bool HasServer { get; set; }
         public string Server { get; set; }
+        public string ServerSecretKey { get; set; }
+        
         public string SForwardSecretKey { get; set; }
         public string RelaySecretKey { get; set; }
         public string UpdaterSecretKey { get; set; }
@@ -252,6 +253,11 @@ namespace linker.plugins.config
         public ConfigInstallServerRelayInfo Relay { get; set; }
         public ConfigInstallServerSForwardInfo SForward { get; set; }
         public ConfigInstallServerUpdaterInfo Updater { get; set; }
+        public ConfigInstallServerSignInfo SignIn { get; set; }
+    }
+    public sealed class ConfigInstallServerSignInfo
+    {
+        public string SecretKey { get; set; }
     }
     public sealed class ConfigInstallServerUpdaterInfo
     {

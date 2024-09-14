@@ -22,13 +22,20 @@ namespace linker.plugins.signin
         {
             serviceCollection.AddSingleton<ActionApiController>();
             serviceCollection.AddSingleton<ActionTransfer>();
+
             serviceCollection.AddSingleton<SignInArgsAction>();
+            serviceCollection.AddSingleton<RelayValidatorAction>();
+            serviceCollection.AddSingleton<SForwardValidatorAction>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
-            serviceCollection.AddSingleton<SignInArgsAction>();
             serviceCollection.AddSingleton<ActionTransfer>();
+
+            serviceCollection.AddSingleton<SignInArgsAction>();
+            serviceCollection.AddSingleton<RelayValidatorAction>();
+            serviceCollection.AddSingleton<SForwardValidatorAction>();
+            
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)

@@ -5,7 +5,6 @@ using System.Reflection;
 using linker.config;
 using System.Net;
 using linker.libs.extends;
-using linker.plugins.signIn.args;
 
 namespace linker.plugins.client
 {
@@ -30,6 +29,8 @@ namespace linker.plugins.client
             serviceCollection.AddSingleton<ClientSignInState>();
             serviceCollection.AddSingleton<ClientSignInTransfer>();
 
+            serviceCollection.AddSingleton<SignInArgsSecretKeyClient>();
+
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
@@ -44,6 +45,7 @@ namespace linker.plugins.client
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
+            serviceCollection.AddSingleton<SignInArgsSecretKeyServer>();
         }
         public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
