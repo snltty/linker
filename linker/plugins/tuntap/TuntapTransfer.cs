@@ -52,6 +52,7 @@ namespace linker.plugins.tuntap
             AppDomain.CurrentDomain.ProcessExit += (s, e) => linkerTunDeviceAdapter.Shutdown();
             Console.CancelKeyPress += (s, e) => linkerTunDeviceAdapter.Shutdown();
             clientSignInState.NetworkFirstEnabledHandle += Initialize;
+            clientSignInState.NetworkEnabledHandle += (times) => NotifyConfig();
 
         }
         private void Initialize()
@@ -232,11 +233,7 @@ namespace linker.plugins.tuntap
         {
             GetRemoteInfo().ContinueWith((result) =>
             {
-                if (result.Result == null)
-                {
-                    NotifyConfig();
-                }
-                else
+                if (result.Result != null)
                 {
                     DelRoute();
                     foreach (var item in result.Result)
@@ -251,10 +248,8 @@ namespace linker.plugins.tuntap
                             tuntapInfo.Status = TuntapStatus.Normal;
                         }
                     }
-
-                    AddRoute();
+                    Version.Add();
                 }
-                Version.Add();
             });
         }
         /// <summary>
