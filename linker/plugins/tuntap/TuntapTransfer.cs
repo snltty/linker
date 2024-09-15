@@ -231,24 +231,30 @@ namespace linker.plugins.tuntap
         /// </summary>
         private void NotifyConfig()
         {
-            GetRemoteInfo().ContinueWith((result) =>
+            Task.Run(async () =>
             {
-                if (result.Result != null)
+                for (int i = 0; i < 5; i++)
                 {
-                    DelRoute();
-                    foreach (var item in result.Result)
+                    List<TuntapInfo> list = await GetRemoteInfo().ConfigureAwait(false);
+                    if (list != null)
                     {
-                        tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
-                    }
-                    var removes = tuntapInfos.Keys.Except(result.Result.Select(c => c.MachineId)).ToList();
-                    foreach (var item in removes)
-                    {
-                        if (tuntapInfos.TryGetValue(item, out TuntapInfo tuntapInfo))
+                        DelRoute();
+                        foreach (var item in list)
                         {
-                            tuntapInfo.Status = TuntapStatus.Normal;
+                            tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
                         }
+                        var removes = tuntapInfos.Keys.Except(list.Select(c => c.MachineId)).ToList();
+                        foreach (var item in removes)
+                        {
+                            if (tuntapInfos.TryGetValue(item, out TuntapInfo tuntapInfo))
+                            {
+                                tuntapInfo.Status = TuntapStatus.Normal;
+                            }
+                        }
+                        Version.Add();
+                        break;
                     }
-                    Version.Add();
+                    await Task.Delay(1000);
                 }
             });
         }
