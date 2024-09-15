@@ -39,6 +39,8 @@ namespace linker.plugins.tuntap
         private OperatingManager operatingManager = new OperatingManager();
         public TuntapStatus Status => operatingManager.Operating ? TuntapStatus.Operating : (TuntapStatus)(byte)linkerTunDeviceAdapter.Status;
 
+        private readonly SemaphoreSlim slim = new SemaphoreSlim(1,1);
+
         public TuntapTransfer(MessengerSender messengerSender, ClientSignInState clientSignInState, LinkerTunDeviceAdapter linkerTunDeviceAdapter, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig)
         {
             this.messengerSender = messengerSender;
@@ -233,29 +235,39 @@ namespace linker.plugins.tuntap
         {
             Task.Run(async () =>
             {
-                for (int i = 0; i < 5; i++)
+                await slim.WaitAsync();
+                try
                 {
-                    List<TuntapInfo> list = await GetRemoteInfo().ConfigureAwait(false);
-                    if (list != null)
+                    for (int i = 0; i < 5; i++)
                     {
-                        DelRoute();
-                        foreach (var item in list)
+                        List<TuntapInfo> list = await GetRemoteInfo().ConfigureAwait(false);
+
+                        if (list != null)
                         {
-                            tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
-                        }
-                        var removes = tuntapInfos.Keys.Except(list.Select(c => c.MachineId)).ToList();
-                        foreach (var item in removes)
-                        {
-                            if (tuntapInfos.TryGetValue(item, out TuntapInfo tuntapInfo))
+                            DelRoute();
+                            foreach (var item in list)
                             {
-                                tuntapInfo.Status = TuntapStatus.Normal;
+                                tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
                             }
+                            var removes = tuntapInfos.Keys.Except(list.Select(c => c.MachineId)).ToList();
+                            foreach (var item in removes)
+                            {
+                                if (tuntapInfos.TryGetValue(item, out TuntapInfo tuntapInfo))
+                                {
+                                    tuntapInfo.Status = TuntapStatus.Normal;
+                                }
+                            }
+                            Version.Add();
+                            AddRoute();
+                            break;
                         }
-                        Version.Add();
-                        break;
+                        await Task.Delay(1000);
                     }
-                    await Task.Delay(1000);
                 }
+                catch (Exception)
+                {
+                }
+                slim.Release();
             });
         }
         /// <summary>

@@ -10,6 +10,7 @@ using linker.plugins.tuntap.config;
 using linker.tun;
 using System.Buffers.Binary;
 using linker.plugins.client;
+using System.Net.Sockets;
 
 namespace linker.plugins.tuntap.proxy
 {
@@ -77,8 +78,6 @@ namespace linker.plugins.tuntap.proxy
 
         public async Task Callback(LinkerTunDevicPacket packet)
         {
-            //if(LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"got packet to {packet.Dist}");
-
             //IPV4广播组播
             if (packet.IPV4Broadcast)
             {
@@ -108,7 +107,6 @@ namespace linker.plugins.tuntap.proxy
                     return;
                 }
 
-                //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"got packet to {packet.Dist} 1");
                 _ = ConnectTunnel(ip).ContinueWith((result, state) =>
                 {
                     operatingMultipleManager.StopOperation((uint)state);
@@ -119,7 +117,6 @@ namespace linker.plugins.tuntap.proxy
                 }, ip);
                 return;
             }
-            //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"got packet to {packet.Dist} 2")
             await connection.SendAsync(packet.Packet);
         }
 
