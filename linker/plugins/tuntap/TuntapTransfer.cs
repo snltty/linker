@@ -39,7 +39,7 @@ namespace linker.plugins.tuntap
         private OperatingManager operatingManager = new OperatingManager();
         public TuntapStatus Status => operatingManager.Operating ? TuntapStatus.Operating : (TuntapStatus)(byte)linkerTunDeviceAdapter.Status;
 
-        private readonly SemaphoreSlim slim = new SemaphoreSlim(1,1);
+        private readonly SemaphoreSlim slim = new SemaphoreSlim(1);
 
         public TuntapTransfer(MessengerSender messengerSender, ClientSignInState clientSignInState, LinkerTunDeviceAdapter linkerTunDeviceAdapter, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig)
         {
@@ -218,12 +218,20 @@ namespace linker.plugins.tuntap
         /// <returns></returns>
         public TuntapInfo OnConfig(TuntapInfo info)
         {
-            Task.Run(() =>
+            Task.Run(async () =>
             {
-                DelRoute();
-                tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
-                Version.Add();
-                AddRoute();
+                await slim.WaitAsync();
+                try
+                {
+                    DelRoute();
+                    tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
+                    Version.Add();
+                    AddRoute();
+                }
+                catch (Exception)
+                {
+                }
+                slim.Release();
             });
 
             return GetLocalInfo();
