@@ -131,6 +131,7 @@ namespace linker.tunnel
         /// </summary>
         /// <param name="remoteMachineId">对方id</param>
         /// <param name="transactionId">事务id，随便起，你喜欢就好</param>
+        /// <param name="denyProtocols">本次连接排除那些打洞协议</param>
         /// <returns></returns>
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols)
         {
