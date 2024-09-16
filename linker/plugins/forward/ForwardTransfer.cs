@@ -108,7 +108,7 @@ namespace linker.plugins.forward
                 if (forwardInfo.Proxy)
                 {
                     LoggerHelper.Instance.Debug($"stop forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP}");
-                    forwardProxy.Stop(forwardInfo.Port);
+                    forwardProxy.StopPort(forwardInfo.Port);
                     forwardInfo.Proxy = false;
                 }
             }

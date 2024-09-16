@@ -40,7 +40,6 @@ namespace linker.plugins.tuntap
         public TuntapStatus Status => operatingManager.Operating ? TuntapStatus.Operating : (TuntapStatus)(byte)linkerTunDeviceAdapter.Status;
 
         private readonly SemaphoreSlim slim = new SemaphoreSlim(1);
-
         public TuntapTransfer(MessengerSender messengerSender, ClientSignInState clientSignInState, LinkerTunDeviceAdapter linkerTunDeviceAdapter, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig)
         {
             this.messengerSender = messengerSender;

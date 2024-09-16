@@ -5,9 +5,9 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 
-namespace linker.tunnel.proxy
+namespace linker.plugins.forward.proxy
 {
-    public partial class TunnelProxy
+    public partial class ForwardProxy
     {
         private ConcurrentDictionary<int, AsyncUserUdpToken> udpListens = new ConcurrentDictionary<int, AsyncUserUdpToken>();
         private ConcurrentDictionary<ConnectIdUdp, AsyncUserUdpTokenTarget> udpConnections = new(new ConnectIdUdpComparer());
@@ -133,16 +133,7 @@ namespace linker.tunnel.proxy
                 //semaphoreSlim.Release();
             }
         }
-        /// <summary>
-        /// 连接UDP隧道
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        protected virtual async ValueTask ConnectTunnelConnection(AsyncUserUdpToken token)
-        {
-            await ValueTask.CompletedTask;
-        }
-
+        
         /// <summary>
         /// 收到隧道数据，确定是udp，该连接连接，该发送发送
         /// </summary>
@@ -250,16 +241,6 @@ namespace linker.tunnel.proxy
 
         }
 
-        /// <summary>
-        /// 连接对方返回UDP，是否要自己处理
-        /// </summary>
-        /// <param name="token"></param>
-        /// <param name="asyncUserUdpToken"></param>
-        /// <returns>true表示自己已经处理过了，不需要再处理了</returns>
-        protected virtual async ValueTask<bool> ConnectionReceiveUdp(AsyncUserTunnelToken token, AsyncUserUdpToken asyncUserUdpToken)
-        {
-            return await ValueTask.FromResult(false);
-        }
 
         /// <summary>
         /// b端接收到服务的数据，通过隧道发送给a
@@ -350,7 +331,7 @@ namespace linker.tunnel.proxy
             token.Clear();
         }
 
-        public void StopUdp()
+        private void StopUdp()
         {
             foreach (var item in udpListens)
             {
@@ -364,7 +345,7 @@ namespace linker.tunnel.proxy
             }
             udpConnections.Clear();
         }
-        public virtual void StopUdp(int port)
+        private void StopUdp(int port)
         {
             if (udpListens.TryRemove(port, out AsyncUserUdpToken udpClient))
             {
@@ -424,7 +405,6 @@ namespace linker.tunnel.proxy
             LastTime = Environment.TickCount64;
         }
     }
-
     public sealed class ConnectIdUdpComparer : IEqualityComparer<ConnectIdUdp>
     {
         public bool Equals(ConnectIdUdp x, ConnectIdUdp y)

@@ -1,212 +1,239 @@
-﻿using linker.config;
-using linker.plugins.relay;
-using linker.tunnel;
-using linker.tunnel.connection;
-using linker.tunnel.proxy;
+﻿using linker.tunnel.connection;
 using linker.libs;
 using linker.libs.extends;
-using System.Collections.Concurrent;
+using System.Buffers;
 using System.Net;
-using linker.plugins.client;
+using System.Net.Sockets;
 
 namespace linker.plugins.forward.proxy
 {
-    public sealed class ForwardProxy : TunnelProxy
+
+    public partial class ForwardProxy
     {
-        private readonly FileConfig config;
-        private readonly TunnelTransfer tunnelTransfer;
-        private readonly RelayTransfer relayTransfer;
-        private readonly ClientSignInTransfer clientSignInTransfer;
+        private readonly NumberSpace ns = new NumberSpace();
+        private SemaphoreSlim semaphoreSlimForward = new SemaphoreSlim(10);
+        private SemaphoreSlim semaphoreSlimReverse = new SemaphoreSlim(10);
 
-        public VersionManager Version { get; } = new VersionManager();
 
-        private readonly ConcurrentDictionary<int, ForwardProxyCacheInfo> caches = new ConcurrentDictionary<int, ForwardProxyCacheInfo>();
-        private readonly ConcurrentDictionary<string, ITunnelConnection> connections = new ConcurrentDictionary<string, ITunnelConnection>();
-        private readonly ConcurrentDictionary<string, SemaphoreSlim> locks = new ConcurrentDictionary<string, SemaphoreSlim>();
-
-        public ForwardProxy(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer)
+        private void Start(IPEndPoint ep, byte bufferSize)
         {
-            this.config = config;
-            this.tunnelTransfer = tunnelTransfer;
-            this.relayTransfer = relayTransfer;
-            this.clientSignInTransfer = clientSignInTransfer;
-
-            //监听打洞成功
-            tunnelTransfer.SetConnectedCallback("forward", OnConnected);
-            //监听中继成功
-            relayTransfer.SetConnectedCallback("forward", OnConnected);
+            StartTcp(ep, bufferSize);
+            StartUdp(new IPEndPoint(ep.Address, LocalEndpoint.Port), bufferSize);
         }
-        private void OnConnected(ITunnelConnection connection)
-        {
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                LoggerHelper.Instance.Warning($"TryAdd {connection.GetHashCode()} {connection.TransactionId} {connection.ToJson()}");
-
-            if (connections.TryGetValue(connection.RemoteMachineId, out ITunnelConnection connectionOld))
-            {
-                LoggerHelper.Instance.Error($"new tunnel del {connection.Equals(connectionOld)}->{connectionOld.GetHashCode()}:{connectionOld.IPEndPoint}->{connection.GetHashCode()}:{connection.IPEndPoint}");
-                //connectionOld?.Dispose();
-            }
-            //把隧道对象添加到缓存，方便下次直接获取
-            connections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
-            BindConnectionReceive(connection);
-
-            Version.Add();
-        }
-
-        protected override void TunnelClosed(ITunnelConnection connection, object userToken)
-        {
-            Version.Add();
-        }
-
+       
         /// <summary>
-        /// 来一个TCP转发
+        /// 根据不同的消息类型做不同的事情
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        protected override async ValueTask<bool> ConnectTunnelConnection(AsyncUserToken token)
+        private async Task ReadConnectionPack(AsyncUserTunnelToken token)
         {
-            if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
+            switch (token.Proxy.Step)
             {
-                token.Proxy.TargetEP = cache.TargetEP;
-                cache.Connection = await ConnectTunnel(cache.MachineId).ConfigureAwait(false);
-                token.Connection = cache.Connection;
-            }
-            return true;
-        }
-        /// <summary>
-        /// 来一个UDP转发
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        protected override async ValueTask ConnectTunnelConnection(AsyncUserUdpToken token)
-        {
-            if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
-            {
-                token.Proxy.TargetEP = cache.TargetEP;
-                cache.Connection = await ConnectTunnel(cache.MachineId).ConfigureAwait(false);
-                token.Connection = cache.Connection;
-            }
-        }
-
-
-        SemaphoreSlim slimGlobal = new SemaphoreSlim(1);
-        /// <summary>
-        /// 连接对方
-        /// </summary>
-        /// <param name="machineId"></param>
-        /// <returns></returns>
-        private async ValueTask<ITunnelConnection> ConnectTunnel(string machineId)
-        {
-            //之前这个客户端已经连接过
-            if (connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected)
-            {
-                return connection;
-            }
-
-            if (await clientSignInTransfer.GetOnline(machineId) == false)
-            {
-                return null;
-            }
-
-
-            //不要同时去连太多，锁以下
-            await slimGlobal.WaitAsync().ConfigureAwait(false);
-            if (locks.TryGetValue(machineId, out SemaphoreSlim slim) == false)
-            {
-                slim = new SemaphoreSlim(1);
-                locks.TryAdd(machineId, slim);
-            }
-            slimGlobal.Release();
-            await slim.WaitAsync().ConfigureAwait(false);
-            try
-            {
-                //获得锁之前再次看看之前有没有连接成功
-                if (connections.TryGetValue(machineId, out connection) && connection.Connected)
-                {
-                    return connection;
-                }
-
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward tunnel to {machineId}");
-                //打洞
-                connection = await tunnelTransfer.ConnectAsync(machineId, "forward", TunnelProtocolType.Udp).ConfigureAwait(false);
-                if (connection != null)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward tunnel to {machineId} success");
-                }
-                //打洞失败
-                if (connection == null)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward relay to {machineId}");
-
-                    //尝试中继
-                    connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, "forward").ConfigureAwait(false);
-                    if (connection != null)
+                case ProxyStep.Request:
+                    ConnectBind(token);
+                    break;
+                case ProxyStep.Forward:
                     {
-                        //转入后台打洞
-                        //tunnelTransfer.StartBackground(machineId, "forward");
-                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"forward relay to {machineId} success");
+                        if (token.Proxy.Protocol == ProxyProtocol.Tcp)
+                        {
+                            await SendToSocketTcp(token).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            await SendToSocketUdp(token).ConfigureAwait(false);
+                        }
                     }
-                }
-                if (connection != null)
-                {
-                    connections.AddOrUpdate(machineId, connection, (a, b) => connection);
-                }
-
+                    break;
+                case ProxyStep.Receive:
+                    ReceiveSocket(token);
+                    break;
+                case ProxyStep.Close:
+                    CloseSocket(token);
+                    break;
+                default:
+                    break;
             }
-            catch (Exception)
+        }
+
+        private void Stop()
+        {
+            StopTcp();
+            StopUdp();
+        }
+        private void Stop(int port)
+        {
+            StopTcp(port);
+            StopUdp(port);
+        }
+
+    }
+
+    public enum ProxyStep : byte
+    {
+        Request = 1,
+        Forward = 2,
+        Receive = 3,
+        Pause = 4,
+        Close = 5,
+    }
+    public enum ProxyProtocol : byte
+    {
+        Tcp = 0,
+        Udp = 1
+    }
+    public enum ProxyDirection : byte
+    {
+        Forward = 0,
+        Reverse = 1
+    }
+
+    public sealed class ProxyInfo
+    {
+        public ulong ConnectId { get; set; }
+        public ProxyStep Step { get; set; } = ProxyStep.Request;
+        public ProxyProtocol Protocol { get; set; } = ProxyProtocol.Tcp;
+        public ProxyDirection Direction { get; set; } = ProxyDirection.Forward;
+        public byte BufferSize { get; set; } = 3;
+
+        public ushort Port { get; set; }
+        public IPEndPoint SourceEP { get; set; }
+        public IPEndPoint TargetEP { get; set; }
+
+        public byte Rsv { get; set; }
+
+
+        public ReadOnlyMemory<byte> Data { get; set; }
+
+        public byte[] ToBytes(out int length)
+        {
+            int sourceLength = SourceEP == null ? 0 : (SourceEP.AddressFamily == AddressFamily.InterNetwork ? 4 : 16) + 2;
+            int targetLength = TargetEP == null ? 0 : (TargetEP.AddressFamily == AddressFamily.InterNetwork ? 4 : 16) + 2;
+
+            length = 4 + 8 + 1 + 1
+                + 2
+                + 1 + sourceLength
+                + 1 + targetLength
+                + Data.Length;
+
+            byte[] bytes = ArrayPool<byte>.Shared.Rent(length);
+            Memory<byte> memory = bytes.AsMemory();
+
+            int index = 0;
+
+            (length - 4).ToBytes(memory);
+            index += 4;
+
+
+            ConnectId.ToBytes(memory.Slice(index));
+            index += 8;
+
+            bytes[index] = (byte)(((byte)Step << 4) | ((byte)Protocol << 2) | (byte)Direction);
+            index += 1;
+
+            bytes[index] = BufferSize;
+            index += 1;
+
+            Port.ToBytes(memory.Slice(index));
+            index += 2;
+
+            bytes[index] = (byte)sourceLength;
+            index += 1;
+
+            if (sourceLength > 0)
             {
+                SourceEP.Address.TryWriteBytes(memory.Slice(index).Span, out int writeLength);
+                index += writeLength;
+
+                ((ushort)SourceEP.Port).ToBytes(memory.Slice(index));
+                index += 2;
             }
-            finally
+
+
+            bytes[index] = (byte)targetLength;
+            index += 1;
+
+            if (targetLength > 0)
             {
-                slim.Release();
+                TargetEP.Address.TryWriteBytes(memory.Slice(index).Span, out int writeLength);
+                index += writeLength;
+
+                ((ushort)TargetEP.Port).ToBytes(memory.Slice(index));
+                index += 2;
             }
 
-            return connection;
+            Data.CopyTo(memory.Slice(index));
+
+            return bytes;
+
         }
 
-
-        public void Start(IPEndPoint ep, IPEndPoint targetEP, string machineId, byte bufferSize)
+        public void Return(byte[] bytes)
         {
-            Stop(ep.Port);
-            base.Start(ep, bufferSize);
-            caches.TryAdd(LocalEndpoint.Port, new ForwardProxyCacheInfo { Port = LocalEndpoint.Port, TargetEP = targetEP, MachineId = machineId });
-            Version.Add();
+            ArrayPool<byte>.Shared.Return(bytes);
         }
-        public override void Stop(int port)
+
+        public void DeBytes(ReadOnlyMemory<byte> memory)
         {
-            if (caches.TryRemove(port, out ForwardProxyCacheInfo cache))
+            int index = 0;
+            ReadOnlySpan<byte> span = memory.Span;
+
+            ConnectId = memory.Slice(index).ToUInt64();
+            index += 8;
+
+            Step = (ProxyStep)(span[index] >> 4);
+            Protocol = (ProxyProtocol)((span[index] & 0b1100) >> 2);
+            Direction = (ProxyDirection)(span[index] & 0b0011);
+            index++;
+
+            BufferSize = span[index];
+            index++;
+
+            Port = memory.Slice(index).ToUInt16();
+            index += 2;
+
+            byte sourceLength = span[index];
+            index += 1;
+            if (sourceLength > 0)
             {
-                base.Stop(port);
+                IPAddress ip = new IPAddress(span.Slice(index, sourceLength - 2));
+                index += sourceLength;
+                ushort port = span.Slice(index - 2).ToUInt16();
+                SourceEP = new IPEndPoint(ip, port);
             }
-            Version.Add();
-        }
 
-        public ConcurrentDictionary<string, ITunnelConnection> GetConnections()
-        {
-            return connections;
-        }
-        public void RemoveConnection(string machineId)
-        {
-            if (connections.TryRemove(machineId, out ITunnelConnection _connection))
+            byte targetLength = span[index];
+            index += 1;
+            if (targetLength > 0)
             {
-                try
-                {
-                    _connection.Dispose();
-                }
-                catch (Exception)
-                {
-                }
-                Version.Add();
+                IPAddress ip = new IPAddress(span.Slice(index, targetLength - 2));
+                index += targetLength;
+                ushort port = span.Slice(index - 2).ToUInt16();
+                TargetEP = new IPEndPoint(ip, port);
             }
-        }
-
-        public sealed class ForwardProxyCacheInfo
-        {
-            public int Port { get; set; }
-            public IPEndPoint TargetEP { get; set; }
-            public string MachineId { get; set; }
-
-            public ITunnelConnection Connection { get; set; }
+            Data = memory.Slice(index);
         }
     }
+
+    public sealed class AsyncUserTunnelToken
+    {
+        public ITunnelConnection Connection { get; set; }
+
+        public ProxyInfo Proxy { get; set; }
+
+        public void Clear()
+        {
+            GC.Collect();
+        }
+
+        public ConnectId GetTcpConnectId()
+        {
+            return new ConnectId(Proxy.ConnectId, Connection.RemoteMachineId.GetHashCode(), Connection.TransactionId.GetHashCode(), (byte)Proxy.Direction);
+        }
+        public ConnectIdUdp GetUdpConnectId()
+        {
+            return new ConnectIdUdp(Proxy.SourceEP, Connection.RemoteMachineId.GetHashCode(), Connection.TransactionId.GetHashCode());
+        }
+    }
+
 }

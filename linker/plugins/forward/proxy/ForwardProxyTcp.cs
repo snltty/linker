@@ -6,9 +6,9 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 
-namespace linker.tunnel.proxy
+namespace linker.plugins.forward.proxy
 {
-    public partial class TunnelProxy
+    public partial class ForwardProxy
     {
         private ConcurrentDictionary<int, AsyncUserToken> tcpListens = new ConcurrentDictionary<int, AsyncUserToken>();
         private readonly ConcurrentDictionary<ConnectId, AsyncUserToken> tcpConnections = new ConcurrentDictionary<ConnectId, AsyncUserToken>(new ConnectIdComparer());
@@ -161,15 +161,6 @@ namespace linker.tunnel.proxy
 
         }
 
-        /// <summary>
-        /// 连接到TCP转发
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns>当未获得通道连接对象时，是否关闭连接</returns>
-        protected virtual async ValueTask<bool> ConnectTunnelConnection(AsyncUserToken token)
-        {
-            return await ValueTask.FromResult(false);
-        }
         /// <summary>
         /// 往隧道发数据
         /// </summary>
@@ -376,7 +367,7 @@ namespace linker.tunnel.proxy
             }
         }
 
-        public void StopTcp()
+        private void StopTcp()
         {
             foreach (var item in tcpListens)
             {
@@ -389,7 +380,7 @@ namespace linker.tunnel.proxy
             }
             tcpConnections.Clear();
         }
-        public void StopTcp(int port)
+        private void StopTcp(int port)
         {
             if (tcpListens.TryRemove(port, out AsyncUserToken userToken))
             {

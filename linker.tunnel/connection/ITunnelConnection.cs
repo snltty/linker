@@ -46,7 +46,20 @@ namespace linker.tunnel.connection
 
     public interface ITunnelConnectionReceiveCallback
     {
+        /// <summary>
+        /// 收到隧道数据包
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="data"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
         public Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> data, object state);
+        /// <summary>
+        /// 收到隧道关闭
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
         public Task Closed(ITunnelConnection connection, object state);
     }
 
