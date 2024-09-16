@@ -51,7 +51,7 @@
     </el-dialog>
 </template>
 <script>
-import { reactive, watch,computed, inject } from 'vue';
+import { reactive, watch,computed,  onMounted, onUnmounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useConnections, useForwardConnections, useTuntapConnections } from './connections';
 import { Delete } from '@element-plus/icons-vue';
@@ -66,7 +66,7 @@ export default {
         const hasTunnelRemove = computed(()=>globalData.value.hasAccess('TunnelRemove')); 
 
         const connections = useConnections();
-        const forwardConnections =useForwardConnections();
+        const forwardConnections = useForwardConnections();
         const tuntapConnections = useTuntapConnections();
         const state = reactive({
             show: true,
@@ -95,6 +95,13 @@ export default {
                 ElMessage.success('删除成功');
             }).catch(()=>{});
         }
+
+        onMounted(()=>{
+            connections.value.updateRealTime(true);
+        });
+        onUnmounted(()=>{
+            connections.value.updateRealTime(false);
+        })
 
         return {
             state,handleDel,hasTunnelRemove

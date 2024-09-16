@@ -10,7 +10,6 @@ using linker.plugins.tuntap.config;
 using linker.tun;
 using System.Buffers.Binary;
 using linker.plugins.client;
-using System.Net.Sockets;
 
 namespace linker.plugins.tuntap.proxy
 {
@@ -55,14 +54,20 @@ namespace linker.plugins.tuntap.proxy
         {
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Warning($"tuntap add connection {connection.GetHashCode()} {connection.ToJson()}");
-            if (connections.TryGetValue(connection.RemoteMachineId, out ITunnelConnection connectionOld))
+            if (connections.TryGetValue(connection.RemoteMachineId, out ITunnelConnection connectionOld) && connection.Equals(connectionOld) == false)
             {
+                connections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
+                TimerHelper.SetTimeout(connectionOld.Dispose,5000);
                 LoggerHelper.Instance.Error($"new tunnel del {connection.Equals(connectionOld)}->{connectionOld.GetHashCode()}:{connectionOld.IPEndPoint}->{connection.GetHashCode()}:{connection.IPEndPoint}");
             }
-            connections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
+            else
+            {
+                connections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
+            }
 
             connection.BeginReceive(this, null);
 
+            ipConnections.Clear();
             Version.Add();
         }
         public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer, object state)
@@ -75,6 +80,7 @@ namespace linker.plugins.tuntap.proxy
             Version.Add();
             await Task.CompletedTask;
         }
+
 
         public async Task Callback(LinkerTunDevicPacket packet)
         {
@@ -119,6 +125,7 @@ namespace linker.plugins.tuntap.proxy
             }
             await connection.SendAsync(packet.Packet);
         }
+
 
         /// <summary>
         /// 设置IP，等下有连接进来，用IP匹配，才能知道这个连接是要连谁
@@ -197,23 +204,8 @@ namespace linker.plugins.tuntap.proxy
                     return null;
                 }
 
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap tunnel to {machineId}");
+                connection = await RelayAndP2P(machineId);
 
-                connection = await tunnelTransfer.ConnectAsync(machineId, "tuntap", TunnelProtocolType.Quic).ConfigureAwait(false);
-                if (connection != null)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap tunnel success,{connection.ToString()}");
-                }
-                if (connection == null)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap relay to {machineId}");
-
-                    connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, "tuntap").ConfigureAwait(false);
-                    if (connection != null)
-                    {
-                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap relay success,{connection.ToString()}");
-                    }
-                }
                 if (connection != null)
                 {
                     connections.AddOrUpdate(machineId, connection, (a, b) => connection);
@@ -225,6 +217,56 @@ namespace linker.plugins.tuntap.proxy
             finally
             {
                 operatingMultipleManager.StopOperation(machineId);
+            }
+            return connection;
+        }
+        private async Task<ITunnelConnection> P2PAndRelay(string machineId)
+        {
+            if (tunnelTransfer.IsBackground(machineId, "tuntap")) return null;
+
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap tunnel to {machineId}");
+            ITunnelConnection connection = await tunnelTransfer.ConnectAsync(machineId, "tuntap", TunnelProtocolType.Quic).ConfigureAwait(false);
+            if (connection != null)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap tunnel success,{connection.ToString()}");
+            }
+            else
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap relay to {machineId}");
+                connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, "tuntap").ConfigureAwait(false);
+                if (connection != null)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap relay success,{connection.ToString()}");
+                    tunnelTransfer.StartBackground(machineId, "tuntap", TunnelProtocolType.Quic, () =>
+                    {
+                        return connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected && connection.Type == TunnelType.P2P;
+                    });
+                }
+            }
+            return connection;
+        }
+        private async Task<ITunnelConnection> RelayAndP2P(string machineId)
+        {
+            if (tunnelTransfer.IsBackground(machineId, "tuntap")) return null;
+
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap relay to {machineId}");
+            ITunnelConnection connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, "tuntap").ConfigureAwait(false);
+            if (connection != null)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap relay success,{connection.ToString()}");
+                tunnelTransfer.StartBackground(machineId, "tuntap", TunnelProtocolType.Quic, () =>
+                {
+                    return connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected && connection.Type == TunnelType.P2P;
+                });
+            }
+            else
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap tunnel to {machineId}");
+                connection = await tunnelTransfer.ConnectAsync(machineId, "tuntap", TunnelProtocolType.Quic).ConfigureAwait(false);
+                if (connection != null)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"tuntap relay success,{connection.ToString()}");
+                }
             }
             return connection;
         }
@@ -247,7 +289,6 @@ namespace linker.plugins.tuntap.proxy
                 Version.Add();
             }
         }
-
 
     }
 }

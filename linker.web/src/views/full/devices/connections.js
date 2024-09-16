@@ -1,13 +1,11 @@
 import { getForwardConnections, removeForwardConnection } from "@/apis/forward";
 import { getTuntapConnections, removeTuntapConnection } from "@/apis/tuntap";
-import { injectGlobalData } from "@/provide";
 import { inject, provide, ref } from "vue";
 
 const connectionsSymbol = Symbol();
 const forwardConnectionsSymbol = Symbol();
 const tuntapConnectionsSymbol = Symbol();
 export const provideConnections = () => {
-    const globalData = injectGlobalData();
     const connections = ref({
         showEdit: false,
         speedCache: {},
@@ -15,6 +13,13 @@ export const provideConnections = () => {
         currentName: '',
         hashcode: 0,
         hashcode1: 0,
+
+        _updateRealTime: false,
+        updateRealTime: (value) => {
+            connections.value.hashcode = 0;
+            connections.value.hashcode1 = 0;
+            connections.value._updateRealTime = value;
+        }
     });
     provide(connectionsSymbol, connections);
 
@@ -23,9 +28,12 @@ export const provideConnections = () => {
         list: {},
     });
     provide(forwardConnectionsSymbol, forwardConnections);
+
+
     const _getForwardConnections = () => {
         getForwardConnections(connections.value.hashcode.toString()).then((res) => {
-            connections.value.hashcode = res.HashCode;
+            if (connections.value._updateRealTime == false)
+                connections.value.hashcode = res.HashCode;
             if (res.List) {
                 parseConnections(res.List, removeForwardConnection);
                 forwardConnections.value.list = res.List;
@@ -43,7 +51,8 @@ export const provideConnections = () => {
     provide(tuntapConnectionsSymbol, tuntapConnections);
     const _getTuntapConnections = () => {
         getTuntapConnections(connections.value.hashcode1.toString()).then((res) => {
-            connections.value.hashcode1 = res.HashCode;
+            if (connections.value._updateRealTime == false)
+                connections.value.hashcode1 = res.HashCode;
             if (res.List) {
                 parseConnections(res.List, removeTuntapConnection);
                 tuntapConnections.value.list = res.List;

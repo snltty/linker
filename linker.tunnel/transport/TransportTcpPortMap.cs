@@ -84,7 +84,7 @@ namespace linker.tunnel.transport
                     {
                         Socket client = await socket.AcceptAsync();
 
-                        _ = Task.Run(async () =>
+                        TimerHelper.Async(async () =>
                         {
                             try
                             {

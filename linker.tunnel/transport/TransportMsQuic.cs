@@ -356,7 +356,7 @@ namespace linker.tunnel.transport
             socketUdp.ReuseBind(local);
             socketUdp.WindowsUdpBug();
 
-            Task.Run(async () =>
+            TimerHelper.Async(async () =>
             {
                 byte[] buffer = new byte[(1 << bufferSize) * 1024];
                 try
@@ -704,7 +704,7 @@ namespace linker.tunnel.transport
                     {
                         QuicConnection quicConnection = await listener.AcceptConnectionAsync().ConfigureAwait(false);
 
-                        _ = Task.Run(async () =>
+                        TimerHelper.Async(async () =>
                         {
                             while (true)
                             {
@@ -728,7 +728,7 @@ namespace linker.tunnel.transport
                 }
             }
         }
-        
+
         sealed class ListenAsyncToken
         {
             /// <summary>

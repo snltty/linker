@@ -56,25 +56,22 @@ namespace linker.plugins.client
         /// </summary>
         public void SignInTask()
         {
-            Task.Run(async () =>
+            TimerHelper.SetInterval(async () =>
             {
-                while (true)
+                if (clientSignInState.Connected == false)
                 {
-                    if (clientSignInState.Connected == false)
+                    try
                     {
-                        try
-                        {
-                            await SignIn().ConfigureAwait(false);
-                        }
-                        catch (Exception ex)
-                        {
-                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                LoggerHelper.Instance.Error(ex);
-                        }
+                        await SignIn().ConfigureAwait(false);
                     }
-                    await Task.Delay(10000).ConfigureAwait(false);
+                    catch (Exception ex)
+                    {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            LoggerHelper.Instance.Error(ex);
+                    }
                 }
-            });
+                return true;
+            },10000);
         }
 
         /// <summary>

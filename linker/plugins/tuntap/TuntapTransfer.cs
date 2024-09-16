@@ -59,7 +59,7 @@ namespace linker.plugins.tuntap
         }
         private void Initialize()
         {
-            Task.Run(() =>
+            TimerHelper.Async(() =>
             {
                 LoggerHelper.Instance.Debug($"tuntap initialize");
                 linkerTunDeviceAdapter.Shutdown();
@@ -85,7 +85,7 @@ namespace linker.plugins.tuntap
             {
                 return;
             }
-            Task.Run(() =>
+            TimerHelper.Async(() =>
             {
                 SetupBefore();
                 try
@@ -189,7 +189,7 @@ namespace linker.plugins.tuntap
         /// <param name="info"></param>
         public void UpdateConfig(TuntapInfo info)
         {
-            Task.Run(() =>
+            TimerHelper.Async(() =>
             {
                 DeleteForward();
                 runningConfig.Data.Tuntap.IP = info.IP;
@@ -218,7 +218,7 @@ namespace linker.plugins.tuntap
         /// <returns></returns>
         public TuntapInfo OnConfig(TuntapInfo info)
         {
-            Task.Run(async () =>
+            TimerHelper.Async(async () =>
             {
                 await slim.WaitAsync();
                 try
@@ -241,7 +241,7 @@ namespace linker.plugins.tuntap
         /// </summary>
         private void NotifyConfig()
         {
-            Task.Run(async () =>
+            TimerHelper.Async(async () =>
             {
                 await slim.WaitAsync();
                 try
@@ -438,23 +438,14 @@ namespace linker.plugins.tuntap
 
         private void CheckTuntapStatusTask()
         {
-            Task.Run(async () =>
+            TimerHelper.SetInterval(async () =>
             {
-                while (true)
+                if (runningConfig.Data.Tuntap.Running && OperatingSystem.IsWindows())
                 {
-                    await Task.Delay(15000).ConfigureAwait(false);
-                    try
-                    {
-                        if (runningConfig.Data.Tuntap.Running && OperatingSystem.IsWindows())
-                        {
-                            await InterfaceCheck().ConfigureAwait(false);
-                        }
-                    }
-                    catch (Exception)
-                    {
-                    }
+                    await InterfaceCheck().ConfigureAwait(false);
                 }
-            });
+                return true;
+            }, 15000);
         }
         private async Task InterfaceCheck()
         {
@@ -491,31 +482,28 @@ namespace linker.plugins.tuntap
 
         private void PingTask()
         {
-            Task.Run(async () =>
+            TimerHelper.SetInterval(async () =>
             {
-                while (true)
+                if (Status == TuntapStatus.Running && (runningConfig.Data.Tuntap.Switch & TuntapSwitch.ShowDelay) == TuntapSwitch.ShowDelay)
                 {
-                    if (Status == TuntapStatus.Running && (runningConfig.Data.Tuntap.Switch & TuntapSwitch.ShowDelay) == TuntapSwitch.ShowDelay)
+                    var items = tuntapInfos.Values.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false && (c.Status & TuntapStatus.Running) == TuntapStatus.Running);
+                    if ((runningConfig.Data.Tuntap.Switch & TuntapSwitch.AutoConnect) != TuntapSwitch.AutoConnect)
                     {
-                        var items = tuntapInfos.Values.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false && (c.Status & TuntapStatus.Running) == TuntapStatus.Running);
-                        if ((runningConfig.Data.Tuntap.Switch & TuntapSwitch.AutoConnect) != TuntapSwitch.AutoConnect)
-                        {
-                            var connections = tuntapProxy.GetConnections();
-                            items = items.Where(c => (connections.TryGetValue(c.MachineId, out ITunnelConnection connection) && connection.Connected) || c.MachineId == config.Data.Client.Id);
-                        }
-
-                        foreach (var item in items)
-                        {
-                            using Ping ping = new Ping();
-                            PingReply pingReply = await ping.SendPingAsync(item.IP, 500);
-                            item.Delay = pingReply.Status == IPStatus.Success ? (int)pingReply.RoundtripTime : -1;
-
-                            Version.Add();
-                        }
+                        var connections = tuntapProxy.GetConnections();
+                        items = items.Where(c => (connections.TryGetValue(c.MachineId, out ITunnelConnection connection) && connection.Connected) || c.MachineId == config.Data.Client.Id);
                     }
-                    await Task.Delay(3000);
+
+                    foreach (var item in items)
+                    {
+                        using Ping ping = new Ping();
+                        PingReply pingReply = await ping.SendPingAsync(item.IP, 500);
+                        item.Delay = pingReply.Status == IPStatus.Success ? (int)pingReply.RoundtripTime : -1;
+
+                        Version.Add();
+                    }
                 }
-            });
+                return true;
+            }, 3000);
         }
     }
 }

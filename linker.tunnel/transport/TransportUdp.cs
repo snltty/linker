@@ -177,7 +177,7 @@ namespace linker.tunnel.transport
             socket.WindowsUdpBug();
             socket.ReuseBind(local);
 
-            Task.Run(async () =>
+            TimerHelper.Async(async () =>
             {
                 byte[] buffer = new byte[1024];
                 SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer, new IPEndPoint(IPAddress.Any, 0)).ConfigureAwait(false);

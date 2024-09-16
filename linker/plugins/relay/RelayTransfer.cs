@@ -311,15 +311,11 @@ namespace linker.plugins.relay
         }
         private void TestTask()
         {
-            Task.Run(async () =>
+            TimerHelper.SetInterval(async () =>
             {
-                while (true)
-                {
-                    await TaskRelay();
-                    await Task.Delay(5000);
-                }
-
-            });
+                await TaskRelay();
+                return true;
+            }, 5000);
         }
         sealed class TestInfo
         {

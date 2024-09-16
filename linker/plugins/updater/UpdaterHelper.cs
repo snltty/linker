@@ -41,7 +41,7 @@ namespace linker.plugins.updater
                 using HttpClient httpClient = new HttpClient();
                 string str = await httpClient.GetStringAsync($"{fileConfig.Data.Common.UpdateUrl}/version.txt").WaitAsync(TimeSpan.FromSeconds(15));
 
-                string[] arr = str.Split(Environment.NewLine).Select(c=>c.Trim('\r').Trim('\n')).ToArray();
+                string[] arr = str.Split(Environment.NewLine).Select(c => c.Trim('\r').Trim('\n')).ToArray();
 
                 string datetime = DateTime.Parse(arr[1]).ToString("yyyy-MM-dd HH:mm:ss");
                 string tag = arr[0];
@@ -205,7 +205,7 @@ namespace linker.plugins.updater
         /// <param name="version"></param>
         public void Confirm(UpdateInfo updateInfo, string version)
         {
-            Task.Run(async () =>
+            TimerHelper.Async(async () =>
             {
                 await DownloadUpdate(updateInfo, version);
                 await ExtractUpdate(updateInfo);

@@ -195,7 +195,7 @@ namespace linker.tun
 
         private void Read()
         {
-            Task.Run(async () =>
+            TimerHelper.Async(async () =>
             {
                 cancellationTokenSource = new CancellationTokenSource();
                 while (cancellationTokenSource.IsCancellationRequested == false)

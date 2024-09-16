@@ -20,7 +20,7 @@ namespace linker
 
                 string serviceDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
                 Directory.SetCurrentDirectory(serviceDirectory);
-               
+
                 ServiceBase[] ServicesToRun;
                 ServicesToRun = new ServiceBase[]
                 {
@@ -121,24 +121,21 @@ namespace linker
                 {
                 }
             };
-            Task.Run(async () =>
+            TimerHelper.SetInterval(() =>
             {
-                while (true)
+                string[] files = Directory.GetFiles("logs").OrderBy(c => c).ToArray();
+                for (int i = 0; i < files.Length - 7; i++)
                 {
-                    string[] files = Directory.GetFiles("logs").OrderBy(c => c).ToArray();
-                    for (int i = 0; i < files.Length - 7; i++)
+                    try
                     {
-                        try
-                        {
-                            File.Delete(files[i]);
-                        }
-                        catch (Exception)
-                        {
-                        }
+                        File.Delete(files[i]);
                     }
-                    await Task.Delay(60 * 1000);
+                    catch (Exception)
+                    {
+                    }
                 }
-            });
+                return true;
+            }, 60 * 1000);
         }
 
     }

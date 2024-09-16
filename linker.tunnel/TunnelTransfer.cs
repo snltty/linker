@@ -424,7 +424,7 @@ namespace linker.tunnel
         /// </summary>
         /// <param name="remoteMachineId"></param>
         /// <param name="transactionId"></param>
-        public void StartBackground(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols,Func<bool> stopCallback, int times = 10)
+        public void StartBackground(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols, Func<bool> stopCallback, int times = 10)
         {
             if (AddBackground(remoteMachineId, transactionId) == false)
             {
@@ -432,13 +432,13 @@ namespace linker.tunnel
                     LoggerHelper.Instance.Error($"tunnel background {remoteMachineId}@{transactionId} already exists");
                 return;
             }
-            Task.Run(async () =>
+            TimerHelper.Async(async () =>
             {
                 try
                 {
                     for (int i = 1; i <= times; i++)
                     {
-                        await Task.Delay(i*3000);
+                        await Task.Delay(i * 3000);
 
                         if (stopCallback()) break;
 
@@ -467,7 +467,7 @@ namespace linker.tunnel
         {
             backgroundDic.TryRemove(GetBackgroundKey(remoteMachineId, transactionId), out _);
         }
-        private bool IsBackground(string remoteMachineId, string transactionId)
+        public bool IsBackground(string remoteMachineId, string transactionId)
         {
             return backgroundDic.ContainsKey(GetBackgroundKey(remoteMachineId, transactionId));
         }

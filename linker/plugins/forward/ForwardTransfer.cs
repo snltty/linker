@@ -36,7 +36,7 @@ namespace linker.plugins.forward
 
         private void Reset(int times)
         {
-            Task.Run(async () =>
+            TimerHelper.Async(async () =>
             {
                 await TestListen();
                 Stop();

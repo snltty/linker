@@ -348,20 +348,16 @@ namespace linker.tunnel.transport
 
         private void CleanTask()
         {
-            Task.Run(async () =>
+            TimerHelper.SetInterval(() =>
             {
-                while (true)
+                long ticks = Environment.TickCount64;
+                var keys = connectionsDic.Where(c => (c.Value.Connection == null && ticks - c.Value.LastTicks > 5000) || (c.Value.Connection != null && c.Value.Connection.Connected == false)).Select(c => c.Key).ToList();
+                foreach (var item in keys)
                 {
-                    long ticks = Environment.TickCount64;
-                    var keys = connectionsDic.Where(c => (c.Value.Connection == null && ticks - c.Value.LastTicks > 5000) || (c.Value.Connection != null && c.Value.Connection.Connected == false)).Select(c => c.Key).ToList();
-                    foreach (var item in keys)
-                    {
-                        connectionsDic.TryRemove(item, out _);
-                    }
-
-                    await Task.Delay(30000);
+                    connectionsDic.TryRemove(item, out _);
                 }
-            });
+                return true;
+            }, 30000);
         }
     }
 

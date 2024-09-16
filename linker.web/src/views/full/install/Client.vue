@@ -52,12 +52,12 @@
             <el-form-item label="" label-width="0" v-if="state.form.hasServer">
                 <el-row>
                     <el-col :span="12">
-                        <el-form-item label="服务器" prop="server">
+                        <el-form-item label="信标服务" prop="server">
                             <el-input v-model="state.form.server"/>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="服务器密钥" prop="serverSecretKey">
+                        <el-form-item label="信标密钥" prop="serverSecretKey">
                             <el-input v-model="state.form.serverSecretKey" maxlength="36" show-word-limit />
                         </el-form-item>
                     </el-col>

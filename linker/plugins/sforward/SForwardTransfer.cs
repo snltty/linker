@@ -246,7 +246,7 @@ namespace linker.plugins.sforward
             if (testing) return;
             testing = true;
 
-            Task.Run(async () =>
+            TimerHelper.Async(async () =>
             {
                 try
                 {

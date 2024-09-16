@@ -296,28 +296,24 @@ namespace linker.tunnel.proxy
         /// </summary>
         private void TaskUdp()
         {
-            Task.Run(async () =>
+            TimerHelper.SetInterval(() =>
             {
-                while (true)
+                var connections = udpConnections.Where(c => c.Value.Timeout).Select(c => c.Key).ToList();
+                foreach (var item in connections)
                 {
-                    var connections = udpConnections.Where(c => c.Value.Timeout).Select(c => c.Key).ToList();
-                    foreach (var item in connections)
+                    if (udpConnections.TryRemove(item, out AsyncUserUdpTokenTarget token))
                     {
-                        if (udpConnections.TryRemove(item, out AsyncUserUdpTokenTarget token))
+                        try
                         {
-                            try
-                            {
-                                token.Clear();
-                            }
-                            catch (Exception)
-                            {
-                            }
+                            token.Clear();
+                        }
+                        catch (Exception)
+                        {
                         }
                     }
-
-                    await Task.Delay(5000).ConfigureAwait(false);
                 }
-            });
+                return true;
+            },5000);
         }
 
         private void CloseClientSocketUdp(ITunnelConnection connection)

@@ -35,7 +35,7 @@
             <el-form-item label="" label-width="0">
                 <el-row>
                     <el-col :span="24">
-                        <el-form-item label="服务器密钥" prop="signinSecretKey">
+                        <el-form-item label="信标密钥" prop="signinSecretKey">
                             <el-input v-model="state.form.signinSecretKey" maxlength="36" show-word-limit />
                         </el-form-item>
                     </el-col>

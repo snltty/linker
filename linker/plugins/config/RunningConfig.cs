@@ -45,18 +45,15 @@ namespace linker.client.config
         }
         private void SaveTask()
         {
-            Task.Run(async () =>
+            TimerHelper.SetInterval(() =>
             {
-                while (true)
+                while (Data.Updated > 0)
                 {
-                    while (Data.Updated > 0)
-                    {
-                        Save();
-                        Data.Updated--;
-                    }
-                    await Task.Delay(1000).ConfigureAwait(false);
+                    Save();
+                    Data.Updated--;
                 }
-            });
+                return true;
+            }, 1000);
         }
         private void Save()
         {

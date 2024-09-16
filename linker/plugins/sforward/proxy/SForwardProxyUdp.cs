@@ -79,7 +79,7 @@ namespace linker.plugins.sforward.proxy
                         byte[] buf = ArrayPool<byte>.Shared.Rent(length);
                         memory.CopyTo(buffer);
 
-                        _ = Task.Run(async () =>
+                        TimerHelper.Async(async () =>
                         {
                             ulong id = ns.Increment();
                             try
@@ -185,7 +185,7 @@ namespace linker.plugins.sforward.proxy
 
                         udpConnectds.TryAdd(id, new UdpConnectedCache { SourceSocket = socketUdp, TargetSocket = serviceUdp });
 
-                        _ = Task.Run(async () =>
+                        TimerHelper.Async(async () =>
                         {
                             buffer = new byte[(1 << bufferSize) * 1024];
                             IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
@@ -237,30 +237,25 @@ namespace linker.plugins.sforward.proxy
 
         private void UdpTask()
         {
-            Task.Run(async () =>
+            TimerHelper.SetInterval(() =>
             {
-                while (true)
+                var connections = udpConnections.Where(c => c.Value.Timeout).Select(c => c.Key);
+                foreach (var item in connections)
                 {
-                    var connections = udpConnections.Where(c => c.Value.Timeout).Select(c => c.Key);
-                    foreach (var item in connections)
-                    {
-                        udpConnections.TryRemove(item, out _);
-                    }
-
-                    var connecteds = udpConnectds.Where(c => c.Value.Timeout).Select(c => c.Key);
-                    foreach (var item in connecteds)
-                    {
-                        if (udpConnectds.TryRemove(item, out UdpConnectedCache cache))
-                        {
-                            cache.Clear();
-                        }
-                    }
-                    await Task.Delay(5000).ConfigureAwait(false);
+                    udpConnections.TryRemove(item, out _);
                 }
-            });
-        }
-     
 
+                var connecteds = udpConnectds.Where(c => c.Value.Timeout).Select(c => c.Key);
+                foreach (var item in connecteds)
+                {
+                    if (udpConnectds.TryRemove(item, out UdpConnectedCache cache))
+                    {
+                        cache.Clear();
+                    }
+                }
+                return true;
+            }, 5000);
+        }
     }
 
     public sealed class UdpTargetCache

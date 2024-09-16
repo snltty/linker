@@ -97,36 +97,30 @@ namespace linker.plugins.updater
 
         private void UpdateTask()
         {
-            Task.Run(async () =>
+            TimerHelper.SetInterval(async () =>
             {
-                while (true)
+                if (updateInfo.Updated)
                 {
-                    if (updateInfo.Updated)
+                    updateInfo.MachineId = fileConfig.Data.Client.Id;
+                    await messengerSender.SendOnly(new MessageRequestWrap
                     {
-                        updateInfo.MachineId = fileConfig.Data.Client.Id;
-                        await messengerSender.SendOnly(new MessageRequestWrap
-                        {
-                            Connection = clientSignInState.Connection,
-                            MessengerId = (ushort)UpdaterMessengerIds.UpdateForward,
-                            Payload = MemoryPackSerializer.Serialize(updateInfo),
-                        });
-                        Update(updateInfo);
-                    }
-                    await Task.Delay(1000);
+                        Connection = clientSignInState.Connection,
+                        MessengerId = (ushort)UpdaterMessengerIds.UpdateForward,
+                        Payload = MemoryPackSerializer.Serialize(updateInfo),
+                    });
+                    Update(updateInfo);
                 }
-            });
+                return true;
+            }, 1000);
 
         }
         private void LoadTask()
         {
-            Task.Run(async () =>
+            TimerHelper.SetInterval(async () =>
             {
-                while (true)
-                {
-                    await updaterHelper.GetUpdateInfo(updateInfo);
-                    await Task.Delay(15000);
-                }
-            });
+                await updaterHelper.GetUpdateInfo(updateInfo);
+                return true;
+            }, 15000);
         }
     }
 
