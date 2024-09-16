@@ -66,7 +66,6 @@ namespace linker.plugins.tuntap.proxy
             }
 
             connection.BeginReceive(this, null);
-
             ipConnections.Clear();
             Version.Add();
         }

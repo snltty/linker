@@ -150,7 +150,7 @@ namespace linker.tunnel.transport
         /// </summary>
         public bool Reverse { get; set; } = true;
         /// <summary>
-        /// 是否允许修改反向打洞状态
+        /// 禁止修改反向打洞配置
         /// </summary>
         public bool DisableReverse { get; set; } = false;
         /// <summary>
@@ -158,7 +158,7 @@ namespace linker.tunnel.transport
         /// </summary>
         public bool SSL { get; set; } = true;
         /// <summary>
-        /// 是否允许修改ssl配置
+        /// 禁止修改ssl配置
         /// </summary>
         public bool DisableSSL { get; set; } = false;
         /// <summary>

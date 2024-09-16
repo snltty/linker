@@ -16,7 +16,7 @@ namespace linker.tunnel.wanport
         /// <param name="inter">本地网卡</param>
         /// <param name="server">服务器</param>
         /// <returns></returns>
-        public Task<TunnelWanPortEndPoint> GetAsync(IPAddress inter,IPEndPoint server);
+        public Task<TunnelWanPortEndPoint> GetAsync(IPAddress inter, IPEndPoint server);
     }
 
     public sealed class TunnelWanPortEndPoint
@@ -59,7 +59,8 @@ namespace linker.tunnel.wanport
     public enum TunnelWanPortType : byte
     {
         Linker = 0,
-        Stun = 1
+        Stun = 1,
+        Other = 255,
     }
 
     [Flags]

@@ -8,17 +8,17 @@ namespace linker.tunnel.adapter
     public interface ITunnelAdapter
     {
         /// <summary>
-        /// 本机局域网IP
+        /// 本机局域网IP，当然你也可以使用0.0.0.0，但是使用局域网IP会提高打洞成功率
         /// </summary>
         public IPAddress LocalIP { get; }
 
         /// <summary>
-        /// 端口映射
+        /// 端口映射，一般不用管
         /// </summary>
         public PortMapInfo PortMap { get; }
 
         /// <summary>
-        /// ssl加密证书
+        /// ssl加密证书，没有证书则无法加密通信
         /// </summary>
         public X509Certificate2 Certificate { get; }
 
@@ -80,11 +80,11 @@ namespace linker.tunnel.adapter
     public sealed class NetworkInfo
     {
         /// <summary>
-        /// 本机局域网IP列表
+        /// 本机局域网IP列表，可以通过NetworkHelper.GetRouteLevel 获取
         /// </summary>
         public IPAddress[] LocalIps { get; set; }
         /// <summary>
-        /// 本机与外网的距离，通过多少网关
+        /// 本机与外网的距离，通过多少网关，可以通过NetworkHelper.GetRouteLevel 获取
         /// </summary>
         public int RouteLevel { get; set; }
         /// <summary>
@@ -110,7 +110,7 @@ namespace linker.tunnel.adapter
         /// </summary>
         public TunnelWanPortProtocolType ProtocolType { get; set; } = TunnelWanPortProtocolType.Udp;
         /// <summary>
-        /// 本机名
+        /// 对方id
         /// </summary>
         public string MachineId { get; set; }
     }

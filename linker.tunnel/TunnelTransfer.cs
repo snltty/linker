@@ -412,6 +412,7 @@ namespace linker.tunnel
                 .Where(c => (c.Port == tunnelTransportInfo.Local.Local.Port && c.Address.Equals(IPAddress.Loopback)) == false)
                 //端口和本机端口一样。那不应该是本机的IP
                 .Where(c => (c.Port == tunnelTransportInfo.Local.Local.Port && localLocalIps.Any(d => d.Equals(c.Address))) == false)
+                .Where(c => c.Address.Equals(IPAddress.Any) == false && c.Port > 0)
                 .ToList();
 
             tunnelTransportInfo.RemoteEndPoints = eps;
