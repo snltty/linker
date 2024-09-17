@@ -15,7 +15,7 @@ namespace linker.plugins.forward.proxy
         private readonly ConcurrentDictionary<string, SemaphoreSlim> locks = new ConcurrentDictionary<string, SemaphoreSlim>();
         private readonly SemaphoreSlim slimGlobal = new SemaphoreSlim(1);
 
-        protected override string TransactionId => "tuntap";
+        protected override string TransactionId => "forward";
 
         public ForwardProxy(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer)
             : base(config, tunnelTransfer, relayTransfer, clientSignInTransfer)
