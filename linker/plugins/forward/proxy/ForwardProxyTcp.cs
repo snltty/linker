@@ -173,7 +173,8 @@ namespace linker.plugins.forward.proxy
                 return;
             }
             //SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
-           // await semaphoreSlim.WaitAsync();
+            // await semaphoreSlim.WaitAsync();
+            await ConnectTunnelConnection(token).ConfigureAwait(false);
 
             byte[] connectData = token.Proxy.ToBytes(out int length);
             try

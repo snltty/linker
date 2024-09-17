@@ -92,7 +92,7 @@ namespace linker.plugins.forward.proxy
             if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
             {
                 token.Proxy.TargetEP = cache.TargetEP;
-                cache.Connection = await ConnectTunnel(cache.MachineId).ConfigureAwait(false);
+                cache.Connection = await ConnectTunnel(cache.MachineId, TunnelProtocolType.Udp).ConfigureAwait(false);
                 token.Connection = cache.Connection;
             }
             return true;
@@ -107,7 +107,7 @@ namespace linker.plugins.forward.proxy
             if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
             {
                 token.Proxy.TargetEP = cache.TargetEP;
-                cache.Connection = await ConnectTunnel(cache.MachineId).ConfigureAwait(false);
+                cache.Connection = await ConnectTunnel(cache.MachineId, TunnelProtocolType.Udp).ConfigureAwait(false);
                 token.Connection = cache.Connection;
             }
         }

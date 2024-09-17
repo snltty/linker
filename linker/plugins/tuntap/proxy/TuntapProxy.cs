@@ -145,7 +145,7 @@ namespace linker.plugins.tuntap.proxy
             //直接按IP查找
             if (ip2MachineDic.TryGetValue(ip, out string machineId))
             {
-                return await ConnectTunnel(machineId).ConfigureAwait(false);
+                return await ConnectTunnel(machineId, TunnelProtocolType.Quic).ConfigureAwait(false);
             }
 
             //匹配掩码查找
@@ -155,7 +155,7 @@ namespace linker.plugins.tuntap.proxy
                 if (ip2MachineDic.TryGetValue(network, out machineId))
                 {
                     ip2MachineDic.TryAdd(ip, machineId);
-                    return await ConnectTunnel(machineId).ConfigureAwait(false);
+                    return await ConnectTunnel(machineId, TunnelProtocolType.Quic).ConfigureAwait(false);
                 }
             }
             return null;

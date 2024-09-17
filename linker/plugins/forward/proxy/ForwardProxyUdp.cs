@@ -86,6 +86,7 @@ namespace linker.plugins.forward.proxy
         {
             if (token.Connection == null) return;
 
+            await ConnectTunnelConnection(token).ConfigureAwait(false);
             //SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
             //await semaphoreSlim.WaitAsync().ConfigureAwait(false);
 

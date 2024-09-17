@@ -438,6 +438,7 @@ namespace linker.tunnel
             {
                 try
                 {
+                    await Task.Delay(10000);
                     for (int i = 1; i <= times; i++)
                     {
                         await Task.Delay(i * 3000);

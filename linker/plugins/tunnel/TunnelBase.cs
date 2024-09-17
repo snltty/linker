@@ -62,7 +62,7 @@ namespace linker.plugins.tunnel
         protected virtual void WaitRelease(string machineId)
         {
         }
-        protected async ValueTask<ITunnelConnection> ConnectTunnel(string machineId)
+        protected async ValueTask<ITunnelConnection> ConnectTunnel(string machineId, TunnelProtocolType denyProtocols)
         {
             if (config.Data.Client.Id == machineId)
             {
@@ -92,7 +92,7 @@ namespace linker.plugins.tunnel
                     return null;
                 }
 
-                connection = await RelayAndP2P(machineId);
+                connection = await RelayAndP2P(machineId, denyProtocols);
                 if (connection != null)
                 {
                     connections.AddOrUpdate(machineId, connection, (a, b) => connection);
@@ -109,7 +109,7 @@ namespace linker.plugins.tunnel
 
             return connection;
         }
-        private async Task<ITunnelConnection> RelayAndP2P(string machineId)
+        private async Task<ITunnelConnection> RelayAndP2P(string machineId, TunnelProtocolType denyProtocols)
         {
             if (tunnelTransfer.IsBackground(machineId, TransactionId)) return null;
 
@@ -118,7 +118,7 @@ namespace linker.plugins.tunnel
             if (connection != null)
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} relay success,{connection.ToString()}");
-                tunnelTransfer.StartBackground(machineId, TransactionId, TunnelProtocolType.Quic, () =>
+                tunnelTransfer.StartBackground(machineId, TransactionId, denyProtocols, () =>
                 {
                     return connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected && connection.Type == TunnelType.P2P;
                 });
@@ -126,7 +126,7 @@ namespace linker.plugins.tunnel
             else
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} tunnel to {machineId}");
-                connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, TunnelProtocolType.Quic).ConfigureAwait(false);
+                connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, denyProtocols).ConfigureAwait(false);
                 if (connection != null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} relay success,{connection.ToString()}");
