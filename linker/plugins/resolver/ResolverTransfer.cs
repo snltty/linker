@@ -64,9 +64,9 @@ namespace linker.plugins.resolver
         }
         public async Task BeginReceive(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
-            if (resolvers.TryGetValue(ResolverType.External, out IResolver resolver))
+            if (resolvers.TryGetValue((ResolverType)memory.Span[0], out IResolver resolver))
             {
-                await resolver.Resolve(socket);
+                await resolver.Resolve(socket, ep, memory);
             }
         }
     }
