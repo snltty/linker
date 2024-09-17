@@ -181,7 +181,11 @@ namespace linker.plugins.forward.proxy
                 bool res = await token.Connection.SendAsync(connectData.AsMemory(0, length)).ConfigureAwait(false);
                 if (res == false)
                 {
-                    CloseClientSocket(token, 5);
+                    if (token.Connection.Connected == false)
+                        await ConnectTunnelConnection(token).ConfigureAwait(false);
+                    res = await token.Connection.SendAsync(connectData.AsMemory(0, length)).ConfigureAwait(false);
+                    if (res == false)
+                        CloseClientSocket(token, 5);
                 }
             }
             catch (Exception)

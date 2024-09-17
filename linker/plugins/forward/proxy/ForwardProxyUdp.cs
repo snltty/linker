@@ -86,16 +86,18 @@ namespace linker.plugins.forward.proxy
         {
             if (token.Connection == null) return;
 
-            if (token.Connection.Connected == false)
-                await ConnectTunnelConnection(token).ConfigureAwait(false);
-
             byte[] connectData = token.Proxy.ToBytes(out int length);
             try
             {
                 bool res = await token.Connection.SendAsync(connectData.AsMemory(0, length)).ConfigureAwait(false);
                 if (res == false)
                 {
-                    CloseClientSocket(token);
+                    if (token.Connection.Connected == false)
+                        await ConnectTunnelConnection(token).ConfigureAwait(false);
+                    res = await token.Connection.SendAsync(connectData.AsMemory(0, length)).ConfigureAwait(false);
+
+                    if (res == false)
+                        CloseClientSocket(token);
                 }
             }
             catch (Exception)

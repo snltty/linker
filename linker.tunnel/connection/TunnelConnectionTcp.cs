@@ -27,7 +27,7 @@ namespace linker.tunnel.connection
         public IPEndPoint IPEndPoint { get; init; }
         public bool SSL { get; init; }
         public byte BufferSize { get; init; } = 3;
-        public bool Connected => Socket != null && Environment.TickCount64 - LastTicks < 15000;
+        public bool Connected => Socket != null && LastTicks > 0 && Environment.TickCount64 - LastTicks < 15000;
         public int Delay { get; private set; }
         public long SendBytes { get; private set; }
         public long ReceiveBytes { get; private set; }
@@ -96,7 +96,7 @@ namespace linker.tunnel.connection
                         {
                             length = Socket.Receive(buffer);
                             if (length == 0) break;
-                           
+
                             await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
                         }
                     }
@@ -186,7 +186,7 @@ namespace linker.tunnel.connection
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
-                    if(Connected == false)
+                    if (Connected == false)
                     {
                         Dispose();
                         break;

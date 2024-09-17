@@ -32,7 +32,7 @@ namespace linker.tunnel.connection
 
         public byte BufferSize { get; init; } = 3;
 
-        public bool Connected => Stream != null && Stream.CanWrite;
+        public bool Connected => Stream != null && Stream.CanWrite && LastTicks > 0;
         public int Delay { get; private set; }
         public long SendBytes { get; private set; }
         public long ReceiveBytes { get; private set; }

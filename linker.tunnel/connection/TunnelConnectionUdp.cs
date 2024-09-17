@@ -27,7 +27,7 @@ namespace linker.tunnel.connection
         public bool SSL { get; init; }
         public byte BufferSize { get; init; } = 3;
 
-        public bool Connected => UdpClient != null && Environment.TickCount64 - LastTicks < 15000;
+        public bool Connected => UdpClient != null && LastTicks > 0 && Environment.TickCount64 - LastTicks < 15000;
         public int Delay { get; private set; }
         public long SendBytes { get; private set; }
         public long ReceiveBytes { get; private set; }
@@ -171,7 +171,7 @@ namespace linker.tunnel.connection
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
-                    if(Connected == false)
+                    if (Connected == false)
                     {
                         Dispose();
                         break;
@@ -257,6 +257,7 @@ namespace linker.tunnel.connection
 
             SendPingPong(finBytes).ContinueWith((result) =>
             {
+                LastTicks = 0;
                 if (Receive == true)
                     UdpClient?.SafeClose();
                 uUdpClient = null;
@@ -265,7 +266,7 @@ namespace linker.tunnel.connection
                 callback?.Closed(this, userToken);
                 callback = null;
                 userToken = null;
-               
+
                 Crypto?.Dispose();
             });
         }
