@@ -82,6 +82,7 @@ namespace linker.plugins.client
         {
             if (string.IsNullOrWhiteSpace(config.Data.Client.GroupId))
             {
+                LoggerHelper.Instance.Error($"please configure group id");
                 return;
             }
             if (BooleanHelper.CompareExchange(ref clientSignInState.connecting, true, false))

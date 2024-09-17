@@ -9,6 +9,7 @@ using linker.tun;
 using System.Buffers.Binary;
 using linker.plugins.client;
 using linker.plugins.tunnel;
+using System.Buffers;
 
 namespace linker.plugins.tuntap.proxy
 {
@@ -160,19 +161,5 @@ namespace linker.plugins.tuntap.proxy
             return null;
 
         }
-        protected override async ValueTask<bool> WaitAsync(string machineId)
-        {
-            await ValueTask.CompletedTask;
-            if (operatingMultipleManager.StartOperation(machineId) == false)
-            {
-                return false;
-            }
-            return true;
-        }
-        protected override void WaitRelease(string machineId)
-        {
-            operatingMultipleManager.StopOperation(machineId);
-        }
-
     }
 }

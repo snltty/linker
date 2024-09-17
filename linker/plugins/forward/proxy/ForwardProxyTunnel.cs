@@ -2,7 +2,6 @@
 using linker.plugins.relay;
 using linker.tunnel;
 using linker.tunnel.connection;
-using linker.libs;
 using System.Collections.Concurrent;
 using System.Net;
 using linker.plugins.client;
@@ -80,16 +79,6 @@ namespace linker.plugins.forward.proxy
         public async Task Closed(ITunnelConnection connection, object userToken)
         {
             Version.Add();
-            try
-            {
-                CloseClientSocketTcp(connection);
-                CloseClientSocketUdp(connection);
-            }
-            catch (Exception ex)
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Error(ex);
-            }
             await Task.CompletedTask;
         }
 
