@@ -172,8 +172,6 @@ namespace linker.plugins.forward.proxy
             {
                 return;
             }
-            if (token.Connection.Connected == false)
-                await ConnectTunnelConnection(token).ConfigureAwait(false);
 
             byte[] connectData = token.Proxy.ToBytes(out int length);
             try
