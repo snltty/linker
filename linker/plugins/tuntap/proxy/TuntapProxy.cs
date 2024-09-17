@@ -32,7 +32,14 @@ namespace linker.plugins.tuntap.proxy
         protected override void Connected(ITunnelConnection connection)
         {
             connection.BeginReceive(this, null);
-            ipConnections.Clear();
+
+            //有哪些目标IP用了相同目标隧道，更新一下
+            List<uint> keys = ipConnections.Where(c => c.Value.RemoteMachineId == connection.RemoteMachineId).Select(c => c.Key).ToList();
+            foreach (uint ip in keys)
+            {
+                ipConnections.AddOrUpdate(ip, connection, (a, b) => connection);
+            };
+            //ipConnections.Clear();
         }
         /// <summary>
         /// 收到隧道数据

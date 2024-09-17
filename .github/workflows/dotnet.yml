@@ -37,7 +37,7 @@ jobs:
           release_name: v1.3.8.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 优化隧道连接逻辑，先中继，成功则后台打洞，失败则立即打洞\r\n2. 测试中，请勿更新"
+          body: "1. 优化隧道连接逻辑，先中继，成功则后台打洞，后台打洞成功则切换隧道，中继失败则立即打洞\r\n2. 虚拟网卡，可能会丢失一两个包，TCP不会断开连接\r\n3. 端口转发，在发送数据包失败后，会尝试切换隧道再次发送，无缝切换隧道"
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
         uses: tvrcgo/oss-action@v0.1.1

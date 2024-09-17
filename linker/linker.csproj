@@ -19,8 +19,9 @@
 		<Title>linker</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 优化隧道连接逻辑，先中继，成功则后台打洞，失败则立即打洞
-2. 测试中，请勿更新</Description>
+		<Description>1. 优化隧道连接逻辑，先中继，成功则后台打洞，后台打洞成功则切换隧道，中继失败则立即打洞
+2. 虚拟网卡，可能会丢失一两个包，TCP不会断开连接
+3. 端口转发，在发送数据包失败后，会尝试切换隧道再次发送，无缝切换隧道</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

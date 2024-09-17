@@ -89,12 +89,20 @@ namespace linker.plugins.forward.proxy
         /// <returns></returns>
         private async ValueTask<bool> ConnectTunnelConnection(AsyncUserToken token)
         {
-            if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
+            if (token.ListenPort > 0)
             {
-                token.Proxy.TargetEP = cache.TargetEP;
-                cache.Connection = await ConnectTunnel(cache.MachineId, TunnelProtocolType.Udp).ConfigureAwait(false);
-                token.Connection = cache.Connection;
+                if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
+                {
+                    token.Proxy.TargetEP = cache.TargetEP;
+                    cache.Connection = await ConnectTunnel(cache.MachineId, TunnelProtocolType.Udp).ConfigureAwait(false);
+                    token.Connection = cache.Connection;
+                }
             }
+            else if (token.Connection != null)
+            {
+                token.Connection = await ConnectTunnel(token.Connection.RemoteMachineId, TunnelProtocolType.Udp).ConfigureAwait(false);
+            }
+
             return true;
         }
         /// <summary>
@@ -104,12 +112,20 @@ namespace linker.plugins.forward.proxy
         /// <returns></returns>
         private async ValueTask ConnectTunnelConnection(AsyncUserUdpToken token)
         {
-            if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
+            if (token.ListenPort > 0)
             {
-                token.Proxy.TargetEP = cache.TargetEP;
-                cache.Connection = await ConnectTunnel(cache.MachineId, TunnelProtocolType.Udp).ConfigureAwait(false);
-                token.Connection = cache.Connection;
+                if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
+                {
+                    token.Proxy.TargetEP = cache.TargetEP;
+                    cache.Connection = await ConnectTunnel(cache.MachineId, TunnelProtocolType.Udp).ConfigureAwait(false);
+                    token.Connection = cache.Connection;
+                }
             }
+            else if (token.Connection != null)
+            {
+                token.Connection = await ConnectTunnel(token.Connection.RemoteMachineId, TunnelProtocolType.Udp).ConfigureAwait(false);
+            }
+
         }
 
         /// <summary>

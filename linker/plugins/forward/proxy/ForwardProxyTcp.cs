@@ -183,7 +183,9 @@ namespace linker.plugins.forward.proxy
                         await ConnectTunnelConnection(token).ConfigureAwait(false);
                     res = await token.Connection.SendAsync(connectData.AsMemory(0, length)).ConfigureAwait(false);
                     if (res == false)
+                    {
                         CloseClientSocket(token, 5);
+                    }
                 }
             }
             catch (Exception)
@@ -232,6 +234,7 @@ namespace linker.plugins.forward.proxy
                 Connection = state.Connection,
                 Socket = state.Socket,
                 Buffer = new byte[(1 << state.BufferSize) * 1024],
+
                 Proxy = new ProxyInfo
                 {
                     ConnectId = state.ConnectId,
@@ -344,25 +347,6 @@ namespace linker.plugins.forward.proxy
                 tcpConnections.TryRemove(token.GetConnectId(), out _);
             }
             token.Clear();
-        }
-        private void CloseClientSocketTcp(ITunnelConnection connection)
-        {
-            int hashcode1 = connection.RemoteMachineId.GetHashCode();
-            int hashcode2 = connection.TransactionId.GetHashCode();
-            var tokens = tcpConnections.Where(c => c.Key.hashcode1 == hashcode1 && c.Key.hashcode2 == hashcode2).ToList();
-            foreach (var item in tokens)
-            {
-                try
-                {
-                    if (tcpConnections.TryRemove(item.Key, out AsyncUserToken token))
-                    {
-                        token.Clear();
-                    }
-                }
-                catch (Exception)
-                {
-                }
-            }
         }
 
         private void StopTcp()
