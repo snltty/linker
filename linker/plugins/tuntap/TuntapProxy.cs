@@ -11,7 +11,7 @@ using linker.plugins.client;
 using linker.plugins.tunnel;
 using System.Buffers;
 
-namespace linker.plugins.tuntap.proxy
+namespace linker.plugins.tuntap
 {
     public sealed class TuntapProxy : TunnelBase, ILinkerTunDeviceCallback, ITunnelConnectionReceiveCallback
     {
@@ -39,7 +39,6 @@ namespace linker.plugins.tuntap.proxy
             {
                 ipConnections.AddOrUpdate(ip, connection, (a, b) => connection);
             };
-            //ipConnections.Clear();
         }
         /// <summary>
         /// 收到隧道数据

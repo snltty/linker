@@ -121,7 +121,7 @@ namespace linker.plugins.tunnel
                 tunnelTransfer.StartBackground(machineId, TransactionId, denyProtocols, () =>
                 {
                     return connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected && connection.Type == TunnelType.P2P;
-                }, 10, 1000);
+                }, 10, 10000);
             }
             else
             {

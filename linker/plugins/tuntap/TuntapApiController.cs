@@ -5,7 +5,6 @@ using linker.libs.extends;
 using System.Collections.Concurrent;
 using linker.config;
 using linker.tunnel.connection;
-using linker.plugins.tuntap.proxy;
 using linker.plugins.client;
 using linker.plugins.capi;
 using linker.plugins.messenger;

@@ -1,7 +1,6 @@
 ﻿using linker.client.config;
 using linker.config;
 using linker.plugins.tuntap.messenger;
-using linker.plugins.tuntap.proxy;
 using linker.libs;
 using MemoryPack;
 using System.Buffers.Binary;

@@ -1,6 +1,5 @@
 ﻿using linker.config;
 using linker.plugins.tuntap.messenger;
-using linker.plugins.tuntap.proxy;
 using linker.startup;
 using linker.tun;
 using Microsoft.Extensions.DependencyInjection;
