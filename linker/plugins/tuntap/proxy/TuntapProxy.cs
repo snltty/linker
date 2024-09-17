@@ -87,7 +87,6 @@ namespace linker.plugins.tuntap.proxy
             uint ip = BinaryPrimitives.ReadUInt32BigEndian(packet.DistIPAddress.Span[^4..]);
             if (ipConnections.TryGetValue(ip, out ITunnelConnection connection) == false || connection == null || connection.Connected == false)
             {
-
                 if (operatingMultipleManager.StartOperation(ip) == false)
                 {
                     return;

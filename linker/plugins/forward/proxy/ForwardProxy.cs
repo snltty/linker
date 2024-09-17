@@ -11,8 +11,6 @@ namespace linker.plugins.forward.proxy
     public partial class ForwardProxy
     {
         private readonly NumberSpace ns = new NumberSpace();
-        private SemaphoreSlim semaphoreSlimForward = new SemaphoreSlim(10);
-        private SemaphoreSlim semaphoreSlimReverse = new SemaphoreSlim(10);
 
 
         private void Start(IPEndPoint ep, byte bufferSize)

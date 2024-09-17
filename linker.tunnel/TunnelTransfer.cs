@@ -438,11 +438,8 @@ namespace linker.tunnel
             {
                 try
                 {
-                    await Task.Delay(10000);
                     for (int i = 1; i <= times; i++)
                     {
-                        await Task.Delay(i * 3000);
-
                         if (stopCallback()) break;
 
                         ITunnelConnection connection = await ConnectAsync(remoteMachineId, transactionId, denyProtocols);
@@ -450,6 +447,7 @@ namespace linker.tunnel
                         {
                             break;
                         }
+                        await Task.Delay(i * 3000);
                     }
                 }
                 catch (Exception)

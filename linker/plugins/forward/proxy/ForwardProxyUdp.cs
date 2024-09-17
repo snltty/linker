@@ -86,9 +86,8 @@ namespace linker.plugins.forward.proxy
         {
             if (token.Connection == null) return;
 
-            await ConnectTunnelConnection(token).ConfigureAwait(false);
-            //SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
-            //await semaphoreSlim.WaitAsync().ConfigureAwait(false);
+            if (token.Connection.Connected == false)
+                await ConnectTunnelConnection(token).ConfigureAwait(false);
 
             byte[] connectData = token.Proxy.ToBytes(out int length);
             try
@@ -106,7 +105,6 @@ namespace linker.plugins.forward.proxy
             finally
             {
                 token.Proxy.Return(connectData);
-                //semaphoreSlim.Release();
             }
         }
         /// <summary>
@@ -116,9 +114,6 @@ namespace linker.plugins.forward.proxy
         /// <returns></returns>
         private async Task SendToConnections(AsyncUserUdpToken token)
         {
-            //SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
-            //await semaphoreSlim.WaitAsync().ConfigureAwait(false);
-
             byte[] connectData = token.Proxy.ToBytes(out int length);
             try
             {
@@ -131,10 +126,9 @@ namespace linker.plugins.forward.proxy
             finally
             {
                 token.Proxy.Return(connectData);
-                //semaphoreSlim.Release();
             }
         }
-        
+
         /// <summary>
         /// 收到隧道数据，确定是udp，该连接连接，该发送发送
         /// </summary>
@@ -250,9 +244,6 @@ namespace linker.plugins.forward.proxy
         /// <returns></returns>
         private async Task SendToConnection(AsyncUserUdpTokenTarget token)
         {
-            //SemaphoreSlim semaphoreSlim = token.Proxy.Direction == ProxyDirection.Forward ? semaphoreSlimForward : semaphoreSlimReverse;
-            //await semaphoreSlim.WaitAsync();
-
             byte[] connectData = token.Proxy.ToBytes(out int length);
             try
             {
@@ -269,7 +260,6 @@ namespace linker.plugins.forward.proxy
             finally
             {
                 token.Proxy.Return(connectData);
-                //semaphoreSlim.Release();
             }
         }
 
@@ -295,7 +285,7 @@ namespace linker.plugins.forward.proxy
                     }
                 }
                 return true;
-            },5000);
+            }, 5000);
         }
 
         private void CloseClientSocketUdp(ITunnelConnection connection)
