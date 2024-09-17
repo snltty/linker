@@ -426,7 +426,7 @@ namespace linker.tunnel
         /// </summary>
         /// <param name="remoteMachineId"></param>
         /// <param name="transactionId"></param>
-        public void StartBackground(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols, Func<bool> stopCallback, int times = 10)
+        public void StartBackground(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols, Func<bool> stopCallback, int times = 10,int delay = 10000)
         {
             if (AddBackground(remoteMachineId, transactionId) == false)
             {
@@ -438,6 +438,8 @@ namespace linker.tunnel
             {
                 try
                 {
+                    await Task.Delay(delay);
+
                     for (int i = 1; i <= times; i++)
                     {
                         if (stopCallback()) break;

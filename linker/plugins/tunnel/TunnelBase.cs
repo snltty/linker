@@ -52,7 +52,7 @@ namespace linker.plugins.tunnel
             Version.Add();
             Connected(connection);
         }
-        
+
 
         protected virtual async ValueTask<bool> WaitAsync(string machineId)
         {
@@ -121,7 +121,7 @@ namespace linker.plugins.tunnel
                 tunnelTransfer.StartBackground(machineId, TransactionId, denyProtocols, () =>
                 {
                     return connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected && connection.Type == TunnelType.P2P;
-                });
+                }, 10, 30000);
             }
             else
             {
