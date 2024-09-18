@@ -43,6 +43,7 @@ namespace linker.plugins.updater
                 UpdateTask();
                 updateInfo.Update();
             };
+            clientSignInState.NetworkEnabledHandle += (times) => SyncKey();
 
         }
         public string GetSecretKey()

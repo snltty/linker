@@ -45,10 +45,7 @@ namespace linker.plugins.client
             runningConfigTransfer.Setter(configKey, SetServers);
             runningConfigTransfer.Getter(configKey, () => MemoryPackSerializer.Serialize(runningConfig.Data.Client.Servers));
 
-            clientSignInState.NetworkFirstEnabledHandle += () =>
-            {
-                SyncServers();
-            };
+            clientSignInState.NetworkEnabledHandle += (times) => SyncServers();
         }
 
         /// <summary>
@@ -71,7 +68,7 @@ namespace linker.plugins.client
                     }
                 }
                 return true;
-            },10000);
+            }, 10000);
         }
 
         /// <summary>

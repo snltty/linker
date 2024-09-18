@@ -59,10 +59,7 @@ namespace linker.plugins.tunnel.excludeip
 
         private void InitExcludeIP()
         {
-            clientSignInState.NetworkFirstEnabledHandle += () =>
-            {
-                SyncExcludeIP();
-            };
+            clientSignInState.NetworkEnabledHandle += (times) => SyncExcludeIP();
             runningConfigTransfer.Setter(exipConfigKey, SettExcludeIPs);
             runningConfigTransfer.Getter(exipConfigKey, () => MemoryPackSerializer.Serialize(GetExcludeIPs()));
         }

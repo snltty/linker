@@ -49,7 +49,7 @@ namespace linker.plugins.tunnel
             }
 
 
-            clientSignInState.NetworkFirstEnabledHandle += () =>
+            clientSignInState.NetworkEnabledHandle += (times) =>
             {
                 SyncWanPort();
                 SyncTransport();

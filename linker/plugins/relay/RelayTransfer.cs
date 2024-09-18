@@ -41,10 +41,7 @@ namespace linker.plugins.relay
 
             runningConfigTransfer.Setter(configKey, SetServers);
             runningConfigTransfer.Getter(configKey, () => MemoryPackSerializer.Serialize(new RelayRunningSyncInfo { ByRelay = running.Data.Relay.ByRelay, Servers = running.Data.Relay.Servers }));
-            clientSignInState.NetworkFirstEnabledHandle += () =>
-            {
-                SyncServers();
-            };
+            clientSignInState.NetworkEnabledHandle += (times) => SyncServers();
         }
         private void InitConfig()
         {

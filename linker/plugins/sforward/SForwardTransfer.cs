@@ -33,11 +33,8 @@ namespace linker.plugins.sforward
 
             runningConfigTransfer.Setter(configKey, SetSecretKey);
             runningConfigTransfer.Getter(configKey, () => MemoryPackSerializer.Serialize(GetSecretKey()));
-            clientSignInState.NetworkFirstEnabledHandle += () =>
-            {
-                Start();
-                SyncKey();
-            };
+            clientSignInState.NetworkFirstEnabledHandle += () => Start();
+            clientSignInState.NetworkEnabledHandle += (times) => SyncKey();
         }
 
         #region 同步配置
@@ -80,7 +77,7 @@ namespace linker.plugins.sforward
                 {
                     Stop(item);
                 }
-               
+
             }
         }
         private void Start(SForwardInfo forwardInfo)
@@ -216,7 +213,7 @@ namespace linker.plugins.sforward
             if (old == null) return false;
 
             old.Started = false;
-           
+
             running.Data.SForwards.Remove(old);
             running.Data.Update();
 
