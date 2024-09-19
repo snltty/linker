@@ -41,8 +41,8 @@ do
 		docker buildx build -f ${target}/public/publish/docker/linux-${p}-arm64/${f}/Dockerfile-${p} --platform="linux/arm64"  --force-rm -t "${image}-${p}-arm64" . --push
 		cd ../../../../../
 
-		docker manifest create {image}-${p} {image}-${p}-x64 {image}-${p}-arm64
-		docker manifest push  {image}-${p}
+		docker manifest create {image}-${p}:latest {image}-${p}-x64:latest {image}-${p}-arm64:latest
+		docker manifest push  {image}-${p}:latest
 
 	done
 done
