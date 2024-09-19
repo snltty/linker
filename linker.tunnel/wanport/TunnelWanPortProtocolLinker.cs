@@ -23,33 +23,43 @@ namespace linker.tunnel.wanport
             udpClient.Client.ReuseBind(new IPEndPoint(localIP, 0));
             udpClient.Client.WindowsUdpBug();
 
-            for (int i = 0; i < 5; i++)
+            try
             {
-                try
+                for (int i = 0; i < 5; i++)
                 {
-                    await udpClient.SendAsync(new byte[1] { 0 }, server).ConfigureAwait(false);
-                    UdpReceiveResult result = await udpClient.ReceiveAsync().WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
-                    if (result.Buffer.Length == 0)
+                    try
                     {
-                        return null;
-                    }
+                        await udpClient.SendAsync(new byte[1] { 0 }, server).ConfigureAwait(false);
+                        UdpReceiveResult result = await udpClient.ReceiveAsync().WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                        if (result.Buffer.Length == 0)
+                        {
+                            return null;
+                        }
 
-                    for (int j = 0; j < result.Buffer.Length; j++)
+                        for (int j = 0; j < result.Buffer.Length; j++)
+                        {
+                            result.Buffer[j] = (byte)(result.Buffer[j] ^ byte.MaxValue);
+                        }
+                        AddressFamily addressFamily = (AddressFamily)result.Buffer[0];
+                        int length = addressFamily == AddressFamily.InterNetwork ? 4 : 16;
+                        IPAddress ip = new IPAddress(result.Buffer.AsSpan(1, length));
+                        ushort port = result.Buffer.AsMemory(1 + length).ToUInt16();
+
+                        IPEndPoint remoteEP = new IPEndPoint(ip, port);
+
+                        return new TunnelWanPortEndPoint { Local = udpClient.Client.LocalEndPoint as IPEndPoint, Remote = remoteEP };
+                    }
+                    catch (Exception)
                     {
-                        result.Buffer[j] = (byte)(result.Buffer[j] ^ byte.MaxValue);
                     }
-                    AddressFamily addressFamily = (AddressFamily)result.Buffer[0];
-                    int length = addressFamily == AddressFamily.InterNetwork ? 4 : 16;
-                    IPAddress ip = new IPAddress(result.Buffer.AsSpan(1, length));
-                    ushort port = result.Buffer.AsMemory(1 + length).ToUInt16();
-
-                    IPEndPoint remoteEP = new IPEndPoint(ip, port);
-
-                    return new TunnelWanPortEndPoint { Local = udpClient.Client.LocalEndPoint as IPEndPoint, Remote = remoteEP };
                 }
-                catch (Exception)
-                {
-                }
+            }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                udpClient.Close();
             }
 
             return null;

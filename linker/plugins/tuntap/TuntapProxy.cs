@@ -91,6 +91,7 @@ namespace linker.plugins.tuntap
 
             //IPV4+IPV6 单播
             uint ip = BinaryPrimitives.ReadUInt32BigEndian(packet.DistIPAddress.Span[^4..]);
+
             if (ipConnections.TryGetValue(ip, out ITunnelConnection connection) == false || connection == null || connection.Connected == false)
             {
                 if (operatingMultipleManager.StartOperation(ip) == false)
@@ -118,8 +119,8 @@ namespace linker.plugins.tuntap
         /// <param name="ips"></param>
         public void SetIPs(List<TuntapVeaLanIPAddressList> ips)
         {
-            ip2MachineDic.Clear();
-            ipConnections.Clear();
+            //ip2MachineDic.Clear();
+            //ipConnections.Clear();
             foreach (var item in ips)
             {
                 foreach (var ip in item.IPS)
