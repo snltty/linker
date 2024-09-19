@@ -36,7 +36,7 @@ namespace linker.plugins.client
             this.signInArgsTransfer = signInArgsTransfer;
             this.runningConfigTransfer = runningConfigTransfer;
 
-            if (runningConfig.Data.Client.Servers.Length > 0)
+            if (runningConfig.Data.Client.Servers.Length > 0 && config.Data.Client.ServerInfo == null)
             {
                 config.Data.Client.ServerInfo = runningConfig.Data.Client.Servers.FirstOrDefault();
             }

@@ -96,7 +96,6 @@ namespace linker.config
 #if DEBUG
         public ClientServerInfo ServerInfo { get; set; } = new ClientServerInfo { Host = new IPEndPoint(IPAddress.Loopback, 1802).ToString(), Name = "default", SecretKey = string.Empty };
 #else
-        public string Server { get; set; } = "linker.snltty.com:1802";
         public ClientServerInfo ServerInfo { get; set; } = new ClientServerInfo { Host = "linker.snltty.com:1802", Name = "default", SecretKey = string.Empty };
 #endif
 
