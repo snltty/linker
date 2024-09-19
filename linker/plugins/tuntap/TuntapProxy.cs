@@ -10,6 +10,7 @@ using System.Buffers.Binary;
 using linker.plugins.client;
 using linker.plugins.tunnel;
 using System.Buffers;
+using System.Net;
 
 namespace linker.plugins.tuntap
 {
@@ -41,7 +42,7 @@ namespace linker.plugins.tuntap
             };
         }
         /// <summary>
-        /// 收到隧道数据
+        /// 收到隧道数据，写入网卡
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="buffer"></param>
@@ -64,7 +65,7 @@ namespace linker.plugins.tuntap
             await Task.CompletedTask;
         }
         /// <summary>
-        /// 收到网卡数据
+        /// 收到网卡数据，发送给对方
         /// </summary>
         /// <param name="packet"></param>
         /// <returns></returns>
@@ -94,6 +95,7 @@ namespace linker.plugins.tuntap
 
             if (ipConnections.TryGetValue(ip, out ITunnelConnection connection) == false || connection == null || connection.Connected == false)
             {
+                //开始操作，开始失败直接丢包
                 if (operatingMultipleManager.StartOperation(ip) == false)
                 {
                     return;
@@ -101,7 +103,9 @@ namespace linker.plugins.tuntap
 
                 _ = ConnectTunnel(ip).ContinueWith((result, state) =>
                 {
+                    //结束操作
                     operatingMultipleManager.StopOperation((uint)state);
+                    //连接成功就缓存隧道
                     if (result.Result != null)
                     {
                         ipConnections.AddOrUpdate((uint)state, result.Result, (a, b) => result.Result);

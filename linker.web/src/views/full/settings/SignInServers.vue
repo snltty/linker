@@ -1,7 +1,7 @@
 <template>
     <Version ckey="signServers"/>
     <el-table :data="state.list" border size="small" width="100%" :height="`${state.height}px`" @cell-dblclick="handleCellClick">
-        <el-table-column prop="Name" label="名称">
+        <el-table-column prop="Name" label="名称" width="100">
             <template #default="scope">
                 <template v-if="scope.row.NameEditing">
                     <el-input autofocus size="small" v-model="scope.row.Name"
@@ -27,6 +27,15 @@
             <template #default="scope">
                 <template v-if="scope.row.SecretKeyEditing">
                     <el-input type="password" show-password size="small" v-model="scope.row.SecretKey" @blur="handleEditBlur(scope.row, 'SecretKey')"></el-input>
+                </template>
+                <template v-else></template>
+            </template>
+        </el-table-column>
+        <el-table-column prop="Arg" label="Json参数" >
+            <template #default="scope">
+                <template v-if="scope.row.ArgEditing">
+                    <el-input type="password" show-password size="small" v-model="scope.row.Arg"
+                        @blur="handleEditBlur(scope.row, 'Arg')"></el-input>
                 </template>
                 <template v-else></template>
             </template>
@@ -57,7 +66,7 @@
 <script>
 import { setSignInServers } from '@/apis/signin';
 import { injectGlobalData } from '@/provide';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed, inject, reactive, watch } from 'vue'
 import Version from './Version.vue';
 import { Delete,Plus,Select } from '@element-plus/icons-vue';
@@ -70,7 +79,7 @@ export default {
         const globalData = injectGlobalData();
         const state = reactive({
             list:globalData.value.config.Running.Client.Servers || [],
-            server:computed(()=>globalData.value.config.Client.Server),
+            server:computed(()=>globalData.value.config.Client.ServerInfo.Host),
             height: computed(()=>globalData.value.height-135),
         });
         watch(()=>globalData.value.config.Running.Client.Servers,()=>{
@@ -87,6 +96,7 @@ export default {
                 c[`NameEditing`] = false;
                 c[`HostEditing`] = false;
                 c[`SecretKeyEditing`] = false;
+                c[`ArgEditing`] = false;
             })
             row[`${p}Editing`] = true;
             row[`__editing`] = true;
@@ -116,6 +126,18 @@ export default {
         }
 
         const handleSave = ()=>{
+            for (let i = 0; i < state.list.length; i++) {
+                if(!state.list[i].Arg) continue;
+                try{
+                    if(typeof(JSON.parse(state.list[i].Arg)) != 'object'){
+                        ElMessage.error('Json参数错误，需要JSON格式');
+                        return;
+                    }
+                }catch(e){
+                    ElMessage.error('Json参数错误，需要JSON格式');
+                    return;
+                }
+            }
             setSignInServers(state.list).then(()=>{
                 ElMessage.success('已操作');
             }).catch(()=>{

@@ -42,7 +42,7 @@ namespace linker.config
         public ConfigClientInfo Client { get; set; } = new ConfigClientInfo();
     }
 
-    public sealed partial class ConfigClientInfo: IConfig
+    public sealed partial class ConfigClientInfo : IConfig
     {
         private ICrypto crypto;
         public ConfigClientInfo()
@@ -94,11 +94,11 @@ namespace linker.config
         public bool OnlyNode { get; set; }
 
 #if DEBUG
-        public string Server { get; set; } = new IPEndPoint(IPAddress.Loopback, 1802).ToString();
+        public ClientServerInfo ServerInfo { get; set; } = new ClientServerInfo { Host = new IPEndPoint(IPAddress.Loopback, 1802).ToString(), Name = "default", SecretKey = string.Empty };
 #else
         public string Server { get; set; } = "linker.snltty.com:1802";
+        public ClientServerInfo ServerInfo { get; set; } = new ClientServerInfo { Host = "linker.snltty.com:1802", Name = "default", SecretKey = string.Empty };
 #endif
-        public string ServerSecretKey { get; set; } = string.Empty;
 
         private string id = string.Empty;
         public string Id
@@ -159,6 +159,7 @@ namespace linker.config
         public string Name { get; set; } = string.Empty;
         public string Host { get; set; } = string.Empty;
         public string SecretKey { get; set; } = string.Empty;
+        public string Arg { get; set; } = string.Empty;
     }
 
     [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]

@@ -62,7 +62,7 @@ namespace linker.plugins.tuntap
                 LoggerHelper.Instance.Debug($"tuntap initialize");
                 linkerTunDeviceAdapter.Shutdown();
                 linkerTunDeviceAdapter.Clear();
-                NetworkHelper.GetRouteLevel(config.Data.Client.Server, out routeIps);
+                NetworkHelper.GetRouteLevel(config.Data.Client.ServerInfo.Host, out routeIps);
                 NotifyConfig();
                 CheckTuntapStatusTask();
                 PingTask();

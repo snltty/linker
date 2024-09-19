@@ -18,7 +18,7 @@ namespace linker.plugins.signin
 
         public bool SetArgs(ApiControllerParamsInfo param)
         {
-            actionTransfer.SetActions(param.Content);
+            actionTransfer.SetActionArg(param.Content);
             clientSignInTransfer.SignOut();
             _ = clientSignInTransfer.SignIn();
 

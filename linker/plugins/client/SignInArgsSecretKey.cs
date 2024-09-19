@@ -16,7 +16,8 @@ namespace linker.plugins.client
         }
         public async Task<string> Invoke(Dictionary<string, string> args)
         {
-            args.TryAdd("signin-secretkey", fileConfig.Data.Client.ServerSecretKey);
+            args.TryAdd("signin-secretkey", fileConfig.Data.Client.ServerInfo.SecretKey);
+            args.TryAdd("signin-arg", fileConfig.Data.Client.ServerInfo.Arg);
 
             await Task.CompletedTask;
             return string.Empty;

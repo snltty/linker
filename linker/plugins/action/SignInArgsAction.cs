@@ -20,7 +20,7 @@ namespace linker.plugins.action
 
         public async Task<string> Invoke(Dictionary<string, string> args)
         {
-            args.TryAdd(ActionTransfer.ACTION_ARG_KEY, actionTransfer.GetAction());
+            args.TryAdd(ActionTransfer.ACTION_ARG_KEY, actionTransfer.GetActionArg());
 
             await Task.CompletedTask;
             return string.Empty;
@@ -28,8 +28,12 @@ namespace linker.plugins.action
 
         public async Task<string> Verify(SignInfo signInfo, SignCacheInfo cache)
         {
-            if (signInfo.Args.TryGetValue(ActionTransfer.ACTION_ARG_KEY, out string str))
+            if (string.IsNullOrWhiteSpace(fileConfig.Data.Action.SignInActionUrl) == false)
             {
+                if (actionTransfer.TryGetActionArg(signInfo.Args, out string str) == false)
+                {
+                    return $"singin action URL exists, but [{signInfo.MachineName}] action value is not configured";
+                }
                 return await actionTransfer.ExcuteActions(str, fileConfig.Data.Action.SignInActionUrl);
             }
 
@@ -52,13 +56,13 @@ namespace linker.plugins.action
         {
             if (string.IsNullOrWhiteSpace(fileConfig.Data.Action.RelayActionUrl) == false)
             {
-                if (fromMachine.Args.TryGetValue(ActionTransfer.ACTION_ARG_KEY, out string str) == false || string.IsNullOrWhiteSpace(str))
+                if (actionTransfer.TryGetActionArg(fromMachine.Args, out string str) == false)
                 {
-                    return $"action URL exists, but [{fromMachine.MachineName}] action value is not configured";
+                    return $"relay action URL exists, but [{fromMachine.MachineName}] action value is not configured";
                 }
-                if (toMachine != null && toMachine.Args.TryGetValue(ActionTransfer.ACTION_ARG_KEY, out str) == false || string.IsNullOrWhiteSpace(str))
+                if (toMachine != null && actionTransfer.TryGetActionArg(toMachine.Args, out str) == false)
                 {
-                    return $"action URL exists, but [{toMachine.MachineName}]e action value is not configured";
+                    return $"relay action URL exists, but [{toMachine.MachineName}]e action value is not configured";
                 }
                 return await actionTransfer.ExcuteActions(str, fileConfig.Data.Action.RelayActionUrl);
             }
@@ -81,9 +85,9 @@ namespace linker.plugins.action
         {
             if (string.IsNullOrWhiteSpace(fileConfig.Data.Action.SForwardActionUrl) == false)
             {
-                if (cache.Args.TryGetValue(ActionTransfer.ACTION_ARG_KEY, out string str) == false || string.IsNullOrWhiteSpace(str))
+                if (actionTransfer.TryGetActionArg(cache.Args, out string str) == false)
                 {
-                    return "action URL exists, but action value is not configured";
+                    return "sforward action URL exists, but action value is not configured";
                 }
                 return await actionTransfer.ExcuteActions(str, fileConfig.Data.Action.SForwardActionUrl);
             }

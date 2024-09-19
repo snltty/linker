@@ -256,7 +256,8 @@ namespace linker.tunnel.connection
         {
             LastTicks = 0;
 
-            LoggerHelper.Instance.Error($"tunnel connection writer offline {ToString()}");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Error($"tunnel connection writer offline {ToString()}");
 
             callback?.Closed(this, userToken);
             callback = null;

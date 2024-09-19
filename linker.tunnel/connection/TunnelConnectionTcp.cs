@@ -287,7 +287,8 @@ namespace linker.tunnel.connection
         public void Dispose()
         {
             LastTicks = 0;
-            LoggerHelper.Instance.Error($"tunnel connection {this.GetHashCode()} writer offline {ToString()}");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Error($"tunnel connection {this.GetHashCode()} writer offline {ToString()}");
 
             callback?.Closed(this, userToken);
             callback = null;

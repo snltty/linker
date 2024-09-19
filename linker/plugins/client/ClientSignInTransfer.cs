@@ -36,10 +36,9 @@ namespace linker.plugins.client
             this.signInArgsTransfer = signInArgsTransfer;
             this.runningConfigTransfer = runningConfigTransfer;
 
-            if (string.IsNullOrWhiteSpace(config.Data.Client.Server) && runningConfig.Data.Client.Servers.Length > 0)
+            if (runningConfig.Data.Client.Servers.Length > 0)
             {
-                config.Data.Client.Server = runningConfig.Data.Client.Servers.FirstOrDefault().Host;
-                config.Data.Client.ServerSecretKey = runningConfig.Data.Client.Servers.FirstOrDefault().SecretKey;
+                config.Data.Client.ServerInfo = runningConfig.Data.Client.Servers.FirstOrDefault();
             }
 
             runningConfigTransfer.Setter(configKey, SetServers);
@@ -90,13 +89,13 @@ namespace linker.plugins.client
             try
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Info($"connect to signin server:{config.Data.Client.Server}");
+                    LoggerHelper.Instance.Info($"connect to signin server:{config.Data.Client.ServerInfo.Host}");
 
-                IPEndPoint ip = NetworkHelper.GetEndPoint(config.Data.Client.Server, 1802);
+                IPEndPoint ip = NetworkHelper.GetEndPoint(config.Data.Client.ServerInfo.Host, 1802);
                 if (ip == null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Error($"get domain ip fail:{config.Data.Client.Server}");
+                        LoggerHelper.Instance.Error($"get domain ip fail:{config.Data.Client.ServerInfo.Host}");
                     return;
                 }
 
@@ -317,15 +316,14 @@ namespace linker.plugins.client
         }
         private async Task SetServersReSignin(ClientServerInfo[] servers)
         {
-            string server = config.Data.Client.Server;
+            string server = config.Data.Client.ServerInfo.Host;
             runningConfig.Data.Client.Servers = servers;
             if (runningConfig.Data.Client.Servers.Length > 0)
             {
-                config.Data.Client.Server = runningConfig.Data.Client.Servers.FirstOrDefault().Host;
-                config.Data.Client.ServerSecretKey = runningConfig.Data.Client.Servers.FirstOrDefault().SecretKey;
+                config.Data.Client.ServerInfo = runningConfig.Data.Client.Servers.FirstOrDefault();
             }
             runningConfig.Data.Update();
-            if (server != config.Data.Client.Server)
+            if (server != config.Data.Client.ServerInfo.Host)
             {
                 SignOut();
                 await SignIn();

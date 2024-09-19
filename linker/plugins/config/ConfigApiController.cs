@@ -49,14 +49,12 @@ namespace linker.plugins.config
 
                 if (info.Client.HasServer)
                 {
-                    config.Data.Client.Server = info.Client.Server;
-                    config.Data.Client.ServerSecretKey = info.Client.ServerSecretKey;
-
                     runningConfig.Data.SForwardSecretKey = info.Client.SForwardSecretKey;
                     runningConfig.Data.UpdaterSecretKey = info.Client.UpdaterSecretKey;
                     foreach (var item in runningConfig.Data.Relay.Servers)
                     {
                         item.SecretKey = info.Client.RelaySecretKey;
+                        item.Host = info.Client.Server;
                     }
                     foreach (var item in runningConfig.Data.Tunnel.Servers)
                     {
@@ -67,6 +65,8 @@ namespace linker.plugins.config
                         item.Host = info.Client.Server;
                         item.SecretKey = info.Client.ServerSecretKey;
                     }
+                    if (runningConfig.Data.Client.Servers.Length > 0)
+                        config.Data.Client.ServerInfo = runningConfig.Data.Client.Servers.FirstOrDefault();
                 }
             }
             if (info.Common.Modes.Contains("server"))
@@ -242,7 +242,7 @@ namespace linker.plugins.config
         public bool HasServer { get; set; }
         public string Server { get; set; }
         public string ServerSecretKey { get; set; }
-        
+
         public string SForwardSecretKey { get; set; }
         public string RelaySecretKey { get; set; }
         public string UpdaterSecretKey { get; set; }

@@ -73,14 +73,13 @@ namespace linker.plugins.tunnel
             {
                 return connection;
             }
-
-            if (await WaitAsync(machineId) == false)
-            {
-                return null;
-            }
-
             try
             {
+                if (await WaitAsync(machineId) == false)
+                {
+                    return null;
+                }
+
                 //获得锁之前再次看看之前有没有连接成功
                 if (connections.TryGetValue(machineId, out connection) && connection.Connected)
                 {
@@ -111,8 +110,6 @@ namespace linker.plugins.tunnel
         }
         private async Task<ITunnelConnection> RelayAndP2P(string machineId, TunnelProtocolType denyProtocols)
         {
-            if (tunnelTransfer.IsBackground(machineId, TransactionId)) return null;
-
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} relay to {machineId}");
             ITunnelConnection connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, TransactionId).ConfigureAwait(false);
             if (connection != null)
@@ -125,6 +122,8 @@ namespace linker.plugins.tunnel
             }
             else
             {
+                if (tunnelTransfer.IsBackground(machineId, TransactionId)) return null;
+
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} p2p to {machineId}");
                 connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, denyProtocols).ConfigureAwait(false);
                 if (connection != null)
