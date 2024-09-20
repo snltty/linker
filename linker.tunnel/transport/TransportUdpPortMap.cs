@@ -12,6 +12,7 @@ namespace linker.tunnel.transport
 {
     /// <summary>
     /// 基于端口映射
+    /// 这个没什么说的，就是设置了固定端口，就监听，对方来连这个固定的端口即可
     /// </summary>
     public sealed class TransportUdpPortMap : ITunnelTransport
     {

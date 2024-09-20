@@ -9,6 +9,17 @@ using linker.tunnel.wanport;
 
 namespace linker.tunnel.transport
 {
+    /// <summary>
+    ///  UDP 打洞
+    ///  
+    ///  大致原理（正向打洞）
+    ///  A 通知 B，我要连你
+    ///  B 收到通知，开始监听收取消息，并且给A随便发送个消息，这时候A肯定收不到
+    ///  A 监听收取消息，并且给 B 发送的试探消息，如果B能收到消息，就会回复一条消息
+    ///  A 能收到回复，就说明通了，这隧道能用
+    /// 
+    /// 反向打洞几乎同理，逻辑变通一下即可
+    /// </summary>
     public sealed class TransportUdp : ITunnelTransport
     {
         public string Name => "udp";
@@ -42,6 +53,11 @@ namespace linker.tunnel.transport
         {
         }
 
+        /// <summary>
+        /// 开始连接对方
+        /// </summary>
+        /// <param name="tunnelTransportInfo"></param>
+        /// <returns></returns>
         public async Task<ITunnelConnection> ConnectAsync(TunnelTransportInfo tunnelTransportInfo)
         {
             if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
@@ -81,17 +97,26 @@ namespace linker.tunnel.transport
             await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
             return null;
         }
+
+        /// <summary>
+        /// 收到连接请求
+        /// </summary>
+        /// <param name="tunnelTransportInfo"></param>
+        /// <returns></returns>
         public async Task OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
+            //他要连我
             if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
             {
+                //我监听连接
                 _ = BindListen(tunnelTransportInfo.Local.Local, tunnelTransportInfo);
                 await Task.Delay(50).ConfigureAwait(false);
+                //给它随便发送一些消息，然后他就可以来连我了
                 BindAndTTL(tunnelTransportInfo);
             }
             else
             {
-
+                //我去连接他
                 ITunnelConnection connection = await ConnectForward(tunnelTransportInfo).ConfigureAwait(false);
                 if (connection != null)
                 {
@@ -106,6 +131,11 @@ namespace linker.tunnel.transport
         }
 
 
+        /// <summary>
+        /// 连接对方
+        /// </summary>
+        /// <param name="tunnelTransportInfo"></param>
+        /// <returns></returns>
         private async Task<ITunnelConnection> ConnectForward(TunnelTransportInfo tunnelTransportInfo)
         {
 
@@ -116,9 +146,10 @@ namespace linker.tunnel.transport
 
             IPEndPoint local = new IPEndPoint(tunnelTransportInfo.Local.Local.Address, tunnelTransportInfo.Local.Local.Port);
             TaskCompletionSource<IPEndPoint> taskCompletionSource = new TaskCompletionSource<IPEndPoint>(TaskCreationOptions.RunContinuationsAsynchronously);
-            //接收远端数据，收到了就是成功了
+            //监听连接
             Socket remoteUdp = BindListen(local, taskCompletionSource);
 
+            //给对方发送简单消息
             foreach (IPEndPoint ep in tunnelTransportInfo.RemoteEndPoints)
             {
                 try
@@ -141,6 +172,7 @@ namespace linker.tunnel.transport
 
             try
             {
+                //然后等待对方回复，如果能收到回复，就说明是通了
                 IPEndPoint remoteEP = await taskCompletionSource.Task.WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
                 return new TunnelConnectionUdp
                 {
@@ -171,6 +203,13 @@ namespace linker.tunnel.transport
 
             return null;
         }
+
+        /// <summary>
+        /// 开启一个监听，然后等待对方发来消息
+        /// </summary>
+        /// <param name="local"></param>
+        /// <param name="tcs"></param>
+        /// <returns></returns>
         private Socket BindListen(IPEndPoint local, TaskCompletionSource<IPEndPoint> tcs)
         {
             Socket socket = new Socket(local.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
@@ -186,6 +225,13 @@ namespace linker.tunnel.transport
             });
             return socket;
         }
+
+        /// <summary>
+        /// 开启一个监听，等待对方发来消息，如果收到消息，就给对方回复消息，对方就知道通了
+        /// </summary>
+        /// <param name="local"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
         private async Task BindListen(IPEndPoint local, TunnelTransportInfo state)
         {
             Socket socket = new Socket(local.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
@@ -249,6 +295,11 @@ namespace linker.tunnel.transport
             {
             }
         }
+
+        /// <summary>
+        /// 随便发送一些消息
+        /// </summary>
+        /// <param name="tunnelTransportInfo"></param>
         private void BindAndTTL(TunnelTransportInfo tunnelTransportInfo)
         {
             IPEndPoint local = new IPEndPoint(tunnelTransportInfo.Local.Local.Address, tunnelTransportInfo.Local.Local.Port);
@@ -285,6 +336,11 @@ namespace linker.tunnel.transport
         }
 
         private ConcurrentDictionary<string, TaskCompletionSource<ITunnelConnection>> reverseDic = new ConcurrentDictionary<string, TaskCompletionSource<ITunnelConnection>>();
+        /// <summary>
+        /// 反向连接的时候，等待对方来连
+        /// </summary>
+        /// <param name="tunnelTransportInfo"></param>
+        /// <returns></returns>
         private async Task<ITunnelConnection> WaitReverse(TunnelTransportInfo tunnelTransportInfo)
         {
             TaskCompletionSource<ITunnelConnection> tcs = new TaskCompletionSource<ITunnelConnection>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -304,6 +360,11 @@ namespace linker.tunnel.transport
             }
             return null;
         }
+
+        /// <summary>
+        /// 收到打洞失败消息
+        /// </summary>
+        /// <param name="tunnelTransportInfo"></param>
         public void OnFail(TunnelTransportInfo tunnelTransportInfo)
         {
             if (reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out TaskCompletionSource<ITunnelConnection> tcs))
@@ -311,6 +372,10 @@ namespace linker.tunnel.transport
                 tcs.SetResult(null);
             }
         }
+        /// <summary>
+        /// 收到打洞成功消息
+        /// </summary>
+        /// <param name="tunnelTransportInfo"></param>
         public void OnSuccess(TunnelTransportInfo tunnelTransportInfo)
         {
             if (reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out TaskCompletionSource<ITunnelConnection> tcs))

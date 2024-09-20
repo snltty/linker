@@ -57,6 +57,9 @@ namespace linker.plugins.tuntap.config
         public uint Broadcast { get; set; }
 
         [MemoryPackIgnore]
+        public string MachineId { get; set; }
+
+        [MemoryPackIgnore]
         public IPAddress OriginIPAddress { get; set; }
 
 
@@ -144,6 +147,9 @@ namespace linker.plugins.tuntap.config
         /// 开关，多个bool集合
         /// </summary>
         public TuntapSwitch Switch { get; set; }
+
+        [MemoryPackIgnore]
+        public long LastTicks { get; set; } = Environment.TickCount64;
 
         /// <summary>
         /// 延迟ms

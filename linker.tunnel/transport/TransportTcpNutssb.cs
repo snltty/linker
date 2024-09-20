@@ -12,6 +12,14 @@ using linker.tunnel.wanport;
 
 namespace linker.tunnel.transport
 {
+    /// <summary>
+    /// TCP打洞
+    /// 
+    ///  大致原理（正向打洞）
+    ///  A 通知 B，我要连你
+    ///  B 收到通知，开始监听连接，并且以低TTL方式尝试连接A，这时候A肯定收不到
+    ///  A 正常去连接 B，能连接成功则通道可用
+    /// </summary>
     public sealed class TunnelTransportTcpNutssb : ITunnelTransport
     {
         public string Name => "TcpNutssb";

@@ -13,6 +13,9 @@ using linker.tunnel.wanport;
 
 namespace linker.tunnel.transport
 {
+    /// <summary>
+    /// 与UDP打洞同理，只是打洞成功后多包装一个msquic，用于保证消息准确到达
+    /// </summary>
     public sealed class TransportMsQuic : ITunnelTransport
     {
         public string Name => "msquic";

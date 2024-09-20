@@ -12,6 +12,12 @@ using linker.tunnel.wanport;
 
 namespace linker.tunnel.transport
 {
+    /// <summary>
+    /// TCP同时连接打洞
+    /// 
+    /// 大致原理
+    /// A 通知 B ，B立马连接A，A也同时去连接B
+    /// </summary>
     public sealed class TransportTcpP2PNAT : ITunnelTransport
     {
         public string Name => "TcpP2PNAT";
@@ -152,44 +158,50 @@ namespace linker.tunnel.transport
 
         private async Task<ITunnelConnection> TcpClient(TunnelTransportInfo state, Socket socket)
         {
-            //随便发个消息看对方有没有收到
-            await socket.SendAsync(authBytes).ConfigureAwait(false);
-            //如果对方收到，会回个消息，不管是啥，回了就行
-            int length = await socket.ReceiveAsync(new byte[1024]).ConfigureAwait(false);
-            if (length == 0) return null;
-
-            //需要ssl
-            SslStream sslStream = null;
-            if (state.SSL)
+            try
             {
-                sslStream = new SslStream(new NetworkStream(socket, false), false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
-                await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 }).ConfigureAwait(false);
+                //随便发个消息看对方有没有收到
+                await socket.SendAsync(authBytes).ConfigureAwait(false);
+                //如果对方收到，会回个消息，不管是啥，回了就行
+                int length = await socket.ReceiveAsync(new byte[1024]).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                if (length == 0) return null;
+
+                //需要ssl
+                SslStream sslStream = null;
+                if (state.SSL)
+                {
+                    sslStream = new SslStream(new NetworkStream(socket, false), false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
+                    await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 }).ConfigureAwait(false);
+                }
+
+                return new TunnelConnectionTcp
+                {
+                    Stream = sslStream,
+                    Socket = socket,
+                    IPEndPoint = socket.RemoteEndPoint as IPEndPoint,
+                    TransactionId = state.TransactionId,
+                    RemoteMachineId = state.Remote.MachineId,
+                    RemoteMachineName = state.Remote.MachineName,
+                    TransportName = Name,
+                    Direction = state.Direction,
+                    ProtocolType = ProtocolType,
+                    Type = TunnelType.P2P,
+                    Mode = TunnelMode.Client,
+                    Label = string.Empty,
+                    SSL = state.SSL,
+                    BufferSize = state.BufferSize,
+                };
             }
-
-            return new TunnelConnectionTcp
-            {
-                Stream = sslStream,
-                Socket = socket,
-                IPEndPoint = socket.RemoteEndPoint as IPEndPoint,
-                TransactionId = state.TransactionId,
-                RemoteMachineId = state.Remote.MachineId,
-                RemoteMachineName = state.Remote.MachineName,
-                TransportName = Name,
-                Direction = state.Direction,
-                ProtocolType = ProtocolType,
-                Type = TunnelType.P2P,
-                Mode = TunnelMode.Client,
-                Label = string.Empty,
-                SSL = state.SSL,
-                BufferSize = state.BufferSize,
-            };
+            catch (Exception)
+            { }
+            return null;
         }
         private async Task<ITunnelConnection> TcpServer(TunnelTransportInfo state, Socket socket)
         {
             try
             {
                 //对方会随便发个消息，不管是啥
-                int length = await socket.ReceiveAsync(new byte[1024]).ConfigureAwait(false);
+                int length = await socket.ReceiveAsync(new byte[1024]).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
                 if (length == 0)
                 {
                     return null;
