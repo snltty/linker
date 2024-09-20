@@ -19,17 +19,16 @@
 		<Title>linker</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 优化虚拟网卡中继逻辑
-2. 信标服务器可设置静态Json参数
-3. 优化UDP打洞
-4. 数据库加密，保护你的隐私</Description>
+		<Description>1. 优化虚拟网卡多客户端局域网IP冲突切换
+2. 修复信标Json参数
+3. 增加局域网IP冲突提示</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.3.9</Version>
-		<AssemblyVersion>1.3.9</AssemblyVersion>
-		<FileVersion>1.3.9</FileVersion>
+		<Version>1.4.0</Version>
+		<AssemblyVersion>1.4.0</AssemblyVersion>
+		<FileVersion>1.4.0</FileVersion>
 	</PropertyGroup>
 
 

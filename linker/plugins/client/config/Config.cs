@@ -159,6 +159,11 @@ namespace linker.config
         public string Host { get; set; } = string.Empty;
         public string SecretKey { get; set; } = string.Empty;
         public string Arg { get; set; } = string.Empty;
+
+        public string ToStr()
+        {
+            return $"{Host}-{SecretKey}-{Arg}";
+        }
     }
 
     [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]

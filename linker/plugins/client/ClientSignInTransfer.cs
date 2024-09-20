@@ -36,7 +36,7 @@ namespace linker.plugins.client
             this.signInArgsTransfer = signInArgsTransfer;
             this.runningConfigTransfer = runningConfigTransfer;
 
-            if (runningConfig.Data.Client.Servers.Length > 0 && config.Data.Client.ServerInfo == null)
+            if (runningConfig.Data.Client.Servers.Length > 0)
             {
                 config.Data.Client.ServerInfo = runningConfig.Data.Client.Servers.FirstOrDefault();
             }
@@ -316,14 +316,18 @@ namespace linker.plugins.client
         }
         private async Task SetServersReSignin(ClientServerInfo[] servers)
         {
-            string server = config.Data.Client.ServerInfo.Host;
+            string str = config.Data.Client.ServerInfo.ToStr();
+
             runningConfig.Data.Client.Servers = servers;
+            runningConfig.Data.Update();
+
             if (runningConfig.Data.Client.Servers.Length > 0)
             {
                 config.Data.Client.ServerInfo = runningConfig.Data.Client.Servers.FirstOrDefault();
+                config.Data.Update();
             }
-            runningConfig.Data.Update();
-            if (server != config.Data.Client.ServerInfo.Host)
+
+            if(str != config.Data.Client.ServerInfo.ToStr())
             {
                 SignOut();
                 await SignIn();

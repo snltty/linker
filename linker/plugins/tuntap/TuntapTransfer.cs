@@ -386,6 +386,34 @@ namespace linker.plugins.tuntap
             {
                 tuntapProxy.SetIP(item.MachineId, BinaryPrimitives.ReadUInt32BigEndian(item.IP.GetAddressBytes()));
             }
+            CheckLanIPs();
+        }
+        /// <summary>
+        /// 检查是否有重复的局域网IP
+        /// </summary>
+        /// <param name="infos"></param>
+        private void CheckLanIPs()
+        {
+            uint[] localIps = NetworkHelper.GetIPV4().Concat(routeIps)
+                .Select(c => BinaryPrimitives.ReadUInt32BigEndian(c.GetAddressBytes()))
+                .ToArray();
+
+            var ips = tuntapInfos.Values.Where(c => c.MachineId != config.Data.Client.Id).Select(c =>
+                {
+                    return new TuntapVeaLanIPAddressList
+                    {
+                        MachineId = c.MachineId,
+                        IPS = ParseIPs(c.LanIPs, c.Masks, c.MachineId).Where(c => localIps.Select(d => d & c.MaskValue).Contains(c.NetWork)).ToList(),
+                    };
+                }).ToList();
+
+            foreach (var item in ips)
+            {
+                if (item.IPS.Count == 0) continue;
+                if (tuntapInfos.TryGetValue(item.MachineId, out TuntapInfo info) == false || string.IsNullOrWhiteSpace(info.Error1) == false) continue;
+                info.Error1 = $"this machine already has {string.Join(",", item.IPS.Select(c => $"{c.OriginIPAddress}/{c.MaskLength}"))}";
+            }
+            Version.Add();
         }
 
 
