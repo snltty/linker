@@ -167,6 +167,7 @@ namespace linker.plugins.config
                 client.Name = configExportInfo.Name;
                 client.Access = accessTransfer.AssignAccess((ClientApiAccess)configExportInfo.Access);
                 client.OnlyNode = true;
+                client.NodeArg = configExportInfo.ActionArg;
                 File.WriteAllText(Path.Combine(configPath, $"client.json"), client.Serialize(client));
 
                 ConfigCommonInfo common = config.Data.Common.ToJson().DeJson<ConfigCommonInfo>();
@@ -284,6 +285,7 @@ namespace linker.plugins.config
     {
         public string Name { get; set; }
         public string ApiPassword { get; set; }
+        public string ActionArg { get; set; }
         public bool Single { get; set; }
         public ulong Access { get; set; }
     }

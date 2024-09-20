@@ -17,7 +17,16 @@ namespace linker.plugins.client
         public async Task<string> Invoke(Dictionary<string, string> args)
         {
             args.TryAdd("signin-secretkey", fileConfig.Data.Client.ServerInfo.SecretKey);
-            args.TryAdd("signin-arg", fileConfig.Data.Client.ServerInfo.Arg);
+
+            if (string.IsNullOrWhiteSpace(fileConfig.Data.Client.NodeArg) == false)
+            {
+                args.TryAdd("signin-arg", fileConfig.Data.Client.NodeArg);
+            }
+            else
+            {
+                args.TryAdd("signin-arg", fileConfig.Data.Client.ServerInfo.Arg);
+            }
+
 
             await Task.CompletedTask;
             return string.Empty;
@@ -54,7 +63,7 @@ namespace linker.plugins.client
         /// <returns></returns>
         public async Task<string> Verify(SignInfo signInfo, SignCacheInfo cache)
         {
-            if(string.IsNullOrWhiteSpace(fileConfig.Data.Server.SignIn.SecretKey) == false)
+            if (string.IsNullOrWhiteSpace(fileConfig.Data.Server.SignIn.SecretKey) == false)
             {
                 if (signInfo.Args.TryGetValue("signin-secretkey", out string secretkey) == false || secretkey != fileConfig.Data.Server.SignIn.SecretKey)
                 {

@@ -37,7 +37,7 @@ jobs:
           release_name: v1.4.0.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 优化虚拟网卡多客户端局域网IP冲突切换\r\n2. 修复信标Json参数\r\n3. 增加局域网IP冲突提示"
+          body: "1. 优化虚拟网卡多客户端局域网IP冲突切换\r\n2. 修复信标Json参数\r\n3. 增加局域网IP冲突提示\r\n4. 导出配置可指定Action参数"
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
         uses: tvrcgo/oss-action@v0.1.1

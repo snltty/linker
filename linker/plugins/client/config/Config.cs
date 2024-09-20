@@ -92,6 +92,7 @@ namespace linker.config
             return (Access & clientManagerAccess) == clientManagerAccess;
         }
         public bool OnlyNode { get; set; }
+        public string NodeArg { get; set; }
 
 #if DEBUG
         public ClientServerInfo ServerInfo { get; set; } = new ClientServerInfo { Host = new IPEndPoint(IPAddress.Loopback, 1802).ToString(), Name = "default", SecretKey = string.Empty };
