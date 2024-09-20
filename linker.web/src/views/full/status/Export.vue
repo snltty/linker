@@ -31,7 +31,7 @@
                                 </div>
                                 <div class="flex">
                                     <div>
-                                        <span>Action参数(自定义验证) : </span><el-input v-model="state.nodeArg" style="width:34.2rem"></el-input>
+                                        <span>Action参数(自定义验证) : </span><el-input v-model="state.actionArg" style="width:34.2rem"></el-input>
                                     </div>
                                 </div>
                             </div>
@@ -69,7 +69,7 @@ export default {
             loading:false,
             single:true,
             name:'',
-            nodeArg:globalData.value.config.Client.ServerInfo.Arg || '',
+            actionArg:globalData.value.config.Client.ServerInfo.Arg || '',
             apipassword: globalData.value.config.Client.CApi.ApiPassword,
         });
         const accessDom = ref(null); 
@@ -83,12 +83,12 @@ export default {
                 access:accessDom.value.getValue(),
                 single:state.single,
                 name:state.name,
-                ActionArg:state.nodeArg,
+                actionArg:state.actionArg,
                 apipassword:state.apipassword
             }
-            if(json.nodeArg){
+            if(json.actionArg){
                 try{
-                    if(typeof(JSON.parse(json.nodeArg)) != 'object'){
+                    if(typeof(JSON.parse(json.actionArg)) != 'object'){
                         ElMessage.error('Action参数错误，需要JSON格式');
                         return;
                     }
