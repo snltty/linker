@@ -246,7 +246,7 @@ namespace linker.plugins.messenger
 
         }
 
-        public override bool Connected => SourceSocket != null && Environment.TickCount64 - ticks < 15000;
+        public override bool Connected => SourceSocket != null && ticks > 0 && Environment.TickCount64 - ticks < 15000;
 
 
         private IConnectionReceiveCallback callback;
@@ -495,6 +495,8 @@ namespace linker.plugins.messenger
             }
             SourceSocket?.SafeClose();
             TargetSocket?.SafeClose();
+
+            ticks = 0;
         }
     }
 
