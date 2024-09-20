@@ -1,14 +1,11 @@
-﻿using linker.config;
-using linker.libs;
-using linker.libs.extends;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using System.Text.Json.Nodes;
 namespace linker.plugins.action
 {
     public sealed class ActionTransfer
     {
         public const string ACTION_ARG_KEY = "ACTION_ARGS";
-        private string action = new ActionInfo { Key = "token", Value = Helper.GlobalString }.ToJson();
+        private string action = string.Empty;// new ActionInfo { Key = "token", Value = Helper.GlobalString }.ToJson();
 
         public void SetActionArg(string action)
         {
