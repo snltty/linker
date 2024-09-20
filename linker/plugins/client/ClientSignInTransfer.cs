@@ -36,11 +36,6 @@ namespace linker.plugins.client
             this.signInArgsTransfer = signInArgsTransfer;
             this.runningConfigTransfer = runningConfigTransfer;
 
-            if (runningConfig.Data.Client.Servers.Length > 0)
-            {
-                config.Data.Client.ServerInfo = runningConfig.Data.Client.Servers.FirstOrDefault();
-            }
-
             runningConfigTransfer.Setter(configKey, SetServers);
             runningConfigTransfer.Getter(configKey, () => MemoryPackSerializer.Serialize(runningConfig.Data.Client.Servers));
 
@@ -327,7 +322,7 @@ namespace linker.plugins.client
                 config.Data.Update();
             }
 
-            if(str != config.Data.Client.ServerInfo.ToStr())
+            if (str != config.Data.Client.ServerInfo.ToStr())
             {
                 SignOut();
                 await SignIn();
