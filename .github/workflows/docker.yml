@@ -43,4 +43,23 @@ jobs:
     - name: chmod shell
       run: chmod +x publish-docker.sh
     - name: publish projects
-      run: ./publish-docker.sh 
+      run: ./publish-docker.sh
+
+    - name: create docker image manifest
+      run: |
+        docker pull --platform linux/arm64 snltty/linker-musl-arm64:latest &&  \
+        docker tag snltty/linker-musl-arm64:latest snltty/linker-musl:arm64 &&  \
+        docker push snltty/linker-musl:arm64 &&  \
+        docker pull --platform linux/amd64 snltty/linker-musl-x64:latest &&  \
+        docker tag snltty/linker-musl-x64:latest snltty/linker-musl:amd64 &&  \
+        docker push snltty/linker-musl:amd64 &&  \
+        docker manifest create snltty/linker-musl:latest snltty/linker-musl:amd64 snltty/linker-musl:arm64 && \
+        docker manifest push snltty/linker-musl:latest && \
+        docker pull --platform linux/arm64 snltty/linker-debian-arm64:latest &&  \
+        docker tag snltty/linker-debian-arm64:latest snltty/linker-debian:arm64 &&  \
+        docker push snltty/linker-debian:arm64 &&  \
+        docker pull --platform linux/amd64 snltty/linker-debian-x64:latest &&  \
+        docker tag snltty/linker-debian-x64:latest snltty/linker-debian:amd64 &&  \
+        docker push snltty/linker-debian:amd64 &&  \
+        docker manifest create snltty/linker-debian:latest snltty/linker-debian:amd64 snltty/linker-debian:arm64 && \
+        docker manifest push snltty/linker-debian:latest
