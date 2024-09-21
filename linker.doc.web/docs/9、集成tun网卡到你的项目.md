@@ -4,24 +4,24 @@ sidebar_position: 9
 
 # 9、集成tun网卡到你的项目
 
+## 1、说明
+
+:::tip[说明]
 在你的.NET8.0+项目中，集成tun网卡，适用于`windows`、`linux`，源码在[https://github.com/snltty/linker/tree/master/linker.tun](https://github.com/snltty/linker/tree/master/linker.tun)
 
-## 1、windows
-
-[下载wintun](https://www.wintun.net/)，选择适合你系统的 `wintun.dll`放到项目根目录
-
-:::tip[一个重要的点]
+### 1、windows
+1. [下载wintun](https://www.wintun.net/)，选择适合你系统的 `wintun.dll`放到项目根目录
 1. 在windows下，使用 wintun`WintunCreateAdapter`创建适配器，可以提供一个guid，如果不提供，将随机一个，这会导致注册表不断的产生新的记录
 2. 如果提供一个固定的guid，在程序的一次会话内可以重复删除和创建适配器，但是，如果你在多个会话内使用同一个guid，将会非常大概率创建适配器失败
 3. 所以`linker.tun`选择每次运行程序时生成guid，在本次会话内重复使用，且提供了`LinkerTunDeviceAdapter.Clear()`让你选择在合适的适合清理注册表
+
+### 2、linux
+1. 请确保你的系统拥有`tuntap`模块，`ifconfig`、`ip`、`iptables`命令
 :::
 
-## 2、linux
+## 2、编写一个简单的代码
 
-请确保你的系统拥有`tuntap`模块，`ifconfig`、`ip`、`iptables`命令
-
-## 3、编写一个简单的代码
-
+:::tip[说明]
 nuget 安装 `linker.tun`，然后编写代码
 
 ```c#
@@ -85,7 +85,10 @@ public sealed class LinkerTunDeviceCallback : ILinkerTunDeviceCallback
 
                 //计算ICMP校验和
                 *(ushort*)(ptr + 22) = 0;
-                *(ushort*)(ptr + 22) = Program.linkerTunDeviceAdapter.Checksum((ushort*)(ptr + 20), (uint)(packet.IPPacket.Length - 20));
+
+                int length = packet.IPPacket.Span.Length - 20;
+                ushort sum = Program.linkerTunDeviceAdapter.Checksum((ushort*)(ptr + 20), length);
+                *(ushort*)(ptr + 22) = sum;
 
                 //写入网卡，回应这个ICMP请求
                 Program.linkerTunDeviceAdapter.Write(packet.IPPacket);
@@ -94,3 +97,4 @@ public sealed class LinkerTunDeviceCallback : ILinkerTunDeviceCallback
     }
 }
 ```
+:::
