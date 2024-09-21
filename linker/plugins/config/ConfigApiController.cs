@@ -86,8 +86,6 @@ namespace linker.plugins.config
             config.Data.Common.Install = true;
             config.Data.Update();
 
-            runningConfig.Data.Update();
-
             return true;
         }
 
