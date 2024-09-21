@@ -14,20 +14,9 @@ namespace linker.plugins.client
         {
             this.fileConfig = fileConfig;
         }
-        public async Task<string> Invoke(Dictionary<string, string> args)
+        public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             args.TryAdd("signin-secretkey", fileConfig.Data.Client.ServerInfo.SecretKey);
-
-            if (string.IsNullOrWhiteSpace(fileConfig.Data.Client.NodeArg) == false)
-            {
-                args.TryAdd("signin-arg", fileConfig.Data.Client.NodeArg);
-            }
-            else
-            {
-                args.TryAdd("signin-arg", fileConfig.Data.Client.ServerInfo.Arg);
-            }
-
-
             await Task.CompletedTask;
             return string.Empty;
         }
@@ -49,7 +38,7 @@ namespace linker.plugins.client
         {
             this.fileConfig = fileConfig;
         }
-        public async Task<string> Invoke(Dictionary<string, string> args)
+        public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             await Task.CompletedTask;
             return string.Empty;

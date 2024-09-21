@@ -12,9 +12,19 @@ const routes = [
                 component: () => import('@/views/full/devices/List.vue')
             },
             {
-                path: '/full/settings.html',
-                name: 'FullSettings',
-                component: () => import('@/views/full/settings/Index.vue')
+                path: '/full/servers.html',
+                name: 'FullServers',
+                component: () => import('@/views/full/server/Index.vue')
+            },
+            {
+                path: '/full/transport.html',
+                name: 'FullTransport',
+                component: () => import('@/views/full/transport/Index.vue')
+            },
+            {
+                path: '/full/action.html',
+                name: 'FullAction',
+                component: () => import('@/views/full/action/Index.vue')
             },
             {
                 path: '/full/logger.html',

@@ -14,11 +14,11 @@ namespace linker.plugins.signIn.args
             startups = types.Select(c => serviceProvider.GetService(c) as ISignInArgs).Where(c => c != null).ToList();
         }
 
-        public async Task<string> Invoke(Dictionary<string, string> args)
+        public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             foreach (var item in startups)
             {
-                string result = await item.Invoke(args);
+                string result = await item.Invoke(host,args);
                 if (string.IsNullOrWhiteSpace(result) == false)
                 {
                     return result;

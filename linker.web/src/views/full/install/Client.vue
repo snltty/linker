@@ -115,9 +115,9 @@ export default {
                 hasServer:step.value.form.client.hasServer ||false,
                 server:step.value.form.client.server ||globalData.value.config.Client.ServerInfo.Host,
                 serverSecretKey:step.value.form.client.serverSecretKey ||globalData.value.config.Client.ServerSecretKey,
-                sForwardSecretKey:step.value.form.client.sForwardSecretKey ||globalData.value.config.Running.SForwardSecretKey,
-                relaySecretKey:step.value.form.client.relaySecretKey ||(globalData.value.config.Running.Relay.Servers[0] || {SecretKey:'snltty'}).SecretKey,
-                updaterSecretKey:step.value.form.client.updaterSecretKey ||globalData.value.config.Running.UpdaterSecretKey,
+                sForwardSecretKey:step.value.form.client.sForwardSecretKey ||globalData.value.config.Client.SForward.SecretKey,
+                relaySecretKey:step.value.form.client.relaySecretKey ||(globalData.value.config.Client.Relay.Servers[0] || {SecretKey:'snltty'}).SecretKey,
+                updaterSecretKey:step.value.form.client.updaterSecretKey ||globalData.value.config.Client.Updater.SecretKey,
             },
             rules: {
                 name: [{ required: true, message: "必填", trigger: "blur" }],

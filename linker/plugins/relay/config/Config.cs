@@ -1,4 +1,5 @@
-﻿using linker.config;
+﻿using linker.client.config;
+using linker.config;
 using LiteDB;
 using MemoryPack;
 using System.Diagnostics.CodeAnalysis;
@@ -24,22 +25,25 @@ namespace linker.client.config
 
         public bool ByRelay { get; set; }
     }
-
-    [MemoryPackable]
-    public sealed partial class RelayRunningSyncInfo
-    {
-        /// <summary>
-        /// 中继服务器列表
-        /// </summary>
-        public RelayServerInfo[] Servers { get; set; } = Array.Empty<RelayServerInfo>();
-
-        public bool ByRelay { get; set; }
-    }
 }
 
 
 namespace linker.config
 {
+
+    public sealed partial class ConfigClientInfo
+    {
+        public RelayInfo Relay { get; set; } = new RelayInfo();
+    }
+    public sealed class RelayInfo
+    {
+        /// <summary>
+        /// 中继服务器列表
+        /// </summary>
+        public RelayServerInfo[] Servers { get; set; } = Array.Empty<RelayServerInfo>();
+    }
+
+
     public partial class ConfigServerInfo
     {
         /// <summary>
@@ -47,7 +51,6 @@ namespace linker.config
         /// </summary>
         public RelayConfigServerInfo Relay { get; set; } = new RelayConfigServerInfo();
     }
-
     public sealed class RelayConfigServerInfo
     {
         /// <summary>

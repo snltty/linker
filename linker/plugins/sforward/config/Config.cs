@@ -74,6 +74,16 @@ namespace linker.client.config
 
 namespace linker.config
 {
+    public sealed partial class ConfigClientInfo
+    {
+        public SForwardConfigInfo SForward { get; set; } = new SForwardConfigInfo();
+    }
+    public sealed class SForwardConfigInfo
+    {
+        public string SecretKey { get; set; } = "snltty";
+    }
+
+
     public partial class ConfigServerInfo
     {
         /// <summary>
@@ -81,7 +91,6 @@ namespace linker.config
         /// </summary>
         public SForwardConfigServerInfo SForward { get; set; } = new SForwardConfigServerInfo();
     }
-
     public sealed class SForwardConfigServerInfo
     {
         /// <summary>

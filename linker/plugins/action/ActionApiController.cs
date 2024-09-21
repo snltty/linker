@@ -2,6 +2,8 @@
 using linker.plugins.capi;
 using linker.plugins.action;
 using linker.plugins.client;
+using linker.libs.extends;
+using linker.config;
 
 namespace linker.plugins.signin
 {
@@ -16,12 +18,23 @@ namespace linker.plugins.signin
             this.clientSignInTransfer = clientSignInTransfer;
         }
 
+
+        [ClientApiAccessAttribute(ClientApiAccess.Action)]
         public bool SetArgs(ApiControllerParamsInfo param)
         {
             actionTransfer.SetActionArg(param.Content);
             clientSignInTransfer.SignOut();
             _ = clientSignInTransfer.SignIn();
 
+            return true;
+        }
+
+        [ClientApiAccessAttribute(ClientApiAccess.Action)]
+        public bool SetServerArgs(ApiControllerParamsInfo param)
+        {
+            actionTransfer.SetActionArgs(param.Content.DeJson<Dictionary<string, string>>());
+            clientSignInTransfer.SignOut();
+            _ = clientSignInTransfer.SignIn();
             return true;
         }
     }

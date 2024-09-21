@@ -8,15 +8,16 @@ using System.Net;
 using linker.libs.extends;
 using linker.plugins.client;
 using linker.plugins.messenger;
+using linker.config;
 
 namespace linker.plugins.sforward
 {
     public sealed class SForwardTransfer
     {
+        private readonly FileConfig fileConfig;
         private readonly RunningConfig running;
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
-        private readonly RunningConfigTransfer runningConfigTransfer;
 
         private string configKey = "sforwardKey";
 
@@ -24,39 +25,24 @@ namespace linker.plugins.sforward
 
         public VersionManager Version { get; } = new VersionManager();
 
-        public SForwardTransfer(RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, RunningConfigTransfer runningConfigTransfer)
+        public SForwardTransfer(FileConfig fileConfig,RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender)
         {
+            this.fileConfig = fileConfig;
             this.running = running;
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
-            this.runningConfigTransfer = runningConfigTransfer;
-
-            runningConfigTransfer.Setter(configKey, SetSecretKey);
-            runningConfigTransfer.Getter(configKey, () => MemoryPackSerializer.Serialize(GetSecretKey()));
             clientSignInState.NetworkFirstEnabledHandle += () => Start();
-            clientSignInState.NetworkEnabledHandle += (times) => SyncKey();
         }
 
         #region 同步配置
         public string GetSecretKey()
         {
-            return running.Data.SForwardSecretKey;
+            return fileConfig.Data.Client.SForward.SecretKey;
         }
         public void SetSecretKey(string key)
         {
-            running.Data.SForwardSecretKey = key;
-            running.Data.Update();
-            runningConfigTransfer.IncrementVersion(configKey);
-            SyncKey();
-        }
-        private void SetSecretKey(Memory<byte> data)
-        {
-            running.Data.SForwardSecretKey = MemoryPackSerializer.Deserialize<string>(data.Span);
-            running.Data.Update();
-        }
-        private void SyncKey()
-        {
-            runningConfigTransfer.Sync(configKey, MemoryPackSerializer.Serialize(GetSecretKey()));
+            fileConfig.Data.Client.SForward.SecretKey = key;
+            fileConfig.Data.Update();
         }
         #endregion
 
@@ -90,7 +76,7 @@ namespace linker.plugins.sforward
                     {
                         Connection = clientSignInState.Connection,
                         MessengerId = (ushort)SForwardMessengerIds.Add,
-                        Payload = MemoryPackSerializer.Serialize(new SForwardAddInfo { Domain = forwardInfo.Domain, RemotePort = forwardInfo.RemotePort, SecretKey = running.Data.SForwardSecretKey })
+                        Payload = MemoryPackSerializer.Serialize(new SForwardAddInfo { Domain = forwardInfo.Domain, RemotePort = forwardInfo.RemotePort, SecretKey = fileConfig.Data.Client.SForward.SecretKey })
                     }).ContinueWith((result) =>
                     {
                         if (result.Result.Code == MessageResponeCodes.OK)
@@ -131,7 +117,7 @@ namespace linker.plugins.sforward
                     {
                         Connection = clientSignInState.Connection,
                         MessengerId = (ushort)SForwardMessengerIds.Remove,
-                        Payload = MemoryPackSerializer.Serialize(new SForwardAddInfo { Domain = forwardInfo.Domain, RemotePort = forwardInfo.RemotePort, SecretKey = running.Data.SForwardSecretKey })
+                        Payload = MemoryPackSerializer.Serialize(new SForwardAddInfo { Domain = forwardInfo.Domain, RemotePort = forwardInfo.RemotePort, SecretKey = fileConfig.Data.Client.SForward.SecretKey })
                     }).ContinueWith((result) =>
                     {
                         if (result.Result.Code == MessageResponeCodes.OK)

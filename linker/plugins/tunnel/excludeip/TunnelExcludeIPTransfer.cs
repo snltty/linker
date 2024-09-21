@@ -4,7 +4,6 @@ using linker.libs;
 using linker.plugins.client;
 using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Generic;
 using System.Reflection;
 
 namespace linker.plugins.tunnel.excludeip
@@ -16,18 +15,15 @@ namespace linker.plugins.tunnel.excludeip
 
         private readonly RunningConfig running;
         private readonly ClientSignInState clientSignInState;
-        private readonly RunningConfigTransfer runningConfigTransfer;
         private readonly FileConfig fileConfig;
 
         private readonly ServiceProvider serviceProvider;
-        public TunnelExcludeIPTransfer(RunningConfig running, ClientSignInState clientSignInState, RunningConfigTransfer runningConfigTransfer, FileConfig fileConfig, ServiceProvider serviceProvider)
+        public TunnelExcludeIPTransfer(RunningConfig running, ClientSignInState clientSignInState, FileConfig fileConfig, ServiceProvider serviceProvider)
         {
             this.running = running;
             this.clientSignInState = clientSignInState;
-            this.runningConfigTransfer = runningConfigTransfer;
             this.fileConfig = fileConfig;
             this.serviceProvider = serviceProvider;
-            InitExcludeIP();
         }
 
         public void Load(Assembly[] assembs)
@@ -57,16 +53,6 @@ namespace linker.plugins.tunnel.excludeip
             return result;
         }
 
-        private void InitExcludeIP()
-        {
-            clientSignInState.NetworkEnabledHandle += (times) => SyncExcludeIP();
-            runningConfigTransfer.Setter(exipConfigKey, SettExcludeIPs);
-            runningConfigTransfer.Getter(exipConfigKey, () => MemoryPackSerializer.Serialize(GetExcludeIPs()));
-        }
-        private void SyncExcludeIP()
-        {
-            runningConfigTransfer.Sync(exipConfigKey, MemoryPackSerializer.Serialize(running.Data.Tunnel.ExcludeIPs));
-        }
         public ExcludeIPItem[] GetExcludeIPs()
         {
             return running.Data.Tunnel.ExcludeIPs;
@@ -75,8 +61,6 @@ namespace linker.plugins.tunnel.excludeip
         {
             running.Data.Tunnel.ExcludeIPs = ips;
             running.Data.Update();
-            runningConfigTransfer.IncrementVersion(exipConfigKey);
-            SyncExcludeIP();
         }
         private void SettExcludeIPs(Memory<byte> data)
         {

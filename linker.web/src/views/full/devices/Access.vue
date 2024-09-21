@@ -40,6 +40,9 @@ export default {
                 globalData.value.config.Client.Accesss.Api.Value,
                 globalData.value.config.Client.Accesss.Web.Value,
                 globalData.value.config.Client.Accesss.NetManager.Value,
+                globalData.value.config.Client.Accesss.FullManager.Value,
+                globalData.value.config.Client.Accesss.Transport.Value,
+                globalData.value.config.Client.Accesss.Action.Value,
             ],
             checkAll:false,
             isIndeterminate:false

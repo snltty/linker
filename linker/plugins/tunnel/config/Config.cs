@@ -59,7 +59,6 @@ namespace linker.config
 {
     public partial class ConfigClientInfo
     {
-        [JsonIgnore]
         public TunnelConfigClientInfo Tunnel { get; set; } = new TunnelConfigClientInfo();
     }
     public sealed class TunnelConfigClientInfo
@@ -72,6 +71,15 @@ namespace linker.config
 
         [JsonIgnore]
         public IPAddress[] RouteIPs { get; set; }
+
+        /// <summary>
+        /// 外网端口服务器列表
+        /// </summary>
+        public List<TunnelWanPortInfo> Servers { get; set; } = new List<TunnelWanPortInfo>();
+        /// <summary>
+        /// 打洞协议列表
+        /// </summary>
+        public List<TunnelTransportItemInfo> Transports { get; set; } = new List<TunnelTransportItemInfo>();
     }
 
 

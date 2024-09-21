@@ -24,10 +24,8 @@ namespace linker.plugins.config
             serviceCollection.AddSingleton<ConfigClientApiController>();
 
             serviceCollection.AddSingleton<ConfigClientMessenger>();
-            serviceCollection.AddSingleton<RunningConfigApiController>();
 
             serviceCollection.AddSingleton<RunningConfig>();
-            serviceCollection.AddSingleton<RunningConfigTransfer>();
 
 
             serviceCollection.AddSingleton<AccessTransfer>();
@@ -40,6 +38,7 @@ namespace linker.plugins.config
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
         {
+            RunningConfig runningConfig = serviceProvider.GetService<RunningConfig>();
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)

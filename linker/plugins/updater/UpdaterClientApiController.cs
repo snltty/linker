@@ -73,7 +73,7 @@ namespace linker.plugins.updater
             {
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)UpdaterMessengerIds.ConfirmServer,
-                Payload = MemoryPackSerializer.Serialize(new UpdaterConfirmServerInfo { SecretKey = runningConfig.Data.UpdaterSecretKey, Version = param.Content })
+                Payload = MemoryPackSerializer.Serialize(new UpdaterConfirmServerInfo { SecretKey = config.Data.Client.Updater.SecretKey, Version = param.Content })
             });
         }
         [ClientApiAccessAttribute(ClientApiAccess.UpdateServer)]
@@ -83,7 +83,7 @@ namespace linker.plugins.updater
             {
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)UpdaterMessengerIds.ExitServer,
-                Payload = MemoryPackSerializer.Serialize(new UpdaterConfirmServerInfo { SecretKey = runningConfig.Data.UpdaterSecretKey, Version = string.Empty })
+                Payload = MemoryPackSerializer.Serialize(new UpdaterConfirmServerInfo { SecretKey = config.Data.Client.Updater.SecretKey, Version = string.Empty })
             });
         }
 

@@ -24,38 +24,33 @@ namespace linker.plugins.relay
         private readonly FileConfig fileConfig;
         private readonly RunningConfig running;
         private readonly ServiceProvider serviceProvider;
-        private readonly RunningConfigTransfer runningConfigTransfer;
         private string configKey = "relayServers";
 
         private ConcurrentDictionary<string, bool> connectingDic = new ConcurrentDictionary<string, bool>();
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
-        public RelayTransfer(FileConfig fileConfig, ClientSignInState clientSignInState, RunningConfig running, ServiceProvider serviceProvider, RunningConfigTransfer runningConfigTransfer)
+        public RelayTransfer(FileConfig fileConfig, ClientSignInState clientSignInState, RunningConfig running, ServiceProvider serviceProvider)
         {
             this.fileConfig = fileConfig;
             this.running = running;
             this.serviceProvider = serviceProvider;
-            this.runningConfigTransfer = runningConfigTransfer;
             InitConfig();
             TestTask();
-
-            runningConfigTransfer.Setter(configKey, SetServers);
-            runningConfigTransfer.Getter(configKey, () => MemoryPackSerializer.Serialize(new RelayRunningSyncInfo { ByRelay = running.Data.Relay.ByRelay, Servers = running.Data.Relay.Servers }));
-            clientSignInState.NetworkEnabledHandle += (times) => SyncServers();
         }
         private void InitConfig()
         {
-            if (running.Data.Relay.Servers.Length == 0)
+            if (fileConfig.Data.Client.Relay.Servers.Length == 0)
             {
-                running.Data.Relay.Servers = new RelayServerInfo[]
+                fileConfig.Data.Client.Relay.Servers = new RelayServerInfo[]
                 {
                      new RelayServerInfo{
-                         Name="默认",
+                         Name="Linker",
                          RelayType= RelayType.Linker,
                          Disabled = false,
-                         Host = running.Data.Client.Servers.FirstOrDefault().Host
+                         Host = fileConfig.Data.Client.ServerInfo.Host,
                      }
                 };
+                fileConfig.Data.Update();
             }
         }
 
@@ -78,36 +73,6 @@ namespace linker.plugins.relay
         {
             return transports.Select(c => new RelayTypeInfo { Value = c.Type, Name = c.Type.ToString() }).Distinct(new RelayCompactTypeInfoEqualityComparer()).ToList();
         }
-        /// <summary>
-        /// 收到中继协议列表
-        /// </summary>
-        /// <param name="servers"></param>
-        public void OnServers(RelayRunningSyncInfo info)
-        {
-            running.Data.Relay.Servers = info.Servers;
-            running.Data.Relay.ByRelay = info.ByRelay;
-            running.Data.Update();
-            runningConfigTransfer.IncrementVersion(configKey);
-            SyncServers();
-            _ = TaskRelay();
-        }
-        private void SetServers(Memory<byte> data)
-        {
-            RelayRunningSyncInfo relayRunningSyncInfo = MemoryPackSerializer.Deserialize<RelayRunningSyncInfo>(data.Span);
-            running.Data.Relay.Servers = relayRunningSyncInfo.Servers;
-            running.Data.Relay.ByRelay = relayRunningSyncInfo.ByRelay;
-            running.Data.Update();
-            _ = TaskRelay();
-        }
-        private void SyncServers()
-        {
-            runningConfigTransfer.Sync(configKey, MemoryPackSerializer.Serialize(new RelayRunningSyncInfo
-            {
-                Servers = running.Data.Relay.Servers,
-                ByRelay = running.Data.Relay.ByRelay,
-            }));
-        }
-
 
         /// <summary>
         /// 设置中继成功回调
@@ -150,14 +115,10 @@ namespace linker.plugins.relay
             }
             try
             {
-                var servers = running.Data.Relay.Servers
+                var servers = fileConfig.Data.Client.Relay.Servers
                     .Where(c => c.Disabled == false)
                     .Where(c => string.IsNullOrWhiteSpace(c.Host) == false)
                     .Where(c => c.Delay >= 0);
-                if (running.Data.Relay.ByRelay)
-                {
-                    servers = servers.OrderBy(c => c.Delay);
-                }
 
                 foreach (RelayServerInfo item in servers)
                 {
@@ -168,7 +129,7 @@ namespace linker.plugins.relay
                     }
 
                     IPEndPoint server = NetworkHelper.GetEndPoint(item.Host, 3478);
-                    RelayInfo relayInfo = new RelayInfo
+                    transport.RelayInfo relayInfo = new transport.RelayInfo
                     {
                         FlowingId = 0,
                         FromMachineId = fromMachineId,
@@ -216,7 +177,7 @@ namespace linker.plugins.relay
         /// </summary>
         /// <param name="relayInfo"></param>
         /// <returns></returns>
-        public async Task<bool> OnBeginAsync(RelayInfo relayInfo)
+        public async Task<bool> OnBeginAsync(transport.RelayInfo relayInfo)
         {
             if (connectingDic.TryAdd(relayInfo.FromMachineId, true) == false)
             {
@@ -225,7 +186,7 @@ namespace linker.plugins.relay
 
             try
             {
-                RelayServerInfo server = running.Data.Relay.Servers.FirstOrDefault(c => c.Name == relayInfo.ServerName) ?? running.Data.Relay.Servers.FirstOrDefault();
+                RelayServerInfo server = fileConfig.Data.Client.Relay.Servers.FirstOrDefault(c => c.Name == relayInfo.ServerName) ?? fileConfig.Data.Client.Relay.Servers.FirstOrDefault();
                 relayInfo.Server = NetworkHelper.GetEndPoint(server.Host, 3478);
 
                 ITransport _transports = transports.FirstOrDefault(c => c.Name == relayInfo.TransportName);
@@ -268,7 +229,7 @@ namespace linker.plugins.relay
         /// </summary>
         /// <param name="relayInfo"></param>
         /// <param name="connection"></param>
-        private void ConnectedCallback(RelayInfo relayInfo, ITunnelConnection connection)
+        private void ConnectedCallback(transport.RelayInfo relayInfo, ITunnelConnection connection)
         {
             if (OnConnected.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))
             {
@@ -291,7 +252,7 @@ namespace linker.plugins.relay
         {
             try
             {
-                foreach (var server in running.Data.Relay.Servers)
+                foreach (var server in fileConfig.Data.Client.Relay.Servers)
                 {
                     ITransport transport = transports.FirstOrDefault(d => d.Type == server.RelayType);
                     if (transport == null) continue;
@@ -323,6 +284,12 @@ namespace linker.plugins.relay
         {
             public RelayServerInfo Server { get; set; }
             public Task<RelayTestResultInfo> Task { get; set; }
+        }
+
+        public void SetServers(RelayServerInfo[] servers)
+        {
+            fileConfig.Data.Client.Relay.Servers = servers;
+            fileConfig.Data.Update();
         }
     }
 }

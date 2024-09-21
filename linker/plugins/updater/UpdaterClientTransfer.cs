@@ -20,53 +20,34 @@ namespace linker.plugins.updater
         private readonly UpdaterHelper updaterHelper;
 
         private readonly RunningConfig running;
-        private readonly RunningConfigTransfer runningConfigTransfer;
         private string configKey = "updater";
 
         public VersionManager Version { get; } = new VersionManager();
 
-        public UpdaterClientTransfer(FileConfig fileConfig, MessengerSender messengerSender, ClientSignInState clientSignInState, UpdaterHelper updaterHelper, RunningConfig running, RunningConfigTransfer runningConfigTransfer)
+        public UpdaterClientTransfer(FileConfig fileConfig, MessengerSender messengerSender, ClientSignInState clientSignInState, UpdaterHelper updaterHelper, RunningConfig running)
         {
             this.fileConfig = fileConfig;
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
             this.updaterHelper = updaterHelper;
             this.running = running;
-            this.runningConfigTransfer = runningConfigTransfer;
-
-
-            runningConfigTransfer.Setter(configKey, SetSecretKey);
-            runningConfigTransfer.Getter(configKey, () => MemoryPackSerializer.Serialize(GetSecretKey()));
             clientSignInState.NetworkFirstEnabledHandle += () =>
             {
                 LoadTask();
                 UpdateTask();
                 updateInfo.Update();
             };
-            clientSignInState.NetworkEnabledHandle += (times) => SyncKey();
 
         }
         public string GetSecretKey()
         {
-            return running.Data.UpdaterSecretKey;
+            return fileConfig.Data.Client.Updater.SecretKey;
         }
         public void SetSecretKey(string key)
         {
-            running.Data.UpdaterSecretKey = key;
-            running.Data.Update();
-            runningConfigTransfer.IncrementVersion(configKey);
-            SyncKey();
+            fileConfig.Data.Client.Updater.SecretKey = key;
+            fileConfig.Data.Update();
         }
-        private void SetSecretKey(Memory<byte> data)
-        {
-            running.Data.UpdaterSecretKey = MemoryPackSerializer.Deserialize<string>(data.Span);
-            running.Data.Update();
-        }
-        private void SyncKey()
-        {
-            runningConfigTransfer.Sync(configKey, MemoryPackSerializer.Serialize(GetSecretKey()));
-        }
-
 
         /// <summary>
         /// 所有客户端的更新信息

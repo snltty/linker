@@ -45,6 +45,22 @@ namespace linker.plugins.updater.config
 
 namespace linker.config
 {
+    public partial class ConfigClientInfo
+    {
+        /// <summary>
+        /// 服务器穿透配置
+        /// </summary>
+        public UpdaterConfigClientInfo Updater { get; set; } = new UpdaterConfigClientInfo();
+    }
+
+    public sealed class UpdaterConfigClientInfo
+    {
+        /// <summary>
+        /// 密钥
+        /// </summary>
+        public string SecretKey { get; set; } = "snltty";
+    }
+
     public partial class ConfigServerInfo
     {
         /// <summary>

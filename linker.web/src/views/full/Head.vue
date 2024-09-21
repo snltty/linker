@@ -12,7 +12,13 @@
                         <router-link :to="{name:'FullIndex'}"><el-icon size="16"><StarFilled /></el-icon> 首页</router-link>
                     </li>
                     <li v-if="hasConfig">
-                        <router-link :to="{name:'FullSettings'}"><el-icon size="16"><Tools /></el-icon> 配置</router-link>
+                        <router-link :to="{name:'FullServers'}"><el-icon size="16"><Promotion /></el-icon> 服务器</router-link>
+                    </li>
+                    <li v-if="hasTransport">
+                        <router-link :to="{name:'FullTransport'}"><el-icon size="16"><HelpFilled /></el-icon> 打洞协议</router-link>
+                    </li>
+                    <li v-if="hasAction">
+                        <router-link :to="{name:'FullAction'}"><el-icon size="16"><PhoneFilled /></el-icon> Action验证</router-link>
                     </li>
                     <li v-if="hasLogger">
                         <router-link :to="{name:'FullLogger'}"><el-icon size="16"><WarnTriangleFilled /></el-icon> 日志</router-link>
@@ -27,21 +33,23 @@
 </template>
 
 <script>
-import {Tools,StarFilled,WarnTriangleFilled} from '@element-plus/icons-vue'
+import {Promotion,StarFilled,WarnTriangleFilled,PhoneFilled,HelpFilled} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
 import { computed} from 'vue';
 import Background from './Background.vue';
 export default {
-    components:{Tools,StarFilled,WarnTriangleFilled,Background},
+    components:{Promotion,StarFilled,WarnTriangleFilled,PhoneFilled,HelpFilled,Background},
     setup() {
 
         const globalData = injectGlobalData();
         const hasConfig = computed(()=>globalData.value.hasAccess('Config')); 
         const hasLogger = computed(()=>globalData.value.hasAccess('LoggerShow')); 
+        const hasTransport = computed(()=>globalData.value.hasAccess('Transport')); 
+        const hasAction = computed(()=>globalData.value.hasAccess('Action')); 
 
         return {
             hasConfig,
-            hasLogger
+            hasLogger,hasTransport,hasAction
         }
     }
 }

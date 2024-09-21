@@ -27,7 +27,7 @@ namespace linker.plugins.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.Relay)]
         public async Task Relay(IConnection connection)
         {
-            RelayInfo info = MemoryPackSerializer.Deserialize<RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            transport.RelayInfo info = MemoryPackSerializer.Deserialize<transport.RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
             bool res = await relayTransfer.OnBeginAsync(info).ConfigureAwait(false);
             connection.Write(res ? Helper.TrueArray : Helper.FalseArray);
         }
@@ -91,7 +91,7 @@ namespace linker.plugins.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.RelayAsk)]
         public async Task RelayAsk(IConnection connection)
         {
-            RelayInfo info = MemoryPackSerializer.Deserialize<RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            transport.RelayInfo info = MemoryPackSerializer.Deserialize<transport.RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (info.SecretKey != config.Data.Server.Relay.SecretKey)
             {
                 connection.Write(ulong.MinValue);
@@ -123,7 +123,7 @@ namespace linker.plugins.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.RelayForward)]
         public async Task RelayForward(IConnection connection)
         {
-            RelayInfo info = MemoryPackSerializer.Deserialize<RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            transport.RelayInfo info = MemoryPackSerializer.Deserialize<transport.RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(info.FromMachineId, out SignCacheInfo cacheFrom) == false || signCaching.TryGet(info.RemoteMachineId, out SignCacheInfo cacheTo) == false)
             {
                 connection.Write(Helper.FalseArray);

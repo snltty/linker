@@ -19,17 +19,17 @@
 		<Title>linker</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 优化虚拟网卡多客户端局域网IP冲突切换
-2. 修复信标Json参数
-3. 增加局域网IP冲突提示
-4. 导出配置可指定Action参数</Description>
+		<Description>1. 去除配置同步
+2. 调整UI
+3. 增加Action参数配置
+4. 测试中，请勿更新，请勿更新，请勿更新</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.4.0</Version>
-		<AssemblyVersion>1.4.0</AssemblyVersion>
-		<FileVersion>1.4.0</FileVersion>
+		<Version>1.4.1</Version>
+		<AssemblyVersion>1.4.1</AssemblyVersion>
+		<FileVersion>1.4.1</FileVersion>
 	</PropertyGroup>
 
 

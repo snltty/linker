@@ -6,7 +6,7 @@ namespace linker.plugins.signIn.args
 {
     public interface ISignInArgs
     {
-        public Task<string> Invoke(Dictionary<string, string> args);
+        public Task<string> Invoke(string host, Dictionary<string, string> args);
         public Task<string> Verify(SignInfo signInfo, SignCacheInfo cache);
     }
 
@@ -16,7 +16,7 @@ namespace linker.plugins.signIn.args
     /// </summary>
     public sealed class SignInArgsMachineKeyClient : ISignInArgs
     {
-        public async Task<string> Invoke(Dictionary<string, string> args)
+        public async Task<string> Invoke(string host,Dictionary<string, string> args)
         {
             string machineKey = GetMachineKey();
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -76,7 +76,7 @@ namespace linker.plugins.signIn.args
     /// </summary>
     public sealed class SignInArgsMachineKeyServer : ISignInArgs
     {
-        public async Task<string> Invoke(Dictionary<string, string> args)
+        public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             await Task.CompletedTask;
             return string.Empty;

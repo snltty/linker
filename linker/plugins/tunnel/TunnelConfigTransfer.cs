@@ -20,7 +20,6 @@ namespace linker.plugins.tunnel
         private readonly RunningConfig running;
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
-        private readonly RunningConfigTransfer runningConfigTransfer;
         private readonly ITunnelAdapter tunnelAdapter;
         private readonly TransportTcpPortMap transportTcpPortMap;
         private readonly TransportUdpPortMap transportUdpPortMap;
@@ -28,13 +27,12 @@ namespace linker.plugins.tunnel
         public VersionManager Version { get; } = new VersionManager();
         public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> Config { get; } = new ConcurrentDictionary<string, TunnelTransportRouteLevelInfo>();
 
-        public TunnelConfigTransfer(FileConfig config, RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, RunningConfigTransfer runningConfigTransfer, ITunnelAdapter tunnelAdapter, TransportTcpPortMap transportTcpPortMap, TransportUdpPortMap transportUdpPortMap)
+        public TunnelConfigTransfer(FileConfig config, RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, ITunnelAdapter tunnelAdapter, TransportTcpPortMap transportTcpPortMap, TransportUdpPortMap transportUdpPortMap)
         {
             this.config = config;
             this.running = running;
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
-            this.runningConfigTransfer = runningConfigTransfer;
             this.tunnelAdapter = tunnelAdapter;
             this.transportTcpPortMap = transportTcpPortMap;
             this.transportUdpPortMap = transportUdpPortMap;
@@ -51,7 +49,7 @@ namespace linker.plugins.tunnel
         private void InitConfig()
         {
             bool updateVersion = false;
-            List<TunnelWanPortInfo> server = running.Data.Tunnel.Servers;
+            List<TunnelWanPortInfo> server = config.Data.Client.Tunnel.Servers;
             if (server.FirstOrDefault(c => c.Type == TunnelWanPortType.Linker && c.ProtocolType == TunnelWanPortProtocolType.Udp) == null)
             {
                 server.Add(new TunnelWanPortInfo
@@ -60,7 +58,7 @@ namespace linker.plugins.tunnel
                     Type = TunnelWanPortType.Linker,
                     ProtocolType = TunnelWanPortProtocolType.Udp,
                     Disabled = false,
-                    Host = running.Data.Client.Servers.FirstOrDefault().Host,
+                    Host = config.Data.Client.ServerInfo.Host,
                 });
                 updateVersion = true;
             }
@@ -72,7 +70,7 @@ namespace linker.plugins.tunnel
                     Type = TunnelWanPortType.Linker,
                     ProtocolType = TunnelWanPortProtocolType.Tcp,
                     Disabled = false,
-                    Host = running.Data.Client.Servers.FirstOrDefault().Host,
+                    Host = config.Data.Client.ServerInfo.Host,
                 });
                 updateVersion = true;
             }

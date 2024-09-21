@@ -131,7 +131,7 @@ namespace linker.plugins.tunnel
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        [ClientApiAccessAttribute(ClientApiAccess.Config)]
+        [ClientApiAccessAttribute(ClientApiAccess.Transport)]
         public bool SetTransports(ApiControllerParamsInfo param)
         {
             List<TunnelTransportItemInfo> info = param.Content.DeJson<List<TunnelTransportItemInfo>>();

@@ -19,19 +19,16 @@
                         <span class="flex-1"></span>
                     </div>
                     <div class="body flex-1 relative">
-                        <div v-if="state.page.List.length > 0">
-                            <el-table border :data="state.page.List" size="small" :height="`${state.height}px`" @row-click="handleRowClick" :row-class-name="tableRowClassName">
-                                <el-table-column type="index" width="50" />
-                                <el-table-column prop="Type" label="类别" width="80">
-                                    <template #default="scope">
-                                        <span>{{state.types[scope.row.Type]}} </span>
-                                    </template>
-                                </el-table-column>
-                                <el-table-column prop="Time" label="时间" width="160"></el-table-column>
-                                <el-table-column prop="content" label="内容"></el-table-column>
-                            </el-table>
-                        </div>
-                        <el-empty v-else />
+                        <el-table border :data="state.page.List" size="small" :height="`${state.height}px`" @row-click="handleRowClick" :row-class-name="tableRowClassName">
+                            <el-table-column type="index" width="50" />
+                            <el-table-column prop="Type" label="类别" width="80">
+                                <template #default="scope">
+                                    <span>{{state.types[scope.row.Type]}} </span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="Time" label="时间" width="160"></el-table-column>
+                            <el-table-column prop="content" label="内容"></el-table-column>
+                        </el-table>
                     </div>
                     <div class="pages t-c">
                         <div class="page-wrap">

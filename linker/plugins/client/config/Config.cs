@@ -20,9 +20,9 @@ namespace linker.client.config
 
         private ClientServerInfo[] servers = new ClientServerInfo[] {
 #if DEBUG
-            new ClientServerInfo{ Name="默认", Host=new IPEndPoint(IPAddress.Loopback, 1802).ToString() }
+            new ClientServerInfo{ Name="Linker", Host=new IPEndPoint(IPAddress.Loopback, 1802).ToString() }
 #else
-            new ClientServerInfo{ Name="默认", Host="linker.snltty.com:1802" }
+            new ClientServerInfo{ Name="linker", Host="linker.snltty.com:1802" }
 #endif
         };
         public ClientServerInfo[] Servers
@@ -92,13 +92,24 @@ namespace linker.config
             return (Access & clientManagerAccess) == clientManagerAccess;
         }
         public bool OnlyNode { get; set; }
-        public string NodeArg { get; set; }
 
+
+        private ClientServerInfo[] servers = new ClientServerInfo[] {
 #if DEBUG
-        public ClientServerInfo ServerInfo { get; set; } = new ClientServerInfo { Host = new IPEndPoint(IPAddress.Loopback, 1802).ToString(), Name = "default", SecretKey = string.Empty };
+            new ClientServerInfo{ Name="Linker", Host=new IPEndPoint(IPAddress.Loopback, 1802).ToString() }
 #else
-        public ClientServerInfo ServerInfo { get; set; } = new ClientServerInfo { Host = "linker.snltty.com:1802", Name = "default", SecretKey = string.Empty };
+            new ClientServerInfo{ Name="Linker", Host="linker.snltty.com:1802" }
 #endif
+        };
+        public ClientServerInfo[] Servers
+        {
+            get => servers; set
+            {
+                servers = value;
+            }
+        }
+        public ClientServerInfo ServerInfo => servers[0];
+
 
         private string id = string.Empty;
         public string Id
@@ -159,11 +170,10 @@ namespace linker.config
         public string Name { get; set; } = string.Empty;
         public string Host { get; set; } = string.Empty;
         public string SecretKey { get; set; } = string.Empty;
-        public string Arg { get; set; } = string.Empty;
 
         public string ToStr()
         {
-            return $"{Host}-{SecretKey}-{Arg}";
+            return $"{Host}-{SecretKey}";
         }
     }
 
@@ -199,7 +209,7 @@ namespace linker.config
         [ClientAccessDisplayAttribute("专业管理")]
         FullManager = 1 << 1,
 
-        [ClientAccessDisplayAttribute("配置和修改分组")]
+        [ClientAccessDisplayAttribute("服务器配置")]
         Config = 1 << 2,
 
         [ClientAccessDisplayAttribute("日志列表")]
@@ -239,9 +249,9 @@ namespace linker.config
         [ClientAccessDisplayAttribute("配置所有设备端口转发")]
         ForwardOther = 1 << 18,
 
-        [ClientAccessDisplayAttribute("重启设备")]
+        [ClientAccessDisplayAttribute("重启其它设备")]
         Reboot = 1 << 19,
-        [ClientAccessDisplayAttribute("删除设备")]
+        [ClientAccessDisplayAttribute("删除其它设备")]
         Remove = 1 << 20,
 
         [ClientAccessDisplayAttribute("修改本机网关")]
@@ -259,9 +269,14 @@ namespace linker.config
         [ClientAccessDisplayAttribute("导出配置")]
         Export = 1 << 26,
 
-        [ClientAccessDisplayAttribute("配置权限")]
+        [ClientAccessDisplayAttribute("修改权限")]
         Access = 1 << 27,
 
+        [ClientAccessDisplayAttribute("修改打洞协议")]
+        Transport = 1 << 28,
+
+        [ClientAccessDisplayAttribute("修改验证参数")]
+        Action = 1 << 29,
 
         Full = ulong.MaxValue >> (64 - 52),
     }

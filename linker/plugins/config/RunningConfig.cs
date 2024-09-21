@@ -2,6 +2,9 @@
 using linker.libs;
 using LiteDB;
 using System.Text.Json.Serialization;
+using linker.config;
+using linker.plugins.relay.transport;
+using linker.libs.extends;
 
 namespace linker.client.config
 {
@@ -17,14 +20,19 @@ namespace linker.client.config
         public RunningConfigInfo Data { get; private set; } = new RunningConfigInfo();
 
         private readonly Storefactory dBfactory;
-        public RunningConfig(Storefactory dBfactory)
+        private readonly FileConfig fileConfig;
+        public RunningConfig(Storefactory dBfactory, FileConfig fileConfig)
         {
             this.dBfactory = dBfactory;
+            this.fileConfig = fileConfig;
+
             liteCollection = dBfactory.GetCollection<RunningConfigInfo>("running");
 
             Load();
             Save();
             SaveTask();
+
+            Sync();
         }
 
         private void Load()
@@ -78,7 +86,7 @@ namespace linker.client.config
                         {
                         }
                     };
-                    liteCollection.Update(old.Id,old);
+                    liteCollection.Update(old.Id, old);
                 }
                 dBfactory.Confirm();
             }
@@ -91,6 +99,38 @@ namespace linker.client.config
                 slim.Release();
             }
         }
+
+        private void Sync()
+        {
+            if (Data.IsSync) return;
+            Data.IsSync = true;
+            Data.Update();
+
+            if (Data.Client.Servers.Length > 0)
+            {
+                fileConfig.Data.Client.Servers = Data.Client.Servers;
+                foreach (var server in Data.Client.Servers) server.Name = "Linker";
+            }
+            if (Data.Relay.Servers.Length > 0)
+            {
+                fileConfig.Data.Client.Relay.Servers = Data.Relay.Servers;
+                foreach (var server in fileConfig.Data.Client.Relay.Servers) server.Name = "Linker";
+            }
+
+            fileConfig.Data.Client.SForward.SecretKey = Data.SForwardSecretKey;
+            fileConfig.Data.Client.Updater.SecretKey = Data.UpdaterSecretKey;
+
+
+            if (Data.Tunnel.Servers.Count > 0)
+            {
+                fileConfig.Data.Client.Tunnel.Servers = Data.Tunnel.Servers;
+            }
+            if (Data.Tunnel.Transports.Count > 0)
+            {
+                fileConfig.Data.Client.Tunnel.Transports = Data.Tunnel.Transports;
+            }
+            fileConfig.Data.Update();
+        }
     }
 
     public sealed partial class RunningConfigInfo
@@ -99,6 +139,8 @@ namespace linker.client.config
 
         [JsonIgnore, BsonIgnore]
         public uint Updated { get; set; } = 1;
+
+        public bool IsSync { get; set; }
 
         public void Update()
         {

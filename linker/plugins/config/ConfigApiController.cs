@@ -49,24 +49,22 @@ namespace linker.plugins.config
 
                 if (info.Client.HasServer)
                 {
-                    runningConfig.Data.SForwardSecretKey = info.Client.SForwardSecretKey;
-                    runningConfig.Data.UpdaterSecretKey = info.Client.UpdaterSecretKey;
-                    foreach (var item in runningConfig.Data.Relay.Servers)
+                    config.Data.Client.SForward.SecretKey = info.Client.SForwardSecretKey;
+                    config.Data.Client.Updater.SecretKey = info.Client.UpdaterSecretKey;
+                    foreach (var item in config.Data.Client.Relay.Servers)
                     {
                         item.SecretKey = info.Client.RelaySecretKey;
                         item.Host = info.Client.Server;
                     }
-                    foreach (var item in runningConfig.Data.Tunnel.Servers)
+                    foreach (var item in config.Data.Client.Tunnel.Servers)
                     {
                         item.Host = info.Client.Server;
                     }
-                    foreach (var item in runningConfig.Data.Client.Servers)
+                    foreach (var item in config.Data.Client.Servers)
                     {
                         item.Host = info.Client.Server;
                         item.SecretKey = info.Client.ServerSecretKey;
                     }
-                    if (runningConfig.Data.Client.Servers.Length > 0)
-                        config.Data.Client.ServerInfo = runningConfig.Data.Client.Servers.FirstOrDefault();
                 }
             }
             if (info.Common.Modes.Contains("server"))
@@ -167,7 +165,7 @@ namespace linker.plugins.config
                 client.Name = configExportInfo.Name;
                 client.Access = accessTransfer.AssignAccess((ClientApiAccess)configExportInfo.Access);
                 client.OnlyNode = true;
-                client.NodeArg = configExportInfo.ActionArg;
+                client.Action.Args.Clear();
                 File.WriteAllText(Path.Combine(configPath, $"client.json"), client.Serialize(client));
 
                 ConfigCommonInfo common = config.Data.Common.ToJson().DeJson<ConfigCommonInfo>();
@@ -285,7 +283,6 @@ namespace linker.plugins.config
     {
         public string Name { get; set; }
         public string ApiPassword { get; set; }
-        public string ActionArg { get; set; }
         public bool Single { get; set; }
         public ulong Access { get; set; }
     }

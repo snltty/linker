@@ -21,4 +21,15 @@ namespace linker.config
             return obj.ToJsonFormat();
         }
     }
+
+    public sealed partial class ConfigClientInfo
+    {
+        public ConfigClientActionInfo Action { get; set; } = new ConfigClientActionInfo();
+    }
+
+    public sealed partial class ConfigClientActionInfo
+    {
+        public string Arg { get; set; }
+        public Dictionary<string, string> Args { get; set; } = new Dictionary<string, string>();
+    }
 }

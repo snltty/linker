@@ -44,8 +44,8 @@ namespace linker.plugins.relay
         [ClientApiAccessAttribute(ClientApiAccess.Config)]
         public bool SetServers(ApiControllerParamsInfo param)
         {
-            RelayRunningSyncInfo info = param.Content.DeJson<RelayRunningSyncInfo>();
-            relayTransfer.OnServers(info);
+            RelayServerInfo[] info = param.Content.DeJson<RelayServerInfo[]>();
+            relayTransfer.SetServers(info);
             return true;
         }
     }

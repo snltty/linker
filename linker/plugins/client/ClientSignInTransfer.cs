@@ -22,11 +22,10 @@ namespace linker.plugins.client
         private readonly MessengerSender messengerSender;
         private readonly MessengerResolver messengerResolver;
         private readonly SignInArgsTransfer signInArgsTransfer;
-        private readonly RunningConfigTransfer runningConfigTransfer;
 
         private string configKey = "signServers";
 
-        public ClientSignInTransfer(ClientSignInState clientSignInState, RunningConfig runningConfig, FileConfig config, MessengerSender messengerSender, MessengerResolver messengerResolver, SignInArgsTransfer signInArgsTransfer, RunningConfigTransfer runningConfigTransfer)
+        public ClientSignInTransfer(ClientSignInState clientSignInState, RunningConfig runningConfig, FileConfig config, MessengerSender messengerSender, MessengerResolver messengerResolver, SignInArgsTransfer signInArgsTransfer)
         {
             this.clientSignInState = clientSignInState;
             this.runningConfig = runningConfig;
@@ -34,12 +33,6 @@ namespace linker.plugins.client
             this.messengerSender = messengerSender;
             this.messengerResolver = messengerResolver;
             this.signInArgsTransfer = signInArgsTransfer;
-            this.runningConfigTransfer = runningConfigTransfer;
-
-            runningConfigTransfer.Setter(configKey, SetServers);
-            runningConfigTransfer.Getter(configKey, () => MemoryPackSerializer.Serialize(runningConfig.Data.Client.Servers));
-
-            clientSignInState.NetworkEnabledHandle += (times) => SyncServers();
         }
 
         /// <summary>
@@ -140,7 +133,7 @@ namespace linker.plugins.client
         private async Task<bool> SignIn2Server()
         {
             Dictionary<string, string> args = [];
-            string argResult = await signInArgsTransfer.Invoke(args);
+            string argResult = await signInArgsTransfer.Invoke(config.Data.Client.ServerInfo.Host,args);
             if (string.IsNullOrWhiteSpace(argResult) == false)
             {
                 LoggerHelper.Instance.Error(argResult);
@@ -302,8 +295,6 @@ namespace linker.plugins.client
         public async Task SetServers(ClientServerInfo[] servers)
         {
             await SetServersReSignin(servers);
-            runningConfigTransfer.IncrementVersion(configKey);
-            SyncServers();
         }
         private void SetServers(Memory<byte> data)
         {
@@ -313,14 +304,8 @@ namespace linker.plugins.client
         {
             string str = config.Data.Client.ServerInfo.ToStr();
 
-            runningConfig.Data.Client.Servers = servers;
-            runningConfig.Data.Update();
-
-            if (runningConfig.Data.Client.Servers.Length > 0)
-            {
-                config.Data.Client.ServerInfo = runningConfig.Data.Client.Servers.FirstOrDefault();
-                config.Data.Update();
-            }
+            config.Data.Client.Servers = servers;
+            config.Data.Update();
 
             if (str != config.Data.Client.ServerInfo.ToStr())
             {
@@ -328,10 +313,5 @@ namespace linker.plugins.client
                 await SignIn();
             }
         }
-        private void SyncServers()
-        {
-            runningConfigTransfer.Sync(configKey, MemoryPackSerializer.Serialize(runningConfig.Data.Client.Servers));
-        }
-
     }
 }

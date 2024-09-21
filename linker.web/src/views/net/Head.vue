@@ -28,8 +28,8 @@ export default {
             server:"linker.snltty.com:1802",
             servers:[]
         });
-        watch(()=>globalData.value.config.Running.Client.Servers,()=>{
-            state.servers = (globalData.value.config.Running.Client.Servers || []).slice(0,1);
+        watch(()=>globalData.value.config.Client.Servers,()=>{
+            state.servers = (globalData.value.config.Client.Servers || []).slice(0,1);
             state.server = globalData.value.config.Client.ServerInfo.Host;
         });
         const handleRefresh = ()=>{

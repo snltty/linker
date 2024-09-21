@@ -1,5 +1,4 @@
 ﻿using linker.config;
-using linker.libs.extends;
 using linker.plugins.relay.validator;
 using linker.plugins.sforward.config;
 using linker.plugins.sforward.validator;
@@ -19,10 +18,9 @@ namespace linker.plugins.action
             this.fileConfig = fileConfig;
         }
 
-        public async Task<string> Invoke(Dictionary<string, string> args)
+        public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
-            args.TryAdd(ActionTransfer.ACTION_ARG_KEY, actionTransfer.GetActionArg());
-
+            actionTransfer.TryAddActionArg(host, args);
             await Task.CompletedTask;
             return string.Empty;
         }

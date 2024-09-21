@@ -1,28 +1,43 @@
-﻿using System.Net.Http.Json;
+﻿using linker.config;
+using System.Net.Http.Json;
 using System.Text.Json.Nodes;
 namespace linker.plugins.action
 {
     public sealed class ActionTransfer
     {
         public const string ACTION_ARG_KEY = "ACTION_ARGS";
-        private string action = string.Empty;// new ActionInfo { Key = "token", Value = Helper.GlobalString }.ToJson();
+
+        private readonly FileConfig config;
+        public ActionTransfer(FileConfig config)
+        {
+            this.config = config;
+        }
 
         public void SetActionArg(string action)
         {
-            this.action = action;
+            config.Data.Client.Action.Arg = action;
         }
-        public string GetActionArg()
+        public void SetActionArgs(Dictionary<string, string> actions)
         {
-            return action;
+            config.Data.Client.Action.Args = actions;
+            config.Data.Update();
+        }
+        public bool TryAddActionArg(string host, Dictionary<string, string> args)
+        {
+            if (string.IsNullOrWhiteSpace(config.Data.Client.Action.Arg) == false)
+            {
+                args.TryAdd(ACTION_ARG_KEY, config.Data.Client.Action.Arg);
+            }
+            else if (config.Data.Client.Action.Args.TryGetValue(host, out string arg))
+            {
+                args.TryAdd(ACTION_ARG_KEY, arg);
+            }
+            return true;
         }
 
         public bool TryGetActionArg(Dictionary<string, string> args, out string str)
         {
-            if (args.TryGetValue(ACTION_ARG_KEY, out str) == false || string.IsNullOrWhiteSpace(str))
-            {
-                args.TryGetValue("signin-arg", out str);
-            }
-            return string.IsNullOrWhiteSpace(str) == false;
+            return args.TryGetValue(ACTION_ARG_KEY, out str) && string.IsNullOrWhiteSpace(str) == false;
         }
 
         public async Task<string> ExcuteActions(string actionJson, string url)

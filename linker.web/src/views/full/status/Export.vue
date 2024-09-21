@@ -13,7 +13,7 @@
                     <el-card shadow="never">
                         <template #header>
                             <div class="card-header">
-                                <div class="flex" style="margin-bottom: 1rem;">
+                                <div class="flex">
                                     <div>
                                         <el-popover placement="top-start" title="tips":width="200" trigger="hover"
                                             content="这将生成唯一ID，多台设备使用产生冲突，挤压下线">
@@ -27,11 +27,6 @@
                                     </div>
                                     <div>
                                         <span>管理密码 : </span><el-input type="password" show-password :disabled="onlyNode" v-model="state.apipassword" maxlength="36" show-word-limit style="width:15rem"></el-input>
-                                    </div>
-                                </div>
-                                <div class="flex">
-                                    <div>
-                                        <span>Action参数(自定义验证) : </span><el-input v-model="state.actionArg" style="width:34.2rem"></el-input>
                                     </div>
                                 </div>
                             </div>
@@ -69,7 +64,6 @@ export default {
             loading:false,
             single:true,
             name:'',
-            actionArg:globalData.value.config.Client.ServerInfo.Arg || '',
             apipassword: globalData.value.config.Client.CApi.ApiPassword,
         });
         const accessDom = ref(null); 
@@ -83,19 +77,7 @@ export default {
                 access:accessDom.value.getValue(),
                 single:state.single,
                 name:state.name,
-                actionArg:state.actionArg,
                 apipassword:state.apipassword
-            }
-            if(json.actionArg){
-                try{
-                    if(typeof(JSON.parse(json.actionArg)) != 'object'){
-                        ElMessage.error('Action参数错误，需要JSON格式');
-                        return;
-                    }
-                }catch(e){
-                    ElMessage.error('Action参数错误，需要JSON格式');
-                    return;
-                }
             }
             
             if(json.single){
