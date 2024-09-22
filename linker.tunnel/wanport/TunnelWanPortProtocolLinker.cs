@@ -1,4 +1,5 @@
-﻿using linker.libs.extends;
+﻿using linker.libs;
+using linker.libs.extends;
 using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
@@ -54,8 +55,10 @@ namespace linker.tunnel.wanport
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error($"{Name}->{ex}");
             }
             finally
             {
@@ -89,11 +92,11 @@ namespace linker.tunnel.wanport
                 await socket.ConnectAsync(server).ConfigureAwait(false);
                 await socket.SendAsync(new byte[] { 0 });
                 int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
-
                 for (int j = 0; j < length; j++)
                 {
                     buffer[j] = (byte)(buffer[j] ^ byte.MaxValue);
                 }
+
                 AddressFamily addressFamily = (AddressFamily)buffer[0];
                 int iplength = addressFamily == AddressFamily.InterNetwork ? 4 : 16;
                 IPAddress ip = new IPAddress(buffer.AsSpan(1, iplength));
@@ -105,8 +108,10 @@ namespace linker.tunnel.wanport
 
                 return new TunnelWanPortEndPoint { Local = localEP, Remote = remoteEP };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error($"{Name}->{ex}");
             }
             finally
             {

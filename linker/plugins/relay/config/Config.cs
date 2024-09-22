@@ -41,6 +41,7 @@ namespace linker.config
         /// 中继服务器列表
         /// </summary>
         public RelayServerInfo[] Servers { get; set; } = Array.Empty<RelayServerInfo>();
+
     }
 
 

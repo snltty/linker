@@ -8,9 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Reflection;
-using MemoryPack;
 using linker.plugins.client;
-using System.Net.Sockets;
 
 namespace linker.plugins.relay
 {
@@ -115,11 +113,7 @@ namespace linker.plugins.relay
             }
             try
             {
-                var servers = fileConfig.Data.Client.Relay.Servers
-                    .Where(c => c.Disabled == false)
-                    .Where(c => string.IsNullOrWhiteSpace(c.Host) == false)
-                    .Where(c => c.Delay >= 0);
-
+                var servers = GetServers();
                 foreach (RelayServerInfo item in servers)
                 {
                     ITransport transport = transports.FirstOrDefault(c => c.Type == item.RelayType);
@@ -186,29 +180,29 @@ namespace linker.plugins.relay
 
             try
             {
-                RelayServerInfo server = fileConfig.Data.Client.Relay.Servers.FirstOrDefault(c => c.Name == relayInfo.ServerName) ?? fileConfig.Data.Client.Relay.Servers.FirstOrDefault();
+                RelayServerInfo server = GetServer(relayInfo.ServerName);
+                if (server == null) return false;
+
                 relayInfo.Server = NetworkHelper.GetEndPoint(server.Host, 3478);
 
                 ITransport _transports = transports.FirstOrDefault(c => c.Name == relayInfo.TransportName);
-                if (_transports != null)
-                {
-                    await _transports.OnBeginAsync(relayInfo, (ITunnelConnection connection) =>
-                    {
-                        if (connection != null)
-                        {
-                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                LoggerHelper.Instance.Debug($"relay from {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
-                            ConnectedCallback(relayInfo, connection);
-                        }
-                        else
-                        {
-                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                LoggerHelper.Instance.Error($"relay from {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} error,{relayInfo.ToJson()}");
-                        }
-                    }).ConfigureAwait(false);
-                    return true;
-                }
+                if (_transports == null) return false;
 
+                await _transports.OnBeginAsync(relayInfo, (ITunnelConnection connection) =>
+                {
+                    if (connection != null)
+                    {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            LoggerHelper.Instance.Debug($"relay from {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
+                        ConnectedCallback(relayInfo, connection);
+                    }
+                    else
+                    {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            LoggerHelper.Instance.Error($"relay from {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} error,{relayInfo.ToJson()}");
+                    }
+                }).ConfigureAwait(false);
+                return true;
             }
             catch (Exception ex)
             {
@@ -244,6 +238,28 @@ namespace linker.plugins.relay
                 {
                     callabck(connection);
                 }
+            }
+        }
+
+
+        private IEnumerable<RelayServerInfo> GetServers()
+        {
+            return fileConfig.Data.Client.Relay.Servers
+                    .Where(c => c.Disabled == false)
+                    .Where(c => string.IsNullOrWhiteSpace(c.Host) == false)
+                    .Where(c => c.Delay >= 0);
+        }
+        private RelayServerInfo GetServer(string name)
+        {
+            if (fileConfig.Data.Client.HasAccess(ClientApiAccess.Config))
+            {
+                return fileConfig.Data.Client.Relay.Servers.FirstOrDefault(c => c.Name == name && c.Disabled == false && string.IsNullOrWhiteSpace(c.Host) == false)
+                    ?? fileConfig.Data.Client.Relay.Servers.FirstOrDefault(c => c.Disabled == false && string.IsNullOrWhiteSpace(c.Host) == false);
+            }
+            else
+            {
+                return fileConfig.Data.Client.Relay.Servers.FirstOrDefault(c => c.Name == name && string.IsNullOrWhiteSpace(c.Host) == false)
+                    ?? fileConfig.Data.Client.Relay.Servers.FirstOrDefault(c => string.IsNullOrWhiteSpace(c.Host) == false);
             }
         }
 
