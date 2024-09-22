@@ -22,8 +22,7 @@
 		<Description>1. 去除配置同步
 2. 调整UI
 3. 增加Action参数配置
-4. 更新文档
-5. 测试中，请勿更新，请勿更新，请勿更新</Description>
+4. 更新文档</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
