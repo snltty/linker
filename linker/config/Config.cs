@@ -77,7 +77,7 @@ namespace linker.config
             }
 
         }
-        private void Save()
+        public void Save()
         {
             slim.Wait();
             try

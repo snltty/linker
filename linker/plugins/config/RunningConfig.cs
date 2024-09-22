@@ -103,7 +103,7 @@ namespace linker.client.config
         {
             LoggerHelper.Instance.Info($"config Sync:{fileConfig.GetHashCode()}");
 
-            if (Data.IsSync4) return;
+            if (Data.IsSync5) return;
 
             LoggerHelper.Instance.Info($"config Sync1");
 
@@ -130,11 +130,11 @@ namespace linker.client.config
             {
                 fileConfig.Data.Client.Tunnel.Transports = Data.Tunnel.Transports;
             }
-            fileConfig.Data.Update();
+            fileConfig.Save();
 
             LoggerHelper.Instance.Info($"config Sync2:{fileConfig.Data.Client.Servers.ToJson()}");
 
-            Data.IsSync4 = true;
+            Data.IsSync5 = true;
             Data.Update();
         }
     }
@@ -150,6 +150,7 @@ namespace linker.client.config
         public bool IsSync2 { get; set; }
         public bool IsSync3 { get; set; }
         public bool IsSync4 { get; set; }
+        public bool IsSync5 { get; set; }
 
         public void Update()
         {
