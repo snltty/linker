@@ -109,7 +109,6 @@ namespace linker.config
                 servers = value;
             }
         }
-        [JsonIgnore]
         public ClientServerInfo ServerInfo => servers[0];
 
 
