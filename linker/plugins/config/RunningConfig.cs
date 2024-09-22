@@ -101,15 +101,18 @@ namespace linker.client.config
         {
             if (Data.IsSyncConfig) return;
 
+            bool updated = false;
             if (Data.Client.Servers.Length > 0)
             {
                 fileConfig.Data.Client.Servers = Data.Client.Servers;
                 foreach (var server in Data.Client.Servers) server.Name = "Linker";
+                updated = true;
             }
             if (Data.Relay.Servers.Length > 0)
             {
                 fileConfig.Data.Client.Relay.Servers = Data.Relay.Servers;
                 foreach (var server in fileConfig.Data.Client.Relay.Servers) server.Name = "Linker";
+                updated = true;
             }
 
             fileConfig.Data.Client.SForward.SecretKey = Data.SForwardSecretKey;
@@ -119,19 +122,24 @@ namespace linker.client.config
             if (Data.Tunnel.Servers.Count > 0)
             {
                 fileConfig.Data.Client.Tunnel.Servers = Data.Tunnel.Servers;
+                updated = true;
             }
             if (Data.Tunnel.Transports.Count > 0)
             {
                 fileConfig.Data.Client.Tunnel.Transports = Data.Tunnel.Transports;
+                updated = true;
             }
-            fileConfig.Save();
 
             Data.IsSyncConfig = true;
             Save();
 
-            LoggerHelper.Instance.Warning($"sync config，restarting");
+            if (updated)
+            {
+                fileConfig.Save();
+                LoggerHelper.Instance.Warning($"sync config，restarting");
+                Environment.Exit(1);
+            }
 
-            Environment.Exit(1);
         }
     }
 
