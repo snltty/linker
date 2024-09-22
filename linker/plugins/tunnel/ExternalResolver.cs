@@ -18,6 +18,13 @@ namespace linker.plugins.tunnel
         {
         }
 
+        /// <summary>
+        /// UDP
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="ep"></param>
+        /// <param name="memory"></param>
+        /// <returns></returns>
         public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
             byte[] sendData = ArrayPool<byte>.Shared.Rent(20);
@@ -33,6 +40,11 @@ namespace linker.plugins.tunnel
                 ArrayPool<byte>.Shared.Return(sendData);
             }
         }
+        /// <summary>
+        /// TCP
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <returns></returns>
         public async Task Resolve(Socket socket)
         {
             byte[] sendData = ArrayPool<byte>.Shared.Rent(20);
