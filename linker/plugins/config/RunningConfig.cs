@@ -3,6 +3,9 @@ using linker.libs;
 using LiteDB;
 using System.Text.Json.Serialization;
 using linker.config;
+using MemoryPack;
+using linker.libs.extends;
+using linker.tunnel.wanport;
 
 namespace linker.client.config
 {
@@ -158,4 +161,20 @@ namespace linker.client.config
         }
     }
 
+
+    [MemoryPackable]
+    public sealed partial class SecretKeyAsyncInfo
+    {
+        public string SignSecretKey {  get; set; }
+        public string RelaySecretKey {  get; set; }
+        public string SForwardSecretKey {  get; set; }
+    }
+
+    [MemoryPackable]
+    public sealed partial class ServerAsyncInfo
+    {
+        public ClientServerInfo[] SignServers { get; set; }
+        public RelayServerInfo[] RelayServers { get; set; }
+        public TunnelWanPortInfo[] TunnelServers { get; set; }
+    }
 }

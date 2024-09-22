@@ -19,13 +19,7 @@ namespace linker.client.config
     {
         public ObjectId Id { get; set; }
 
-        private ClientServerInfo[] servers = new ClientServerInfo[] {
-#if DEBUG
-            new ClientServerInfo{ Name="Linker", Host=new IPEndPoint(IPAddress.Loopback, 1802).ToString() }
-#else
-            new ClientServerInfo{ Name="linker", Host="linker.snltty.com:1802" }
-#endif
-        };
+        private ClientServerInfo[] servers = new ClientServerInfo[] {};
         public ClientServerInfo[] Servers
         {
             get => servers; set

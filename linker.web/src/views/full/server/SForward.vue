@@ -34,7 +34,7 @@ export default {
             setSForwardSecretKey(state.SForwardSecretKey).then(()=>{
                 ElMessage.success('已操作');
             }).catch(()=>{
-                ElMessage.success('操作失败');
+                ElMessage.error('操作失败');
             });
         }
         const handleChange = ()=>{

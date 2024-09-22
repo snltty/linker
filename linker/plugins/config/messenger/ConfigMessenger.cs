@@ -1,6 +1,8 @@
 ﻿using linker.client.config;
 using linker.config;
 using linker.libs;
+using linker.libs.extends;
+using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.plugins.signin.messenger;
 using MemoryPack;
@@ -81,15 +83,64 @@ namespace linker.plugins.config.messenger
             }
         }
 
+
+        [MessengerId((ushort)ConfigMessengerIds.SecretKeyAsyncForward)]
+        public async Task SecretKeyAsyncForward(IConnection connection)
+        {
+            SecretKeyAsyncInfo info = MemoryPackSerializer.Deserialize<SecretKeyAsyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            {
+                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
+                List<Task> tasks = new List<Task>();
+                foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected))
+                {
+                    tasks.Add(sender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = item.Connection,
+                        MessengerId = (ushort)ConfigMessengerIds.SecretKeyAsync,
+                        Payload = connection.ReceiveRequestWrap.Payload,
+                        Timeout = 1000,
+                    }));
+                }
+
+                await Task.WhenAll(tasks);
+            }
+        }
+        [MessengerId((ushort)ConfigMessengerIds.ServerAsyncForward)]
+        public async Task ServerAsyncForward(IConnection connection)
+        {
+            ServerAsyncInfo info = MemoryPackSerializer.Deserialize<ServerAsyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            {
+                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
+                List<Task> tasks = new List<Task>();
+                foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected))
+                {
+                    tasks.Add(sender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = item.Connection,
+                        MessengerId = (ushort)ConfigMessengerIds.ServerAsync,
+                        Payload = connection.ReceiveRequestWrap.Payload,
+                        Timeout = 1000,
+                    }));
+                }
+
+                await Task.WhenAll(tasks);
+            }
+        }
     }
 
     public sealed class ConfigClientMessenger : IMessenger
     {
         private readonly AccessTransfer accessTransfer;
+        private readonly FileConfig fileConfig;
+        private readonly ClientSignInTransfer clientSignInTransfer;
 
-        public ConfigClientMessenger(AccessTransfer accessTransfer)
+        public ConfigClientMessenger(AccessTransfer accessTransfer, FileConfig fileConfig, ClientSignInTransfer clientSignInTransfer)
         {
             this.accessTransfer = accessTransfer;
+            this.fileConfig = fileConfig;
+            this.clientSignInTransfer = clientSignInTransfer;
         }
 
         [MessengerId((ushort)ConfigMessengerIds.Access)]
@@ -106,6 +157,40 @@ namespace linker.plugins.config.messenger
             ConfigUpdateAccessInfo info = MemoryPackSerializer.Deserialize<ConfigUpdateAccessInfo>(connection.ReceiveRequestWrap.Payload.Span);
             accessTransfer.SetAccess(info);
             connection.Write(Helper.TrueArray);
+        }
+
+        [MessengerId((ushort)ConfigMessengerIds.SecretKeyAsync)]
+        public void SecretKeyAsync(IConnection connection)
+        {
+            SecretKeyAsyncInfo info = MemoryPackSerializer.Deserialize<SecretKeyAsyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
+
+            foreach (var item in fileConfig.Data.Client.Servers)
+            {
+                item.SecretKey = info.SignSecretKey;
+            }
+            foreach (var item in fileConfig.Data.Client.Relay.Servers)
+            {
+                item.SecretKey = info.RelaySecretKey;
+            }
+            fileConfig.Data.Client.SForward.SecretKey = info.SForwardSecretKey;
+
+            fileConfig.Data.Update();
+            clientSignInTransfer.SignOut();
+            _ = clientSignInTransfer.SignIn();
+        }
+
+        [MessengerId((ushort)ConfigMessengerIds.ServerAsync)]
+        public void ServerAsync(IConnection connection)
+        {
+            ServerAsyncInfo info = MemoryPackSerializer.Deserialize<ServerAsyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
+
+            fileConfig.Data.Client.Servers = info.SignServers;
+            fileConfig.Data.Client.Relay.Servers = info.RelayServers;
+            fileConfig.Data.Client.Tunnel.Servers = info.TunnelServers.ToList();
+
+            fileConfig.Data.Update();
+            clientSignInTransfer.SignOut();
+            _ = clientSignInTransfer.SignIn();
         }
     }
 }

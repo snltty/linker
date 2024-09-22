@@ -105,8 +105,6 @@ namespace linker.plugins.config
             }
             return new AccessListInfo { HashCode = version };
         }
-
-
         [ClientApiAccessAttribute(ClientApiAccess.Access)]
         public async Task<bool> SetAccess(ApiControllerParamsInfo param)
         {
@@ -124,6 +122,7 @@ namespace linker.plugins.config
             });
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
+
 
         [ClientApiAccessAttribute(ClientApiAccess.Export)]
         public async Task<bool> Export(ApiControllerParamsInfo param)
@@ -220,6 +219,33 @@ namespace linker.plugins.config
                 CopyDirectory(subDir, destSubDir, excludeDir);
             }
         }
+
+
+        public async Task<bool> SecretKeyAsync(ApiControllerParamsInfo param)
+        {
+            SecretKeyAsyncInfo info = param.Content.DeJson<SecretKeyAsyncInfo>();
+            await sender.SendOnly(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)ConfigMessengerIds.SecretKeyAsyncForward,
+                Payload = MemoryPackSerializer.Serialize(info)
+            });
+
+            return true;
+        }
+        public async Task<bool> ServerAsync(ApiControllerParamsInfo param)
+        {
+            ServerAsyncInfo info = param.Content.DeJson<ServerAsyncInfo>();
+            await sender.SendOnly(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)ConfigMessengerIds.ServerAsyncForward,
+                Payload = MemoryPackSerializer.Serialize(info)
+            });
+
+            return true;
+        }
+
     }
 
     public sealed class ConfigInstallInfo
