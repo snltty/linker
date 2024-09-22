@@ -385,7 +385,7 @@ namespace linker.plugins.forward.proxy
         public byte[] Buffer { get; set; }
 
         public long LastTime { get; set; } = Environment.TickCount64;
-        public bool Timeout => Environment.TickCount64 - LastTime > 15000;
+        public bool Timeout => Environment.TickCount64 - LastTime > 60*60*1000;
         public void Clear()
         {
             TargetSocket?.SafeClose();
