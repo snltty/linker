@@ -33,6 +33,8 @@ namespace linker.plugins.client
             this.messengerSender = messengerSender;
             this.messengerResolver = messengerResolver;
             this.signInArgsTransfer = signInArgsTransfer;
+
+            Console.WriteLine($"{config.GetHashCode()}");
         }
 
         /// <summary>

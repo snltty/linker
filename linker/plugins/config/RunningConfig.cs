@@ -101,7 +101,7 @@ namespace linker.client.config
 
         private void Sync()
         {
-            LoggerHelper.Instance.Info($"config Sync");
+            LoggerHelper.Instance.Info($"config Sync:{fileConfig.GetHashCode()}");
 
             if (Data.IsSync3) return;
 
