@@ -101,8 +101,11 @@ namespace linker.client.config
 
         private void Sync()
         {
-            if (Data.IsSync2) return;
-            
+            LoggerHelper.Instance.Info($"config Sync");
+
+            if (Data.IsSync3) return;
+
+            LoggerHelper.Instance.Info($"config Sync1");
 
             if (Data.Client.Servers.Length > 0)
             {
@@ -129,8 +132,9 @@ namespace linker.client.config
             }
             fileConfig.Data.Update();
 
+            LoggerHelper.Instance.Info($"config Sync2:{fileConfig.Data.Client.Servers.ToJson()}");
 
-            Data.IsSync2 = true;
+            Data.IsSync3 = true;
             Data.Update();
         }
     }
@@ -144,6 +148,7 @@ namespace linker.client.config
 
         public bool IsSync { get; set; }
         public bool IsSync2 { get; set; }
+        public bool IsSync3 { get; set; }
 
         public void Update()
         {
