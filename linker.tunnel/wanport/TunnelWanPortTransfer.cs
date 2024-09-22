@@ -52,6 +52,8 @@ namespace linker.tunnel.wanport
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Debug($"get domain ip {info.Host}");
                 IPEndPoint server = NetworkHelper.GetEndPoint(info.Host, 3478);
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Debug($"got domain ip {info.Host}->{server}");
                 if (server == null) return null;
                 TunnelWanPortEndPoint wanPort = await tunnelWanPort.GetAsync(localIP, server).ConfigureAwait(false);
                 if (wanPort != null)

@@ -6,7 +6,6 @@ using MemoryPack;
 using System.Net;
 using System.Reflection;
 using System.Text;
-using System.Text.Json.Serialization;
 
 namespace linker.client.config
 {
@@ -18,15 +17,7 @@ namespace linker.client.config
     public sealed class ClientRunningInfo
     {
         public ObjectId Id { get; set; }
-
-        private ClientServerInfo[] servers = new ClientServerInfo[] {};
-        public ClientServerInfo[] Servers
-        {
-            get => servers; set
-            {
-                servers = value;
-            }
-        }
+        public ClientServerInfo[] Servers { get; set; } = [];
     }
 }
 
