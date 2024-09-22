@@ -296,10 +296,6 @@ namespace linker.plugins.client
         {
             await SetServersReSignin(servers);
         }
-        private void SetServers(Memory<byte> data)
-        {
-            _ = SetServersReSignin(MemoryPackSerializer.Deserialize<ClientServerInfo[]>(data.Span));
-        }
         private async Task SetServersReSignin(ClientServerInfo[] servers)
         {
             string str = config.Data.Client.ServerInfo.ToStr();

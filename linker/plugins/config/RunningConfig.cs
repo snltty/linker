@@ -29,10 +29,9 @@ namespace linker.client.config
             liteCollection = dBfactory.GetCollection<RunningConfigInfo>("running");
 
             Load();
+            Sync();
             Save();
             SaveTask();
-
-            Sync();
         }
 
         private void Load()
@@ -102,9 +101,8 @@ namespace linker.client.config
 
         private void Sync()
         {
-            if (Data.IsSync) return;
-            Data.IsSync = true;
-            Data.Update();
+            if (Data.IsSync2) return;
+            
 
             if (Data.Client.Servers.Length > 0)
             {
@@ -130,6 +128,10 @@ namespace linker.client.config
                 fileConfig.Data.Client.Tunnel.Transports = Data.Tunnel.Transports;
             }
             fileConfig.Data.Update();
+
+
+            Data.IsSync2 = true;
+            Data.Update();
         }
     }
 
@@ -141,6 +143,7 @@ namespace linker.client.config
         public uint Updated { get; set; } = 1;
 
         public bool IsSync { get; set; }
+        public bool IsSync2 { get; set; }
 
         public void Update()
         {

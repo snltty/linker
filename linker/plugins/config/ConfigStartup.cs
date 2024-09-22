@@ -13,7 +13,7 @@ namespace linker.plugins.config
 
         public bool Required => true;
 
-        public StartupLevel Level => StartupLevel.Normal;
+        public StartupLevel Level => StartupLevel.Top;
 
         public string[] Dependent => new string[] { "messenger", "signin", "serialize" };
 
