@@ -6,6 +6,7 @@ using MemoryPack;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace linker.client.config
 {
@@ -108,6 +109,7 @@ namespace linker.config
                 servers = value;
             }
         }
+        [JsonIgnore]
         public ClientServerInfo ServerInfo => servers[0];
 
 

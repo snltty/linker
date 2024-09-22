@@ -34,7 +34,7 @@ namespace linker.plugins.client
             this.messengerResolver = messengerResolver;
             this.signInArgsTransfer = signInArgsTransfer;
 
-            Console.WriteLine($"{config.GetHashCode()}");
+            LoggerHelper.Instance.Info($"sign in:{config.GetHashCode()}->{config.ToJsonFormat()}");
         }
 
         /// <summary>
