@@ -99,7 +99,7 @@ namespace linker.client.config
 
         private void Sync()
         {
-            if (Data.IsSync5) return;
+            if (Data.IsSyncConfig) return;
 
             if (Data.Client.Servers.Length > 0)
             {
@@ -126,8 +126,10 @@ namespace linker.client.config
             }
             fileConfig.Save();
 
-            Data.IsSync5 = true;
+            Data.IsSyncConfig = true;
             Save();
+
+            LoggerHelper.Instance.Warning($"sync config，restarting");
 
             Environment.Exit(1);
         }
@@ -140,11 +142,7 @@ namespace linker.client.config
         [JsonIgnore, BsonIgnore]
         public uint Updated { get; set; } = 1;
 
-        public bool IsSync { get; set; }
-        public bool IsSync2 { get; set; }
-        public bool IsSync3 { get; set; }
-        public bool IsSync4 { get; set; }
-        public bool IsSync5 { get; set; }
+        public bool IsSyncConfig { get; set; }
 
         public void Update()
         {
