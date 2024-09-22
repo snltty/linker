@@ -33,8 +33,6 @@ namespace linker.plugins.client
             this.messengerSender = messengerSender;
             this.messengerResolver = messengerResolver;
             this.signInArgsTransfer = signInArgsTransfer;
-
-            LoggerHelper.Instance.Info($"sign in:{config.GetHashCode()}->{config.ToJsonFormat()}");
         }
 
         /// <summary>
@@ -78,7 +76,7 @@ namespace linker.plugins.client
 
             try
             {
-                //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Info($"connect to signin server:{config.Data.Client.ServerInfo.Host}");
 
                 IPEndPoint ip = NetworkHelper.GetEndPoint(config.Data.Client.ServerInfo.Host, 1802);
@@ -135,7 +133,7 @@ namespace linker.plugins.client
         private async Task<bool> SignIn2Server()
         {
             Dictionary<string, string> args = [];
-            string argResult = await signInArgsTransfer.Invoke(config.Data.Client.ServerInfo.Host,args);
+            string argResult = await signInArgsTransfer.Invoke(config.Data.Client.ServerInfo.Host, args);
             if (string.IsNullOrWhiteSpace(argResult) == false)
             {
                 LoggerHelper.Instance.Error(argResult);

@@ -3,8 +3,6 @@ using linker.libs;
 using LiteDB;
 using System.Text.Json.Serialization;
 using linker.config;
-using linker.plugins.relay.transport;
-using linker.libs.extends;
 
 namespace linker.client.config
 {
@@ -101,11 +99,7 @@ namespace linker.client.config
 
         private void Sync()
         {
-            LoggerHelper.Instance.Info($"config Sync:{fileConfig.GetHashCode()}");
-
             if (Data.IsSync5) return;
-
-            LoggerHelper.Instance.Info($"config Sync1");
 
             if (Data.Client.Servers.Length > 0)
             {
@@ -132,10 +126,10 @@ namespace linker.client.config
             }
             fileConfig.Save();
 
-            LoggerHelper.Instance.Info($"config Sync2:{fileConfig.Data.Client.Servers.ToJson()}");
-
             Data.IsSync5 = true;
-            Data.Update();
+            Save();
+
+            Environment.Exit(1);
         }
     }
 
