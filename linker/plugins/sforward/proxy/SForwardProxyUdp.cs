@@ -266,7 +266,7 @@ namespace linker.plugins.sforward.proxy
         {
             LastTime = Environment.TickCount64;
         }
-        public bool Timeout => Environment.TickCount64 - LastTime > 15000;
+        public bool Timeout => Environment.TickCount64 - LastTime > 60 * 60 * 1000;
     }
 
     public sealed class UdpConnectedCache
