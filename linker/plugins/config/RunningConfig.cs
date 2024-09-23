@@ -116,11 +116,10 @@ namespace linker.client.config
                 fileConfig.Data.Client.Relay.Servers = Data.Relay.Servers;
                 foreach (var server in fileConfig.Data.Client.Relay.Servers) server.Name = "Linker";
                 updated = true;
+
+                fileConfig.Data.Client.SForward.SecretKey = Data.SForwardSecretKey;
+                fileConfig.Data.Client.Updater.SecretKey = Data.UpdaterSecretKey;
             }
-
-            fileConfig.Data.Client.SForward.SecretKey = Data.SForwardSecretKey;
-            fileConfig.Data.Client.Updater.SecretKey = Data.UpdaterSecretKey;
-
 
             if (Data.Tunnel.Servers.Count > 0)
             {
