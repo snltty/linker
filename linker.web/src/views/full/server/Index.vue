@@ -16,7 +16,7 @@ export default {
     components:{},
     setup(props) {
 
-        const excludes = ['./Index.vue','./Version.vue']
+        const excludes = ['./Index.vue','./Version.vue','./TunnelServers.vue']
 
         const files = require.context('./', true, /.+\.vue/);
         const settingComponents = files.keys().filter(c=>excludes.includes(c)==false).map(c => files(c).default).sort((a,b)=>a.order-b.order);

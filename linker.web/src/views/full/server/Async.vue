@@ -2,33 +2,27 @@
     <div>
         <el-card shadow="never">
             <template #header>
-                <div class="card-header">
+                <div class="card-header flex">
                     <span>同步密钥</span>
+                    <span class="flex-1"></span>
+                    <el-button type="success" @click="handleSyncSecretKey">确定同步</el-button>
                 </div>
             </template>
             <div>
                 同步，信标服务器，中继服务器，服务器代理穿透，的密钥到所有客户端
             </div>
-            <template #footer>
-                <div class="t-r">
-                    <el-button type="success" @click="handleSyncSecretKey">确定同步</el-button>
-                </div>
-            </template>
         </el-card>
         <el-card shadow="never" style="margin-top:2rem">
             <template #header>
-                <div class="card-header">
+                <div class="card-header flex">
                     <span>同步服务器配置</span>
+                    <span class="flex-1"></span>
+                    <el-button type="success" @click="handleSyncServer">确定同步</el-button>
                 </div>
             </template>
             <div>
                 同步，信标服务器，端口服务器，中继服务器，列表到所有客户端 
             </div>
-            <template #footer>
-                <div class="t-r">
-                    <el-button type="success" @click="handleSyncServer">确定同步</el-button>
-                </div>
-            </template>
         </el-card>
     </div>
 </template>
