@@ -19,17 +19,16 @@
 		<Title>linker</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 去除配置同步
-2. 调整UI
-3. 增加Action参数配置
-4. 更新文档</Description>
+		<Description>1. 优化服务器代理穿透，延长UDP超时时间，优化穿透添加逻辑
+2. 当提示端口被占用时，可以稍等一段时间再尝试启动穿透
+3. 优化配置同步</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.4.1</Version>
-		<AssemblyVersion>1.4.1</AssemblyVersion>
-		<FileVersion>1.4.1</FileVersion>
+		<Version>1.4.2</Version>
+		<AssemblyVersion>1.4.2</AssemblyVersion>
+		<FileVersion>1.4.2</FileVersion>
 	</PropertyGroup>
 
 

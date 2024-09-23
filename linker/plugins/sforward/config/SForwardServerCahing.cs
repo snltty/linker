@@ -16,11 +16,21 @@ namespace linker.plugins.sforward.config
 
         public bool TryAdd(string domain, string machineId)
         {
+            if (serverDoamins.TryGetValue(domain, out string _machineId) && machineId == _machineId)
+            {
+                return true;
+            }
+
             return serverDoamins.TryAdd(domain, machineId);
         }
 
         public bool TryAdd(int port, string machineId)
         {
+            if (serverPorts.TryGetValue(port, out string _machineId) && machineId == _machineId)
+            {
+                return true;
+            }
+
             return serverPorts.TryAdd(port, machineId);
         }
 
