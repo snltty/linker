@@ -49,9 +49,11 @@ namespace linker.plugins.sforward.proxy
                     }
                     Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
 
+                    IPEndPoint source = result.RemoteEndPoint as IPEndPoint;
                     //已经连接
-                    if (udpConnections.TryGetValue(result.RemoteEndPoint as IPEndPoint, out UdpTargetCache cache) && cache != null)
+                    if (udpConnections.TryGetValue(source, out UdpTargetCache cache) && cache != null)
                     {
+                        cache.Update();
                         await token.SourceSocket.SendToAsync(memory, cache.IPEndPoint).ConfigureAwait(false);
                     }
                     else
@@ -62,13 +64,11 @@ namespace linker.plugins.sforward.proxy
                             ulong _id = memory.Slice(flagBytes.Length).ToUInt64();
                             if (udptcss.TryRemove(_id, out TaskCompletionSource<IPEndPoint> _tcs))
                             {
-                                _tcs.SetResult(result.RemoteEndPoint as IPEndPoint);
+                                _tcs.SetResult(source);
                             }
                             continue;
                         }
 
-
-                        IPEndPoint source = result.RemoteEndPoint as IPEndPoint;
                         if (udpConnections.TryGetValue(source, out _))
                         {
                             continue;
@@ -166,6 +166,8 @@ namespace linker.plugins.sforward.proxy
             Socket serviceUdp = null;
             buffer = new byte[(1 << bufferSize) * 1024];
             IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
+
+            UdpConnectedCache cache = new UdpConnectedCache { SourceSocket = socketUdp, TargetSocket = serviceUdp };
             while (true)
             {
                 try
@@ -173,8 +175,12 @@ namespace linker.plugins.sforward.proxy
                     SocketReceiveFromResult result = await socketUdp.ReceiveFromAsync(buffer, tempEp).ConfigureAwait(false);
                     if (result.ReceivedBytes == 0)
                     {
+                        serviceUdp?.SafeClose();
+                        serviceUdp?.Close();
+                        socketUdp?.Dispose();
                         break;
                     }
+                    cache.Update();
 
                     Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
                     if (serviceUdp == null)
@@ -183,19 +189,27 @@ namespace linker.plugins.sforward.proxy
                         serviceUdp.WindowsUdpBug();
                         await serviceUdp.SendToAsync(memory, service).ConfigureAwait(false);
 
-                        udpConnectds.TryAdd(id, new UdpConnectedCache { SourceSocket = socketUdp, TargetSocket = serviceUdp });
+                        cache.TargetSocket = serviceUdp;
+                        udpConnectds.TryAdd(id, cache);
 
                         TimerHelper.Async(async () =>
                         {
-                            buffer = new byte[(1 << bufferSize) * 1024];
+                            byte[] buffer = new byte[(1 << bufferSize) * 1024];
                             IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
                             while (true)
                             {
                                 try
                                 {
                                     SocketReceiveFromResult result = await serviceUdp.ReceiveFromAsync(buffer, tempEp).ConfigureAwait(false);
-                                    if (result.ReceivedBytes == 0) break;
+                                    if (result.ReceivedBytes == 0)
+                                    {
+                                        serviceUdp?.SafeClose();
+                                        serviceUdp?.Close();
+                                        socketUdp?.Dispose();
+                                        break;
+                                    }
                                     await socketUdp.SendToAsync(buffer.AsMemory(0, result.ReceivedBytes), server).ConfigureAwait(false);
+                                    cache.Update();
                                 }
                                 catch (Exception ex)
                                 {
@@ -266,7 +280,7 @@ namespace linker.plugins.sforward.proxy
         {
             LastTime = Environment.TickCount64;
         }
-        public bool Timeout => Environment.TickCount64 - LastTime > 60 * 60 * 1000;
+        public bool Timeout => Environment.TickCount64 - LastTime > 60 * 1000;
     }
 
     public sealed class UdpConnectedCache
@@ -278,7 +292,7 @@ namespace linker.plugins.sforward.proxy
         {
             LastTime = Environment.TickCount64;
         }
-        public bool Timeout => Environment.TickCount64 - LastTime > 60*60*1000;
+        public bool Timeout => Environment.TickCount64 - LastTime > 60 * 1000;
 
         public void Clear()
         {
