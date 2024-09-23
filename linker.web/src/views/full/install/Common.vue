@@ -1,7 +1,7 @@
 <template>
     <div class="t-c">
         <el-checkbox v-model="state.form.client" label="作为客户端" />
-        <el-checkbox v-model="state.form.server" label="作为服务端" />
+        <!-- <el-checkbox v-model="state.form.server" label="作为服务端" /> -->
     </div>
 </template>
 
@@ -15,8 +15,8 @@ export default {
         const step = inject('step');
         const state =  reactive({
             form: {
-                client:step.value.form.common.client ||  (step.value.json.Common && step.value.json.Common.client) || false,
-                server:step.value.form.common.server ||  (step.value.json.Common && step.value.json.Common.server) || false,
+                client:true,//step.value.form.common.client ||  (step.value.json.Common && step.value.json.Common.client) || false,
+                server:false,//step.value.form.common.server ||  (step.value.json.Common && step.value.json.Common.server) || false,
             }
         });
         const handleValidate = (prevJson) => {

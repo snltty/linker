@@ -74,7 +74,7 @@ export default {
         const handleShowAccess = (row,rowAccess)=>{
             return row.showAccess 
             && hasAccess.value 
-            && rowAccess > 0 
+            && rowAccess >= 0 
             // 它的权限删掉我的权限==0，我至少拥有它的全部权限，它是我的子集，我有权管它
             && (((~myAccess.value) & rowAccess)>>>0) == 0;
         }

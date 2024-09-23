@@ -13,13 +13,13 @@
                     <el-card shadow="never" v-if="step.step == 1">
                         <Common ref="currentDom"></Common>
                     </el-card>
-                    <el-card shadow="never"  v-if="step.step == 2">
+                    <!-- <el-card shadow="never"  v-if="step.step == 2">
                         <Server ref="currentDom"></Server>
-                    </el-card>
-                    <el-card shadow="never"  v-if="step.step == 3">
+                    </el-card> -->
+                    <el-card shadow="never"  v-if="step.step == 2">
                         <Client ref="currentDom"></Client>
                     </el-card>
-                    <el-card shadow="never"  v-if="step.step == 4">
+                    <el-card shadow="never"  v-if="step.step == 3">
                         <div class="t-c">完成保存后，请重启软件</div>
                     </el-card>
                 </div>
@@ -47,7 +47,10 @@ export default {
         const globalData = injectGlobalData();
         const state = reactive({
             show: globalData.value.config.Common.Install == false,
-            steps:['选择模式','服务端','客户端','完成']
+            steps:['选择模式',
+            // '服务端',
+            '客户端',
+            '完成']
         });
 
         const currentDom = ref(null);
