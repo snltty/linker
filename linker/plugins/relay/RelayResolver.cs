@@ -50,6 +50,7 @@ namespace linker.plugins.relay
             try
             {
                 int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
+                ReceiveBytes += (ulong)length;
                 RelayMessage relayMessage = RelayMessage.FromBytes(buffer.AsMemory(0, length));
 
                 if (relayDic.TryGetValue(relayMessage.FlowId, out RelayWrap relayWrap) == false)
