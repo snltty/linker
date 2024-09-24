@@ -3,7 +3,7 @@
         <p>上传 {{state.overallSendtSpeed}}</p>
         <p>下载 {{state.overallReceiveSpeed}}</p>
     </a>
-    <el-dialog class="options-center" :title="state.time" destroy-on-close v-model="state.show" center  width="580" top="1vh">
+    <el-dialog class="options-center" :title="state.time" destroy-on-close v-model="state.show" center  width="680" top="1vh">
         <div>
             <el-table :data="state.list" border size="small" width="100%" height="60vh">
                 <el-table-column prop="id" label="信标id"></el-table-column>
@@ -104,7 +104,7 @@ export default {
                 state.overallSendtSpeed = parseSpeed(sendtBytes-_sendtBytes);
                 state.overallReceiveSpeed = parseSpeed(receiveBytes-_receiveBytes);
 
-                state.time = `linker 启动于 ${res.Start} 至今`;
+                state.time = `从 ${res.Start}启动 至今`;
                 const list = [];
                 for(let j in res.Resolvers){
                     list.push({

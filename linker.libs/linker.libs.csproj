@@ -14,9 +14,9 @@
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
-		<Version>1.4.3</Version>
-		<AssemblyVersion>1.4.3</AssemblyVersion>
-		<FileVersion>1.4.3</FileVersion>
+		<Version>1.4.4</Version>
+		<AssemblyVersion>1.4.4</AssemblyVersion>
+		<FileVersion>1.4.4</FileVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<DebugType>full</DebugType>
