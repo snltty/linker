@@ -167,6 +167,7 @@ a{
     font-weight:bold;position:absolute;right:1rem;bottom:90%;
     border:1px solid #ddd;
     background-color:#fff;
+    z-index :9
     p{
         line-height:normal;
         white-space: nowrap;

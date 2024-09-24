@@ -9,19 +9,19 @@
             <div class="menu flex-1">
                 <ul class="flex">
                     <li>
-                        <router-link :to="{name:'FullIndex'}"><el-icon size="16"><StarFilled /></el-icon> 首页</router-link>
+                        <router-link :to="{name:'FullIndex'}"><img src="@/assets/shouye.svg"/> 首页</router-link>
                     </li>
                     <li v-if="hasConfig">
-                        <router-link :to="{name:'FullServers'}"><el-icon size="16"><Promotion /></el-icon> 服务器</router-link>
+                        <router-link :to="{name:'FullServers'}"><img src="@/assets/fuwuqi.svg"/> 服务器</router-link>
                     </li>
                     <li v-if="hasTransport">
-                        <router-link :to="{name:'FullTransport'}"><el-icon size="16"><HelpFilled /></el-icon> 打洞协议</router-link>
+                        <router-link :to="{name:'FullTransport'}"><img src="@/assets/dadong.svg"/> 打洞协议</router-link>
                     </li>
                     <li v-if="hasAction">
-                        <router-link :to="{name:'FullAction'}"><el-icon size="16"><PhoneFilled /></el-icon> Action验证</router-link>
+                        <router-link :to="{name:'FullAction'}"><img src="@/assets/anquan.svg"/> 自定义验证</router-link>
                     </li>
                     <li v-if="hasLogger">
-                        <router-link :to="{name:'FullLogger'}"><el-icon size="16"><WarnTriangleFilled /></el-icon> 日志</router-link>
+                        <router-link :to="{name:'FullLogger'}"><img src="@/assets/rizhi.svg"/> 日志</router-link>
                     </li>
                 </ul>
             </div>
@@ -78,10 +78,12 @@ export default {
             &:hover,&.router-link-active{
                 background-color:rgba(0,0,0,0.1);
                 font-weight:bold;
+                border-radius:4px;
             }
 
-            .el-icon{
-                vertical-align:sub;
+            img{
+                height:2rem
+                vertical-align:text-top;
             }
         }
     }
