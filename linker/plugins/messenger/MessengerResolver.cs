@@ -161,8 +161,7 @@ namespace linker.plugins.messenger
                             }
                             messengers.TryAdd(mid.Id, cache);
 
-                            if (mid.Id != 2701)
-                                messangerFlows.TryAdd(mid.Id, new MessengerFlowItemInfo { });
+                            messangerFlows.TryAdd(mid.Id, new MessengerFlowItemInfo { });
                         }
                         else
                         {
