@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using linker.plugins.signin.messenger;
+using System.Collections.Concurrent;
 
 namespace linker.plugins.sforward.config
 {
@@ -10,8 +11,10 @@ namespace linker.plugins.sforward.config
         private ConcurrentDictionary<string, string> serverDoamins = new ConcurrentDictionary<string, string>();
         private ConcurrentDictionary<int, string> serverPorts = new ConcurrentDictionary<int, string>();
 
-        public SForwardServerCahing()
+        private readonly SignCaching signCaching;
+        public SForwardServerCahing(SignCaching signCaching)
         {
+            this.signCaching = signCaching;
         }
 
         public bool TryAdd(string domain, string machineId)
@@ -19,6 +22,10 @@ namespace linker.plugins.sforward.config
             if (serverDoamins.TryGetValue(domain, out string _machineId) && machineId == _machineId)
             {
                 return true;
+            }
+            if (signCaching.GetOnline(machineId) == false)
+            {
+                serverDoamins.TryRemove(domain, out _);
             }
 
             return serverDoamins.TryAdd(domain, machineId);
@@ -29,6 +36,10 @@ namespace linker.plugins.sforward.config
             if (serverPorts.TryGetValue(port, out string _machineId) && machineId == _machineId)
             {
                 return true;
+            }
+            if (signCaching.GetOnline(machineId) == false)
+            {
+                serverPorts.TryRemove(port, out _);
             }
 
             return serverPorts.TryAdd(port, machineId);

@@ -89,6 +89,11 @@ namespace linker.plugins.signin.messenger
             return Clients.Values.Where(c => c.GroupId == groupId).ToList();
         }
 
+        public bool GetOnline(string machineId)
+        {
+            return Clients.TryGetValue(machineId, out SignCacheInfo cache) && cache.Connected;
+        }
+
         public bool TryRemove(string machineId, out SignCacheInfo cache)
         {
             if (Clients.TryRemove(machineId, out cache))

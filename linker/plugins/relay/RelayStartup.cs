@@ -38,7 +38,8 @@ namespace linker.plugins.relay
             serviceCollection.AddSingleton<RelayResolver>();
 
             serviceCollection.AddSingleton<RelayValidatorTransfer>();
-
+            serviceCollection.AddSingleton<RelayValidatorSecretKey>();
+            
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)

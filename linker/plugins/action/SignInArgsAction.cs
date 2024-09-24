@@ -1,4 +1,5 @@
 ﻿using linker.config;
+using linker.plugins.relay.transport;
 using linker.plugins.relay.validator;
 using linker.plugins.sforward.config;
 using linker.plugins.sforward.validator;
@@ -51,7 +52,7 @@ namespace linker.plugins.action
             this.fileConfig = fileConfig;
         }
 
-        public async Task<string> Validate(SignCacheInfo fromMachine, SignCacheInfo toMachine)
+        public async Task<string> Validate(linker.plugins.relay.transport.RelayInfo relayInfo, SignCacheInfo fromMachine, SignCacheInfo toMachine)
         {
             if (string.IsNullOrWhiteSpace(fileConfig.Data.Action.RelayActionUrl) == false)
             {

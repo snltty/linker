@@ -63,17 +63,12 @@ namespace linker.plugins.relay.messenger
         public async Task RelayTest(IConnection connection)
         {
             RelayTestInfo info = MemoryPackSerializer.Deserialize<RelayTestInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (info.SecretKey != config.Data.Server.Relay.SecretKey)
-            {
-                connection.Write(Helper.FalseArray);
-                return;
-            }
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
             {
                 connection.Write(Helper.FalseArray);
                 return;
             }
-            string result = await relayValidatorTransfer.Validate(cache, null);
+            string result = await relayValidatorTransfer.Validate(new transport.RelayInfo { SecretKey = info.SecretKey, FromMachineId = info.MachineId }, cache, null);
             if (string.IsNullOrWhiteSpace(result) == false)
             {
                 connection.Write(ulong.MinValue);
@@ -92,19 +87,13 @@ namespace linker.plugins.relay.messenger
         public async Task RelayAsk(IConnection connection)
         {
             transport.RelayInfo info = MemoryPackSerializer.Deserialize<transport.RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (info.SecretKey != config.Data.Server.Relay.SecretKey)
-            {
-                connection.Write(ulong.MinValue);
-                return;
-            }
-
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false || signCaching.TryGet(info.RemoteMachineId, out SignCacheInfo cache1) == false || cache.GroupId != cache1.GroupId)
             {
                 connection.Write(ulong.MinValue);
                 return;
             }
 
-            string result = await relayValidatorTransfer.Validate(cache, cache1);
+            string result = await relayValidatorTransfer.Validate(info, cache, cache1);
             if (string.IsNullOrWhiteSpace(result) == false)
             {
                 connection.Write(ulong.MinValue);
@@ -124,17 +113,12 @@ namespace linker.plugins.relay.messenger
         public async Task RelayForward(IConnection connection)
         {
             transport.RelayInfo info = MemoryPackSerializer.Deserialize<transport.RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.FromMachineId, out SignCacheInfo cacheFrom) == false || signCaching.TryGet(info.RemoteMachineId, out SignCacheInfo cacheTo) == false)
+            if (signCaching.TryGet(info.FromMachineId, out SignCacheInfo cacheFrom) == false || signCaching.TryGet(info.RemoteMachineId, out SignCacheInfo cacheTo) == false || cacheFrom.GroupId != cacheTo.GroupId)
             {
                 connection.Write(Helper.FalseArray);
                 return;
             }
-            if (cacheFrom.GroupId != cacheTo.GroupId)
-            {
-                connection.Write(Helper.FalseArray);
-                return;
-            }
-            string result = await relayValidatorTransfer.Validate(cacheFrom, cacheTo);
+            string result = await relayValidatorTransfer.Validate(info, cacheFrom, cacheTo);
             if (string.IsNullOrWhiteSpace(result) == false)
             {
                 connection.Write(Helper.FalseArray);
