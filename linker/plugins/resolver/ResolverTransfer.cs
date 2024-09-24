@@ -69,5 +69,10 @@ namespace linker.plugins.resolver
                 await resolver.Resolve(socket, ep, memory);
             }
         }
+
+        public Dictionary<string, ResolverFlowItemInfo> GetFlows()
+        {
+            return resolvers.Values.ToDictionary(c => c.Type.ToString(), d => new ResolverFlowItemInfo { ReceiveBytes=d.ReceiveBytes, SendtBytes=d.SendtBytes });
+        }
     }
 }

@@ -11,7 +11,6 @@ namespace linker.plugins.tunnel.excludeip
     public sealed class TunnelExcludeIPTransfer
     {
         private List<ITunnelExcludeIP> excludeIPs;
-        private string exipConfigKey = "excludeIPConfig";
 
         private readonly RunningConfig running;
         private readonly ClientSignInState clientSignInState;

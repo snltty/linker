@@ -13,6 +13,8 @@ namespace linker.plugins.relay
     public sealed class RelayResolver : IResolver
     {
         public ResolverType Type => ResolverType.Relay;
+        public ulong ReceiveBytes { get; private set; }
+        public ulong SendtBytes { get; private set; }
 
         public RelayResolver()
         {
@@ -106,6 +108,8 @@ namespace linker.plugins.relay
                 int bytesRead;
                 while ((bytesRead = await source.ReceiveAsync(buffer.AsMemory()).ConfigureAwait(false)) != 0)
                 {
+                    ReceiveBytes += (ulong)bytesRead;
+                    SendtBytes += (ulong)bytesRead;
                     await destination.SendAsync(buffer.AsMemory(0, bytesRead)).ConfigureAwait(false);
                 }
             }

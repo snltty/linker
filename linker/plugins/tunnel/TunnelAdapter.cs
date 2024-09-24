@@ -29,9 +29,6 @@ namespace linker.plugins.tunnel
         private readonly RunningConfig running;
         private readonly TunnelExcludeIPTransfer excludeIPTransfer;
 
-        private string wanPortConfigKey = "tunnelWanPortProtocols";
-        private string transportConfigKey = "tunnelTransports";
-
         public TunnelAdapter(ClientSignInState clientSignInState, MessengerSender messengerSender, FileConfig config, RunningConfig running, TunnelExcludeIPTransfer excludeIPTransfer)
         {
             this.clientSignInState = clientSignInState;

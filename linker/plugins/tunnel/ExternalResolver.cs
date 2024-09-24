@@ -11,7 +11,8 @@ namespace linker.plugins.tunnel
     /// </summary>
     public sealed class ExternalResolver : IResolver
     {
-
+        public ulong ReceiveBytes { get; private set; }
+        public ulong SendtBytes { get; private set; }
         public ResolverType Type => ResolverType.External;
 
         public ExternalResolver()
@@ -27,10 +28,13 @@ namespace linker.plugins.tunnel
         /// <returns></returns>
         public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
+            ReceiveBytes += (ulong)memory.Length;
             byte[] sendData = ArrayPool<byte>.Shared.Rent(20);
             try
             {
-                await socket.SendToAsync(BuildSendData(sendData, ep), SocketFlags.None, ep).ConfigureAwait(false);
+                var send = BuildSendData(sendData, ep);
+                SendtBytes += (ulong)send.Length;
+                await socket.SendToAsync(send, SocketFlags.None, ep).ConfigureAwait(false);
             }
             catch (Exception)
             {
@@ -51,6 +55,7 @@ namespace linker.plugins.tunnel
             try
             {
                 Memory<byte> memory = BuildSendData(sendData, socket.RemoteEndPoint as IPEndPoint);
+                SendtBytes += (ulong)memory.Length;
                 await socket.SendAsync(memory, SocketFlags.None).ConfigureAwait(false);
             }
             catch (Exception)

@@ -20,7 +20,6 @@ namespace linker.plugins.updater
         private readonly UpdaterHelper updaterHelper;
 
         private readonly RunningConfig running;
-        private string configKey = "updater";
 
         public VersionManager Version { get; } = new VersionManager();
 

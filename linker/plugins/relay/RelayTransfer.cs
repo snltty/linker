@@ -22,7 +22,6 @@ namespace linker.plugins.relay
         private readonly FileConfig fileConfig;
         private readonly RunningConfig running;
         private readonly ServiceProvider serviceProvider;
-        private string configKey = "relayServers";
 
         private ConcurrentDictionary<string, bool> connectingDic = new ConcurrentDictionary<string, bool>();
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();

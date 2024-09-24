@@ -23,8 +23,6 @@ namespace linker.plugins.client
         private readonly MessengerResolver messengerResolver;
         private readonly SignInArgsTransfer signInArgsTransfer;
 
-        private string configKey = "signServers";
-
         public ClientSignInTransfer(ClientSignInState clientSignInState, RunningConfig runningConfig, FileConfig config, MessengerSender messengerSender, MessengerResolver messengerResolver, SignInArgsTransfer signInArgsTransfer)
         {
             this.clientSignInState = clientSignInState;

@@ -19,8 +19,6 @@ namespace linker.plugins.sforward
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
 
-        private string configKey = "sforwardKey";
-
         private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
 
         public VersionManager Version { get; } = new VersionManager();

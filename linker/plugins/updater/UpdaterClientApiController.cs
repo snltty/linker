@@ -18,29 +18,27 @@ namespace linker.plugins.updater
         private readonly UpdaterClientTransfer updaterTransfer;
         private readonly ClientSignInState clientSignInState;
         private readonly FileConfig config;
-        private readonly UpdaterClientTransfer updaterClientTransfer;
         private readonly RunningConfig runningConfig;
 
-        public UpdaterClientApiController(MessengerSender messengerSender, UpdaterClientTransfer updaterTransfer, ClientSignInState clientSignInState, FileConfig config, UpdaterClientTransfer updaterClientTransfer, RunningConfig runningConfig)
+        public UpdaterClientApiController(MessengerSender messengerSender, UpdaterClientTransfer updaterTransfer, ClientSignInState clientSignInState, FileConfig config, RunningConfig runningConfig)
         {
             this.messengerSender = messengerSender;
             this.updaterTransfer = updaterTransfer;
             this.clientSignInState = clientSignInState;
             this.config = config;
-            this.updaterClientTransfer = updaterClientTransfer;
             this.runningConfig = runningConfig;
         }
 
         [ClientApiAccessAttribute(ClientApiAccess.Config)]
         public string GetSecretKey(ApiControllerParamsInfo param)
         {
-            return updaterClientTransfer.GetSecretKey();
+            return updaterTransfer.GetSecretKey();
         }
 
         [ClientApiAccessAttribute(ClientApiAccess.Config)]
         public void SetSecretKey(ApiControllerParamsInfo param)
         {
-            updaterClientTransfer.SetSecretKey(param.Content);
+            updaterTransfer.SetSecretKey(param.Content);
         }
 
         public UpdateInfo GetCurrent(ApiControllerParamsInfo param)

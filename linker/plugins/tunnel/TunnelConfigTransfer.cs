@@ -98,7 +98,7 @@ namespace linker.plugins.tunnel
             RefreshPortMap();
         }
         /// <summary>
-        /// 收到别人发给我的修改我的信息
+        /// 收到别人的信息
         /// </summary>
         /// <param name="tunnelTransportFileConfigInfo"></param>
         /// <returns></returns>

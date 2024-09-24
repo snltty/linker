@@ -8,6 +8,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using linker.libs.extends;
 using linker.plugins.resolver;
+using MemoryPack;
 
 namespace linker.plugins.messenger
 {
@@ -16,7 +17,7 @@ namespace linker.plugins.messenger
     /// </summary>
     public sealed class MessengerResolver : IConnectionReceiveCallback, IResolver
     {
-        public ResolverType Type =>  ResolverType.Messenger;
+        public ResolverType Type => ResolverType.Messenger;
 
         delegate void VoidDelegate(IConnection connection);
         delegate Task TaskDelegate(IConnection connection);
@@ -25,6 +26,12 @@ namespace linker.plugins.messenger
 
         private readonly MessengerSender messengerSender;
         private readonly ServiceProvider serviceProvider;
+
+        public ulong ReceiveBytes { get; private set; }
+        public ulong SendtBytes { get; private set; }
+        private Dictionary<ushort, MessengerFlowItemInfo> messangerFlows { get; } = new Dictionary<ushort, MessengerFlowItemInfo>();
+
+
 
         private X509Certificate serverCertificate;
         public MessengerResolver(MessengerSender messengerSender, ServiceProvider serviceProvider)
@@ -152,8 +159,10 @@ namespace linker.plugins.messenger
                             {
                                 cache.TaskMethod = (TaskDelegate)Delegate.CreateDelegate(typeof(TaskDelegate), obj, method);
                             }
-
                             messengers.TryAdd(mid.Id, cache);
+
+                            if (mid.Id != 2701)
+                                messangerFlows.TryAdd(mid.Id, new MessengerFlowItemInfo { });
                         }
                         else
                         {
@@ -203,6 +212,14 @@ namespace linker.plugins.messenger
                     }
                     return;
                 }
+
+                //流量统计
+                if (messangerFlows.TryGetValue(requestWrap.MessengerId, out MessengerFlowItemInfo messengerFlowItemInfo))
+                {
+                    ReceiveBytes += (ulong)data.Length;
+                    messengerFlowItemInfo.ReceiveBytes += (ulong)data.Length;
+                }
+
                 if (plugin.VoidMethod != null)
                 {
                     plugin.VoidMethod(connection);
@@ -214,6 +231,12 @@ namespace linker.plugins.messenger
                 //有需要回复的
                 if (requestWrap.Reply == true && connection.ResponseData.Length > 0)
                 {
+                    //流量统计
+                    if (messengerFlowItemInfo != null)
+                    {
+                        SendtBytes += (ulong)connection.ResponseData.Length;
+                        messengerFlowItemInfo.SendtBytes += (ulong)connection.ResponseData.Length;
+                    }
                     bool res = await messengerSender.ReplyOnly(new MessageResponseWrap
                     {
                         Connection = connection,
@@ -231,6 +254,11 @@ namespace linker.plugins.messenger
             {
                 connection.Return();
             }
+        }
+
+        public Dictionary<ushort, MessengerFlowItemInfo> GetFlows()
+        {
+            return messangerFlows;
         }
 
         /// <summary>
@@ -251,5 +279,14 @@ namespace linker.plugins.messenger
             /// </summary>
             public TaskDelegate TaskMethod { get; set; }
         }
+
+    }
+
+
+    [MemoryPackable]
+    public sealed partial class MessengerFlowItemInfo
+    {
+        public ulong ReceiveBytes { get; set; }
+        public ulong SendtBytes { get; set; }
     }
 }
