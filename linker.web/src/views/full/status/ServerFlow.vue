@@ -25,7 +25,7 @@ export default {
     setup (props) {
         
         const state = reactive({
-            show:true,
+            show:false,
             timer:0,
             overallSendtSpeed: '0000.00KB/s',
             overallReceiveSpeed: '0000.00KB/s',
