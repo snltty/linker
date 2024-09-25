@@ -4,17 +4,19 @@ using linker.libs.extends;
 using System.Collections.Concurrent;
 using linker.plugins.resolver;
 using System.Net;
+using linker.plugins.flow;
 
 namespace linker.plugins.relay
 {
     /// <summary>
     /// 中继连接处理
     /// </summary>
-    public sealed class RelayResolver : IResolver
+    public sealed class RelayResolver : IResolver,IFlow
     {
         public ResolverType Type => ResolverType.Relay;
         public ulong ReceiveBytes { get; private set; }
         public ulong SendtBytes { get; private set; }
+        public string FlowName => "Relay";
 
         public RelayResolver()
         {
@@ -126,7 +128,6 @@ namespace linker.plugins.relay
         Ask = 0,
         Answer = 1,
     }
-
 
     public sealed class RelayWrap
     {

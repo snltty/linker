@@ -9,13 +9,14 @@ using System.Security.Cryptography.X509Certificates;
 using linker.libs.extends;
 using linker.plugins.resolver;
 using MemoryPack;
+using linker.plugins.flow;
 
 namespace linker.plugins.messenger
 {
     /// <summary>
     /// 消息处理总线
     /// </summary>
-    public sealed class MessengerResolver : IConnectionReceiveCallback, IResolver
+    public sealed class MessengerResolver : IConnectionReceiveCallback, IResolver, IFlow
     {
         public ResolverType Type => ResolverType.Messenger;
 
@@ -29,7 +30,8 @@ namespace linker.plugins.messenger
 
         public ulong ReceiveBytes { get; private set; }
         public ulong SendtBytes { get; private set; }
-        private Dictionary<ushort, MessengerFlowItemInfo> messangerFlows { get; } = new Dictionary<ushort, MessengerFlowItemInfo>();
+        public string FlowName => "Messenger";
+        private Dictionary<ushort, FlowItemInfo> messangerFlows { get; } = new Dictionary<ushort, FlowItemInfo>();
 
 
 
@@ -161,7 +163,7 @@ namespace linker.plugins.messenger
                             }
                             messengers.TryAdd(mid.Id, cache);
 
-                            messangerFlows.TryAdd(mid.Id, new MessengerFlowItemInfo { });
+                            messangerFlows.TryAdd(mid.Id, new FlowItemInfo { });
                         }
                         else
                         {
@@ -213,7 +215,7 @@ namespace linker.plugins.messenger
                 }
 
                 //流量统计
-                if (messangerFlows.TryGetValue(requestWrap.MessengerId, out MessengerFlowItemInfo messengerFlowItemInfo))
+                if (messangerFlows.TryGetValue(requestWrap.MessengerId, out FlowItemInfo messengerFlowItemInfo))
                 {
                     ReceiveBytes += (ulong)data.Length;
                     messengerFlowItemInfo.ReceiveBytes += (ulong)data.Length;
@@ -255,7 +257,7 @@ namespace linker.plugins.messenger
             }
         }
 
-        public Dictionary<ushort, MessengerFlowItemInfo> GetFlows()
+        public Dictionary<ushort, FlowItemInfo> GetFlows()
         {
             return messangerFlows;
         }

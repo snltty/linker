@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { getFlows } from '@/apis/server';
+import { getFlows } from '@/apis/flow';
 import { onMounted, onUnmounted, reactive } from 'vue';
 
 export default {
@@ -38,9 +38,10 @@ export default {
         }
 
         const id2text = {
-            'External':'外网端口(解析器)',
-            'Relay':'中继(解析器+流量)',
-            'Messenger':'信标(解析器)',
+            'External':'外网端口(总计)',
+            'Relay':'中继(总计)',
+            'Messenger':'信标(总计)',
+            'SForward':'内网穿透(总计)',
             '0':'登入信标',
             '1':'客户端列表',
             '2':'客户端删除',

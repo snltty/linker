@@ -3,16 +3,19 @@ using System.Net;
 using System.Buffers;
 using linker.libs.extends;
 using linker.plugins.resolver;
+using linker.plugins.flow;
 
 namespace linker.plugins.tunnel
 {
     /// <summary>
     /// 外网端口处理器
     /// </summary>
-    public sealed class ExternalResolver : IResolver
+    public sealed class ExternalResolver : IResolver,IFlow
     {
         public ulong ReceiveBytes { get; private set; }
         public ulong SendtBytes { get; private set; }
+        public string FlowName => "External";
+
         public ResolverType Type => ResolverType.External;
 
         public ExternalResolver()

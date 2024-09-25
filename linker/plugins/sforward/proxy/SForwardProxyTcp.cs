@@ -268,6 +268,7 @@ namespace linker.plugins.sforward.proxy
         /// <param name="buffer"></param>
         /// <param name="source"></param>
         /// <param name="target"></param>
+        /// <param name="receive"></param>
         /// <returns></returns>
         private async Task CopyToAsync(Memory<byte> buffer, Socket source, Socket target)
         {
@@ -276,6 +277,8 @@ namespace linker.plugins.sforward.proxy
                 int bytesRead;
                 while ((bytesRead = await source.ReceiveAsync(buffer, SocketFlags.None).ConfigureAwait(false)) != 0)
                 {
+                    ReceiveBytes += (ulong)bytesRead;
+                    SendtBytes += (ulong)bytesRead;
                     await target.SendAsync(buffer.Slice(0, bytesRead), SocketFlags.None).ConfigureAwait(false);
                 }
             }

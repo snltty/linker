@@ -3,7 +3,6 @@ using linker.startup;
 using linker.libs;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using linker.plugins.server.messenger;
 
 namespace linker.plugins.server
 {
@@ -15,18 +14,16 @@ namespace linker.plugins.server
         public StartupLevel Level => StartupLevel.Normal;
         public string Name => "server";
         public bool Required => true;
-        public string[] Dependent => new string[] {"messenger", "serialize", "firewall", "signin", "config", "resolver" };
+        public string[] Dependent => new string[] {"messenger", "serialize", "firewall", "signin", "config"};
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
         public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
-            serviceCollection.AddSingleton<ServerClientApiController>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<TcpServer>();
-            serviceCollection.AddSingleton<ServerMessenger>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
