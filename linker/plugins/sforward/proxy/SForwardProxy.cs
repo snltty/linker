@@ -4,7 +4,7 @@ using System.Text;
 
 namespace linker.plugins.sforward.proxy
 {
-    public partial class SForwardProxy:IFlow
+    public partial class SForwardProxy : IFlow
     {
         public ulong ReceiveBytes { get; private set; }
         public ulong SendtBytes { get; private set; }
@@ -19,9 +19,7 @@ namespace linker.plugins.sforward.proxy
             UdpTask();
         }
 
-       
-
-        public string Start(int port, bool isweb,byte bufferSize)
+        public string Start(int port, bool isweb, byte bufferSize)
         {
             try
             {
