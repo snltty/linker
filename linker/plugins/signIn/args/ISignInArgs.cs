@@ -7,7 +7,7 @@ namespace linker.plugins.signIn.args
     public interface ISignInArgs
     {
         public Task<string> Invoke(string host, Dictionary<string, string> args);
-        public Task<string> Verify(SignInfo signInfo, SignCacheInfo cache);
+        public Task<string> Validate(SignInfo signInfo, SignCacheInfo cache);
     }
 
 
@@ -33,7 +33,7 @@ namespace linker.plugins.signIn.args
             return string.Empty;
         }
 
-        public async  Task<string> Verify(SignInfo signInfo, SignCacheInfo cache)
+        public async  Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
         {
             await Task.CompletedTask;
             return string.Empty;
@@ -88,7 +88,7 @@ namespace linker.plugins.signIn.args
         /// <param name="signInfo">新登录参数</param>
         /// <param name="cache">之前的登录信息</param>
         /// <returns></returns>
-        public async Task<string> Verify(SignInfo signInfo, SignCacheInfo cache)
+        public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
         {
             //放宽条件，只有已经登录时不能再次登录
             if (cache != null && cache.Connected)

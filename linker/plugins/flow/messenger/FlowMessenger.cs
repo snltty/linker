@@ -7,13 +7,15 @@ namespace linker.plugins.flow.messenger
     {
         private readonly MessengerResolver messengerResolver;
         private readonly FlowTransfer flowTransfer;
+        private readonly MessengerFlow messengerFlow;
 
         private DateTime start = DateTime.Now;
 
-        public FlowMessenger(MessengerResolver messengerResolver, FlowTransfer flowTransfer)
+        public FlowMessenger(MessengerResolver messengerResolver, FlowTransfer flowTransfer, MessengerFlow messengerFlow)
         {
             this.messengerResolver = messengerResolver;
             this.flowTransfer = flowTransfer;
+            this.messengerFlow = messengerFlow;
         }
 
         [MessengerId((ushort)FlowMessengerIds.List)]
@@ -21,7 +23,7 @@ namespace linker.plugins.flow.messenger
         {
             FlowInfo serverFlowInfo = new FlowInfo
             {
-                Messangers = messengerResolver.GetFlows(),
+                Messangers = messengerFlow.GetFlows(),
                 Resolvers = flowTransfer.GetFlows(),
                 Start = start,
                 Now = DateTime.Now,

@@ -16,7 +16,7 @@ namespace linker.plugins.messenger
     /// <summary>
     /// 消息处理总线
     /// </summary>
-    public sealed class MessengerResolver : IConnectionReceiveCallback, IResolver, IFlow
+    public sealed class MessengerResolver : IConnectionReceiveCallback, IResolver
     {
         public ResolverType Type => ResolverType.Messenger;
 
@@ -27,19 +27,14 @@ namespace linker.plugins.messenger
 
         private readonly MessengerSender messengerSender;
         private readonly ServiceProvider serviceProvider;
-
-        public ulong ReceiveBytes { get; private set; }
-        public ulong SendtBytes { get; private set; }
-        public string FlowName => "Messenger";
-        private Dictionary<ushort, FlowItemInfo> messangerFlows { get; } = new Dictionary<ushort, FlowItemInfo>();
-
-
+        private readonly MessengerFlow messengerFlow;
 
         private X509Certificate serverCertificate;
-        public MessengerResolver(MessengerSender messengerSender, ServiceProvider serviceProvider)
+        public MessengerResolver(MessengerSender messengerSender, ServiceProvider serviceProvider, MessengerFlow messengerFlow)
         {
             this.messengerSender = messengerSender;
             this.serviceProvider = serviceProvider;
+            this.messengerFlow = messengerFlow;
         }
 
         public void Init(string certificate, string password)
@@ -163,7 +158,7 @@ namespace linker.plugins.messenger
                             }
                             messengers.TryAdd(mid.Id, cache);
 
-                            messangerFlows.TryAdd(mid.Id, new FlowItemInfo { });
+                            messengerFlow.Add(mid.Id);
                         }
                         else
                         {
@@ -193,12 +188,14 @@ namespace linker.plugins.messenger
                 if ((MessageTypes)(data.Span[0] & 0b0000_1111) == MessageTypes.RESPONSE)
                 {
                     responseWrap.FromArray(data);
+                    messengerFlow.AddReceive(0, (ulong)data.Length);
                     messengerSender.Response(responseWrap);
                     return;
                 }
 
                 //新的请求
                 requestWrap.FromArray(data);
+                messengerFlow.AddReceive(requestWrap.MessengerId, (ulong)data.Length);
                 //404,没这个插件
                 if (messengers.TryGetValue(requestWrap.MessengerId, out MessengerCacheInfo plugin) == false)
                 {
@@ -214,12 +211,7 @@ namespace linker.plugins.messenger
                     return;
                 }
 
-                //流量统计
-                if (messangerFlows.TryGetValue(requestWrap.MessengerId, out FlowItemInfo messengerFlowItemInfo))
-                {
-                    ReceiveBytes += (ulong)data.Length;
-                    messengerFlowItemInfo.ReceiveBytes += (ulong)data.Length;
-                }
+                
 
                 if (plugin.VoidMethod != null)
                 {
@@ -232,12 +224,7 @@ namespace linker.plugins.messenger
                 //有需要回复的
                 if (requestWrap.Reply == true && connection.ResponseData.Length > 0)
                 {
-                    //流量统计
-                    if (messengerFlowItemInfo != null)
-                    {
-                        SendtBytes += (ulong)connection.ResponseData.Length;
-                        messengerFlowItemInfo.SendtBytes += (ulong)connection.ResponseData.Length;
-                    }
+                    messengerFlow.AddSendt(requestWrap.MessengerId, (ulong)connection.ResponseData.Length);
                     bool res = await messengerSender.ReplyOnly(new MessageResponseWrap
                     {
                         Connection = connection,
@@ -255,11 +242,6 @@ namespace linker.plugins.messenger
             {
                 connection.Return();
             }
-        }
-
-        public Dictionary<ushort, FlowItemInfo> GetFlows()
-        {
-            return messangerFlows;
         }
 
         /// <summary>

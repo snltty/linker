@@ -30,7 +30,7 @@ namespace linker.plugins.signIn.args
         {
             foreach (var item in startups)
             {
-                string result = await item.Verify(signInfo, cache);
+                string result = await item.Validate(signInfo, cache);
                 if (string.IsNullOrWhiteSpace(result) == false)
                 {
                     return result;

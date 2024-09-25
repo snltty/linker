@@ -21,7 +21,7 @@ namespace linker.plugins.client
             return string.Empty;
         }
 
-        public async Task<string> Verify(SignInfo signInfo, SignCacheInfo cache)
+        public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
         {
             await Task.CompletedTask;
             return string.Empty;
@@ -50,7 +50,7 @@ namespace linker.plugins.client
         /// <param name="signInfo">新登录参数</param>
         /// <param name="cache">之前的登录信息</param>
         /// <returns></returns>
-        public async Task<string> Verify(SignInfo signInfo, SignCacheInfo cache)
+        public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
         {
             if (string.IsNullOrWhiteSpace(fileConfig.Data.Server.SignIn.SecretKey) == false)
             {

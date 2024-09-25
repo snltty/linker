@@ -68,7 +68,14 @@ namespace linker.plugins.relay.messenger
                 connection.Write(Helper.FalseArray);
                 return;
             }
-            string result = await relayValidatorTransfer.Validate(new transport.RelayInfo { SecretKey = info.SecretKey, FromMachineId = info.MachineId }, cache, null);
+            string result = await relayValidatorTransfer.Validate(new transport.RelayInfo
+            {
+                SecretKey = info.SecretKey,
+                FromMachineId = info.MachineId,
+                FromMachineName = cache.MachineName,
+                TransactionId = "test",
+                TransportName = "test",
+            }, cache, null);
             if (string.IsNullOrWhiteSpace(result) == false)
             {
                 connection.Write(ulong.MinValue);
@@ -87,13 +94,18 @@ namespace linker.plugins.relay.messenger
         public async Task RelayAsk(IConnection connection)
         {
             transport.RelayInfo info = MemoryPackSerializer.Deserialize<transport.RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false || signCaching.TryGet(info.RemoteMachineId, out SignCacheInfo cache1) == false || cache.GroupId != cache1.GroupId)
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) == false || signCaching.TryGet(info.RemoteMachineId, out SignCacheInfo cacheTo) == false || cacheFrom.GroupId != cacheTo.GroupId)
             {
                 connection.Write(ulong.MinValue);
                 return;
             }
 
-            string result = await relayValidatorTransfer.Validate(info, cache, cache1);
+            info.RemoteMachineId = cacheFrom.MachineId;
+            info.FromMachineId = cacheTo.MachineId;
+            info.RemoteMachineName = cacheFrom.MachineName;
+            info.FromMachineName = cacheTo.MachineName;
+
+            string result = await relayValidatorTransfer.Validate(info, cacheFrom, cacheTo);
             if (string.IsNullOrWhiteSpace(result) == false)
             {
                 connection.Write(ulong.MinValue);
@@ -118,18 +130,18 @@ namespace linker.plugins.relay.messenger
                 connection.Write(Helper.FalseArray);
                 return;
             }
+
+            info.RemoteMachineId = cacheFrom.MachineId;
+            info.FromMachineId = cacheTo.MachineId;
+            info.RemoteMachineName = cacheFrom.MachineName;
+            info.FromMachineName = cacheTo.MachineName;
+
             string result = await relayValidatorTransfer.Validate(info, cacheFrom, cacheTo);
             if (string.IsNullOrWhiteSpace(result) == false)
             {
                 connection.Write(Helper.FalseArray);
                 return;
             }
-
-
-            info.RemoteMachineId = cacheFrom.MachineId;
-            info.FromMachineId = cacheTo.MachineId;
-            info.RemoteMachineName = cacheFrom.MachineName;
-            info.FromMachineName = cacheTo.MachineName;
 
             try
             {

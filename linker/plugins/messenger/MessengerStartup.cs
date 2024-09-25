@@ -22,14 +22,15 @@ namespace linker.plugins.messenger
 
             serviceCollection.AddSingleton<MessengerSender>();
             serviceCollection.AddSingleton<MessengerResolver>();
-
+            serviceCollection.AddSingleton<MessengerFlow>();
+            
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
         {
             serviceCollection.AddSingleton<MessengerSender>();
             serviceCollection.AddSingleton<MessengerResolver>();
-
+            serviceCollection.AddSingleton<MessengerFlow>();
         }
 
 

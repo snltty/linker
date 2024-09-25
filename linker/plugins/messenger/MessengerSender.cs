@@ -11,8 +11,10 @@ namespace linker.plugins.messenger
         public NumberSpaceUInt32 requestIdNumberSpace = new NumberSpaceUInt32(0);
         private ConcurrentDictionary<uint, TaskCompletionSource<MessageResponeInfo>> sends = new ConcurrentDictionary<uint, TaskCompletionSource<MessageResponeInfo>>();
 
-        public MessengerSender()
+        private readonly MessengerFlow messengerFlow;
+        public MessengerSender(MessengerFlow messengerFlow)
         {
+            this.messengerFlow = messengerFlow;
         }
 
         /// <summary>
@@ -81,6 +83,9 @@ namespace linker.plugins.messenger
                 }
 
                 byte[] bytes = msg.ToArray(out int length);
+
+                messengerFlow.AddSendt(msg.MessengerId,(ulong)bytes.Length);
+
                 bool res = await msg.Connection.SendAsync(bytes.AsMemory(0, length)).ConfigureAwait(false);
                 msg.Return(bytes);
                 return res;

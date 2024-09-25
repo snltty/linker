@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using linker.plugins.sforward.proxy;
 using linker.libs;
-using linker.tun;
 
 namespace linker.plugins.sforward
 {
