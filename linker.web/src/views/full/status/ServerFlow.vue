@@ -7,10 +7,26 @@
         <div>
             <el-table :data="state.list" border size="small" width="100%" height="60vh">
                 <el-table-column prop="id" label="信标id"></el-table-column>
-                <el-table-column prop="sendtBytes" label="总上传字节" sortable></el-table-column>
-                <el-table-column prop="sendtText" label="上传速度" sortable></el-table-column>
-                <el-table-column prop="receiveBytes" label="总下载字节" sortable></el-table-column>
-                <el-table-column prop="receiveText" label="下载速度" sortable></el-table-column>
+                <el-table-column prop="sendtBytes" label="总上传字节" sortable>
+                    <template #default="scope">
+                        <span>{{ scope.row.sendtBytesText }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="sendtSpeed" label="上传速度" sortable>
+                    <template #default="scope">
+                        <span>{{ scope.row.sendtSpeedText }}/s</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="receiveBytes" label="总下载字节" sortable>
+                    <template #default="scope">
+                        <span>{{ scope.row.receiveBytesText }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="receiveSpeed" label="下载速度" sortable>
+                    <template #default="scope">
+                        <span>{{ scope.row.receiveSpeedText }}/s</span>
+                    </template>
+                </el-table-column>
             </el-table>
         </div>
     </el-dialog>
@@ -39,8 +55,9 @@ export default {
 
         const id2text = {
             'External':'外网端口(总计)',
-            'Relay':'中继(总计)',
-            'Messenger':'信标(总计)',
+            'Relay':'中继流量(总计)',
+            'Messenger':'信标流量(总计)',
+            '65535':'信标未知流量(总计)',
             'SForward':'内网穿透(总计)',
             '0':'登入信标',
             '1':'客户端列表',
@@ -110,25 +127,39 @@ export default {
                 state.time = `从 ${res.Start}启动 至今`;
                 const list = [];
                 for(let j in res.Resolvers){
+                    const item = res.Resolvers[j];
+                    const itemOld = old.Resolvers[j];
                     list.push({
                         id:id2text[`${j}`],
-                        sendtBytes:res.Resolvers[j].ReceiveBytes,
-                        sendtSpeed:res.Resolvers[j].ReceiveBytes-old.Resolvers[j].ReceiveBytes,
-                        sendtText:parseSpeed(res.Resolvers[j].SendtBytes-old.Resolvers[j].SendtBytes),
-                        receiveBytes:res.Resolvers[j].ReceiveBytes,
-                        receiveSpeed:res.Resolvers[j].ReceiveBytes-old.Resolvers[j].ReceiveBytes,
-                        receiveText:parseSpeed(res.Resolvers[j].ReceiveBytes-old.Resolvers[j].ReceiveBytes),
+                        sendtBytes:item.SendtBytes,
+                        sendtBytesText:parseSpeed(item.SendtBytes),
+
+                        sendtSpeed:item.SendtBytes-itemOld.SendtBytes,
+                        sendtSpeedText:parseSpeed(item.SendtBytes-itemOld.SendtBytes),
+
+                        receiveBytes:item.ReceiveBytes,
+                        receiveBytesText:parseSpeed(item.ReceiveBytes),
+
+                        receiveSpeed:item.ReceiveBytes-itemOld.ReceiveBytes,
+                        receiveSpeedText:parseSpeed(item.ReceiveBytes-itemOld.ReceiveBytes),
                     });
                 }
                 for(let j in res.Messangers){
+                    const item = res.Messangers[j];
+                    const itemOld = old.Messangers[j];
                     list.push({
-                        id:id2text[`${j}`],
-                        sendtBytes:res.Messangers[j].SendtBytes,
-                        sendtSpeed:res.Messangers[j].SendtBytes-old.Messangers[j].SendtBytes,
-                        sendtText:parseSpeed(res.Messangers[j].SendtBytes-old.Messangers[j].SendtBytes),
-                        receiveBytes:res.Messangers[j].ReceiveBytes,
-                        receiveSpeed:res.Messangers[j].ReceiveBytes-old.Messangers[j].ReceiveBytes,
-                        receiveText:parseSpeed(res.Messangers[j].ReceiveBytes-old.Messangers[j].ReceiveBytes),
+                        id:id2text[`${j}`] || `未知的${j}`,
+                        sendtBytes:item.SendtBytes,
+                        sendtBytesText:parseSpeed(item.SendtBytes),
+
+                        sendtSpeed:item.SendtBytes-itemOld.SendtBytes,
+                        sendtSpeedText:parseSpeed(item.SendtBytes-itemOld.SendtBytes),
+
+                        receiveBytes:item.ReceiveBytes,
+                        receiveBytesText:parseSpeed(item.ReceiveBytes),
+
+                        receiveSpeed:item.ReceiveBytes-itemOld.ReceiveBytes,
+                        receiveSpeedText:parseSpeed(item.ReceiveBytes-itemOld.ReceiveBytes),
                     });
                 }
                 state.list = list.filter(c=>!!c.id);
@@ -145,7 +176,7 @@ export default {
                 num /= 1024;
                 index++;
             }
-            return `${num.toFixed(2)}${['B/s', 'KB/s', 'MB/s', 'GB/s', 'TB/s'][index]}`;
+            return `${num.toFixed(2)}${['B', 'KB', 'MB', 'GB', 'TB'][index]}`;
         }
 
         onMounted(()=>{
