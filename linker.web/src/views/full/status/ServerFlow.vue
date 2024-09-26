@@ -1,13 +1,13 @@
 <template>
     <a v-if="config" href="javascript:;" title="linker服务端网速，点击查看详细信息" @click="handleShow">
-        <p>上传 {{state.overallSendtSpeed}}</p>
-        <p>下载 {{state.overallReceiveSpeed}}</p>
+        <p>上传 {{state.overallSendtSpeed}}/s</p>
+        <p>下载 {{state.overallReceiveSpeed}}/s</p>
     </a>
-    <el-dialog class="options-center" :title="state.time" destroy-on-close v-model="state.show" center  width="680" top="1vh">
+    <el-dialog :title="state.time" destroy-on-close v-model="state.show" width="540">
         <div>
-            <el-table :data="state.list" border size="small" width="100%" height="60vh">
-                <el-table-column prop="id" label="信标id"></el-table-column>
-                <el-table-column prop="sendtBytes" label="总上传" sortable>
+            <el-table :data="state.list" border size="small" width="100%">
+                <el-table-column prop="id" label="类别" width="80"></el-table-column>
+                <el-table-column prop="sendtBytes" label="已上传" sortable>
                     <template #default="scope">
                         <span>{{ scope.row.sendtBytesText }}</span>
                     </template>
@@ -17,7 +17,7 @@
                         <span>{{ scope.row.sendtSpeedText }}/s</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="receiveBytes" label="总下载" sortable>
+                <el-table-column prop="receiveBytes" label="已下载" sortable>
                     <template #default="scope">
                         <span>{{ scope.row.receiveBytesText }}</span>
                     </template>
@@ -25,6 +25,11 @@
                 <el-table-column prop="receiveSpeed" label="下载速度" sortable>
                     <template #default="scope">
                         <span>{{ scope.row.receiveSpeedText }}/s</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="oper" label="操作" width="64">
+                    <template #default="scope">
+                        <el-button v-if="scope.row.detail" size="small">详情</el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -44,8 +49,8 @@ export default {
         const state = reactive({
             show:false,
             timer:0,
-            overallSendtSpeed: '0000.00KB/s',
-            overallReceiveSpeed: '0000.00KB/s',
+            overallSendtSpeed: '0000.00KB',
+            overallReceiveSpeed: '0000.00KB',
             time:'',
             list:[],
             old:null
@@ -54,11 +59,16 @@ export default {
             state.show = true;
         }
 
+        const details = {
+            'Relay':true,
+            'Messenger':true,
+            'SForward':true,
+        };
         const id2text = {
-            'External':'外网端口(总计)',
-            'Relay':'中继流量(总计)',
-            'Messenger':'信标流量(总计)',
-            'SForward':'内网穿透(总计)',
+            'External':'外网端口',
+            'Relay':'中继流量',
+            'Messenger':'信标流量',
+            'SForward':'内网穿透',
             '0':'[信标]登入信标',
             '1':'[信标]客户端列表',
             '2':'[信标]客户端删除',
@@ -110,6 +120,7 @@ export default {
             '2601':'[信标]更新信息(转发)',
             '2602':'[信标]更新信息(转发)',
             '2603':'[信标]确认更新(转发)',
+            '2604':'[信标]确认更新(转发)',
             '2605':'[信标]重启(转发)',
             '2607':'[信标]服务器更新信息',
             '2608':'[信标]确认服务器更新',
@@ -140,6 +151,8 @@ export default {
                     const itemOld = old.Resolvers[j];
                     list.push({
                         id:id2text[`${j}`],
+                        detail:details[`${j}`] || false,
+
                         sendtBytes:item.SendtBytes,
                         sendtBytesText:parseSpeed(item.SendtBytes),
 
@@ -153,24 +166,24 @@ export default {
                         receiveSpeedText:parseSpeed(item.ReceiveBytes-itemOld.ReceiveBytes),
                     });
                 }
-                for(let j in res.Messangers){
-                    const item = res.Messangers[j];
-                    const itemOld = old.Messangers[j];
-                    list.push({
-                        id:id2text[`${j}`] || `未知的${j}`,
-                        sendtBytes:item.SendtBytes,
-                        sendtBytesText:parseSpeed(item.SendtBytes),
+                // for(let j in res.Messangers){
+                //     const item = res.Messangers[j];
+                //     const itemOld = old.Messangers[j];
+                //     list.push({
+                //         id:id2text[`${j}`] || `未知的${j}`,
+                //         sendtBytes:item.SendtBytes,
+                //         sendtBytesText:parseSpeed(item.SendtBytes),
 
-                        sendtSpeed:item.SendtBytes-itemOld.SendtBytes,
-                        sendtSpeedText:parseSpeed(item.SendtBytes-itemOld.SendtBytes),
+                //         sendtSpeed:item.SendtBytes-itemOld.SendtBytes,
+                //         sendtSpeedText:parseSpeed(item.SendtBytes-itemOld.SendtBytes),
 
-                        receiveBytes:item.ReceiveBytes,
-                        receiveBytesText:parseSpeed(item.ReceiveBytes),
+                //         receiveBytes:item.ReceiveBytes,
+                //         receiveBytesText:parseSpeed(item.ReceiveBytes),
 
-                        receiveSpeed:item.ReceiveBytes-itemOld.ReceiveBytes,
-                        receiveSpeedText:parseSpeed(item.ReceiveBytes-itemOld.ReceiveBytes),
-                    });
-                }
+                //         receiveSpeed:item.ReceiveBytes-itemOld.ReceiveBytes,
+                //         receiveSpeedText:parseSpeed(item.ReceiveBytes-itemOld.ReceiveBytes),
+                //     });
+                // }
                 state.list = list.filter(c=>!!c.id);
 
                 state.old = res;
