@@ -14,12 +14,14 @@ namespace linker.plugins.tunnel
         public VersionManager Version { get; } = new VersionManager();
         protected virtual string TransactionId { get; }
         protected readonly ConcurrentDictionary<string, ITunnelConnection> connections = new ConcurrentDictionary<string, ITunnelConnection>();
-        protected readonly ConcurrentDictionary<string, bool> backgroundCache = new ConcurrentDictionary<string, bool>();
+        protected readonly ConcurrentDictionary<string, uint> backgroundCache = new ConcurrentDictionary<string, uint>();
 
         private readonly FileConfig config;
         private readonly TunnelTransfer tunnelTransfer;
         private readonly RelayTransfer relayTransfer;
         private readonly ClientSignInTransfer clientSignInTransfer;
+
+        private uint maxTimes = 3;
 
         public TunnelBase(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer)
         {
@@ -62,7 +64,6 @@ namespace linker.plugins.tunnel
 
         protected virtual void OffLine(string machineId)
         {
-
         }
 
         protected virtual async ValueTask<bool> WaitAsync(string machineId)
@@ -127,18 +128,32 @@ namespace linker.plugins.tunnel
             if (connection != null)
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} relay success,{connection.ToString()}");
+            }
 
-                //if (backgroundCache.TryAdd(machineId, true))
+            //尝试打洞三次应该足够了，再多也没有意义了
+            if (backgroundCache.TryGetValue(machineId, out uint times) && times >= maxTimes)
+            {
+                return connection;
+            }
+            //正在后台打洞
+            if (tunnelTransfer.IsBackground(machineId, TransactionId))
+            {
+                return connection;
+            }
+
+            if (connection != null)
+            {
+                //尝试3次
+                backgroundCache.AddOrUpdate(machineId, maxTimes, (a, b) => b + maxTimes);
+                tunnelTransfer.StartBackground(machineId, TransactionId, denyProtocols, () =>
                 {
-                    tunnelTransfer.StartBackground(machineId, TransactionId, denyProtocols, () =>
-                    {
-                        return connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected && connection.Type == TunnelType.P2P;
-                    }, 3, 10000);
-                }
+                    return connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected && connection.Type == TunnelType.P2P;
+                }, (int)maxTimes, 10000);
             }
             else
             {
-                if (tunnelTransfer.IsBackground(machineId, TransactionId)) return null;
+                //尝试一次
+                backgroundCache.AddOrUpdate(machineId, 1, (a, b) => b + 1);
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} p2p to {machineId}");
                 connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, denyProtocols).ConfigureAwait(false);

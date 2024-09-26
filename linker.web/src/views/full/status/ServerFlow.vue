@@ -190,11 +190,10 @@ export default {
 
         const _getTunnelRecords = ()=>{
             getTunnelRecords().then(res => {
-                console.log(Object.values(res).map(c=>{ return {
-                    FromMachineName:c.FromMachineName,
-                    ToMachineName:c.ToMachineName,
-                    Times:c.Times,
-                } }).sort((a,b)=>b.Times-a.Times));
+                console.log(Object.values(res).map(c=>{
+                    c.To = Object.values(c.To).sort((a,b)=>b.Times-a.Times);
+                    return c;
+                }).sort((a,b)=>b.Times-a.Times));
                 setTimeout(_getTunnelRecords,1000);
             }).catch((e)=>{
                 setTimeout(_getTunnelRecords,1000);
@@ -203,7 +202,7 @@ export default {
 
         onMounted(()=>{
             _getFlows();
-            _getTunnelRecords();
+            //_getTunnelRecords();
         });
         onUnmounted(()=>{
             clearTimeout(state.timer);
