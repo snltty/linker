@@ -38,3 +38,6 @@ export const getInterfaces = () => {
 export const setInterface = (ip) => {
     return sendWebsocketMsg('tunnel/SetInterface', ip);
 }
+export const getTunnelRecords = () => {
+    return sendWebsocketMsg('tunnel/Records');
+}

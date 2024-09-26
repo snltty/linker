@@ -158,14 +158,14 @@ namespace linker.plugins.tunnel.messenger
 
                 TunnelRecordInfo tunnelRecordInfo = new TunnelRecordInfo
                 {
-                    FromMachineId = cacheFrom.MachineId,
-                    FromMachineName = cacheFrom.MachineName,
-                    ToMachineId = cacheTo.MachineId,
-                    ToMachineName = cacheTo.MachineName,
+                    MachineName = cacheFrom.MachineName,
                     Times = 1
                 };
-                records.AddOrUpdate(tunnelRecordInfo.FromMachineId, tunnelRecordInfo, (a, b) =>
+                records.AddOrUpdate(cacheFrom.MachineName, tunnelRecordInfo, (a, b) =>
                 {
+                    TunnelRecordItemInfo item = new TunnelRecordItemInfo { MachineName = cacheTo.MachineName, Times = 1 };
+                    b.To.AddOrUpdate(cacheTo.MachineId, item, (a, b) => { b.Times++; return b; });
+
                     b.Times++;
                     return b;
                 });
@@ -279,12 +279,17 @@ namespace linker.plugins.tunnel.messenger
     [MemoryPackable]
     public sealed partial class TunnelRecordInfo
     {
-        public string FromMachineId { get; set; }
-        public string FromMachineName { get; set; }
-        public string ToMachineId { get; set; }
-        public string ToMachineName { get; set; }
+        public string MachineName { get; set; }
+        public uint Times { get; set; }
+        public ConcurrentDictionary<string, TunnelRecordItemInfo> To { get; set; } = new ConcurrentDictionary<string, TunnelRecordItemInfo>();
+       
+
+    }
+    [MemoryPackable]
+    public sealed partial class TunnelRecordItemInfo
+    {
+        public string MachineName { get; set; }
         public uint Times { get; set; }
 
     }
-
 }
