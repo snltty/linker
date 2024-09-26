@@ -157,8 +157,6 @@ namespace linker.plugins.messenger
                                 cache.TaskMethod = (TaskDelegate)Delegate.CreateDelegate(typeof(TaskDelegate), obj, method);
                             }
                             messengers.TryAdd(mid.Id, cache);
-
-                            messengerFlow.Add(mid.Id);
                         }
                         else
                         {
@@ -209,7 +207,6 @@ namespace linker.plugins.messenger
                     }
                     return;
                 }
-
 
 
                 if (plugin.VoidMethod != null)

@@ -14,6 +14,7 @@ namespace linker.plugins.tunnel
         public VersionManager Version { get; } = new VersionManager();
         protected virtual string TransactionId { get; }
         protected readonly ConcurrentDictionary<string, ITunnelConnection> connections = new ConcurrentDictionary<string, ITunnelConnection>();
+        protected readonly ConcurrentDictionary<string, bool> backgroundCache = new ConcurrentDictionary<string, bool>();
 
         private readonly FileConfig config;
         private readonly TunnelTransfer tunnelTransfer;
@@ -39,6 +40,11 @@ namespace linker.plugins.tunnel
         {
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Warning($"{TransactionId} add connection {connection.GetHashCode()} {connection.ToJson()}");
+
+            if (connection.Type == TunnelType.P2P)
+            {
+                backgroundCache.TryRemove(connection.RemoteMachineId, out _);
+            }
 
             if (connections.TryGetValue(connection.RemoteMachineId, out ITunnelConnection connectionOld) && connection.Equals(connectionOld) == false)
             {
@@ -121,10 +127,14 @@ namespace linker.plugins.tunnel
             if (connection != null)
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} relay success,{connection.ToString()}");
-                tunnelTransfer.StartBackground(machineId, TransactionId, denyProtocols, () =>
+
+                //if (backgroundCache.TryAdd(machineId, true))
                 {
-                    return connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected && connection.Type == TunnelType.P2P;
-                }, 3, 10000);
+                    tunnelTransfer.StartBackground(machineId, TransactionId, denyProtocols, () =>
+                    {
+                        return connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected && connection.Type == TunnelType.P2P;
+                    }, 3, 10000);
+                }
             }
             else
             {

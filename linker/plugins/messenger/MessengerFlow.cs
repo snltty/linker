@@ -1,4 +1,5 @@
 ﻿using linker.plugins.flow;
+using static System.Reflection.Metadata.BlobBuilder;
 
 namespace linker.plugins.messenger
 {
@@ -11,39 +12,27 @@ namespace linker.plugins.messenger
         private Dictionary<ushort, FlowItemInfo> flows { get; } = new Dictionary<ushort, FlowItemInfo>();
         public MessengerFlow()
         {
-            Add(ushort.MaxValue);
-        }
-
-        public void Add(ushort id)
-        {
-            flows.TryAdd(id, new FlowItemInfo());
         }
 
         public void AddReceive(ushort id, ulong bytes)
         {
-            if (flows.TryGetValue(id, out FlowItemInfo messengerFlowItemInfo))
+            if (flows.TryGetValue(id, out FlowItemInfo messengerFlowItemInfo) == false)
             {
-                ReceiveBytes += bytes;
-                messengerFlowItemInfo.ReceiveBytes += bytes;
+                messengerFlowItemInfo = new FlowItemInfo();
+                flows.TryAdd(id, messengerFlowItemInfo);
             }
-            else if (flows.TryGetValue(ushort.MaxValue, out messengerFlowItemInfo))
-            {
-                ReceiveBytes += bytes;
-                messengerFlowItemInfo.ReceiveBytes += bytes;
-            }
+            ReceiveBytes += bytes;
+            messengerFlowItemInfo.ReceiveBytes += bytes;
         }
         public void AddSendt(ushort id, ulong bytes)
         {
-            if (flows.TryGetValue(id, out FlowItemInfo messengerFlowItemInfo))
+            if (flows.TryGetValue(id, out FlowItemInfo messengerFlowItemInfo) == false)
             {
-                SendtBytes += bytes;
-                messengerFlowItemInfo.SendtBytes += bytes;
+                messengerFlowItemInfo = new FlowItemInfo();
+                flows.TryAdd(id, messengerFlowItemInfo);
             }
-            else if (flows.TryGetValue(ushort.MaxValue, out messengerFlowItemInfo))
-            {
-                SendtBytes += bytes;
-                messengerFlowItemInfo.SendtBytes += bytes;
-            }
+            SendtBytes += bytes;
+            messengerFlowItemInfo.SendtBytes += bytes;
         }
 
         public Dictionary<ushort, FlowItemInfo> GetFlows()

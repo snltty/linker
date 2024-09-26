@@ -7,7 +7,7 @@
         <div>
             <el-table :data="state.list" border size="small" width="100%" height="60vh">
                 <el-table-column prop="id" label="信标id"></el-table-column>
-                <el-table-column prop="sendtBytes" label="总上传字节" sortable>
+                <el-table-column prop="sendtBytes" label="总上传" sortable>
                     <template #default="scope">
                         <span>{{ scope.row.sendtBytesText }}</span>
                     </template>
@@ -17,7 +17,7 @@
                         <span>{{ scope.row.sendtSpeedText }}/s</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="receiveBytes" label="总下载字节" sortable>
+                <el-table-column prop="receiveBytes" label="总下载" sortable>
                     <template #default="scope">
                         <span>{{ scope.row.receiveBytesText }}</span>
                     </template>
@@ -71,13 +71,19 @@ export default {
             '12':'生成客户端id',
             '13':'登入信标V_1_3_1',
 
+            '2001':'外网端口(转发)',
             '2002':'外网端口(转发)',
+            '2003':'开始打洞(转发)',
             '2004':'开始打洞(转发)',
+            '2005':'打洞失败(转发)',
             '2006':'打洞失败(转发)',
+            '2007':'打洞成功(转发)',
             '2008':'打洞成功(转发)',
+            '2009':'隧道配置(转发)',
             '2010':'隧道配置(转发)',
             '2012':'隧道同步(转发)',
 
+            '2101':'中继通知(转发)',
             '2102':'中继通知(转发)',
             '2103':'中继请求',
             '2105':'中继连通测试',
@@ -85,6 +91,7 @@ export default {
             '2201':'运行网卡(转发)',
             '2203':'停止网卡(转发)',
             '2205':'更新网卡(转发)',
+            '2206':'同步网卡(转发)',
             '2207':'同步网卡(转发)',
 
             '2301':'添加内网穿透',
@@ -94,12 +101,14 @@ export default {
             '2401':'测试端口转发(转发)',
             '2403':'获取端口转发(转发)',
             
+            '2503':'获取权限(转发)',
             '2504':'获取权限(转发)',
             '2506':'更新权限(转发)',
             '2508':'同步密钥(转发)',
             '2510':'同步服务器(转发)',
             
             '2601':'更新信息(转发)',
+            '2602':'更新信息(转发)',
             '2603':'确认更新(转发)',
             '2605':'重启(转发)',
             '2607':'服务器更新信息',

@@ -6,6 +6,7 @@ using linker.tunnel.transport;
 using linker.libs;
 using MemoryPack;
 using linker.plugins.messenger;
+using System.Collections.Concurrent;
 
 namespace linker.plugins.tunnel.messenger
 {
@@ -109,6 +110,8 @@ namespace linker.plugins.tunnel.messenger
     {
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;
+        private readonly ConcurrentDictionary<string, TunnelRecordInfo> records = new ConcurrentDictionary<string, TunnelRecordInfo>();
+
         public TunnelServerMessenger(MessengerSender messengerSender, SignCaching signCaching)
         {
             this.messengerSender = messengerSender;
@@ -148,14 +151,28 @@ namespace linker.plugins.tunnel.messenger
         {
             TunnelTransportInfo tunnelTransportInfo = MemoryPackSerializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
 
-            if (signCaching.TryGet(tunnelTransportInfo.Remote.MachineId, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            if (signCaching.TryGet(tunnelTransportInfo.Remote.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
             {
-                tunnelTransportInfo.Local.MachineName = cache1.MachineName;
-                tunnelTransportInfo.Remote.MachineName = cache.MachineName;
+                tunnelTransportInfo.Local.MachineName = cacheFrom.MachineName;
+                tunnelTransportInfo.Remote.MachineName = cacheTo.MachineName;
+
+                TunnelRecordInfo tunnelRecordInfo = new TunnelRecordInfo
+                {
+                    FromMachineId = cacheFrom.MachineId,
+                    FromMachineName = cacheFrom.MachineName,
+                    ToMachineId = cacheTo.MachineId,
+                    ToMachineName = cacheTo.MachineName,
+                    Times = 1
+                };
+                records.AddOrUpdate(tunnelRecordInfo.FromMachineId, tunnelRecordInfo, (a, b) =>
+                {
+                    b.Times++;
+                    return b;
+                });
 
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cache.Connection,
+                    Connection = cacheTo.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.Begin,
                     Payload = MemoryPackSerializer.Serialize(tunnelTransportInfo)
                 }).ConfigureAwait(false);
@@ -250,7 +267,24 @@ namespace linker.plugins.tunnel.messenger
             }
         }
 
+
+        [MessengerId((ushort)TunnelMessengerIds.Records)]
+        public void Records(IConnection connection)
+        {
+            connection.Write(MemoryPackSerializer.Serialize(records));
+        }
+
     }
 
+    [MemoryPackable]
+    public sealed partial class TunnelRecordInfo
+    {
+        public string FromMachineId { get; set; }
+        public string FromMachineName { get; set; }
+        public string ToMachineId { get; set; }
+        public string ToMachineName { get; set; }
+        public uint Times { get; set; }
+
+    }
 
 }
