@@ -167,7 +167,6 @@ namespace linker.plugins.messenger
                     }
                 }
             }
-            messengerFlow.Add(ushort.MaxValue);
 
         }
 

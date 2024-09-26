@@ -9,10 +9,14 @@ namespace linker.plugins.messenger
         public string FlowName => "Messenger";
 
         private Dictionary<ushort, FlowItemInfo> flows { get; } = new Dictionary<ushort, FlowItemInfo>();
+        public MessengerFlow()
+        {
+            Add(ushort.MaxValue);
+        }
 
         public void Add(ushort id)
         {
-            flows.TryAdd(id,new FlowItemInfo());
+            flows.TryAdd(id, new FlowItemInfo());
         }
 
         public void AddReceive(ushort id, ulong bytes)
@@ -22,9 +26,10 @@ namespace linker.plugins.messenger
                 ReceiveBytes += bytes;
                 messengerFlowItemInfo.ReceiveBytes += bytes;
             }
-            else
+            else if (flows.TryGetValue(ushort.MaxValue, out messengerFlowItemInfo))
             {
                 ReceiveBytes += bytes;
+                messengerFlowItemInfo.ReceiveBytes += bytes;
             }
         }
         public void AddSendt(ushort id, ulong bytes)
@@ -34,9 +39,10 @@ namespace linker.plugins.messenger
                 SendtBytes += bytes;
                 messengerFlowItemInfo.SendtBytes += bytes;
             }
-            else
+            else if (flows.TryGetValue(ushort.MaxValue, out messengerFlowItemInfo))
             {
                 SendtBytes += bytes;
+                messengerFlowItemInfo.SendtBytes += bytes;
             }
         }
 
