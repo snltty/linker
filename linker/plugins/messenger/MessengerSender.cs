@@ -9,7 +9,7 @@ namespace linker.plugins.messenger
     public sealed class MessengerSender
     {
         public NumberSpaceUInt32 requestIdNumberSpace = new NumberSpaceUInt32(0);
-        private ConcurrentDictionary<uint, TaskCompletionSource<MessageResponeInfo>> sends = new ConcurrentDictionary<uint, TaskCompletionSource<MessageResponeInfo>>();
+        private ConcurrentDictionary<uint, ReplyWrapInfo> sends = new ConcurrentDictionary<uint, ReplyWrapInfo>();
 
         private readonly MessengerFlow messengerFlow;
         public MessengerSender(MessengerFlow messengerFlow)
@@ -42,7 +42,7 @@ namespace linker.plugins.messenger
                 msg.Timeout = 15000;
             }
             TaskCompletionSource<MessageResponeInfo> tcs = new TaskCompletionSource<MessageResponeInfo>(TaskCreationOptions.RunContinuationsAsynchronously);
-            sends.TryAdd(msg.RequestId, tcs);
+            sends.TryAdd(msg.RequestId, new ReplyWrapInfo { Tcs = tcs, MessengerId = msg.MessengerId });
 
             bool res = await SendOnly(msg).ConfigureAwait(false);
             if (res == false)
@@ -84,7 +84,7 @@ namespace linker.plugins.messenger
 
                 byte[] bytes = msg.ToArray(out int length);
 
-                messengerFlow.AddSendt(msg.MessengerId,(ulong)bytes.Length);
+                messengerFlow.AddSendt(msg.MessengerId, (ulong)bytes.Length);
 
                 bool res = await msg.Connection.SendAsync(bytes.AsMemory(0, length)).ConfigureAwait(false);
                 msg.Return(bytes);
@@ -129,20 +129,28 @@ namespace linker.plugins.messenger
         /// <param name="wrap"></param>
         public void Response(MessageResponseWrap wrap)
         {
-            if (sends.TryRemove(wrap.RequestId, out TaskCompletionSource<MessageResponeInfo> tcs))
+            if (sends.TryRemove(wrap.RequestId, out ReplyWrapInfo info))
             {
-                byte[] data = new byte[wrap.Payload.Length];
-                wrap.Payload.CopyTo(data);
-                tcs.SetResult(new MessageResponeInfo { Code = wrap.Code, Data = data, Connection = wrap.Connection });
+                byte[] bytes = new byte[wrap.Payload.Length];
+                wrap.Payload.CopyTo(bytes);
+
+                messengerFlow.AddReceive(info.MessengerId, (ulong)bytes.Length);
+                info.Tcs.SetResult(new MessageResponeInfo { Code = wrap.Code, Data = bytes, Connection = wrap.Connection });
             }
         }
     }
 
+    public sealed class ReplyWrapInfo
+    {
+        public TaskCompletionSource<MessageResponeInfo> Tcs { get; set; }
+        public ushort MessengerId { get; set; }
+    }
     public sealed class MessageResponeInfo
     {
         public MessageResponeCodes Code { get; set; }
         public ReadOnlyMemory<byte> Data { get; set; }
         public IConnection Connection { get; set; }
+
     }
 }
 

@@ -188,7 +188,6 @@ namespace linker.plugins.messenger
                 if ((MessageTypes)(data.Span[0] & 0b0000_1111) == MessageTypes.RESPONSE)
                 {
                     responseWrap.FromArray(data);
-                    messengerFlow.AddReceive(ushort.MaxValue, (ulong)data.Length);
                     messengerSender.Response(responseWrap);
                     return;
                 }
@@ -211,7 +210,7 @@ namespace linker.plugins.messenger
                     return;
                 }
 
-                
+
 
                 if (plugin.VoidMethod != null)
                 {
