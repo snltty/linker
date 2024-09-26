@@ -140,6 +140,18 @@ namespace linker.plugins.signin.messenger
                 list = list.Skip((request.Page - 1) * request.Size).Take(request.Size);
 
                 List<SignCacheInfo> result = [cache, .. list];
+                result = result.Select(c => new SignCacheInfo
+                {
+                    Connected = c.Connected,
+                    GroupId = c.GroupId,
+                    IP = c.IP,
+                    LastSignIn = c.LastSignIn,
+                    MachineId = c.MachineId,
+                    MachineName = c.MachineName,
+                    Version = c.Version,
+                }).ToList();
+
+
                 SignInListResponseInfo response = new SignInListResponseInfo { Request = request, Count = count, List = result };
 
                 connection.Write(MemoryPackSerializer.Serialize(response));

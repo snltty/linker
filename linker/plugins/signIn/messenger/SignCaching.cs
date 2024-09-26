@@ -113,7 +113,7 @@ namespace linker.plugins.signin.messenger
 
         public string MachineId { get; set; }
         public string MachineName { get; set; }
-        public string Version { get; set; } = "1.0.0.0";
+        public string Version { get; set; } = "v1.0.0";
         public string GroupId { get; set; } = Helper.GlobalString;
         public DateTime LastSignIn { get; set; } = DateTime.Now;
         public Dictionary<string, string> Args { get; set; } = new Dictionary<string, string>();

@@ -5,6 +5,7 @@ using linker.plugins.sforward.config;
 using linker.plugins.sforward.validator;
 using linker.plugins.signin.messenger;
 using linker.plugins.signIn.args;
+using System.Net;
 using System.Text.Json.Nodes;
 
 namespace linker.plugins.action
@@ -38,6 +39,10 @@ namespace linker.plugins.action
         /// 设备所在机器的编号
         /// </summary>
         public string MachineKey { get; set; } = string.Empty;
+        /// <summary>
+        /// IP地址
+        /// </summary>
+        public IPAddress IPAddress { get; set; } = IPAddress.Any;
         /// <summary>
         /// 分组id
         /// </summary>
@@ -126,7 +131,14 @@ namespace linker.plugins.action
 
                 JsonArgInfo replace = new JsonArgInfo
                 {
-                    Signin = new JsonArgSignInInfo { GroupId = signInfo.GroupId, MachineId = signInfo.MachineId, MachineName = signInfo.MachineName, MachineKey = machineKey }
+                    Signin = new JsonArgSignInInfo
+                    {
+                        GroupId = signInfo.GroupId,
+                        MachineId = signInfo.MachineId,
+                        MachineName = signInfo.MachineName,
+                        MachineKey = machineKey,
+                        IPAddress = signInfo.Connection.Address.Address
+                    }
                 };
                 return await actionTransfer.ExcuteActions(Replace(replace, str), fileConfig.Data.Action.SignInActionUrl);
             }
@@ -170,7 +182,14 @@ namespace linker.plugins.action
                         TransportName = relayInfo.TransportName ?? string.Empty,
                         FlowingId = relayInfo.FlowingId,
                     },
-                    Signin = new JsonArgSignInInfo { GroupId = fromMachine.GroupId, MachineId = fromMachine.MachineId, MachineName = fromMachine.MachineName, MachineKey = machineKey }
+                    Signin = new JsonArgSignInInfo
+                    {
+                        GroupId = fromMachine.GroupId,
+                        MachineId = fromMachine.MachineId,
+                        MachineName = fromMachine.MachineName,
+                        MachineKey = machineKey,
+                        IPAddress = fromMachine.Connection.Address.Address,
+                    }
                 };
                 return await actionTransfer.ExcuteActions(Replace(replace, str), fileConfig.Data.Action.RelayActionUrl);
             }
@@ -205,7 +224,14 @@ namespace linker.plugins.action
                         Domain = sForwardAddInfo.Domain ?? string.Empty,
                         RemotePort = sForwardAddInfo.RemotePort
                     },
-                    Signin = new JsonArgSignInInfo { GroupId = cache.GroupId, MachineId = cache.MachineId, MachineName = cache.MachineName, MachineKey = machineKey }
+                    Signin = new JsonArgSignInInfo
+                    {
+                        GroupId = cache.GroupId,
+                        MachineId = cache.MachineId,
+                        MachineName = cache.MachineName,
+                        MachineKey = machineKey,
+                        IPAddress = cache.Connection.Address.Address
+                    }
                 };
                 return await actionTransfer.ExcuteActions(Replace(replace, str), fileConfig.Data.Action.SForwardActionUrl);
             }
