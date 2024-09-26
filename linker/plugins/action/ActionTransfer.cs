@@ -35,8 +35,11 @@ namespace linker.plugins.action
             return true;
         }
 
-        public bool TryGetActionArg(Dictionary<string, string> args, out string str)
+        public bool TryGetActionArg(Dictionary<string, string> args, out string str, out string machineKey)
         {
+            args.TryGetValue("machineKey", out machineKey);
+            machineKey = machineKey ?? string.Empty;
+
             return args.TryGetValue(ACTION_ARG_KEY, out str) && string.IsNullOrWhiteSpace(str) == false;
         }
 

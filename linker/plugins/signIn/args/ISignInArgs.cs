@@ -26,7 +26,7 @@ namespace linker.plugins.signIn.args
                 return $"get machine key fail";
             }
 
-            args.TryAdd("machineKey", machineKey.Md5());
+            args.TryAdd("machineKey", machineKey);
 
             await Task.CompletedTask;
 
@@ -49,7 +49,7 @@ namespace linker.plugins.signIn.args
         {
             string cpu = CommandHelper.Execute("wmic", "csproduct get UUID", [], out string error).TrimNewLineAndWhiteSapce().Split(Environment.NewLine)[1];
             string username = CommandHelper.Execute("whoami", string.Empty, [], out error).TrimNewLineAndWhiteSapce().Trim();
-            return $"{cpu}-{username}-{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
+            return $"{cpu}↓{username}↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
         }
         private string GetMachineKeyLinux()
         {
@@ -60,13 +60,13 @@ namespace linker.plugins.signIn.args
                 return string.Empty;
             }
             string username = CommandHelper.Linux(string.Empty, ["whoami"]).TrimNewLineAndWhiteSapce();
-            return $"{cpu}-{username}-{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
+            return $"{cpu}↓{username}↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
         }
         private string GetMachineKeyOSX()
         {
             string cpu = CommandHelper.Osx(string.Empty, ["system_profiler SPHardwareDataType | grep \"Hardware UUID\""]).TrimNewLineAndWhiteSapce();
             string username = CommandHelper.Osx(string.Empty, ["whoami"]).TrimNewLineAndWhiteSapce();
-            return $"{cpu.Trim()}-{username}-{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
+            return $"{cpu.Trim()}↓{username}↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
 
         }
     }

@@ -156,6 +156,7 @@ namespace linker.plugins.tunnel.messenger
                 tunnelTransportInfo.Local.MachineName = cacheFrom.MachineName;
                 tunnelTransportInfo.Remote.MachineName = cacheTo.MachineName;
 
+                /*
                 TunnelRecordInfo tunnelRecordInfo = new TunnelRecordInfo
                 {
                     MachineName = cacheFrom.MachineName,
@@ -169,6 +170,7 @@ namespace linker.plugins.tunnel.messenger
                     b.Times++;
                     return b;
                 });
+                */
 
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -282,7 +284,7 @@ namespace linker.plugins.tunnel.messenger
         public string MachineName { get; set; }
         public uint Times { get; set; }
         public ConcurrentDictionary<string, TunnelRecordItemInfo> To { get; set; } = new ConcurrentDictionary<string, TunnelRecordItemInfo>();
-       
+
 
     }
     [MemoryPackable]

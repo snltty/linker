@@ -35,6 +35,10 @@ namespace linker.plugins.action
         /// </summary>
         public string MachineName { get; set; } = string.Empty;
         /// <summary>
+        /// 设备所在机器的编号
+        /// </summary>
+        public string MachineKey { get; set; } = string.Empty;
+        /// <summary>
         /// 分组id
         /// </summary>
         public string GroupId { get; set; } = string.Empty;
@@ -115,14 +119,14 @@ namespace linker.plugins.action
         {
             if (string.IsNullOrWhiteSpace(fileConfig.Data.Action.SignInActionUrl) == false)
             {
-                if (actionTransfer.TryGetActionArg(signInfo.Args, out string str) == false)
+                if (actionTransfer.TryGetActionArg(signInfo.Args, out string str, out string machineKey) == false)
                 {
                     return $"singin action URL exists, but [{signInfo.MachineName}] action value is not configured";
                 }
 
                 JsonArgInfo replace = new JsonArgInfo
                 {
-                    Signin = new JsonArgSignInInfo { GroupId = signInfo.GroupId, MachineId = signInfo.MachineId, MachineName = signInfo.MachineName }
+                    Signin = new JsonArgSignInInfo { GroupId = signInfo.GroupId, MachineId = signInfo.MachineId, MachineName = signInfo.MachineName, MachineKey = machineKey }
                 };
                 return await actionTransfer.ExcuteActions(Replace(replace, str), fileConfig.Data.Action.SignInActionUrl);
             }
@@ -146,11 +150,11 @@ namespace linker.plugins.action
         {
             if (string.IsNullOrWhiteSpace(fileConfig.Data.Action.RelayActionUrl) == false)
             {
-                if (actionTransfer.TryGetActionArg(fromMachine.Args, out string str) == false)
+                if (actionTransfer.TryGetActionArg(fromMachine.Args, out string str, out string machineKey) == false)
                 {
                     return $"relay action URL exists, but [{fromMachine.MachineName}] action value is not configured";
                 }
-                if (toMachine != null && actionTransfer.TryGetActionArg(toMachine.Args, out str) == false)
+                if (toMachine != null && actionTransfer.TryGetActionArg(toMachine.Args, out string str1, out string machineKey1) == false)
                 {
                     return $"relay action URL exists, but [{toMachine.MachineName}]e action value is not configured";
                 }
@@ -166,7 +170,7 @@ namespace linker.plugins.action
                         TransportName = relayInfo.TransportName ?? string.Empty,
                         FlowingId = relayInfo.FlowingId,
                     },
-                    Signin = new JsonArgSignInInfo { GroupId = fromMachine.GroupId, MachineId = fromMachine.MachineId, MachineName = fromMachine.MachineName }
+                    Signin = new JsonArgSignInInfo { GroupId = fromMachine.GroupId, MachineId = fromMachine.MachineId, MachineName = fromMachine.MachineName, MachineKey = machineKey }
                 };
                 return await actionTransfer.ExcuteActions(Replace(replace, str), fileConfig.Data.Action.RelayActionUrl);
             }
@@ -189,7 +193,7 @@ namespace linker.plugins.action
         {
             if (string.IsNullOrWhiteSpace(fileConfig.Data.Action.SForwardActionUrl) == false)
             {
-                if (actionTransfer.TryGetActionArg(cache.Args, out string str) == false)
+                if (actionTransfer.TryGetActionArg(cache.Args, out string str, out string machineKey) == false)
                 {
                     return "sforward action URL exists, but action value is not configured";
                 }
@@ -201,7 +205,7 @@ namespace linker.plugins.action
                         Domain = sForwardAddInfo.Domain ?? string.Empty,
                         RemotePort = sForwardAddInfo.RemotePort
                     },
-                    Signin = new JsonArgSignInInfo { GroupId = cache.GroupId, MachineId = cache.MachineId, MachineName = cache.MachineName }
+                    Signin = new JsonArgSignInInfo { GroupId = cache.GroupId, MachineId = cache.MachineId, MachineName = cache.MachineName, MachineKey = machineKey }
                 };
                 return await actionTransfer.ExcuteActions(Replace(replace, str), fileConfig.Data.Action.SForwardActionUrl);
             }

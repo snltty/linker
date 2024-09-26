@@ -100,10 +100,10 @@ namespace linker.plugins.relay.messenger
                 return;
             }
 
-            info.RemoteMachineId = cacheFrom.MachineId;
-            info.FromMachineId = cacheTo.MachineId;
-            info.RemoteMachineName = cacheFrom.MachineName;
-            info.FromMachineName = cacheTo.MachineName;
+            info.RemoteMachineId = cacheTo.MachineId;
+            info.FromMachineId = cacheFrom.MachineId;
+            info.RemoteMachineName = cacheTo.MachineName;
+            info.FromMachineName = cacheFrom.MachineName;
 
             string result = await relayValidatorTransfer.Validate(info, cacheFrom, cacheTo);
             if (string.IsNullOrWhiteSpace(result) == false)
@@ -112,7 +112,7 @@ namespace linker.plugins.relay.messenger
                 return;
             }
 
-            ulong flowingId = relayResolver.NewRelay(info.FromMachineId, info.RemoteMachineId);
+            ulong flowingId = relayResolver.NewRelay(cacheFrom.MachineId, cacheTo.MachineId);
             connection.Write(flowingId);
         }
 
@@ -131,10 +131,10 @@ namespace linker.plugins.relay.messenger
                 return;
             }
 
-            info.RemoteMachineId = cacheFrom.MachineId;
-            info.FromMachineId = cacheTo.MachineId;
-            info.RemoteMachineName = cacheFrom.MachineName;
-            info.FromMachineName = cacheTo.MachineName;
+            info.RemoteMachineId = cacheTo.MachineId;
+            info.FromMachineId = cacheFrom.MachineId;
+            info.RemoteMachineName = cacheTo.MachineName;
+            info.FromMachineName = cacheFrom.MachineName;
 
             string result = await relayValidatorTransfer.Validate(info, cacheFrom, cacheTo);
             if (string.IsNullOrWhiteSpace(result) == false)
@@ -143,6 +143,10 @@ namespace linker.plugins.relay.messenger
                 return;
             }
 
+            info.RemoteMachineId = cacheFrom.MachineId;
+            info.FromMachineId = cacheTo.MachineId;
+            info.RemoteMachineName = cacheFrom.MachineName;
+            info.FromMachineName = cacheTo.MachineName;
             try
             {
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
