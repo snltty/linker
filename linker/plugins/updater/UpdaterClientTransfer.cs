@@ -13,6 +13,7 @@ namespace linker.plugins.updater
     {
         private UpdateInfo updateInfo = new UpdateInfo();
         private ConcurrentDictionary<string, UpdateInfo> updateInfos = new ConcurrentDictionary<string, UpdateInfo>();
+        private ConcurrentDictionary<string, LastTicksManager> subscribes = new ConcurrentDictionary<string, LastTicksManager>();
 
         private readonly FileConfig fileConfig;
         private readonly MessengerSender messengerSender;
@@ -76,19 +77,43 @@ namespace linker.plugins.updater
             }
         }
 
+
+        public void Subscribe(string machineId)
+        {
+            if (subscribes.TryGetValue(machineId, out LastTicksManager lastTicksManager) == false)
+            {
+                lastTicksManager = new LastTicksManager();
+                subscribes.TryAdd(machineId, lastTicksManager);
+            }
+
+            //距离上次订阅超过一分钟，需要立即更新一次
+            bool needUpdate = lastTicksManager.Greater(60 * 1000);
+
+            lastTicksManager.Update();
+
+            if (needUpdate)
+            {
+                updateInfo.Update();
+            }
+        }
+
         private void UpdateTask()
         {
             TimerHelper.SetInterval(async () =>
             {
                 if (updateInfo.Updated)
                 {
-                    updateInfo.MachineId = fileConfig.Data.Client.Id;
-                    await messengerSender.SendOnly(new MessageRequestWrap
+                    string[] machines = subscribes.Where(c => c.Value.Less(15000)).Select(c => c.Key).ToArray();
+                    if (machines.Length > 0)
                     {
-                        Connection = clientSignInState.Connection,
-                        MessengerId = (ushort)UpdaterMessengerIds.UpdateForward,
-                        Payload = MemoryPackSerializer.Serialize(updateInfo),
-                    });
+                        updateInfo.MachineId = fileConfig.Data.Client.Id;
+                        await messengerSender.SendOnly(new MessageRequestWrap
+                        {
+                            Connection = clientSignInState.Connection,
+                            MessengerId = (ushort)UpdaterMessengerIds.UpdateForward,
+                            Payload = MemoryPackSerializer.Serialize(new UpdateClientInfo { ToMachines = machines, Info = updateInfo }),
+                        });
+                    }
                     Update(updateInfo);
                 }
                 return true;
@@ -105,5 +130,11 @@ namespace linker.plugins.updater
         }
     }
 
+    [MemoryPackable]
+    public sealed partial class UpdateClientInfo
+    {
+        public string[] ToMachines { get; set; }
+        public UpdateInfo Info { get; set; }
+    }
 
 }

@@ -27,11 +27,11 @@ namespace linker.tunnel.connection
         public bool SSL { get; init; }
         public byte BufferSize { get; init; } = 3;
 
-        public bool Connected => UdpClient != null && LastTicks > 0 && Environment.TickCount64 - LastTicks < 15000;
+        public bool Connected => UdpClient != null && LastTicks.Timeout(15000) == false;
         public int Delay { get; private set; }
         public long SendBytes { get; private set; }
         public long ReceiveBytes { get; private set; }
-        public long LastTicks { get; private set; } = Environment.TickCount64;
+        public LastTicksManager LastTicks { get; private set; } = new LastTicksManager();
 
         public bool Receive { get; init; }
 
@@ -56,7 +56,7 @@ namespace linker.tunnel.connection
         private CancellationTokenSource cancellationTokenSource;
         private object userToken;
 
-        private long pingStart = Environment.TickCount64;
+        private LastTicksManager pingTicks = new LastTicksManager();
         private byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.ping");
         private byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.pong");
         private byte[] finBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.fing");
@@ -129,7 +129,7 @@ namespace linker.tunnel.connection
         private async Task CallbackPacket(Memory<byte> packet)
         {
             ReceiveBytes += packet.Length;
-            LastTicks = Environment.TickCount64;
+            LastTicks.Update();
 
             Memory<byte> memory = packet.Slice(4);
             if (memory.Length == pingBytes.Length && memory.Span.Slice(0, pingBytes.Length - 4).SequenceEqual(pingBytes.AsSpan(0, pingBytes.Length - 4)))
@@ -140,7 +140,7 @@ namespace linker.tunnel.connection
                 }
                 else if (memory.Span.SequenceEqual(pongBytes))
                 {
-                    Delay = (int)(Environment.TickCount64 - pingStart);
+                    Delay = (int)pingTicks.Diff();
                     pong = true;
                 }
                 else if (memory.Span.SequenceEqual(finBytes))
@@ -178,9 +178,9 @@ namespace linker.tunnel.connection
                         break;
                     }
 
-                    if (Environment.TickCount64 - LastTicks > 3000)
+                    if (LastTicks.Greater(3000))
                     {
-                        pingStart = Environment.TickCount64;
+                        pingTicks.Update();
                         await SendPingPong(pingBytes).ConfigureAwait(false);
                     }
                     await Task.Delay(3000).ConfigureAwait(false);
@@ -218,7 +218,7 @@ namespace linker.tunnel.connection
         {
             if (pong == false) return;
             pong = false;
-            pingStart = Environment.TickCount64;
+            pingTicks.Update();
             await SendPingPong(pingBytes).ConfigureAwait(false);
         }
 
@@ -258,7 +258,7 @@ namespace linker.tunnel.connection
 
             SendPingPong(finBytes).ContinueWith((result) =>
             {
-                LastTicks = 0;
+                LastTicks.Clear();
                 if (Receive == true)
                     UdpClient?.SafeClose();
                 uUdpClient = null;

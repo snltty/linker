@@ -1,7 +1,7 @@
 import { injectGlobalData } from "@/provide";
 import { ElMessage } from "element-plus";
 import { inject, provide, ref } from "vue"
-import { getTuntapInfo, refreshTuntap } from "@/apis/tuntap";
+import { getTuntapInfo, refreshTuntap, subscribePing } from "@/apis/tuntap";
 
 const tuntapSymbol = Symbol();
 export const provideTuntap = () => {
@@ -57,6 +57,7 @@ export const provideTuntap = () => {
                 tuntap.value.list = res.List;
             }
             tuntap.value.timer = setTimeout(_getTuntapInfo, 1100);
+            subscribePing();
         }).catch((e) => {
             tuntap.value.timer = setTimeout(_getTuntapInfo, 1100);
         });

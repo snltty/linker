@@ -4,19 +4,18 @@ using System.Text;
 
 namespace linker.plugins.sforward.proxy
 {
-    public partial class SForwardProxy : IFlow
+    public partial class SForwardProxy
     {
-        public ulong ReceiveBytes { get; private set; }
-        public ulong SendtBytes { get; private set; }
-        public string FlowName => "SForward";
-
 
         private readonly NumberSpace ns = new NumberSpace();
         private byte[] flagBytes = Encoding.UTF8.GetBytes($"snltty.sforward");
 
-        public SForwardProxy()
+        private readonly SForwardFlow sForwardFlow;
+        public SForwardProxy(SForwardFlow sForwardFlow)
         {
+            this.sForwardFlow = sForwardFlow;
             UdpTask();
+
         }
 
         public string Start(int port, bool isweb, byte bufferSize)

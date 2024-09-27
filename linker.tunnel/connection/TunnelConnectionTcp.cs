@@ -27,12 +27,12 @@ namespace linker.tunnel.connection
         public IPEndPoint IPEndPoint { get; init; }
         public bool SSL { get; init; }
         public byte BufferSize { get; init; } = 3;
-        public bool Connected => Socket != null && LastTicks > 0 && Environment.TickCount64 - LastTicks < 15000;
+        public bool Connected => Socket != null && LastTicks.Timeout(15000) == false;
         public int Delay { get; private set; }
         public long SendBytes { get; private set; }
         public long ReceiveBytes { get; private set; }
 
-        public long LastTicks { get; private set; } = Environment.TickCount64;
+        public LastTicksManager LastTicks { get; private set; } = new LastTicksManager();
 
         [JsonIgnore]
         public SslStream Stream { get; init; }
@@ -47,7 +47,7 @@ namespace linker.tunnel.connection
         private bool framing;
         private ReceiveDataBuffer bufferCache = new ReceiveDataBuffer();
 
-        private long pingStart = Environment.TickCount64;
+        private LastTicksManager pingTicks = new LastTicksManager();
         private byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ping");
         private byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.pong");
         private bool pong = true;
@@ -157,7 +157,7 @@ namespace linker.tunnel.connection
         private async Task CallbackPacket(Memory<byte> packet)
         {
             ReceiveBytes += packet.Length;
-            LastTicks = Environment.TickCount64;
+            LastTicks.Update();
             if (packet.Length == pingBytes.Length)
             {
                 if (packet.Span.SequenceEqual(pingBytes))
@@ -166,7 +166,7 @@ namespace linker.tunnel.connection
                 }
                 else if (packet.Span.SequenceEqual(pongBytes))
                 {
-                    Delay = (int)(Environment.TickCount64 - pingStart);
+                    Delay = (int)pingTicks.Diff();
                     pong = true;
                 }
                 return;
@@ -192,9 +192,9 @@ namespace linker.tunnel.connection
                         break;
                     }
 
-                    if (Environment.TickCount64 - LastTicks > 3000)
+                    if (LastTicks.Greater(3000))
                     {
-                        pingStart = Environment.TickCount64;
+                        pingTicks.Update();
                         await SendPingPong(pingBytes).ConfigureAwait(false);
 
                     }
@@ -246,7 +246,7 @@ namespace linker.tunnel.connection
         {
             if (pong == false) return;
             pong = false;
-            pingStart = Environment.TickCount64;
+            pingTicks.Update();
             await SendPingPong(pingBytes).ConfigureAwait(false);
         }
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
@@ -286,7 +286,7 @@ namespace linker.tunnel.connection
 
         public void Dispose()
         {
-            LastTicks = 0;
+            LastTicks.Clear();
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Error($"tunnel connection {this.GetHashCode()} writer offline {ToString()}");
 

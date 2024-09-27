@@ -18,7 +18,7 @@ namespace linker.plugins.sforward.proxy
 
         #region 服务端
 
-       
+
         private void StartTcp(int port, bool isweb, byte bufferSize)
         {
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
@@ -154,7 +154,7 @@ namespace linker.plugins.sforward.proxy
                 await token.TargetSocket.SendAsync(buffer1.AsMemory(0, length)).ConfigureAwait(false);
 
                 //两端交换数据
-                await Task.WhenAll(CopyToAsync(buffer1, token.SourceSocket, token.TargetSocket), CopyToAsync(buffer2, token.TargetSocket, token.SourceSocket)).ConfigureAwait(false);
+                await Task.WhenAll(CopyToAsync(token.Host, token.ListenPort, buffer1, token.SourceSocket, token.TargetSocket), CopyToAsync(token.Host, token.ListenPort, buffer2, token.TargetSocket, token.SourceSocket)).ConfigureAwait(false);
 
                 CloseClientSocket(token);
             }
@@ -248,7 +248,7 @@ namespace linker.plugins.sforward.proxy
                 await sourceSocket.SendAsync(buffer1.AsMemory(0, flagBytes.Length + 8)).ConfigureAwait(false);
 
                 //交换数据即可
-                await Task.WhenAll(CopyToAsync(buffer1, sourceSocket, targetSocket), CopyToAsync(buffer2, targetSocket, sourceSocket)).ConfigureAwait(false);
+                await Task.WhenAll(CopyToAsync(string.Empty, service.Port, buffer1, sourceSocket, targetSocket), CopyToAsync(string.Empty, service.Port, buffer2, targetSocket, sourceSocket)).ConfigureAwait(false);
 
             }
             catch (Exception)
@@ -265,20 +265,32 @@ namespace linker.plugins.sforward.proxy
         /// <summary>
         /// 读取数据，然后发送给对方，用户两端交换数据
         /// </summary>
+        /// <param name="domain"></param>
+        /// <param name="port"></param>
         /// <param name="buffer"></param>
         /// <param name="source"></param>
         /// <param name="target"></param>
-        /// <param name="receive"></param>
         /// <returns></returns>
-        private async Task CopyToAsync(Memory<byte> buffer, Socket source, Socket target)
+        private async Task CopyToAsync(string domain, int port, Memory<byte> buffer, Socket source, Socket target)
         {
+            bool isDomain = string.IsNullOrWhiteSpace(domain) == false;
+            string portStr = port.ToString();
+
             try
             {
                 int bytesRead;
                 while ((bytesRead = await source.ReceiveAsync(buffer, SocketFlags.None).ConfigureAwait(false)) != 0)
                 {
-                    ReceiveBytes += (ulong)bytesRead;
-                    SendtBytes += (ulong)bytesRead;
+                    if (isDomain)
+                    {
+                        sForwardFlow.AddReceive(domain, (ulong)bytesRead);
+                        sForwardFlow.AddSendt(domain, (ulong)bytesRead);
+                    }
+                    else
+                    {
+                        sForwardFlow.AddReceive(portStr, (ulong)bytesRead);
+                        sForwardFlow.AddSendt(portStr, (ulong)bytesRead);
+                    }
                     await target.SendAsync(buffer.Slice(0, bytesRead), SocketFlags.None).ConfigureAwait(false);
                 }
             }
@@ -296,7 +308,7 @@ namespace linker.plugins.sforward.proxy
             }
         }
 
-       
+
     }
 
     public sealed class AsyncUserToken

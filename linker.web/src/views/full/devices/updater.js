@@ -1,4 +1,4 @@
-import { getUpdater } from "@/apis/updater";
+import { getUpdater, subscribeUpdater } from "@/apis/updater";
 import { injectGlobalData } from "@/provide";
 import { inject, provide, ref } from "vue";
 
@@ -9,7 +9,9 @@ export const provideUpdater = () => {
         timer: 0,
         list: {},
         hashcode: 0,
-        current: { Version: '', Msg: [], DateTime: '', Status: 0, Length: 0, Current: 0 }
+        current: { Version: '', Msg: [], DateTime: '', Status: 0, Length: 0, Current: 0 },
+
+        subscribeTimer: 0
     });
     provide(updaterSymbol, updater);
     const _getUpdater = () => {
@@ -36,15 +38,23 @@ export const provideUpdater = () => {
             updater.value.timer = setTimeout(_getUpdater, 800);
         });
     }
+    const _subscribeUpdater = () => {
+        subscribeUpdater().then(() => {
+            updater.value.subscribeTimer = setTimeout(_subscribeUpdater, 5000);
+        }).catch(() => {
+            updater.value.subscribeTimer = setTimeout(_subscribeUpdater, 5000);
+        });
+    }
 
 
     const clearUpdaterTimeout = () => {
         clearTimeout(updater.value.timer);
+        clearTimeout(updater.value.subscribeTimer);
     }
 
 
     return {
-        updater, _getUpdater, clearUpdaterTimeout
+        updater, _getUpdater, _subscribeUpdater, clearUpdaterTimeout
     }
 }
 export const useUpdater = () => {

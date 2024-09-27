@@ -40,6 +40,9 @@ namespace linker.plugins.sforward.proxy
             {
                 byte[] buffer = new byte[(1 << bufferSize) * 1024];
                 IPEndPoint tempRemoteEP = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
+
+                string portStr = token.ListenPort.ToString();
+
                 while (true)
                 {
                     SocketReceiveFromResult result = await token.SourceSocket.ReceiveFromAsync(buffer, tempRemoteEP).ConfigureAwait(false);
@@ -49,14 +52,15 @@ namespace linker.plugins.sforward.proxy
                     }
 
                     Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
-                    ReceiveBytes += (ulong)memory.Length;
+
+                    sForwardFlow.AddReceive(portStr, (ulong)memory.Length);
 
                     IPEndPoint source = result.RemoteEndPoint as IPEndPoint;
                     //已经连接
                     if (udpConnections.TryGetValue(source, out UdpTargetCache cache) && cache != null)
                     {
-                        SendtBytes += (ulong)memory.Length;
-                        cache.Update();
+                        sForwardFlow.AddSendt(portStr, (ulong)memory.Length);
+                        cache.LastTicks.Update();
                         await token.SourceSocket.SendToAsync(memory, cache.IPEndPoint).ConfigureAwait(false);
                     }
                     else
@@ -171,6 +175,8 @@ namespace linker.plugins.sforward.proxy
             IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
 
             UdpConnectedCache cache = new UdpConnectedCache { SourceSocket = socketUdp, TargetSocket = serviceUdp };
+
+            string portStr = service.Port.ToString();
             while (true)
             {
                 try
@@ -183,11 +189,12 @@ namespace linker.plugins.sforward.proxy
                         socketUdp?.Dispose();
                         break;
                     }
-                    cache.Update();
+                    cache.LastTicks.Update();
 
                     Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
-                    ReceiveBytes += (ulong)memory.Length;
-                    SendtBytes += (ulong)memory.Length;
+
+                    sForwardFlow.AddReceive(portStr, (ulong)memory.Length);
+                    sForwardFlow.AddSendt(portStr, (ulong)memory.Length);
 
                     if (serviceUdp == null)
                     {
@@ -215,11 +222,11 @@ namespace linker.plugins.sforward.proxy
                                         break;
                                     }
                                     Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
-                                    ReceiveBytes += (ulong)memory.Length;
-                                    SendtBytes += (ulong)memory.Length;
+                                    sForwardFlow.AddReceive(portStr, (ulong)memory.Length);
+                                    sForwardFlow.AddSendt(portStr, (ulong)memory.Length);
 
                                     await socketUdp.SendToAsync(memory, server).ConfigureAwait(false);
-                                    cache.Update();
+                                    cache.LastTicks.Update();
                                 }
                                 catch (Exception ex)
                                 {
@@ -284,24 +291,16 @@ namespace linker.plugins.sforward.proxy
     public sealed class UdpTargetCache
     {
         public IPEndPoint IPEndPoint { get; set; }
-        public long LastTime { get; set; } = Environment.TickCount64;
-        public void Update()
-        {
-            LastTime = Environment.TickCount64;
-        }
-        public bool Timeout => Environment.TickCount64 - LastTime > 5 * 60 * 1000;
+        public LastTicksManager LastTicks { get; set; } = new LastTicksManager();
+        public bool Timeout => LastTicks.Greater(5 * 60 * 1000);
     }
 
     public sealed class UdpConnectedCache
     {
         public Socket SourceSocket { get; set; }
         public Socket TargetSocket { get; set; }
-        public long LastTime { get; set; } = Environment.TickCount64;
-        public void Update()
-        {
-            LastTime = Environment.TickCount64;
-        }
-        public bool Timeout => Environment.TickCount64 - LastTime > 5 * 60 * 1000;
+        public LastTicksManager LastTicks { get; set; } = new LastTicksManager();
+        public bool Timeout => LastTicks.Greater(5 * 60 * 1000);
 
         public void Clear()
         {

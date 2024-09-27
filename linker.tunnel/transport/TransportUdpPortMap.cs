@@ -351,8 +351,7 @@ namespace linker.tunnel.transport
         {
             TimerHelper.SetInterval(() =>
             {
-                long ticks = Environment.TickCount64;
-                var keys = connectionsDic.Where(c => (c.Value.Connection == null && ticks - c.Value.LastTicks > 5000) || (c.Value.Connection != null && c.Value.Connection.Connected == false)).Select(c => c.Key).ToList();
+                var keys = connectionsDic.Where(c => (c.Value.Connection == null && c.Value.LastTicks.Greater(5000)) || (c.Value.Connection != null && c.Value.Connection.Connected == false)).Select(c => c.Key).ToList();
                 foreach (var item in keys)
                 {
                     connectionsDic.TryRemove(item, out _);
@@ -370,7 +369,7 @@ namespace linker.tunnel.transport
 
     public sealed class ConnectionCacheInfo
     {
-        public long LastTicks { get; set; } = Environment.TickCount64;
+        public LastTicksManager LastTicks { get; set; } = new LastTicksManager();
         public TunnelConnectionUdp Connection { get; set; }
     }
 

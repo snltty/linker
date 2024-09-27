@@ -6,6 +6,8 @@ using linker.plugins.client;
 using linker.plugins.capi;
 using linker.plugins.messenger;
 using linker.plugins.flow.messenger;
+using linker.libs.extends;
+using linker.plugins.sforward.proxy;
 
 namespace linker.plugins.flow
 {
@@ -37,7 +39,34 @@ namespace linker.plugins.flow
             }
             return new FlowInfo();
         }
+        public async Task<Dictionary<ushort, FlowItemInfo>> GetMessengerFlows(ApiControllerParamsInfo param)
+        {
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)FlowMessengerIds.Messenger,
+            });
+            if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
+            {
+                return MemoryPackSerializer.Deserialize<Dictionary<ushort, FlowItemInfo>>(resp.Data.Span);
+            }
+            return new Dictionary<ushort, FlowItemInfo>();
+        }
 
+        public async Task<SForwardFlowResponseInfo> GetSForwardFlows(ApiControllerParamsInfo param)
+        {
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)FlowMessengerIds.SForward,
+                Payload = MemoryPackSerializer.Serialize(param.Content.DeJson<SForwardFlowRequestInfo>())
+            });
+            if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
+            {
+                return MemoryPackSerializer.Deserialize<SForwardFlowResponseInfo>(resp.Data.Span);
+            }
+            return new SForwardFlowResponseInfo();
+        }
     }
 
 }

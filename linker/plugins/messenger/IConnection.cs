@@ -246,7 +246,7 @@ namespace linker.plugins.messenger
 
         }
 
-        public override bool Connected => SourceSocket != null && ticks > 0 && Environment.TickCount64 - ticks < 15000;
+        public override bool Connected => SourceSocket != null && lastTicks.Timeout(15000) == false;
 
 
         private IConnectionReceiveCallback callback;
@@ -256,8 +256,8 @@ namespace linker.plugins.messenger
         private bool framing;
         private ReceiveDataBuffer bufferCache = new ReceiveDataBuffer();
 
-        private long ticks = Environment.TickCount64;
-        private long pingStart = Environment.TickCount64;
+        private LastTicksManager lastTicks = new LastTicksManager();
+        private LastTicksManager pingTicks =new LastTicksManager();
         private static byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ping");
         private static byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.pong");
         private bool pong = true;
@@ -297,7 +297,7 @@ namespace linker.plugins.messenger
                         break;
                     }
                     ReceiveBytes += length;
-                    ticks = Environment.TickCount64;
+                    lastTicks.Update();
                     await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
                 }
             }
@@ -310,7 +310,7 @@ namespace linker.plugins.messenger
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
-               
+
             }
             finally
             {
@@ -362,7 +362,7 @@ namespace linker.plugins.messenger
                 }
                 else if (packet.Span.SequenceEqual(pongBytes))
                 {
-                    Delay = (int)(Environment.TickCount64 - pingStart);
+                    Delay = (int)pingTicks.Diff();
                     pong = true;
                 }
             }
@@ -384,9 +384,9 @@ namespace linker.plugins.messenger
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
-                    if (Environment.TickCount64 - ticks > 3000)
+                    if (lastTicks.Greater(3000))
                     {
-                        pingStart = Environment.TickCount64;
+                        pingTicks .Update();
                         await SendPingPong(pingBytes).ConfigureAwait(false);
 
                     }
@@ -435,7 +435,7 @@ namespace linker.plugins.messenger
         {
             if (pong == false) return;
             pong = false;
-            pingStart = Environment.TickCount64;
+            pingTicks.Update();
             await SendPingPong(pingBytes);
         }
         public override async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
@@ -448,7 +448,7 @@ namespace linker.plugins.messenger
                 else
                     await SourceSocket.SendAsync(data, cancellationTokenSourceWrite.Token).ConfigureAwait(false);
                 SendBytes += data.Length;
-                ticks = Environment.TickCount64;
+                lastTicks.Update();
             }
             catch (OperationCanceledException)
             {
@@ -496,7 +496,7 @@ namespace linker.plugins.messenger
             SourceSocket?.SafeClose();
             TargetSocket?.SafeClose();
 
-            ticks = 0;
+            lastTicks.Clear();
         }
     }
 

@@ -52,7 +52,7 @@ export default {
         const {devices, machineId, _getSignList, _getSignList1,handleDeviceEdit,
             handlePageChange, handlePageSizeChange, handleDel,clearDevicesTimeout} = provideDevices();
         const {tuntap,_getTuntapInfo,handleTuntapRefresh,clearTuntapTimeout,handleTuntapEdit,sortTuntapIP}  = provideTuntap();
-        const {_getUpdater,clearUpdaterTimeout} = provideUpdater();
+        const {_getUpdater,_subscribeUpdater,clearUpdaterTimeout} = provideUpdater();
 
         onMounted(() => {
             handlePageChange();
@@ -63,6 +63,7 @@ export default {
             _getTuntapInfo();
 
             _getUpdater();
+            _subscribeUpdater();
         });
         onUnmounted(() => {
             clearDevicesTimeout();

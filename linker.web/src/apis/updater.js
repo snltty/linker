@@ -31,3 +31,6 @@ export const confirmServer = (version) => {
 export const exitServer = () => {
     return sendWebsocketMsg('updaterclient/exitserver');
 }
+export const subscribeUpdater = () => {
+    return sendWebsocketMsg('updaterclient/Subscribe');
+}

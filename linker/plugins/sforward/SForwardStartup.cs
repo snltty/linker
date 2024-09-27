@@ -28,6 +28,10 @@ namespace linker.plugins.sforward
             serviceCollection.AddSingleton<SForwardClientApiController>();
             serviceCollection.AddSingleton<SForwardTransfer>();
             serviceCollection.AddSingleton<SForwardClientMessenger>();
+
+            serviceCollection.AddSingleton<SForwardFlow>();
+
+            
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
@@ -37,6 +41,7 @@ namespace linker.plugins.sforward
             serviceCollection.AddSingleton<ISForwardServerCahing, SForwardServerCahing>();
             serviceCollection.AddSingleton<ISForwardValidator, Validator>();
 
+            serviceCollection.AddSingleton<SForwardFlow>();
         }
 
         bool added = false;

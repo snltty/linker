@@ -180,23 +180,6 @@ namespace linker.plugins.tunnel
             return true;
         }
 
-
-
-        public async Task<ConcurrentDictionary<string, TunnelRecordInfo>> Records(ApiControllerParamsInfo param)
-        {
-            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
-            {
-                Connection = clientSignInState.Connection,
-                MessengerId = (ushort)TunnelMessengerIds.Records
-            }).ConfigureAwait(false);
-
-            if(resp.Code == MessageResponeCodes.OK)
-            {
-                return MemoryPackSerializer.Deserialize<ConcurrentDictionary<string, TunnelRecordInfo>>(resp.Data.Span);
-            }
-
-            return new ConcurrentDictionary<string, TunnelRecordInfo>();
-        }
     }
 
 }

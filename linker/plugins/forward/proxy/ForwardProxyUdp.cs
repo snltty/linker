@@ -149,7 +149,7 @@ namespace linker.plugins.forward.proxy
                     {
                         token.Connection = tunnelToken.Connection;
                         await token.TargetSocket.SendToAsync(tunnelToken.Proxy.Data, target).ConfigureAwait(false);
-                        token.Update();
+                        token.LastTicks.Update();
                         return;
                     }
 
@@ -221,7 +221,7 @@ namespace linker.plugins.forward.proxy
                 {
                     SocketReceiveFromResult result = await socket.ReceiveFromAsync(udpToken.Buffer, SocketFlags.None, target).ConfigureAwait(false);
                     udpToken.Proxy.Data = udpToken.Buffer.AsMemory(0, result.ReceivedBytes);
-                    udpToken.Update();
+                    udpToken.LastTicks.Update();
                     await SendToConnection(udpToken).ConfigureAwait(false);
                 }
             }
@@ -384,18 +384,14 @@ namespace linker.plugins.forward.proxy
 
         public byte[] Buffer { get; set; }
 
-        public long LastTime { get; set; } = Environment.TickCount64;
-        public bool Timeout => Environment.TickCount64 - LastTime > 60*60*1000;
+        public LastTicksManager LastTicks { get; set; } = new LastTicksManager();
+        public bool Timeout => LastTicks.Timeout(60 * 60 * 1000);
         public void Clear()
         {
             TargetSocket?.SafeClose();
             TargetSocket = null;
             GC.Collect();
             GC.SuppressFinalize(this);
-        }
-        public void Update()
-        {
-            LastTime = Environment.TickCount64;
         }
     }
     public sealed class ConnectIdUdpComparer : IEqualityComparer<ConnectIdUdp>

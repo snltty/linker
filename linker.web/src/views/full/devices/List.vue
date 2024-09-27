@@ -81,7 +81,7 @@ export default {
             handleTunnelConnections,clearConnectionsTimeout
         } = provideConnections();
 
-        const {_getUpdater,clearUpdaterTimeout} = provideUpdater();
+        const {_getUpdater,_subscribeUpdater,clearUpdaterTimeout} = provideUpdater();
 
         const {_getAccessInfo,clearAccessTimeout} = provideAccess();
 
@@ -158,6 +158,7 @@ export default {
             _getSForwardInfo();
 
             _getUpdater();
+            _subscribeUpdater();
 
             _getAccessInfo();
 

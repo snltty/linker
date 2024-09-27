@@ -41,15 +41,6 @@ namespace linker.plugins.updater
             updaterTransfer.SetSecretKey(param.Content);
         }
 
-        public UpdateInfo GetCurrent(ApiControllerParamsInfo param)
-        {
-            var updaters = updaterTransfer.Get();
-            if (updaters.TryGetValue(config.Data.Client.Id, out UpdateInfo info))
-            {
-                return info;
-            }
-            return new UpdateInfo { };
-        }
         public async Task<UpdateInfo> GetServer(ApiControllerParamsInfo param)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -85,7 +76,15 @@ namespace linker.plugins.updater
             });
         }
 
-
+        public UpdateInfo GetCurrent(ApiControllerParamsInfo param)
+        {
+            var updaters = updaterTransfer.Get();
+            if (updaters.TryGetValue(config.Data.Client.Id, out UpdateInfo info))
+            {
+                return info;
+            }
+            return new UpdateInfo { };
+        }
         public UpdaterListInfo Get(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);
@@ -143,6 +142,16 @@ namespace linker.plugins.updater
                 });
             }
             return true;
+        }
+
+
+        public async Task Subscribe(ApiControllerParamsInfo param)
+        {
+            await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)UpdaterMessengerIds.SubscribeForward
+            });
         }
     }
 

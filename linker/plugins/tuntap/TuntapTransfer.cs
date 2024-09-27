@@ -190,6 +190,9 @@ namespace linker.plugins.tuntap
             TimerHelper.Async(() =>
             {
                 DeleteForward();
+
+                bool needReboot = info.IP.Equals(runningConfig.Data.Tuntap.IP) == false || info.PrefixLength != runningConfig.Data.Tuntap.PrefixLength;
+
                 runningConfig.Data.Tuntap.IP = info.IP;
                 runningConfig.Data.Tuntap.LanIPs = info.LanIPs;
                 runningConfig.Data.Tuntap.Masks = info.Masks;
@@ -197,7 +200,7 @@ namespace linker.plugins.tuntap
                 runningConfig.Data.Tuntap.Switch = info.Switch;
                 runningConfig.Data.Tuntap.Forwards = info.Forwards;
                 runningConfig.Data.Update();
-                if (Status == TuntapStatus.Running)
+                if (Status == TuntapStatus.Running && needReboot)
                 {
                     Shutdown();
                     Setup();
@@ -254,7 +257,7 @@ namespace linker.plugins.tuntap
                             foreach (var item in list)
                             {
                                 tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
-                                item.LastTicks = Environment.TickCount64;
+                                item.LastTicks.Update();
                             }
                             var removes = tuntapInfos.Keys.Except(list.Select(c => c.MachineId)).ToList();
                             foreach (var item in removes)
@@ -262,7 +265,7 @@ namespace linker.plugins.tuntap
                                 if (tuntapInfos.TryGetValue(item, out TuntapInfo tuntapInfo))
                                 {
                                     tuntapInfo.Status = TuntapStatus.Normal;
-                                    tuntapInfo.LastTicks = 0;
+                                    tuntapInfo.LastTicks.Clear();
                                 }
                             }
                             Version.Add();
@@ -428,7 +431,7 @@ namespace linker.plugins.tuntap
 
             return infos
                 //自己的ip不要
-                .Where(c => c.IP.Equals(runningConfig.Data.Tuntap.IP) == false && c.LastTicks > 0)
+                .Where(c => c.IP.Equals(runningConfig.Data.Tuntap.IP) == false && c.LastTicks.Greater(0))
                 .OrderBy(c => c.LastTicks)
                 .Select(c =>
                 {
@@ -511,30 +514,51 @@ namespace linker.plugins.tuntap
         }
 
 
+
+        private readonly LastTicksManager lastTicksManager = new LastTicksManager();
+        public void SubscribePing()
+        {
+            lastTicksManager.Update();
+        }
         private void PingTask()
         {
             TimerHelper.SetInterval(async () =>
             {
-                if (Status == TuntapStatus.Running && (runningConfig.Data.Tuntap.Switch & TuntapSwitch.ShowDelay) == TuntapSwitch.ShowDelay)
+                if (lastTicksManager.Less(5000))
                 {
-                    var items = tuntapInfos.Values.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false && (c.Status & TuntapStatus.Running) == TuntapStatus.Running);
-                    if ((runningConfig.Data.Tuntap.Switch & TuntapSwitch.AutoConnect) != TuntapSwitch.AutoConnect)
-                    {
-                        var connections = tuntapProxy.GetConnections();
-                        items = items.Where(c => (connections.TryGetValue(c.MachineId, out ITunnelConnection connection) && connection.Connected) || c.MachineId == config.Data.Client.Id);
-                    }
-
-                    foreach (var item in items)
-                    {
-                        using Ping ping = new Ping();
-                        PingReply pingReply = await ping.SendPingAsync(item.IP, 500);
-                        item.Delay = pingReply.Status == IPStatus.Success ? (int)pingReply.RoundtripTime : -1;
-
-                        Version.Add();
-                    }
+                    await Ping();
                 }
                 return true;
             }, 3000);
+            TimerHelper.SetInterval(async () =>
+            {
+                if (lastTicksManager.Greater(15000))
+                {
+                    await Ping();
+                }
+                return true;
+            }, 30000);
+        }
+        private async Task Ping()
+        {
+            if (Status == TuntapStatus.Running && (runningConfig.Data.Tuntap.Switch & TuntapSwitch.ShowDelay) == TuntapSwitch.ShowDelay)
+            {
+                var items = tuntapInfos.Values.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false && (c.Status & TuntapStatus.Running) == TuntapStatus.Running);
+                if ((runningConfig.Data.Tuntap.Switch & TuntapSwitch.AutoConnect) != TuntapSwitch.AutoConnect)
+                {
+                    var connections = tuntapProxy.GetConnections();
+                    items = items.Where(c => (connections.TryGetValue(c.MachineId, out ITunnelConnection connection) && connection.Connected) || c.MachineId == config.Data.Client.Id);
+                }
+
+                foreach (var item in items)
+                {
+                    using Ping ping = new Ping();
+                    PingReply pingReply = await ping.SendPingAsync(item.IP, 500);
+                    item.Delay = pingReply.Status == IPStatus.Success ? (int)pingReply.RoundtripTime : -1;
+
+                    Version.Add();
+                }
+            }
         }
     }
 }

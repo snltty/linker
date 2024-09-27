@@ -156,22 +156,6 @@ namespace linker.plugins.tunnel.messenger
                 tunnelTransportInfo.Local.MachineName = cacheFrom.MachineName;
                 tunnelTransportInfo.Remote.MachineName = cacheTo.MachineName;
 
-                /*
-                TunnelRecordInfo tunnelRecordInfo = new TunnelRecordInfo
-                {
-                    MachineName = cacheFrom.MachineName,
-                    Times = 1
-                };
-                records.AddOrUpdate(cacheFrom.MachineName, tunnelRecordInfo, (a, b) =>
-                {
-                    TunnelRecordItemInfo item = new TunnelRecordItemInfo { MachineName = cacheTo.MachineName, Times = 1 };
-                    b.To.AddOrUpdate(cacheTo.MachineId, item, (a, b) => { b.Times++; return b; });
-
-                    b.Times++;
-                    return b;
-                });
-                */
-
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = cacheTo.Connection,
@@ -267,13 +251,6 @@ namespace linker.plugins.tunnel.messenger
                     }).ConfigureAwait(false);
                 });
             }
-        }
-
-
-        [MessengerId((ushort)TunnelMessengerIds.Records)]
-        public void Records(IConnection connection)
-        {
-            connection.Write(MemoryPackSerializer.Serialize(records));
         }
 
     }

@@ -1,4 +1,5 @@
-﻿using MemoryPack;
+﻿using linker.libs;
+using MemoryPack;
 using System.Text.Json.Serialization;
 
 namespace linker.plugins.flow
@@ -11,7 +12,7 @@ namespace linker.plugins.flow
     }
 
     [MemoryPackable]
-    public sealed partial class FlowItemInfo
+    public partial class FlowItemInfo
     {
         public ulong ReceiveBytes { get; set; }
         public ulong SendtBytes { get; set; }
@@ -23,11 +24,10 @@ namespace linker.plugins.flow
     [MemoryPackable]
     public sealed partial class FlowInfo
     {
-        public Dictionary<string, FlowItemInfo> Resolvers { get; set; }
-        public Dictionary<ushort, FlowItemInfo> Messangers { get; set; }
-
+        public Dictionary<string, FlowItemInfo> Items { get; set; }
         public DateTime Start { get; set; }
         public DateTime Now { get; set; }
     }
+
 }
 

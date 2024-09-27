@@ -44,6 +44,14 @@ namespace linker.plugins.updater.messenger
         {
             Environment.Exit(1);
         }
+
+
+        [MessengerId((ushort)UpdaterMessengerIds.Subscribe)]
+        public void Subscribe(IConnection connection)
+        {
+            string machineId = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            updaterTransfer.Subscribe(machineId);
+        }
     }
 
 
@@ -144,16 +152,17 @@ namespace linker.plugins.updater.messenger
         [MessengerId((ushort)UpdaterMessengerIds.UpdateForward)]
         public void UpdateForward(IConnection connection)
         {
-            UpdateInfo info = MemoryPackSerializer.Deserialize<UpdateInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            UpdateClientInfo info = MemoryPackSerializer.Deserialize<UpdateClientInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
-                foreach (var item in signCaching.Get(cache.GroupId).Where(c => c.Connected && c.MachineId != connection.Id))
+                byte[] payload = MemoryPackSerializer.Serialize(info.Info);
+                foreach (var item in signCaching.Get(cache.GroupId).Where(c => info.ToMachines.Contains(c.MachineId)).Where(c => c.Connected && c.MachineId != connection.Id))
                 {
                     _ = messengerSender.SendOnly(new MessageRequestWrap
                     {
                         Connection = item.Connection,
                         MessengerId = (ushort)UpdaterMessengerIds.Update,
-                        Payload = connection.ReceiveRequestWrap.Payload
+                        Payload = payload
                     });
                 }
 
@@ -175,6 +184,31 @@ namespace linker.plugins.updater.messenger
                     Connection = cache1.Connection,
                     MessengerId = (ushort)UpdaterMessengerIds.Exit
                 });
+            }
+        }
+
+
+
+        /// <summary>
+        /// 订阅更新信息
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)UpdaterMessengerIds.SubscribeForward)]
+        public void SubscribeForward(IConnection connection)
+        {
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            {
+                byte[] mechineId = MemoryPackSerializer.Serialize(connection.Id);
+                foreach (var item in signCaching.Get(cache.GroupId).Where(c => c.Connected && c.MachineId != connection.Id))
+                {
+                    _ = messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = item.Connection,
+                        MessengerId = (ushort)UpdaterMessengerIds.Subscribe,
+                        Payload = mechineId
+                    });
+                }
+
             }
         }
     }

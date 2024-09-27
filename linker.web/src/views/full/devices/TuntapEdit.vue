@@ -9,17 +9,14 @@
                     <el-input v-model="state.ruleForm.IP" style="width:14rem" />
                     <span>/</span>
                     <el-input @change="handlePrefixLengthChange" v-model="state.ruleForm.PrefixLength" style="width:4rem" />
-                    <span style="width: 3rem;"></span>
+                    <span style="width: 2rem;"></span>
                     <el-checkbox v-model="state.ruleForm.ShowDelay" label="显示延迟" size="large" />
-                    <el-popover
-                        placement="top" title="提示" :width="400" trigger="hover"
-                        content="在测试延迟时，如果未连接，将自动去打洞连接，当你有一百个设备时，每个设备都同时去与其它99台设备连接，这数据量不小，所以尽量不要个设备都勾选"
-                        >
+                    <el-checkbox v-model="state.ruleForm.AutoConnect" label="自动连接" size="large" />
+                    <!-- <el-popover placement="top" title="提示" :width="400" trigger="hover" content="当有大量客户端使用中继是，广播会使用服务器更多流量" >
                         <template #reference>
-                            <el-checkbox v-model="state.ruleForm.AutoConnect" label="自动连接？" size="large" />
+                            <el-checkbox v-model="state.ruleForm.Multicast" label="启用广播" size="large" />
                         </template>
-                    </el-popover>
-                   
+                    </el-popover> -->
                 </el-form-item>
                 <el-form-item prop="upgrade" style="margin-bottom:0">
                     <el-checkbox v-model="state.ruleForm.Upgrade" label="我很懂，我要使用高级功能(点对网和网对网)" size="large" />
@@ -104,6 +101,7 @@ export default {
                 ShowDelay: tuntap.value.current.ShowDelay,
                 AutoConnect: tuntap.value.current.AutoConnect,
                 Upgrade: tuntap.value.current.Upgrade,
+                Multicast: tuntap.value.current.Multicast,
 
                 Forwards:tuntap.value.current.Forwards.length == 0 ? [
                     {ListenAddr:'0.0.0.0',ListenPort:0,ConnectAddr:'0.0.0.0',ConnectPort:0}
@@ -165,6 +163,7 @@ export default {
             json.ShowDelay = state.ruleForm.ShowDelay;
             json.AutoConnect = state.ruleForm.AutoConnect;
             json.Upgrade = state.ruleForm.Upgrade;
+            json.Multicast = state.ruleForm.Multicast;
             json.Forwards = state.ruleForm.Forwards;
             json.Forwards.forEach(c=>{
                 c.ListenPort=+c.ListenPort;

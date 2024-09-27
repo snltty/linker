@@ -37,7 +37,7 @@ jobs:
           release_name: v1.4.4.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: 1. 增加流量统计(暂时显示服务端流量)
+          body: "1. 总览，和详细流量统计，一眼知道服务器流量花在哪里\r\n2. 优化信标。减少流量，没有操作时尽量不产生流量"
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
         uses: tvrcgo/oss-action@v0.1.1

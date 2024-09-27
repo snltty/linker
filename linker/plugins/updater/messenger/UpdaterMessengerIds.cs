@@ -17,6 +17,9 @@
         ConfirmServer = 2608,
         ExitServer = 2609,
 
+        Subscribe = 2610,
+        SubscribeForward = 2611,
+
         Max = 2299
     }
 }

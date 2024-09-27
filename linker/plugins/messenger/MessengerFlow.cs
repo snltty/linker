@@ -1,15 +1,15 @@
 ﻿using linker.plugins.flow;
-using static System.Reflection.Metadata.BlobBuilder;
 
 namespace linker.plugins.messenger
 {
-    public sealed class MessengerFlow : IFlow
+    public sealed class MessengerFlow :  IFlow
     {
         public ulong ReceiveBytes { get; private set; }
         public ulong SendtBytes { get; private set; }
         public string FlowName => "Messenger";
 
         private Dictionary<ushort, FlowItemInfo> flows { get; } = new Dictionary<ushort, FlowItemInfo>();
+
         public MessengerFlow()
         {
         }

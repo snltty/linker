@@ -6,7 +6,7 @@
     <el-dialog :title="state.time" destroy-on-close v-model="state.show" width="540">
         <div>
             <el-table :data="state.list" border size="small" width="100%">
-                <el-table-column prop="id" label="类别" width="80"></el-table-column>
+                <el-table-column prop="text" label="类别" width="80"></el-table-column>
                 <el-table-column prop="sendtBytes" label="已上传" sortable>
                     <template #default="scope">
                         <span>{{ scope.row.sendtBytesText }}</span>
@@ -29,21 +29,24 @@
                 </el-table-column>
                 <el-table-column prop="oper" label="操作" width="64">
                     <template #default="scope">
-                        <el-button v-if="scope.row.detail" size="small">详情</el-button>
+                        <el-button v-if="scope.row.detail" size="small" @click="handleShowDetail(scope.row.id)">详情</el-button>
                     </template>
                 </el-table-column>
             </el-table>
         </div>
     </el-dialog>
+    <ServerFlowMessenger :config="config" v-if="state.details.Messenger" v-model="state.details.Messenger"></ServerFlowMessenger>
+    <ServerFlowSForward :config="config" v-if="state.details.SForward" v-model="state.details.SForward"></ServerFlowSForward>
 </template>
 
 <script>
 import { getFlows } from '@/apis/flow';
-import { getTunnelRecords } from '@/apis/tunnel';
 import { onMounted, onUnmounted, reactive } from 'vue';
-
+import ServerFlowMessenger from './ServerFlowMessenger.vue';
+import ServerFlowSForward from './ServerFlowSForward.vue';
 export default {
     props:['config'],
+    components:{ServerFlowMessenger,ServerFlowSForward},
     setup (props) {
         
         const state = reactive({
@@ -53,105 +56,51 @@ export default {
             overallReceiveSpeed: '0000.00KB',
             time:'',
             list:[],
-            old:null
+            old:null,
+            details:{
+                Messenger:false,
+                SForward:false,
+            }
         });
         const handleShow = ()=>{
             state.show = true;
         }
-
-        const details = {
-            'Relay':true,
-            'Messenger':true,
-            'SForward':true,
-        };
-        const id2text = {
-            'External':'外网端口',
-            'Relay':'中继流量',
-            'Messenger':'信标流量',
-            'SForward':'内网穿透',
-            '0':'[信标]登入信标',
-            '1':'[信标]客户端列表',
-            '2':'[信标]客户端删除',
-            '4':'[信标]客户端改名(转发)',
-            '7':'[信标]获取服务器版本',
-            '8':'[信标]客户端搜索ids',
-            '9':'[信标]客户端id列表',
-            '10':'[信标]客户端排序',
-            '11':'[信标]客户端在线',
-            '12':'[信标]生成客户端id',
-            '13':'[信标]登入信标V_1_3_1',
-
-            '2001':'[信标]外网端口(转发)',
-            '2002':'[信标]外网端口(转发)',
-            '2003':'[信标]开始打洞(转发)',
-            '2004':'[信标]开始打洞(转发)',
-            '2005':'[信标]打洞失败(转发)',
-            '2006':'[信标]打洞失败(转发)',
-            '2007':'[信标]打洞成功(转发)',
-            '2008':'[信标]打洞成功(转发)',
-            '2009':'[信标]隧道配置(转发)',
-            '2010':'[信标]隧道配置(转发)',
-            '2012':'[信标]隧道同步(转发)',
-
-            '2101':'[信标]中继通知(转发)',
-            '2102':'[信标]中继通知(转发)',
-            '2103':'[信标]中继请求',
-            '2105':'[信标]中继连通测试',
-
-            '2201':'[信标]运行网卡(转发)',
-            '2203':'[信标]停止网卡(转发)',
-            '2205':'[信标]更新网卡(转发)',
-            '2206':'[信标]同步网卡(转发)',
-            '2207':'[信标]同步网卡(转发)',
-
-            '2301':'[信标]添加内网穿透',
-            '2302':'[信标]移除内网穿透',
-            '2305':'[信标]获取穿透列表(转发)',
-
-            '2401':'[信标]测试端口转发(转发)',
-            '2403':'[信标]获取端口转发(转发)',
-            
-            '2503':'[信标]获取权限(转发)',
-            '2504':'[信标]获取权限(转发)',
-            '2506':'[信标]更新权限(转发)',
-            '2508':'[信标]同步密钥(转发)',
-            '2510':'[信标]同步服务器(转发)',
-            
-            '2601':'[信标]更新信息(转发)',
-            '2602':'[信标]更新信息(转发)',
-            '2603':'[信标]确认更新(转发)',
-            '2604':'[信标]确认更新(转发)',
-            '2605':'[信标]重启(转发)',
-            '2607':'[信标]服务器更新信息',
-            '2608':'[信标]确认服务器更新',
-            '2609':'[信标]服务器重启',
-
-            '2701':'[信标]获取服务器流量',
+        const handleShowDetail = (id)=>{
+            state.details[id] = true;
         }
+
+        const id2text = {
+            'External':{text:'外网端口',detail:false},
+            'Relay':{text:'中继',detail:true},
+            'Messenger':{text:'信标',detail:true},
+            'SForward':{text:'内网穿透',detail:true},
+        };
         const _getFlows = ()=>{
             getFlows().then(res => {
                 const old = state.old || res;
 
                 let _receiveBytes = 0,_sendtBytes = 0,receiveBytes = 0,sendtBytes = 0;
-                for(let j in old.Resolvers){
-                    _receiveBytes+=old.Resolvers[j].ReceiveBytes;
-                    _sendtBytes+=old.Resolvers[j].SendtBytes;
+                for(let j in old.Items){
+                    _receiveBytes+=old.Items[j].ReceiveBytes;
+                    _sendtBytes+=old.Items[j].SendtBytes;
                 }
-                for(let j in res.Resolvers){
-                    receiveBytes+=res.Resolvers[j].ReceiveBytes;
-                    sendtBytes+=res.Resolvers[j].SendtBytes;
+                for(let j in res.Items){
+                    receiveBytes+=res.Items[j].ReceiveBytes;
+                    sendtBytes+=res.Items[j].SendtBytes;
                 }
                 state.overallSendtSpeed = parseSpeed(sendtBytes-_sendtBytes);
                 state.overallReceiveSpeed = parseSpeed(receiveBytes-_receiveBytes);
 
                 state.time = `从 ${res.Start}启动 至今`;
                 const list = [];
-                for(let j in res.Resolvers){
-                    const item = res.Resolvers[j];
-                    const itemOld = old.Resolvers[j];
+                for(let j in res.Items){
+                    const item = res.Items[j];
+                    const itemOld = old.Items[j];
+                    const text = id2text[`${j}`] || {text:'未知',detail:false};
                     list.push({
-                        id:id2text[`${j}`],
-                        detail:details[`${j}`] || false,
+                        id:j,
+                        text:text.text,
+                        detail:text.detail,
 
                         sendtBytes:item.SendtBytes,
                         sendtBytesText:parseSpeed(item.SendtBytes),
@@ -166,24 +115,6 @@ export default {
                         receiveSpeedText:parseSpeed(item.ReceiveBytes-itemOld.ReceiveBytes),
                     });
                 }
-                // for(let j in res.Messangers){
-                //     const item = res.Messangers[j];
-                //     const itemOld = old.Messangers[j];
-                //     list.push({
-                //         id:id2text[`${j}`] || `未知的${j}`,
-                //         sendtBytes:item.SendtBytes,
-                //         sendtBytesText:parseSpeed(item.SendtBytes),
-
-                //         sendtSpeed:item.SendtBytes-itemOld.SendtBytes,
-                //         sendtSpeedText:parseSpeed(item.SendtBytes-itemOld.SendtBytes),
-
-                //         receiveBytes:item.ReceiveBytes,
-                //         receiveBytesText:parseSpeed(item.ReceiveBytes),
-
-                //         receiveSpeed:item.ReceiveBytes-itemOld.ReceiveBytes,
-                //         receiveSpeedText:parseSpeed(item.ReceiveBytes-itemOld.ReceiveBytes),
-                //     });
-                // }
                 state.list = list.filter(c=>!!c.id);
 
                 state.old = res;
@@ -201,18 +132,6 @@ export default {
             return `${num.toFixed(2)}${['B', 'KB', 'MB', 'GB', 'TB'][index]}`;
         }
 
-        const _getTunnelRecords = ()=>{
-            getTunnelRecords().then(res => {
-                console.log(Object.values(res).map(c=>{
-                    c.To = Object.values(c.To).sort((a,b)=>b.Times-a.Times);
-                    return c;
-                }).sort((a,b)=>b.Times-a.Times));
-                setTimeout(_getTunnelRecords,1000);
-            }).catch((e)=>{
-                setTimeout(_getTunnelRecords,1000);
-            });
-        }
-
         onMounted(()=>{
             _getFlows();
             //_getTunnelRecords();
@@ -223,7 +142,7 @@ export default {
         
 
         return {
-            config:props.config,state,handleShow
+            config:props.config,state,handleShow,handleShowDetail
         }
     }
 }

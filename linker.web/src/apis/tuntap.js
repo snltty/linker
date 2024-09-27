@@ -23,3 +23,7 @@ export const updateTuntap = (name) => {
 export const refreshTuntap = () => {
     return sendWebsocketMsg('tuntapclient/refresh');
 }
+export const subscribePing = () => {
+    return sendWebsocketMsg('tuntapclient/SubscribePing');
+}
+

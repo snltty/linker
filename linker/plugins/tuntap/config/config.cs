@@ -1,4 +1,5 @@
-﻿using linker.plugins.tuntap.config;
+﻿using linker.libs;
+using linker.plugins.tuntap.config;
 using MemoryPack;
 using System.Net;
 
@@ -149,7 +150,7 @@ namespace linker.plugins.tuntap.config
         public TuntapSwitch Switch { get; set; }
 
         [MemoryPackIgnore]
-        public long LastTicks { get; set; } = Environment.TickCount64;
+        public LastTicksManager LastTicks { get; set; } = new  LastTicksManager();
 
         /// <summary>
         /// 延迟ms
@@ -246,6 +247,29 @@ namespace linker.plugins.tuntap.config
             }
         }
 
+        /// <summary>
+        /// 使用广播
+        /// </summary>
+        [MemoryPackIgnore]
+        public bool Multicast
+        {
+            get
+            {
+                return (Switch & TuntapSwitch.Multicast) == TuntapSwitch.Multicast;
+            }
+            set
+            {
+                if (value)
+                {
+                    Switch |= TuntapSwitch.Multicast;
+                }
+                else
+                {
+                    Switch &= ~TuntapSwitch.Multicast;
+                }
+            }
+        }
+
     }
 
     [Flags]
@@ -255,6 +279,7 @@ namespace linker.plugins.tuntap.config
         ShowDelay = 2,
         Upgrade = 4,
         AutoConnect = 8,
+        Multicast = 16,
     }
 
 

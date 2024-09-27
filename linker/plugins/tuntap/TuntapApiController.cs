@@ -202,6 +202,11 @@ namespace linker.plugins.tuntap
         }
 
 
+        public void SubscribePing(ApiControllerParamsInfo param)
+        {
+            tuntapTransfer.SubscribePing();
+        }
+
         public sealed class RouteItemListInfo
         {
             public object[] List { get; set; }

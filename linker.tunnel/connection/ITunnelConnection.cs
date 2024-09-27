@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using linker.libs;
+using System.Net;
 
 namespace linker.tunnel.connection
 {
@@ -139,7 +140,7 @@ namespace linker.tunnel.connection
         /// <summary>
         /// 最后通信时间
         /// </summary>
-        public long LastTicks { get; }
+        public LastTicksManager LastTicks { get; }
 
         /// <summary>
         /// 发送ping
