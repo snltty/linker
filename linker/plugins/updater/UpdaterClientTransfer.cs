@@ -103,10 +103,10 @@ namespace linker.plugins.updater
             {
                 if (updateInfo.Updated)
                 {
+                    updateInfo.MachineId = fileConfig.Data.Client.Id;
                     string[] machines = subscribes.Where(c => c.Value.Less(15000)).Select(c => c.Key).ToArray();
                     if (machines.Length > 0)
                     {
-                        updateInfo.MachineId = fileConfig.Data.Client.Id;
                         await messengerSender.SendOnly(new MessageRequestWrap
                         {
                             Connection = clientSignInState.Connection,

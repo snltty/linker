@@ -4,31 +4,39 @@ using linker.libs.extends;
 using System.Collections.Concurrent;
 using linker.plugins.resolver;
 using System.Net;
-using linker.plugins.flow;
 
 namespace linker.plugins.relay
 {
     /// <summary>
     /// 中继连接处理
     /// </summary>
-    public sealed class RelayResolver : IResolver,IFlow
+    public sealed class RelayResolver : IResolver
     {
         public ResolverType Type => ResolverType.Relay;
-        public ulong ReceiveBytes { get; private set; }
-        public ulong SendtBytes { get; private set; }
-        public string FlowName => "Relay";
 
-        public RelayResolver()
+        private readonly RelayFlow relayFlow;
+        public RelayResolver(RelayFlow relayFlow)
         {
+            this.relayFlow = relayFlow;
         }
 
         private readonly ConcurrentDictionary<ulong, RelayWrap> relayDic = new ConcurrentDictionary<ulong, RelayWrap>();
         private ulong relayFlowingId = 0;
-        public ulong NewRelay(string fromid, string toid)
+        public ulong NewRelay(string fromid, string fromName, string toid, string toName)
         {
             ulong flowingId = Interlocked.Increment(ref relayFlowingId);
 
-            RelayWrap relayWrap = new RelayWrap { FlowId = flowingId, Tcs = new TaskCompletionSource<Socket>(), WaitTcs = new TaskCompletionSource<Socket>(), Socket = null, FromId = fromid, ToId = toid };
+            RelayWrap relayWrap = new RelayWrap
+            {
+                FlowId = flowingId,
+                Tcs = new TaskCompletionSource<Socket>(),
+                WaitTcs = new TaskCompletionSource<Socket>(),
+                Socket = null,
+                FromId = fromid,
+                FromName = fromName,
+                ToId = toid,
+                ToName = toName
+            };
             relayDic.TryAdd(flowingId, relayWrap);
 
             relayWrap.WaitTcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000)).ContinueWith((result) =>
@@ -52,7 +60,6 @@ namespace linker.plugins.relay
             try
             {
                 int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
-                ReceiveBytes += (ulong)length;
                 RelayMessage relayMessage = RelayMessage.FromBytes(buffer.AsMemory(0, length));
 
                 if (relayDic.TryGetValue(relayMessage.FlowId, out RelayWrap relayWrap) == false)
@@ -60,10 +67,13 @@ namespace linker.plugins.relay
                     socket.SafeClose();
                     return;
                 }
+                relayFlow.AddReceive(relayWrap.FromId, relayWrap.FromName, relayWrap.ToName, (ulong)length);
                 try
                 {
                     if (relayMessage.Type == RelayMessengerType.Ask)
                     {
+
+
                         if (relayMessage.FromId != relayWrap.FromId)
                         {
                             socket.SafeClose();
@@ -72,7 +82,7 @@ namespace linker.plugins.relay
                         relayWrap.WaitTcs.SetResult(null);
                         relayWrap.Socket = socket;
                         Socket targetSocket = await relayWrap.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(3000));
-                        _ = CopyToAsync(3, socket, targetSocket);
+                        _ = CopyToAsync(relayWrap.FromId, relayWrap.FromName, relayWrap.ToName, 3, socket, targetSocket);
                     }
                     else if (relayMessage.Type == RelayMessengerType.Answer && relayWrap.Socket != null)
                     {
@@ -83,7 +93,7 @@ namespace linker.plugins.relay
                         }
 
                         relayWrap.Tcs.SetResult(socket);
-                        _ = CopyToAsync(3, socket, relayWrap.Socket);
+                        _ = CopyToAsync(relayWrap.FromId, relayWrap.FromName, relayWrap.ToName, 3, socket, relayWrap.Socket);
                     }
                 }
                 catch (Exception)
@@ -103,7 +113,7 @@ namespace linker.plugins.relay
                 ArrayPool<byte>.Shared.Return(buffer);
             }
         }
-        private async Task CopyToAsync(byte bufferSize, Socket source, Socket destination)
+        private async Task CopyToAsync(string fromid, string fromName, string toName, byte bufferSize, Socket source, Socket destination)
         {
             byte[] buffer = new byte[(1 << bufferSize) * 1024];
             try
@@ -111,8 +121,8 @@ namespace linker.plugins.relay
                 int bytesRead;
                 while ((bytesRead = await source.ReceiveAsync(buffer.AsMemory()).ConfigureAwait(false)) != 0)
                 {
-                    ReceiveBytes += (ulong)bytesRead;
-                    SendtBytes += (ulong)bytesRead;
+                    relayFlow.AddReceive(fromid, fromName, toName, (ulong)bytesRead);
+                    relayFlow.AddSendt(fromid, fromName, toName, (ulong)bytesRead);
                     await destination.SendAsync(buffer.AsMemory(0, bytesRead)).ConfigureAwait(false);
                 }
             }
@@ -137,7 +147,9 @@ namespace linker.plugins.relay
         public Socket Socket { get; set; }
 
         public string FromId { get; set; }
+        public string FromName { get; set; }
         public string ToId { get; set; }
+        public string ToName { get; set; }
     }
 
     public sealed class RelayMessage

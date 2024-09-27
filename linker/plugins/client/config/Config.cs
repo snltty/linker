@@ -264,6 +264,12 @@ namespace linker.config
         [ClientAccessDisplayAttribute("修改验证参数")]
         Action = 1 << 29,
 
+        [ClientAccessDisplayAttribute("查看内网穿透流量")]
+        SForwardFlow = 1 << 30,
+
+        [ClientAccessDisplayAttribute("查看中继流量")]
+        RelayFlow = ((ulong)1 << 31),
+
         Full = ulong.MaxValue >> (64 - 52),
     }
 

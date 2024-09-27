@@ -1,5 +1,4 @@
 ﻿using linker.libs;
-using linker.libs.extends;
 using linker.plugins.flow;
 using MemoryPack;
 using System.Text.Json.Serialization;
@@ -33,8 +32,6 @@ namespace linker.plugins.sforward.proxy
                 }
                 return true;
             }, 1000);
-
-            AddSendt("snltty", 0);
         }
 
 
@@ -47,7 +44,7 @@ namespace linker.plugins.sforward.proxy
         {
             if (flows.TryGetValue(key, out SForwardFlowItemInfo messengerFlowItemInfo) == false)
             {
-                messengerFlowItemInfo = new SForwardFlowItemInfo { };
+                messengerFlowItemInfo = new SForwardFlowItemInfo { Key = key };
                 flows.TryAdd(key, messengerFlowItemInfo);
             }
             ReceiveBytes += bytes;
@@ -57,7 +54,7 @@ namespace linker.plugins.sforward.proxy
         {
             if (flows.TryGetValue(key, out SForwardFlowItemInfo messengerFlowItemInfo) == false)
             {
-                messengerFlowItemInfo = new SForwardFlowItemInfo { };
+                messengerFlowItemInfo = new SForwardFlowItemInfo { Key = key };
                 flows.TryAdd(key, messengerFlowItemInfo);
             }
             SendtBytes += bytes;
@@ -65,32 +62,32 @@ namespace linker.plugins.sforward.proxy
         }
         public SForwardFlowResponseInfo GetFlows(SForwardFlowRequestInfo info)
         {
-            var items = flows.Where(c => string.IsNullOrWhiteSpace(info.Key) || c.Key.Contains(info.Key));
+            var items = flows.Values.Where(c => string.IsNullOrWhiteSpace(info.Key) || c.Key.Contains(info.Key));
             switch (info.Order)
             {
                 case SForwardFlowOrder.Sendt:
                     if (info.OrderType == SForwardFlowOrderType.Desc)
-                        items = items.OrderByDescending(x => x.Value.SendtBytes);
+                        items = items.OrderByDescending(x => x.SendtBytes);
                     else
-                        items = items.OrderBy(x => x.Value.SendtBytes);
+                        items = items.OrderBy(x => x.SendtBytes);
                     break;
                 case SForwardFlowOrder.DiffSendt:
                     if (info.OrderType == SForwardFlowOrderType.Desc)
-                        items = items.OrderByDescending(x => x.Value.DiffSendtBytes);
+                        items = items.OrderByDescending(x => x.DiffSendtBytes);
                     else
-                        items = items.OrderBy(x => x.Value.DiffSendtBytes);
+                        items = items.OrderBy(x => x.DiffSendtBytes);
                     break;
                 case SForwardFlowOrder.Receive:
                     if (info.OrderType == SForwardFlowOrderType.Desc)
-                        items = items.OrderByDescending(x => x.Value.ReceiveBytes);
+                        items = items.OrderByDescending(x => x.ReceiveBytes);
                     else
-                        items = items.OrderBy(x => x.Value.ReceiveBytes);
+                        items = items.OrderBy(x => x.ReceiveBytes);
                     break;
                 case SForwardFlowOrder.DiffRecive:
                     if (info.OrderType == SForwardFlowOrderType.Desc)
-                        items = items.OrderByDescending(x => x.Value.DiffReceiveBytes);
+                        items = items.OrderByDescending(x => x.DiffReceiveBytes);
                     else
-                        items = items.OrderBy(x => x.Value.DiffReceiveBytes);
+                        items = items.OrderBy(x => x.DiffReceiveBytes);
                     break;
                 default:
                     break;
@@ -100,7 +97,7 @@ namespace linker.plugins.sforward.proxy
                 Page = info.Page,
                 PageSize = info.PageSize,
                 Count = flows.Count,
-                Data = items.Skip((info.Page - 1) * info.PageSize).Take(info.PageSize).ToDictionary()
+                Data = items.Skip((info.Page - 1) * info.PageSize).Take(info.PageSize).ToList()
             };
 
             return resp;
@@ -112,6 +109,7 @@ namespace linker.plugins.sforward.proxy
     {
         public ulong DiffReceiveBytes { get; set; }
         public ulong DiffSendtBytes { get; set; }
+        public string Key { get; set; }
 
         [MemoryPackIgnore, JsonIgnore]
         public ulong OldReceiveBytes { get; set; }
@@ -148,6 +146,6 @@ namespace linker.plugins.sforward.proxy
         public int Page { get; set; }
         public int PageSize { get; set; }
         public int Count { get; set; }
-        public Dictionary<string,SForwardFlowItemInfo> Data { get; set; }
+        public List<SForwardFlowItemInfo> Data { get; set; }
     }
 }

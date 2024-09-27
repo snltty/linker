@@ -9,3 +9,6 @@ export const getMessengerFlows = () => {
 export const getSForwardFlows = (data) => {
     return sendWebsocketMsg('flowClient/GetSForwardFlows', data);
 }
+export const getRelayFlows = (data) => {
+    return sendWebsocketMsg('flowClient/GetRelayFlows', data);
+}

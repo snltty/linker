@@ -24,7 +24,7 @@
 <script>
 import { computed, reactive } from 'vue';
 import Api from './Api.vue'
-import Server from './Server.vue'
+import Server from './server/Index.vue'
 import Export from './Export.vue'
 import UpdaterBtn from '@/views/full/devices/UpdaterBtn.vue';
 import { injectGlobalData } from '@/provide';

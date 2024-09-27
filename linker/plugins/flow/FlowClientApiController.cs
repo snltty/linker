@@ -8,6 +8,7 @@ using linker.plugins.messenger;
 using linker.plugins.flow.messenger;
 using linker.libs.extends;
 using linker.plugins.sforward.proxy;
+using linker.plugins.relay;
 
 namespace linker.plugins.flow
 {
@@ -53,6 +54,7 @@ namespace linker.plugins.flow
             return new Dictionary<ushort, FlowItemInfo>();
         }
 
+        [ClientApiAccessAttribute(ClientApiAccess.SForwardFlow)]
         public async Task<SForwardFlowResponseInfo> GetSForwardFlows(ApiControllerParamsInfo param)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -66,6 +68,22 @@ namespace linker.plugins.flow
                 return MemoryPackSerializer.Deserialize<SForwardFlowResponseInfo>(resp.Data.Span);
             }
             return new SForwardFlowResponseInfo();
+        }
+
+        [ClientApiAccessAttribute(ClientApiAccess.RelayFlow)]
+        public async Task<RelayFlowResponseInfo> GetRelayFlows(ApiControllerParamsInfo param)
+        {
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)FlowMessengerIds.Relay,
+                Payload = MemoryPackSerializer.Serialize(param.Content.DeJson<RelayFlowRequestInfo>())
+            });
+            if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
+            {
+                return MemoryPackSerializer.Deserialize<RelayFlowResponseInfo>(resp.Data.Span);
+            }
+            return new RelayFlowResponseInfo();
         }
     }
 
