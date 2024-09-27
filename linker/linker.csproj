@@ -19,15 +19,15 @@
 		<Title>linker</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 总览，和详细流量统计，一眼知道服务器流量花在哪里
-2. 优化信标。减少流量，没有操作时尽量不产生流量</Description>
+		<Description>1. 订阅消费，按需同步数据，减少流量消费
+2. 更详细的流量统计信息</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.4.4</Version>
-		<AssemblyVersion>1.4.4</AssemblyVersion>
-		<FileVersion>1.4.4</FileVersion>
+		<Version>1.4.5</Version>
+		<AssemblyVersion>1.4.5</AssemblyVersion>
+		<FileVersion>1.4.5</FileVersion>
 	</PropertyGroup>
 
 
