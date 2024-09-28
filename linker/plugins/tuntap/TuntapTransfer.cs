@@ -222,6 +222,11 @@ namespace linker.plugins.tuntap
         /// <returns></returns>
         public TuntapInfo OnConfig(TuntapInfo info)
         {
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            {
+                LoggerHelper.Instance.Error($"tuntap got  {info.MachineId}");
+            }
+
             TimerHelper.Async(async () =>
             {
                 await slim.WaitAsync();
@@ -329,7 +334,7 @@ namespace linker.plugins.tuntap
         {
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
-                LoggerHelper.Instance.Error($"tuntap GetRemoteInfo");
+                LoggerHelper.Instance.Error($"tuntap sync");
             }
 
             TuntapInfo info = GetLocalInfo();
