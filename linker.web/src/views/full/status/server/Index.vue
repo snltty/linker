@@ -2,7 +2,7 @@
     <div class="status-server-wrap">
         <ServerConfig :config="config"></ServerConfig>
         <ServerVersion :config="config"></ServerVersion>
-        <ServerFlow :config="config"></ServerFlow>
+        <ServerFlow v-if="config" :config="config"></ServerFlow>
     </div>
 </template>
 <script>
