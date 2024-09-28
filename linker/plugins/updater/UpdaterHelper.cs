@@ -67,6 +67,15 @@ namespace linker.plugins.updater
         /// <returns></returns>
         public async Task DownloadUpdate(UpdateInfo updateInfo, string version)
         {
+            for (int i = 0; i <= 5; i++)
+            {
+                if (updateInfo.Status != UpdateStatus.Checking)
+                {
+                    break;
+                }
+                await Task.Delay(1000);
+            }
+
             if (updateInfo.Status != UpdateStatus.Checked)
             {
                 return;
