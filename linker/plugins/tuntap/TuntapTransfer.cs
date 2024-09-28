@@ -224,7 +224,7 @@ namespace linker.plugins.tuntap
         {
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
-                LoggerHelper.Instance.Debug($"tuntap got  {info.MachineId}");
+                LoggerHelper.Instance.Debug($"tuntap got  {info.MachineId}->{info.IP}");
             }
 
             TimerHelper.Async(async () =>
