@@ -104,7 +104,10 @@ namespace linker.plugins.tuntap
                 }
                 catch (Exception ex)
                 {
-                    LoggerHelper.Instance.Error(ex);
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
                 }
                 finally
                 {
@@ -229,8 +232,12 @@ namespace linker.plugins.tuntap
                     Version.Add();
                     AddRoute();
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
                 }
                 slim.Release();
             });
@@ -275,8 +282,12 @@ namespace linker.plugins.tuntap
                         await Task.Delay(1000);
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
                 }
                 slim.Release();
             });
@@ -359,21 +370,11 @@ namespace linker.plugins.tuntap
         /// </summary>
         private void DelRoute()
         {
-            try
-            {
-                List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.ToList());
-                TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
-                var items = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.MaskLength }).ToArray();
+            List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.ToList());
+            TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
+            var items = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.MaskLength }).ToArray();
 
-                linkerTunDeviceAdapter.DelRoute(items);
-            }
-            catch (Exception ex)
-            {
-                if(LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Error(ex);
-                }
-            }
+            linkerTunDeviceAdapter.DelRoute(items);
         }
         /// <summary>
         /// 添加路由
