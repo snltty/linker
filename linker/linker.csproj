@@ -20,7 +20,8 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 订阅消费，按需同步数据，减少流量消费
-2. 更详细的流量统计信息</Description>
+2. 更详细的流量统计信息
+3. 修复路由表失效问题</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

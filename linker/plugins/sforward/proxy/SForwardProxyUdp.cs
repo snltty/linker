@@ -292,7 +292,7 @@ namespace linker.plugins.sforward.proxy
     {
         public IPEndPoint IPEndPoint { get; set; }
         public LastTicksManager LastTicks { get; set; } = new LastTicksManager();
-        public bool Timeout => LastTicks.Greater(5 * 60 * 1000);
+        public bool Timeout => LastTicks.DiffGreater(5 * 60 * 1000);
     }
 
     public sealed class UdpConnectedCache
@@ -300,7 +300,7 @@ namespace linker.plugins.sforward.proxy
         public Socket SourceSocket { get; set; }
         public Socket TargetSocket { get; set; }
         public LastTicksManager LastTicks { get; set; } = new LastTicksManager();
-        public bool Timeout => LastTicks.Greater(5 * 60 * 1000);
+        public bool Timeout => LastTicks.DiffGreater(5 * 60 * 1000);
 
         public void Clear()
         {

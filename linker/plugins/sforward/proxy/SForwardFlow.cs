@@ -19,7 +19,7 @@ namespace linker.plugins.sforward.proxy
         {
             TimerHelper.SetInterval(() =>
             {
-                if (lastTicksManager.Less(5000))
+                if (lastTicksManager.DiffLessEqual(5000))
                 {
                     foreach (var item in flows.Values)
                     {

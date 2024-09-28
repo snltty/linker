@@ -125,7 +125,7 @@ namespace linker.tunnel.transport
                             }
                         }
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         socket.SafeClose();
                         break;
@@ -351,7 +351,7 @@ namespace linker.tunnel.transport
         {
             TimerHelper.SetInterval(() =>
             {
-                var keys = connectionsDic.Where(c => (c.Value.Connection == null && c.Value.LastTicks.Greater(5000)) || (c.Value.Connection != null && c.Value.Connection.Connected == false)).Select(c => c.Key).ToList();
+                var keys = connectionsDic.Where(c => (c.Value.Connection == null && c.Value.LastTicks.DiffGreater(5000)) || (c.Value.Connection != null && c.Value.Connection.Connected == false)).Select(c => c.Key).ToList();
                 foreach (var item in keys)
                 {
                     connectionsDic.TryRemove(item, out _);

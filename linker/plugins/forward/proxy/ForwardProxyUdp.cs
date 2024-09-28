@@ -385,7 +385,7 @@ namespace linker.plugins.forward.proxy
         public byte[] Buffer { get; set; }
 
         public LastTicksManager LastTicks { get; set; } = new LastTicksManager();
-        public bool Timeout => LastTicks.Timeout(60 * 60 * 1000);
+        public bool Timeout => LastTicks.Expired(60 * 1000);
         public void Clear()
         {
             TargetSocket?.SafeClose();

@@ -446,7 +446,7 @@ namespace linker.plugins.tuntap
 
             return infos
                 //自己的ip不要
-                .Where(c => c.IP.Equals(runningConfig.Data.Tuntap.IP) == false && c.LastTicks.Greater(0))
+                .Where(c => c.IP.Equals(runningConfig.Data.Tuntap.IP) == false && c.LastTicks.Value > 0)
                 .OrderByDescending(c => c.LastTicks.Value)
                 .Select(c =>
                 {
@@ -539,7 +539,7 @@ namespace linker.plugins.tuntap
         {
             TimerHelper.SetInterval(async () =>
             {
-                if (lastTicksManager.Less(5000))
+                if (lastTicksManager.DiffLessEqual(5000))
                 {
                     await Ping();
                 }
@@ -547,7 +547,7 @@ namespace linker.plugins.tuntap
             }, 3000);
             TimerHelper.SetInterval(async () =>
             {
-                if (lastTicksManager.Greater(15000))
+                if (lastTicksManager.DiffGreater(15000))
                 {
                     await Ping();
                 }

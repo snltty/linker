@@ -246,7 +246,7 @@ namespace linker.plugins.messenger
 
         }
 
-        public override bool Connected => SourceSocket != null && lastTicks.Timeout(15000) == false;
+        public override bool Connected => SourceSocket != null && lastTicks.Expired(15000) == false;
 
 
         private IConnectionReceiveCallback callback;
@@ -257,7 +257,7 @@ namespace linker.plugins.messenger
         private ReceiveDataBuffer bufferCache = new ReceiveDataBuffer();
 
         private LastTicksManager lastTicks = new LastTicksManager();
-        private LastTicksManager pingTicks =new LastTicksManager();
+        private LastTicksManager pingTicks = new LastTicksManager();
         private static byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ping");
         private static byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.pong");
         private bool pong = true;
@@ -384,9 +384,9 @@ namespace linker.plugins.messenger
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
-                    if (lastTicks.Greater(3000))
+                    if (lastTicks.DiffGreater(3000))
                     {
-                        pingTicks .Update();
+                        pingTicks.Update();
                         await SendPingPong(pingBytes).ConfigureAwait(false);
 
                     }

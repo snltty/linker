@@ -37,7 +37,7 @@ jobs:
           release_name: v1.4.5.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 订阅消费，按需同步数据，减少流量消费\r\n2. 更详细的流量统计信息"
+          body: "1. 订阅消费，按需同步数据，减少流量消费\r\n2. 更详细的流量统计信息\r\n3. 修复路由表失效问题"
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
         uses: tvrcgo/oss-action@v0.1.1

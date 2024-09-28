@@ -27,7 +27,7 @@ namespace linker.tunnel.connection
         public IPEndPoint IPEndPoint { get; init; }
         public bool SSL { get; init; }
         public byte BufferSize { get; init; } = 3;
-        public bool Connected => Socket != null && LastTicks.Timeout(15000) == false;
+        public bool Connected => Socket != null && LastTicks.Expired(15000) == false;
         public int Delay { get; private set; }
         public long SendBytes { get; private set; }
         public long ReceiveBytes { get; private set; }
@@ -192,7 +192,7 @@ namespace linker.tunnel.connection
                         break;
                     }
 
-                    if (LastTicks.Greater(3000))
+                    if (LastTicks.DiffGreater(3000))
                     {
                         pingTicks.Update();
                         await SendPingPong(pingBytes).ConfigureAwait(false);

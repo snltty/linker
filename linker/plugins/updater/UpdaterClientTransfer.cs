@@ -87,7 +87,7 @@ namespace linker.plugins.updater
             }
 
             //距离上次订阅超过一分钟，需要立即更新一次
-            bool needUpdate = lastTicksManager.Greater(60 * 1000);
+            bool needUpdate = lastTicksManager.DiffGreater(60 * 1000);
 
             lastTicksManager.Update();
 
@@ -104,7 +104,7 @@ namespace linker.plugins.updater
                 if (updateInfo.Updated)
                 {
                     updateInfo.MachineId = fileConfig.Data.Client.Id;
-                    string[] machines = subscribes.Where(c => c.Value.Less(15000)).Select(c => c.Key).ToArray();
+                    string[] machines = subscribes.Where(c => c.Value.DiffLessEqual(15000)).Select(c => c.Key).ToArray();
                     if (machines.Length > 0)
                     {
                         await messengerSender.SendOnly(new MessageRequestWrap

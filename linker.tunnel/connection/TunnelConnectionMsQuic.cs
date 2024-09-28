@@ -32,7 +32,7 @@ namespace linker.tunnel.connection
 
         public byte BufferSize { get; init; } = 3;
 
-        public bool Connected => Stream != null && Stream.CanWrite && LastTicks.NotEqual(0);
+        public bool Connected => Stream != null && Stream.CanWrite && LastTicks.HasValue();
         public int Delay { get; private set; }
         public long SendBytes { get; private set; }
         public long ReceiveBytes { get; private set; }
@@ -179,7 +179,7 @@ namespace linker.tunnel.connection
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
-                    if (LastTicks.Greater(3000))
+                    if (LastTicks.DiffGreater(3000))
                     {
                         pingTicks.Update();
                         await SendPingPong(pingBytes).ConfigureAwait(false);

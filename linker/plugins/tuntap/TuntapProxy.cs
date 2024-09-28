@@ -10,6 +10,7 @@ using System.Buffers.Binary;
 using linker.plugins.client;
 using linker.plugins.tunnel;
 using System.Buffers;
+using linker.libs.extends;
 
 namespace linker.plugins.tuntap
 {
