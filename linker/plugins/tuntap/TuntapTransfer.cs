@@ -369,7 +369,10 @@ namespace linker.plugins.tuntap
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                if(LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
             }
         }
         /// <summary>
@@ -432,7 +435,6 @@ namespace linker.plugins.tuntap
             return infos
                 //自己的ip不要
                 .Where(c => c.IP.Equals(runningConfig.Data.Tuntap.IP) == false && c.LastTicks.Greater(0))
-                .OrderBy(c => c.LastTicks)
                 .Select(c =>
                 {
                     return new TuntapVeaLanIPAddressList
