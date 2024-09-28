@@ -446,7 +446,7 @@ namespace linker.plugins.tuntap
 
             return infos
                 //自己的ip不要
-                .Where(c => c.IP.Equals(runningConfig.Data.Tuntap.IP) == false && c.LastTicks.Value > 0)
+                .Where(c => c.IP.Equals(runningConfig.Data.Tuntap.IP) == false && c.LastTicks.HasValue())
                 .OrderByDescending(c => c.LastTicks.Value)
                 .Select(c =>
                 {
