@@ -20,20 +20,24 @@ namespace linker.plugins.tunnel
         private readonly TunnelTransfer tunnelTransfer;
         private readonly RelayTransfer relayTransfer;
         private readonly ClientSignInTransfer clientSignInTransfer;
+        private readonly ClientSignInState clientSignInState;
 
         private uint maxTimes = 3;
 
-        public TunnelBase(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer)
+        public TunnelBase(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState)
         {
             this.config = config;
             this.tunnelTransfer = tunnelTransfer;
             this.relayTransfer = relayTransfer;
             this.clientSignInTransfer = clientSignInTransfer;
+            this.clientSignInState = clientSignInState;
 
             //监听打洞成功
             tunnelTransfer.SetConnectedCallback(TransactionId, OnConnected);
             //监听中继成功
             relayTransfer.SetConnectedCallback(TransactionId, OnConnected);
+
+            clientSignInState.NetworkEnabledHandle += (times)=> backgroundCache.Clear();
         }
         protected virtual void Connected(ITunnelConnection connection)
         {
@@ -87,17 +91,19 @@ namespace linker.plugins.tunnel
             }
             try
             {
+                //锁
                 if (await WaitAsync(machineId) == false)
                 {
                     return null;
                 }
 
-                //获得锁之前再次看看之前有没有连接成功
+                //获得锁再次看看之前有没有连接成功
                 if (connections.TryGetValue(machineId, out connection) && connection.Connected)
                 {
                     return connection;
                 }
 
+                //不在线就不必连了
                 if (await clientSignInTransfer.GetOnline(machineId) == false)
                 {
                     OffLine(machineId);
