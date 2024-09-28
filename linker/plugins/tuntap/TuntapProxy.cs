@@ -23,8 +23,8 @@ namespace linker.plugins.tuntap
         protected override string TransactionId => "tuntap";
         private readonly LinkerTunDeviceAdapter linkerTunDeviceAdapter;
 
-        public TuntapProxy(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer , LinkerTunDeviceAdapter linkerTunDeviceAdapter) 
-            : base(config, tunnelTransfer, relayTransfer, clientSignInTransfer)
+        public TuntapProxy(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer , LinkerTunDeviceAdapter linkerTunDeviceAdapter, ClientSignInState clientSignInState) 
+            : base(config, tunnelTransfer, relayTransfer, clientSignInTransfer, clientSignInState)
         {
             this.linkerTunDeviceAdapter = linkerTunDeviceAdapter;
         }

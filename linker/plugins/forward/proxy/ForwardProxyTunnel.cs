@@ -17,8 +17,8 @@ namespace linker.plugins.forward.proxy
 
         protected override string TransactionId => "forward";
 
-        public ForwardProxy(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer)
-            : base(config, tunnelTransfer, relayTransfer, clientSignInTransfer)
+        public ForwardProxy(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState)
+            : base(config, tunnelTransfer, relayTransfer, clientSignInTransfer, clientSignInState)
         {
             TaskUdp();
         }
