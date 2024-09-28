@@ -6,6 +6,8 @@ namespace linker.libs
     {
         private long ticks = Environment.TickCount64;
 
+        public long Value => ticks;
+
         public void Update()
         {
             ticks = Environment.TickCount64;
