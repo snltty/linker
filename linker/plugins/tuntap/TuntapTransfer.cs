@@ -252,6 +252,7 @@ namespace linker.plugins.tuntap
             TimerHelper.Async(async () =>
             {
                 await slim.WaitAsync();
+
                 try
                 {
                     for (int i = 0; i < 5; i++)
@@ -326,6 +327,11 @@ namespace linker.plugins.tuntap
         /// <returns></returns>
         private async Task<List<TuntapInfo>> GetRemoteInfo()
         {
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            {
+                LoggerHelper.Instance.Error($"tuntap GetRemoteInfo");
+            }
+
             TuntapInfo info = GetLocalInfo();
             tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
