@@ -31,14 +31,16 @@ namespace linker.plugins.updater
             this.clientSignInState = clientSignInState;
             this.updaterHelper = updaterHelper;
             this.running = running;
-            clientSignInState.NetworkFirstEnabledHandle += () =>
-            {
-                LoadTask();
-                UpdateTask();
-                updateInfo.Update();
-            };
+            clientSignInState.NetworkFirstEnabledHandle += Init;
 
         }
+        private void Init()
+        {
+            LoadTask();
+            UpdateTask();
+            updateInfo.Update();
+        }
+
         public string GetSecretKey()
         {
             return fileConfig.Data.Client.Updater.SecretKey;

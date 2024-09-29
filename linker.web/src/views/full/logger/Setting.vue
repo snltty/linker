@@ -67,7 +67,7 @@ export default {
                     state.form.Size = json.Size;
                     state.form.LoggerType = json.LoggerType;
                 })
-                .catch((msg) => { });
+                .catch((e) => { });
         };
         const getJson = () => {
             let _json = JSON.parse(JSON.stringify(state.configInfo));

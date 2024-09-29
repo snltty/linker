@@ -10,7 +10,6 @@ using System.Buffers.Binary;
 using linker.plugins.client;
 using linker.plugins.tunnel;
 using System.Buffers;
-using linker.libs.extends;
 
 namespace linker.plugins.tuntap
 {
@@ -24,10 +23,15 @@ namespace linker.plugins.tuntap
         protected override string TransactionId => "tuntap";
         private readonly LinkerTunDeviceAdapter linkerTunDeviceAdapter;
 
+        private string groupid = string.Empty;
+        private readonly FileConfig config;
+
         public TuntapProxy(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer , LinkerTunDeviceAdapter linkerTunDeviceAdapter, ClientSignInState clientSignInState) 
             : base(config, tunnelTransfer, relayTransfer, clientSignInTransfer, clientSignInState)
         {
+            this.config = config;
             this.linkerTunDeviceAdapter = linkerTunDeviceAdapter;
+            clientSignInState.NetworkEnabledHandle +=(times) => ClearIPs();
         }
 
         protected override void Connected(ITunnelConnection connection)
@@ -152,6 +156,16 @@ namespace linker.plugins.tuntap
                 ip2MachineDic.AddOrUpdate(ip, list, (a, b) => list);
             }
             list.Add(machineId);
+        }
+
+        private void ClearIPs()
+        {
+            if(groupid != config.Data.Client.GroupId)
+            {
+                ip2MachineDic.Clear();
+                ipConnections.Clear();
+            }
+            groupid = config.Data.Client.GroupId;
         }
 
         /// <summary>

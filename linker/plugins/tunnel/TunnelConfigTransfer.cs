@@ -46,6 +46,16 @@ namespace linker.plugins.tunnel
             RefreshPortMap();
         }
 
+        private void RefreshRouteLevel()
+        {
+            TimerHelper.Async(() =>
+            {
+                config.Data.Client.Tunnel.RouteLevel = NetworkHelper.GetRouteLevel(config.Data.Client.ServerInfo.Host, out List<IPAddress> ips);
+                config.Data.Client.Tunnel.RouteIPs = ips.ToArray();
+                config.Data.Client.Tunnel.LocalIPs = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
+            });
+        }
+
         private void InitConfig()
         {
             bool updateVersion = false;
@@ -148,6 +158,7 @@ namespace linker.plugins.tunnel
         {
             clientSignInState.NetworkEnabledHandle += (times) =>
             {
+                RefreshRouteLevel();
                 GetRemoteRouteLevel();
             };
         }

@@ -4,7 +4,7 @@
             <div class="flex-1">
                 <a href="javascript:;" class="a-line" @click="handleTuntapIP(tuntap.list[item.MachineId])" :title="tuntap.list[item.MachineId].Gateway?'我在路由器上，所以略有不同':'此设备的虚拟网卡IP'">
                     <template v-if="tuntap.list[item.MachineId].Error">
-                        <el-popover placement="top" title="msg" width="20rem"  trigger="hover" :content="tuntap.list[item.MachineId].Error">
+                        <el-popover placement="top" title="提示" width="20rem"  trigger="hover" :content="tuntap.list[item.MachineId].Error">
                             <template #reference>
                                 <strong class="red">{{ tuntap.list[item.MachineId].IP }}</strong>
                             </template>
@@ -32,7 +32,7 @@
         </div>
         <div>
             <template v-if="tuntap.list[item.MachineId].Error1">
-                <el-popover placement="top" title="msg" width="20rem"  trigger="hover" :content="tuntap.list[item.MachineId].Error1">
+                <el-popover placement="top" title="提示" width="20rem"  trigger="hover" :content="tuntap.list[item.MachineId].Error1">
                     <template #reference>
                         <div class="yellow">
                             <template v-for="(item1,index) in  tuntap.list[item.MachineId].LanIPs" :key="index">

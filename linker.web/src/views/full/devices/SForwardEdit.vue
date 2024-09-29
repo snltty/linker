@@ -32,7 +32,7 @@
                         </template>
                         <template v-else>
                             <template v-if="scope.row.Msg">
-                                <el-popover placement="top" title="msg" width="20rem"  trigger="hover" :content="scope.row.Msg">
+                                <el-popover placement="top" title="提示" width="20rem"  trigger="hover" :content="scope.row.Msg">
                                     <template #reference>
                                         <div class="error red">
                                             <span>{{ scope.row.Temp }}</span>
@@ -53,7 +53,7 @@
                         </template>
                         <template v-else>
                             <template v-if="scope.row.LocalMsg">
-                                <el-popover placement="top" title="msg" width="20rem"  trigger="hover" :content="scope.row.LocalMsg">
+                                <el-popover placement="top" title="提示" width="20rem"  trigger="hover" :content="scope.row.LocalMsg">
                                     <template #reference>
                                         <span class="error red">{{ scope.row.LocalEP }}</span>
                                         <el-icon size="20"><WarnTriangleFilled /></el-icon>

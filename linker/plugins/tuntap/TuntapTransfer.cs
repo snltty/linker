@@ -25,7 +25,6 @@ namespace linker.plugins.tuntap
         private readonly LinkerTunDeviceAdapter linkerTunDeviceAdapter;
 
         private string deviceName = "linker";
-        private List<IPAddress> routeIps = new List<IPAddress>();
 
         public VersionManager Version { get; } = new VersionManager();
         private readonly ConcurrentDictionary<string, TuntapInfo> tuntapInfos = new ConcurrentDictionary<string, TuntapInfo>();
@@ -52,7 +51,7 @@ namespace linker.plugins.tuntap
             AppDomain.CurrentDomain.ProcessExit += (s, e) => linkerTunDeviceAdapter.Shutdown();
             Console.CancelKeyPress += (s, e) => linkerTunDeviceAdapter.Shutdown();
             clientSignInState.NetworkFirstEnabledHandle += Initialize;
-            clientSignInState.NetworkEnabledHandle += (times) => NotifyConfig();
+            clientSignInState.NetworkEnabledHandle += (times) => TimerHelper.SetTimeout(NotifyConfig, 1000);
 
         }
         private void Initialize()
@@ -62,7 +61,6 @@ namespace linker.plugins.tuntap
                 LoggerHelper.Instance.Debug($"tuntap initialize");
                 linkerTunDeviceAdapter.Shutdown();
                 linkerTunDeviceAdapter.Clear();
-                NetworkHelper.GetRouteLevel(config.Data.Client.ServerInfo.Host, out routeIps);
                 NotifyConfig();
                 CheckTuntapStatusTask();
                 PingTask();
@@ -412,7 +410,7 @@ namespace linker.plugins.tuntap
         /// <param name="infos"></param>
         private void CheckLanIPs()
         {
-            uint[] localIps = NetworkHelper.GetIPV4().Concat(routeIps)
+            uint[] localIps = config.Data.Client.Tunnel.LocalIPs.Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).Concat(config.Data.Client.Tunnel.RouteIPs)
                 .Select(c => BinaryPrimitives.ReadUInt32BigEndian(c.GetAddressBytes()))
                 .ToArray();
 
@@ -429,7 +427,7 @@ namespace linker.plugins.tuntap
             {
                 if (item.IPS.Count == 0) continue;
                 if (tuntapInfos.TryGetValue(item.MachineId, out TuntapInfo info) == false || string.IsNullOrWhiteSpace(info.Error1) == false) continue;
-                info.Error1 = $"this machine already has {string.Join(",", item.IPS.Select(c => $"{c.OriginIPAddress}/{c.MaskLength}"))}";
+                info.Error1 = $"{string.Join(",", item.IPS.Select(c => $"{c.OriginIPAddress}/{c.MaskLength}"))} already exists in the local area network or upstream router of [{config.Data.Client.Name}]";
             }
             Version.Add();
         }
@@ -437,10 +435,10 @@ namespace linker.plugins.tuntap
 
         private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)
         {
-            uint[] localIps = NetworkHelper.GetIPV4()
+            uint[] localIps = config.Data.Client.Tunnel.LocalIPs.Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                 .Concat(new IPAddress[] { runningConfig.Data.Tuntap.IP })
                 .Concat(runningConfig.Data.Tuntap.LanIPs.Where(c => c != null))
-                .Concat(routeIps)
+                .Concat(config.Data.Client.Tunnel.RouteIPs)
                 .Select(c => BinaryPrimitives.ReadUInt32BigEndian(c.GetAddressBytes()))
                 .ToArray();
 
