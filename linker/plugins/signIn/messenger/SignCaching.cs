@@ -125,7 +125,7 @@ namespace linker.plugins.signin.messenger
                     DateTime now = DateTime.Now;
 
                     var groups = Clients.Values.GroupBy(c => c.GroupId)
-                     .Where(group => group.All(info => (now - info.LastSignIn).TotalMilliseconds > 7 * 24 * 60 * 60 * 1000))
+                     .Where(group => group.All(info => info.Connected == false && (now - info.LastSignIn).TotalMilliseconds > 7 * 24 * 60 * 60 * 1000))
                      .Select(group => group.Key).ToList();
 
                     if (groups.Count > 0)
