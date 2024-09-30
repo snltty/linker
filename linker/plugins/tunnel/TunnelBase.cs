@@ -137,10 +137,12 @@ namespace linker.plugins.tunnel
             }
 
             //尝试打洞三次应该足够了，再多也没有意义了
+            /*
             if (backgroundCache.TryGetValue(machineId, out uint times) && times >= maxTimes)
             {
                 return connection;
             }
+            */
             //正在后台打洞
             if (tunnelTransfer.IsBackground(machineId, TransactionId))
             {
