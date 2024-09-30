@@ -59,6 +59,9 @@ export default {
                 state.loading = false;
                 state.show = false;
                 ElMessage.success('已操作');
+                setTimeout(()=>{
+                    window.location.reload();
+                },1000);
             }).catch((err) => {
                 state.loading = false;
                 ElMessage.success('操作失败!');

@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.plugins.tuntap.config;
 using MemoryPack;
+using System.Collections.Concurrent;
 using System.Net;
 
 namespace linker.plugins.tuntap.config
@@ -42,6 +43,15 @@ namespace linker.plugins.tuntap.config
         /// 端口转发列表
         /// </summary>
         public List<TuntapForwardInfo> Forwards { get; set; } = new List<TuntapForwardInfo>();
+
+        [MemoryPackIgnore]
+        public ConcurrentDictionary<string, TuntapGroup2IPInfo> Group2IP { get; set; } = new ConcurrentDictionary<string, TuntapGroup2IPInfo>();
+    }
+
+    public sealed class TuntapGroup2IPInfo
+    {
+        public IPAddress IP { get; set; } = IPAddress.Any;
+        public byte PrefixLength { get; set; } = 24;
     }
 
 

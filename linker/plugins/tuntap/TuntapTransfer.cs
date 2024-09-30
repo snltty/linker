@@ -51,8 +51,28 @@ namespace linker.plugins.tuntap
             AppDomain.CurrentDomain.ProcessExit += (s, e) => linkerTunDeviceAdapter.Shutdown();
             Console.CancelKeyPress += (s, e) => linkerTunDeviceAdapter.Shutdown();
             clientSignInState.NetworkFirstEnabledHandle += Initialize;
-            clientSignInState.NetworkEnabledHandle += (times) => TimerHelper.SetTimeout(NotifyConfig, 1000);
+            clientSignInState.NetworkEnabledHandle += NetworkEanble;
 
+        }
+        private void NetworkEanble(int times)
+        {
+            if (runningConfig.Data.Tuntap.Group2IP.TryGetValue(config.Data.Client.GroupId, out TuntapGroup2IPInfo tuntapGroup2IPInfo))
+            {
+                if (tuntapGroup2IPInfo.IP.Equals(runningConfig.Data.Tuntap.IP) == false || tuntapGroup2IPInfo.PrefixLength != runningConfig.Data.Tuntap.PrefixLength)
+                {
+                    runningConfig.Data.Tuntap.IP = tuntapGroup2IPInfo.IP;
+                    runningConfig.Data.Tuntap.PrefixLength = tuntapGroup2IPInfo.PrefixLength;
+                    if (Status == TuntapStatus.Running && times > 0)
+                    {
+                        TimerHelper.Async(() =>
+                        {
+                            Shutdown();
+                            Setup();
+                        });
+                    }
+                }
+            }
+            TimerHelper.SetTimeout(NotifyConfig, 1000);
         }
         private void Initialize()
         {
@@ -200,6 +220,10 @@ namespace linker.plugins.tuntap
                 runningConfig.Data.Tuntap.PrefixLength = info.PrefixLength;
                 runningConfig.Data.Tuntap.Switch = info.Switch;
                 runningConfig.Data.Tuntap.Forwards = info.Forwards;
+
+                TuntapGroup2IPInfo tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = info.IP, PrefixLength = info.PrefixLength };
+                runningConfig.Data.Tuntap.Group2IP.AddOrUpdate(config.Data.Client.GroupId, tuntapGroup2IPInfo, (a, b) => tuntapGroup2IPInfo);
+
                 runningConfig.Data.Update();
                 if (Status == TuntapStatus.Running && needReboot)
                 {
