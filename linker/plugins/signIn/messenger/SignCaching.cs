@@ -7,7 +7,6 @@ using System.Net;
 using System.Text.Json.Serialization;
 using linker.plugins.messenger;
 using linker.plugins.signIn.args;
-using linker.libs.extends;
 
 namespace linker.plugins.signin.messenger
 {
@@ -31,6 +30,7 @@ namespace linker.plugins.signin.messenger
                 item.Connected = false;
                 Clients.TryAdd(item.MachineId, item);
             }
+            ClearTask();
         }
 
         public async Task<string> Sign(SignInfo signInfo)
@@ -53,7 +53,7 @@ namespace linker.plugins.signin.messenger
             //无限制，则挤压下线
             cache.Connection?.Disponse(9);
 
-            if(has == false)
+            if (has == false)
             {
                 cache.Id = new ObjectId(signInfo.MachineId);
                 cache.MachineId = signInfo.MachineId;
@@ -94,6 +94,12 @@ namespace linker.plugins.signin.messenger
             return Clients.TryGetValue(machineId, out SignCacheInfo cache) && cache.Connected;
         }
 
+        public void GetOnline(out int all, out int online)
+        {
+            all = Clients.Count;
+            online = Clients.Values.Count(c => c.Connected);
+        }
+
         public bool TryRemove(string machineId, out SignCacheInfo cache)
         {
             if (Clients.TryRemove(machineId, out cache))
@@ -103,7 +109,47 @@ namespace linker.plugins.signin.messenger
             }
             return true;
         }
+
+
+        private void ClearTask()
+        {
+            TimerHelper.SetInterval(() =>
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Debug($"start cleaning up clients that have exceeded the 7-day timeout period");
+                }
+
+                try
+                {
+                    DateTime now = DateTime.Now;
+
+                    var groups = Clients.Values.GroupBy(c => c.GroupId)
+                     .Where(group => group.All(info => (now - info.LastSignIn).TotalMilliseconds > 7 * 24 * 60 * 60 * 1000))
+                     .Select(group => group.Key).ToList();
+
+                    if (groups.Count > 0)
+                    {
+                        var items = Clients.Values.Where(c => groups.Contains(c.GroupId)).ToList();
+
+                        foreach (var item in items)
+                        {
+                            Clients.TryRemove(item.MachineId, out _);
+                            liteCollection.Delete(item.Id);
+                        }
+                        dBfactory.Confirm();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LoggerHelper.Instance.Debug($"cleaning up clients error {ex}");
+                }
+
+                return true;
+            }, 5 * 60 * 1000);
+        }
     }
+
 
     [MemoryPackable]
     public sealed partial class SignCacheInfo

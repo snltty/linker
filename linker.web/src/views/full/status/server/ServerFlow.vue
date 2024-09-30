@@ -1,5 +1,6 @@
 <template>
     <a v-if="config" href="javascript:;" title="linker服务端网速，点击查看详细信息" @click="handleShow">
+        <p>在线 {{state.overallOnline}}</p>
         <p>上传 {{state.overallSendtSpeed}}/s</p>
         <p>下载 {{state.overallReceiveSpeed}}/s</p>
     </a>
@@ -60,6 +61,7 @@ export default {
             timer:0,
             overallSendtSpeed: '0000.00KB',
             overallReceiveSpeed: '0000.00KB',
+            overallOnline: '0/0',
             time:'',
             list:[],
             old:null,
@@ -84,6 +86,11 @@ export default {
         const _getFlows = ()=>{
             getFlows().then(res => {
                 const old = state.old || res;
+
+                if(res.Items['_']){
+                    state.overallOnline = `${res.Items['_'].SendtBytes}/${res.Items['_'].ReceiveBytes}`;
+                    delete res.Items['_'];
+                }
 
                 let _receiveBytes = 0,_sendtBytes = 0,receiveBytes = 0,sendtBytes = 0;
                 for(let j in old.Items){
@@ -156,7 +163,7 @@ export default {
 
 <style lang="stylus" scoped>
 a{
-    font-weight:bold;position:absolute;right:1rem;bottom:90%;
+    font-weight:bold;position:absolute;right:1rem;bottom:80%;
     border:1px solid #ddd;
     background-color:#fff;
     z-index :9
