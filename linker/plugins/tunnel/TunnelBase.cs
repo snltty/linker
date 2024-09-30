@@ -150,7 +150,7 @@ namespace linker.plugins.tunnel
             if (connection != null)
             {
                 //尝试3次
-                backgroundCache.AddOrUpdate(machineId, maxTimes, (a, b) => b + maxTimes);
+                //backgroundCache.AddOrUpdate(machineId, maxTimes, (a, b) => b + maxTimes);
                 tunnelTransfer.StartBackground(machineId, TransactionId, denyProtocols, () =>
                 {
                     return connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected && connection.Type == TunnelType.P2P;
@@ -159,7 +159,7 @@ namespace linker.plugins.tunnel
             else
             {
                 //尝试一次
-                backgroundCache.AddOrUpdate(machineId, 1, (a, b) => b + 1);
+                //backgroundCache.AddOrUpdate(machineId, 1, (a, b) => b + 1);
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} p2p to {machineId}");
                 connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, denyProtocols).ConfigureAwait(false);
