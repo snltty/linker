@@ -19,17 +19,14 @@
 		<Title>linker</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 增加网卡自动连接间隔
-2. 优化网卡，网络切换刷新局域网信息
-3. 当使用新分组后，如果设置了新IP，将会被记录，下次使用此分组时，自动启用此IP
-4. 当一个分组下所有的客户端都超过了7天未上线，则自动清理</Description>
+		<Description>1. 优化流量统计</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.4.6</Version>
-		<AssemblyVersion>1.4.6</AssemblyVersion>
-		<FileVersion>1.4.6</FileVersion>
+		<Version>1.4.7</Version>
+		<AssemblyVersion>1.4.7</AssemblyVersion>
+		<FileVersion>1.4.7</FileVersion>
 	</PropertyGroup>
 
 

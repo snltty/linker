@@ -250,7 +250,7 @@ namespace linker.plugins.sforward.messenger
                             Code = MessageResponeCodes.OK,
                             Payload = result.Result.Data,
                             RequestId = requestid
-                        }).ConfigureAwait(false);
+                        }, (ushort)SForwardMessengerIds.GetForward).ConfigureAwait(false);
                     }
                 });
             }

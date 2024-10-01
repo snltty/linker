@@ -102,7 +102,7 @@ namespace linker.plugins.messenger
         /// </summary>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public async ValueTask<bool> ReplyOnly(MessageResponseWrap msg)
+        public async ValueTask<bool> ReplyOnly(MessageResponseWrap msg,ushort messengerId)
         {
             if (msg.Connection == null)
             {
@@ -111,7 +111,11 @@ namespace linker.plugins.messenger
 
             try
             {
+
                 byte[] bytes = msg.ToArray(out int length);
+
+                messengerFlow.AddSendt(messengerId, (ulong)length);
+
                 bool res = await msg.Connection.SendAsync(bytes.AsMemory(0, length)).ConfigureAwait(false);
                 msg.Return(bytes);
                 return res;

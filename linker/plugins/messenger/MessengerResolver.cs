@@ -181,7 +181,6 @@ namespace linker.plugins.messenger
             MessageRequestWrap requestWrap = connection.ReceiveRequestWrap;
             try
             {
-
                 //回复的消息
                 if ((MessageTypes)(data.Span[0] & 0b0000_1111) == MessageTypes.RESPONSE)
                 {
@@ -203,7 +202,7 @@ namespace linker.plugins.messenger
                             Connection = connection,
                             Code = MessageResponeCodes.NOT_FOUND,
                             RequestId = requestWrap.RequestId
-                        }).ConfigureAwait(false);
+                        }, requestWrap.MessengerId).ConfigureAwait(false);
                     }
                     return;
                 }
@@ -220,13 +219,12 @@ namespace linker.plugins.messenger
                 //有需要回复的
                 if (requestWrap.Reply == true && connection.ResponseData.Length > 0)
                 {
-                    messengerFlow.AddSendt(requestWrap.MessengerId, (ulong)connection.ResponseData.Length);
                     bool res = await messengerSender.ReplyOnly(new MessageResponseWrap
                     {
                         Connection = connection,
                         Payload = connection.ResponseData,
                         RequestId = requestWrap.RequestId
-                    }).ConfigureAwait(false);
+                    }, requestWrap.MessengerId).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)

@@ -156,8 +156,6 @@ namespace linker.plugins.tuntap.messenger
                     }));
                 }
 
-
-
                 Task.WhenAll(tasks).ContinueWith(async (result) =>
                 {
                     List<TuntapInfo> results = tasks.Where(c => c.Result.Code == MessageResponeCodes.OK)
@@ -168,7 +166,7 @@ namespace linker.plugins.tuntap.messenger
                         RequestId = requiestid,
                         Connection = connection,
                         Payload = MemoryPackSerializer.Serialize(results)
-                    }).ConfigureAwait(false);
+                    }, (ushort)TuntapMessengerIds.ConfigForward).ConfigureAwait(false);
                 });
             }
         }

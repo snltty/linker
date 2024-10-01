@@ -51,7 +51,7 @@ namespace linker.plugins.config.messenger
                         RequestId = requiestid,
                         Connection = connection,
                         Payload = MemoryPackSerializer.Serialize(results)
-                    }).ConfigureAwait(false);
+                    },(ushort)ConfigMessengerIds.AccessForward).ConfigureAwait(false);
                 });
             }
         }
@@ -78,7 +78,7 @@ namespace linker.plugins.config.messenger
                         RequestId = requiestid,
                         Connection = connection,
                         Payload = result.Result.Data
-                    }).ConfigureAwait(false);
+                    }, (ushort)ConfigMessengerIds.AccessUpdateForward).ConfigureAwait(false);
                 });
             }
         }

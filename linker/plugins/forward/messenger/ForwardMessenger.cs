@@ -42,7 +42,7 @@ namespace linker.plugins.forward.messenger
                             RequestId = requestid,
                             Connection = connection,
                             Payload = result.Result.Data
-                        }).ConfigureAwait(false);
+                        }, (ushort)ForwardMessengerIds.TestForward).ConfigureAwait(false);
                     }
                 });
             }
@@ -70,7 +70,7 @@ namespace linker.plugins.forward.messenger
                             Code = MessageResponeCodes.OK,
                             Payload = result.Result.Data,
                             RequestId = requestid
-                        }).ConfigureAwait(false);
+                        }, (ushort)ForwardMessengerIds.GetForward).ConfigureAwait(false);
                     }
                 });
             }
@@ -102,7 +102,7 @@ namespace linker.plugins.forward.messenger
                     RequestId = requestid,
                     Connection = connection,
                     Payload = MemoryPackSerializer.Serialize(result.Result)
-                }).ConfigureAwait(false);
+                }, (ushort)ForwardMessengerIds.Test).ConfigureAwait(false);
             });
         }
 
