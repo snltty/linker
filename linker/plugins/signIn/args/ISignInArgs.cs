@@ -16,9 +16,9 @@ namespace linker.plugins.signIn.args
     /// </summary>
     public sealed class SignInArgsMachineKeyClient : ISignInArgs
     {
-        public async Task<string> Invoke(string host,Dictionary<string, string> args)
+        public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
-            string machineKey = GetMachineKey();
+            string machineKey = SystemIdHelper.GetSystemId();
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Debug($"machine key :{machineKey}");
             if (string.IsNullOrWhiteSpace(machineKey))
@@ -33,41 +33,10 @@ namespace linker.plugins.signIn.args
             return string.Empty;
         }
 
-        public async  Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
+        public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
         {
             await Task.CompletedTask;
             return string.Empty;
-        }
-
-
-        private string GetMachineKey()
-        {
-            return OperatingSystem.IsWindows() ? GetMachineKeyWindows() : OperatingSystem.IsLinux() ? GetMachineKeyLinux() : GetMachineKeyOSX();
-        }
-
-        private string GetMachineKeyWindows()
-        {
-            string cpu = CommandHelper.Execute("wmic", "csproduct get UUID", [], out string error).TrimNewLineAndWhiteSapce().Split(Environment.NewLine)[1];
-            string username = CommandHelper.Execute("whoami", string.Empty, [], out error).TrimNewLineAndWhiteSapce().Trim();
-            return $"{cpu}↓{username}↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
-        }
-        private string GetMachineKeyLinux()
-        {
-            string cpu = CommandHelper.Linux(string.Empty, ["cat /sys/class/dmi/id/product_uuid"]).TrimNewLineAndWhiteSapce();
-            if (string.IsNullOrWhiteSpace(cpu) || cpu.Contains("No such file or directory"))
-            {
-                LoggerHelper.Instance.Error(cpu);
-                return string.Empty;
-            }
-            string username = CommandHelper.Linux(string.Empty, ["whoami"]).TrimNewLineAndWhiteSapce();
-            return $"{cpu}↓{username}↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
-        }
-        private string GetMachineKeyOSX()
-        {
-            string cpu = CommandHelper.Osx(string.Empty, ["system_profiler SPHardwareDataType | grep \"Hardware UUID\""]).TrimNewLineAndWhiteSapce();
-            string username = CommandHelper.Osx(string.Empty, ["whoami"]).TrimNewLineAndWhiteSapce();
-            return $"{cpu.Trim()}↓{username}↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
-
         }
     }
 
@@ -106,6 +75,6 @@ namespace linker.plugins.signIn.args
             return string.Empty;
         }
 
-        
+
     }
 }

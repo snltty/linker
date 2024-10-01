@@ -19,7 +19,8 @@
 		<Title>linker</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 优化流量统计</Description>
+		<Description>1. 优化流量统计
+2. 修复可能的获取设备码失败的问题</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

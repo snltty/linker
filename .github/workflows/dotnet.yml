@@ -37,7 +37,7 @@ jobs:
           release_name: v1.4.7.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: 1. 优化流量统计
+          body: "1. 优化流量统计\r\n2. 修复可能的获取设备码失败的问题"
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
         uses: tvrcgo/oss-action@v0.1.1
