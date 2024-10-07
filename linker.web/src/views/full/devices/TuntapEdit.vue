@@ -10,9 +10,9 @@
                     <span>/</span>
                     <el-input @change="handlePrefixLengthChange" v-model="state.ruleForm.PrefixLength" style="width:4rem" />
                     <span style="width: 2rem;"></span>
-                    <el-checkbox v-model="state.ruleForm.ShowDelay" label="显示延迟" size="large" />
-                    <el-checkbox v-model="state.ruleForm.AutoConnect" label="自动连接" size="large" />
-                    <el-checkbox v-model="state.ruleForm.Multicast" label="禁用广播" size="large" />
+                    <el-checkbox v-model="state.ruleForm.ShowDelay" label="显示延迟" size="large" style="margin-right:1rem" />
+                    <el-checkbox v-model="state.ruleForm.AutoConnect" label="自动连接" size="large" style="margin-right:1rem" />
+                    <el-checkbox v-model="state.ruleForm.Multicast" label="禁用UDP广播" size="large" />
                 </el-form-item>
                 <el-form-item prop="upgrade" style="margin-bottom:0">
                     <el-checkbox v-model="state.ruleForm.Upgrade" label="我很懂，我要使用高级功能(点对网和网对网)" size="large" />
