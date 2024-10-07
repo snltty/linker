@@ -286,9 +286,21 @@ namespace linker.plugins.tuntap.config
     public enum TuntapSwitch
     {
         Gateway = 1,
+        /// <summary>
+        /// 启用显示延迟
+        /// </summary>
         ShowDelay = 2,
+        /// <summary>
+        /// 启用高级功能
+        /// </summary>
         Upgrade = 4,
+        /// <summary>
+        /// 启用自动连接
+        /// </summary>
         AutoConnect = 8,
+        /// <summary>
+        /// 禁用广播
+        /// </summary>
         Multicast = 16,
     }
 

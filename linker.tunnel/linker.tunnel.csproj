@@ -16,9 +16,9 @@
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker tunnel</PackageReleaseNotes>
-		<Version>1.4.7</Version>
-		<AssemblyVersion>1.4.7</AssemblyVersion>
-		<FileVersion>1.4.7</FileVersion>
+		<Version>1.4.8</Version>
+		<AssemblyVersion>1.4.8</AssemblyVersion>
+		<FileVersion>1.4.8</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -30,6 +30,9 @@
 		<DebugSymbols>false</DebugSymbols>
 		<Optimize>True</Optimize>
 	</PropertyGroup>
+	<ItemGroup>
+	  <PackageReference Include="Mono.Nat" Version="3.0.4" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\linker.libs\linker.libs.csproj" />

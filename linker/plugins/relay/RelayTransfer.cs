@@ -263,6 +263,12 @@ namespace linker.plugins.relay
         }
 
 
+
+        private readonly LastTicksManager lastTicksManager = new LastTicksManager();
+        public void SubscribeDelayTest()
+        {
+            lastTicksManager.Update();
+        }
         private async Task TaskRelay()
         {
             try
@@ -291,9 +297,12 @@ namespace linker.plugins.relay
         {
             TimerHelper.SetInterval(async () =>
             {
-                await TaskRelay();
+                if (lastTicksManager.DiffLessEqual(3000))
+                {
+                    await TaskRelay();
+                }
                 return true;
-            }, 5000);
+            }, 1000);
         }
         sealed class TestInfo
         {

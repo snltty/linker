@@ -10,6 +10,7 @@ using System.Buffers.Binary;
 using linker.plugins.client;
 using linker.plugins.tunnel;
 using System.Buffers;
+using linker.client.config;
 
 namespace linker.plugins.tuntap
 {
@@ -25,13 +26,15 @@ namespace linker.plugins.tuntap
 
         private string groupid = string.Empty;
         private readonly FileConfig config;
+        private readonly RunningConfig runningConfig;
 
-        public TuntapProxy(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer , LinkerTunDeviceAdapter linkerTunDeviceAdapter, ClientSignInState clientSignInState) 
+        public TuntapProxy(FileConfig config, RunningConfig runningConfig, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer, LinkerTunDeviceAdapter linkerTunDeviceAdapter, ClientSignInState clientSignInState)
             : base(config, tunnelTransfer, relayTransfer, clientSignInTransfer, clientSignInState)
         {
             this.config = config;
+            this.runningConfig = runningConfig;
             this.linkerTunDeviceAdapter = linkerTunDeviceAdapter;
-            clientSignInState.NetworkEnabledHandle +=(times) => ClearIPs();
+            clientSignInState.NetworkEnabledHandle += (times) => ClearIPs();
         }
 
         protected override void Connected(ITunnelConnection connection)
@@ -86,7 +89,7 @@ namespace linker.plugins.tuntap
             //IPV4广播组播
             if (packet.IPV4Broadcast)
             {
-                if (connections.IsEmpty == false)
+                if (connections.IsEmpty == false && (runningConfig.Data.Tuntap.Switch & TuntapSwitch.Multicast) == 0)
                 {
                     await Task.WhenAll(connections.Values.Where(c => c != null && c.Connected).Select(c => c.SendAsync(packet.Packet)));
                 }
@@ -95,7 +98,7 @@ namespace linker.plugins.tuntap
             //IPV6 多播
             else if (packet.IPV6Multicast)
             {
-                if (connections.IsEmpty == false)
+                if (connections.IsEmpty == false && (runningConfig.Data.Tuntap.Switch & TuntapSwitch.Multicast) == 0)
                 {
                     await Task.WhenAll(connections.Values.Where(c => c != null && c.Connected).Select(c => c.SendAsync(packet.Packet)));
                 }
@@ -150,7 +153,7 @@ namespace linker.plugins.tuntap
         /// <param name="ip"></param>
         public void SetIP(string machineId, uint ip)
         {
-            if (ip2MachineDic.TryGetValue(ip,out List<string> list) == false)
+            if (ip2MachineDic.TryGetValue(ip, out List<string> list) == false)
             {
                 list = new List<string>();
                 ip2MachineDic.AddOrUpdate(ip, list, (a, b) => list);
@@ -160,7 +163,7 @@ namespace linker.plugins.tuntap
 
         private void ClearIPs()
         {
-            if(groupid != config.Data.Client.GroupId)
+            if (groupid != config.Data.Client.GroupId)
             {
                 ip2MachineDic.Clear();
                 ipConnections.Clear();

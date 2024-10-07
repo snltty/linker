@@ -19,15 +19,17 @@
 		<Title>linker</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 优化流量统计
-2. 修复可能的获取设备码失败的问题</Description>
+		<Description>1. 优化减少信标流量
+2. 增加upnp和NAT-PMP，自动添加端口映射，在无法进路由器时很有用
+3. 可选禁用UDP广播，可有效减少中继流量消耗
+4. 测试中，请勿更新！请勿更新！请勿更新！</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.4.7</Version>
-		<AssemblyVersion>1.4.7</AssemblyVersion>
-		<FileVersion>1.4.7</FileVersion>
+		<Version>1.4.8</Version>
+		<AssemblyVersion>1.4.8</AssemblyVersion>
+		<FileVersion>1.4.8</FileVersion>
 	</PropertyGroup>
 
 

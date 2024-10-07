@@ -4,6 +4,7 @@ using linker.libs;
 using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.plugins.tunnel.messenger;
+using linker.tunnel;
 using linker.tunnel.adapter;
 using linker.tunnel.transport;
 using linker.tunnel.wanport;
@@ -23,11 +24,12 @@ namespace linker.plugins.tunnel
         private readonly ITunnelAdapter tunnelAdapter;
         private readonly TransportTcpPortMap transportTcpPortMap;
         private readonly TransportUdpPortMap transportUdpPortMap;
+        private readonly TunnelUpnpTransfer upnpTransfer;
 
         public VersionManager Version { get; } = new VersionManager();
         public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> Config { get; } = new ConcurrentDictionary<string, TunnelTransportRouteLevelInfo>();
 
-        public TunnelConfigTransfer(FileConfig config, RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, ITunnelAdapter tunnelAdapter, TransportTcpPortMap transportTcpPortMap, TransportUdpPortMap transportUdpPortMap)
+        public TunnelConfigTransfer(FileConfig config, RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, ITunnelAdapter tunnelAdapter, TransportTcpPortMap transportTcpPortMap, TransportUdpPortMap transportUdpPortMap, TunnelUpnpTransfer upnpTransfer)
         {
             this.config = config;
             this.running = running;
@@ -36,6 +38,7 @@ namespace linker.plugins.tunnel
             this.tunnelAdapter = tunnelAdapter;
             this.transportTcpPortMap = transportTcpPortMap;
             this.transportUdpPortMap = transportUdpPortMap;
+            this.upnpTransfer = upnpTransfer;
 
             InitRouteLevel();
 
@@ -214,8 +217,26 @@ namespace linker.plugins.tunnel
 
         private void RefreshPortMap()
         {
-            _ = transportTcpPortMap.Listen(running.Data.Tunnel.PortMapLan);
-            _ = transportUdpPortMap.Listen(running.Data.Tunnel.PortMapLan);
+            try
+            {
+                int port = 18000;
+                int ip = Dns.GetHostEntry(Dns.GetHostName()).AddressList.FirstOrDefault(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).GetAddressBytes()[3];
+                upnpTransfer.SetMap(port + ip, port);
+            }
+            catch (Exception)
+            {
+            }
+
+            if (running.Data.Tunnel.PortMapLan > 0)
+            {
+                _ = transportTcpPortMap.Listen(running.Data.Tunnel.PortMapLan);
+                _ = transportUdpPortMap.Listen(running.Data.Tunnel.PortMapLan);
+            }
+            else if (upnpTransfer.MapInfo != null)
+            {
+                _ = transportTcpPortMap.Listen(upnpTransfer.MapInfo.PrivatePort);
+                _ = transportUdpPortMap.Listen(upnpTransfer.MapInfo.PrivatePort);
+            }
 
         }
     }

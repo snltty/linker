@@ -12,11 +12,7 @@
                     <span style="width: 2rem;"></span>
                     <el-checkbox v-model="state.ruleForm.ShowDelay" label="显示延迟" size="large" />
                     <el-checkbox v-model="state.ruleForm.AutoConnect" label="自动连接" size="large" />
-                    <!-- <el-popover placement="top" title="提示" :width="400" trigger="hover" content="当有大量客户端使用中继是，广播会使用服务器更多流量" >
-                        <template #reference>
-                            <el-checkbox v-model="state.ruleForm.Multicast" label="启用广播" size="large" />
-                        </template>
-                    </el-popover> -->
+                    <el-checkbox v-model="state.ruleForm.Multicast" label="禁用广播" size="large" />
                 </el-form-item>
                 <el-form-item prop="upgrade" style="margin-bottom:0">
                     <el-checkbox v-model="state.ruleForm.Upgrade" label="我很懂，我要使用高级功能(点对网和网对网)" size="large" />

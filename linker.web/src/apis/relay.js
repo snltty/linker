@@ -6,3 +6,6 @@ export const getRelayTypes = () => {
 export const setRelayServers = (servers) => {
     return sendWebsocketMsg('relay/SetServers', servers);
 }
+export const setRelaySubscribe = () => {
+    return sendWebsocketMsg('relay/Subscribe');
+}

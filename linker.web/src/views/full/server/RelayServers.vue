@@ -78,10 +78,10 @@
     </el-table>
 </template>
 <script>
-import { setRelayServers,getRelayTypes } from '@/apis/relay';
+import { setRelayServers,getRelayTypes, setRelaySubscribe } from '@/apis/relay';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import { computed, inject, onMounted, reactive, watch } from 'vue'
+import { computed, inject, onMounted, onUnmounted, reactive, watch } from 'vue'
 import { Delete,Plus,Top,Bottom } from '@element-plus/icons-vue';
 export default {
     label:'中继服务器',
@@ -93,7 +93,8 @@ export default {
         const state = reactive({
             list:globalData.value.config.Client.Relay.Servers.sort((a,b)=>a.Disabled - b.Disabled),
             types:[],
-            height: computed(()=>globalData.value.height-90)
+            height: computed(()=>globalData.value.height-90),
+            timer:0
         });
         watch(()=>globalData.value.config.Client.Relay.Servers,()=>{
             if(state.list.filter(c=>c['__editing']).length == 0){
@@ -158,9 +159,20 @@ export default {
             });;
         }
 
+        const _setRelaySubscribe = ()=>{
+            setRelaySubscribe().then(()=>{
+                state.timer = setTimeout(_setRelaySubscribe,1000);
+            }).catch(()=>{
+                state.timer = setTimeout(_setRelaySubscribe,1000);
+            });
+        }
         onMounted(()=>{
             _getRelayTypes();
+            _setRelaySubscribe();
         });
+        onUnmounted(()=>{
+            clearTimeout(state.timer);
+        })
 
         return {state,handleCellClick,handleEditBlur,handleDel,handleAdd,handleSort}
     }

@@ -2,11 +2,9 @@
 using linker.plugins.relay.messenger;
 using linker.libs.api;
 using linker.libs.extends;
-using MemoryPack;
 using linker.plugins.client;
 using linker.plugins.capi;
 using linker.plugins.messenger;
-using linker.client.config;
 
 namespace linker.plugins.relay
 {
@@ -47,6 +45,11 @@ namespace linker.plugins.relay
             RelayServerInfo[] info = param.Content.DeJson<RelayServerInfo[]>();
             relayTransfer.SetServers(info);
             return true;
+        }
+
+        public void Subscribe(ApiControllerParamsInfo param)
+        {
+            relayTransfer.SubscribeDelayTest();
         }
     }
 

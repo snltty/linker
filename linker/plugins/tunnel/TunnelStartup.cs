@@ -85,6 +85,9 @@ namespace linker.plugins.tunnel
             serviceCollection.AddSingleton<TunnelServerMessenger>();
 
             serviceCollection.AddSingleton<ExternalResolver>();
+
+
+            serviceCollection.AddSingleton<TunnelUpnpTransfer>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
@@ -107,6 +110,8 @@ namespace linker.plugins.tunnel
 
             TunnelExcludeIPTransfer excludeIPTransfer = serviceProvider.GetService<TunnelExcludeIPTransfer>();
             excludeIPTransfer.Load(assemblies);
+
+            TunnelUpnpTransfer upnpTransfer = serviceProvider.GetService<TunnelUpnpTransfer>();
 
         }
 

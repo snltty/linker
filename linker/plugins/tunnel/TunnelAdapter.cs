@@ -12,6 +12,7 @@ using System.Buffers.Binary;
 using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.plugins.tunnel.excludeip;
+using linker.tunnel;
 
 namespace linker.plugins.tunnel
 {
@@ -21,21 +22,26 @@ namespace linker.plugins.tunnel
             ? running.Data.Tunnel.Interface : (clientSignInState.Connection?.LocalAddress.Address ?? IPAddress.Any);
 
         public X509Certificate2 Certificate { get; private set; }
-        public PortMapInfo PortMap => new PortMapInfo { WanPort = running.Data.Tunnel.PortMapWan, LanPort = running.Data.Tunnel.PortMapLan };
+        public PortMapInfo PortMap => running.Data.Tunnel.PortMapWan > 0
+            ? new PortMapInfo { WanPort = running.Data.Tunnel.PortMapWan, LanPort = running.Data.Tunnel.PortMapLan }
+            : upnpTransfer.MapInfo != null ? new PortMapInfo { WanPort = upnpTransfer.MapInfo.PublicPort, LanPort = upnpTransfer.MapInfo.PrivatePort }
+            : new PortMapInfo { WanPort = 0, LanPort = 0 };
 
         private readonly ClientSignInState clientSignInState;
         private readonly MessengerSender messengerSender;
         private readonly FileConfig config;
         private readonly RunningConfig running;
         private readonly TunnelExcludeIPTransfer excludeIPTransfer;
+        private readonly TunnelUpnpTransfer upnpTransfer;
 
-        public TunnelAdapter(ClientSignInState clientSignInState, MessengerSender messengerSender, FileConfig config, RunningConfig running, TunnelExcludeIPTransfer excludeIPTransfer)
+        public TunnelAdapter(ClientSignInState clientSignInState, MessengerSender messengerSender, FileConfig config, RunningConfig running, TunnelExcludeIPTransfer excludeIPTransfer, TunnelUpnpTransfer upnpTransfer)
         {
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
             this.config = config;
             this.running = running;
             this.excludeIPTransfer = excludeIPTransfer;
+            this.upnpTransfer = upnpTransfer;
 
             string path = Path.GetFullPath(config.Data.Client.Certificate);
             if (File.Exists(path))
