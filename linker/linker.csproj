@@ -21,8 +21,7 @@
 		<Company>snltty</Company>
 		<Description>1. 优化减少信标流量
 2. 增加upnp和NAT-PMP，自动添加端口映射，在无法进路由器时很有用
-3. 可选禁用UDP广播，可有效减少中继流量消耗
-4. 测试中，请勿更新！请勿更新！请勿更新！</Description>
+3. 可选禁用UDP广播，可有效减少中继流量消耗</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
