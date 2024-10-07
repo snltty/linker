@@ -20,13 +20,13 @@
         </el-table-column>
         <el-table-column prop="Host" label="地址">
             <template #default="scope">
-                <template v-if="scope.row.HostEditing">
+                <!-- <template v-if="scope.row.HostEditing">
                     <el-input autofocus size="small" v-model="scope.row.Host"  @blur="handleEditBlur(scope.row, 'Host')"></el-input>
                 </template>
-                <template v-else>
+                <template v-else> -->
                     <span :class="{red:!scope.row.Available,green:scope.row.Available}">{{ scope.row.Host }}</span>
                     <span :class="{red:scope.row.Delay==-1,green:scope.row.Delay<500 &&scope.row.Delay>=0 ,yellow:scope.row.Delay>=500}"> - {{scope.row.Delay}}ms</span>
-                </template>
+                <!-- </template> -->
             </template>
         </el-table-column>
         <el-table-column prop="SecretKey" label="秘钥" >

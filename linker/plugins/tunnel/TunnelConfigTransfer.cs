@@ -219,9 +219,9 @@ namespace linker.plugins.tunnel
         {
             try
             {
-                int port = 18000;
+                int port = 18180;
                 int ip = Dns.GetHostEntry(Dns.GetHostName()).AddressList.FirstOrDefault(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).GetAddressBytes()[3];
-                upnpTransfer.SetMap(port + ip, port);
+                upnpTransfer.SetMap(port, port + ip);
             }
             catch (Exception)
             {

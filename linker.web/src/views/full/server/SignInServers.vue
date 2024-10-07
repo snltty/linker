@@ -60,6 +60,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed, inject, reactive, watch } from 'vue'
 import { Delete,Plus,Select } from '@element-plus/icons-vue';
 import { setTunnelServers } from '@/apis/tunnel';
+import { setRelayServers } from '@/apis/relay';
 export default {
     label:'信标服务器',
     name:'signInServers',
@@ -117,9 +118,13 @@ export default {
         const handleSave = ()=>{
 
             const tunnelServers = globalData.value.config.Client.Tunnel.Servers.slice();
+            const relayServers = globalData.value.config.Client.Relay.Servers.slice();
             const server = state.list[0];
             for(let i=0;i<tunnelServers.length;i++){
                 tunnelServers[i].Host = server.Host;
+            }
+            for(let i=0;i<relayServers.length;i++){
+                relayServers[i].Host = server.Host;
             }
             setSignInServers(state.list).then(()=>{
                 ElMessage.success('已操作');
@@ -130,7 +135,12 @@ export default {
                 ElMessage.success('已操作');
             }).catch(()=>{
                 ElMessage.error('操作失败');
-            });;
+            });
+            setRelayServers(relayServers).then(()=>{
+                ElMessage.success('已操作');
+            }).catch(()=>{
+                ElMessage.error('操作失败');
+            });
         }
 
         return {state,handleCellClick,handleEditBlur,handleDel,handleAdd,handleUse}
