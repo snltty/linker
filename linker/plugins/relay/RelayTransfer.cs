@@ -245,8 +245,7 @@ namespace linker.plugins.relay
         {
             return fileConfig.Data.Client.Relay.Servers
                     .Where(c => c.Disabled == false)
-                    .Where(c => string.IsNullOrWhiteSpace(c.Host) == false)
-                    .Where(c => c.Delay >= 0);
+                    .Where(c => string.IsNullOrWhiteSpace(c.Host) == false);
         }
         private RelayServerInfo GetServer(string name)
         {
