@@ -69,7 +69,6 @@ export const provideTuntap = () => {
     }
     const handleTuntapRefresh = () => {
         refreshTuntap();
-        ElMessage.success({ message: '刷新成功', grouping: true });
     }
     const clearTuntapTimeout = () => {
         clearTimeout(tuntap.value.timer);

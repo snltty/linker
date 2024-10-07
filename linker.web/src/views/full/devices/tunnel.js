@@ -31,7 +31,6 @@ export const provideTunnel = () => {
     }
     const handleTunnelRefresh = () => {
         refreshTunnel();
-        ElMessage.success({ message: '刷新成功', grouping: true });
     }
     const clearTunnelTimeout = () => {
         clearTimeout(tunnel.value.timer);
