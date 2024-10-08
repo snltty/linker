@@ -17,16 +17,12 @@ namespace linker.libs
         }
         private static string GetSystemIdLinux()
         {
-            string cpu = CommandHelper.Linux(string.Empty, ["cat /sys/class/dmi/id/product_uuid"]).TrimNewLineAndWhiteSapce();
+            string cpu = CommandHelper.Linux(string.Empty, ["cat /etc/machine-id"]).TrimNewLineAndWhiteSapce();
             if (string.IsNullOrWhiteSpace(cpu) || cpu.Contains("No such file or directory"))
             {
-                cpu = CommandHelper.Linux(string.Empty, ["dmidecode -s system-uuid"]).TrimNewLineAndWhiteSapce();
-                if (string.IsNullOrWhiteSpace(cpu) || cpu.Contains("dmidecode"))
-                {
-                    LoggerHelper.Instance.Error(cpu);
-                    return string.Empty;
-                }
+                cpu = string.Empty;
             }
+
             string username = CommandHelper.Linux(string.Empty, ["whoami"]).TrimNewLineAndWhiteSapce();
             return $"{cpu}↓{username}↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
         }
@@ -34,8 +30,7 @@ namespace linker.libs
         {
             string cpu = CommandHelper.Osx(string.Empty, ["system_profiler SPHardwareDataType | grep \"Hardware UUID\""]).TrimNewLineAndWhiteSapce();
             string username = CommandHelper.Osx(string.Empty, ["whoami"]).TrimNewLineAndWhiteSapce();
-            return $"{cpu.Trim()}↓{username}↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
-
+            return $"{cpu}↓{username}↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
         }
     }
 }
