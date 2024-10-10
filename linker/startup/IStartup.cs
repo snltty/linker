@@ -1,6 +1,5 @@
 ﻿using linker.config;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace linker.startup
 {
@@ -27,11 +26,11 @@ namespace linker.startup
         /// </summary>
         public StartupLoadType LoadType { get; }
 
-        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies);
-        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies);
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config);
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config);
 
-        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies);
-        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies);
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config);
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config);
     }
 
     public enum StartupLoadType

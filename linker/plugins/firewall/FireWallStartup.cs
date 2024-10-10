@@ -1,7 +1,6 @@
 ﻿using linker.config;
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace linker.plugins.firewall
 {
@@ -13,7 +12,7 @@ namespace linker.plugins.firewall
         public string[] Dependent => new string[] { };
         public StartupLoadType LoadType => StartupLoadType.Dependent;
 
-        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
             //linker.libs.FireWallHelper.Write(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
 #if DEBUG
@@ -22,15 +21,15 @@ namespace linker.plugins.firewall
 #endif
         }
 
-        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
         }
 
-        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
         }
 
-        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config)
         {
         }
     }

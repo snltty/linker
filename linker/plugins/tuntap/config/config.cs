@@ -9,6 +9,7 @@ namespace linker.plugins.tuntap.config
     [MemoryPackable]
     public sealed partial class TuntapConfigInfo
     {
+        public TuntapConfigInfo() { }
         /// <summary>
         /// 网卡IP
         /// </summary>

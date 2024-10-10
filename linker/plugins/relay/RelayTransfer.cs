@@ -7,7 +7,6 @@ using linker.libs.extends;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
 using System.Net;
-using System.Reflection;
 using linker.plugins.client;
 
 namespace linker.plugins.relay
@@ -15,7 +14,7 @@ namespace linker.plugins.relay
     /// <summary>
     /// 中继
     /// </summary>
-    public sealed class RelayTransfer
+    public sealed partial class RelayTransfer
     {
         private List<ITransport> transports;
 
@@ -33,6 +32,10 @@ namespace linker.plugins.relay
             this.serviceProvider = serviceProvider;
             InitConfig();
             TestTask();
+
+            IEnumerable<Type> types = GetSourceGeneratorTypes();
+            transports = types.Select(c => (ITransport)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
+            LoggerHelper.Instance.Info($"load relay transport:{string.Join(",", transports.Select(c => c.Name))}");
         }
         private void InitConfig()
         {
@@ -51,17 +54,6 @@ namespace linker.plugins.relay
             }
         }
 
-        /// <summary>
-        /// 加载中继协议
-        /// </summary>
-        /// <param name="assembs"></param>
-        public void Load(Assembly[] assembs)
-        {
-            IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs, typeof(ITransport));
-            transports = types.Select(c => (ITransport)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
-
-            LoggerHelper.Instance.Info($"load relay transport:{string.Join(",", transports.Select(c => c.Name))}");
-        }
         /// <summary>
         /// 获取所有中继协议
         /// </summary>

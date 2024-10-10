@@ -17,6 +17,7 @@ namespace linker.client.config
 
     public sealed class RelayRunningInfo
     {
+        public RelayRunningInfo() { }
         public ObjectId Id { get; set; }
         /// <summary>
         /// 中继服务器列表
@@ -70,6 +71,7 @@ namespace linker.config
     [MemoryPackable]
     public sealed partial class RelayServerInfo
     {
+        public RelayServerInfo() { }
         /// <summary>
         /// 名称
         /// </summary>

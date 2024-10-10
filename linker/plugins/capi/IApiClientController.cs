@@ -1,5 +1,4 @@
 ﻿using linker.libs.api;
-using System.Reflection;
 
 namespace linker.plugins.capi
 {
@@ -10,7 +9,6 @@ namespace linker.plugins.capi
 
     public interface IApiClientServer : IApiServer
     {
-        public void LoadPlugins(Assembly[] assemblys);
     }
 
 }

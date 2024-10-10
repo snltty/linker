@@ -1,7 +1,6 @@
 ﻿using linker.config;
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace linker.plugins.resolver
 {
@@ -16,14 +15,14 @@ namespace linker.plugins.resolver
         public string[] Dependent => new string[] { };
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
-        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
 
             serviceCollection.AddSingleton<ResolverTransfer>();
 
         }
 
-        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
             serviceCollection.AddSingleton<ResolverTransfer>();
 
@@ -31,26 +30,24 @@ namespace linker.plugins.resolver
 
 
         private bool loaded = false;
-        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
             if (loaded == false)
             {
                 loaded = true;
 
                 ResolverTransfer resolver = serviceProvider.GetService<ResolverTransfer>();
-                resolver.LoadResolvers(assemblies);
 
             }
         }
 
-        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config)
         {
             if (loaded == false)
             {
                 loaded = true;
 
                 ResolverTransfer resolver = serviceProvider.GetService<ResolverTransfer>();
-                resolver.LoadResolvers(assemblies);
             }
         }
     }

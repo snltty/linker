@@ -214,7 +214,7 @@ namespace linker.plugins.action
             {
                 if (actionTransfer.TryGetActionArg(cache.Args, out string str, out string machineKey) == false)
                 {
-                    return "sforward action URL exists, but action value is not configured";
+                    return $"sforward action URL exists, but [{cache.MachineName}] action value is not configured";
                 }
 
                 JsonArgInfo replace = new JsonArgInfo

@@ -33,6 +33,7 @@ namespace linker.tunnel.wanport
 
     public sealed partial class TunnelWanPortInfo
     {
+        public TunnelWanPortInfo() { }
         /// <summary>
         /// 名称
         /// </summary>

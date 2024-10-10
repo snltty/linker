@@ -18,6 +18,7 @@ namespace linker.client.config
     /// </summary>
     public sealed class ForwardInfo
     {
+        public ForwardInfo() { }
         public uint Id { get; set; }
         /// <summary>
         /// 名称

@@ -4,7 +4,7 @@ image="snltty/linker"
 
 fs=('linker')
 ps=('musl' 'debian')
-rs=('x64' 'arm64')
+rs=('x64' 'arm64' 'arm')
 
 cd linker.web 
 npm install &&
@@ -39,6 +39,10 @@ do
 
 		cd public/publish/docker/linux-${p}-arm64/${f}
 		docker buildx build -f ${target}/public/publish/docker/linux-${p}-arm64/${f}/Dockerfile-${p} --platform="linux/arm64"  --force-rm -t "${image}-${p}-arm64" . --push
+		cd ../../../../../
+
+        cd public/publish/docker/linux-${p}-arm/${f}
+		docker buildx build -f ${target}/public/publish/docker/linux-${p}-arm/${f}/Dockerfile-${p} --platform="linux/arm/v7"  --force-rm -t "${image}-${p}-arm" . --push
 		cd ../../../../../
 	done
 done

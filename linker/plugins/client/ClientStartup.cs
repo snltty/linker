@@ -1,7 +1,6 @@
 ﻿using linker.libs;
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 using linker.config;
 using System.Net;
 using linker.libs.extends;
@@ -19,7 +18,7 @@ namespace linker.plugins.client
         public string[] Dependent => new string[] { "messenger", "firewall", "signin", "serialize", "config" };
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
-        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
             if (string.IsNullOrWhiteSpace(config.Data.Client.Name))
             {
@@ -33,7 +32,7 @@ namespace linker.plugins.client
 
         }
 
-        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
             LoggerHelper.Instance.Info($"start client");
 
@@ -43,11 +42,11 @@ namespace linker.plugins.client
         }
 
 
-        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
             serviceCollection.AddSingleton<SignInArgsSecretKeyServer>();
         }
-        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config)
         {
         }
     }

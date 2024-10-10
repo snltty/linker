@@ -45,7 +45,7 @@ namespace linker.tun
             adapter = WinTun.WintunCreateAdapter(name, name, ref guid);
             if (adapter == 0)
             {
-                error = ($"Failed to create adapter {Marshal.GetLastWin32Error():x2}");
+                error = ($"Failed to create adapter {Marshal.GetLastWin32Error()}");
                 Shutdown();
                 return false;
             }
@@ -77,7 +77,7 @@ namespace linker.tun
                 }
             }
 
-            error = ($"Failed to set adapter ip {Marshal.GetLastWin32Error():x2}");
+            error = ($"Failed to set adapter ip {Marshal.GetLastWin32Error()}");
             Shutdown();
             return false;
 

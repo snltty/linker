@@ -133,6 +133,7 @@ namespace linker.config
     }
     public sealed partial class ConfigInfo
     {
+        public ConfigInfo() { }
         public ConfigCommonInfo Common { get; set; } = new ConfigCommonInfo();
 
         [JsonIgnore]
@@ -153,6 +154,7 @@ namespace linker.config
 
     public sealed partial class ConfigCommonInfo : IConfig
     {
+        public ConfigCommonInfo() { }
         public string[] Modes { get; set; } = new string[] { "client", "server" };
 
 

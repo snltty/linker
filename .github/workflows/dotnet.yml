@@ -37,7 +37,7 @@ jobs:
           release_name: v1.4.8.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 优化减少信标流量\r\n2. 增加upnp和NAT-PMP，自动添加端口映射，在无法进路由器时很有用\r\n3. 可选禁用UDP广播，可有效减少中继流量消耗"
+          body: 1. 使用原生成器替代反射
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
         uses: tvrcgo/oss-action@v0.1.1

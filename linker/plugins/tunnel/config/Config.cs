@@ -20,6 +20,7 @@ namespace linker.client.config
 
     public sealed class TunnelRunningInfo
     {
+        public TunnelRunningInfo() { }
         public ObjectId Id { get; set; }
         /// <summary>
         /// 外网端口服务器列表
@@ -48,6 +49,7 @@ namespace linker.client.config
     [MemoryPackable]
     public sealed partial class ExcludeIPItem
     {
+        public ExcludeIPItem() { }
         [MemoryPackAllowSerialize]
         public IPAddress IPAddress { get; set; }
         public byte Mask { get; set; } = 32;

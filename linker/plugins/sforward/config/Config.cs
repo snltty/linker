@@ -20,6 +20,7 @@ namespace linker.client.config
 
     public sealed class SForwardInfo
     {
+        public SForwardInfo() { }
         /// <summary>
         /// 穿透id
         /// </summary>

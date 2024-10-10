@@ -4,13 +4,12 @@ using linker.libs;
 using linker.plugins.client;
 using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace linker.plugins.tunnel.excludeip
 {
-    public sealed class TunnelExcludeIPTransfer
+    public sealed partial class TunnelExcludeIPTransfer
     {
-        private List<ITunnelExcludeIP> excludeIPs;
+        private readonly List<ITunnelExcludeIP> excludeIPs;
 
         private readonly RunningConfig running;
         private readonly ClientSignInState clientSignInState;
@@ -23,13 +22,9 @@ namespace linker.plugins.tunnel.excludeip
             this.clientSignInState = clientSignInState;
             this.fileConfig = fileConfig;
             this.serviceProvider = serviceProvider;
-        }
 
-        public void Load(Assembly[] assembs)
-        {
-            IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assembs, typeof(ITunnelExcludeIP));
+            IEnumerable<Type> types = GetSourceGeneratorTypes();
             excludeIPs = types.Select(c => (ITunnelExcludeIP)serviceProvider.GetService(c)).Where(c => c != null).ToList();
-
             LoggerHelper.Instance.Info($"load tunnel excludeips :{string.Join(",", types.Select(c => c.Name))}");
         }
 

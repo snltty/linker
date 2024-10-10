@@ -2,7 +2,6 @@
 using linker.startup;
 using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace linker.plugins.serializes
 {
@@ -17,24 +16,24 @@ namespace linker.plugins.serializes
         public string[] Dependent => Array.Empty<string>();
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
-        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
             MemoryPackFormatterProvider.Register(new IPEndPointFormatter());
             MemoryPackFormatterProvider.Register(new IPAddressFormatter());
         }
 
-        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
             MemoryPackFormatterProvider.Register(new IPEndPointFormatter());
             MemoryPackFormatterProvider.Register(new IPAddressFormatter());
         }
 
 
-        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
         }
 
-        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config)
         {
         }
     }

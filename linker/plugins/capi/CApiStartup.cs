@@ -2,7 +2,6 @@
 using linker.startup;
 using linker.libs;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace linker.plugins.capi
 {
@@ -14,19 +13,18 @@ namespace linker.plugins.capi
         public string[] Dependent => new string[] { };
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
-        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
             serviceCollection.AddSingleton<IApiClientServer, ApiClientServer>();
             serviceCollection.AddSingleton<IWebClientServer, WebClientServer>();
         }
 
-        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
             if (config.Data.Client.CApi.ApiPort > 0)
             {
                 LoggerHelper.Instance.Info($"start client api server");
                 IApiClientServer clientServer = serviceProvider.GetService<IApiClientServer>();
-                clientServer.LoadPlugins(assemblies);
                 clientServer.Websocket(config.Data.Client.CApi.ApiPort, config.Data.Client.CApi.ApiPassword);
                 LoggerHelper.Instance.Warning($"client api listen:{config.Data.Client.CApi.ApiPort}");
                 if (config.Data.Client.HasAccess(ClientApiAccess.Api))
@@ -42,11 +40,11 @@ namespace linker.plugins.capi
         }
 
 
-        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
 
         }
-        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config)
         {
         }
     }

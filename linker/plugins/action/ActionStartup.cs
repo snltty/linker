@@ -2,7 +2,6 @@
 using linker.plugins.action;
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace linker.plugins.signin
 {
@@ -18,7 +17,7 @@ namespace linker.plugins.signin
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
 
-        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
             serviceCollection.AddSingleton<ActionApiController>();
             serviceCollection.AddSingleton<ActionTransfer>();
@@ -28,7 +27,7 @@ namespace linker.plugins.signin
             serviceCollection.AddSingleton<SForwardValidatorAction>();
         }
 
-        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
             serviceCollection.AddSingleton<ActionTransfer>();
 
@@ -38,11 +37,11 @@ namespace linker.plugins.signin
             
         }
 
-        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
         }
 
-        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config)
         {
         }
     }

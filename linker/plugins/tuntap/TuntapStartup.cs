@@ -3,7 +3,6 @@ using linker.plugins.tuntap.messenger;
 using linker.startup;
 using linker.tun;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace linker.plugins.tuntap
 {
@@ -20,7 +19,7 @@ namespace linker.plugins.tuntap
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
 
-        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
             serviceCollection.AddSingleton<TuntapClientApiController>();
             serviceCollection.AddSingleton<LinkerTunDeviceAdapter>();
@@ -33,18 +32,18 @@ namespace linker.plugins.tuntap
             serviceCollection.AddSingleton<ExcludeIP>();
         }
 
-        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
             serviceCollection.AddSingleton<TuntapServerMessenger>();
         }
 
-        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
             TuntapProxy tuntapProxy = serviceProvider.GetService<TuntapProxy>();
             TuntapTransfer tuntapTransfer = serviceProvider.GetService<TuntapTransfer>();
         }
 
-        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config)
         {
         }
     }

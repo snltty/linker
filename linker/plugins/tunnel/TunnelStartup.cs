@@ -8,7 +8,6 @@ using linker.libs;
 using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
-using System.Reflection;
 using linker.tunnel.wanport;
 using linker.plugins.tunnel.excludeip;
 
@@ -28,7 +27,7 @@ namespace linker.plugins.tunnel
 
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
-        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
             //序列化扩展
             MemoryPackFormatterProvider.Register(new TunnelWanPortInfoFormatter());
@@ -76,7 +75,7 @@ namespace linker.plugins.tunnel
 
         }
 
-        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
             MemoryPackFormatterProvider.Register(new TunnelWanPortInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportWanPortInfoFormatter());
@@ -85,39 +84,43 @@ namespace linker.plugins.tunnel
             MemoryPackFormatterProvider.Register(new TunnelWanPortProtocolInfoFormatter());
 
             serviceCollection.AddSingleton<TunnelServerMessenger>();
-
             serviceCollection.AddSingleton<ExternalResolver>();
-
-
             serviceCollection.AddSingleton<TunnelUpnpTransfer>();
         }
 
-        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
             ITunnelAdapter tunnelAdapter = serviceProvider.GetService<ITunnelAdapter>();
 
-            IEnumerable<Type> types = ReflectionHelper.GetInterfaceSchieves(assemblies.Concat(new Assembly[] { typeof(TunnelWanPortTransfer).Assembly }).ToArray(), typeof(ITunnelWanPortProtocol));
+            IEnumerable<Type> types = new List<Type> { 
+                typeof(TunnelWanPortProtocolLinkerUdp),
+                typeof(TunnelWanPortProtocolLinkerTcp),
+                typeof(TunnelWanPortProtocolStun),
+            };
             List<ITunnelWanPortProtocol> compacts = types.Select(c => (ITunnelWanPortProtocol)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
             TunnelWanPortTransfer compack = serviceProvider.GetService<TunnelWanPortTransfer>();
             compack.Init(compacts);
 
 
-            types = ReflectionHelper.GetInterfaceSchieves(assemblies.Concat(new Assembly[] { typeof(TunnelTransfer).Assembly }).ToArray(), typeof(ITunnelTransport));
+            types = new List<Type> {
+                typeof(TunnelTransportTcpNutssb),
+                typeof(TransportMsQuic),
+                typeof(TransportTcpP2PNAT),
+                typeof(TransportTcpPortMap),
+                typeof(TransportUdpPortMap),
+                typeof(TransportUdp),
+            };
             List<ITunnelTransport> transports = types.Select(c => (ITunnelTransport)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
             TunnelTransfer tunnel = serviceProvider.GetService<TunnelTransfer>();
             tunnel.Init(compack, tunnelAdapter, transports);
 
             TunnelConfigTransfer tunnelConfigTransfer = serviceProvider.GetService<TunnelConfigTransfer>();
-
-
             TunnelExcludeIPTransfer excludeIPTransfer = serviceProvider.GetService<TunnelExcludeIPTransfer>();
-            excludeIPTransfer.Load(assemblies);
-
             TunnelUpnpTransfer upnpTransfer = serviceProvider.GetService<TunnelUpnpTransfer>();
 
         }
 
-        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config)
         {
 
         }

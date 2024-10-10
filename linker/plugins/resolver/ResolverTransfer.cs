@@ -3,23 +3,17 @@ using System.Net.Sockets;
 using linker.libs.extends;
 using System.Buffers;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 using System.Net;
 
 namespace linker.plugins.resolver
 {
-    public sealed class ResolverTransfer
+    public sealed partial class ResolverTransfer
     {
         private readonly Dictionary<ResolverType, IResolver> resolvers = new Dictionary<ResolverType, IResolver>();
 
-        private readonly ServiceProvider serviceProvider;
         public ResolverTransfer(ServiceProvider serviceProvider)
         {
-            this.serviceProvider = serviceProvider;
-        }
-        public void LoadResolvers(Assembly[] assemblys)
-        {
-            var types = ReflectionHelper.GetInterfaceSchieves(assemblys, typeof(IResolver)).Distinct();
+            var types = GetSourceGeneratorTypes();
             foreach (Type type in types)
             {
                 IResolver resolver = (IResolver)serviceProvider.GetService(type);
@@ -31,7 +25,6 @@ namespace linker.plugins.resolver
 
                 resolvers.TryAdd(resolver.Type, resolver);
             }
-
         }
         public async Task BeginReceive(Socket socket)
         {

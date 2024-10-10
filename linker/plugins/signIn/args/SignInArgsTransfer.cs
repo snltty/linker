@@ -1,16 +1,15 @@
-﻿using linker.libs;
-using linker.plugins.signin.messenger;
+﻿using linker.plugins.signin.messenger;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace linker.plugins.signIn.args
 {
-    public sealed class SignInArgsTransfer
+    public sealed partial class SignInArgsTransfer
     {
         private List<ISignInArgs> startups;
 
         public SignInArgsTransfer(ServiceProvider serviceProvider)
         {
-            var types = ReflectionHelper.GetInterfaceSchieves(typeof(ISignInArgs));
+            var types = GetSourceGeneratorTypes();
             startups = types.Select(c => serviceProvider.GetService(c) as ISignInArgs).Where(c => c != null).ToList();
         }
 

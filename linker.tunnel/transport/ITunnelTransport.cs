@@ -129,6 +129,7 @@ namespace linker.tunnel.transport
 
     public sealed partial class TunnelTransportItemInfo
     {
+        public TunnelTransportItemInfo() { }
         /// <summary>
         /// 协议名称
         /// </summary>

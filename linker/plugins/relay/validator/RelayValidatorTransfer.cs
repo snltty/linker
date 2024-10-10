@@ -5,13 +5,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace linker.plugins.relay.validator
 {
-    public sealed class RelayValidatorTransfer
+    public sealed partial class RelayValidatorTransfer
     {
         private List<IRelayValidator> startups;
 
         public RelayValidatorTransfer(ServiceProvider serviceProvider)
         {
-            var types = ReflectionHelper.GetInterfaceSchieves(typeof(IRelayValidator));
+            var types = GetSourceGeneratorTypes();
             startups = types.Select(c => serviceProvider.GetService(c) as IRelayValidator).Where(c => c != null).ToList();
         }
 

@@ -3,7 +3,6 @@ using linker.plugins.forward.messenger;
 using linker.plugins.forward.proxy;
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace linker.plugins.forward
 {
@@ -17,7 +16,7 @@ namespace linker.plugins.forward
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
 
-        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
             serviceCollection.AddSingleton<ForwardClientApiController>();
             serviceCollection.AddSingleton<ForwardTransfer>();
@@ -27,17 +26,17 @@ namespace linker.plugins.forward
 
         }
 
-        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
             serviceCollection.AddSingleton<ForwardServerMessenger>();
         }
 
-        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
             ForwardTransfer forwardTransfer = serviceProvider.GetService<ForwardTransfer>();
         }
 
-        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config)
         {
         }
     }

@@ -1,7 +1,4 @@
 using System;
-using System.Net.Sockets;
-using System.Net;
-using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 
 namespace linker.libs.winapis;

@@ -1,6 +1,5 @@
 ﻿using linker.libs;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 using linker.startup;
 using linker.config;
 using System.ServiceProcess;
@@ -47,8 +46,7 @@ namespace linker
             LoggerHelper.Instance.Warning($"linker env is docker : {Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")}");
             LoggerHelper.Instance.Warning($"linker env os : {System.Runtime.InteropServices.RuntimeInformation.OSDescription}");
 
-            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            StartupTransfer.Init(config, assemblies);
+            StartupTransfer.Init(config);
 
             //依赖注入
             ServiceProvider serviceProvider = null;
@@ -56,11 +54,11 @@ namespace linker
             //注入
             serviceCollection.AddSingleton((e) => serviceProvider);
             serviceCollection.AddSingleton((a) => config);
-            StartupTransfer.Add(serviceCollection, config, assemblies);
+            StartupTransfer.Add(serviceCollection, config);
 
             //运行
             serviceProvider = serviceCollection.BuildServiceProvider();
-            StartupTransfer.Use(serviceProvider, config, assemblies);
+            StartupTransfer.Use(serviceProvider, config);
 
             GCHelper.FlushMemory();
         }

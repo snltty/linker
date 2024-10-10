@@ -7,6 +7,7 @@ namespace linker.config
     }
     public sealed partial class ConfigServerInfo : IConfig
     {
+        public ConfigServerInfo() { }
         public int ServicePort { get; set; } = 1802;
 
         public string Certificate { get; set; } = "./snltty.pfx";

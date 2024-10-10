@@ -147,6 +147,8 @@ namespace linker.client.config
 
     public sealed partial class RunningConfigInfo
     {
+        public RunningConfigInfo() { }
+
         public ObjectId Id { get; set; }
 
         [JsonIgnore, BsonIgnore]
@@ -164,6 +166,7 @@ namespace linker.client.config
     [MemoryPackable]
     public sealed partial class SecretKeyAsyncInfo
     {
+        public SecretKeyAsyncInfo() { }
         public string SignSecretKey {  get; set; }
         public string RelaySecretKey {  get; set; }
         public string SForwardSecretKey {  get; set; }
@@ -172,6 +175,7 @@ namespace linker.client.config
     [MemoryPackable]
     public sealed partial class ServerAsyncInfo
     {
+        public ServerAsyncInfo() { }
         public ClientServerInfo[] SignServers { get; set; }
         public RelayServerInfo[] RelayServers { get; set; }
         public TunnelWanPortInfo[] TunnelServers { get; set; }

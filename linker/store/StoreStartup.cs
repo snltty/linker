@@ -1,7 +1,6 @@
 ﻿using linker.config;
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace linker.store
 {
@@ -17,17 +16,17 @@ namespace linker.store
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
         bool loaded = false;
-        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
-            Add(serviceCollection, config, assemblies);
+            Add(serviceCollection, config);
         }
 
-        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
-            Add(serviceCollection, config, assemblies);
+            Add(serviceCollection, config);
         }
 
-        private void Add(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        private void Add(ServiceCollection serviceCollection, FileConfig config)
         {
             if (loaded == false)
             {
@@ -36,11 +35,11 @@ namespace linker.store
             }
         }
 
-        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
         }
 
-        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config)
         {
         }
     }

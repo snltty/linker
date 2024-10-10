@@ -4,7 +4,6 @@ using linker.plugins.relay.transport;
 using linker.plugins.relay.validator;
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace linker.plugins.relay
 {
@@ -22,7 +21,7 @@ namespace linker.plugins.relay
 
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
-        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
             serviceCollection.AddSingleton<RelayApiController>();
             serviceCollection.AddSingleton<RelayClientMessenger>();
@@ -32,7 +31,7 @@ namespace linker.plugins.relay
 
         }
 
-        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
             serviceCollection.AddSingleton<RelayServerMessenger>();
 
@@ -45,13 +44,12 @@ namespace linker.plugins.relay
 
         }
 
-        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
             RelayTransfer relayTransfer = serviceProvider.GetService<RelayTransfer>();
-            relayTransfer.Load(assemblies);
         }
 
-        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config)
         {
             RelayValidatorTransfer relayValidatorTransfer = serviceProvider.GetService<RelayValidatorTransfer>();
         }

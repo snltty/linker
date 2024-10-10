@@ -8,6 +8,7 @@ namespace linker.config
     }
     public sealed partial class ConfigActionInfo : IConfig
     {
+        public ConfigActionInfo() { }
         public string SignInActionUrl { get; set; } = string.Empty;
         public string RelayActionUrl { get; set; } = string.Empty;
         public string SForwardActionUrl { get; set; } = string.Empty;

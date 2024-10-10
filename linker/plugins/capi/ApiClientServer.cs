@@ -9,7 +9,7 @@ namespace linker.plugins.capi
     /// <summary>
     /// 前段接口服务
     /// </summary>
-    public sealed class ApiClientServer : ApiServer, IApiClientServer
+    public sealed partial class ApiClientServer : ApiServer, IApiClientServer
     {
         private readonly ServiceProvider serviceProvider;
         private readonly FileConfig config;
@@ -18,17 +18,18 @@ namespace linker.plugins.capi
         {
             this.serviceProvider = serviceProvider;
             this.config = config;
+
+            LoadPlugins();
         }
 
         /// <summary>
         /// 加载插件
         /// </summary>
-        /// <param name="assemblys"></param>
-        public void LoadPlugins(Assembly[] assemblys)
+        private void LoadPlugins()
         {
             Type voidType = typeof(void);
 
-            IEnumerable<Type> types = assemblys.SelectMany(c => c.GetTypes()).Where(c => c.GetInterfaces().Contains(typeof(IApiClientController)));
+            IEnumerable<Type> types = GetSourceGeneratorTypes();
 
             foreach (Type item in types)
             {

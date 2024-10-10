@@ -1,11 +1,10 @@
 ﻿using linker.config;
 using linker.libs;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace linker.startup
 {
-    public static class StartupTransfer
+    public static partial class StartupTransfer
     {
         static List<IStartup> startups = new List<IStartup>();
         /// <summary>
@@ -13,12 +12,11 @@ namespace linker.startup
         /// </summary>
         /// <param name="config"></param>
         /// <param name="assemblies"></param>
-        public static void Init(FileConfig config, Assembly[] assemblies)
+        public static void Init(FileConfig config)
         {
-            var types = ReflectionHelper.GetInterfaceSchieves(assemblies, typeof(IStartup));
-            List<IStartup> temps = types.Select(c => Activator.CreateInstance(c) as IStartup).OrderByDescending(c => c.Level).ToList();
+            List<IStartup> temps = GetSourceGeneratorInstances().OrderByDescending(c => c.Level).ToList();
             TestDependent(temps);
-            LoadPlugins(config, temps);
+            LoadPlugins(config, temps); 
         }
         /// <summary>
         /// 检查插件依赖
@@ -84,19 +82,19 @@ namespace linker.startup
         /// <param name="serviceCollection"></param>
         /// <param name="config"></param>
         /// <param name="assemblies"></param>
-        public static void Add(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public static void Add(ServiceCollection serviceCollection, FileConfig config)
         {
             foreach (var startup in startups)
             {
                 if (config.Data.Common.Modes.Contains("client"))
                 {
                     LoggerHelper.Instance.Info($"add startup {startup.Name} client");
-                    startup.AddClient(serviceCollection, config, assemblies);
+                    startup.AddClient(serviceCollection, config);
                 }
                 if (config.Data.Common.Modes.Contains("server"))
                 {
                     LoggerHelper.Instance.Info($"add startup {startup.Name} server");
-                    startup.AddServer(serviceCollection, config, assemblies);
+                    startup.AddServer(serviceCollection, config);
                 }
             }
         }
@@ -107,19 +105,19 @@ namespace linker.startup
         /// <param name="serviceProvider"></param>
         /// <param name="config"></param>
         /// <param name="assemblies"></param>
-        public static void Use(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public static void Use(ServiceProvider serviceProvider, FileConfig config)
         {
             foreach (var startup in startups)
             {
                 if (config.Data.Common.Modes.Contains("client"))
                 {
                     LoggerHelper.Instance.Info($"use startup {startup.Name} client");
-                    startup.UseClient(serviceProvider, config, assemblies);
+                    startup.UseClient(serviceProvider, config);
                 }
                 if (config.Data.Common.Modes.Contains("server"))
                 {
                     LoggerHelper.Instance.Info($"use startup {startup.Name} server");
-                    startup.UseServer(serviceProvider, config, assemblies);
+                    startup.UseServer(serviceProvider, config);
                 }
             }
         }

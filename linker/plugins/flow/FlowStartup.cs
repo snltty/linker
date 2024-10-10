@@ -2,7 +2,6 @@
 using linker.plugins.flow.messenger;
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace linker.plugins.flow
 {
@@ -14,28 +13,26 @@ namespace linker.plugins.flow
         public string[] Dependent => new string[] { };
         public StartupLoadType LoadType => StartupLoadType.Dependent;
 
-        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
             serviceCollection.AddSingleton<FlowClientApiController>();
             serviceCollection.AddSingleton<FlowTransfer>();
         }
 
-        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
             serviceCollection.AddSingleton<FlowMessenger>();
             serviceCollection.AddSingleton<FlowTransfer>();
         }
 
-        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
             FlowTransfer flowTransfer = serviceProvider.GetService<FlowTransfer>();
-            flowTransfer.LoadFlows(assemblies);
         }
 
-        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config)
         {
             FlowTransfer flowTransfer = serviceProvider.GetService<FlowTransfer>();
-            flowTransfer.LoadFlows(assemblies);
         }
     }
 }

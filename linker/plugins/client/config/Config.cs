@@ -16,6 +16,8 @@ namespace linker.client.config
 
     public sealed class ClientRunningInfo
     {
+        public ClientRunningInfo() { }
+
         public ObjectId Id { get; set; }
         public ClientServerInfo[] Servers { get; set; } = [];
     }
@@ -153,6 +155,7 @@ namespace linker.config
     [MemoryPackable]
     public sealed partial class ClientServerInfo
     {
+        public ClientServerInfo() { }
         public string Name { get; set; } = string.Empty;
         public string Host { get; set; } = string.Empty;
         public string SecretKey { get; set; } = string.Empty;

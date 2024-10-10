@@ -2,7 +2,6 @@
 using linker.plugins.updater.messenger;
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace linker.plugins.updater
 {
@@ -21,7 +20,7 @@ namespace linker.plugins.updater
 
         public StartupLoadType LoadType => StartupLoadType.Normal;
 
-        public void AddClient(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
             serviceCollection.AddSingleton<UpdaterHelper>();
             serviceCollection.AddSingleton<UpdaterClientTransfer>();
@@ -30,7 +29,7 @@ namespace linker.plugins.updater
             serviceCollection.AddSingleton<UpdaterClientApiController>();
         }
 
-        public void AddServer(ServiceCollection serviceCollection, FileConfig config, Assembly[] assemblies)
+        public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
             serviceCollection.AddSingleton<UpdaterHelper>();
             serviceCollection.AddSingleton<UpdaterServerTransfer>();
@@ -38,12 +37,12 @@ namespace linker.plugins.updater
             serviceCollection.AddSingleton<UpdaterServerMessenger>();
         }
 
-        public void UseClient(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
             _ = serviceProvider.GetService<UpdaterClientTransfer>();
         }
 
-        public void UseServer(ServiceProvider serviceProvider, FileConfig config, Assembly[] assemblies)
+        public void UseServer(ServiceProvider serviceProvider, FileConfig config)
         {
             _ = serviceProvider.GetService<UpdaterServerTransfer>();
         }

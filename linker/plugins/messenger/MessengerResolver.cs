@@ -9,7 +9,6 @@ using System.Security.Cryptography.X509Certificates;
 using linker.libs.extends;
 using linker.plugins.resolver;
 using MemoryPack;
-using linker.plugins.flow;
 
 namespace linker.plugins.messenger
 {
@@ -119,14 +118,13 @@ namespace linker.plugins.messenger
         /// <summary>
         /// 加载所有消息处理器
         /// </summary>
-        /// <param name="assemblys"></param>
-        public void LoadMessenger(Assembly[] assemblys)
+        public void LoadMessenger()
         {
             Type voidType = typeof(void);
             Type midType = typeof(MessengerIdAttribute);
-            var types = ReflectionHelper.GetInterfaceSchieves(assemblys, typeof(IMessenger)).Distinct();
+            IEnumerable<Type> types = MessengerResolverTypes.GetSourceGeneratorTypes();
 
-            foreach (Type type in types)
+            foreach (Type type in types.Distinct())
             {
                 object obj = serviceProvider.GetService(type);
                 if (obj == null)
@@ -259,6 +257,10 @@ namespace linker.plugins.messenger
 
     }
 
+    public static partial class MessengerResolverTypes
+    {
+
+    }
 
     [MemoryPackable]
     public sealed partial class MessengerFlowItemInfo
