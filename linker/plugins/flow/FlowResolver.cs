@@ -24,7 +24,7 @@ namespace linker.plugins.flow
         public ulong SendtBytes { get; private set; }
 
 
-        private ConcurrentDictionary<IPEndPoint, OnlineFlowInfo> servers = new ConcurrentDictionary<IPEndPoint, OnlineFlowInfo>(new IPEndPointComparer());
+        private ConcurrentDictionary<IPAddress, OnlineFlowInfo> servers = new ConcurrentDictionary<IPAddress, OnlineFlowInfo>(new IPAddressComparer());
         private readonly SignCaching signCaching;
         public FlowResolver(SignCaching signCaching)
         {
@@ -42,10 +42,10 @@ namespace linker.plugins.flow
             {
                 long time = Environment.TickCount64;
 
-                if (servers.TryGetValue(ep, out OnlineFlowInfo onlineFlowInfo) == false)
+                if (servers.TryGetValue(ep.Address, out OnlineFlowInfo onlineFlowInfo) == false)
                 {
                     onlineFlowInfo = new OnlineFlowInfo { Time = time };
-                    servers.TryAdd(ep, onlineFlowInfo);
+                    servers.TryAdd(ep.Address, onlineFlowInfo);
                 }
                 onlineFlowInfo.Time = time;
                 onlineFlowInfo.Online = memory.Slice(1, 4).ToInt32();
@@ -77,9 +77,9 @@ namespace linker.plugins.flow
         private void Counter()
         {
             long time = Environment.TickCount64;
-            List<IPEndPoint> keys = servers.Where(c => time - c.Value.Time > 15000).Select(c => c.Key).ToList();
+            List<IPAddress> keys = servers.Where(c => time - c.Value.Time > 15000).Select(c => c.Key).ToList();
 
-            foreach (IPEndPoint key in keys)
+            foreach (IPAddress key in keys)
             {
                 servers.TryRemove(key, out _);
             }
@@ -120,13 +120,13 @@ namespace linker.plugins.flow
         public int Total { get; set; }
     }
 
-    public sealed class IPEndPointComparer : IEqualityComparer<IPEndPoint>
+    public sealed class IPAddressComparer : IEqualityComparer<IPAddress>
     {
-        public bool Equals(IPEndPoint x, IPEndPoint y)
+        public bool Equals(IPAddress x, IPAddress y)
         {
             return x.Equals(y);
         }
-        public int GetHashCode(IPEndPoint obj)
+        public int GetHashCode(IPAddress obj)
         {
             if (obj == null) return 0;
             return obj.GetHashCode();
