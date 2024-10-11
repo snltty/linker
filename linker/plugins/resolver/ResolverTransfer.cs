@@ -4,6 +4,7 @@ using linker.libs.extends;
 using System.Buffers;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
+using System;
 
 namespace linker.plugins.resolver
 {
@@ -37,12 +38,12 @@ namespace linker.plugins.resolver
                 }
                 socket.KeepAlive();
 
-                await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).ConfigureAwait(false);
+                int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).ConfigureAwait(false);
                 ResolverType type = (ResolverType)buffer[0];
 
                 if (resolvers.TryGetValue(type, out IResolver resolver))
                 {
-                    await resolver.Resolve(socket);
+                    await resolver.Resolve(socket, buffer.AsMemory(0, length));
                 }
             }
             catch (Exception ex)

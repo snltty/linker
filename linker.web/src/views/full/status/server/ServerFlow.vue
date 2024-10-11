@@ -1,6 +1,6 @@
 <template>
     <a v-if="config" href="javascript:;" title="linker服务端网速，点击查看详细信息" @click="handleShow">
-        <p>在线 {{state.overallOnline}}</p>
+        <p>在线 {{state.overallOnline}}、{{ state.serverOnline }}</p>
         <p>上传 {{state.overallSendtSpeed}}/s</p>
         <p>下载 {{state.overallReceiveSpeed}}/s</p>
     </a>
@@ -56,12 +56,14 @@ export default {
         const globalData = injectGlobalData();
         const hasSForwardFlow = computed(()=>globalData.value.hasAccess('SForwardFlow')); 
         const hasRelayFlow = computed(()=>globalData.value.hasAccess('RelayFlow')); 
+        const hasSigninFlow = computed(()=>globalData.value.hasAccess('SigninFlow')); 
         const state = reactive({
             show:false,
             timer:0,
             overallSendtSpeed: '0000.00KB',
             overallReceiveSpeed: '0000.00KB',
             overallOnline: '0/0',
+            serverOnline: '0/0/0',
             time:'',
             list:[],
             old:null,
@@ -80,7 +82,7 @@ export default {
         const id2text = {
             'External':{text:'外网端口',detail:false},
             'Relay':{text:'中继',detail:hasRelayFlow.value},
-            'Messenger':{text:'信标',detail:true},
+            'Messenger':{text:'信标',detail:hasSigninFlow.value},
             'SForward':{text:'内网穿透',detail:hasSForwardFlow.value},
         };
         const _getFlows = ()=>{
@@ -90,6 +92,13 @@ export default {
                 if(res.Items['_']){
                     state.overallOnline = `${res.Items['_'].SendtBytes}/${res.Items['_'].ReceiveBytes}`;
                     delete res.Items['_'];
+                }
+                if(res.Items['flow']){
+                    const online = (res.Items['flow'].ReceiveBytes >> 4) & 0xffffffff;
+                    const total = res.Items['flow'].ReceiveBytes & 0xffffffff;
+                    const server = res.Items['flow'].SendtBytes;
+                    state.serverOnline = `${online}/${total}/${server}`;
+                    delete res.Items['flow'];
                 }
 
                 let _receiveBytes = 0,_sendtBytes = 0,receiveBytes = 0,sendtBytes = 0;

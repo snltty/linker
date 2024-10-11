@@ -2,18 +2,22 @@
     <div class="status-server-wrap">
         <ServerConfig :config="config"></ServerConfig>
         <ServerVersion :config="config"></ServerVersion>
-        <ServerFlow v-if="config" :config="config"></ServerFlow>
+        <ServerFlow v-if="config && hasFlow" :config="config"></ServerFlow>
     </div>
 </template>
 <script>
-import { reactive } from 'vue';
+import { computed, reactive } from 'vue';
 import ServerConfig from './ServerConfig.vue';
 import ServerFlow from './ServerFlow.vue';
 import ServerVersion from './ServerVersion.vue';
+import { injectGlobalData } from '@/provide';
 export default {
     components:{ServerConfig,ServerFlow,ServerVersion},
     props:['config'],
     setup(props) {
+
+        const globalData = injectGlobalData();
+        const hasFlow = computed(()=>globalData.value.hasAccess('Flow')); 
 
         const state = reactive({
             show: false,
@@ -21,7 +25,7 @@ export default {
         });
 
         return {
-         config:props.config,  state
+         config:props.config,hasFlow,  state
         }
     }
 }

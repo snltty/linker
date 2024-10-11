@@ -27,12 +27,13 @@ export const provideGlobalData = () => {
         updater: {}, //更新信息
         self: {}, //本机
         hasAccess(name) {
+
             if (this.config.Client.Accesss[name] == undefined) {
                 return false;
             }
             const value = this.config.Client.Accesss[name].Value || -1;
             const access = this.config.Client.Access || -1;
-            return access >= 0 && (access == 0 || ((access & value) >>> 0) == value);
+            return access >= 0 && (access == 0 || (+(BigInt(access) & BigInt(value)).toString()) == value);
         }
     });
     subWebsocketState((state) => {

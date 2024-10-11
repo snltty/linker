@@ -4,7 +4,6 @@ using System.Linq;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
 using System.Text;
-using System.Diagnostics;
 
 namespace linker.gen
 {

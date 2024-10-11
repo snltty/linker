@@ -273,6 +273,12 @@ namespace linker.config
         [ClientAccessDisplayAttribute("查看中继流量")]
         RelayFlow = ((ulong)1 << 31),
 
+        [ClientAccessDisplayAttribute("查看信标流量")]
+        SigninFlow = ((ulong)1 << 32),
+
+        [ClientAccessDisplayAttribute("查看流量")]
+        Flow = ((ulong)1 << 33),
+
         Full = ulong.MaxValue >> (64 - 52),
     }
 

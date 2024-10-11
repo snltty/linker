@@ -10,7 +10,7 @@ namespace linker.plugins.tunnel
     /// <summary>
     /// 外网端口处理器
     /// </summary>
-    public sealed class ExternalResolver : IResolver,IFlow
+    public sealed class ExternalResolver : IResolver, IFlow
     {
         public ulong ReceiveBytes { get; private set; }
         public ulong SendtBytes { get; private set; }
@@ -52,18 +52,17 @@ namespace linker.plugins.tunnel
         /// </summary>
         /// <param name="socket"></param>
         /// <returns></returns>
-        public async Task Resolve(Socket socket)
+        public async Task Resolve(Socket socket, Memory<byte> memory)
         {
             byte[] sendData = ArrayPool<byte>.Shared.Rent(20);
             try
             {
-                Memory<byte> memory = BuildSendData(sendData, socket.RemoteEndPoint as IPEndPoint);
+                memory = BuildSendData(sendData, socket.RemoteEndPoint as IPEndPoint);
                 SendtBytes += (ulong)memory.Length;
                 await socket.SendAsync(memory, SocketFlags.None).ConfigureAwait(false);
             }
             catch (Exception)
             {
-
             }
             finally
             {

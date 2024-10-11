@@ -50,7 +50,7 @@ namespace linker.plugins.messenger
             }
         }
 
-        public async Task Resolve(Socket socket)
+        public async Task Resolve(Socket socket, Memory<byte> memory)
         {
             try
             {

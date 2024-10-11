@@ -12,6 +12,8 @@
 		<Configurations>Debug;Release</Configurations>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<PublishAot>false</PublishAot>
+		<PublishTrimmed>true</PublishTrimmed>
+		
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
 		<SignAssembly>true</SignAssembly>
 		<EnablePreviewFeatures>true</EnablePreviewFeatures>
@@ -19,14 +21,16 @@
 		<Title>linker</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 使用原生成器替代反射</Description>
+		<Description>1. 使用原生成器替代反射
+2. 统计所有服务端，客户端数量
+3. 测试中，请勿更新，请勿更新，请勿更新</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.4.8</Version>
-		<AssemblyVersion>1.4.8</AssemblyVersion>
-		<FileVersion>1.4.8</FileVersion>
+		<Version>1.4.9</Version>
+		<AssemblyVersion>1.4.9</AssemblyVersion>
+		<FileVersion>1.4.9</FileVersion>
 	</PropertyGroup>
 
 

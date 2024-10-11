@@ -54,7 +54,7 @@ namespace linker.plugins.relay
         {
             await Task.CompletedTask;
         }
-        public async Task Resolve(Socket socket)
+        public async Task Resolve(Socket socket, Memory<byte> memory)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
             try

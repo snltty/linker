@@ -23,6 +23,7 @@ namespace linker.plugins.flow
         {
             serviceCollection.AddSingleton<FlowMessenger>();
             serviceCollection.AddSingleton<FlowTransfer>();
+            serviceCollection.AddSingleton<FlowResolver>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)
