@@ -24,7 +24,7 @@ namespace linker.plugins.flow
         public ulong SendtBytes { get; private set; }
 
 
-        private ConcurrentDictionary<IPEndPoint, OnlineFlowInfo> servers = new ConcurrentDictionary<IPEndPoint, OnlineFlowInfo>();
+        private ConcurrentDictionary<IPEndPoint, OnlineFlowInfo> servers = new ConcurrentDictionary<IPEndPoint, OnlineFlowInfo>(new IPEndPointComparer());
         private readonly SignCaching signCaching;
         public FlowResolver(SignCaching signCaching)
         {
@@ -118,5 +118,18 @@ namespace linker.plugins.flow
         public long Time { get; set; }
         public int Online { get; set; }
         public int Total { get; set; }
+    }
+
+    public sealed class IPEndPointComparer : IEqualityComparer<IPEndPoint>
+    {
+        public bool Equals(IPEndPoint x, IPEndPoint y)
+        {
+            return x.Equals(y);
+        }
+        public int GetHashCode(IPEndPoint obj)
+        {
+            if (obj == null) return 0;
+            return obj.GetHashCode();
+        }
     }
 }
