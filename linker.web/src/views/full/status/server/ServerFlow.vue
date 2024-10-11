@@ -94,8 +94,8 @@ export default {
                     delete res.Items['_'];
                 }
                 if(res.Items['flow']){
-                    const online = (res.Items['flow'].ReceiveBytes >> 4) & 0xffffffff;
-                    const total = res.Items['flow'].ReceiveBytes & 0xffffffff;
+                    const online = (BigInt(res.Items['flow'].ReceiveBytes) >> BigInt(32)).toString();
+                    const total = (BigInt(res.Items['flow'].ReceiveBytes) & BigInt(0xffffffff)).toString();
                     const server = res.Items['flow'].SendtBytes;
                     state.serverOnline = `${online}/${total}/${server}`;
                     delete res.Items['flow'];

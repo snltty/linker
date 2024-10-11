@@ -76,7 +76,7 @@ export default {
             && hasAccess.value 
             && rowAccess >= 0 
             // 它的权限删掉我的权限==0，我至少拥有它的全部权限，它是我的子集，我有权管它
-            && (((~myAccess.value) & rowAccess)>>>0) == 0;
+            && +(((~BigInt(myAccess.value)) & BigInt(rowAccess)).toString()) == 0;
         }
         const handleAccess = (row)=>{
             emit('access',row);

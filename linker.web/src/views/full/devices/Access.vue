@@ -49,9 +49,9 @@ export default {
         });
 
         const getValue = ()=>{
-            return state.checkList.reduce((sum,item)=>{
-                return (sum | item) >>> 0;
-            },0);
+            return +state.checkList.reduce((sum,item)=>{
+                return (sum | BigInt(item));
+            },BigInt(0)).toString();
         }
         const handleCheckedChange = (value)=>{
             const checkedCount = value.length;
@@ -68,7 +68,7 @@ export default {
             if(allAccess && allAccess.value.list[props.machineid]){
                 const res = allAccess.value.list[props.machineid];
                 state.checkList = access.value.reduce((arr,item)=>{
-                    if(((res & item.Value) >>> 0) == item.Value){
+                    if(+(( BigInt(res) & BigInt(item.Value)).toString()) == item.Value){
                         arr.push(item.Value);
                     }
                     return arr;

@@ -77,7 +77,7 @@ namespace linker.plugins.flow
         private void Counter()
         {
             long time = Environment.TickCount64;
-            List<IPEndPoint> keys = servers.Where(c => time - c.Value.Time > 5000).Select(c => c.Key).ToList();
+            List<IPEndPoint> keys = servers.Where(c => time - c.Value.Time > 15000).Select(c => c.Key).ToList();
 
             foreach (IPEndPoint key in keys)
             {
