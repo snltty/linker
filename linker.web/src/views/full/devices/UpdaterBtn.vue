@@ -107,15 +107,17 @@ export default {
 
                 const selectedValue = ref(updaterVersion.value);
                 const selectOptions = [
-                    h(ElOption, { label: `仅[${props.item.MachineName}] -> ${updaterVersion.value}(最新版本)`, value: updaterVersion.value }),
+                    h(ElOption, { label: `仅[${props.item.MachineName}] -> ${updaterVersion.value}(最新)`, value: updaterVersion.value }),
                 ];
                 if(props.config && hasUpdateOther.value){
-                    selectOptions.push(h(ElOption, { label: `[所有] -> ${updaterVersion.value}(最新版本)`, value: `all->${updaterVersion.value}` }));
+                    selectOptions.push(h(ElOption, { label: `[本组所有] -> ${updaterVersion.value}(最新)`, value: `allg->${updaterVersion.value}` }));
+                    selectOptions.push(h(ElOption, { label: `[本服务器所有] -> ${updaterVersion.value}(最新)(需要密钥)`, value: `all->${updaterVersion.value}` }));
                 }
                 if(props.item.Version != serverVersion.value && updaterVersion.value != serverVersion.value){
                     selectOptions.push(h(ElOption, { label: `仅[${props.item.MachineName}] -> ${serverVersion.value}(服务器版本)`, value: serverVersion.value }));
                     if(props.config && hasUpdateOther.value){
-                        selectOptions.push(h(ElOption, { label: `[所有] -> ${serverVersion.value}(服务器版本)`, value: `all->${serverVersion.value}` }));
+                        selectOptions.push(h(ElOption, { label: `[本组所有] -> ${serverVersion.value}(服务器版本)`, value: `allg->${serverVersion.value}` }));
+                        selectOptions.push(h(ElOption, { label: `[本服务器所有] -> ${serverVersion.value}(服务器版本)(需要密钥)`, value: `all->${serverVersion.value}` }));
                     }
                 }
 
@@ -134,8 +136,9 @@ export default {
                 }).then(() => {
                     const data = {
                         MachineId:props.item.MachineId,
-                        Version:selectedValue.value.replace('all->',''),
-                        All:selectedValue.value.indexOf('all->') >= 0
+                        Version:selectedValue.value.replace('all->','').replace('allg->',''),
+                        GroupAll:selectedValue.value.indexOf('allg->') >= 0,
+                        All:selectedValue.value.indexOf('all->') >= 0,
                     };
                     if(data.All){
                         data.MachineId = '';

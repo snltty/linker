@@ -84,6 +84,10 @@ namespace linker.plugins.signin.messenger
             return Clients.TryGetValue(machineId, out cache);
         }
 
+        public List<SignCacheInfo> Get()
+        {
+            return Clients.Values.ToList();
+        }
         public List<SignCacheInfo> Get(string groupId)
         {
             return Clients.Values.Where(c => c.GroupId == groupId).ToList();

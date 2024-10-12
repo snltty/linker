@@ -31,6 +31,8 @@ namespace linker.plugins.updater.config
     {
         public string MachineId { get; set; }
         public string Version { get; set; }
+        public string SecretKey { get; set; }
+        public bool GroupAll { get; set; }
         public bool All { get; set; }
     }
 

@@ -120,29 +120,34 @@ namespace linker.plugins.updater.messenger
                 return;
             }
 
-            if (confirm.All)
+            //本服务器所有，需要密钥
+            if (confirm.All && fileConfig.Data.Server.Updater.SecretKey != confirm.SecretKey)
             {
-                var tasks = signCaching.Get(cache.GroupId).Where(c => c.MachineId != connection.Id).Select(c =>
-                {
-                    return messengerSender.SendOnly(new MessageRequestWrap
-                    {
-                        Connection = c.Connection,
-                        MessengerId = (ushort)UpdaterMessengerIds.Confirm,
-                        Payload = connection.ReceiveRequestWrap.Payload
-                    });
-                });
+                return;
+            }
 
-                await Task.WhenAll(tasks);
-            }
-            else if (signCaching.TryGet(confirm.MachineId, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            IEnumerable<SignCacheInfo> machines = new List<SignCacheInfo>();
+            //本服务器所有
+            if (confirm.All) machines = signCaching.Get().Where(c => c.MachineId != connection.Id);
+            //本组所有
+            else if (confirm.GroupAll) machines = signCaching.Get(cache.GroupId).Where(c => c.MachineId != connection.Id);
+            //某一个
+            else machines = signCaching.Get(cache.GroupId).Where(c => c.MachineId == confirm.MachineId && c.GroupId == cache.GroupId);
+
+
+            confirm.SecretKey = string.Empty;
+            byte[] payload = MemoryPackSerializer.Serialize(confirm);
+            var tasks = machines.Select(c =>
             {
-                await messengerSender.SendOnly(new MessageRequestWrap
+                return messengerSender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cache1.Connection,
+                    Connection = c.Connection,
                     MessengerId = (ushort)UpdaterMessengerIds.Confirm,
-                    Payload = connection.ReceiveRequestWrap.Payload
+                    Payload = payload
                 });
-            }
+            });
+
+            await Task.WhenAll(tasks);
         }
 
         /// <summary>

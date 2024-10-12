@@ -105,8 +105,12 @@ namespace linker.plugins.updater
 
             if (confirm.MachineId != config.Data.Client.Id)
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.UpdateSelf) == false) return false;
+                if (config.Data.Client.HasAccess(ClientApiAccess.UpdateOther) == false)
+                {
+                    return false;
+                }
 
+                confirm.SecretKey = config.Data.Client.Updater.SecretKey;
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = clientSignInState.Connection,
@@ -114,10 +118,12 @@ namespace linker.plugins.updater
                     Payload = MemoryPackSerializer.Serialize(confirm)
                 });
             }
-            if (confirm.MachineId == config.Data.Client.Id || confirm.All)
+            if (confirm.MachineId == config.Data.Client.Id || confirm.All || confirm.GroupAll)
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.UpdateOther) == false) return false;
-
+                if (config.Data.Client.HasAccess(ClientApiAccess.UpdateSelf) == false)
+                {
+                    return false;
+                }
                 updaterTransfer.Confirm(confirm.Version);
             }
 

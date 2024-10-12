@@ -26,7 +26,8 @@
 3. 创建docker镜像清单，自动识别平台
 4. docker镜像增加arm
 5. 优化了arm平台下获取设备ID的方法
-6. 增加了查看流量信息的权限</Description>
+6. 增加了查看流量信息的权限
+7. 有服务器更新密钥的客户端，可以更新本服务器的所有客户端</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
