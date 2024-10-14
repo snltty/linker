@@ -14,7 +14,7 @@ using System.Net;
 using linker.client.config;
 using linker.tun;
 
-namespace linker.plugins.tuntap
+namespace linker.plugins.tuntap.client
 {
     public sealed class TuntapClientApiController : IApiClientController
     {
@@ -57,7 +57,7 @@ namespace linker.plugins.tuntap
                         {
                             IP = c.Address,
                             Network = _ip,
-                            PrefixLength = c.PrefixLength,
+                            c.PrefixLength,
                             PrefixIP = mask,
                         };
                     }).ToArray(),
@@ -84,7 +84,7 @@ namespace linker.plugins.tuntap
             return new ConnectionListInfo { HashCode = version };
         }
 
-        [ClientApiAccessAttribute(ClientApiAccess.TunnelRemove)]
+        [ClientApiAccess(ClientApiAccess.TunnelRemove)]
         public void RemoveConnection(ApiControllerParamsInfo param)
         {
             tuntapProxy.RemoveConnection(param.Content);

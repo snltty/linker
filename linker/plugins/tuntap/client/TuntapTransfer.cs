@@ -13,7 +13,7 @@ using linker.plugins.tuntap.config;
 using linker.tun;
 using linker.tunnel.connection;
 
-namespace linker.plugins.tuntap
+namespace linker.plugins.tuntap.client
 {
     public sealed class TuntapTransfer
     {
@@ -501,7 +501,7 @@ namespace linker.plugins.tuntap
                 MaskLength = maskLength,
                 MaskValue = maskValue,
                 NetWork = ipInt & maskValue,
-                Broadcast = ipInt | (~maskValue),
+                Broadcast = ipInt | ~maskValue,
                 OriginIPAddress = ip,
                 MachineId = machineid
             };
@@ -551,7 +551,6 @@ namespace linker.plugins.tuntap
         }
 
 
-
         private readonly LastTicksManager lastTicksManager = new LastTicksManager();
         public void SubscribePing()
         {
@@ -584,7 +583,7 @@ namespace linker.plugins.tuntap
                 if ((runningConfig.Data.Tuntap.Switch & TuntapSwitch.AutoConnect) != TuntapSwitch.AutoConnect)
                 {
                     var connections = tuntapProxy.GetConnections();
-                    items = items.Where(c => (connections.TryGetValue(c.MachineId, out ITunnelConnection connection) && connection.Connected) || c.MachineId == config.Data.Client.Id);
+                    items = items.Where(c => connections.TryGetValue(c.MachineId, out ITunnelConnection connection) && connection.Connected || c.MachineId == config.Data.Client.Id);
                 }
 
                 foreach (var item in items)

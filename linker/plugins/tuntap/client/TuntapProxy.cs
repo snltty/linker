@@ -12,7 +12,7 @@ using linker.plugins.tunnel;
 using System.Buffers;
 using linker.client.config;
 
-namespace linker.plugins.tuntap
+namespace linker.plugins.tuntap.client
 {
     public sealed class TuntapProxy : TunnelBase, ILinkerTunDeviceCallback, ITunnelConnectionReceiveCallback
     {
@@ -27,6 +27,7 @@ namespace linker.plugins.tuntap
         private string groupid = string.Empty;
         private readonly FileConfig config;
         private readonly RunningConfig runningConfig;
+        private readonly ClientSignInState clientSignInState;
 
         public TuntapProxy(FileConfig config, RunningConfig runningConfig, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer, LinkerTunDeviceAdapter linkerTunDeviceAdapter, ClientSignInState clientSignInState)
             : base(config, tunnelTransfer, relayTransfer, clientSignInTransfer, clientSignInState)
@@ -34,6 +35,7 @@ namespace linker.plugins.tuntap
             this.config = config;
             this.runningConfig = runningConfig;
             this.linkerTunDeviceAdapter = linkerTunDeviceAdapter;
+            this.clientSignInState = clientSignInState;
             clientSignInState.NetworkEnabledHandle += (times) => ClearIPs();
         }
 
@@ -86,17 +88,8 @@ namespace linker.plugins.tuntap
         /// <returns></returns>
         public async Task Callback(LinkerTunDevicPacket packet)
         {
-            //IPV4广播组播
-            if (packet.IPV4Broadcast)
-            {
-                if (connections.IsEmpty == false && (runningConfig.Data.Tuntap.Switch & TuntapSwitch.Multicast) == 0)
-                {
-                    await Task.WhenAll(connections.Values.Where(c => c != null && c.Connected).Select(c => c.SendAsync(packet.Packet)));
-                }
-                return;
-            }
-            //IPV6 多播
-            else if (packet.IPV6Multicast)
+            //IPV4广播组播、IPV6 多播
+            if (packet.IPV4Broadcast || packet.IPV6Multicast)
             {
                 if (connections.IsEmpty == false && (runningConfig.Data.Tuntap.Switch & TuntapSwitch.Multicast) == 0)
                 {
@@ -107,7 +100,6 @@ namespace linker.plugins.tuntap
 
             //IPV4+IPV6 单播
             uint ip = BinaryPrimitives.ReadUInt32BigEndian(packet.DistIPAddress.Span[^4..]);
-
             if (ipConnections.TryGetValue(ip, out ITunnelConnection connection) == false || connection == null || connection.Connected == false)
             {
                 //开始操作，开始失败直接丢包
@@ -197,5 +189,6 @@ namespace linker.plugins.tuntap
             return null;
 
         }
+
     }
 }

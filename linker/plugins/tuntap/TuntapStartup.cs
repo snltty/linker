@@ -1,4 +1,5 @@
 ﻿using linker.config;
+using linker.plugins.tuntap.client;
 using linker.plugins.tuntap.messenger;
 using linker.startup;
 using linker.tun;
@@ -35,6 +36,7 @@ namespace linker.plugins.tuntap
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
             serviceCollection.AddSingleton<TuntapServerMessenger>();
+
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)

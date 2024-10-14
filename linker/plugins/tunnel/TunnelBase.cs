@@ -3,9 +3,17 @@ using linker.libs;
 using linker.libs.extends;
 using linker.plugins.client;
 using linker.plugins.relay;
+using linker.plugins.resolver;
 using linker.tunnel;
 using linker.tunnel.connection;
 using System.Collections.Concurrent;
+using System.Net.Security;
+using System.Net.Sockets;
+using System.Net;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
+using linker.plugins.messenger;
+using linker.plugins.tuntap.messenger;
 
 namespace linker.plugins.tunnel
 {
@@ -37,7 +45,7 @@ namespace linker.plugins.tunnel
             //监听中继成功
             relayTransfer.SetConnectedCallback(TransactionId, OnConnected);
 
-            clientSignInState.NetworkEnabledHandle += (times)=> backgroundCache.Clear();
+            clientSignInState.NetworkEnabledHandle += (times) => backgroundCache.Clear();
         }
         protected virtual void Connected(ITunnelConnection connection)
         {
@@ -102,7 +110,6 @@ namespace linker.plugins.tunnel
                 {
                     return connection;
                 }
-
                 //不在线就不必连了
                 if (await clientSignInTransfer.GetOnline(machineId) == false)
                 {
@@ -111,6 +118,7 @@ namespace linker.plugins.tunnel
                 }
 
                 connection = await RelayAndP2P(machineId, denyProtocols);
+
                 if (connection != null)
                 {
                     connections.AddOrUpdate(machineId, connection, (a, b) => connection);

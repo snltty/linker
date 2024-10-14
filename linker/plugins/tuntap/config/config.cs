@@ -161,7 +161,7 @@ namespace linker.plugins.tuntap.config
         public TuntapSwitch Switch { get; set; }
 
         [MemoryPackIgnore]
-        public LastTicksManager LastTicks { get; set; } = new  LastTicksManager();
+        public LastTicksManager LastTicks { get; set; } = new LastTicksManager();
 
         /// <summary>
         /// 延迟ms

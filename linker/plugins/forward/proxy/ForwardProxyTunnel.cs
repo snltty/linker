@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using linker.plugins.client;
 using linker.plugins.tunnel;
+using linker.plugins.messenger;
 
 namespace linker.plugins.forward.proxy
 {

@@ -1,5 +1,7 @@
-﻿using linker.plugins.messenger;
+﻿using linker.config;
+using linker.plugins.messenger;
 using linker.plugins.signin.messenger;
+using linker.plugins.tuntap.client;
 using linker.plugins.tuntap.config;
 using MemoryPack;
 
@@ -8,9 +10,11 @@ namespace linker.plugins.tuntap.messenger
     public sealed class TuntapClientMessenger : IMessenger
     {
         private readonly TuntapTransfer tuntapTransfer;
-        public TuntapClientMessenger(TuntapTransfer tuntapTransfer)
+        private readonly TuntapProxy tuntapProxy;
+        public TuntapClientMessenger(TuntapTransfer tuntapTransfer, TuntapProxy tuntapProxy)
         {
             this.tuntapTransfer = tuntapTransfer;
+            this.tuntapProxy = tuntapProxy;
         }
 
         /// <summary>
@@ -56,6 +60,7 @@ namespace linker.plugins.tuntap.messenger
             TuntapInfo _info = tuntapTransfer.OnConfig(info);
             connection.Write(MemoryPackSerializer.Serialize(_info));
         }
+
     }
 
 
@@ -63,11 +68,13 @@ namespace linker.plugins.tuntap.messenger
     {
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;
+        private readonly FileConfig config;
 
-        public TuntapServerMessenger(MessengerSender messengerSender, SignCaching signCaching)
+        public TuntapServerMessenger(MessengerSender messengerSender, SignCaching signCaching, FileConfig config)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
+            this.config = config;
         }
 
         /// <summary>
@@ -167,8 +174,10 @@ namespace linker.plugins.tuntap.messenger
                         Connection = connection,
                         Payload = MemoryPackSerializer.Serialize(results)
                     }, (ushort)TuntapMessengerIds.ConfigForward).ConfigureAwait(false);
+
                 });
             }
         }
+
     }
 }
