@@ -83,10 +83,10 @@ namespace linker.plugins.config.messenger
         }
 
 
-        [MessengerId((ushort)ConfigMessengerIds.SecretKeyAsyncForward)]
+        [MessengerId((ushort)ConfigMessengerIds.Sync)]
         public async Task SecretKeyAsyncForward(IConnection connection)
         {
-            SecretKeyAsyncInfo info = MemoryPackSerializer.Deserialize<SecretKeyAsyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            ConfigAsyncInfo info = MemoryPackSerializer.Deserialize<ConfigAsyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
                 List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
@@ -96,29 +96,7 @@ namespace linker.plugins.config.messenger
                     tasks.Add(sender.SendOnly(new MessageRequestWrap
                     {
                         Connection = item.Connection,
-                        MessengerId = (ushort)ConfigMessengerIds.SecretKeyAsync,
-                        Payload = connection.ReceiveRequestWrap.Payload,
-                        Timeout = 1000,
-                    }));
-                }
-
-                await Task.WhenAll(tasks);
-            }
-        }
-        [MessengerId((ushort)ConfigMessengerIds.ServerAsyncForward)]
-        public async Task ServerAsyncForward(IConnection connection)
-        {
-            ServerAsyncInfo info = MemoryPackSerializer.Deserialize<ServerAsyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
-            {
-                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
-                List<Task> tasks = new List<Task>();
-                foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected))
-                {
-                    tasks.Add(sender.SendOnly(new MessageRequestWrap
-                    {
-                        Connection = item.Connection,
-                        MessengerId = (ushort)ConfigMessengerIds.ServerAsync,
+                        MessengerId = (ushort)ConfigMessengerIds.Sync,
                         Payload = connection.ReceiveRequestWrap.Payload,
                         Timeout = 1000,
                     }));
@@ -134,12 +112,14 @@ namespace linker.plugins.config.messenger
         private readonly AccessTransfer accessTransfer;
         private readonly FileConfig fileConfig;
         private readonly ClientSignInTransfer clientSignInTransfer;
+        private readonly ConfigSyncTreansfer syncTreansfer;
 
-        public ConfigClientMessenger(AccessTransfer accessTransfer, FileConfig fileConfig, ClientSignInTransfer clientSignInTransfer)
+        public ConfigClientMessenger(AccessTransfer accessTransfer, FileConfig fileConfig, ClientSignInTransfer clientSignInTransfer, ConfigSyncTreansfer syncTreansfer)
         {
             this.accessTransfer = accessTransfer;
             this.fileConfig = fileConfig;
             this.clientSignInTransfer = clientSignInTransfer;
+            this.syncTreansfer = syncTreansfer;
         }
 
         [MessengerId((ushort)ConfigMessengerIds.Access)]
@@ -158,38 +138,12 @@ namespace linker.plugins.config.messenger
             connection.Write(Helper.TrueArray);
         }
 
-        [MessengerId((ushort)ConfigMessengerIds.SecretKeyAsync)]
-        public void SecretKeyAsync(IConnection connection)
+        [MessengerId((ushort)ConfigMessengerIds.Sync)]
+        public void Sync(IConnection connection)
         {
-            SecretKeyAsyncInfo info = MemoryPackSerializer.Deserialize<SecretKeyAsyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
-
-            foreach (var item in fileConfig.Data.Client.Servers)
-            {
-                item.SecretKey = info.SignSecretKey;
-            }
-            foreach (var item in fileConfig.Data.Client.Relay.Servers)
-            {
-                item.SecretKey = info.RelaySecretKey;
-            }
-            fileConfig.Data.Client.SForward.SecretKey = info.SForwardSecretKey;
-
-            fileConfig.Data.Update();
-            clientSignInTransfer.SignOut();
-            _ = clientSignInTransfer.SignIn();
+            ConfigAsyncInfo info = MemoryPackSerializer.Deserialize<ConfigAsyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            syncTreansfer.Sync(info);
         }
 
-        [MessengerId((ushort)ConfigMessengerIds.ServerAsync)]
-        public void ServerAsync(IConnection connection)
-        {
-            ServerAsyncInfo info = MemoryPackSerializer.Deserialize<ServerAsyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
-
-            fileConfig.Data.Client.Servers = info.SignServers;
-            fileConfig.Data.Client.Relay.Servers = info.RelayServers;
-            fileConfig.Data.Client.Tunnel.Servers = info.TunnelServers.ToList();
-
-            fileConfig.Data.Update();
-            clientSignInTransfer.SignOut();
-            _ = clientSignInTransfer.SignIn();
-        }
     }
 }

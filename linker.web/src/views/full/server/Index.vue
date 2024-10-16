@@ -16,12 +16,19 @@ export default {
     components:{},
     setup(props) {
 
-        const excludes = ['./Index.vue','./Version.vue','./TunnelServers.vue']
+        const globalData = injectGlobalData();
+        const hasConfig = computed(()=>globalData.value.hasAccess('Config'))
+        const hasSync = computed(()=>globalData.value.hasAccess('Sync'));
+
+        const excludes = ['./Index.vue','./Version.vue','./TunnelServers.vue'];
+        if(hasSync.value == false){
+            excludes.push('./Async.vue');
+        }
+        
 
         const files = require.context('./', true, /.+\.vue/);
         const settingComponents = files.keys().filter(c=>excludes.includes(c)==false).map(c => files(c).default).sort((a,b)=>a.order-b.order);
-        const globalData = injectGlobalData();
-        const hasConfig = computed(()=>globalData.value.hasAccess('Config'))
+        
         const state = reactive({
             tab:settingComponents[0].name
         });

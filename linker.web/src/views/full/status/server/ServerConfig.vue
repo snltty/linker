@@ -9,7 +9,9 @@
                     <el-input v-model="state.form.name" maxlength="12" show-word-limit />
                 </el-form-item>
                 <el-form-item label="分组名" prop="groupid">
-                    <el-input v-model="state.form.groupid" type="password" show-password maxlength="36" show-word-limit />
+                    <el-select v-model="state.groupid" @change="handleGroupChange">
+                        <el-option v-for="item in state.form.groups" :key="item.Id" :label="item.Name" :value="item.Id"/>
+                    </el-select>
                 </el-form-item>
             </el-form>
         </div>
@@ -26,9 +28,9 @@ import { setSignIn } from '@/apis/signin';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { computed, reactive, ref } from 'vue';
-import {Promotion} from '@element-plus/icons-vue'
+import {Promotion,CirclePlus} from '@element-plus/icons-vue'
 export default {
-    components:{Promotion},
+    components:{Promotion,CirclePlus},
     props:['config'],
     setup(props) {
 
@@ -38,9 +40,10 @@ export default {
             show: false,
             loading: false,
             connected: computed(() => globalData.value.signin.Connected),
+            groupid: globalData.value.config.Client.Group.Id,
             form: {
                 name: globalData.value.config.Client.Name,
-                groupid: globalData.value.config.Client.GroupId,
+                groups: globalData.value.config.Client.Groups,
             },
             rules: {},
         });
@@ -50,8 +53,21 @@ export default {
                 return;
             }
             state.form.name = globalData.value.config.Client.Name;
-            state.form.groupid = globalData.value.config.Client.GroupId;
+            state.form.groups = globalData.value.config.Client.Groups;
+
+            state.groupid = globalData.value.config.Client.Group.Id;
             state.show = true;
+        }
+
+        const handleGroupChange = (value)=>{
+            const index = state.form.groups.map((item,index)=>{
+                item.$index =  index;
+                return item;
+            }).filter(c=>c.Id == value)[0].$index;
+            const temp = state.form.groups[index];
+            state.form.groups[index] = state.form.groups[0];
+            state.form.groups[0] = temp;
+            console.log(state.form.groups);
         }
         const handleSave = () => {
             state.loading = true;
@@ -68,7 +84,7 @@ export default {
             });
         }
         return {
-         config:props.config,  state, handleConfig, handleSave
+         config:props.config,  state, handleConfig, handleSave,handleGroupChange
         }
     }
 }

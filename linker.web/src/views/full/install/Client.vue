@@ -14,8 +14,8 @@
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="分组名" prop="groupid">
-                            <el-input v-model="state.form.groupid" maxlength="36" show-word-limit />
+                        <el-form-item label="网页端口" prop="web">
+                            <el-input style="width:44.5rem;"  v-model="state.form.web" />
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -28,8 +28,8 @@
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="网页端口" prop="web">
-                            <el-input v-model="state.form.web" />
+                        <el-form-item label="接口密码" prop="password">
+                            <el-input  type="password" v-model="state.form.password" show-password maxlength="36" show-word-limit/>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -37,13 +37,22 @@
             <el-form-item label="" label-width="0">
                 <el-row>
                     <el-col :span="12">
-                        <el-form-item label="接口密码" prop="password">
-                            <el-input  style="width:42rem"  type="password" v-model="state.form.password" show-password maxlength="36" show-word-limit/>
+                        <el-form-item label="分组名" prop="groupid">
+                            <el-input v-model="state.form.groupid" maxlength="36" show-word-limit />
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
+                        <el-form-item label="分组密码" prop="groupPassword">
+                            <el-input v-model="state.form.groupPassword" type="password" show-password maxlength="36" show-word-limit />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form-item>
+            <el-form-item label="" label-width="0">
+                <el-row>   
+                    <el-col :span="24">
                         <el-form-item label-width="8rem" prop="hasServer">
-                            <el-checkbox v-model="state.form.hasServer" label="我有服务器" size="large" />
+                            <el-checkbox v-model="state.form.hasServer" label="我有服务器（私有部署服务端，使用自己的服务器）" size="large" />
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -107,7 +116,8 @@ export default {
         const state = reactive({
             form: {
                 name:step.value.form.client.name || globalData.value.config.Client.Name,
-                groupid: step.value.form.client.groupid ||globalData.value.config.Client.GroupId,
+                groupid: step.value.form.client.groupid ||globalData.value.config.Client.Group.Id,
+                groupPassword: step.value.form.client.groupPassword ||globalData.value.config.Client.GroupPassword,
                 api: step.value.form.client.api ||globalData.value.config.Client.CApi.ApiPort,
                 web: step.value.form.client.web ||globalData.value.config.Client.CApi.WebPort,
                 password:step.value.form.client.password || globalData.value.config.Client.CApi.ApiPassword,
@@ -122,6 +132,7 @@ export default {
             rules: {
                 name: [{ required: true, message: "必填", trigger: "blur" }],
                 groupid: [{ required: true, message: "必填", trigger: "blur" }],
+                groupPassword: [{ required: true, message: "必填", trigger: "blur" }],
                 password: [{ required: true, message: "必填", trigger: "blur" }],
                 api: [
                     { required: true, message: "必填", trigger: "blur" },
@@ -161,6 +172,7 @@ export default {
                                 Client:{
                                     name: state.form.name,
                                     groupid: state.form.groupid,
+                                    groupPassword: state.form.groupPassword,
                                     api: +state.form.api,
                                     web: +state.form.web,
                                     password: state.form.password,

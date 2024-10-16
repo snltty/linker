@@ -293,7 +293,7 @@ namespace linker.plugins.relay
                     await TaskRelay();
                 }
                 return true;
-            }, 1000);
+            }, 3000);
         }
         sealed class TestInfo
         {

@@ -34,10 +34,10 @@ namespace linker.plugins.relay.transport
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
 
-            string path = Path.GetFullPath(config.Data.Client.Certificate);
+            string path = Path.GetFullPath(config.Data.Client.SSL.File);
             if (File.Exists(path))
             {
-                certificate = new X509Certificate2(path, config.Data.Client.Password, X509KeyStorageFlags.Exportable);
+                certificate = new X509Certificate2(path, config.Data.Client.SSL.Password, X509KeyStorageFlags.Exportable);
             }
         }
 

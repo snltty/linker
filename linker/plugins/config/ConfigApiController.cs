@@ -20,8 +20,9 @@ namespace linker.plugins.config
         private readonly MessengerSender sender;
         private readonly ClientSignInState clientSignInState;
         private readonly AccessTransfer accessTransfer;
+        private readonly ConfigSyncTreansfer configSyncTreansfer;
 
-        public ConfigClientApiController(RunningConfig runningConfig, FileConfig config, ClientSignInTransfer clientSignInTransfer, MessengerSender sender, ClientSignInState clientSignInState, AccessTransfer accessTransfer)
+        public ConfigClientApiController(RunningConfig runningConfig, FileConfig config, ClientSignInTransfer clientSignInTransfer, MessengerSender sender, ClientSignInState clientSignInState, AccessTransfer accessTransfer, ConfigSyncTreansfer configSyncTreansfer)
         {
             this.runningConfig = runningConfig;
             this.config = config;
@@ -29,6 +30,7 @@ namespace linker.plugins.config
             this.sender = sender;
             this.clientSignInState = clientSignInState;
             this.accessTransfer = accessTransfer;
+            this.configSyncTreansfer = configSyncTreansfer;
         }
 
         public object Get(ApiControllerParamsInfo param)
@@ -42,7 +44,7 @@ namespace linker.plugins.config
             if (info.Common.Modes.Contains("client"))
             {
                 config.Data.Client.Name = info.Client.Name;
-                config.Data.Client.GroupId = info.Client.GroupId;
+                config.Data.Client.Groups = new ClientGroupInfo[] { new ClientGroupInfo { Id = info.Client.GroupId, Name = info.Client.GroupId, Password = info.Client.GroupPassword } };
                 config.Data.Client.CApi.WebPort = info.Client.Web;
                 config.Data.Client.CApi.ApiPort = info.Client.Api;
                 config.Data.Client.CApi.ApiPassword = info.Client.Password;
@@ -163,6 +165,8 @@ namespace linker.plugins.config
                 client.Access = accessTransfer.AssignAccess((ClientApiAccess)configExportInfo.Access);
                 client.OnlyNode = true;
                 client.Action.Args.Clear();
+
+                client.Groups = new ClientGroupInfo[] { client.Group };
                 File.WriteAllText(Path.Combine(configPath, $"client.json"), client.Serialize(client));
 
                 ConfigCommonInfo common = config.Data.Common.ToJson().DeJson<ConfigCommonInfo>();
@@ -221,31 +225,17 @@ namespace linker.plugins.config
         }
 
 
-        public async Task<bool> SecretKeyAsync(ApiControllerParamsInfo param)
+        public List<ConfigSyncNameInfo> SyncNames(ApiControllerParamsInfo param)
         {
-            SecretKeyAsyncInfo info = param.Content.DeJson<SecretKeyAsyncInfo>();
-            await sender.SendOnly(new MessageRequestWrap
-            {
-                Connection = clientSignInState.Connection,
-                MessengerId = (ushort)ConfigMessengerIds.SecretKeyAsyncForward,
-                Payload = MemoryPackSerializer.Serialize(info)
-            });
-
+            return configSyncTreansfer.GetNames();
+        }
+        [ClientApiAccessAttribute(ClientApiAccess.Sync)]
+        public bool Sync(ApiControllerParamsInfo param)
+        {
+            string[] names = param.Content.DeJson<string[]>();
+            configSyncTreansfer.Sync(names);
             return true;
         }
-        public async Task<bool> ServerAsync(ApiControllerParamsInfo param)
-        {
-            ServerAsyncInfo info = param.Content.DeJson<ServerAsyncInfo>();
-            await sender.SendOnly(new MessageRequestWrap
-            {
-                Connection = clientSignInState.Connection,
-                MessengerId = (ushort)ConfigMessengerIds.ServerAsyncForward,
-                Payload = MemoryPackSerializer.Serialize(info)
-            });
-
-            return true;
-        }
-
     }
 
     public sealed class ConfigInstallInfo
@@ -258,6 +248,8 @@ namespace linker.plugins.config
     {
         public string Name { get; set; }
         public string GroupId { get; set; }
+        public string GroupPassword { get; set; }
+
         public int Api { get; set; }
         public int Web { get; set; }
         public string Password { get; set; }
@@ -301,7 +293,6 @@ namespace linker.plugins.config
     {
         public string[] Modes { get; set; }
     }
-
 
     public sealed class ConfigExportInfo
     {

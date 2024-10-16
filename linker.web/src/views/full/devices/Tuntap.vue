@@ -1,5 +1,8 @@
 <template>
     <el-table-column prop="tuntap" label="虚拟网卡" width="160">
+        <template #header>
+           <a href="javascript:;" class="a-line">虚拟网卡</a>
+        </template>
         <template #default="scope">
             <div v-if="tuntap.list[scope.row.MachineId]">
                 <TuntapShow :config="true" :item="scope.row" @edit="handleTuntapIP" @refresh="handleTuntapRefresh"></TuntapShow>

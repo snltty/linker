@@ -8,7 +8,7 @@ namespace linker.plugins.sforward.proxy
     {
 
         private readonly NumberSpace ns = new NumberSpace();
-        private byte[] flagBytes = Encoding.UTF8.GetBytes($"snltty.sforward");
+        private byte[] flagBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.sforward");
 
         private readonly SForwardFlow sForwardFlow;
         public SForwardProxy(SForwardFlow sForwardFlow)

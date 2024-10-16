@@ -272,20 +272,24 @@ namespace linker.plugins.forward.proxy
         {
             TimerHelper.SetInterval(() =>
             {
-                var connections = udpConnections.Where(c => c.Value.Timeout).Select(c => c.Key).ToList();
-                foreach (var item in connections)
+                if(udpConnections.Count > 0)
                 {
-                    if (udpConnections.TryRemove(item, out AsyncUserUdpTokenTarget token))
+                    var connections = udpConnections.Where(c => c.Value.Timeout).Select(c => c.Key).ToList();
+                    foreach (var item in connections)
                     {
-                        try
+                        if (udpConnections.TryRemove(item, out AsyncUserUdpTokenTarget token))
                         {
-                            token.Clear();
-                        }
-                        catch (Exception)
-                        {
+                            try
+                            {
+                                token.Clear();
+                            }
+                            catch (Exception)
+                            {
+                            }
                         }
                     }
                 }
+                
                 return true;
             }, 5000);
         }

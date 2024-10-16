@@ -1,5 +1,6 @@
 ﻿using linker.client.config;
 using linker.config;
+using linker.libs;
 using LiteDB;
 using MemoryPack;
 using System.Diagnostics.CodeAnalysis;
@@ -55,10 +56,11 @@ namespace linker.config
     }
     public sealed class RelayConfigServerInfo
     {
-        /// <summary>
-        /// 中继密钥
-        /// </summary>
+#if DEBUG
+        public string SecretKey { get; set; } = Helper.GlobalString;
+#else
         public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
+#endif
         /// <summary>
         /// 缓冲区
         /// </summary>
@@ -83,7 +85,7 @@ namespace linker.config
         /// <summary>
         /// 密钥
         /// </summary>
-        public string SecretKey { get; set; } = "snltty";
+        public string SecretKey { get; set; } = Helper.GlobalString;
         /// <summary>
         /// 服务器地址
         /// </summary>

@@ -25,6 +25,7 @@ namespace linker.plugins.tuntap.client
         private readonly LinkerTunDeviceAdapter linkerTunDeviceAdapter;
 
         private string groupid = string.Empty;
+
         private readonly FileConfig config;
         private readonly RunningConfig runningConfig;
         private readonly ClientSignInState clientSignInState;
@@ -36,6 +37,7 @@ namespace linker.plugins.tuntap.client
             this.runningConfig = runningConfig;
             this.linkerTunDeviceAdapter = linkerTunDeviceAdapter;
             this.clientSignInState = clientSignInState;
+
             clientSignInState.NetworkEnabledHandle += (times) => ClearIPs();
         }
 
@@ -153,16 +155,6 @@ namespace linker.plugins.tuntap.client
             list.Add(machineId);
         }
 
-        private void ClearIPs()
-        {
-            if (groupid != config.Data.Client.GroupId)
-            {
-                ip2MachineDic.Clear();
-                ipConnections.Clear();
-            }
-            groupid = config.Data.Client.GroupId;
-        }
-
         /// <summary>
         /// 打洞或者中继
         /// </summary>
@@ -190,5 +182,16 @@ namespace linker.plugins.tuntap.client
 
         }
 
+
+
+        private void ClearIPs()
+        {
+            if (groupid != config.Data.Client.Group.Id)
+            {
+                ip2MachineDic.Clear();
+                ipConnections.Clear();
+            }
+            groupid = config.Data.Client.Group.Id;
+        }
     }
 }

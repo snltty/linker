@@ -21,13 +21,6 @@ namespace linker.libs
             await Task.Delay(-1, cancellationTokenSource.Token).ConfigureAwait(false);
         }
 
-        static DateTime startTime = new DateTime(1970, 1, 1);
-        public static long Timestamp()
-        {
-            return (long)(DateTime.UtcNow.Subtract(startTime)).TotalMilliseconds;
-        }
-
-
         private delegate bool ConsoleCtrlDelegate(int ctrlType);
         private static ConsoleCtrlDelegate handler;
         [DllImport("Kernel32")]

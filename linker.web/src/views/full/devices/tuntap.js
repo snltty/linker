@@ -11,7 +11,9 @@ export const provideTuntap = () => {
         showEdit: false,
         current: null,
         list: {},
-        hashcode: 0
+        hashcode: 0,
+
+        showDHCP: false,
     });
     provide(tuntapSymbol, tuntap);
 

@@ -6,6 +6,7 @@ using MemoryPack;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace linker.client.config
 {
@@ -91,10 +92,7 @@ namespace linker.config
         };
         public ClientServerInfo[] Servers
         {
-            get => servers; set
-            {
-                servers = value;
-            }
+            get => servers; set { servers = value; }
         }
         public ClientServerInfo ServerInfo => servers[0];
 
@@ -108,6 +106,7 @@ namespace linker.config
             }
         }
 
+
         private string name = Dns.GetHostName().SubStr(0, 12);
         public string Name
         {
@@ -118,7 +117,7 @@ namespace linker.config
         }
 
 #if DEBUG
-        private string groupid = "snltty";
+        private string groupid = Helper.GlobalString;
 #else
         private string groupid = string.Empty;
 #endif
@@ -130,8 +129,14 @@ namespace linker.config
             }
         }
 
-        public string Certificate { get; set; } = "./snltty.pfx";
-        public string Password { get; set; } = "oeq9tw1o";
+
+        public ClientGroupInfo Group => Groups.Length == 0 ? new ClientGroupInfo { } : Groups[0];
+        public ClientGroupInfo[] Groups { get; set; } = Array.Empty<ClientGroupInfo>();
+
+        /// <summary>
+        /// 加密证书
+        /// </summary>
+        public ClientCertificateInfo SSL { get; set; } = new ClientCertificateInfo();
 
         public string Serialize(object obj)
         {
@@ -141,7 +146,6 @@ namespace linker.config
             return Convert.ToBase64String(crypto.Encode(Encoding.UTF8.GetBytes(obj.ToJson())));
 #endif
         }
-
         public object Deserialize(string text)
         {
             if (text.Contains("ApiPassword"))
@@ -150,7 +154,52 @@ namespace linker.config
             }
             return Encoding.UTF8.GetString(crypto.Decode(Convert.FromBase64String(text)).ToArray()).DeJson<ConfigClientInfo>();
         }
+
+        public string ToGroupString()
+        {
+            return $"{name}->{Group.Id}->{Group.Password}";
+        }
     }
+
+    [MemoryPackable]
+    public sealed partial class ClientGroupInfo
+    {
+        public ClientGroupInfo() { }
+
+        public string Name { get; set; } = string.Empty;
+
+#if DEBUG
+        private string id = Helper.GlobalString;
+#else
+        private string id = string.Empty;
+#endif
+        public string Id
+        {
+            get => id; set
+            {
+                id = value.SubStr(0, 36);
+            }
+        }
+
+        private string passord = string.Empty;
+        public string Password
+        {
+            get => passord; set
+            {
+                passord = value.SubStr(0, 36);
+            }
+        }
+    }
+
+
+    [MemoryPackable]
+    public sealed partial class ClientCertificateInfo
+    {
+        public ClientCertificateInfo() { }
+        public string File { get; set; } = "./snltty.pfx";
+        public string Password { get; set; } = "oeq9tw1o";
+    }
+
 
     [MemoryPackable]
     public sealed partial class ClientServerInfo
@@ -165,6 +214,7 @@ namespace linker.config
             return $"{Host}-{SecretKey}";
         }
     }
+
 
     [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
     public sealed class ClientApiAccessAttribute : Attribute
@@ -278,6 +328,9 @@ namespace linker.config
 
         [ClientAccessDisplayAttribute("查看流量")]
         Flow = ((ulong)1 << 33),
+
+        [ClientAccessDisplayAttribute("同步配置")]
+        Sync = ((ulong)1 << 34),
 
         Full = ulong.MaxValue >> (64 - 52),
     }

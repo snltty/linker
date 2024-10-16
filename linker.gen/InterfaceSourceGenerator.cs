@@ -21,6 +21,7 @@ namespace linker.gen
              new GeneratorInfo{ ClassName="StartupTransfer", ClassNameSpace="linker.startup", InterfaceName="linker.startup.IStartup", Instance=true },
              new GeneratorInfo{ ClassName="MessengerResolverTypes", ClassNameSpace="linker.plugins.messenger", InterfaceName="linker.plugins.messenger.IMessenger"},
              new GeneratorInfo{ ClassName="ApiClientServer", ClassNameSpace="linker.plugins.capi", InterfaceName="linker.plugins.capi.IApiClientController"},
+             new GeneratorInfo{ ClassName="ConfigSyncTreansfer", ClassNameSpace="linker.plugins.config", InterfaceName="linker.plugins.config.IConfigSync"},
         };
 
         public void Initialize(IncrementalGeneratorInitializationContext context)

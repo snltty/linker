@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Sockets;
 using linker.plugins.messenger;
 using linker.plugins.signIn.args;
+using linker.plugins.signin;
 
 namespace linker.plugins.client
 {
@@ -62,7 +63,7 @@ namespace linker.plugins.client
         /// <returns></returns>
         public async Task SignIn()
         {
-            if (string.IsNullOrWhiteSpace(config.Data.Client.GroupId))
+            if (string.IsNullOrWhiteSpace(config.Data.Client.Group.Id))
             {
                 LoggerHelper.Instance.Error($"please configure group id");
                 return;
@@ -149,7 +150,7 @@ namespace linker.plugins.client
                     MachineId = config.Data.Client.Id,
                     Version = config.Data.Version,
                     Args = args,
-                    GroupId = config.Data.Client.GroupId,
+                    GroupId = config.Data.Client.Group.Id,
                 })
             }).ConfigureAwait(false);
             if (resp.Code != MessageResponeCodes.OK)
@@ -207,39 +208,30 @@ namespace linker.plugins.client
         /// 修改客户端名称
         /// </summary>
         /// <param name="newName"></param>
-        public void SetName(string newName)
+        public void Set(string newName)
         {
-            string name = config.Data.Client.Name;
-
-            if (name != newName)
-            {
-                config.Data.Client.Name = newName;
-                config.Data.Update();
-
-                SignOut();
-                _ = SignIn();
-            }
-
-
+            config.Data.Client.Name = newName;
+            config.Data.Update();
         }
         /// <summary>
         /// 修改客户端名称和分组编号
         /// </summary>
         /// <param name="newName"></param>
-        /// <param name="newGroupid"></param>
-        public void Set(string newName, string newGroupid)
+        /// <param name="groups"></param>
+        public void Set(string newName, ClientGroupInfo[] groups)
         {
-            string name = config.Data.Client.Name;
-            string gid = config.Data.Client.GroupId;
-
-            if (name != newName || gid != newGroupid)
-            {
-                config.Data.Client.Name = newName;
-                config.Data.Client.GroupId = newGroupid;
-                config.Data.Update();
-                SignOut();
-                _ = SignIn();
-            }
+            config.Data.Client.Name = newName;
+            config.Data.Client.Groups = groups.DistinctBy(c => c.Name).ToArray(); 
+            config.Data.Update();
+        }
+        /// <summary>
+        /// 设置分组编号
+        /// </summary>
+        /// <param name="groups"></param>
+        public void Set(ClientGroupInfo[] groups)
+        {
+            config.Data.Client.Groups = groups.DistinctBy(c=>c.Name).ToArray();
+            config.Data.Update();
         }
 
 
@@ -265,7 +257,6 @@ namespace linker.plugins.client
 
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
-
         /// <summary>
         /// 获取一个新的id
         /// </summary>
@@ -290,22 +281,14 @@ namespace linker.plugins.client
         /// 修改信标服务器列表
         /// </summary>
         /// <param name="servers"></param>
-        public async Task SetServers(ClientServerInfo[] servers)
+        public void SetServers(ClientServerInfo[] servers)
         {
-            await SetServersReSignin(servers);
+            SetServersReSignin(servers);
         }
-        private async Task SetServersReSignin(ClientServerInfo[] servers)
+        private void SetServersReSignin(ClientServerInfo[] servers)
         {
-            string str = config.Data.Client.ServerInfo.ToStr();
-
             config.Data.Client.Servers = servers;
             config.Data.Update();
-
-            if (str != config.Data.Client.ServerInfo.ToStr())
-            {
-                SignOut();
-                await SignIn();
-            }
         }
     }
 }

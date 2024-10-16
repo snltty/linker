@@ -86,7 +86,7 @@ import { Delete,Plus,Top,Bottom } from '@element-plus/icons-vue';
 export default {
     label:'中继服务器',
     name:'relayServers',
-    order:4,
+    order:2,
     components:{Delete,Plus,Top,Bottom},
     setup(props) {
         const globalData = injectGlobalData();

@@ -107,7 +107,7 @@ namespace linker.libs
                 for (ushort i = 1; i <= 5; i++)
                 {
                     using Ping pinger = new();
-                    PingReply reply = pinger.Send(target, 100, Encoding.ASCII.GetBytes("snltty"), new PingOptions { Ttl = i, DontFragment = true });
+                    PingReply reply = pinger.Send(target, 100, Encoding.ASCII.GetBytes(Helper.GlobalString), new PingOptions { Ttl = i, DontFragment = true });
 
                     if (starts.Any(c => reply.Address.ToString().StartsWith(c)))
                     {

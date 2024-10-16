@@ -13,11 +13,8 @@
         AccessUpdate = 2505,
         AccessUpdateForward = 2506,
 
-        SecretKeyAsync = 2507,
-        SecretKeyAsyncForward = 2508,
-
-        ServerAsync = 2509,
-        ServerAsyncForward = 2510,
+        Sync = 2507,
+        SyncForward = 2508,
 
         Max = 2599
     }

@@ -20,7 +20,7 @@ namespace linker.plugins.signin.messenger
         public void Name(IConnection connection)
         {
             ConfigSetNameInfo info = MemoryPackSerializer.Deserialize<ConfigSetNameInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            clientSignInTransfer.SetName(info.NewName);
+            clientSignInTransfer.Set(info.NewName);
         }
 
     }

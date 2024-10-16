@@ -23,9 +23,6 @@ namespace linker.plugins.signin
         public bool SetArgs(ApiControllerParamsInfo param)
         {
             actionTransfer.SetActionArg(param.Content);
-            clientSignInTransfer.SignOut();
-            _ = clientSignInTransfer.SignIn();
-
             return true;
         }
 
@@ -33,8 +30,6 @@ namespace linker.plugins.signin
         public bool SetServerArgs(ApiControllerParamsInfo param)
         {
             actionTransfer.SetActionArgs(param.Content.DeJson<Dictionary<string, string>>());
-            clientSignInTransfer.SignOut();
-            _ = clientSignInTransfer.SignIn();
             return true;
         }
     }

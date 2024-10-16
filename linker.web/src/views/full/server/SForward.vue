@@ -16,7 +16,7 @@ import {onMounted, reactive } from 'vue'
 export default {
     label:'服务器穿透',
     name:'sforward',
-    order:5,
+    order:3,
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({

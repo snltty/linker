@@ -16,7 +16,7 @@ import { computed, inject, onMounted, reactive } from 'vue'
 export default {
     label:'服务器更新',
     name:'updater',
-    order:6,
+    order:4,
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({

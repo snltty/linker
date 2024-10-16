@@ -4,6 +4,7 @@ import { sendWebsocketMsg } from './request'
 export const setSignIn = (data) => {
     return sendWebsocketMsg('signInclient/set', data);
 }
+
 export const setSignInServers = (servers) => {
     return sendWebsocketMsg('signInclient/setservers', servers);
 }
@@ -26,4 +27,7 @@ export const signInDel = (machineId) => {
 
 export const setSignInName = (data) => {
     return sendWebsocketMsg('signInclient/setname', data);
+}
+export const setSignInGroups = (data) => {
+    return sendWebsocketMsg('signInclient/SetGroups', data);
 }

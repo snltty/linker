@@ -27,7 +27,7 @@ namespace linker.plugins.signin
         public void Set(ApiControllerParamsInfo param)
         {
             ConfigSetInfo info = param.Content.DeJson<ConfigSetInfo>();
-            clientSignInTransfer.Set(info.Name, info.GroupId);
+            clientSignInTransfer.Set(info.Name, info.Groups);
         }
 
         public async Task<bool> SetName(ApiControllerParamsInfo param)
@@ -38,7 +38,7 @@ namespace linker.plugins.signin
             {
                 if (config.Data.Client.HasAccess(ClientApiAccess.RenameSelf) == false) return false;
 
-                clientSignInTransfer.SetName(info.NewName);
+                clientSignInTransfer.Set(info.NewName);
             }
             else
             {
@@ -53,12 +53,17 @@ namespace linker.plugins.signin
             }
             return true;
         }
+        public void SetGroups(ApiControllerParamsInfo param)
+        {
+            ClientGroupInfo[] info = param.Content.DeJson<ClientGroupInfo[]>();
+            clientSignInTransfer.Set(info);
+        }
 
         [ClientApiAccessAttribute(ClientApiAccess.Config)]
-        public async Task<bool> SetServers(ApiControllerParamsInfo param)
+        public bool SetServers(ApiControllerParamsInfo param)
         {
             ClientServerInfo[] servers = param.Content.DeJson<ClientServerInfo[]>();
-            await clientSignInTransfer.SetServers(servers);
+            clientSignInTransfer.SetServers(servers);
             return true;
         }
 
@@ -117,7 +122,6 @@ namespace linker.plugins.signin
             return new SignInIdsResponseInfo { };
         }
 
-
     }
 
     [MemoryPackable]
@@ -130,7 +134,7 @@ namespace linker.plugins.signin
     public sealed class ConfigSetInfo
     {
         public string Name { get; set; }
-        public string GroupId { get; set; }
+        public ClientGroupInfo[] Groups { get; set; }
     }
 
 }

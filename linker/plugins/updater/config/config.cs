@@ -60,7 +60,7 @@ namespace linker.config
         /// <summary>
         /// 密钥
         /// </summary>
-        public string SecretKey { get; set; } = "snltty";
+        public string SecretKey { get; set; } = Helper.GlobalString;
     }
 
     public partial class ConfigServerInfo
@@ -76,7 +76,11 @@ namespace linker.config
         /// <summary>
         /// 密钥
         /// </summary>
+#if DEBUG
+        public string SecretKey { get; set; } = Helper.GlobalString;
+#else
         public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
+#endif
     }
 
 

@@ -24,11 +24,16 @@ namespace linker.plugins.client
             {
                 config.Data.Client.Name = Dns.GetHostName().SubStr(0, 12);
             }
+            if (config.Data.Client.Groups.Length == 0)
+            {
+                config.Data.Client.Groups = new ClientGroupInfo[] { new ClientGroupInfo { Id = config.Data.Client.GroupId, Name= config.Data.Client.GroupId, Password = string.Empty } };
+            }
 
             serviceCollection.AddSingleton<ClientSignInState>();
             serviceCollection.AddSingleton<ClientSignInTransfer>();
 
             serviceCollection.AddSingleton<SignInArgsSecretKeyClient>();
+            serviceCollection.AddSingleton<SignInArgsGroupPasswordClient>();
 
         }
 
@@ -45,6 +50,7 @@ namespace linker.plugins.client
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
             serviceCollection.AddSingleton<SignInArgsSecretKeyServer>();
+            serviceCollection.AddSingleton<SignInArgsGroupPasswordServer>();
         }
         public void UseServer(ServiceProvider serviceProvider, FileConfig config)
         {

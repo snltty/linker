@@ -43,10 +43,10 @@ namespace linker.plugins.tunnel
             this.excludeIPTransfer = excludeIPTransfer;
             this.upnpTransfer = upnpTransfer;
 
-            string path = Path.GetFullPath(config.Data.Client.Certificate);
+            string path = Path.GetFullPath(config.Data.Client.SSL.File);
             if (File.Exists(path))
             {
-                Certificate = new X509Certificate2(path, config.Data.Client.Password, X509KeyStorageFlags.Exportable);
+                Certificate = new X509Certificate2(path, config.Data.Client.SSL.Password, X509KeyStorageFlags.Exportable);
             }
         }
 

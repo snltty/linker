@@ -56,7 +56,7 @@ namespace linker.plugins.tuntap.client
         }
         private void NetworkEanble(int times)
         {
-            if (runningConfig.Data.Tuntap.Group2IP.TryGetValue(config.Data.Client.GroupId, out TuntapGroup2IPInfo tuntapGroup2IPInfo))
+            if (runningConfig.Data.Tuntap.Group2IP.TryGetValue(config.Data.Client.Group.Id, out TuntapGroup2IPInfo tuntapGroup2IPInfo))
             {
                 if (tuntapGroup2IPInfo.IP.Equals(runningConfig.Data.Tuntap.IP) == false || tuntapGroup2IPInfo.PrefixLength != runningConfig.Data.Tuntap.PrefixLength)
                 {
@@ -222,7 +222,7 @@ namespace linker.plugins.tuntap.client
                 runningConfig.Data.Tuntap.Forwards = info.Forwards;
 
                 TuntapGroup2IPInfo tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = info.IP, PrefixLength = info.PrefixLength };
-                runningConfig.Data.Tuntap.Group2IP.AddOrUpdate(config.Data.Client.GroupId, tuntapGroup2IPInfo, (a, b) => tuntapGroup2IPInfo);
+                runningConfig.Data.Tuntap.Group2IP.AddOrUpdate(config.Data.Client.Group.Id, tuntapGroup2IPInfo, (a, b) => tuntapGroup2IPInfo);
 
                 runningConfig.Data.Update();
                 if (Status == TuntapStatus.Running && needReboot)
@@ -434,16 +434,14 @@ namespace linker.plugins.tuntap.client
         /// <param name="infos"></param>
         private void CheckLanIPs()
         {
-            uint[] localIps = config.Data.Client.Tunnel.LocalIPs.Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).Concat(config.Data.Client.Tunnel.RouteIPs)
-                .Select(c => BinaryPrimitives.ReadUInt32BigEndian(c.GetAddressBytes()))
-                .ToArray();
+            uint[] excludeIps = ExcludeIps();
 
             var ips = tuntapInfos.Values.Where(c => c.MachineId != config.Data.Client.Id).Select(c =>
                 {
                     return new TuntapVeaLanIPAddressList
                     {
                         MachineId = c.MachineId,
-                        IPS = ParseIPs(c.LanIPs, c.Masks, c.MachineId).Where(c => localIps.Select(d => d & c.MaskValue).Contains(c.NetWork)).ToList(),
+                        IPS = ParseIPs(c.LanIPs, c.Masks, c.MachineId).Where(c => excludeIps.Select(d => d & c.MaskValue).Contains(c.NetWork)).ToList(),
                     };
                 }).ToList();
 
@@ -456,16 +454,23 @@ namespace linker.plugins.tuntap.client
             Version.Add();
         }
 
-
-        private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)
+        private uint[] ExcludeIps()
         {
-            uint[] localIps = config.Data.Client.Tunnel.LocalIPs.Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                .Concat(new IPAddress[] { runningConfig.Data.Tuntap.IP })
+            return //本机局域网IP
+                config.Data.Client.Tunnel.LocalIPs.Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                //网卡IP  服务器IP
+                .Concat(new IPAddress[] { runningConfig.Data.Tuntap.IP, clientSignInState.Connection.Address.Address })
+                //网卡配置的局域网IP
                 .Concat(runningConfig.Data.Tuntap.LanIPs.Where(c => c != null))
+                //路由上的IP
                 .Concat(config.Data.Client.Tunnel.RouteIPs)
                 .Select(c => BinaryPrimitives.ReadUInt32BigEndian(c.GetAddressBytes()))
                 .ToArray();
-
+        }
+        private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)
+        {
+            //排除的IP，
+            uint[] excludeIps = ExcludeIps();
             return infos
                 //自己的ip不要
                 .Where(c => c.IP.Equals(runningConfig.Data.Tuntap.IP) == false && c.LastTicks.HasValue())
@@ -476,8 +481,7 @@ namespace linker.plugins.tuntap.client
                     {
                         MachineId = c.MachineId,
                         IPS = ParseIPs(c.LanIPs, c.Masks, c.MachineId)
-                        //这边的局域网IP也不要，为了防止将本机局域网IP路由到别的地方
-                        .Where(c => localIps.Select(d => d & c.MaskValue).Contains(c.NetWork) == false).ToList(),
+                        .Where(c => excludeIps.Select(d => d & c.MaskValue).Contains(c.NetWork) == false).ToList(),
                     };
                 }).ToList();
         }

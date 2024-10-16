@@ -1,4 +1,5 @@
-﻿using LiteDB;
+﻿using linker.libs;
+using LiteDB;
 using MemoryPack;
 using System.Net;
 using System.Text.Json.Serialization;
@@ -11,7 +12,7 @@ namespace linker.client.config
         /// <summary>
         /// 服务器穿透密钥
         /// </summary>
-        public string SForwardSecretKey { get; set; } = "snltty";
+        public string SForwardSecretKey { get; set; } = Helper.GlobalString;
         /// <summary>
         /// 服务器穿透列表
         /// </summary>
@@ -81,7 +82,7 @@ namespace linker.config
     }
     public sealed class SForwardConfigInfo
     {
-        public string SecretKey { get; set; } = "snltty";
+        public string SecretKey { get; set; } = Helper.GlobalString;
     }
 
 
@@ -97,7 +98,11 @@ namespace linker.config
         /// <summary>
         /// 密钥
         /// </summary>
+#if DEBUG
+        public string SecretKey { get; set; } = Helper.GlobalString;
+#else
         public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
+#endif
         /// <summary>
         /// 缓冲区
         /// </summary>

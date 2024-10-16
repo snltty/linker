@@ -28,6 +28,10 @@ namespace linker.plugins.config
 
 
             serviceCollection.AddSingleton<AccessTransfer>();
+
+            serviceCollection.AddSingleton<ConfigSyncTreansfer>();
+
+
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
@@ -38,6 +42,8 @@ namespace linker.plugins.config
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
             RunningConfig runningConfig = serviceProvider.GetService<RunningConfig>();
+
+            ConfigSyncTreansfer configSyncTreansfer = serviceProvider.GetService<ConfigSyncTreansfer>();
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config)

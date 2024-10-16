@@ -112,7 +112,7 @@ namespace linker.config
                     Data.Updated--;
                 }
                 return true;
-            }, 1000);
+            }, 3000);
         }
     }
 

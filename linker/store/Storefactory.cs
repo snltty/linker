@@ -1,4 +1,5 @@
-﻿using linker.libs.extends;
+﻿using linker.libs;
+using linker.libs.extends;
 using LiteDB;
 using LiteDB.Engine;
 using System.Net;
@@ -22,12 +23,12 @@ namespace linker.store
             if (Encoded() == false)
             {
                 database = new LiteDatabase(@"./configs/db.db", bsonMapper);
-                var rebuildOptions = new RebuildOptions { Password = "snltty" };
+                var rebuildOptions = new RebuildOptions { Password = Helper.GlobalString };
                 database.Rebuild(rebuildOptions);
             }
             else
             {
-                database = new LiteDatabase(new ConnectionString("Filename=./configs/db.db; Password=snltty"), bsonMapper);
+                database = new LiteDatabase(new ConnectionString($"Filename=./configs/db.db; Password={Helper.GlobalString}"), bsonMapper);
             }
         }
 

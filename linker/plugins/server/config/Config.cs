@@ -10,8 +10,7 @@ namespace linker.config
         public ConfigServerInfo() { }
         public int ServicePort { get; set; } = 1802;
 
-        public string Certificate { get; set; } = "./snltty.pfx";
-        public string Password { get; set; } = "oeq9tw1o";
+        public ServerCertificateInfo SSL { get; set; } = new ServerCertificateInfo();
 
         public object Deserialize(string text)
         {
@@ -21,5 +20,12 @@ namespace linker.config
         {
             return obj.ToJsonFormat();
         }
+    }
+
+    public sealed partial class ServerCertificateInfo
+    {
+        public ServerCertificateInfo() { }
+        public string File { get; set; } = "./snltty.pfx";
+        public string Password { get; set; } = "oeq9tw1o";
     }
 }

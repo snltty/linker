@@ -21,7 +21,7 @@ namespace linker.plugins.messenger
             serviceCollection.AddSingleton<MessengerSender>();
             serviceCollection.AddSingleton<MessengerResolver>();
             serviceCollection.AddSingleton<MessengerFlow>();
-            
+
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
@@ -41,7 +41,7 @@ namespace linker.plugins.messenger
 
                 MessengerResolver messengerResolver = serviceProvider.GetService<MessengerResolver>();
                 messengerResolver.LoadMessenger();
-                messengerResolver.Init(config.Data.Client.Certificate, config.Data.Client.Password);
+                messengerResolver.Init(config.Data.Client.SSL.File, config.Data.Client.SSL.Password);
 
             }
         }
@@ -54,7 +54,7 @@ namespace linker.plugins.messenger
 
                 MessengerResolver messengerResolver = serviceProvider.GetService<MessengerResolver>();
                 messengerResolver.LoadMessenger();
-                messengerResolver.Init(config.Data.Server.Certificate, config.Data.Server.Password);
+                messengerResolver.Init(config.Data.Server.SSL.File, config.Data.Server.SSL.Password);
 
             }
         }

@@ -1,9 +1,9 @@
 <template>
-    <a v-if="config" href="javascript:;" title="linker服务端网速，点击查看详细信息" @click="handleShow">
-        <p>在线 {{state.overallOnline}}、{{ state.serverOnline }}</p>
-        <p>上传 {{state.overallSendtSpeed}}/s</p>
-        <p>下载 {{state.overallReceiveSpeed}}/s</p>
-    </a>
+    <div class="flow-wrap" v-if="config">
+        <p>在线 <a href="javascript:;" :title="`本服务器\r\n在线数/7天内上线数`">{{state.overallOnline}}</a><a href="javascript:;" :title="`所有服务器\r\n在线数/7天内上线数/服务端数`">{{ state.serverOnline }}</a></p>
+        <p>上传 <a href="javascript:;" :title="`本服务器\r\n发送速率`" @click="handleShow">{{state.overallSendtSpeed}}/s</a></p>
+        <p>下载 <a href="javascript:;" :title="`本服务器\r\n接收速率`" @click="handleShow">{{state.overallReceiveSpeed}}/s</a></p>
+    </div>
     <el-dialog :title="state.time" destroy-on-close v-model="state.show" width="540">
         <div>
             <el-table :data="state.list" border size="small" width="100%">
@@ -63,7 +63,7 @@ export default {
             overallSendtSpeed: '0000.00KB',
             overallReceiveSpeed: '0000.00KB',
             overallOnline: '0/0',
-            serverOnline: '0/0/0',
+            serverOnline: '',
             time:'',
             list:[],
             old:null,
@@ -93,11 +93,11 @@ export default {
                     state.overallOnline = `${res.Items['_'].SendtBytes}/${res.Items['_'].ReceiveBytes}`;
                     delete res.Items['_'];
                 }
-                if(res.Items['flow']){
+                if(res.Items['flow'] && res.Items['flow'].ReceiveBytes>0){
                     const online = (BigInt(res.Items['flow'].ReceiveBytes) >> BigInt(32)).toString();
                     const total = (BigInt(res.Items['flow'].ReceiveBytes) & BigInt(0xffffffff)).toString();
                     const server = res.Items['flow'].SendtBytes;
-                    state.serverOnline = `${online}/${total}/${server}`;
+                    state.serverOnline = `、${online}/${total}/${server}`;
                     delete res.Items['flow'];
                 }
 
@@ -171,14 +171,16 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-a{
+.flow-wrap{
+    padding:.4rem;
     font-weight:bold;position:absolute;right:1rem;bottom:80%;
     border:1px solid #ddd;
     background-color:#fff;
     z-index :9
-    p{
+    &>a,&>p{
         line-height:normal;
         white-space: nowrap;
+        display:block;
     }
 }
 </style>
