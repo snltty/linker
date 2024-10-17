@@ -30,7 +30,9 @@ namespace linker.plugins.sforward
 
             serviceCollection.AddSingleton<SForwardFlow>();
 
-            
+            serviceCollection.AddSingleton<ConfigSyncSForwardSecretKey>();
+
+
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)

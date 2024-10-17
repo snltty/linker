@@ -50,9 +50,9 @@ namespace linker.plugins.tuntap.client
                         }
                     }).Select(c =>
                     {
-                        uint maskValue = NetworkHelper.GetPrefixIP(c.PrefixLength);
-                        IPAddress mask = NetworkHelper.GetPrefixIp(maskValue);
-                        IPAddress _ip = NetworkHelper.ToNetworkIp(c.Address, maskValue);
+                        uint maskValue = NetworkHelper.PrefixLength2Value(c.PrefixLength);
+                        IPAddress mask = NetworkHelper.PrefixValue2IP(maskValue);
+                        IPAddress _ip = NetworkHelper.NetworkIP2IP(c.Address, maskValue);
                         return new
                         {
                             IP = c.Address,

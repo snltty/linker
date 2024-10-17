@@ -37,7 +37,7 @@ jobs:
           release_name: v1.4.9.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 使用原生成器替代反射\r\n2. 统计所有服务端，客户端数量\r\n3. 创建docker镜像清单，自动识别平台\r\n4. docker镜像增加arm\r\n5. 优化了arm平台下获取设备ID的方法\r\n6. 增加了查看流量信息的权限\r\n7. 有服务器更新密钥的客户端，可以更新本服务器的所有客户端"
+          body: "1. 新增多分组管理，方便分组切换\r\n2. 增加分组密码，提高分组隔离安全性\r\n3. 优化配置同步，可自由选择同步哪些信息\r\n4. 自动分配虚拟网卡IP\r\n5. 线程池优化\r\n6. 一些UI优化"
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
         uses: tvrcgo/oss-action@v0.1.1

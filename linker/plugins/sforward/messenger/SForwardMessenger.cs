@@ -405,8 +405,8 @@ namespace linker.plugins.sforward.messenger
                 if (sForwardInfo.RemotePortMin != 0 && sForwardInfo.RemotePortMax != 0)
                 {
                     uint plus = (uint)(sForwardProxyInfo.RemotePort - sForwardInfo.RemotePortMin);
-                    uint newIP = BinaryPrimitives.ReadUInt32BigEndian(localEP.Address.GetAddressBytes()) + plus;
-                    localEP.Address = new IPAddress(BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(newIP)));
+                    uint newIP = NetworkHelper.IP2Value(localEP.Address) + plus;
+                    localEP.Address = NetworkHelper.Value2IP(newIP);
                 }
                 return localEP;
             }

@@ -6,7 +6,6 @@ using MemoryPack;
 using System.Net;
 using System.Reflection;
 using System.Text;
-using System.Text.Json.Serialization;
 
 namespace linker.client.config
 {
@@ -209,10 +208,6 @@ namespace linker.config
         public string Host { get; set; } = string.Empty;
         public string SecretKey { get; set; } = string.Empty;
 
-        public string ToStr()
-        {
-            return $"{Host}-{SecretKey}";
-        }
     }
 
 

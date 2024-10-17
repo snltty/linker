@@ -65,6 +65,8 @@ namespace linker.plugins.tunnel
 
             serviceCollection.AddSingleton<TunnelUpnpTransfer>();
 
+            serviceCollection.AddSingleton<ConfigSyncTunnelTransports>();
+
             LoggerHelper.Instance.Info($"tunnel route level getting.");
             config.Data.Client.Tunnel.RouteLevel = NetworkHelper.GetRouteLevel(config.Data.Client.ServerInfo.Host, out List<IPAddress> ips);
             config.Data.Client.Tunnel.RouteIPs = ips.ToArray();

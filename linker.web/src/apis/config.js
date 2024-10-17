@@ -17,9 +17,9 @@ export const getAccesss = (machineid) => {
 export const setAccess = (data) => {
     return sendWebsocketMsg('configclient/SetAccess', data);
 }
-export const setSecretKeyAsync = (data) => {
-    return sendWebsocketMsg('configclient/SecretKeyAsync', data);
+export const getSyncNames = () => {
+    return sendWebsocketMsg('configclient/SyncNames');
 }
-export const setServerAsync = (data) => {
-    return sendWebsocketMsg('configclient/ServerAsync', data);
+export const setSync = (data) => {
+    return sendWebsocketMsg('configclient/Sync', data);
 }

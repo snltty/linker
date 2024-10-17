@@ -1,71 +1,81 @@
 <template>
     <div>
-        <el-card shadow="never">
-            <template #header>
-                <div class="card-header flex">
-                    <span>同步密钥</span>
-                    <span class="flex-1"></span>
-                    <el-button type="success" @click="handleSyncSecretKey">确定同步</el-button>
+        <el-card shadow="never" style="max-width: 540px;margin:0 auto;">
+            <template #header>选择你需要同步的项，将这些配置同步到本组所有客户端</template>
+            <div>
+                <el-checkbox v-model="state.checkAll" :indeterminate="state.isIndeterminate" @change="handleCheckAllChange">全选</el-checkbox>
+                <el-checkbox-group v-model="state.checkeds" @change="handleCheckedsChange">
+                    <el-row>
+                        <template v-for="name in state.names">
+                            <el-col :span="8">
+                                <el-checkbox :key="name.name" :label="name.label" :value="name.name">{{ name.label }}</el-checkbox>
+                            </el-col>
+                        </template>
+                    </el-row>
+                </el-checkbox-group>
+            </div>
+            <template #footer>
+                <div class="t-c">
+                    <el-button type="success" @click="handleSync">确定同步</el-button>
                 </div>
             </template>
-            <div>
-                同步，信标服务器，中继服务器，服务器代理穿透，的密钥到所有客户端
-            </div>
-        </el-card>
-        <el-card shadow="never" style="margin-top:2rem">
-            <template #header>
-                <div class="card-header flex">
-                    <span>同步服务器配置</span>
-                    <span class="flex-1"></span>
-                    <el-button type="success" @click="handleSyncServer">确定同步</el-button>
-                </div>
-            </template>
-            <div>
-                同步，信标服务器，端口服务器，中继服务器，列表到所有客户端 
-            </div>
         </el-card>
     </div>
 </template>
 <script>
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import { reactive } from 'vue'
-import { setSecretKeyAsync, setServerAsync } from '@/apis/config';
+import { onMounted, reactive } from 'vue'
+import { getSyncNames, setSync } from '@/apis/config';
 export default {
     label:'同步配置',
     name:'async',
     order:7,
     setup(props) {
         const globalData = injectGlobalData();
-        const state = reactive({});
+        const state = reactive({
+            names:[],
+            checkAll:false,
+            isIndeterminate:false,
+            checkeds:[],
+        });
 
-        const handleSyncSecretKey = ()=>{
-
-            const json = {
-                SignSecretKey:globalData.value.config.Client.ServerInfo.SecretKey,
-                RelaySecretKey:globalData.value.config.Client.Relay.Servers[0].SecretKey,
-                SForwardSecretKey:globalData.value.config.Client.SForward.SecretKey
-            }
-            setSecretKeyAsync(json).then(()=>{
-                ElMessage.success('已操作');
-            }).catch(()=>{
-                ElMessage.error('操作失败');
-            });;
+        const handleCheckAllChange = (val)=>{
+            state.checkeds = val ? state.names.map(c=>c.name) : [];
+            state.isIndeterminate = false
         }
-        const handleSyncServer = ()=>{
-            const json = {
-                SignServers:globalData.value.config.Client.Servers,
-                RelayServers:globalData.value.config.Client.Relay.Servers,
-                TunnelServers:globalData.value.config.Client.Tunnel.Servers
-            }
-            setServerAsync(json).then(()=>{
-                ElMessage.success('已操作');
-            }).catch(()=>{
-                ElMessage.error('操作失败');
-            });;
+        const handleCheckedsChange = (value)=>{
+            const checkedCount = value.length
+            state.checkAll = checkedCount === state.names.length
+            state.isIndeterminate = checkedCount > 0 && checkedCount < state.names.length;
         }
 
-        return {state,handleSyncSecretKey,handleSyncServer}
+        const labels = {
+            'SignInSecretKey':'当前信标密钥',
+            'GroupSecretKey':'当前分组密码',
+            'RelaySecretKey':'当前中继密钥',
+            'SForwardSecretKey':'当前服务器穿透密钥',
+            'UpdaterSecretKey':'服务器更新密钥',
+            'TunnelTransports':'打洞协议列表'
+        }
+        onMounted(()=>{
+            getSyncNames().then(res=>{
+                state.names = res.map(c=>{
+                    return {name:c,label:labels[c]}
+                });
+            });
+        });
+        const handleSync = ()=>{
+            if(state.checkeds.length == 0) {
+                ElMessage.error('至少选择一个');
+                return;
+            }
+            setSync(state.checkeds).then(res=>{
+                ElMessage.success('已操作');
+            });
+        }
+
+        return {state,handleCheckAllChange,handleCheckedsChange,handleSync}
     }
 }
 </script>

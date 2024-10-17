@@ -35,6 +35,9 @@ namespace linker.plugins.client
             serviceCollection.AddSingleton<SignInArgsSecretKeyClient>();
             serviceCollection.AddSingleton<SignInArgsGroupPasswordClient>();
 
+            serviceCollection.AddSingleton<ConfigSyncSignInSecretKey>();
+            serviceCollection.AddSingleton<ConfigSyncGroupSecretKey>();
+
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)

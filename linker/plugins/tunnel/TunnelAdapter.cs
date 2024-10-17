@@ -79,11 +79,11 @@ namespace linker.plugins.tunnel
                 {
                     if (c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                     {
-                        uint ip = BinaryPrimitives.ReadUInt32BigEndian(c.GetAddressBytes());
+                        uint ip = NetworkHelper.IP2Value(c);
                         foreach (var item in excludeips)
                         {
-                            uint maskValue = NetworkHelper.GetPrefixIP(item.Mask);
-                            uint ip1 = BinaryPrimitives.ReadUInt32BigEndian(item.IPAddress.GetAddressBytes());
+                            uint maskValue = NetworkHelper.PrefixLength2Value(item.Mask);
+                            uint ip1 = NetworkHelper.IP2Value(item.IPAddress);
                             if ((ip & maskValue) == (ip1 & maskValue))
                             {
                                 return false;

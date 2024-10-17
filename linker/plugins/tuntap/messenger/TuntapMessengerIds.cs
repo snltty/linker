@@ -14,6 +14,13 @@
         Config = 2206,
         ConfigForward = 2207,
 
+
+        LeaseAdd = 2208,
+        LeaseGet = 2209,
+        Lease = 2210,
+        LeaseChange = 2211,
+        LeaseChangeForward = 2212,
+
         None = 2299
     }
 }

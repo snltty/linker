@@ -152,7 +152,7 @@ namespace linker.tun
             try
             {
                 CommandHelper.PowerShell($"start-service WinNat", [], out error);
-                IPAddress network = NetworkHelper.ToNetworkIp(this.address, NetworkHelper.GetPrefixIP(prefixLength));
+                IPAddress network = NetworkHelper.NetworkIP2IP(this.address, NetworkHelper.PrefixLength2Value(prefixLength));
                 CommandHelper.PowerShell($"New-NetNat -Name {Name} -InternalIPInterfaceAddressPrefix {network}/{prefixLength}", [], out error);
 
                 if (string.IsNullOrWhiteSpace(error) == false)
@@ -214,9 +214,9 @@ namespace linker.tun
             {
                 string[] commands = ips.Select(item =>
                 {
-                    uint maskValue = NetworkHelper.GetPrefixIP(item.PrefixLength);
-                    IPAddress mask = NetworkHelper.GetPrefixIp(maskValue);
-                    IPAddress _ip = NetworkHelper.ToNetworkIp(item.Address, maskValue);
+                    uint maskValue = NetworkHelper.PrefixLength2Value(item.PrefixLength);
+                    IPAddress mask = NetworkHelper.PrefixValue2IP(maskValue);
+                    IPAddress _ip = NetworkHelper.NetworkIP2IP(item.Address, maskValue);
 
                     return $"route add {_ip} mask {mask} {ip} metric 5 if {interfaceNumber}";
                 }).ToArray();
@@ -230,9 +230,9 @@ namespace linker.tun
         {
             string[] commands = ip.Select(item =>
             {
-                uint maskValue = NetworkHelper.GetPrefixIP(item.PrefixLength);
-                IPAddress mask = NetworkHelper.GetPrefixIp(maskValue);
-                IPAddress _ip = NetworkHelper.ToNetworkIp(item.Address, maskValue);
+                uint maskValue = NetworkHelper.PrefixLength2Value(item.PrefixLength);
+                IPAddress mask = NetworkHelper.PrefixValue2IP(maskValue);
+                IPAddress _ip = NetworkHelper.NetworkIP2IP(item.Address, maskValue);
                 return $"route delete {_ip}";
             }).ToArray();
             if (commands.Length > 0)

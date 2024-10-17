@@ -29,6 +29,8 @@ namespace linker.plugins.relay
             serviceCollection.AddSingleton<RelayTransfer>();
             serviceCollection.AddSingleton<RelayFlow>();
 
+            serviceCollection.AddSingleton<ConfigSyncRelaySecretKey>();
+
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)

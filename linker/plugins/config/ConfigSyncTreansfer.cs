@@ -10,7 +10,6 @@ namespace linker.plugins.config
     public interface IConfigSync
     {
         public string Name { get; }
-        public string Label { get; }
         public Memory<byte> GetData();
         public void SetData(Memory<byte> data);
     }
@@ -23,11 +22,6 @@ namespace linker.plugins.config
         public Memory<byte> Data { get; set; }
     }
 
-    public sealed class ConfigSyncNameInfo
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Label { get; set; } = string.Empty;
-    }
     public sealed partial class ConfigSyncTreansfer
     {
         private readonly SemaphoreSlim slim = new SemaphoreSlim(1);
@@ -45,9 +39,9 @@ namespace linker.plugins.config
             LoggerHelper.Instance.Info($"load config sync transport:{string.Join(",", syncs.Select(c => c.Name))}");
         }
 
-        public List<ConfigSyncNameInfo> GetNames()
+        public List<string> GetNames()
         {
-            return syncs.Select(c => new ConfigSyncNameInfo { Label = c.Label, Name = c.Name }).ToList();
+            return syncs.Select(c => c.Name).ToList();
         }
 
         public void Sync(string[] names)
@@ -63,7 +57,7 @@ namespace linker.plugins.config
                          {
                              Connection = clientSignInState.Connection,
                              MessengerId = (ushort)ConfigMessengerIds.SyncForward,
-                             Payload = c.GetData(),
+                             Payload = MemoryPackSerializer.Serialize(new ConfigAsyncInfo { Name = c.Name, Data = c.GetData() }),
 
                          });
                      });
@@ -74,6 +68,19 @@ namespace linker.plugins.config
                 }
                 slim.Release();
             });
+        }
+        public async Task Sync(string name)
+        {
+            var sync = syncs.FirstOrDefault(c => c.Name == name);
+            if(sync != null)
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = clientSignInState.Connection,
+                    MessengerId = (ushort)ConfigMessengerIds.SyncForward,
+                    Payload = MemoryPackSerializer.Serialize(new ConfigAsyncInfo { Name = sync.Name, Data = sync.GetData() }),
+                });
+            }
         }
         public void Sync(ConfigAsyncInfo info)
         {

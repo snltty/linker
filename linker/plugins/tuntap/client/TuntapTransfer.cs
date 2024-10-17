@@ -91,6 +91,7 @@ namespace linker.plugins.tuntap.client
                 }
             });
         }
+       
 
         /// <summary>
         /// 运行网卡
@@ -424,7 +425,7 @@ namespace linker.plugins.tuntap.client
             tuntapProxy.SetIPs(ips);
             foreach (var item in tuntapInfos.Values)
             {
-                tuntapProxy.SetIP(item.MachineId, BinaryPrimitives.ReadUInt32BigEndian(item.IP.GetAddressBytes()));
+                tuntapProxy.SetIP(item.MachineId, NetworkHelper.IP2Value(item.IP));
             }
             CheckLanIPs();
         }
@@ -464,7 +465,7 @@ namespace linker.plugins.tuntap.client
                 .Concat(runningConfig.Data.Tuntap.LanIPs.Where(c => c != null))
                 //路由上的IP
                 .Concat(config.Data.Client.Tunnel.RouteIPs)
-                .Select(c => BinaryPrimitives.ReadUInt32BigEndian(c.GetAddressBytes()))
+                .Select(c => NetworkHelper.IP2Value(c))
                 .ToArray();
         }
         private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)
@@ -496,9 +497,9 @@ namespace linker.plugins.tuntap.client
         }
         private TuntapVeaLanIPAddress ParseIPAddress(IPAddress ip, byte maskLength, string machineid)
         {
-            uint ipInt = BinaryPrimitives.ReadUInt32BigEndian(ip.GetAddressBytes());
+            uint ipInt = NetworkHelper.IP2Value(ip);
             //掩码十进制
-            uint maskValue = NetworkHelper.GetPrefixIP(maskLength);
+            uint maskValue = NetworkHelper.PrefixLength2Value(maskLength);
             return new TuntapVeaLanIPAddress
             {
                 IPAddress = ipInt,

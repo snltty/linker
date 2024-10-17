@@ -3,7 +3,9 @@ using linker.plugins.messenger;
 using linker.plugins.signin.messenger;
 using linker.plugins.tuntap.client;
 using linker.plugins.tuntap.config;
+using linker.plugins.tuntap.lease;
 using MemoryPack;
+using System.Net;
 
 namespace linker.plugins.tuntap.messenger
 {
@@ -61,6 +63,14 @@ namespace linker.plugins.tuntap.messenger
             connection.Write(MemoryPackSerializer.Serialize(_info));
         }
 
+        /// <summary>
+        /// 重新租赁
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)TuntapMessengerIds.LeaseChange)]
+        public void LeaseChange(IConnection connection)
+        {
+        }
     }
 
 
@@ -69,12 +79,14 @@ namespace linker.plugins.tuntap.messenger
         private readonly MessengerSender messengerSender;
         private readonly SignCaching signCaching;
         private readonly FileConfig config;
+        private readonly LeaseServerTreansfer leaseTreansfer;
 
-        public TuntapServerMessenger(MessengerSender messengerSender, SignCaching signCaching, FileConfig config)
+        public TuntapServerMessenger(MessengerSender messengerSender, SignCaching signCaching, FileConfig config, LeaseServerTreansfer leaseTreansfer)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
             this.config = config;
+            this.leaseTreansfer = leaseTreansfer;
         }
 
         /// <summary>
@@ -179,5 +191,71 @@ namespace linker.plugins.tuntap.messenger
             }
         }
 
+
+        /// <summary>
+        /// 添加网络配置
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        [MessengerId((ushort)TuntapMessengerIds.LeaseAdd)]
+        public void LeaseAdd(IConnection connection)
+        {
+            LeaseInfo info = MemoryPackSerializer.Deserialize<LeaseInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            {
+                leaseTreansfer.Add(cache.GroupId, info);
+            }
+        }
+        /// <summary>
+        /// 添加网络配置
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        [MessengerId((ushort)TuntapMessengerIds.LeaseGet)]
+        public void LeaseGet(IConnection connection)
+        {
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            {
+                connection.Write(MemoryPackSerializer.Serialize(leaseTreansfer.Get(cache.GroupId)));
+            }
+        }
+        /// <summary>
+        /// 租赁IP
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        [MessengerId((ushort)TuntapMessengerIds.Lease)]
+        public void Lease(IConnection connection)
+        {
+            IPAddress info = MemoryPackSerializer.Deserialize<IPAddress>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            {
+                IPAddress result = leaseTreansfer.Lease(cache.MachineId, cache.GroupId, info);
+                connection.Write(MemoryPackSerializer.Serialize(result));
+            }
+        }
+        /// <summary>
+        /// 网络配置发生变化，需要重新租赁
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)TuntapMessengerIds.LeaseChangeForward)]
+        public void LeaseChangeForward(IConnection connection)
+        {
+            TuntapInfo tuntapInfo = MemoryPackSerializer.Deserialize<TuntapInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            {
+                uint requiestid = connection.ReceiveRequestWrap.RequestId;
+
+                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
+                IEnumerable<Task<bool>> tasks = caches.Where(c => c.MachineId != connection.Id && c.Connected).Select(c => messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = c.Connection,
+                    MessengerId = (ushort)TuntapMessengerIds.Config,
+                    Payload = connection.ReceiveRequestWrap.Payload,
+                    Timeout = 1000,
+                }));
+                Task.WhenAll(tasks);
+            }
+        }
     }
 }

@@ -225,15 +225,23 @@ namespace linker.plugins.config
         }
 
 
-        public List<ConfigSyncNameInfo> SyncNames(ApiControllerParamsInfo param)
+        public List<string> SyncNames(ApiControllerParamsInfo param)
         {
             return configSyncTreansfer.GetNames();
         }
         [ClientApiAccessAttribute(ClientApiAccess.Sync)]
-        public bool Sync(ApiControllerParamsInfo param)
+        public async Task<bool> Sync(ApiControllerParamsInfo param)
         {
             string[] names = param.Content.DeJson<string[]>();
-            configSyncTreansfer.Sync(names);
+            if (names.Length == 1)
+            {
+                await configSyncTreansfer.Sync(names[0]);
+            }
+            else
+            {
+                configSyncTreansfer.Sync(names);
+            }
+
             return true;
         }
     }

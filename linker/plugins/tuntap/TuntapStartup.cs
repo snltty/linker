@@ -1,5 +1,6 @@
 ﻿using linker.config;
 using linker.plugins.tuntap.client;
+using linker.plugins.tuntap.lease;
 using linker.plugins.tuntap.messenger;
 using linker.startup;
 using linker.tun;
@@ -37,6 +38,8 @@ namespace linker.plugins.tuntap
         {
             serviceCollection.AddSingleton<TuntapServerMessenger>();
 
+            serviceCollection.AddSingleton<LeaseServerTreansfer>();
+
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)
@@ -47,6 +50,7 @@ namespace linker.plugins.tuntap
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config)
         {
+            LeaseServerTreansfer leaseTreansfer = serviceProvider.GetService<LeaseServerTreansfer>();
         }
     }
 }
