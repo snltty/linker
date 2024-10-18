@@ -29,15 +29,16 @@ namespace linker.plugins.tuntap
             serviceCollection.AddSingleton<TuntapProxy>();
 
             serviceCollection.AddSingleton<TuntapClientMessenger>();
-
+            serviceCollection.AddSingleton<LeaseClientTreansfer>();
 
             serviceCollection.AddSingleton<ExcludeIP>();
+
+            serviceCollection.AddSingleton<TuntapConfigTransfer>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
             serviceCollection.AddSingleton<TuntapServerMessenger>();
-
             serviceCollection.AddSingleton<LeaseServerTreansfer>();
 
         }
@@ -46,6 +47,10 @@ namespace linker.plugins.tuntap
         {
             TuntapProxy tuntapProxy = serviceProvider.GetService<TuntapProxy>();
             TuntapTransfer tuntapTransfer = serviceProvider.GetService<TuntapTransfer>();
+
+            LeaseClientTreansfer leaseTreansfer = serviceProvider.GetService<LeaseClientTreansfer>();
+
+            TuntapConfigTransfer tuntapConfigTransfer = serviceProvider.GetService<TuntapConfigTransfer>();
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config)

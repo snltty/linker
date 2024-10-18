@@ -1,4 +1,5 @@
 ﻿using linker.config;
+using linker.libs;
 using linker.plugins.messenger;
 using linker.plugins.signin.messenger;
 using linker.plugins.tuntap.client;
@@ -12,11 +13,15 @@ namespace linker.plugins.tuntap.messenger
     public sealed class TuntapClientMessenger : IMessenger
     {
         private readonly TuntapTransfer tuntapTransfer;
+        private readonly TuntapConfigTransfer tuntapConfigTransfer;
         private readonly TuntapProxy tuntapProxy;
-        public TuntapClientMessenger(TuntapTransfer tuntapTransfer, TuntapProxy tuntapProxy)
+        private readonly LeaseClientTreansfer leaseClientTreansfer;
+        public TuntapClientMessenger(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, TuntapProxy tuntapProxy, LeaseClientTreansfer leaseClientTreansfer)
         {
             this.tuntapTransfer = tuntapTransfer;
+            this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.tuntapProxy = tuntapProxy;
+            this.leaseClientTreansfer = leaseClientTreansfer;
         }
 
         /// <summary>
@@ -26,8 +31,12 @@ namespace linker.plugins.tuntap.messenger
         [MessengerId((ushort)TuntapMessengerIds.Run)]
         public void Run(IConnection connection)
         {
-            tuntapTransfer.Shutdown();
-            tuntapTransfer.Setup();
+            TimerHelper.Async(async () =>
+            {
+                tuntapTransfer.Shutdown();
+                await tuntapConfigTransfer.RefreshIPForce();
+                tuntapTransfer.Setup();
+            });
         }
 
         /// <summary>
@@ -48,7 +57,7 @@ namespace linker.plugins.tuntap.messenger
         public void Update(IConnection connection)
         {
             TuntapInfo info = MemoryPackSerializer.Deserialize<TuntapInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            tuntapTransfer.UpdateConfig(info);
+            tuntapConfigTransfer.UpdateConfig(info);
         }
 
         /// <summary>
@@ -59,7 +68,7 @@ namespace linker.plugins.tuntap.messenger
         public void Config(IConnection connection)
         {
             TuntapInfo info = MemoryPackSerializer.Deserialize<TuntapInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            TuntapInfo _info = tuntapTransfer.OnConfig(info);
+            TuntapInfo _info = tuntapConfigTransfer.OnConfig(info);
             connection.Write(MemoryPackSerializer.Serialize(_info));
         }
 
@@ -70,6 +79,7 @@ namespace linker.plugins.tuntap.messenger
         [MessengerId((ushort)TuntapMessengerIds.LeaseChange)]
         public void LeaseChange(IConnection connection)
         {
+            tuntapConfigTransfer.RefreshIP();
         }
     }
 
@@ -197,13 +207,13 @@ namespace linker.plugins.tuntap.messenger
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        [MessengerId((ushort)TuntapMessengerIds.LeaseAdd)]
-        public void LeaseAdd(IConnection connection)
+        [MessengerId((ushort)TuntapMessengerIds.LeaseAddNetwork)]
+        public void LeaseAddNetwork(IConnection connection)
         {
             LeaseInfo info = MemoryPackSerializer.Deserialize<LeaseInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
-                leaseTreansfer.Add(cache.GroupId, info);
+                leaseTreansfer.AddNetwork(cache.GroupId, info);
             }
         }
         /// <summary>
@@ -211,12 +221,12 @@ namespace linker.plugins.tuntap.messenger
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        [MessengerId((ushort)TuntapMessengerIds.LeaseGet)]
-        public void LeaseGet(IConnection connection)
+        [MessengerId((ushort)TuntapMessengerIds.LeaseGetNetwork)]
+        public void LeaseGetNetwork(IConnection connection)
         {
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
-                connection.Write(MemoryPackSerializer.Serialize(leaseTreansfer.Get(cache.GroupId)));
+                connection.Write(MemoryPackSerializer.Serialize(leaseTreansfer.GetNetwork(cache.GroupId)));
             }
         }
         /// <summary>
@@ -224,13 +234,13 @@ namespace linker.plugins.tuntap.messenger
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        [MessengerId((ushort)TuntapMessengerIds.Lease)]
-        public void Lease(IConnection connection)
+        [MessengerId((ushort)TuntapMessengerIds.LeaseIP)]
+        public void LeaseIP(IConnection connection)
         {
-            IPAddress info = MemoryPackSerializer.Deserialize<IPAddress>(connection.ReceiveRequestWrap.Payload.Span);
+            LeaseInfo info = MemoryPackSerializer.Deserialize<LeaseInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
-                IPAddress result = leaseTreansfer.Lease(cache.MachineId, cache.GroupId, info);
+                LeaseInfo result = leaseTreansfer.LeaseIP(cache.MachineId, cache.GroupId, info);
                 connection.Write(MemoryPackSerializer.Serialize(result));
             }
         }
@@ -241,7 +251,6 @@ namespace linker.plugins.tuntap.messenger
         [MessengerId((ushort)TuntapMessengerIds.LeaseChangeForward)]
         public void LeaseChangeForward(IConnection connection)
         {
-            TuntapInfo tuntapInfo = MemoryPackSerializer.Deserialize<TuntapInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
                 uint requiestid = connection.ReceiveRequestWrap.RequestId;
@@ -255,6 +264,20 @@ namespace linker.plugins.tuntap.messenger
                     Timeout = 1000,
                 }));
                 Task.WhenAll(tasks);
+            }
+        }
+
+
+        /// <summary>
+        /// 续期
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)TuntapMessengerIds.LeaseExp)]
+        public void LeaseExp(IConnection connection)
+        {
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            {
+                leaseTreansfer.LeaseExp(cache.MachineId, cache.GroupId);
             }
         }
     }

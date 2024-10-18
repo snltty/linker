@@ -8,6 +8,8 @@
             <router-link :to="{name:'Network'}">简单管理</router-link>
             <span style="padding:0 1rem"></span>
             <router-link :to="{name:'Full'}">专业管理</router-link>
+            <span style="padding:0 1rem"></span>
+            <a href="javascript:;" @click="handleResetConnect">清除连接</a>
         </p>
     </div>
 </template>
@@ -15,8 +17,12 @@
 <script>
 export default {
     setup () {
-    
-        return {}
+        
+        const handleResetConnect = () => {
+            localStorage.setItem('api-cache', '');
+            window.location.reload();
+        }
+        return {handleResetConnect}
     }
 }
 </script>

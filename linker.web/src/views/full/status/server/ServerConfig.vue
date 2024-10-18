@@ -67,7 +67,6 @@ export default {
             const temp = state.form.groups[index];
             state.form.groups[index] = state.form.groups[0];
             state.form.groups[0] = temp;
-            console.log(state.form.groups);
         }
         const handleSave = () => {
             state.loading = true;

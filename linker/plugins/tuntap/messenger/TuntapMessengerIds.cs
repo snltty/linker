@@ -15,11 +15,12 @@
         ConfigForward = 2207,
 
 
-        LeaseAdd = 2208,
-        LeaseGet = 2209,
-        Lease = 2210,
+        LeaseAddNetwork = 2208,
+        LeaseGetNetwork = 2209,
+        LeaseIP = 2210,
         LeaseChange = 2211,
         LeaseChangeForward = 2212,
+        LeaseExp = 2213,
 
         None = 2299
     }

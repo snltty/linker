@@ -9,10 +9,8 @@ using linker.plugins.client;
 using linker.plugins.capi;
 using linker.plugins.messenger;
 using linker.plugins.tuntap.config;
-using linker.libs;
-using System.Net;
 using linker.client.config;
-using linker.tun;
+using linker.plugins.tuntap.lease;
 
 namespace linker.plugins.tuntap.client
 {
@@ -24,8 +22,10 @@ namespace linker.plugins.tuntap.client
         private readonly FileConfig config;
         private readonly TuntapProxy tuntapProxy;
         private readonly RunningConfig runningConfig;
+        private readonly TuntapConfigTransfer tuntapConfigTransfer;
+        private readonly LeaseClientTreansfer leaseClientTreansfer;
 
-        public TuntapClientApiController(MessengerSender messengerSender, TuntapTransfer tuntapTransfer, ClientSignInState clientSignInState, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig)
+        public TuntapClientApiController(MessengerSender messengerSender, TuntapTransfer tuntapTransfer, ClientSignInState clientSignInState, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig, TuntapConfigTransfer tuntapConfigTransfer, LeaseClientTreansfer leaseClientTreansfer)
         {
             this.messengerSender = messengerSender;
             this.tuntapTransfer = tuntapTransfer;
@@ -33,42 +33,9 @@ namespace linker.plugins.tuntap.client
             this.config = config;
             this.tuntapProxy = tuntapProxy;
             this.runningConfig = runningConfig;
+            this.tuntapConfigTransfer = tuntapConfigTransfer;
+            this.leaseClientTreansfer = leaseClientTreansfer;
         }
-
-        public RouteItemListInfo RouteItems(ApiControllerParamsInfo param)
-        {
-            ulong hashCode = ulong.Parse(param.Content);
-            if (tuntapTransfer.Version.Eq(hashCode, out ulong version) == false && clientSignInState.Connected)
-            {
-                return new RouteItemListInfo
-                {
-                    List = tuntapTransfer.RouteItems
-                    .Concat(new LinkerTunDeviceRouteItem[] {
-                        new LinkerTunDeviceRouteItem {
-                            Address = runningConfig.Data.Tuntap.IP,
-                            PrefixLength = runningConfig.Data.Tuntap.PrefixLength,
-                        }
-                    }).Select(c =>
-                    {
-                        uint maskValue = NetworkHelper.PrefixLength2Value(c.PrefixLength);
-                        IPAddress mask = NetworkHelper.PrefixValue2IP(maskValue);
-                        IPAddress _ip = NetworkHelper.NetworkIP2IP(c.Address, maskValue);
-                        return new
-                        {
-                            IP = c.Address,
-                            Network = _ip,
-                            c.PrefixLength,
-                            PrefixIP = mask,
-                        };
-                    }).ToArray(),
-                    HashCode = version,
-                    Running = tuntapTransfer.Status == TuntapStatus.Running,
-                    IP = clientSignInState.Connection.LocalAddress.Address,
-                };
-            }
-            return new RouteItemListInfo { HashCode = version };
-        }
-
 
         public ConnectionListInfo Connections(ApiControllerParamsInfo param)
         {
@@ -98,11 +65,11 @@ namespace linker.plugins.tuntap.client
         public TuntabListInfo Get(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);
-            if (tuntapTransfer.Version.Eq(hashCode, out ulong version) == false)
+            if (tuntapConfigTransfer.Version.Eq(hashCode, out ulong version) == false)
             {
                 return new TuntabListInfo
                 {
-                    List = tuntapTransfer.Infos,
+                    List = tuntapConfigTransfer.Infos,
                     HashCode = version
                 };
             }
@@ -114,7 +81,7 @@ namespace linker.plugins.tuntap.client
         /// <param name="param"></param>
         public void Refresh(ApiControllerParamsInfo param)
         {
-            tuntapTransfer.RefreshConfig();
+            tuntapConfigTransfer.RefreshConfig();
         }
 
         /// <summary>
@@ -130,6 +97,7 @@ namespace linker.plugins.tuntap.client
                 if (config.Data.Client.HasAccess(ClientApiAccess.TuntapStatusSelf) == false) return false;
 
                 tuntapTransfer.Shutdown();
+                await tuntapConfigTransfer.RefreshIPForce();
                 tuntapTransfer.Setup();
             }
             else
@@ -185,7 +153,7 @@ namespace linker.plugins.tuntap.client
             if (info.MachineId == config.Data.Client.Id)
             {
                 if (config.Data.Client.HasAccess(ClientApiAccess.TuntapChangeSelf) == false) return false;
-                tuntapTransfer.UpdateConfig(info);
+                tuntapConfigTransfer.UpdateConfig(info);
             }
             else
             {
@@ -201,19 +169,33 @@ namespace linker.plugins.tuntap.client
             return true;
         }
 
+        /// <summary>
+        /// 添加网络
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        [ClientApiAccess(ClientApiAccess.Lease)]
+        public async Task AddNetwork(ApiControllerParamsInfo param)
+        {
+            await leaseClientTreansfer.AddNetwork(param.Content.DeJson<LeaseInfo>());
+            await leaseClientTreansfer.LeaseChange();
+            tuntapConfigTransfer.RefreshIP();
+        }
+        /// <summary>
+        /// 获取网络
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public async Task<LeaseInfo> GetNetwork(ApiControllerParamsInfo param)
+        {
+            return await leaseClientTreansfer.GetNetwork();
+        }
 
         public void SubscribePing(ApiControllerParamsInfo param)
         {
-            tuntapTransfer.SubscribePing();
+            tuntapConfigTransfer.SubscribePing();
         }
 
-        public sealed class RouteItemListInfo
-        {
-            public object[] List { get; set; }
-            public IPAddress IP { get; set; }
-            public bool Running { get; set; }
-            public ulong HashCode { get; set; }
-        }
         public sealed class TuntabListInfo
         {
             public ConcurrentDictionary<string, TuntapInfo> List { get; set; }

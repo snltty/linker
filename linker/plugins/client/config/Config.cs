@@ -327,6 +327,9 @@ namespace linker.config
         [ClientAccessDisplayAttribute("同步配置")]
         Sync = ((ulong)1 << 34),
 
+        [ClientAccessDisplayAttribute("配置组网网络")]
+        Lease = ((ulong)1 << 35),
+
         Full = ulong.MaxValue >> (64 - 52),
     }
 

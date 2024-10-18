@@ -13,7 +13,7 @@ export const provideTuntap = () => {
         list: {},
         hashcode: 0,
 
-        showDHCP: false,
+        showLease: false,
     });
     provide(tuntapSymbol, tuntap);
 

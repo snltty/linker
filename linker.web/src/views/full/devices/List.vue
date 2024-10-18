@@ -27,7 +27,7 @@
         <TunnelEdit v-if="tunnel.showEdit" v-model="tunnel.showEdit"  @change="handleTunnelRefresh"></TunnelEdit>
         <ConnectionsEdit v-if="connections.showEdit" v-model="connections.showEdit" ></ConnectionsEdit>
         <TuntapEdit v-if="tuntap.showEdit" v-model="tuntap.showEdit"  @change="handleTuntapRefresh"></TuntapEdit>
-        <TuntapDHCP v-if="tuntap.showDHCP" v-model="tuntap.showDHCP"  @change="handleTuntapRefresh"></TuntapDHCP>
+        <TuntapLease v-if="tuntap.showLease" v-model="tuntap.showLease"  @change="handleTuntapRefresh"></TuntapLease>
         <ForwardEdit v-if="forward.showEdit" v-model="forward.showEdit" ></ForwardEdit>
         <ForwardCopy v-if="forward.showCopy" v-model="forward.showCopy" ></ForwardCopy>
         <SForwardEdit v-if="sforward.showEdit" v-model="sforward.showEdit" ></SForwardEdit>
@@ -43,7 +43,7 @@ import DeviceEdit from './DeviceEdit.vue'
 import AccessEdit from './AccessEdit.vue'
 import Tuntap from './Tuntap.vue'
 import TuntapEdit from './TuntapEdit.vue'
-import TuntapDHCP from './TuntapDHCP.vue'
+import TuntapLease from './TuntapLease.vue'
 import Tunnel from './Tunnel.vue'
 import TunnelEdit from './TunnelEdit.vue'
 import Forward from './Forward.vue'
@@ -62,7 +62,7 @@ import { provideDevices } from './devices'
 import { provideUpdater } from './updater'
 import { provideAccess } from './access'
 export default {
-    components: {Oper,Device,DeviceEdit,AccessEdit,Tunnel,TunnelEdit,ConnectionsEdit, Tuntap,TuntapEdit,TuntapDHCP,  Forward,ForwardEdit,ForwardCopy,SForwardEdit,SForwardCopy },
+    components: {Oper,Device,DeviceEdit,AccessEdit,Tunnel,TunnelEdit,ConnectionsEdit, Tuntap,TuntapEdit,TuntapLease,  Forward,ForwardEdit,ForwardCopy,SForwardEdit,SForwardCopy },
     setup(props) {
 
         const globalData = injectGlobalData();

@@ -1,13 +1,9 @@
-﻿using linker.store;
-using LiteDB;
-using System.Net;
-using linker.libs;
+﻿using System.Net;
 using MemoryPack;
-using System.Collections.Concurrent;
 using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.plugins.tuntap.messenger;
-using linker.client.config;
+using linker.libs;
 
 namespace linker.plugins.tuntap.lease
 {
@@ -15,32 +11,80 @@ namespace linker.plugins.tuntap.lease
     {
         private readonly MessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
-        private readonly RunningConfig runningConfig;
 
-        public LeaseClientTreansfer(MessengerSender messengerSender, ClientSignInState clientSignInState, RunningConfig runningConfig)
+        public LeaseClientTreansfer(MessengerSender messengerSender, ClientSignInState clientSignInState)
         {
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
-            this.runningConfig = runningConfig;
+
+            LeaseExpTask();
         }
-        public async Task<IPAddress> LeaseIp()
+
+        public async Task AddNetwork(LeaseInfo info)
+        {
+            await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)TuntapMessengerIds.LeaseAddNetwork,
+                Payload = MemoryPackSerializer.Serialize(info)
+            });
+        }
+        public async Task<LeaseInfo> GetNetwork()
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,
-                MessengerId = (ushort)TuntapMessengerIds.Lease,
-                Payload = MemoryPackSerializer.Serialize(runningConfig.Data.Tuntap.IP)
+                MessengerId = (ushort)TuntapMessengerIds.LeaseGetNetwork
 
             });
-            if(resp.Code == MessageResponeCodes.OK)
+            if (resp.Code == MessageResponeCodes.OK)
             {
-                IPAddress ip = MemoryPackSerializer.Deserialize<IPAddress>(resp.Data.Span);
-                if (ip.Equals(IPAddress.Any) == false)
+                return MemoryPackSerializer.Deserialize<LeaseInfo>(resp.Data.Span);
+            }
+            return new LeaseInfo { IP = IPAddress.Any, PrefixLength = 24 };
+        }
+        public async Task LeaseChange()
+        {
+            await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)TuntapMessengerIds.LeaseChangeForward
+
+            });
+        }
+
+        public async Task<LeaseInfo> LeaseIp(IPAddress ip, byte prefixLength)
+        {
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)TuntapMessengerIds.LeaseIP,
+                Payload = MemoryPackSerializer.Serialize(new LeaseInfo { IP = ip, PrefixLength = prefixLength })
+
+            });
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                LeaseInfo newip = MemoryPackSerializer.Deserialize<LeaseInfo>(resp.Data.Span);
+                if (newip.Equals(IPAddress.Any) == false)
                 {
-                    return IPAddress.Any;
+                    return newip;
                 }
             }
-            return runningConfig.Data.Tuntap.IP;
+            return new LeaseInfo { IP = ip, PrefixLength = prefixLength };
+        }
+
+        private void LeaseExpTask()
+        {
+            TimerHelper.SetInterval(async () =>
+            {
+                await messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = clientSignInState.Connection,
+                    MessengerId = (ushort)TuntapMessengerIds.LeaseExp,
+                });
+
+                return true;
+            }, 30000);
         }
     }
 }

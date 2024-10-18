@@ -1,7 +1,7 @@
 <template>
     <el-table-column prop="tuntap" label="虚拟网卡" width="160">
         <template #header>
-           <a href="javascript:;" class="a-line">虚拟网卡</a>
+           <a href="javascript:;" class="a-line" @click="handleShowLease">虚拟网卡</a>
         </template>
         <template #default="scope">
             <div v-if="tuntap.list[scope.row.MachineId]">
@@ -26,9 +26,12 @@ export default {
         const handleTuntapRefresh = ()=>{
             emit('refresh');
         }
+        const handleShowLease = ()=>{
+            tuntap.value.showLease = true;
+        }
        
         return {
-            tuntap, handleTuntapIP,handleTuntapRefresh
+            tuntap, handleTuntapIP,handleTuntapRefresh,handleShowLease
         }
     }
 }

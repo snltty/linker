@@ -27,3 +27,10 @@ export const subscribePing = () => {
     return sendWebsocketMsg('tuntapclient/SubscribePing');
 }
 
+
+export const getNetwork = () => {
+    return sendWebsocketMsg('tuntapclient/GetNetwork');
+}
+export const addNetwork = (data) => {
+    return sendWebsocketMsg('tuntapclient/AddNetwork', data);
+}

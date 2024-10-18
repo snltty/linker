@@ -175,9 +175,8 @@ namespace linker.tun
         /// <summary>
         /// 添加路由
         /// </summary>
-        /// <param name="ips">路由IP</param>
-        /// <param name="ip">网卡IP</param>
-        /// <param name="gateway">是否网关，true添加NAT转发，false添加路由</param>
+        /// <param name="ips"></param>
+        /// <param name="ip"></param>
         public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
         {
             linkerTunDevice?.AddRoute(ips, ip);
@@ -185,8 +184,7 @@ namespace linker.tun
         /// <summary>
         /// 删除路由
         /// </summary>
-        /// <param name="ips">路由IP</param>
-        /// <param name="gateway">是否网关，true删除NAT转发，false删除路由</param>
+        /// <param name="ips"></param>
         public void DelRoute(LinkerTunDeviceRouteItem[] ips)
         {
             linkerTunDevice?.DelRoute(ips);
