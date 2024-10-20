@@ -9,8 +9,6 @@ using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.plugins.tuntap.config;
 using linker.tun;
-using linker.tunnel.connection;
-using System.Net.NetworkInformation;
 using linker.plugins.tuntap.lease;
 
 namespace linker.plugins.tuntap.client
@@ -22,32 +20,25 @@ namespace linker.plugins.tuntap.client
         private readonly FileConfig config;
         private readonly TuntapProxy tuntapProxy;
         private readonly RunningConfig runningConfig;
-        private readonly LinkerTunDeviceAdapter linkerTunDeviceAdapter;
         private readonly TuntapTransfer tuntapTransfer;
         private readonly LeaseClientTreansfer leaseClientTreansfer;
-
-        private string deviceName = "linker";
 
         public VersionManager Version { get; } = new VersionManager();
         private readonly ConcurrentDictionary<string, TuntapInfo> tuntapInfos = new ConcurrentDictionary<string, TuntapInfo>();
         public ConcurrentDictionary<string, TuntapInfo> Infos => tuntapInfos;
-        public LinkerTunDeviceRouteItem[] RouteItems { get; private set; } = [];
-
 
         private readonly SemaphoreSlim slim = new SemaphoreSlim(1);
-        public TuntapConfigTransfer(MessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig, LinkerTunDeviceAdapter linkerTunDeviceAdapter, TuntapTransfer tuntapTransfer, LeaseClientTreansfer leaseClientTreansfer)
+        public TuntapConfigTransfer(MessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig, TuntapTransfer tuntapTransfer, LeaseClientTreansfer leaseClientTreansfer)
         {
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
             this.config = config;
             this.tuntapProxy = tuntapProxy;
             this.runningConfig = runningConfig;
-            this.linkerTunDeviceAdapter = linkerTunDeviceAdapter;
             this.tuntapTransfer = tuntapTransfer;
             this.leaseClientTreansfer = leaseClientTreansfer;
 
-            PingTask();
-            clientSignInState.NetworkEnabledHandle += NetworkEanble;
+            clientSignInState.NetworkEnabledHandle += (times) => RefreshIP();
 
             tuntapTransfer.OnSetupBefore += () => { NotifyConfig(); };
             tuntapTransfer.OnSetupAfter += () => { NotifyConfig(); };
@@ -58,90 +49,76 @@ namespace linker.plugins.tuntap.client
             tuntapTransfer.OnShutdownSuccess += () => { NotifyConfig(); DeleteForward(); DelRoute(); runningConfig.Data.Tuntap.Running = false; runningConfig.Data.Update(); };
 
         }
-        private void NetworkEanble(int times)
-        {
-            TimerHelper.Async(async () =>
-            {
-                if (runningConfig.Data.Tuntap.Group2IP.TryGetValue(config.Data.Client.Group.Id, out TuntapGroup2IPInfo tuntapGroup2IPInfo))
-                {
-                    if (tuntapGroup2IPInfo.IP.Equals(runningConfig.Data.Tuntap.IP) == false || tuntapGroup2IPInfo.PrefixLength != runningConfig.Data.Tuntap.PrefixLength)
-                    {
-                        runningConfig.Data.Tuntap.IP = tuntapGroup2IPInfo.IP;
-                        runningConfig.Data.Tuntap.PrefixLength = tuntapGroup2IPInfo.PrefixLength;
-                    }
-                }
-                if (runningConfig.Data.Tuntap.Running || runningConfig.Data.Tuntap.IP.Equals(IPAddress.Any) == false)
-                {
-                    LeaseInfo leaseInfo = await leaseClientTreansfer.LeaseIp(runningConfig.Data.Tuntap.IP, runningConfig.Data.Tuntap.PrefixLength);
-                    runningConfig.Data.Tuntap.IP = leaseInfo.IP;
-                    runningConfig.Data.Tuntap.PrefixLength = leaseInfo.PrefixLength;
-                    runningConfig.Data.Update();
-                }
 
-                if (tuntapTransfer.Status == TuntapStatus.Running && times > 0)
-                {
-                    tuntapTransfer.Shutdown();
-                    tuntapTransfer.Setup();
-                }
-                if (times == 0)
-                {
-                    LoggerHelper.Instance.Debug($"tuntap initialize->{runningConfig.Data.Tuntap.Running}");
-                    if (runningConfig.Data.Tuntap.Running)
-                    {
-                        tuntapTransfer.Shutdown();
-                        LoggerHelper.Instance.Debug($"tuntap should be run");
-                        tuntapTransfer.Setup();
-                    }
-                }
-                NotifyConfig();
-            });
-        }
 
         /// <summary>
         /// 刷新IP
         /// </summary>
         public void RefreshIP()
         {
-            if (runningConfig.Data.Tuntap.Running || runningConfig.Data.Tuntap.IP.Equals(IPAddress.Any) == false)
+            TimerHelper.Async(async () =>
             {
-                TimerHelper.Async(async () =>
+                IPAddress oldIP = runningConfig.Data.Tuntap.IP;
+                byte prefixLength = runningConfig.Data.Tuntap.PrefixLength;
+
+                await LeaseIP();
+                while (tuntapTransfer.Status == TuntapStatus.Operating)
                 {
-                    IPAddress oldIP = runningConfig.Data.Tuntap.IP;
-                    byte prefixLength = runningConfig.Data.Tuntap.PrefixLength;
+                    await Task.Delay(1000);
+                }
 
-                    LeaseInfo leaseInfo = await leaseClientTreansfer.LeaseIp(runningConfig.Data.Tuntap.IP, runningConfig.Data.Tuntap.PrefixLength);
-                    runningConfig.Data.Tuntap.IP = leaseInfo.IP;
-                    runningConfig.Data.Tuntap.PrefixLength = leaseInfo.PrefixLength;
-                    runningConfig.Data.Update();
+                bool run = ((oldIP.Equals(runningConfig.Data.Tuntap.IP) == false || prefixLength != runningConfig.Data.Tuntap.PrefixLength) && runningConfig.Data.Tuntap.Running)
+                || (runningConfig.Data.Tuntap.Running && tuntapTransfer.Status != TuntapStatus.Running);
 
-                    TuntapGroup2IPInfo tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = runningConfig.Data.Tuntap.IP, PrefixLength = runningConfig.Data.Tuntap.PrefixLength };
-                    runningConfig.Data.Tuntap.Group2IP.AddOrUpdate(config.Data.Client.Group.Id, tuntapGroup2IPInfo, (a, b) => tuntapGroup2IPInfo);
-
-                    while (tuntapTransfer.Status == TuntapStatus.Operating)
-                    {
-                        await Task.Delay(1000);
-                    }
-
-                    if ((oldIP.Equals(runningConfig.Data.Tuntap.IP) == false || prefixLength != runningConfig.Data.Tuntap.PrefixLength) && tuntapTransfer.Status == TuntapStatus.Running)
-                    {
-                        tuntapTransfer.Shutdown();
-                        tuntapTransfer.Setup();
-                    }
-                    NotifyConfig();
-                });
-            }
+                if (run)
+                {
+                    tuntapTransfer.Shutdown();
+                    tuntapTransfer.Setup(runningConfig.Data.Tuntap.IP, runningConfig.Data.Tuntap.PrefixLength);
+                }
+                NotifyConfig();
+            });
 
         }
-        public async Task RefreshIPForce()
+        /// <summary>
+        /// 重启网卡
+        /// </summary>
+        /// <returns></returns>
+        public async Task RetstartDevice()
         {
-            LeaseInfo leaseInfo = await leaseClientTreansfer.LeaseIp(runningConfig.Data.Tuntap.IP, runningConfig.Data.Tuntap.PrefixLength);
-            runningConfig.Data.Tuntap.IP = leaseInfo.IP;
-            runningConfig.Data.Tuntap.PrefixLength = leaseInfo.PrefixLength;
-            runningConfig.Data.Update();
-
-            TuntapGroup2IPInfo tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = runningConfig.Data.Tuntap.IP, PrefixLength = runningConfig.Data.Tuntap.PrefixLength };
+            tuntapTransfer.Shutdown();
+            await LeaseIP();
+            tuntapTransfer.Setup(runningConfig.Data.Tuntap.IP, runningConfig.Data.Tuntap.PrefixLength);
+        }
+        /// <summary>
+        /// 关闭网卡
+        /// </summary>
+        public void StopDevice()
+        {
+            tuntapTransfer.Shutdown();
+        }
+        /// <summary>
+        /// 租赁IP
+        /// </summary>
+        /// <returns></returns>
+        private async Task LeaseIP()
+        {
+            if (runningConfig.Data.Tuntap.Group2IP.TryGetValue(config.Data.Client.Group.Id, out TuntapGroup2IPInfo tuntapGroup2IPInfo))
+            {
+                if (tuntapGroup2IPInfo.IP.Equals(runningConfig.Data.Tuntap.IP) == false || tuntapGroup2IPInfo.PrefixLength != runningConfig.Data.Tuntap.PrefixLength)
+                {
+                    runningConfig.Data.Tuntap.IP = tuntapGroup2IPInfo.IP;
+                    runningConfig.Data.Tuntap.PrefixLength = tuntapGroup2IPInfo.PrefixLength;
+                }
+            }
+            if (runningConfig.Data.Tuntap.Running || runningConfig.Data.Tuntap.IP.Equals(IPAddress.Any) == false)
+            {
+                LeaseInfo leaseInfo = await leaseClientTreansfer.LeaseIp(runningConfig.Data.Tuntap.IP, runningConfig.Data.Tuntap.PrefixLength);
+                runningConfig.Data.Tuntap.IP = leaseInfo.IP;
+                runningConfig.Data.Tuntap.PrefixLength = leaseInfo.PrefixLength;
+                runningConfig.Data.Update();
+            }
+            tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = runningConfig.Data.Tuntap.IP, PrefixLength = runningConfig.Data.Tuntap.PrefixLength };
             runningConfig.Data.Tuntap.Group2IP.AddOrUpdate(config.Data.Client.Group.Id, tuntapGroup2IPInfo, (a, b) => tuntapGroup2IPInfo);
-
         }
 
         /// <summary>
@@ -177,7 +154,7 @@ namespace linker.plugins.tuntap.client
                 if (tuntapTransfer.Status == TuntapStatus.Running && needReboot)
                 {
                     tuntapTransfer.Shutdown();
-                    tuntapTransfer.Setup();
+                    tuntapTransfer.Setup(runningConfig.Data.Tuntap.IP, runningConfig.Data.Tuntap.PrefixLength);
                 }
                 else
                 {
@@ -275,6 +252,11 @@ namespace linker.plugins.tuntap.client
         /// <returns></returns>
         private TuntapInfo GetLocalInfo()
         {
+            if (runningConfig.Data.Tuntap.LanIPs.Length == 0)
+            {
+                runningConfig.Data.Tuntap.LanIPs = [clientSignInState.Connection.LocalAddress.Address];
+                runningConfig.Data.Tuntap.Masks = [24];
+            }
             TuntapInfo info = new TuntapInfo
             {
                 IP = runningConfig.Data.Tuntap.IP,
@@ -458,51 +440,5 @@ namespace linker.plugins.tuntap.client
             };
         }
 
-
-        private readonly LastTicksManager lastTicksManager = new LastTicksManager();
-        public void SubscribePing()
-        {
-            lastTicksManager.Update();
-        }
-        private void PingTask()
-        {
-            TimerHelper.SetInterval(async () =>
-            {
-                if (tuntapTransfer.Status == TuntapStatus.Running && lastTicksManager.DiffLessEqual(5000))
-                {
-                    await Ping();
-                }
-                return true;
-            }, 3000);
-            TimerHelper.SetInterval(async () =>
-            {
-                if (tuntapTransfer.Status == TuntapStatus.Running && lastTicksManager.DiffGreater(15000))
-                {
-                    await Ping();
-                }
-                return true;
-            }, 30000);
-        }
-        private async Task Ping()
-        {
-            if (tuntapTransfer.Status == TuntapStatus.Running && (runningConfig.Data.Tuntap.Switch & TuntapSwitch.ShowDelay) == TuntapSwitch.ShowDelay)
-            {
-                var items = tuntapInfos.Values.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false && (c.Status & TuntapStatus.Running) == TuntapStatus.Running);
-                if ((runningConfig.Data.Tuntap.Switch & TuntapSwitch.AutoConnect) != TuntapSwitch.AutoConnect)
-                {
-                    var connections = tuntapProxy.GetConnections();
-                    items = items.Where(c => connections.TryGetValue(c.MachineId, out ITunnelConnection connection) && connection.Connected || c.MachineId == config.Data.Client.Id);
-                }
-
-                foreach (var item in items)
-                {
-                    using Ping ping = new Ping();
-                    PingReply pingReply = await ping.SendPingAsync(item.IP, 500);
-                    item.Delay = pingReply.Status == IPStatus.Success ? (int)pingReply.RoundtripTime : -1;
-
-                    Version.Add();
-                }
-            }
-        }
     }
 }

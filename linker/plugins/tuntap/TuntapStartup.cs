@@ -34,6 +34,10 @@ namespace linker.plugins.tuntap
             serviceCollection.AddSingleton<ExcludeIP>();
 
             serviceCollection.AddSingleton<TuntapConfigTransfer>();
+            serviceCollection.AddSingleton<TuntapPingTransfer>();
+            serviceCollection.AddSingleton<TuntapDeviceStatusTransfer>();
+
+
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
@@ -51,6 +55,9 @@ namespace linker.plugins.tuntap
             LeaseClientTreansfer leaseTreansfer = serviceProvider.GetService<LeaseClientTreansfer>();
 
             TuntapConfigTransfer tuntapConfigTransfer = serviceProvider.GetService<TuntapConfigTransfer>();
+            TuntapPingTransfer tuntapPingTransfer = serviceProvider.GetService<TuntapPingTransfer>();
+            TuntapDeviceStatusTransfer tuntapDeviceStatusTransfer = serviceProvider.GetService<TuntapDeviceStatusTransfer>();
+
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config)

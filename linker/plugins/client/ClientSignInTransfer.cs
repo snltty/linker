@@ -54,7 +54,7 @@ namespace linker.plugins.client
                     }
                 }
                 return true;
-            }, 10000);
+            }, () => 10000);
         }
 
         /// <summary>
@@ -221,7 +221,7 @@ namespace linker.plugins.client
         public void Set(string newName, ClientGroupInfo[] groups)
         {
             config.Data.Client.Name = newName;
-            config.Data.Client.Groups = groups.DistinctBy(c => c.Name).ToArray(); 
+            config.Data.Client.Groups = groups.DistinctBy(c => c.Name).ToArray();
             config.Data.Update();
         }
         /// <summary>
@@ -230,7 +230,7 @@ namespace linker.plugins.client
         /// <param name="groups"></param>
         public void Set(ClientGroupInfo[] groups)
         {
-            config.Data.Client.Groups = groups.DistinctBy(c=>c.Name).ToArray();
+            config.Data.Client.Groups = groups.DistinctBy(c => c.Name).ToArray();
             config.Data.Update();
         }
 

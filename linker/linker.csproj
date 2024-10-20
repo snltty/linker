@@ -26,14 +26,15 @@
 3. 优化配置同步，可自由选择同步哪些信息
 4. 自动分配虚拟网卡IP
 5. 线程池优化
-6. 一些UI优化</Description>
+6. 一些UI优化
+7. 测试中，不要更新，不要更新，不要更新，请使用v1.4.9</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.4.9</Version>
-		<AssemblyVersion>1.4.9</AssemblyVersion>
-		<FileVersion>1.4.9</FileVersion>
+		<Version>1.5.0</Version>
+		<AssemblyVersion>1.5.0</AssemblyVersion>
+		<FileVersion>1.5.0</FileVersion>
 	</PropertyGroup>
 
 

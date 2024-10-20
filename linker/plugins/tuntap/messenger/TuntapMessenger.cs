@@ -6,7 +6,6 @@ using linker.plugins.tuntap.client;
 using linker.plugins.tuntap.config;
 using linker.plugins.tuntap.lease;
 using MemoryPack;
-using System.Net;
 
 namespace linker.plugins.tuntap.messenger
 {
@@ -31,12 +30,7 @@ namespace linker.plugins.tuntap.messenger
         [MessengerId((ushort)TuntapMessengerIds.Run)]
         public void Run(IConnection connection)
         {
-            TimerHelper.Async(async () =>
-            {
-                tuntapTransfer.Shutdown();
-                await tuntapConfigTransfer.RefreshIPForce();
-                tuntapTransfer.Setup();
-            });
+            _ = tuntapConfigTransfer.RetstartDevice();
         }
 
         /// <summary>
@@ -46,7 +40,7 @@ namespace linker.plugins.tuntap.messenger
         [MessengerId((ushort)TuntapMessengerIds.Stop)]
         public void Stop(IConnection connection)
         {
-            tuntapTransfer.Shutdown();
+            tuntapConfigTransfer.StopDevice();
         }
 
         /// <summary>

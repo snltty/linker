@@ -84,7 +84,7 @@ namespace linker.plugins.tuntap.lease
                 });
 
                 return true;
-            }, 30000);
+            }, () => 60000);
         }
     }
 }

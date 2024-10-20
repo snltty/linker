@@ -284,7 +284,7 @@ namespace linker.plugins.sforward.proxy
                     }
                 }
                 return true;
-            }, 5000);
+            }, 60000);
         }
     }
 

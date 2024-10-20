@@ -80,17 +80,18 @@ namespace linker.plugins.updater
         }
 
 
+        private readonly LastTicksManager lastTicksManager = new LastTicksManager();
         public void Subscribe(string machineId)
         {
-            if (subscribes.TryGetValue(machineId, out LastTicksManager lastTicksManager) == false)
+            if (subscribes.TryGetValue(machineId, out LastTicksManager _lastTicksManager) == false)
             {
-                lastTicksManager = new LastTicksManager();
-                subscribes.TryAdd(machineId, lastTicksManager);
+                _lastTicksManager = new LastTicksManager();
+                subscribes.TryAdd(machineId, _lastTicksManager);
             }
 
             //距离上次订阅超过一分钟，需要立即更新一次
-            bool needUpdate = lastTicksManager.DiffGreater(60 * 1000);
-
+            bool needUpdate = _lastTicksManager.DiffGreater(60 * 1000);
+            _lastTicksManager.Update();
             lastTicksManager.Update();
 
             if (needUpdate)
@@ -119,7 +120,7 @@ namespace linker.plugins.updater
                     Update(updateInfo);
                 }
                 return true;
-            }, 1000);
+            }, () => lastTicksManager.DiffLessEqual(5000) ? 1000 : 15000);
 
         }
         private void LoadTask()
@@ -128,7 +129,7 @@ namespace linker.plugins.updater
             {
                 await updaterHelper.GetUpdateInfo(updateInfo);
                 return true;
-            }, 15000);
+            }, () => 30000);
         }
     }
 

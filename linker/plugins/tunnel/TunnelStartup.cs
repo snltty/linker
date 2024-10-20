@@ -101,7 +101,7 @@ namespace linker.plugins.tunnel
             };
             List<ITunnelWanPortProtocol> compacts = types.Select(c => (ITunnelWanPortProtocol)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
             TunnelWanPortTransfer compack = serviceProvider.GetService<TunnelWanPortTransfer>();
-            compack.Init(compacts);
+            compack.LoadTransports(compacts);
 
 
             types = new List<Type> {
@@ -114,7 +114,7 @@ namespace linker.plugins.tunnel
             };
             List<ITunnelTransport> transports = types.Select(c => (ITunnelTransport)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
             TunnelTransfer tunnel = serviceProvider.GetService<TunnelTransfer>();
-            tunnel.Init(compack, tunnelAdapter, transports);
+            tunnel.LoadTransports(compack, tunnelAdapter, transports);
 
             TunnelConfigTransfer tunnelConfigTransfer = serviceProvider.GetService<TunnelConfigTransfer>();
             TunnelExcludeIPTransfer excludeIPTransfer = serviceProvider.GetService<TunnelExcludeIPTransfer>();

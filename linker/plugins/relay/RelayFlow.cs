@@ -31,7 +31,7 @@ namespace linker.plugins.relay
                     }
                 }
                 return true;
-            }, 1000);
+            }, () => lastTicksManager.DiffLessEqual(5000) ? 1000 : 30000);
         }
 
         public void Update()

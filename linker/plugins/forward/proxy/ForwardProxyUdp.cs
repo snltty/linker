@@ -291,7 +291,7 @@ namespace linker.plugins.forward.proxy
                 }
                 
                 return true;
-            }, 5000);
+            }, 30000);
         }
 
         private void CloseClientSocketUdp(ITunnelConnection connection)

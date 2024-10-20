@@ -24,8 +24,10 @@ namespace linker.plugins.tuntap.client
         private readonly RunningConfig runningConfig;
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
         private readonly LeaseClientTreansfer leaseClientTreansfer;
+        private readonly TuntapPingTransfer pingTransfer;
 
-        public TuntapClientApiController(MessengerSender messengerSender, TuntapTransfer tuntapTransfer, ClientSignInState clientSignInState, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig, TuntapConfigTransfer tuntapConfigTransfer, LeaseClientTreansfer leaseClientTreansfer)
+
+        public TuntapClientApiController(MessengerSender messengerSender, TuntapTransfer tuntapTransfer, ClientSignInState clientSignInState, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig, TuntapConfigTransfer tuntapConfigTransfer, LeaseClientTreansfer leaseClientTreansfer, TuntapPingTransfer pingTransfer)
         {
             this.messengerSender = messengerSender;
             this.tuntapTransfer = tuntapTransfer;
@@ -35,6 +37,7 @@ namespace linker.plugins.tuntap.client
             this.runningConfig = runningConfig;
             this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.leaseClientTreansfer = leaseClientTreansfer;
+            this.pingTransfer = pingTransfer;
         }
 
         public ConnectionListInfo Connections(ApiControllerParamsInfo param)
@@ -96,9 +99,7 @@ namespace linker.plugins.tuntap.client
             {
                 if (config.Data.Client.HasAccess(ClientApiAccess.TuntapStatusSelf) == false) return false;
 
-                tuntapTransfer.Shutdown();
-                await tuntapConfigTransfer.RefreshIPForce();
-                tuntapTransfer.Setup();
+                await tuntapConfigTransfer.RetstartDevice();
             }
             else
             {
@@ -124,7 +125,7 @@ namespace linker.plugins.tuntap.client
             if (param.Content == config.Data.Client.Id)
             {
                 if (config.Data.Client.HasAccess(ClientApiAccess.TuntapStatusSelf) == false) return false;
-                tuntapTransfer.Shutdown();
+                tuntapConfigTransfer.StopDevice();
             }
             else
             {
@@ -191,20 +192,23 @@ namespace linker.plugins.tuntap.client
             return await leaseClientTreansfer.GetNetwork();
         }
 
+        /// <summary>
+        /// 订阅ping
+        /// </summary>
+        /// <param name="param"></param>
         public void SubscribePing(ApiControllerParamsInfo param)
         {
-            tuntapConfigTransfer.SubscribePing();
+            pingTransfer.SubscribePing();
         }
-
-        public sealed class TuntabListInfo
-        {
-            public ConcurrentDictionary<string, TuntapInfo> List { get; set; }
-            public ulong HashCode { get; set; }
-        }
-        public sealed class ConnectionListInfo
-        {
-            public ConcurrentDictionary<string, ITunnelConnection> List { get; set; }
-            public ulong HashCode { get; set; }
-        }
+    }
+    public sealed class TuntabListInfo
+    {
+        public ConcurrentDictionary<string, TuntapInfo> List { get; set; }
+        public ulong HashCode { get; set; }
+    }
+    public sealed class ConnectionListInfo
+    {
+        public ConcurrentDictionary<string, ITunnelConnection> List { get; set; }
+        public ulong HashCode { get; set; }
     }
 }

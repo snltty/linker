@@ -28,7 +28,7 @@ namespace linker.tunnel
         /// 加载打洞协议
         /// </summary>
         /// <param name="assembs"></param>
-        public void Init(TunnelWanPortTransfer compactTransfer, ITunnelAdapter tunnelAdapter, List<ITunnelTransport> transports)
+        public void LoadTransports(TunnelWanPortTransfer compactTransfer, ITunnelAdapter tunnelAdapter, List<ITunnelTransport> transports)
         {
             this.compactTransfer = compactTransfer;
             this.tunnelAdapter = tunnelAdapter;

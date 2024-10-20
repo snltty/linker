@@ -27,7 +27,21 @@ namespace linker.libs
                 }
             });
         }
-        public static void SetInterval(Func<Task<bool>> action, int delayMs)
+        public static void SetInterval(Func<bool> action, Func<int> delay)
+        {
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    if (action() == false)
+                    {
+                        break;
+                    }
+                    await Task.Delay(delay()).ConfigureAwait(false);
+                }
+            });
+        }
+        public static void SetInterval(Func<Task<bool>> action, Func<int> delay)
         {
             Task.Run(async () =>
             {
@@ -37,7 +51,7 @@ namespace linker.libs
                     {
                         break;
                     }
-                    await Task.Delay(delayMs).ConfigureAwait(false);
+                    await Task.Delay(delay()).ConfigureAwait(false);
                 }
             });
         }

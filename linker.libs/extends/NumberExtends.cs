@@ -17,7 +17,7 @@ namespace linker.libs.extends
             ref double v = ref value;
             fixed (void* p = &v)
             {
-                new Span<byte>(p, 8).CopyTo(memory.Span);
+                new Span<byte>(p, sizeof(double)).CopyTo(memory.Span);
             }
         }
         #endregion
@@ -32,7 +32,7 @@ namespace linker.libs.extends
             ref long v = ref value;
             fixed (void* p = &v)
             {
-                new Span<byte>(p, 8).CopyTo(memory.Span);
+                new Span<byte>(p, sizeof(long)).CopyTo(memory.Span);
             }
         }
         public static unsafe void ToBytes(this long[] value, Memory<byte> memory)
@@ -80,7 +80,7 @@ namespace linker.libs.extends
             ref int v = ref value;
             fixed (void* p = &v)
             {
-                new Span<byte>(p, 4).CopyTo(memory.Span);
+                new Span<byte>(p, sizeof(int)).CopyTo(memory.Span);
             }
         }
         public static unsafe void ToBytes(this int[] value, Memory<byte> memory)
@@ -99,7 +99,7 @@ namespace linker.libs.extends
             ref uint v = ref value;
             fixed (void* p = &v)
             {
-                new Span<byte>(p, 4).CopyTo(memory.Span);
+                new Span<byte>(p, sizeof(uint)).CopyTo(memory.Span);
             }
         }
         public static unsafe void ToBytes(this uint[] value, Memory<byte> memory)

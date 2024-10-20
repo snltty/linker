@@ -162,6 +162,7 @@ namespace linker.plugins.relay.transport
                 {
                     if (certificate == null)
                     {
+                        LoggerHelper.Instance.Error($"need ssl");
                         socket.SafeClose();
                         return null;
                     }

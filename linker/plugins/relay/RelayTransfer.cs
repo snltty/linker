@@ -293,7 +293,7 @@ namespace linker.plugins.relay
                     await TaskRelay();
                 }
                 return true;
-            }, 3000);
+            }, () => lastTicksManager.DiffLessEqual(3000) ? 3000 : 30000);
         }
         sealed class TestInfo
         {

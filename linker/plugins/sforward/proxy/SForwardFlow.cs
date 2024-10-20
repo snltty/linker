@@ -31,7 +31,7 @@ namespace linker.plugins.sforward.proxy
                     }
                 }
                 return true;
-            }, 1000);
+            }, () => lastTicksManager.DiffLessEqual(5000) ? 1000 : 30000);
         }
 
 

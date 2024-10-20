@@ -19,7 +19,7 @@ namespace linker.tunnel.wanport
         /// 加载所有外网端口协议
         /// </summary>
         /// <param name="assembs"></param>
-        public void Init(List<ITunnelWanPortProtocol> tunnelWanPorts)
+        public void LoadTransports(List<ITunnelWanPortProtocol> tunnelWanPorts)
         {
             this.tunnelWanPorts = tunnelWanPorts;
             LoggerHelper.Instance.Info($"load tunnel wanport compacts:{string.Join(",", tunnelWanPorts.Select(c => c.Name))}");

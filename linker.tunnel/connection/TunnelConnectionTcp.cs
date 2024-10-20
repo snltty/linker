@@ -305,7 +305,7 @@ namespace linker.tunnel.connection
 
         public override string ToString()
         {
-            return this.ToJson();
+            return this.ToJsonFormat();
         }
         public bool Equals(ITunnelConnection connection)
         {
