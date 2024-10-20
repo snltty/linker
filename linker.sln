@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.tun.test", "linker.t
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.gen", "linker.gen\linker.gen.csproj", "{031C3589-72BB-4A3F-B1A5-BC0665FDF01B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "linker.messenger", "linker.messenger\linker.messenger.csproj", "{95F13B7F-EC39-4E23-9B70-8B747E55777A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -111,6 +113,18 @@ Global
 		{031C3589-72BB-4A3F-B1A5-BC0665FDF01B}.Release|x64.Build.0 = Release|Any CPU
 		{031C3589-72BB-4A3F-B1A5-BC0665FDF01B}.Release|x86.ActiveCfg = Release|Any CPU
 		{031C3589-72BB-4A3F-B1A5-BC0665FDF01B}.Release|x86.Build.0 = Release|Any CPU
+		{95F13B7F-EC39-4E23-9B70-8B747E55777A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95F13B7F-EC39-4E23-9B70-8B747E55777A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95F13B7F-EC39-4E23-9B70-8B747E55777A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{95F13B7F-EC39-4E23-9B70-8B747E55777A}.Debug|x64.Build.0 = Debug|Any CPU
+		{95F13B7F-EC39-4E23-9B70-8B747E55777A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{95F13B7F-EC39-4E23-9B70-8B747E55777A}.Debug|x86.Build.0 = Debug|Any CPU
+		{95F13B7F-EC39-4E23-9B70-8B747E55777A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95F13B7F-EC39-4E23-9B70-8B747E55777A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95F13B7F-EC39-4E23-9B70-8B747E55777A}.Release|x64.ActiveCfg = Release|Any CPU
+		{95F13B7F-EC39-4E23-9B70-8B747E55777A}.Release|x64.Build.0 = Release|Any CPU
+		{95F13B7F-EC39-4E23-9B70-8B747E55777A}.Release|x86.ActiveCfg = Release|Any CPU
+		{95F13B7F-EC39-4E23-9B70-8B747E55777A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
