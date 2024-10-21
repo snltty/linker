@@ -17,12 +17,12 @@ namespace linker.plugins.config
         private readonly RunningConfig runningConfig;
         private readonly FileConfig config;
         private readonly ClientSignInTransfer clientSignInTransfer;
-        private readonly MessengerSender sender;
+        private readonly IMessengerSender sender;
         private readonly ClientSignInState clientSignInState;
         private readonly AccessTransfer accessTransfer;
         private readonly ConfigSyncTreansfer configSyncTreansfer;
 
-        public ConfigClientApiController(RunningConfig runningConfig, FileConfig config, ClientSignInTransfer clientSignInTransfer, MessengerSender sender, ClientSignInState clientSignInState, AccessTransfer accessTransfer, ConfigSyncTreansfer configSyncTreansfer)
+        public ConfigClientApiController(RunningConfig runningConfig, FileConfig config, ClientSignInTransfer clientSignInTransfer, IMessengerSender sender, ClientSignInState clientSignInState, AccessTransfer accessTransfer, ConfigSyncTreansfer configSyncTreansfer)
         {
             this.runningConfig = runningConfig;
             this.config = config;

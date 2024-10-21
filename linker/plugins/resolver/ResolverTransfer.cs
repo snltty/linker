@@ -2,31 +2,26 @@
 using System.Net.Sockets;
 using linker.libs.extends;
 using System.Buffers;
-using Microsoft.Extensions.DependencyInjection;
 using System.Net;
-using System;
 
 namespace linker.plugins.resolver
 {
-    public sealed partial class ResolverTransfer
+    public sealed class ResolverTransfer
     {
         private readonly Dictionary<ResolverType, IResolver> resolvers = new Dictionary<ResolverType, IResolver>();
 
-        public ResolverTransfer(ServiceProvider serviceProvider)
+        public ResolverTransfer()
         {
-            var types = GetSourceGeneratorTypes();
-            foreach (Type type in types)
+        }
+        public void LoadResolvers(List<IResolver> list)
+        {
+            foreach (IResolver resolver in list)
             {
-                IResolver resolver = (IResolver)serviceProvider.GetService(type);
-                if (resolver == null)
-                {
-                    continue;
-                }
-                LoggerHelper.Instance.Info($"load Resolver:{type.Name}");
-
                 resolvers.TryAdd(resolver.Type, resolver);
             }
         }
+
+
         public async Task BeginReceive(Socket socket)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);

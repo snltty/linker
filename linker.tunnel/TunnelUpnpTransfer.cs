@@ -1,6 +1,8 @@
 ﻿using linker.libs;
+using linker.tunnel.transport;
 using Mono.Nat;
 using System.Collections.Concurrent;
+using System.Net;
 
 namespace linker.tunnel
 {
@@ -11,9 +13,17 @@ namespace linker.tunnel
         private readonly ConcurrentDictionary<NatProtocol, INatDevice> natDevices = new ConcurrentDictionary<NatProtocol, INatDevice>();
 
         public MapInfo MapInfo { get; private set; }
+        public MapInfo MapInfo1 { get; private set; }
 
-        public TunnelUpnpTransfer()
+        public MapInfo PortMap => MapInfo1 ?? MapInfo;
+
+        private readonly TransportTcpPortMap transportTcpPortMap;
+        private readonly TransportUdpPortMap transportUdpPortMap;
+        public TunnelUpnpTransfer(TransportTcpPortMap transportTcpPortMap, TransportUdpPortMap transportUdpPortMap)
         {
+            this.transportTcpPortMap = transportTcpPortMap;
+            this.transportUdpPortMap = transportUdpPortMap;
+
             NatUtility.DeviceFound += DeviceFound;
             NatUtility.StartDiscovery();
             LoopDiscovery();
@@ -91,9 +101,20 @@ namespace linker.tunnel
             return false;
         }
 
+        public void SetMap(IPAddress lanIP, int privatePort)
+        {
+            int ip = lanIP.GetAddressBytes()[3];
+            MapInfo = new MapInfo { PrivatePort = privatePort, PublicPort = privatePort + ip };
+            AddMap();
+
+            _ = transportTcpPortMap.Listen(privatePort);
+            _ = transportUdpPortMap.Listen(privatePort);
+        }
         public void SetMap(int privatePort, int publicPort)
         {
-            MapInfo = new MapInfo { PrivatePort = privatePort, PublicPort = publicPort };
+            MapInfo1 = new MapInfo { PrivatePort = privatePort, PublicPort = publicPort };
+            _ = transportTcpPortMap.Listen(privatePort);
+            _ = transportUdpPortMap.Listen(privatePort);
         }
     }
 

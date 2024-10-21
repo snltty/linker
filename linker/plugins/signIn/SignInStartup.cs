@@ -24,6 +24,8 @@ namespace linker.plugins.signin
             serviceCollection.AddSingleton<SignInClientApiController>();
 
             serviceCollection.AddSingleton<SignInArgsTransfer>();
+            serviceCollection.AddSingleton<SignInArgsTypesLoader>();
+            
             serviceCollection.AddSingleton<SignInArgsMachineKeyClient>();
         }
 
@@ -33,15 +35,18 @@ namespace linker.plugins.signin
             serviceCollection.AddSingleton<SignInServerMessenger>();
 
             serviceCollection.AddSingleton<SignInArgsTransfer>();
+            serviceCollection.AddSingleton<SignInArgsTypesLoader>();
             serviceCollection.AddSingleton<SignInArgsMachineKeyServer>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
+            SignInArgsTypesLoader signInArgsTypesLoader = serviceProvider.GetService<SignInArgsTypesLoader>();
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config)
         {
+            SignInArgsTypesLoader signInArgsTypesLoader = serviceProvider.GetService<SignInArgsTypesLoader>();
         }
     }
 }

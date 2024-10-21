@@ -57,12 +57,12 @@ namespace linker.plugins.updater.messenger
 
     public sealed class UpdaterServerMessenger : IMessenger
     {
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
         private readonly SignCaching signCaching;
         private readonly UpdaterServerTransfer updaterServerTransfer;
         private readonly FileConfig fileConfig;
 
-        public UpdaterServerMessenger(MessengerSender messengerSender, SignCaching signCaching, UpdaterServerTransfer updaterServerTransfer, FileConfig fileConfig)
+        public UpdaterServerMessenger(IMessengerSender messengerSender, SignCaching signCaching, UpdaterServerTransfer updaterServerTransfer, FileConfig fileConfig)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;

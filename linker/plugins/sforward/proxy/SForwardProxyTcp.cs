@@ -283,13 +283,13 @@ namespace linker.plugins.sforward.proxy
                 {
                     if (isDomain)
                     {
-                        sForwardFlow.AddReceive(domain, (ulong)bytesRead);
-                        sForwardFlow.AddSendt(domain, (ulong)bytesRead);
+                        AddReceive(domain, (ulong)bytesRead);
+                        AddSendt(domain, (ulong)bytesRead);
                     }
                     else
                     {
-                        sForwardFlow.AddReceive(portStr, (ulong)bytesRead);
-                        sForwardFlow.AddSendt(portStr, (ulong)bytesRead);
+                        AddReceive(portStr, (ulong)bytesRead);
+                        AddSendt(portStr, (ulong)bytesRead);
                     }
                     await target.SendAsync(buffer.Slice(0, bytesRead), SocketFlags.None).ConfigureAwait(false);
                 }

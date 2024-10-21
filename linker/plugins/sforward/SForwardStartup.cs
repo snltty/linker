@@ -28,10 +28,7 @@ namespace linker.plugins.sforward
             serviceCollection.AddSingleton<SForwardTransfer>();
             serviceCollection.AddSingleton<SForwardClientMessenger>();
 
-            serviceCollection.AddSingleton<SForwardFlow>();
-
             serviceCollection.AddSingleton<ConfigSyncSForwardSecretKey>();
-
 
         }
 
@@ -42,7 +39,6 @@ namespace linker.plugins.sforward
             serviceCollection.AddSingleton<ISForwardServerCahing, SForwardServerCahing>();
             serviceCollection.AddSingleton<ISForwardValidator, Validator>();
 
-            serviceCollection.AddSingleton<SForwardFlow>();
         }
 
         bool added = false;
@@ -51,7 +47,7 @@ namespace linker.plugins.sforward
             if (added == false)
             {
                 added = true;
-                serviceCollection.AddSingleton<SForwardProxy>();
+                serviceCollection.AddSingleton<SForwardProxy, SForwardProxy>();
             }
         }
 
@@ -66,9 +62,9 @@ namespace linker.plugins.sforward
             if (config.Data.Server.SForward.WebPort > 0)
             {
                 sForwardProxy.Start(config.Data.Server.SForward.WebPort, true, config.Data.Server.SForward.BufferSize);
-                LoggerHelper.Instance.Info($"listen server forward web in {config.Data.Server.SForward.WebPort}");
+                LoggerHelper.Instance.Warning($"listen server forward web in {config.Data.Server.SForward.WebPort}");
             }
-            LoggerHelper.Instance.Info($"listen server forward tunnel in {string.Join("-", config.Data.Server.SForward.TunnelPortRange)}");
+            LoggerHelper.Instance.Warning($"listen server forward tunnel in {string.Join("-", config.Data.Server.SForward.TunnelPortRange)}");
 
         }
     }

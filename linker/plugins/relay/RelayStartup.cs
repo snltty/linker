@@ -27,9 +27,10 @@ namespace linker.plugins.relay
             serviceCollection.AddSingleton<RelayClientMessenger>();
             serviceCollection.AddSingleton<TransportSelfHost>();
             serviceCollection.AddSingleton<RelayTransfer>();
-            serviceCollection.AddSingleton<RelayFlow>();
 
             serviceCollection.AddSingleton<ConfigSyncRelaySecretKey>();
+
+            serviceCollection.AddSingleton<RelayTypesLoader>();
 
         }
 
@@ -40,20 +41,21 @@ namespace linker.plugins.relay
             serviceCollection.AddSingleton<RelayResolver>();
 
             serviceCollection.AddSingleton<RelayValidatorTransfer>();
-            serviceCollection.AddSingleton<RelayValidatorSecretKey>();
+            serviceCollection.AddSingleton<RelayValidatorTypeLoader>();
 
-            serviceCollection.AddSingleton<RelayFlow>();
+            serviceCollection.AddSingleton<RelayValidatorSecretKey>();
 
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
             RelayTransfer relayTransfer = serviceProvider.GetService<RelayTransfer>();
+            RelayTypesLoader relayTypesLoader = serviceProvider.GetService<RelayTypesLoader>();
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config)
         {
-            RelayValidatorTransfer relayValidatorTransfer = serviceProvider.GetService<RelayValidatorTransfer>();
+            RelayValidatorTypeLoader relayValidatorTypeLoader = serviceProvider.GetService<RelayValidatorTypeLoader>();
         }
     }
 }

@@ -14,12 +14,12 @@ namespace linker.plugins.flow
 {
     public sealed class FlowClientApiController : IApiClientController
     {
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
         private readonly FileConfig config;
         private readonly RunningConfig runningConfig;
 
-        public FlowClientApiController(MessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config, RunningConfig runningConfig)
+        public FlowClientApiController(IMessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config, RunningConfig runningConfig)
         {
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;

@@ -14,13 +14,13 @@ namespace linker.plugins.updater
 {
     public sealed class UpdaterClientApiController : IApiClientController
     {
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
         private readonly UpdaterClientTransfer updaterTransfer;
         private readonly ClientSignInState clientSignInState;
         private readonly FileConfig config;
         private readonly RunningConfig runningConfig;
 
-        public UpdaterClientApiController(MessengerSender messengerSender, UpdaterClientTransfer updaterTransfer, ClientSignInState clientSignInState, FileConfig config, RunningConfig runningConfig)
+        public UpdaterClientApiController(IMessengerSender messengerSender, UpdaterClientTransfer updaterTransfer, ClientSignInState clientSignInState, FileConfig config, RunningConfig runningConfig)
         {
             this.messengerSender = messengerSender;
             this.updaterTransfer = updaterTransfer;

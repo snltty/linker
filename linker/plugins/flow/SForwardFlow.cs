@@ -1,10 +1,27 @@
 ﻿using linker.libs;
-using linker.plugins.flow;
+using linker.plugins.sforward.proxy;
 using MemoryPack;
 using System.Text.Json.Serialization;
 
-namespace linker.plugins.sforward.proxy
+namespace linker.plugins.flow
 {
+    public sealed class SForwardProxyFlow: SForwardProxy
+    {
+        private readonly SForwardFlow sForwardFlow;
+        public SForwardProxyFlow(SForwardFlow sForwardFlow)
+        {
+            this.sForwardFlow = sForwardFlow;
+        }
+        public override void AddReceive(string key, ulong bytes)
+        {
+            sForwardFlow.AddReceive(key, bytes);
+        }
+        public override void AddSendt(string key, ulong bytes)
+        {
+            sForwardFlow.AddSendt(key, bytes);
+        }
+    }
+
     public sealed class SForwardFlow : IFlow
     {
         public ulong ReceiveBytes { get; private set; }

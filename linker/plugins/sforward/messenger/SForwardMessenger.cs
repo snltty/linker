@@ -8,7 +8,6 @@ using linker.config;
 using LiteDB;
 using System.Net;
 using linker.plugins.messenger;
-using System.Buffers.Binary;
 using linker.libs;
 
 namespace linker.plugins.sforward.messenger
@@ -21,12 +20,12 @@ namespace linker.plugins.sforward.messenger
 
         private readonly SForwardProxy proxy;
         private readonly ISForwardServerCahing sForwardServerCahing;
-        private readonly MessengerSender sender;
+        private readonly IMessengerSender sender;
         private readonly SignCaching signCaching;
         private readonly FileConfig configWrap;
         private readonly ISForwardValidator validator;
 
-        public SForwardServerMessenger(SForwardProxy proxy, ISForwardServerCahing sForwardServerCahing, MessengerSender sender, SignCaching signCaching, FileConfig configWrap, ISForwardValidator validator)
+        public SForwardServerMessenger(SForwardProxy proxy, ISForwardServerCahing sForwardServerCahing, IMessengerSender sender, SignCaching signCaching, FileConfig configWrap, ISForwardValidator validator)
         {
             this.proxy = proxy;
             proxy.WebConnect = WebConnect;

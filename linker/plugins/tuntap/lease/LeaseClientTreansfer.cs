@@ -9,10 +9,10 @@ namespace linker.plugins.tuntap.lease
 {
     public sealed class LeaseClientTreansfer
     {
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
 
-        public LeaseClientTreansfer(MessengerSender messengerSender, ClientSignInState clientSignInState)
+        public LeaseClientTreansfer(IMessengerSender messengerSender, ClientSignInState clientSignInState)
         {
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;

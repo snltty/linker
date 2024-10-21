@@ -3,19 +3,48 @@ using System.Collections.Concurrent;
 
 namespace linker.plugins.messenger
 {
+    public interface IMessengerSender
+    {
+        /// <summary>
+        /// 发送并等待回复
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        public Task<MessageResponeInfo> SendReply(MessageRequestWrap msg);
+        /// <summary>
+        /// 仅发送
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        public Task<bool> SendOnly(MessageRequestWrap msg);
+        /// <summary>
+        /// 仅回复
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="messengerId"></param>
+        /// <returns></returns>
+        public ValueTask<bool> ReplyOnly(MessageResponseWrap msg, ushort messengerId);
+        /// <summary>
+        /// 回复
+        /// </summary>
+        /// <param name="wrap"></param>
+        public void Response(MessageResponseWrap wrap);
+    }
+
     /// <summary>
     /// 消息发送器
     /// </summary>
-    public sealed class MessengerSender
+    public class MessengerSender : IMessengerSender
     {
         public NumberSpaceUInt32 requestIdNumberSpace = new NumberSpaceUInt32(0);
         private ConcurrentDictionary<uint, ReplyWrapInfo> sends = new ConcurrentDictionary<uint, ReplyWrapInfo>();
 
-        private readonly MessengerFlow messengerFlow;
-        public MessengerSender(MessengerFlow messengerFlow)
+        public MessengerSender()
         {
-            this.messengerFlow = messengerFlow;
         }
+
+        public virtual void AddReceive(ushort id, ulong bytes) { }
+        public virtual void AddSendt(ushort id, ulong bytes) { }
 
         /// <summary>
         /// 发送并等待回复
@@ -84,7 +113,7 @@ namespace linker.plugins.messenger
 
                 byte[] bytes = msg.ToArray(out int length);
 
-                messengerFlow.AddSendt(msg.MessengerId, (ulong)bytes.Length);
+                AddSendt(msg.MessengerId, (ulong)bytes.Length);
 
                 bool res = await msg.Connection.SendAsync(bytes.AsMemory(0, length)).ConfigureAwait(false);
                 msg.Return(bytes);
@@ -102,7 +131,7 @@ namespace linker.plugins.messenger
         /// </summary>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public async ValueTask<bool> ReplyOnly(MessageResponseWrap msg,ushort messengerId)
+        public async ValueTask<bool> ReplyOnly(MessageResponseWrap msg, ushort messengerId)
         {
             if (msg.Connection == null)
             {
@@ -114,7 +143,7 @@ namespace linker.plugins.messenger
 
                 byte[] bytes = msg.ToArray(out int length);
 
-                messengerFlow.AddSendt(messengerId, (ulong)length);
+                AddSendt(messengerId, (ulong)length);
 
                 bool res = await msg.Connection.SendAsync(bytes.AsMemory(0, length)).ConfigureAwait(false);
                 msg.Return(bytes);
@@ -138,7 +167,7 @@ namespace linker.plugins.messenger
                 byte[] bytes = new byte[wrap.Payload.Length];
                 wrap.Payload.CopyTo(bytes);
 
-                messengerFlow.AddReceive(info.MessengerId, (ulong)bytes.Length);
+                AddReceive(info.MessengerId, (ulong)bytes.Length);
                 info.Tcs.SetResult(new MessageResponeInfo { Code = wrap.Code, Data = bytes, Connection = wrap.Connection });
             }
         }

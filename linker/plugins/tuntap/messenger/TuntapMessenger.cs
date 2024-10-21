@@ -80,12 +80,12 @@ namespace linker.plugins.tuntap.messenger
 
     public sealed class TuntapServerMessenger : IMessenger
     {
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
         private readonly SignCaching signCaching;
         private readonly FileConfig config;
         private readonly LeaseServerTreansfer leaseTreansfer;
 
-        public TuntapServerMessenger(MessengerSender messengerSender, SignCaching signCaching, FileConfig config, LeaseServerTreansfer leaseTreansfer)
+        public TuntapServerMessenger(IMessengerSender messengerSender, SignCaching signCaching, FileConfig config, LeaseServerTreansfer leaseTreansfer)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;

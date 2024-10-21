@@ -15,7 +15,7 @@ namespace linker.plugins.tuntap.client
 {
     public sealed class TuntapConfigTransfer
     {
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
         private readonly FileConfig config;
         private readonly TuntapProxy tuntapProxy;
@@ -28,7 +28,7 @@ namespace linker.plugins.tuntap.client
         public ConcurrentDictionary<string, TuntapInfo> Infos => tuntapInfos;
 
         private readonly SemaphoreSlim slim = new SemaphoreSlim(1);
-        public TuntapConfigTransfer(MessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig, TuntapTransfer tuntapTransfer, LeaseClientTreansfer leaseClientTreansfer)
+        public TuntapConfigTransfer(IMessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig, TuntapTransfer tuntapTransfer, LeaseClientTreansfer leaseClientTreansfer)
         {
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;

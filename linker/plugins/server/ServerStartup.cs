@@ -45,7 +45,7 @@ namespace linker.plugins.server
             {
                 LoggerHelper.Instance.Error(ex);
             }
-            LoggerHelper.Instance.Info($"server listen:{config.Data.Server.ServicePort}");
+            LoggerHelper.Instance.Warning($"server listen:{config.Data.Server.ServicePort}");
 
         }
     }

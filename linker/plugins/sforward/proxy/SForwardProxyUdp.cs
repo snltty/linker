@@ -53,13 +53,13 @@ namespace linker.plugins.sforward.proxy
 
                     Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
 
-                    sForwardFlow.AddReceive(portStr, (ulong)memory.Length);
+                    AddReceive(portStr, (ulong)memory.Length);
 
                     IPEndPoint source = result.RemoteEndPoint as IPEndPoint;
                     //已经连接
                     if (udpConnections.TryGetValue(source, out UdpTargetCache cache) && cache != null)
                     {
-                        sForwardFlow.AddSendt(portStr, (ulong)memory.Length);
+                        AddSendt(portStr, (ulong)memory.Length);
                         cache.LastTicks.Update();
                         await token.SourceSocket.SendToAsync(memory, cache.IPEndPoint).ConfigureAwait(false);
                     }
@@ -193,8 +193,8 @@ namespace linker.plugins.sforward.proxy
 
                     Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
 
-                    sForwardFlow.AddReceive(portStr, (ulong)memory.Length);
-                    sForwardFlow.AddSendt(portStr, (ulong)memory.Length);
+                    AddReceive(portStr, (ulong)memory.Length);
+                    AddSendt(portStr, (ulong)memory.Length);
 
                     if (serviceUdp == null)
                     {
@@ -222,8 +222,8 @@ namespace linker.plugins.sforward.proxy
                                         break;
                                     }
                                     Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
-                                    sForwardFlow.AddReceive(portStr, (ulong)memory.Length);
-                                    sForwardFlow.AddSendt(portStr, (ulong)memory.Length);
+                                    AddReceive(portStr, (ulong)memory.Length);
+                                    AddSendt(portStr, (ulong)memory.Length);
 
                                     await socketUdp.SendToAsync(memory, server).ConfigureAwait(false);
                                     cache.LastTicks.Update();

@@ -9,6 +9,7 @@ namespace linker.plugins.capi
 
     public interface IApiClientServer : IApiServer
     {
+        public void LoadPlugins(List<object> list);
     }
 
 }

@@ -18,17 +18,21 @@ namespace linker.plugins.messenger
         public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
 
-            serviceCollection.AddSingleton<MessengerSender>();
-            serviceCollection.AddSingleton<MessengerResolver>();
-            serviceCollection.AddSingleton<MessengerFlow>();
+            serviceCollection.AddSingleton<IMessengerSender, MessengerSender>();
+            serviceCollection.AddSingleton<IMessengerResolver, MessengerResolver>();
+            serviceCollection.AddSingleton<MessengerResolverResolver>();
+            
+            serviceCollection.AddSingleton<MessengerResolverTypesLoader>();
+
 
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
-            serviceCollection.AddSingleton<MessengerSender>();
-            serviceCollection.AddSingleton<MessengerResolver>();
-            serviceCollection.AddSingleton<MessengerFlow>();
+            serviceCollection.AddSingleton<IMessengerSender, MessengerSender>();
+            serviceCollection.AddSingleton<IMessengerResolver, MessengerResolver>();
+            serviceCollection.AddSingleton<MessengerResolverResolver>();
+            serviceCollection.AddSingleton<MessengerResolverTypesLoader>();
         }
 
 
@@ -39,9 +43,10 @@ namespace linker.plugins.messenger
             {
                 loaded = true;
 
-                MessengerResolver messengerResolver = serviceProvider.GetService<MessengerResolver>();
-                messengerResolver.LoadMessenger();
-                messengerResolver.Init(config.Data.Client.SSL.File, config.Data.Client.SSL.Password);
+                IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
+                messengerResolver.Initialize(config.Data.Client.SSL.File, config.Data.Client.SSL.Password);
+
+                MessengerResolverTypesLoader messengerResolverTypesLoader = serviceProvider.GetService<MessengerResolverTypesLoader>();
 
             }
         }
@@ -52,10 +57,10 @@ namespace linker.plugins.messenger
             {
                 loaded = true;
 
-                MessengerResolver messengerResolver = serviceProvider.GetService<MessengerResolver>();
-                messengerResolver.LoadMessenger();
-                messengerResolver.Init(config.Data.Server.SSL.File, config.Data.Server.SSL.Password);
+                IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
+                messengerResolver.Initialize(config.Data.Server.SSL.File, config.Data.Server.SSL.Password);
 
+                MessengerResolverTypesLoader messengerResolverTypesLoader = serviceProvider.GetService<MessengerResolverTypesLoader>();
             }
         }
     }

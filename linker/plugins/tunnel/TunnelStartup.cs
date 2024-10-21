@@ -47,7 +47,7 @@ namespace linker.plugins.tunnel
             serviceCollection.AddSingleton<TunnelWanPortProtocolLinkerUdp>();
             serviceCollection.AddSingleton<TunnelWanPortProtocolLinkerTcp>();
             serviceCollection.AddSingleton<TunnelWanPortProtocolStun>();
-            
+
 
             //打洞协议
             serviceCollection.AddSingleton<TunnelTransfer>();
@@ -60,6 +60,7 @@ namespace linker.plugins.tunnel
 
 
             serviceCollection.AddSingleton<TunnelExcludeIPTransfer>();
+            serviceCollection.AddSingleton<TunnelExcludeIPTypesLoader>();
             serviceCollection.AddSingleton<TunnelConfigTransfer>();
             serviceCollection.AddSingleton<ITunnelAdapter, TunnelAdapter>();
 
@@ -86,15 +87,16 @@ namespace linker.plugins.tunnel
             MemoryPackFormatterProvider.Register(new TunnelWanPortProtocolInfoFormatter());
 
             serviceCollection.AddSingleton<TunnelServerMessenger>();
-            serviceCollection.AddSingleton<ExternalResolver>();
+            serviceCollection.AddSingleton<ExternalResolver, ExternalResolver>();
             serviceCollection.AddSingleton<TunnelUpnpTransfer>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
             ITunnelAdapter tunnelAdapter = serviceProvider.GetService<ITunnelAdapter>();
+            TunnelUpnpTransfer upnpTransfer = serviceProvider.GetService<TunnelUpnpTransfer>();
 
-            IEnumerable<Type> types = new List<Type> { 
+            IEnumerable<Type> types = new List<Type> {
                 typeof(TunnelWanPortProtocolLinkerUdp),
                 typeof(TunnelWanPortProtocolLinkerTcp),
                 typeof(TunnelWanPortProtocolStun),
@@ -114,11 +116,12 @@ namespace linker.plugins.tunnel
             };
             List<ITunnelTransport> transports = types.Select(c => (ITunnelTransport)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
             TunnelTransfer tunnel = serviceProvider.GetService<TunnelTransfer>();
-            tunnel.LoadTransports(compack, tunnelAdapter, transports);
+            tunnel.LoadTransports(compack, tunnelAdapter, upnpTransfer, transports);
 
             TunnelConfigTransfer tunnelConfigTransfer = serviceProvider.GetService<TunnelConfigTransfer>();
             TunnelExcludeIPTransfer excludeIPTransfer = serviceProvider.GetService<TunnelExcludeIPTransfer>();
-            TunnelUpnpTransfer upnpTransfer = serviceProvider.GetService<TunnelUpnpTransfer>();
+            TunnelExcludeIPTypesLoader tunnelExcludeIPTypesLoader = serviceProvider.GetService<TunnelExcludeIPTypesLoader>();
+           
 
         }
 

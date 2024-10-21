@@ -8,7 +8,6 @@ namespace linker.plugins.flow.messenger
 {
     public sealed class FlowMessenger : IMessenger
     {
-        private readonly MessengerResolver messengerResolver;
         private readonly FlowTransfer flowTransfer;
         private readonly MessengerFlow messengerFlow;
         private readonly SForwardFlow sForwardFlow;
@@ -17,9 +16,8 @@ namespace linker.plugins.flow.messenger
 
         private DateTime start = DateTime.Now;
 
-        public FlowMessenger(MessengerResolver messengerResolver, FlowTransfer flowTransfer, MessengerFlow messengerFlow, SForwardFlow sForwardFlow, RelayFlow relayFlow, SignCaching signCaching)
+        public FlowMessenger( FlowTransfer flowTransfer, MessengerFlow messengerFlow, SForwardFlow sForwardFlow, RelayFlow relayFlow, SignCaching signCaching)
         {
-            this.messengerResolver = messengerResolver;
             this.flowTransfer = flowTransfer;
             this.messengerFlow = messengerFlow;
             this.sForwardFlow = sForwardFlow;

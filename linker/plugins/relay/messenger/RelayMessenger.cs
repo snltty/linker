@@ -40,13 +40,13 @@ namespace linker.plugins.relay.messenger
     public sealed class RelayServerMessenger : IMessenger
     {
         private readonly FileConfig config;
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
         private readonly SignCaching signCaching;
         private readonly RelayResolver relayResolver;
         private readonly RelayValidatorTransfer relayValidatorTransfer;
 
 
-        public RelayServerMessenger(FileConfig config, MessengerSender messengerSender, SignCaching signCaching, RelayResolver relayResolver, RelayValidatorTransfer relayValidatorTransfer)
+        public RelayServerMessenger(FileConfig config, IMessengerSender messengerSender, SignCaching signCaching, RelayResolver relayResolver, RelayValidatorTransfer relayValidatorTransfer)
         {
             this.config = config;
             this.messengerSender = messengerSender;

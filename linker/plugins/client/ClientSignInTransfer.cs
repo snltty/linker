@@ -8,7 +8,6 @@ using System.Net;
 using System.Net.Sockets;
 using linker.plugins.messenger;
 using linker.plugins.signIn.args;
-using linker.plugins.signin;
 
 namespace linker.plugins.client
 {
@@ -20,11 +19,11 @@ namespace linker.plugins.client
         private readonly ClientSignInState clientSignInState;
         private readonly RunningConfig runningConfig;
         private readonly FileConfig config;
-        private readonly MessengerSender messengerSender;
-        private readonly MessengerResolver messengerResolver;
+        private readonly IMessengerSender messengerSender;
+        private readonly IMessengerResolver messengerResolver;
         private readonly SignInArgsTransfer signInArgsTransfer;
 
-        public ClientSignInTransfer(ClientSignInState clientSignInState, RunningConfig runningConfig, FileConfig config, MessengerSender messengerSender, MessengerResolver messengerResolver, SignInArgsTransfer signInArgsTransfer)
+        public ClientSignInTransfer(ClientSignInState clientSignInState, RunningConfig runningConfig, FileConfig config, IMessengerSender messengerSender, IMessengerResolver messengerResolver, SignInArgsTransfer signInArgsTransfer)
         {
             this.clientSignInState = clientSignInState;
             this.runningConfig = runningConfig;

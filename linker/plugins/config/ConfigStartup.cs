@@ -30,6 +30,7 @@ namespace linker.plugins.config
             serviceCollection.AddSingleton<AccessTransfer>();
 
             serviceCollection.AddSingleton<ConfigSyncTreansfer>();
+            serviceCollection.AddSingleton<ConfigSyncTypesLoader>();
 
 
         }
@@ -44,6 +45,7 @@ namespace linker.plugins.config
             RunningConfig runningConfig = serviceProvider.GetService<RunningConfig>();
 
             ConfigSyncTreansfer configSyncTreansfer = serviceProvider.GetService<ConfigSyncTreansfer>();
+            ConfigSyncTypesLoader configSyncTypesLoader = serviceProvider.GetService<ConfigSyncTypesLoader>();
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config)

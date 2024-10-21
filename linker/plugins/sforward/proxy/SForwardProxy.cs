@@ -1,7 +1,5 @@
 ﻿using linker.libs;
-using linker.plugins.flow;
 using System.Text;
-
 namespace linker.plugins.sforward.proxy
 {
     public partial class SForwardProxy
@@ -10,12 +8,17 @@ namespace linker.plugins.sforward.proxy
         private readonly NumberSpace ns = new NumberSpace();
         private byte[] flagBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.sforward");
 
-        private readonly SForwardFlow sForwardFlow;
-        public SForwardProxy(SForwardFlow sForwardFlow)
+        public SForwardProxy()
         {
-            this.sForwardFlow = sForwardFlow;
             UdpTask();
 
+        }
+
+        public virtual void AddReceive(string key, ulong bytes)
+        {
+        }
+        public virtual void AddSendt(string key, ulong bytes)
+        {
         }
 
         public string Start(int port, bool isweb, byte bufferSize)

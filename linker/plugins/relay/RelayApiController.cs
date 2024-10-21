@@ -15,9 +15,9 @@ namespace linker.plugins.relay
         private readonly FileConfig config;
         private readonly RelayTransfer relayTransfer;
         private readonly ClientSignInState clientSignInState;
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
 
-        public RelayApiController(FileConfig config, RelayTransfer relayTransfer, ClientSignInState clientSignInState, MessengerSender messengerSender)
+        public RelayApiController(FileConfig config, RelayTransfer relayTransfer, ClientSignInState clientSignInState, IMessengerSender messengerSender)
         {
             this.config = config;
             this.relayTransfer = relayTransfer;

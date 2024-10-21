@@ -17,13 +17,13 @@ namespace linker.plugins.sforward
         private readonly FileConfig fileConfig;
         private readonly RunningConfig running;
         private readonly ClientSignInState clientSignInState;
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
 
         private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
 
         public VersionManager Version { get; } = new VersionManager();
 
-        public SForwardTransfer(FileConfig fileConfig,RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender)
+        public SForwardTransfer(FileConfig fileConfig,RunningConfig running, ClientSignInState clientSignInState, IMessengerSender messengerSender)
         {
             this.fileConfig = fileConfig;
             this.running = running;

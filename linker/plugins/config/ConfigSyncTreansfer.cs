@@ -22,21 +22,22 @@ namespace linker.plugins.config
         public Memory<byte> Data { get; set; }
     }
 
-    public sealed partial class ConfigSyncTreansfer
+    public sealed class ConfigSyncTreansfer
     {
         private readonly SemaphoreSlim slim = new SemaphoreSlim(1);
         private List<IConfigSync> syncs = new List<IConfigSync>();
 
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
-        public ConfigSyncTreansfer(ServiceProvider serviceProvider, MessengerSender messengerSender, ClientSignInState clientSignInState)
+        public ConfigSyncTreansfer(IMessengerSender messengerSender, ClientSignInState clientSignInState)
         {
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
+        }
 
-            IEnumerable<Type> types = GetSourceGeneratorTypes();
-            syncs = types.Select(c => (IConfigSync)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
-            LoggerHelper.Instance.Info($"load config sync transport:{string.Join(",", syncs.Select(c => c.Name))}");
+        public void LoadConfigSyncs(List<IConfigSync> list)
+        {
+            syncs = list;
         }
 
         public List<string> GetNames()

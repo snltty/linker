@@ -13,11 +13,6 @@ namespace linker.tunnel.adapter
         public IPAddress LocalIP { get; }
 
         /// <summary>
-        /// 端口映射，一般不用管
-        /// </summary>
-        public PortMapInfo PortMap { get; }
-
-        /// <summary>
         /// ssl加密证书，没有证书则无法加密通信
         /// </summary>
         public X509Certificate2 Certificate { get; }

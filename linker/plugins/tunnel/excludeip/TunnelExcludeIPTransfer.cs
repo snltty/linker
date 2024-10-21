@@ -3,29 +3,28 @@ using linker.config;
 using linker.libs;
 using linker.plugins.client;
 using MemoryPack;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace linker.plugins.tunnel.excludeip
 {
     public sealed partial class TunnelExcludeIPTransfer
     {
-        private readonly List<ITunnelExcludeIP> excludeIPs;
+        private List<ITunnelExcludeIP> excludeIPs;
 
         private readonly RunningConfig running;
         private readonly ClientSignInState clientSignInState;
         private readonly FileConfig fileConfig;
 
-        private readonly ServiceProvider serviceProvider;
-        public TunnelExcludeIPTransfer(RunningConfig running, ClientSignInState clientSignInState, FileConfig fileConfig, ServiceProvider serviceProvider)
+        public TunnelExcludeIPTransfer(RunningConfig running, ClientSignInState clientSignInState, FileConfig fileConfig)
         {
             this.running = running;
             this.clientSignInState = clientSignInState;
             this.fileConfig = fileConfig;
-            this.serviceProvider = serviceProvider;
+        }
 
-            IEnumerable<Type> types = GetSourceGeneratorTypes();
-            excludeIPs = types.Select(c => (ITunnelExcludeIP)serviceProvider.GetService(c)).Where(c => c != null).ToList();
-            LoggerHelper.Instance.Info($"load tunnel excludeips :{string.Join(",", types.Select(c => c.Name))}");
+        public void LoadTunnelExcludeIPs(List<ITunnelExcludeIP> list)
+        {
+            excludeIPs = list;
+           
         }
 
         public List<ExcludeIPItem> Get()
@@ -43,7 +42,7 @@ namespace linker.plugins.tunnel.excludeip
             {
                 result.AddRange(running.Data.Tunnel.ExcludeIPs);
             }
-            
+
             return result;
         }
 
@@ -54,11 +53,6 @@ namespace linker.plugins.tunnel.excludeip
         public void SettExcludeIPs(ExcludeIPItem[] ips)
         {
             running.Data.Tunnel.ExcludeIPs = ips;
-            running.Data.Update();
-        }
-        private void SettExcludeIPs(Memory<byte> data)
-        {
-            running.Data.Tunnel.ExcludeIPs = MemoryPackSerializer.Deserialize<ExcludeIPItem[]>(data.Span);
             running.Data.Update();
         }
     }

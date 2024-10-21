@@ -25,12 +25,12 @@ namespace linker.plugins.tunnel
         private readonly FileConfig config;
         private readonly TunnelWanPortTransfer compactTransfer;
         private readonly ClientSignInState clientSignInState;
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
         private readonly TunnelConfigTransfer tunnelConfigTransfer;
         private readonly ITunnelAdapter tunnelMessengerAdapter;
         private readonly TunnelExcludeIPTransfer excludeIPTransfer;
 
-        public TunnelApiController(FileConfig config, TunnelWanPortTransfer compactTransfer, ClientSignInState clientSignInState, MessengerSender messengerSender, TunnelConfigTransfer tunnelConfigTransfer, ITunnelAdapter tunnelMessengerAdapter, TunnelExcludeIPTransfer excludeIPTransfer)
+        public TunnelApiController(FileConfig config, TunnelWanPortTransfer compactTransfer, ClientSignInState clientSignInState, IMessengerSender messengerSender, TunnelConfigTransfer tunnelConfigTransfer, ITunnelAdapter tunnelMessengerAdapter, TunnelExcludeIPTransfer excludeIPTransfer)
         {
             this.config = config;
             this.compactTransfer = compactTransfer;

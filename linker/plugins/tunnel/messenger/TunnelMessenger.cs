@@ -14,9 +14,9 @@ namespace linker.plugins.tunnel.messenger
     {
         private readonly TunnelTransfer tunnel;
         private readonly TunnelConfigTransfer tunnelConfigTransfer;
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
 
-        public TunnelClientMessenger(TunnelTransfer tunnel, TunnelConfigTransfer tunnelConfigTransfer, MessengerSender messengerSender)
+        public TunnelClientMessenger(TunnelTransfer tunnel, TunnelConfigTransfer tunnelConfigTransfer, IMessengerSender messengerSender)
         {
             this.tunnel = tunnel;
             this.tunnelConfigTransfer = tunnelConfigTransfer;
@@ -108,11 +108,11 @@ namespace linker.plugins.tunnel.messenger
 
     public sealed class TunnelServerMessenger : IMessenger
     {
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
         private readonly SignCaching signCaching;
         private readonly ConcurrentDictionary<string, TunnelRecordInfo> records = new ConcurrentDictionary<string, TunnelRecordInfo>();
 
-        public TunnelServerMessenger(MessengerSender messengerSender, SignCaching signCaching)
+        public TunnelServerMessenger(IMessengerSender messengerSender, SignCaching signCaching)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;

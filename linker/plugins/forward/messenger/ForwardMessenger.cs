@@ -10,10 +10,10 @@ namespace linker.plugins.forward.messenger
     public sealed class ForwardServerMessenger : IMessenger
     {
 
-        private readonly MessengerSender sender;
+        private readonly IMessengerSender sender;
         private readonly SignCaching signCaching;
 
-        public ForwardServerMessenger(MessengerSender sender, SignCaching signCaching)
+        public ForwardServerMessenger(IMessengerSender sender, SignCaching signCaching)
         {
             this.sender = sender;
             this.signCaching = signCaching;
@@ -80,9 +80,9 @@ namespace linker.plugins.forward.messenger
     public sealed class ForwardClientMessenger : IMessenger
     {
         private readonly ForwardTransfer forwardTransfer;
-        private readonly MessengerSender sender;
+        private readonly IMessengerSender sender;
 
-        public ForwardClientMessenger(ForwardTransfer forwardTransfer, MessengerSender sender)
+        public ForwardClientMessenger(ForwardTransfer forwardTransfer, IMessengerSender sender)
         {
             this.forwardTransfer = forwardTransfer;
             this.sender = sender;

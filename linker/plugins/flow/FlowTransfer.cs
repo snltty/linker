@@ -1,14 +1,15 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-namespace linker.plugins.flow
+﻿namespace linker.plugins.flow
 {
-    public sealed partial class FlowTransfer
+    public sealed class FlowTransfer
     {
         private List<IFlow> flows = new List<IFlow>();
-
-        public FlowTransfer(ServiceProvider serviceProvider)
+        public FlowTransfer()
         {
-            var types = GetSourceGeneratorTypes();
-            flows = types.Select(c => (IFlow)serviceProvider.GetService(c)).Where(c => c != null).ToList();
+        }
+
+        public void LoadFlows(List<IFlow> flows)
+        {
+            this.flows = flows;
         }
 
         public Dictionary<string, FlowItemInfo> GetFlows()

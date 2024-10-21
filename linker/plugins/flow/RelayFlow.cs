@@ -1,10 +1,37 @@
 ﻿using linker.libs;
-using linker.plugins.flow;
+using linker.plugins.relay;
 using MemoryPack;
 using System.Text.Json.Serialization;
 
-namespace linker.plugins.relay
+namespace linker.plugins.flow
 {
+    public sealed class RelayResolverFlow : RelayResolver
+    {
+        private readonly RelayFlow relayFlow;
+        public RelayResolverFlow(RelayFlow relayFlow)
+        {
+            this.relayFlow = relayFlow;
+        }
+
+        public override void AddReceive(string key, string from, string to, ulong bytes)
+        {
+            relayFlow.AddReceive(key, from, to, bytes);
+        }
+        public override void AddSendt(string key, string from, string to, ulong bytes)
+        {
+            relayFlow.AddSendt(key, from, to, bytes);
+        }
+        public override void AddReceive(string key, ulong bytes)
+        {
+            relayFlow.AddReceive(key, bytes);
+        }
+        public override void AddSendt(string key, ulong bytes)
+        {
+            relayFlow.AddSendt(key, bytes);
+        }
+
+    }
+
     public sealed class RelayFlow : IFlow
     {
         public ulong ReceiveBytes { get; private set; }
@@ -78,6 +105,7 @@ namespace linker.plugins.relay
             }
 
         }
+
         public RelayFlowResponseInfo GetFlows(RelayFlowRequestInfo info)
         {
             var items = flows.Values.Where(c => string.IsNullOrWhiteSpace(info.Key) || c.FromName.Contains(info.Key) || c.ToName.Contains(info.Key));

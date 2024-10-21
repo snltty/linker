@@ -3,24 +3,21 @@ using System.Net;
 using System.Buffers;
 using linker.libs.extends;
 using linker.plugins.resolver;
-using linker.plugins.flow;
 
 namespace linker.plugins.tunnel
 {
     /// <summary>
     /// 外网端口处理器
     /// </summary>
-    public sealed class ExternalResolver : IResolver, IFlow
+    public class ExternalResolver : IResolver
     {
-        public ulong ReceiveBytes { get; private set; }
-        public ulong SendtBytes { get; private set; }
-        public string FlowName => "External";
-
         public ResolverType Type => ResolverType.External;
-
         public ExternalResolver()
         {
         }
+
+        public virtual void AddReceive( ulong bytes) { }
+        public virtual void AddSendt(ulong bytes) { }
 
         /// <summary>
         /// UDP
@@ -31,12 +28,12 @@ namespace linker.plugins.tunnel
         /// <returns></returns>
         public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
-            ReceiveBytes += (ulong)memory.Length;
+            AddReceive((ulong)memory.Length);
             byte[] sendData = ArrayPool<byte>.Shared.Rent(20);
             try
             {
                 var send = BuildSendData(sendData, ep);
-                SendtBytes += (ulong)send.Length;
+                AddSendt((ulong)send.Length);
                 await socket.SendToAsync(send, SocketFlags.None, ep).ConfigureAwait(false);
             }
             catch (Exception)
@@ -58,7 +55,7 @@ namespace linker.plugins.tunnel
             try
             {
                 memory = BuildSendData(sendData, socket.RemoteEndPoint as IPEndPoint);
-                SendtBytes += (ulong)memory.Length;
+                AddSendt((ulong)memory.Length);
                 await socket.SendAsync(memory, SocketFlags.None).ConfigureAwait(false);
             }
             catch (Exception)

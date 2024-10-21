@@ -13,10 +13,10 @@ namespace linker.plugins.sforward
     public sealed class SForwardClientApiController : IApiClientController
     {
         private readonly SForwardTransfer forwardTransfer;
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
 
-        public SForwardClientApiController(SForwardTransfer forwardTransfer, MessengerSender messengerSender, ClientSignInState clientSignInState)
+        public SForwardClientApiController(SForwardTransfer forwardTransfer, IMessengerSender messengerSender, ClientSignInState clientSignInState)
         {
             this.forwardTransfer = forwardTransfer;
             this.messengerSender = messengerSender;

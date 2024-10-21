@@ -21,16 +21,14 @@ namespace linker.plugins.relay.transport
         public RelayType Type => RelayType.Linker;
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Tcp;
 
-        private readonly MessengerResolver messengerResolver;
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
 
         private X509Certificate2 certificate;
 
 
-        public TransportSelfHost(MessengerResolver messengerResolver, MessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config)
+        public TransportSelfHost(IMessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config)
         {
-            this.messengerResolver = messengerResolver;
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
 

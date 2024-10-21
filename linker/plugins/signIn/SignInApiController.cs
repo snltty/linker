@@ -14,9 +14,9 @@ namespace linker.plugins.signin
         private readonly FileConfig config;
         private readonly ClientSignInState clientSignInState;
         private readonly ClientSignInTransfer clientSignInTransfer;
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
 
-        public SignInClientApiController(FileConfig config, ClientSignInState clientSignInState, ClientSignInTransfer clientSignInTransfer, MessengerSender messengerSender)
+        public SignInClientApiController(FileConfig config, ClientSignInState clientSignInState, ClientSignInTransfer clientSignInTransfer, IMessengerSender messengerSender)
         {
             this.config = config;
             this.clientSignInState = clientSignInState;

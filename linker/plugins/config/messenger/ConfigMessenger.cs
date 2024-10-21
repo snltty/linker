@@ -1,5 +1,4 @@
-﻿using linker.client.config;
-using linker.config;
+﻿using linker.config;
 using linker.libs;
 using linker.plugins.client;
 using linker.plugins.messenger;
@@ -10,10 +9,10 @@ namespace linker.plugins.config.messenger
 {
     public sealed class ConfigServerMessenger : IMessenger
     {
-        private readonly MessengerSender sender;
+        private readonly IMessengerSender sender;
         private readonly SignCaching signCaching;
 
-        public ConfigServerMessenger(MessengerSender sender, SignCaching signCaching)
+        public ConfigServerMessenger(IMessengerSender sender, SignCaching signCaching)
         {
             this.sender = sender;
             this.signCaching = signCaching;

@@ -1,5 +1,4 @@
 ﻿using linker.plugins.signin.messenger;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace linker.plugins.signIn.args
 {
@@ -7,10 +6,13 @@ namespace linker.plugins.signIn.args
     {
         private List<ISignInArgs> startups;
 
-        public SignInArgsTransfer(ServiceProvider serviceProvider)
+        public SignInArgsTransfer()
         {
-            var types = GetSourceGeneratorTypes();
-            startups = types.Select(c => serviceProvider.GetService(c) as ISignInArgs).Where(c => c != null).ToList();
+        }
+
+        public void LoadArgs(List<ISignInArgs> list)
+        {
+            startups = list;
         }
 
         public async Task<string> Invoke(string host, Dictionary<string, string> args)

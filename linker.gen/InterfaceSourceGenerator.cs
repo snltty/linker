@@ -12,16 +12,16 @@ namespace linker.gen
     public class InterfaceSourceGenerator : IIncrementalGenerator
     {
         private List<GeneratorInfo> generators = new List<GeneratorInfo> {
-             new GeneratorInfo{ ClassName="FlowTransfer", ClassNameSpace="linker.plugins.flow", InterfaceName="linker.plugins.flow.IFlow" },
-             new GeneratorInfo{ ClassName="RelayValidatorTransfer", ClassNameSpace="linker.plugins.relay.validator", InterfaceName="linker.plugins.relay.validator.IRelayValidator" },
-             new GeneratorInfo{ ClassName="SignInArgsTransfer", ClassNameSpace="linker.plugins.signIn.args", InterfaceName="linker.plugins.signIn.args.ISignInArgs" },
-             new GeneratorInfo{ ClassName="RelayTransfer", ClassNameSpace="linker.plugins.relay", InterfaceName="linker.plugins.relay.transport.ITransport" },
-             new GeneratorInfo{ ClassName="ResolverTransfer", ClassNameSpace="linker.plugins.resolver", InterfaceName="linker.plugins.resolver.IResolver" },
-             new GeneratorInfo{ ClassName="TunnelExcludeIPTransfer", ClassNameSpace="linker.plugins.tunnel.excludeip", InterfaceName="linker.plugins.tunnel.excludeip.ITunnelExcludeIP" },
+             new GeneratorInfo{ ClassName="FlowTypesLoader", ClassNameSpace="linker.plugins.flow", InterfaceName="linker.plugins.flow.IFlow" },
+             new GeneratorInfo{ ClassName="RelayValidatorTypeLoader", ClassNameSpace="linker.plugins.relay.validator", InterfaceName="linker.plugins.relay.validator.IRelayValidator" },
+             new GeneratorInfo{ ClassName="SignInArgsTypesLoader", ClassNameSpace="linker.plugins.signIn.args", InterfaceName="linker.plugins.signIn.args.ISignInArgs" },
+             new GeneratorInfo{ ClassName="RelayTypesLoader", ClassNameSpace="linker.plugins.relay", InterfaceName="linker.plugins.relay.transport.ITransport" },
+             new GeneratorInfo{ ClassName="ResolverTypesLoader", ClassNameSpace="linker.plugins.resolver", InterfaceName="linker.plugins.resolver.IResolver" },
+             new GeneratorInfo{ ClassName="TunnelExcludeIPTypesLoader", ClassNameSpace="linker.plugins.tunnel.excludeip", InterfaceName="linker.plugins.tunnel.excludeip.ITunnelExcludeIP" },
              new GeneratorInfo{ ClassName="StartupTransfer", ClassNameSpace="linker.startup", InterfaceName="linker.startup.IStartup", Instance=true },
-             new GeneratorInfo{ ClassName="MessengerResolverTypes", ClassNameSpace="linker.plugins.messenger", InterfaceName="linker.plugins.messenger.IMessenger"},
-             new GeneratorInfo{ ClassName="ApiClientServer", ClassNameSpace="linker.plugins.capi", InterfaceName="linker.plugins.capi.IApiClientController"},
-             new GeneratorInfo{ ClassName="ConfigSyncTreansfer", ClassNameSpace="linker.plugins.config", InterfaceName="linker.plugins.config.IConfigSync"},
+             new GeneratorInfo{ ClassName="MessengerResolverTypesLoader", ClassNameSpace="linker.plugins.messenger", InterfaceName="linker.plugins.messenger.IMessenger"},
+             new GeneratorInfo{ ClassName="ApiClientTypesLoader", ClassNameSpace="linker.plugins.capi", InterfaceName="linker.plugins.capi.IApiClientController"},
+             new GeneratorInfo{ ClassName="ConfigSyncTypesLoader", ClassNameSpace="linker.plugins.config", InterfaceName="linker.plugins.config.IConfigSync"},
         };
 
         public void Initialize(IncrementalGeneratorInitializationContext context)

@@ -1,23 +1,24 @@
-﻿using linker.libs;
-using linker.plugins.relay.transport;
+﻿using linker.plugins.relay.transport;
 using linker.plugins.signin.messenger;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace linker.plugins.relay.validator
 {
     public sealed partial class RelayValidatorTransfer
     {
-        private List<IRelayValidator> startups;
+        private List<IRelayValidator> validators;
 
-        public RelayValidatorTransfer(ServiceProvider serviceProvider)
+        public RelayValidatorTransfer()
         {
-            var types = GetSourceGeneratorTypes();
-            startups = types.Select(c => serviceProvider.GetService(c) as IRelayValidator).Where(c => c != null).ToList();
+        }
+
+        public void LoadValidators(List<IRelayValidator> list)
+        {
+            validators = list;
         }
 
         public async Task<string> Validate(RelayInfo relayInfo, SignCacheInfo cache, SignCacheInfo cache1)
         {
-            foreach (var item in startups)
+            foreach (var item in validators)
             {
                 string result = await item.Validate(relayInfo, cache, cache1);
                 if (string.IsNullOrWhiteSpace(result) == false)

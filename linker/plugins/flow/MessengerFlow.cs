@@ -1,8 +1,46 @@
-﻿using linker.plugins.flow;
+﻿using linker.plugins.messenger;
 
-namespace linker.plugins.messenger
+namespace linker.plugins.flow
 {
-    public sealed class MessengerFlow :  IFlow
+
+    public sealed class MessengerResolverFlow : MessengerResolver
+    {
+        private readonly MessengerFlow messengerFlow;
+        public MessengerResolverFlow(IMessengerSender sender, MessengerFlow messengerFlow) : base(sender)
+        {
+            this.messengerFlow = messengerFlow;
+        }
+
+        public override void AddReceive(ushort id, ulong bytes)
+        {
+            messengerFlow.AddReceive(id, bytes);
+        }
+        public override void AddSendt(ushort id, ulong bytes)
+        {
+            messengerFlow.AddSendt(id, bytes);
+        }
+    }
+    public sealed class MessengerSenderFlow : MessengerSender
+    {
+        private readonly MessengerFlow messengerFlow;
+        public MessengerSenderFlow(MessengerFlow messengerFlow)
+        {
+            this.messengerFlow = messengerFlow;
+        }
+
+        public override void AddReceive(ushort id, ulong bytes)
+        {
+            messengerFlow.AddReceive(id, bytes);
+        }
+        public override void AddSendt(ushort id, ulong bytes)
+        {
+            messengerFlow.AddSendt(id, bytes);
+        }
+    }
+
+
+
+    public sealed class MessengerFlow : IFlow
     {
         public ulong ReceiveBytes { get; private set; }
         public ulong SendtBytes { get; private set; }

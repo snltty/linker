@@ -13,9 +13,9 @@ namespace linker.plugins.config
         private Dictionary<string, ClientApiAccess> accesss = new Dictionary<string, ClientApiAccess>();
 
         private readonly FileConfig fileConfig;
-        private readonly MessengerSender sender;
+        private readonly IMessengerSender sender;
         private readonly ClientSignInState clientSignInState;
-        public AccessTransfer(FileConfig fileConfig, MessengerSender sender, ClientSignInState clientSignInState)
+        public AccessTransfer(FileConfig fileConfig, IMessengerSender sender, ClientSignInState clientSignInState)
         {
             this.fileConfig = fileConfig;
             this.sender = sender;

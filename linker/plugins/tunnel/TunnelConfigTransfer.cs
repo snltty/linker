@@ -6,7 +6,6 @@ using linker.plugins.messenger;
 using linker.plugins.tunnel.messenger;
 using linker.tunnel;
 using linker.tunnel.adapter;
-using linker.tunnel.transport;
 using linker.tunnel.wanport;
 using MemoryPack;
 using System.Collections.Concurrent;
@@ -20,33 +19,30 @@ namespace linker.plugins.tunnel
         private readonly FileConfig config;
         private readonly RunningConfig running;
         private readonly ClientSignInState clientSignInState;
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
         private readonly ITunnelAdapter tunnelAdapter;
-        private readonly TransportTcpPortMap transportTcpPortMap;
-        private readonly TransportUdpPortMap transportUdpPortMap;
         private readonly TunnelUpnpTransfer upnpTransfer;
 
         public VersionManager Version { get; } = new VersionManager();
         public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> Config { get; } = new ConcurrentDictionary<string, TunnelTransportRouteLevelInfo>();
 
-        public TunnelConfigTransfer(FileConfig config, RunningConfig running, ClientSignInState clientSignInState, MessengerSender messengerSender, ITunnelAdapter tunnelAdapter, TransportTcpPortMap transportTcpPortMap, TransportUdpPortMap transportUdpPortMap, TunnelUpnpTransfer upnpTransfer)
+        public TunnelConfigTransfer(FileConfig config, RunningConfig running, ClientSignInState clientSignInState, IMessengerSender messengerSender, ITunnelAdapter tunnelAdapter, TunnelUpnpTransfer upnpTransfer)
         {
             this.config = config;
             this.running = running;
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
             this.tunnelAdapter = tunnelAdapter;
-            this.transportTcpPortMap = transportTcpPortMap;
-            this.transportUdpPortMap = transportUdpPortMap;
             this.upnpTransfer = upnpTransfer;
 
-            InitRouteLevel();
-
             InitConfig();
-
+            clientSignInState.NetworkEnabledHandle += (times) =>
+            {
+                RefreshRouteLevel();
+                GetRemoteRouteLevel();
+                RefreshPortMap();
+            };
             TestQuic();
-
-            RefreshPortMap();
         }
 
         private void RefreshRouteLevel()
@@ -108,7 +104,6 @@ namespace linker.plugins.tunnel
             running.Data.Tunnel.PortMapLan = tunnelTransportFileConfigInfo.PortMapLan;
             running.Data.Update();
             GetRemoteRouteLevel();
-            RefreshPortMap();
         }
         /// <summary>
         /// 收到别人的信息
@@ -157,16 +152,7 @@ namespace linker.plugins.tunnel
                 NeedReboot = false
             };
         }
-        private void InitRouteLevel()
-        {
-            clientSignInState.NetworkEnabledHandle += (times) =>
-            {
-                RefreshRouteLevel();
-                GetRemoteRouteLevel();
-            };
-        }
-
-
+     
         public void SetInterface(IPAddress ip)
         {
             running.Data.Tunnel.Interface = ip;
@@ -214,28 +200,15 @@ namespace linker.plugins.tunnel
             }
         }
 
-
         private void RefreshPortMap()
         {
-            try
-            {
-                int port = 18180;
-                int ip = Dns.GetHostEntry(Dns.GetHostName()).AddressList.FirstOrDefault(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).GetAddressBytes()[3];
-                upnpTransfer.SetMap(port, port + ip);
-            }
-            catch (Exception)
-            {
-            }
-
             if (running.Data.Tunnel.PortMapLan > 0)
             {
-                _ = transportTcpPortMap.Listen(running.Data.Tunnel.PortMapLan);
-                _ = transportUdpPortMap.Listen(running.Data.Tunnel.PortMapLan);
+                upnpTransfer.SetMap(running.Data.Tunnel.PortMapLan, running.Data.Tunnel.PortMapWan);
             }
-            else if (upnpTransfer.MapInfo != null)
+            else
             {
-                _ = transportTcpPortMap.Listen(upnpTransfer.MapInfo.PrivatePort);
-                _ = transportUdpPortMap.Listen(upnpTransfer.MapInfo.PrivatePort);
+                upnpTransfer.SetMap(clientSignInState.Connection.LocalAddress.Address,18180);
             }
 
         }

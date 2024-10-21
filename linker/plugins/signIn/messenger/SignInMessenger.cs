@@ -29,9 +29,9 @@ namespace linker.plugins.signin.messenger
     {
         private readonly SignCaching signCaching;
         private readonly FileConfig config;
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
 
-        public SignInServerMessenger(SignCaching signCaching, FileConfig config, MessengerSender messengerSender)
+        public SignInServerMessenger(SignCaching signCaching, FileConfig config, IMessengerSender messengerSender)
         {
             this.signCaching = signCaching;
             this.config = config;

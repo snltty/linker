@@ -17,10 +17,14 @@ namespace linker.plugins.capi
         {
             serviceCollection.AddSingleton<IApiClientServer, ApiClientServer>();
             serviceCollection.AddSingleton<IWebClientServer, WebClientServer>();
+
+            serviceCollection.AddSingleton<ApiClientTypesLoader>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
+            ApiClientTypesLoader apiClientTypesLoader = serviceProvider.GetService<ApiClientTypesLoader>();
+
             if (config.Data.Client.CApi.ApiPort > 0)
             {
                 LoggerHelper.Instance.Info($"start client api server");

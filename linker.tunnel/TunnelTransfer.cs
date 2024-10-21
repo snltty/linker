@@ -15,6 +15,7 @@ namespace linker.tunnel
         private List<ITunnelTransport> transports;
         private TunnelWanPortTransfer compactTransfer;
         private ITunnelAdapter tunnelAdapter;
+        private TunnelUpnpTransfer TunnelUpnpTransfer;
 
         private ConcurrentDictionary<string, bool> connectingDic = new ConcurrentDictionary<string, bool>();
         private uint flowid = 1;
@@ -28,11 +29,12 @@ namespace linker.tunnel
         /// 加载打洞协议
         /// </summary>
         /// <param name="assembs"></param>
-        public void LoadTransports(TunnelWanPortTransfer compactTransfer, ITunnelAdapter tunnelAdapter, List<ITunnelTransport> transports)
+        public void LoadTransports(TunnelWanPortTransfer compactTransfer, ITunnelAdapter tunnelAdapter, TunnelUpnpTransfer TunnelUpnpTransfer, List<ITunnelTransport> transports)
         {
             this.compactTransfer = compactTransfer;
             this.tunnelAdapter = tunnelAdapter;
             this.transports = transports;
+            this.TunnelUpnpTransfer = TunnelUpnpTransfer;
 
             foreach (var item in transports)
             {
@@ -317,7 +319,7 @@ namespace linker.tunnel
             TunnelWanPortEndPoint ip = await compactTransfer.GetWanPortAsync(tunnelAdapter.LocalIP, info).ConfigureAwait(false);
             if (ip != null)
             {
-                PortMapInfo portMapInfo = tunnelAdapter.PortMap ?? new PortMapInfo { LanPort = 0, WanPort = 0 };
+                MapInfo portMapInfo = TunnelUpnpTransfer.PortMap ?? new MapInfo { PrivatePort = 0, PublicPort = 0 };
                 var config = tunnelAdapter.GetLocalConfig();
                 return new TunnelTransportWanPortInfo
                 {
@@ -326,8 +328,8 @@ namespace linker.tunnel
                     LocalIps = config.LocalIps,
                     RouteLevel = config.RouteLevel,
                     MachineId = config.MachineId,
-                    PortMapLan = portMapInfo.LanPort,
-                    PortMapWan = portMapInfo.WanPort,
+                    PortMapLan = portMapInfo.PrivatePort,
+                    PortMapWan = portMapInfo.PublicPort,
                 };
             }
             return null;
@@ -426,7 +428,7 @@ namespace linker.tunnel
         /// </summary>
         /// <param name="remoteMachineId"></param>
         /// <param name="transactionId"></param>
-        public void StartBackground(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols, Func<bool> stopCallback, int times = 10,int delay = 10000)
+        public void StartBackground(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols, Func<bool> stopCallback, int times = 10, int delay = 10000)
         {
             if (AddBackground(remoteMachineId, transactionId) == false)
             {

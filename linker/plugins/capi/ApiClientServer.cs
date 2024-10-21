@@ -1,7 +1,6 @@
 ﻿using linker.config;
 using linker.libs;
 using linker.libs.api;
-using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
 namespace linker.plugins.capi
@@ -11,37 +10,25 @@ namespace linker.plugins.capi
     /// </summary>
     public sealed partial class ApiClientServer : ApiServer, IApiClientServer
     {
-        private readonly ServiceProvider serviceProvider;
         private readonly FileConfig config;
 
-        public ApiClientServer(ServiceProvider serviceProvider, FileConfig config)
+        public ApiClientServer(FileConfig config)
         {
-            this.serviceProvider = serviceProvider;
             this.config = config;
-
-            LoadPlugins();
         }
 
         /// <summary>
         /// 加载插件
         /// </summary>
-        private void LoadPlugins()
+        public void LoadPlugins(List<object> list)
         {
             Type voidType = typeof(void);
 
-            IEnumerable<Type> types = GetSourceGeneratorTypes();
-
-            foreach (Type item in types)
+            foreach (object obj in list)
             {
-                object obj = serviceProvider.GetService(item);
-                if (obj == null)
-                {
-                    continue;
-                }
-                LoggerHelper.Instance.Info($"load client api:{item.Name}");
-
-                string path = item.Name.Replace("ApiController", "").Replace("ApiController", "");
-                foreach (MethodInfo method in item.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
+                Type type = obj.GetType();
+                string path = type.Name.Replace("ApiController", "").Replace("ApiController", "");
+                foreach (MethodInfo method in type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
                 {
                     string key = $"{path}/{method.Name}".ToLower();
                     if (plugins.ContainsKey(key) == false)

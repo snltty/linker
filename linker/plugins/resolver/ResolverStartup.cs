@@ -19,12 +19,14 @@ namespace linker.plugins.resolver
         {
 
             serviceCollection.AddSingleton<ResolverTransfer>();
+            serviceCollection.AddSingleton<ResolverTypesLoader>();
 
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
             serviceCollection.AddSingleton<ResolverTransfer>();
+            serviceCollection.AddSingleton<ResolverTypesLoader>();
 
         }
 
@@ -35,8 +37,7 @@ namespace linker.plugins.resolver
             if (loaded == false)
             {
                 loaded = true;
-
-                ResolverTransfer resolver = serviceProvider.GetService<ResolverTransfer>();
+                ResolverTypesLoader resolver = serviceProvider.GetService<ResolverTypesLoader>();
 
             }
         }
@@ -46,8 +47,7 @@ namespace linker.plugins.resolver
             if (loaded == false)
             {
                 loaded = true;
-
-                ResolverTransfer resolver = serviceProvider.GetService<ResolverTransfer>();
+                ResolverTypesLoader resolver = serviceProvider.GetService<ResolverTypesLoader>();
             }
         }
     }

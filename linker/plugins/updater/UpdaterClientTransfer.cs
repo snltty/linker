@@ -16,7 +16,7 @@ namespace linker.plugins.updater
         private ConcurrentDictionary<string, LastTicksManager> subscribes = new ConcurrentDictionary<string, LastTicksManager>();
 
         private readonly FileConfig fileConfig;
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
         private readonly UpdaterHelper updaterHelper;
 
@@ -24,7 +24,7 @@ namespace linker.plugins.updater
 
         public VersionManager Version { get; } = new VersionManager();
 
-        public UpdaterClientTransfer(FileConfig fileConfig, MessengerSender messengerSender, ClientSignInState clientSignInState, UpdaterHelper updaterHelper, RunningConfig running)
+        public UpdaterClientTransfer(FileConfig fileConfig, IMessengerSender messengerSender, ClientSignInState clientSignInState, UpdaterHelper updaterHelper, RunningConfig running)
         {
             this.fileConfig = fileConfig;
             this.messengerSender = messengerSender;

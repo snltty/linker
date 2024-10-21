@@ -19,12 +19,12 @@ namespace linker.plugins.forward
     {
         private readonly ForwardTransfer forwardTransfer;
         private readonly ForwardProxy forwardProxy;
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
 
 
 
-        public ForwardClientApiController(ForwardTransfer forwardTransfer, ForwardProxy forwardProxy, MessengerSender messengerSender, ClientSignInState clientSignInState)
+        public ForwardClientApiController(ForwardTransfer forwardTransfer, ForwardProxy forwardProxy, IMessengerSender messengerSender, ClientSignInState clientSignInState)
         {
             this.forwardTransfer = forwardTransfer;
             this.forwardProxy = forwardProxy;

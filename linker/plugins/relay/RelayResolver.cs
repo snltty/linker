@@ -10,14 +10,12 @@ namespace linker.plugins.relay
     /// <summary>
     /// 中继连接处理
     /// </summary>
-    public sealed class RelayResolver : IResolver
+    public class RelayResolver : IResolver
     {
         public ResolverType Type => ResolverType.Relay;
 
-        private readonly RelayFlow relayFlow;
-        public RelayResolver(RelayFlow relayFlow)
+        public RelayResolver()
         {
-            this.relayFlow = relayFlow;
         }
 
         private readonly ConcurrentDictionary<ulong, RelayWrap> relayDic = new ConcurrentDictionary<ulong, RelayWrap>();
@@ -50,6 +48,22 @@ namespace linker.plugins.relay
             return flowingId;
         }
 
+
+
+        public virtual void AddReceive(string key, string from, string to, ulong bytes)
+        {
+        }
+        public virtual void AddSendt(string key, string from, string to, ulong bytes)
+        {
+        }
+        public virtual void AddReceive(string key, ulong bytes)
+        {
+        }
+        public virtual void AddSendt(string key, ulong bytes)
+        {
+        }
+
+
         public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
             await Task.CompletedTask;
@@ -67,7 +81,7 @@ namespace linker.plugins.relay
                     socket.SafeClose();
                     return;
                 }
-                relayFlow.AddReceive(relayWrap.FromId, relayWrap.FromName, relayWrap.ToName, (ulong)length);
+                AddReceive(relayWrap.FromId, relayWrap.FromName, relayWrap.ToName, (ulong)length);
                 try
                 {
                     if (relayMessage.Type == RelayMessengerType.Ask)
@@ -121,8 +135,8 @@ namespace linker.plugins.relay
                 int bytesRead;
                 while ((bytesRead = await source.ReceiveAsync(buffer.AsMemory()).ConfigureAwait(false)) != 0)
                 {
-                    relayFlow.AddReceive(fromid, fromName, toName, (ulong)bytesRead);
-                    relayFlow.AddSendt(fromid, fromName, toName, (ulong)bytesRead);
+                    AddReceive(fromid, fromName, toName, (ulong)bytesRead);
+                    AddSendt(fromid, fromName, toName, (ulong)bytesRead);
                     await destination.SendAsync(buffer.AsMemory(0, bytesRead)).ConfigureAwait(false);
                 }
             }

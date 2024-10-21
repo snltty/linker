@@ -16,7 +16,7 @@ namespace linker.plugins.tuntap.client
 {
     public sealed class TuntapClientApiController : IApiClientController
     {
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
         private readonly TuntapTransfer tuntapTransfer;
         private readonly ClientSignInState clientSignInState;
         private readonly FileConfig config;
@@ -27,7 +27,7 @@ namespace linker.plugins.tuntap.client
         private readonly TuntapPingTransfer pingTransfer;
 
 
-        public TuntapClientApiController(MessengerSender messengerSender, TuntapTransfer tuntapTransfer, ClientSignInState clientSignInState, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig, TuntapConfigTransfer tuntapConfigTransfer, LeaseClientTreansfer leaseClientTreansfer, TuntapPingTransfer pingTransfer)
+        public TuntapClientApiController(IMessengerSender messengerSender, TuntapTransfer tuntapTransfer, ClientSignInState clientSignInState, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig, TuntapConfigTransfer tuntapConfigTransfer, LeaseClientTreansfer leaseClientTreansfer, TuntapPingTransfer pingTransfer)
         {
             this.messengerSender = messengerSender;
             this.tuntapTransfer = tuntapTransfer;

@@ -57,7 +57,7 @@ namespace linker.startup
 
             config.Data.Common.Plugins = startups.Select(c => c.Name).ToArray();
 
-            LoggerHelper.Instance.Info($"load startup : {string.Join(",", startups.Select(c => c.Name))}");
+            LoggerHelper.Instance.Info($"load startup : {string.Join(",", startups.Select(c => c.GetType().Name))}");
         }
         /// <summary>
         /// 加载插件依赖
@@ -84,16 +84,15 @@ namespace linker.startup
         /// <param name="assemblies"></param>
         public static void Add(ServiceCollection serviceCollection, FileConfig config)
         {
+            LoggerHelper.Instance.Info($"add startup : {string.Join(",", startups.Select(c => c.GetType().Name))}");
             foreach (var startup in startups)
             {
                 if (config.Data.Common.Modes.Contains("client"))
                 {
-                    LoggerHelper.Instance.Info($"add startup {startup.Name} client");
                     startup.AddClient(serviceCollection, config);
                 }
                 if (config.Data.Common.Modes.Contains("server"))
                 {
-                    LoggerHelper.Instance.Info($"add startup {startup.Name} server");
                     startup.AddServer(serviceCollection, config);
                 }
             }
@@ -107,16 +106,15 @@ namespace linker.startup
         /// <param name="assemblies"></param>
         public static void Use(ServiceProvider serviceProvider, FileConfig config)
         {
+            LoggerHelper.Instance.Info($"use startup : {string.Join(",", startups.Select(c => c.GetType().Name))}");
             foreach (var startup in startups)
             {
                 if (config.Data.Common.Modes.Contains("client"))
                 {
-                    LoggerHelper.Instance.Info($"use startup {startup.Name} client");
                     startup.UseClient(serviceProvider, config);
                 }
                 if (config.Data.Common.Modes.Contains("server"))
                 {
-                    LoggerHelper.Instance.Info($"use startup {startup.Name} server");
                     startup.UseServer(serviceProvider, config);
                 }
             }

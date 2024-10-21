@@ -1,5 +1,4 @@
 ﻿using linker.libs;
-using Microsoft.Extensions.DependencyInjection;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Net;
@@ -8,35 +7,56 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using linker.libs.extends;
 using linker.plugins.resolver;
-using MemoryPack;
 
 namespace linker.plugins.messenger
 {
-    /// <summary>
-    /// 消息处理总线
-    /// </summary>
-    public sealed class MessengerResolver : IConnectionReceiveCallback, IResolver
+    public interface IMessengerResolver
+    {
+        public void Initialize(string certificate, string password);
+        public Task<IConnection> BeginReceiveClient(Socket socket);
+        public void LoadMessenger(List<IMessenger> list);
+        public Task Resolve(Socket socket, Memory<byte> memory);
+        public Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory);
+    }
+
+    public sealed class MessengerResolverResolver : IResolver
     {
         public ResolverType Type => ResolverType.Messenger;
 
+        private readonly IMessengerResolver messengerResolver;
+        public MessengerResolverResolver(IMessengerResolver messengerResolver)
+        {
+            this.messengerResolver = messengerResolver;
+        }
+        public async Task Resolve(Socket socket, Memory<byte> memory)
+        {
+            await messengerResolver.Resolve(socket, memory);
+        }
+        public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
+        {
+            await messengerResolver.Resolve(socket, ep, memory);
+        }
+    }
+
+    /// <summary>
+    /// 消息处理总线
+    /// </summary>
+    public class MessengerResolver : IConnectionReceiveCallback, IMessengerResolver
+    {
         delegate void VoidDelegate(IConnection connection);
         delegate Task TaskDelegate(IConnection connection);
 
         private readonly Dictionary<ushort, MessengerCacheInfo> messengers = new();
 
-        private readonly MessengerSender messengerSender;
-        private readonly ServiceProvider serviceProvider;
-        private readonly MessengerFlow messengerFlow;
+        private readonly IMessengerSender messengerSender;
 
         private X509Certificate serverCertificate;
-        public MessengerResolver(MessengerSender messengerSender, ServiceProvider serviceProvider, MessengerFlow messengerFlow)
+        public MessengerResolver(IMessengerSender messengerSender)
         {
             this.messengerSender = messengerSender;
-            this.serviceProvider = serviceProvider;
-            this.messengerFlow = messengerFlow;
         }
 
-        public void Init(string certificate, string password)
+        public void Initialize(string certificate, string password)
         {
             string path = Path.GetFullPath(certificate);
             if (File.Exists(path))
@@ -49,6 +69,11 @@ namespace linker.plugins.messenger
                 Environment.Exit(0);
             }
         }
+
+
+        public virtual void AddReceive(ushort id, ulong bytes) { }
+        public virtual void AddSendt(ushort id, ulong bytes) { }
+
 
         public async Task Resolve(Socket socket, Memory<byte> memory)
         {
@@ -106,6 +131,7 @@ namespace linker.plugins.messenger
         {
             return true;
         }
+
         private IConnection CreateConnection(SslStream stream, NetworkStream networkStream, Socket socket, IPEndPoint local, IPEndPoint remote)
         {
             return new TcpConnection(stream, networkStream, socket, local, remote)
@@ -118,21 +144,14 @@ namespace linker.plugins.messenger
         /// <summary>
         /// 加载所有消息处理器
         /// </summary>
-        public void LoadMessenger()
+        public void LoadMessenger(List<IMessenger> list)
         {
             Type voidType = typeof(void);
             Type midType = typeof(MessengerIdAttribute);
-            IEnumerable<Type> types = MessengerResolverTypes.GetSourceGeneratorTypes();
 
-            foreach (Type type in types.Distinct())
+            foreach (IMessenger messenger in list.Distinct())
             {
-                object obj = serviceProvider.GetService(type);
-                if (obj == null)
-                {
-                    continue;
-                }
-                LoggerHelper.Instance.Info($"load messenger:{type.Name}");
-
+                Type type = messenger.GetType();
                 foreach (var method in type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
                 {
                     MessengerIdAttribute mid = method.GetCustomAttribute(midType) as MessengerIdAttribute;
@@ -142,23 +161,19 @@ namespace linker.plugins.messenger
                         {
                             MessengerCacheInfo cache = new MessengerCacheInfo
                             {
-                                Target = obj
+                                Target = messenger
                             };
                             //void方法
                             if (method.ReturnType == voidType)
                             {
-                                cache.VoidMethod = (VoidDelegate)Delegate.CreateDelegate(typeof(VoidDelegate), obj, method);
+                                cache.VoidMethod = (VoidDelegate)Delegate.CreateDelegate(typeof(VoidDelegate), messenger, method);
                             }
                             //异步方法
                             else if (method.ReturnType.GetProperty("IsCompleted") != null && method.ReturnType.GetMethod("GetAwaiter") != null)
                             {
-                                cache.TaskMethod = (TaskDelegate)Delegate.CreateDelegate(typeof(TaskDelegate), obj, method);
+                                cache.TaskMethod = (TaskDelegate)Delegate.CreateDelegate(typeof(TaskDelegate), messenger, method);
                             }
                             messengers.TryAdd(mid.Id, cache);
-                        }
-                        else
-                        {
-                            LoggerHelper.Instance.Warning($"{type.Name}->{method.Name}->{mid.Id} 消息id已存在");
                         }
                     }
                 }
@@ -189,7 +204,7 @@ namespace linker.plugins.messenger
 
                 //新的请求
                 requestWrap.FromArray(data);
-                messengerFlow.AddReceive(requestWrap.MessengerId, (ulong)data.Length);
+                AddReceive(requestWrap.MessengerId, (ulong)data.Length);
                 //404,没这个插件
                 if (messengers.TryGetValue(requestWrap.MessengerId, out MessengerCacheInfo plugin) == false)
                 {
@@ -255,17 +270,5 @@ namespace linker.plugins.messenger
             public TaskDelegate TaskMethod { get; set; }
         }
 
-    }
-
-    public static partial class MessengerResolverTypes
-    {
-
-    }
-
-    [MemoryPackable]
-    public sealed partial class MessengerFlowItemInfo
-    {
-        public ulong ReceiveBytes { get; set; }
-        public ulong SendtBytes { get; set; }
     }
 }

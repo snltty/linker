@@ -14,7 +14,7 @@ namespace linker.plugins.relay
     /// <summary>
     /// 中继
     /// </summary>
-    public sealed partial class RelayTransfer
+    public sealed class RelayTransfer
     {
         private List<ITransport> transports;
 
@@ -32,10 +32,6 @@ namespace linker.plugins.relay
             this.serviceProvider = serviceProvider;
             InitConfig();
             TestTask();
-
-            IEnumerable<Type> types = GetSourceGeneratorTypes();
-            transports = types.Select(c => (ITransport)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
-            LoggerHelper.Instance.Info($"load relay transport:{string.Join(",", transports.Select(c => c.Name))}");
         }
         private void InitConfig()
         {
@@ -54,6 +50,11 @@ namespace linker.plugins.relay
             }
         }
 
+        public void LoadTransports(List<ITransport> list)
+        {
+            transports = list;
+          
+        }
         /// <summary>
         /// 获取所有中继协议
         /// </summary>
