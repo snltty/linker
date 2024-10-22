@@ -89,10 +89,8 @@ namespace linker.plugins.updater.messenger
         public void ConfirmServer(IConnection connection)
         {
             UpdaterConfirmServerInfo confirm = MemoryPackSerializer.Deserialize<UpdaterConfirmServerInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            LoggerHelper.Instance.Error(confirm.ToJson());
             if (fileConfig.Data.Server.Updater.SecretKey == confirm.SecretKey)
             {
-                LoggerHelper.Instance.Error($"{confirm.ToJson()} 111");
                 updaterServerTransfer.Confirm(confirm.Version);
             }
         }
