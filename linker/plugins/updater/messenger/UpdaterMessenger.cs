@@ -134,16 +134,17 @@ namespace linker.plugins.updater.messenger
             //某一个
             else machines = signCaching.Get(cache.GroupId).Where(c => c.MachineId == confirm.MachineId && c.GroupId == cache.GroupId);
 
-
+            UpdaterConfirmV149Info v149 = new UpdaterConfirmV149Info { All = confirm.All, MachineId = confirm.MachineId, Version = confirm.Version };
             confirm.SecretKey = string.Empty;
             byte[] payload = MemoryPackSerializer.Serialize(confirm);
+            byte[] payloadV149 = MemoryPackSerializer.Serialize(v149);
             var tasks = machines.Select(c =>
             {
                 return messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = c.Connection,
                     MessengerId = (ushort)UpdaterMessengerIds.Confirm,
-                    Payload = payload
+                    Payload = c.Version == "v1.4.9" ? payloadV149 : payload
                 });
             });
 

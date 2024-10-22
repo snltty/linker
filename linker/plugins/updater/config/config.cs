@@ -21,6 +21,13 @@ namespace linker.plugins.updater.config
         public bool GroupAll { get; set; }
         public bool All { get; set; }
     }
+    [MemoryPackable]
+    public sealed partial class UpdaterConfirmV149Info
+    {
+        public string MachineId { get; set; }
+        public string Version { get; set; }
+        public bool All { get; set; }
+    }
 
     [MemoryPackable]
     public sealed partial class UpdaterConfirmServerInfo
