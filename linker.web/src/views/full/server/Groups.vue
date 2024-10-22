@@ -55,9 +55,6 @@ import { ElMessage } from 'element-plus';
 import { computed, reactive, watch } from 'vue'
 import { Delete,Plus,Select } from '@element-plus/icons-vue';
 export default {
-    label:'分组',
-    name:'signInGroups',
-    order:2,
     components:{Delete,Plus,Select },
     setup(props) {
         const globalData = injectGlobalData();

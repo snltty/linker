@@ -19,9 +19,6 @@ import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import {  reactive } from 'vue'
 export default {
-    label:'验证',
-    name:'action',
-    order:0,
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({
