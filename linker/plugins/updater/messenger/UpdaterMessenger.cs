@@ -1,8 +1,11 @@
 ﻿using linker.config;
+using linker.libs;
+using linker.libs.extends;
 using linker.plugins.messenger;
 using linker.plugins.signin.messenger;
 using linker.plugins.updater.config;
 using MemoryPack;
+using Mono.Nat.Logging;
 
 namespace linker.plugins.updater.messenger
 {
@@ -86,8 +89,10 @@ namespace linker.plugins.updater.messenger
         public void ConfirmServer(IConnection connection)
         {
             UpdaterConfirmServerInfo confirm = MemoryPackSerializer.Deserialize<UpdaterConfirmServerInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            LoggerHelper.Instance.Error(confirm.ToJson());
             if (fileConfig.Data.Server.Updater.SecretKey == confirm.SecretKey)
             {
+                LoggerHelper.Instance.Error($"{confirm.ToJson()} 111");
                 updaterServerTransfer.Confirm(confirm.Version);
             }
         }

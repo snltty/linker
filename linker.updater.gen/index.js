@@ -18,7 +18,6 @@ function readVersionDesc() {
         });
     });
 }
-
 function readYaml() {
     try {
         const fileContents = fs.readFileSync(path, 'utf8');
@@ -35,7 +34,6 @@ function writeYaml(data) {
         console.log(e);
     }
 }
-
 function writeUpload(data) {
     const tagName = data.jobs.build.steps.filter(c => c.id == 'create_release')[0].with.tag_name;
     const platforms = {
