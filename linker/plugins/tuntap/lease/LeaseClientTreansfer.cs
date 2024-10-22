@@ -49,7 +49,6 @@ namespace linker.plugins.tuntap.lease
             {
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)TuntapMessengerIds.LeaseChangeForward
-
             });
         }
 

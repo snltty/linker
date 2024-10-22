@@ -253,7 +253,7 @@ namespace linker.plugins.tuntap.messenger
                 IEnumerable<Task<bool>> tasks = caches.Where(c => c.MachineId != connection.Id && c.Connected).Select(c => messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = c.Connection,
-                    MessengerId = (ushort)TuntapMessengerIds.Config,
+                    MessengerId = (ushort)TuntapMessengerIds.LeaseChange,
                     Payload = connection.ReceiveRequestWrap.Payload,
                     Timeout = 1000,
                 }));
