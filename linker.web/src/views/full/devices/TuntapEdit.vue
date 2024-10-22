@@ -139,7 +139,7 @@ export default {
             }
         }
         const handleAdd = (index) => {
-            state.ruleForm.LanIPs.splice(index + 1, 0, '');
+            state.ruleForm.LanIPs.splice(index + 1, 0, '0.0.0.0');
             state.ruleForm.Masks.splice(index + 1, 0, 24);
         }
         const handleSave = () => {
