@@ -1,149 +1,60 @@
 <template>
-    <el-table :data="state.list" border size="small" width="100%" :height="`${state.height}px`" @cell-dblclick="handleCellClick">
-        <el-table-column prop="Name" label="名称" width="100">
-            <template #default="scope">
-                <template v-if="scope.row.NameEditing">
-                    <el-input autofocus size="small" v-model="scope.row.Name"
-                        @blur="handleEditBlur(scope.row, 'Name')"></el-input>
-                </template>
-                <template v-else>
-                    {{ scope.row.Name }}
-                </template>
-            </template>
-        </el-table-column>
-        <el-table-column prop="Host" label="地址" >
-            <template #default="scope">
-                <template v-if="scope.row.HostEditing">
-                    <el-input autofocus size="small" v-model="scope.row.Host"
-                        @blur="handleEditBlur(scope.row, 'Host')"></el-input>
-                </template>
-                <template v-else>
-                    {{ scope.row.Host }}
-                </template>
-            </template>
-        </el-table-column>
-        <el-table-column prop="SecretKey" label="秘钥" >
-            <template #default="scope">
-                <template v-if="scope.row.SecretKeyEditing">
-                    <el-input type="password" show-password size="small" v-model="scope.row.SecretKey" @blur="handleEditBlur(scope.row, 'SecretKey')"></el-input>
-                </template>
-                <template v-else></template>
-            </template>
-        </el-table-column>
-        <!-- <el-table-column prop="Oper" label="操作" width="150">
-            <template #default="scope">
-                <div>
-                    <el-popconfirm title="删除不可逆，是否确认?" @confirm="handleDel(scope.$index)">
-                        <template #reference>
-                            <el-button type="danger" size="small">
-                                <el-icon><Delete /></el-icon>
-                            </el-button>
-                        </template>
-                    </el-popconfirm>
-                    <el-button type="primary" size="small" @click="handleAdd(scope.$index)">
-                        <el-icon><Plus /></el-icon>
-                    </el-button>
-                    <template v-if="state.server != scope.row.Host">
-                        <el-button size="small" @click="handleUse(scope.$index)">
-                            <el-icon><Select /></el-icon>
-                        </el-button>
-                    </template>
+    <div class="signin-wrap" :style="{height:`${state.height}px`}">
+        <el-card shadow="never">
+            <template #header>服务器相关设置</template>
+            <div>
+                <el-form label-width="auto">
+                    <el-form-item label="服务器地址">
+                        <div class="flex">
+                            <el-input class="flex-1" v-model="state.list.Host" @change="handleSave" />
+                            <span>服务器地址。ip:端口 或者 域名:端口</span>
+                        </div>
+                    </el-form-item>
+                    <el-form-item label="信标密钥">
+                        <div class="flex">
+                            <el-input class="flex-1" type="password" show-password maxlength="36" v-model="state.list.SecretKey" @change="handleSave" />
+                            <span>密钥正确时可连接服务器</span>
+                        </div>
+                    </el-form-item>
+                    <RelayServers></RelayServers>
+                    <SForward></SForward>
+                    <Updater></Updater>
+                </el-form>
+            </div>
+            <template #footer>
+                <div class="t-c">
+                    <el-button type="success" @click="handleSave">确定更改</el-button>
                 </div>
             </template>
-        </el-table-column> -->
-    </el-table>
+        </el-card>
+    </div>
 </template>
 <script>
 import { setSignInServers } from '@/apis/signin';
 import { injectGlobalData } from '@/provide';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import { computed, inject, reactive, watch } from 'vue'
-import { Delete,Plus,Select } from '@element-plus/icons-vue';
-import { setTunnelServers } from '@/apis/tunnel';
-import { setRelayServers } from '@/apis/relay';
+import { ElMessage } from 'element-plus';
+import { computed, reactive } from 'vue'
+import SForward from './SForward.vue';
+import Updater from './Updater.vue';
+import RelayServers from './RelayServers.vue';
 export default {
-    label:'信标服务器',
-    name:'signInServers',
-    order:0,
-    components:{Delete,Plus,Select },
+    components:{SForward,Updater,RelayServers},
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({
-            list:globalData.value.config.Client.Servers || [],
-            server:computed(()=>globalData.value.config.Client.ServerInfo.Host),
+            list:globalData.value.config.Client.ServerInfo,
             height: computed(()=>globalData.value.height-90),
         });
-        watch(()=>globalData.value.config.Client.Servers,()=>{
-            if(state.list.filter(c=>c['__editing']).length == 0){
-                state.list = globalData.value.config.Client.Servers;
-            }
-        })
-
-        const handleCellClick = (row, column) => {
-            handleEdit(row, column.property);
-        }
-        const handleEdit = (row, p) => {
-            state.list.forEach(c => {
-                c[`NameEditing`] = false;
-                c[`HostEditing`] = false;
-                c[`SecretKeyEditing`] = false;
-            })
-            row[`${p}Editing`] = true;
-            row[`__editing`] = true;
-        }
-        const handleEditBlur = (row, p) => {
-            row[`${p}Editing`] = false;
-            row[`__editing`] = false;
-            handleSave();
-        }
-
-        const handleDel = (index)=>{
-            state.list.splice(index,1);
-            handleSave();
-        }
-        const handleAdd = (index)=>{
-            if(state.list.filter(c=>c.Host == '' || c.Name == '').length > 0){
-                return;
-            }
-            state.list.splice(index+1,0,{Name:'',Host:''});
-            handleSave();
-        }
-        const handleUse = (index)=>{
-            const temp = state.list[index];
-            state.list[index] = state.list[0];
-            state.list[0] = temp;
-            handleSave();
-        }
 
         const handleSave = ()=>{
-
-            const tunnelServers = globalData.value.config.Client.Tunnel.Servers.slice();
-            const relayServers = globalData.value.config.Client.Relay.Servers.slice();
-            const server = state.list[0];
-            for(let i=0;i<tunnelServers.length;i++){
-                tunnelServers[i].Host = server.Host;
-            }
-            for(let i=0;i<relayServers.length;i++){
-                relayServers[i].Host = server.Host;
-            }
             setSignInServers(state.list).then(()=>{
                 ElMessage.success('已操作');
             }).catch(()=>{
                 ElMessage.error('操作失败');
             });
-            setTunnelServers(tunnelServers).then(()=>{
-                ElMessage.success('已操作');
-            }).catch(()=>{
-                ElMessage.error('操作失败');
-            });
-            setRelayServers(relayServers).then(()=>{
-                ElMessage.success('已操作');
-            }).catch(()=>{
-                ElMessage.error('操作失败');
-            });
         }
 
-        return {state,handleCellClick,handleEditBlur,handleDel,handleAdd,handleUse}
+        return {state,handleSave}
     }
 }
 </script>

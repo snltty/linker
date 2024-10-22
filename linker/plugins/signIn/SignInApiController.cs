@@ -62,8 +62,9 @@ namespace linker.plugins.signin
         [ClientApiAccessAttribute(ClientApiAccess.Config)]
         public bool SetServers(ApiControllerParamsInfo param)
         {
-            ClientServerInfo[] servers = param.Content.DeJson<ClientServerInfo[]>();
-            clientSignInTransfer.SetServers(servers);
+            ClientServerInfo servers = param.Content.DeJson<ClientServerInfo>();
+            config.Data.Client.Servers = [servers];
+            config.Data.Update();
             return true;
         }
 

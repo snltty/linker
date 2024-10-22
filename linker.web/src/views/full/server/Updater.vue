@@ -1,28 +1,20 @@
 <template>
-    <div style="width: 30rem;padding: 5rem 0; margin:  0 auto;">
-        <p class="t-c">
-            服务器更新密钥
-        </p>
-        <p>
-            <el-input type="password" show-password v-model="state.secretKey" maxlength="36" @blur="handleChange" />
-        </p>
-    </div>
+    <el-form-item label="服务器更新密钥">
+        <div class="flex">
+            <el-input class="flex-1" type="password" show-password v-model="state.secretKey" maxlength="36" @blur="handleChange"/>
+            <span>密钥正确时可更新服务端</span>
+        </div>
+    </el-form-item>
 </template>
 <script>
 import { getSecretKey,setSecretKey } from '@/apis/updater';
-import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import { computed, inject, onMounted, reactive } from 'vue'
+import { onMounted, reactive } from 'vue'
 export default {
-    label:'服务器更新',
-    name:'updater',
-    order:4,
     setup(props) {
-        const globalData = injectGlobalData();
         const state = reactive({
             secretKey:''
         });
-
         const _getSecretKey = ()=>{
             getSecretKey().then((res)=>{
                 state.secretKey = res;

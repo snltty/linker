@@ -9,7 +9,6 @@ namespace linker.tunnel.wanport
     public sealed class TunnelWanPortProtocolLinkerUdp : ITunnelWanPortProtocol
     {
         public string Name => "Linker Udp";
-        public TunnelWanPortType Type => TunnelWanPortType.Linker;
 
         public TunnelWanPortProtocolType ProtocolType => TunnelWanPortProtocolType.Udp;
 
@@ -73,7 +72,6 @@ namespace linker.tunnel.wanport
     public sealed class TunnelWanPortProtocolLinkerTcp : ITunnelWanPortProtocol
     {
         public string Name => "Linker Tcp";
-        public TunnelWanPortType Type => TunnelWanPortType.Linker;
 
         public TunnelWanPortProtocolType ProtocolType => TunnelWanPortProtocolType.Tcp;
 

@@ -1,40 +1,38 @@
 <template>
     <div class="servers-wrap" v-if="hasConfig">
         <el-tabs type="border-card" style="width:100%" v-model="state.tab">
-            <template v-for="(item,index) in settingComponents" :key="index">
-                <el-tab-pane :label="item.label" :name="item.name">
-                    <component :is="item"></component>
-                </el-tab-pane>
-            </template>
+            <el-tab-pane label="信标服务器" name="signin">
+                <SignInServers></SignInServers>
+            </el-tab-pane>
+            <el-tab-pane label="分组设置" name="groups">
+                <Groups></Groups>
+            </el-tab-pane>
+            <el-tab-pane label="配置同步" name="async" v-if="hasSync">
+                <Async></Async>
+            </el-tab-pane>
         </el-tabs>
     </div>
 </template>
 <script>
 import { computed, reactive } from 'vue';
 import { injectGlobalData } from '@/provide';
+import SignInServers from './SignInServers.vue';
+import Groups from './Groups.vue';
+import Async from './Async.vue';
 export default {
-    components:{},
+    components:{SignInServers,Groups,Async},
     setup(props) {
 
         const globalData = injectGlobalData();
         const hasConfig = computed(()=>globalData.value.hasAccess('Config'))
         const hasSync = computed(()=>globalData.value.hasAccess('Sync'));
 
-        const excludes = ['./Index.vue','./Version.vue','./TunnelServers.vue'];
-        if(hasSync.value == false){
-            excludes.push('./Async.vue');
-        }
-        
-
-        const files = require.context('./', true, /.+\.vue/);
-        const settingComponents = files.keys().filter(c=>excludes.includes(c)==false).map(c => files(c).default).sort((a,b)=>a.order-b.order);
-        
         const state = reactive({
-            tab:settingComponents[0].name
+            tab:'signin'
         });
 
         return {
-            state,settingComponents,hasConfig
+            state,hasConfig,hasSync
         }
     }
 }

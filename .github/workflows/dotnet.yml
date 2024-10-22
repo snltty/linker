@@ -37,7 +37,7 @@ jobs:
           release_name: v1.5.0.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 新增多分组管理，方便分组切换\r\n2. 增加分组密码，提高分组隔离安全性\r\n3. 优化配置同步，可自由选择同步哪些信息\r\n4. 自动分配虚拟网卡IP\r\n5. 线程池优化\r\n6. 一些UI优化\r\n7. 测试中，不要更新，不要更新，不要更新，请使用v1.4.9"
+          body: "1. 新增多分组管理，方便分组切换\r\n2. 增加分组密码，提高分组隔离安全性\r\n3. 优化配置同步，可自由选择同步哪些信息\r\n4. 自动分配虚拟网卡IP\r\n5. 线程池优化\r\n6. 一些UI优化\r\n7. 减少很多耦合，更方便自由组合各个组件\r\n8. 测试中，不要更新，不要更新，不要更新，请使用v1.4.9"
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
         uses: tvrcgo/oss-action@v0.1.1

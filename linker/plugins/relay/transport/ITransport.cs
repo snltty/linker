@@ -1,10 +1,13 @@
-﻿using linker.config;
-using linker.tunnel.connection;
+﻿using linker.tunnel.connection;
 using MemoryPack;
 using System.Net;
 
 namespace linker.plugins.relay.transport
 {
+    public enum RelayType : byte
+    {
+        Linker = 0,
+    }
     /// <summary>
     /// 中继接口
     /// </summary>
@@ -36,11 +39,11 @@ namespace linker.plugins.relay.transport
         public Task<bool> OnBeginAsync(RelayInfo relayInfo, Action<ITunnelConnection> callback);
 
         /// <summary>
-        /// 测试一下中继通不通 
+        /// 测试一下中继通不通
         /// </summary>
         /// <param name="relayTestInfo"></param>
-        /// <returns>延迟，-1则不通</returns>
-        public Task<RelayTestResultInfo> RelayTestAsync(RelayTestInfo relayTestInfo);
+        /// <returns></returns>
+        public Task<int> RelayTestAsync(RelayTestInfo relayTestInfo);
     }
 
     /// <summary>
@@ -54,18 +57,6 @@ namespace linker.plugins.relay.transport
 
         [MemoryPackAllowSerialize]
         public IPEndPoint Server { get; set; }
-    }
-
-    public struct RelayTestResultInfo
-    {
-        /// <summary>
-        /// 延迟
-        /// </summary>
-        public int Delay { get; set; }
-        /// <summary>
-        /// 可用
-        /// </summary>
-        public bool Available { get; set; }
     }
 
     /// <summary>
@@ -117,10 +108,5 @@ namespace linker.plugins.relay.transport
         /// 是否ssl
         /// </summary>
         public bool SSL { get; set; } = true;
-
-        /// <summary>
-        /// 服务器名
-        /// </summary>
-        public string ServerName { get; set; }
     }
 }

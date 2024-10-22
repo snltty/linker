@@ -1,6 +1,6 @@
 <template>
-    <div>
-        <el-card shadow="never" style="max-width: 540px;margin:0 auto;">
+    <div :style="{height:`${state.height}px`}">
+        <el-card shadow="never">
             <template #header>选择你需要同步的项，将这些配置同步到本组所有客户端</template>
             <div>
                 <el-checkbox v-model="state.checkAll" :indeterminate="state.isIndeterminate" @change="handleCheckAllChange">全选</el-checkbox>
@@ -25,7 +25,7 @@
 <script>
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import { onMounted, reactive } from 'vue'
+import { computed, onMounted, reactive } from 'vue'
 import { getSyncNames, setSync } from '@/apis/config';
 export default {
     label:'同步配置',
@@ -38,6 +38,7 @@ export default {
             checkAll:false,
             isIndeterminate:false,
             checkeds:[],
+            height: computed(()=>globalData.value.height-90),
         });
 
         const handleCheckAllChange = (val)=>{

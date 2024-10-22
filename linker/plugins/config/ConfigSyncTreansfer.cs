@@ -3,7 +3,6 @@ using linker.plugins.client;
 using linker.plugins.config.messenger;
 using linker.plugins.messenger;
 using MemoryPack;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace linker.plugins.config
 {

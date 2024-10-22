@@ -1,24 +1,17 @@
 <template>
-    <div style="width: 30rem;padding: 5rem 0; margin:  0 auto;">
-        <p class="t-c">
-            服务器代理穿透密钥
-        </p>
-        <p>
-            <el-input type="password" show-password v-model="state.SForwardSecretKey" maxlength="36" @blur="handleChange" />
-        </p>
-    </div>
+    <el-form-item label="服务器穿透密钥">
+        <div class="flex">
+            <el-input class="flex-1" type="password" show-password v-model="state.SForwardSecretKey" maxlength="36" @blur="handleChange" />
+            <span>密钥正确时可使用内网穿透</span>
+        </div>
+    </el-form-item>
 </template>
 <script>
 import { getSForwardSecretKey,setSForwardSecretKey } from '@/apis/sforward';
-import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import {onMounted, reactive } from 'vue'
 export default {
-    label:'服务器穿透',
-    name:'sforward',
-    order:3,
     setup(props) {
-        const globalData = injectGlobalData();
         const state = reactive({
             SForwardSecretKey:''
         });

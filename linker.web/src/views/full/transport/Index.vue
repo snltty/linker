@@ -1,6 +1,6 @@
 <template>
     <div class="transport-wrap">
-        <el-table :data="state.list" border size="small" width="100%" :height="`${state.height}px`" >
+        <el-table stripe  :data="state.list" border size="small" width="100%" :height="`${state.height}px`" >
             <el-table-column prop="Name" label="名称" width="120"></el-table-column>
             <el-table-column prop="Label" label="说明"></el-table-column>
             <el-table-column prop="ProtocolType" label="协议" width="60"></el-table-column>

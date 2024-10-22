@@ -92,7 +92,7 @@ namespace linker.libs.api
             {
                 return new ApiControllerResponseInfo
                 {
-                    Content = "not exists this path",
+                    Content = $"{model.Path} not exists",
                     RequestId = model.RequestId,
                     Path = model.Path,
                     Code = ApiControllerResponseCodes.NotFound

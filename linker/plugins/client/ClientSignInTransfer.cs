@@ -211,6 +211,10 @@ namespace linker.plugins.client
         {
             config.Data.Client.Name = newName;
             config.Data.Update();
+
+            SignOut();
+            _ = SignIn();
+
         }
         /// <summary>
         /// 修改客户端名称和分组编号
@@ -222,6 +226,9 @@ namespace linker.plugins.client
             config.Data.Client.Name = newName;
             config.Data.Client.Groups = groups.DistinctBy(c => c.Name).ToArray();
             config.Data.Update();
+
+            SignOut();
+            _ = SignIn();
         }
         /// <summary>
         /// 设置分组编号
@@ -231,6 +238,9 @@ namespace linker.plugins.client
         {
             config.Data.Client.Groups = groups.DistinctBy(c => c.Name).ToArray();
             config.Data.Update();
+
+            SignOut();
+            _ = SignIn();
         }
 
 
@@ -276,18 +286,5 @@ namespace linker.plugins.client
             return string.Empty;
         }
 
-        /// <summary>
-        /// 修改信标服务器列表
-        /// </summary>
-        /// <param name="servers"></param>
-        public void SetServers(ClientServerInfo[] servers)
-        {
-            SetServersReSignin(servers);
-        }
-        private void SetServersReSignin(ClientServerInfo[] servers)
-        {
-            config.Data.Client.Servers = servers;
-            config.Data.Update();
-        }
     }
 }

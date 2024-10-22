@@ -7,22 +7,6 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 
-namespace linker.client.config
-{
-    public sealed partial class RunningConfigInfo
-    {
-        public ClientRunningInfo Client { get; set; } = new ClientRunningInfo();
-    }
-
-    public sealed class ClientRunningInfo
-    {
-        public ClientRunningInfo() { }
-
-        public ObjectId Id { get; set; }
-        public ClientServerInfo[] Servers { get; set; } = [];
-    }
-}
-
 namespace linker.config
 {
     public sealed partial class ConfigInfo

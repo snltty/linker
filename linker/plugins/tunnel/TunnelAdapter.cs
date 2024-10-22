@@ -7,20 +7,20 @@ using linker.libs;
 using MemoryPack;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
-using linker.tunnel.wanport;
 using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.plugins.tunnel.excludeip;
-using linker.tunnel;
 
 namespace linker.plugins.tunnel
 {
     public sealed class TunnelAdapter : ITunnelAdapter
     {
-        public IPAddress LocalIP => running.Data.Tunnel.Interface != null && running.Data.Tunnel.Interface.Equals(IPAddress.Any) == false
-            ? running.Data.Tunnel.Interface : (clientSignInState.Connection?.LocalAddress.Address ?? IPAddress.Any);
+        public IPAddress LocalIP => clientSignInState.Connection?.LocalAddress.Address ?? IPAddress.Any;
+        public string ServerHost => config.Data.Client.ServerInfo.Host;
 
         public X509Certificate2 Certificate { get; private set; }
+
+       
 
         private readonly ClientSignInState clientSignInState;
         private readonly IMessengerSender messengerSender;
@@ -41,16 +41,6 @@ namespace linker.plugins.tunnel
             {
                 Certificate = new X509Certificate2(path, config.Data.Client.SSL.Password, X509KeyStorageFlags.Exportable);
             }
-        }
-
-        public List<TunnelWanPortInfo> GetTunnelWanPortProtocols()
-        {
-            return config.Data.Client.Tunnel.Servers;
-        }
-        public void SetTunnelWanPortProtocols(List<TunnelWanPortInfo> compacts, bool updateVersion)
-        {
-            config.Data.Client.Tunnel.Servers = compacts;
-            config.Data.Update();
         }
 
         public List<TunnelTransportItemInfo> GetTunnelTransports()

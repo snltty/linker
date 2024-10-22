@@ -35,7 +35,6 @@ namespace linker.plugins.tunnel
             this.tunnelAdapter = tunnelAdapter;
             this.upnpTransfer = upnpTransfer;
 
-            InitConfig();
             clientSignInState.NetworkEnabledHandle += (times) =>
             {
                 RefreshRouteLevel();
@@ -53,37 +52,6 @@ namespace linker.plugins.tunnel
                 config.Data.Client.Tunnel.RouteIPs = ips.ToArray();
                 config.Data.Client.Tunnel.LocalIPs = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
             });
-        }
-
-        private void InitConfig()
-        {
-            bool updateVersion = false;
-            List<TunnelWanPortInfo> server = config.Data.Client.Tunnel.Servers;
-            if (server.FirstOrDefault(c => c.Type == TunnelWanPortType.Linker && c.ProtocolType == TunnelWanPortProtocolType.Udp) == null)
-            {
-                server.Add(new TunnelWanPortInfo
-                {
-                    Name = "Linker Udp",
-                    Type = TunnelWanPortType.Linker,
-                    ProtocolType = TunnelWanPortProtocolType.Udp,
-                    Disabled = false,
-                    Host = config.Data.Client.ServerInfo.Host,
-                });
-                updateVersion = true;
-            }
-            if (server.FirstOrDefault(c => c.Type == TunnelWanPortType.Linker && c.ProtocolType == TunnelWanPortProtocolType.Tcp) == null)
-            {
-                server.Add(new TunnelWanPortInfo
-                {
-                    Name = "Linker Tcp",
-                    Type = TunnelWanPortType.Linker,
-                    ProtocolType = TunnelWanPortProtocolType.Tcp,
-                    Disabled = false,
-                    Host = config.Data.Client.ServerInfo.Host,
-                });
-                updateVersion = true;
-            }
-            tunnelAdapter.SetTunnelWanPortProtocols(server, updateVersion);
         }
 
         /// <summary>
@@ -153,12 +121,6 @@ namespace linker.plugins.tunnel
             };
         }
      
-        public void SetInterface(IPAddress ip)
-        {
-            running.Data.Tunnel.Interface = ip;
-            running.Data.Update();
-        }
-
         private void TestQuic()
         {
             if (OperatingSystem.IsWindows())
@@ -199,7 +161,6 @@ namespace linker.plugins.tunnel
                 }
             }
         }
-
         private void RefreshPortMap()
         {
             if (running.Data.Tunnel.PortMapLan > 0)

@@ -195,9 +195,8 @@ namespace linker.plugins.relay.transport
             return null;
         }
 
-        public async Task<RelayTestResultInfo> RelayTestAsync(RelayTestInfo relayTestInfo)
+        public async Task<int> RelayTestAsync(RelayTestInfo relayTestInfo)
         {
-            RelayTestResultInfo result = new RelayTestResultInfo { Delay = -1 };
             try
             {
                 var sw = new Stopwatch();
@@ -211,14 +210,12 @@ namespace linker.plugins.relay.transport
                 }).ConfigureAwait(false);
                 sw.Stop();
 
-                result.Delay = resp.Code == MessageResponeCodes.OK ? (int)sw.ElapsedMilliseconds : -1;
-                result.Available = resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
-                return result;
+                return resp.Code == MessageResponeCodes.OK ? (int)sw.ElapsedMilliseconds : -1;
             }
             catch (Exception)
             {
             }
-            return result;
+            return -1;
         }
     }
 }

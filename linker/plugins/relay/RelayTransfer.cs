@@ -1,13 +1,10 @@
-﻿using linker.client.config;
-using linker.config;
+﻿using linker.config;
 using linker.plugins.relay.transport;
 using linker.tunnel.connection;
 using linker.libs;
 using linker.libs.extends;
-using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
 using System.Net;
-using linker.plugins.client;
 
 namespace linker.plugins.relay
 {
@@ -16,52 +13,24 @@ namespace linker.plugins.relay
     /// </summary>
     public sealed class RelayTransfer
     {
-        private List<ITransport> transports;
+        public List<ITransport> Transports { get; private set; }
+
 
         private readonly FileConfig fileConfig;
-        private readonly RunningConfig running;
-        private readonly ServiceProvider serviceProvider;
 
         private ConcurrentDictionary<string, bool> connectingDic = new ConcurrentDictionary<string, bool>();
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
-        public RelayTransfer(FileConfig fileConfig, ClientSignInState clientSignInState, RunningConfig running, ServiceProvider serviceProvider)
+        public RelayTransfer(FileConfig fileConfig)
         {
             this.fileConfig = fileConfig;
-            this.running = running;
-            this.serviceProvider = serviceProvider;
-            InitConfig();
             TestTask();
-        }
-        private void InitConfig()
-        {
-            if (fileConfig.Data.Client.Relay.Servers.Length == 0)
-            {
-                fileConfig.Data.Client.Relay.Servers = new RelayServerInfo[]
-                {
-                     new RelayServerInfo{
-                         Name="Linker",
-                         RelayType= RelayType.Linker,
-                         Disabled = false,
-                         Host = fileConfig.Data.Client.ServerInfo.Host,
-                     }
-                };
-                fileConfig.Data.Update();
-            }
         }
 
         public void LoadTransports(List<ITransport> list)
         {
-            transports = list;
-          
-        }
-        /// <summary>
-        /// 获取所有中继协议
-        /// </summary>
-        /// <returns></returns>
-        public List<RelayTypeInfo> GetTypes()
-        {
-            return transports.Select(c => new RelayTypeInfo { Value = c.Type, Name = c.Type.ToString() }).Distinct(new RelayCompactTypeInfoEqualityComparer()).ToList();
+            Transports = list;
+
         }
 
         /// <summary>
@@ -105,47 +74,43 @@ namespace linker.plugins.relay
             }
             try
             {
-                var servers = GetServers();
-                foreach (RelayServerInfo item in servers)
+                ITransport transport = Transports.FirstOrDefault(c => c.Type == fileConfig.Data.Client.Relay.Server.RelayType);
+                if (transport == null)
                 {
-                    ITransport transport = transports.FirstOrDefault(c => c.Type == item.RelayType);
-                    if (transport == null)
-                    {
-                        continue;
-                    }
-
-                    IPEndPoint server = NetworkHelper.GetEndPoint(item.Host, 3478);
-                    transport.RelayInfo relayInfo = new transport.RelayInfo
-                    {
-                        FlowingId = 0,
-                        FromMachineId = fromMachineId,
-                        FromMachineName = string.Empty,
-                        RemoteMachineId = remoteMachineId,
-                        RemoteMachineName = string.Empty,
-                        SecretKey = item.SecretKey,
-                        Server = server,
-                        TransactionId = transactionId,
-                        TransportName = transport.Name,
-                        SSL = item.SSL,
-                        ServerName = item.Name
-                    };
-
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Info($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} {relayInfo.ToJson()}");
-                    ITunnelConnection connection = await transport.RelayAsync(relayInfo).ConfigureAwait(false);
-                    if (connection != null)
-                    {
-                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                            LoggerHelper.Instance.Debug($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
-                        ConnectedCallback(relayInfo, connection);
-                        return connection;
-                    }
-                    else
-                    {
-                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                            LoggerHelper.Instance.Error($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} fail,{relayInfo.ToJson()}");
-                    }
+                    return null;
                 }
+
+                IPEndPoint server = NetworkHelper.GetEndPoint(fileConfig.Data.Client.ServerInfo.Host, 3478);
+                transport.RelayInfo relayInfo = new transport.RelayInfo
+                {
+                    FlowingId = 0,
+                    FromMachineId = fromMachineId,
+                    FromMachineName = string.Empty,
+                    RemoteMachineId = remoteMachineId,
+                    RemoteMachineName = string.Empty,
+                    SecretKey = fileConfig.Data.Client.Relay.Server.SecretKey,
+                    Server = server,
+                    TransactionId = transactionId,
+                    TransportName = transport.Name,
+                    SSL = fileConfig.Data.Client.Relay.Server.SSL
+                };
+
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Info($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} {relayInfo.ToJson()}");
+                ITunnelConnection connection = await transport.RelayAsync(relayInfo).ConfigureAwait(false);
+                if (connection != null)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        LoggerHelper.Instance.Debug($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
+                    ConnectedCallback(relayInfo, connection);
+                    return connection;
+                }
+                else
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        LoggerHelper.Instance.Error($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} fail,{relayInfo.ToJson()}");
+                }
+
             }
             catch (Exception ex)
             {
@@ -172,12 +137,9 @@ namespace linker.plugins.relay
 
             try
             {
-                RelayServerInfo server = GetServer(relayInfo.ServerName);
-                if (server == null) return false;
+                relayInfo.Server = NetworkHelper.GetEndPoint(fileConfig.Data.Client.ServerInfo.Host, 3478);
 
-                relayInfo.Server = NetworkHelper.GetEndPoint(server.Host, 3478);
-
-                ITransport _transports = transports.FirstOrDefault(c => c.Name == relayInfo.TransportName);
+                ITransport _transports = Transports.FirstOrDefault(c => c.Name == relayInfo.TransportName);
                 if (_transports == null) return false;
 
                 await _transports.OnBeginAsync(relayInfo, (ITunnelConnection connection) =>
@@ -234,27 +196,6 @@ namespace linker.plugins.relay
         }
 
 
-        private IEnumerable<RelayServerInfo> GetServers()
-        {
-            return fileConfig.Data.Client.Relay.Servers
-                    .Where(c => c.Disabled == false)
-                    .Where(c => string.IsNullOrWhiteSpace(c.Host) == false);
-        }
-        private RelayServerInfo GetServer(string name)
-        {
-            if (fileConfig.Data.Client.HasAccess(ClientApiAccess.Config))
-            {
-                return fileConfig.Data.Client.Relay.Servers.FirstOrDefault(c => c.Name == name && c.Disabled == false && string.IsNullOrWhiteSpace(c.Host) == false)
-                    ?? fileConfig.Data.Client.Relay.Servers.FirstOrDefault(c => c.Disabled == false && string.IsNullOrWhiteSpace(c.Host) == false);
-            }
-            else
-            {
-                return fileConfig.Data.Client.Relay.Servers.FirstOrDefault(c => c.Name == name && string.IsNullOrWhiteSpace(c.Host) == false)
-                    ?? fileConfig.Data.Client.Relay.Servers.FirstOrDefault(c => string.IsNullOrWhiteSpace(c.Host) == false);
-            }
-        }
-
-
 
         private readonly LastTicksManager lastTicksManager = new LastTicksManager();
         public void SubscribeDelayTest()
@@ -267,18 +208,16 @@ namespace linker.plugins.relay
             {
                 foreach (var server in fileConfig.Data.Client.Relay.Servers)
                 {
-                    ITransport transport = transports.FirstOrDefault(d => d.Type == server.RelayType);
+                    ITransport transport = Transports.FirstOrDefault(d => d.Type == server.RelayType);
                     if (transport == null) continue;
 
-                    IPEndPoint serverEP = NetworkHelper.GetEndPoint(server.Host, 3478);
-                    RelayTestResultInfo result = await transport.RelayTestAsync(new RelayTestInfo
+                    IPEndPoint serverEP = NetworkHelper.GetEndPoint(fileConfig.Data.Client.ServerInfo.Host, 3478);
+                    server.Delay = await transport.RelayTestAsync(new RelayTestInfo
                     {
                         MachineId = fileConfig.Data.Client.Id,
                         SecretKey = server.SecretKey,
                         Server = serverEP,
                     });
-                    server.Delay = result.Delay;
-                    server.Available = result.Available;
                 }
             }
             catch (Exception)
@@ -296,16 +235,6 @@ namespace linker.plugins.relay
                 return true;
             }, () => lastTicksManager.DiffLessEqual(3000) ? 3000 : 30000);
         }
-        sealed class TestInfo
-        {
-            public RelayServerInfo Server { get; set; }
-            public Task<RelayTestResultInfo> Task { get; set; }
-        }
 
-        public void SetServers(RelayServerInfo[] servers)
-        {
-            fileConfig.Data.Client.Relay.Servers = servers;
-            fileConfig.Data.Update();
-        }
     }
 }

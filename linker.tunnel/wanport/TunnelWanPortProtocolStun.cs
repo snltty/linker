@@ -8,7 +8,6 @@ namespace linker.tunnel.wanport
     public sealed class TunnelWanPortProtocolStun : ITunnelWanPortProtocol
     {
         public string Name => "Stun Udp";
-        public TunnelWanPortType Type => TunnelWanPortType.Stun;
 
         public TunnelWanPortProtocolType ProtocolType => TunnelWanPortProtocolType.Udp;
 

@@ -38,22 +38,7 @@ namespace linker.plugins.tunnel.excludeip
                     result.AddRange(ips);
                 }
             }
-            if (running.Data.Tunnel.ExcludeIPs.Length > 0)
-            {
-                result.AddRange(running.Data.Tunnel.ExcludeIPs);
-            }
-
             return result;
-        }
-
-        public ExcludeIPItem[] GetExcludeIPs()
-        {
-            return running.Data.Tunnel.ExcludeIPs;
-        }
-        public void SettExcludeIPs(ExcludeIPItem[] ips)
-        {
-            running.Data.Tunnel.ExcludeIPs = ips;
-            running.Data.Update();
         }
     }
 }

@@ -27,7 +27,8 @@
 4. 自动分配虚拟网卡IP
 5. 线程池优化
 6. 一些UI优化
-7. 测试中，不要更新，不要更新，不要更新，请使用v1.4.9</Description>
+7. 减少很多耦合，更方便自由组合各个组件
+8. 测试中，不要更新，不要更新，不要更新，请使用v1.4.9</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.tunnel.adapter;
 using System.Net;
 
 namespace linker.tunnel.wanport
@@ -8,12 +9,17 @@ namespace linker.tunnel.wanport
     /// </summary>
     public sealed class TunnelWanPortTransfer
     {
-        private List<ITunnelWanPortProtocol> tunnelWanPorts;
+        private List<ITunnelWanPortProtocol> tunnelWanPorts = new List<ITunnelWanPortProtocol>();
 
-        public TunnelWanPortTransfer()
+        public List<TunnelWanPortProtocolType> Protocols => tunnelWanPorts.Select(p => p.ProtocolType).ToList();
+
+        private readonly ITunnelAdapter tunnelAdapter;
+        public TunnelWanPortTransfer(ITunnelAdapter tunnelAdapter)
         {
-
+            this.tunnelAdapter = tunnelAdapter;
         }
+
+
 
         /// <summary>
         /// 加载所有外网端口协议
@@ -25,35 +31,23 @@ namespace linker.tunnel.wanport
             LoggerHelper.Instance.Info($"load tunnel wanport compacts:{string.Join(",", tunnelWanPorts.Select(c => c.Name))}");
         }
 
-        public List<TunnelWanPortTypeInfo> GetTypes()
-        {
-            List<TunnelWanPortTypeInfo> res = tunnelWanPorts.Select(c => new TunnelWanPortTypeInfo
-            {
-                Value = c.Type,
-                Name = c.Type.ToString(),
-                Protocols = tunnelWanPorts
-                .Where(d => d.Type == c.Type).ToList().Select(d => d.ProtocolType).Distinct().ToDictionary(c => (int)c, d => d.ToString()),
-            }).Distinct(new TunnelWanPortTypeInfoEqualityComparer()).ToList();
-            return res;
-        }
 
         /// <summary>
         /// 获取外网端口
         /// </summary>
         /// <param name="localIP">你的局域网IP</param>
         /// <returns></returns>
-        public async Task<TunnelWanPortEndPoint> GetWanPortAsync(IPAddress localIP, TunnelWanPortInfo info)
+        public async Task<TunnelWanPortEndPoint> GetWanPortAsync(IPAddress localIP, TunnelWanPortProtocolType protocolType)
         {
-            if (info == null) return null;
-            var tunnelWanPort = tunnelWanPorts.FirstOrDefault(c => c.Type == info.Type && c.ProtocolType == info.ProtocolType);
+            var tunnelWanPort = tunnelWanPorts.FirstOrDefault(c => c.ProtocolType == protocolType);
             if (tunnelWanPort == null) return null;
             try
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Debug($"get domain ip {info.Host}");
-                IPEndPoint server = NetworkHelper.GetEndPoint(info.Host, 3478);
+                    LoggerHelper.Instance.Debug($"get domain ip {tunnelAdapter.ServerHost}");
+                IPEndPoint server = NetworkHelper.GetEndPoint(tunnelAdapter.ServerHost, 3478);
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Debug($"got domain ip {info.Host}->{server}");
+                    LoggerHelper.Instance.Debug($"got domain ip {tunnelAdapter.ServerHost}->{server}");
                 if (server == null) return null;
                 TunnelWanPortEndPoint wanPort = await tunnelWanPort.GetAsync(localIP, server).ConfigureAwait(false);
                 if (wanPort != null)

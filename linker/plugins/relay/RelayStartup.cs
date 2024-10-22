@@ -27,6 +27,8 @@ namespace linker.plugins.relay
             serviceCollection.AddSingleton<RelayClientMessenger>();
             serviceCollection.AddSingleton<TransportSelfHost>();
             serviceCollection.AddSingleton<RelayTransfer>();
+            serviceCollection.AddSingleton<RelayTestTransfer>();
+            
 
             serviceCollection.AddSingleton<ConfigSyncRelaySecretKey>();
 

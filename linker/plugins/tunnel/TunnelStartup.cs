@@ -30,7 +30,6 @@ namespace linker.plugins.tunnel
         public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
             //序列化扩展
-            MemoryPackFormatterProvider.Register(new TunnelWanPortInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportWanPortInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportItemInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportInfoFormatter());
@@ -46,7 +45,6 @@ namespace linker.plugins.tunnel
             serviceCollection.AddSingleton<TunnelWanPortTransfer>();
             serviceCollection.AddSingleton<TunnelWanPortProtocolLinkerUdp>();
             serviceCollection.AddSingleton<TunnelWanPortProtocolLinkerTcp>();
-            serviceCollection.AddSingleton<TunnelWanPortProtocolStun>();
 
 
             //打洞协议
@@ -80,7 +78,6 @@ namespace linker.plugins.tunnel
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
-            MemoryPackFormatterProvider.Register(new TunnelWanPortInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportWanPortInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportItemInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportInfoFormatter());
@@ -88,7 +85,6 @@ namespace linker.plugins.tunnel
 
             serviceCollection.AddSingleton<TunnelServerMessenger>();
             serviceCollection.AddSingleton<ExternalResolver, ExternalResolver>();
-            serviceCollection.AddSingleton<TunnelUpnpTransfer>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)
@@ -98,8 +94,7 @@ namespace linker.plugins.tunnel
 
             IEnumerable<Type> types = new List<Type> {
                 typeof(TunnelWanPortProtocolLinkerUdp),
-                typeof(TunnelWanPortProtocolLinkerTcp),
-                typeof(TunnelWanPortProtocolStun),
+                typeof(TunnelWanPortProtocolLinkerTcp)
             };
             List<ITunnelWanPortProtocol> compacts = types.Select(c => (ITunnelWanPortProtocol)serviceProvider.GetService(c)).Where(c => c != null).Where(c => string.IsNullOrWhiteSpace(c.Name) == false).ToList();
             TunnelWanPortTransfer compack = serviceProvider.GetService<TunnelWanPortTransfer>();

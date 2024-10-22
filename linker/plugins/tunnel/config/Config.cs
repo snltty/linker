@@ -23,27 +23,12 @@ namespace linker.client.config
         public TunnelRunningInfo() { }
         public ObjectId Id { get; set; }
         /// <summary>
-        /// 外网端口服务器列表
-        /// </summary>
-        public List<TunnelWanPortInfo> Servers { get; set; } = new List<TunnelWanPortInfo>();
-        /// <summary>
         /// 附加的网关层级
         /// </summary>
         public int RouteLevelPlus { get; set; }
-        /// <summary>
-        /// 打洞排除IP列表
-        /// </summary>
-        public ExcludeIPItem[] ExcludeIPs { get; set; } = Array.Empty<ExcludeIPItem>();
-
-        /// <summary>
-        /// 打洞协议列表
-        /// </summary>
-        public List<TunnelTransportItemInfo> Transports { get; set; } = new List<TunnelTransportItemInfo>();
 
         public int PortMapWan { get; set; }
         public int PortMapLan { get; set; }
-
-        public IPAddress Interface { get; set; } = IPAddress.Any;
     }
 
     [MemoryPackable]
@@ -73,10 +58,6 @@ namespace linker.config
         [JsonIgnore]
         public IPAddress[] RouteIPs { get; set; }
 
-        /// <summary>
-        /// 外网端口服务器列表
-        /// </summary>
-        public List<TunnelWanPortInfo> Servers { get; set; } = new List<TunnelWanPortInfo>();
         /// <summary>
         /// 打洞协议列表
         /// </summary>
@@ -108,15 +89,12 @@ namespace linker.config
         string MachineId => info.MachineId;
 
         [MemoryPackInclude]
-        TunnelWanPortType Type => info.Type;
-
-        [MemoryPackInclude]
         TunnelWanPortProtocolType ProtocolType => info.ProtocolType;
 
         [MemoryPackConstructor]
-        SerializableTunnelWanPortProtocolInfo(string machineId, TunnelWanPortType type, TunnelWanPortProtocolType protocolType)
+        SerializableTunnelWanPortProtocolInfo(string machineId,  TunnelWanPortProtocolType protocolType)
         {
-            var info = new TunnelWanPortProtocolInfo { MachineId = machineId, Type = type, ProtocolType = protocolType };
+            var info = new TunnelWanPortProtocolInfo { MachineId = machineId, ProtocolType = protocolType };
             this.info = info;
         }
 
@@ -151,67 +129,6 @@ namespace linker.config
             value = wrapped.info;
         }
     }
-
-    [MemoryPackable]
-    public readonly partial struct SerializableTunnelWanPortInfo
-    {
-        [MemoryPackIgnore]
-        public readonly TunnelWanPortInfo tunnelCompactInfo;
-
-        [MemoryPackInclude]
-        string Name => tunnelCompactInfo.Name;
-
-        [MemoryPackInclude]
-        TunnelWanPortType Type => tunnelCompactInfo.Type;
-
-        [MemoryPackInclude]
-        TunnelWanPortProtocolType ProtocolType => tunnelCompactInfo.ProtocolType;
-
-        [MemoryPackInclude]
-        string Host => tunnelCompactInfo.Host;
-
-        [MemoryPackInclude]
-        bool Disabled => tunnelCompactInfo.Disabled;
-
-        [MemoryPackConstructor]
-        SerializableTunnelWanPortInfo(string name, TunnelWanPortType type, TunnelWanPortProtocolType protocolType, string host, bool disabled)
-        {
-            var tunnelCompactInfo = new TunnelWanPortInfo { Name = name, Type = type, ProtocolType = protocolType, Host = host, Disabled = disabled };
-            this.tunnelCompactInfo = tunnelCompactInfo;
-        }
-
-        public SerializableTunnelWanPortInfo(TunnelWanPortInfo tunnelCompactInfo)
-        {
-            this.tunnelCompactInfo = tunnelCompactInfo;
-        }
-    }
-    public class TunnelWanPortInfoFormatter : MemoryPackFormatter<TunnelWanPortInfo>
-    {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelWanPortInfo value)
-        {
-            if (value == null)
-            {
-                writer.WriteNullObjectHeader();
-                return;
-            }
-
-            writer.WritePackable(new SerializableTunnelWanPortInfo(value));
-        }
-
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelWanPortInfo value)
-        {
-            if (reader.PeekIsNull())
-            {
-                reader.Advance(1); // skip null block
-                value = null;
-                return;
-            }
-
-            var wrapped = reader.ReadPackable<SerializableTunnelWanPortInfo>();
-            value = wrapped.tunnelCompactInfo;
-        }
-    }
-
 
     [MemoryPackable]
     public readonly partial struct SerializableTunnelTransportWanPortInfo

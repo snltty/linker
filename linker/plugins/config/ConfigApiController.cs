@@ -56,11 +56,6 @@ namespace linker.plugins.config
                     foreach (var item in config.Data.Client.Relay.Servers)
                     {
                         item.SecretKey = info.Client.RelaySecretKey;
-                        item.Host = info.Client.Server;
-                    }
-                    foreach (var item in config.Data.Client.Tunnel.Servers)
-                    {
-                        item.Host = info.Client.Server;
                     }
                     foreach (var item in config.Data.Client.Servers)
                     {

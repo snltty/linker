@@ -1,5 +1,5 @@
 <template>
-    <el-table :data="state.list" border size="small" width="100%" :height="`${state.height}px`" @cell-dblclick="handleCellClick">
+    <el-table stripe  :data="state.list" border size="small" width="100%" :height="`${state.height}px`" @cell-dblclick="handleCellClick">
         <el-table-column prop="Name" label="名称" width="100">
             <template #default="scope">
                 <template v-if="scope.row.NameEditing">

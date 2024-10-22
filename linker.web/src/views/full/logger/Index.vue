@@ -19,7 +19,7 @@
                         <span class="flex-1"></span>
                     </div>
                     <div class="body flex-1 relative">
-                        <el-table border :data="state.page.List" size="small" :height="`${state.height}px`" @row-click="handleRowClick" :row-class-name="tableRowClassName">
+                        <el-table stripe border :data="state.page.List" size="small" :height="`${state.height}px`" @row-click="handleRowClick" :row-class-name="tableRowClassName">
                             <el-table-column type="index" width="50" />
                             <el-table-column prop="Type" label="类别" width="80">
                                 <template #default="scope">

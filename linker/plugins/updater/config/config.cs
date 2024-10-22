@@ -2,20 +2,6 @@
 using MemoryPack;
 
 
-namespace linker.client.config
-{
-    public sealed partial class RunningConfigInfo
-    {
-        /// <summary>
-        /// 自动更新密钥
-        /// </summary>
-        public string UpdaterSecretKey { get; set; } = Helper.GlobalString;
-    }
-
-}
-
-
-
 namespace linker.config
 {
     public sealed partial class ConfigCommonInfo

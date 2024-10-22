@@ -69,27 +69,6 @@ namespace linker.plugins.tunnel
         }
 
         /// <summary>
-        /// 获取所有外网端口协议
-        /// </summary>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        public List<TunnelWanPortTypeInfo> GetTypes(ApiControllerParamsInfo param)
-        {
-            return compactTransfer.GetTypes();
-        }
-        /// <summary>
-        /// 设置外网端口协议
-        /// </summary>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        [ClientApiAccessAttribute(ClientApiAccess.Config)]
-        public bool SetServers(ApiControllerParamsInfo param)
-        {
-            List<TunnelWanPortInfo> info = param.Content.DeJson<List<TunnelWanPortInfo>>();
-            tunnelMessengerAdapter.SetTunnelWanPortProtocols(info, true);
-            return true;
-        }
-        /// <summary>
         /// 设置网关层级
         /// </summary>
         /// <param name="param"></param>
@@ -139,45 +118,10 @@ namespace linker.plugins.tunnel
             return true;
         }
 
-        public ExcludeIPItem[] GetExcludeIPs(ApiControllerParamsInfo param)
-        {
-            return excludeIPTransfer.GetExcludeIPs();
-        }
-
-        [ClientApiAccessAttribute(ClientApiAccess.Config)]
-        public void SetExcludeIPs(ApiControllerParamsInfo param)
-        {
-            ExcludeIPItem[] info = param.Content.DeJson<ExcludeIPItem[]>();
-            excludeIPTransfer.SettExcludeIPs(info);
-        }
         public sealed class TunnelListInfo
         {
             public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> List { get; set; }
             public ulong HashCode { get; set; }
-        }
-
-        /// <summary>
-        /// 获取网卡接口列表
-        /// </summary>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        public IPAddress[] GeInterfaces(ApiControllerParamsInfo param)
-        {
-            return NetworkHelper.GetIPV4();
-        }
-        /// <summary>
-        /// 设置网卡接口
-        /// </summary>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        [ClientApiAccessAttribute(ClientApiAccess.Config)]
-        public bool SetInterface(ApiControllerParamsInfo param)
-        {
-            IPAddress ip = IPAddress.Parse(param.Content);
-
-            tunnelConfigTransfer.SetInterface(ip);
-
-            return true;
         }
 
     }

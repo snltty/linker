@@ -10,10 +10,6 @@ namespace linker.client.config
     public sealed partial class RunningConfigInfo
     {
         /// <summary>
-        /// 服务器穿透密钥
-        /// </summary>
-        public string SForwardSecretKey { get; set; } = Helper.GlobalString;
-        /// <summary>
         /// 服务器穿透列表
         /// </summary>
         public List<SForwardInfo> SForwards { get; set; } =new List<SForwardInfo>();

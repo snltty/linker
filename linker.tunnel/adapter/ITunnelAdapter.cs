@@ -13,21 +13,16 @@ namespace linker.tunnel.adapter
         public IPAddress LocalIP { get; }
 
         /// <summary>
+        /// 服务器地址
+        /// </summary>
+        public string ServerHost { get; }
+
+        /// <summary>
         /// ssl加密证书，没有证书则无法加密通信
         /// </summary>
         public X509Certificate2 Certificate { get; }
 
-        /// <summary>
-        /// 获取外网端口协议列表
-        /// </summary>
-        /// <returns></returns>
-        public List<TunnelWanPortInfo> GetTunnelWanPortProtocols();
-        /// <summary>
-        /// 保存外网端口协议列表
-        /// </summary>
-        /// <param name="compacts"></param>
-        public void SetTunnelWanPortProtocols(List<TunnelWanPortInfo> protocols, bool updateVersion);
-
+     
         /// <summary>
         /// 获取打洞协议列表
         /// </summary>
@@ -96,10 +91,6 @@ namespace linker.tunnel.adapter
 
     public sealed class TunnelWanPortProtocolInfo
     {
-        /// <summary>
-        /// 类别
-        /// </summary>
-        public TunnelWanPortType Type { get; set; }
         /// <summary>
         /// 协议
         /// </summary>

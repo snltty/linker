@@ -150,11 +150,11 @@ namespace linker.tunnel
                         continue;
                     }
 
-                    foreach (var wanPortProtocol in tunnelAdapter.GetTunnelWanPortProtocols().Where(c => c.Disabled == false && string.IsNullOrWhiteSpace(c.Host) == false))
+                    foreach (var wanPortProtocol in compactTransfer.Protocols)
                     {
 
                         //这个打洞协议不支持这个外网端口协议
-                        if ((transport.AllowWanPortProtocolType & wanPortProtocol.ProtocolType) != wanPortProtocol.ProtocolType)
+                        if ((transport.AllowWanPortProtocolType & wanPortProtocol) != wanPortProtocol)
                         {
                             continue;
                         }
@@ -172,8 +172,7 @@ namespace linker.tunnel
                                 Task<TunnelTransportWanPortInfo> remoteInfo = tunnelAdapter.GetRemoteWanPort(new TunnelWanPortProtocolInfo
                                 {
                                     MachineId = remoteMachineId,
-                                    ProtocolType = wanPortProtocol.ProtocolType,
-                                    Type = wanPortProtocol.Type,
+                                    ProtocolType = wanPortProtocol
                                 });
                                 await Task.WhenAll(localInfo, remoteInfo).ConfigureAwait(false);
 
@@ -305,18 +304,16 @@ namespace linker.tunnel
         /// <returns></returns>
         public async Task<TunnelTransportWanPortInfo> GetWanPort(TunnelWanPortProtocolInfo _info)
         {
-            TunnelWanPortInfo info = tunnelAdapter.GetTunnelWanPortProtocols().FirstOrDefault(c => c.Type == _info.Type && c.ProtocolType == _info.ProtocolType);
-            if (info == null) return null;
-            return await GetLocalInfo(info).ConfigureAwait(false);
+            return await GetLocalInfo(_info.ProtocolType).ConfigureAwait(false);
         }
 
         /// <summary>
         /// 获取自己的外网IP
         /// </summary>
         /// <returns></returns>
-        private async Task<TunnelTransportWanPortInfo> GetLocalInfo(TunnelWanPortInfo info)
+        private async Task<TunnelTransportWanPortInfo> GetLocalInfo(TunnelWanPortProtocolType tunnelWanPortProtocolType)
         {
-            TunnelWanPortEndPoint ip = await compactTransfer.GetWanPortAsync(tunnelAdapter.LocalIP, info).ConfigureAwait(false);
+            TunnelWanPortEndPoint ip = await compactTransfer.GetWanPortAsync(tunnelAdapter.LocalIP, tunnelWanPortProtocolType).ConfigureAwait(false);
             if (ip != null)
             {
                 MapInfo portMapInfo = TunnelUpnpTransfer.PortMap ?? new MapInfo { PrivatePort = 0, PublicPort = 0 };
