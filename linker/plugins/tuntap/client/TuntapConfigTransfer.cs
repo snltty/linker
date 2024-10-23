@@ -254,9 +254,8 @@ namespace linker.plugins.tuntap.client
         {
             if (runningConfig.Data.Tuntap.LanIPs.Length == 0 && clientSignInState.Connection.LocalAddress.Address.Equals(clientSignInState.Connection.Address.Address) == false)
             {
-                
-                //runningConfig.Data.Tuntap.LanIPs = [clientSignInState.Connection.LocalAddress.Address];
-                //runningConfig.Data.Tuntap.Masks = [24];
+                runningConfig.Data.Tuntap.LanIPs = [clientSignInState.Connection.LocalAddress.Address];
+                runningConfig.Data.Tuntap.Masks = [24];
             }
             TuntapInfo info = new TuntapInfo
             {
