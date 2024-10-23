@@ -211,7 +211,14 @@ namespace linker.tun
                         LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
                         packet.Unpacket(buffer);
 
-                        await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
+                        try
+                        {
+                            await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
+                        }
+                        catch (Exception ex)
+                        {
+                            error = ex.Message;
+                        }
                     }
                     catch (Exception ex)
                     {

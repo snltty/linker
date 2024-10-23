@@ -1,9 +1,7 @@
 ﻿using linker.config;
 using linker.libs.api;
 using linker.libs.extends;
-using linker.plugins.client;
 using linker.plugins.capi;
-using linker.plugins.messenger;
 
 namespace linker.plugins.relay
 {
@@ -13,16 +11,14 @@ namespace linker.plugins.relay
     public sealed class RelayApiController : IApiClientController
     {
         private readonly FileConfig config;
-        private readonly ClientSignInState clientSignInState;
-        private readonly IMessengerSender messengerSender;
         private readonly RelayTestTransfer relayTestTransfer;
 
-        public RelayApiController(FileConfig config,RelayTestTransfer relayTestTransfer)
+        public RelayApiController(FileConfig config, RelayTestTransfer relayTestTransfer)
         {
             this.config = config;
             this.relayTestTransfer = relayTestTransfer;
         }
-       
+
         /// <summary>
         /// 设置中继协议
         /// </summary>
