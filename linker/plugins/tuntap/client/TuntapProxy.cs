@@ -159,6 +159,7 @@ namespace linker.plugins.tuntap.client
                 ip2MachineDic.AddOrUpdate(ip, list, (a, b) => list);
             }
             list.Add(machineId);
+
             /*
             if (ipConnections.TryGetValue(ip, out ITunnelConnection connection) && machineId != connection.RemoteMachineId)
             {
