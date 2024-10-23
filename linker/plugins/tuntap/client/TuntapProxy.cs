@@ -136,10 +136,12 @@ namespace linker.plugins.tuntap.client
             foreach (var item in dic)
             {
                 ip2MachineDic.AddOrUpdate(item.Key, item.Value, (a, b) => item.Value);
+                /*
                 if (ipConnections.TryGetValue(item.Key, out ITunnelConnection connection) && item.Value.Count > 0 && item.Value[0] != connection.RemoteMachineId)
                 {
                     ipConnections.TryRemove(item.Key, out _);
                 }
+                */
             }
             maskValues = ips.Select(c => c.MaskValue).Distinct().OrderBy(c => c).ToArray();
 
@@ -157,10 +159,12 @@ namespace linker.plugins.tuntap.client
                 ip2MachineDic.AddOrUpdate(ip, list, (a, b) => list);
             }
             list.Add(machineId);
+            /*
             if (ipConnections.TryGetValue(ip, out ITunnelConnection connection) && machineId != connection.RemoteMachineId)
             {
                 ipConnections.TryRemove(ip, out _);
             }
+            */
         }
 
         /// <summary>
