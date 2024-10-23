@@ -82,8 +82,8 @@ namespace linker.plugins.config.messenger
         }
 
 
-        [MessengerId((ushort)ConfigMessengerIds.Sync)]
-        public async Task SecretKeyAsyncForward(IConnection connection)
+        [MessengerId((ushort)ConfigMessengerIds.SyncForward)]
+        public async Task SyncForward(IConnection connection)
         {
             ConfigAsyncInfo info = MemoryPackSerializer.Deserialize<ConfigAsyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
