@@ -1,8 +1,8 @@
 <template>
     <div class="home-list-wrap absolute" >
         <el-table border style="width: 100%" height="32px" size="small" @sort-change="handleSortChange" class="table-sort">
-            <el-table-column prop="MachineId" label="设备名" width="120" sortable="custom" ></el-table-column>
-            <el-table-column prop="Version" label="版本" width="120" sortable="custom"></el-table-column>
+            <el-table-column prop="MachineId" label="设备名" width="110" sortable="custom" ></el-table-column>
+            <el-table-column prop="Version" label="版本" width="110" sortable="custom"></el-table-column>
             <el-table-column prop="tunnel" label="网关" width="90" sortable="custom"></el-table-column>
             <el-table-column prop="tuntap" label="网卡IP" width="160" sortable="custom"></el-table-column>
             <el-table-column prop="forward" label=""></el-table-column>
@@ -12,6 +12,7 @@
             <Device  @edit="handleDeviceEdit" @refresh="handlePageRefresh"></Device>
             <Tunnel  @edit="handleTunnelEdit" @refresh="handleTunnelRefresh" @connections="handleTunnelConnections"></Tunnel>
             <Tuntap  @edit="handleTuntapEdit" @refresh="handleTuntapRefresh"></Tuntap>
+            <Socks5 @edit="_handleForwardEdit" @sedit="handleSForwardEdit"></Socks5> 
             <Forward @edit="_handleForwardEdit" @sedit="handleSForwardEdit"></Forward> 
             <Oper  @refresh="handlePageRefresh" @access="handleAccessEdit"></Oper>
         </el-table>
@@ -46,6 +47,7 @@ import TuntapEdit from './TuntapEdit.vue'
 import TuntapLease from './TuntapLease.vue'
 import Tunnel from './Tunnel.vue'
 import TunnelEdit from './TunnelEdit.vue'
+import Socks5 from './Socks5.vue'
 import Forward from './Forward.vue'
 import ForwardEdit from './ForwardEdit.vue'
 import ForwardCopy from './ForwardCopy.vue'
@@ -62,7 +64,7 @@ import { provideDevices } from './devices'
 import { provideUpdater } from './updater'
 import { provideAccess } from './access'
 export default {
-    components: {Oper,Device,DeviceEdit,AccessEdit,Tunnel,TunnelEdit,ConnectionsEdit, Tuntap,TuntapEdit,TuntapLease,  Forward,ForwardEdit,ForwardCopy,SForwardEdit,SForwardCopy },
+    components: {Oper,Device,DeviceEdit,AccessEdit,Tunnel,TunnelEdit,ConnectionsEdit, Tuntap,TuntapEdit,TuntapLease, Socks5, Forward,ForwardEdit,ForwardCopy,SForwardEdit,SForwardCopy },
     setup(props) {
 
         const globalData = injectGlobalData();

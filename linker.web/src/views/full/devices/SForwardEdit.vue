@@ -32,14 +32,10 @@
                         </template>
                         <template v-else>
                             <template v-if="scope.row.Msg">
-                                <el-popover placement="top" title="提示" width="20rem"  trigger="hover" :content="scope.row.Msg">
-                                    <template #reference>
-                                        <div class="error red">
-                                            <span>{{ scope.row.Temp }}</span>
-                                            <el-icon size="20"><WarnTriangleFilled /></el-icon>
-                                        </div>
-                                    </template>
-                                </el-popover>
+                                <div class="error red" :title="scope.row.Msg">
+                                    <span>{{ scope.row.Temp }}</span>
+                                    <el-icon size="20"><WarnTriangleFilled /></el-icon>
+                                </div>
                             </template>
                             <template v-else><span :class="{green:scope.row.Started}">{{ scope.row.Temp }}</span></template>
                         </template>
@@ -53,12 +49,10 @@
                         </template>
                         <template v-else>
                             <template v-if="scope.row.LocalMsg">
-                                <el-popover placement="top" title="提示" width="20rem"  trigger="hover" :content="scope.row.LocalMsg">
-                                    <template #reference>
-                                        <span class="error red">{{ scope.row.LocalEP }}</span>
-                                        <el-icon size="20"><WarnTriangleFilled /></el-icon>
-                                    </template>
-                                </el-popover>
+                                <div class="error red" :title="scope.row.LocalMsg">
+                                    <span>{{ scope.row.LocalEP }}</span>
+                                    <el-icon size="20"><WarnTriangleFilled /></el-icon>
+                                </div>
                             </template>
                             <template v-else>
                                 <span :class="{green:scope.row.Started}">{{ scope.row.LocalEP }}</span>

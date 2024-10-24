@@ -11,12 +11,10 @@ namespace linker.plugins.tuntap.client
     {
         private readonly LinkerTunDeviceAdapter linkerTunDeviceAdapter;
 
-      
-
         private OperatingManager operatingManager = new OperatingManager();
         public TuntapStatus Status => operatingManager.Operating ? TuntapStatus.Operating : (TuntapStatus)(byte)linkerTunDeviceAdapter.Status;
-        public string Error => linkerTunDeviceAdapter.Error;
-        public string Error1 => linkerTunDeviceAdapter.Error1;
+        public string SetupError => linkerTunDeviceAdapter.SetupError;
+        public string NatError => linkerTunDeviceAdapter.NatError;
 
         public string DeviceName => "linker";
 
@@ -55,14 +53,14 @@ namespace linker.plugins.tuntap.client
                         return;
                     }
                     linkerTunDeviceAdapter.Setup(ip, prefixLength, 1400);
-                    if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.Error))
+                    if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.SetupError))
                     {
                         linkerTunDeviceAdapter.SetNat();
                         OnSetupSuccess();
                     }
                     else
                     {
-                        LoggerHelper.Instance.Error(linkerTunDeviceAdapter.Error);
+                        LoggerHelper.Instance.Error(linkerTunDeviceAdapter.SetupError);
                     }
                 }
                 catch (Exception ex)

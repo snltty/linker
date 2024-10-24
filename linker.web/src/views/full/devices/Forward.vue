@@ -1,51 +1,20 @@
 <template>
-
-    <el-table-column prop="forward" label="端口转发">
+    <el-table-column prop="forward" label="转发/穿透">
         <template #default="scope">
-            <template v-if="!scope.row.isSelf">
-                <div v-if="hasForwardShowOther">
-                    <ul class="list forward">
-                        <template v-if="forward.list[scope.row.MachineId] && forward.list[scope.row.MachineId].length > 0">
-                            <template v-for="(item, index) in forward.list[scope.row.MachineId]" :key="index">
-                                <li>
-                                    <a href="javascript:;" @click="handleEdit(scope.row.MachineId)" :class="{ green: item.Started }">
-                                        <span>
-                                            <span :class="{red:!!item.Msg}">{{item.Port}}</span>
-                                            ->
-                                            <span :class="{red:!!item.TargetMsg}">{{ item.TargetEP }}</span>
-                                        </span>
-                                    </a>
-                                    <span> ({{ 1<<item.BufferSize }}KB)</span>
-                                </li>
-                            </template>
-                        </template>
-                        <template v-else>
-                            <li><a href="javascript:;" title="管理你的端口转发" @click="handleEdit(scope.row.MachineId)">暂无配置</a></li>
-                        </template>
-                    </ul>
+            <template v-if="scope.row.isSelf && (hasForwardShowSelf || hasForwardSelf)">
+                <div>
+                    <a href="javascript:;" title="管理自己的端口转发" @click="handleEdit(scope.row.MachineId)">端口转发</a>
+                </div>
+                <div>
+                    <a href="javascript:;" title="管理自己的内网穿透" @click="handleEdit(scope.row.MachineId)">内网穿透</a>
                 </div>
             </template>
-            <template v-else>
-                <div v-if="hasForwardShowSelf">
-                    <ul class="list sforward">
-                        <template v-if="sforward.list && sforward.list.length > 0">
-                            <template v-for="(item, index) in sforward.list.slice(0,5)" :key="index">
-                                <li :class="{red:!!item.Msg}">
-                                    <a href="javascript:;" @click="handleSEdit()" :class="{ green: item.Started }">
-                                        <span>
-                                            <span :class="{red:!!item.Msg}">{{item.Domain || item.RemotePort}}</span>
-                                            ->
-                                            <span :class="{red:!!item.LocalMsg}">{{ item.LocalEP }}</span>
-                                        </span>
-                                    </a>
-                                    <span> ({{ 1<<item.BufferSize }}KB)</span>
-                                </li>
-                            </template>
-                        </template>
-                        <template v-else>
-                            <li><a href="javascript:;" title="管理你的服务器穿透" @click="handleSEdit()">暂无配置</a></li>
-                        </template>
-                    </ul>
+            <template v-else-if="hasForwardShowOther || hasForwardOther">
+                <div>
+                    <a href="javascript:;" title="管理自己的端口转发" @click="handleEdit(scope.row.MachineId)">端口转发</a>
+                </div>
+                <div>
+                    <a href="javascript:;" title="管理自己的内网穿透" @click="handleEdit(scope.row.MachineId)">内网穿透</a>
                 </div>
             </template>
         </template>
@@ -102,5 +71,16 @@ export default {
 a{
     text-decoration: underline;
     font-weight:bold;
+    &+a{margin-left:1rem}
+}
+.gateway{
+    background:linear-gradient(90deg, #c5b260, #858585, #c5b260, #858585);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:hsla(0,0%,100%,0);
+    &.green{
+        background:linear-gradient(90deg, #e4bb10, #008000, #e4bb10, #008000);
+        -webkit-background-clip:text;
+        -webkit-text-fill-color:hsla(0,0%,100%,0);
+    }
 }
 </style>

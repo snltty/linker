@@ -16,6 +16,12 @@ namespace linker.plugins.tuntap.config
         [MemoryPackAllowSerialize]
         public IPAddress IP { get; set; } = IPAddress.Any;
         /// <summary>
+        /// 前缀长度
+        /// </summary>
+        public byte PrefixLength { get; set; } = 24;
+
+
+        /// <summary>
         /// 局域网IP列表
         /// </summary>
         [MemoryPackAllowSerialize]
@@ -24,11 +30,11 @@ namespace linker.plugins.tuntap.config
         /// 局域网掩码列表，与IP列表一一对应
         /// </summary>
         public int[] Masks { get; set; } = Array.Empty<int>();
-
         /// <summary>
-        /// 前缀长度
+        /// 局域网配置列表
         /// </summary>
-        public byte PrefixLength { get; set; } = 24;
+        public List<TuntapLanInfo> Lans { get; set; } = new List<TuntapLanInfo>();
+
 
         /// <summary>
         /// 是否在运行中
@@ -63,7 +69,7 @@ namespace linker.plugins.tuntap.config
         /// ip，存小端
         /// </summary>
         public uint IPAddress { get; set; }
-        public byte MaskLength { get; set; }
+        public byte PrefixLength { get; set; }
         public uint MaskValue { get; set; }
         public uint NetWork { get; set; }
         public uint Broadcast { get; set; }
@@ -76,7 +82,6 @@ namespace linker.plugins.tuntap.config
 
 
     }
-
     [MemoryPackable]
     public sealed partial class TuntapVeaLanIPAddressList
     {
@@ -85,21 +90,6 @@ namespace linker.plugins.tuntap.config
 
     }
 
-    public enum TuntapStatus : byte
-    {
-        /// <summary>
-        /// 无
-        /// </summary>
-        Normal = 0,
-        /// <summary>
-        /// 操作中
-        /// </summary>
-        Operating = 1,
-        /// <summary>
-        /// 运行中
-        /// </summary>
-        Running = 2
-    }
 
     [MemoryPackable]
     public sealed partial class TuntapInfo
@@ -124,27 +114,19 @@ namespace linker.plugins.tuntap.config
         /// </summary>
         public byte PrefixLength { get; set; } = 24;
 
-
         /// <summary>
-        /// 局域网IP
+        /// 局域网IP列表
         /// </summary>
-
-        [MemoryPackAllowSerialize]
-        public IPAddress[] LanIPs { get; set; } = Array.Empty<IPAddress>();
-        /// <summary>
-        /// 局域网IP掩码
-        /// </summary>
-        public int[] Masks { get; set; } = Array.Empty<int>();
-
+        public List<TuntapLanInfo> Lans { get; set; } = new List<TuntapLanInfo>();
 
         /// <summary>
         /// 网卡安装错误
         /// </summary>
-        public string Error { get; set; }
+        public string SetupError { get; set; }
         /// <summary>
         /// NAT设置错误
         /// </summary>
-        public string Error1 { get; set; }
+        public string NatError { get; set; }
         /// <summary>
         /// 系统信息
         /// </summary>
@@ -283,6 +265,45 @@ namespace linker.plugins.tuntap.config
 
     }
 
+
+    [MemoryPackable]
+    public sealed partial class TuntapForwardInfo
+    {
+        [MemoryPackAllowSerialize]
+        public IPAddress ListenAddr { get; set; } = IPAddress.Any;
+        public int ListenPort { get; set; }
+
+        [MemoryPackAllowSerialize]
+        public IPAddress ConnectAddr { get; set; } = IPAddress.Any;
+        public int ConnectPort { get; set; }
+    }
+
+    [MemoryPackable]
+    public sealed partial class TuntapLanInfo
+    {
+        [MemoryPackAllowSerialize]
+        public IPAddress IP { get; set; }
+        public byte PrefixLength { get; set; } = 24;
+        public bool Disabled { get; set; }
+        public bool Exists {  get; set; }
+        public string Error { get; set; } = string.Empty;
+    }
+
+    public enum TuntapStatus : byte
+    {
+        /// <summary>
+        /// 无
+        /// </summary>
+        Normal = 0,
+        /// <summary>
+        /// 操作中
+        /// </summary>
+        Operating = 1,
+        /// <summary>
+        /// 运行中
+        /// </summary>
+        Running = 2
+    }
     [Flags]
     public enum TuntapSwitch
     {
@@ -303,19 +324,6 @@ namespace linker.plugins.tuntap.config
         /// 禁用广播
         /// </summary>
         Multicast = 16,
-    }
-
-
-    [MemoryPackable]
-    public sealed partial class TuntapForwardInfo
-    {
-        [MemoryPackAllowSerialize]
-        public IPAddress ListenAddr { get; set; } = IPAddress.Any;
-        public int ListenPort { get; set; }
-
-        [MemoryPackAllowSerialize]
-        public IPAddress ConnectAddr { get; set; } = IPAddress.Any;
-        public int ConnectPort { get; set; }
     }
 }
 

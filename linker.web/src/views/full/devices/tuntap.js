@@ -78,7 +78,7 @@ export const provideTuntap = () => {
     }
     const getTuntapMachines = (name) => {
         return Object.values(tuntap.value.list)
-            .filter(c => c.IP.indexOf(name) >= 0 || (c.LanIPs.filter(d => d.indexOf(name) >= 0).length > 0))
+            .filter(c => c.IP.indexOf(name) >= 0 || (c.Lans.filter(d => d.IP.indexOf(name) >= 0).length > 0))
             .map(c => c.MachineId);
     }
     const sortTuntapIP = (asc) => {

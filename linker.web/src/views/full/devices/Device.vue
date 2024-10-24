@@ -1,5 +1,5 @@
 <template>
-<el-table-column prop="MachineId" label="设备" width="240">
+<el-table-column prop="MachineId" label="设备" width="220">
     <template #header>
         <div class="flex">
             <span class="flex-1">设备</span>
@@ -69,7 +69,7 @@ export default {
 }
 
 .el-input{
-    width:15rem;
+    width:12rem;
     margin-right:.6rem
 }
 </style>

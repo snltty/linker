@@ -23,6 +23,8 @@ namespace linker.plugins.tuntap.client
         private readonly TuntapTransfer tuntapTransfer;
         private readonly LeaseClientTreansfer leaseClientTreansfer;
 
+        private LinkerTunDeviceRouteItem[] routeItems = new LinkerTunDeviceRouteItem[0];
+
         public VersionManager Version { get; } = new VersionManager();
         private readonly ConcurrentDictionary<string, TuntapInfo> tuntapInfos = new ConcurrentDictionary<string, TuntapInfo>();
         public ConcurrentDictionary<string, TuntapInfo> Infos => tuntapInfos;
@@ -38,6 +40,7 @@ namespace linker.plugins.tuntap.client
             this.tuntapTransfer = tuntapTransfer;
             this.leaseClientTreansfer = leaseClientTreansfer;
 
+
             clientSignInState.NetworkEnabledHandle += (times) => RefreshIP();
 
             tuntapTransfer.OnSetupBefore += () => { NotifyConfig(); };
@@ -48,8 +51,16 @@ namespace linker.plugins.tuntap.client
             tuntapTransfer.OnShutdownAfter += () => { NotifyConfig(); };
             tuntapTransfer.OnShutdownSuccess += () => { NotifyConfig(); DeleteForward(); DelRoute(); runningConfig.Data.Tuntap.Running = false; runningConfig.Data.Update(); };
 
-        }
 
+            InitConfig();
+        }
+        private void InitConfig()
+        {
+            if (runningConfig.Data.Tuntap.Lans.Count == 0 && runningConfig.Data.Tuntap.LanIPs.Length > 0)
+            {
+                runningConfig.Data.Tuntap.Lans = runningConfig.Data.Tuntap.LanIPs.Select((a, b) => new TuntapLanInfo { IP = a, PrefixLength = (byte)runningConfig.Data.Tuntap.Masks[b] }).ToList();
+            }
+        }
 
         /// <summary>
         /// 刷新IP
@@ -141,8 +152,7 @@ namespace linker.plugins.tuntap.client
                 bool needReboot = info.IP.Equals(runningConfig.Data.Tuntap.IP) == false || info.PrefixLength != runningConfig.Data.Tuntap.PrefixLength;
 
                 runningConfig.Data.Tuntap.IP = info.IP;
-                runningConfig.Data.Tuntap.LanIPs = info.LanIPs;
-                runningConfig.Data.Tuntap.Masks = info.Masks;
+                runningConfig.Data.Tuntap.Lans = info.Lans;
                 runningConfig.Data.Tuntap.PrefixLength = info.PrefixLength;
                 runningConfig.Data.Tuntap.Switch = info.Switch;
                 runningConfig.Data.Tuntap.Forwards = info.Forwards;
@@ -252,31 +262,20 @@ namespace linker.plugins.tuntap.client
         /// <returns></returns>
         private TuntapInfo GetLocalInfo()
         {
-            if (runningConfig.Data.Tuntap.LanIPs.Length == 0 && clientSignInState.Connection.LocalAddress.Address.Equals(clientSignInState.Connection.Address.Address) == false)
-            {
-                //runningConfig.Data.Tuntap.LanIPs = [clientSignInState.Connection.LocalAddress.Address];
-                //runningConfig.Data.Tuntap.Masks = [24];
-            }
             TuntapInfo info = new TuntapInfo
             {
                 IP = runningConfig.Data.Tuntap.IP,
-                LanIPs = runningConfig.Data.Tuntap.LanIPs,
-                Masks = runningConfig.Data.Tuntap.Masks,
+                Lans = runningConfig.Data.Tuntap.Lans.Where(c => c.Disabled == false && c.IP.Equals(IPAddress.Any) == false).Select(c => { c.Exists = false;return c; }).ToList(),
                 PrefixLength = runningConfig.Data.Tuntap.PrefixLength,
                 MachineId = config.Data.Client.Id,
                 Status = tuntapTransfer.Status,
-                Error = tuntapTransfer.Error,
-                Error1 = tuntapTransfer.Error1,
+                SetupError = tuntapTransfer.SetupError,
+                NatError = tuntapTransfer.NatError,
                 SystemInfo = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} {(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")) == false ? "Docker" : "")}",
 
                 Forwards = runningConfig.Data.Tuntap.Forwards,
                 Switch = runningConfig.Data.Tuntap.Switch
             };
-            if (runningConfig.Data.Tuntap.Masks.Length != runningConfig.Data.Tuntap.LanIPs.Length)
-            {
-                runningConfig.Data.Tuntap.Masks = runningConfig.Data.Tuntap.LanIPs.Select(c => 24).ToArray();
-            }
-
             return info;
         }
         /// <summary>
@@ -333,105 +332,85 @@ namespace linker.plugins.tuntap.client
         /// </summary>
         private void DelRoute()
         {
-            List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.ToList());
-            TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
-            var items = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.MaskLength }).ToArray();
-
-            tuntapTransfer.DelRoute(items);
+            if (routeItems != null)
+                tuntapTransfer.DelRoute(routeItems);
         }
         /// <summary>
         /// 添加路由
         /// </summary>
         private void AddRoute()
         {
-            List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.Where(c => c.Status == TuntapStatus.Running).ToList());
+            List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapInfos.Values.ToList());
             TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
-            var items = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.MaskLength }).ToArray();
+            routeItems = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.PrefixLength }).ToArray();
 
-            tuntapTransfer.AddRoute(items, runningConfig.Data.Tuntap.IP);
+            tuntapTransfer.AddRoute(routeItems, runningConfig.Data.Tuntap.IP);
 
             tuntapProxy.SetIPs(ips);
             foreach (var item in tuntapInfos.Values)
             {
                 tuntapProxy.SetIP(item.MachineId, NetworkHelper.IP2Value(item.IP));
             }
-            CheckLanIPs();
-        }
-        /// <summary>
-        /// 检查是否有重复的局域网IP
-        /// </summary>
-        /// <param name="infos"></param>
-        private void CheckLanIPs()
-        {
-            uint[] excludeIps = ExcludeIps();
-
-            var ips = tuntapInfos.Values.Where(c => c.MachineId != config.Data.Client.Id).Select(c =>
-            {
-                return new TuntapVeaLanIPAddressList
-                {
-                    MachineId = c.MachineId,
-                    IPS = ParseIPs(c.LanIPs, c.Masks, c.MachineId).Where(c => excludeIps.Select(d => d & c.MaskValue).Contains(c.NetWork)).ToList(),
-                };
-            }).ToList();
-
-            foreach (var item in ips)
-            {
-                if (item.IPS.Count == 0) continue;
-                if (tuntapInfos.TryGetValue(item.MachineId, out TuntapInfo info) == false || string.IsNullOrWhiteSpace(info.Error1) == false) continue;
-                info.Error1 = $"{string.Join(",", item.IPS.Select(c => $"{c.OriginIPAddress}/{c.MaskLength}"))} already exists in the local area network or upstream router of [{config.Data.Client.Name}]";
-            }
             Version.Add();
         }
 
-        private uint[] ExcludeIps()
-        {
-            return //本机局域网IP
-                config.Data.Client.Tunnel.LocalIPs.Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                //网卡IP  服务器IP
-                .Concat(new IPAddress[] { runningConfig.Data.Tuntap.IP, clientSignInState.Connection.Address.Address })
-                //网卡配置的局域网IP
-                .Concat(runningConfig.Data.Tuntap.LanIPs.Where(c => c != null))
-                //路由上的IP
-                .Concat(config.Data.Client.Tunnel.RouteIPs)
-                .Select(c => NetworkHelper.IP2Value(c))
-                .ToArray();
-        }
         private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)
         {
             //排除的IP，
-            uint[] excludeIps = ExcludeIps();
+            uint[] excludeIps =//本机局域网IP
+                config.Data.Client.Tunnel.LocalIPs.Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                //路由上的IP
+                .Concat(config.Data.Client.Tunnel.RouteIPs)
+                //网卡IP  服务器IP
+                .Concat(new IPAddress[] { runningConfig.Data.Tuntap.IP, clientSignInState.Connection.Address.Address })
+                //网卡配置的局域网IP
+                .Concat(runningConfig.Data.Tuntap.Lans.Select(c => c.IP))
+                .Select(NetworkHelper.IP2Value)
+                .ToArray();
+
+            HashSet<uint> hashSet = new HashSet<uint>();
+
             return infos
-                //自己的ip不要
-                .Where(c => c.IP.Equals(runningConfig.Data.Tuntap.IP) == false && c.LastTicks.HasValue())
+                .Where(c => c.MachineId != config.Data.Client.Id)
+                .OrderByDescending(c => c.Status)
                 .OrderByDescending(c => c.LastTicks.Value)
+
                 .Select(c =>
                 {
+                    Console.WriteLine($"{c.MachineId}->{config.Data.Client.Id}");
+                    foreach (var lan in c.Lans)
+                    {
+                        uint ipInt = NetworkHelper.IP2Value(lan.IP);
+                        uint maskValue = NetworkHelper.PrefixLength2Value(lan.PrefixLength);
+                        lan.Exists = excludeIps.Count(d => (d & maskValue) == (ipInt & maskValue)) > 0 || hashSet.Contains(ipInt & maskValue);
+                        hashSet.Add(ipInt & maskValue);
+                    }
+
                     return new TuntapVeaLanIPAddressList
                     {
                         MachineId = c.MachineId,
-                        IPS = ParseIPs(c.LanIPs, c.Masks, c.MachineId)
+                        IPS = ParseIPs(c.Lans.Where(c => c.Disabled == false && c.Exists == false).ToList(), c.MachineId)
                         .Where(c => excludeIps.Select(d => d & c.MaskValue).Contains(c.NetWork) == false).ToList(),
                     };
                 }).ToList();
         }
-        private List<TuntapVeaLanIPAddress> ParseIPs(IPAddress[] lanIPs, int[] masks, string machineid)
+        private List<TuntapVeaLanIPAddress> ParseIPs(List<TuntapLanInfo> lans, string machineid)
         {
-            if (masks.Length != lanIPs.Length) masks = lanIPs.Select(c => 24).ToArray();
-            return lanIPs.Where(c => c.Equals(IPAddress.Any) == false && c != null).Select((c, index) =>
+            return lans.Where(c => c.IP.Equals(IPAddress.Any) == false && c != null).Select((c, index) =>
             {
-                return ParseIPAddress(c, (byte)masks[index], machineid);
+                return ParseIPAddress(c.IP, c.PrefixLength, machineid);
 
             }).ToList();
         }
-        private TuntapVeaLanIPAddress ParseIPAddress(IPAddress ip, byte maskLength, string machineid)
+        private TuntapVeaLanIPAddress ParseIPAddress(IPAddress ip, byte prefixLength, string machineid)
         {
             uint ipInt = NetworkHelper.IP2Value(ip);
             //掩码十进制
-            uint maskValue = NetworkHelper.PrefixLength2Value(maskLength);
+            uint maskValue = NetworkHelper.PrefixLength2Value(prefixLength);
             return new TuntapVeaLanIPAddress
             {
                 IPAddress = ipInt,
-                MaskLength = maskLength,
+                PrefixLength = prefixLength,
                 MaskValue = maskValue,
                 NetWork = ipInt & maskValue,
                 Broadcast = ipInt | ~maskValue,

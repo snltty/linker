@@ -12,11 +12,11 @@ namespace linker.tun
         private ILinkerTunDeviceCallback linkerTunDeviceCallback;
         private CancellationTokenSource cancellationTokenSource;
 
-        private string error = string.Empty;
-        public string Error => error;
+        private string setupError = string.Empty;
+        public string SetupError => setupError;
 
-        private string error1 = string.Empty;
-        public string Error1 => error1;
+        private string natError = string.Empty;
+        public string NatError => natError;
 
 
         private uint operating = 0;
@@ -84,18 +84,18 @@ namespace linker.tun
         {
             if (Interlocked.CompareExchange(ref operating, 1, 0) == 1)
             {
-                error = $"setup are operating";
+                setupError = $"setup are operating";
                 return false;
             }
             try
             {
                 if (linkerTunDevice == null)
                 {
-                    error = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} not support";
+                    setupError = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} not support";
                     return false;
                 }
-                linkerTunDevice.Setup(address, NetworkHelper.ToGatewayIP(address, prefixLength), prefixLength, out error);
-                if (string.IsNullOrWhiteSpace(error) == false)
+                linkerTunDevice.Setup(address, NetworkHelper.ToGatewayIP(address, prefixLength), prefixLength, out setupError);
+                if (string.IsNullOrWhiteSpace(setupError) == false)
                 {
                     return false;
                 }
@@ -105,7 +105,7 @@ namespace linker.tun
             }
             catch (Exception ex)
             {
-                error = ex + "";
+                setupError = ex + "";
             }
             finally
             {
@@ -121,7 +121,7 @@ namespace linker.tun
         {
             if (Interlocked.CompareExchange(ref operating, 1, 0) == 1)
             {
-                error = $"shutdown are operating";
+                setupError = $"shutdown are operating";
                 return false;
             }
             try
@@ -133,7 +133,7 @@ namespace linker.tun
             {
             }
 
-            error = string.Empty;
+            setupError = string.Empty;
             Interlocked.Exchange(ref operating, 0);
 
             return true;
@@ -145,7 +145,7 @@ namespace linker.tun
         public void SetNat()
         {
             linkerTunDevice?.RemoveNat(out string error);
-            linkerTunDevice?.SetNat(out error1);
+            linkerTunDevice?.SetNat(out natError);
         }
         /// <summary>
         /// 移除NAT转发
@@ -217,12 +217,12 @@ namespace linker.tun
                         }
                         catch (Exception ex)
                         {
-                            error = ex.Message;
+                            setupError = ex.Message;
                         }
                     }
                     catch (Exception ex)
                     {
-                        error = ex.Message;
+                        setupError = ex.Message;
                         Shutdown();
                         break;
                     }

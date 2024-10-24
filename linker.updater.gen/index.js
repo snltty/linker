@@ -5,12 +5,9 @@ const moment = require('moment');
 
 const parser = new xml2js.Parser();
 
-const path = '../.github/workflows/dotnet.yml';
-const projPath = '../linker/linker.csproj';
-
 function readVersionDesc() {
     return new Promise((resolve, reject) => {
-        const fileContents = fs.readFileSync(projPath, 'utf8');
+        const fileContents = fs.readFileSync('../linker/linker.csproj', 'utf8');
         parser.parseString(fileContents, (error, result) => {
             resolve(
                 { desc: result.Project.PropertyGroup[0].Description[0], version: result.Project.PropertyGroup[0].FileVersion[0] }
@@ -18,7 +15,7 @@ function readVersionDesc() {
         });
     });
 }
-function readYaml() {
+function readYaml(path) {
     try {
         const fileContents = fs.readFileSync(path, 'utf8');
         return yaml.load(fileContents);
@@ -26,10 +23,25 @@ function readYaml() {
         console.log(e);
     }
 }
-function writeYaml(data) {
+function writeYaml(path, data) {
     try {
         const yamlContent = yaml.dump(data);
         return fs.writeFileSync(path, yamlContent, 'utf8');
+    } catch (e) {
+        console.log(e);
+    }
+}
+function readText(path) {
+    try {
+        const fileContents = fs.readFileSync(path, 'utf8');
+        return fileContents;
+    } catch (e) {
+        console.log(e);
+    }
+}
+function writeText(path, data) {
+    try {
+        return fs.writeFileSync(path, data, 'utf8');
     } catch (e) {
         console.log(e);
     }
@@ -120,7 +132,7 @@ function writeUpload(data) {
 
 readVersionDesc().then((desc) => {
 
-    const data = readYaml();
+    const data = readYaml('../ymls/dotnet.yml');
     data.jobs.build.steps = data.jobs.build.steps.filter(c => c.uses != 'actions/upload-release-asset@master' && c.uses != 'tvrcgo/oss-action@v0.1.1');
 
     data.jobs.build.steps.filter(c => c.id == 'create_release')[0].with.body = desc.desc;
@@ -130,5 +142,25 @@ readVersionDesc().then((desc) => {
     fs.writeFileSync('../version.txt', `v${desc.version}\n${moment().format('YYYY-MM-DD HH:mm:ss')}\n${desc.desc}`, 'utf8');
 
     writeUpload(data);
-    writeYaml(data);
+    writeYaml('../.github/workflows/dotnet.yml', data);
+
+    let publishText = readText('../ymls/publish-docker.sh');
+    while (publishText.indexOf('{{version}}') >= 0) {
+        publishText = publishText.replace('{{version}}', desc.version);
+    }
+    writeText('../publish-docker.sh', publishText);
+
+
+    let dockerText = readText('../ymls/docker.yml');
+    while (dockerText.indexOf('{{version}}') >= 0) {
+        dockerText = dockerText.replace('{{version}}', desc.version);
+    }
+    writeText('../.github/workflows/docker.yml', dockerText);
+
+
+    let nugetText = readText('../ymls/nuget.yml');
+    while (nugetText.indexOf('{{version}}') >= 0) {
+        nugetText = nugetText.replace('{{version}}', desc.version);
+    }
+    writeText('../.github/workflows/nuget.yml', nugetText);
 });

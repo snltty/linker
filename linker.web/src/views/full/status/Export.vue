@@ -14,13 +14,8 @@
                         <template #header>
                             <div class="card-header">
                                 <div class="flex">
-                                    <div>
-                                        <el-popover placement="top-start" title="tips":width="200" trigger="hover"
-                                            content="这将生成唯一ID，多台设备使用产生冲突，挤压下线">
-                                            <template #reference>
-                                                <el-checkbox :disabled="onlyNode" v-model="state.single" label="单设备" />
-                                            </template>
-                                        </el-popover>
+                                    <div title="这将生成唯一ID，多台设备使用产生冲突，挤压下线">
+                                        <el-checkbox :disabled="onlyNode" v-model="state.single" label="单设备" />
                                     </div>
                                     <div style="margin-left: 2rem;">
                                         <span>设备名 : </span><el-input :disabled="!state.single" v-model="state.name" maxlength="12" show-word-limit style="width:15rem"></el-input>

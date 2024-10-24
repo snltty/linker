@@ -2,20 +2,16 @@
     <div>
         <div class="flex">
             <div class="flex-1">
-                <a href="javascript:;" class="a-line" @click="handleTuntapIP(tuntap.list[item.MachineId])" :title="tuntap.list[item.MachineId].Gateway?'我在路由器上，所以略有不同':'此设备的虚拟网卡IP'">
-                    <template v-if="tuntap.list[item.MachineId].Error">
-                        <el-popover placement="top" title="提示" width="20rem"  trigger="hover" :content="tuntap.list[item.MachineId].Error">
-                            <template #reference>
-                                <strong class="red">{{ tuntap.list[item.MachineId].IP }}</strong>
-                            </template>
-                        </el-popover>
+                <a href="javascript:;" class="a-line" @click="handleTuntapIP(tuntap.list[item.MachineId])" title="此设备的虚拟网卡IP">
+                    <template v-if="tuntap.list[item.MachineId].SetupError || tuntap.list[item.MachineId].NatError">
+                        <strong class="red" :title="tuntap.list[item.MachineId].SetupError || tuntap.list[item.MachineId].NatError">{{ tuntap.list[item.MachineId].IP }}</strong>
                     </template>
                     <template v-else>
                         <template v-if="tuntap.list[item.MachineId].running">
-                            <strong class="green" :class="{gateway:tuntap.list[item.MachineId].Gateway}">{{ tuntap.list[item.MachineId].IP }}</strong>
+                            <strong class="green gateway">{{ tuntap.list[item.MachineId].IP }}</strong>
                         </template>
                         <template v-else>
-                            <strong :class="{gateway:tuntap.list[item.MachineId].Gateway}">{{ tuntap.list[item.MachineId].IP }}</strong>
+                            <strong>{{ tuntap.list[item.MachineId].IP }}</strong>
                         </template>
                     </template>
                 </a>
@@ -31,28 +27,19 @@
             </template>
         </div>
         <div>
-            <template v-if="tuntap.list[item.MachineId].Error1">
-                <el-popover placement="top" title="提示" width="20rem"  trigger="hover" :content="tuntap.list[item.MachineId].Error1">
-                    <template #reference>
-                        <div class="yellow">
-                            <template v-for="(item1,index) in  tuntap.list[item.MachineId].LanIPs" :key="index">
-                                <div>
-                                    {{ item1 }} / {{ tuntap.list[item.MachineId].Masks[index] }}
-                                </div>
-                            </template>
-                        </div>
+            <div>
+                <template v-for="(item1,index) in  tuntap.list[item.MachineId].Lans" :key="index">
+                    <template v-if="item1.Disabled">
+                        <div class="flex yellow" title="已禁用">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
                     </template>
-                </el-popover>
-            </template>
-            <template v-else>
-                <div>
-                    <template v-for="(item1,index) in  tuntap.list[item.MachineId].LanIPs" :key="index">
-                        <div>
-                            {{ item1 }} / {{ tuntap.list[item.MachineId].Masks[index] }}
-                        </div>
+                    <template v-else-if="item1.Exists">
+                        <div class="flex red" title="与其它设备填写IP、或本机局域网IP有冲突">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
                     </template>
-                </div>
-            </template>
+                    <template v-else>
+                        <div class="flex" title="正常使用" :class="{green:tuntap.list[item.MachineId].running}">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
+                    </template>
+                </template>
+            </div>
             <template v-if="showDelay">
                 <template v-if="tuntap.list[item.MachineId].Delay>=0 && tuntap.list[item.MachineId].Delay<=100">
                     <div class="delay green">{{ tuntap.list[item.MachineId].Delay }}ms</div>
