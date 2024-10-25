@@ -166,13 +166,13 @@ namespace linker.config
         Lease = ((ulong)1 << 35),
 
         [ClientAccessDisplayAttribute("开关本机socks5")]
-        Socks5StatusSelf = 1 << 36,
+        Socks5StatusSelf = ((ulong)1 << 36),
         [ClientAccessDisplayAttribute("开关所有socks5")]
-        Socks5StatusOther = 1 << 37,
+        Socks5StatusOther = ((ulong)1 << 37),
         [ClientAccessDisplayAttribute("修改本机socks5")]
-        Socks5ChangeSelf = 1 << 38,
+        Socks5ChangeSelf = ((ulong)1 << 38),
         [ClientAccessDisplayAttribute("修改所有socks5")]
-        Socks5ChangeOther = 1 << 39,
+        Socks5ChangeOther = ((ulong)1 << 39),
 
         Full = ulong.MaxValue >> (64 - 52),
     }

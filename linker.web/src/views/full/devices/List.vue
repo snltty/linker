@@ -184,6 +184,7 @@ export default {
             handlePageChange();
             handleTunnelRefresh();
             handleTuntapRefresh();
+            handleSocks5Refresh();
             _getSignList();
             _getSignList1();
             _getTuntapInfo();

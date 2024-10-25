@@ -15,13 +15,23 @@ namespace linker.plugins.socks5
         private Socket socket;
         public IPEndPoint LocalEndpoint { get; private set; }
 
-        public bool Running {  get; private set; }
-        public string Error {  get; private set; }
+        public bool Running
+        {
+            get
+            {
+                try
+                {
+                    socket.Poll(1000, SelectMode.SelectRead);
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+        }
+        public string Error { get; private set; }
 
-        /// <summary>
-        /// 监听一个端口
-        /// </summary>
-        /// <param name="port"></param>
         private void StartTcp(IPEndPoint ep, byte bufferSize)
         {
             Error = string.Empty;
@@ -48,12 +58,8 @@ namespace linker.plugins.socks5
                 Error = ex.Message;
                 LoggerHelper.Instance.Error(ex);
             }
-            Running = true;
         }
-        /// <summary>
-        /// 接收连接
-        /// </summary>
-        /// <param name="acceptEventArg"></param>
+       
         private async Task StartAccept(AsyncUserToken token)
         {
             try
@@ -69,7 +75,6 @@ namespace linker.plugins.socks5
                 LoggerHelper.Instance.Error(ex);
                 token.Clear();
             }
-            Running = false;
 
         }
         private void ProcessAccept(AsyncUserToken acceptToken, Socket socket)
@@ -118,10 +123,6 @@ namespace linker.plugins.socks5
             }
         }
 
-        /// <summary>
-        /// 接收连接数据
-        /// </summary>
-        /// <param name="e"></param>
         private async Task ProcessReceive(AsyncUserToken token, bool send = true)
         {
             if (token.Received) return;
@@ -168,11 +169,6 @@ namespace linker.plugins.socks5
 
         }
 
-        /// <summary>
-        /// 往隧道发数据
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
         private async Task SendToConnection(AsyncUserToken token)
         {
             if (token.Connection == null)
@@ -197,11 +193,7 @@ namespace linker.plugins.socks5
             }
             token.Proxy.Return(connectData);
         }
-        /// <summary>
-        /// 往隧道发关闭包数据，通知对面关闭连接
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
+      
         private async Task SendToConnectionClose(AsyncUserToken token)
         {
             //if (token.Proxy.Direction == ProxyDirection.Reverse)
@@ -214,10 +206,7 @@ namespace linker.plugins.socks5
             }
         }
 
-        /// <summary>
-        /// b端连接目标服务
-        /// </summary>
-        /// <param name="token"></param>
+       
         private void ConnectBind(AsyncUserTunnelToken token)
         {
             if (token.Proxy.TargetEP == null) return;
@@ -276,10 +265,6 @@ namespace linker.plugins.socks5
         }
 
 
-        /// <summary>
-        /// 继续接收数据
-        /// </summary>
-        /// <param name="tunnelToken"></param>
         private void ReceiveSocket(AsyncUserTunnelToken tunnelToken)
         {
             if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)
@@ -291,10 +276,6 @@ namespace linker.plugins.socks5
                 }
             }
         }
-        /// <summary>
-        /// 关闭连接
-        /// </summary>
-        /// <param name="tunnelToken"></param>
         private void CloseSocket(AsyncUserTunnelToken tunnelToken)
         {
             if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)
@@ -307,11 +288,6 @@ namespace linker.plugins.socks5
             }
         }
 
-        /// <summary>
-        /// 从隧道收到数据，确定是tcp，那就发给对应的socket
-        /// </summary>
-        /// <param name="tunnelToken"></param>
-        /// <returns></returns>
         private async Task SendToSocketTcp(AsyncUserTunnelToken tunnelToken)
         {
             ConnectId connectId = tunnelToken.GetTcpConnectId();

@@ -27,7 +27,6 @@ export const provideGlobalData = () => {
         updater: {}, //更新信息
         self: {}, //本机
         hasAccess(name) {
-
             if (this.config.Client.Accesss[name] == undefined) {
                 return false;
             }

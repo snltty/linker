@@ -79,7 +79,6 @@ export default {
                     return;
                 }
             }
-
             const fn = socks5.running ? stopSocks5 (socks5.MachineId) : runSocks5(socks5.MachineId);
             socks5.loading = true;
             fn.then(() => {

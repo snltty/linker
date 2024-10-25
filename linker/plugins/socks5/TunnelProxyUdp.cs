@@ -12,10 +12,6 @@ namespace linker.plugins.socks5
         private ConcurrentDictionary<int, AsyncUserUdpToken> udpListens = new ConcurrentDictionary<int, AsyncUserUdpToken>();
         private ConcurrentDictionary<ConnectIdUdp, AsyncUserUdpTokenTarget> udpConnections = new(new ConnectIdUdpComparer());
 
-        /// <summary>
-        /// 监听一个端口
-        /// </summary>
-        /// <param name="port"></param>
         private void StartUdp(IPEndPoint ep, byte buffersize)
         {
             try
@@ -77,11 +73,7 @@ namespace linker.plugins.socks5
             }
             CloseClientSocket(token);
         }
-        /// <summary>
-        /// 发送给对方，通过隧道
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
+      
         private async Task SendToConnection(AsyncUserUdpToken token)
         {
             if (token.Connection == null) return;
@@ -104,11 +96,7 @@ namespace linker.plugins.socks5
                 token.Proxy.Return(connectData);
             }
         }
-        /// <summary>
-        /// 发送给很多对方，通过隧道
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
+     
         private async Task SendToConnections(AsyncUserUdpToken token)
         {
             byte[] connectData = token.Proxy.ToBytes(out int length);
@@ -126,11 +114,6 @@ namespace linker.plugins.socks5
             }
         }
 
-        /// <summary>
-        /// 收到隧道数据，确定是udp，该连接连接，该发送发送
-        /// </summary>
-        /// <param name="tunnelToken"></param>
-        /// <returns></returns>
         private async Task SendToSocketUdp(AsyncUserTunnelToken tunnelToken)
         {
 
@@ -236,11 +219,6 @@ namespace linker.plugins.socks5
 
         }
 
-        /// <summary>
-        /// b端接收到服务的数据，通过隧道发送给a
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
         private async Task SendToConnection(AsyncUserUdpTokenTarget token)
         {
             byte[] connectData = token.Proxy.ToBytes(out int length);
@@ -262,9 +240,6 @@ namespace linker.plugins.socks5
             }
         }
 
-        /// <summary>
-        /// 检查udp过期
-        /// </summary>
         private void TaskUdp()
         {
             TimerHelper.SetInterval(() =>

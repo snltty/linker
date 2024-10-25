@@ -11,6 +11,7 @@ using System.Net.Sockets;
 using linker.plugins.tunnel;
 using linker.plugins.client;
 using linker.plugins.socks5.config;
+using System.Text;
 
 namespace linker.plugins.socks5
 {
@@ -100,8 +101,8 @@ namespace linker.plugins.socks5
                 return true;
             }
             token.Proxy.Data = token.Buffer.AsMemory(0, length);
-
             token.Proxy.TargetEP = null;
+
 
             //步骤，request
             token.Proxy.Rsv = (byte)Socks5EnumStep.Request;
@@ -111,6 +112,7 @@ namespace linker.plugins.socks5
             }
             await token.Socket.SendAsync(new byte[] { 0x05, 0x00 }).ConfigureAwait(false);
 
+
             //步骤，command
             token.Proxy.Data = Helper.EmptyArray;
             token.Proxy.Rsv = (byte)Socks5EnumStep.Command;
@@ -119,27 +121,42 @@ namespace linker.plugins.socks5
                 return true;
             }
             Socks5EnumRequestCommand command = (Socks5EnumRequestCommand)token.Proxy.Data.Span[1];
+            //是UDP中继，不做连接操作，等UDP数据过去的时候再绑定
+            if (command == Socks5EnumRequestCommand.UdpAssociate)
+            {
+                await token.Socket.SendAsync(Socks5Parser.MakeConnectResponse(new IPEndPoint(IPAddress.Any, proxyEP.Port), (byte)Socks5EnumResponseCommand.ConnecSuccess).AsMemory()).ConfigureAwait(false);
+                return false;
+            }
+
 
             //获取远端地址
+            uint targetIP;
             ReadOnlyMemory<byte> ipArray = Socks5Parser.GetRemoteEndPoint(token.Proxy.Data, out Socks5EnumAddressType addressType, out ushort port, out int index);
             token.Proxy.Data = token.Proxy.Data.Slice(index);
-            token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
-            uint targetIP = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
-
-            //不支持域名 和 IPV6
-            if (addressType == Socks5EnumAddressType.Domain || addressType == Socks5EnumAddressType.IPV6)
+            if (addressType == Socks5EnumAddressType.IPV6)
             {
                 byte[] response1 = Socks5Parser.MakeConnectResponse(new IPEndPoint(IPAddress.Any, 0), (byte)Socks5EnumResponseCommand.AddressNotAllow);
                 await token.Socket.SendAsync(response1.AsMemory()).ConfigureAwait(false);
                 return true;
             }
-
-            //是UDP中继，不做连接操作，等UDP数据过去的时候再绑定
-            if (targetIP == 0 || command == Socks5EnumRequestCommand.UdpAssociate)
+            if (addressType == Socks5EnumAddressType.Domain)
             {
-                await token.Socket.SendAsync(Socks5Parser.MakeConnectResponse(new IPEndPoint(IPAddress.Any, proxyEP.Port), (byte)Socks5EnumResponseCommand.ConnecSuccess).AsMemory()).ConfigureAwait(false);
-                return false;
+                if(IPAddress.TryParse(Encoding.UTF8.GetString(ipArray.Span),out IPAddress ip) == false)
+                {
+                    byte[] response1 = Socks5Parser.MakeConnectResponse(new IPEndPoint(IPAddress.Any, 0), (byte)Socks5EnumResponseCommand.AddressNotAllow);
+                    await token.Socket.SendAsync(response1.AsMemory()).ConfigureAwait(false);
+                    return true;
+                }
+                token.Proxy.TargetEP = new IPEndPoint(ip, port);
+                targetIP = BinaryPrimitives.ReadUInt32BigEndian(ip.GetAddressBytes());
             }
+            else
+            {
+                token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
+                targetIP = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
+            }
+
+            
 
             token.Connection = await ConnectTunnel(targetIP).ConfigureAwait(false);
 

@@ -39,6 +39,8 @@ namespace linker.plugins.socks5
             this.tunnelProxy = tunnelProxy;
 
             clientSignInState.NetworkEnabledHandle += (times) => DataVersion.Add();
+
+            if (runningConfig.Data.Socks5.Running) Retstart();
         }
         public Memory<byte> GetData()
         {
@@ -125,6 +127,10 @@ namespace linker.plugins.socks5
         public void Retstart()
         {
             tunnelProxy.Start(runningConfig.Data.Socks5.Port);
+            runningConfig.Data.Socks5.Running = tunnelProxy.Running;
+            runningConfig.Data.Update();
+            GetData();
+            DataVersion.Add();
         }
         /// <summary>
         /// 网卡
@@ -132,6 +138,10 @@ namespace linker.plugins.socks5
         public void Stop()
         {
             tunnelProxy.Stop();
+            runningConfig.Data.Socks5.Running = tunnelProxy.Running;
+            runningConfig.Data.Update();
+            GetData();
+            DataVersion.Add();
         }
 
         /// <summary>
