@@ -7,9 +7,7 @@ using System.IO.Compression;
 using linker.libs;
 using linker.plugins.client;
 using linker.plugins.messenger;
-using linker.plugins.config.messenger;
-using MemoryPack;
-
+using linker.plugins.access;
 namespace linker.plugins.config
 {
     public sealed class ConfigClientApiController : IApiClientController
@@ -19,18 +17,18 @@ namespace linker.plugins.config
         private readonly ClientSignInTransfer clientSignInTransfer;
         private readonly IMessengerSender sender;
         private readonly ClientSignInState clientSignInState;
-        private readonly AccessTransfer accessTransfer;
         private readonly ConfigSyncTreansfer configSyncTreansfer;
+        private readonly AccessTransfer accessTransfer;
 
-        public ConfigClientApiController(RunningConfig runningConfig, FileConfig config, ClientSignInTransfer clientSignInTransfer, IMessengerSender sender, ClientSignInState clientSignInState, AccessTransfer accessTransfer, ConfigSyncTreansfer configSyncTreansfer)
+        public ConfigClientApiController(RunningConfig runningConfig, FileConfig config, ClientSignInTransfer clientSignInTransfer, IMessengerSender sender, ClientSignInState clientSignInState, ConfigSyncTreansfer configSyncTreansfer, AccessTransfer accessTransfer)
         {
             this.runningConfig = runningConfig;
             this.config = config;
             this.clientSignInTransfer = clientSignInTransfer;
             this.sender = sender;
             this.clientSignInState = clientSignInState;
-            this.accessTransfer = accessTransfer;
             this.configSyncTreansfer = configSyncTreansfer;
+            this.accessTransfer = accessTransfer;
         }
 
         public object Get(ApiControllerParamsInfo param)
@@ -87,40 +85,6 @@ namespace linker.plugins.config
         }
 
 
-        public AccessListInfo GetAccesss(ApiControllerParamsInfo param)
-        {
-            ulong hashCode = ulong.Parse(param.Content);
-            if (accessTransfer.Version.Eq(hashCode, out ulong version) == false)
-            {
-                return new AccessListInfo
-                {
-
-                    HashCode = version,
-                    List = accessTransfer.GetAccesss()
-
-                };
-            }
-            return new AccessListInfo { HashCode = version };
-        }
-        [ClientApiAccessAttribute(ClientApiAccess.Access)]
-        public async Task<bool> SetAccess(ApiControllerParamsInfo param)
-        {
-            ConfigUpdateAccessInfo configUpdateAccessInfo = param.Content.DeJson<ConfigUpdateAccessInfo>();
-            if (configUpdateAccessInfo.ToMachineId == config.Data.Client.Id)
-            {
-                return false;
-            }
-            configUpdateAccessInfo.FromMachineId = config.Data.Client.Id;
-            MessageResponeInfo resp = await sender.SendReply(new MessageRequestWrap
-            {
-                Connection = clientSignInState.Connection,
-                MessengerId = (ushort)ConfigMessengerIds.AccessUpdateForward,
-                Payload = MemoryPackSerializer.Serialize(configUpdateAccessInfo)
-            });
-            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
-        }
-
-
         [ClientApiAccessAttribute(ClientApiAccess.Export)]
         public async Task<bool> Export(ApiControllerParamsInfo param)
         {
@@ -148,15 +112,18 @@ namespace linker.plugins.config
                 Directory.CreateDirectory(configPath);
 
                 ConfigClientInfo client = config.Data.Client.ToJson().DeJson<ConfigClientInfo>();
+                client.Id = string.Empty;
+                client.Name = string.Empty;
                 if (configExportInfo.Single || client.OnlyNode)
                 {
                     client.Id = await clientSignInTransfer.GetNewId();
+                    client.Name = configExportInfo.Name;
                 }
                 if (client.OnlyNode == false)
                 {
                     client.CApi.ApiPassword = configExportInfo.ApiPassword;
                 }
-                client.Name = configExportInfo.Name;
+              
                 client.Access = accessTransfer.AssignAccess((ClientApiAccess)configExportInfo.Access);
                 client.OnlyNode = true;
                 client.Action.Args.Clear();

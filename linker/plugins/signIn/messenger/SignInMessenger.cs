@@ -42,6 +42,8 @@ namespace linker.plugins.signin.messenger
         public async Task SignIn(IConnection connection)
         {
             SignInfo info = MemoryPackSerializer.Deserialize<SignInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            LoggerHelper.Instance.Info($"sign in from {connection.Address}->{info.ToJson()}");
+
             info.Connection = connection;
 
             SignInResponseInfo resp = new SignInResponseInfo();

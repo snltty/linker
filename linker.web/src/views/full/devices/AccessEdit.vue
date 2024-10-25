@@ -10,7 +10,7 @@
     </el-dialog>
 </template>
 <script>
-import { setAccess } from '@/apis/config';
+import { setAccess } from '@/apis/access';
 import { ElMessage } from 'element-plus';
 import { reactive, ref, watch } from 'vue';
 import Access from '@/views/full/devices/Access.vue'

@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using linker.libs.extends;
 using System.Buffers;
 using System.Net;
+using linker.plugins.messenger;
 
 namespace linker.plugins.resolver
 {
@@ -31,6 +32,7 @@ namespace linker.plugins.resolver
                 {
                     return;
                 }
+                LoggerHelper.Instance.Info($"tcp connect from {socket.RemoteEndPoint}");
                 socket.KeepAlive();
 
                 int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).ConfigureAwait(false);

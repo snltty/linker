@@ -1,14 +1,13 @@
-﻿using linker.client.config;
-using linker.config;
+﻿using linker.config;
 using linker.plugins.config.messenger;
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace linker.plugins.config
+namespace linker.plugins.decenter
 {
-    public sealed class ConfigStartup : IStartup
+    public sealed class DecenterStartup : IStartup
     {
-        public string Name => "config";
+        public string Name => "decenter";
 
         public bool Required => true;
 
@@ -20,14 +19,8 @@ namespace linker.plugins.config
 
         public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
-            serviceCollection.AddSingleton<ConfigClientApiController>();
-
-            serviceCollection.AddSingleton<ConfigClientMessenger>();
-
-            serviceCollection.AddSingleton<RunningConfig>();
-
-            serviceCollection.AddSingleton<ConfigSyncTreansfer>();
-            serviceCollection.AddSingleton<ConfigSyncTypesLoader>();
+            serviceCollection.AddSingleton<DecenterTransfer>();
+            serviceCollection.AddSingleton<DecenterTypesLoader>();
 
 
         }
@@ -39,10 +32,8 @@ namespace linker.plugins.config
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
-            RunningConfig runningConfig = serviceProvider.GetService<RunningConfig>();
-
-            ConfigSyncTreansfer configSyncTreansfer = serviceProvider.GetService<ConfigSyncTreansfer>();
-            ConfigSyncTypesLoader configSyncTypesLoader = serviceProvider.GetService<ConfigSyncTypesLoader>();
+            DecenterTransfer decenterTransfer = serviceProvider.GetService<DecenterTransfer>();
+            DecenterTypesLoader decenterTypesLoader = serviceProvider.GetService<DecenterTypesLoader>();
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config)

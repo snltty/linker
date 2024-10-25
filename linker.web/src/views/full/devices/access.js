@@ -1,4 +1,4 @@
-import { getAccesss } from "@/apis/config";
+import { getAccesss } from "@/apis/access";
 import { inject, provide, ref } from "vue";
 
 const accessSymbol = Symbol();

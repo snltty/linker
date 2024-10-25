@@ -22,8 +22,9 @@ namespace linker.gen
              new GeneratorInfo{ ClassName="MessengerResolverTypesLoader", ClassNameSpace="linker.plugins.messenger", InterfaceName="linker.plugins.messenger.IMessenger"},
              new GeneratorInfo{ ClassName="ApiClientTypesLoader", ClassNameSpace="linker.plugins.capi", InterfaceName="linker.plugins.capi.IApiClientController"},
              new GeneratorInfo{ ClassName="ConfigSyncTypesLoader", ClassNameSpace="linker.plugins.config", InterfaceName="linker.plugins.config.IConfigSync"},
+             new GeneratorInfo{ ClassName="DecenterTypesLoader", ClassNameSpace="linker.plugins.decenter", InterfaceName="linker.plugins.decenter.IDecenter"},
         };
-
+        
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
             IncrementalValueProvider<Compilation> compilations = context.CompilationProvider.Select((compilation, cancellationToken) => compilation);

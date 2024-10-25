@@ -1,39 +1,35 @@
 <template>
-    <el-table-column prop="socks5" label="socks5代理" width="160">
+    <el-table-column prop="socks5" label="socks5" width="160">
         <template #default="scope">
-            <div>
-                <div class="flex">
-                    <div class="flex-1">
-                        <a href="javascript:;" class="a-line" title="socks5代理">
-                            <strong class="gateway">socks5://*:1805</strong>
-                        </a>
-                    </div>
-                    <el-switch size="small" inline-prompt active-text="😀" inactive-text="😣"/>
-                </div>
-                <div>1111</div>
-            </div>
+            <div v-if="socks5.list[scope.row.MachineId]">
+                <Socks5Show :config="true" :item="scope.row" @edit="handleSocks5" @refresh="handleSocks5Refresh"></Socks5Show>
+            </div> 
         </template>
     </el-table-column>
 </template>
 <script>
-import { injectGlobalData } from '@/provide';
+import { useSocks5 } from './socks5';
+import Socks5Show from './Socks5Show.vue';
 export default {
-    emits: ['edit','sedit'],
+    emits: ['edit','refresh'],
+    components:{Socks5Show},
     setup(props, { emit }) {
-        const globalData = injectGlobalData();
-        return {}
+
+        const socks5 = useSocks5();
+
+        const handleSocks5 = (_socks5) => {
+            emit('edit',_socks5);
+        }
+        const handleSocks5Refresh = ()=>{
+            emit('refresh');
+        }
+
+       
+        return {
+            socks5, handleSocks5,handleSocks5Refresh
+        }
     }
 }
 </script>
 <style lang="stylus" scoped>
-.gateway{
-    background:linear-gradient(90deg, #c5b260, #858585, #c5b260, #858585);
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:hsla(0,0%,100%,0);
-    &.green{
-        background:linear-gradient(90deg, #e4bb10, #008000, #e4bb10, #008000);
-        -webkit-background-clip:text;
-        -webkit-text-fill-color:hsla(0,0%,100%,0);
-    }
-}
 </style>

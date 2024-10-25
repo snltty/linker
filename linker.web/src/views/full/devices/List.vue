@@ -5,6 +5,7 @@
             <el-table-column prop="Version" label="版本" width="110" sortable="custom"></el-table-column>
             <el-table-column prop="tunnel" label="网关" width="90" sortable="custom"></el-table-column>
             <el-table-column prop="tuntap" label="网卡IP" width="160" sortable="custom"></el-table-column>
+            <el-table-column prop="socks5" label="socks5" width="160" sortable="custom"></el-table-column>
             <el-table-column prop="forward" label=""></el-table-column>
             <el-table-column label="" width="74" fixed="right"></el-table-column>
         </el-table>
@@ -12,7 +13,7 @@
             <Device  @edit="handleDeviceEdit" @refresh="handlePageRefresh"></Device>
             <Tunnel  @edit="handleTunnelEdit" @refresh="handleTunnelRefresh" @connections="handleTunnelConnections"></Tunnel>
             <Tuntap  @edit="handleTuntapEdit" @refresh="handleTuntapRefresh"></Tuntap>
-            <Socks5 @edit="_handleForwardEdit" @sedit="handleSForwardEdit"></Socks5> 
+            <Socks5 @edit="handleSocks5Edit" @refresh="handleSocks5Refresh"></Socks5> 
             <Forward @edit="_handleForwardEdit" @sedit="handleSForwardEdit"></Forward> 
             <Oper  @refresh="handlePageRefresh" @access="handleAccessEdit"></Oper>
         </el-table>
@@ -28,6 +29,7 @@
         <TunnelEdit v-if="tunnel.showEdit" v-model="tunnel.showEdit"  @change="handleTunnelRefresh"></TunnelEdit>
         <ConnectionsEdit v-if="connections.showEdit" v-model="connections.showEdit" ></ConnectionsEdit>
         <TuntapEdit v-if="tuntap.showEdit" v-model="tuntap.showEdit"  @change="handleTuntapRefresh"></TuntapEdit>
+        <Socks5Edit v-if="socks5.showEdit" v-model="socks5.showEdit"  @change="handleSocks5Refresh"></Socks5Edit>
         <TuntapLease v-if="tuntap.showLease" v-model="tuntap.showLease"  @change="handleTuntapRefresh"></TuntapLease>
         <ForwardEdit v-if="forward.showEdit" v-model="forward.showEdit" ></ForwardEdit>
         <ForwardCopy v-if="forward.showCopy" v-model="forward.showCopy" ></ForwardCopy>
@@ -38,33 +40,54 @@
 <script>
 import { injectGlobalData } from '@/provide.js'
 import { reactive, onMounted,  onUnmounted, computed } from 'vue'
+import { ElMessage } from 'element-plus'
+
 import Oper from './Oper.vue'
 import Device from './Device.vue'
 import DeviceEdit from './DeviceEdit.vue'
+import { provideDevices } from './devices'
+
 import AccessEdit from './AccessEdit.vue'
+import { provideAccess } from './access'
+
 import Tuntap from './Tuntap.vue'
 import TuntapEdit from './TuntapEdit.vue'
 import TuntapLease from './TuntapLease.vue'
+import { provideTuntap } from './tuntap'
+
+import Socks5 from './Socks5.vue'
+import Socks5Edit from './Socks5Edit.vue'
+import { provideSocks5 } from './socks5'
+
 import Tunnel from './Tunnel.vue'
 import TunnelEdit from './TunnelEdit.vue'
-import Socks5 from './Socks5.vue'
+import { provideTunnel } from './tunnel'
+
 import Forward from './Forward.vue'
 import ForwardEdit from './ForwardEdit.vue'
 import ForwardCopy from './ForwardCopy.vue'
+import { provideForward } from './forward'
+
 import SForwardEdit from './SForwardEdit.vue'
 import SForwardCopy from './SForwardCopy.vue'
-import ConnectionsEdit from './ConnectionsEdit.vue'
-import { ElMessage } from 'element-plus'
-import { provideTuntap } from './tuntap'
-import { provideTunnel } from './tunnel'
-import { provideForward } from './forward'
-import { provideConnections } from './connections'
 import { provideSforward } from './sforward'
-import { provideDevices } from './devices'
+
+import ConnectionsEdit from './ConnectionsEdit.vue'
+import { provideConnections } from './connections'
+
 import { provideUpdater } from './updater'
-import { provideAccess } from './access'
+
 export default {
-    components: {Oper,Device,DeviceEdit,AccessEdit,Tunnel,TunnelEdit,ConnectionsEdit, Tuntap,TuntapEdit,TuntapLease, Socks5, Forward,ForwardEdit,ForwardCopy,SForwardEdit,SForwardCopy },
+    components: {Oper,
+        Device,DeviceEdit,
+        AccessEdit,
+        Tunnel,TunnelEdit,
+        ConnectionsEdit,
+        Tuntap,TuntapEdit,TuntapLease, 
+        Socks5, Socks5Edit,
+        Forward,ForwardEdit,ForwardCopy,
+        SForwardEdit,SForwardCopy 
+    },
     setup(props) {
 
         const globalData = injectGlobalData();
@@ -76,12 +99,14 @@ export default {
             handleDeviceEdit,handleAccessEdit, handlePageChange, handlePageSizeChange, handleDel,clearDevicesTimeout,setSort} = provideDevices();
 
         const {tuntap,_getTuntapInfo,handleTuntapEdit,handleTuntapRefresh,clearTuntapTimeout,getTuntapMachines,sortTuntapIP}  = provideTuntap();
+        const {socks5,_getSocks5Info,handleSocks5Edit,handleSocks5Refresh,clearSocks5Timeout,getSocks5Machines,sortSocks5}  = provideSocks5();
         const {tunnel,_getTunnelInfo,handleTunnelEdit,handleTunnelRefresh,clearTunnelTimeout,sortTunnel} = provideTunnel();
         const {forward,_getForwardInfo,handleForwardEdit,_testTargetForwardInfo,clearForwardTimeout,getForwardMachines} = provideForward();
         const {sforward,_getSForwardInfo,handleSForwardEdit,_testLocalSForwardInfo,clearSForwardTimeout,getSForwardMachines} = provideSforward();
         const {connections,
             forwardConnections,_getForwardConnections,
             tuntapConnections,_getTuntapConnections,
+            socks5Connections,_getSocks5Connections,
             handleTunnelConnections,clearConnectionsTimeout
         } = provideConnections();
 
@@ -104,6 +129,11 @@ export default {
                 }
             }else if(row.prop == 'tuntap'){
                 const ids = sortTuntapIP(devices.page.Request.Asc);
+                if(ids .length > 0){
+                    fn = setSort(ids);
+                }
+            }else if(row.prop == 'socks5'){
+                const ids = sortSocks5(devices.page.Request.Asc);
                 if(ids .length > 0){
                     fn = setSort(ids);
                 }
@@ -139,12 +169,14 @@ export default {
             handlePageChange();
             handleTunnelRefresh();
             handleTuntapRefresh();
+            handleSocks5Refresh();
             ElMessage.success({message:'刷新成功',grouping:true});  
         }
         const handlePageSearch = ()=>{
             handlePageChange();
             handleTunnelRefresh();
             handleTuntapRefresh();
+            handleSocks5Refresh();
             ElMessage.success({message:'刷新成功',grouping:true});  
         }
 
@@ -155,9 +187,11 @@ export default {
             _getSignList();
             _getSignList1();
             _getTuntapInfo();
+            _getSocks5Info();
             _getTunnelInfo();
             _getForwardConnections();
             _getTuntapConnections();
+            _getSocks5Connections();
             _getForwardInfo();
             _getSForwardInfo();
 
@@ -173,6 +207,7 @@ export default {
             clearDevicesTimeout();
             clearConnectionsTimeout();
             clearTuntapTimeout();
+            clearSocks5Timeout();
             clearTunnelTimeout();
             clearForwardTimeout();
             clearSForwardTimeout();
@@ -186,6 +221,7 @@ export default {
             state,devices, machineId,handleSortChange,
             handleDeviceEdit,handleAccessEdit,handlePageRefresh,handlePageSearch, handlePageChange,handlePageSizeChange, handleDel,
             tuntap, handleTuntapEdit, handleTuntapRefresh,
+            socks5, handleSocks5Edit, handleSocks5Refresh,
             tunnel,connections, handleTunnelEdit, handleTunnelRefresh,handleTunnelConnections,
             forward,_handleForwardEdit,
             sforward,handleSForwardEdit

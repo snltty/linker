@@ -53,7 +53,7 @@
 <script>
 import { reactive, watch,computed,  onMounted, onUnmounted } from 'vue';
 import { ElMessage } from 'element-plus';
-import { useConnections, useForwardConnections, useTuntapConnections } from './connections';
+import { useConnections, useForwardConnections, useSocks5Connections, useTuntapConnections } from './connections';
 import { Delete } from '@element-plus/icons-vue';
 import { injectGlobalData } from '@/provide';
 export default {
@@ -68,6 +68,7 @@ export default {
         const connections = useConnections();
         const forwardConnections = useForwardConnections();
         const tuntapConnections = useTuntapConnections();
+        const socks5Connections = useSocks5Connections();
         const state = reactive({
             show: true,
             protocolTypes:{1:'tcp',2:'udp',4:'msquic'},
@@ -78,6 +79,7 @@ export default {
                 return [
                     forwardConnections.value.list[connections.value.current],
                     tuntapConnections.value.list[connections.value.current],
+                    socks5Connections.value.list[connections.value.current],
                 ].filter(c=>!!c);
             }),
         });

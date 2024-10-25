@@ -1,10 +1,12 @@
 import { getForwardConnections, removeForwardConnection } from "@/apis/forward";
 import { getTuntapConnections, removeTuntapConnection } from "@/apis/tuntap";
+import { getSocks5Connections, removeSocks5Connection } from "@/apis/socks5";
 import { inject, provide, ref } from "vue";
 
 const connectionsSymbol = Symbol();
 const forwardConnectionsSymbol = Symbol();
 const tuntapConnectionsSymbol = Symbol();
+const socks5ConnectionsSymbol = Symbol();
 export const provideConnections = () => {
     const connections = ref({
         showEdit: false,
@@ -28,8 +30,6 @@ export const provideConnections = () => {
         list: {},
     });
     provide(forwardConnectionsSymbol, forwardConnections);
-
-
     const _getForwardConnections = () => {
         getForwardConnections(connections.value.hashcode.toString()).then((res) => {
             if (connections.value._updateRealTime == false)
@@ -44,6 +44,8 @@ export const provideConnections = () => {
             forwardConnections.value.timer = setTimeout(_getForwardConnections, 1000);
         })
     }
+
+
     const tuntapConnections = ref({
         timer: 0,
         list: {},
@@ -63,6 +65,28 @@ export const provideConnections = () => {
             tuntapConnections.value.timer = setTimeout(_getTuntapConnections, 1000);
         })
     }
+
+    const socks5Connections = ref({
+        timer: 0,
+        list: {},
+    });
+    provide(socks5ConnectionsSymbol, socks5Connections);
+    const _getSocks5Connections = () => {
+        getSocks5Connections(connections.value.hashcode1.toString()).then((res) => {
+            if (connections.value._updateRealTime == false)
+                connections.value.hashcode1 = res.HashCode;
+            if (res.List) {
+                parseConnections(res.List, removeSocks5Connection);
+                socks5Connections.value.list = res.List;
+            }
+
+            socks5Connections.value.timer = setTimeout(_getSocks5Connections, 1000);
+        }).catch((e) => {
+            socks5Connections.value.timer = setTimeout(_getSocks5Connections, 1000);
+        })
+    }
+
+
     const parseConnections = (_connections, removeFunc) => {
         const caches = connections.value.speedCache;
         for (let machineId in _connections) {
@@ -93,14 +117,18 @@ export const provideConnections = () => {
         connections.value.currentName = device.MachineName;
         connections.value.showEdit = true;
     }
+
+
     const clearConnectionsTimeout = () => {
         clearTimeout(forwardConnections.value.timer);
         clearTimeout(tuntapConnections.value.timer);
+        clearTimeout(socks5Connections.value.timer);
     }
     return {
         connections,
         forwardConnections, _getForwardConnections,
         tuntapConnections, _getTuntapConnections,
+        socks5Connections, _getSocks5Connections,
         handleTunnelConnections, clearConnectionsTimeout
     }
 }
@@ -112,4 +140,7 @@ export const useForwardConnections = () => {
 }
 export const useTuntapConnections = () => {
     return inject(tuntapConnectionsSymbol);
+}
+export const useSocks5Connections = () => {
+    return inject(socks5ConnectionsSymbol);
 }

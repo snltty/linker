@@ -101,9 +101,12 @@ namespace linker.plugins.tuntap.lease
             cache.LastTime = DateTime.Now;
             info.PrefixLength = NetworkHelper.PrefixValue2Length(cache.PrefixValue);
 
+
             LeaseCacheUserInfo self = cache.Users.FirstOrDefault(c => c.Id == userId);
-            if (self != null)
+            //已有的
+            if (self != null && (info.IP.Equals(NetworkHelper.Value2IP(self.IP)) || info.IP.Equals(IPAddress.Any)))
             {
+                self.LastTime = DateTime.Now;
                 info.IP = NetworkHelper.Value2IP(self.IP);
                 return info;
             }

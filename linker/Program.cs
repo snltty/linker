@@ -122,7 +122,7 @@ namespace linker
             TimerHelper.SetInterval(() =>
             {
                 string[] files = Directory.GetFiles("logs").OrderBy(c => c).ToArray();
-                for (int i = 0; i < files.Length - 7; i++)
+                for (int i = 0; i < files.Length - 180; i++)
                 {
                     try
                     {

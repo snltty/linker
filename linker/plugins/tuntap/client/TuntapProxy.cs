@@ -54,10 +54,12 @@ namespace linker.plugins.tuntap.client
         }
         protected override void OffLine(string machineId)
         {
+            /*
             foreach (var item in ip2MachineDic.Values)
             {
                 item.Remove(machineId);
             }
+            */
         }
 
         /// <summary>

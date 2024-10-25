@@ -67,7 +67,7 @@ namespace linker.plugins.signIn.args
                 //之前的登录有唯一编号的，则验证，唯一编号不一样，不允许登录
                 if (string.IsNullOrWhiteSpace(keyOld) == false && keyNew != keyOld)
                 {
-                    return "your machine key is already online";
+                    return $"your id 【{signInfo.MachineId}】 is already online, online machineName {cache.MachineName}";
                 }
             }
             await Task.CompletedTask;

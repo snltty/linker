@@ -10,6 +10,7 @@ using System.Net;
 using System.Net.Sockets;
 using linker.plugins.tunnel;
 using linker.plugins.client;
+using linker.plugins.socks5.config;
 
 namespace linker.plugins.socks5
 {
@@ -18,7 +19,9 @@ namespace linker.plugins.socks5
         private IPEndPoint proxyEP;
 
         private uint[] maskValues = Array.Empty<uint>();
-        private readonly ConcurrentDictionary<uint, string> dic = new ConcurrentDictionary<uint, string>();
+        private readonly ConcurrentDictionary<uint, List<string>> ip2MachineDic = new ConcurrentDictionary<uint, List<string>>();
+
+        protected override string TransactionId => "socks5";
 
         public TunnelProxy(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState)
              : base(config, tunnelTransfer, relayTransfer, clientSignInTransfer, clientSignInState)
@@ -26,13 +29,44 @@ namespace linker.plugins.socks5
             TaskUdp();
         }
 
-        public void Start()
+
+        /// <summary>
+        /// 设置IP，等下有连接进来，用IP匹配，才能知道这个连接是要连谁
+        /// </summary>
+        /// <param name="ips"></param>
+        public void SetIPs(Socks5LanIPAddress[] ips)
+        {
+            var dic = ips.GroupBy(c => c.NetWork).ToDictionary(c => c.Key, d => d.Select(e => e.MachineId).ToList());
+            foreach (var item in dic)
+            {
+                ip2MachineDic.AddOrUpdate(item.Key, item.Value, (a, b) => item.Value);
+            }
+            maskValues = ips.Select(c => c.MaskValue).Distinct().OrderBy(c => c).ToArray();
+
+        }
+        /// <summary>
+        /// 设置IP，等下有连接进来，用IP匹配，才能知道这个连接是要连谁
+        /// </summary>
+        /// <param name="machineId"></param>
+        /// <param name="ip"></param>
+        public void SetIP(string machineId, uint ip)
+        {
+            if (ip2MachineDic.TryGetValue(ip, out List<string> list) == false)
+            {
+                list = new List<string>();
+                ip2MachineDic.AddOrUpdate(ip, list, (a, b) => list);
+            }
+            list.Add(machineId);
+        }
+
+
+        public void Start(int port)
         {
             if (proxyEP != null)
             {
                 Stop(proxyEP.Port);
             }
-            Start(new IPEndPoint(IPAddress.Any, 0), 3);
+            Start(new IPEndPoint(IPAddress.Any, port), 3);
             proxyEP = new IPEndPoint(IPAddress.Any, LocalEndpoint.Port);
         }
 
@@ -175,9 +209,9 @@ namespace linker.plugins.socks5
             for (int i = 0; i < maskValues.Length; i++)
             {
                 uint network = ip & maskValues[i];
-                if (dic.TryGetValue(network, out string machineId))
+                if (ip2MachineDic.TryGetValue(network, out List<string> machineId))
                 {
-                    return await ConnectTunnel(machineId, TunnelProtocolType.Udp).ConfigureAwait(false);
+                    return await ConnectTunnel(machineId[0], TunnelProtocolType.Udp).ConfigureAwait(false);
                 }
             }
 

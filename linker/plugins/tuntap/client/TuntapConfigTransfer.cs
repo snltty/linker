@@ -10,11 +10,16 @@ using linker.plugins.messenger;
 using linker.plugins.tuntap.config;
 using linker.tun;
 using linker.plugins.tuntap.lease;
+using linker.plugins.decenter;
 
 namespace linker.plugins.tuntap.client
 {
-    public sealed class TuntapConfigTransfer
+    public sealed class TuntapConfigTransfer : IDecenter
     {
+        public string Name => "tuntap";
+        public VersionManager DataVersion { get; } = new VersionManager();
+
+
         private readonly IMessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
         private readonly FileConfig config;
@@ -28,6 +33,8 @@ namespace linker.plugins.tuntap.client
         public VersionManager Version { get; } = new VersionManager();
         private readonly ConcurrentDictionary<string, TuntapInfo> tuntapInfos = new ConcurrentDictionary<string, TuntapInfo>();
         public ConcurrentDictionary<string, TuntapInfo> Infos => tuntapInfos;
+
+
 
         private readonly SemaphoreSlim slim = new SemaphoreSlim(1);
         public TuntapConfigTransfer(IMessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig, TuntapTransfer tuntapTransfer, LeaseClientTreansfer leaseClientTreansfer)
@@ -43,13 +50,13 @@ namespace linker.plugins.tuntap.client
 
             clientSignInState.NetworkEnabledHandle += (times) => RefreshIP();
 
-            tuntapTransfer.OnSetupBefore += () => { NotifyConfig(); };
-            tuntapTransfer.OnSetupAfter += () => { NotifyConfig(); };
-            tuntapTransfer.OnSetupSuccess += () => { NotifyConfig(); runningConfig.Data.Tuntap.Running = true; runningConfig.Data.Update(); };
+            tuntapTransfer.OnSetupBefore += () => { DataVersion.Add(); };
+            tuntapTransfer.OnSetupAfter += () => { DataVersion.Add(); };
+            tuntapTransfer.OnSetupSuccess += () => { DataVersion.Add(); runningConfig.Data.Tuntap.Running = true; runningConfig.Data.Update(); };
 
-            tuntapTransfer.OnShutdownBefore += () => { NotifyConfig(); };
-            tuntapTransfer.OnShutdownAfter += () => { NotifyConfig(); };
-            tuntapTransfer.OnShutdownSuccess += () => { NotifyConfig(); DeleteForward(); DelRoute(); runningConfig.Data.Tuntap.Running = false; runningConfig.Data.Update(); };
+            tuntapTransfer.OnShutdownBefore += () => { DataVersion.Add(); };
+            tuntapTransfer.OnShutdownAfter += () => { DataVersion.Add(); };
+            tuntapTransfer.OnShutdownSuccess += () => { DataVersion.Add(); DeleteForward(); DelRoute(); runningConfig.Data.Tuntap.Running = false; runningConfig.Data.Update(); DataVersion.Add(); };
 
 
             InitConfig();
@@ -61,6 +68,138 @@ namespace linker.plugins.tuntap.client
                 runningConfig.Data.Tuntap.Lans = runningConfig.Data.Tuntap.LanIPs.Select((a, b) => new TuntapLanInfo { IP = a, PrefixLength = (byte)runningConfig.Data.Tuntap.Masks[b] }).ToList();
             }
         }
+        /// <summary>
+        /// 更新本机网卡信息
+        /// </summary>
+        /// <param name="info"></param>
+        public void UpdateConfig(TuntapInfo info)
+        {
+            TimerHelper.Async(async () =>
+            {
+                DeleteForward();
+
+                IPAddress oldIP = runningConfig.Data.Tuntap.IP;
+                byte prefixLength = runningConfig.Data.Tuntap.PrefixLength;
+
+                runningConfig.Data.Tuntap.IP = info.IP;
+                runningConfig.Data.Tuntap.Lans = info.Lans;
+                runningConfig.Data.Tuntap.PrefixLength = info.PrefixLength;
+                runningConfig.Data.Tuntap.Switch = info.Switch;
+                runningConfig.Data.Tuntap.Forwards = info.Forwards;
+                runningConfig.Data.Update();
+
+                TuntapGroup2IPInfo tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = runningConfig.Data.Tuntap.IP, PrefixLength = runningConfig.Data.Tuntap.PrefixLength };
+                runningConfig.Data.Tuntap.Group2IP.AddOrUpdate(config.Data.Client.Group.Id, tuntapGroup2IPInfo, (a, b) => tuntapGroup2IPInfo);
+
+                await LeaseIP();
+
+                bool needReboot = ((oldIP.Equals(runningConfig.Data.Tuntap.IP) == false || prefixLength != runningConfig.Data.Tuntap.PrefixLength) && runningConfig.Data.Tuntap.Running)
+                || (runningConfig.Data.Tuntap.Running && tuntapTransfer.Status != TuntapStatus.Running);
+
+                if (needReboot)
+                {
+                    await RetstartDevice();
+                }
+                else
+                {
+                    AddForward();
+                }
+
+                GetData();
+                DataVersion.Add();
+            });
+        }
+
+        public Memory<byte> GetData()
+        {
+            TuntapInfo info = new TuntapInfo
+            {
+                IP = runningConfig.Data.Tuntap.IP,
+                Lans = runningConfig.Data.Tuntap.Lans.Select(c => { c.Exists = false; return c; }).ToList(),
+                PrefixLength = runningConfig.Data.Tuntap.PrefixLength,
+                MachineId = config.Data.Client.Id,
+                Status = tuntapTransfer.Status,
+                SetupError = tuntapTransfer.SetupError,
+                NatError = tuntapTransfer.NatError,
+                SystemInfo = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} {(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")) == false ? "Docker" : "")}",
+
+                Forwards = runningConfig.Data.Tuntap.Forwards,
+                Switch = runningConfig.Data.Tuntap.Switch
+            };
+            tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
+            Version.Add();
+            return MemoryPackSerializer.Serialize(info);
+        }
+        public void SetData(Memory<byte> data)
+        {
+            TuntapInfo info = MemoryPackSerializer.Deserialize<TuntapInfo>(data.Span);
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            {
+                LoggerHelper.Instance.Debug($"tuntap got {info.IP}");
+            }
+
+            TimerHelper.Async(async () =>
+            {
+                await slim.WaitAsync();
+                try
+                {
+                    DelRoute();
+                    tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
+                    Version.Add();
+                    AddRoute();
+                }
+                catch (Exception ex)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
+                }
+                slim.Release();
+            });
+        }
+        public void SetData(List<ReadOnlyMemory<byte>> data)
+        {
+            List<TuntapInfo> list = data.Select(c => MemoryPackSerializer.Deserialize<TuntapInfo>(c.Span)).ToList();
+            TimerHelper.Async(async () =>
+            {
+                await slim.WaitAsync();
+
+                try
+                {
+                    DelRoute();
+                    foreach (var item in list)
+                    {
+                        tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
+                        item.LastTicks.Update();
+                    }
+                    var removes = tuntapInfos.Keys.Except(list.Select(c => c.MachineId)).ToList();
+                    foreach (var item in removes)
+                    {
+                        if (tuntapInfos.TryGetValue(item, out TuntapInfo tuntapInfo))
+                        {
+                            tuntapInfo.Status = TuntapStatus.Normal;
+                            tuntapInfo.LastTicks.Clear();
+                        }
+                    }
+                    Version.Add();
+                    AddRoute();
+                }
+                catch (Exception ex)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
+                }
+                finally
+                {
+                    slim.Release();
+                }
+
+            });
+        }
+
 
         /// <summary>
         /// 刷新IP
@@ -86,7 +225,7 @@ namespace linker.plugins.tuntap.client
                     tuntapTransfer.Shutdown();
                     tuntapTransfer.Setup(runningConfig.Data.Tuntap.IP, runningConfig.Data.Tuntap.PrefixLength);
                 }
-                NotifyConfig();
+                DataVersion.Add();
             });
 
         }
@@ -121,13 +260,11 @@ namespace linker.plugins.tuntap.client
                     runningConfig.Data.Tuntap.PrefixLength = tuntapGroup2IPInfo.PrefixLength;
                 }
             }
-            if (runningConfig.Data.Tuntap.Running || runningConfig.Data.Tuntap.IP.Equals(IPAddress.Any) == false)
-            {
-                LeaseInfo leaseInfo = await leaseClientTreansfer.LeaseIp(runningConfig.Data.Tuntap.IP, runningConfig.Data.Tuntap.PrefixLength);
-                runningConfig.Data.Tuntap.IP = leaseInfo.IP;
-                runningConfig.Data.Tuntap.PrefixLength = leaseInfo.PrefixLength;
-                runningConfig.Data.Update();
-            }
+            LeaseInfo leaseInfo = await leaseClientTreansfer.LeaseIp(runningConfig.Data.Tuntap.IP, runningConfig.Data.Tuntap.PrefixLength);
+            runningConfig.Data.Tuntap.IP = leaseInfo.IP;
+            runningConfig.Data.Tuntap.PrefixLength = leaseInfo.PrefixLength;
+            runningConfig.Data.Update();
+
             tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = runningConfig.Data.Tuntap.IP, PrefixLength = runningConfig.Data.Tuntap.PrefixLength };
             runningConfig.Data.Tuntap.Group2IP.AddOrUpdate(config.Data.Client.Group.Id, tuntapGroup2IPInfo, (a, b) => tuntapGroup2IPInfo);
         }
@@ -137,175 +274,7 @@ namespace linker.plugins.tuntap.client
         /// </summary>
         public void RefreshConfig()
         {
-            NotifyConfig();
-        }
-        /// <summary>
-        /// 更新本机网卡信息
-        /// </summary>
-        /// <param name="info"></param>
-        public void UpdateConfig(TuntapInfo info)
-        {
-            TimerHelper.Async(() =>
-            {
-                DeleteForward();
-
-                bool needReboot = info.IP.Equals(runningConfig.Data.Tuntap.IP) == false || info.PrefixLength != runningConfig.Data.Tuntap.PrefixLength;
-
-                runningConfig.Data.Tuntap.IP = info.IP;
-                runningConfig.Data.Tuntap.Lans = info.Lans;
-                runningConfig.Data.Tuntap.PrefixLength = info.PrefixLength;
-                runningConfig.Data.Tuntap.Switch = info.Switch;
-                runningConfig.Data.Tuntap.Forwards = info.Forwards;
-
-                TuntapGroup2IPInfo tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = info.IP, PrefixLength = info.PrefixLength };
-                runningConfig.Data.Tuntap.Group2IP.AddOrUpdate(config.Data.Client.Group.Id, tuntapGroup2IPInfo, (a, b) => tuntapGroup2IPInfo);
-
-                runningConfig.Data.Update();
-                if (tuntapTransfer.Status == TuntapStatus.Running && needReboot)
-                {
-                    tuntapTransfer.Shutdown();
-                    tuntapTransfer.Setup(runningConfig.Data.Tuntap.IP, runningConfig.Data.Tuntap.PrefixLength);
-                }
-                else
-                {
-                    AddForward();
-                    NotifyConfig();
-                }
-            });
-        }
-        /// <summary>
-        /// 收到别的客户端的网卡信息
-        /// </summary>
-        /// <param name="info"></param>
-        /// <returns></returns>
-        public TuntapInfo OnConfig(TuntapInfo info)
-        {
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            {
-                LoggerHelper.Instance.Debug($"tuntap got {info.IP}");
-            }
-
-            TimerHelper.Async(async () =>
-            {
-                await slim.WaitAsync();
-                try
-                {
-                    DelRoute();
-                    tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
-                    Version.Add();
-                    AddRoute();
-                }
-                catch (Exception ex)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        LoggerHelper.Instance.Error(ex);
-                    }
-                }
-                slim.Release();
-            });
-
-            return GetLocalInfo();
-        }
-        /// <summary>
-        /// 信息有变化，刷新信息，把自己的网卡配置发给别人，顺便把别人的网卡信息带回来
-        /// </summary>
-        private void NotifyConfig()
-        {
-            TimerHelper.Async(async () =>
-            {
-                await slim.WaitAsync();
-
-                try
-                {
-                    for (int i = 0; i < 5; i++)
-                    {
-                        List<TuntapInfo> list = await GetRemoteInfo().ConfigureAwait(false);
-
-                        if (list != null)
-                        {
-                            DelRoute();
-                            foreach (var item in list)
-                            {
-                                tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
-                                item.LastTicks.Update();
-                            }
-                            var removes = tuntapInfos.Keys.Except(list.Select(c => c.MachineId)).ToList();
-                            foreach (var item in removes)
-                            {
-                                if (tuntapInfos.TryGetValue(item, out TuntapInfo tuntapInfo))
-                                {
-                                    tuntapInfo.Status = TuntapStatus.Normal;
-                                    tuntapInfo.LastTicks.Clear();
-                                }
-                            }
-                            Version.Add();
-                            AddRoute();
-                            break;
-                        }
-                        await Task.Delay(1000);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        LoggerHelper.Instance.Error(ex);
-                    }
-                }
-                slim.Release();
-            });
-        }
-        /// <summary>
-        /// 获取自己的网卡信息
-        /// </summary>
-        /// <returns></returns>
-        private TuntapInfo GetLocalInfo()
-        {
-            TuntapInfo info = new TuntapInfo
-            {
-                IP = runningConfig.Data.Tuntap.IP,
-                Lans = runningConfig.Data.Tuntap.Lans.Where(c => c.Disabled == false && c.IP.Equals(IPAddress.Any) == false).Select(c => { c.Exists = false;return c; }).ToList(),
-                PrefixLength = runningConfig.Data.Tuntap.PrefixLength,
-                MachineId = config.Data.Client.Id,
-                Status = tuntapTransfer.Status,
-                SetupError = tuntapTransfer.SetupError,
-                NatError = tuntapTransfer.NatError,
-                SystemInfo = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} {(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")) == false ? "Docker" : "")}",
-
-                Forwards = runningConfig.Data.Tuntap.Forwards,
-                Switch = runningConfig.Data.Tuntap.Switch
-            };
-            return info;
-        }
-        /// <summary>
-        /// 获取别人的网卡信息
-        /// </summary>
-        /// <returns></returns>
-        private async Task<List<TuntapInfo>> GetRemoteInfo()
-        {
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            {
-                LoggerHelper.Instance.Debug($"tuntap sync");
-            }
-
-            TuntapInfo info = GetLocalInfo();
-            tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
-            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
-            {
-                Connection = clientSignInState.Connection,
-                MessengerId = (ushort)TuntapMessengerIds.ConfigForward,
-                Payload = MemoryPackSerializer.Serialize(info),
-                Timeout = 3000
-            }).ConfigureAwait(false);
-            if (resp.Code != MessageResponeCodes.OK)
-            {
-                return null;
-            }
-
-            List<TuntapInfo> infos = MemoryPackSerializer.Deserialize<List<TuntapInfo>>(resp.Data.Span);
-            infos.Add(info);
-            return infos;
+            DataVersion.Add();
         }
 
         // <summary>
@@ -377,8 +346,9 @@ namespace linker.plugins.tuntap.client
 
                 .Select(c =>
                 {
-                    Console.WriteLine($"{c.MachineId}->{config.Data.Client.Id}");
-                    foreach (var lan in c.Lans)
+                    var lans = c.Lans.Where(c => c.Disabled == false && c.IP.Equals(IPAddress.Any) == false);
+
+                    foreach (var lan in lans)
                     {
                         uint ipInt = NetworkHelper.IP2Value(lan.IP);
                         uint maskValue = NetworkHelper.PrefixLength2Value(lan.PrefixLength);
@@ -389,7 +359,7 @@ namespace linker.plugins.tuntap.client
                     return new TuntapVeaLanIPAddressList
                     {
                         MachineId = c.MachineId,
-                        IPS = ParseIPs(c.Lans.Where(c => c.Disabled == false && c.Exists == false).ToList(), c.MachineId)
+                        IPS = ParseIPs(lans.Where(c => c.Disabled == false && c.Exists == false).ToList(), c.MachineId)
                         .Where(c => excludeIps.Select(d => d & c.MaskValue).Contains(c.NetWork) == false).ToList(),
                     };
                 }).ToList();
@@ -418,6 +388,7 @@ namespace linker.plugins.tuntap.client
                 MachineId = machineid
             };
         }
+
 
     }
 }

@@ -15,12 +15,16 @@ namespace linker.plugins.socks5
         private Socket socket;
         public IPEndPoint LocalEndpoint { get; private set; }
 
+        public bool Running {  get; private set; }
+        public string Error {  get; private set; }
+
         /// <summary>
         /// 监听一个端口
         /// </summary>
         /// <param name="port"></param>
         private void StartTcp(IPEndPoint ep, byte bufferSize)
         {
+            Error = string.Empty;
             IPEndPoint _localEndPoint = ep;
             socket = new Socket(_localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.IPv6Only(_localEndPoint.AddressFamily, false);
@@ -41,8 +45,10 @@ namespace linker.plugins.socks5
             }
             catch (Exception ex)
             {
+                Error = ex.Message;
                 LoggerHelper.Instance.Error(ex);
             }
+            Running = true;
         }
         /// <summary>
         /// 接收连接
@@ -63,6 +69,7 @@ namespace linker.plugins.socks5
                 LoggerHelper.Instance.Error(ex);
                 token.Clear();
             }
+            Running = false;
 
         }
         private void ProcessAccept(AsyncUserToken acceptToken, Socket socket)

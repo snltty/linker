@@ -95,15 +95,6 @@ namespace linker.plugins.tunnel.messenger
             tunnelConfigTransfer.OnLocalRouteLevel(tunnelTransportFileConfigInfo);
         }
 
-        [MessengerId((ushort)TunnelMessengerIds.Config)]
-        public void Config(IConnection connection)
-        {
-            TunnelTransportRouteLevelInfo tunnelTransportFileConfigInfo = MemoryPackSerializer.Deserialize<TunnelTransportRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            TunnelTransportRouteLevelInfo result = tunnelConfigTransfer.OnRemoteRouteLevel(tunnelTransportFileConfigInfo);
-            connection.Write(MemoryPackSerializer.Serialize(result));
-        }
-
-
     }
 
     public sealed class TunnelServerMessenger : IMessenger
@@ -217,40 +208,6 @@ namespace linker.plugins.tunnel.messenger
                 }).ConfigureAwait(false);
             }
 
-        }
-
-        [MessengerId((ushort)TunnelMessengerIds.ConfigForward)]
-        public void ConfigForward(IConnection connection)
-        {
-            TunnelTransportRouteLevelInfo tunnelTransportRouteLevelInfo = MemoryPackSerializer.Deserialize<TunnelTransportRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
-            {
-                uint requestid = connection.ReceiveRequestWrap.RequestId;
-
-                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
-                List<Task<MessageResponeInfo>> tasks = new List<Task<MessageResponeInfo>>();
-                foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected))
-                {
-                    tasks.Add(messengerSender.SendReply(new MessageRequestWrap
-                    {
-                        Connection = item.Connection,
-                        MessengerId = (ushort)TunnelMessengerIds.Config,
-                        Timeout = 3000,
-                        Payload = connection.ReceiveRequestWrap.Payload
-                    }));
-                }
-
-                Task.WhenAll(tasks).ContinueWith(async (result) =>
-                {
-                    List<TunnelTransportRouteLevelInfo> results = tasks.Where(c => c.Result.Code == MessageResponeCodes.OK).Select(c => MemoryPackSerializer.Deserialize<TunnelTransportRouteLevelInfo>(c.Result.Data.Span)).ToList();
-                    await messengerSender.ReplyOnly(new MessageResponseWrap
-                    {
-                        Connection = connection,
-                        Payload = MemoryPackSerializer.Serialize(results),
-                        RequestId = requestid,
-                    }, (ushort)TunnelMessengerIds.ConfigForward).ConfigureAwait(false);
-                });
-            }
         }
 
     }

@@ -11,9 +11,6 @@
         Update = 2204,
         UpdateForward = 2205,
 
-        Config = 2206,
-        ConfigForward = 2207,
-
 
         LeaseAddNetwork = 2208,
         LeaseGetNetwork = 2209,

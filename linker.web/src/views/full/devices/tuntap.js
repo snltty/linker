@@ -1,11 +1,8 @@
-import { injectGlobalData } from "@/provide";
-import { ElMessage } from "element-plus";
 import { inject, provide, ref } from "vue"
 import { getTuntapInfo, refreshTuntap, subscribePing } from "@/apis/tuntap";
 
 const tuntapSymbol = Symbol();
 export const provideTuntap = () => {
-    const globalData = injectGlobalData();
     const tuntap = ref({
         timer: 0,
         showEdit: false,

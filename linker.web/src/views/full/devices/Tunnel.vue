@@ -19,7 +19,7 @@
 </template>
 <script>
 import { useTunnel } from './tunnel';
-import { useConnections,useForwardConnections,useTuntapConnections } from './connections';
+import { useConnections,useForwardConnections,useSocks5Connections,useTuntapConnections } from './connections';
 import { injectGlobalData } from '@/provide';
 import { computed } from 'vue';
 
@@ -36,11 +36,13 @@ export default {
         const connections = useConnections();
         const forwardConnections = useForwardConnections();
         const tuntapConnections = useTuntapConnections();
+        const socks5Connections = useSocks5Connections();
 
         const connectionCount = (machineId)=>{
                 return [
                     forwardConnections.value.list[machineId],
                     tuntapConnections.value.list[machineId],
+                    socks5Connections.value.list[machineId],
                 ].filter(c=>!!c && c.Connected).length;
         };
        

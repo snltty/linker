@@ -16,9 +16,6 @@
         Success = 2007,
         SuccessForward = 2008,
 
-        Config = 2009,
-        ConfigForward = 2010,
-
         RouteLevel = 2011,
         RouteLevelForward = 2012,
 

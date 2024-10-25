@@ -55,18 +55,6 @@ namespace linker.plugins.tuntap.messenger
         }
 
         /// <summary>
-        /// 收到别人的网卡信息
-        /// </summary>
-        /// <param name="connection"></param>
-        [MessengerId((ushort)TuntapMessengerIds.Config)]
-        public void Config(IConnection connection)
-        {
-            TuntapInfo info = MemoryPackSerializer.Deserialize<TuntapInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            TuntapInfo _info = tuntapConfigTransfer.OnConfig(info);
-            connection.Write(MemoryPackSerializer.Serialize(_info));
-        }
-
-        /// <summary>
         /// 重新租赁
         /// </summary>
         /// <param name="connection"></param>
@@ -153,48 +141,6 @@ namespace linker.plugins.tuntap.messenger
                 }).ConfigureAwait(false);
             }
         }
-
-        /// <summary>
-        /// 广播网卡信息命令，把自己的发给所有人，然后拿回所有人的信息
-        /// </summary>
-        /// <param name="connection"></param>
-        [MessengerId((ushort)TuntapMessengerIds.ConfigForward)]
-        public void ConfigForward(IConnection connection)
-        {
-            TuntapInfo tuntapInfo = MemoryPackSerializer.Deserialize<TuntapInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
-            {
-                uint requiestid = connection.ReceiveRequestWrap.RequestId;
-
-                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
-                List<Task<MessageResponeInfo>> tasks = new List<Task<MessageResponeInfo>>();
-                foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected))
-                {
-                    tasks.Add(messengerSender.SendReply(new MessageRequestWrap
-                    {
-                        Connection = item.Connection,
-                        MessengerId = (ushort)TuntapMessengerIds.Config,
-                        Payload = connection.ReceiveRequestWrap.Payload,
-                        Timeout = 1000,
-                    }));
-                }
-
-                Task.WhenAll(tasks).ContinueWith(async (result) =>
-                {
-                    List<TuntapInfo> results = tasks.Where(c => c.Result.Code == MessageResponeCodes.OK)
-                    .Select(c => MemoryPackSerializer.Deserialize<TuntapInfo>(c.Result.Data.Span)).ToList();
-
-                    await messengerSender.ReplyOnly(new MessageResponseWrap
-                    {
-                        RequestId = requiestid,
-                        Connection = connection,
-                        Payload = MemoryPackSerializer.Serialize(results)
-                    }, (ushort)TuntapMessengerIds.ConfigForward).ConfigureAwait(false);
-
-                });
-            }
-        }
-
 
         /// <summary>
         /// 添加网络配置
