@@ -1,13 +1,12 @@
 <template>
-  <el-dialog v-model="state.show" @open="handleOnShowList" append-to=".app-wrap" :title="`端口转发到【${state.machineName}】`" top="1vh" width="700">
+  <el-dialog v-model="state.show" @open="handleOnShowList" append-to=".app-wrap" :title="`【${state.machineName}】的端口转发`" top="1vh" width="780">
         <div>
             <div class="t-c head">
                 <el-button type="success" size="small" @click="handleAdd">添加</el-button>
                 <el-button size="small" @click="handleRefresh">刷新</el-button>
-                <el-button size="small" @click="handleCopy">复制转发配置</el-button>
             </div>
             <el-table :data="state.data" size="small" border height="500" @cell-dblclick="handleCellClick">
-                <el-table-column property="Name" label="名称">
+                <el-table-column property="Name" label="名称" width="100">
                     <template #default="scope">
                         <template v-if="scope.row.NameEditing && scope.row.Started==false">
                             <el-input autofocus size="small" v-model="scope.row.Name"
@@ -18,18 +17,28 @@
                         </template>
                     </template>
                 </el-table-column>
-                <el-table-column prop="BufferSize" label="缓冲区" width="100">
+                <el-table-column prop="BufferSize" label="缓冲区" width="80">
                     <template #default="scope">
-                        <el-select v-model="scope.row.BufferSize" placeholder="Select" size="small" :disabled="scope.row.Started" @change="handleEditBlur(scope.row, 'BufferSize')">
-                            <el-option v-for="(item,index) in state.bufferSize" :key="index" :label="item" :value="index"/>
-                        </el-select>
+                        <template v-if="scope.row.BufferSizeEditing && scope.row.Started==false">
+                            <el-select v-model="scope.row.BufferSize" placeholder="Select" size="small" :disabled="scope.row.Started" @change="handleEditBlur(scope.row, 'BufferSize')">
+                                <el-option v-for="(item,index) in state.bufferSize" :key="index" :label="item" :value="index"/>
+                            </el-select>
+                        </template>
+                        <template v-else>
+                            {{ state.bufferSize[scope.row.BufferSize ]}}
+                        </template>
                     </template>
                 </el-table-column>
                 <el-table-column property="BindIPAddress" label="监听IP" width="140">
                     <template #default="scope">
-                        <el-select v-model="scope.row.BindIPAddress" size="small" :disabled="scope.row.Started">
-                            <el-option v-for="item in state.ips" :key="item" :label="item" :value="item"/>
-                        </el-select>
+                        <template v-if="scope.row.BindIPAddressEditing && scope.row.Started==false">
+                            <el-select v-model="scope.row.BindIPAddress" size="small" :disabled="scope.row.Started" @change="handleEditBlur(scope.row, 'BindIPAddress')">
+                                <el-option v-for="item in state.ips" :key="item" :label="item" :value="item"/>
+                            </el-select>
+                        </template>
+                        <template v-else>
+                            {{ scope.row.BindIPAddress}}
+                        </template>
                     </template>
                 </el-table-column>
                 <el-table-column property="Port" label="监听端口" width="80">
@@ -48,6 +57,32 @@
                             <template v-else>
                                 <span :class="{green:scope.row.Started}">{{ scope.row.Port }}</span>
                             </template>
+                        </template>
+                    </template>
+                </el-table-column>
+                <el-table-column property="MachineId" label="目标">
+                    <template #default="scope">
+                        <template v-if="scope.row.MachineIdEditing && scope.row.Started==false">
+
+                            <el-select v-model="scope.row.MachineId" @change="handleEditBlur(scope.row, 'MachineId')" 
+                            filterable remote :loading="state.loading" :remote-method="handleSearch">
+                                <template #header>
+                                    <div class="t-c">
+                                        <div class="page-wrap">
+                                            <el-pagination small background layout="prev, pager, next" 
+                                            :page-size="state.machineIds.Request.Size" 
+                                            :total="state.machineIds.Count" 
+                                            :pager-count="5"
+                                            :current-page="state.machineIds.Request.Page" @current-change="handlePageChange" />
+                                        </div>
+                                    </div>
+                                </template>
+                                <el-option v-for="(item, index) in state.machineIds.List" :key="index" :label="item.MachineName" :value="item.MachineId">
+                                </el-option>
+                            </el-select>
+                        </template>
+                        <template v-else>
+                            {{ scope.row.MachineName}}
                         </template>
                     </template>
                 </el-table-column>
@@ -91,12 +126,13 @@
     </el-dialog>
 </template>
 <script>
-import {  onMounted, onUnmounted, reactive, watch } from 'vue';
-import { getForwardInfo, removeForwardInfo, addForwardInfo ,getForwardIpv4,testTargetForwardInfo } from '@/apis/forward'
+import {  onMounted,reactive, watch } from 'vue';
+import { getForwardInfo, removeForwardInfo, addForwardInfo ,getForwardIpv4 } from '@/apis/forward'
 import { ElMessage } from 'element-plus';
 import {WarnTriangleFilled,Delete} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
 import { useForward } from './forward';
+import { getSignInIds } from '@/apis/signin';
 export default {
     props: ['data','modelValue'],
     emits: ['update:modelValue'],
@@ -107,13 +143,19 @@ export default {
         const forward = useForward();
         const state = reactive({
             show: true,
-            machineId: forward.value.current,
+            machineId: forward.value.machineId,
             machineName: forward.value.machineName,
             data: [],
             ips:[],
-            timerTestTarget:0,
-            timerTestListen:0,
             bufferSize:globalData.value.bufferSize,
+            loading:false,
+            machineIds:{
+                Request: {
+                    Page: 1, Size:10, Name: ''
+                },
+                Count: 0,
+                List: []
+            },
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -130,27 +172,36 @@ export default {
                 state.ips = res;
             }).catch(()=>{});
         }
-
-        const _testTargetForwardInfo = ()=>{
-            testTargetForwardInfo(forward.value.current).then((res)=>{
-               state.timerTestTarget = setTimeout(_testTargetForwardInfo,1000);
-            }).catch(()=>{
-                state.timerTestTarget = setTimeout(_testTargetForwardInfo,1000);
-            });
-        }
-        
-
         const _getForwardInfo = () => {
-            getForwardInfo().then((res) => {
-                if( res.List)
-                {
-                    state.data = res.List[state.machineId] || [];
-                }
+            getForwardInfo(state.machineId).then((res) => {
+                state.data = res;
             }).catch(() => {
             });
         }
+
+        const handleSearch = (name)=>{
+            state.machineIds.Request.Name = name;
+            _getMachineIds();
+        }
+        const _getMachineIds = ()=>{
+            state.loading = true;
+            getSignInIds(state.machineIds.Request).then((res)=>{
+                state.loading = false;
+                state.machineIds.Request = res.Request;
+                state.machineIds.Count = res.Count;
+                state.machineIds.List = res.List;
+            }).catch((e)=>{
+                state.loading = false;
+            });
+        }
+        const handlePageChange = (page)=>{
+            state.machineIds.Request.Page = page;
+            _getMachineIds();
+        }
+
         const handleOnShowList = () => {
             _getForwardInfo();
+            _getMachineIds();
         }
 
         const handleCellClick = (row, column) => {
@@ -162,7 +213,7 @@ export default {
             ElMessage.success('已刷新')
         }
         const handleAdd = () => {
-            saveRow({ ID: 0, Name: '', Port: 0, TargetEP: '127.0.0.1:80', machineId: state.machineId });
+            saveRow({ ID: 0, Name: '', Port: 0, TargetEP: '127.0.0.1:80', machineId: '' });
         }
         const handleEdit = (row, p) => {
             if(row.Started){
@@ -174,6 +225,9 @@ export default {
                 c[`PortEditing`] = false;
                 c[`TargetEPEditing`] = false;
                 c[`BindIPAddressEditing`] = false;
+                c[`BufferSizeEditing`] = false;
+                c[`MachineIdEditing`] = false;
+                
             })
             row[`${p}Editing`] = true;
         }
@@ -183,10 +237,16 @@ export default {
                 return;
             }
             row[`${p}Editing`] = false;
+
+            const machine = state.machineIds.List.find(c=>c.MachineId == row.MachineId);
+            if(machine){
+                row.MachineName = machine.MachineName;
+            }
+
             saveRow(row);
         }
         const handleDel = (id) => {
-            removeForwardInfo(id).then(() => {
+            removeForwardInfo({machineId:state.machineId, Id: id }).then(() => {
                 _getForwardInfo();
             })
         }
@@ -195,30 +255,21 @@ export default {
         }
         const saveRow = (row) => {
             row.Port = parseInt(row.Port);
-            addForwardInfo(row).then(() => {
+            addForwardInfo({machineId:state.machineId,data:row}).then(() => {
                 _getForwardInfo();
             }).catch((err) => {
                 ElMessage.error(err);
             });
         }
 
-        const handleCopy = ()=>{
-            forward.value.showCopy = true;
-        }
-
         onMounted(()=>{
             _getForwardInfo();
             _getForwardIpv4();
-            _testTargetForwardInfo();
-            
-        });
-        onUnmounted(()=>{
-            clearTimeout(state.timerTestTarget);
-            clearTimeout(state.timerTestListen);
         });
 
         return {
-            state, handleOnShowList, handleCellClick, handleRefresh, handleAdd, handleEdit, handleEditBlur, handleDel, handleStartChange,handleCopy
+            state, handleOnShowList, handleCellClick, handleRefresh, handleAdd, handleEdit, handleEditBlur, handleDel, handleStartChange,
+            handleSearch,handlePageChange
         }
     }
 }

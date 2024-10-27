@@ -21,15 +21,16 @@ namespace linker.plugins.forward
         private readonly ForwardProxy forwardProxy;
         private readonly IMessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
+        private readonly FileConfig config;
 
 
-
-        public ForwardClientApiController(ForwardTransfer forwardTransfer, ForwardProxy forwardProxy, IMessengerSender messengerSender, ClientSignInState clientSignInState)
+        public ForwardClientApiController(ForwardTransfer forwardTransfer, ForwardProxy forwardProxy, IMessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config)
         {
             this.forwardTransfer = forwardTransfer;
             this.forwardProxy = forwardProxy;
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
+            this.config = config;
         }
 
         public ConnectionListInfo Connections(ApiControllerParamsInfo param)
@@ -52,74 +53,102 @@ namespace linker.plugins.forward
             forwardProxy.RemoveConnection(param.Content);
         }
 
-        public void TestTarget(ApiControllerParamsInfo param)
+        public IPAddress[] BindIPs(ApiControllerParamsInfo param)
         {
-            if (string.IsNullOrWhiteSpace(param.Content))
-            {
-                forwardTransfer.TestTarget();
-            }
-            else
-            {
-                forwardTransfer.TestTarget(param.Content);
-            }
-
+            return NetworkHelper.GetIPV4();
         }
 
-        public ForwardListInfo Get(ApiControllerParamsInfo param)
+        public ForwardListInfo GetCount(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);
             if (forwardTransfer.Version.Eq(hashCode, out ulong version) == false)
             {
                 return new ForwardListInfo
                 {
-                    List = forwardTransfer.Get(),
+                    List = forwardTransfer.GetCount(),
                     HashCode = version
                 };
             }
             return new ForwardListInfo { HashCode = version };
         }
-        public async Task<List<ForwardRemoteInfo>> GetRemote(ApiControllerParamsInfo param)
+
+        /// <summary>
+        /// 获取列表
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public async Task<List<ForwardInfo>> Get(ApiControllerParamsInfo param)
         {
-            GetForwardInfo request = param.Content.DeJson<GetForwardInfo>();
-            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            if (param.Content == config.Data.Client.Id)
+            {
+                if (config.Data.Client.HasAccess(ClientApiAccess.ForwardShowSelf) == false) return new List<ForwardInfo>();
+                return forwardTransfer.Get();
+            }
+            if (config.Data.Client.HasAccess(ClientApiAccess.ForwardShowOther) == false) return new List<ForwardInfo>();
+
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)ForwardMessengerIds.GetForward,
-                Payload = MemoryPackSerializer.Serialize(request)
-            }).ConfigureAwait(false);
+                Payload = MemoryPackSerializer.Serialize(param.Content)
+            });
             if (resp.Code == MessageResponeCodes.OK)
             {
-                return MemoryPackSerializer.Deserialize<List<ForwardRemoteInfo>>(resp.Data.Span);
+                return MemoryPackSerializer.Deserialize<List<ForwardInfo>>(resp.Data.Span);
             }
-            return new List<ForwardRemoteInfo>();
+            return new List<ForwardInfo>();
         }
 
-        public IPAddress[] BindIPs(ApiControllerParamsInfo param)
+        /// <summary>
+        /// 添加
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public async Task<bool> Add(ApiControllerParamsInfo param)
         {
-            return NetworkHelper.GetIPV4();
-        }
-
-        [ClientApiAccessAttribute(ClientApiAccess.ForwardSelf)]
-        public bool Add(ApiControllerParamsInfo param)
-        {
-            ForwardInfo info = param.Content.DeJson<ForwardInfo>();
-            return forwardTransfer.Add(info);
-        }
-
-        [ClientApiAccessAttribute(ClientApiAccess.ForwardSelf)]
-        public bool Remove(ApiControllerParamsInfo param)
-        {
-            if (uint.TryParse(param.Content, out uint id))
+            ForwardAddForwardInfo info = param.Content.DeJson<ForwardAddForwardInfo>();
+            if (info.MachineId == config.Data.Client.Id)
             {
-                return forwardTransfer.Remove(id);
+                if (config.Data.Client.HasAccess(ClientApiAccess.ForwardSelf) == false) return false;
+                return forwardTransfer.Add(info.Data);
             }
-            return false;
+            if (config.Data.Client.HasAccess(ClientApiAccess.ForwardOther) == false) return false;
+
+            return await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)ForwardMessengerIds.AddClientForward,
+                Payload = MemoryPackSerializer.Serialize(info)
+            });
+        }
+
+        /// <summary>
+        /// 删除
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public async Task<bool> Remove(ApiControllerParamsInfo param)
+        {
+            ForwardRemoveForwardInfo info = param.Content.DeJson<ForwardRemoveForwardInfo>();
+            if (info.MachineId == config.Data.Client.Id)
+            {
+                if (config.Data.Client.HasAccess(ClientApiAccess.ForwardSelf) == false) return false;
+                return forwardTransfer.Remove(info.Id);
+            }
+
+            if (config.Data.Client.HasAccess(ClientApiAccess.ForwardOther) == false) return false;
+            return await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)ForwardMessengerIds.RemoveClientForward,
+                Payload = MemoryPackSerializer.Serialize(info)
+            });
         }
     }
 
     public sealed class ForwardListInfo
     {
-        public Dictionary<string, List<ForwardInfo>> List { get; set; }
+        public ConcurrentDictionary<string, int> List { get; set; }
         public ulong HashCode { get; set; }
     }
     public sealed class ConnectionListInfo

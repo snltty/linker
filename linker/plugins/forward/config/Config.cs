@@ -16,7 +16,8 @@ namespace linker.client.config
     /// <summary>
     /// 端口转发配置
     /// </summary>
-    public sealed class ForwardInfo
+    [MemoryPackable]
+    public sealed partial class ForwardInfo
     {
         public ForwardInfo() { }
         public uint Id { get; set; }
@@ -28,9 +29,11 @@ namespace linker.client.config
         /// 目标设备
         /// </summary>
         public string MachineId { get; set; }
+        public string MachineName { get; set; }
         /// <summary>
         /// 本地绑定IP
         /// </summary>
+        [MemoryPackAllowSerialize]
         public IPAddress BindIPAddress { get; set; } = IPAddress.Any;
         /// <summary>
         /// 本地监听端口
@@ -39,6 +42,7 @@ namespace linker.client.config
         /// <summary>
         /// 目标设备服务
         /// </summary>
+        [MemoryPackAllowSerialize]
         public IPEndPoint TargetEP { get; set; }
         /// <summary>
         /// 已启动
@@ -58,24 +62,8 @@ namespace linker.client.config
         /// </summary>
         public string TargetMsg { get; set; }
 
-        [JsonIgnore, BsonIgnore]
+        [JsonIgnore, BsonIgnore,MemoryPackIgnore]
         public bool Proxy { get; set; }
 
-    }
-
-    [MemoryPackable]
-    public sealed partial class ForwardTestInfo
-    {
-        public string MachineId { get; set; }
-
-        [MemoryPackAllowSerialize]
-        public List<IPEndPoint> EndPoints { get; set; }
-    }
-
-    [MemoryPackable]
-    public sealed partial class GetForwardInfo
-    {
-        public string MachineId { get; set; }
-        public string ToMachineId { get; set; }
     }
 }

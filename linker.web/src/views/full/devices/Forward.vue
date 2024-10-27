@@ -1,21 +1,31 @@
 <template>
     <el-table-column prop="forward" label="转发/穿透">
         <template #default="scope">
-            <template v-if="scope.row.isSelf && (hasForwardShowSelf || hasForwardSelf)">
-                <div>
-                    <a href="javascript:;" title="管理自己的端口转发" @click="handleEdit(scope.row.MachineId)">端口转发</a>
-                </div>
-                <div>
-                    <a href="javascript:;" title="管理自己的内网穿透" @click="handleEdit(scope.row.MachineId)">内网穿透</a>
-                </div>
-            </template>
-            <template v-else-if="hasForwardShowOther || hasForwardOther">
-                <div>
-                    <a href="javascript:;" title="管理自己的端口转发" @click="handleEdit(scope.row.MachineId)">端口转发</a>
-                </div>
-                <div>
-                    <a href="javascript:;" title="管理自己的内网穿透" @click="handleEdit(scope.row.MachineId)">内网穿透</a>
-                </div>
+            <template v-if="scope.row.Connected">
+                <template v-if="scope.row.isSelf && (hasForwardShowSelf || hasForwardSelf)">
+                    <div>
+                        <a href="javascript:;" title="管理自己的端口转发" @click="handleEdit(scope.row.MachineId,scope.row.MachineName)">
+                            端口转发({{forward.list[scope.row.MachineId]>99 ? '99+' : forward.list[scope.row.MachineId]}})
+                        </a>
+                    </div>
+                    <div>
+                        <a href="javascript:;" title="管理自己的内网穿透" @click="handleSEdit(scope.row.MachineId,scope.row.MachineName)">
+                            内网穿透({{sforward.list[scope.row.MachineId]>99 ? '99+' : sforward.list[scope.row.MachineId]}})
+                        </a>
+                    </div>
+                </template>
+                <template v-else-if="hasForwardShowOther || hasForwardOther">
+                    <div>
+                        <a href="javascript:;" title="管理自己的端口转发" @click="handleEdit(scope.row.MachineId,scope.row.MachineName)">
+                            端口转发({{forward.list[scope.row.MachineId]>99 ? '99+' : forward.list[scope.row.MachineId]}})
+                        </a>
+                    </div>
+                    <div>
+                        <a href="javascript:;" title="管理自己的内网穿透" @click="handleSEdit(scope.row.MachineId,scope.row.MachineName)">
+                            内网穿透({{sforward.list[scope.row.MachineId]>99 ? '99+' : sforward.list[scope.row.MachineId]}})
+                        </a>
+                    </div>
+                </template>
             </template>
         </template>
     </el-table-column>
@@ -39,7 +49,7 @@ export default {
         const hasForwardSelf = computed(()=>globalData.value.hasAccess('ForwardSelf')); 
         const hasForwardOther = computed(()=>globalData.value.hasAccess('ForwardOther')); 
 
-        const handleEdit = (_machineId)=>{
+        const handleEdit = (_machineId,_machineName)=>{
             if(machineId.value === _machineId){
                 if(!hasForwardSelf.value){
                     return;
@@ -49,13 +59,19 @@ export default {
                     return;
                 }
             }
-            emit('edit',_machineId)
+            emit('edit',[_machineId,_machineName])
         }
-        const handleSEdit = ()=>{
-            if(!hasForwardSelf.value){
-                return;
+        const handleSEdit = (_machineId,_machineName)=>{
+            if(machineId.value === _machineId){
+                if(!hasForwardSelf.value){
+                    return;
+                }
+            }else{
+                if(!hasForwardOther.value){
+                    return;
+                }
             }
-            emit('sedit')
+            emit('sedit',[_machineId,_machineName])
         }
         const handleForwardRefresh = ()=>{
             emit('refresh');

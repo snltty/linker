@@ -7,6 +7,7 @@ using linker.plugins.client;
 using linker.plugins.capi;
 using linker.plugins.messenger;
 using linker.config;
+using System.Collections.Concurrent;
 
 namespace linker.plugins.sforward
 {
@@ -15,12 +16,14 @@ namespace linker.plugins.sforward
         private readonly SForwardTransfer forwardTransfer;
         private readonly IMessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
+        private readonly FileConfig config;
 
-        public SForwardClientApiController(SForwardTransfer forwardTransfer, IMessengerSender messengerSender, ClientSignInState clientSignInState)
+        public SForwardClientApiController(SForwardTransfer forwardTransfer, IMessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config)
         {
             this.forwardTransfer = forwardTransfer;
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
+            this.config = config;
         }
 
         /// <summary>
@@ -42,42 +45,51 @@ namespace linker.plugins.sforward
             forwardTransfer.SetSecretKey(param.Content);
         }
 
+
         /// <summary>
-        /// 获取本机的穿透列表
+        /// 获取数量
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public SForwardListInfo Get(ApiControllerParamsInfo param)
+        public SForwardListInfo GetCount(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);
             if (forwardTransfer.Version.Eq(hashCode, out ulong version) == false)
             {
                 return new SForwardListInfo
                 {
-                    List = forwardTransfer.Get(),
+                    List = forwardTransfer.GetCount(),
                     HashCode = version
                 };
             }
             return new SForwardListInfo { HashCode = version };
         }
+
         /// <summary>
-        /// 获取别的客户端穿透列表
+        /// 获取穿透列表
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public async Task<List<SForwardRemoteInfo>> GetRemote(ApiControllerParamsInfo param)
+        public async Task<List<SForwardInfo>> Get(ApiControllerParamsInfo param)
         {
-            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            if (param.Content == config.Data.Client.Id)
+            {
+                if (config.Data.Client.HasAccess(ClientApiAccess.ForwardShowSelf) == false) return new List<SForwardInfo>();
+                return forwardTransfer.Get();
+            }
+            if (config.Data.Client.HasAccess(ClientApiAccess.ForwardShowOther) == false) return new List<SForwardInfo>();
+
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)SForwardMessengerIds.GetForward,
                 Payload = MemoryPackSerializer.Serialize(param.Content)
-            }).ConfigureAwait(false);
+            });
             if (resp.Code == MessageResponeCodes.OK)
             {
-                return MemoryPackSerializer.Deserialize<List<SForwardRemoteInfo>>(resp.Data.Span);
+                return MemoryPackSerializer.Deserialize<List<SForwardInfo>>(resp.Data.Span);
             }
-            return new List<SForwardRemoteInfo>();
+            return new List<SForwardInfo>();
         }
 
         /// <summary>
@@ -85,11 +97,22 @@ namespace linker.plugins.sforward
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        [ClientApiAccessAttribute(ClientApiAccess.Config)]
-        public bool Add(ApiControllerParamsInfo param)
+        public async Task<bool> Add(ApiControllerParamsInfo param)
         {
-            SForwardInfo info = param.Content.DeJson<SForwardInfo>();
-            return forwardTransfer.Add(info);
+            SForwardAddForwardInfo info = param.Content.DeJson<SForwardAddForwardInfo>();
+            if (info.MachineId == config.Data.Client.Id)
+            {
+                if (config.Data.Client.HasAccess(ClientApiAccess.ForwardSelf) == false) return false;
+                return forwardTransfer.Add(info.Data);
+            }
+            if (config.Data.Client.HasAccess(ClientApiAccess.ForwardOther) == false) return false;
+
+            return await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)SForwardMessengerIds.AddClientForward,
+                Payload = MemoryPackSerializer.Serialize(info)
+            });
         }
 
         /// <summary>
@@ -97,24 +120,42 @@ namespace linker.plugins.sforward
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        [ClientApiAccessAttribute(ClientApiAccess.Config)]
-        public bool Remove(ApiControllerParamsInfo param)
+        public async Task<bool> Remove(ApiControllerParamsInfo param)
         {
-            if (uint.TryParse(param.Content, out uint id))
+            SForwardRemoveForwardInfo info = param.Content.DeJson<SForwardRemoveForwardInfo>();
+            if (info.MachineId == config.Data.Client.Id)
             {
-                return forwardTransfer.Remove(id);
+                if (config.Data.Client.HasAccess(ClientApiAccess.ForwardSelf) == false) return false;
+                return forwardTransfer.Remove(info.Id);
             }
-            return false;
+
+            if (config.Data.Client.HasAccess(ClientApiAccess.ForwardOther) == false) return false;
+            return await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)SForwardMessengerIds.RemoveClientForward,
+                Payload = MemoryPackSerializer.Serialize(info)
+            });
         }
 
         /// <summary>
-        /// 测试本机服务
+        /// 测试服务
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public bool TestLocal(ApiControllerParamsInfo param)
+        public async Task<bool> TestLocal(ApiControllerParamsInfo param)
         {
-            forwardTransfer.TestLocal();
+            if (param.Content == config.Data.Client.Id)
+            {
+                forwardTransfer.TestLocal();
+                return true;
+            }
+            await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)SForwardMessengerIds.TestClientForward,
+                Payload = MemoryPackSerializer.Serialize(param.Content)
+            });
             return true;
         }
 
@@ -122,7 +163,7 @@ namespace linker.plugins.sforward
 
     public sealed class SForwardListInfo
     {
-        public List<SForwardInfo> List { get; set; }
+        public ConcurrentDictionary<string,int> List { get; set; }
         public ulong HashCode { get; set; }
     }
 }

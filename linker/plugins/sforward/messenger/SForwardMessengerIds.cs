@@ -13,6 +13,13 @@
         GetForward = 2305,
         Get = 2306,
 
+        AddClient = 2307,
+        AddClientForward = 2308,
+        RemoveClient = 2309,
+        RemoveClientForward = 2310,
+        TestClient = 2311,
+        TestClientForward = 2312,
+
         Max = 2399
     }
 }

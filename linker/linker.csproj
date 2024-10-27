@@ -26,7 +26,8 @@
 3. 新增socks5代理
 4. 优化端口转发和内网穿透配置
 5. 优化网卡的一些东西
-6. 测试中，测试中，测试中，不要更新，用v1.4.9</Description>
+6. 统一的去中心数据同步，减少bug
+7. 测试中，测试中，测试中，不要更新，用v1.4.9</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

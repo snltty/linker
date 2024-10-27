@@ -44,7 +44,7 @@ export const provideSocks5 = () => {
     }
     const getSocks5Machines = (name) => {
         return Object.values(socks5.value.list)
-            .filter(c => c.IP.indexOf(name) >= 0 || (c.Lans.filter(d => d.IP.indexOf(name) >= 0).length > 0))
+            .filter(c => c.Port.toString().indexOf(name) >= 0 || (c.Lans.filter(d => d.IP.indexOf(name) >= 0).length > 0))
             .map(c => c.MachineId);
     }
     const sortSocks5 = (asc) => {

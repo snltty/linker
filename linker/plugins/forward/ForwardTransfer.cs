@@ -1,31 +1,34 @@
 ﻿using linker.client.config;
+using linker.config;
 using linker.libs;
-using linker.libs.extends;
 using linker.plugins.client;
-using linker.plugins.forward.messenger;
+using linker.plugins.decenter;
 using linker.plugins.forward.proxy;
 using linker.plugins.messenger;
-using linker.plugins.signin.messenger;
 using MemoryPack;
 using System.Collections.Concurrent;
-using System.Net;
-using System.Net.Sockets;
 
 namespace linker.plugins.forward
 {
-    public sealed class ForwardTransfer
+    public sealed class ForwardTransfer:IDecenter
     {
+        public string Name => "forward";
+        public VersionManager DataVersion { get; } = new VersionManager();
+
+        private readonly FileConfig fileConfig;
         private readonly RunningConfig running;
         private readonly ForwardProxy forwardProxy;
         private readonly ClientSignInState clientSignInState;
         private readonly IMessengerSender messengerSender;
 
         private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
+        private readonly ConcurrentDictionary<string, int> countDic = new ConcurrentDictionary<string, int>();
 
         public VersionManager Version { get; } = new VersionManager();
 
-        public ForwardTransfer(RunningConfig running, ForwardProxy forwardProxy, ClientSignInState clientSignInState, IMessengerSender messengerSender)
+        public ForwardTransfer(FileConfig fileConfig,RunningConfig running, ForwardProxy forwardProxy, ClientSignInState clientSignInState, IMessengerSender messengerSender)
         {
+            this.fileConfig = fileConfig;
             this.running = running;
             this.forwardProxy = forwardProxy;
             this.clientSignInState = clientSignInState;
@@ -34,11 +37,37 @@ namespace linker.plugins.forward
             clientSignInState.NetworkEnabledHandle += Reset;
         }
 
+        public Memory<byte> GetData()
+        {
+            CountInfo info = new CountInfo { MachineId = fileConfig.Data.Client.Id, Count = running.Data.SForwards.Count };
+            countDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
+            Version.Add();
+            return MemoryPackSerializer.Serialize(info);
+        }
+        public void SetData(Memory<byte> data)
+        {
+            CountInfo info = MemoryPackSerializer.Deserialize<CountInfo>(data.Span);
+            countDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
+            Version.Add();
+        }
+        public void SetData(List<ReadOnlyMemory<byte>> data)
+        {
+            List<CountInfo> list = data.Select(c => MemoryPackSerializer.Deserialize<CountInfo>(c.Span)).ToList();
+            foreach (var info in list)
+            {
+                countDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
+            }
+            Version.Add();
+        }
+        public ConcurrentDictionary<string, int> GetCount()
+        {
+            return countDic;
+        }
+
         private void Reset(int times)
         {
             TimerHelper.Async(async () =>
             {
-                await TestListen();
                 Stop();
                 await Task.Delay(5000).ConfigureAwait(false);
                 Start();
@@ -61,6 +90,7 @@ namespace linker.plugins.forward
                     Stop(item);
                 }
             }
+            DataVersion.Add();
         }
         private void Start(ForwardInfo forwardInfo)
         {
@@ -119,117 +149,9 @@ namespace linker.plugins.forward
             Version.Add();
         }
 
-
-        ConcurrentDictionary<string, bool> testingDic = new ConcurrentDictionary<string, bool>();
-        public void TestTarget()
+        public List<ForwardInfo> Get()
         {
-            foreach (var item in running.Data.Forwards.Select(c => c.MachineId).Distinct())
-            {
-                TestTarget(item);
-            }
-        }
-        public void TestTarget(string machineId)
-        {
-            if (testingDic.TryAdd(machineId, true) == false) return;
-
-            try
-            {
-                var endpoints = running.Data.Forwards.Where(c => c.MachineId == machineId).Select(c => c.TargetEP).ToList();
-                if (endpoints.Count == 0)
-                {
-                    testingDic.TryRemove(machineId, out _);
-                    return;
-                }
-
-                messengerSender.SendReply(new MessageRequestWrap
-                {
-                    Connection = clientSignInState.Connection,
-                    MessengerId = (ushort)ForwardMessengerIds.TestForward,
-                    Timeout = 2000,
-                    Payload = MemoryPackSerializer.Serialize(new ForwardTestInfo
-                    {
-                        MachineId = machineId,
-                        EndPoints = endpoints
-                    })
-                }).ContinueWith((result) =>
-                {
-                    testingDic.TryRemove(machineId, out _);
-
-                    if (result.Result.Code != MessageResponeCodes.OK) return;
-
-                    Dictionary<IPEndPoint, string> endpoints = MemoryPackSerializer.Deserialize<Dictionary<IPEndPoint, string>>(result.Result.Data.Span);
-
-                    foreach (var item in running.Data.Forwards.Where(c => c.MachineId == machineId))
-                    {
-                        if (endpoints.TryGetValue(item.TargetEP, out string msg))
-                        {
-                            item.TargetMsg = msg;
-                        }
-                        else
-                        {
-                            item.TargetMsg = string.Empty;
-                        }
-                    }
-                });
-            }
-            catch (Exception)
-            {
-                testingDic.TryRemove(machineId, out _);
-            }
-            Version.Add();
-        }
-        public async Task<Dictionary<IPEndPoint, string>> Test(ForwardTestInfo forwardTestInfo)
-        {
-            var results = forwardTestInfo.EndPoints.Select(ConnectAsync);
-            await Task.Delay(200).ConfigureAwait(false);
-            return results.Select(c => c.Result).Where(c => string.IsNullOrWhiteSpace(c.Item2) == false).ToDictionary(c => c.Item1, d => d.Item2);
-
-            async Task<(IPEndPoint, string)> ConnectAsync(IPEndPoint ep)
-            {
-                try
-                {
-                    using Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                    await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
-                    socket.SafeClose();
-                    return (ep, string.Empty);
-                }
-                catch (Exception ex)
-                {
-                    return (ep, ex.Message);
-                }
-            }
-        }
-
-
-        int testing = 0;
-        public async Task TestListen()
-        {
-            if (Interlocked.CompareExchange(ref testing, 1, 0) == 1)
-            {
-                return;
-            }
-            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
-            {
-                Connection = clientSignInState.Connection,
-                MessengerId = (ushort)SignInMessengerIds.Exists,
-                Timeout = 2000
-            });
-            Interlocked.CompareExchange(ref testing, 0, 1);
-            if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
-            {
-                List<string> machineIds = MemoryPackSerializer.Deserialize<List<string>>(resp.Data.Span);
-                foreach (ForwardInfo forward in running.Data.Forwards.Where(c => machineIds.Contains(c.MachineId) == false))
-                {
-                    running.Data.Forwards.Remove(forward);
-                    Stop(forward);
-                }
-            }
-            Version.Add();
-        }
-
-        public Dictionary<string, List<ForwardInfo>> Get()
-        {
-            return running.Data.Forwards.GroupBy(c => c.MachineId).ToDictionary((a) => a.Key, (b) => b.ToList());
+            return running.Data.Forwards;
         }
         public bool Add(ForwardInfo forwardInfo)
         {
@@ -247,6 +169,7 @@ namespace linker.plugins.forward
                 old.Name = forwardInfo.Name;
                 old.TargetEP = forwardInfo.TargetEP;
                 old.MachineId = forwardInfo.MachineId;
+                old.MachineName = forwardInfo.MachineName;
                 old.Started = forwardInfo.Started;
                 old.BufferSize = forwardInfo.BufferSize;
             }
@@ -276,5 +199,12 @@ namespace linker.plugins.forward
 
             return true;
         }
+    }
+
+    [MemoryPackable]
+    public sealed partial class CountInfo
+    {
+        public string MachineId { get; set; }
+        public int Count { get; set; }
     }
 }

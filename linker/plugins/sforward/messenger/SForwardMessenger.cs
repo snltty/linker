@@ -231,12 +231,12 @@ namespace linker.plugins.sforward.messenger
         public void GetForward(IConnection connection)
         {
             string machineId = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(machineId, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache1.GroupId == cache.GroupId)
+            if (signCaching.TryGet(machineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 sender.SendReply(new MessageRequestWrap
                 {
-                    Connection = cache.Connection,
+                    Connection = cacheTo.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.Get,
                     Payload = connection.ReceiveRequestWrap.Payload
                 }).ContinueWith(async (result) =>
@@ -251,6 +251,63 @@ namespace linker.plugins.sforward.messenger
                             RequestId = requestid
                         }, (ushort)SForwardMessengerIds.GetForward).ConfigureAwait(false);
                     }
+                });
+            }
+        }
+        /// <summary>
+        /// 添加对端的穿透记录
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)SForwardMessengerIds.AddClientForward)]
+        public async Task AddClientForward(IConnection connection)
+        {
+            SForwardAddForwardInfo info = MemoryPackSerializer.Deserialize<SForwardAddForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                await sender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cacheTo.Connection,
+                    MessengerId = (ushort)SForwardMessengerIds.AddClient,
+                    Payload = MemoryPackSerializer.Serialize(info.Data)
+                });
+            }
+        }
+        /// <summary>
+        /// 删除对端的穿透记录
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)SForwardMessengerIds.RemoveClientForward)]
+        public async Task RemoveClientForward(IConnection connection)
+        {
+            SForwardRemoveForwardInfo info = MemoryPackSerializer.Deserialize<SForwardRemoveForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                await sender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cacheTo.Connection,
+                    MessengerId = (ushort)SForwardMessengerIds.RemoveClient,
+                    Payload = MemoryPackSerializer.Serialize(info.Id)
+                });
+            }
+        }
+
+        /// <summary>
+        /// 测试对端的穿透记录
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)SForwardMessengerIds.TestClientForward)]
+        public async Task TestClientForward(IConnection connection)
+        {
+            string machineid = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(machineid, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                await sender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cacheTo.Connection,
+                    MessengerId = (ushort)SForwardMessengerIds.TestClientForward
                 });
             }
         }
@@ -342,6 +399,47 @@ namespace linker.plugins.sforward.messenger
         }
 
         /// <summary>
+        /// 别人来获取穿透记录
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)SForwardMessengerIds.Get)]
+        public void Get(IConnection connection)
+        {
+            List<SForwardInfo> result = sForwardTransfer.Get();
+            connection.Write(MemoryPackSerializer.Serialize(result));
+        }
+        /// <summary>
+        /// 添加
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)SForwardMessengerIds.AddClient)]
+        public void AddClient(IConnection connection)
+        {
+            SForwardInfo sForwardInfo = MemoryPackSerializer.Deserialize<SForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            sForwardTransfer.Add(sForwardInfo);
+        }
+        // <summary>
+        /// 删除
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)SForwardMessengerIds.RemoveClient)]
+        public void RemoveClient(IConnection connection)
+        {
+            uint id = MemoryPackSerializer.Deserialize<uint>(connection.ReceiveRequestWrap.Payload.Span);
+            sForwardTransfer.Remove(id);
+        }
+        // <summary>
+        /// 删除
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)SForwardMessengerIds.TestClient)]
+        public void TestClient(IConnection connection)
+        {
+            sForwardTransfer.TestLocal();
+        }
+
+
+        /// <summary>
         /// 收到服务器发来的连接
         /// </summary>
         /// <param name="connection"></param>
@@ -412,33 +510,19 @@ namespace linker.plugins.sforward.messenger
             return null;
         }
 
-        /// <summary>
-        /// 别人来获取穿透记录
-        /// </summary>
-        /// <param name="connection"></param>
-        [MessengerId((ushort)SForwardMessengerIds.Get)]
-        public void Get(IConnection connection)
-        {
-            List<SForwardRemoteInfo> result = sForwardTransfer.Get().Select(c => new SForwardRemoteInfo
-            {
-                Domain = c.Domain,
-                LocalEP = c.LocalEP,
-                Name = c.Name,
-                RemotePort = c.RemotePort,
-            }).ToList();
-            connection.Write(MemoryPackSerializer.Serialize(result));
-        }
     }
 
+
     [MemoryPackable]
-    public sealed partial class SForwardRemoteInfo
+    public sealed partial class SForwardAddForwardInfo
     {
-        public string Name { get; set; }
-
-        public string Domain { get; set; }
-        public int RemotePort { get; set; }
-
-        [MemoryPackAllowSerialize]
-        public IPEndPoint LocalEP { get; set; }
+        public string MachineId { get; set; }
+        public SForwardInfo Data { get; set; }
+    }
+    [MemoryPackable]
+    public sealed partial class SForwardRemoveForwardInfo
+    {
+        public string MachineId { get; set; }
+        public uint Id { get; set; }
     }
 }

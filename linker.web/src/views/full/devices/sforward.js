@@ -1,5 +1,5 @@
 
-import { getSForwardInfo, testLocalSForwardInfo } from '@/apis/sforward';
+import { getSForwardCountInfo, testLocalSForwardInfo } from '@/apis/sforward';
 import { injectGlobalData } from '@/provide';
 import { ref, provide, inject, computed } from 'vue';
 
@@ -11,48 +11,36 @@ export const provideSforward = () => {
         timer: 0,
         showEdit: false,
         showCopy: false,
-        list: [],
+        list: {},
         testTimer: 0,
         hashcode: 0,
+        machineid: '',
+        machineName: '',
     });
     provide(sforwardSymbol, sforward);
-    const _getSForwardInfo = () => {
-        getSForwardInfo(sforward.value.hashcode.toString()).then((res) => {
+
+    const _getSForwardCountInfo = () => {
+        getSForwardCountInfo(sforward.value.hashcode.toString()).then((res) => {
             sforward.value.hashcode = res.HashCode;
             if (res.List) {
                 sforward.value.list = res.List;
             }
-            sforward.value.timer = setTimeout(_getSForwardInfo, 1040);
+            sforward.value.timer = setTimeout(_getSForwardCountInfo, 1020);
         }).catch(() => {
-            sforward.value.timer = setTimeout(_getSForwardInfo, 1040);
+            sforward.value.timer = setTimeout(_getSForwardCountInfo, 1020);
         });
     }
-    const handleSForwardEdit = () => {
+    const handleSForwardEdit = (machineid) => {
+        sforward.value.machineid = machineid[0];
+        sforward.value.machineName = machineid[1];
         sforward.value.showEdit = true;
-    }
-    const _testLocalSForwardInfo = () => {
-        clearTimeout(sforward.value.testTimer)
-        testLocalSForwardInfo().then((res) => {
-            sforward.value.testTimer = setTimeout(_testLocalSForwardInfo, 5000);
-        }).catch(() => {
-            sforward.value.testTimer = setTimeout(_testLocalSForwardInfo, 5000);
-        });
     }
     const clearSForwardTimeout = () => {
         clearTimeout(sforward.value.timer);
         clearTimeout(sforward.value.testTimer);
     }
-    const getSForwardMachines = (name) => {
-        const sfs = sforward.value.list
-            .filter(c => (c.Name || '').indexOf(name) >= 0 || (c.Domain || '').indexOf(name) >= 0 || (c.RemotePort.toString()).indexOf(name) >= 0 || c.LocalEP.indexOf(name) >= 0);
-
-        if (sfs.length > 0) {
-            return [machineId.value];
-        }
-        return [];
-    }
     return {
-        sforward, _getSForwardInfo, handleSForwardEdit, _testLocalSForwardInfo, clearSForwardTimeout, getSForwardMachines
+        sforward, _getSForwardCountInfo, handleSForwardEdit, clearSForwardTimeout
     }
 
 }

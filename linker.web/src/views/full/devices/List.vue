@@ -3,9 +3,9 @@
         <el-table border style="width: 100%" height="32px" size="small" @sort-change="handleSortChange" class="table-sort">
             <el-table-column prop="MachineId" label="设备名" width="110" sortable="custom" ></el-table-column>
             <el-table-column prop="Version" label="版本" width="110" sortable="custom"></el-table-column>
-            <el-table-column prop="tunnel" label="网关" width="90" sortable="custom"></el-table-column>
+            <el-table-column prop="tunnel" label="网关" width="70" sortable="custom"></el-table-column>
             <el-table-column prop="tuntap" label="网卡IP" width="160" sortable="custom"></el-table-column>
-            <el-table-column prop="socks5" label="socks5" width="160" sortable="custom"></el-table-column>
+            <el-table-column prop="socks5" label="代理转发" width="160" sortable="custom"></el-table-column>
             <el-table-column prop="forward" label=""></el-table-column>
             <el-table-column label="" width="74" fixed="right"></el-table-column>
         </el-table>
@@ -14,7 +14,7 @@
             <Tunnel  @edit="handleTunnelEdit" @refresh="handleTunnelRefresh" @connections="handleTunnelConnections"></Tunnel>
             <Tuntap  @edit="handleTuntapEdit" @refresh="handleTuntapRefresh"></Tuntap>
             <Socks5 @edit="handleSocks5Edit" @refresh="handleSocks5Refresh"></Socks5> 
-            <Forward @edit="_handleForwardEdit" @sedit="handleSForwardEdit"></Forward> 
+            <Forward @edit="handleForwardEdit" @sedit="handleSForwardEdit"></Forward> 
             <Oper  @refresh="handlePageRefresh" @access="handleAccessEdit"></Oper>
         </el-table>
         <div class="page t-c">
@@ -32,9 +32,7 @@
         <Socks5Edit v-if="socks5.showEdit" v-model="socks5.showEdit"  @change="handleSocks5Refresh"></Socks5Edit>
         <TuntapLease v-if="tuntap.showLease" v-model="tuntap.showLease"  @change="handleTuntapRefresh"></TuntapLease>
         <ForwardEdit v-if="forward.showEdit" v-model="forward.showEdit" ></ForwardEdit>
-        <ForwardCopy v-if="forward.showCopy" v-model="forward.showCopy" ></ForwardCopy>
         <SForwardEdit v-if="sforward.showEdit" v-model="sforward.showEdit" ></SForwardEdit>
-        <SForwardCopy v-if="sforward.showCopy" v-model="sforward.showCopy" ></SForwardCopy>
     </div>
 </template>
 <script>
@@ -65,11 +63,9 @@ import { provideTunnel } from './tunnel'
 
 import Forward from './Forward.vue'
 import ForwardEdit from './ForwardEdit.vue'
-import ForwardCopy from './ForwardCopy.vue'
 import { provideForward } from './forward'
 
 import SForwardEdit from './SForwardEdit.vue'
-import SForwardCopy from './SForwardCopy.vue'
 import { provideSforward } from './sforward'
 
 import ConnectionsEdit from './ConnectionsEdit.vue'
@@ -85,8 +81,8 @@ export default {
         ConnectionsEdit,
         Tuntap,TuntapEdit,TuntapLease, 
         Socks5, Socks5Edit,
-        Forward,ForwardEdit,ForwardCopy,
-        SForwardEdit,SForwardCopy 
+        Forward,ForwardEdit,
+        SForwardEdit 
     },
     setup(props) {
 
@@ -101,8 +97,8 @@ export default {
         const {tuntap,_getTuntapInfo,handleTuntapEdit,handleTuntapRefresh,clearTuntapTimeout,getTuntapMachines,sortTuntapIP}  = provideTuntap();
         const {socks5,_getSocks5Info,handleSocks5Edit,handleSocks5Refresh,clearSocks5Timeout,getSocks5Machines,sortSocks5}  = provideSocks5();
         const {tunnel,_getTunnelInfo,handleTunnelEdit,handleTunnelRefresh,clearTunnelTimeout,sortTunnel} = provideTunnel();
-        const {forward,_getForwardInfo,handleForwardEdit,_testTargetForwardInfo,clearForwardTimeout,getForwardMachines} = provideForward();
-        const {sforward,_getSForwardInfo,handleSForwardEdit,_testLocalSForwardInfo,clearSForwardTimeout,getSForwardMachines} = provideSforward();
+        const {forward,_getForwardCountInfo,handleForwardEdit,clearForwardTimeout} = provideForward();
+        const {sforward,_getSForwardCountInfo,handleSForwardEdit,clearSForwardTimeout} = provideSforward();
         const {connections,
             forwardConnections,_getForwardConnections,
             tuntapConnections,_getTuntapConnections,
@@ -144,19 +140,12 @@ export default {
             
         }
 
-        const _handleForwardEdit = (machineId) => {
-            handleForwardEdit(machineId,devices.page.List.filter(c => c.MachineId == machineId)[0].MachineName);
-        }
-
         const handlePageRefresh = (name)=>{
             devices.page.Request.Name = name || '';
             if(devices.page.Request.Name){
                 //从虚拟网卡里查找
                 devices.page.Request.Ids = getTuntapMachines(devices.page.Request.Name)
-                //从端口转发里查找
-                .concat(getForwardMachines(devices.page.Request.Name))
-                //从服务器代理穿透里查找
-                .concat(getSForwardMachines(devices.page.Request.Name))
+                .concat(getSocks5Machines(devices.page.Request.Name))
                 .reduce((arr,id)=>{
                     if(arr.indexOf(id) == -1){
                         arr.push(id);
@@ -193,16 +182,12 @@ export default {
             _getForwardConnections();
             _getTuntapConnections();
             _getSocks5Connections();
-            _getForwardInfo();
-            _getSForwardInfo();
-
+            _getForwardCountInfo();
+            _getSForwardCountInfo();
             _getUpdater();
             _subscribeUpdater();
 
             _getAccessInfo();
-
-            _testTargetForwardInfo();
-            _testLocalSForwardInfo();
         });
         onUnmounted(() => {
             clearDevicesTimeout();
@@ -224,7 +209,7 @@ export default {
             tuntap, handleTuntapEdit, handleTuntapRefresh,
             socks5, handleSocks5Edit, handleSocks5Refresh,
             tunnel,connections, handleTunnelEdit, handleTunnelRefresh,handleTunnelConnections,
-            forward,_handleForwardEdit,
+            forward,handleForwardEdit,
             sforward,handleSForwardEdit
         }
     }

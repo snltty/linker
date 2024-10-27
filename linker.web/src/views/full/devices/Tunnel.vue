@@ -1,17 +1,17 @@
 <template>
-    <el-table-column prop="tunnel" label="隧道" width="90">
+    <el-table-column prop="tunnel" label="隧道" width="70">
         <template #default="scope">
             <div v-if="tunnel.list[scope.row.MachineId]">
                 <a href="javascript:;" class="a-line" 
                 :class="{yellow:tunnel.list[scope.row.MachineId].NeedReboot}" 
                 :title="tunnel.list[scope.row.MachineId].NeedReboot?'需要重启':'调整网关层级有助于打洞成功'"
                 @click="handleTunnel(tunnel.list[scope.row.MachineId],scope.row)">
-                    <span>网关 : {{tunnel.list[scope.row.MachineId].RouteLevel}} + {{tunnel.list[scope.row.MachineId].RouteLevelPlus}}</span>
+                    <span>网关:{{tunnel.list[scope.row.MachineId].RouteLevel}}+{{tunnel.list[scope.row.MachineId].RouteLevelPlus}}</span>
                 </a>
             </div> 
             <div>
                 <a href="javascript:;" title="与此设备的隧道连接" class="a-line" :class="{green:connectionCount(scope.row.MachineId)>0}" @click="handleConnections(scope.row)">
-                    连接数 : <span>{{connectionCount(scope.row.MachineId)}}</span>
+                    连接:<span>{{connectionCount(scope.row.MachineId)}}</span>
                 </a>
             </div>
         </template>

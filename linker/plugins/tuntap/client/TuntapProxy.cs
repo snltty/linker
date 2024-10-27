@@ -17,7 +17,7 @@ namespace linker.plugins.tuntap.client
     public sealed class TuntapProxy : TunnelBase, ILinkerTunDeviceCallback, ITunnelConnectionReceiveCallback
     {
         private uint[] maskValues = Array.Empty<uint>();
-        private readonly ConcurrentDictionary<uint, List<string>> ip2MachineDic = new ConcurrentDictionary<uint, List<string>>();
+        private readonly ConcurrentDictionary<uint, string> ip2MachineDic = new ConcurrentDictionary<uint, string>();
         private readonly ConcurrentDictionary<uint, ITunnelConnection> ipConnections = new ConcurrentDictionary<uint, ITunnelConnection>();
         private readonly OperatingMultipleManager operatingMultipleManager = new OperatingMultipleManager();
 
@@ -135,15 +135,15 @@ namespace linker.plugins.tuntap.client
         public void SetIPs(TuntapVeaLanIPAddress[] ips)
         {
             var dic = ips.GroupBy(c => c.NetWork).ToDictionary(c => c.Key, d => d.Select(e => e.MachineId).ToList());
-            foreach (var item in dic)
+            foreach (var item in dic.Where(c => c.Value.Count > 0))
             {
-                ip2MachineDic.AddOrUpdate(item.Key, item.Value, (a, b) => item.Value);
-                /*
-                if (ipConnections.TryGetValue(item.Key, out ITunnelConnection connection) && item.Value.Count > 0 && item.Value[0] != connection.RemoteMachineId)
+                string machineId = item.Value[0];
+                ip2MachineDic.AddOrUpdate(item.Key, machineId, (a, b) => machineId);
+
+                if (ipConnections.TryGetValue(item.Key, out ITunnelConnection connection) && item.Value.Count > 0 && machineId != connection.RemoteMachineId)
                 {
                     ipConnections.TryRemove(item.Key, out _);
                 }
-                */
             }
             maskValues = ips.Select(c => c.MaskValue).Distinct().OrderBy(c => c).ToArray();
 
@@ -155,19 +155,11 @@ namespace linker.plugins.tuntap.client
         /// <param name="ip"></param>
         public void SetIP(string machineId, uint ip)
         {
-            if (ip2MachineDic.TryGetValue(ip, out List<string> list) == false)
-            {
-                list = new List<string>();
-                ip2MachineDic.AddOrUpdate(ip, list, (a, b) => list);
-            }
-            list.Add(machineId);
-
-            /*
+            ip2MachineDic.AddOrUpdate(ip, machineId, (a, b) => machineId);
             if (ipConnections.TryGetValue(ip, out ITunnelConnection connection) && machineId != connection.RemoteMachineId)
             {
                 ipConnections.TryRemove(ip, out _);
             }
-            */
         }
 
         /// <summary>
@@ -178,25 +170,23 @@ namespace linker.plugins.tuntap.client
         private async Task<ITunnelConnection> ConnectTunnel(uint ip)
         {
             //直接按IP查找
-            if (ip2MachineDic.TryGetValue(ip, out List<string> machineId) && machineId.Count > 0)
+            if (ip2MachineDic.TryGetValue(ip, out string machineId))
             {
-                return await ConnectTunnel(machineId[0], TunnelProtocolType.Quic).ConfigureAwait(false);
+                return await ConnectTunnel(machineId, TunnelProtocolType.Quic).ConfigureAwait(false);
             }
 
             //匹配掩码查找
             for (int i = 0; i < maskValues.Length; i++)
             {
                 uint network = ip & maskValues[i];
-                if (ip2MachineDic.TryGetValue(network, out machineId) && machineId.Count > 0)
+                if (ip2MachineDic.TryGetValue(network, out machineId))
                 {
-                    ip2MachineDic.TryAdd(ip, machineId);
-                    return await ConnectTunnel(machineId[0], TunnelProtocolType.Quic).ConfigureAwait(false);
+                    return await ConnectTunnel(machineId, TunnelProtocolType.Quic).ConfigureAwait(false);
                 }
             }
             return null;
 
         }
-
 
 
         private void ClearIPs()

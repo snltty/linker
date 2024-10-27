@@ -1,9 +1,9 @@
 ﻿using linker.client.config;
 using linker.plugins.messenger;
+using linker.plugins.sforward.messenger;
+using linker.plugins.sforward;
 using linker.plugins.signin.messenger;
-using LiteDB;
 using MemoryPack;
-using System.Net;
 
 namespace linker.plugins.forward.messenger
 {
@@ -19,45 +19,20 @@ namespace linker.plugins.forward.messenger
             this.signCaching = signCaching;
         }
 
-        [MessengerId((ushort)ForwardMessengerIds.TestForward)]
-        public void TestForward(IConnection connection)
-        {
-            ForwardTestInfo forwardTestInfo = MemoryPackSerializer.Deserialize<ForwardTestInfo>(connection.ReceiveRequestWrap.Payload.Span);
-
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && signCaching.TryGet(forwardTestInfo.MachineId, out SignCacheInfo cache2) && cache1.GroupId == cache2.GroupId)
-            {
-                uint requestid = connection.ReceiveRequestWrap.RequestId;
-                sender.SendReply(new MessageRequestWrap
-                {
-                    Connection = cache2.Connection,
-                    MessengerId = (ushort)ForwardMessengerIds.Test,
-                    Payload = connection.ReceiveRequestWrap.Payload
-                }).ContinueWith(async (result) =>
-                {
-                    if (result.Result.Code == MessageResponeCodes.OK)
-                    {
-                        await sender.ReplyOnly(new MessageResponseWrap
-                        {
-                            Code = MessageResponeCodes.OK,
-                            RequestId = requestid,
-                            Connection = connection,
-                            Payload = result.Result.Data
-                        }, (ushort)ForwardMessengerIds.TestForward).ConfigureAwait(false);
-                    }
-                });
-            }
-        }
-
+        /// <summary>
+        /// 获取对端的记录
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)ForwardMessengerIds.GetForward)]
         public void GetForward(IConnection connection)
         {
-            GetForwardInfo info = MemoryPackSerializer.Deserialize<GetForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache1.GroupId == cache.GroupId)
+            string machineId = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(machineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 sender.SendReply(new MessageRequestWrap
                 {
-                    Connection = cache.Connection,
+                    Connection = cacheTo.Connection,
                     MessengerId = (ushort)ForwardMessengerIds.Get,
                     Payload = connection.ReceiveRequestWrap.Payload
                 }).ContinueWith(async (result) =>
@@ -75,6 +50,45 @@ namespace linker.plugins.forward.messenger
                 });
             }
         }
+        /// <summary>
+        /// 添加对端的记录
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)ForwardMessengerIds.AddClientForward)]
+        public async Task AddClientForward(IConnection connection)
+        {
+            ForwardAddForwardInfo info = MemoryPackSerializer.Deserialize<ForwardAddForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                await sender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cacheTo.Connection,
+                    MessengerId = (ushort)ForwardMessengerIds.AddClient,
+                    Payload = MemoryPackSerializer.Serialize(info.Data)
+                });
+            }
+        }
+        /// <summary>
+        /// 删除对端的记录
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)ForwardMessengerIds.RemoveClientForward)]
+        public async Task RemoveClientForward(IConnection connection)
+        {
+            ForwardRemoveForwardInfo info = MemoryPackSerializer.Deserialize<ForwardRemoveForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                await sender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cacheTo.Connection,
+                    MessengerId = (ushort)ForwardMessengerIds.RemoveClient,
+                    Payload = MemoryPackSerializer.Serialize(info.Id)
+                });
+            }
+        }
+
     }
 
     public sealed class ForwardClientMessenger : IMessenger
@@ -88,48 +102,43 @@ namespace linker.plugins.forward.messenger
             this.sender = sender;
         }
 
-        [MessengerId((ushort)ForwardMessengerIds.Test)]
-        public void Test(IConnection connection)
-        {
-            ForwardTestInfo forwardTestInfo = MemoryPackSerializer.Deserialize<ForwardTestInfo>(connection.ReceiveRequestWrap.Payload.Span);
-
-            uint requestid = connection.ReceiveRequestWrap.RequestId;
-            forwardTransfer.Test(forwardTestInfo).ContinueWith(async (result) =>
-            {
-                await sender.ReplyOnly(new MessageResponseWrap
-                {
-                    Code = MessageResponeCodes.OK,
-                    RequestId = requestid,
-                    Connection = connection,
-                    Payload = MemoryPackSerializer.Serialize(result.Result)
-                }, (ushort)ForwardMessengerIds.Test).ConfigureAwait(false);
-            });
-        }
-
         [MessengerId((ushort)ForwardMessengerIds.Get)]
         public void Get(IConnection connection)
         {
-            GetForwardInfo info = MemoryPackSerializer.Deserialize<GetForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (forwardTransfer.Get().TryGetValue(info.ToMachineId, out List<ForwardInfo> list))
-            {
-                var result = list.Select(c => new ForwardRemoteInfo { BufferSize = c.BufferSize, Name = c.Name, Port = c.Port, TargetEP = c.TargetEP }).ToList();
-                connection.Write(MemoryPackSerializer.Serialize(result));
-                return;
-            }
-            connection.Write(MemoryPackSerializer.Serialize(new List<ForwardRemoteInfo>()));
+            connection.Write(MemoryPackSerializer.Serialize(forwardTransfer.Get()));
+        }
+        /// <summary>
+        /// 添加
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)ForwardMessengerIds.AddClient)]
+        public void AddClient(IConnection connection)
+        {
+            ForwardInfo info = MemoryPackSerializer.Deserialize<ForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            forwardTransfer.Add(info);
+        }
+        // <summary>
+        /// 删除
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)SForwardMessengerIds.RemoveClient)]
+        public void RemoveClient(IConnection connection)
+        {
+            uint id = MemoryPackSerializer.Deserialize<uint>(connection.ReceiveRequestWrap.Payload.Span);
+            forwardTransfer.Remove(id);
         }
     }
 
     [MemoryPackable]
-    public sealed partial class ForwardRemoteInfo
+    public sealed partial class ForwardAddForwardInfo
     {
-        public string Name { get; set; }
-        public int Port { get; set; }
-
-        [MemoryPackAllowSerialize]
-        public IPEndPoint TargetEP { get; set; }
-
-        public byte BufferSize { get; set; } = 3;
+        public string MachineId { get; set; }
+        public ForwardInfo Data { get; set; }
     }
-
+    [MemoryPackable]
+    public sealed partial class ForwardRemoveForwardInfo
+    {
+        public string MachineId { get; set; }
+        public uint Id { get; set; }
+    }
 }

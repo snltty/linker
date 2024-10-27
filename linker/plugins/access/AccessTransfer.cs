@@ -27,6 +27,7 @@ namespace linker.plugins.access
 
             clientSignInState.NetworkEnabledHandle += (times) => DataVersion.Add();
         }
+
         public Memory<byte> GetData()
         {
             ConfigAccessInfo info = new ConfigAccessInfo { MachineId = fileConfig.Data.Client.Id, Access = fileConfig.Data.Client.Access };

@@ -12,10 +12,11 @@ namespace linker.client.config
         /// <summary>
         /// 服务器穿透列表
         /// </summary>
-        public List<SForwardInfo> SForwards { get; set; } =new List<SForwardInfo>();
+        public List<SForwardInfo> SForwards { get; set; } = new List<SForwardInfo>();
     }
 
-    public sealed class SForwardInfo
+    [MemoryPackable]
+    public sealed partial class SForwardInfo
     {
         public SForwardInfo() { }
         /// <summary>
@@ -41,6 +42,7 @@ namespace linker.client.config
         /// <summary>
         /// 本地服务
         /// </summary>
+        [MemoryPackAllowSerialize]
         public IPEndPoint LocalEP { get; set; }
         /// <summary>
         /// 已启动
@@ -55,7 +57,7 @@ namespace linker.client.config
         /// </summary>
         public string LocalMsg { get; set; }
 
-        [JsonIgnore, BsonIgnore]
+        [JsonIgnore, BsonIgnore, MemoryPackIgnore]
         public bool Proxy { get; set; }
 
         /// <summary>

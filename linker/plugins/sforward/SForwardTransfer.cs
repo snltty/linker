@@ -9,21 +9,28 @@ using linker.libs.extends;
 using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.config;
+using System.Collections.Concurrent;
+using linker.plugins.decenter;
 
 namespace linker.plugins.sforward
 {
-    public sealed class SForwardTransfer
+    public sealed class SForwardTransfer : IDecenter
     {
+        public string Name => "sforward";
+        public VersionManager DataVersion { get; } = new VersionManager();
+
+
         private readonly FileConfig fileConfig;
         private readonly RunningConfig running;
         private readonly ClientSignInState clientSignInState;
         private readonly IMessengerSender messengerSender;
 
         private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
+        private readonly ConcurrentDictionary<string, int> countDic = new ConcurrentDictionary<string, int>();
 
         public VersionManager Version { get; } = new VersionManager();
 
-        public SForwardTransfer(FileConfig fileConfig,RunningConfig running, ClientSignInState clientSignInState, IMessengerSender messengerSender)
+        public SForwardTransfer(FileConfig fileConfig, RunningConfig running, ClientSignInState clientSignInState, IMessengerSender messengerSender)
         {
             this.fileConfig = fileConfig;
             this.running = running;
@@ -31,8 +38,34 @@ namespace linker.plugins.sforward
             this.messengerSender = messengerSender;
             clientSignInState.NetworkFirstEnabledHandle += () => Start();
         }
+        public Memory<byte> GetData()
+        {
+            CountInfo info = new CountInfo { MachineId = fileConfig.Data.Client.Id, Count = running.Data.SForwards.Count };
+            countDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
+            Version.Add();
+            return MemoryPackSerializer.Serialize(info);
+        }
+        public void SetData(Memory<byte> data)
+        {
+            CountInfo info = MemoryPackSerializer.Deserialize<CountInfo>(data.Span);
+            countDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
+            Version.Add();
+        }
+        public void SetData(List<ReadOnlyMemory<byte>> data)
+        {
+            List<CountInfo> list = data.Select(c => MemoryPackSerializer.Deserialize<CountInfo>(c.Span)).ToList();
+            foreach (var info in list)
+            {
+                countDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
+            }
+            Version.Add();
+        }
+        public ConcurrentDictionary<string, int> GetCount()
+        {
+            return countDic;
+        }
 
-        #region 同步配置
+
         public string GetSecretKey()
         {
             return fileConfig.Data.Client.SForward.SecretKey;
@@ -42,9 +75,7 @@ namespace linker.plugins.sforward
             fileConfig.Data.Client.SForward.SecretKey = key;
             fileConfig.Data.Update();
         }
-        #endregion
 
-        #region 启动穿透
 
         private void Start()
         {
@@ -63,46 +94,52 @@ namespace linker.plugins.sforward
                 }
 
             }
+            DataVersion.Add();
         }
         private void Start(SForwardInfo forwardInfo)
         {
-            if (forwardInfo.Proxy == false)
+            if (forwardInfo.Proxy || (forwardInfo.RemotePort == 0 && string.IsNullOrWhiteSpace(forwardInfo.Domain)))
             {
-                try
-                {
-                    messengerSender.SendReply(new MessageRequestWrap
-                    {
-                        Connection = clientSignInState.Connection,
-                        MessengerId = (ushort)SForwardMessengerIds.Add,
-                        Payload = MemoryPackSerializer.Serialize(new SForwardAddInfo { Domain = forwardInfo.Domain, RemotePort = forwardInfo.RemotePort, SecretKey = fileConfig.Data.Client.SForward.SecretKey })
-                    }).ContinueWith((result) =>
-                    {
-                        if (result.Result.Code == MessageResponeCodes.OK)
-                        {
-                            SForwardAddResultInfo sForwardAddResultInfo = MemoryPackSerializer.Deserialize<SForwardAddResultInfo>(result.Result.Data.Span);
-                            forwardInfo.BufferSize = sForwardAddResultInfo.BufferSize;
-                            if (sForwardAddResultInfo.Success)
-                            {
-                                forwardInfo.Proxy = true;
-                                LoggerHelper.Instance.Debug(sForwardAddResultInfo.Message);
-                                forwardInfo.Msg = string.Empty;
-                            }
-                            else
-                            {
-                                forwardInfo.Started = false;
-                                LoggerHelper.Instance.Error(sForwardAddResultInfo.Message);
-                                forwardInfo.Msg = sForwardAddResultInfo.Message;
-                            }
-
-                        }
-                    });
-                }
-                catch (Exception ex)
-                {
-                    forwardInfo.Started = false;
-                    LoggerHelper.Instance.Error(ex);
-                }
+                forwardInfo.Msg = $"Please use port or domain";
+                forwardInfo.Started = false;
+                return;
             }
+
+            try
+            {
+                messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = clientSignInState.Connection,
+                    MessengerId = (ushort)SForwardMessengerIds.Add,
+                    Payload = MemoryPackSerializer.Serialize(new SForwardAddInfo { Domain = forwardInfo.Domain, RemotePort = forwardInfo.RemotePort, SecretKey = fileConfig.Data.Client.SForward.SecretKey })
+                }).ContinueWith((result) =>
+                {
+                    if (result.Result.Code == MessageResponeCodes.OK)
+                    {
+                        SForwardAddResultInfo sForwardAddResultInfo = MemoryPackSerializer.Deserialize<SForwardAddResultInfo>(result.Result.Data.Span);
+                        forwardInfo.BufferSize = sForwardAddResultInfo.BufferSize;
+                        if (sForwardAddResultInfo.Success)
+                        {
+                            forwardInfo.Proxy = true;
+                            LoggerHelper.Instance.Debug(sForwardAddResultInfo.Message);
+                            forwardInfo.Msg = string.Empty;
+                        }
+                        else
+                        {
+                            forwardInfo.Started = false;
+                            LoggerHelper.Instance.Error(sForwardAddResultInfo.Message);
+                            forwardInfo.Msg = sForwardAddResultInfo.Message;
+                        }
+
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                forwardInfo.Started = false;
+                LoggerHelper.Instance.Error(ex);
+            }
+
             Version.Add();
         }
         private void Stop(SForwardInfo forwardInfo)
@@ -143,9 +180,6 @@ namespace linker.plugins.sforward
             Version.Add();
         }
 
-        #endregion
-
-        #region 添加删除本机的穿透记录
 
         public List<SForwardInfo> Get()
         {
@@ -205,8 +239,6 @@ namespace linker.plugins.sforward
 
             return true;
         }
-        #endregion
-
         private bool PortRange(string str, out int min, out int max)
         {
             min = 0; max = 0;
@@ -265,5 +297,13 @@ namespace linker.plugins.sforward
                 }
             }
         }
+
+    }
+
+    [MemoryPackable]
+    public sealed partial class CountInfo
+    {
+        public string MachineId { get; set; }
+        public int Count { get; set; }
     }
 }

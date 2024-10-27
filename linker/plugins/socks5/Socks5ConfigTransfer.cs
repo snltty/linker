@@ -212,19 +212,20 @@ namespace linker.plugins.socks5
 
                 .Select(c =>
                 {
-                    var lans = c.Lans.Where(c => c.Disabled == false && c.IP.Equals(IPAddress.Any) == false);
-                    foreach (var lan in lans)
+                    var lans = c.Lans.Where(c => c.Disabled == false && c.IP.Equals(IPAddress.Any) == false).Where(c =>
                     {
-                        uint ipInt = NetworkHelper.IP2Value(lan.IP);
-                        uint maskValue = NetworkHelper.PrefixLength2Value(lan.PrefixLength);
-                        lan.Exists = excludeIps.Count(d => (d & maskValue) == (ipInt & maskValue)) > 0 || hashSet.Contains(ipInt & maskValue);
-                        hashSet.Add(ipInt & maskValue);
-                    }
+                        uint ipInt = NetworkHelper.IP2Value(c.IP);
+                        uint maskValue = NetworkHelper.PrefixLength2Value(c.PrefixLength);
+                        uint network = ipInt & maskValue;
+                        c.Exists = excludeIps.Any(d => (d & maskValue) == network) || hashSet.Contains(network);
+                        hashSet.Add(network);
+                        return c.Exists == false;
+                    });
 
                     return new Socks5LanIPAddressList
                     {
                         MachineId = c.MachineId,
-                        IPS = ParseIPs(lans.Where(c => c.Disabled == false && c.Exists == false).ToList(), c.MachineId)
+                        IPS = ParseIPs(lans.ToList(), c.MachineId)
                         .Where(c => excludeIps.Select(d => d & c.MaskValue).Contains(c.NetWork) == false).ToList(),
                     };
                 }).ToList();

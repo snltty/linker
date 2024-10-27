@@ -1,11 +1,9 @@
 <template>
-  <el-dialog v-model="state.show" @open="handleOnShowList" append-to=".app-wrap" title="服务器代理穿透" top="1vh" width="700">
+  <el-dialog v-model="state.show" @open="handleOnShowList" append-to=".app-wrap" :title="`【${machineName}】的内网穿透`" top="1vh" width="700">
         <div>
             <div class="t-c head">
                 <el-button type="success" size="small" @click="handleAdd">添加</el-button>
                 <el-button size="small" @click="handleRefresh">刷新</el-button>
-                <el-button size="small" @click="handleCopy">复制穿透配置</el-button>
-                <!-- <el-button size="small" @click="handle10000">一万条</el-button> -->
             </div>
             <el-table :data="state.data" size="small" border height="500" @cell-dblclick="handleCellClick">
                 <el-table-column property="Name" label="名称">
@@ -109,21 +107,21 @@ export default {
             }
         });
         const _testLocalSForwardInfo = ()=>{
-            testLocalSForwardInfo().then((res)=>{
+            console.log(sforward.value.machineid);
+            testLocalSForwardInfo(sforward.value.machineid).then((res)=>{
                state.timerTestLocal = setTimeout(_testLocalSForwardInfo,1000);
             }).catch(()=>{
                 state.timerTestLocal = setTimeout(_testLocalSForwardInfo,1000);
             });
         }
         const _getSForwardInfo = () => {
-            getSForwardInfo().then((res) => {
-                let arr = (res.List|| []);
-                arr.forEach(c=>{
+            getSForwardInfo(sforward.value.machineid).then((res) => {
+                res.forEach(c=>{
                     c.Temp = (c.Domain || c.RemotePort).toString();
                     c.RemotePort = 0;
                     c.Domain = '';
                 });
-                state.data = arr;
+                state.data = res;
             }).catch(() => {
             });
         }
@@ -140,7 +138,8 @@ export default {
             ElMessage.success('已刷新')
         }
         const handleAdd = () => {
-            addSForwardInfo({ Id: 0, Name: '', RemotePort: 0, LocalEP: '127.0.0.1:80',Domain:'',Temp:'' }).then(() => {
+            const row = { Id: 0, Name: '', RemotePort: 0, LocalEP: '127.0.0.1:80',Domain:'',Temp:'' };
+            addSForwardInfo({machineid:sforward.value.machineid,data:row}).then(() => {
                 setTimeout(()=>{
                     _getSForwardInfo();
                 },100)
@@ -186,7 +185,7 @@ export default {
                 row.Domain = row.Temp;
             }
 
-            addSForwardInfo(row).then(() => {
+            addSForwardInfo({machineid:sforward.value.machineid,data:row}).then(() => {
                 setTimeout(()=>{
                     _getSForwardInfo();
                 },100)
@@ -194,37 +193,6 @@ export default {
                 ElMessage.error(err);
             });
         }
-        const handleCopy = ()=>{
-            sforward.value.showCopy = true;
-        }
-
-        const handle10000 = ()=>{
-
-            const fn = (port = 10000)=>{
-                if(port > 20000){
-                    return;
-                }
-                const json = {
-                    Name:`s-${port}`,
-                    RemotePort:port,
-                    LocalEP:'127.0.0.1:80',
-                    Started:true
-                }
-                addSForwardInfo(json).then((res) => {
-                    setTimeout(()=>{
-                        fn(++port);
-                    },50)
-                }).catch((err) => {
-                    console.log(err);
-                    ElMessage.error(err);
-                    setTimeout(()=>{
-                        fn(++port);
-                    },100)
-                });
-            }
-            fn();
-        }
-
         onMounted(()=>{
             _getSForwardInfo();
             _testLocalSForwardInfo();
@@ -234,8 +202,8 @@ export default {
         })
 
         return {
-            state, handleOnShowList, handleCellClick, handleRefresh, handleAdd, handleEdit, handleEditBlur, handleDel, handleStartChange,
-            handleCopy,handle10000
+            state,machineName:sforward.value.machineName, 
+            handleOnShowList, handleCellClick, handleRefresh, handleAdd, handleEdit, handleEditBlur, handleDel, handleStartChange
         }
     }
 }

@@ -12,6 +12,7 @@ using linker.plugins.tunnel;
 using linker.plugins.client;
 using linker.plugins.socks5.config;
 using System.Text;
+using System.Collections.Generic;
 
 namespace linker.plugins.socks5
 {
@@ -20,7 +21,7 @@ namespace linker.plugins.socks5
         private IPEndPoint proxyEP;
 
         private uint[] maskValues = Array.Empty<uint>();
-        private readonly ConcurrentDictionary<uint, List<string>> ip2MachineDic = new ConcurrentDictionary<uint, List<string>>();
+        private readonly ConcurrentDictionary<uint, string> ip2MachineDic = new ConcurrentDictionary<uint, string>();
 
         protected override string TransactionId => "socks5";
 
@@ -38,12 +39,12 @@ namespace linker.plugins.socks5
         public void SetIPs(Socks5LanIPAddress[] ips)
         {
             var dic = ips.GroupBy(c => c.NetWork).ToDictionary(c => c.Key, d => d.Select(e => e.MachineId).ToList());
-            foreach (var item in dic)
+            foreach (var item in dic.Where(c => c.Value.Count > 0))
             {
-                ip2MachineDic.AddOrUpdate(item.Key, item.Value, (a, b) => item.Value);
+                string machineId = item.Value[0];
+                ip2MachineDic.AddOrUpdate(item.Key, machineId, (a, b) => machineId);
             }
             maskValues = ips.Select(c => c.MaskValue).Distinct().OrderBy(c => c).ToArray();
-
         }
         /// <summary>
         /// 设置IP，等下有连接进来，用IP匹配，才能知道这个连接是要连谁
@@ -52,12 +53,7 @@ namespace linker.plugins.socks5
         /// <param name="ip"></param>
         public void SetIP(string machineId, uint ip)
         {
-            if (ip2MachineDic.TryGetValue(ip, out List<string> list) == false)
-            {
-                list = new List<string>();
-                ip2MachineDic.AddOrUpdate(ip, list, (a, b) => list);
-            }
-            list.Add(machineId);
+            ip2MachineDic.AddOrUpdate(ip, machineId, (a, b) => machineId);
         }
 
 
@@ -141,7 +137,7 @@ namespace linker.plugins.socks5
             }
             if (addressType == Socks5EnumAddressType.Domain)
             {
-                if(IPAddress.TryParse(Encoding.UTF8.GetString(ipArray.Span),out IPAddress ip) == false)
+                if (IPAddress.TryParse(Encoding.UTF8.GetString(ipArray.Span), out IPAddress ip) == false)
                 {
                     byte[] response1 = Socks5Parser.MakeConnectResponse(new IPEndPoint(IPAddress.Any, 0), (byte)Socks5EnumResponseCommand.AddressNotAllow);
                     await token.Socket.SendAsync(response1.AsMemory()).ConfigureAwait(false);
@@ -156,7 +152,7 @@ namespace linker.plugins.socks5
                 targetIP = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
             }
 
-            
+
 
             token.Connection = await ConnectTunnel(targetIP).ConfigureAwait(false);
 
@@ -226,9 +222,9 @@ namespace linker.plugins.socks5
             for (int i = 0; i < maskValues.Length; i++)
             {
                 uint network = ip & maskValues[i];
-                if (ip2MachineDic.TryGetValue(network, out List<string> machineId))
+                if (ip2MachineDic.TryGetValue(network, out string machineId))
                 {
-                    return await ConnectTunnel(machineId[0], TunnelProtocolType.Udp).ConfigureAwait(false);
+                    return await ConnectTunnel(machineId, TunnelProtocolType.Udp).ConfigureAwait(false);
                 }
             }
 
