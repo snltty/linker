@@ -60,7 +60,7 @@ namespace linker.plugins.config
                              Payload = MemoryPackSerializer.Serialize(new ConfigAsyncInfo { Name = c.Name, Data = c.GetData() }),
 
                          });
-                     });
+                     }).ToList();
                     await Task.WhenAll(tasks);
                 }
                 catch (Exception)

@@ -23,12 +23,22 @@ namespace linker.plugins.updater.messenger
         [MessengerId((ushort)UpdaterMessengerIds.Confirm)]
         public void Confirm(IConnection connection)
         {
-            UpdaterConfirmInfo confirm = MemoryPackSerializer.Deserialize<UpdaterConfirmInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            try
             {
-                LoggerHelper.Instance.Debug(confirm.ToJson());
+                UpdaterConfirmInfo confirm = MemoryPackSerializer.Deserialize<UpdaterConfirmInfo>(connection.ReceiveRequestWrap.Payload.Span);
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Debug(confirm.ToJson());
+                }
+                updaterTransfer.Confirm(confirm.Version);
             }
-            updaterTransfer.Confirm(confirm.Version);
+            catch (Exception ex)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
+            }
         }
 
         /// <summary>
@@ -133,7 +143,6 @@ namespace linker.plugins.updater.messenger
                 connection.Write(Helper.FalseArray);
                 return;
             }
-
             IEnumerable<SignCacheInfo> machines = new List<SignCacheInfo>();
             //本服务器所有
             if (confirm.All) machines = signCaching.Get().Where(c => c.MachineId != connection.Id);
@@ -154,7 +163,7 @@ namespace linker.plugins.updater.messenger
                     MessengerId = (ushort)UpdaterMessengerIds.Confirm,
                     Payload = c.Version == "v1.4.9" ? payloadV149 : payload
                 });
-            });
+            }).ToList();
 
             await Task.WhenAll(tasks);
 

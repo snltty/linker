@@ -140,7 +140,7 @@ export default {
                         GroupAll:selectedValue.value.indexOf('allg->') >= 0,
                         All:selectedValue.value.indexOf('all->') >= 0,
                     };
-                    if(data.All){
+                    if(data.All || data.GroupAll){
                         data.MachineId = '';
                     }
                     confirm(data);

@@ -202,7 +202,7 @@ namespace linker.plugins.tuntap.messenger
                     MessengerId = (ushort)TuntapMessengerIds.LeaseChange,
                     Payload = connection.ReceiveRequestWrap.Payload,
                     Timeout = 1000,
-                }));
+                })).ToList();
                 Task.WhenAll(tasks);
             }
         }

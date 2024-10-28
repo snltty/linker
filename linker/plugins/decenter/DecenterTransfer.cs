@@ -4,6 +4,7 @@ using MemoryPack;
 using linker.libs;
 using linker.plugins.decenter.messenger;
 using System.ComponentModel.Design;
+using System.Threading.Tasks;
 
 namespace linker.plugins.decenter
 {
@@ -56,14 +57,16 @@ namespace linker.plugins.decenter
                         return new DecenterSyncTaskInfo
                         {
                             Decenter = c,
+                            Time = Environment.TickCount64,
                             Task = messengerSender.SendReply(new MessageRequestWrap
                             {
                                 Connection = clientSignInState.Connection,
                                 MessengerId = (ushort)DecenterMessengerIds.SyncForward,
-                                Payload = MemoryPackSerializer.Serialize(new DecenterSyncInfo { Name = c.Name, Data = c.GetData() })
+                                Payload = MemoryPackSerializer.Serialize(new DecenterSyncInfo { Name = c.Name, Data = c.GetData() }),
+                                Timeout = 3000
                             })
                         };
-                    });
+                    }).ToList();
                     await Task.WhenAll(tasks.Select(c => c.Task));
                     foreach (var task in tasks)
                     {
@@ -72,6 +75,19 @@ namespace linker.plugins.decenter
                             List<ReadOnlyMemory<byte>> list = MemoryPackSerializer.Deserialize<List<ReadOnlyMemory<byte>>>(task.Task.Result.Data.Span);
                             task.Decenter.SetData(list);
                         }
+                        else
+                        {
+                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            {
+                                LoggerHelper.Instance.Error($"decenter {task.Decenter.Name}->{task.Task.Result.Code}");
+                            }
+                        }
+                        /*
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        {
+                            LoggerHelper.Instance.Debug($"decenter {task.Decenter.Name}->{Environment.TickCount64 - task.Time}ms");
+                        }
+                        */
                     }
                 }
                 catch (Exception ex)
@@ -89,6 +105,8 @@ namespace linker.plugins.decenter
         {
             public IDecenter Decenter { get; set; }
             public Task<MessageResponeInfo> Task { get; set; }
+
+            public long Time { get; set; }
         }
     }
 }

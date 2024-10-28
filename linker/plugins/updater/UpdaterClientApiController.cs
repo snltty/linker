@@ -104,7 +104,7 @@ namespace linker.plugins.updater
         {
             UpdaterConfirmInfo confirm = param.Content.DeJson<UpdaterConfirmInfo>();
 
-            if (confirm.MachineId != config.Data.Client.Id)
+            if (confirm.All || confirm.GroupAll || confirm.MachineId != config.Data.Client.Id)
             {
                 if (config.Data.Client.HasAccess(ClientApiAccess.UpdateOther) == false)
                 {
@@ -131,7 +131,6 @@ namespace linker.plugins.updater
                 }
                 updaterTransfer.Confirm(confirm.Version);
             }
-
             return true;
         }
         public async Task<bool> Exit(ApiControllerParamsInfo param)

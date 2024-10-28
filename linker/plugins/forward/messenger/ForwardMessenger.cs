@@ -1,9 +1,8 @@
 ﻿using linker.client.config;
 using linker.plugins.messenger;
-using linker.plugins.sforward.messenger;
-using linker.plugins.sforward;
 using linker.plugins.signin.messenger;
 using MemoryPack;
+using linker.libs.extends;
 
 namespace linker.plugins.forward.messenger
 {
@@ -121,7 +120,7 @@ namespace linker.plugins.forward.messenger
         /// 删除
         /// </summary>
         /// <param name="connection"></param>
-        [MessengerId((ushort)SForwardMessengerIds.RemoveClient)]
+        [MessengerId((ushort)ForwardMessengerIds.RemoveClient)]
         public void RemoveClient(IConnection connection)
         {
             uint id = MemoryPackSerializer.Deserialize<uint>(connection.ReceiveRequestWrap.Payload.Span);

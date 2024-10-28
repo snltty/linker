@@ -83,7 +83,6 @@ namespace linker.plugins.forward
         /// <returns></returns>
         public async Task<List<ForwardInfo>> Get(ApiControllerParamsInfo param)
         {
-            Console.WriteLine(param.Content);
             if (param.Content == config.Data.Client.Id)
             {
                 if (config.Data.Client.HasAccess(ClientApiAccess.ForwardShowSelf) == false) return new List<ForwardInfo>();
