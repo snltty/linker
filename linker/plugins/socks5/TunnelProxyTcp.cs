@@ -12,22 +12,14 @@ namespace linker.plugins.socks5
     {
         private ConcurrentDictionary<int, AsyncUserToken> tcpListens = new ConcurrentDictionary<int, AsyncUserToken>();
         private readonly ConcurrentDictionary<ConnectId, AsyncUserToken> tcpConnections = new ConcurrentDictionary<ConnectId, AsyncUserToken>(new ConnectIdComparer());
-        private Socket socket;
+        private AsyncUserToken userToken;
         public IPEndPoint LocalEndpoint { get; private set; }
 
         public bool Running
         {
             get
             {
-                try
-                {
-                    socket.Poll(1000, SelectMode.SelectRead);
-                    return true;
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
+                return userToken != null && userToken.ListenPort > 0;
             }
         }
         public string Error { get; private set; }
@@ -35,21 +27,23 @@ namespace linker.plugins.socks5
         private void StartTcp(IPEndPoint ep, byte bufferSize)
         {
             Error = string.Empty;
-            IPEndPoint _localEndPoint = ep;
-            socket = new Socket(_localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            socket.IPv6Only(_localEndPoint.AddressFamily, false);
-            socket.ReuseBind(_localEndPoint);
-            socket.Listen(int.MaxValue);
 
-            LocalEndpoint = socket.LocalEndPoint as IPEndPoint;
             try
             {
-                AsyncUserToken userToken = new AsyncUserToken
+                IPEndPoint _localEndPoint = ep;
+                userToken = new AsyncUserToken
                 {
-                    ListenPort = LocalEndpoint.Port,
-                    Socket = socket,
+                    ListenPort = _localEndPoint.Port,
+                    Socket = new Socket(_localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp),
                     BufferSize = bufferSize
                 };
+
+                userToken.Socket.IPv6Only(_localEndPoint.AddressFamily, false);
+                userToken.Socket.ReuseBind(_localEndPoint);
+                userToken.Socket.Listen(int.MaxValue);
+
+                LocalEndpoint = userToken.Socket.LocalEndPoint as IPEndPoint;
+
                 _ = StartAccept(userToken);
                 tcpListens.AddOrUpdate(LocalEndpoint.Port, userToken, (a, b) => userToken);
             }
@@ -59,7 +53,7 @@ namespace linker.plugins.socks5
                 LoggerHelper.Instance.Error(ex);
             }
         }
-       
+
         private async Task StartAccept(AsyncUserToken token)
         {
             try
@@ -193,7 +187,7 @@ namespace linker.plugins.socks5
             }
             token.Proxy.Return(connectData);
         }
-      
+
         private async Task SendToConnectionClose(AsyncUserToken token)
         {
             //if (token.Proxy.Direction == ProxyDirection.Reverse)
@@ -206,7 +200,7 @@ namespace linker.plugins.socks5
             }
         }
 
-       
+
         private void ConnectBind(AsyncUserTunnelToken token)
         {
             if (token.Proxy.TargetEP == null) return;
@@ -418,11 +412,14 @@ namespace linker.plugins.socks5
 
         public byte BufferSize { get; set; } = 3;
 
+
         public void Clear()
         {
             Socket?.SafeClose();
 
             Buffer = Helper.EmptyArray;
+
+            ListenPort = 0;
 
             GC.Collect();
         }

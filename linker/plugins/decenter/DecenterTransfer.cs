@@ -3,6 +3,7 @@ using linker.plugins.messenger;
 using MemoryPack;
 using linker.libs;
 using linker.plugins.decenter.messenger;
+using System.ComponentModel.Design;
 
 namespace linker.plugins.decenter
 {
@@ -50,20 +51,26 @@ namespace linker.plugins.decenter
             {
                 try
                 {
-                    foreach (var sync in syncs)
+                    var tasks = syncs.Where(c => c.DataVersion.Reset()).Select(c =>
                     {
-                        if (sync.DataVersion.Reset())
+                        return new DecenterSyncTaskInfo
                         {
-                            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+                            Decenter = c,
+                            Task = messengerSender.SendReply(new MessageRequestWrap
                             {
                                 Connection = clientSignInState.Connection,
                                 MessengerId = (ushort)DecenterMessengerIds.SyncForward,
-                                Payload = MemoryPackSerializer.Serialize(new DecenterSyncInfo { Name = sync.Name, Data = sync.GetData() })
-                            });
-                            if (resp.Code == MessageResponeCodes.OK)
-                            {
-                                sync.SetData(MemoryPackSerializer.Deserialize<List<ReadOnlyMemory<byte>>>(resp.Data.Span));
-                            }
+                                Payload = MemoryPackSerializer.Serialize(new DecenterSyncInfo { Name = c.Name, Data = c.GetData() })
+                            })
+                        };
+                    });
+                    await Task.WhenAll(tasks.Select(c => c.Task));
+                    foreach (var task in tasks)
+                    {
+                        if (task.Task.Result.Code == MessageResponeCodes.OK)
+                        {
+                            List<ReadOnlyMemory<byte>> list = MemoryPackSerializer.Deserialize<List<ReadOnlyMemory<byte>>>(task.Task.Result.Data.Span);
+                            task.Decenter.SetData(list);
                         }
                     }
                 }
@@ -74,10 +81,14 @@ namespace linker.plugins.decenter
                         LoggerHelper.Instance.Error(ex);
                     }
                 }
-
-
                 return true;
             }, () => 3000);
+        }
+
+        class DecenterSyncTaskInfo
+        {
+            public IDecenter Decenter { get; set; }
+            public Task<MessageResponeInfo> Task { get; set; }
         }
     }
 }

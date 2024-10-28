@@ -60,6 +60,11 @@ namespace linker.plugins.sforward
             }
             Version.Add();
         }
+        public void RefreshConfig()
+        {
+            DataVersion.Add();
+        }
+
         public ConcurrentDictionary<string, int> GetCount()
         {
             return countDic;

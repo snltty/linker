@@ -1,5 +1,5 @@
 
-import { getSForwardCountInfo, testLocalSForwardInfo } from '@/apis/sforward';
+import { getSForwardCountInfo, refreshSForward, testLocalSForwardInfo } from '@/apis/sforward';
 import { injectGlobalData } from '@/provide';
 import { ref, provide, inject, computed } from 'vue';
 
@@ -19,6 +19,9 @@ export const provideSforward = () => {
     });
     provide(sforwardSymbol, sforward);
 
+    const handleSForwardRefresh = () => {
+        refreshSForward();
+    }
     const _getSForwardCountInfo = () => {
         getSForwardCountInfo(sforward.value.hashcode.toString()).then((res) => {
             sforward.value.hashcode = res.HashCode;
@@ -40,7 +43,7 @@ export const provideSforward = () => {
         clearTimeout(sforward.value.testTimer);
     }
     return {
-        sforward, _getSForwardCountInfo, handleSForwardEdit, clearSForwardTimeout
+        sforward, _getSForwardCountInfo, handleSForwardEdit, clearSForwardTimeout, handleSForwardRefresh
     }
 
 }

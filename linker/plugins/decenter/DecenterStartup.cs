@@ -1,5 +1,5 @@
 ﻿using linker.config;
-using linker.plugins.config.messenger;
+using linker.plugins.decenter.messenger;
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -22,12 +22,12 @@ namespace linker.plugins.decenter
             serviceCollection.AddSingleton<DecenterTransfer>();
             serviceCollection.AddSingleton<DecenterTypesLoader>();
 
-
+            serviceCollection.AddSingleton<DecenterClientMessenger>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
-            serviceCollection.AddSingleton<ConfigServerMessenger>();
+            serviceCollection.AddSingleton<DecenterServerMessenger>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)

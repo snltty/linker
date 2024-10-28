@@ -8,6 +8,7 @@ using linker.plugins.capi;
 using linker.plugins.messenger;
 using linker.config;
 using System.Collections.Concurrent;
+using linker.plugins.tuntap.client;
 
 namespace linker.plugins.sforward
 {
@@ -46,6 +47,10 @@ namespace linker.plugins.sforward
         }
 
 
+        public void Refresh(ApiControllerParamsInfo param)
+        {
+            forwardTransfer.RefreshConfig();
+        }
         /// <summary>
         /// 获取数量
         /// </summary>

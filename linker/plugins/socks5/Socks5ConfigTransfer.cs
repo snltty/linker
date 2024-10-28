@@ -46,7 +46,7 @@ namespace linker.plugins.socks5
         {
             Socks5Info info = new Socks5Info
             {
-                Lans = runningConfig.Data.Socks5.Lans.Select(c => { c.Exists = false; return c; }).ToList(),
+                Lans = runningConfig.Data.Socks5.Lans.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false).Select(c => { c.Exists = false; return c; }).ToList(),
                 MachineId = config.Data.Client.Id,
                 Status = tunnelProxy.Running ? Socks5Status.Running : Socks5Status.Normal,
                 Port = runningConfig.Data.Socks5.Port,
@@ -92,7 +92,7 @@ namespace linker.plugins.socks5
                         socks5Infos.AddOrUpdate(item.MachineId, item, (a, b) => item);
                         item.LastTicks.Update();
                     }
-                    var removes = socks5Infos.Keys.Except(list.Select(c => c.MachineId)).ToList();
+                    var removes = socks5Infos.Keys.Except(list.Select(c => c.MachineId)).Where(c => c != config.Data.Client.Id).ToList();
                     foreach (var item in removes)
                     {
                         if (socks5Infos.TryGetValue(item, out Socks5Info socks5Info))

@@ -115,7 +115,7 @@ namespace linker.plugins.tuntap.client
             TuntapInfo info = new TuntapInfo
             {
                 IP = runningConfig.Data.Tuntap.IP,
-                Lans = runningConfig.Data.Tuntap.Lans.Select(c => { c.Exists = false; return c; }).ToList(),
+                Lans = runningConfig.Data.Tuntap.Lans.Where(c=> c.IP != null && c.IP.Equals(IPAddress.Any)==false).Select(c => { c.Exists = false; return c; }).ToList(),
                 PrefixLength = runningConfig.Data.Tuntap.PrefixLength,
                 MachineId = config.Data.Client.Id,
                 Status = tuntapTransfer.Status,
@@ -173,7 +173,7 @@ namespace linker.plugins.tuntap.client
                         tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
                         item.LastTicks.Update();
                     }
-                    var removes = tuntapInfos.Keys.Except(list.Select(c => c.MachineId)).ToList();
+                    var removes = tuntapInfos.Keys.Except(list.Select(c => c.MachineId)).Where(c=>c != config.Data.Client.Id).ToList();
                     foreach (var item in removes)
                     {
                         if (tuntapInfos.TryGetValue(item, out TuntapInfo tuntapInfo))

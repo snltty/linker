@@ -97,8 +97,8 @@ export default {
         const {tuntap,_getTuntapInfo,handleTuntapEdit,handleTuntapRefresh,clearTuntapTimeout,getTuntapMachines,sortTuntapIP}  = provideTuntap();
         const {socks5,_getSocks5Info,handleSocks5Edit,handleSocks5Refresh,clearSocks5Timeout,getSocks5Machines,sortSocks5}  = provideSocks5();
         const {tunnel,_getTunnelInfo,handleTunnelEdit,handleTunnelRefresh,clearTunnelTimeout,sortTunnel} = provideTunnel();
-        const {forward,_getForwardCountInfo,handleForwardEdit,clearForwardTimeout} = provideForward();
-        const {sforward,_getSForwardCountInfo,handleSForwardEdit,clearSForwardTimeout} = provideSforward();
+        const {forward,_getForwardCountInfo,handleForwardEdit,clearForwardTimeout,handleForwardRefresh} = provideForward();
+        const {sforward,_getSForwardCountInfo,handleSForwardEdit,clearSForwardTimeout,handleSForwardRefresh} = provideSforward();
         const {connections,
             forwardConnections,_getForwardConnections,
             tuntapConnections,_getTuntapConnections,
@@ -159,6 +159,8 @@ export default {
             handleTunnelRefresh();
             handleTuntapRefresh();
             handleSocks5Refresh();
+            handleForwardRefresh();
+            handleSForwardRefresh();
             ElMessage.success({message:'刷新成功',grouping:true});  
         }
         const handlePageSearch = ()=>{
@@ -174,6 +176,9 @@ export default {
             handleTunnelRefresh();
             handleTuntapRefresh();
             handleSocks5Refresh();
+            handleForwardRefresh();
+            handleSForwardRefresh();
+            
             _getSignList();
             _getSignList1();
             _getTuntapInfo();

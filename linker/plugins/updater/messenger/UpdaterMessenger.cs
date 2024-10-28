@@ -1,11 +1,9 @@
 ﻿using linker.config;
 using linker.libs;
-using linker.libs.extends;
 using linker.plugins.messenger;
 using linker.plugins.signin.messenger;
 using linker.plugins.updater.config;
 using MemoryPack;
-using Mono.Nat.Logging;
 
 namespace linker.plugins.updater.messenger
 {
@@ -120,12 +118,14 @@ namespace linker.plugins.updater.messenger
             UpdaterConfirmInfo confirm = MemoryPackSerializer.Deserialize<UpdaterConfirmInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
             {
+                connection.Write(Helper.FalseArray);
                 return;
             }
 
             //本服务器所有，需要密钥
-            if (confirm.All && fileConfig.Data.Server.Updater.SecretKey != confirm.SecretKey)
+            if ((confirm.All || confirm.GroupAll) && fileConfig.Data.Server.Updater.SecretKey != confirm.SecretKey)
             {
+                connection.Write(Helper.FalseArray);
                 return;
             }
 
@@ -152,6 +152,8 @@ namespace linker.plugins.updater.messenger
             });
 
             await Task.WhenAll(tasks);
+
+            connection.Write(Helper.TrueArray);
         }
 
         /// <summary>

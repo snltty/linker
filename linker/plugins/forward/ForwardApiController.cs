@@ -58,6 +58,10 @@ namespace linker.plugins.forward
             return NetworkHelper.GetIPV4();
         }
 
+        public void Refresh(ApiControllerParamsInfo param)
+        {
+            forwardTransfer.RefreshConfig();
+        }
         public ForwardListInfo GetCount(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);
@@ -79,6 +83,7 @@ namespace linker.plugins.forward
         /// <returns></returns>
         public async Task<List<ForwardInfo>> Get(ApiControllerParamsInfo param)
         {
+            Console.WriteLine(param.Content);
             if (param.Content == config.Data.Client.Id)
             {
                 if (config.Data.Client.HasAccess(ClientApiAccess.ForwardShowSelf) == false) return new List<ForwardInfo>();

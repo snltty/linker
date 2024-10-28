@@ -1,4 +1,4 @@
-import { getForwardCountInfo, testTargetForwardInfo } from "@/apis/forward";
+import { getForwardCountInfo, refreshForward, testTargetForwardInfo } from "@/apis/forward";
 import { injectGlobalData } from "@/provide";
 import { inject, provide, ref } from "vue";
 
@@ -13,6 +13,10 @@ export const provideForward = () => {
         hashcode: 0
     });
     provide(forwardSymbol, forward);
+
+    const handleForwardRefresh = () => {
+        refreshForward();
+    }
     const _getForwardCountInfo = () => {
         getForwardCountInfo(forward.value.hashcode.toString()).then((res) => {
             forward.value.hashcode = res.HashCode;
@@ -33,7 +37,7 @@ export const provideForward = () => {
         clearTimeout(forward.value.timer);
     }
     return {
-        forward, _getForwardCountInfo, handleForwardEdit, clearForwardTimeout
+        forward, _getForwardCountInfo, handleForwardEdit, clearForwardTimeout, handleForwardRefresh
     }
 }
 export const useForward = () => {

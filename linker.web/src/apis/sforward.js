@@ -9,6 +9,9 @@ export const setSForwardSecretKey = (data) => {
 export const getSForwardInfo = (data) => {
     return sendWebsocketMsg('sforwardclient/get', data);
 }
+export const refreshSForward = () => {
+    return sendWebsocketMsg('sforwardclient/refresh');
+}
 export const getSForwardCountInfo = (hashcode = '0') => {
     return sendWebsocketMsg('sforwardclient/getcount', hashcode);
 }

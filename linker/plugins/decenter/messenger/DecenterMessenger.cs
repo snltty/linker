@@ -1,4 +1,5 @@
-﻿using linker.plugins.messenger;
+﻿using linker.libs;
+using linker.plugins.messenger;
 using linker.plugins.signin.messenger;
 using MemoryPack;
 
@@ -39,16 +40,21 @@ namespace linker.plugins.decenter.messenger
 
                 Task.WhenAll(tasks).ContinueWith(async (result) =>
                 {
-                    List<ReadOnlyMemory<byte>> results = tasks.Where(c => c.Result.Code == MessageResponeCodes.OK)
-                    .Select(c => c.Result.Data).ToList();
-
-                    await sender.ReplyOnly(new MessageResponseWrap
+                    try
                     {
-                        RequestId = requiestid,
-                        Connection = connection,
-                        Payload = MemoryPackSerializer.Serialize(results)
-                    }, (ushort)DecenterMessengerIds.SyncForward).ConfigureAwait(false);
+                        List<ReadOnlyMemory<byte>> results = tasks.Where(c => c.Result.Code == MessageResponeCodes.OK).Select(c => c.Result.Data).ToList();
+                        await sender.ReplyOnly(new MessageResponseWrap
+                        {
+                            RequestId = requiestid,
+                            Connection = connection,
+                            Payload = MemoryPackSerializer.Serialize(results)
+                        }, (ushort)DecenterMessengerIds.SyncForward).ConfigureAwait(false);
 
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
                 });
             }
         }
@@ -67,7 +73,7 @@ namespace linker.plugins.decenter.messenger
         public void Sync(IConnection connection)
         {
             DecenterSyncInfo info = MemoryPackSerializer.Deserialize<DecenterSyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            syncTreansfer.Sync(info);
+            connection.Write(syncTreansfer.Sync(info));
         }
 
     }

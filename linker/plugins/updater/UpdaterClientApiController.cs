@@ -9,6 +9,7 @@ using linker.client.config;
 using linker.plugins.client;
 using linker.plugins.capi;
 using linker.plugins.messenger;
+using linker.libs;
 
 namespace linker.plugins.updater
 {
@@ -111,12 +112,16 @@ namespace linker.plugins.updater
                 }
 
                 confirm.SecretKey = config.Data.Client.Updater.SecretKey;
-                await messengerSender.SendOnly(new MessageRequestWrap
+                MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = clientSignInState.Connection,
                     MessengerId = (ushort)UpdaterMessengerIds.ConfirmForward,
                     Payload = MemoryPackSerializer.Serialize(confirm)
                 });
+                if (resp.Code != MessageResponeCodes.OK || resp.Data.Span.SequenceEqual(Helper.TrueArray) == false)
+                {
+                    return false;
+                }
             }
             if (confirm.MachineId == config.Data.Client.Id || confirm.All || confirm.GroupAll)
             {

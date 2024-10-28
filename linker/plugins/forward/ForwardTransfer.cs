@@ -39,7 +39,7 @@ namespace linker.plugins.forward
 
         public Memory<byte> GetData()
         {
-            CountInfo info = new CountInfo { MachineId = fileConfig.Data.Client.Id, Count = running.Data.SForwards.Count };
+            CountInfo info = new CountInfo { MachineId = fileConfig.Data.Client.Id, Count = running.Data.Forwards.Count };
             countDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
             Version.Add();
             return MemoryPackSerializer.Serialize(info);
@@ -59,8 +59,14 @@ namespace linker.plugins.forward
             }
             Version.Add();
         }
+        public void RefreshConfig()
+        {
+            DataVersion.Add();
+        }
+
         public ConcurrentDictionary<string, int> GetCount()
         {
+            DataVersion.Add();
             return countDic;
         }
 
