@@ -6,3 +6,6 @@ export const getAccesss = (machineid) => {
 export const setAccess = (data) => {
     return sendWebsocketMsg('access/SetAccess', data);
 }
+export const refreshAccess = () => {
+    return sendWebsocketMsg('access/refresh');
+}

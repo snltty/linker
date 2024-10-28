@@ -1,4 +1,4 @@
-import { getAccesss } from "@/apis/access";
+import { getAccesss, refreshAccess } from "@/apis/access";
 import { inject, provide, ref } from "vue";
 
 const accessSymbol = Symbol();
@@ -9,6 +9,10 @@ export const provideAccess = () => {
         hashcode: 0
     });
     provide(accessSymbol, access);
+
+    const handleAccesssRefresh = () => {
+        refreshAccess();
+    }
     const _getAccessInfo = () => {
         getAccesss(access.value.hashcode.toString()).then((res) => {
             access.value.hashcode = res.HashCode;
@@ -25,7 +29,7 @@ export const provideAccess = () => {
     }
 
     return {
-        access, _getAccessInfo, clearAccessTimeout
+        access, _getAccessInfo, clearAccessTimeout, handleAccesssRefresh
     }
 }
 export const useAccess = () => {

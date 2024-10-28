@@ -7,6 +7,7 @@ using linker.plugins.client;
 using linker.plugins.messenger;
 using MemoryPack;
 using linker.plugins.access.messenger;
+using linker.plugins.forward;
 
 namespace linker.plugins.access
 {
@@ -23,6 +24,11 @@ namespace linker.plugins.access
             this.sender = sender;
             this.clientSignInState = clientSignInState;
             this.accessTransfer = accessTransfer;
+        }
+
+        public void Refresh(ApiControllerParamsInfo param)
+        {
+            accessTransfer.RefreshConfig();
         }
 
         public AccessListInfo GetAccesss(ApiControllerParamsInfo param)

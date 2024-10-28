@@ -49,21 +49,31 @@ namespace linker.plugins.access
             Version.Add();
         }
 
+        public void RefreshConfig()
+        {
+            DataVersion.Add();
+        }
+
         public Dictionary<string, ClientApiAccess> GetAccesss()
         {
             return accesss;
         }
         public void SetAccess(ConfigUpdateAccessInfo info)
         {
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Debug($"from {info.FromMachineId} set access to {info.Access},my access {(ulong)fileConfig.Data.Client.Access}");
+
             //我的权限删掉它的权限==0，说明它至少拥有我的全部权限，我是它的子集，它有权管我
             if (accesss.TryGetValue(info.FromMachineId, out ClientApiAccess access) && (~access & fileConfig.Data.Client.Access) == 0)
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Debug($"from {info.FromMachineId} set access to {info.Access} success");
                 fileConfig.Data.Client.Access = (ClientApiAccess)info.Access;
                 fileConfig.Data.Update();
-                Version.Add();
-                GetData();
-                DataVersion.Add();
             }
+            GetData();
+            Version.Add();
+            DataVersion.Add();
         }
         public ClientApiAccess AssignAccess(ClientApiAccess access)
         {

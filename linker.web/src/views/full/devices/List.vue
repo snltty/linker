@@ -108,7 +108,7 @@ export default {
 
         const {_getUpdater,_subscribeUpdater,clearUpdaterTimeout} = provideUpdater();
 
-        const {_getAccessInfo,clearAccessTimeout} = provideAccess();
+        const {_getAccessInfo,clearAccessTimeout,handleAccesssRefresh} = provideAccess();
 
         const handleSortChange = (row)=>{
 
@@ -161,6 +161,7 @@ export default {
             handleSocks5Refresh();
             handleForwardRefresh();
             handleSForwardRefresh();
+            handleAccesssRefresh();
             ElMessage.success({message:'刷新成功',grouping:true});  
         }
         const handlePageSearch = ()=>{
@@ -168,6 +169,7 @@ export default {
             handleTunnelRefresh();
             handleTuntapRefresh();
             handleSocks5Refresh();
+            handleAccesssRefresh();
             ElMessage.success({message:'刷新成功',grouping:true});  
         }
 
@@ -178,6 +180,7 @@ export default {
             handleSocks5Refresh();
             handleForwardRefresh();
             handleSForwardRefresh();
+            handleAccesssRefresh();
             
             _getSignList();
             _getSignList1();
