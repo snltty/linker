@@ -57,6 +57,7 @@ jobs:
         docker tag snltty/linker-musl-x64:latest snltty/linker-musl:amd64 &&  \
         docker push snltty/linker-musl:amd64 &&  \
         docker manifest create snltty/linker-musl:latest snltty/linker-musl:amd64 snltty/linker-musl:arm64 snltty/linker-musl:arm && \
+        docker manifest create snltty/linker-musl:v1.5.1 snltty/linker-musl:amd64 snltty/linker-musl:arm64 snltty/linker-musl:arm && \
         docker manifest push snltty/linker-musl:latest && \
         docker manifest push snltty/linker-musl:v1.5.1 && \
         docker pull --platform linux/arm/v7 snltty/linker-debian-arm:latest &&  \
@@ -69,5 +70,6 @@ jobs:
         docker tag snltty/linker-debian-x64:latest snltty/linker-debian:amd64 &&  \
         docker push snltty/linker-debian:amd64 &&  \
         docker manifest create snltty/linker-debian:latest snltty/linker-debian:amd64 snltty/linker-debian:arm64 snltty/linker-debian:arm && \
+        docker manifest create snltty/linker-debian:v1.5.1 snltty/linker-debian:amd64 snltty/linker-debian:arm64 snltty/linker-debian:arm && \
         docker manifest push snltty/linker-debian:latest &&  \
         docker manifest push snltty/linker-debian:v1.5.1
