@@ -70,4 +70,4 @@ jobs:
         docker push snltty/linker-debian:amd64 &&  \
         docker manifest create snltty/linker-debian:latest snltty/linker-debian:amd64 snltty/linker-debian:arm64 snltty/linker-debian:arm && \
         docker manifest push snltty/linker-debian:latest &&  \
-        docker manifest push snltty/linker-debian:v{{version}} &&  \
+        docker manifest push snltty/linker-debian:v{{version}}
