@@ -73,7 +73,7 @@ export default {
             show: true,
             protocolTypes:{1:'tcp',2:'udp',4:'msquic'},
             types:{0:'打洞',1:'中继'},
-            transactions:{'forward':'端口转发','tuntap':'虚拟网卡'},
+            transactions:{'forward':'端口转发','tuntap':'虚拟网卡','socks5':'代理转发'},
             machineName:connections.value.currentName,
             data: computed(()=>{
                 return [
