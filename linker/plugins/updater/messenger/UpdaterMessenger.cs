@@ -1,5 +1,6 @@
 ﻿using linker.config;
 using linker.libs;
+using linker.libs.extends;
 using linker.plugins.messenger;
 using linker.plugins.signin.messenger;
 using linker.plugins.updater.config;
@@ -23,6 +24,10 @@ namespace linker.plugins.updater.messenger
         public void Confirm(IConnection connection)
         {
             UpdaterConfirmInfo confirm = MemoryPackSerializer.Deserialize<UpdaterConfirmInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            {
+                LoggerHelper.Instance.Debug(confirm.ToJson());
+            }
             updaterTransfer.Confirm(confirm.Version);
         }
 
@@ -122,7 +127,7 @@ namespace linker.plugins.updater.messenger
                 return;
             }
 
-            //本服务器所有，需要密钥
+            //需要密钥
             if ((confirm.All || confirm.GroupAll) && fileConfig.Data.Server.Updater.SecretKey != confirm.SecretKey)
             {
                 connection.Write(Helper.FalseArray);
