@@ -53,7 +53,7 @@ namespace linker.plugins.tuntap.client
 
             tuntapTransfer.OnSetupBefore += () => { DataVersion.Add(); };
             tuntapTransfer.OnSetupAfter += () => { DataVersion.Add(); };
-            tuntapTransfer.OnSetupSuccess += () => { DataVersion.Add(); runningConfig.Data.Tuntap.Running = true; runningConfig.Data.Update(); DeleteForward();AddForward(); };
+            tuntapTransfer.OnSetupSuccess += () => { DataVersion.Add(); runningConfig.Data.Tuntap.Running = true; runningConfig.Data.Update(); AddForward(); };
 
             tuntapTransfer.OnShutdownBefore += () => { DataVersion.Add(); };
             tuntapTransfer.OnShutdownAfter += () => { DataVersion.Add(); };
@@ -77,8 +77,6 @@ namespace linker.plugins.tuntap.client
         {
             TimerHelper.Async(async () =>
             {
-                DeleteForward();
-
                 IPAddress oldIP = runningConfig.Data.Tuntap.IP;
                 byte prefixLength = runningConfig.Data.Tuntap.PrefixLength;
 
@@ -283,6 +281,7 @@ namespace linker.plugins.tuntap.client
         /// </summary>
         private void AddForward()
         {
+            DeleteForward();
             forwardItems = ParseForwardItems();
             tuntapTransfer.AddForward(forwardItems);
         }
