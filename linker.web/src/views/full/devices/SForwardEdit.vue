@@ -170,7 +170,7 @@ export default {
             saveRow(row);
         }
         const handleDel = (id) => {
-            removeSForwardInfo(id).then(() => {
+            removeSForwardInfo({machineid:sforward.value.machineid,id:id}).then(() => {
                 _getSForwardInfo();
             })
         }
