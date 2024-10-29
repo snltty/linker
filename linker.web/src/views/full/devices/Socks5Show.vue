@@ -10,7 +10,7 @@
                     </template>
                     <template v-else>
                         <template v-if="socks5.list[item.MachineId].running">
-                            <strong class="green gateway">socks5://*:{{ socks5.list[item.MachineId].Port }}</strong>
+                            <strong class="green" :class="{gateway:item.isSelf}">socks5://*:{{ socks5.list[item.MachineId].Port }}</strong>
                         </template>
                         <template v-else>
                             <strong>socks5://*:{{ socks5.list[item.MachineId].Port }}</strong>
@@ -128,17 +128,6 @@ export default {
 .el-switch.is-disabled{opacity :1;}
 .el-input{
     width:8rem;
-}
-
-.gateway{
-    background:linear-gradient(90deg, #c5b260, #858585, #c5b260, #858585);
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:hsla(0,0%,100%,0);
-    &.green{
-        background:linear-gradient(90deg, #e4bb10, #008000, #e4bb10, #008000);
-        -webkit-background-clip:text;
-        -webkit-text-fill-color:hsla(0,0%,100%,0);
-    }
 }
 
 .switch-btn{

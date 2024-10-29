@@ -165,6 +165,18 @@ span.split-pad10 {
     color: #e68906 !important;
 }
 
+.gateway {
+    background: linear-gradient(90deg, #c5b260, #858585, #c5b260, #858585);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: hsla(0, 0%, 100%, 0);
+
+    &.green {
+        background: linear-gradient(90deg, #e4bb10, #008000, #e4bb10, #008000);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: hsla(0, 0%, 100%, 0);
+    }
+}
+
 .scrollbar,
 .scrollbar-1,
 .scrollbar-4,

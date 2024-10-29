@@ -72,4 +72,5 @@ export default {
     width:12rem;
     margin-right:.6rem
 }
+
 </style>
