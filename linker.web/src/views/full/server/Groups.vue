@@ -27,7 +27,7 @@
                 <template v-if="scope.row.PasswordEditing">
                     <el-input type="password" show-password size="small" v-model="scope.row.Password" @blur="handleEditBlur(scope.row, 'Password')"></el-input>
                 </template>
-                <template v-else></template>
+                <template v-else>{{ scope.row.Password.replace(/.{1}/g,'*') }}</template>
             </template>
         </el-table-column>
         <el-table-column prop="Oper" label="操作" width="110">
