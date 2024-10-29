@@ -10,7 +10,7 @@
                     </template>
                     <template v-else>
                         <template v-if="socks5.list[item.MachineId].running">
-                            <strong class="green" :class="{gateway:item.isSelf}">socks5://*:{{ socks5.list[item.MachineId].Port }}</strong>
+                            <strong class="green gateway">socks5://*:{{ socks5.list[item.MachineId].Port }}</strong>
                         </template>
                         <template v-else>
                             <strong>socks5://*:{{ socks5.list[item.MachineId].Port }}</strong>

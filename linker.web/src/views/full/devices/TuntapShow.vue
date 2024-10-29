@@ -11,7 +11,7 @@
                     </template>
                     <template v-else>
                         <template v-if="tuntap.list[item.MachineId].running">
-                            <strong class="green" :class="{gateway:item.isSelf}">{{ tuntap.list[item.MachineId].IP }}</strong>
+                            <strong class="green gateway">{{ tuntap.list[item.MachineId].IP }}</strong>
                         </template>
                         <template v-else>
                             <strong>{{ tuntap.list[item.MachineId].IP }}</strong>
@@ -39,13 +39,13 @@
                         <div class="flex yellow" title="与其它设备填写IP、或本机局域网IP有冲突">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
                     </template>
                     <template v-else>
-                        <div class="flex" title="正常使用" :class="{green:tuntap.list[item.MachineId].running,gateway:item.isSelf}">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
+                        <div class="flex" title="正常使用" :class="{green:tuntap.list[item.MachineId].running}">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
                     </template>
                 </template>
             </div>
             <template v-if="showDelay">
                 <template v-if="tuntap.list[item.MachineId].Delay>=0 && tuntap.list[item.MachineId].Delay<=100">
-                    <div class="delay green" :class="{gateway:item.isSelf}">{{ tuntap.list[item.MachineId].Delay }}ms</div>
+                    <div class="delay green">{{ tuntap.list[item.MachineId].Delay }}ms</div>
                 </template>
                 <template>
                     <div class="delay yellow">{{ tuntap.list[item.MachineId].Delay }}ms</div>

@@ -177,6 +177,18 @@ span.split-pad10 {
     }
 }
 
+.gateway1 {
+    background: linear-gradient(90deg, #a810e4, #008000, #a810e4, #008000);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: hsla(0, 0%, 100%, 0);
+
+    &.green {
+        background: linear-gradient(90deg, #a810e4, #008000, #a810e4, #008000);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: hsla(0, 0%, 100%, 0);
+    }
+}
+
 .scrollbar,
 .scrollbar-1,
 .scrollbar-4,
