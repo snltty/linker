@@ -7,8 +7,10 @@
                 <img v-if="tuntap.list[item.MachineId].systemDocker" class="system" src="/docker.svg" />
             </span>
         </template>
-        <a href="javascript:;" @click="handleEdit" title="此客户端的设备名" class="gateway" :class="{green:item.Connected}">{{item.MachineName }}</a>
-        <strong class="self" v-if="item.isSelf">(<el-icon size="16"><StarFilled /></el-icon>) </strong>
+        <a href="javascript:;" @click="handleEdit" title="此客户端的设备名" :class="{green:item.Connected}">
+            <span class="gateway">{{item.MachineName }}</span>
+        </a>
+        <strong class="self gateway" v-if="item.isSelf">(<el-icon size="16"><StarFilled /></el-icon>) </strong>
     </div>
 </template>
 

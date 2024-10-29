@@ -10,8 +10,8 @@
                 </a>
             </div> 
             <div>
-                <a href="javascript:;" title="与此设备的隧道连接" class="a-line" :class="{green:connectionCount(scope.row.MachineId)>0,gateway:connectionCount(scope.row.MachineId)>0}" @click="handleConnections(scope.row)">
-                    连接:<span>{{connectionCount(scope.row.MachineId)}}</span>
+                <a href="javascript:;" title="与此设备的隧道连接" class="a-line" :class="{green:connectionCount(scope.row.MachineId)>0}" @click="handleConnections(scope.row)">
+                    <span :class="{gateway:connectionCount(scope.row.MachineId)>0}">连接:<span>{{connectionCount(scope.row.MachineId)}}</span></span>
                 </a>
             </div>
         </template>

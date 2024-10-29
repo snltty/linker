@@ -10,7 +10,7 @@ a {
 }
 
 a {
-    background-image: linear-gradient(90deg, green, green);
+    background-image: linear-gradient(92deg, #ff0000, #ff9000, #ffdc00, #23bf08, #00ffb2, #0072ff, #fd00ff);
     background-size: 0% 2px;
     background-position: left bottom;
     background-repeat: no-repeat;
@@ -166,28 +166,17 @@ span.split-pad10 {
 }
 
 .gateway {
-    background: linear-gradient(90deg, #c5b260, #858585, #c5b260, #858585);
+    background: linear-gradient(178deg, #9fc60a, #b7a600, #18b918, #0a7516, #03a403);
     -webkit-background-clip: text;
     -webkit-text-fill-color: hsla(0, 0%, 100%, 0);
 
     &.green {
-        background: linear-gradient(90deg, #e4bb10, #008000, #e4bb10, #008000);
+        background: linear-gradient(178deg, #9fc60a, #b7a600, #18b918, #0a7516, #03a403));
         -webkit-background-clip: text;
         -webkit-text-fill-color: hsla(0, 0%, 100%, 0);
     }
 }
 
-.gateway1 {
-    background: linear-gradient(90deg, #a810e4, #008000, #a810e4, #008000);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: hsla(0, 0%, 100%, 0);
-
-    &.green {
-        background: linear-gradient(90deg, #a810e4, #008000, #a810e4, #008000);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: hsla(0, 0%, 100%, 0);
-    }
-}
 
 .scrollbar,
 .scrollbar-1,

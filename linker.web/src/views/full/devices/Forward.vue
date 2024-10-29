@@ -4,25 +4,25 @@
             <template v-if="scope.row.Connected">
                 <template v-if="scope.row.isSelf && (hasForwardShowSelf || hasForwardSelf)">
                     <div>
-                        <a href="javascript:;" title="管理自己的端口转发" :class="{green:forward.list[scope.row.MachineId]>0,gateway:forward.list[scope.row.MachineId]>0 }" @click="handleEdit(scope.row.MachineId,scope.row.MachineName)">
-                            端口转发({{forward.list[scope.row.MachineId]>99 ? '99+' : forward.list[scope.row.MachineId]}})
+                        <a href="javascript:;" title="管理自己的端口转发" :class="{green:forward.list[scope.row.MachineId]>0 }" @click="handleEdit(scope.row.MachineId,scope.row.MachineName)">
+                            <span :class="{gateway:forward.list[scope.row.MachineId]>0}">端口转发({{forward.list[scope.row.MachineId]>99 ? '99+' : forward.list[scope.row.MachineId]}})</span>
                         </a>
                     </div>
                     <div>
-                        <a href="javascript:;" title="管理自己的内网穿透" :class="{green:sforward.list[scope.row.MachineId]>0,gateway:sforward.list[scope.row.MachineId]>0 }" @click="handleSEdit(scope.row.MachineId,scope.row.MachineName)">
-                            内网穿透({{sforward.list[scope.row.MachineId]>99 ? '99+' : sforward.list[scope.row.MachineId]}})
+                        <a href="javascript:;" title="管理自己的内网穿透" :class="{green:sforward.list[scope.row.MachineId]>0}" @click="handleSEdit(scope.row.MachineId,scope.row.MachineName)">
+                            <span :class="{gateway:sforward.list[scope.row.MachineId]>0 }">内网穿透({{sforward.list[scope.row.MachineId]>99 ? '99+' : sforward.list[scope.row.MachineId]}})</span>
                         </a>
                     </div>
                 </template>
                 <template v-else-if="hasForwardShowOther || hasForwardOther">
                     <div>
-                        <a href="javascript:;" title="管理自己的端口转发" :class="{green:forward.list[scope.row.MachineId]>0,gateway:forward.list[scope.row.MachineId]>0}" @click="handleEdit(scope.row.MachineId,scope.row.MachineName)">
-                            端口转发({{forward.list[scope.row.MachineId]>99 ? '99+' : forward.list[scope.row.MachineId]}})
+                        <a href="javascript:;" title="管理自己的端口转发" :class="{green:forward.list[scope.row.MachineId]>0}" @click="handleEdit(scope.row.MachineId,scope.row.MachineName)">
+                            <span :class="{gateway:forward.list[scope.row.MachineId]>0}">端口转发({{forward.list[scope.row.MachineId]>99 ? '99+' : forward.list[scope.row.MachineId]}})</span>
                         </a>
                     </div>
                     <div>
-                        <a href="javascript:;" title="管理自己的内网穿透" :class="{green:sforward.list[scope.row.MachineId]>0,gateway:sforward.list[scope.row.MachineId]>0}" @click="handleSEdit(scope.row.MachineId,scope.row.MachineName)">
-                            内网穿透({{sforward.list[scope.row.MachineId]>99 ? '99+' : sforward.list[scope.row.MachineId]}})
+                        <a href="javascript:;" title="管理自己的内网穿透" :class="{green:sforward.list[scope.row.MachineId]>0}" @click="handleSEdit(scope.row.MachineId,scope.row.MachineName)">
+                            <span :class="{gateway:sforward.list[scope.row.MachineId]>0 }">内网穿透({{sforward.list[scope.row.MachineId]>99 ? '99+' : sforward.list[scope.row.MachineId]}})</span>
                         </a>
                     </div>
                 </template>
