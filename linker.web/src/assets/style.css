@@ -171,7 +171,7 @@ span.split-pad10 {
     -webkit-text-fill-color: hsla(0, 0%, 100%, 0);
 
     &.green {
-        background: linear-gradient(178deg, #9fc60a, #b7a600, #18b918, #0a7516, #03a403));
+        background: linear-gradient(178deg, #9fc60a, #b7a600, #18b918, #0a7516, #03a403);
         -webkit-background-clip: text;
         -webkit-text-fill-color: hsla(0, 0%, 100%, 0);
     }
