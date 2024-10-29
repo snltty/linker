@@ -4,7 +4,6 @@ using linker.tunnel.connection;
 using linker.libs;
 using linker.libs.extends;
 using System.Collections.Concurrent;
-using System.Net;
 
 namespace linker.plugins.relay
 {
@@ -24,7 +23,6 @@ namespace linker.plugins.relay
         public RelayTransfer(FileConfig fileConfig)
         {
             this.fileConfig = fileConfig;
-            TestTask();
         }
 
         public void LoadTransports(List<ITransport> list)
@@ -191,46 +189,6 @@ namespace linker.plugins.relay
             }
         }
 
-
-
-        private readonly LastTicksManager lastTicksManager = new LastTicksManager();
-        public void SubscribeDelayTest()
-        {
-            lastTicksManager.Update();
-        }
-        private async Task TaskRelay()
-        {
-            try
-            {
-                foreach (var server in fileConfig.Data.Client.Relay.Servers)
-                {
-                    ITransport transport = Transports.FirstOrDefault(d => d.Type == server.RelayType);
-                    if (transport == null) continue;
-
-                    IPEndPoint serverEP = NetworkHelper.GetEndPoint(fileConfig.Data.Client.ServerInfo.Host, 3478);
-                    server.Delay = await transport.RelayTestAsync(new RelayTestInfo
-                    {
-                        MachineId = fileConfig.Data.Client.Id,
-                        SecretKey = server.SecretKey,
-                        Server = serverEP,
-                    });
-                }
-            }
-            catch (Exception)
-            {
-            }
-        }
-        private void TestTask()
-        {
-            TimerHelper.SetInterval(async () =>
-            {
-                if (lastTicksManager.DiffLessEqual(3000))
-                {
-                    await TaskRelay();
-                }
-                return true;
-            }, () => lastTicksManager.DiffLessEqual(3000) ? 3000 : 30000);
-        }
 
     }
 }

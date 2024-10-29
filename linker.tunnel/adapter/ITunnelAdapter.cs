@@ -15,7 +15,7 @@ namespace linker.tunnel.adapter
         /// <summary>
         /// 服务器地址
         /// </summary>
-        public string ServerHost { get; }
+        public IPEndPoint ServerHost { get; }
 
         /// <summary>
         /// ssl加密证书，没有证书则无法加密通信

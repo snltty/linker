@@ -43,13 +43,8 @@ namespace linker.tunnel.wanport
             if (tunnelWanPort == null) return null;
             try
             {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Debug($"get domain ip {tunnelAdapter.ServerHost}");
-                IPEndPoint server = NetworkHelper.GetEndPoint(tunnelAdapter.ServerHost, 3478);
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Debug($"got domain ip {tunnelAdapter.ServerHost}->{server}");
-                if (server == null) return null;
-                TunnelWanPortEndPoint wanPort = await tunnelWanPort.GetAsync(localIP, server).ConfigureAwait(false);
+                if (tunnelAdapter.ServerHost == null) return null;
+                TunnelWanPortEndPoint wanPort = await tunnelWanPort.GetAsync(localIP, tunnelAdapter.ServerHost).ConfigureAwait(false);
                 if (wanPort != null)
                 {
                     wanPort.Local.Address = localIP;

@@ -1,7 +1,6 @@
 ﻿using linker.config;
 using linker.plugins.relay.transport;
 using linker.libs;
-using System.Net;
 
 namespace linker.plugins.relay
 {
@@ -35,12 +34,10 @@ namespace linker.plugins.relay
                     ITransport transport = relayTransfer.Transports.FirstOrDefault(d => d.Type == server.RelayType);
                     if (transport == null) continue;
 
-                    IPEndPoint serverEP = NetworkHelper.GetEndPoint(fileConfig.Data.Client.ServerInfo.Host, 3478);
                     server.Delay = await transport.RelayTestAsync(new RelayTestInfo
                     {
                         MachineId = fileConfig.Data.Client.Id,
-                        SecretKey = server.SecretKey,
-                        Server = serverEP,
+                        SecretKey = server.SecretKey
                     });
                 }
             }

@@ -16,11 +16,9 @@ namespace linker.plugins.tunnel
     public sealed class TunnelAdapter : ITunnelAdapter
     {
         public IPAddress LocalIP => clientSignInState.Connection?.LocalAddress.Address ?? IPAddress.Any;
-        public string ServerHost => config.Data.Client.ServerInfo.Host;
+        public IPEndPoint ServerHost => clientSignInState.Connection?.Address ?? null;
 
         public X509Certificate2 Certificate { get; private set; }
-
-       
 
         private readonly ClientSignInState clientSignInState;
         private readonly IMessengerSender messengerSender;

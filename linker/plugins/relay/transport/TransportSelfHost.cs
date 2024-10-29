@@ -55,12 +55,18 @@ namespace linker.plugins.relay.transport
                     return null;
                 }
                 relayInfo.FlowingId = resp.Data.Span.ToUInt64();
+                //RelayAskResultInfo relayAskResultInfo = MemoryPackSerializer.Deserialize<RelayAskResultInfo>(resp.Data.Span);
+                // relayInfo.FlowingId = relayAskResultInfo.FlowingId;
+                // relayInfo.Server = relayAskResultInfo.Server;
                 if (relayInfo.FlowingId == 0)
                 {
                     return null;
                 }
+                // if (relayInfo.Server == null)
+                {
+                    relayInfo.Server = clientSignInState.Connection.Address;
+                }
 
-                relayInfo.Server = clientSignInState.Connection.Address;
                 //连接中继服务器
                 Socket socket = new Socket(relayInfo.Server.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 socket.KeepAlive();
@@ -126,6 +132,7 @@ namespace linker.plugins.relay.transport
         {
             try
             {
+                //if (relayInfo.Server == null)
                 relayInfo.Server = clientSignInState.Connection.Address;
                 Socket socket = new Socket(relayInfo.Server.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 socket.KeepAlive();

@@ -5,6 +5,7 @@ using linker.libs;
 using MemoryPack;
 using linker.plugins.messenger;
 using linker.plugins.relay.validator;
+using System.Net;
 
 namespace linker.plugins.relay.messenger
 {
@@ -97,6 +98,7 @@ namespace linker.plugins.relay.messenger
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) == false || signCaching.TryGet(info.RemoteMachineId, out SignCacheInfo cacheTo) == false || cacheFrom.GroupId != cacheTo.GroupId)
             {
                 connection.Write(ulong.MinValue);
+                //connection.Write(MemoryPackSerializer.Serialize(new RelayAskResultInfo { FlowingId = ulong.MinValue, Server = null }));
                 return;
             }
 
@@ -109,11 +111,13 @@ namespace linker.plugins.relay.messenger
             if (string.IsNullOrWhiteSpace(result) == false)
             {
                 connection.Write(ulong.MinValue);
+                //connection.Write(MemoryPackSerializer.Serialize(new RelayAskResultInfo { FlowingId = ulong.MinValue, Server = null }));
                 return;
             }
 
             ulong flowingId = relayResolver.NewRelay(cacheFrom.MachineId, cacheFrom.MachineName, cacheTo.MachineId, cacheTo.MachineName);
             connection.Write(flowingId);
+            // connection.Write(MemoryPackSerializer.Serialize(new RelayAskResultInfo { FlowingId = flowingId, Server = null }));
         }
 
         /// <summary>
@@ -147,6 +151,8 @@ namespace linker.plugins.relay.messenger
             info.FromMachineId = cacheTo.MachineId;
             info.RemoteMachineName = cacheFrom.MachineName;
             info.FromMachineName = cacheTo.MachineName;
+
+            info.Server = null;
             try
             {
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -170,5 +176,13 @@ namespace linker.plugins.relay.messenger
 
     }
 
+    [MemoryPackable]
+    public sealed partial class RelayAskResultInfo
+    {
+        public ulong FlowingId { get; set; }
+
+        [MemoryPackAllowSerialize]
+        public IPEndPoint Server { get; set; }
+    }
 
 }
