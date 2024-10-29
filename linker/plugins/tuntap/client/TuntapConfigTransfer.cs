@@ -29,6 +29,7 @@ namespace linker.plugins.tuntap.client
         private readonly LeaseClientTreansfer leaseClientTreansfer;
 
         private LinkerTunDeviceRouteItem[] routeItems = new LinkerTunDeviceRouteItem[0];
+        private List<LinkerTunDeviceForwardItem> forwardItems = new List<LinkerTunDeviceForwardItem>();
 
         public VersionManager Version { get; } = new VersionManager();
         private readonly ConcurrentDictionary<string, TuntapInfo> tuntapInfos = new ConcurrentDictionary<string, TuntapInfo>();
@@ -52,7 +53,7 @@ namespace linker.plugins.tuntap.client
 
             tuntapTransfer.OnSetupBefore += () => { DataVersion.Add(); };
             tuntapTransfer.OnSetupAfter += () => { DataVersion.Add(); };
-            tuntapTransfer.OnSetupSuccess += () => { DataVersion.Add(); runningConfig.Data.Tuntap.Running = true; runningConfig.Data.Update(); };
+            tuntapTransfer.OnSetupSuccess += () => { DataVersion.Add(); runningConfig.Data.Tuntap.Running = true; runningConfig.Data.Update(); DeleteForward();AddForward(); };
 
             tuntapTransfer.OnShutdownBefore += () => { DataVersion.Add(); };
             tuntapTransfer.OnShutdownAfter += () => { DataVersion.Add(); };
@@ -115,7 +116,7 @@ namespace linker.plugins.tuntap.client
             TuntapInfo info = new TuntapInfo
             {
                 IP = runningConfig.Data.Tuntap.IP,
-                Lans = runningConfig.Data.Tuntap.Lans.Where(c=> c.IP != null && c.IP.Equals(IPAddress.Any)==false).Select(c => { c.Exists = false; return c; }).ToList(),
+                Lans = runningConfig.Data.Tuntap.Lans.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false).Select(c => { c.Exists = false; return c; }).ToList(),
                 PrefixLength = runningConfig.Data.Tuntap.PrefixLength,
                 MachineId = config.Data.Client.Id,
                 Status = tuntapTransfer.Status,
@@ -173,7 +174,7 @@ namespace linker.plugins.tuntap.client
                         tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
                         item.LastTicks.Update();
                     }
-                    var removes = tuntapInfos.Keys.Except(list.Select(c => c.MachineId)).Where(c=>c != config.Data.Client.Id).ToList();
+                    var removes = tuntapInfos.Keys.Except(list.Select(c => c.MachineId)).Where(c => c != config.Data.Client.Id).ToList();
                     foreach (var item in removes)
                     {
                         if (tuntapInfos.TryGetValue(item, out TuntapInfo tuntapInfo))
@@ -282,14 +283,15 @@ namespace linker.plugins.tuntap.client
         /// </summary>
         private void AddForward()
         {
-            tuntapTransfer.AddForward(ParseForwardItems());
+            forwardItems = ParseForwardItems();
+            tuntapTransfer.AddForward(forwardItems);
         }
         /// <summary>
         /// 删除端口转发
         /// </summary>
         private void DeleteForward()
         {
-            tuntapTransfer.RemoveForward(ParseForwardItems());
+            tuntapTransfer.RemoveForward(forwardItems);
         }
         private List<LinkerTunDeviceForwardItem> ParseForwardItems()
         {
