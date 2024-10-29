@@ -256,7 +256,8 @@ namespace linker.tunnel
             try
             {
                 ITunnelTransport _transports = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
-                if (_transports != null)
+                TunnelTransportItemInfo item = tunnelAdapter.GetTunnelTransports().FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.Disabled == false);
+                if (_transports != null && item != null)
                 {
                     OnConnectBegin(tunnelTransportInfo);
                     ParseRemoteEndPoint(tunnelTransportInfo);
@@ -268,6 +269,7 @@ namespace linker.tunnel
                 else
                 {
                     connectingDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out _);
+                    _ = tunnelAdapter.SendConnectFail(tunnelTransportInfo);
                 }
             }
             catch (Exception ex)
@@ -278,6 +280,8 @@ namespace linker.tunnel
                     LoggerHelper.Instance.Error(ex);
                 }
             }
+           
+           
         }
         /// <summary>
         /// 收到对方发来的连接失败的消息
