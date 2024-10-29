@@ -60,7 +60,7 @@ namespace linker.plugins.relay.transport
                     return null;
                 }
 
-
+                relayInfo.Server = clientSignInState.Connection.Address;
                 //连接中继服务器
                 Socket socket = new Socket(relayInfo.Server.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 socket.KeepAlive();
@@ -126,6 +126,7 @@ namespace linker.plugins.relay.transport
         {
             try
             {
+                relayInfo.Server = clientSignInState.Connection.Address;
                 Socket socket = new Socket(relayInfo.Server.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 socket.KeepAlive();
                 await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);

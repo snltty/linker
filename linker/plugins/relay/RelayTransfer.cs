@@ -74,13 +74,12 @@ namespace linker.plugins.relay
             }
             try
             {
-                ITransport transport = Transports.FirstOrDefault(c => c.Type == fileConfig.Data.Client.Relay.Server.RelayType);
+                ITransport transport = Transports.FirstOrDefault(c => c.Type == fileConfig.Data.Client.Relay.Server.RelayType && fileConfig.Data.Client.Relay.Server.Disabled == false);
                 if (transport == null)
                 {
                     return null;
                 }
 
-                IPEndPoint server = NetworkHelper.GetEndPoint(fileConfig.Data.Client.ServerInfo.Host, 3478);
                 transport.RelayInfo relayInfo = new transport.RelayInfo
                 {
                     FlowingId = 0,
@@ -89,7 +88,6 @@ namespace linker.plugins.relay
                     RemoteMachineId = remoteMachineId,
                     RemoteMachineName = string.Empty,
                     SecretKey = fileConfig.Data.Client.Relay.Server.SecretKey,
-                    Server = server,
                     TransactionId = transactionId,
                     TransportName = transport.Name,
                     SSL = fileConfig.Data.Client.Relay.Server.SSL
@@ -137,8 +135,6 @@ namespace linker.plugins.relay
 
             try
             {
-                relayInfo.Server = NetworkHelper.GetEndPoint(fileConfig.Data.Client.ServerInfo.Host, 3478);
-
                 ITransport _transports = Transports.FirstOrDefault(c => c.Name == relayInfo.TransportName);
                 if (_transports == null) return false;
 
