@@ -4,6 +4,8 @@ using linker.libs.extends;
 using System.Collections.Concurrent;
 using linker.plugins.resolver;
 using System.Net;
+using linker.plugins.relay.caching;
+using MemoryPack;
 
 namespace linker.plugins.relay
 {
@@ -14,40 +16,31 @@ namespace linker.plugins.relay
     {
         public ResolverType Type => ResolverType.Relay;
 
-        public RelayResolver()
+        private readonly IRelayCaching relayCaching;
+        public RelayResolver(IRelayCaching relayCaching)
         {
+            this.relayCaching = relayCaching;
         }
 
         private readonly ConcurrentDictionary<ulong, RelayWrap> relayDic = new ConcurrentDictionary<ulong, RelayWrap>();
         private ulong relayFlowingId = 0;
-        public ulong NewRelay(string fromid, string fromName, string toid, string toName)
+        public async Task<ulong> NewRelay(string fromid, string fromName, string toid, string toName)
         {
             ulong flowingId = Interlocked.Increment(ref relayFlowingId);
 
-            RelayWrap relayWrap = new RelayWrap
+            RelayCache cache = new RelayCache
             {
                 FlowId = flowingId,
-                Tcs = new TaskCompletionSource<Socket>(),
-                WaitTcs = new TaskCompletionSource<Socket>(),
-                Socket = null,
                 FromId = fromid,
                 FromName = fromName,
                 ToId = toid,
                 ToName = toName
             };
-            relayDic.TryAdd(flowingId, relayWrap);
-
-            relayWrap.WaitTcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000)).ContinueWith((result) =>
-            {
-                if (result.IsFaulted)
-                {
-                    relayDic.TryRemove(flowingId, out _);
-                }
-            });
+            bool added = await relayCaching.TryAdd($"{fromid}->{toid}", cache, 5000);
+            if (added == false) return 0;
 
             return flowingId;
         }
-
 
 
         public virtual void AddReceive(string key, string from, string to, ulong bytes)
@@ -76,46 +69,57 @@ namespace linker.plugins.relay
                 int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
                 RelayMessage relayMessage = RelayMessage.FromBytes(buffer.AsMemory(0, length));
 
-                if (relayDic.TryGetValue(relayMessage.FlowId, out RelayWrap relayWrap) == false)
+                //ask 是发起端来的，那key就是 发起端->目标端， answer的，目标和来源会交换，所以转换一下
+                string key = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}" : $"{relayMessage.ToId}->{relayMessage.FromId}";
+                RelayCachingValue<RelayCache> relayCacheWrap = new RelayCachingValue<RelayCache>();
+                if (await relayCaching.TryGetValue(key, relayCacheWrap) == false)
                 {
                     socket.SafeClose();
                     return;
                 }
-                AddReceive(relayWrap.FromId, relayWrap.FromName, relayWrap.ToName, (ulong)length);
+                //流量统计
+                AddReceive(relayCacheWrap.Value.FromId, relayCacheWrap.Value.FromName, relayCacheWrap.Value.ToName, (ulong)length);
                 try
                 {
+                    switch (relayMessage.Type)
+                    {
+                        case RelayMessengerType.Ask:
+                            break;
+                        case RelayMessengerType.Answer:
+                            break;
+                        default:
+                            break;
+                    }
+                    //发起端
                     if (relayMessage.Type == RelayMessengerType.Ask)
                     {
+                        //添加本地缓存
+                        RelayWrap relayWrap = new RelayWrap { Socket = socket, Tcs = new TaskCompletionSource<Socket>() };
+                        relayDic.TryAdd(relayCacheWrap.Value.FlowId, relayWrap);
 
-
-                        if (relayMessage.FromId != relayWrap.FromId)
-                        {
-                            socket.SafeClose();
-                            return;
-                        }
-                        relayWrap.WaitTcs.SetResult(null);
-                        relayWrap.Socket = socket;
+                        //等待对方连接
                         Socket targetSocket = await relayWrap.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(3000));
-                        _ = CopyToAsync(relayWrap.FromId, relayWrap.FromName, relayWrap.ToName, 3, socket, targetSocket);
+                        _ = CopyToAsync(relayCacheWrap.Value.FromId, relayCacheWrap.Value.FromName, relayCacheWrap.Value.ToName, 3, socket, targetSocket);
                     }
-                    else if (relayMessage.Type == RelayMessengerType.Answer && relayWrap.Socket != null)
+                    else if (relayMessage.Type == RelayMessengerType.Answer)
                     {
-                        if (relayMessage.FromId != relayWrap.ToId)
+                        //看发起端缓存
+                        if (relayDic.TryRemove(relayCacheWrap.Value.FlowId, out RelayWrap relayWrap) == false || relayWrap.Socket == null)
                         {
                             socket.SafeClose();
                             return;
                         }
-
+                        //告诉发起端我的socket
                         relayWrap.Tcs.SetResult(socket);
-                        _ = CopyToAsync(relayWrap.FromId, relayWrap.FromName, relayWrap.ToName, 3, socket, relayWrap.Socket);
+                        _ = CopyToAsync(relayCacheWrap.Value.FromId, relayCacheWrap.Value.FromName, relayCacheWrap.Value.ToName, 3, socket, relayWrap.Socket);
                     }
                 }
                 catch (Exception)
                 {
-                }
-                finally
-                {
-                    relayDic.TryRemove(relayMessage.FlowId, out _);
+                    if (relayDic.TryRemove(relayCacheWrap.Value.FlowId, out RelayWrap remove))
+                    {
+                        remove.Socket?.SafeClose();
+                    }
                 }
             }
             catch (Exception)
@@ -153,17 +157,19 @@ namespace linker.plugins.relay
         Answer = 1,
     }
 
-    public sealed class RelayWrap
+    [MemoryPackable]
+    public sealed partial class RelayCache
     {
         public ulong FlowId { get; set; }
-        public TaskCompletionSource<Socket> Tcs { get; set; }
-        public TaskCompletionSource<Socket> WaitTcs { get; set; }
-        public Socket Socket { get; set; }
-
         public string FromId { get; set; }
         public string FromName { get; set; }
         public string ToId { get; set; }
         public string ToName { get; set; }
+    }
+    public sealed class RelayWrap
+    {
+        public TaskCompletionSource<Socket> Tcs { get; set; }
+        public Socket Socket { get; set; }
     }
 
     public sealed class RelayMessage

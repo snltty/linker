@@ -1,4 +1,5 @@
 ﻿using linker.config;
+using linker.plugins.relay.caching;
 using linker.plugins.relay.messenger;
 using linker.plugins.relay.transport;
 using linker.plugins.relay.validator;
@@ -28,7 +29,7 @@ namespace linker.plugins.relay
             serviceCollection.AddSingleton<TransportSelfHost>();
             serviceCollection.AddSingleton<RelayTransfer>();
             serviceCollection.AddSingleton<RelayTestTransfer>();
-            
+
 
             serviceCollection.AddSingleton<ConfigSyncRelaySecretKey>();
 
@@ -47,6 +48,14 @@ namespace linker.plugins.relay
 
             serviceCollection.AddSingleton<RelayValidatorSecretKey>();
 
+            if (config.Data.Server.Relay.Caching.Name == "memory")
+            {
+                serviceCollection.AddSingleton<IRelayCaching, RelayCachingMemory>();
+            }
+            else if (config.Data.Server.Relay.Caching.Name == "redis")
+            {
+                serviceCollection.AddSingleton<IRelayCaching, RelayCachingRedis>();
+            }
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)
@@ -58,6 +67,7 @@ namespace linker.plugins.relay
         public void UseServer(ServiceProvider serviceProvider, FileConfig config)
         {
             RelayValidatorTypeLoader relayValidatorTypeLoader = serviceProvider.GetService<RelayValidatorTypeLoader>();
+            IRelayCaching relayCaching = serviceProvider.GetService<IRelayCaching>();
         }
     }
 }

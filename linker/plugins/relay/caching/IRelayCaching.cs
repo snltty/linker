@@ -2,6 +2,8 @@
 {
     public interface IRelayCaching
     {
+        public string Name { get; }
+
         public ValueTask<bool> TryAdd<T>(string key, T value, int expired);
         public ValueTask<bool> TryGetValue<T>(string key, RelayCachingValue<T> wrap);
     }

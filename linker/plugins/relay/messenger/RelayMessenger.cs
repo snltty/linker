@@ -115,7 +115,7 @@ namespace linker.plugins.relay.messenger
                 return;
             }
 
-            ulong flowingId = relayResolver.NewRelay(cacheFrom.MachineId, cacheFrom.MachineName, cacheTo.MachineId, cacheTo.MachineName);
+            ulong flowingId = await relayResolver.NewRelay(cacheFrom.MachineId, cacheFrom.MachineName, cacheTo.MachineId, cacheTo.MachineName);
             connection.Write(flowingId);
             // connection.Write(MemoryPackSerializer.Serialize(new RelayAskResultInfo { FlowingId = flowingId, Server = null }));
         }
