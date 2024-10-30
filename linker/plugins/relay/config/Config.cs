@@ -34,6 +34,13 @@ namespace linker.config
 #else
         public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
 #endif
+
+        public RelayCacheInfo Caching { get; set; } = new RelayCacheInfo { };
+    }
+    public sealed class RelayCacheInfo
+    {
+        public string Name { get; set; } = "memory";
+        public string ConnectString { get; set; } = string.Empty;
     }
 
     /// <summary>

@@ -7,7 +7,7 @@
                 <img v-if="tuntap.list[item.MachineId].systemDocker" class="system" src="/docker.svg" />
             </span>
         </template>
-        <a href="javascript:;" @click="handleEdit" title="此客户端的设备名" >
+        <a href="javascript:;" @click="handleEdit" title="此客户端的设备名" class="a-line">
             <strong class="gateway" :class="{green:item.Connected}">{{item.MachineName }}</strong>
         </a>
         <strong class="self gateway" v-if="item.isSelf">(<el-icon size="16"><StarFilled /></el-icon>) </strong>

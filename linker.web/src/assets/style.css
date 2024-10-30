@@ -167,10 +167,21 @@ span.split-pad10 {
 
 .gateway {
     &.green {
-        background: linear-gradient(180deg, #9fc60a, #0d4907, #0b890b, #0d4907, green);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: hsla(0, 0%, 100%, 0);
+        /* background: linear-gradient(270deg, #caff00, green, #0d6d23, #e38a00, green); */
+        /* linear-gradient(270deg, #caff00, green, #0d6d23, #e38a00, green) */
+        /* background-clip: text; */
+        /* -webkit-background-clip: text; */
+        /* -webkit-text-fill-color: hsla(0, 0%, 100%, 0); */
+        transition: .3s;
+
+        &:hover {
+            background: linear-gradient(270deg, #caff00, green, #0d6d23, #e38a00, green);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: hsla(0, 0%, 100%, 0);
+        }
     }
+
 }
 
 
