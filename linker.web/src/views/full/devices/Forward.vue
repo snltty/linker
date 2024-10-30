@@ -86,7 +86,9 @@ export default {
 <style lang="stylus" scoped>
 a{
     text-decoration: underline;
-    font-weight:bold;
     &+a{margin-left:1rem}
+    &.green{
+        font-weight:bold;
+    }
 }
 </style>

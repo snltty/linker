@@ -13,7 +13,7 @@
                             <strong class="green gateway">socks5://*:{{ socks5.list[item.MachineId].Port }}</strong>
                         </template>
                         <template v-else>
-                            <strong>socks5://*:{{ socks5.list[item.MachineId].Port }}</strong>
+                            <span>socks5://*:{{ socks5.list[item.MachineId].Port }}</span>
                         </template>
                     </template>
                 </a>

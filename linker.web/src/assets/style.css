@@ -6,7 +6,7 @@
 
 a {
     text-decoration: none;
-    color: #6f9ccd;
+    color: #666;
 }
 
 a {
@@ -166,10 +166,6 @@ span.split-pad10 {
 }
 
 .gateway {
-    background: linear-gradient(180deg, #9fc60a, #0d4907, #0b890b, #0d4907, green);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: hsla(0, 0%, 100%, 0);
-
     &.green {
         background: linear-gradient(180deg, #9fc60a, #0d4907, #0b890b, #0d4907, green);
         -webkit-background-clip: text;
@@ -233,6 +229,11 @@ span.split-pad10 {
     --el-color-primary-light-8: var(--el-color-success-light-8) !important;
     --el-color-primary-light-9: var(--el-color-success-light-9) !important;
     --el-color-primary-dark-2: var(--el-color-success-dark-2) !important;
+
+}
+
+.el-table {
+    --el-table-header-text-color: var(--el-text-color-regular) !important;
 }
 
 .el-input-number--small {
