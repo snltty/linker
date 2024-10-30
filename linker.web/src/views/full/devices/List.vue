@@ -1,20 +1,12 @@
 <template>
     <div class="home-list-wrap absolute" >
-        <el-table border style="width: 100%" height="32px" size="small" @sort-change="handleSortChange" class="table-sort">
-            <el-table-column prop="MachineId" label="设备名" width="110" sortable="custom" ></el-table-column>
-            <el-table-column prop="Version" label="版本" width="110" sortable="custom"></el-table-column>
-            <el-table-column prop="tunnel" label="网关" width="70" sortable="custom"></el-table-column>
-            <el-table-column prop="tuntap" label="网卡IP" width="160" sortable="custom"></el-table-column>
-            <el-table-column prop="socks5" label="代理转发" width="160" sortable="custom"></el-table-column>
-            <el-table-column prop="forward" label=""></el-table-column>
-            <el-table-column label="" width="74" fixed="right"></el-table-column>
-        </el-table>
+        <Sort @sort="handleSortChange"></Sort>
         <el-table :data="devices.page.List" stripe border style="width: 100%" :height="`${state.height}px`" size="small">
             <Device  @edit="handleDeviceEdit" @refresh="handlePageRefresh"></Device>
             <Tunnel  @edit="handleTunnelEdit" @refresh="handleTunnelRefresh" @connections="handleTunnelConnections"></Tunnel>
-            <Tuntap  @edit="handleTuntapEdit" @refresh="handleTuntapRefresh"></Tuntap>
-            <Socks5 @edit="handleSocks5Edit" @refresh="handleSocks5Refresh"></Socks5> 
-            <Forward @edit="handleForwardEdit" @sedit="handleSForwardEdit"></Forward> 
+            <Tuntap v-if="tuntap.show"  @edit="handleTuntapEdit" @refresh="handleTuntapRefresh"></Tuntap>
+            <Socks5 v-if="socks5.show" @edit="handleSocks5Edit" @refresh="handleSocks5Refresh"></Socks5> 
+            <Forward v-if="forward.show" @edit="handleForwardEdit" @sedit="handleSForwardEdit"></Forward> 
             <Oper  @refresh="handlePageRefresh" @access="handleAccessEdit"></Oper>
         </el-table>
         <div class="page t-c">
@@ -39,6 +31,8 @@
 import { injectGlobalData } from '@/provide.js'
 import { reactive, onMounted,  onUnmounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
+
+import Sort from './Sort.vue'
 
 import Oper from './Oper.vue'
 import Device from './Device.vue'
@@ -74,7 +68,7 @@ import { provideConnections } from './connections'
 import { provideUpdater } from './updater'
 
 export default {
-    components: {Oper,
+    components: {Sort,Oper,
         Device,DeviceEdit,
         AccessEdit,
         Tunnel,TunnelEdit,
@@ -88,7 +82,7 @@ export default {
 
         const globalData = injectGlobalData();
         const state = reactive({
-            height: computed(()=>globalData.value.height-90),
+            height: computed(()=>globalData.value.height-90)
         });
 
         const {devices, machineId, _getSignList, _getSignList1,
@@ -231,10 +225,6 @@ export default {
 }
 </style>
 <style lang="stylus" scoped>
-.table-sort 
-{
-    th{border-bottom:0}
-}
 .home-list-wrap{
     padding:1rem;
 

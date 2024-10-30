@@ -4,6 +4,7 @@ import { getTuntapInfo, refreshTuntap, subscribePing } from "@/apis/tuntap";
 const tuntapSymbol = Symbol();
 export const provideTuntap = () => {
     const tuntap = ref({
+        show: true,
         timer: 0,
         showEdit: false,
         current: null,

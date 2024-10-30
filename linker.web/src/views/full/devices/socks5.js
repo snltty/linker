@@ -4,6 +4,7 @@ import { getSocks5Info, refreshSocks5 } from "@/apis/socks5";
 const socks5Symbol = Symbol();
 export const provideSocks5 = () => {
     const socks5 = ref({
+        show: true,
         timer: 0,
         showEdit: false,
         current: null,

@@ -1,5 +1,5 @@
 <template>
-    <el-table-column label="操作" width="74" fixed="right">
+    <el-table-column label="操作"  fixed="right">
         <template #default="scope">
             <el-dropdown size="small">
                 <div class="dropdown">

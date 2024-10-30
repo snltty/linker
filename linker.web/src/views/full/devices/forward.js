@@ -6,6 +6,7 @@ const forwardSymbol = Symbol();
 export const provideForward = () => {
     const globalData = injectGlobalData();
     const forward = ref({
+        show: true,
         timer: 0,
         showEdit: false,
         machineId: null,
