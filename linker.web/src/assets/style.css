@@ -166,12 +166,12 @@ span.split-pad10 {
 }
 
 .gateway {
-    background: linear-gradient(178deg, #9fc60a, #b7a600, #18b918, #0a7516, #03a403);
+    background: linear-gradient(180deg, #9fc60a, #000000, #16853a, #a38a09, #0c8d0c);
     -webkit-background-clip: text;
     -webkit-text-fill-color: hsla(0, 0%, 100%, 0);
 
     &.green {
-        background: linear-gradient(178deg, #9fc60a, #b7a600, #18b918, #0a7516, #03a403);
+        background: linear-gradient(180deg, #9fc60a, #000000, #16853a, #a38a09, #0c8d0c);
         -webkit-background-clip: text;
         -webkit-text-fill-color: hsla(0, 0%, 100%, 0);
     }
