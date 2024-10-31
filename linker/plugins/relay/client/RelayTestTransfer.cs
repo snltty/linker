@@ -1,8 +1,8 @@
 ﻿using linker.config;
-using linker.plugins.relay.transport;
 using linker.libs;
+using linker.plugins.relay.client.transport;
 
-namespace linker.plugins.relay
+namespace linker.plugins.relay.client
 {
     /// <summary>
     /// 中继
@@ -56,6 +56,6 @@ namespace linker.plugins.relay
                 return true;
             }, () => lastTicksManager.DiffLessEqual(3000) ? 3000 : 30000);
         }
-      
+
     }
 }

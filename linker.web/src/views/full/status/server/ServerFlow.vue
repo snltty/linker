@@ -81,6 +81,7 @@ export default {
         }
         const id2text = {
             'External':{text:'外网端口',detail:false},
+            'RelayReport':{text:'中继节点',detail:false},
             'Relay':{text:'中继',detail:hasRelayFlow.value},
             'Messenger':{text:'信标',detail:hasSigninFlow.value},
             'SForward':{text:'内网穿透',detail:hasSForwardFlow.value},

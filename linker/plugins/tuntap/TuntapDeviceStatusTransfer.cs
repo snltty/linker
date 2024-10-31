@@ -4,7 +4,7 @@ using linker.plugins.tuntap.config;
 using linker.tun;
 using System.Net.NetworkInformation;
 
-namespace linker.plugins.tuntap.client
+namespace linker.plugins.tuntap
 {
     public sealed class TuntapDeviceStatusTransfer
     {

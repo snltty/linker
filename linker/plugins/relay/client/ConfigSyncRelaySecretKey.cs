@@ -2,7 +2,7 @@
 using linker.plugins.config;
 using MemoryPack;
 
-namespace linker.plugins.relay
+namespace linker.plugins.relay.client
 {
     public sealed class ConfigSyncRelaySecretKey : IConfigSync
     {

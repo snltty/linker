@@ -5,7 +5,7 @@ using linker.plugins.client;
 using linker.plugins.tuntap.config;
 using linker.tun;
 
-namespace linker.plugins.tuntap.client
+namespace linker.plugins.tuntap
 {
     public sealed class TuntapTransfer
     {
@@ -33,11 +33,11 @@ namespace linker.plugins.tuntap.client
             AppDomain.CurrentDomain.ProcessExit += (s, e) => linkerTunDeviceAdapter.Shutdown();
             Console.CancelKeyPress += (s, e) => linkerTunDeviceAdapter.Shutdown();
         }
-      
+
         /// <summary>
         /// 运行网卡
         /// </summary>
-        public void Setup(IPAddress ip,byte prefixLength)
+        public void Setup(IPAddress ip, byte prefixLength)
         {
             if (operatingManager.StartOperation() == false)
             {

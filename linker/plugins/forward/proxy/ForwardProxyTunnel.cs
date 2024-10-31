@@ -1,5 +1,4 @@
 ﻿using linker.config;
-using linker.plugins.relay;
 using linker.tunnel;
 using linker.tunnel.connection;
 using System.Collections.Concurrent;
@@ -7,6 +6,7 @@ using System.Net;
 using linker.plugins.client;
 using linker.plugins.tunnel;
 using linker.plugins.messenger;
+using linker.plugins.relay.client;
 
 namespace linker.plugins.forward.proxy
 {

@@ -40,7 +40,7 @@ namespace linker.plugins.resolver
 
                 if (resolvers.TryGetValue(type, out IResolver resolver))
                 {
-                    await resolver.Resolve(socket, buffer.AsMemory(0, length));
+                    await resolver.Resolve(socket, buffer.AsMemory(1, length));
                 }
             }
             catch (Exception ex)
@@ -57,7 +57,7 @@ namespace linker.plugins.resolver
         {
             if (resolvers.TryGetValue((ResolverType)memory.Span[0], out IResolver resolver))
             {
-                await resolver.Resolve(socket, ep, memory);
+                await resolver.Resolve(socket, ep, memory.Slice(1));
             }
         }
     }

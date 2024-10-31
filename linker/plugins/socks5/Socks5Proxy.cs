@@ -1,5 +1,4 @@
 ﻿using linker.config;
-using linker.plugins.relay;
 using linker.tunnel;
 using linker.tunnel.connection;
 using linker.libs;
@@ -13,6 +12,7 @@ using linker.plugins.client;
 using linker.plugins.socks5.config;
 using System.Text;
 using System.Collections.Generic;
+using linker.plugins.relay.client;
 
 namespace linker.plugins.socks5
 {

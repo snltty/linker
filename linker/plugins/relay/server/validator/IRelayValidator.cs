@@ -1,8 +1,8 @@
 ﻿using linker.config;
 using linker.plugins.signin.messenger;
-using RelayInfo = linker.plugins.relay.transport.RelayInfo;
+using RelayInfo = linker.plugins.relay.client.transport.RelayInfo;
 
-namespace linker.plugins.relay.validator
+namespace linker.plugins.relay.server.validator
 {
     public interface IRelayValidator
     {
@@ -25,7 +25,7 @@ namespace linker.plugins.relay.validator
             this.fileConfig = fileConfig;
         }
 
-        public async Task<string> Validate(linker.plugins.relay.transport.RelayInfo relayInfo, SignCacheInfo fromMachine, SignCacheInfo toMachine)
+        public async Task<string> Validate(RelayInfo relayInfo, SignCacheInfo fromMachine, SignCacheInfo toMachine)
         {
             if (relayInfo.SecretKey != fileConfig.Data.Server.Relay.SecretKey)
             {

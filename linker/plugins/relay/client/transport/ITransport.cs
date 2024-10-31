@@ -2,7 +2,7 @@
 using MemoryPack;
 using System.Net;
 
-namespace linker.plugins.relay.transport
+namespace linker.plugins.relay.client.transport
 {
     public enum RelayType : byte
     {
@@ -97,6 +97,11 @@ namespace linker.plugins.relay.transport
         /// 流水id
         /// </summary>
         public ulong FlowingId { get; set; }
+
+        /// <summary>
+        /// 中继节点id
+        /// </summary>
+        public string NodeId { get; set; }
 
         /// <summary>
         /// 服务器，a端选择用什么服务器，就带给b，b直接用，不需要再做复杂的选择

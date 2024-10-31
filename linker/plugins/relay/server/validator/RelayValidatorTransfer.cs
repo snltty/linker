@@ -1,7 +1,7 @@
-﻿using linker.plugins.relay.transport;
+﻿using linker.plugins.relay.client.transport;
 using linker.plugins.signin.messenger;
 
-namespace linker.plugins.relay.validator
+namespace linker.plugins.relay.server.validator
 {
     public sealed partial class RelayValidatorTransfer
     {

@@ -12,7 +12,7 @@ using linker.plugins.tuntap.config;
 using linker.client.config;
 using linker.plugins.tuntap.lease;
 
-namespace linker.plugins.tuntap.client
+namespace linker.plugins.tuntap
 {
     public sealed class TuntapClientApiController : IApiClientController
     {

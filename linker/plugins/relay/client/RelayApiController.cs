@@ -3,7 +3,7 @@ using linker.libs.api;
 using linker.libs.extends;
 using linker.plugins.capi;
 
-namespace linker.plugins.relay
+namespace linker.plugins.relay.client
 {
     /// <summary>
     /// 中继管理接口
@@ -24,7 +24,7 @@ namespace linker.plugins.relay
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        [ClientApiAccessAttribute(ClientApiAccess.Config)]
+        [ClientApiAccess(ClientApiAccess.Config)]
         public bool SetServers(ApiControllerParamsInfo param)
         {
             RelayServerInfo info = param.Content.DeJson<RelayServerInfo>();

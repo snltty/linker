@@ -1,6 +1,6 @@
 ﻿using MemoryPack;
 using Microsoft.Extensions.Caching.Memory;
-namespace linker.plugins.relay.caching
+namespace linker.plugins.relay.server.caching
 {
     public sealed class RelayCachingMemory : IRelayCaching
     {

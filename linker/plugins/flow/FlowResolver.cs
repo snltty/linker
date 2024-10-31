@@ -48,8 +48,8 @@ namespace linker.plugins.flow
                     servers.TryAdd(ep.Address, onlineFlowInfo);
                 }
                 onlineFlowInfo.Time = time;
-                onlineFlowInfo.Online = memory.Slice(1, 4).ToInt32();
-                onlineFlowInfo.Total = memory.Slice(5, 4).ToInt32();
+                onlineFlowInfo.Online = memory.Slice(0, 4).ToInt32();
+                onlineFlowInfo.Total = memory.Slice(4, 4).ToInt32();
             }
             catch (Exception)
             {

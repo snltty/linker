@@ -1,7 +1,7 @@
 ﻿using linker.libs;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace linker.plugins.relay.validator
+namespace linker.plugins.relay.server.validator
 {
     public sealed partial class RelayValidatorTypeLoader
     {

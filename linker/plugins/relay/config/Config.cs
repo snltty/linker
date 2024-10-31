@@ -1,6 +1,7 @@
 ﻿using linker.libs;
-using linker.plugins.relay.transport;
+using linker.plugins.relay.client.transport;
 using MemoryPack;
+using System.Net;
 
 namespace linker.config
 {
@@ -35,13 +36,60 @@ namespace linker.config
         public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
 #endif
 
-        public RelayCacheInfo Caching { get; set; } = new RelayCacheInfo { };
+        public DistributedInfo Distributed { get; set; } = new DistributedInfo { };
     }
-    public sealed class RelayCacheInfo
+
+    public sealed class DistributedInfo
     {
-        public string Name { get; set; } = "memory";
+        public string Type { get; set; } = "master";
+        public RelayCachingInfo Caching { get; set; } = new RelayCachingInfo { };
+        public RelayNodeInfo Node { get; set; } = new RelayNodeInfo { };
+        public RelayMasterInfo Master { get; set; } = new RelayMasterInfo { };
+    }
+    public sealed class RelayMasterInfo
+    {
+#if DEBUG
+        public string SecretKey { get; set; } = Helper.GlobalString;
+#else
+        public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
+#endif
+    }
+    public sealed class RelayNodeInfo
+    {
+        public string Id { get; set; } = Guid.NewGuid().ToString().ToUpper();
+        public string Name { get; set; } = "default node";
+        public string Host { get; set; } = string.Empty;
+
+        public string MasterHost { get; set; } = string.Empty;
+        public string MasterSecretKey { get; set; } = Helper.GlobalString;
+
+        public int MaxConnection { get; set; } = 100;
+        public int MaxBandwidth { get; set; } = 500;
+
+        public bool Public { get; set; }
+       
+    }
+    public sealed class RelayCachingInfo
+    {
+        public string Type { get; set; } = "memory";
         public string ConnectString { get; set; } = string.Empty;
     }
+
+
+    [MemoryPackable]
+    public sealed partial class RelayNodeReportInfo
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public double ConnectionRatio { get; set; }
+        public double BandwidthRatio { get; set; }
+        public bool Public { get; set; }
+
+
+        [MemoryPackAllowSerialize]
+        public IPEndPoint EndPoint { get; set; }
+    }
+
 
     /// <summary>
     /// 中继服务器

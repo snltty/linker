@@ -12,7 +12,7 @@ using linker.tun;
 using linker.plugins.tuntap.lease;
 using linker.plugins.decenter;
 
-namespace linker.plugins.tuntap.client
+namespace linker.plugins.tuntap
 {
     public sealed class TuntapConfigTransfer : IDecenter
     {
@@ -92,8 +92,8 @@ namespace linker.plugins.tuntap.client
 
                 await LeaseIP();
 
-                bool needReboot = ((oldIP.Equals(runningConfig.Data.Tuntap.IP) == false || prefixLength != runningConfig.Data.Tuntap.PrefixLength) && runningConfig.Data.Tuntap.Running)
-                || (runningConfig.Data.Tuntap.Running && tuntapTransfer.Status != TuntapStatus.Running);
+                bool needReboot = (oldIP.Equals(runningConfig.Data.Tuntap.IP) == false || prefixLength != runningConfig.Data.Tuntap.PrefixLength) && runningConfig.Data.Tuntap.Running
+                || runningConfig.Data.Tuntap.Running && tuntapTransfer.Status != TuntapStatus.Running;
 
                 if (needReboot)
                 {
@@ -216,8 +216,8 @@ namespace linker.plugins.tuntap.client
                     await Task.Delay(1000);
                 }
 
-                bool run = ((oldIP.Equals(runningConfig.Data.Tuntap.IP) == false || prefixLength != runningConfig.Data.Tuntap.PrefixLength) && runningConfig.Data.Tuntap.Running)
-                || (runningConfig.Data.Tuntap.Running && tuntapTransfer.Status != TuntapStatus.Running);
+                bool run = (oldIP.Equals(runningConfig.Data.Tuntap.IP) == false || prefixLength != runningConfig.Data.Tuntap.PrefixLength) && runningConfig.Data.Tuntap.Running
+                || runningConfig.Data.Tuntap.Running && tuntapTransfer.Status != TuntapStatus.Running;
 
                 if (run)
                 {

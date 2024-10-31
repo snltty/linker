@@ -2,7 +2,7 @@
 using MemoryPack;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
-namespace linker.plugins.relay.caching
+namespace linker.plugins.relay.server.caching
 {
     public sealed class RelayCachingRedis : IRelayCaching
     {
@@ -13,7 +13,7 @@ namespace linker.plugins.relay.caching
         {
             cache = new RedisCache(new RedisCacheOptions
             {
-                Configuration = fileConfig.Data.Server.Relay.Caching.ConnectString,
+                Configuration = fileConfig.Data.Server.Relay.Distributed.Caching.ConnectString,
                 InstanceName = "Linker"
             });
         }

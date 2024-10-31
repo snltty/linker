@@ -1,4 +1,4 @@
-﻿namespace linker.plugins.relay.caching
+﻿namespace linker.plugins.relay.server.caching
 {
     public interface IRelayCaching
     {

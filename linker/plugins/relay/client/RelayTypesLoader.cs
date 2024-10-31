@@ -1,7 +1,7 @@
 ﻿using linker.libs;
-using linker.plugins.relay.transport;
+using linker.plugins.relay.client.transport;
 using Microsoft.Extensions.DependencyInjection;
-namespace linker.plugins.relay
+namespace linker.plugins.relay.client
 {
     public sealed partial class RelayTypesLoader
     {

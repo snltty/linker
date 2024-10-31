@@ -2,6 +2,7 @@
 using linker.plugins.flow.messenger;
 using linker.plugins.messenger;
 using linker.plugins.relay;
+using linker.plugins.relay.server;
 using linker.plugins.sforward.proxy;
 using linker.plugins.tunnel;
 using linker.startup;
@@ -24,11 +25,15 @@ namespace linker.plugins.flow
             serviceCollection.AddSingleton<FlowTypesLoader>();
 
             serviceCollection.AddSingleton<MessengerFlow>();
-            serviceCollection.AddSingleton<IMessengerResolver,MessengerResolverFlow>();
-            serviceCollection.AddSingleton<IMessengerSender,MessengerSenderFlow>();
+            serviceCollection.AddSingleton<IMessengerResolver, MessengerResolverFlow>();
+            serviceCollection.AddSingleton<IMessengerSender, MessengerSenderFlow>();
 
             serviceCollection.AddSingleton<RelayFlow>();
             serviceCollection.AddSingleton<RelayResolver, RelayResolverFlow>();
+
+            serviceCollection.AddSingleton<RelayReportFlow>();
+            serviceCollection.AddSingleton<RelayServerTransfer, RelayServerTransferFlow>();
+
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)

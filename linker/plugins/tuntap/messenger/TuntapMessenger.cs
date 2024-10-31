@@ -2,7 +2,6 @@
 using linker.libs;
 using linker.plugins.messenger;
 using linker.plugins.signin.messenger;
-using linker.plugins.tuntap.client;
 using linker.plugins.tuntap.config;
 using linker.plugins.tuntap.lease;
 using MemoryPack;

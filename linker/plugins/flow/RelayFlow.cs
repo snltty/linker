@@ -1,14 +1,48 @@
-﻿using linker.libs;
-using linker.plugins.relay;
+﻿using linker.config;
+using linker.libs;
+using linker.plugins.relay.server;
+using linker.plugins.relay.server.caching;
 using MemoryPack;
 using System.Text.Json.Serialization;
 
 namespace linker.plugins.flow
 {
+    public sealed class RelayReportFlow : IFlow
+    {
+        public ulong ReceiveBytes { get; private set; }
+        public ulong SendtBytes { get; private set; }
+        public string FlowName => "RelayReport";
+        public RelayReportFlow()
+        {
+        }
+
+        public void AddReceive(ulong bytes) { ReceiveBytes += bytes; }
+        public void AddSendt(ulong bytes) { SendtBytes += bytes; }
+
+    }
+
+    public sealed class RelayServerTransferFlow : RelayServerTransfer
+    {
+        private readonly RelayReportFlow  relayReportFlow;
+        public RelayServerTransferFlow(RelayReportFlow relayReportFlow,IRelayCaching relayCaching,FileConfig fileConfig):base(relayCaching, fileConfig)
+        {
+            this.relayReportFlow = relayReportFlow;
+        }
+
+        public override void AddReceive(ulong bytes) { relayReportFlow.AddReceive(bytes); }
+        public override void AddSendt(ulong bytes) { relayReportFlow.AddSendt(bytes); }
+
+    }
+
+
+
+
+
+
     public sealed class RelayResolverFlow : RelayResolver
     {
         private readonly RelayFlow relayFlow;
-        public RelayResolverFlow(RelayFlow relayFlow)
+        public RelayResolverFlow(RelayFlow relayFlow, RelayServerTransfer relayServerTransfer) : base(relayServerTransfer)
         {
             this.relayFlow = relayFlow;
         }

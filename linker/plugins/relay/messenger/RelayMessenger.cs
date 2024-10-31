@@ -1,11 +1,13 @@
 ﻿using linker.config;
-using linker.plugins.relay.transport;
+using linker.plugins.relay.client.transport;
 using linker.plugins.signin.messenger;
 using linker.libs;
 using MemoryPack;
 using linker.plugins.messenger;
-using linker.plugins.relay.validator;
 using System.Net;
+using linker.plugins.relay.client;
+using linker.plugins.relay.server.validator;
+using linker.plugins.relay.server;
 
 namespace linker.plugins.relay.messenger
 {
@@ -28,7 +30,7 @@ namespace linker.plugins.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.Relay)]
         public async Task Relay(IConnection connection)
         {
-            transport.RelayInfo info = MemoryPackSerializer.Deserialize<transport.RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            client.transport.RelayInfo info = MemoryPackSerializer.Deserialize<client.transport.RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
             bool res = await relayTransfer.OnBeginAsync(info).ConfigureAwait(false);
             connection.Write(res ? Helper.TrueArray : Helper.FalseArray);
         }
@@ -43,16 +45,16 @@ namespace linker.plugins.relay.messenger
         private readonly FileConfig config;
         private readonly IMessengerSender messengerSender;
         private readonly SignCaching signCaching;
-        private readonly RelayResolver relayResolver;
+        private readonly RelayServerTransfer relayServerTransfer;
         private readonly RelayValidatorTransfer relayValidatorTransfer;
 
 
-        public RelayServerMessenger(FileConfig config, IMessengerSender messengerSender, SignCaching signCaching, RelayResolver relayResolver, RelayValidatorTransfer relayValidatorTransfer)
+        public RelayServerMessenger(FileConfig config, IMessengerSender messengerSender, SignCaching signCaching, RelayServerTransfer relayServerTransfer, RelayValidatorTransfer relayValidatorTransfer)
         {
             this.config = config;
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
-            this.relayResolver = relayResolver;
+            this.relayServerTransfer = relayServerTransfer;
             this.relayValidatorTransfer = relayValidatorTransfer;
         }
 
@@ -69,7 +71,7 @@ namespace linker.plugins.relay.messenger
                 connection.Write(Helper.FalseArray);
                 return;
             }
-            string result = await relayValidatorTransfer.Validate(new transport.RelayInfo
+            string result = await relayValidatorTransfer.Validate(new client.transport.RelayInfo
             {
                 SecretKey = info.SecretKey,
                 FromMachineId = info.MachineId,
@@ -79,7 +81,7 @@ namespace linker.plugins.relay.messenger
             }, cache, null);
             if (string.IsNullOrWhiteSpace(result) == false)
             {
-                connection.Write(ulong.MinValue);
+                connection.Write(Helper.FalseArray);
                 return;
             }
 
@@ -94,11 +96,10 @@ namespace linker.plugins.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.RelayAsk)]
         public async Task RelayAsk(IConnection connection)
         {
-            transport.RelayInfo info = MemoryPackSerializer.Deserialize<transport.RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            client.transport.RelayInfo info = MemoryPackSerializer.Deserialize<client.transport.RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) == false || signCaching.TryGet(info.RemoteMachineId, out SignCacheInfo cacheTo) == false || cacheFrom.GroupId != cacheTo.GroupId)
             {
-                connection.Write(ulong.MinValue);
-                //connection.Write(MemoryPackSerializer.Serialize(new RelayAskResultInfo { FlowingId = ulong.MinValue, Server = null }));
+                connection.Write(MemoryPackSerializer.Serialize(new RelayAskResultInfo { }));
                 return;
             }
 
@@ -107,17 +108,16 @@ namespace linker.plugins.relay.messenger
             info.RemoteMachineName = cacheTo.MachineName;
             info.FromMachineName = cacheFrom.MachineName;
 
-            string result = await relayValidatorTransfer.Validate(info, cacheFrom, cacheTo);
-            if (string.IsNullOrWhiteSpace(result) == false)
+            RelayAskResultInfo result = new RelayAskResultInfo();
+            string error = await relayValidatorTransfer.Validate(info, cacheFrom, cacheTo);
+            result.Nodes = relayServerTransfer.GetNodes(string.IsNullOrWhiteSpace(error));
+
+            if (result.Nodes.Count > 0)
             {
-                connection.Write(ulong.MinValue);
-                //connection.Write(MemoryPackSerializer.Serialize(new RelayAskResultInfo { FlowingId = ulong.MinValue, Server = null }));
-                return;
+                result.FlowingId = await relayServerTransfer.AddRelay(cacheFrom.MachineId, cacheFrom.MachineName, cacheTo.MachineId, cacheTo.MachineName);
             }
 
-            ulong flowingId = await relayResolver.NewRelay(cacheFrom.MachineId, cacheFrom.MachineName, cacheTo.MachineId, cacheTo.MachineName);
-            connection.Write(flowingId);
-            // connection.Write(MemoryPackSerializer.Serialize(new RelayAskResultInfo { FlowingId = flowingId, Server = null }));
+            connection.Write(MemoryPackSerializer.Serialize(result));
         }
 
         /// <summary>
@@ -128,31 +128,37 @@ namespace linker.plugins.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.RelayForward)]
         public async Task RelayForward(IConnection connection)
         {
-            transport.RelayInfo info = MemoryPackSerializer.Deserialize<transport.RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            client.transport.RelayInfo info = MemoryPackSerializer.Deserialize<client.transport.RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(info.FromMachineId, out SignCacheInfo cacheFrom) == false || signCaching.TryGet(info.RemoteMachineId, out SignCacheInfo cacheTo) == false || cacheFrom.GroupId != cacheTo.GroupId)
             {
                 connection.Write(Helper.FalseArray);
                 return;
-            }
+            }    
 
-            info.RemoteMachineId = cacheTo.MachineId;
-            info.FromMachineId = cacheFrom.MachineId;
-            info.RemoteMachineName = cacheTo.MachineName;
-            info.FromMachineName = cacheFrom.MachineName;
-
-            string result = await relayValidatorTransfer.Validate(info, cacheFrom, cacheTo);
-            if (string.IsNullOrWhiteSpace(result) == false)
+            //需要验证
+            if (relayServerTransfer.NodeValidate(info.NodeId))
             {
-                connection.Write(Helper.FalseArray);
-                return;
+                info.RemoteMachineId = cacheTo.MachineId;
+                info.FromMachineId = cacheFrom.MachineId;
+                info.RemoteMachineName = cacheTo.MachineName;
+                info.FromMachineName = cacheFrom.MachineName;
+                string result = await relayValidatorTransfer.Validate(info, cacheFrom, cacheTo);
+                if (string.IsNullOrWhiteSpace(result) == false)
+                {
+                    connection.Write(Helper.FalseArray);
+                    return;
+                }
+            }
+            //本服务器，让对方按信标服务器地址连
+            if (string.IsNullOrWhiteSpace(info.NodeId))
+            {
+                info.Server = null;
             }
 
             info.RemoteMachineId = cacheFrom.MachineId;
             info.FromMachineId = cacheTo.MachineId;
             info.RemoteMachineName = cacheFrom.MachineName;
             info.FromMachineName = cacheTo.MachineName;
-
-            info.Server = null;
             try
             {
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -182,7 +188,7 @@ namespace linker.plugins.relay.messenger
         public ulong FlowingId { get; set; }
 
         [MemoryPackAllowSerialize]
-        public IPEndPoint Server { get; set; }
+        public List<RelayNodeReportInfo> Nodes { get; set; } = new List<RelayNodeReportInfo>();
     }
 
 }

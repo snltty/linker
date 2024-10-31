@@ -1,8 +1,10 @@
 ﻿using linker.config;
-using linker.plugins.relay.caching;
+using linker.plugins.relay.client;
+using linker.plugins.relay.client.transport;
 using linker.plugins.relay.messenger;
-using linker.plugins.relay.transport;
-using linker.plugins.relay.validator;
+using linker.plugins.relay.server;
+using linker.plugins.relay.server.caching;
+using linker.plugins.relay.server.validator;
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -42,17 +44,19 @@ namespace linker.plugins.relay
             serviceCollection.AddSingleton<RelayServerMessenger>();
 
             serviceCollection.AddSingleton<RelayResolver>();
+            serviceCollection.AddSingleton<RelayReportResolver>();
+            serviceCollection.AddSingleton<RelayServerTransfer>();
 
             serviceCollection.AddSingleton<RelayValidatorTransfer>();
             serviceCollection.AddSingleton<RelayValidatorTypeLoader>();
 
             serviceCollection.AddSingleton<RelayValidatorSecretKey>();
 
-            if (config.Data.Server.Relay.Caching.Name == "memory")
+            if (config.Data.Server.Relay.Distributed.Caching.Type == "memory")
             {
                 serviceCollection.AddSingleton<IRelayCaching, RelayCachingMemory>();
             }
-            else if (config.Data.Server.Relay.Caching.Name == "redis")
+            else if (config.Data.Server.Relay.Distributed.Caching.Type == "redis")
             {
                 serviceCollection.AddSingleton<IRelayCaching, RelayCachingRedis>();
             }
@@ -68,6 +72,8 @@ namespace linker.plugins.relay
         {
             RelayValidatorTypeLoader relayValidatorTypeLoader = serviceProvider.GetService<RelayValidatorTypeLoader>();
             IRelayCaching relayCaching = serviceProvider.GetService<IRelayCaching>();
+
+            RelayReportResolver relayReportResolver = serviceProvider.GetService<RelayReportResolver>();
         }
     }
 }

@@ -8,7 +8,6 @@ using linker.plugins.capi;
 using linker.plugins.messenger;
 using linker.config;
 using System.Collections.Concurrent;
-using linker.plugins.tuntap.client;
 
 namespace linker.plugins.sforward
 {

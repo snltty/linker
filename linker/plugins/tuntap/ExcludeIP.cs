@@ -1,7 +1,7 @@
 ﻿using linker.client.config;
 using linker.plugins.tunnel.excludeip;
 
-namespace linker.plugins.tuntap.client
+namespace linker.plugins.tuntap
 {
     public sealed class ExcludeIP : ITunnelExcludeIP
     {

@@ -1,5 +1,4 @@
 ﻿using linker.config;
-using linker.plugins.tuntap.client;
 using linker.plugins.tuntap.lease;
 using linker.plugins.tuntap.messenger;
 using linker.startup;

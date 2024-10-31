@@ -6,7 +6,7 @@ using System.Net.NetworkInformation;
 using System.Net;
 using linker.config;
 
-namespace linker.plugins.tuntap.client
+namespace linker.plugins.tuntap
 {
     public sealed class TuntapPingTransfer
     {

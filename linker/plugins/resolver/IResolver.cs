@@ -10,7 +10,8 @@ namespace linker.plugins.resolver
         Relay = 2,
         Socks4 = 4,
         Socks5 = 5,
-        Flow = 6
+        Flow = 6,
+        RelayReport = 7,
     }
     public interface IResolver
     {

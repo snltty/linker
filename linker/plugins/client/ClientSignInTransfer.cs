@@ -77,7 +77,7 @@ namespace linker.plugins.client
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Info($"connect to signin server:{config.Data.Client.ServerInfo.Host}");
 
-                IPEndPoint ip = NetworkHelper.GetEndPoint(config.Data.Client.ServerInfo.Host, 1802);
+                IPEndPoint ip = await NetworkHelper.GetEndPointAsync(config.Data.Client.ServerInfo.Host, 1802);
                 if (ip == null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)

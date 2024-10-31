@@ -8,6 +8,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace linker.libs
 {
@@ -38,6 +39,25 @@ namespace linker.libs
             }
             return null;
         }
+        public static async Task<IPAddress> GetDomainIpAsync(string domain)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(domain))
+                {
+                    return null;
+                }
+                if (IPAddress.TryParse(domain, out IPAddress ip))
+                {
+                    return ip;
+                }
+                return (await Dns.GetHostEntryAsync(domain, AddressFamily.InterNetwork)).AddressList.FirstOrDefault();
+            }
+            catch (Exception)
+            {
+            }
+            return null;
+        }
         public static IPEndPoint GetEndPoint(string host, int defaultPort)
         {
             try
@@ -49,6 +69,24 @@ namespace linker.libs
                     port = int.Parse(hostArr[1]);
                 }
                 IPAddress ip = GetDomainIp(hostArr[0]);
+                return new IPEndPoint(ip, port);
+            }
+            catch (Exception)
+            {
+            }
+            return null;
+        }
+        public static async Task<IPEndPoint> GetEndPointAsync(string host, int defaultPort)
+        {
+            try
+            {
+                string[] hostArr = host.Split(':');
+                int port = defaultPort;
+                if (hostArr.Length == 2)
+                {
+                    port = int.Parse(hostArr[1]);
+                }
+                IPAddress ip = await GetDomainIpAsync(hostArr[0]);
                 return new IPEndPoint(ip, port);
             }
             catch (Exception)
