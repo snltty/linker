@@ -15,7 +15,7 @@ namespace linker.config
         /// <summary>
         /// 中继服务器列表
         /// </summary>
-        public RelayServerInfo[] Servers { get; set; } = new RelayServerInfo[] { new RelayServerInfo { Delay = -1 } };
+        public RelayServerInfo[] Servers { get; set; } = new RelayServerInfo[] { new RelayServerInfo { } };
         public RelayServerInfo Server => Servers[0];
 
     }
@@ -42,7 +42,6 @@ namespace linker.config
     public sealed class DistributedInfo
     {
         public string Type { get; set; } = "master";
-        public RelayCachingInfo Caching { get; set; } = new RelayCachingInfo { };
         public RelayNodeInfo Node { get; set; } = new RelayNodeInfo { };
         public RelayMasterInfo Master { get; set; } = new RelayMasterInfo { };
     }
@@ -57,24 +56,18 @@ namespace linker.config
     public sealed class RelayNodeInfo
     {
         public string Id { get; set; } = Guid.NewGuid().ToString().ToUpper();
-        public string Name { get; set; } = "default node";
+        public string Name { get; set; } = "default";
         public string Host { get; set; } = string.Empty;
 
         public string MasterHost { get; set; } = string.Empty;
-        public string MasterSecretKey { get; set; } = Helper.GlobalString;
+        public string MasterSecretKey { get; set; } = string.Empty;
 
         public int MaxConnection { get; set; } = 100;
-        public int MaxBandwidth { get; set; } = 500;
+        public int MaxBandwidth { get; set; } = 1;
 
         public bool Public { get; set; }
-       
-    }
-    public sealed class RelayCachingInfo
-    {
-        public string Type { get; set; } = "memory";
-        public string ConnectString { get; set; } = string.Empty;
-    }
 
+    }
 
     [MemoryPackable]
     public sealed partial class RelayNodeReportInfo
@@ -85,11 +78,11 @@ namespace linker.config
         public double BandwidthRatio { get; set; }
         public bool Public { get; set; }
 
+        public int Delay { get; set; } = -1;
 
         [MemoryPackAllowSerialize]
         public IPEndPoint EndPoint { get; set; }
     }
-
 
     /// <summary>
     /// 中继服务器
@@ -110,10 +103,6 @@ namespace linker.config
         /// 开启ssl
         /// </summary>
         public bool SSL { get; set; } = true;
-        /// <summary>
-        /// 延迟
-        /// </summary>
-        public int Delay { get; set; }
 
         public RelayType RelayType { get; set; } = RelayType.Linker;
     }

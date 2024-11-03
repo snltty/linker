@@ -8,6 +8,8 @@ using System.Net;
 using linker.plugins.relay.client;
 using linker.plugins.relay.server.validator;
 using linker.plugins.relay.server;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Text.Json;
 
 namespace linker.plugins.relay.messenger
 {
@@ -45,11 +47,11 @@ namespace linker.plugins.relay.messenger
         private readonly FileConfig config;
         private readonly IMessengerSender messengerSender;
         private readonly SignCaching signCaching;
-        private readonly RelayServerTransfer relayServerTransfer;
+        private readonly RelayServerMasterTransfer relayServerTransfer;
         private readonly RelayValidatorTransfer relayValidatorTransfer;
 
 
-        public RelayServerMessenger(FileConfig config, IMessengerSender messengerSender, SignCaching signCaching, RelayServerTransfer relayServerTransfer, RelayValidatorTransfer relayValidatorTransfer)
+        public RelayServerMessenger(FileConfig config, IMessengerSender messengerSender, SignCaching signCaching, RelayServerMasterTransfer relayServerTransfer, RelayValidatorTransfer relayValidatorTransfer)
         {
             this.config = config;
             this.messengerSender = messengerSender;
@@ -79,13 +81,9 @@ namespace linker.plugins.relay.messenger
                 TransactionId = "test",
                 TransportName = "test",
             }, cache, null);
-            if (string.IsNullOrWhiteSpace(result) == false)
-            {
-                connection.Write(Helper.FalseArray);
-                return;
-            }
 
-            connection.Write(Helper.TrueArray);
+            var nodes = relayServerTransfer.GetNodes(string.IsNullOrWhiteSpace(result));
+            connection.Write(MemoryPackSerializer.Serialize(nodes));
         }
 
 
@@ -114,7 +112,7 @@ namespace linker.plugins.relay.messenger
 
             if (result.Nodes.Count > 0)
             {
-                result.FlowingId = await relayServerTransfer.AddRelay(cacheFrom.MachineId, cacheFrom.MachineName, cacheTo.MachineId, cacheTo.MachineName);
+                result.FlowingId = relayServerTransfer.AddRelay(cacheFrom.MachineId, cacheFrom.MachineName, cacheTo.MachineId, cacheTo.MachineName);
             }
 
             connection.Write(MemoryPackSerializer.Serialize(result));
@@ -133,7 +131,7 @@ namespace linker.plugins.relay.messenger
             {
                 connection.Write(Helper.FalseArray);
                 return;
-            }    
+            }
 
             //需要验证
             if (relayServerTransfer.NodeValidate(info.NodeId))

@@ -149,6 +149,7 @@ namespace linker.tun
         public void SetNat(out string error)
         {
             error = string.Empty;
+            if (address == null || address.Equals(IPAddress.Any)) return;
             try
             {
                 CommandHelper.PowerShell($"start-service WinNat", [], out error);
@@ -177,6 +178,7 @@ namespace linker.tun
         public void RemoveNat(out string error)
         {
             error = string.Empty;
+            if (address == null || address.Equals(IPAddress.Any)) return;
 
             try
             {

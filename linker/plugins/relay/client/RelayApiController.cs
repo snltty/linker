@@ -33,9 +33,10 @@ namespace linker.plugins.relay.client
             return true;
         }
 
-        public void Subscribe(ApiControllerParamsInfo param)
+        public List<RelayNodeReportInfo> Subscribe(ApiControllerParamsInfo param)
         {
             relayTestTransfer.Subscribe();
+            return relayTestTransfer.Nodes;
         }
     }
 

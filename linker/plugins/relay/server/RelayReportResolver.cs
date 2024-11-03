@@ -1,5 +1,4 @@
-﻿using linker.libs;
-using linker.libs.extends;
+﻿using linker.libs.extends;
 using linker.plugins.resolver;
 using System.Net;
 using System.Net.Sockets;
@@ -10,23 +9,34 @@ namespace linker.plugins.relay.server
     {
         public ResolverType Type => ResolverType.RelayReport;
 
-        private readonly ICrypto cryptoMaster;
-        private readonly ICrypto cryptoNode;
-
-        private readonly RelayServerTransfer relayServerTransfer;
-        public RelayReportResolver(RelayServerTransfer relayServerTransfer)
+        private readonly RelayServerMasterTransfer relayServerTransfer;
+        public RelayReportResolver(RelayServerMasterTransfer relayServerTransfer)
         {
             this.relayServerTransfer = relayServerTransfer;
         }
 
+        public virtual void AddReceive(ulong bytes)
+        {
+        }
+        public virtual void AddSendt(ulong bytes)
+        {
+        }
+
         public async Task Resolve(Socket socket, Memory<byte> memory)
         {
-            socket.SafeClose();
-            await Task.CompletedTask;
+            AddReceive((ulong)memory.Length);
+            string key = memory.GetString();
+            Memory<byte> bytes = relayServerTransfer.TryGetRelayCacheEncode(key);
+            if (bytes.Length > 0)
+            {
+                AddSendt((ulong)bytes.Length);
+                await socket.SendAsync(bytes);
+            }
         }
 
         public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
+            AddReceive((ulong)memory.Length);
             relayServerTransfer.SetNodeReport(ep, memory);
             await Task.CompletedTask;
         }

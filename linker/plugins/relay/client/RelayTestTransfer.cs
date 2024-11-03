@@ -1,6 +1,7 @@
 ﻿using linker.config;
 using linker.libs;
 using linker.plugins.relay.client.transport;
+using System.Net.NetworkInformation;
 
 namespace linker.plugins.relay.client
 {
@@ -11,6 +12,8 @@ namespace linker.plugins.relay.client
     {
         private readonly FileConfig fileConfig;
         private readonly RelayTransfer relayTransfer;
+
+        public List<RelayNodeReportInfo> Nodes { get; private set; } = new List<RelayNodeReportInfo>();
 
         public RelayTestTransfer(FileConfig fileConfig, RelayTransfer relayTransfer)
         {
@@ -29,16 +32,21 @@ namespace linker.plugins.relay.client
         {
             try
             {
-                foreach (var server in fileConfig.Data.Client.Relay.Servers)
+                ITransport transport = relayTransfer.Transports.FirstOrDefault(d => d.Type == fileConfig.Data.Client.Relay.Server.RelayType);
+                if (transport != null)
                 {
-                    ITransport transport = relayTransfer.Transports.FirstOrDefault(d => d.Type == server.RelayType);
-                    if (transport == null) continue;
-
-                    server.Delay = await transport.RelayTestAsync(new RelayTestInfo
+                    Nodes = await transport.RelayTestAsync(new RelayTestInfo
                     {
                         MachineId = fileConfig.Data.Client.Id,
-                        SecretKey = server.SecretKey
+                        SecretKey = fileConfig.Data.Client.Relay.Server.SecretKey
                     });
+                    var tasks = Nodes.Select(async (c) =>
+                    {
+                        using Ping ping = new Ping();
+                        var resp = await ping.SendPingAsync(c.EndPoint.Address, 1000);
+                        c.Delay = resp.Status == IPStatus.Success ? (int)resp.RoundtripTime : -1;
+                    });
+                    await Task.WhenAll(tasks);
                 }
             }
             catch (Exception)

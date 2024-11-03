@@ -1,4 +1,5 @@
-﻿using linker.tunnel.connection;
+﻿using linker.config;
+using linker.tunnel.connection;
 using MemoryPack;
 using System.Net;
 
@@ -43,7 +44,7 @@ namespace linker.plugins.relay.client.transport
         /// </summary>
         /// <param name="relayTestInfo"></param>
         /// <returns></returns>
-        public Task<int> RelayTestAsync(RelayTestInfo relayTestInfo);
+        public Task<List<RelayNodeReportInfo>> RelayTestAsync(RelayTestInfo relayTestInfo);
     }
 
     /// <summary>

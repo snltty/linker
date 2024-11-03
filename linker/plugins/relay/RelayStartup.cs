@@ -37,6 +37,9 @@ namespace linker.plugins.relay
 
             serviceCollection.AddSingleton<RelayTypesLoader>();
 
+            serviceCollection.AddSingleton<RelayServerMasterTransfer>();
+            serviceCollection.AddSingleton<RelayServerNodeTransfer>();
+            serviceCollection.AddSingleton<IRelayCaching, RelayCachingMemory>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
@@ -45,27 +48,23 @@ namespace linker.plugins.relay
 
             serviceCollection.AddSingleton<RelayResolver>();
             serviceCollection.AddSingleton<RelayReportResolver>();
-            serviceCollection.AddSingleton<RelayServerTransfer>();
+            serviceCollection.AddSingleton<RelayServerMasterTransfer>();
+            serviceCollection.AddSingleton<RelayServerNodeTransfer>();
+            serviceCollection.AddSingleton<IRelayCaching, RelayCachingMemory>();
 
             serviceCollection.AddSingleton<RelayValidatorTransfer>();
             serviceCollection.AddSingleton<RelayValidatorTypeLoader>();
 
             serviceCollection.AddSingleton<RelayValidatorSecretKey>();
 
-            if (config.Data.Server.Relay.Distributed.Caching.Type == "memory")
-            {
-                serviceCollection.AddSingleton<IRelayCaching, RelayCachingMemory>();
-            }
-            else if (config.Data.Server.Relay.Distributed.Caching.Type == "redis")
-            {
-                serviceCollection.AddSingleton<IRelayCaching, RelayCachingRedis>();
-            }
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
             RelayTransfer relayTransfer = serviceProvider.GetService<RelayTransfer>();
             RelayTypesLoader relayTypesLoader = serviceProvider.GetService<RelayTypesLoader>();
+
+            IRelayCaching relayCaching = serviceProvider.GetService<IRelayCaching>();
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config)

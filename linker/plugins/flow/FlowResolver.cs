@@ -11,7 +11,7 @@ namespace linker.plugins.flow
 {
     public sealed class FlowResolver : IResolver, IFlow
     {
-        public ResolverType Type => ResolverType.Flow;
+        public ResolverType Type => ResolverType.FlowReport;
         public string FlowName => "flow";
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace linker.plugins.flow
             try
             {
                 signCaching.GetOnline(out int total, out int onlone);
-                buffer[0] = (byte)ResolverType.Flow;
+                buffer[0] = (byte)ResolverType.FlowReport;
                 onlone.ToBytes(buffer.AsMemory(1));
                 total.ToBytes(buffer.AsMemory(5));
 

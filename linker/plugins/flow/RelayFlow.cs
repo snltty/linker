@@ -1,7 +1,5 @@
-﻿using linker.config;
-using linker.libs;
+﻿using linker.libs;
 using linker.plugins.relay.server;
-using linker.plugins.relay.server.caching;
 using MemoryPack;
 using System.Text.Json.Serialization;
 
@@ -21,10 +19,10 @@ namespace linker.plugins.flow
 
     }
 
-    public sealed class RelayServerTransferFlow : RelayServerTransfer
+    public sealed class RelayReportResolverFlow : RelayReportResolver
     {
-        private readonly RelayReportFlow  relayReportFlow;
-        public RelayServerTransferFlow(RelayReportFlow relayReportFlow,IRelayCaching relayCaching,FileConfig fileConfig):base(relayCaching, fileConfig)
+        private readonly RelayReportFlow relayReportFlow;
+        public RelayReportResolverFlow(RelayReportFlow relayReportFlow, RelayServerMasterTransfer relayServerTransfer):base(relayServerTransfer) 
         {
             this.relayReportFlow = relayReportFlow;
         }
@@ -36,13 +34,10 @@ namespace linker.plugins.flow
 
 
 
-
-
-
     public sealed class RelayResolverFlow : RelayResolver
     {
         private readonly RelayFlow relayFlow;
-        public RelayResolverFlow(RelayFlow relayFlow, RelayServerTransfer relayServerTransfer) : base(relayServerTransfer)
+        public RelayResolverFlow(RelayFlow relayFlow, RelayServerNodeTransfer relayServerNodeTransfer) : base(relayServerNodeTransfer)
         {
             this.relayFlow = relayFlow;
         }

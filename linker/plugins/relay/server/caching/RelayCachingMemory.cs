@@ -11,17 +11,21 @@ namespace linker.plugins.relay.server.caching
         {
         }
 
-        public async ValueTask<bool> TryAdd<T>(string key, T value, int expired)
+        public bool TryAdd<T>(string key, T value, int expired)
         {
             cache.Set(key, MemoryPackSerializer.Serialize(value), TimeSpan.FromMilliseconds(expired));
 
-            return await ValueTask.FromResult(true);
+            return true;
         }
-        public async ValueTask<bool> TryGetValue<T>(string key, RelayCachingValue<T> wrap)
+        public bool TryGetValue<T>(string key, out T value)
         {
-            bool result = cache.TryGetValue(key, out byte[] value);
-            wrap.Value = MemoryPackSerializer.Deserialize<T>(value);
-            return await ValueTask.FromResult(result);
+            bool result = cache.TryGetValue(key, out byte[] bytes);
+
+            if (result)
+                value = MemoryPackSerializer.Deserialize<T>(bytes);
+            else value = default;
+
+            return true;
         }
     }
 

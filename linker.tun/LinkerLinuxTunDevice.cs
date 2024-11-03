@@ -136,6 +136,7 @@ namespace linker.tun
         public void SetNat(out string error)
         {
             error = string.Empty;
+            if (address == null || address.Equals(IPAddress.Any)) return;
             try
             {
                 IPAddress network = NetworkHelper.NetworkIP2IP(address, NetworkHelper.PrefixLength2Value(prefixLength));
@@ -159,6 +160,7 @@ namespace linker.tun
         public void RemoveNat(out string error)
         {
             error = string.Empty;
+            if (address == null || address.Equals(IPAddress.Any)) return;
             try
             {
                 CommandHelper.Linux(string.Empty, new string[] {

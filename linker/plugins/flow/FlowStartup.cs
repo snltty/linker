@@ -32,7 +32,7 @@ namespace linker.plugins.flow
             serviceCollection.AddSingleton<RelayResolver, RelayResolverFlow>();
 
             serviceCollection.AddSingleton<RelayReportFlow>();
-            serviceCollection.AddSingleton<RelayServerTransfer, RelayServerTransferFlow>();
+            serviceCollection.AddSingleton<RelayReportResolver, RelayReportResolverFlow>();
 
         }
 
