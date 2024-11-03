@@ -41,7 +41,6 @@ namespace linker.config
 
     public sealed class DistributedInfo
     {
-        public string Type { get; set; } = "master";
         public RelayNodeInfo Node { get; set; } = new RelayNodeInfo { };
         public RelayMasterInfo Master { get; set; } = new RelayMasterInfo { };
     }
