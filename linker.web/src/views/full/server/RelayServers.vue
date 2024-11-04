@@ -3,8 +3,37 @@
         <el-input type="password" show-password v-model="state.list.SecretKey" maxlength="36" @change="handleSave" />
         <el-checkbox v-model="state.list.SSL" label="使用ssl" size="large" @change="handleSave" />
         <el-checkbox v-model="state.list.Disabled" label="禁用中继" size="large" @change="handleSave" />
-        <span class="delay" :class="{red:state.list.Delay==-1,green:state.list.Delay>=0}">{{state.list.Delay }}ms</span>
+        <a href="javascript:;" @click="state.show=true" class="delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
+            中继节点 : {{state.nodes.length}}
+        </a>
     </el-form-item>
+    <el-dialog v-model="state.show" title="中继节点" width="600" top="2vh">
+        <div>
+            <el-table :data="state.nodes" size="small" border height="500">
+                <el-table-column property="Name" label="名称"></el-table-column>
+                <el-table-column property="MaxBandwidth" label="连接带宽" width="100">
+                    <template #default="scope">
+                        <span>{{ scope.row.MaxBandwidth }}Mbps</span>
+                    </template>
+                </el-table-column>
+                <el-table-column property="ConnectionRatio" label="连接数" width="100">
+                    <template #default="scope">
+                        <span>{{ scope.row.ConnectionRatio*100 }}%</span>
+                    </template>
+                </el-table-column>
+                <el-table-column property="Delay" label="延迟" width="100">
+                    <template #default="scope">
+                        <span>{{ scope.row.Delay }}ms</span>
+                    </template>
+                </el-table-column>
+                <el-table-column property="Public" label="公开" width="60">
+                    <template #default="scope">
+                        <el-switch disabled v-model="scope.row.Public " size="small" />
+                    </template>
+                </el-table-column>
+            </el-table>
+        </div>
+    </el-dialog>
 </template>
 <script>
 import { setRelayServers, setRelaySubscribe } from '@/apis/relay';
@@ -16,6 +45,8 @@ export default {
         const globalData = injectGlobalData();
         const state = reactive({
             list:globalData.value.config.Client.Relay.Server,
+            show:false,
+            nodes:[],
             timer:0
         });
         watch(()=>globalData.value.config.Client.Relay.Server,()=>{
@@ -31,7 +62,8 @@ export default {
         }
 
         const _setRelaySubscribe = ()=>{
-            setRelaySubscribe().then(()=>{
+            setRelaySubscribe().then((res)=>{
+                state.nodes = res;
                 state.timer = setTimeout(_setRelaySubscribe,1000);
             }).catch(()=>{
                 state.timer = setTimeout(_setRelaySubscribe,1000);
@@ -50,5 +82,4 @@ export default {
 </script>
 <style lang="stylus" scoped>
 .delay{margin-left:3rem;}
-.green,.red{font-weight:bold;}
 </style>

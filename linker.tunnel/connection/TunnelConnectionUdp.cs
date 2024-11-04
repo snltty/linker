@@ -22,6 +22,7 @@ namespace linker.tunnel.connection
         public TunnelMode Mode { get; init; }
         public TunnelProtocolType ProtocolType { get; init; }
         public TunnelType Type { get; init; }
+        public string NodeId { get; init; }
         public TunnelDirection Direction { get; init; }
         public IPEndPoint IPEndPoint { get; init; }
         public bool SSL { get; init; }

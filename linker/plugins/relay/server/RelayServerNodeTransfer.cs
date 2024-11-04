@@ -47,7 +47,9 @@ namespace linker.plugins.relay.server
             byte[] buffer = ArrayPool<byte>.Shared.Rent(2 * 1024);
             try
             {
-                IPEndPoint server = await NetworkHelper.GetEndPointAsync(fileConfig.Data.Server.Relay.Distributed.Node.MasterHost, 1802);
+                IPEndPoint server = string.IsNullOrWhiteSpace(fileConfig.Data.Server.Relay.Distributed.Node.MasterHost)
+                    ? new IPEndPoint(IPAddress.Loopback, fileConfig.Data.Server.ServicePort)
+                    : await NetworkHelper.GetEndPointAsync(fileConfig.Data.Server.Relay.Distributed.Node.MasterHost, 1802);
 
 
                 Socket socket = new Socket(server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -56,10 +58,12 @@ namespace linker.plugins.relay.server
                 long time = Environment.TickCount64 - start;
 
                 await socket.SendAsync(new byte[] { (byte)ResolverType.RelayReport });
-                int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(time * 2)).ConfigureAwait(false);
+                await socket.SendAsync(key.ToBytes());
+                int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(Math.Max(time * 2, 500))).ConfigureAwait(false);
                 socket.SafeClose();
 
-                return MemoryPackSerializer.Deserialize<RelayCache>(crypto.Decode(buffer.AsMemory(0, length).ToArray()).Span);
+                RelayCache result = MemoryPackSerializer.Deserialize<RelayCache>(crypto.Decode(buffer.AsMemory(0, length).ToArray()).Span);
+                return result;
             }
             catch (Exception ex)
             {
@@ -81,11 +85,11 @@ namespace linker.plugins.relay.server
         {
             TimerHelper.SetInterval(async () =>
             {
-                List<RelayNodeInfo> nodes = new List<RelayNodeInfo>
+                IEnumerable<RelayNodeInfo> nodes = new List<RelayNodeInfo>
                 {
                     new RelayNodeInfo{
-                        Id=string.Empty,
-                        Host=new IPEndPoint(IPAddress.Any,fileConfig.Data.Server.ServicePort).ToString(),
+                        Id = RelayNodeInfo.MASTER_ID,
+                        Host = new IPEndPoint(IPAddress.Any,fileConfig.Data.Server.ServicePort).ToString(),
                         MasterHost =  new IPEndPoint(IPAddress.Loopback,fileConfig.Data.Server.ServicePort).ToString(),
                         MasterSecretKey = fileConfig.Data.Server.Relay.Distributed.Master.SecretKey,
                         MaxBandwidth = 0,
@@ -94,20 +98,26 @@ namespace linker.plugins.relay.server
                         Public = false
                     },
                     fileConfig.Data.Server.Relay.Distributed.Node
-                };
-                foreach (var node in nodes.Where(c => string.IsNullOrWhiteSpace(c.MasterHost) == false && string.IsNullOrWhiteSpace(c.MasterSecretKey) == false))
+                }.Where(c => string.IsNullOrWhiteSpace(c.MasterHost) == false && string.IsNullOrWhiteSpace(c.MasterSecretKey) == false)
+                .Where(c => string.IsNullOrWhiteSpace(c.Name) == false && string.IsNullOrWhiteSpace(c.Id) == false);
+                foreach (var node in nodes)
                 {
                     try
                     {
                         IPEndPoint endPoint = await NetworkHelper.GetEndPointAsync(node.Host, fileConfig.Data.Server.ServicePort) ?? new IPEndPoint(IPAddress.Any, fileConfig.Data.Server.ServicePort);
+                        int maxConnection = node.MaxConnection == 0 ? 65535 : node.MaxConnection;
+                        double connectionRatio = connectionNum / maxConnection;
+                        double maxBandwidth = node.MaxBandwidth == 0 ? 65535 : node.MaxBandwidth;
 
-                        double connectionRatio = node.MaxConnection == 0 ? 0 : connectionNum / node.MaxConnection;
                         RelayNodeReportInfo relayNodeReportInfo = new RelayNodeReportInfo
                         {
                             Id = node.Id,
                             Name = node.Name,
                             Public = node.Public,
+                            MaxBandwidth = maxBandwidth,
                             BandwidthRatio = 0,
+
+                            MaxConnection = maxConnection,
                             ConnectionRatio = Math.Round(connectionRatio, 2),
                             EndPoint = endPoint,
                         };

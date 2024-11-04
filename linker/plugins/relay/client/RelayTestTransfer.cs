@@ -1,6 +1,8 @@
 ﻿using linker.config;
 using linker.libs;
+using linker.plugins.client;
 using linker.plugins.relay.client.transport;
+using System.Net;
 using System.Net.NetworkInformation;
 
 namespace linker.plugins.relay.client
@@ -12,13 +14,15 @@ namespace linker.plugins.relay.client
     {
         private readonly FileConfig fileConfig;
         private readonly RelayTransfer relayTransfer;
+        private readonly ClientSignInState clientSignInState;
 
         public List<RelayNodeReportInfo> Nodes { get; private set; } = new List<RelayNodeReportInfo>();
 
-        public RelayTestTransfer(FileConfig fileConfig, RelayTransfer relayTransfer)
+        public RelayTestTransfer(FileConfig fileConfig, RelayTransfer relayTransfer, ClientSignInState clientSignInState)
         {
             this.fileConfig = fileConfig;
             this.relayTransfer = relayTransfer;
+            this.clientSignInState = clientSignInState;
             TestTask();
         }
 
@@ -42,8 +46,10 @@ namespace linker.plugins.relay.client
                     });
                     var tasks = Nodes.Select(async (c) =>
                     {
+                        IPEndPoint ep = c.EndPoint == null || c.EndPoint.Address.Equals(IPAddress.Any) ? clientSignInState.Connection.Address : c.EndPoint;
+
                         using Ping ping = new Ping();
-                        var resp = await ping.SendPingAsync(c.EndPoint.Address, 1000);
+                        var resp = await ping.SendPingAsync(ep.Address, 1000);
                         c.Delay = resp.Status == IPStatus.Success ? (int)resp.RoundtripTime : -1;
                     });
                     await Task.WhenAll(tasks);

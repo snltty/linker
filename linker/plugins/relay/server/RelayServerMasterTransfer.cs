@@ -39,13 +39,13 @@ namespace linker.plugins.relay.server
                 ToId = toid,
                 ToName = toName
             };
-            bool added = relayCaching.TryAdd($"{fromid}->{toid}->{flowingId}", cache, 5000);
+            bool added = relayCaching.TryAdd($"{fromid}->{toid}->{flowingId}", cache, 15000);
             if (added == false) return 0;
 
             return flowingId;
         }
 
-        public Memory<byte> TryGetRelayCacheEncode(string key)
+        public Memory<byte> TryGetRelayCache(string key)
         {
             if (relayCaching.TryGetValue(key, out RelayCache value))
             {
@@ -53,11 +53,6 @@ namespace linker.plugins.relay.server
                 return bytes;
             }
             return Helper.EmptyArray;
-        }
-        public RelayCache TryGetRelayCache(string key)
-        {
-            relayCaching.TryGetValue(key, out RelayCache value);
-            return value;
         }
 
         /// <summary>
@@ -67,16 +62,27 @@ namespace linker.plugins.relay.server
         /// <param name="data"></param>
         public void SetNodeReport(IPEndPoint ep, Memory<byte> data)
         {
-            if (crypto == null) return;
-
-            data = crypto.Decode(data.ToArray());
-            RelayNodeReportInfo relayNodeReportInfo = MemoryPackSerializer.Deserialize<RelayNodeReportInfo>(data.Span);
-
-            if (relayNodeReportInfo.EndPoint.Address.Equals(IPAddress.Any))
+            try
             {
-                relayNodeReportInfo.EndPoint.Address = ep.Address;
+                if (crypto == null) return;
+
+                data = crypto.Decode(data.ToArray());
+                RelayNodeReportInfo relayNodeReportInfo = MemoryPackSerializer.Deserialize<RelayNodeReportInfo>(data.Span);
+
+                if (relayNodeReportInfo.Id == RelayNodeInfo.MASTER_ID)
+                {
+                    relayNodeReportInfo.EndPoint = new IPEndPoint(IPAddress.Any, 0);
+                }
+                else if (relayNodeReportInfo.EndPoint.Address.Equals(IPAddress.Any))
+                {
+                    relayNodeReportInfo.EndPoint.Address = ep.Address;
+                }
+                relayNodeReportInfo.LastTicks = Environment.TickCount64;
+                reports.AddOrUpdate(relayNodeReportInfo.Id, relayNodeReportInfo, (a, b) => relayNodeReportInfo);
             }
-            reports.AddOrUpdate(relayNodeReportInfo.Id, relayNodeReportInfo, (a, b) => relayNodeReportInfo);
+            catch (Exception)
+            {
+            }
         }
         /// <summary>
         /// 获取节点列表
@@ -86,7 +92,7 @@ namespace linker.plugins.relay.server
         public List<RelayNodeReportInfo> GetNodes(bool validated)
         {
             List<RelayNodeReportInfo> result = reports.Values.Where(c => c.Public || (c.Public == false && validated)).ToList();
-            return result.OrderBy(c => c.ConnectionRatio).ToList();
+            return result.Where(c => Environment.TickCount64 - c.LastTicks < 15000).OrderByDescending(c => c.LastTicks).OrderByDescending(c => c.MaxBandwidth).OrderByDescending(c => c.MaxConnection).OrderBy(c => c.ConnectionRatio).ToList();
         }
 
         /// <summary>

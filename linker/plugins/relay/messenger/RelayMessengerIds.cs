@@ -12,6 +12,9 @@
 
         RelayTest = 2105,
 
+        NodeDelay = 2106,
+        NodeDelayForward = 2107,
+
         Max = 2199
     }
 }

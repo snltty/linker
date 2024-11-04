@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.plugins.relay.client.transport;
 using MemoryPack;
 using System.Net;
@@ -46,26 +47,37 @@ namespace linker.config
     }
     public sealed class RelayMasterInfo
     {
-#if DEBUG
-        public string SecretKey { get; set; } = Helper.GlobalString;
-#else
         public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
-#endif
     }
     public sealed class RelayNodeInfo
     {
-        public string Id { get; set; } = Guid.NewGuid().ToString().ToUpper();
-        public string Name { get; set; } = "default";
+        public const string MASTER_ID = "824777CF-2804-83FE-DE71-69B7B7D3BBA7";
+
+        private string id = Guid.NewGuid().ToString().ToUpper();
+        public string Id
+        {
+            get => id; set
+            {
+                id = value.SubStr(0, 36);
+            }
+        }
+
+        private string name = Dns.GetHostName().SubStr(0, 12);
+        public string Name
+        {
+            get => name; set
+            {
+                name = value.SubStr(0, 12);
+            }
+        }
         public string Host { get; set; } = string.Empty;
+
+        public int MaxConnection { get; set; } = 100;
+        public double MaxBandwidth { get; set; } = 1;
+        public bool Public { get; set; }
 
         public string MasterHost { get; set; } = string.Empty;
         public string MasterSecretKey { get; set; } = string.Empty;
-
-        public int MaxConnection { get; set; } = 100;
-        public int MaxBandwidth { get; set; } = 1;
-
-        public bool Public { get; set; }
-
     }
 
     [MemoryPackable]
@@ -73,15 +85,39 @@ namespace linker.config
     {
         public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
+
+        public int MaxConnection { get; set; }
+        public double MaxBandwidth { get; set; }
         public double ConnectionRatio { get; set; }
         public double BandwidthRatio { get; set; }
         public bool Public { get; set; }
 
-        public int Delay { get; set; } = -1;
+        public int Delay { get; set; }
 
         [MemoryPackAllowSerialize]
         public IPEndPoint EndPoint { get; set; }
+
+        public long LastTicks { get; set; }
     }
+
+    [MemoryPackable]
+    public sealed partial class RelayNodeDelayInfo
+    {
+        public string Id { get; set; } = string.Empty;
+        public int Delay { get; set; }
+
+        [MemoryPackAllowSerialize]
+        public IPAddress IP { get; set; }
+    }
+    [MemoryPackable]
+    public sealed partial class RelayNodeDelayWrapInfo
+    {
+        public string MachineId { get; set; } = string.Empty;
+        public Dictionary<string, RelayNodeDelayInfo> Nodes { get; set; }
+    }
+
+
+
 
     /// <summary>
     /// 中继服务器

@@ -3,8 +3,6 @@ using System.Net.Sockets;
 using linker.libs.extends;
 using System.Buffers;
 using System.Net;
-using linker.plugins.messenger;
-
 namespace linker.plugins.resolver
 {
     public sealed class ResolverTransfer

@@ -1,5 +1,6 @@
 ﻿using linker.libs.extends;
 using linker.plugins.resolver;
+using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
 
@@ -24,14 +25,29 @@ namespace linker.plugins.relay.server
 
         public async Task Resolve(Socket socket, Memory<byte> memory)
         {
-            AddReceive((ulong)memory.Length);
-            string key = memory.GetString();
-            Memory<byte> bytes = relayServerTransfer.TryGetRelayCacheEncode(key);
-            if (bytes.Length > 0)
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
+            try
             {
-                AddSendt((ulong)bytes.Length);
-                await socket.SendAsync(bytes);
+                AddReceive((ulong)memory.Length);
+                int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
+                AddReceive((ulong)length);
+
+                string key = buffer.AsMemory(0,length).GetString();
+                Memory<byte> bytes = relayServerTransfer.TryGetRelayCache(key);
+                if (bytes.Length > 0)
+                {
+                    AddSendt((ulong)bytes.Length);
+                    await socket.SendAsync(bytes);
+                }
             }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+           
         }
 
         public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)

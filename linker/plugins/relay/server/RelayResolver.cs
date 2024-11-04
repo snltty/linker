@@ -47,17 +47,19 @@ namespace linker.plugins.relay.server
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
             try
             {
-                if (relayServerNodeTransfer.ValidateConnection() == false)
-                {
-                    await socket.SendAsync(new byte[] { 1 });
-                    socket.SafeClose();
-                    return;
-                }
-                await socket.SendAsync(new byte[] { 0 });
-
-
                 int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
                 RelayMessage relayMessage = MemoryPackSerializer.Deserialize<RelayMessage>(buffer.AsMemory(0, length).Span);
+
+                if(relayMessage.Type == RelayMessengerType.Ask)
+                {
+                    if (relayServerNodeTransfer.ValidateConnection() == false)
+                    {
+                        await socket.SendAsync(new byte[] { 1 });
+                        socket.SafeClose();
+                        return;
+                    }
+                    await socket.SendAsync(new byte[] { 0 });
+                }
 
                 //ask 是发起端来的，那key就是 发起端->目标端， answer的，目标和来源会交换，所以转换一下
                 string key = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}->{relayMessage.FlowId}" : $"{relayMessage.ToId}->{relayMessage.FromId}->{relayMessage.FlowId}";

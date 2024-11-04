@@ -11,9 +11,10 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using linker.plugins.messenger;
 using linker.plugins.client;
-using System.Diagnostics;
 using System.Buffers;
 using linker.plugins.relay.server;
+using linker.plugins.resolver;
+using System.Net.NetworkInformation;
 
 namespace linker.plugins.relay.client.transport
 {
@@ -54,6 +55,12 @@ namespace linker.plugins.relay.client.transport
                     return null;
                 }
 
+                //测试一下延迟
+                if (relayAskResultInfo.Nodes.Count > 1)
+                {
+                    relayAskResultInfo.Nodes = await TestDelay(relayAskResultInfo.Nodes);
+                }
+
                 //连接中继节点服务器
                 Socket socket = await ConnectNodeServer(relayInfo, relayAskResultInfo.Nodes);
                 if (socket == null)
@@ -91,6 +98,7 @@ namespace linker.plugins.relay.client.transport
                     TransactionId = relayInfo.TransactionId,
                     TransportName = Name,
                     Type = TunnelType.Relay,
+                    NodeId = relayInfo.NodeId,
                     SSL = relayInfo.SSL,
                     BufferSize = 3
                 };
@@ -124,37 +132,70 @@ namespace linker.plugins.relay.client.transport
             }
             return MemoryPackSerializer.Deserialize<RelayAskResultInfo>(resp.Data.Span);
         }
-        private async Task<bool> RelayConfirm(RelayInfo relayInfo)
+        private async Task<List<RelayNodeReportInfo>> TestDelay(List<RelayNodeReportInfo> list)
         {
-            //通知对方去确认中继
-            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            //测试前几个就行了
+            List<RelayNodeReportInfo> result = list.Take(10).ToList();
+
+            Dictionary<string, RelayNodeDelayInfo> delays = result.ToDictionary(c => c.Id, d => new RelayNodeDelayInfo
+            {
+                Delay = 65535,
+                Id = d.Id,
+                IP = d.EndPoint == null || d.EndPoint.Address.Equals(IPAddress.Any) ? clientSignInState.Connection.Address.Address : d.EndPoint.Address
+            });
+
+            //让对面测一测
+            Task<MessageResponeInfo> respTask = messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,
-                MessengerId = (ushort)RelayMessengerIds.RelayForward,
-                Payload = MemoryPackSerializer.Serialize(relayInfo),
+                MessengerId = (ushort)RelayMessengerIds.NodeDelayForward,
+                Payload = MemoryPackSerializer.Serialize(delays),
+                Timeout = 5000
             });
-            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+            //自己测一测
+            var tasks = delays.Select(async (c) =>
+            {
+                using Ping ping = new Ping();
+                var resp = await ping.SendPingAsync(c.Value.IP, 1000);
+                c.Value.Delay = resp.Status == IPStatus.Success ? (int)resp.RoundtripTime : 65535;
+            });
+            await Task.WhenAll(tasks);
+            MessageResponeInfo resp = await respTask;
+
+            //两边的延迟加起来，看哪个服务器更快
+            if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
+            {
+                Dictionary<string, RelayNodeDelayInfo> remotes = MemoryPackSerializer.Deserialize<Dictionary<string, RelayNodeDelayInfo>>(resp.Data.Span);
+                foreach (var item in result)
+                {
+                    if (delays.TryGetValue(item.Id, out RelayNodeDelayInfo local) && remotes.TryGetValue(item.Id, out RelayNodeDelayInfo remote))
+                    {
+                        item.Delay = local.Delay + remote.Delay;
+                    }
+                }
+                return result.OrderBy(c => c.Delay).ToList();
+            }
+
+            return result;
         }
         private async Task<Socket> ConnectNodeServer(RelayInfo relayInfo, List<RelayNodeReportInfo> nodes)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(1 * 1024);
 
             try
             {
                 foreach (var node in nodes)
                 {
-                    //连接中继服务器
-                    Socket socket = new Socket(node.EndPoint.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
-                    socket.KeepAlive();
-                    await socket.ConnectAsync(node.EndPoint).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
-
-                    //是否允许连接
-                    int length = await socket.ReceiveAsync(buffer);
-                    if (buffer[0] != 0)
+                    IPEndPoint ep = node.EndPoint;
+                    if (ep == null || ep.Address.Equals(IPAddress.Any))
                     {
-                        socket.SafeClose();
-                        return null;
+                        ep = clientSignInState.Connection.Address;
                     }
+
+                    //连接中继服务器
+                    Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+                    socket.KeepAlive();
+                    await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
 
                     //建立关联
                     RelayMessage relayMessage = new RelayMessage
@@ -165,8 +206,16 @@ namespace linker.plugins.relay.client.transport
                         ToId = relayInfo.RemoteMachineId,
                         NodeId = node.Id,
                     };
+                    await socket.SendAsync(new byte[] { (byte)ResolverType.Relay });
                     await socket.SendAsync(MemoryPackSerializer.Serialize(relayMessage));
 
+                    //是否允许连接
+                    int length = await socket.ReceiveAsync(buffer);
+                    if (buffer[0] != 0)
+                    {
+                        socket.SafeClose();
+                        return null;
+                    }
 
                     relayInfo.Server = node.EndPoint;
                     relayInfo.NodeId = node.Id;
@@ -187,6 +236,19 @@ namespace linker.plugins.relay.client.transport
             }
             return null;
         }
+        private async Task<bool> RelayConfirm(RelayInfo relayInfo)
+        {
+            //通知对方去确认中继
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)RelayMessengerIds.RelayForward,
+                Payload = MemoryPackSerializer.Serialize(relayInfo),
+            });
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
+
+
 
 
         private bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
@@ -197,11 +259,11 @@ namespace linker.plugins.relay.client.transport
         {
             try
             {
-                if (relayInfo.Server == null)
-                    relayInfo.Server = clientSignInState.Connection.Address;
-                Socket socket = new Socket(relayInfo.Server.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+                IPEndPoint ep = relayInfo.Server == null || relayInfo.Server.Address.Equals(IPAddress.Any) ? clientSignInState.Connection.Address : relayInfo.Server;
+
+                Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 socket.KeepAlive();
-                await socket.ConnectAsync(relayInfo.Server).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
 
                 RelayMessage relayMessage = new RelayMessage
                 {
@@ -211,6 +273,7 @@ namespace linker.plugins.relay.client.transport
                     ToId = relayInfo.RemoteMachineId,
                     NodeId = relayInfo.NodeId,
                 };
+                await socket.SendAsync(new byte[] { (byte)ResolverType.Relay });
                 await socket.SendAsync(MemoryPackSerializer.Serialize(relayMessage));
 
                 _ = WaitSSL(socket, relayInfo).ContinueWith((result) =>
@@ -260,6 +323,7 @@ namespace linker.plugins.relay.client.transport
                     TransactionId = relayInfo.TransactionId,
                     TransportName = Name,
                     Type = TunnelType.Relay,
+                    NodeId = relayInfo.NodeId,
                     SSL = relayInfo.SSL,
                     BufferSize = 3,
                 };

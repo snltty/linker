@@ -97,6 +97,12 @@ namespace linker.tunnel.connection
         /// 隧道类型
         /// </summary>
         public TunnelType Type { get; }
+
+        /// <summary>
+        /// 中继节点ID
+        /// </summary>
+        public string NodeId {  get; }
+
         /// <summary>
         /// 协议
         /// </summary>
