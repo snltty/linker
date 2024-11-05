@@ -12,11 +12,13 @@ namespace linker.plugins.relay.client
     {
         private readonly FileConfig config;
         private readonly RelayTestTransfer relayTestTransfer;
+        private readonly RelayTransfer relayTransfer;
 
-        public RelayApiController(FileConfig config, RelayTestTransfer relayTestTransfer)
+        public RelayApiController(FileConfig config, RelayTestTransfer relayTestTransfer, RelayTransfer relayTransfer)
         {
             this.config = config;
             this.relayTestTransfer = relayTestTransfer;
+            this.relayTransfer = relayTransfer;
         }
 
         /// <summary>
@@ -38,6 +40,22 @@ namespace linker.plugins.relay.client
             relayTestTransfer.Subscribe();
             return relayTestTransfer.Nodes;
         }
+
+        public bool Connect(ApiControllerParamsInfo param)
+        {
+            RelayConnectInfo relayConnectInfo = param.Content.DeJson<RelayConnectInfo>();
+            Console.WriteLine(relayConnectInfo.ToJson());
+            _ = relayTransfer.ConnectAsync(relayConnectInfo.FromMachineId, relayConnectInfo.ToMachineId, relayConnectInfo.TransactionId, relayConnectInfo.NodeId);
+            return true;
+        }
+    }
+
+    public sealed class RelayConnectInfo
+    {
+        public string FromMachineId { get; set; }
+        public string ToMachineId { get; set; }
+        public string TransactionId { get; set; }
+        public string NodeId { get; set; }
     }
 
 }

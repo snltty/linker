@@ -58,7 +58,7 @@ namespace linker.plugins.relay.client.transport
                 //测试一下延迟
                 if (relayAskResultInfo.Nodes.Count > 1)
                 {
-                    relayAskResultInfo.Nodes = await TestDelay(relayAskResultInfo.Nodes);
+                    //relayAskResultInfo.Nodes = await TestDelay(relayAskResultInfo.Nodes);
                 }
 
                 //连接中继节点服务器
@@ -173,7 +173,15 @@ namespace linker.plugins.relay.client.transport
                         item.Delay = local.Delay + remote.Delay;
                     }
                 }
-                return result.OrderBy(c => c.Delay).ToList();
+                return result.OrderByDescending(c => c.LastTicks)
+                    //带宽倒序
+                    .OrderByDescending(c => c.MaxBandwidth)
+                    //最大连接数倒序
+                    .OrderByDescending(c => c.MaxConnection)
+                    //连接数比例升序
+                    .OrderBy(c => c.ConnectionRatio)
+                    //延迟升序
+                    .OrderBy(c => c.Delay).ToList();
             }
 
             return result;
@@ -184,6 +192,11 @@ namespace linker.plugins.relay.client.transport
 
             try
             {
+                if (string.IsNullOrWhiteSpace(relayInfo.NodeId) == false)
+                {
+                    nodes = nodes.Where(c => c.Id == relayInfo.NodeId).ToList();
+                }
+
                 foreach (var node in nodes)
                 {
                     IPEndPoint ep = node.EndPoint;
@@ -247,8 +260,6 @@ namespace linker.plugins.relay.client.transport
             });
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
-
-
 
 
         private bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)

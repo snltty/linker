@@ -58,13 +58,10 @@ namespace linker.plugins.relay.server
                         socket.SafeClose();
                         return;
                     }
-                    await socket.SendAsync(new byte[] { 0 });
                 }
 
                 //ask 是发起端来的，那key就是 发起端->目标端， answer的，目标和来源会交换，所以转换一下
                 string key = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}->{relayMessage.FlowId}" : $"{relayMessage.ToId}->{relayMessage.FromId}->{relayMessage.FlowId}";
-
-
                 //获取缓存
                 RelayCache relayCache = await relayServerNodeTransfer.TryGetRelayCache(key);
                 if (relayCache == null)
@@ -86,8 +83,10 @@ namespace linker.plugins.relay.server
                                 RelayWrap relayWrap = new RelayWrap { Socket = socket, Tcs = new TaskCompletionSource<Socket>() };
                                 relayDic.TryAdd(relayCache.FlowId, relayWrap);
 
+                                await socket.SendAsync(new byte[] { 0 });
+
                                 //等待对方连接
-                                Socket targetSocket = await relayWrap.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(3000));
+                                Socket targetSocket = await relayWrap.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(15000));
                                 _ = CopyToAsync(relayCache, 3, socket, targetSocket);
                             }
                             break;

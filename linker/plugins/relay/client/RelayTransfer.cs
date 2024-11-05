@@ -28,7 +28,6 @@ namespace linker.plugins.relay.client
         public void LoadTransports(List<ITransport> list)
         {
             Transports = list;
-
         }
 
         /// <summary>
@@ -64,7 +63,7 @@ namespace linker.plugins.relay.client
         /// <param name="remoteMachineId">对方id</param>
         /// <param name="transactionId">事务</param>
         /// <returns></returns>
-        public async Task<ITunnelConnection> ConnectAsync(string fromMachineId, string remoteMachineId, string transactionId)
+        public async Task<ITunnelConnection> ConnectAsync(string fromMachineId, string remoteMachineId, string transactionId, string nodeId = "")
         {
             if (connectingDic.TryAdd(remoteMachineId, true) == false)
             {
@@ -88,7 +87,8 @@ namespace linker.plugins.relay.client
                     SecretKey = fileConfig.Data.Client.Relay.Server.SecretKey,
                     TransactionId = transactionId,
                     TransportName = transport.Name,
-                    SSL = fileConfig.Data.Client.Relay.Server.SSL
+                    SSL = fileConfig.Data.Client.Relay.Server.SSL,
+                    NodeId = nodeId
                 };
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)

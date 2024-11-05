@@ -13,7 +13,8 @@
                 <el-table-column property="Name" label="名称"></el-table-column>
                 <el-table-column property="MaxBandwidth" label="连接带宽" width="100">
                     <template #default="scope">
-                        <span>{{ scope.row.MaxBandwidth }}Mbps</span>
+                        <span v-if="scope.row.MaxBandwidth == 65535">无限制</span>
+                        <span v-else>{{ scope.row.MaxBandwidth }}Mbps</span>
                     </template>
                 </el-table-column>
                 <el-table-column property="ConnectionRatio" label="连接数" width="100">

@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="state.show" append-to=".app-wrap" :title="`与[${state.machineName}]的链接`" top="1vh" width="780">
+    <el-dialog v-model="state.show" append-to=".app-wrap" :title="`与[${state.machineName}]的链接`" top="1vh" width="780">
         <div>
             <el-table :data="state.data" size="small" border height="500">
                 <el-table-column property="RemoteMachineId" label="目标/服务器">
@@ -39,9 +39,7 @@
                 <el-table-column property="relay" label="中继节点">
                     <template #default="scope">
                         <div>
-                            <el-select disabled :model-value="scope.row.NodeId" placeholder="中继节点" size="large">
-                                <el-option v-for="item in state.nodes" :key="item.Id" :label="item.Name" :value="item.Id"/>
-                            </el-select>
+                            <a href="javascript:;" class="a-line" @click="handleNode(scope.row)">{{ state.nodesDic[scope.row.NodeId] || '选择节点' }}</a>
                         </div>
                     </template>
                 </el-table-column>
@@ -60,6 +58,39 @@
             </el-table>
         </div>
     </el-dialog>
+    <el-dialog v-model="state.showNodes" title="中继节点" width="600" top="2vh">
+        <div>
+            <el-table :data="state.nodes" size="small" border height="500">
+                <el-table-column property="Name" label="名称"></el-table-column>
+                <el-table-column property="MaxBandwidth" label="连接带宽" width="100">
+                    <template #default="scope">
+                        <span v-if="scope.row.MaxBandwidth == 65535">无限制</span>
+                        <span v-else>{{ scope.row.MaxBandwidth }}Mbps</span>
+                    </template>
+                </el-table-column>
+                <el-table-column property="ConnectionRatio" label="连接数" width="100">
+                    <template #default="scope">
+                        <span>{{ scope.row.ConnectionRatio*100 }}%</span>
+                    </template>
+                </el-table-column>
+                <el-table-column property="Delay" label="延迟" width="100">
+                    <template #default="scope">
+                        <span>{{ scope.row.Delay }}ms</span>
+                    </template>
+                </el-table-column>
+                <el-table-column property="Public" label="公开" width="60">
+                    <template #default="scope">
+                        <el-switch disabled v-model="scope.row.Public " size="small" />
+                    </template>
+                </el-table-column>
+                <el-table-column property="Oper" label="操作" width="65">
+                    <template #default="scope">
+                        <el-button type="success" size="small" @click="handleConnect(scope.row.Id)">使用</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </div>
+    </el-dialog>
 </template>
 <script>
 import { reactive, watch,computed,  onMounted, onUnmounted } from 'vue';
@@ -67,7 +98,7 @@ import { ElMessage } from 'element-plus';
 import { useConnections, useForwardConnections, useSocks5Connections, useTuntapConnections } from './connections';
 import { Delete } from '@element-plus/icons-vue';
 import { injectGlobalData } from '@/provide';
-import { setRelaySubscribe } from '@/apis/relay';
+import { relayConnect, setRelaySubscribe } from '@/apis/relay';
 export default {
     props: ['modelValue'],
     emits: ['change','update:modelValue'],
@@ -87,6 +118,7 @@ export default {
             types:{0:'打洞',1:'中继'},
             transactions:{'forward':'端口转发','tuntap':'虚拟网卡','socks5':'代理转发'},
             machineName:connections.value.currentName,
+            currentRow:{},
             data: computed(()=>{
                 return [
                     forwardConnections.value.list[connections.value.current],
@@ -94,7 +126,9 @@ export default {
                     socks5Connections.value.list[connections.value.current],
                 ].filter(c=>!!c);
             }),
+            showNodes:false,
             nodes:[],
+            nodesDic:{},
             timer:0
         });
         watch(() => state.show, (val) => {
@@ -115,11 +149,33 @@ export default {
         const _setRelaySubscribe = ()=>{
             setRelaySubscribe().then((res)=>{
                 state.nodes = res;
+                state.nodesDic = res.reduce((a,b)=>{
+                    a[b.Id] = b.Name;
+                    return a;
+                },{});
                 state.timer = setTimeout(_setRelaySubscribe,1000);
             }).catch(()=>{
                 state.timer = setTimeout(_setRelaySubscribe,1000);
             });
         }
+        const handleNode = (row)=>{
+            state.currentRow = row;
+            state.showNodes = true;
+        }
+        const handleConnect = (id)=>{
+            const json = {
+                FromMachineId:globalData.value.config.Client.Id,
+                TransactionId: state.currentRow.TransactionId,
+                ToMachineId: state.currentRow.RemoteMachineId,
+                NodeId:id,
+            };
+            if(json.NodeId == state.currentRow.NodeId){
+                return;
+            }
+            relayConnect(json).then(()=>{}).catch(()=>{});
+            state.showNodes = false;
+        }
+
         onMounted(()=>{
             connections.value.updateRealTime(true);
             _setRelaySubscribe();
@@ -130,7 +186,7 @@ export default {
         })
 
         return {
-            state,handleDel,hasTunnelRemove
+            state,handleDel,hasTunnelRemove,handleNode,handleConnect
         }
     }
 }

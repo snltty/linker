@@ -106,7 +106,7 @@ namespace linker.plugins.relay.server
                     {
                         IPEndPoint endPoint = await NetworkHelper.GetEndPointAsync(node.Host, fileConfig.Data.Server.ServicePort) ?? new IPEndPoint(IPAddress.Any, fileConfig.Data.Server.ServicePort);
                         int maxConnection = node.MaxConnection == 0 ? 65535 : node.MaxConnection;
-                        double connectionRatio = connectionNum / maxConnection;
+                        double connectionRatio = connectionNum/2.0 / maxConnection;
                         double maxBandwidth = node.MaxBandwidth == 0 ? 65535 : node.MaxBandwidth;
 
                         RelayNodeReportInfo relayNodeReportInfo = new RelayNodeReportInfo

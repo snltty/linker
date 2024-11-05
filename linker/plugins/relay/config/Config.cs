@@ -47,7 +47,11 @@ namespace linker.config
     }
     public sealed class RelayMasterInfo
     {
+#if DEBUG
+        public string SecretKey { get; set; } = Helper.GlobalString;
+#else
         public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
+#endif
     }
     public sealed class RelayNodeInfo
     {
@@ -77,7 +81,12 @@ namespace linker.config
         public bool Public { get; set; }
 
         public string MasterHost { get; set; } = string.Empty;
+
+#if DEBUG
+        public string MasterSecretKey { get; set; } = Helper.GlobalString;
+#else
         public string MasterSecretKey { get; set; } = string.Empty;
+#endif
     }
 
     [MemoryPackable]
