@@ -81,6 +81,7 @@ namespace linker.plugins.relay.server
                 relayNodeReportInfo.LastTicks = Environment.TickCount64;
                 reports.AddOrUpdate(relayNodeReportInfo.Id, relayNodeReportInfo, (a, b) => relayNodeReportInfo);
 
+                LoggerHelper.Instance.Info(reports.ToJson());
             }
             catch (Exception)
             {
