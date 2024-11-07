@@ -52,19 +52,26 @@ namespace linker.config
             {
                 foreach (var item in fsDic)
                 {
-                    if (item.Value.PropertyObject == null)
+                    try
                     {
-                        continue;
-                    }
-                    if (File.Exists(item.Value.Path) == false) continue;
+                        if (item.Value.PropertyObject == null)
+                        {
+                            continue;
+                        }
+                        if (File.Exists(item.Value.Path) == false) continue;
 
-                    string text = File.ReadAllText(item.Value.Path);
-                    if (string.IsNullOrWhiteSpace(text))
-                    {
-                        continue;
+                        string text = File.ReadAllText(item.Value.Path);
+                        if (string.IsNullOrWhiteSpace(text))
+                        {
+                            continue;
+                        }
+                        object value = item.Value.PropertyMethod.Deserialize(text);
+                        item.Value.Property.SetValue(Data, value);
                     }
-                    object value = item.Value.PropertyMethod.Deserialize(text);
-                    item.Value.Property.SetValue(Data, value);
+                    catch (Exception ex)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
                 }
             }
             catch (Exception ex)
