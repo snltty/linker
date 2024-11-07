@@ -52,12 +52,9 @@ namespace linker.plugins.client
         /// <returns></returns>
         public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
         {
-            if (string.IsNullOrWhiteSpace(fileConfig.Data.Server.SignIn.SecretKey) == false)
+            if (signInfo.Args.TryGetValue("signin-gpwd", out string gpwd) && string.IsNullOrWhiteSpace(gpwd) == false)
             {
-                if (signInfo.Args.TryGetValue("signin-gpwd", out string gpwd) && string.IsNullOrWhiteSpace(gpwd) == false)
-                {
-                    signInfo.GroupId = $"{signInfo.GroupId}->{gpwd}";
-                }
+                signInfo.GroupId = $"{signInfo.GroupId}->{gpwd}";
             }
             await Task.CompletedTask;
             return string.Empty;

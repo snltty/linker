@@ -37,7 +37,7 @@ jobs:
           release_name: v1.5.2.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 多中继节点服务器\r\n6. 测试中，不要更新，不要更新，不要更新"
+          body: "1. 多中继节点服务器\r\n2. 修复分组密钥\r\n3. 测试中，不要更新，不要更新，不要更新"
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
         uses: tvrcgo/oss-action@v0.1.1
