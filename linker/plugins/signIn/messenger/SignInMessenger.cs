@@ -41,6 +41,9 @@ namespace linker.plugins.signin.messenger
         [MessengerId((ushort)SignInMessengerIds.SignIn)]
         public async Task SignIn(IConnection connection)
         {
+            connection.Disponse();
+            return;
+            /*
             SignInfo info = MemoryPackSerializer.Deserialize<SignInfo>(connection.ReceiveRequestWrap.Payload.Span);
             LoggerHelper.Instance.Info($"sign in from {connection.Address}->{info.ToJson()}");
 
@@ -58,6 +61,7 @@ namespace linker.plugins.signin.messenger
             {
                 connection.Write(Helper.EmptyArray);
             }
+            */
         }
 
         /// <summary>
@@ -68,6 +72,8 @@ namespace linker.plugins.signin.messenger
         public async Task SignIn_V_1_3_1(IConnection connection)
         {
             SignInfo info = MemoryPackSerializer.Deserialize<SignInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            LoggerHelper.Instance.Info($"sign in from >=v131 {connection.Address}->{info.ToJson()}");
+
             info.Connection = connection;
 
             SignInResponseInfo resp = new SignInResponseInfo();

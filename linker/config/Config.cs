@@ -84,12 +84,19 @@ namespace linker.config
             {
                 foreach (var item in fsDic)
                 {
-                    if (item.Value.PropertyObject == null)
+                    try
                     {
-                        continue;
+                        if (item.Value.PropertyObject == null)
+                        {
+                            continue;
+                        }
+                        string text = item.Value.PropertyMethod.Serialize(item.Value.Property.GetValue(Data));
+                        File.WriteAllText(item.Value.Path, text);
                     }
-                    string text = item.Value.PropertyMethod.Serialize(item.Value.Property.GetValue(Data));
-                    File.WriteAllText(item.Value.Path, text);
+                    catch (Exception ex)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
                 }
             }
             catch (Exception ex)
