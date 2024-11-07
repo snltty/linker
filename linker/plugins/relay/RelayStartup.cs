@@ -65,6 +65,9 @@ namespace linker.plugins.relay
             RelayTypesLoader relayTypesLoader = serviceProvider.GetService<RelayTypesLoader>();
 
             IRelayCaching relayCaching = serviceProvider.GetService<IRelayCaching>();
+
+            RelayServerMasterTransfer relayServerMasterTransfer = serviceProvider.GetService<RelayServerMasterTransfer>();
+            RelayServerNodeTransfer relayServerNodeTransfer = serviceProvider.GetService<RelayServerNodeTransfer>();
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config)
@@ -73,6 +76,10 @@ namespace linker.plugins.relay
             IRelayCaching relayCaching = serviceProvider.GetService<IRelayCaching>();
 
             RelayReportResolver relayReportResolver = serviceProvider.GetService<RelayReportResolver>();
+
+
+            RelayServerMasterTransfer relayServerMasterTransfer = serviceProvider.GetService<RelayServerMasterTransfer>();
+            RelayServerNodeTransfer relayServerNodeTransfer = serviceProvider.GetService<RelayServerNodeTransfer>();
         }
     }
 }

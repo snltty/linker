@@ -7,6 +7,7 @@ using MemoryPack;
 using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
+using System.Xml.Linq;
 
 namespace linker.plugins.relay.server
 {
@@ -18,14 +19,16 @@ namespace linker.plugins.relay.server
         private readonly IRelayCaching relayCaching;
         private readonly FileConfig fileConfig;
 
-        private readonly ICrypto crypto;
+        private readonly ICrypto cryptoNode;
+        private readonly ICrypto cryptoMaster;
 
         public RelayServerNodeTransfer(IRelayCaching relayCaching, FileConfig fileConfig)
         {
             this.relayCaching = relayCaching;
             this.fileConfig = fileConfig;
 
-            crypto = CryptoFactory.CreateSymmetric(fileConfig.Data.Server.Relay.Distributed.Node.MasterSecretKey);
+            cryptoNode = CryptoFactory.CreateSymmetric(fileConfig.Data.Server.Relay.Distributed.Node.MasterSecretKey);
+            cryptoMaster = CryptoFactory.CreateSymmetric(fileConfig.Data.Server.Relay.Distributed.Master.SecretKey);
             ReportTask();
         }
 
@@ -42,15 +45,15 @@ namespace linker.plugins.relay.server
             return fileConfig.Data.Server.Relay.Distributed.Node.MaxConnection == 0 || fileConfig.Data.Server.Relay.Distributed.Node.MaxConnection * 2 > connectionNum;
         }
 
-        public async ValueTask<RelayCache> TryGetRelayCache(string key)
+        public async ValueTask<RelayCache> TryGetRelayCache(string key, string nodeid)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(2 * 1024);
             try
             {
-                IPEndPoint server = string.IsNullOrWhiteSpace(fileConfig.Data.Server.Relay.Distributed.Node.MasterHost)
+                IPEndPoint server = nodeid == RelayNodeInfo.MASTER_NODE_ID
                     ? new IPEndPoint(IPAddress.Loopback, fileConfig.Data.Server.ServicePort)
                     : await NetworkHelper.GetEndPointAsync(fileConfig.Data.Server.Relay.Distributed.Node.MasterHost, 1802);
-
+                ICrypto crypto = nodeid == RelayNodeInfo.MASTER_NODE_ID ? cryptoMaster : cryptoNode;
 
                 Socket socket = new Socket(server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 long start = Environment.TickCount64;
@@ -88,7 +91,7 @@ namespace linker.plugins.relay.server
                 IEnumerable<RelayNodeInfo> nodes = new List<RelayNodeInfo>
                 {
                     new RelayNodeInfo{
-                        Id = RelayNodeInfo.MASTER_ID,
+                        Id = RelayNodeInfo.MASTER_NODE_ID,
                         Host = new IPEndPoint(IPAddress.Any,fileConfig.Data.Server.ServicePort).ToString(),
                         MasterHost =  new IPEndPoint(IPAddress.Loopback,fileConfig.Data.Server.ServicePort).ToString(),
                         MasterSecretKey = fileConfig.Data.Server.Relay.Distributed.Master.SecretKey,
@@ -100,13 +103,18 @@ namespace linker.plugins.relay.server
                     fileConfig.Data.Server.Relay.Distributed.Node
                 }.Where(c => string.IsNullOrWhiteSpace(c.MasterHost) == false && string.IsNullOrWhiteSpace(c.MasterSecretKey) == false)
                 .Where(c => string.IsNullOrWhiteSpace(c.Name) == false && string.IsNullOrWhiteSpace(c.Id) == false);
+
+
+
                 foreach (var node in nodes)
                 {
                     try
                     {
+                        ICrypto crypto = node.Id == RelayNodeInfo.MASTER_NODE_ID ? cryptoMaster : cryptoNode;
+
                         IPEndPoint endPoint = await NetworkHelper.GetEndPointAsync(node.Host, fileConfig.Data.Server.ServicePort) ?? new IPEndPoint(IPAddress.Any, fileConfig.Data.Server.ServicePort);
                         int maxConnection = node.MaxConnection == 0 ? 65535 : node.MaxConnection;
-                        double connectionRatio = connectionNum/2.0 / maxConnection;
+                        double connectionRatio = connectionNum / 2.0 / maxConnection;
                         double maxBandwidth = node.MaxBandwidth == 0 ? 65535 : node.MaxBandwidth;
 
                         RelayNodeReportInfo relayNodeReportInfo = new RelayNodeReportInfo

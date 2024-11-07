@@ -1,6 +1,5 @@
 ﻿using linker.config;
 using linker.libs;
-using linker.libs.extends;
 using linker.plugins.relay.server.caching;
 using MemoryPack;
 using System.Collections.Concurrent;
@@ -70,7 +69,7 @@ namespace linker.plugins.relay.server
                 data = crypto.Decode(data.ToArray());
                 RelayNodeReportInfo relayNodeReportInfo = MemoryPackSerializer.Deserialize<RelayNodeReportInfo>(data.Span);
 
-                if (relayNodeReportInfo.Id == RelayNodeInfo.MASTER_ID)
+                if (relayNodeReportInfo.Id == RelayNodeInfo.MASTER_NODE_ID)
                 {
                     relayNodeReportInfo.EndPoint = new IPEndPoint(IPAddress.Any, 0);
                 }
@@ -80,8 +79,6 @@ namespace linker.plugins.relay.server
                 }
                 relayNodeReportInfo.LastTicks = Environment.TickCount64;
                 reports.AddOrUpdate(relayNodeReportInfo.Id, relayNodeReportInfo, (a, b) => relayNodeReportInfo);
-
-                LoggerHelper.Instance.Info(reports.ToJson());
             }
             catch (Exception)
             {

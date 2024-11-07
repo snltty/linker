@@ -63,7 +63,7 @@ namespace linker.plugins.relay.server
                 //ask 是发起端来的，那key就是 发起端->目标端， answer的，目标和来源会交换，所以转换一下
                 string key = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}->{relayMessage.FlowId}" : $"{relayMessage.ToId}->{relayMessage.FromId}->{relayMessage.FlowId}";
                 //获取缓存
-                RelayCache relayCache = await relayServerNodeTransfer.TryGetRelayCache(key);
+                RelayCache relayCache = await relayServerNodeTransfer.TryGetRelayCache(key, relayMessage.NodeId);
                 if (relayCache == null)
                 {
                     socket.SafeClose();

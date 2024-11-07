@@ -36,7 +36,7 @@ namespace linker.plugins.resolver
                 int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).ConfigureAwait(false);
                 ResolverType type = (ResolverType)buffer[0];
 
-                LoggerHelper.Instance.Info($"tcp connect from {socket.RemoteEndPoint}->{(ResolverType)buffer[0]}");
+                //LoggerHelper.Instance.Info($"tcp connect from {socket.RemoteEndPoint}->{(ResolverType)buffer[0]}");
                 if (resolvers.TryGetValue(type, out IResolver resolver))
                 {
                     await resolver.Resolve(socket, buffer.AsMemory(1, length));

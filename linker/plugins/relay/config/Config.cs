@@ -55,7 +55,7 @@ namespace linker.config
     }
     public sealed class RelayNodeInfo
     {
-        public const string MASTER_ID = "824777CF-2804-83FE-DE71-69B7B7D3BBA7";
+        public const string MASTER_NODE_ID = "824777CF-2804-83FE-DE71-69B7B7D3BBA7";
 
         private string id = Guid.NewGuid().ToString().ToUpper();
         public string Id
