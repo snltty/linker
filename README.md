@@ -68,7 +68,8 @@
 
 ## 感谢支持 
 
+<div align="center">
 <a href="https://mi-d.cn" target="_blank">
-<img src="https://mi-d.cn/wp-content/uploads/2021/12/cropped-1639494965-网站LOGO无字.png" width="40" style="vertical-align: middle;"> 米多贝克</a>
-
+    <img src="https://mi-d.cn/wp-content/uploads/2021/12/cropped-1639494965-网站LOGO无字.png" width="40" style="vertical-align: middle;"> 米多贝克</a>
+</div>
 
