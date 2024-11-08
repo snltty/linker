@@ -39,7 +39,7 @@ namespace linker.plugins.signin.messenger
         }
 
         [MessengerId((ushort)SignInMessengerIds.SignIn)]
-        public async Task SignIn(IConnection connection)
+        public void SignIn(IConnection connection)
         {
             connection.Disponse();
             return;
