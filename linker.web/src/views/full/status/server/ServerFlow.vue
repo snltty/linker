@@ -88,7 +88,6 @@ export default {
         };
         const _getFlows = ()=>{
             getFlows().then(res => {
-                console.log(res);
                 const old = state.old || res;
 
                 if(res.Items['_']){
