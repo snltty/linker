@@ -292,7 +292,7 @@ namespace linker.plugins.sforward
                 try
                 {
                     using Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                    await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+                    await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
                     socket.SafeClose();
                     return (ep, string.Empty);
                 }

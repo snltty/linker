@@ -30,7 +30,7 @@ namespace linker.tunnel.wanport
                     try
                     {
                         await udpClient.SendAsync(new byte[1] { 0 }, server).ConfigureAwait(false);
-                        UdpReceiveResult result = await udpClient.ReceiveAsync().WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                        UdpReceiveResult result = await udpClient.ReceiveAsync().WaitAsync(TimeSpan.FromMilliseconds(2000)).ConfigureAwait(false);
                         if (result.Buffer.Length == 0)
                         {
                             return null;

@@ -53,7 +53,7 @@ namespace linker.plugins.relay.server
 
                 await socket.SendAsync(new byte[] { (byte)ResolverType.RelayReport });
                 await socket.SendAsync(key.ToBytes());
-                int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(Math.Max(time * 2, 500))).ConfigureAwait(false);
+                int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(Math.Max(time * 2, 5000))).ConfigureAwait(false);
                 socket.SafeClose();
 
                 RelayCache result = MemoryPackSerializer.Deserialize<RelayCache>(crypto.Decode(buffer.AsMemory(0, length).ToArray()).Span);

@@ -213,12 +213,12 @@ namespace linker.plugins.relay.client.transport
 
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         {
-                            LoggerHelper.Instance.Error($"connect relay server {ep}");
+                            LoggerHelper.Instance.Debug($"connect relay server {ep}");
                         }
                         //连接中继服务器
                         Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                         socket.KeepAlive();
-                        await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                        await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
 
                         //建立关联
                         RelayMessage relayMessage = new RelayMessage
@@ -289,7 +289,7 @@ namespace linker.plugins.relay.client.transport
 
                 Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 socket.KeepAlive();
-                await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
 
                 RelayMessage relayMessage = new RelayMessage
                 {
