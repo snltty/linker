@@ -2,14 +2,14 @@
 {
     public enum AccessMessengerIds : ushort
     {
-        Min = 2600,
+        Min = 3000,
 
-        Access = 2603,
-        AccessForward = 2604,
+        Access = 3003,
+        AccessForward = 3004,
 
-        AccessUpdate = 2605,
-        AccessUpdateForward = 2606,
+        AccessUpdate = 3005,
+        AccessUpdateForward = 3006,
 
-        Max = 2699
+        Max = 3099
     }
 }

@@ -55,6 +55,9 @@ namespace linker.plugins.flow
 
             serviceCollection.AddSingleton<SForwardFlow>();
             serviceCollection.AddSingleton<SForwardProxy, SForwardProxyFlow>();
+
+            serviceCollection.AddSingleton<RelayReportFlow>();
+            serviceCollection.AddSingleton<RelayReportResolver, RelayReportResolverFlow>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)
