@@ -21,16 +21,16 @@
 		<Title>linker</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 多中继节点服务器
-2. 修复分组密钥
-3. 修复中继线路</Description>
+		<Description>1. 增加连接中继节点的超时时间
+2. 增加网卡端口转发备注
+3. 已有多个公开中继服务器上线</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.5.2</Version>
-		<AssemblyVersion>1.5.2</AssemblyVersion>
-		<FileVersion>1.5.2</FileVersion>
+		<Version>1.5.3</Version>
+		<AssemblyVersion>1.5.3</AssemblyVersion>
+		<FileVersion>1.5.3</FileVersion>
 	</PropertyGroup>
 
 
