@@ -276,6 +276,8 @@ namespace linker.plugins.tuntap.config
         [MemoryPackAllowSerialize]
         public IPAddress ConnectAddr { get; set; } = IPAddress.Any;
         public int ConnectPort { get; set; }
+
+        public string Remark { get; set; } = string.Empty;
     }
 
     [MemoryPackable]

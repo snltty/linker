@@ -46,11 +46,12 @@
                         <template v-for="(item, index) in state.ruleForm.Forwards" :key="index">
                             <div class="flex" style="margin-bottom:.6rem">
                                 <div class="flex-1">
-                                    <el-input v-model="item.ListenAddr" style="width:7rem" readonly /> : <el-input @change="handleForwardChange(index)" v-model="item.ListenPort" style="width:6rem" />
-                                     -> <el-input v-model="item.ConnectAddr" style="width:14rem" /> : <el-input @change="handleForwardChange(index)" v-model="item.ConnectPort" style="width:6rem" />
+                                    <el-input @change="handleForwardChange(index)" v-model="item.ListenPort" style="width:6rem" />
+                                    -> <el-input v-model="item.ConnectAddr" style="width:14rem" />
+                                     : <el-input @change="handleForwardChange(index)" v-model="item.ConnectPort" style="width:6rem" /> 
+                                    &nbsp;<el-input v-model="item.Remark" style="width:10rem" placeholder="备注"/>
                                 </div>
                                 <div class="pdl-10">
-                                    
                                     <el-button type="danger" @click="handleDelForward(index)"><el-icon><Delete /></el-icon></el-button>
                                     <el-button type="primary" @click="handleAddForward(index)"><el-icon><Plus /></el-icon></el-button>
                                 </div>
@@ -99,7 +100,7 @@ export default {
                 Multicast: tuntap.value.current.Multicast,
 
                 Forwards:tuntap.value.current.Forwards.length == 0 ? [
-                    {ListenAddr:'0.0.0.0',ListenPort:0,ConnectAddr:'0.0.0.0',ConnectPort:0}
+                    {ListenAddr:'0.0.0.0',ListenPort:0,ConnectAddr:'0.0.0.0',ConnectPort:0,Remark:''}
                 ] : tuntap.value.current.Forwards.slice(0)
             },
             rules: {}
@@ -169,7 +170,7 @@ export default {
             }
         }
         const handleAddForward = (index) => {
-            state.ruleForm.Forwards.splice(index + 1, 0, {ListenAddr:'0.0.0.0',ListenPort:0,ConnectAddr:'0.0.0.0',ConnectPort:0});
+            state.ruleForm.Forwards.splice(index + 1, 0, {ListenAddr:'0.0.0.0',ListenPort:0,ConnectAddr:'0.0.0.0',ConnectPort:0,Remark:''});
         }
         const handleForwardChange = ()=>{
 
