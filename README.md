@@ -59,10 +59,10 @@
 <p><img src="./readme/full.png"></p> 
 </div>
 
-## 作者很像喝奶茶
+## 作者很想喝奶茶
 
 <div align="center">
-请作者喝一杯咖啡，使其更有精力更新代码
+请作者喝一杯咖啡，让作者更有动力更新代码
 <p><img src="./readme/qr.jpg" width="360"></p> 
 </div>
 
