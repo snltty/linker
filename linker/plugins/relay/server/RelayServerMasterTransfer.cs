@@ -91,8 +91,17 @@ namespace linker.plugins.relay.server
         /// <returns></returns>
         public List<RelayNodeReportInfo> GetNodes(bool validated)
         {
-            List<RelayNodeReportInfo> result = reports.Values.Where(c => c.Public || (c.Public == false && validated)).ToList();
-            return result.Where(c => Environment.TickCount64 - c.LastTicks < 15000).OrderByDescending(c => c.LastTicks).OrderByDescending(c => c.MaxBandwidth).OrderByDescending(c => c.MaxConnection).OrderBy(c => c.ConnectionRatio).ToList();
+            var result = reports.Values
+                .Where(c => c.Public || (c.Public == false && validated))
+                .Where(c => Environment.TickCount64 - c.LastTicks < 15000).OrderByDescending(c => c.LastTicks);
+
+            return result.OrderByDescending(x => x.MaxConnection == 0 ? int.MaxValue : x.MaxConnection)
+                     .ThenByDescending(x => x.MaxGbTotal == 0 ? double.MaxValue : x.MaxGbTotal)
+                     .ThenByDescending(x => x.MaxGbTotalLastBytes == 0 ? ulong.MaxValue : x.MaxGbTotalLastBytes)
+                     .ThenByDescending(x => x.MaxBandwidth == 0 ? double.MaxValue : x.MaxBandwidth)
+                     .ThenByDescending(x => x.MaxBandwidthTotal == 0 ? double.MaxValue : x.MaxBandwidthTotal)
+                     .ThenBy(x => x.ConnectionRatio)
+                     .ToList();
         }
 
         /// <summary>

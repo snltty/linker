@@ -130,7 +130,11 @@ namespace linker.plugins.relay.client.transport
             {
                 return new RelayAskResultInfo();
             }
-            return MemoryPackSerializer.Deserialize<RelayAskResultInfo>(resp.Data.Span);
+
+            RelayAskResultInfo result = MemoryPackSerializer.Deserialize<RelayAskResultInfo>(resp.Data.Span);
+
+            return result;
+
         }
         private async Task<List<RelayNodeReportInfo>> TestDelay(List<RelayNodeReportInfo> list)
         {
@@ -199,41 +203,52 @@ namespace linker.plugins.relay.client.transport
 
                 foreach (var node in nodes)
                 {
-                    IPEndPoint ep = node.EndPoint;
-                    if (ep == null || ep.Address.Equals(IPAddress.Any))
+                    try
                     {
-                        ep = clientSignInState.Connection.Address;
-                    }
+                        IPEndPoint ep = node.EndPoint;
+                        if (ep == null || ep.Address.Equals(IPAddress.Any))
+                        {
+                            ep = clientSignInState.Connection.Address;
+                        }
 
-                    //连接中继服务器
-                    Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
-                    socket.KeepAlive();
-                    await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        {
+                            LoggerHelper.Instance.Error($"connect relay server {ep}");
+                        }
+                        //连接中继服务器
+                        Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+                        socket.KeepAlive();
+                        await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
 
-                    //建立关联
-                    RelayMessage relayMessage = new RelayMessage
-                    {
-                        FlowId = relayInfo.FlowingId,
-                        Type = RelayMessengerType.Ask,
-                        FromId = relayInfo.FromMachineId,
-                        ToId = relayInfo.RemoteMachineId,
-                        NodeId = node.Id,
-                    };
-                    await socket.SendAsync(new byte[] { (byte)ResolverType.Relay });
-                    await socket.SendAsync(MemoryPackSerializer.Serialize(relayMessage));
+                        //建立关联
+                        RelayMessage relayMessage = new RelayMessage
+                        {
+                            FlowId = relayInfo.FlowingId,
+                            Type = RelayMessengerType.Ask,
+                            FromId = relayInfo.FromMachineId,
+                            ToId = relayInfo.RemoteMachineId,
+                            NodeId = node.Id,
+                        };
+                        await socket.SendAsync(new byte[] { (byte)ResolverType.Relay });
+                        await socket.SendAsync(MemoryPackSerializer.Serialize(relayMessage));
 
-                    //是否允许连接
-                    int length = await socket.ReceiveAsync(buffer);
-                    if (buffer[0] != 0)
-                    {
+                        //是否允许连接
+                        int length = await socket.ReceiveAsync(buffer);
+                        if (buffer[0] == 0)
+                        {
+                            relayInfo.Server = node.EndPoint;
+                            relayInfo.NodeId = node.Id;
+                            return socket;
+                        }
                         socket.SafeClose();
-                        return null;
                     }
-
-                    relayInfo.Server = node.EndPoint;
-                    relayInfo.NodeId = node.Id;
-
-                    return socket;
+                    catch (Exception ex)
+                    {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        {
+                            LoggerHelper.Instance.Error(ex);
+                        }
+                    }
                 }
             }
             catch (Exception ex)

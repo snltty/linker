@@ -58,22 +58,36 @@
             </el-table>
         </div>
     </el-dialog>
-    <el-dialog v-model="state.showNodes" title="中继节点" width="600" top="2vh">
+    <el-dialog v-model="state.showNodes" title="中继节点" width="760" top="2vh">
         <div>
-            <el-table :data="state.nodes" size="small" border height="500">
+            <el-table :data="state.nodes" size="small" border height="600">
                 <el-table-column property="Name" label="名称"></el-table-column>
-                <el-table-column property="MaxBandwidth" label="连接带宽" width="100">
+                <el-table-column property="MaxGbTotal" label="月流量" width="160">
                     <template #default="scope">
-                        <span v-if="scope.row.MaxBandwidth == 65535">无限制</span>
+                        <span v-if="scope.row.MaxGbTotal == 0">无限制</span>
+                        <span v-else>
+                            {{ (scope.row.MaxGbTotalLastBytes/1024/1024/1024).toFixed(2) }}GB / {{ scope.row.MaxGbTotal }}GB
+                        </span>
+                    </template>
+                </el-table-column>
+                <el-table-column property="MaxBandwidthTotal" label="总带宽" width="80">
+                    <template #default="scope">
+                        <span v-if="scope.row.MaxBandwidthTotal == 0">无限制</span>
+                        <span v-else>{{ scope.row.MaxBandwidthTotal }}Mbps</span>
+                    </template>
+                </el-table-column>
+                <el-table-column property="MaxBandwidth" label="连接带宽" width="80">
+                    <template #default="scope">
+                        <span v-if="scope.row.MaxBandwidth == 0">无限制</span>
                         <span v-else>{{ scope.row.MaxBandwidth }}Mbps</span>
                     </template>
                 </el-table-column>
-                <el-table-column property="ConnectionRatio" label="连接数" width="100">
+                <el-table-column property="ConnectionRatio" label="连接数" width="60">
                     <template #default="scope">
                         <span>{{ scope.row.ConnectionRatio*100 }}%</span>
                     </template>
                 </el-table-column>
-                <el-table-column property="Delay" label="延迟" width="100">
+                <el-table-column property="Delay" label="延迟" width="60">
                     <template #default="scope">
                         <span>{{ scope.row.Delay }}ms</span>
                     </template>

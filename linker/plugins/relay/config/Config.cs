@@ -2,6 +2,7 @@
 using linker.libs.extends;
 using linker.plugins.relay.client.transport;
 using MemoryPack;
+using System;
 using System.Net;
 
 namespace linker.config
@@ -78,10 +79,14 @@ namespace linker.config
 
         public int MaxConnection { get; set; } = 100;
         public double MaxBandwidth { get; set; } = 1;
+        public double MaxBandwidthTotal { get; set; }
+        public double MaxGbTotal { get; set; }
+        public ulong MaxGbTotalLastBytes { get; set; }
+        public int MaxGbTotalMonth { get; set; }
+
         public bool Public { get; set; }
 
         public string MasterHost { get; set; } = string.Empty;
-
 #if DEBUG
         public string MasterSecretKey { get; set; } = Helper.GlobalString;
 #else
@@ -97,8 +102,13 @@ namespace linker.config
 
         public int MaxConnection { get; set; }
         public double MaxBandwidth { get; set; }
+        public double MaxBandwidthTotal { get; set; }
+        public double MaxGbTotal { get; set; }
+        public ulong MaxGbTotalLastBytes { get; set; }
+
         public double ConnectionRatio { get; set; }
         public double BandwidthRatio { get; set; }
+
         public bool Public { get; set; }
 
         public int Delay { get; set; }
@@ -107,6 +117,7 @@ namespace linker.config
         public IPEndPoint EndPoint { get; set; }
 
         public long LastTicks { get; set; }
+
     }
 
     [MemoryPackable]
@@ -124,9 +135,6 @@ namespace linker.config
         public string MachineId { get; set; } = string.Empty;
         public Dictionary<string, RelayNodeDelayInfo> Nodes { get; set; }
     }
-
-
-
 
     /// <summary>
     /// 中继服务器

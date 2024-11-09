@@ -44,7 +44,6 @@ namespace linker.plugins.relay.client
         public bool Connect(ApiControllerParamsInfo param)
         {
             RelayConnectInfo relayConnectInfo = param.Content.DeJson<RelayConnectInfo>();
-            Console.WriteLine(relayConnectInfo.ToJson());
             _ = relayTransfer.ConnectAsync(relayConnectInfo.FromMachineId, relayConnectInfo.ToMachineId, relayConnectInfo.TransactionId, relayConnectInfo.NodeId);
             return true;
         }
