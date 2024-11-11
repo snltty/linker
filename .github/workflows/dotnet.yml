@@ -37,7 +37,7 @@ jobs:
           release_name: v1.5.3.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 增加连接中继节点的超时时间\r\n2. 增加网卡端口转发备注\r\n3. 已有多个公开中继服务器上线"
+          body: "1. 增加连接中继节点的超时时间\r\n2. 增加网卡端口转发备注\r\n3. 已有多个公开中继服务器上线\r\n4. 自定义更新检测频率"
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
         uses: tvrcgo/oss-action@v0.1.1

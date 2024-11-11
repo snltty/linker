@@ -23,7 +23,8 @@
 		<Company>snltty</Company>
 		<Description>1. 增加连接中继节点的超时时间
 2. 增加网卡端口转发备注
-3. 已有多个公开中继服务器上线</Description>
+3. 已有多个公开中继服务器上线
+4. 自定义更新检测频率</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

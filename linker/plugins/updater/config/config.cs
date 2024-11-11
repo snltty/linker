@@ -7,6 +7,7 @@ namespace linker.config
     public sealed partial class ConfigCommonInfo
     {
         public string UpdateUrl { get; set; } = "https://static.qbcode.cn/downloads/linker";
+        public int UpdateIntervalSeconds { get; set; } = 60;
     }
 }
 
