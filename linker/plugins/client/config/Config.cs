@@ -118,7 +118,11 @@ namespace linker.config
             }
         }
 
+#if DEBUG
+        private string passord = Helper.GlobalString;
+#else
         private string passord = string.Empty;
+#endif
         public string Password
         {
             get => passord; set

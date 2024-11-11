@@ -129,7 +129,7 @@ namespace linker.plugins.updater
             {
                 await updaterHelper.GetUpdateInfo(updateInfo);
                 return true;
-            }, () => fileConfig.Data.Common.UpdateIntervalSeconds);
+            }, () => fileConfig.Data.Common.UpdateIntervalSeconds*1000);
         }
     }
 

@@ -26,7 +26,7 @@ namespace linker.plugins.client
             }
             if (config.Data.Client.Groups.Length == 0)
             {
-                config.Data.Client.Groups = new ClientGroupInfo[] { new ClientGroupInfo { Id = config.Data.Client.GroupId, Name= config.Data.Client.GroupId, Password = string.Empty } };
+                config.Data.Client.Groups = new ClientGroupInfo[] { new ClientGroupInfo { Id = config.Data.Client.GroupId, Name = config.Data.Client.GroupId } };
             }
 
             serviceCollection.AddSingleton<ClientSignInState>();
