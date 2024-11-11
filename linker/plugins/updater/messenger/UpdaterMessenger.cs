@@ -62,6 +62,10 @@ namespace linker.plugins.updater.messenger
         }
 
 
+        /// <summary>
+        /// 订阅更新消息
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)UpdaterMessengerIds.Subscribe)]
         public void Subscribe(IConnection connection)
         {
@@ -264,7 +268,7 @@ namespace linker.plugins.updater.messenger
 
                 var clients = string.IsNullOrWhiteSpace(toMachineId)
                     ? signCaching.Get(cache.GroupId).Where(c => c.Connected && c.MachineId != connection.Id)
-                    : signCaching.Get(cache.GroupId).Where(c => c.Connected && c.MachineId == toMachineId);
+                    : signCaching.Get(cache.GroupId).Where(c => c.Connected && c.MachineId == toMachineId && c.MachineId != connection.Id);
 
                 foreach (var item in clients)
                 {

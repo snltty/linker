@@ -172,12 +172,16 @@ namespace linker.plugins.updater
         }
         public async Task Check(ApiControllerParamsInfo param)
         {
-            await messengerSender.SendOnly(new MessageRequestWrap
+            if(param.Content != config.Data.Client.Id)
             {
-                Connection = clientSignInState.Connection,
-                MessengerId = (ushort)UpdaterMessengerIds.CheckForward,
-                Payload = string.IsNullOrWhiteSpace(param.Content) ? Helper.EmptyArray : MemoryPackSerializer.Serialize(param.Content)
-            });
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = clientSignInState.Connection,
+                    MessengerId = (ushort)UpdaterMessengerIds.CheckForward,
+                    Payload = string.IsNullOrWhiteSpace(param.Content) ? Helper.EmptyArray : MemoryPackSerializer.Serialize(param.Content)
+                });
+            }
+            
             if (string.IsNullOrWhiteSpace(param.Content) || param.Content == config.Data.Client.Id)
             {
                 updaterTransfer.Check();
