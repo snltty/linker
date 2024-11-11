@@ -23,19 +23,20 @@
             </template>
         </span>
     </a>
+    <a href="javascript:;" class="download" title="检查更新" @click="handleCheck"><el-icon><Refresh /></el-icon></a>
 </template>
 
 <script>
 import { injectGlobalData } from '@/provide';
 import { computed, h, ref } from 'vue';
 import { ElMessage, ElMessageBox, ElOption, ElSelect } from 'element-plus';
-import { confirm } from '@/apis/updater';
-import {Download,Loading,CircleCheck} from '@element-plus/icons-vue'
+import { checkUpdater, confirm } from '@/apis/updater';
+import {Download,Loading,CircleCheck,Refresh} from '@element-plus/icons-vue'
 import { useUpdater } from './updater';
 
 export default {
     props:['item','config'],
-    components:{Download,Loading,CircleCheck},
+    components:{Download,Loading,CircleCheck,Refresh},
     setup (props) {
 
         const globalData = injectGlobalData();
@@ -147,9 +148,31 @@ export default {
                 }).catch(() => {});
             }
         }
+        const handleCheck = ()=>{
+            const selectedValue = ref(props.item.MachineId);
+            const selectOptions = [
+                h(ElOption, { label: `仅检查[${props.item.MachineName}]`, value: props.item.MachineId }),
+                h(ElOption, { label: `仅检查[本组所有]`, value: 'g-all' }),
+            ];
+            ElMessageBox({
+                title: '选择检查对象',
+                message: () => h(ElSelect, {
+                    modelValue: selectedValue.value,
+                    placeholder: '请选择',
+                    style:'width:20rem;',
+                    'onUpdate:modelValue': (val) => {
+                        selectedValue.value = val
+                    }
+                }, selectOptions),
+                confirmButtonText: '确定',
+                cancelButtonText: '取消'
+            }).then(() => {
+                checkUpdater(selectedValue.value == props.item.MachineId ? selectedValue.value : '');
+            }).catch(() => {});
+        }
 
         return {
-            item:computed(()=>props.item),updater,updaterText,updaterColor,handleUpdate
+            item:computed(()=>props.item),updater,updaterText,updaterColor,handleUpdate,handleCheck
         }
     }
 }
@@ -175,5 +198,6 @@ a.download{
 
         margin-left:.3rem
     }
+    +a.download{margin-left:.2rem}
 }
 </style>

@@ -7,6 +7,7 @@
             中继节点 : {{state.nodes.length}}
         </a>
     </el-form-item>
+    
     <el-dialog v-model="state.show" title="中继节点" width="760" top="2vh">
         <div>
             <el-table :data="state.nodes" size="small" border height="500">

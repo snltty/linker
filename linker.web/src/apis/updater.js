@@ -17,7 +17,9 @@ export const getSecretKey = () => {
 export const setSecretKey = (data) => {
     return sendWebsocketMsg('updaterclient/SetSecretKey', data);
 }
-
+export const setUpdateInterval = (data) => {
+    return sendWebsocketMsg('updaterclient/SetInterval', data);
+}
 
 export const getUpdaterCurrent = () => {
     return sendWebsocketMsg('updaterclient/getcurrent');
@@ -33,4 +35,7 @@ export const exitServer = () => {
 }
 export const subscribeUpdater = () => {
     return sendWebsocketMsg('updaterclient/Subscribe');
+}
+export const checkUpdater = (data) => {
+    return sendWebsocketMsg('updaterclient/check', data);
 }

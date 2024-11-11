@@ -20,6 +20,9 @@
         Subscribe = 2610,
         SubscribeForward = 2611,
 
+        Check = 2612,
+        CheckForward = 2613,
+
         Max = 2299
     }
 }

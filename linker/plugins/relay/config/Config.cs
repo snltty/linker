@@ -117,7 +117,6 @@ namespace linker.config
         public IPEndPoint EndPoint { get; set; }
 
         public long LastTicks { get; set; }
-
     }
 
     [MemoryPackable]

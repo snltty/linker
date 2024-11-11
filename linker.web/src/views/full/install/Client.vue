@@ -117,7 +117,7 @@ export default {
             form: {
                 name:step.value.form.client.name || globalData.value.config.Client.Name,
                 groupid: step.value.form.client.groupid ||globalData.value.config.Client.Group.Id,
-                groupPassword: step.value.form.client.groupPassword ||globalData.value.config.Client.GroupPassword,
+                groupPassword: step.value.form.client.groupPassword ||globalData.value.config.Client.Group.Password,
                 api: step.value.form.client.api ||globalData.value.config.Client.CApi.ApiPort,
                 web: step.value.form.client.web ||globalData.value.config.Client.CApi.WebPort,
                 password:step.value.form.client.password || globalData.value.config.Client.CApi.ApiPassword,

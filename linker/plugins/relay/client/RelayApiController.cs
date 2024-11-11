@@ -47,6 +47,7 @@ namespace linker.plugins.relay.client
             _ = relayTransfer.ConnectAsync(relayConnectInfo.FromMachineId, relayConnectInfo.ToMachineId, relayConnectInfo.TransactionId, relayConnectInfo.NodeId);
             return true;
         }
+
     }
 
     public sealed class RelayConnectInfo

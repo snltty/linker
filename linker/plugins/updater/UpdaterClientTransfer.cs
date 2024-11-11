@@ -50,6 +50,11 @@ namespace linker.plugins.updater
             fileConfig.Data.Client.Updater.SecretKey = key;
             fileConfig.Data.Update();
         }
+        public void SetInterval(int sec)
+        {
+            fileConfig.Data.Common.UpdateIntervalSeconds = sec;
+            fileConfig.Data.Update();
+        }
 
         /// <summary>
         /// 所有客户端的更新信息
@@ -98,6 +103,11 @@ namespace linker.plugins.updater
             {
                 updateInfo.Update();
             }
+        }
+
+        public void Check()
+        {
+            _ = updaterHelper.GetUpdateInfo(updateInfo);
         }
 
         private void UpdateTask()

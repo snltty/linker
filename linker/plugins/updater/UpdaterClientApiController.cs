@@ -42,6 +42,13 @@ namespace linker.plugins.updater
             updaterTransfer.SetSecretKey(param.Content);
         }
 
+        [ClientApiAccessAttribute(ClientApiAccess.Config)]
+        public void SetInterval(ApiControllerParamsInfo param)
+        {
+            updaterTransfer.SetInterval(int.Parse(param.Content));
+        }
+
+
         public async Task<UpdateInfo> GetServer(ApiControllerParamsInfo param)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -162,6 +169,19 @@ namespace linker.plugins.updater
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)UpdaterMessengerIds.SubscribeForward
             });
+        }
+        public async Task Check(ApiControllerParamsInfo param)
+        {
+            await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)UpdaterMessengerIds.CheckForward,
+                Payload = string.IsNullOrWhiteSpace(param.Content) ? Helper.EmptyArray : MemoryPackSerializer.Serialize(param.Content)
+            });
+            if (string.IsNullOrWhiteSpace(param.Content) || param.Content == config.Data.Client.Id)
+            {
+                updaterTransfer.Check();
+            }
         }
     }
 

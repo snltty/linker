@@ -68,6 +68,16 @@ namespace linker.plugins.updater.messenger
             string machineId = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
             updaterTransfer.Subscribe(machineId);
         }
+
+        /// <summary>
+        /// 检查更新
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)UpdaterMessengerIds.Check)]
+        public void Check(IConnection connection)
+        {
+            updaterTransfer.Check();
+        }
     }
 
 
@@ -234,6 +244,36 @@ namespace linker.plugins.updater.messenger
                     });
                 }
 
+            }
+        }
+
+        /// <summary>
+        /// 检查更新转发
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)UpdaterMessengerIds.CheckForward)]
+        public void CheckForward(IConnection connection)
+        {
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            {
+                string toMachineId = string.Empty;
+                if (connection.ReceiveRequestWrap.Payload.Length > 0)
+                {
+                    toMachineId = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+                }
+
+                var clients = string.IsNullOrWhiteSpace(toMachineId)
+                    ? signCaching.Get(cache.GroupId).Where(c => c.Connected && c.MachineId != connection.Id)
+                    : signCaching.Get(cache.GroupId).Where(c => c.Connected && c.MachineId == toMachineId);
+
+                foreach (var item in clients)
+                {
+                    _ = messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = item.Connection,
+                        MessengerId = (ushort)UpdaterMessengerIds.Check,
+                    });
+                }
             }
         }
     }

@@ -22,7 +22,7 @@
                     <span title="此设备的外网IP" class="ipaddress" @click="handleExternal(scope.row)"><span>😴㊙.㊙.㊙.㊙</span></span>
                 </template>
                 <span class="flex-1"></span>
-                <UpdaterBtn :config="true" :item="scope.row"></UpdaterBtn>
+                <UpdaterBtn v-if="scope.row.showip == false" :config="true" :item="scope.row"></UpdaterBtn>
             </p>
         </div>
     </template>
