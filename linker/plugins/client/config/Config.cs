@@ -57,22 +57,8 @@ namespace linker.config
             }
         }
 
-#if DEBUG
-        private string groupid = Helper.GlobalString;
-#else
-        private string groupid = string.Empty;
-#endif
-        public string GroupId
-        {
-            get => groupid; set
-            {
-                groupid = value.SubStr(0, 36);
-            }
-        }
-
-
         public ClientGroupInfo Group => Groups.Length == 0 ? new ClientGroupInfo { } : Groups[0];
-        public ClientGroupInfo[] Groups { get; set; } = Array.Empty<ClientGroupInfo>();
+        public ClientGroupInfo[] Groups { get; set; } = new[] { new ClientGroupInfo { } };
 
         /// <summary>
         /// 加密证书
@@ -103,7 +89,7 @@ namespace linker.config
     {
         public ClientGroupInfo() { }
 
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; set; } = Helper.GlobalString;
 
 #if DEBUG
         private string id = Helper.GlobalString;

@@ -103,7 +103,8 @@ namespace linker.plugins.sforward
         }
         private void Start(SForwardInfo forwardInfo)
         {
-            if (forwardInfo.Proxy || (forwardInfo.RemotePort == 0 && string.IsNullOrWhiteSpace(forwardInfo.Domain)))
+            if (forwardInfo.Proxy) return;
+            if (forwardInfo.RemotePort == 0 && string.IsNullOrWhiteSpace(forwardInfo.Domain))
             {
                 forwardInfo.Msg = $"Please use port or domain";
                 forwardInfo.Started = false;

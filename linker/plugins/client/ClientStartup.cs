@@ -20,14 +20,6 @@ namespace linker.plugins.client
 
         public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
-            if (string.IsNullOrWhiteSpace(config.Data.Client.Name))
-            {
-                config.Data.Client.Name = Dns.GetHostName().SubStr(0, 12);
-            }
-            if (config.Data.Client.Groups.Length == 0)
-            {
-                config.Data.Client.Groups = new ClientGroupInfo[] { new ClientGroupInfo { Id = config.Data.Client.GroupId, Name = config.Data.Client.GroupId } };
-            }
 
             serviceCollection.AddSingleton<ClientSignInState>();
             serviceCollection.AddSingleton<ClientSignInTransfer>();
