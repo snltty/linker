@@ -92,6 +92,7 @@ namespace linker.plugins.updater
             {
                 _lastTicksManager = new LastTicksManager();
                 subscribes.TryAdd(machineId, _lastTicksManager);
+                updateInfo.Update();
             }
 
             //距离上次订阅超过一分钟，需要立即更新一次

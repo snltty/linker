@@ -29,6 +29,7 @@ namespace linker.client.config
         /// 目标设备
         /// </summary>
         public string MachineId { get; set; }
+        public string GroupId { get; set; }
         public string MachineName { get; set; }
         /// <summary>
         /// 本地绑定IP
@@ -62,7 +63,7 @@ namespace linker.client.config
         /// </summary>
         public string TargetMsg { get; set; }
 
-        [JsonIgnore, BsonIgnore,MemoryPackIgnore]
+        [JsonIgnore, BsonIgnore, MemoryPackIgnore]
         public bool Proxy { get; set; }
 
     }

@@ -49,7 +49,8 @@ namespace linker.plugins.tuntap
             this.leaseClientTreansfer = leaseClientTreansfer;
 
 
-            clientSignInState.NetworkEnabledHandle += (times) => RefreshIP();
+            clientSignInState.NetworkEnabledHandle += (times) => { tuntapInfos.Clear(); tuntapProxy.ClearIPs(); RefreshIP(); };
+            tuntapProxy.RefreshConfig = RefreshConfig;
 
             tuntapTransfer.OnSetupBefore += () => { DataVersion.Add(); };
             tuntapTransfer.OnSetupAfter += () => { DataVersion.Add(); };
@@ -320,6 +321,10 @@ namespace linker.plugins.tuntap
             foreach (var item in tuntapInfos.Values)
             {
                 tuntapProxy.SetIP(item.MachineId, NetworkHelper.IP2Value(item.IP));
+            }
+            foreach (var item in tuntapInfos.Values.Where(c=>c.IP.Equals(IPAddress.Any)))
+            {
+                tuntapProxy.RemoveIP(item.MachineId);
             }
             Version.Add();
         }

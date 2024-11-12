@@ -24,7 +24,8 @@ namespace linker.plugins.tuntap
         protected override string TransactionId => "tuntap";
         private readonly LinkerTunDeviceAdapter linkerTunDeviceAdapter;
 
-        private string groupid = string.Empty;
+        private HashSet<uint> ipRefreshCache = new HashSet<uint>();
+        public Action RefreshConfig = () => { };
 
         private readonly FileConfig config;
         private readonly RunningConfig runningConfig;
@@ -37,8 +38,6 @@ namespace linker.plugins.tuntap
             this.runningConfig = runningConfig;
             this.linkerTunDeviceAdapter = linkerTunDeviceAdapter;
             this.clientSignInState = clientSignInState;
-
-            clientSignInState.NetworkEnabledHandle += (times) => ClearIPs();
         }
 
         protected override void Connected(ITunnelConnection connection)
@@ -166,6 +165,18 @@ namespace linker.plugins.tuntap
                 ipConnections.TryRemove(ip, out _);
             }
         }
+        /// <summary>
+        /// 移除
+        /// </summary>
+        /// <param name="machineId"></param>
+        public void RemoveIP(string machineId)
+        {
+            foreach (var item in ip2MachineDic.Where(c=>c.Value == machineId).ToList())
+            {
+                ipConnections.TryRemove(item.Key, out _);
+                ip2MachineDic.TryRemove(item.Key, out _);
+            }
+        }
 
         /// <summary>
         /// 打洞或者中继
@@ -191,6 +202,11 @@ namespace linker.plugins.tuntap
             }
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
+                if(ipRefreshCache.Contains(ip) == false)
+                {
+                    ipRefreshCache.Add(ip);
+                    RefreshConfig();
+                }
                 LoggerHelper.Instance.Debug($"{NetworkHelper.Value2IP(ip)} to machine not found");
             }
             return null;
@@ -198,14 +214,15 @@ namespace linker.plugins.tuntap
         }
 
 
-        private void ClearIPs()
+        public void ClearIPs()
         {
-            if (groupid != config.Data.Client.Group.Id)
+            ip2MachineDic.Clear();
+            ipConnections.Clear();
+            ipRefreshCache.Clear();
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
-                ip2MachineDic.Clear();
-                ipConnections.Clear();
+                LoggerHelper.Instance.Debug($"tuntap cache clear");
             }
-            groupid = config.Data.Client.Group.Id;
         }
     }
 }

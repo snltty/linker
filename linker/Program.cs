@@ -4,6 +4,7 @@ using linker.startup;
 using linker.config;
 using System.ServiceProcess;
 using System.Diagnostics;
+using linker.libs.extends;
 
 namespace linker
 {
@@ -41,6 +42,8 @@ namespace linker
 
             //初始化配置文件
             FileConfig config = new FileConfig();
+            Console.WriteLine(config.ToJsonFormat());
+            //return;
 
             LoggerHelper.Instance.Warning($"current version : {config.Data.Version}");
             LoggerHelper.Instance.Warning($"linker env is docker : {Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")}");

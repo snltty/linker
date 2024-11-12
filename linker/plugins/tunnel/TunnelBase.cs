@@ -2,17 +2,9 @@
 using linker.libs;
 using linker.libs.extends;
 using linker.plugins.client;
-using linker.plugins.resolver;
 using linker.tunnel;
 using linker.tunnel.connection;
 using System.Collections.Concurrent;
-using System.Net.Security;
-using System.Net.Sockets;
-using System.Net;
-using System.Security.Authentication;
-using System.Security.Cryptography.X509Certificates;
-using linker.plugins.messenger;
-using linker.plugins.tuntap.messenger;
 using linker.plugins.relay.client;
 
 namespace linker.plugins.tunnel

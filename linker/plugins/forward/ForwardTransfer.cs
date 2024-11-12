@@ -10,7 +10,7 @@ using System.Collections.Concurrent;
 
 namespace linker.plugins.forward
 {
-    public sealed class ForwardTransfer:IDecenter
+    public sealed class ForwardTransfer : IDecenter
     {
         public string Name => "forward";
         public VersionManager DataVersion { get; } = new VersionManager();
@@ -26,7 +26,7 @@ namespace linker.plugins.forward
 
         public VersionManager Version { get; } = new VersionManager();
 
-        public ForwardTransfer(FileConfig fileConfig,RunningConfig running, ForwardProxy forwardProxy, ClientSignInState clientSignInState, IMessengerSender messengerSender)
+        public ForwardTransfer(FileConfig fileConfig, RunningConfig running, ForwardProxy forwardProxy, ClientSignInState clientSignInState, IMessengerSender messengerSender)
         {
             this.fileConfig = fileConfig;
             this.running = running;
@@ -35,6 +35,8 @@ namespace linker.plugins.forward
             this.messengerSender = messengerSender;
 
             clientSignInState.NetworkEnabledHandle += Reset;
+
+
         }
 
         public Memory<byte> GetData()
@@ -74,6 +76,16 @@ namespace linker.plugins.forward
         {
             TimerHelper.Async(async () =>
             {
+                if (running.Data.Forwards.All(c => string.IsNullOrWhiteSpace(c.GroupId)))
+                {
+                    foreach (var item in running.Data.Forwards)
+                    {
+                        item.GroupId = fileConfig.Data.Client.Group.Id;
+                    }
+                    running.Data.Update();
+                }
+
+
                 Stop();
                 await Task.Delay(5000).ConfigureAwait(false);
                 Start();
@@ -85,7 +97,7 @@ namespace linker.plugins.forward
             uint maxid = running.Data.Forwards.Count > 0 ? running.Data.Forwards.Max(c => c.Id) : 1;
             ns.Reset(maxid);
 
-            foreach (var item in running.Data.Forwards)
+            foreach (var item in running.Data.Forwards.Where(c => c.GroupId == fileConfig.Data.Client.Group.Id))
             {
                 if (item.Started)
                 {
@@ -132,7 +144,7 @@ namespace linker.plugins.forward
 
         private void Stop()
         {
-            foreach (var item in running.Data.Forwards)
+            foreach (var item in running.Data.Forwards.Where(c => c.GroupId == fileConfig.Data.Client.Group.Id))
             {
                 Stop(item);
             }
@@ -157,7 +169,7 @@ namespace linker.plugins.forward
 
         public List<ForwardInfo> Get()
         {
-            return running.Data.Forwards;
+            return running.Data.Forwards.Where(c => c.GroupId == fileConfig.Data.Client.Group.Id).ToList();
         }
         public bool Add(ForwardInfo forwardInfo)
         {
@@ -178,10 +190,12 @@ namespace linker.plugins.forward
                 old.MachineName = forwardInfo.MachineName;
                 old.Started = forwardInfo.Started;
                 old.BufferSize = forwardInfo.BufferSize;
+                old.GroupId = fileConfig.Data.Client.Group.Id;
             }
             else
             {
                 forwardInfo.Id = ns.Increment();
+                forwardInfo.GroupId = fileConfig.Data.Client.Group.Id;
                 running.Data.Forwards.Add(forwardInfo);
             }
             running.Data.Update();

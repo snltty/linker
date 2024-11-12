@@ -23,14 +23,15 @@
 		<Company>snltty</Company>
 		<Description>1. 手动检测更新
 2. 自定义更新检测频率
-3. 修复内网穿透添加BUG</Description>
+3. 修复内网穿透添加BUG
+4. 优化分组切换</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.5.4</Version>
-		<AssemblyVersion>1.5.4</AssemblyVersion>
-		<FileVersion>1.5.4</FileVersion>
+		<Version>1.5.5</Version>
+		<AssemblyVersion>1.5.5</AssemblyVersion>
+		<FileVersion>1.5.5</FileVersion>
 	</PropertyGroup>
 
 
