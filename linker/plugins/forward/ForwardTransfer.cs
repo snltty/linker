@@ -74,6 +74,7 @@ namespace linker.plugins.forward
 
         private void Reset(int times)
         {
+            countDic.Clear();
             TimerHelper.Async(async () =>
             {
                 if (running.Data.Forwards.All(c => string.IsNullOrWhiteSpace(c.GroupId)))

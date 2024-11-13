@@ -60,7 +60,7 @@ namespace linker.config
                         }
                         if (File.Exists(item.Value.Path) == false) continue;
 
-                        string text = File.ReadAllText(item.Value.Path);
+                        string text = File.ReadAllText(item.Value.Path, encoding: System.Text.Encoding.UTF8);
                         if (string.IsNullOrWhiteSpace(text))
                         {
                             continue;
@@ -98,7 +98,7 @@ namespace linker.config
                             continue;
                         }
                         string text = item.Value.PropertyMethod.Serialize(item.Value.Property.GetValue(Data));
-                        File.WriteAllText(item.Value.Path, text);
+                        File.WriteAllText(item.Value.Path, text, encoding: System.Text.Encoding.UTF8);
                     }
                     catch (Exception ex)
                     {

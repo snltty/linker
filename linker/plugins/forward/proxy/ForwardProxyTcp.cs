@@ -368,13 +368,10 @@ namespace linker.plugins.forward.proxy
             {
                 CloseClientSocket(userToken, 0);
             }
-            if (tcpListens.Count == 0)
+            foreach (var item in tcpConnections.Where(c => c.Value.ListenPort == port).ToList())
             {
-                foreach (var item in tcpConnections)
-                {
-                    item.Value.Clear();
-                }
-                tcpConnections.Clear();
+                item.Value.Clear();
+                tcpConnections.TryRemove(item.Key, out _);
             }
         }
 
