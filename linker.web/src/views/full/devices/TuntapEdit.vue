@@ -141,7 +141,7 @@ export default {
         }
         const handleSave = () => {
             const json = JSON.parse(JSON.stringify(tuntap.value.current));
-            json.IP = state.ruleForm.IP || '0.0.0.0';
+            json.IP = state.ruleForm.IP.replace(/\s/g,'') || '0.0.0.0';
             json.Lans = state.ruleForm.Lans.map(c=>{ c.PrefixLength=+c.PrefixLength;return c; });
             json.PrefixLength = +state.ruleForm.PrefixLength;
             json.Gateway = state.ruleForm.Gateway;

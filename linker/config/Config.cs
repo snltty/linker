@@ -101,6 +101,7 @@ namespace linker.config
                     {
                         if (item.Value.PropertyObject == null)
                         {
+                            LoggerHelper.Instance.Error($"{item.Value.Property.Name} save not found");
                             continue;
                         }
                         string text = item.Value.PropertyMethod.Serialize(item.Value.Property.GetValue(Data));

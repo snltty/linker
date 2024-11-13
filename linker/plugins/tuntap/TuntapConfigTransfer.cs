@@ -81,7 +81,7 @@ namespace linker.plugins.tuntap
                 IPAddress oldIP = runningConfig.Data.Tuntap.IP;
                 byte prefixLength = runningConfig.Data.Tuntap.PrefixLength;
 
-                runningConfig.Data.Tuntap.IP = info.IP;
+                runningConfig.Data.Tuntap.IP = info.IP ?? IPAddress.Any;
                 runningConfig.Data.Tuntap.Lans = info.Lans;
                 runningConfig.Data.Tuntap.PrefixLength = info.PrefixLength;
                 runningConfig.Data.Tuntap.Switch = info.Switch;
