@@ -42,7 +42,6 @@ namespace linker
 
             //初始化配置文件
             FileConfig config = new FileConfig();
-            Console.WriteLine(config.ToJsonFormat());
             //return;
 
             LoggerHelper.Instance.Warning($"current version : {config.Data.Version}");

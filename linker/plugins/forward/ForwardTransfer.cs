@@ -41,7 +41,7 @@ namespace linker.plugins.forward
 
         public Memory<byte> GetData()
         {
-            CountInfo info = new CountInfo { MachineId = fileConfig.Data.Client.Id, Count = running.Data.Forwards.Count };
+            CountInfo info = new CountInfo { MachineId = fileConfig.Data.Client.Id, Count = running.Data.Forwards.Count(c=>c.GroupId == fileConfig.Data.Client.Group.Id) };
             countDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
             Version.Add();
             return MemoryPackSerializer.Serialize(info);
@@ -145,7 +145,7 @@ namespace linker.plugins.forward
 
         private void Stop()
         {
-            foreach (var item in running.Data.Forwards.Where(c => c.GroupId == fileConfig.Data.Client.Group.Id))
+            foreach (var item in running.Data.Forwards)
             {
                 Stop(item);
             }
