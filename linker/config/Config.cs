@@ -56,13 +56,19 @@ namespace linker.config
                     {
                         if (item.Value.PropertyObject == null)
                         {
+                            LoggerHelper.Instance.Error($"{item.Value.Property.Name} not found");
                             continue;
                         }
-                        if (File.Exists(item.Value.Path) == false) continue;
+                        if (File.Exists(item.Value.Path) == false)
+                        {
+                            LoggerHelper.Instance.Error($"{item.Value.Path} not exists");
+                            continue;
+                        }
 
                         string text = File.ReadAllText(item.Value.Path, encoding: System.Text.Encoding.UTF8);
                         if (string.IsNullOrWhiteSpace(text))
                         {
+                            LoggerHelper.Instance.Error($"{item.Value.Path} empty");
                             continue;
                         }
                         object value = item.Value.PropertyMethod.Deserialize(text);
