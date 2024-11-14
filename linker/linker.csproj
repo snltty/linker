@@ -70,10 +70,10 @@
 		<ProjectReference Include="..\linker.tun\linker.tun.csproj" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="LiteDB" Version="5.0.17" />
-		<PackageReference Include="MemoryPack" Version="1.10.0" />
+		<PackageReference Include="LiteDB" Version="5.0.21" />
+		<PackageReference Include="MemoryPack" Version="1.21.3" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
-		<PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+		<PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.1" />
 	</ItemGroup>
 </Project>

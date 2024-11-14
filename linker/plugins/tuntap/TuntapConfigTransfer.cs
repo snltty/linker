@@ -1,6 +1,5 @@
 ﻿using linker.client.config;
 using linker.config;
-using linker.plugins.tuntap.messenger;
 using linker.libs;
 using MemoryPack;
 using System.Collections.Concurrent;

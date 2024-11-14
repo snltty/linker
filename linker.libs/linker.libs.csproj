@@ -6,7 +6,7 @@
 		<PublishAot>false</PublishAot>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<Configurations>Debug;Release</Configurations>
-		<EnablePreviewFeatures>true</EnablePreviewFeatures>
+		<EnablePreviewFeatures>True</EnablePreviewFeatures>
 		<Title>linker libs</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
