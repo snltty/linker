@@ -55,3 +55,5 @@ namespace linker.store
             database.Checkpoint();
         }
     }
+
+}
