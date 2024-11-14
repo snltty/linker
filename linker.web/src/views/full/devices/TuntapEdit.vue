@@ -51,11 +51,7 @@
                     <el-form-item prop="forward" style="margin-bottom:0">
                         <div>
                             <span class="yellow">此设备无法使用NAT转发，或只想使用端口转发</span>
-                            <el-button size="small" @click="handleRefreshForward()">
-                                <el-icon>
-                                    <Refresh />
-                                </el-icon>
-                            </el-button>
+                            <span class="green" v-if="state.testing">、testing</span>
                         </div>
                     </el-form-item>
                     <el-form-item label="端口转发" prop="forwards">
@@ -133,7 +129,8 @@ export default {
                 ] : tuntap.value.current.Forwards.slice(0)
             },
             rules: {},
-            timer: 0
+            timer: 0,
+            testing: false
         });
         if (state.ruleForm.Lans.length == 0) {
             state.ruleForm.Lans.push({ IP: '0.0.0.0', PrefixLength: 24 });
@@ -210,17 +207,35 @@ export default {
         }
         const _subscribeForwardTest = () => {
             clearTimeout(state.timer);
-            subscribeForwardTest(tuntap.value.current.MachineId).then(() => {
-                state.timer = setTimeout(_subscribeForwardTest, 3000);
-            }).catch(() => { });
-        }
-        const handleRefreshForward = () => {
-            ElMessage.success('已刷新');
 
-            const list = tuntap.value.list[tuntap.value.current.MachineId];
-            state.ruleForm.Forwards = list.length == 0 ? [
-                { ListenAddr: '0.0.0.0', ListenPort: 0, ConnectAddr: '0.0.0.0', ConnectPort: 0, Remark: '' }
-            ] : list.Forwards.slice(0);
+            state.testing = true;
+            subscribeForwardTest({
+                MachineId: tuntap.value.current.MachineId,
+                List: state.ruleForm.Forwards.map(c => {
+                    return {
+                        ListenAddr: c.ListenAddr,
+                        ListenPort: +c.ListenPort,
+                        ConnectAddr: c.ConnectAddr,
+                        ConnectPort: +c.ConnectPort
+                    }
+                })
+            }).then((res) => {
+                var list = res.List;
+                for (let i = 0; i < list.length; i++) {
+                    const item = list[i];
+                    const key = `${item.ListenPort}->${item.ConnectAddr}:${item.ConnectPort}`;
+                    const forwards = state.ruleForm.Forwards.filter(c => `${c.ListenPort}->${c.ConnectAddr}:${c.ConnectPort}` == key);
+                    for (let k = 0; k < forwards.length; k++) {
+                        forwards[k].Error = item.Error;
+                    }
+                }
+
+                state.testing = false;
+                state.timer = setTimeout(_subscribeForwardTest, 3000);
+            }).catch(() => {
+                state.testing = false;
+                state.timer = setTimeout(_subscribeForwardTest, 3000);
+            });
         }
 
         onMounted(() => {
@@ -232,7 +247,7 @@ export default {
 
         return {
             state, ruleFormRef, handlePrefixLengthChange, handleMaskChange, handleDel, handleAdd, handleSave,
-            handleForwardChange, handleDelForward, handleAddForward, handleRefreshForward
+            handleForwardChange, handleDelForward, handleAddForward
         }
     }
 }

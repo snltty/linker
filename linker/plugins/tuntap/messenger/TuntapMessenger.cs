@@ -14,14 +14,16 @@ namespace linker.plugins.tuntap.messenger
         private readonly TuntapProxy tuntapProxy;
         private readonly LeaseClientTreansfer leaseClientTreansfer;
         private readonly TuntapPingTransfer pingTransfer;
+        private readonly IMessengerSender messengerSender;
 
-        public TuntapClientMessenger(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, TuntapProxy tuntapProxy, LeaseClientTreansfer leaseClientTreansfer, TuntapPingTransfer pingTransfer)
+        public TuntapClientMessenger(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, TuntapProxy tuntapProxy, LeaseClientTreansfer leaseClientTreansfer, TuntapPingTransfer pingTransfer, IMessengerSender messengerSender)
         {
             this.tuntapTransfer = tuntapTransfer;
             this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.tuntapProxy = tuntapProxy;
             this.leaseClientTreansfer = leaseClientTreansfer;
             this.pingTransfer = pingTransfer;
+            this.messengerSender = messengerSender;
         }
 
         /// <summary>
@@ -69,7 +71,19 @@ namespace linker.plugins.tuntap.messenger
         [MessengerId((ushort)TuntapMessengerIds.SubscribeForwardTest)]
         public void SubscribeForwardTest(IConnection connection)
         {
-            pingTransfer.SubscribeForwardTest();
+            TuntapForwardTestWrapInfo tuntapForwardTestWrapInfo = MemoryPackSerializer.Deserialize<TuntapForwardTestWrapInfo>(connection.ReceiveRequestWrap.Payload.Span);
+
+            uint requestid = connection.ReceiveRequestWrap.RequestId;
+            pingTransfer.SubscribeForwardTest(tuntapForwardTestWrapInfo.List).ContinueWith((result) =>
+            {
+                messengerSender.ReplyOnly(new MessageResponseWrap
+                {
+                    Connection = connection,
+                    RequestId = requestid,
+                    Code = MessageResponeCodes.OK,
+                    Payload = MemoryPackSerializer.Serialize(tuntapForwardTestWrapInfo)
+                }, (ushort)TuntapMessengerIds.SubscribeForwardTest);
+            });
         }
     }
 
@@ -232,16 +246,27 @@ namespace linker.plugins.tuntap.messenger
 
 
         [MessengerId((ushort)TuntapMessengerIds.SubscribeForwardTestForward)]
-        public async Task SubscribeForwardTestForward(IConnection connection)
+        public void SubscribeForwardTestForward(IConnection connection)
         {
-            string machineid = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(machineid, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            TuntapForwardTestWrapInfo tuntapForwardTestWrapInfo = MemoryPackSerializer.Deserialize<TuntapForwardTestWrapInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(tuntapForwardTestWrapInfo.MachineId, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
-                await messengerSender.SendOnly(new MessageRequestWrap
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = cache.Connection,
-                    MessengerId = (ushort)TuntapMessengerIds.SubscribeForwardTest
-                }).ConfigureAwait(false);
+                    MessengerId = (ushort)TuntapMessengerIds.SubscribeForwardTest,
+                    Payload = connection.ReceiveRequestWrap.Payload
+                }).ContinueWith((result) =>
+                {
+                    messengerSender.ReplyOnly(new MessageResponseWrap
+                    {
+                        Connection = connection,
+                        RequestId = requestid,
+                        Code = MessageResponeCodes.OK,
+                        Payload = result.Result.Data
+                    }, (ushort)TuntapMessengerIds.SubscribeForwardTestForward);
+                });
             }
         }
     }

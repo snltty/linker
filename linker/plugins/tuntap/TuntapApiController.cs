@@ -205,22 +205,28 @@ namespace linker.plugins.tuntap
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public async Task<bool> SubscribeForwardTest(ApiControllerParamsInfo param)
+        public async Task<TuntapForwardTestWrapInfo> SubscribeForwardTest(ApiControllerParamsInfo param)
         {
-            if (param.Content == config.Data.Client.Id)
+            TuntapForwardTestWrapInfo tuntapForwardTestWrapInfo = param.Content.DeJson<TuntapForwardTestWrapInfo>();
+
+            if (tuntapForwardTestWrapInfo.MachineId == config.Data.Client.Id)
             {
-                pingTransfer.SubscribeForwardTest();
+                await pingTransfer.SubscribeForwardTest(tuntapForwardTestWrapInfo.List);
             }
             else
             {
-                await messengerSender.SendOnly(new MessageRequestWrap
+                MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = clientSignInState.Connection,
                     MessengerId = (ushort)TuntapMessengerIds.SubscribeForwardTestForward,
-                    Payload = MemoryPackSerializer.Serialize(param.Content)
+                    Payload = MemoryPackSerializer.Serialize(tuntapForwardTestWrapInfo)
                 }).ConfigureAwait(false);
+                if (resp.Code == MessageResponeCodes.OK)
+                {
+                    tuntapForwardTestWrapInfo = MemoryPackSerializer.Deserialize<TuntapForwardTestWrapInfo>(resp.Data.Span);
+                }
             }
-            return true;
+            return tuntapForwardTestWrapInfo;
         }
     }
     public sealed class TuntabListInfo

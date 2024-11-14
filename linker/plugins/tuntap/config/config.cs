@@ -280,6 +280,23 @@ namespace linker.plugins.tuntap.config
         public string Remark { get; set; } = string.Empty;
         public string Error { get; set; } = string.Empty;
     }
+    [MemoryPackable]
+    public sealed partial class TuntapForwardTestWrapInfo
+    {
+        public string MachineId { get; set; }
+        public List<TuntapForwardTestInfo> List { get; set; }
+    }
+    [MemoryPackable]
+    public sealed partial class TuntapForwardTestInfo
+    {
+        public int ListenPort { get; set; }
+        [MemoryPackAllowSerialize]
+        public IPAddress ConnectAddr { get; set; } = IPAddress.Any;
+        public int ConnectPort { get; set; }
+        public string Error { get; set; } = string.Empty;
+    }
+
+
 
     [MemoryPackable]
     public sealed partial class TuntapLanInfo
@@ -288,7 +305,7 @@ namespace linker.plugins.tuntap.config
         public IPAddress IP { get; set; }
         public byte PrefixLength { get; set; } = 24;
         public bool Disabled { get; set; }
-        public bool Exists {  get; set; }
+        public bool Exists { get; set; }
         public string Error { get; set; } = string.Empty;
     }
 

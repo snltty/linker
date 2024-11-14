@@ -25,7 +25,6 @@ namespace linker.plugins.tuntap
             this.tuntapProxy = tuntapProxy;
             this.runningConfig = runningConfig;
             PingTask();
-            ForwardTestTask();
         }
 
         private readonly LastTicksManager lastTicksManager = new LastTicksManager();
@@ -66,24 +65,9 @@ namespace linker.plugins.tuntap
             }
         }
 
-        public void SubscribeForwardTest()
+        public async Task SubscribeForwardTest(List<TuntapForwardTestInfo> list)
         {
-            lastTicksManager1.Update();
-        }
-        private void ForwardTestTask()
-        {
-            TimerHelper.SetInterval(async () =>
-            {
-                if (lastTicksManager1.DiffLessEqual(5000))
-                {
-                    await ForwardTest();
-                }
-                return true;
-            }, () =>lastTicksManager1.DiffLessEqual(5000) ? 3000 : 30000);
-        }
-        private async Task ForwardTest()
-        {
-            await Task.WhenAll(runningConfig.Data.Tuntap.Forwards.Select(async c =>
+            await Task.WhenAll(list.Select(async c =>
             {
                 try
                 {
@@ -96,8 +80,6 @@ namespace linker.plugins.tuntap
                 {
                     c.Error = ex.Message;
                 }
-                tuntapConfigTransfer.Version.Add();
-                tuntapConfigTransfer.DataVersion.Add();
             }));
         }
     }
