@@ -10,6 +10,7 @@ using linker.plugins.tuntap.config;
 using linker.tun;
 using linker.plugins.tuntap.lease;
 using linker.plugins.decenter;
+using System.Text.RegularExpressions;
 
 namespace linker.plugins.tuntap
 {
@@ -48,7 +49,7 @@ namespace linker.plugins.tuntap
             this.leaseClientTreansfer = leaseClientTreansfer;
 
 
-            clientSignInState.NetworkEnabledHandle += (times) => { tuntapInfos.Clear(); tuntapProxy.ClearIPs(); RefreshIP(); };
+            clientSignInState.NetworkEnabledHandle += NetworkEnable;
             tuntapProxy.RefreshConfig = RefreshConfig;
 
             tuntapTransfer.OnSetupBefore += () => { DataVersion.Add(); };
@@ -62,6 +63,20 @@ namespace linker.plugins.tuntap
 
             InitConfig();
         }
+
+        string groupid = string.Empty;
+        private void NetworkEnable(int times)
+        {
+            if(groupid != config.Data.Client.Group.Id)
+            {
+                tuntapInfos.Clear(); tuntapProxy.ClearIPs();
+            }
+            groupid = config.Data.Client.Group.Id;
+
+            RefreshIP();
+        }
+
+
         private void InitConfig()
         {
             if (runningConfig.Data.Tuntap.Lans.Count == 0 && runningConfig.Data.Tuntap.LanIPs.Length > 0)

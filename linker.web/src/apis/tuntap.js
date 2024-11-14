@@ -26,7 +26,9 @@ export const refreshTuntap = () => {
 export const subscribePing = () => {
     return sendWebsocketMsg('tuntapclient/SubscribePing');
 }
-
+export const subscribeForwardTest = (machineid) => {
+    return sendWebsocketMsg('tuntapclient/SubscribeForwardTest', machineid);
+}
 
 export const getNetwork = () => {
     return sendWebsocketMsg('tuntapclient/GetNetwork');

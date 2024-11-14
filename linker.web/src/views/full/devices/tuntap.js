@@ -17,6 +17,7 @@ export const provideTuntap = () => {
 
     const systems = {
         linux: ['debian', 'ubuntu', 'alpine', 'rocky', 'centos'],
+        ubuntu: ['ubuntu'],
         windows: ['windows'],
         android: ['android'],
         ios: ['ios'],
@@ -28,7 +29,6 @@ export const provideTuntap = () => {
             tuntap.value.hashcode = res.HashCode;
             if (res.List) {
                 for (let j in res.List) {
-
                     let system = 'system';
                     const systemStr = res.List[j].SystemInfo.toLowerCase();
                     for (let jj in systems) {

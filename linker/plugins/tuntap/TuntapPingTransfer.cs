@@ -5,6 +5,8 @@ using linker.tunnel.connection;
 using System.Net.NetworkInformation;
 using System.Net;
 using linker.config;
+using System.Net.Sockets;
+using linker.libs.extends;
 
 namespace linker.plugins.tuntap
 {
@@ -23,10 +25,11 @@ namespace linker.plugins.tuntap
             this.tuntapProxy = tuntapProxy;
             this.runningConfig = runningConfig;
             PingTask();
-
+            ForwardTestTask();
         }
 
         private readonly LastTicksManager lastTicksManager = new LastTicksManager();
+        private readonly LastTicksManager lastTicksManager1 = new LastTicksManager();
         public void SubscribePing()
         {
             lastTicksManager.Update();
@@ -53,15 +56,49 @@ namespace linker.plugins.tuntap
                     items = items.Where(c => connections.TryGetValue(c.MachineId, out ITunnelConnection connection) && connection.Connected || c.MachineId == config.Data.Client.Id);
                 }
 
-                foreach (var item in items)
+                await Task.WhenAll(items.Select(async c =>
                 {
                     using Ping ping = new Ping();
-                    PingReply pingReply = await ping.SendPingAsync(item.IP, 500);
-                    item.Delay = pingReply.Status == IPStatus.Success ? (int)pingReply.RoundtripTime : -1;
-
+                    PingReply pingReply = await ping.SendPingAsync(c.IP, 500);
+                    c.Delay = pingReply.Status == IPStatus.Success ? (int)pingReply.RoundtripTime : -1;
                     tuntapConfigTransfer.Version.Add();
-                }
+                }));
             }
+        }
+
+        public void SubscribeForwardTest()
+        {
+            lastTicksManager1.Update();
+        }
+        private void ForwardTestTask()
+        {
+            TimerHelper.SetInterval(async () =>
+            {
+                if (lastTicksManager1.DiffLessEqual(5000))
+                {
+                    await ForwardTest();
+                }
+                return true;
+            }, () =>lastTicksManager1.DiffLessEqual(5000) ? 3000 : 30000);
+        }
+        private async Task ForwardTest()
+        {
+            await Task.WhenAll(runningConfig.Data.Tuntap.Forwards.Select(async c =>
+            {
+                try
+                {
+                    var socket = new Socket(c.ConnectAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                    await socket.ConnectAsync(new IPEndPoint(c.ConnectAddr, c.ConnectPort)).WaitAsync(TimeSpan.FromMilliseconds(500));
+                    socket.SafeClose();
+                    c.Error = string.Empty;
+                }
+                catch (Exception ex)
+                {
+                    c.Error = ex.Message;
+                }
+                tuntapConfigTransfer.Version.Add();
+                tuntapConfigTransfer.DataVersion.Add();
+            }));
         }
     }
 }

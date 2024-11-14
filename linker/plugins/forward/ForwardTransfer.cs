@@ -7,6 +7,7 @@ using linker.plugins.forward.proxy;
 using linker.plugins.messenger;
 using MemoryPack;
 using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
 
 namespace linker.plugins.forward
 {
@@ -41,7 +42,7 @@ namespace linker.plugins.forward
 
         public Memory<byte> GetData()
         {
-            CountInfo info = new CountInfo { MachineId = fileConfig.Data.Client.Id, Count = running.Data.Forwards.Count(c=>c.GroupId == fileConfig.Data.Client.Group.Id) };
+            CountInfo info = new CountInfo { MachineId = fileConfig.Data.Client.Id, Count = running.Data.Forwards.Count(c => c.GroupId == fileConfig.Data.Client.Group.Id) };
             countDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
             Version.Add();
             return MemoryPackSerializer.Serialize(info);
@@ -72,9 +73,9 @@ namespace linker.plugins.forward
             return countDic;
         }
 
+        string groupid = string.Empty;
         private void Reset(int times)
         {
-            countDic.Clear();
             TimerHelper.Async(async () =>
             {
                 if (running.Data.Forwards.All(c => string.IsNullOrWhiteSpace(c.GroupId)))
@@ -86,10 +87,17 @@ namespace linker.plugins.forward
                     running.Data.Update();
                 }
 
+                if (groupid != fileConfig.Data.Client.Group.Id)
+                {
+                    countDic.Clear();
+                    Stop();
+                }
+                groupid = fileConfig.Data.Client.Group.Id;
 
-                Stop();
                 await Task.Delay(5000).ConfigureAwait(false);
                 Start();
+
+
             });
         }
 

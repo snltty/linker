@@ -19,6 +19,9 @@
         LeaseChangeForward = 2212,
         LeaseExp = 2213,
 
+        SubscribeForwardTest = 2214,
+        SubscribeForwardTestForward = 2215,
+
         None = 2299
     }
 }

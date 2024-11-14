@@ -200,6 +200,28 @@ namespace linker.plugins.tuntap
         {
             pingTransfer.SubscribePing();
         }
+        /// <summary>
+        /// 订阅转发连通测试
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public async Task<bool> SubscribeForwardTest(ApiControllerParamsInfo param)
+        {
+            if (param.Content == config.Data.Client.Id)
+            {
+                pingTransfer.SubscribeForwardTest();
+            }
+            else
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = clientSignInState.Connection,
+                    MessengerId = (ushort)TuntapMessengerIds.SubscribeForwardTestForward,
+                    Payload = MemoryPackSerializer.Serialize(param.Content)
+                }).ConfigureAwait(false);
+            }
+            return true;
+        }
     }
     public sealed class TuntabListInfo
     {

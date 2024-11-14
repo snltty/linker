@@ -57,7 +57,7 @@ namespace linker.config
             }
         }
 
-        public ClientGroupInfo Group => Groups.Length == 0 ? new ClientGroupInfo { } : Groups[0];
+        public ClientGroupInfo Group => Groups[0];
         public ClientGroupInfo[] Groups { get; set; } = new[] { new ClientGroupInfo { } };
 
         /// <summary>

@@ -1,5 +1,4 @@
 ﻿using linker.config;
-using linker.libs;
 using linker.plugins.messenger;
 using linker.plugins.signin.messenger;
 using linker.plugins.tuntap.config;
@@ -14,12 +13,15 @@ namespace linker.plugins.tuntap.messenger
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
         private readonly TuntapProxy tuntapProxy;
         private readonly LeaseClientTreansfer leaseClientTreansfer;
-        public TuntapClientMessenger(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, TuntapProxy tuntapProxy, LeaseClientTreansfer leaseClientTreansfer)
+        private readonly TuntapPingTransfer pingTransfer;
+
+        public TuntapClientMessenger(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, TuntapProxy tuntapProxy, LeaseClientTreansfer leaseClientTreansfer, TuntapPingTransfer pingTransfer)
         {
             this.tuntapTransfer = tuntapTransfer;
             this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.tuntapProxy = tuntapProxy;
             this.leaseClientTreansfer = leaseClientTreansfer;
+            this.pingTransfer = pingTransfer;
         }
 
         /// <summary>
@@ -61,6 +63,13 @@ namespace linker.plugins.tuntap.messenger
         public void LeaseChange(IConnection connection)
         {
             tuntapConfigTransfer.RefreshIP();
+        }
+
+
+        [MessengerId((ushort)TuntapMessengerIds.SubscribeForwardTest)]
+        public void SubscribeForwardTest(IConnection connection)
+        {
+            pingTransfer.SubscribeForwardTest();
         }
     }
 
@@ -217,6 +226,22 @@ namespace linker.plugins.tuntap.messenger
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
                 leaseTreansfer.LeaseExp(cache.MachineId, cache.GroupId);
+            }
+        }
+
+
+
+        [MessengerId((ushort)TuntapMessengerIds.SubscribeForwardTestForward)]
+        public async Task SubscribeForwardTestForward(IConnection connection)
+        {
+            string machineid = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(machineid, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cache.Connection,
+                    MessengerId = (ushort)TuntapMessengerIds.SubscribeForwardTest
+                }).ConfigureAwait(false);
             }
         }
     }

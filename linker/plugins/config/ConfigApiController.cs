@@ -37,6 +37,7 @@ namespace linker.plugins.config
         }
         public bool Install(ApiControllerParamsInfo param)
         {
+            if (config.Data.Common.Install) return true;
             ConfigInstallInfo info = param.Content.DeJson<ConfigInstallInfo>();
 
             if (info.Common.Modes.Contains("client"))
@@ -123,12 +124,12 @@ namespace linker.plugins.config
                 {
                     client.CApi.ApiPassword = configExportInfo.ApiPassword;
                 }
-              
+
                 client.Access = accessTransfer.AssignAccess((ClientApiAccess)configExportInfo.Access);
                 client.OnlyNode = true;
                 client.Action.Args.Clear();
 
-                client.Groups = new ClientGroupInfo[] { client.Group };
+                client.Groups = new ClientGroupInfo[] { config.Data.Client.Group };
                 File.WriteAllText(Path.Combine(configPath, $"client.json"), client.Serialize(client));
 
                 ConfigCommonInfo common = config.Data.Common.ToJson().DeJson<ConfigCommonInfo>();

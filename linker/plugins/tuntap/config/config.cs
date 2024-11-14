@@ -278,6 +278,7 @@ namespace linker.plugins.tuntap.config
         public int ConnectPort { get; set; }
 
         public string Remark { get; set; } = string.Empty;
+        public string Error { get; set; } = string.Empty;
     }
 
     [MemoryPackable]
