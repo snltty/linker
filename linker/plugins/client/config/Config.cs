@@ -58,7 +58,16 @@ namespace linker.config
         }
 
         public ClientGroupInfo Group => Groups[0];
-        public ClientGroupInfo[] Groups { get; set; } = new[] { new ClientGroupInfo { } };
+
+        private ClientGroupInfo[] groups = new[] { new ClientGroupInfo { } };
+        public ClientGroupInfo[] Groups
+        {
+            get => groups; set
+            {
+                groups = value;
+                if (groups.Length == 0) groups = new[] { new ClientGroupInfo { } };
+            }
+        }
 
         /// <summary>
         /// 加密证书
