@@ -1,5 +1,6 @@
 ﻿using linker.config;
 using linker.libs;
+using linker.libs.extends;
 using linker.plugins.messenger;
 using linker.plugins.signin.messenger;
 using linker.plugins.tuntap.config;
@@ -279,6 +280,16 @@ namespace linker.plugins.tuntap.messenger
                     Code = MessageResponeCodes.OK,
                     Payload = Helper.EmptyArray
                 }, (ushort)TuntapMessengerIds.SubscribeForwardTestForward);
+            }
+        }
+
+
+        [MessengerId((ushort)TuntapMessengerIds.T2207)]
+        public void T2207(IConnection connection)
+        {
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            {
+                LoggerHelper.Instance.Error(cache.ToJson());
             }
         }
     }
