@@ -72,10 +72,8 @@ namespace linker.plugins.signin.messenger
         public async Task SignIn_V_1_3_1(IConnection connection)
         {
             SignInfo info = MemoryPackSerializer.Deserialize<SignInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            LoggerHelper.Instance.Error($"{info.Version} CompareTo v1.5.0 -> {info.Version.CompareTo("v1.5.0")}");
-            if (info.Version.CompareTo("v1.5.0") == -1) //1.5.x
+            if (info.Version.CompareTo("v1.5.0") < 0) //1.5.x
             {
-                LoggerHelper.Instance.Error($"{info.MachineName} {info.Version} need v1.5.0+");
                 connection.Write(MemoryPackSerializer.Serialize(new SignInResponseInfo { MachineId = string.Empty, Status = false, Msg = "need v1.5.0+" }));
                 return;
             }
