@@ -1,4 +1,5 @@
 ﻿using linker.config;
+using linker.libs;
 using linker.plugins.messenger;
 using linker.plugins.signin.messenger;
 using linker.plugins.tuntap.config;
@@ -248,10 +249,11 @@ namespace linker.plugins.tuntap.messenger
         [MessengerId((ushort)TuntapMessengerIds.SubscribeForwardTestForward)]
         public void SubscribeForwardTestForward(IConnection connection)
         {
+            uint requestid = connection.ReceiveRequestWrap.RequestId;
             TuntapForwardTestWrapInfo tuntapForwardTestWrapInfo = MemoryPackSerializer.Deserialize<TuntapForwardTestWrapInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(tuntapForwardTestWrapInfo.MachineId, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
-                uint requestid = connection.ReceiveRequestWrap.RequestId;
+
                 messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = cache.Connection,
@@ -267,6 +269,16 @@ namespace linker.plugins.tuntap.messenger
                         Payload = result.Result.Data
                     }, (ushort)TuntapMessengerIds.SubscribeForwardTestForward);
                 });
+            }
+            else
+            {
+                messengerSender.ReplyOnly(new MessageResponseWrap
+                {
+                    Connection = connection,
+                    RequestId = requestid,
+                    Code = MessageResponeCodes.OK,
+                    Payload = Helper.EmptyArray
+                }, (ushort)TuntapMessengerIds.SubscribeForwardTestForward);
             }
         }
     }

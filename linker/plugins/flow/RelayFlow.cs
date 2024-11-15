@@ -22,7 +22,7 @@ namespace linker.plugins.flow
     public sealed class RelayReportResolverFlow : RelayReportResolver
     {
         private readonly RelayReportFlow relayReportFlow;
-        public RelayReportResolverFlow(RelayReportFlow relayReportFlow, RelayServerMasterTransfer relayServerTransfer):base(relayServerTransfer) 
+        public RelayReportResolverFlow(RelayReportFlow relayReportFlow, RelayServerMasterTransfer relayServerTransfer) : base(relayServerTransfer)
         {
             this.relayReportFlow = relayReportFlow;
         }
@@ -42,13 +42,13 @@ namespace linker.plugins.flow
             this.relayFlow = relayFlow;
         }
 
-        public override void AddReceive(string key, string from, string to, ulong bytes)
+        public override void AddReceive(string key, string from, string to, string groupid, ulong bytes)
         {
-            relayFlow.AddReceive(key, from, to, bytes);
+            relayFlow.AddReceive(key, from, to, groupid, bytes);
         }
-        public override void AddSendt(string key, string from, string to, ulong bytes)
+        public override void AddSendt(string key, string from, string to, string groupid, ulong bytes)
         {
-            relayFlow.AddSendt(key, from, to, bytes);
+            relayFlow.AddSendt(key, from, to, groupid, bytes);
         }
         public override void AddReceive(string key, ulong bytes)
         {
@@ -95,21 +95,21 @@ namespace linker.plugins.flow
             lastTicksManager.Update();
         }
 
-        public void AddReceive(string key, string from, string to, ulong bytes)
+        public void AddReceive(string key, string from, string to, string groupid, ulong bytes)
         {
             if (flows.TryGetValue(key, out RelayFlowItemInfo messengerFlowItemInfo) == false)
             {
-                messengerFlowItemInfo = new RelayFlowItemInfo { FromName = from, ToName = to };
+                messengerFlowItemInfo = new RelayFlowItemInfo { FromName = from, ToName = to, GroupId = groupid };
                 flows.TryAdd(key, messengerFlowItemInfo);
             }
             ReceiveBytes += bytes;
             messengerFlowItemInfo.ReceiveBytes += bytes;
         }
-        public void AddSendt(string key, string from, string to, ulong bytes)
+        public void AddSendt(string key, string from, string to, string groupid, ulong bytes)
         {
             if (flows.TryGetValue(key, out RelayFlowItemInfo messengerFlowItemInfo) == false)
             {
-                messengerFlowItemInfo = new RelayFlowItemInfo { FromName = from, ToName = to };
+                messengerFlowItemInfo = new RelayFlowItemInfo { FromName = from, ToName = to, GroupId = groupid };
                 flows.TryAdd(key, messengerFlowItemInfo);
             }
             SendtBytes += bytes;
@@ -138,6 +138,11 @@ namespace linker.plugins.flow
         public RelayFlowResponseInfo GetFlows(RelayFlowRequestInfo info)
         {
             var items = flows.Values.Where(c => string.IsNullOrWhiteSpace(info.Key) || c.FromName.Contains(info.Key) || c.ToName.Contains(info.Key));
+            if (string.IsNullOrWhiteSpace(info.GroupId) == false)
+            {
+                items = items.Where(c => c.GroupId == info.GroupId);
+            }
+
             switch (info.Order)
             {
                 case RelayFlowOrder.Sendt:
@@ -187,6 +192,9 @@ namespace linker.plugins.flow
         public string FromName { get; set; }
         public string ToName { get; set; }
 
+        [MemoryPackIgnore]
+        public string GroupId { get; set; }
+
         [MemoryPackIgnore, JsonIgnore]
         public ulong OldReceiveBytes { get; set; }
         [MemoryPackIgnore, JsonIgnore]
@@ -197,6 +205,10 @@ namespace linker.plugins.flow
     public sealed partial class RelayFlowRequestInfo
     {
         public string Key { get; set; } = string.Empty;
+
+        [MemoryPackIgnore]
+        public string GroupId { get; set; } = string.Empty;
+        public string SecretKey { get; set; } = string.Empty;
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 15;
         public RelayFlowOrder Order { get; set; }

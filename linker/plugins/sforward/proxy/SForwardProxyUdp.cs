@@ -18,7 +18,7 @@ namespace linker.plugins.sforward.proxy
 
         #region 服务端
 
-        private void StartUdp(int port, byte bufferSize)
+        private void StartUdp(int port, byte bufferSize, string groupid)
         {
             Socket socketUdp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             socketUdp.Bind(new IPEndPoint(IPAddress.Any, port));
@@ -26,6 +26,7 @@ namespace linker.plugins.sforward.proxy
             {
                 ListenPort = port,
                 SourceSocket = socketUdp,
+                 GroupId = groupid,
             };
             socketUdp.EnableBroadcast = true;
             socketUdp.WindowsUdpBug();
@@ -53,13 +54,13 @@ namespace linker.plugins.sforward.proxy
 
                     Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
 
-                    AddReceive(portStr, (ulong)memory.Length);
+                    AddReceive(portStr,token.GroupId, (ulong)memory.Length);
 
                     IPEndPoint source = result.RemoteEndPoint as IPEndPoint;
                     //已经连接
                     if (udpConnections.TryGetValue(source, out UdpTargetCache cache) && cache != null)
                     {
-                        AddSendt(portStr, (ulong)memory.Length);
+                        AddSendt(portStr,token.GroupId, (ulong)memory.Length);
                         cache.LastTicks.Update();
                         await token.SourceSocket.SendToAsync(memory, cache.IPEndPoint).ConfigureAwait(false);
                     }
@@ -193,8 +194,8 @@ namespace linker.plugins.sforward.proxy
 
                     Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
 
-                    AddReceive(portStr, (ulong)memory.Length);
-                    AddSendt(portStr, (ulong)memory.Length);
+                    AddReceive(portStr,string.Empty, (ulong)memory.Length);
+                    AddSendt(portStr,string.Empty, (ulong)memory.Length);
 
                     if (serviceUdp == null)
                     {
@@ -222,8 +223,8 @@ namespace linker.plugins.sforward.proxy
                                         break;
                                     }
                                     Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
-                                    AddReceive(portStr, (ulong)memory.Length);
-                                    AddSendt(portStr, (ulong)memory.Length);
+                                    AddReceive(portStr, string.Empty, (ulong)memory.Length);
+                                    AddSendt(portStr, string.Empty, (ulong)memory.Length);
 
                                     await socketUdp.SendToAsync(memory, server).ConfigureAwait(false);
                                     cache.LastTicks.Update();
@@ -317,6 +318,7 @@ namespace linker.plugins.sforward.proxy
     public sealed class AsyncUserUdpToken
     {
         public int ListenPort { get; set; }
+        public string GroupId { get; set; }
         public Socket SourceSocket { get; set; }
         public Socket TargetSocket { get; set; }
 

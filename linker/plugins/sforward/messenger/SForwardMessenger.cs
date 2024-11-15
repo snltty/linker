@@ -76,7 +76,7 @@ namespace linker.plugins.sforward.messenger
                             if (sForwardServerCahing.TryAdd(port, connection.Id))
                             {
                                 proxy.Stop(port);
-                                result.Message = proxy.Start(port, false, configWrap.Data.Server.SForward.BufferSize);
+                                result.Message = proxy.Start(port, false, configWrap.Data.Server.SForward.BufferSize, cache.GroupId);
                                 if (string.IsNullOrWhiteSpace(result.Message) == false)
                                 {
                                     LoggerHelper.Instance.Error(result.Message);
@@ -113,7 +113,7 @@ namespace linker.plugins.sforward.messenger
                     else
                     {
                         proxy.Stop(sForwardAddInfo.RemotePort);
-                        string msg = proxy.Start(sForwardAddInfo.RemotePort, false, configWrap.Data.Server.SForward.BufferSize);
+                        string msg = proxy.Start(sForwardAddInfo.RemotePort, false, configWrap.Data.Server.SForward.BufferSize, cache.GroupId);
                         if (string.IsNullOrWhiteSpace(msg) == false)
                         {
                             result.Success = false;

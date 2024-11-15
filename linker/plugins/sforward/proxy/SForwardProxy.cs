@@ -14,19 +14,19 @@ namespace linker.plugins.sforward.proxy
 
         }
 
-        public virtual void AddReceive(string key, ulong bytes)
+        public virtual void AddReceive(string key,string groupid, ulong bytes)
         {
         }
-        public virtual void AddSendt(string key, ulong bytes)
+        public virtual void AddSendt(string key,string groupid, ulong bytes)
         {
         }
 
-        public string Start(int port, bool isweb, byte bufferSize)
+        public string Start(int port, bool isweb, byte bufferSize,string groupid)
         {
             try
             {
-                StartTcp(port, isweb, bufferSize);
-                StartUdp(port, bufferSize);
+                StartTcp(port, isweb, bufferSize, groupid);
+                StartUdp(port, bufferSize, groupid);
                 return string.Empty;
             }
             catch (Exception ex)

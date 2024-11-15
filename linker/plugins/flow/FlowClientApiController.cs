@@ -57,11 +57,14 @@ namespace linker.plugins.flow
         [ClientApiAccessAttribute(ClientApiAccess.SForwardFlow)]
         public async Task<SForwardFlowResponseInfo> GetSForwardFlows(ApiControllerParamsInfo param)
         {
+            SForwardFlowRequestInfo info = param.Content.DeJson<SForwardFlowRequestInfo>();
+            info.SecretKey = config.Data.Client.SForward.SecretKey;
+
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)FlowMessengerIds.SForward,
-                Payload = MemoryPackSerializer.Serialize(param.Content.DeJson<SForwardFlowRequestInfo>())
+                Payload = MemoryPackSerializer.Serialize(info)
             });
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
@@ -73,11 +76,14 @@ namespace linker.plugins.flow
         [ClientApiAccessAttribute(ClientApiAccess.RelayFlow)]
         public async Task<RelayFlowResponseInfo> GetRelayFlows(ApiControllerParamsInfo param)
         {
+            RelayFlowRequestInfo info = param.Content.DeJson<RelayFlowRequestInfo>();
+            info.SecretKey = config.Data.Client.Relay.Server.SecretKey;
+
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)FlowMessengerIds.Relay,
-                Payload = MemoryPackSerializer.Serialize(param.Content.DeJson<RelayFlowRequestInfo>())
+                Payload = MemoryPackSerializer.Serialize(info)
             });
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {

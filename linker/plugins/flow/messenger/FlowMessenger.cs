@@ -1,4 +1,5 @@
-﻿using linker.plugins.messenger;
+﻿using linker.config;
+using linker.plugins.messenger;
 using linker.plugins.signin.messenger;
 using MemoryPack;
 
@@ -11,16 +12,18 @@ namespace linker.plugins.flow.messenger
         private readonly SForwardFlow sForwardFlow;
         private readonly RelayFlow relayFlow;
         private readonly SignCaching signCaching;
+        private readonly FileConfig fileConfig;
 
         private DateTime start = DateTime.Now;
 
-        public FlowMessenger( FlowTransfer flowTransfer, MessengerFlow messengerFlow, SForwardFlow sForwardFlow, RelayFlow relayFlow, SignCaching signCaching)
+        public FlowMessenger(FlowTransfer flowTransfer, MessengerFlow messengerFlow, SForwardFlow sForwardFlow, RelayFlow relayFlow, SignCaching signCaching, FileConfig fileConfig)
         {
             this.flowTransfer = flowTransfer;
             this.messengerFlow = messengerFlow;
             this.sForwardFlow = sForwardFlow;
             this.relayFlow = relayFlow;
             this.signCaching = signCaching;
+            this.fileConfig = fileConfig;
         }
 
         [MessengerId((ushort)FlowMessengerIds.List)]
@@ -51,6 +54,23 @@ namespace linker.plugins.flow.messenger
         {
             sForwardFlow.Update();
             SForwardFlowRequestInfo info = MemoryPackSerializer.Deserialize<SForwardFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+
+            if (fileConfig.Data.Server.SForward.SecretKey == info.SecretKey)
+            {
+                info.GroupId = string.Empty;
+            }
+            else
+            {
+                if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+                {
+                    info.GroupId = cache.GroupId;
+                }
+                else
+                {
+                    info.GroupId = Guid.NewGuid().ToString();
+                }
+            }
+
             connection.Write(MemoryPackSerializer.Serialize(sForwardFlow.GetFlows(info)));
         }
 
@@ -59,6 +79,22 @@ namespace linker.plugins.flow.messenger
         {
             relayFlow.Update();
             RelayFlowRequestInfo info = MemoryPackSerializer.Deserialize<RelayFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (fileConfig.Data.Server.Relay.SecretKey == info.SecretKey)
+            {
+                info.GroupId = string.Empty;
+            }
+            else
+            {
+                if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+                {
+                    info.GroupId = cache.GroupId;
+                }
+                else
+                {
+                    info.GroupId = Guid.NewGuid().ToString();
+                }
+            }
+
             connection.Write(MemoryPackSerializer.Serialize(relayFlow.GetFlows(info)));
         }
     }

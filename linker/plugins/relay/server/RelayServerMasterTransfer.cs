@@ -27,7 +27,7 @@ namespace linker.plugins.relay.server
         }
 
 
-        public ulong AddRelay(string fromid, string fromName, string toid, string toName)
+        public ulong AddRelay(string fromid, string fromName, string toid, string toName, string groupid)
         {
             ulong flowingId = Interlocked.Increment(ref relayFlowingId);
 
@@ -37,7 +37,8 @@ namespace linker.plugins.relay.server
                 FromId = fromid,
                 FromName = fromName,
                 ToId = toid,
-                ToName = toName
+                ToName = toName,
+                GroupId = groupid
             };
             bool added = relayCaching.TryAdd($"{fromid}->{toid}->{flowingId}", cache, 15000);
             if (added == false) return 0;

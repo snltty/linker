@@ -19,7 +19,7 @@ namespace linker.plugins.sforward.proxy
         #region 服务端
 
 
-        private void StartTcp(int port, bool isweb, byte bufferSize)
+        private void StartTcp(int port, bool isweb, byte bufferSize, string groupid)
         {
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
             Socket socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -32,6 +32,7 @@ namespace linker.plugins.sforward.proxy
                 SourceSocket = socket,
                 IsWeb = isweb,
                 BufferSize = bufferSize,
+                GroupId = groupid
             };
             SocketAsyncEventArgs acceptEventArg = new SocketAsyncEventArgs
             {
@@ -89,6 +90,7 @@ namespace linker.plugins.sforward.proxy
                             ListenPort = acceptToken.ListenPort,
                             IsWeb = acceptToken.IsWeb,
                             BufferSize = acceptToken.BufferSize,
+                            GroupId = acceptToken.GroupId,
                         };
                         _ = BindReceive(userToken);
                     }
@@ -154,7 +156,7 @@ namespace linker.plugins.sforward.proxy
                 await token.TargetSocket.SendAsync(buffer1.AsMemory(0, length)).ConfigureAwait(false);
 
                 //两端交换数据
-                await Task.WhenAll(CopyToAsync(token.Host, token.ListenPort, buffer1, token.SourceSocket, token.TargetSocket), CopyToAsync(token.Host, token.ListenPort, buffer2, token.TargetSocket, token.SourceSocket)).ConfigureAwait(false);
+                await Task.WhenAll(CopyToAsync(token.Host, token.GroupId, token.ListenPort, buffer1, token.SourceSocket, token.TargetSocket), CopyToAsync(token.Host, token.GroupId, token.ListenPort, buffer2, token.TargetSocket, token.SourceSocket)).ConfigureAwait(false);
 
                 CloseClientSocket(token);
             }
@@ -248,7 +250,7 @@ namespace linker.plugins.sforward.proxy
                 await sourceSocket.SendAsync(buffer1.AsMemory(0, flagBytes.Length + 8)).ConfigureAwait(false);
 
                 //交换数据即可
-                await Task.WhenAll(CopyToAsync(string.Empty, service.Port, buffer1, sourceSocket, targetSocket), CopyToAsync(string.Empty, service.Port, buffer2, targetSocket, sourceSocket)).ConfigureAwait(false);
+                await Task.WhenAll(CopyToAsync(string.Empty, string.Empty, service.Port, buffer1, sourceSocket, targetSocket), CopyToAsync(string.Empty, string.Empty, service.Port, buffer2, targetSocket, sourceSocket)).ConfigureAwait(false);
 
             }
             catch (Exception)
@@ -271,7 +273,7 @@ namespace linker.plugins.sforward.proxy
         /// <param name="source"></param>
         /// <param name="target"></param>
         /// <returns></returns>
-        private async Task CopyToAsync(string domain, int port, Memory<byte> buffer, Socket source, Socket target)
+        private async Task CopyToAsync(string domain, string groupid, int port, Memory<byte> buffer, Socket source, Socket target)
         {
             bool isDomain = string.IsNullOrWhiteSpace(domain) == false;
             string portStr = port.ToString();
@@ -283,13 +285,13 @@ namespace linker.plugins.sforward.proxy
                 {
                     if (isDomain)
                     {
-                        AddReceive(domain, (ulong)bytesRead);
-                        AddSendt(domain, (ulong)bytesRead);
+                        AddReceive(domain, groupid, (ulong)bytesRead);
+                        AddSendt(domain, groupid, (ulong)bytesRead);
                     }
                     else
                     {
-                        AddReceive(portStr, (ulong)bytesRead);
-                        AddSendt(portStr, (ulong)bytesRead);
+                        AddReceive(portStr, groupid, (ulong)bytesRead);
+                        AddSendt(portStr, groupid, (ulong)bytesRead);
                     }
                     await target.SendAsync(buffer.Slice(0, bytesRead), SocketFlags.None).ConfigureAwait(false);
                 }
@@ -315,6 +317,7 @@ namespace linker.plugins.sforward.proxy
     {
         public int ListenPort { get; set; }
         public string Host { get; set; }
+        public string GroupId { get; set; }
         public bool IsWeb { get; set; }
         public Socket SourceSocket { get; set; }
         public Socket TargetSocket { get; set; }

@@ -25,10 +25,10 @@ namespace linker.plugins.relay.server
         private readonly ConcurrentDictionary<ulong, RelayWrap> relayDic = new ConcurrentDictionary<ulong, RelayWrap>();
 
 
-        public virtual void AddReceive(string key, string from, string to, ulong bytes)
+        public virtual void AddReceive(string key, string from, string to,string groupid, ulong bytes)
         {
         }
-        public virtual void AddSendt(string key, string from, string to, ulong bytes)
+        public virtual void AddSendt(string key, string from, string to, string groupid, ulong bytes)
         {
         }
         public virtual void AddReceive(string key, ulong bytes)
@@ -70,7 +70,7 @@ namespace linker.plugins.relay.server
                     return;
                 }
                 //流量统计
-                AddReceive(relayCache.FromId, relayCache.FromName, relayCache.ToName, (ulong)length);
+                AddReceive(relayCache.FromId, relayCache.FromName, relayCache.ToName, relayCache.GroupId, (ulong)length);
                 try
                 {
                     switch (relayMessage.Type)
@@ -166,8 +166,8 @@ namespace linker.plugins.relay.server
                         }
                     }
 
-                    AddReceive(cache.FromId, cache.FromName, cache.ToName, (ulong)bytesRead);
-                    AddSendt(cache.FromId, cache.FromName, cache.ToName, (ulong)bytesRead);
+                    AddReceive(cache.FromId, cache.FromName, cache.ToName, cache.GroupId, (ulong)bytesRead);
+                    AddSendt(cache.FromId, cache.FromName, cache.ToName, cache.GroupId, (ulong)bytesRead);
                     await destination.SendAsync(buffer.AsMemory(0, bytesRead)).ConfigureAwait(false);
                 }
             }
@@ -241,6 +241,7 @@ namespace linker.plugins.relay.server
         public string FromName { get; set; }
         public string ToId { get; set; }
         public string ToName { get; set; }
+        public string GroupId { get; set; }
     }
 
     public sealed class RelayWrap

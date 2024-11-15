@@ -132,7 +132,7 @@ namespace linker.plugins.relay.messenger
 
             if (result.Nodes.Count > 0)
             {
-                result.FlowingId = relayServerTransfer.AddRelay(cacheFrom.MachineId, cacheFrom.MachineName, cacheTo.MachineId, cacheTo.MachineName);
+                result.FlowingId = relayServerTransfer.AddRelay(cacheFrom.MachineId, cacheFrom.MachineName, cacheTo.MachineId, cacheTo.MachineName, cacheFrom.GroupId);
             }
 
             connection.Write(MemoryPackSerializer.Serialize(result));

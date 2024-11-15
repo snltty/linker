@@ -219,9 +219,10 @@ namespace linker.plugins.tuntap
                 {
                     Connection = clientSignInState.Connection,
                     MessengerId = (ushort)TuntapMessengerIds.SubscribeForwardTestForward,
-                    Payload = MemoryPackSerializer.Serialize(tuntapForwardTestWrapInfo)
+                    Payload = MemoryPackSerializer.Serialize(tuntapForwardTestWrapInfo),
+                    Timeout = 2000
                 }).ConfigureAwait(false);
-                if (resp.Code == MessageResponeCodes.OK)
+                if (resp.Code == MessageResponeCodes.OK && resp.Data.Span.Length > 0)
                 {
                     tuntapForwardTestWrapInfo = MemoryPackSerializer.Deserialize<TuntapForwardTestWrapInfo>(resp.Data.Span);
                 }

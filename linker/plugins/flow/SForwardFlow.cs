@@ -12,13 +12,13 @@ namespace linker.plugins.flow
         {
             this.sForwardFlow = sForwardFlow;
         }
-        public override void AddReceive(string key, ulong bytes)
+        public override void AddReceive(string key,string groupid, ulong bytes)
         {
-            sForwardFlow.AddReceive(key, bytes);
+            sForwardFlow.AddReceive(key, groupid, bytes);
         }
-        public override void AddSendt(string key, ulong bytes)
+        public override void AddSendt(string key, string groupid, ulong bytes)
         {
-            sForwardFlow.AddSendt(key, bytes);
+            sForwardFlow.AddSendt(key, groupid, bytes);
         }
     }
 
@@ -57,21 +57,21 @@ namespace linker.plugins.flow
             lastTicksManager.Update();
         }
 
-        public void AddReceive(string key, ulong bytes)
+        public void AddReceive(string key,string groupid, ulong bytes)
         {
             if (flows.TryGetValue(key, out SForwardFlowItemInfo messengerFlowItemInfo) == false)
             {
-                messengerFlowItemInfo = new SForwardFlowItemInfo { Key = key };
+                messengerFlowItemInfo = new SForwardFlowItemInfo { Key = key, GroupId= groupid };
                 flows.TryAdd(key, messengerFlowItemInfo);
             }
             ReceiveBytes += bytes;
             messengerFlowItemInfo.ReceiveBytes += bytes;
         }
-        public void AddSendt(string key, ulong bytes)
+        public void AddSendt(string key, string groupid, ulong bytes)
         {
             if (flows.TryGetValue(key, out SForwardFlowItemInfo messengerFlowItemInfo) == false)
             {
-                messengerFlowItemInfo = new SForwardFlowItemInfo { Key = key };
+                messengerFlowItemInfo = new SForwardFlowItemInfo { Key = key, GroupId = groupid };
                 flows.TryAdd(key, messengerFlowItemInfo);
             }
             SendtBytes += bytes;
@@ -80,6 +80,10 @@ namespace linker.plugins.flow
         public SForwardFlowResponseInfo GetFlows(SForwardFlowRequestInfo info)
         {
             var items = flows.Values.Where(c => string.IsNullOrWhiteSpace(info.Key) || c.Key.Contains(info.Key));
+            if(string.IsNullOrWhiteSpace(info.GroupId) == false)
+            {
+                items = items.Where(c => c.GroupId == info.GroupId);
+            }
             switch (info.Order)
             {
                 case SForwardFlowOrder.Sendt:
@@ -128,6 +132,9 @@ namespace linker.plugins.flow
         public ulong DiffSendtBytes { get; set; }
         public string Key { get; set; }
 
+        [MemoryPackIgnore]
+        public string GroupId { get; set; }
+
         [MemoryPackIgnore, JsonIgnore]
         public ulong OldReceiveBytes { get; set; }
         [MemoryPackIgnore, JsonIgnore]
@@ -138,6 +145,11 @@ namespace linker.plugins.flow
     public sealed partial class SForwardFlowRequestInfo
     {
         public string Key { get; set; } = string.Empty;
+
+        [MemoryPackIgnore]
+        public string GroupId { get; set; } = string.Empty;
+        public string SecretKey { get; set; } = string.Empty;
+
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 15;
         public SForwardFlowOrder Order { get; set; }
