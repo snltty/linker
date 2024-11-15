@@ -74,7 +74,7 @@ namespace linker.plugins.signin.messenger
             SignInfo info = MemoryPackSerializer.Deserialize<SignInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (info.Version.CompareTo("v1.5.0") == -1) //1.5.x
             {
-                connection.Disponse();
+                connection.Write(MemoryPackSerializer.Serialize(new SignInResponseInfo { MachineId = string.Empty, Status = false, Msg = "need v1.5.0+" }));
                 return;
             }
 
