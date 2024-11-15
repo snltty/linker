@@ -11,7 +11,6 @@
         Update = 2204,
         UpdateForward = 2205,
 
-        T2207 = 2207,
 
         LeaseAddNetwork = 2208,
         LeaseGetNetwork = 2209,

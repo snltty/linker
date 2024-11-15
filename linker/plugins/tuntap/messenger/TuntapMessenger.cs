@@ -283,18 +283,5 @@ namespace linker.plugins.tuntap.messenger
             }
         }
 
-
-        [MessengerId((ushort)TuntapMessengerIds.T2207)]
-        public void T2207(IConnection connection)
-        {
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
-            {
-                LoggerHelper.Instance.Error(cache.ToJson());
-            }
-            else
-            {
-                LoggerHelper.Instance.Error($"t2207 {connection.Id} not found");
-            }
-        }
     }
 }
