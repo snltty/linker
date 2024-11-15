@@ -72,7 +72,7 @@ namespace linker.plugins.signin.messenger
         public async Task SignIn_V_1_3_1(IConnection connection)
         {
             SignInfo info = MemoryPackSerializer.Deserialize<SignInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (VersionHelper.Compare(info.Version, config.Data.Version) > 2000)
+            if (info.Version.CompareTo("v1.5.0") == -1) //1.5.x
             {
                 connection.Disponse();
                 return;
