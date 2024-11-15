@@ -113,7 +113,7 @@ namespace linker.plugins.tuntap
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    LoggerHelper.Instance.Debug($"{NetworkHelper.Value2IP(ip)} connection not found");
+                    LoggerHelper.Instance.Debug($"tuntap {NetworkHelper.Value2IP(ip)} connection not found");
                 }
 
                 _ = ConnectTunnel(ip).ContinueWith((result, state) =>
@@ -200,15 +200,16 @@ namespace linker.plugins.tuntap
                     return await ConnectTunnel(machineId, TunnelProtocolType.Quic).ConfigureAwait(false);
                 }
             }
+            if (ipRefreshCache.Contains(ip) == false)
+            {
+                ipRefreshCache.Add(ip);
+                RefreshConfig();
+            }
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
-                if(ipRefreshCache.Contains(ip) == false)
-                {
-                    ipRefreshCache.Add(ip);
-                    RefreshConfig();
-                }
-                LoggerHelper.Instance.Debug($"{NetworkHelper.Value2IP(ip)} to machine not found");
+                LoggerHelper.Instance.Debug($"tuntap {NetworkHelper.Value2IP(ip)} to machine not found");
             }
+
             return null;
 
         }

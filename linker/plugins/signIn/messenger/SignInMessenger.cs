@@ -72,16 +72,22 @@ namespace linker.plugins.signin.messenger
         public async Task SignIn_V_1_3_1(IConnection connection)
         {
             SignInfo info = MemoryPackSerializer.Deserialize<SignInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (VersionHelper.Compare(info.Version, config.Data.Version) > 2000)
+            {
+                connection.Disponse();
+                return;
+            }
+
             LoggerHelper.Instance.Info($"sign in from >=v131 {connection.Address}->{info.ToJson()}");
-
             info.Connection = connection;
-
-            SignInResponseInfo resp = new SignInResponseInfo();
             string msg = await signCaching.Sign(info);
-            resp.Status = string.IsNullOrWhiteSpace(msg);
-            resp.Msg = msg;
-            resp.MachineId = info.MachineId;
 
+            SignInResponseInfo resp = new SignInResponseInfo
+            {
+                Status = string.IsNullOrWhiteSpace(msg),
+                MachineId = info.MachineId,
+                Msg = msg
+            };
             connection.Write(MemoryPackSerializer.Serialize(resp.ToJson()));
         }
 
