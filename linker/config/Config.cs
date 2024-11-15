@@ -105,7 +105,8 @@ namespace linker.config
                             continue;
                         }
                         string text = item.Value.PropertyMethod.Serialize(item.Value.Property.GetValue(Data));
-                        File.WriteAllText(item.Value.Path, text, encoding: System.Text.Encoding.UTF8);
+                        File.WriteAllText($"{item.Value.Path}.temp", text, encoding: System.Text.Encoding.UTF8);
+                        File.Move($"{item.Value.Path}.temp", item.Value.Path, true);
                     }
                     catch (Exception ex)
                     {

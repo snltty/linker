@@ -163,8 +163,8 @@ namespace linker.plugins.relay.server
             {
                 fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotalMonth = DateTime.Now.Month;
                 fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotalLastBytes = (ulong)(fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotal * 1024 * 1024 * 1024);
+                fileConfig.Data.Update();
             }
-            fileConfig.Data.Update();
         }
 
         private void ReportTask()

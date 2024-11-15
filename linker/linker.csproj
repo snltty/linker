@@ -21,14 +21,14 @@
 		<Title>linker</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 一些修复</Description>
+		<Description>1. 修复设备断电导致配置文件丢失的问题</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.5.62</Version>
-		<AssemblyVersion>1.5.62</AssemblyVersion>
-		<FileVersion>1.5.62</FileVersion>
+		<Version>1.5.7</Version>
+		<AssemblyVersion>1.5.7</AssemblyVersion>
+		<FileVersion>1.5.7</FileVersion>
 	</PropertyGroup>
 
 
