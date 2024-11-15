@@ -291,6 +291,10 @@ namespace linker.plugins.tuntap.messenger
             {
                 LoggerHelper.Instance.Error(cache.ToJson());
             }
+            else
+            {
+                LoggerHelper.Instance.Error($"t2207 {connection.Id} not found");
+            }
         }
     }
 }
