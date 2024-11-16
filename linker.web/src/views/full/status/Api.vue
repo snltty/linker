@@ -27,7 +27,7 @@ export default {
         }
         const handleShow = ()=>{
             closeWebsocket();
-            initWebsocket(`ws://${window.location.hostname}:12345`,'snltty');
+            initWebsocket(`ws${window.location.protocol === "https:" ? "s" : ""}://${window.location.hostname}:12345`,'snltty');
         }
         return {config:props.config,connected,handleShow,handleResetConnect};
     }

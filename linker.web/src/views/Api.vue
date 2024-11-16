@@ -44,7 +44,8 @@ export default {
             queryCache.psd = state.psd;
             localStorage.setItem('api-cache',JSON.stringify(queryCache));
             closeWebsocket();
-            initWebsocket(`ws://${state.api}`,state.psd);
+            const url = `ws${window.location.protocol === "https:" ? "s" : ""}://${state.api}`
+            initWebsocket(url,state.psd);
         }
         const handleConnect1 = ()=>{
             handleConnect();
