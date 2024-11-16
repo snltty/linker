@@ -26,9 +26,9 @@
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.5.7</Version>
-		<AssemblyVersion>1.5.7</AssemblyVersion>
-		<FileVersion>1.5.7</FileVersion>
+		<Version>1.5.8</Version>
+		<AssemblyVersion>1.5.8</AssemblyVersion>
+		<FileVersion>1.5.8</FileVersion>
 	</PropertyGroup>
 
 
