@@ -17,17 +17,6 @@ plain='\033[0m'
 export PATH=$PATH:/usr/local/bin
 
 
-install_base() {
-    (command -v git >/dev/null 2>&1 && command -v curl >/dev/null 2>&1 && command -v wget >/dev/null 2>&1 && command -v unzip >/dev/null 2>&1 && command -v getenforce >/dev/null 2>&1) ||
-        (install_soft curl wget git unzip)
-}
-install_soft() {
-    (command -v yum >/dev/null 2>&1 && yum makecache >/dev/null 2>&1 && yum install $* iproute2  dmidecode net-tools curl traceroute iptables ca-certificates -y >/dev/null 2>&1)  ||
-        (command -v apt >/dev/null 2>&1 && apt update >/dev/null 2>&1 && apt install $* iproute2  dmidecode net-tools curl traceroute iptables ca-certificates -y >/dev/null 2>&1) ||
-        (command -v pacman >/dev/null 2>&1 && pacman -Syu $* base-devel --noconfirm && install_arch) ||
-        (command -v apt-get >/dev/null 2>&1 && apt-get update >/dev/null 2>&1 && apt-get install $* iproute2  dmidecode net-tools curl traceroute iptables ca-certificates -y >/dev/null 2>&1) ||
-        (command -v apk >/dev/null 2>&1 && apk update >/dev/null 2>&1 && apk add --no-cache net-tools iproute2 numactl-dev iputils iptables dmidecode -f >/dev/null 2>&1)
-}
 pre_check() {
 
     os_arch=""
@@ -70,7 +59,7 @@ pre_check() {
     if [[ $? != 0 ]]; then
         echo -e "${red}下载程序失败，请检查本机能否连接 ${LINKER_DOWNLOAD_URL}/${LINKER_DOWNLOAD_VERSION}/${LINKER_FILE_NAME}.zip${plain}" && exit 1
     fi
-    echo -e "${green}下载程序完成${plain}"
+    echo -e "${green}下载完成${plain}"
 
     echo -e "正在解压..."
     unzip -qo -O UTF-8 "${LINKER_INSTALL_PATH}/${LINKER_FILE_NAME}-${LINKER_DOWNLOAD_VERSION}.zip" -d $LINKER_INSTALL_PATH
@@ -78,24 +67,6 @@ pre_check() {
     echo -e "${green}解压完成${plain}"
 
     rm -rf ${LINKER_INSTALL_PATH}/${LINKER_FILE_NAME}-${LINKER_DOWNLOAD_VERSION}.zip
-
-
-    echo -e "正在下载服务文件..."
-    wget -t 2 -T 60 -O ${LINKER_INSTALL_PATH} ${LINKER_DOWNLOAD_URL}/linker.service >/dev/null 2>&1
-    if [[ $? != 0 ]]; then
-        echo -e "${red}下载服务文件失败，请检查本机能否连接 ${LINKER_DOWNLOAD_URL}/linker.service${plain}" && exit 1
-    fi
-    echo -e "${green}下载服务文件完成${plain}"
-
-    cp -f ${LINKER_INSTALL_PATH}/linker.service /etc/systemd/system/linker.service
-    sed -i "s|\${dir}|$LINKER_INSTALL_PATH|g" /etc/systemd/system/linker.service
-    systemctl daemon-reload
-    systemctl enable linker
-    systemctl restart linker
-
 }
 
-echo -e "正在安装依赖..."
-install_base
-install_soft
 pre_check

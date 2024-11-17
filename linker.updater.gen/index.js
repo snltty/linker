@@ -128,6 +128,46 @@ function writeUpload(data) {
             'asset_content_type': 'application/zip'
         }
     });
+    data.jobs.build.steps.push({
+        name: `upload-install-service`,
+        id: `upload-install-service`,
+        uses: 'actions/upload-release-asset@master',
+        env: {
+            'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
+        },
+        with: {
+            'upload_url': '${{ steps.create_release.outputs.upload_url }}',
+            'asset_path': `./linker/linker.service`,
+            'asset_name': `linker.service`
+        }
+    });
+    data.jobs.build.steps.push({
+        name: `upload-installsh-systemd`,
+        id: `upload-installsh-systemd`,
+        uses: 'actions/upload-release-asset@master',
+        env: {
+            'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
+        },
+        with: {
+            'upload_url': '${{ steps.create_release.outputs.upload_url }}',
+            'asset_path': `./linker/linker-install-systemd.sh`,
+            'asset_name': `linker-install-systemd.sh`
+        }
+    });
+    data.jobs.build.steps.push({
+        name: `upload-installsh-docker`,
+        id: `upload-installsh-docker`,
+        uses: 'actions/upload-release-asset@master',
+        env: {
+            'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
+        },
+        with: {
+            'upload_url': '${{ steps.create_release.outputs.upload_url }}',
+            'asset_path': `./linker/linker-install-docker.sh`,
+            'asset_name': `linker-install-docker.sh`
+        }
+    });
+
 }
 
 readVersionDesc().then((desc) => {
