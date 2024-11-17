@@ -11,9 +11,25 @@ namespace linker.libs
 
         private static string GetSystemIdWindows()
         {
-            string cpu = CommandHelper.Execute("wmic", "csproduct get UUID", [], out string error).TrimNewLineAndWhiteSapce().Split(Environment.NewLine)[1];
-            string username = CommandHelper.Execute("whoami", string.Empty, [], out error).TrimNewLineAndWhiteSapce().Trim();
-            return $"{cpu}↓{username}↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
+            try
+            {
+                string cpu = CommandHelper.Execute("wmic", "csproduct get UUID", [], out string error).TrimNewLineAndWhiteSapce().Split(Environment.NewLine)[1];
+                string username = CommandHelper.Execute("whoami", string.Empty, [], out error).TrimNewLineAndWhiteSapce().Trim();
+                return $"{cpu}↓{username}↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
+            }
+            catch (Exception)
+            {
+            }
+            try
+            {
+                string cpu = CommandHelper.Execute("powershell", "Get-WmiObject -Class Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID", [], out string error).TrimNewLineAndWhiteSapce().Split(Environment.NewLine)[0];
+                string username = CommandHelper.Execute("whoami", string.Empty, [], out error).TrimNewLineAndWhiteSapce().Trim();
+                return $"{cpu}↓{username}↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
+            }
+            catch (Exception)
+            {
+            }
+            return string.Empty;
         }
         private static string GetSystemIdLinux()
         {
