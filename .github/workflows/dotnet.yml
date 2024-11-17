@@ -258,26 +258,6 @@ jobs:
           asset_path: ./public/publish-zip/linker-osx-arm64.zip
           asset_name: linker-osx-arm64.zip
           asset_content_type: application/zip
-      - name: upload-version-oss
-        id: upload-version-oss
-        uses: tvrcgo/oss-action@v0.1.1
-        with:
-          region: oss-cn-shenzhen
-          key-id: ${{ secrets.ALIYUN_OSS_ID }}
-          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
-          bucket: ide-qbcode
-          asset-path: ./public/version.txt
-          target-path: /downloads/linker/version.txt
-      - name: upload-windows-route-oss
-        id: upload-windows-route-oss
-        uses: tvrcgo/oss-action@v0.1.1
-        with:
-          region: oss-cn-shenzhen
-          key-id: ${{ secrets.ALIYUN_OSS_ID }}
-          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
-          bucket: ide-qbcode
-          asset-path: ./public/publish-zip/linker-windows-route.zip
-          target-path: /downloads/linker/v1.5.8/linker-windows-route.zip
       - name: upload-windows-route
         id: upload-windows-route
         uses: actions/upload-release-asset@master
@@ -288,33 +268,53 @@ jobs:
           asset_path: ./public/publish-zip/linker-windows-route.zip
           asset_name: linker-windows-route.zip
           asset_content_type: application/zip
-      - name: upload-install-service
-        id: upload-install-service
-        uses: actions/upload-release-asset@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+      - name: upload-windows-route-oss
+        id: upload-windows-route-oss
+        uses: tvrcgo/oss-action@v0.1.1
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./linker/linker.service
-          asset_name: linker.service
-          asset_content_type: text/plain
-      - name: upload-installsh-systemd
-        id: upload-installsh-systemd
-        uses: actions/upload-release-asset@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/publish-zip/linker-windows-route.zip
+          target-path: /downloads/linker/v1.5.8/linker-windows-route.zip
+      - name: upload-version-oss
+        id: upload-version-oss
+        uses: tvrcgo/oss-action@v0.1.1
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./linker/linker-install-systemd.sh
-          asset_name: linker-install-systemd.sh
-          asset_content_type: application/x-sh
-      - name: upload-installsh-docker
-        id: upload-installsh-docker
-        uses: actions/upload-release-asset@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/version.txt
+          target-path: /downloads/linker/version.txt
+      - name: upload-install-service-oss
+        id: upload-install-service-oss
+        uses: tvrcgo/oss-action@v0.1.1
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./linker/linker-install-docker.sh
-          asset_name: linker-install-docker.sh
-          asset_content_type: application/x-sh
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./linker/linker.service
+          target-path: /downloads/linker/linker.service
+      - name: upload-install-systemd-oss
+        id: upload-install-systemd-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./linker/linker-install-systemd.sh
+          target-path: /downloads/linker/linker-install-systemd.sh
+      - name: upload-install-docker-oss
+        id: upload-install-docker-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./linker/linker-install-docker.sh
+          target-path: /downloads/linker/linker-install-docker.sh

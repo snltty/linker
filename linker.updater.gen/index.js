@@ -89,16 +89,17 @@ function writeUpload(data) {
         };
     }
     data.jobs.build.steps.push({
-        name: `upload-version-oss`,
-        id: `upload-version-oss`,
-        uses: 'tvrcgo/oss-action@v0.1.1',
+        name: `upload-windows-route`,
+        id: `upload-windows-route`,
+        uses: 'actions/upload-release-asset@master',
+        env: {
+            'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
+        },
         with: {
-            'region': 'oss-cn-shenzhen',
-            'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
-            'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
-            'bucket': 'ide-qbcode',
-            'asset-path': `./public/version.txt`,
-            'target-path': `/downloads/linker/version.txt`
+            'upload_url': '${{ steps.create_release.outputs.upload_url }}',
+            'asset_path': `./public/publish-zip/linker-windows-route.zip`,
+            'asset_name': `linker-windows-route.zip`,
+            'asset_content_type': 'application/zip'
         }
     });
     data.jobs.build.steps.push({
@@ -114,63 +115,60 @@ function writeUpload(data) {
             'target-path': `/downloads/linker/${tagName}/linker-windows-route.zip`
         }
     });
+
     data.jobs.build.steps.push({
-        name: `upload-windows-route`,
-        id: `upload-windows-route`,
-        uses: 'actions/upload-release-asset@master',
-        env: {
-            'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
-        },
+        name: `upload-version-oss`,
+        id: `upload-version-oss`,
+        uses: 'tvrcgo/oss-action@v0.1.1',
         with: {
-            'upload_url': '${{ steps.create_release.outputs.upload_url }}',
-            'asset_path': `./public/publish-zip/linker-windows-route.zip`,
-            'asset_name': `linker-windows-route.zip`,
-            'asset_content_type': 'application/zip'
-        }
-    });
-    data.jobs.build.steps.push({
-        name: `upload-install-service`,
-        id: `upload-install-service`,
-        uses: 'actions/upload-release-asset@master',
-        env: {
-            'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
-        },
-        with: {
-            'upload_url': '${{ steps.create_release.outputs.upload_url }}',
-            'asset_path': `./linker/linker.service`,
-            'asset_name': `linker.service`,
-            'asset_content_type': 'text/plain'
-        }
-    });
-    data.jobs.build.steps.push({
-        name: `upload-installsh-systemd`,
-        id: `upload-installsh-systemd`,
-        uses: 'actions/upload-release-asset@master',
-        env: {
-            'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
-        },
-        with: {
-            'upload_url': '${{ steps.create_release.outputs.upload_url }}',
-            'asset_path': `./linker/linker-install-systemd.sh`,
-            'asset_name': `linker-install-systemd.sh`,
-            'asset_content_type': 'application/x-sh'
-        }
-    });
-    data.jobs.build.steps.push({
-        name: `upload-installsh-docker`,
-        id: `upload-installsh-docker`,
-        uses: 'actions/upload-release-asset@master',
-        env: {
-            'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
-        },
-        with: {
-            'upload_url': '${{ steps.create_release.outputs.upload_url }}',
-            'asset_path': `./linker/linker-install-docker.sh`,
-            'asset_name': `linker-install-docker.sh`,
-            'asset_content_type': 'application/x-sh'
+            'region': 'oss-cn-shenzhen',
+            'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
+            'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
+            'bucket': 'ide-qbcode',
+            'asset-path': `./public/version.txt`,
+            'target-path': `/downloads/linker/version.txt`
         }
     });
 
+    data.jobs.build.steps.push({
+        name: `upload-install-service-oss`,
+        id: `upload-install-service-oss`,
+        uses: 'tvrcgo/oss-action@v0.1.1',
+        with: {
+            'region': 'oss-cn-shenzhen',
+            'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
+            'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
+            'bucket': 'ide-qbcode',
+            'asset-path': `./linker/linker.service`,
+            'target-path': `/downloads/linker/linker.service`
+        }
+    });
+    data.jobs.build.steps.push({
+        name: `upload-install-systemd-oss`,
+        id: `upload-install-systemd-oss`,
+        uses: 'tvrcgo/oss-action@v0.1.1',
+        with: {
+            'region': 'oss-cn-shenzhen',
+            'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
+            'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
+            'bucket': 'ide-qbcode',
+            'asset-path': `./linker/linker-install-systemd.sh`,
+            'target-path': `/downloads/linker/linker-install-systemd.sh`
+        }
+    });
+    data.jobs.build.steps.push({
+        name: `upload-install-docker-oss`,
+        id: `upload-install-docker-oss`,
+        uses: 'tvrcgo/oss-action@v0.1.1',
+        with: {
+            'region': 'oss-cn-shenzhen',
+            'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
+            'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
+            'bucket': 'ide-qbcode',
+            'asset-path': `./linker/linker-install-docker.sh`,
+            'target-path': `/downloads/linker/linker-install-docker.sh`
+        }
+    });
 }
 
 readVersionDesc().then((desc) => {
