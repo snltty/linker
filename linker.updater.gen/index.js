@@ -138,7 +138,8 @@ function writeUpload(data) {
         with: {
             'upload_url': '${{ steps.create_release.outputs.upload_url }}',
             'asset_path': `./linker/linker.service`,
-            'asset_name': `linker.service`
+            'asset_name': `linker.service`,
+            'asset_content_type': 'text/plain'
         }
     });
     data.jobs.build.steps.push({
@@ -151,7 +152,8 @@ function writeUpload(data) {
         with: {
             'upload_url': '${{ steps.create_release.outputs.upload_url }}',
             'asset_path': `./linker/linker-install-systemd.sh`,
-            'asset_name': `linker-install-systemd.sh`
+            'asset_name': `linker-install-systemd.sh`,
+            'asset_content_type': 'application/x-sh'
         }
     });
     data.jobs.build.steps.push({
@@ -164,7 +166,8 @@ function writeUpload(data) {
         with: {
             'upload_url': '${{ steps.create_release.outputs.upload_url }}',
             'asset_path': `./linker/linker-install-docker.sh`,
-            'asset_name': `linker-install-docker.sh`
+            'asset_name': `linker-install-docker.sh`,
+            'asset_content_type': 'application/x-sh'
         }
     });
 
