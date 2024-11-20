@@ -144,31 +144,19 @@ function writeUpload(data) {
         }
     });
     data.jobs.build.steps.push({
-        name: `upload-install-systemd-oss`,
-        id: `upload-install-systemd-oss`,
+        name: `upload-install-oss`,
+        id: `upload-install-oss`,
         uses: 'tvrcgo/oss-action@v0.1.1',
         with: {
             'region': 'oss-cn-shenzhen',
             'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
             'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
             'bucket': 'ide-qbcode',
-            'asset-path': `./linker/linker-install-systemd.sh`,
-            'target-path': `/downloads/linker/linker-install-systemd.sh`
+            'asset-path': `./linker/linker-install.sh`,
+            'target-path': `/downloads/linker/linker-install.sh`
         }
     });
-    data.jobs.build.steps.push({
-        name: `upload-install-docker-oss`,
-        id: `upload-install-docker-oss`,
-        uses: 'tvrcgo/oss-action@v0.1.1',
-        with: {
-            'region': 'oss-cn-shenzhen',
-            'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
-            'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
-            'bucket': 'ide-qbcode',
-            'asset-path': `./linker/linker-install-docker.sh`,
-            'target-path': `/downloads/linker/linker-install-docker.sh`
-        }
-    });
+
 }
 
 readVersionDesc().then((desc) => {
