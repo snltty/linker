@@ -73,8 +73,8 @@ namespace linker
                 LoggerHelper.Instance.Error(b.ExceptionObject + "");
             };
             //线程数
-            ThreadPool.SetMinThreads(1024, 1024);
-            ThreadPool.SetMaxThreads(65535, 65535);
+            //ThreadPool.SetMinThreads(1024, 1024);
+            //ThreadPool.SetMaxThreads(65535, 65535);
 
             //日志输出
             LoggerConsole();

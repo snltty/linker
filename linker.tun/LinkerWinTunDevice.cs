@@ -303,6 +303,7 @@ namespace linker.tun
             {
                 interfaceNumber = adapter.GetIPProperties().GetIPv4Properties().Index;
             }
+
         }
 
         public void Clear()

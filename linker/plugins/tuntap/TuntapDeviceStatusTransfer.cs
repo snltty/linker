@@ -3,6 +3,7 @@ using linker.libs;
 using linker.plugins.tuntap.config;
 using linker.tun;
 using System.Net.NetworkInformation;
+using System.Xml.Linq;
 
 namespace linker.plugins.tuntap
 {
@@ -21,6 +22,8 @@ namespace linker.plugins.tuntap
             this.linkerTunDeviceAdapter = linkerTunDeviceAdapter;
 
             tuntapTransfer.OnSetupSuccess += () => { setupTimes++; };
+
+            CheckTuntapStatusTask();
         }
         private void CheckTuntapStatusTask()
         {
@@ -29,6 +32,7 @@ namespace linker.plugins.tuntap
                 if (setupTimes > 0 && runningConfig.Data.Tuntap.Running && OperatingSystem.IsWindows())
                 {
                     await InterfaceCheck().ConfigureAwait(false);
+                    InterfaceOrder();
                 }
                 return true;
             }, () => 15000);
@@ -62,6 +66,29 @@ namespace linker.plugins.tuntap
             catch (Exception)
             {
                 return false;
+            }
+        }
+
+        private void InterfaceOrder()
+        {
+            NetworkInterface linker = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == tuntapTransfer.DeviceName);
+            NetworkInterface first = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault();
+
+            if (linker != null && linker.Name != first.Name)
+            {
+                int metricv4 = 0;
+                int metricv6 = 0;
+                List<string> commands = new List<string> { 
+                    $"netsh interface ipv4 set interface \"{tuntapTransfer.DeviceName}\" metric={++metricv4}", 
+                    $"netsh interface ipv6 set interface \"{tuntapTransfer.DeviceName}\" metric={++metricv6}"
+                };
+                commands.AddRange(NetworkInterface.GetAllNetworkInterfaces()
+                    .Where(c => c.Name != tuntapTransfer.DeviceName)
+                    .Select(c => $"netsh interface ipv4 set interface \"{c.Name}\" metric={++metricv4}"));
+                commands.AddRange(NetworkInterface.GetAllNetworkInterfaces()
+                    .Where(c => c.Name != tuntapTransfer.DeviceName)
+                    .Select(c => $"netsh interface ipv6 set interface \"{c.Name}\" metric={++metricv6}"));
+                CommandHelper.Windows(string.Empty, commands.ToArray());
             }
         }
     }

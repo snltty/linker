@@ -3,8 +3,6 @@ using linker.plugins.messenger;
 using MemoryPack;
 using linker.libs;
 using linker.plugins.decenter.messenger;
-using System.ComponentModel.Design;
-using System.Threading.Tasks;
 
 namespace linker.plugins.decenter
 {
@@ -63,7 +61,7 @@ namespace linker.plugins.decenter
                                 Connection = clientSignInState.Connection,
                                 MessengerId = (ushort)DecenterMessengerIds.SyncForward,
                                 Payload = MemoryPackSerializer.Serialize(new DecenterSyncInfo { Name = c.Name, Data = c.GetData() }),
-                                Timeout = 3000
+                                Timeout = 15000
                             })
                         };
                     }).ToList();
