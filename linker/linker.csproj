@@ -21,14 +21,17 @@
 		<Title>linker</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 修复设备断电导致配置文件丢失的问题</Description>
+		<Description>1. 优化UI
+2. 优化网卡
+3. 修复网卡禁用自动重启
+4. 增加一键安装脚本</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.5.8</Version>
-		<AssemblyVersion>1.5.8</AssemblyVersion>
-		<FileVersion>1.5.8</FileVersion>
+		<Version>1.5.9</Version>
+		<AssemblyVersion>1.5.9</AssemblyVersion>
+		<FileVersion>1.5.9</FileVersion>
 	</PropertyGroup>
 
 
