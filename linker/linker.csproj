@@ -21,17 +21,16 @@
 		<Title>linker</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 优化UI
-2. 优化网卡
-3. 修复网卡禁用自动重启
-4. 增加一键安装脚本</Description>
+		<Description>1. 优化websocket(某些代理环境下可能请求头key名称不规范)
+2. 尝试解决UDP获取外网IP端口失败的问题
+3. 测试中</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.5.9</Version>
-		<AssemblyVersion>1.5.9</AssemblyVersion>
-		<FileVersion>1.5.9</FileVersion>
+		<Version>1.6.0</Version>
+		<AssemblyVersion>1.6.0</AssemblyVersion>
+		<FileVersion>1.6.0</FileVersion>
 	</PropertyGroup>
 
 
@@ -75,5 +74,8 @@
 		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
 		<PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.1" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="plugins\pcp\" />
 	</ItemGroup>
 </Project>

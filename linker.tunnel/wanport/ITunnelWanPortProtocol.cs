@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using linker.libs.extends;
+using System.Net;
+using System.Text;
 
 namespace linker.tunnel.wanport
 {
@@ -16,6 +18,7 @@ namespace linker.tunnel.wanport
         /// <param name="server">服务器</param>
         /// <returns></returns>
         public Task<TunnelWanPortEndPoint> GetAsync(IPAddress inter, IPEndPoint server);
+
     }
 
     public sealed class TunnelWanPortEndPoint

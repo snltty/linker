@@ -4,7 +4,6 @@ using linker.libs;
 using linker.plugins.client;
 using linker.plugins.decenter;
 using linker.plugins.messenger;
-using linker.plugins.tunnel.messenger;
 using linker.tunnel;
 using linker.tunnel.adapter;
 using MemoryPack;

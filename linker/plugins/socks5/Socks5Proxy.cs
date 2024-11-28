@@ -13,6 +13,7 @@ using linker.plugins.socks5.config;
 using System.Text;
 using System.Collections.Generic;
 using linker.plugins.relay.client;
+using linker.client.config;
 
 namespace linker.plugins.socks5
 {
@@ -25,8 +26,8 @@ namespace linker.plugins.socks5
 
         protected override string TransactionId => "socks5";
 
-        public TunnelProxy(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState)
-             : base(config, tunnelTransfer, relayTransfer, clientSignInTransfer, clientSignInState)
+        public TunnelProxy(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState, RunningConfig runningConfig)
+             : base(config, tunnelTransfer, relayTransfer, clientSignInTransfer, clientSignInState, runningConfig)
         {
             TaskUdp();
         }

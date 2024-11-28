@@ -3,6 +3,7 @@ using linker.libs.extends;
 using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 
 namespace linker.tunnel.wanport
 {
@@ -23,36 +24,37 @@ namespace linker.tunnel.wanport
             udpClient.Client.ReuseBind(new IPEndPoint(localIP, 0));
             udpClient.Client.WindowsUdpBug();
 
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
             try
             {
-                for (int i = 0; i < 5; i++)
+                await udpClient.SendAsync(BuildSendData(buffer, 0), server).ConfigureAwait(false);
+                TimerHelper.Async(async () =>
                 {
-                    try
+                    for (byte i = 1; i < 10; i++)
                     {
-                        await udpClient.SendAsync(new byte[1] { 0 }, server).ConfigureAwait(false);
-                        UdpReceiveResult result = await udpClient.ReceiveAsync().WaitAsync(TimeSpan.FromMilliseconds(2000)).ConfigureAwait(false);
-                        if (result.Buffer.Length == 0)
-                        {
-                            return null;
-                        }
-
-                        for (int j = 0; j < result.Buffer.Length; j++)
-                        {
-                            result.Buffer[j] = (byte)(result.Buffer[j] ^ byte.MaxValue);
-                        }
-                        AddressFamily addressFamily = (AddressFamily)result.Buffer[0];
-                        int length = addressFamily == AddressFamily.InterNetwork ? 4 : 16;
-                        IPAddress ip = new IPAddress(result.Buffer.AsSpan(1, length));
-                        ushort port = result.Buffer.AsMemory(1 + length).ToUInt16();
-
-                        IPEndPoint remoteEP = new IPEndPoint(ip, port);
-
-                        return new TunnelWanPortEndPoint { Local = udpClient.Client.LocalEndPoint as IPEndPoint, Remote = remoteEP };
+                        await Task.Delay(15);
+                        await udpClient.SendAsync(BuildSendData(buffer, i), server).ConfigureAwait(false);
                     }
-                    catch (Exception)
-                    {
-                    }
+                });
+
+                UdpReceiveResult result = await udpClient.ReceiveAsync().WaitAsync(TimeSpan.FromMilliseconds(2000)).ConfigureAwait(false);
+                if (result.Buffer.Length == 0)
+                {
+                    return null;
                 }
+
+                for (int j = 0; j < result.Buffer.Length; j++)
+                {
+                    result.Buffer[j] = (byte)(result.Buffer[j] ^ byte.MaxValue);
+                }
+                AddressFamily addressFamily = (AddressFamily)result.Buffer[0];
+                int length = addressFamily == AddressFamily.InterNetwork ? 4 : 16;
+                IPAddress ip = new IPAddress(result.Buffer.AsSpan(1, length));
+                ushort port = result.Buffer.AsMemory(1 + length).ToUInt16();
+
+                IPEndPoint remoteEP = new IPEndPoint(ip, port);
+
+                return new TunnelWanPortEndPoint { Local = udpClient.Client.LocalEndPoint as IPEndPoint, Remote = remoteEP };
             }
             catch (Exception ex)
             {
@@ -61,10 +63,20 @@ namespace linker.tunnel.wanport
             }
             finally
             {
+                ArrayPool<byte>.Shared.Return(buffer);
                 udpClient.Close();
             }
 
             return null;
+        }
+        private Memory<byte> BuildSendData(byte[] buffer, byte i)
+        {
+            byte[] temp = Encoding.UTF8.GetBytes(Environment.TickCount64.ToString().Md5().SubStr(0, new Random().Next(16, 32)));
+            temp.AsMemory().CopyTo(buffer);
+            buffer[0] = 0;
+            buffer[1] = i;
+
+            return buffer.AsMemory(0, temp.Length);
         }
     }
 
@@ -82,13 +94,15 @@ namespace linker.tunnel.wanport
 
         public async Task<TunnelWanPortEndPoint> GetAsync(IPAddress localIP, IPEndPoint server)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(20);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
             try
             {
                 Socket socket = new Socket(server.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 socket.ReuseBind(new IPEndPoint(localIP, 0));
                 await socket.ConnectAsync(server).ConfigureAwait(false);
-                await socket.SendAsync(new byte[] { 0 });
+
+                await socket.SendAsync(BuildSendData(buffer, (byte)new Random().Next(0, 255)));
+
                 int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
                 for (int j = 0; j < length; j++)
                 {
@@ -117,6 +131,16 @@ namespace linker.tunnel.wanport
             }
 
             return null;
+        }
+
+        private Memory<byte> BuildSendData(byte[] buffer, byte i)
+        {
+            byte[] temp = Encoding.UTF8.GetBytes(Environment.TickCount64.ToString().Md5().SubStr(0, new Random().Next(16, 32)));
+            temp.AsMemory().CopyTo(buffer);
+            buffer[0] = 0;
+            buffer[1] = i;
+
+            return buffer.AsMemory(0, temp.Length);
         }
     }
 }

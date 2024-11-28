@@ -174,6 +174,7 @@ namespace linker.config
         }
     }
 
+    [JsonAotAttribute]
     public sealed partial class ConfigCommonInfo : IConfig
     {
         public ConfigCommonInfo() { }
@@ -223,4 +224,8 @@ namespace linker.config
             return text.DeJson<ConfigCommonInfo>();
         }
     }
+
+
+    [AttributeUsage(AttributeTargets.Class)]
+    public class JsonAotAttribute : Attribute { }
 }

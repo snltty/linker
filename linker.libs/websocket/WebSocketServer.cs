@@ -25,7 +25,7 @@ namespace linker.libs.websocket
         /// </summary>
         public Func<WebsocketConnection, WebsocketHeaderInfo, bool> OnConnecting = (connection, header) =>
         {
-            header.SecWebSocketExtensions = Helper.EmptyArray; return true;
+            header.SetHeaderValue(WebsocketHeaderKey.SecWebSocketExtensions, string.Empty); return true;
         };
         /// <summary>
         /// 已断开连接，没有收到关闭帧
@@ -351,7 +351,7 @@ namespace linker.libs.websocket
         private void HandleConnect(AsyncUserToken token, Memory<byte> data)
         {
             WebsocketHeaderInfo header = WebsocketHeaderInfo.Parse(data);
-            if (header.SecWebSocketKey.Length == 0)
+            if (header.TryGetHeaderValue(WebsocketHeaderKey.SecWebSocketKey,out string key) == false)
             {
                 header.StatusCode = HttpStatusCode.MethodNotAllowed;
                 token.Connectrion.ConnectResponse(header);

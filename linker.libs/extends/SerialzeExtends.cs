@@ -1,5 +1,6 @@
 ﻿using linker.libs.jsonConverters;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.Unicode;
 
 namespace linker.libs.extends
@@ -23,15 +24,15 @@ namespace linker.libs.extends
             WriteIndented = true,
             Converters = { new IPAddressJsonConverter(), new IPEndpointJsonConverter(), new DateTimeConverter() }
         };
-        private static JsonSerializerOptions jsonSerializerOptionsIndented = new JsonSerializerOptions
+        public static void AddAOT(JsonSerializerContext[] contexts)
         {
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(UnicodeRanges.All),
-            AllowTrailingCommas = true,
-            ReadCommentHandling = JsonCommentHandling.Skip,
-            PropertyNameCaseInsensitive = true,
-            WriteIndented = true,
-            Converters = { new IPAddressJsonConverter(), new IPEndpointJsonConverter(), new DateTimeConverter() }
-        };
+            foreach (var context in contexts)
+            {
+                jsonSerializerOptions1.TypeInfoResolverChain.Insert(0, context);
+                jsonSerializerOptions.TypeInfoResolverChain.Insert(0, context);
+            }
+        }
+
         public static string ToJson(this object obj)
         {
             return JsonSerializer.Serialize(obj, jsonSerializerOptions1);
@@ -45,4 +46,6 @@ namespace linker.libs.extends
             return JsonSerializer.Deserialize<T>(json, options: jsonSerializerOptions);
         }
     }
+
+
 }

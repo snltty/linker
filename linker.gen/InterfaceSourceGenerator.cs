@@ -4,6 +4,8 @@ using System.Linq;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
 using System.Text;
+using System;
+using System.Diagnostics;
 
 namespace linker.gen
 {
@@ -24,13 +26,15 @@ namespace linker.gen
              new GeneratorInfo{ ClassName="ConfigSyncTypesLoader", ClassNameSpace="linker.plugins.config", InterfaceName="linker.plugins.config.IConfigSync"},
              new GeneratorInfo{ ClassName="DecenterTypesLoader", ClassNameSpace="linker.plugins.decenter", InterfaceName="linker.plugins.decenter.IDecenter"},
         };
-        
+
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
             IncrementalValueProvider<Compilation> compilations = context.CompilationProvider.Select((compilation, cancellationToken) => compilation);
 
             context.RegisterSourceOutput(compilations, (sourceProductionContext, compilation) =>
             {
+                
+
                 foreach (GeneratorInfo info in generators)
                 {
                     var iFlowSymbol = compilation.GetTypeByMetadataName(info.InterfaceName);

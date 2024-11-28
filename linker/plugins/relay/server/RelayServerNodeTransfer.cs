@@ -75,9 +75,9 @@ namespace linker.plugins.relay.server
         /// 无效请求
         /// </summary>
         /// <returns></returns>
-        public bool Invalid()
+        public bool Validate()
         {
-            return ValidateConnection() == false || ValidateBytes() == false;
+            return ValidateConnection() && ValidateBytes();
         }
 
         /// <summary>
@@ -100,7 +100,11 @@ namespace linker.plugins.relay.server
         /// <returns></returns>
         public bool ValidateConnection()
         {
-            return fileConfig.Data.Server.Relay.Distributed.Node.MaxConnection == 0 || fileConfig.Data.Server.Relay.Distributed.Node.MaxConnection * 2 > connectionNum;
+            bool res = fileConfig.Data.Server.Relay.Distributed.Node.MaxConnection == 0 || fileConfig.Data.Server.Relay.Distributed.Node.MaxConnection * 2 > connectionNum;
+            if (res == false && LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) 
+                LoggerHelper.Instance.Debug($"relay  ValidateConnection false,{connectionNum}/{fileConfig.Data.Server.Relay.Distributed.Node.MaxConnection*2}");
+
+            return res;
         }
 
         /// <summary>
@@ -109,8 +113,13 @@ namespace linker.plugins.relay.server
         /// <returns></returns>
         public bool ValidateBytes()
         {
-            return fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotal == 0
+            bool res=  fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotal == 0
                 || (fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotal > 0 && fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotalLastBytes > 0);
+
+            if (res == false && LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Debug($"relay  ValidateBytes false,{fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotalLastBytes}bytes/{fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotal}gb");
+
+            return res;
         }
         /// <summary>
         /// 添加流量

@@ -32,7 +32,7 @@ namespace linker.plugins.tuntap
         private readonly ClientSignInState clientSignInState;
 
         public TuntapProxy(FileConfig config, RunningConfig runningConfig, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer, LinkerTunDeviceAdapter linkerTunDeviceAdapter, ClientSignInState clientSignInState)
-            : base(config, tunnelTransfer, relayTransfer, clientSignInTransfer, clientSignInState)
+            : base(config, tunnelTransfer, relayTransfer, clientSignInTransfer, clientSignInState, runningConfig)
         {
             this.config = config;
             this.runningConfig = runningConfig;

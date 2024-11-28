@@ -7,6 +7,7 @@ using linker.plugins.client;
 using linker.plugins.tunnel;
 using linker.plugins.messenger;
 using linker.plugins.relay.client;
+using linker.client.config;
 
 namespace linker.plugins.forward.proxy
 {
@@ -18,8 +19,8 @@ namespace linker.plugins.forward.proxy
 
         protected override string TransactionId => "forward";
 
-        public ForwardProxy(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState)
-            : base(config, tunnelTransfer, relayTransfer, clientSignInTransfer, clientSignInState)
+        public ForwardProxy(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState, RunningConfig runningConfig)
+            : base(config, tunnelTransfer, relayTransfer, clientSignInTransfer, clientSignInState, runningConfig)
         {
             TaskUdp();
         }

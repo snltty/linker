@@ -17,15 +17,11 @@ plain='\033[0m'
 export PATH=$PATH:/usr/local/bin
 
 
-install_base() {
-    (command -v git >/dev/null 2>&1 && command -v curl >/dev/null 2>&1 && command -v wget >/dev/null 2>&1 && command -v unzip >/dev/null 2>&1 && command -v getenforce >/dev/null 2>&1) ||
-        (install_soft curl wget git unzip)
-}
 install_soft() {
-    (command -v yum >/dev/null 2>&1 && yum makecache >/dev/null 2>&1 && yum install $* iproute2  dmidecode net-tools curl traceroute iptables ca-certificates -y >/dev/null 2>&1)  ||
-        (command -v apt >/dev/null 2>&1 && apt update >/dev/null 2>&1 && apt install $* iproute2  dmidecode net-tools curl traceroute iptables ca-certificates -y >/dev/null 2>&1) ||
-        (command -v pacman >/dev/null 2>&1 && pacman -Syu $* base-devel --noconfirm && install_arch) ||
-        (command -v apt-get >/dev/null 2>&1 && apt-get update >/dev/null 2>&1 && apt-get install $* iproute2  dmidecode net-tools curl traceroute iptables ca-certificates -y >/dev/null 2>&1) ||
+    (command -v yum >/dev/null 2>&1 && yum makecache >/dev/null 2>&1 && yum install curl wget git unzip iproute  dmidecode net-tools curl traceroute iptables ca-certificates -y >/dev/null 2>&1)  ||
+        (command -v apt >/dev/null 2>&1 && apt update >/dev/null 2>&1 && apt install curl wget git unzip iproute2  dmidecode net-tools curl traceroute iptables ca-certificates -y >/dev/null 2>&1) ||
+        (command -v pacman >/dev/null 2>&1 && pacman -Syu curl wget git unzip base-devel --noconfirm && install_arch) ||
+        (command -v apt-get >/dev/null 2>&1 && apt-get update >/dev/null 2>&1 && apt-get install curl wget git unzip iproute2  dmidecode net-tools curl traceroute iptables ca-certificates -y >/dev/null 2>&1) ||
         (command -v apk >/dev/null 2>&1 && apk update >/dev/null 2>&1 && apk add --no-cache net-tools iproute2 numactl-dev iputils iptables dmidecode -f >/dev/null 2>&1)
 }
 install_systemd() {
@@ -131,14 +127,20 @@ install_docker() {
     os_alpine="0"
     [ -e /etc/os-release ] && cat /etc/os-release | grep -i "PRETTY_NAME" | grep -qi "alpine" && os_alpine='1'
     command -v docker >/dev/null 2>&1
-    if [[ $? != 0 ]]; then
-        echo -e "${yellow}===================================================${plain}\n正在安装 Docker"
+    if docker --version >/dev/null 2>&1; then
+        echo -e "${green}已安装docker${plain}"
+    else
+        echo -e "${yellow}===================================================${plain}\n正在安装 docker"
         if [ "$os_alpine" != 1 ]; then
+            echo -e "下载docker脚本..."
             bash <(curl -sL https://get.docker.com -o get-docker.sh) >/dev/null 2>&1
             if [[ $? != 0 ]]; then
                 echo -e "${red}下载脚本失败，请检查本机能否连接 https://get.docker.com${plain}"
                 return 0
             fi
+            echo -e "执行docker脚本..."
+            chmod +x get-docker.sh
+            ./get-docker.sh
             systemctl enable docker.service >/dev/null 2>&1
             systemctl start docker.service >/dev/null 2>&1
         else
@@ -146,7 +148,11 @@ install_docker() {
             rc-update add docker
             rc-service docker start
         fi
-        echo -e "${green}Docker 安装成功${plain}"
+        if docker --version >/dev/null 2>&1; then
+            echo -e "${green}docker 安装成功${plain}"
+        else
+            echo -e "${red}docker 安装失败，可以多试几次${plain}" && exit 1
+        fi
     fi
 
     LINKER_IMAGES=$(docker ps | grep -w "linker")
@@ -198,7 +204,7 @@ install_docker() {
 
 select_version() {
     if [[ -z $LINKER_IS_DOCKER ]]; then
-        echo -e "${yellow}===================================================\n${plain}请自行选择您的安装方式：${yellow}\n1. Docker\n2. 独立安装${plain}"
+        echo -e "${yellow}===================================================\n${plain}请自行选择您的安装方式：${yellow}\n1. docker\n2. 独立安装${plain}"
         while true; do
             read -e -r -p "请输入选择 [1-2]：" option
             case "${option}" in
@@ -218,7 +224,7 @@ select_version() {
     fi
 }
 
-install_base
+install_soft
 select_version
 
 

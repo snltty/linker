@@ -6,6 +6,7 @@ using linker.tunnel;
 using linker.tunnel.connection;
 using System.Collections.Concurrent;
 using linker.plugins.relay.client;
+using linker.client.config;
 
 namespace linker.plugins.tunnel
 {
@@ -21,16 +22,18 @@ namespace linker.plugins.tunnel
         private readonly RelayTransfer relayTransfer;
         private readonly ClientSignInTransfer clientSignInTransfer;
         private readonly ClientSignInState clientSignInState;
+        private readonly RunningConfig runningConfig;
 
         private uint maxTimes = 3;
 
-        public TunnelBase(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState)
+        public TunnelBase(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState, RunningConfig runningConfig)
         {
             this.config = config;
             this.tunnelTransfer = tunnelTransfer;
             this.relayTransfer = relayTransfer;
             this.clientSignInTransfer = clientSignInTransfer;
             this.clientSignInState = clientSignInState;
+            this.runningConfig = runningConfig;
 
             //监听打洞成功
             tunnelTransfer.SetConnectedCallback(TransactionId, OnConnected);

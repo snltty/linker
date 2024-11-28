@@ -21,7 +21,7 @@ namespace linker.libs.api
         protected readonly Dictionary<string, PluginPathCacheInfo> plugins = new();
         protected readonly ConcurrentDictionary<uint, ConnectionTimeInfo> connectionTimes = new();
         public uint OnlineNum = 0;
-        private Memory<byte> password = Helper.EmptyArray;
+        private string password = string.Empty;
 
         private WebSocketServer server;
 
@@ -34,7 +34,7 @@ namespace linker.libs.api
         /// </summary>
         public void Websocket(int port, string password = "")
         {
-            this.password = Encoding.UTF8.GetBytes(password);
+            this.password = password;
             server = new WebSocketServer();
             try
             {
@@ -46,10 +46,10 @@ namespace linker.libs.api
             }
             server.OnConnecting = (connection, header) =>
             {
-                bool res = this.password.Length == 0 || this.password.Span.SequenceEqual(header.SecWebSocketProtocol.Span);
+                bool res = string.IsNullOrWhiteSpace(this.password) || (header.TryGetHeaderValue(WebsocketHeaderKey.SecWebSocketProtocol, out string _password) && _password.Contains(this.password));
                 if (res)
                 {
-                    header.SecWebSocketExtensions = Helper.EmptyArray;
+                    header.SetHeaderValue(WebsocketHeaderKey.SecWebSocketExtensions, string.Empty);
                 }
                 return res;
             };

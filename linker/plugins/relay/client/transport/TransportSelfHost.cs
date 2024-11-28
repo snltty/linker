@@ -52,6 +52,8 @@ namespace linker.plugins.relay.client.transport
                 relayInfo.FlowingId = relayAskResultInfo.FlowingId;
                 if (relayInfo.FlowingId == 0 || relayAskResultInfo.Nodes.Count == 0)
                 {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) 
+                        LoggerHelper.Instance.Error($"relay ask fail,flowid:{relayInfo.FlowingId},nodes:{relayAskResultInfo.Nodes.Count}");
                     return null;
                 }
 
@@ -65,12 +67,16 @@ namespace linker.plugins.relay.client.transport
                 Socket socket = await ConnectNodeServer(relayInfo, relayAskResultInfo.Nodes);
                 if (socket == null)
                 {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) 
+                        LoggerHelper.Instance.Error($"relay connect server fail,flowid:{relayInfo.FlowingId},nodes:{relayAskResultInfo.Nodes.Count}");
                     return null;
                 }
 
                 //让对方确认中继
                 if (await RelayConfirm(relayInfo) == false)
                 {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) 
+                        LoggerHelper.Instance.Error($"relay confirm fail,flowid:{relayInfo.FlowingId},nodes:{relayAskResultInfo.Nodes.Count}");
                     return null;
                 }
 
@@ -212,9 +218,8 @@ namespace linker.plugins.relay.client.transport
                         }
 
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        {
                             LoggerHelper.Instance.Debug($"connect relay server {ep}");
-                        }
+
                         //连接中继服务器
                         Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                         socket.KeepAlive();
@@ -232,8 +237,13 @@ namespace linker.plugins.relay.client.transport
                         await socket.SendAsync(new byte[] { (byte)ResolverType.Relay });
                         await socket.SendAsync(MemoryPackSerializer.Serialize(relayMessage));
 
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"relay  connected {ep}");
+
                         //是否允许连接
-                        int length = await socket.ReceiveAsync(buffer);
+                        int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1));
+
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) 
+                            LoggerHelper.Instance.Debug($"relay  connected {ep}->{buffer[0]}");
                         if (buffer[0] == 0)
                         {
                             relayInfo.Server = node.EndPoint;

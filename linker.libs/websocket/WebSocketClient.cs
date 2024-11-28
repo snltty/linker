@@ -140,10 +140,9 @@ namespace linker.libs.websocket
                 {
 
                     token.SecWebSocketKey = WebSocketParser.BuildSecWebSocketKey();
-                    byte[] connectData = WebSocketParser.BuildConnectData(new WebsocketHeaderInfo
-                    {
-                        SecWebSocketKey = token.SecWebSocketKey,
-                    });
+                    WebsocketHeaderInfo header = new WebsocketHeaderInfo();
+                    header.SetHeaderValue(WebsocketHeaderKey.SecWebSocketKey, token.SecWebSocketKey);
+                    byte[] connectData = WebSocketParser.BuildConnectData(header);
 
                     token.TargetSocket.Send(connectData, SocketFlags.None);
 
@@ -366,7 +365,7 @@ namespace linker.libs.websocket
         private void HandleConnect(AsyncServerUserToken token, Memory<byte> data)
         {
             WebsocketHeaderInfo header = WebsocketHeaderInfo.Parse(data);
-            if (!WebSocketParser.VerifySecWebSocketAccept(token.SecWebSocketKey, header.SecWebSocketAccept))
+            if (header.TryGetHeaderValue(WebsocketHeaderKey.SecWebSocketAccept, out string accept) == false || WebSocketParser.VerifySecWebSocketAccept(token.SecWebSocketKey, accept) == false)
             {
                 OnConnectFail("Sec-WebSocket-Accept Invalid");
                 CloseClientSocket();
@@ -471,7 +470,7 @@ namespace linker.libs.websocket
         /// 当前帧的数据类型
         /// </summary>
         public WebSocketFrameInfo.EnumOpcode Opcode { get; set; }
-        public Memory<byte> SecWebSocketKey { get; set; }
+        public string SecWebSocketKey { get; set; }
         public byte[] PoolBuffer { get; set; }
 
         public void Clear()

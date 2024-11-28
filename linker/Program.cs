@@ -4,7 +4,6 @@ using linker.startup;
 using linker.config;
 using System.ServiceProcess;
 using System.Diagnostics;
-using linker.libs.extends;
 
 namespace linker
 {

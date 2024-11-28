@@ -5,6 +5,8 @@ using System.Collections.Concurrent;
 using linker.plugins.resolver;
 using System.Net;
 using MemoryPack;
+using linker.config;
+using linker.libs;
 
 namespace linker.plugins.relay.server
 {
@@ -25,7 +27,7 @@ namespace linker.plugins.relay.server
         private readonly ConcurrentDictionary<ulong, RelayWrap> relayDic = new ConcurrentDictionary<ulong, RelayWrap>();
 
 
-        public virtual void AddReceive(string key, string from, string to,string groupid, ulong bytes)
+        public virtual void AddReceive(string key, string from, string to, string groupid, ulong bytes)
         {
         }
         public virtual void AddSendt(string key, string from, string to, string groupid, ulong bytes)
@@ -51,10 +53,12 @@ namespace linker.plugins.relay.server
                 int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
                 RelayMessage relayMessage = MemoryPackSerializer.Deserialize<RelayMessage>(buffer.AsMemory(0, length).Span);
 
-                if (relayMessage.Type == RelayMessengerType.Ask)
+                if (relayMessage.Type == RelayMessengerType.Ask && relayMessage.NodeId != RelayNodeInfo.MASTER_NODE_ID)
                 {
-                    if (relayServerNodeTransfer.Invalid())
+                    if (relayServerNodeTransfer.Validate() == false)
                     {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            LoggerHelper.Instance.Debug($"relay Validate false,flowid:{relayMessage.FlowId}");
                         await socket.SendAsync(new byte[] { 1 });
                         socket.SafeClose();
                         return;

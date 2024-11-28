@@ -29,6 +29,7 @@ namespace linker.client.config
 
         public int PortMapWan { get; set; }
         public int PortMapLan { get; set; }
+
     }
 
     [MemoryPackable]
