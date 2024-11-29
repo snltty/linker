@@ -22,8 +22,7 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 优化websocket(某些代理环境下可能请求头key名称不规范)
-2. 尝试解决UDP获取外网IP端口失败的问题
-3. 看不懂为什么报毒</Description>
+2. 尝试解决UDP获取外网IP端口失败的问题</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

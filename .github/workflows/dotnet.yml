@@ -37,7 +37,7 @@ jobs:
           release_name: v1.6.0.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 优化websocket(某些代理环境下可能请求头key名称不规范)\r\n2. 尝试解决UDP获取外网IP端口失败的问题\r\n3. 看不懂为什么报毒"
+          body: "1. 优化websocket(某些代理环境下可能请求头key名称不规范)\r\n2. 尝试解决UDP获取外网IP端口失败的问题"
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
         uses: tvrcgo/oss-action@v0.1.1
