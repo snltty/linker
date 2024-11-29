@@ -5,7 +5,6 @@ using linker.libs.extends;
 using linker.plugins.resolver;
 using linker.libs;
 using System.Text;
-using System;
 
 namespace linker.plugins.tunnel
 {
