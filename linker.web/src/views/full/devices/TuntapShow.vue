@@ -2,6 +2,20 @@
     <div>
         <div class="flex">
             <div class="flex-1">
+                <template v-if="connections.list[item.MachineId] && connections.list[item.MachineId].Connected">
+                    <template v-if="connections.list[item.MachineId].Type == 0">
+                        <span class="point p2p" title="打洞直连"></span>
+                    </template>
+                    <template v-else-if="connections.list[item.MachineId].Type == 1">
+                        <span class="point relay" title="中继连接"></span>
+                    </template>
+                    <template v-else-if="connections.list[item.MachineId].Type == 2">
+                        <span class="point node" title="中继连接"></span>
+                    </template>
+                </template>
+                <template v-else>
+                    <span class="point" title="未连接"></span>
+                </template>
                 <a href="javascript:;" class="a-line" @click="handleTuntapIP(tuntap.list[item.MachineId])" title="此设备的虚拟网卡IP">
                     <template v-if="tuntap.list[item.MachineId].SetupError">
                         <strong class="red" :title="tuntap.list[item.MachineId].SetupError">{{ tuntap.list[item.MachineId].IP }}</strong>
@@ -62,6 +76,7 @@ import { useTuntap } from './tuntap';
 import {Loading} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
 import { computed } from 'vue';
+import { useTuntapConnections } from './connections';
 export default {
     props:['item','config'],
     emits: ['edit','refresh'],
@@ -75,6 +90,7 @@ export default {
         const hasTuntapChangeOther = computed(()=>globalData.value.hasAccess('TuntapChangeOther')); 
         const hasTuntapStatusSelf = computed(()=>globalData.value.hasAccess('TuntapStatusSelf')); 
         const hasTuntapStatusOther = computed(()=>globalData.value.hasAccess('TuntapStatusOther')); 
+        const connections = useTuntapConnections();
 
         const showDelay = computed(()=>((globalData.value.config.Running.Tuntap || {Switch:0}).Switch & 2) == 2);
         const handleTuntap = (tuntap) => {
@@ -95,7 +111,8 @@ export default {
             tuntap.loading = true;
             fn.then(() => {
                 ElMessage.success('操作成功！');
-            }).catch(() => {
+            }).catch((err) => {
+                console.log(err);
                 ElMessage.error('操作失败！');
             })
         }
@@ -120,7 +137,7 @@ export default {
         }
 
         return {
-            item:computed(()=>props.item),tuntap,showDelay,  handleTuntap, handleTuntapIP,handleTuntapRefresh
+            item:computed(()=>props.item),tuntap,showDelay,connections,  handleTuntap, handleTuntapIP,handleTuntapRefresh
         }
     }
 }

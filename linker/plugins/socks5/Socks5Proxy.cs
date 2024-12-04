@@ -11,9 +11,9 @@ using linker.plugins.tunnel;
 using linker.plugins.client;
 using linker.plugins.socks5.config;
 using System.Text;
-using System.Collections.Generic;
 using linker.plugins.relay.client;
 using linker.client.config;
+using linker.plugins.pcp;
 
 namespace linker.plugins.socks5
 {
@@ -24,11 +24,14 @@ namespace linker.plugins.socks5
         private uint[] maskValues = Array.Empty<uint>();
         private readonly ConcurrentDictionary<uint, string> ip2MachineDic = new ConcurrentDictionary<uint, string>();
 
+        private readonly ClientSignInTransfer clientSignInTransfer;
+
         protected override string TransactionId => "socks5";
 
-        public TunnelProxy(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState, RunningConfig runningConfig)
-             : base(config, tunnelTransfer, relayTransfer, clientSignInTransfer, clientSignInState, runningConfig)
+        public TunnelProxy(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, PcpTransfer pcpTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState, RunningConfig runningConfig)
+             : base(config, tunnelTransfer, relayTransfer, pcpTransfer, clientSignInTransfer, clientSignInState, runningConfig)
         {
+            this.clientSignInTransfer = clientSignInTransfer;
             TaskUdp();
         }
 

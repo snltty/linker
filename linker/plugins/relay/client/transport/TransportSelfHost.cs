@@ -52,7 +52,7 @@ namespace linker.plugins.relay.client.transport
                 relayInfo.FlowingId = relayAskResultInfo.FlowingId;
                 if (relayInfo.FlowingId == 0 || relayAskResultInfo.Nodes.Count == 0)
                 {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) 
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         LoggerHelper.Instance.Error($"relay ask fail,flowid:{relayInfo.FlowingId},nodes:{relayAskResultInfo.Nodes.Count}");
                     return null;
                 }
@@ -67,7 +67,7 @@ namespace linker.plugins.relay.client.transport
                 Socket socket = await ConnectNodeServer(relayInfo, relayAskResultInfo.Nodes);
                 if (socket == null)
                 {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) 
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         LoggerHelper.Instance.Error($"relay connect server fail,flowid:{relayInfo.FlowingId},nodes:{relayAskResultInfo.Nodes.Count}");
                     return null;
                 }
@@ -75,7 +75,7 @@ namespace linker.plugins.relay.client.transport
                 //让对方确认中继
                 if (await RelayConfirm(relayInfo) == false)
                 {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) 
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         LoggerHelper.Instance.Error($"relay confirm fail,flowid:{relayInfo.FlowingId},nodes:{relayAskResultInfo.Nodes.Count}");
                     return null;
                 }
@@ -202,7 +202,8 @@ namespace linker.plugins.relay.client.transport
 
             try
             {
-                if (string.IsNullOrWhiteSpace(relayInfo.NodeId) == false)
+                RelayNodeReportInfo defaultNode = nodes.FirstOrDefault(c => c.Id == relayInfo.NodeId);
+                if (defaultNode != null && defaultNode.ConnectionRatio < 99)
                 {
                     nodes = nodes.Where(c => c.Id == relayInfo.NodeId).ToList();
                 }
@@ -242,7 +243,7 @@ namespace linker.plugins.relay.client.transport
                         //是否允许连接
                         int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1));
 
-                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) 
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                             LoggerHelper.Instance.Debug($"relay  connected {ep}->{buffer[0]}");
                         if (buffer[0] == 0)
                         {

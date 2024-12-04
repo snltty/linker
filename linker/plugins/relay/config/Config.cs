@@ -2,8 +2,23 @@
 using linker.libs.extends;
 using linker.plugins.relay.client.transport;
 using MemoryPack;
-using System;
 using System.Net;
+
+
+namespace linker.client.config
+{
+    public sealed partial class RunningConfigInfo
+    {
+        public RelayInfo Relay { get; set; } = new RelayInfo();
+    }
+
+    public sealed class RelayInfo
+    {
+        public string DefaultNodeId { get; set; }
+    }
+
+}
+
 
 namespace linker.config
 {

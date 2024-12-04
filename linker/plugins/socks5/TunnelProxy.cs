@@ -13,13 +13,15 @@ namespace linker.plugins.socks5
         private SemaphoreSlim semaphoreSlimForward = new SemaphoreSlim(10);
         private SemaphoreSlim semaphoreSlimReverse = new SemaphoreSlim(10);
 
+        public Action RefreshConfig = () => { };
+
         public void Start(IPEndPoint ep, byte bufferSize)
         {
             StartTcp(ep, bufferSize);
             StartUdp(new IPEndPoint(ep.Address, LocalEndpoint.Port), bufferSize);
         }
 
-       
+
         /// <summary>
         /// 收到隧道数据
         /// </summary>
@@ -52,6 +54,17 @@ namespace linker.plugins.socks5
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error(ex);
             }
+
+            bool online = await clientSignInTransfer.GetOnline(connection.RemoteMachineId);
+            if (online == false)
+            {
+                foreach (var item in ip2MachineDic.Where(c => c.Value == connection.RemoteMachineId).Select(c => c.Key).ToList())
+                {
+                    ip2MachineDic.TryRemove(item, out string str);
+                }
+                RefreshConfig();
+            }
+
             await Task.CompletedTask;
         }
         /// <summary>
@@ -216,7 +229,7 @@ namespace linker.plugins.socks5
             index += 8;
 
             Step = (ProxyStep)(span[index] >> 4);
-            Protocol = (ProxyProtocol)((span[index] & 0b1100)>>2);
+            Protocol = (ProxyProtocol)((span[index] & 0b1100) >> 2);
             Direction = (ProxyDirection)(span[index] & 0b0011);
             index++;
 

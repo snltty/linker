@@ -11,6 +11,7 @@ using linker.plugins.tunnel;
 using System.Buffers;
 using linker.client.config;
 using linker.plugins.relay.client;
+using linker.plugins.pcp;
 
 namespace linker.plugins.tuntap
 {
@@ -30,10 +31,12 @@ namespace linker.plugins.tuntap
         private readonly FileConfig config;
         private readonly RunningConfig runningConfig;
         private readonly ClientSignInState clientSignInState;
+        private readonly ClientSignInTransfer clientSignInTransfer;
 
-        public TuntapProxy(FileConfig config, RunningConfig runningConfig, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer, LinkerTunDeviceAdapter linkerTunDeviceAdapter, ClientSignInState clientSignInState)
-            : base(config, tunnelTransfer, relayTransfer, clientSignInTransfer, clientSignInState, runningConfig)
+        public TuntapProxy(FileConfig config, RunningConfig runningConfig, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, PcpTransfer pcpTransfer, ClientSignInTransfer clientSignInTransfer, LinkerTunDeviceAdapter linkerTunDeviceAdapter, ClientSignInState clientSignInState)
+            : base(config, tunnelTransfer, relayTransfer, pcpTransfer, clientSignInTransfer, clientSignInState, runningConfig)
         {
+            this.clientSignInTransfer = clientSignInTransfer;
             this.config = config;
             this.runningConfig = runningConfig;
             this.linkerTunDeviceAdapter = linkerTunDeviceAdapter;
@@ -53,12 +56,6 @@ namespace linker.plugins.tuntap
         }
         protected override void OffLine(string machineId)
         {
-            /*
-            foreach (var item in ip2MachineDic.Values)
-            {
-                item.Remove(machineId);
-            }
-            */
         }
 
         /// <summary>
@@ -81,9 +78,22 @@ namespace linker.plugins.tuntap
         /// <returns></returns>
         public async Task Closed(ITunnelConnection connection, object state)
         {
+            bool online = await clientSignInTransfer.GetOnline(connection.RemoteMachineId);
+            if (online == false)
+            {
+                foreach (var item in ip2MachineDic.Where(c => c.Value == connection.RemoteMachineId).Select(c => c.Key).ToList())
+                {
+                    ip2MachineDic.TryRemove(item, out string str);
+                    ipConnections.TryRemove(item, out ITunnelConnection con);
+                    ipRefreshCache.Remove(item);
+                }
+                RefreshConfig();
+            }
+
             Version.Add();
             await Task.CompletedTask;
         }
+
         /// <summary>
         /// 收到网卡数据，发送给对方
         /// </summary>
@@ -171,7 +181,7 @@ namespace linker.plugins.tuntap
         /// <param name="machineId"></param>
         public void RemoveIP(string machineId)
         {
-            foreach (var item in ip2MachineDic.Where(c=>c.Value == machineId).ToList())
+            foreach (var item in ip2MachineDic.Where(c => c.Value == machineId).ToList())
             {
                 ipConnections.TryRemove(item.Key, out _);
                 ip2MachineDic.TryRemove(item.Key, out _);

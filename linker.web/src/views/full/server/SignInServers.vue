@@ -49,7 +49,8 @@ export default {
         const handleSave = ()=>{
             setSignInServers(state.list).then(()=>{
                 ElMessage.success('已操作');
-            }).catch(()=>{
+            }).catch((err)=>{
+                console.log(err);
                 ElMessage.error('操作失败');
             });
         }

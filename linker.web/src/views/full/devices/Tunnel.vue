@@ -1,5 +1,5 @@
 <template>
-    <el-table-column prop="tunnel" label="隧道" width="70">
+    <el-table-column prop="tunnel" label="隧道" width="76">
         <template #default="scope">
             <div v-if="tunnel.list[scope.row.MachineId]">
                 <a href="javascript:;" class="a-line" 
@@ -39,11 +39,12 @@ export default {
         const socks5Connections = useSocks5Connections();
 
         const connectionCount = (machineId)=>{
-                return [
+                const length = [
                     forwardConnections.value.list[machineId],
                     tuntapConnections.value.list[machineId],
                     socks5Connections.value.list[machineId],
                 ].filter(c=>!!c && c.Connected).length;
+                return length;
         };
        
         const handleTunnel = (tunnel,row) => {

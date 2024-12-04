@@ -1,4 +1,5 @@
-﻿using linker.config;
+﻿using linker.client.config;
+using linker.config;
 using linker.libs.api;
 using linker.libs.extends;
 using linker.plugins.capi;
@@ -11,12 +12,14 @@ namespace linker.plugins.relay.client
     public sealed class RelayApiController : IApiClientController
     {
         private readonly FileConfig config;
+        private readonly RunningConfig runningConfig;
         private readonly RelayTestTransfer relayTestTransfer;
         private readonly RelayTransfer relayTransfer;
 
-        public RelayApiController(FileConfig config, RelayTestTransfer relayTestTransfer, RelayTransfer relayTransfer)
+        public RelayApiController(FileConfig config, RunningConfig runningConfig, RelayTestTransfer relayTestTransfer, RelayTransfer relayTransfer)
         {
             this.config = config;
+            this.runningConfig = runningConfig;
             this.relayTestTransfer = relayTestTransfer;
             this.relayTransfer = relayTransfer;
         }
@@ -45,6 +48,8 @@ namespace linker.plugins.relay.client
         {
             RelayConnectInfo relayConnectInfo = param.Content.DeJson<RelayConnectInfo>();
             _ = relayTransfer.ConnectAsync(relayConnectInfo.FromMachineId, relayConnectInfo.ToMachineId, relayConnectInfo.TransactionId, relayConnectInfo.NodeId);
+            runningConfig.Data.Relay.DefaultNodeId = relayConnectInfo.NodeId;
+            runningConfig.Data.Update();
             return true;
         }
 

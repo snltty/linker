@@ -43,7 +43,8 @@ export default {
                 state.show = false;
                 ElMessage.success('已操作！');
                 emit('change')
-            }).catch(() => {
+            }).catch((err) => {
+                console.log(err);
                 state.loading = false;
                 ElMessage.error('操作失败！');
             });

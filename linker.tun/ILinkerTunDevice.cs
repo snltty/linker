@@ -114,6 +114,8 @@ namespace linker.tun
 
         [JsonIgnore]
         public bool Enable => ListenPort > 0 && ConnectAddr.Equals(IPAddress.Any) == false && ConnectPort > 0;
+
+        public string Key => $"{ListenAddr}:{ListenPort}->{ConnectAddr}:{ConnectPort}";
     }
 
     /// <summary>

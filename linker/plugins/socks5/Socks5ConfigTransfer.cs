@@ -39,6 +39,7 @@ namespace linker.plugins.socks5
             this.tunnelProxy = tunnelProxy;
 
             clientSignInState.NetworkEnabledHandle += (times) => DataVersion.Add();
+            tunnelProxy.RefreshConfig += RefreshConfig;
 
             if (runningConfig.Data.Socks5.Running) Retstart();
         }

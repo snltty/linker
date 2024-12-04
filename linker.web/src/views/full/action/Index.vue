@@ -38,7 +38,8 @@ export default {
             json[globalData.value.config.Client.ServerInfo.Host] = state.list;
             setArgs(json).then(()=>{
                 ElMessage.success('已操作');
-            }).catch(()=>{
+            }).catch((err)=>{
+                console.log(err);
                 ElMessage.error('操作失败');
             });;
         }

@@ -15,9 +15,13 @@
                 <el-table-column property="MaxGbTotal" label="月流量" width="160">
                     <template #default="scope">
                         <span v-if="scope.row.MaxGbTotal == 0">无限制</span>
-                        <span v-else>
-                            {{ (scope.row.MaxGbTotalLastBytes/1024/1024/1024).toFixed(2) }}GB / {{ scope.row.MaxGbTotal }}GB
-                        </span>
+                        <span v-else>{{ (scope.row.MaxGbTotalLastBytes/1024/1024/1024).toFixed(2) }}GB / {{ scope.row.MaxGbTotal }}GB</span>
+                    </template>
+                </el-table-column>
+                <el-table-column property="MaxBandwidth" label="连接带宽" width="80">
+                    <template #default="scope">
+                        <span v-if="scope.row.MaxBandwidth == 0">无限制</span>
+                        <span v-else>{{ scope.row.MaxBandwidth }}Mbps</span>
                     </template>
                 </el-table-column>
                 <el-table-column property="MaxBandwidthTotal" label="总带宽" width="80">
@@ -26,10 +30,9 @@
                         <span v-else>{{ scope.row.MaxBandwidthTotal }}Mbps</span>
                     </template>
                 </el-table-column>
-                <el-table-column property="MaxBandwidth" label="连接带宽" width="80">
+                <el-table-column property="BandwidthRatio" label="带宽速率" width="66">
                     <template #default="scope">
-                        <span v-if="scope.row.MaxBandwidth == 0">无限制</span>
-                        <span v-else>{{ scope.row.MaxBandwidth }}Mbps</span>
+                        <span>{{ scope.row.BandwidthRatio*100 }}%</span>
                     </template>
                 </el-table-column>
                 <el-table-column property="ConnectionRatio" label="连接数" width="60">
@@ -72,7 +75,8 @@ export default {
         const handleSave = ()=>{
             setRelayServers(state.list).then(()=>{
                 ElMessage.success('已操作');
-            }).catch(()=>{
+            }).catch((err)=>{
+                console.log(err);
                 ElMessage.error('操作失败');
             });;
         }

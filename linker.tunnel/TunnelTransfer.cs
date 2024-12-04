@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Net;
 using linker.tunnel.wanport;
+using System.Collections.Generic;
 
 namespace linker.tunnel
 {
@@ -280,8 +281,8 @@ namespace linker.tunnel
                     LoggerHelper.Instance.Error(ex);
                 }
             }
-           
-           
+
+
         }
         /// <summary>
         /// 收到对方发来的连接失败的消息
@@ -386,12 +387,12 @@ namespace linker.tunnel
             //先尝试内网ipv4
             if (tunnelTransportInfo.Local.Remote.Address.Equals(tunnelTransportInfo.Remote.Remote.Address))
             {
-                foreach (IPAddress item in tunnelTransportInfo.Remote.LocalIps.Where(c => c.AddressFamily == AddressFamily.InterNetwork))
+                eps.AddRange(tunnelTransportInfo.Remote.LocalIps.Where(c => c.AddressFamily == AddressFamily.InterNetwork).SelectMany(c => new List<IPEndPoint>
                 {
-                    eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Local.Port));
-                    eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port));
-                    eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port + 1));
-                }
+                    new IPEndPoint(c, tunnelTransportInfo.Remote.Local.Port),
+                    new IPEndPoint(c, tunnelTransportInfo.Remote.Remote.Port),
+                    new IPEndPoint(c, tunnelTransportInfo.Remote.Remote.Port + 1)
+                }));
             }
             //在尝试外网
             eps.AddRange(new List<IPEndPoint>{
@@ -399,12 +400,12 @@ namespace linker.tunnel
                 new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port+1)
             });
             //再尝试IPV6
-            foreach (IPAddress item in tunnelTransportInfo.Remote.LocalIps.Where(c => c.AddressFamily == AddressFamily.InterNetworkV6))
+            eps.AddRange(tunnelTransportInfo.Remote.LocalIps.Where(c => c.AddressFamily == AddressFamily.InterNetworkV6).SelectMany(c => new List<IPEndPoint>
             {
-                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Local.Port));
-                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port));
-                eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.Remote.Port + 1));
-            }
+                new IPEndPoint(c, tunnelTransportInfo.Remote.Local.Port),
+                new IPEndPoint(c, tunnelTransportInfo.Remote.Remote.Port),
+                new IPEndPoint(c, tunnelTransportInfo.Remote.Remote.Port + 1)
+             }));
             //本机有V6
             bool hasV6 = tunnelTransportInfo.Local.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6);
             //本机的局域网ip和外网ip
@@ -429,7 +430,7 @@ namespace linker.tunnel
         /// </summary>
         /// <param name="remoteMachineId"></param>
         /// <param name="transactionId"></param>
-        public void StartBackground(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols, Func<bool> stopCallback, int times = 10, int delay = 10000)
+        public void StartBackground(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols, Func<bool> stopCallback, Func<ITunnelConnection, Task> resultCallback, int times = 10, int delay = 10000)
         {
             if (AddBackground(remoteMachineId, transactionId) == false)
             {
@@ -439,21 +440,26 @@ namespace linker.tunnel
             }
             TimerHelper.Async(async () =>
             {
+
                 try
                 {
-                    await Task.Delay(delay);
+                    ITunnelConnection connection = null;
 
+                    await Task.Delay(delay);
                     for (int i = 1; i <= times; i++)
                     {
                         if (stopCallback()) break;
 
-                        ITunnelConnection connection = await ConnectAsync(remoteMachineId, transactionId, denyProtocols);
+                        connection = await ConnectAsync(remoteMachineId, transactionId, denyProtocols);
                         if (connection != null)
                         {
+
                             break;
                         }
                         await Task.Delay(i * 3000);
                     }
+
+                    await resultCallback(connection);
                 }
                 catch (Exception)
                 {
@@ -462,6 +468,7 @@ namespace linker.tunnel
                 {
                     RemoveBackground(remoteMachineId, transactionId);
                 }
+
             });
 
         }

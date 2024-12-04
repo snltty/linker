@@ -71,7 +71,8 @@ export default {
             addNetwork(state.ruleForm).then(()=>{
                 ElMessage.success('已操作');
                 state.show = false;
-            }).catch(()=>{
+            }).catch((err)=>{
+                console.log(err);
                 ElMessage.error('操作失败');
             })
         }
@@ -79,7 +80,8 @@ export default {
             addNetwork({IP:'0.0.0.0',PrefixLength:24}).then(()=>{
                 ElMessage.success('已操作');
                 _getNetwork();
-            }).catch(()=>{
+            }).catch((err)=>{
+                console.log(err);
                 ElMessage.error('操作失败');
             });
         }

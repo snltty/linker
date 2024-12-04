@@ -78,8 +78,9 @@ export default {
                     window.location.reload();
                 },1000);
             }).catch((err) => {
+                console.log(err);
                 state.loading = false;
-                ElMessage.success('操作失败!');
+                ElMessage.error('操作失败!');
             });
         }
         return {

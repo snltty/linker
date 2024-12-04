@@ -92,7 +92,8 @@ export default {
                         } else {
                             ElMessage.error('操作失败!');
                         }
-                    }).catch(() => {
+                    }).catch((err) => {
+                        console.log(err);
                         state.loading = false;
                         resolve();
                     })

@@ -251,32 +251,18 @@ namespace linker.tun
         private object writeLockObj = new object();
         public ReadOnlyMemory<byte> Read()
         {
-            try
-            {
-                int length = fs.Read(buffer.AsSpan(4));
-                length.ToBytes(buffer);
-                return buffer.AsMemory(0, length + 4);
-            }
-            catch (Exception)
-            {
-            }
-            return Helper.EmptyArray;
+            int length = fs.Read(buffer.AsSpan(4));
+            length.ToBytes(buffer);
+            return buffer.AsMemory(0, length + 4);
 
         }
         public bool Write(ReadOnlyMemory<byte> buffer)
         {
             lock (writeLockObj)
             {
-                try
-                {
-                    fs.Write(buffer.Span);
-                    fs.Flush();
-                    return true;
-                }
-                catch (Exception)
-                {
-                }
-                return false;
+                fs.Write(buffer.Span);
+                fs.Flush();
+                return true;
             }
         }
 
@@ -303,8 +289,6 @@ namespace linker.tun
         public void Clear()
         {
         }
-
-
     }
 
 

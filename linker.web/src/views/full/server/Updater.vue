@@ -47,7 +47,8 @@ export default {
             if(!state.secretKey) return;
             setSecretKey(state.secretKey).then(()=>{
                 ElMessage.success('已操作');
-            }).catch(()=>{
+            }).catch((err)=>{
+                console.log(err);
                 ElMessage.error('操作失败');
             });
         }
@@ -55,7 +56,8 @@ export default {
             const seconds = state.year*31536000 + state.month*2592000 + state.day*86400 + state.hour*3600 + state.min*60 + state.sec;
             setUpdateInterval(seconds).then(()=>{
                 ElMessage.success('已操作');
-            }).catch(()=>{
+            }).catch((err)=>{
+                console.log(err);
                 ElMessage.error('操作失败');
             });
        }

@@ -296,9 +296,16 @@ namespace linker.plugins.tuntap
         /// </summary>
         private void AddForward()
         {
-            DeleteForward();
-            forwardItems = ParseForwardItems();
-            tuntapTransfer.AddForward(forwardItems);
+            string oldStr = string.Join(",", forwardItems.Select(c => c.Key));
+            var temp = ParseForwardItems();
+            var newStr = string.Join(",", temp.Select(c => c.Key));
+
+            if(oldStr != newStr)
+            {
+                DeleteForward();
+                forwardItems = temp;
+                tuntapTransfer.AddForward(forwardItems);
+            }
         }
         /// <summary>
         /// 删除端口转发

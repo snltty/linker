@@ -6,6 +6,7 @@ using linker.tunnel;
 using linker.tunnel.connection;
 using System.Collections.Concurrent;
 using linker.plugins.relay.client;
+using linker.plugins.pcp;
 using linker.client.config;
 
 namespace linker.plugins.tunnel
@@ -15,32 +16,31 @@ namespace linker.plugins.tunnel
         public VersionManager Version { get; } = new VersionManager();
         protected virtual string TransactionId { get; }
         protected readonly ConcurrentDictionary<string, ITunnelConnection> connections = new ConcurrentDictionary<string, ITunnelConnection>();
-        protected readonly ConcurrentDictionary<string, uint> backgroundCache = new ConcurrentDictionary<string, uint>();
 
         private readonly FileConfig config;
+        private readonly RunningConfig runningConfig;
         private readonly TunnelTransfer tunnelTransfer;
         private readonly RelayTransfer relayTransfer;
+        private readonly PcpTransfer pcpTransfer;
         private readonly ClientSignInTransfer clientSignInTransfer;
         private readonly ClientSignInState clientSignInState;
-        private readonly RunningConfig runningConfig;
 
-        private uint maxTimes = 3;
-
-        public TunnelBase(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState, RunningConfig runningConfig)
+        public TunnelBase(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, PcpTransfer pcpTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState, RunningConfig runningConfig)
         {
             this.config = config;
+            this.runningConfig = runningConfig;
             this.tunnelTransfer = tunnelTransfer;
             this.relayTransfer = relayTransfer;
+            this.pcpTransfer = pcpTransfer;
             this.clientSignInTransfer = clientSignInTransfer;
             this.clientSignInState = clientSignInState;
-            this.runningConfig = runningConfig;
 
             //监听打洞成功
             tunnelTransfer.SetConnectedCallback(TransactionId, OnConnected);
             //监听中继成功
             relayTransfer.SetConnectedCallback(TransactionId, OnConnected);
-
-            clientSignInState.NetworkEnabledHandle += (times) => backgroundCache.Clear();
+            //监听节点中继成功回调
+            pcpTransfer.SetConnectedCallback(TransactionId, OnConnected);
         }
         protected virtual void Connected(ITunnelConnection connection)
         {
@@ -49,11 +49,6 @@ namespace linker.plugins.tunnel
         {
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Warning($"{TransactionId} add connection {connection.GetHashCode()} {connection.ToJson()}");
-
-            if (connection.Type == TunnelType.P2P)
-            {
-                backgroundCache.TryRemove(connection.RemoteMachineId, out _);
-            }
 
             if (connections.TryGetValue(connection.RemoteMachineId, out ITunnelConnection connectionOld) && connection.Equals(connectionOld) == false)
             {
@@ -66,6 +61,8 @@ namespace linker.plugins.tunnel
             }
             Version.Add();
             Connected(connection);
+
+            pcpTransfer.AddConnection(connection);
         }
 
 
@@ -133,19 +130,12 @@ namespace linker.plugins.tunnel
         private async Task<ITunnelConnection> RelayAndP2P(string machineId, TunnelProtocolType denyProtocols)
         {
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} relay to {machineId}");
-            ITunnelConnection connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, TransactionId).ConfigureAwait(false);
+            ITunnelConnection connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, TransactionId, runningConfig.Data.Relay.DefaultNodeId).ConfigureAwait(false);
             if (connection != null)
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} relay success,{connection.ToString()}");
             }
 
-            //尝试打洞三次应该足够了，再多也没有意义了
-            /*
-            if (backgroundCache.TryGetValue(machineId, out uint times) && times >= maxTimes)
-            {
-                return connection;
-            }
-            */
             //正在后台打洞
             if (tunnelTransfer.IsBackground(machineId, TransactionId))
             {
@@ -154,23 +144,33 @@ namespace linker.plugins.tunnel
 
             if (connection != null)
             {
-                //尝试3次
-                //backgroundCache.AddOrUpdate(machineId, maxTimes, (a, b) => b + maxTimes);
                 tunnelTransfer.StartBackground(machineId, TransactionId, denyProtocols, () =>
                 {
                     return connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected && connection.Type == TunnelType.P2P;
-                }, (int)maxTimes, 10000);
+                }, async (_connection) =>
+                {
+                    if (_connection == null)
+                    {
+                        await pcpTransfer.ConnectAsync(machineId, TransactionId, denyProtocols).ConfigureAwait(false);
+                    }
+                }, 3, 10000);
             }
             else
             {
-                //尝试一次
-                //backgroundCache.AddOrUpdate(machineId, 1, (a, b) => b + 1);
-
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} p2p to {machineId}");
                 connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, denyProtocols).ConfigureAwait(false);
                 if (connection != null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} p2p success,{connection.ToString()}");
+                }
+                if (connection == null)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} pcp to {machineId}");
+                    connection = await pcpTransfer.ConnectAsync(machineId, TransactionId, denyProtocols).ConfigureAwait(false);
+                }
+                if (connection != null)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} pcp success,{connection.ToString()}");
                 }
             }
             return connection;

@@ -94,10 +94,13 @@ namespace linker.plugins.relay.server
         {
             var result = reports.Values
                 .Where(c => c.Public || (c.Public == false && validated))
-                .Where(c => Environment.TickCount64 - c.LastTicks < 15000).OrderByDescending(c => c.LastTicks);
+                .Where(c => Environment.TickCount64 - c.LastTicks < 15000)
+                .Where(c => c.ConnectionRatio < 100 && (c.MaxGbTotal == 0 || (c.MaxGbTotal > 0 && c.MaxGbTotalLastBytes > 0)))
+                .OrderByDescending(c => c.LastTicks);
 
             return result.OrderByDescending(x => x.MaxConnection == 0 ? int.MaxValue : x.MaxConnection)
                      .ThenBy(x => x.ConnectionRatio)
+                     .ThenBy(x => x.BandwidthRatio)
                      .ThenByDescending(x => x.MaxBandwidth == 0 ? double.MaxValue : x.MaxBandwidth)
                      .ThenByDescending(x => x.MaxBandwidthTotal == 0 ? double.MaxValue : x.MaxBandwidthTotal)
                      .ThenByDescending(x => x.MaxGbTotal == 0 ? double.MaxValue : x.MaxGbTotal)

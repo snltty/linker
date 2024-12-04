@@ -2,6 +2,20 @@
     <div>
         <div class="flex">
             <div class="flex-1">
+                <template v-if="connections.list[item.MachineId]&& connections.list[item.MachineId].Connected">
+                    <template v-if="connections.list[item.MachineId].Type == 0">
+                        <span class="point p2p" title="打洞直连"></span>
+                    </template>
+                    <template v-else-if="connections.list[item.MachineId].Type == 1">
+                        <span class="point relay" title="中继连接"></span>
+                    </template>
+                    <template v-else-if="connections.list[item.MachineId].Type == 2">
+                        <span class="point node" title="中继连接"></span>
+                    </template>
+                </template>
+                <template v-else>
+                    <span class="point" title="未连接"></span>
+                </template>
                 <a href="javascript:;" class="a-line" @click="handleSocks5Port(socks5.list[item.MachineId])" title="此设备的socks5代理">
                     <template v-if="socks5.list[item.MachineId].SetupError">
                         <strong class="red" :title="socks5.list[item.MachineId].SetupError">
@@ -53,6 +67,7 @@ import { useSocks5 } from './socks5';
 import {Loading} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
 import { computed } from 'vue';
+import { useSocks5Connections } from './connections';
 export default {
     props:['item','config'],
     emits: ['edit','refresh'],
@@ -66,6 +81,8 @@ export default {
         const hasSocks5ChangeOther = computed(()=>globalData.value.hasAccess('Socks5ChangeOther')); 
         const hasSocks5StatusSelf = computed(()=>globalData.value.hasAccess('Socks5StatusSelf')); 
         const hasSocks5StatusOther = computed(()=>globalData.value.hasAccess('Socks5StatusOther')); 
+        const connections = useSocks5Connections();
+
         const handleSocks5 = (socks5) => {
             if(!props.config){
                 return;
@@ -83,7 +100,8 @@ export default {
             socks5.loading = true;
             fn.then(() => {
                 ElMessage.success('操作成功！');
-            }).catch(() => {
+            }).catch((err) => {
+                console.log(err);
                 ElMessage.error('操作失败！');
             })
         }
@@ -108,7 +126,7 @@ export default {
         }
 
         return {
-            item:computed(()=>props.item),socks5,  handleSocks5, handleSocks5Port,handleSocks5Refresh
+            item:computed(()=>props.item),socks5,connections,  handleSocks5, handleSocks5Port,handleSocks5Refresh
         }
     }
 }

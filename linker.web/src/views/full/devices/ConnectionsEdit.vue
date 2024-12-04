@@ -70,16 +70,21 @@
                         </span>
                     </template>
                 </el-table-column>
+                <el-table-column property="MaxBandwidth" label="连接带宽" width="80">
+                    <template #default="scope">
+                        <span v-if="scope.row.MaxBandwidth == 0">无限制</span>
+                        <span v-else>{{ scope.row.MaxBandwidth }}Mbps</span>
+                    </template>
+                </el-table-column>
                 <el-table-column property="MaxBandwidthTotal" label="总带宽" width="80">
                     <template #default="scope">
                         <span v-if="scope.row.MaxBandwidthTotal == 0">无限制</span>
                         <span v-else>{{ scope.row.MaxBandwidthTotal }}Mbps</span>
                     </template>
                 </el-table-column>
-                <el-table-column property="MaxBandwidth" label="连接带宽" width="80">
+                <el-table-column property="BandwidthRatio" label="带宽速率" width="66">
                     <template #default="scope">
-                        <span v-if="scope.row.MaxBandwidth == 0">无限制</span>
-                        <span v-else>{{ scope.row.MaxBandwidth }}Mbps</span>
+                        <span>{{ scope.row.BandwidthRatio*100 }}%</span>
                     </template>
                 </el-table-column>
                 <el-table-column property="ConnectionRatio" label="连接数" width="60">
