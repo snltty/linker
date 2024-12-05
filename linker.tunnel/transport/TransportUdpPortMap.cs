@@ -264,6 +264,7 @@ namespace linker.tunnel.transport
                     Type = TunnelType.P2P,
                     Mode = TunnelMode.Server,
                     TransactionId = tunnelTransportInfo.TransactionId,
+                    TransactionTag = tunnelTransportInfo.TransactionTag,
                     TransportName = tunnelTransportInfo.TransportName,
                     IPEndPoint = state.RemoteEndPoint,
                     Label = string.Empty,
@@ -317,6 +318,7 @@ namespace linker.tunnel.transport
                 {
                     IPEndPoint = ep,
                     TransactionId = tunnelTransportInfo.TransactionId,
+                    TransactionTag = tunnelTransportInfo.TransactionTag,
                     RemoteMachineId = tunnelTransportInfo.Remote.MachineId,
                     RemoteMachineName = tunnelTransportInfo.Remote.MachineName,
                     TransportName = Name,

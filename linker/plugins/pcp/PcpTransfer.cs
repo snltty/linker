@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.tunnel;
 using linker.tunnel.connection;
 
@@ -17,8 +18,13 @@ namespace linker.plugins.pcp
 
             tunnelTransfer.SetConnectedCallback(transactionId, OnConnected);
         }
+
         private void OnConnected(ITunnelConnection connection)
         {
+            TunnelTagInfo tag = connection.TransactionTag.DeJson<TunnelTagInfo>();
+
+            //connection.TransactionId = tag.OriginTransactionId;
+            // connection.Type = TunnelType.Node;
             if (OnConnectedCallbacks.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))
             {
                 foreach (var item in callbacks)
@@ -34,16 +40,10 @@ namespace linker.plugins.pcp
                 }
             }
         }
-
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols)
         {
             await Task.CompletedTask;
             return null;
-        }
-
-        public void AddConnection(ITunnelConnection connection)
-        {
-            pcpConfigTransfer.AddConnection(connection);
         }
 
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnectedCallbacks { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
@@ -75,5 +75,25 @@ namespace linker.plugins.pcp
         }
 
 
+        public void AddConnection(ITunnelConnection connection)
+        {
+            pcpConfigTransfer.AddConnection(connection);
+        }
+
+        sealed class TunnelTagInfo
+        {
+            /// <summary>
+            /// 节点id
+            /// </summary>
+            public string NodeId { get; set; }
+            /// <summary>
+            /// 原本的事务id
+            /// </summary>
+            public string TransactionId { get; set; }
+            /// <summary>
+            /// 是哪边的，l 和 r
+            /// </summary>
+            public char Side { get; set; } = 'l';
+        }
     }
 }

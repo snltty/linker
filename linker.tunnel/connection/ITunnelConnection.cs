@@ -29,6 +29,7 @@ namespace linker.tunnel.connection
     {
         P2P = 0,
         Relay = 1,
+        Node = 2,
     }
     /// <summary>
     /// 隧道方向
@@ -81,6 +82,10 @@ namespace linker.tunnel.connection
         /// 事务
         /// </summary>
         public string TransactionId { get; }
+        /// <summary>
+        /// 事务标签
+        /// </summary>
+        public string TransactionTag { get; }
         /// <summary>
         /// 协议
         /// </summary>

@@ -171,19 +171,7 @@ namespace linker.tunnel.transport
         /// </summary>
         public byte Order { get; set; }
     }
-    public sealed class TunnelTransportItemInfoEqualityComparer : IEqualityComparer<TunnelTransportItemInfo>
-    {
-        public bool Equals(TunnelTransportItemInfo x, TunnelTransportItemInfo y)
-        {
-            return x.Name == y.Name;
-        }
-
-        public int GetHashCode(TunnelTransportItemInfo obj)
-        {
-            return obj.Name.GetHashCode();
-        }
-    }
-
+    
     public sealed partial class TunnelTransportInfo
     {
         /// <summary>
@@ -224,6 +212,11 @@ namespace linker.tunnel.transport
         /// 流id
         /// </summary>
         public uint FlowId { get; set; }
+
+        /// <summary>
+        /// 标签
+        /// </summary>
+        public string TransactionTag { get; set; }
 
         /// <summary>
         /// 目标ip列表

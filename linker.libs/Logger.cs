@@ -101,6 +101,7 @@ namespace linker.libs
 
         public void Enqueue(LoggerModel model)
         {
+            if (string.IsNullOrWhiteSpace(model.Content)) return;
             queue.Enqueue(model);
         }
     }

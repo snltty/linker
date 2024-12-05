@@ -127,16 +127,15 @@ namespace linker.plugins.sforward
                         if (sForwardAddResultInfo.Success)
                         {
                             forwardInfo.Proxy = true;
-                            LoggerHelper.Instance.Debug(sForwardAddResultInfo.Message);
                             forwardInfo.Msg = string.Empty;
+                            LoggerHelper.Instance.Debug(sForwardAddResultInfo.Message);
                         }
                         else
                         {
                             forwardInfo.Started = false;
-                            LoggerHelper.Instance.Error(sForwardAddResultInfo.Message);
                             forwardInfo.Msg = sForwardAddResultInfo.Message;
+                            LoggerHelper.Instance.Error(sForwardAddResultInfo.Message);
                         }
-
                     }
                 });
             }

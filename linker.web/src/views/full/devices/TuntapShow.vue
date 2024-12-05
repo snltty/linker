@@ -10,7 +10,7 @@
                         <span class="point relay" title="中继连接"></span>
                     </template>
                     <template v-else-if="connections.list[item.MachineId].Type == 2">
-                        <span class="point node" title="中继连接"></span>
+                        <span class="point node" title="节点连接"></span>
                     </template>
                 </template>
                 <template v-else>

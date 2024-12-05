@@ -1,4 +1,5 @@
 ﻿using linker.config;
+using linker.plugins.pcp.messenger;
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -22,10 +23,13 @@ namespace linker.plugins.pcp
         {
             serviceCollection.AddSingleton<PcpConfigTransfer>();
             serviceCollection.AddSingleton<PcpTransfer>();
+
+            serviceCollection.AddSingleton<PcpClientMessenger>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
+            serviceCollection.AddSingleton<PcpServerMessenger>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)

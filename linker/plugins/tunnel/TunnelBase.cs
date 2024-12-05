@@ -66,10 +66,6 @@ namespace linker.plugins.tunnel
         }
 
 
-        protected virtual void OffLine(string machineId)
-        {
-        }
-
         protected virtual async ValueTask<bool> WaitAsync(string machineId)
         {
             await ValueTask.CompletedTask;
@@ -105,7 +101,6 @@ namespace linker.plugins.tunnel
                 //不在线就不必连了
                 if (await clientSignInTransfer.GetOnline(machineId) == false)
                 {
-                    OffLine(machineId);
                     return null;
                 }
 

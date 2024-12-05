@@ -54,10 +54,7 @@ namespace linker.plugins.tuntap
                 ipConnections.AddOrUpdate(ip, connection, (a, b) => connection);
             };
         }
-        protected override void OffLine(string machineId)
-        {
-        }
-
+      
         /// <summary>
         /// 收到隧道数据，写入网卡
         /// </summary>

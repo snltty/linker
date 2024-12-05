@@ -35,7 +35,7 @@ namespace linker.plugins.forward
             this.messengerSender = messengerSender;
 
             clientSignInState.NetworkEnabledHandle += Reset;
-
+            CheckTask();
 
         }
 
@@ -94,69 +94,95 @@ namespace linker.plugins.forward
                 groupid = fileConfig.Data.Client.Group.Id;
 
                 await Task.Delay(5000).ConfigureAwait(false);
-                Start(10);
+                Start(false);
             });
         }
-
-        private void Start(int times = 1)
+        private void CheckTask()
         {
-            uint maxid = running.Data.Forwards.Count > 0 ? running.Data.Forwards.Max(c => c.Id) : 1;
-            ns.Reset(maxid);
-
-            foreach (var item in running.Data.Forwards.Where(c => c.GroupId == fileConfig.Data.Client.Group.Id))
+            TimerHelper.SetInterval(() =>
             {
-                if (item.Started)
+                lock (this)
                 {
-                    Start(item, times);
+                    var items = running.Data.Forwards
+                    .Where(c => c.GroupId == fileConfig.Data.Client.Group.Id)
+                    .Where(c => c.Started && c.Proxy == false && string.IsNullOrWhiteSpace(c.Msg) == false);
+                    foreach (var item in items)
+                    {
+                        Start(item, false);
+                    }
                 }
-                else
+                return true;
+            }, 30000);
+        }
+        private void Start(bool errorStop = true)
+        {
+            lock (this)
+            {
+                uint maxid = running.Data.Forwards.Count > 0 ? running.Data.Forwards.Max(c => c.Id) : 1;
+                ns.Reset(maxid);
+
+                foreach (var item in running.Data.Forwards.Where(c => c.GroupId == fileConfig.Data.Client.Group.Id))
                 {
-                    Stop(item);
+                    if (item.Started)
+                    {
+                        Start(item, errorStop);
+                    }
+                    else
+                    {
+                        Stop(item);
+                    }
+                }
+                DataVersion.Add();
+            }
+        }
+        private void Start(ForwardInfo forwardInfo, bool errorStop = true)
+        {
+            if (forwardInfo.Proxy == false)
+            {
+                try
+                {
+                    forwardProxy.Start(new System.Net.IPEndPoint(forwardInfo.BindIPAddress, forwardInfo.Port), forwardInfo.TargetEP, forwardInfo.MachineId, forwardInfo.BufferSize);
+                    forwardInfo.Port = forwardProxy.LocalEndpoint.Port;
+
+                    if (forwardInfo.Port > 0)
+                    {
+                        forwardInfo.Started = true;
+                        forwardInfo.Proxy = true;
+                        forwardInfo.Msg = string.Empty;
+                        LoggerHelper.Instance.Debug($"start forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP}");
+                    }
+                    else
+                    {
+                        if (errorStop)
+                        {
+                            forwardInfo.Started = false;
+                        }
+                        forwardInfo.Msg = $"start forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP} fail";
+                        LoggerHelper.Instance.Error(forwardInfo.Msg);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (errorStop)
+                    {
+                        forwardInfo.Started = false;
+                    }
+                    forwardInfo.Msg = $"{ex.Message},start forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP} fail";
+                    LoggerHelper.Instance.Error(ex);
                 }
             }
-            DataVersion.Add();
-        }
-        private void Start(ForwardInfo forwardInfo,int times = 1)
-        {
-            TimerHelper.Async(async () =>
-            {
-                for (int i = 0; i < times && forwardInfo.Proxy == false; i++)
-                {
-                    try
-                    {
-                        forwardProxy.Start(new System.Net.IPEndPoint(forwardInfo.BindIPAddress, forwardInfo.Port), forwardInfo.TargetEP, forwardInfo.MachineId, forwardInfo.BufferSize);
-                        forwardInfo.Port = forwardProxy.LocalEndpoint.Port;
 
-                        if (forwardInfo.Port > 0)
-                        {
-                            forwardInfo.Proxy = true;
-                            forwardInfo.Msg = string.Empty;
-                            LoggerHelper.Instance.Debug($"start forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP}");
-                            break;
-                        }
-                        else
-                        {
-                            forwardInfo.Msg = $"start forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP} fail, retry times {times-i}";
-                            LoggerHelper.Instance.Error(forwardInfo.Msg);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        forwardInfo.Msg = $"{ex.Message},start forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP} fail, retry times {times - i}";
-                        LoggerHelper.Instance.Error(ex);
-                    }
-                    await Task.Delay(10000);
-                }
-
-                Version.Add();
-            });
+            Version.Add();
         }
 
         private void Stop()
         {
-            foreach (var item in running.Data.Forwards)
+            lock (this)
             {
-                Stop(item);
+                foreach (var item in running.Data.Forwards)
+                {
+                    Stop(item);
+                }
             }
         }
         private void Stop(ForwardInfo forwardInfo)

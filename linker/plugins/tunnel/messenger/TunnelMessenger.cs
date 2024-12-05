@@ -6,7 +6,6 @@ using linker.tunnel.transport;
 using linker.libs;
 using MemoryPack;
 using linker.plugins.messenger;
-using System.Collections.Concurrent;
 
 namespace linker.plugins.tunnel.messenger
 {
@@ -101,8 +100,6 @@ namespace linker.plugins.tunnel.messenger
     {
         private readonly IMessengerSender messengerSender;
         private readonly SignCaching signCaching;
-        private readonly ConcurrentDictionary<string, TunnelRecordInfo> records = new ConcurrentDictionary<string, TunnelRecordInfo>();
-
         public TunnelServerMessenger(IMessengerSender messengerSender, SignCaching signCaching)
         {
             this.messengerSender = messengerSender;
@@ -209,23 +206,6 @@ namespace linker.plugins.tunnel.messenger
             }
 
         }
-
-    }
-
-    [MemoryPackable]
-    public sealed partial class TunnelRecordInfo
-    {
-        public string MachineName { get; set; }
-        public uint Times { get; set; }
-        public ConcurrentDictionary<string, TunnelRecordItemInfo> To { get; set; } = new ConcurrentDictionary<string, TunnelRecordItemInfo>();
-
-
-    }
-    [MemoryPackable]
-    public sealed partial class TunnelRecordItemInfo
-    {
-        public string MachineName { get; set; }
-        public uint Times { get; set; }
 
     }
 }

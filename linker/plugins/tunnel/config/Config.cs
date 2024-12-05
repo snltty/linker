@@ -93,7 +93,7 @@ namespace linker.config
         TunnelWanPortProtocolType ProtocolType => info.ProtocolType;
 
         [MemoryPackConstructor]
-        SerializableTunnelWanPortProtocolInfo(string machineId,  TunnelWanPortProtocolType protocolType)
+        SerializableTunnelWanPortProtocolInfo(string machineId, TunnelWanPortProtocolType protocolType)
         {
             var info = new TunnelWanPortProtocolInfo { MachineId = machineId, ProtocolType = protocolType };
             this.info = info;
@@ -317,9 +317,11 @@ namespace linker.config
         [MemoryPackInclude]
         uint FlowId => tunnelTransportInfo.FlowId;
 
+        //[MemoryPackInclude]
+        //string TransactionTag => tunnelTransportInfo.TransactionTag;
 
         [MemoryPackConstructor]
-        SerializableTunnelTransportInfo(TunnelTransportWanPortInfo local, TunnelTransportWanPortInfo remote, string transactionId, TunnelProtocolType transportType, string transportName, TunnelDirection direction, bool ssl, byte bufferSize, uint flowid)
+        SerializableTunnelTransportInfo(TunnelTransportWanPortInfo local, TunnelTransportWanPortInfo remote, string transactionId, TunnelProtocolType transportType, string transportName, TunnelDirection direction, bool ssl, byte bufferSize, uint flowid/*, string transactionTag*/)
         {
             var tunnelTransportInfo = new TunnelTransportInfo
             {
@@ -331,7 +333,8 @@ namespace linker.config
                 Direction = direction,
                 SSL = ssl,
                 BufferSize = bufferSize,
-                FlowId = flowid
+                FlowId = flowid,
+               // TransactionTag = transactionTag
             };
             this.tunnelTransportInfo = tunnelTransportInfo;
         }

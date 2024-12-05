@@ -7,7 +7,7 @@ using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Net;
 using linker.tunnel.wanport;
-using System.Collections.Generic;
+using System.Transactions;
 
 namespace linker.tunnel
 {
@@ -138,6 +138,18 @@ namespace linker.tunnel
         /// <returns></returns>
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols)
         {
+            return await ConnectAsync(remoteMachineId, transactionId, transactionId, denyProtocols);
+        }
+        /// <summary>
+        /// 开始连接对方
+        /// </summary>
+        /// <param name="remoteMachineId">对方id</param>
+        /// <param name="transactionId">事务id，随便起，你喜欢就好</param>
+        /// <param name="transactionTag">事务tag，随便起，你喜欢就好</param>
+        /// <param name="denyProtocols">本次连接排除那些打洞协议</param>
+        /// <returns></returns>
+        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId, string transactionTag, TunnelProtocolType denyProtocols)
+        {
             if (connectingDic.TryAdd(remoteMachineId, true) == false) return null;
 
             try
@@ -200,12 +212,13 @@ namespace linker.tunnel
                                 {
                                     Direction = (TunnelDirection)i,
                                     TransactionId = transactionId,
+                                    TransactionTag = transactionTag,
                                     TransportName = transport.Name,
                                     TransportType = transport.ProtocolType,
                                     Local = localInfo.Result,
                                     Remote = remoteInfo.Result,
                                     SSL = transportItem.SSL,
-                                    FlowId = Interlocked.Increment(ref flowid)
+                                    FlowId = Interlocked.Increment(ref flowid),
                                 };
                                 OnConnecting(tunnelTransportInfo);
                                 ParseRemoteEndPoint(tunnelTransportInfo);
@@ -440,7 +453,6 @@ namespace linker.tunnel
             }
             TimerHelper.Async(async () =>
             {
-
                 try
                 {
                     ITunnelConnection connection = null;
