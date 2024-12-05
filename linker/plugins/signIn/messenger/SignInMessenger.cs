@@ -43,25 +43,6 @@ namespace linker.plugins.signin.messenger
         {
             connection.Disponse();
             return;
-            /*
-            SignInfo info = MemoryPackSerializer.Deserialize<SignInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            LoggerHelper.Instance.Info($"sign in from {connection.Address}->{info.ToJson()}");
-
-            info.Connection = connection;
-
-            SignInResponseInfo resp = new SignInResponseInfo();
-            string msg = await signCaching.Sign(info);
-            resp.Status = string.IsNullOrWhiteSpace(msg);
-            resp.Msg = msg;
-            if (resp.Status)
-            {
-                connection.Write(MemoryPackSerializer.Serialize(info.MachineId));
-            }
-            else
-            {
-                connection.Write(Helper.EmptyArray);
-            }
-            */
         }
 
         /// <summary>
