@@ -77,7 +77,7 @@ namespace linker.plugins.pcp
 
         public void AddConnection(ITunnelConnection connection)
         {
-            pcpConfigTransfer.AddConnection(connection);
+            pcpConfigTransfer.AddHistory(connection);
         }
 
         sealed class TunnelTagInfo

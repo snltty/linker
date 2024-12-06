@@ -61,6 +61,8 @@ namespace linker
             serviceProvider = serviceCollection.BuildServiceProvider();
             StartupTransfer.Use(serviceProvider, config);
 
+            LoggerHelper.Instance.Debug($"linker are running....");
+
             GCHelper.FlushMemory();
         }
 

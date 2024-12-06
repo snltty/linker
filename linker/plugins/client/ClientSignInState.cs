@@ -1,5 +1,4 @@
 ﻿using linker.plugins.messenger;
-using linker.tun;
 using System.Text.Json.Serialization;
 
 namespace linker.plugins.client

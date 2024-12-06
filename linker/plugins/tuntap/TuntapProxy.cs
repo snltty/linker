@@ -75,6 +75,7 @@ namespace linker.plugins.tuntap
         /// <returns></returns>
         public async Task Closed(ITunnelConnection connection, object state)
         {
+            /*
             bool online = await clientSignInTransfer.GetOnline(connection.RemoteMachineId);
             if (online == false)
             {
@@ -86,7 +87,7 @@ namespace linker.plugins.tuntap
                 }
                 RefreshConfig();
             }
-
+            */
             Version.Add();
             await Task.CompletedTask;
         }
