@@ -54,7 +54,7 @@ namespace linker.plugins.socks5
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error(ex);
             }
-
+            /*
             bool online = await clientSignInTransfer.GetOnline(connection.RemoteMachineId);
             if (online == false)
             {
@@ -64,7 +64,7 @@ namespace linker.plugins.socks5
                 }
                 RefreshConfig();
             }
-
+            */
             await Task.CompletedTask;
         }
         /// <summary>

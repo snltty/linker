@@ -54,7 +54,7 @@ namespace linker.plugins.tuntap
                 ipConnections.AddOrUpdate(ip, connection, (a, b) => connection);
             };
         }
-      
+
         /// <summary>
         /// 收到隧道数据，写入网卡
         /// </summary>
@@ -76,18 +76,20 @@ namespace linker.plugins.tuntap
         public async Task Closed(ITunnelConnection connection, object state)
         {
             /*
-            bool online = await clientSignInTransfer.GetOnline(connection.RemoteMachineId);
-            if (online == false)
-            {
-                foreach (var item in ip2MachineDic.Where(c => c.Value == connection.RemoteMachineId).Select(c => c.Key).ToList())
-                {
-                    ip2MachineDic.TryRemove(item, out string str);
-                    ipConnections.TryRemove(item, out ITunnelConnection con);
-                    ipRefreshCache.Remove(item);
-                }
-                RefreshConfig();
-            }
-            */
+           bool online = await clientSignInTransfer.GetOnline(connection.RemoteMachineId);
+           if (online == false)
+           {
+
+               foreach (var item in ip2MachineDic.Where(c => c.Value == connection.RemoteMachineId).Select(c => c.Key).ToList())
+               {
+                   ip2MachineDic.TryRemove(item, out string str);
+                   ipConnections.TryRemove(item, out ITunnelConnection con);
+                   ipRefreshCache.Remove(item);
+               }
+               RefreshConfig();
+           }
+           */
+            RefreshConfig();
             Version.Add();
             await Task.CompletedTask;
         }
@@ -221,7 +223,6 @@ namespace linker.plugins.tuntap
             return null;
 
         }
-
 
         public void ClearIPs()
         {
