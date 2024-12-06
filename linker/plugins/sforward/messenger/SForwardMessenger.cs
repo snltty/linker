@@ -182,15 +182,8 @@ namespace linker.plugins.sforward.messenger
                     }
                     else
                     {
-                        if (sForwardServerCahing.TryRemove(sForwardAddInfo.Domain, connection.Id, out _) == false)
-                        {
-                            result.Success = false;
-                            result.Message = $"domain 【{sForwardAddInfo.Domain}】 remove fail";
-                        }
-                        else
-                        {
-                            result.Message = $"domain 【{sForwardAddInfo.Domain}】 remove success";
-                        }
+                        sForwardServerCahing.TryRemove(sForwardAddInfo.Domain, connection.Id, out _);
+                        result.Message = $"domain 【{sForwardAddInfo.Domain}】 remove success";
                     }
 
                     return;
@@ -198,16 +191,9 @@ namespace linker.plugins.sforward.messenger
 
                 if (sForwardAddInfo.RemotePort > 0)
                 {
-                    if (sForwardServerCahing.TryRemove(sForwardAddInfo.RemotePort, connection.Id, out _) == false)
-                    {
-                        result.Success = false;
-                        result.Message = $"port 【{sForwardAddInfo.RemotePort}】 remove fail";
-                    }
-                    else
-                    {
-                        proxy.Stop(sForwardAddInfo.RemotePort);
-                        result.Message = $"port 【{sForwardAddInfo.RemotePort}】 remove success";
-                    }
+                    sForwardServerCahing.TryRemove(sForwardAddInfo.RemotePort, connection.Id, out _);
+                    proxy.Stop(sForwardAddInfo.RemotePort);
+                    result.Message = $"port 【{sForwardAddInfo.RemotePort}】 remove success";
                     return;
                 }
             }

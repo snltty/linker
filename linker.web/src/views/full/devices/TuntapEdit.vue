@@ -90,14 +90,14 @@ export default {
         const handleSave = () => {
             const json = JSON.parse(JSON.stringify(tuntap.value.current));
             json.IP = state.ruleForm.IP.replace(/\s/g, '') || '0.0.0.0';
-            json.Lans = lanDom.value.getData();
+            json.Lans = lanDom.value ?  lanDom.value.getData() : tuntap.value.current.Lans;
             json.PrefixLength = +state.ruleForm.PrefixLength;
             json.Gateway = state.ruleForm.Gateway;
             json.ShowDelay = state.ruleForm.ShowDelay;
             json.AutoConnect = state.ruleForm.AutoConnect;
             json.Upgrade = state.ruleForm.Upgrade;
             json.Multicast = state.ruleForm.Multicast;
-            json.Forwards = forwardDom.value.getData();
+            json.Forwards = forwardDom.value ?  forwardDom.value.getData() : tuntap.value.current.Forwards;
             
             updateTuntap(json).then(() => {
                 state.show = false;
