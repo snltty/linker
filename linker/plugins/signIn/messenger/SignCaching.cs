@@ -41,20 +41,20 @@ namespace linker.plugins.signin.messenger
             }
 
             bool has = Clients.TryGetValue(signInfo.MachineId, out SignCacheInfo cache);
-            if (has == false) cache = new SignCacheInfo();
+            if (has == false)
+            {
+                cache = new SignCacheInfo();
+            }
 
             //参数验证失败
             string verifyResult = await signInArgsTransfer.Verify(signInfo, cache);
             if (string.IsNullOrWhiteSpace(verifyResult) == false)
             {
-                cache.Connection?.Disponse(10);
                 cache.Connected = false;
                 return verifyResult;
             }
-
             //无限制，则挤压下线
             cache.Connection?.Disponse(9);
-
             if (has == false)
             {
                 cache.Id = new ObjectId(signInfo.MachineId);
