@@ -47,6 +47,8 @@ namespace linker.plugins.signin.messenger
             string verifyResult = await signInArgsTransfer.Verify(signInfo, cache);
             if (string.IsNullOrWhiteSpace(verifyResult) == false)
             {
+                cache.Connection?.Disponse(10);
+                cache.Connected = false;
                 return verifyResult;
             }
 
