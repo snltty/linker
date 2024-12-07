@@ -4,6 +4,7 @@ using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.plugins.tuntap.messenger;
 using linker.libs;
+using linker.libs.extends;
 
 namespace linker.plugins.tuntap.lease
 {
@@ -39,7 +40,8 @@ namespace linker.plugins.tuntap.lease
             });
             if (resp.Code == MessageResponeCodes.OK)
             {
-                return MemoryPackSerializer.Deserialize<LeaseInfo>(resp.Data.Span);
+                LeaseInfo info = MemoryPackSerializer.Deserialize<LeaseInfo>(resp.Data.Span);
+                return info;
             }
             return new LeaseInfo { IP = IPAddress.Any, PrefixLength = 24 };
         }

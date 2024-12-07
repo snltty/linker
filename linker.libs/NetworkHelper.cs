@@ -96,7 +96,6 @@ namespace linker.libs
         }
 
 
-
         static List<string> starts = new() { "10.", "100.", "192.168.", "172." };
         public static ushort GetRouteLevel(string server, out List<IPAddress> result)
         {
@@ -163,7 +162,6 @@ namespace linker.libs
         }
 
 
-
         private static byte[] ipv6LocalBytes = new byte[] { 254, 128, 0, 0, 0, 0, 0, 0 };
         public static IPAddress[] GetIPV6()
         {
@@ -194,19 +192,17 @@ namespace linker.libs
             return Array.Empty<IPAddress>();
         }
 
-
         public static byte PrefixValue2Length(uint ip)
         {
-            byte maskLength = 32;
-            for (int i = 0; i < sizeof(uint); i++)
+            int maskLength = 32, i;
+            for (i = 0; i < sizeof(uint) * 8; i++)
             {
-                if (((ip >> (i * 8)) & 0x000000ff) != 0)
+                if (((ip >> i) & 0x01) != 0)
                 {
                     break;
                 }
-                maskLength -= 8;
             }
-            return maskLength;
+            return (byte)(maskLength - i);
         }
         public static uint PrefixLength2Value(byte prefixLength)
         {
@@ -219,7 +215,6 @@ namespace linker.libs
             return new IPAddress(BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(prefixIP)));
         }
 
-
         public static uint IP2Value(IPAddress ip)
         {
             return BinaryPrimitives.ReadUInt32BigEndian(ip.GetAddressBytes());
@@ -228,7 +223,6 @@ namespace linker.libs
         {
             return new IPAddress(BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(value)));
         }
-
 
         public static IPAddress NetworkIP2IP(IPAddress ip, uint prefixIP)
         {
