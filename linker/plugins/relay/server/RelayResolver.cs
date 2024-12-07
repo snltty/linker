@@ -58,7 +58,7 @@ namespace linker.plugins.relay.server
                     if (relayServerNodeTransfer.Validate() == false)
                     {
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                            LoggerHelper.Instance.Debug($"relay {relayMessage.Type} Validate false,flowid:{relayMessage.FlowId}");
+                            LoggerHelper.Instance.Error($"relay {relayMessage.Type} Validate false,flowid:{relayMessage.FlowId}");
                         await socket.SendAsync(new byte[] { 1 });
                         socket.SafeClose();
                         return;
@@ -71,7 +71,7 @@ namespace linker.plugins.relay.server
                 if (relayCache == null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Debug($"relay {relayMessage.Type} get cache fail,flowid:{relayMessage.FlowId}");
+                        LoggerHelper.Instance.Error($"relay {relayMessage.Type} get cache fail,flowid:{relayMessage.FlowId}");
                     socket.SafeClose();
                     return;
                 }
@@ -102,7 +102,7 @@ namespace linker.plugins.relay.server
                                 if (relayDic.TryRemove(relayCache.FlowId, out RelayWrap relayWrap) == false || relayWrap.Socket == null)
                                 {
                                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                        LoggerHelper.Instance.Debug($"relay {relayMessage.Type} get cache fail,flowid:{relayMessage.FlowId}");
+                                        LoggerHelper.Instance.Error($"relay {relayMessage.Type} get cache fail,flowid:{relayMessage.FlowId}");
                                     socket.SafeClose();
                                     return;
                                 }
@@ -114,7 +114,7 @@ namespace linker.plugins.relay.server
                         default:
                             {
                                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                    LoggerHelper.Instance.Debug($"relay {relayMessage.Type}  unknow type,flowid:{relayMessage.FlowId}");
+                                    LoggerHelper.Instance.Error($"relay {relayMessage.Type}  unknow type,flowid:{relayMessage.FlowId}");
                                 socket.SafeClose();
                             }
                             break;
@@ -123,7 +123,7 @@ namespace linker.plugins.relay.server
                 catch (Exception ex)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Debug($"{ex},flowid:{relayMessage.FlowId}");
+                        LoggerHelper.Instance.Error($"{ex},flowid:{relayMessage.FlowId}");
                     if (relayDic.TryRemove(relayCache.FlowId, out RelayWrap remove))
                     {
                         remove.Socket?.SafeClose();
@@ -133,7 +133,7 @@ namespace linker.plugins.relay.server
             catch (Exception ex)
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Debug(ex);
+                    LoggerHelper.Instance.Error(ex);
                 socket.SafeClose();
             }
             finally
