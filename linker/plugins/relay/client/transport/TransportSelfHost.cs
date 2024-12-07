@@ -202,13 +202,7 @@ namespace linker.plugins.relay.client.transport
 
             try
             {
-                RelayNodeReportInfo defaultNode = nodes.FirstOrDefault(c => c.Id == relayInfo.NodeId);
-                if (defaultNode != null && defaultNode.ConnectionRatio < 99)
-                {
-                    nodes = nodes.Where(c => c.Id == relayInfo.NodeId).ToList();
-                }
-
-                foreach (var node in nodes)
+                foreach (var node in nodes.Where(c => c.Id == relayInfo.NodeId).Concat(nodes.Where(c => c.Id != relayInfo.NodeId)))
                 {
                     try
                     {
