@@ -70,7 +70,6 @@ namespace linker.plugins.sforward
             return countDic;
         }
 
-
         public string GetSecretKey()
         {
             return fileConfig.Data.Client.SForward.SecretKey;
@@ -256,14 +255,13 @@ namespace linker.plugins.sforward
         }
 
 
-        bool testing = false;
+        private readonly OperatingManager operatingManager = new OperatingManager();
         /// <summary>
         /// 测试本机服务
         /// </summary>
         public void TestLocal()
         {
-            if (testing) return;
-            testing = true;
+            if (operatingManager.StartOperation() == false) return;
 
             TimerHelper.Async(async () =>
             {
@@ -285,7 +283,7 @@ namespace linker.plugins.sforward
                 catch (Exception)
                 {
                 }
-                testing = false;
+                operatingManager.StopOperation();
             });
 
             async Task<(IPEndPoint, string)> ConnectAsync(IPEndPoint ep)

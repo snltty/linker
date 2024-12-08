@@ -68,7 +68,7 @@ namespace linker.plugins.relay.client
                     await TaskRelay();
                 }
                 return true;
-            }, () => lastTicksManager.DiffLessEqual(3000) ? 3000 : 30000);
+            }, () => 3000);
         }
 
     }

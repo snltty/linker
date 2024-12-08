@@ -11,6 +11,8 @@ using linker.plugins.messenger;
 using linker.plugins.tuntap.config;
 using linker.client.config;
 using linker.plugins.tuntap.lease;
+using System.Net;
+using linker.libs;
 
 namespace linker.plugins.tuntap
 {
@@ -170,6 +172,30 @@ namespace linker.plugins.tuntap
             return true;
         }
 
+
+        /// <summary>
+        /// 计算网络
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public NetworkInfo CalcNetwork(ApiControllerParamsInfo param)
+        {
+            NetworkParamInfo info = param.Content.DeJson<NetworkParamInfo>();
+
+            uint ip = NetworkHelper.IP2Value(info.IP);
+            uint prefixValue = NetworkHelper.PrefixLength2Value(info.PrefixLength);
+            uint network = NetworkHelper.NetworkValue2Value(ip, prefixValue);
+            uint broadcast = NetworkHelper.BroadcastValue2Value(ip, prefixValue);
+            return new NetworkInfo
+            {
+                Network = NetworkHelper.Value2IP(network),
+                Broadcast = NetworkHelper.Value2IP(broadcast),
+                Gateway = NetworkHelper.ToGatewayIP(ip, prefixValue),
+                Start = NetworkHelper.Value2IP(network + 2),
+                End = NetworkHelper.Value2IP(broadcast - 1),
+                Count = (int)(broadcast - network - 2),
+            };
+        }
         /// <summary>
         /// 添加网络
         /// </summary>
@@ -239,5 +265,20 @@ namespace linker.plugins.tuntap
     {
         public ConcurrentDictionary<string, ITunnelConnection> List { get; set; }
         public ulong HashCode { get; set; }
+    }
+
+    public sealed class NetworkParamInfo
+    {
+        public IPAddress IP { get; set; }
+        public byte PrefixLength { get; set; }
+    }
+    public sealed class NetworkInfo
+    {
+        public IPAddress Network { get; set; }
+        public IPAddress Gateway { get; set; }
+        public IPAddress Start { get; set; }
+        public IPAddress End { get; set; }
+        public IPAddress Broadcast { get; set; }
+        public int Count { get; set; }
     }
 }

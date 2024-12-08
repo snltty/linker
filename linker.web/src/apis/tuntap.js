@@ -30,6 +30,10 @@ export const subscribeForwardTest = (machineid) => {
     return sendWebsocketMsg('tuntapclient/SubscribeForwardTest', machineid);
 }
 
+
+export const calcNetwork = (data) => {
+    return sendWebsocketMsg('tuntapclient/CalcNetwork', data);
+}
 export const getNetwork = () => {
     return sendWebsocketMsg('tuntapclient/GetNetwork');
 }

@@ -246,7 +246,6 @@ namespace linker.libs
             return ip | ~prefixIP;
         }
 
-
         public static IPAddress ToGatewayIP(IPAddress ip, byte prefixLength)
         {
             uint network = BinaryPrimitives.ReadUInt32BigEndian(NetworkIP2IP(ip, NetworkHelper.PrefixLength2Value(prefixLength)).GetAddressBytes());

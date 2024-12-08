@@ -6,11 +6,21 @@
                     <p>网络租期30天、IP租期7天</p>
                 </el-form-item>
                 <el-form-item label="网络和掩码" prop="IP">
-                    <el-input v-model="state.ruleForm.IP" style="width:14rem" />
+                    <el-input v-model="state.ruleForm.IP" style="width:14rem" @change="handlePrefixLengthChange" />
                     <span>/</span>
                     <el-input @change="handlePrefixLengthChange" v-model="state.ruleForm.PrefixLength" style="width:4rem" />
                     <span style="width: 1rem;"></span>
                     <el-button @click="handleClear">清除</el-button>
+                </el-form-item>
+                <el-form-item label="" prop="IP1">
+                    <div class="calc">
+                        <p><span class="label">网络号</span><span class="value">{{ state.values.Network }}</span></p>
+                        <p><span class="label">网关</span><span class="value">{{ state.values.Gateway }}</span></p>
+                        <p><span class="label">开始IP</span><span class="value">{{ state.values.Start }}</span></p>
+                        <p><span class="label">结束IP</span><span class="value">{{ state.values.End }}</span></p>
+                        <p><span class="label">广播号</span><span class="value">{{ state.values.Broadcast }}</span></p>
+                        <p><span class="label">IP数量</span><span class="value">{{ state.values.Count }}</span></p>
+                    </div>
                 </el-form-item>
                 <el-form-item label="" prop="Btns" v-if="hasLease">
                     <div>
@@ -23,7 +33,7 @@
     </el-dialog>
 </template>
 <script>
-import {getNetwork,addNetwork } from '@/apis/tuntap';
+import {getNetwork,addNetwork,calcNetwork } from '@/apis/tuntap';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
@@ -44,7 +54,8 @@ export default {
                 IP:'0.0.0.0',
                 PrefixLength:24
             },
-            rules: {}
+            rules: {},
+            values:{}
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -54,10 +65,16 @@ export default {
             }
         });
 
+        const _calcNetwork = ()=>{
+            calcNetwork(state.ruleForm).then((res)=>{
+                state.values = res;
+            });
+        }
         const _getNetwork = ()=>{
             getNetwork().then((res)=>{
                 state.ruleForm.IP = res.IP;
                 state.ruleForm.PrefixLength = res.PrefixLength;
+                _calcNetwork();
             });
         }
         const handlePrefixLengthChange = ()=>{
@@ -66,6 +83,7 @@ export default {
                 value = 24;
             }
             state.ruleForm.PrefixLength = value;
+            _calcNetwork();
         }
         const handleSave = () => {
             addNetwork(state.ruleForm).then(()=>{
@@ -98,4 +116,11 @@ export default {
 </script>
 <style lang="stylus" scoped>
 .el-switch.is-disabled{opacity :1;}
+.calc{
+    span{
+        display: inline-block;
+        &.label{width:6rem;}
+    }
+}
+
 </style>

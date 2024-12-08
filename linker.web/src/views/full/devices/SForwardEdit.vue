@@ -185,7 +185,10 @@ export default {
                 row.Domain = row.Temp;
             }
 
-            addSForwardInfo({machineid:sforward.value.machineid,data:row}).then(() => {
+            addSForwardInfo({machineid:sforward.value.machineid,data:row}).then((res) => {
+                if(res == false){
+                    ElMessage.error('操作失败，可能存在相同值');
+                }
                 setTimeout(()=>{
                     _getSForwardInfo();
                 },100)
