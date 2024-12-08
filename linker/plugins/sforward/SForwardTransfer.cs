@@ -233,15 +233,16 @@ namespace linker.plugins.sforward
         {
             //同名或者同端口，但是ID不一样
             SForwardInfo old = running.Data.SForwards.FirstOrDefault(c => c.Id == id);
-            if (old == null) return false;
+            if (old == null)
+            {
+                return false;
+            }
 
             old.Started = false;
+            Start();
 
             running.Data.SForwards.Remove(old);
             running.Data.Update();
-
-            Start();
-
             return true;
         }
         private bool PortRange(string str, out int min, out int max)

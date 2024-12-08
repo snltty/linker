@@ -124,6 +124,7 @@ namespace linker.plugins.tunnel
         }
         private async Task<ITunnelConnection> RelayAndP2P(string machineId, TunnelProtocolType denyProtocols)
         {
+            //中继
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} relay to {machineId}");
             ITunnelConnection connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, TransactionId, runningConfig.Data.Relay.DefaultNodeId).ConfigureAwait(false);
             if (connection != null)
@@ -139,11 +140,13 @@ namespace linker.plugins.tunnel
 
             if (connection != null)
             {
+                //后台打洞
                 tunnelTransfer.StartBackground(machineId, TransactionId, denyProtocols, () =>
                 {
                     return connections.TryGetValue(machineId, out ITunnelConnection connection) && connection.Connected && connection.Type == TunnelType.P2P;
                 }, async (_connection) =>
                 {
+                    //后台打洞失败，pcp
                     if (_connection == null)
                     {
                         await pcpTransfer.ConnectAsync(machineId, TransactionId, denyProtocols).ConfigureAwait(false);
@@ -152,6 +155,7 @@ namespace linker.plugins.tunnel
             }
             else
             {
+                //打洞
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} p2p to {machineId}");
                 connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, denyProtocols).ConfigureAwait(false);
                 if (connection != null)
@@ -160,6 +164,7 @@ namespace linker.plugins.tunnel
                 }
                 if (connection == null)
                 {
+                    //pcp
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} pcp to {machineId}");
                     connection = await pcpTransfer.ConnectAsync(machineId, TransactionId, denyProtocols).ConfigureAwait(false);
                 }
