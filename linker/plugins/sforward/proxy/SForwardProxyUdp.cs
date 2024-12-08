@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
@@ -9,10 +10,15 @@ namespace linker.plugins.sforward.proxy
 {
     public partial class SForwardProxy
     {
+        //服务器监听表
         private ConcurrentDictionary<int, AsyncUserUdpToken> udpListens = new ConcurrentDictionary<int, AsyncUserUdpToken>();
-        private ConcurrentDictionary<ulong, UdpConnectedCache> udpConnectds = new ConcurrentDictionary<ulong, UdpConnectedCache>();
+        //服务器映射表，服务器收到一个地址的数据包，要知道发给谁
         private ConcurrentDictionary<IPEndPoint, UdpTargetCache> udpConnections = new ConcurrentDictionary<IPEndPoint, UdpTargetCache>(new IPEndPointComparer());
+        //连接缓存表，a连接，保存，b连接查询，找到对应的，就成立映射关系，完成隧道
         private ConcurrentDictionary<ulong, TaskCompletionSource<IPEndPoint>> udptcss = new ConcurrentDictionary<ulong, TaskCompletionSource<IPEndPoint>>();
+
+        //本地服务表，其实不必要，只是缓存一下去定时检测过期没有
+        private ConcurrentDictionary<ulong, UdpConnectedCache> udpConnecteds = new ConcurrentDictionary<ulong, UdpConnectedCache>();
 
         public Func<int, ulong, Task<bool>> UdpConnect { get; set; } = async (port, id) => { return await Task.FromResult(false); };
 
@@ -26,7 +32,7 @@ namespace linker.plugins.sforward.proxy
             {
                 ListenPort = port,
                 SourceSocket = socketUdp,
-                 GroupId = groupid,
+                GroupId = groupid,
             };
             socketUdp.EnableBroadcast = true;
             socketUdp.WindowsUdpBug();
@@ -54,13 +60,13 @@ namespace linker.plugins.sforward.proxy
 
                     Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
 
-                    AddReceive(portStr,token.GroupId, (ulong)memory.Length);
+                    AddReceive(portStr, token.GroupId, (ulong)memory.Length);
 
                     IPEndPoint source = result.RemoteEndPoint as IPEndPoint;
                     //已经连接
                     if (udpConnections.TryGetValue(source, out UdpTargetCache cache) && cache != null)
                     {
-                        AddSendt(portStr,token.GroupId, (ulong)memory.Length);
+                        AddSendt(portStr, token.GroupId, (ulong)memory.Length);
                         cache.LastTicks.Update();
                         await token.SourceSocket.SendToAsync(memory, cache.IPEndPoint).ConfigureAwait(false);
                     }
@@ -162,89 +168,43 @@ namespace linker.plugins.sforward.proxy
         /// <returns></returns>
         public async Task OnConnectUdp(byte bufferSize, ulong id, IPEndPoint server, IPEndPoint service)
         {
-            Socket socketUdp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            socketUdp.WindowsUdpBug();
+            string portStr = service.Port.ToString();
+            //连接服务器
+            Socket serverUdp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            serverUdp.WindowsUdpBug();
 
             byte[] buffer = new byte[flagBytes.Length + 8];
             flagBytes.AsMemory().CopyTo(buffer);
             id.ToBytes(buffer.AsMemory(flagBytes.Length));
+            await serverUdp.SendToAsync(buffer, server).ConfigureAwait(false);
 
-            await socketUdp.SendToAsync(buffer, server).ConfigureAwait(false);
-
+            //连接本地服务
             Socket serviceUdp = null;
             buffer = new byte[(1 << bufferSize) * 1024];
             IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
 
-            UdpConnectedCache cache = new UdpConnectedCache { SourceSocket = socketUdp, TargetSocket = serviceUdp };
-
-            string portStr = service.Port.ToString();
+            UdpConnectedCache cache = new UdpConnectedCache { SourceSocket = serverUdp, TargetSocket = serviceUdp };
             while (true)
             {
                 try
                 {
-                    SocketReceiveFromResult result = await socketUdp.ReceiveFromAsync(buffer, tempEp).ConfigureAwait(false);
+                    //从服务端收数据
+                    SocketReceiveFromResult result = await serverUdp.ReceiveFromAsync(buffer, tempEp).ConfigureAwait(false);
                     if (result.ReceivedBytes == 0)
                     {
-                        serviceUdp?.SafeClose();
-                        serviceUdp?.Close();
-                        socketUdp?.Dispose();
+                        cache.Clear();
                         break;
                     }
                     cache.LastTicks.Update();
 
                     Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
-
-                    AddReceive(portStr,string.Empty, (ulong)memory.Length);
-                    AddSendt(portStr,string.Empty, (ulong)memory.Length);
-
+                    AddReceive(portStr, string.Empty, (ulong)memory.Length);
+                    AddSendt(portStr, string.Empty, (ulong)memory.Length);
+                    //未连接本地服务的，去连接一下
                     if (serviceUdp == null)
                     {
-                        serviceUdp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                        serviceUdp.WindowsUdpBug();
-                        await serviceUdp.SendToAsync(memory, service).ConfigureAwait(false);
-
-                        cache.TargetSocket = serviceUdp;
-                        udpConnectds.TryAdd(id, cache);
-
-                        TimerHelper.Async(async () =>
-                        {
-                            byte[] buffer = new byte[(1 << bufferSize) * 1024];
-                            IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
-                            while (true)
-                            {
-                                try
-                                {
-                                    SocketReceiveFromResult result = await serviceUdp.ReceiveFromAsync(buffer, tempEp).ConfigureAwait(false);
-                                    if (result.ReceivedBytes == 0)
-                                    {
-                                        serviceUdp?.SafeClose();
-                                        serviceUdp?.Close();
-                                        socketUdp?.Dispose();
-                                        break;
-                                    }
-                                    Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
-                                    AddReceive(portStr, string.Empty, (ulong)memory.Length);
-                                    AddSendt(portStr, string.Empty, (ulong)memory.Length);
-
-                                    await socketUdp.SendToAsync(memory, server).ConfigureAwait(false);
-                                    cache.LastTicks.Update();
-                                }
-                                catch (Exception ex)
-                                {
-                                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                    {
-                                        LoggerHelper.Instance.Error(ex);
-                                    }
-
-                                    serviceUdp?.SafeClose();
-
-                                    serviceUdp?.Close();
-                                    socketUdp?.Dispose();
-
-                                    break;
-                                }
-                            }
-                        });
+                        cache.TargetSocket = await NewServiceConnect(memory).ConfigureAwait(false);
+                        udpConnecteds.TryAdd(id, cache);
                     }
                     else
                     {
@@ -253,18 +213,52 @@ namespace linker.plugins.sforward.proxy
                 }
                 catch (Exception ex)
                 {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        LoggerHelper.Instance.Error(ex);
-                    }
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Error(ex);
 
-                    serviceUdp?.Close();
-                    socketUdp?.Dispose();
-
+                    cache.Clear();
                     break;
                 }
             }
+
+            async Task<Socket> NewServiceConnect(Memory<byte> memory)
+            {
+                Socket serviceUdp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                serviceUdp.WindowsUdpBug();
+                await serviceUdp.SendToAsync(memory, service).ConfigureAwait(false);
+                TimerHelper.Async(async () =>
+                {
+                    byte[] buffer = new byte[(1 << bufferSize) * 1024];
+                    IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
+                    while (true)
+                    {
+                        try
+                        {
+                            SocketReceiveFromResult result = await serviceUdp.ReceiveFromAsync(buffer, tempEp).ConfigureAwait(false);
+                            if (result.ReceivedBytes == 0)
+                            {
+                                cache.Clear();
+                                break;
+                            }
+                            Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
+                            AddReceive(portStr, string.Empty, (ulong)memory.Length);
+                            AddSendt(portStr, string.Empty, (ulong)memory.Length);
+
+                            await serverUdp.SendToAsync(memory, server).ConfigureAwait(false);
+                            cache.LastTicks.Update();
+                        }
+                        catch (Exception ex)
+                        {
+                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Error(ex);
+
+                            cache.Clear();
+                            break;
+                        }
+                    }
+                });
+                return serviceUdp;
+            }
         }
+
 
         private void UdpTask()
         {
@@ -276,10 +270,10 @@ namespace linker.plugins.sforward.proxy
                     udpConnections.TryRemove(item, out _);
                 }
 
-                var connecteds = udpConnectds.Where(c => c.Value.Timeout).Select(c => c.Key);
+                var connecteds = udpConnecteds.Where(c => c.Value.Timeout).Select(c => c.Key);
                 foreach (var item in connecteds)
                 {
-                    if (udpConnectds.TryRemove(item, out UdpConnectedCache cache))
+                    if (udpConnecteds.TryRemove(item, out UdpConnectedCache cache))
                     {
                         cache.Clear();
                     }

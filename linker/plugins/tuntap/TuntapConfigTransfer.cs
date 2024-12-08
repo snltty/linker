@@ -67,7 +67,7 @@ namespace linker.plugins.tuntap
         string groupid = string.Empty;
         private void NetworkEnable(int times)
         {
-            if(groupid != config.Data.Client.Group.Id)
+            if (groupid != config.Data.Client.Group.Id)
             {
                 tuntapInfos.Clear(); tuntapProxy.ClearIPs();
             }
@@ -300,11 +300,21 @@ namespace linker.plugins.tuntap
             var temp = ParseForwardItems();
             var newStr = string.Join(",", temp.Select(c => c.Key));
 
-            if(oldStr != newStr)
+            if (oldStr != newStr)
             {
                 DeleteForward();
                 forwardItems = temp;
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Debug($"add forward : {newStr}");
                 tuntapTransfer.AddForward(forwardItems);
+            }
+            else
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Debug($"tuntap forward unchanged old : {oldStr}");
+                    LoggerHelper.Instance.Debug($"tuntap forward unchanged new : {newStr}");
+                }
             }
         }
         /// <summary>
@@ -343,7 +353,7 @@ namespace linker.plugins.tuntap
             {
                 tuntapProxy.SetIP(item.MachineId, NetworkHelper.IP2Value(item.IP));
             }
-            foreach (var item in tuntapInfos.Values.Where(c=>c.IP.Equals(IPAddress.Any)))
+            foreach (var item in tuntapInfos.Values.Where(c => c.IP.Equals(IPAddress.Any)))
             {
                 tuntapProxy.RemoveIP(item.MachineId);
             }
