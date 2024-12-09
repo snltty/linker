@@ -24,7 +24,7 @@ namespace linker.plugins.sforward.proxy
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
             Socket socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             //socket.IPv6Only(localEndPoint.AddressFamily, false);
-            //socket.ReuseBind(localEndPoint);
+            socket.Bind(localEndPoint);
             socket.Listen(int.MaxValue);
             AsyncUserToken userToken = new AsyncUserToken
             {

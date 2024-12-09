@@ -24,7 +24,7 @@ namespace linker.plugins.forward.proxy
             IPEndPoint _localEndPoint = ep;
             socket = new Socket(_localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             //socket.IPv6Only(_localEndPoint.AddressFamily, false);
-            //socket.ReuseBind(_localEndPoint);
+            socket.Bind(_localEndPoint);
             socket.Listen(int.MaxValue);
 
             LocalEndpoint = socket.LocalEndPoint as IPEndPoint;
