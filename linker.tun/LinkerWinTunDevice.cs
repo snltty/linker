@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using System.Text.RegularExpressions;
 
 namespace linker.tun
 {
@@ -192,6 +193,20 @@ namespace linker.tun
         }
 
 
+        public List<LinkerTunDeviceForwardItem> GetForward()
+        {
+            string str = CommandHelper.Windows(string.Empty, new string[] { $"netsh interface portproxy show v4tov4" });
+            IEnumerable<LinkerTunDeviceForwardItem> lines = str.Split(Environment.NewLine)
+                .Select(c => Regex.Replace(c, @"\s+", " ").Split(' '))
+                .Where(c => c.Length > 0 && c[0] == "0.0.0.0")
+                .Select(c =>
+                {
+                    IPEndPoint dist = IPEndPoint.Parse($"{c[2]}:{c[3]}");
+                    int port = int.Parse(c[1]);
+                    return new LinkerTunDeviceForwardItem { ListenAddr = IPAddress.Any, ListenPort = port, ConnectAddr = dist.Address, ConnectPort = dist.Port };
+                });
+            return lines.ToList();
+        }
         public void AddForward(List<LinkerTunDeviceForwardItem> forwards)
         {
             string[] commands = forwards.Where(c => c != null && c.Enable).Select(c =>

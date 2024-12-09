@@ -3,6 +3,7 @@ using linker.libs.extends;
 using Microsoft.Win32.SafeHandles;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 
 namespace linker.tun
 {
@@ -188,7 +189,20 @@ namespace linker.tun
             }
         }
 
-
+        public List<LinkerTunDeviceForwardItem> GetForward()
+        {
+            string str = CommandHelper.Linux(string.Empty, new string[] { $"iptables -t nat -L PREROUTING" });
+            IEnumerable<LinkerTunDeviceForwardItem> lines = str.Split(Environment.NewLine)
+                .Select(c => Regex.Replace(c, @"\s+", " ").Split(' '))
+                .Where(c => c.Length > 0 && c[0] == "DNAT" && c[1] == "tcp")
+                .Select(c =>
+                {
+                    IPEndPoint dist = IPEndPoint.Parse(c[^1].Replace("to:", ""));
+                    int port = int.Parse(c[^2].Replace("dpt:", ""));
+                    return new LinkerTunDeviceForwardItem { ListenAddr=IPAddress.Any, ListenPort=port, ConnectAddr=dist.Address, ConnectPort=dist.Port };
+                });
+            return lines.ToList();
+        }
         public void AddForward(List<LinkerTunDeviceForwardItem> forwards)
         {
             string[] commands = forwards.Where(c => c != null && c.Enable).SelectMany(c =>

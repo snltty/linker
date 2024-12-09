@@ -156,6 +156,14 @@ namespace linker.tun
         }
 
         /// <summary>
+        /// 获取端口转发
+        /// </summary>
+        /// <returns></returns>
+        public List<LinkerTunDeviceForwardItem> GetForward()
+        {
+            return linkerTunDevice?.GetForward() ?? [];
+        }
+        /// <summary>
         /// 添加端口转发
         /// </summary>
         /// <param name="forwards"></param>

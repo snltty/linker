@@ -11,6 +11,7 @@ using linker.tun;
 using linker.plugins.tuntap.lease;
 using linker.plugins.decenter;
 using System.Text.RegularExpressions;
+using linker.libs.extends;
 
 namespace linker.plugins.tuntap
 {
@@ -296,26 +297,14 @@ namespace linker.plugins.tuntap
         /// </summary>
         private void AddForward()
         {
-            string oldStr = string.Join(",", forwardItems.Select(c => c.Key));
             var temp = ParseForwardItems();
-            var newStr = string.Join(",", temp.Select(c => c.Key));
-
-            if (oldStr != newStr)
+            var removes = forwardItems.Except(temp, new LinkerTunDeviceForwardItemComparer());
+            if (removes.Any())
             {
-                DeleteForward();
-                forwardItems = temp;
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Debug($"add forward : {newStr}");
-                tuntapTransfer.AddForward(forwardItems);
+                tuntapTransfer.RemoveForward(removes.ToList());
             }
-            else
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Debug($"tuntap forward unchanged old : {oldStr}");
-                    LoggerHelper.Instance.Debug($"tuntap forward unchanged new : {newStr}");
-                }
-            }
+            forwardItems = temp;
+            tuntapTransfer.AddForward(forwardItems);
         }
         /// <summary>
         /// 删除端口转发

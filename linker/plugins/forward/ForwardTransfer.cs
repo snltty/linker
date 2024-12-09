@@ -35,8 +35,6 @@ namespace linker.plugins.forward
             this.messengerSender = messengerSender;
 
             clientSignInState.NetworkEnabledHandle += Reset;
-            CheckTask();
-
         }
 
         public Memory<byte> GetData()
@@ -97,23 +95,7 @@ namespace linker.plugins.forward
                 Start(false);
             });
         }
-        private void CheckTask()
-        {
-            TimerHelper.SetInterval(() =>
-            {
-                lock (this)
-                {
-                    var items = running.Data.Forwards
-                    .Where(c => c.GroupId == fileConfig.Data.Client.Group.Id)
-                    .Where(c => c.Started && c.Proxy == false && string.IsNullOrWhiteSpace(c.Msg) == false);
-                    foreach (var item in items)
-                    {
-                        Start(item, false);
-                    }
-                }
-                return true;
-            }, 30000);
-        }
+      
         private void Start(bool errorStop = true)
         {
             lock (this)

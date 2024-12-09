@@ -112,6 +112,10 @@ namespace linker.tun
             error = string.Empty;
         }
 
+        public List<LinkerTunDeviceForwardItem> GetForward()
+        {
+            return new List<LinkerTunDeviceForwardItem>();
+        }
         public void AddForward(List<LinkerTunDeviceForwardItem> forwards)
         {
         }

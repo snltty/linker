@@ -55,6 +55,11 @@ namespace linker.tun
 
 
         /// <summary>
+        /// 获取端口转发
+        /// </summary>
+        /// <returns></returns>
+        public List<LinkerTunDeviceForwardItem> GetForward();
+        /// <summary>
         /// 添加端口转发
         /// </summary>
         /// <param name="forwards"></param>
@@ -116,6 +121,17 @@ namespace linker.tun
         public bool Enable => ListenPort > 0 && ConnectAddr.Equals(IPAddress.Any) == false && ConnectPort > 0;
 
         public string Key => $"{ListenAddr}:{ListenPort}->{ConnectAddr}:{ConnectPort}";
+    }
+    public sealed class LinkerTunDeviceForwardItemComparer : IEqualityComparer<LinkerTunDeviceForwardItem>
+    {
+        public bool Equals(LinkerTunDeviceForwardItem x, LinkerTunDeviceForwardItem y)
+        {
+            return x.ListenPort == y.ListenPort && x.ConnectAddr.Equals(y.ConnectAddr) && x.ConnectPort == y.ConnectPort;
+        }
+        public int GetHashCode(LinkerTunDeviceForwardItem obj)
+        {
+            return obj.ListenPort.GetHashCode() ^ obj.ConnectAddr.GetHashCode() ^ obj.ConnectPort;
+        }
     }
 
     /// <summary>

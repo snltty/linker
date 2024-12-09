@@ -75,20 +75,6 @@ namespace linker.plugins.tuntap
         /// <returns></returns>
         public async Task Closed(ITunnelConnection connection, object state)
         {
-            /*
-           bool online = await clientSignInTransfer.GetOnline(connection.RemoteMachineId);
-           if (online == false)
-           {
-
-               foreach (var item in ip2MachineDic.Where(c => c.Value == connection.RemoteMachineId).Select(c => c.Key).ToList())
-               {
-                   ip2MachineDic.TryRemove(item, out string str);
-                   ipConnections.TryRemove(item, out ITunnelConnection con);
-                   ipRefreshCache.Remove(item);
-               }
-               RefreshConfig();
-           }
-           */
             RefreshConfig();
             Version.Add();
             await Task.CompletedTask;
