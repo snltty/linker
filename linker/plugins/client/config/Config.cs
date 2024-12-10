@@ -17,7 +17,6 @@ namespace linker.config
         public ConfigClientInfo()
         {
             crypto = CryptoFactory.CreateSymmetric(Helper.GlobalString);
-
             accesss?.Clear();
         }
 
@@ -35,8 +34,6 @@ namespace linker.config
         {
             get => servers; set { servers = value; }
         }
-        public ClientServerInfo ServerInfo => servers[0];
-
 
         private string id = string.Empty;
         public string Id
@@ -47,7 +44,6 @@ namespace linker.config
             }
         }
 
-
         private string name = Dns.GetHostName().SubStr(0, 12);
         public string Name
         {
@@ -56,8 +52,6 @@ namespace linker.config
                 name = value.SubStr(0, 12);
             }
         }
-
-        public ClientGroupInfo Group => Groups[0];
 
         private ClientGroupInfo[] groups = new[] { new ClientGroupInfo { } };
         public ClientGroupInfo[] Groups
@@ -127,7 +121,6 @@ namespace linker.config
         }
     }
 
-
     [MemoryPackable]
     public sealed partial class ClientCertificateInfo
     {
@@ -135,7 +128,6 @@ namespace linker.config
         public string File { get; set; } = "./snltty.pfx";
         public string Password { get; set; } = "oeq9tw1o";
     }
-
 
     [MemoryPackable]
     public sealed partial class ClientServerInfo

@@ -7,13 +7,11 @@ using linker.libs.extends;
 using MemoryPack;
 using System.Collections.Concurrent;
 using linker.tunnel.wanport;
-using linker.client.config;
 using linker.plugins.client;
 using linker.plugins.capi;
 using linker.plugins.messenger;
 using linker.plugins.tunnel.excludeip;
-using System.Net;
-using linker.libs;
+using linker.plugins.access;
 
 namespace linker.plugins.tunnel
 {
@@ -29,8 +27,10 @@ namespace linker.plugins.tunnel
         private readonly TunnelConfigTransfer tunnelConfigTransfer;
         private readonly ITunnelAdapter tunnelMessengerAdapter;
         private readonly TunnelExcludeIPTransfer excludeIPTransfer;
+        private readonly AccessTransfer accessTransfer;
+        private readonly ClientConfigTransfer clientConfigTransfer;
 
-        public TunnelApiController(FileConfig config, TunnelWanPortTransfer compactTransfer, ClientSignInState clientSignInState, IMessengerSender messengerSender, TunnelConfigTransfer tunnelConfigTransfer, ITunnelAdapter tunnelMessengerAdapter, TunnelExcludeIPTransfer excludeIPTransfer)
+        public TunnelApiController(FileConfig config, TunnelWanPortTransfer compactTransfer, ClientSignInState clientSignInState, IMessengerSender messengerSender, TunnelConfigTransfer tunnelConfigTransfer, ITunnelAdapter tunnelMessengerAdapter, TunnelExcludeIPTransfer excludeIPTransfer, AccessTransfer accessTransfer, ClientConfigTransfer clientConfigTransfer)
         {
             this.config = config;
             this.compactTransfer = compactTransfer;
@@ -39,6 +39,8 @@ namespace linker.plugins.tunnel
             this.tunnelConfigTransfer = tunnelConfigTransfer;
             this.tunnelMessengerAdapter = tunnelMessengerAdapter;
             this.excludeIPTransfer = excludeIPTransfer;
+            this.accessTransfer = accessTransfer;
+            this.clientConfigTransfer = clientConfigTransfer;
         }
 
         /// <summary>
@@ -77,14 +79,14 @@ namespace linker.plugins.tunnel
         {
             TunnelTransportRouteLevelInfo tunnelTransportFileConfigInfo = param.Content.DeJson<TunnelTransportRouteLevelInfo>();
 
-            if (tunnelTransportFileConfigInfo.MachineId == config.Data.Client.Id)
+            if (tunnelTransportFileConfigInfo.MachineId == clientConfigTransfer.Id)
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.TunnelChangeSelf) == false) return false;
+                if (accessTransfer.HasAccess(ClientApiAccess.TunnelChangeSelf) == false) return false;
                 tunnelConfigTransfer.OnLocalRouteLevel(tunnelTransportFileConfigInfo);
             }
             else
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.TunnelChangeOther) == false) return false;
+                if (accessTransfer.HasAccess(ClientApiAccess.TunnelChangeOther) == false) return false;
 
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {

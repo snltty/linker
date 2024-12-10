@@ -13,6 +13,7 @@ using linker.client.config;
 using linker.plugins.tuntap.lease;
 using System.Net;
 using linker.libs;
+using linker.plugins.access;
 
 namespace linker.plugins.tuntap
 {
@@ -27,9 +28,10 @@ namespace linker.plugins.tuntap
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
         private readonly LeaseClientTreansfer leaseClientTreansfer;
         private readonly TuntapPingTransfer pingTransfer;
+        private readonly AccessTransfer accessTransfer;
+        private readonly ClientConfigTransfer clientConfigTransfer;
 
-
-        public TuntapClientApiController(IMessengerSender messengerSender, TuntapTransfer tuntapTransfer, ClientSignInState clientSignInState, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig, TuntapConfigTransfer tuntapConfigTransfer, LeaseClientTreansfer leaseClientTreansfer, TuntapPingTransfer pingTransfer)
+        public TuntapClientApiController(IMessengerSender messengerSender, TuntapTransfer tuntapTransfer, ClientSignInState clientSignInState, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig, TuntapConfigTransfer tuntapConfigTransfer, LeaseClientTreansfer leaseClientTreansfer, TuntapPingTransfer pingTransfer, AccessTransfer accessTransfer, ClientConfigTransfer clientConfigTransfer)
         {
             this.messengerSender = messengerSender;
             this.tuntapTransfer = tuntapTransfer;
@@ -40,6 +42,8 @@ namespace linker.plugins.tuntap
             this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.leaseClientTreansfer = leaseClientTreansfer;
             this.pingTransfer = pingTransfer;
+            this.accessTransfer = accessTransfer;
+            this.clientConfigTransfer = clientConfigTransfer;
         }
 
         public ConnectionListInfo Connections(ApiControllerParamsInfo param)
@@ -97,15 +101,15 @@ namespace linker.plugins.tuntap
         public async Task<bool> Run(ApiControllerParamsInfo param)
         {
             //运行自己的
-            if (param.Content == config.Data.Client.Id)
+            if (param.Content == clientConfigTransfer.Id)
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.TuntapStatusSelf) == false) return false;
+                if (accessTransfer.HasAccess(ClientApiAccess.TuntapStatusSelf) == false) return false;
 
                 await tuntapConfigTransfer.RetstartDevice();
             }
             else
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.TuntapStatusOther) == false) return false;
+                if (accessTransfer.HasAccess(ClientApiAccess.TuntapStatusOther) == false) return false;
                 //运行别人的
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -124,14 +128,14 @@ namespace linker.plugins.tuntap
         public async Task<bool> Stop(ApiControllerParamsInfo param)
         {
             //停止自己的
-            if (param.Content == config.Data.Client.Id)
+            if (param.Content == clientConfigTransfer.Id)
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.TuntapStatusSelf) == false) return false;
+                if (accessTransfer.HasAccess(ClientApiAccess.TuntapStatusSelf) == false) return false;
                 tuntapConfigTransfer.StopDevice();
             }
             else
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.TuntapStatusOther) == false) return false;
+                if (accessTransfer.HasAccess(ClientApiAccess.TuntapStatusOther) == false) return false;
                 //停止别人的
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -153,14 +157,14 @@ namespace linker.plugins.tuntap
 
             TuntapInfo info = param.Content.DeJson<TuntapInfo>();
             //更新自己的
-            if (info.MachineId == config.Data.Client.Id)
+            if (info.MachineId == clientConfigTransfer.Id)
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.TuntapChangeSelf) == false) return false;
+                if (accessTransfer.HasAccess(ClientApiAccess.TuntapChangeSelf) == false) return false;
                 tuntapConfigTransfer.UpdateConfig(info);
             }
             else
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.TuntapChangeOther) == false) return false;
+                if (accessTransfer.HasAccess(ClientApiAccess.TuntapChangeOther) == false) return false;
                 //更新别人的
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -235,7 +239,7 @@ namespace linker.plugins.tuntap
         {
             TuntapForwardTestWrapInfo tuntapForwardTestWrapInfo = param.Content.DeJson<TuntapForwardTestWrapInfo>();
 
-            if (tuntapForwardTestWrapInfo.MachineId == config.Data.Client.Id)
+            if (tuntapForwardTestWrapInfo.MachineId == clientConfigTransfer.Id)
             {
                 await pingTransfer.SubscribeForwardTest(tuntapForwardTestWrapInfo.List);
             }

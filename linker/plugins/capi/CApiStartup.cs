@@ -2,6 +2,7 @@
 using linker.startup;
 using linker.libs;
 using Microsoft.Extensions.DependencyInjection;
+using linker.plugins.access;
 
 namespace linker.plugins.capi
 {
@@ -24,6 +25,7 @@ namespace linker.plugins.capi
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
             ApiClientTypesLoader apiClientTypesLoader = serviceProvider.GetService<ApiClientTypesLoader>();
+            AccessTransfer accessTransfer = serviceProvider.GetService<AccessTransfer>();
 
             if (config.Data.Client.CApi.ApiPort > 0)
             {
@@ -31,11 +33,11 @@ namespace linker.plugins.capi
                 IApiClientServer clientServer = serviceProvider.GetService<IApiClientServer>();
                 clientServer.Websocket(config.Data.Client.CApi.ApiPort, config.Data.Client.CApi.ApiPassword);
                 LoggerHelper.Instance.Warning($"client api listen:{config.Data.Client.CApi.ApiPort}");
-                if (config.Data.Client.HasAccess(ClientApiAccess.Api))
+                if (accessTransfer.HasAccess(ClientApiAccess.Api))
                     LoggerHelper.Instance.Warning($"client api password:{config.Data.Client.CApi.ApiPassword}");
             }
 
-            if (config.Data.Client.CApi.WebPort > 0 && config.Data.Client.HasAccess(ClientApiAccess.Web))
+            if (config.Data.Client.CApi.WebPort > 0 && accessTransfer.HasAccess(ClientApiAccess.Web))
             {
                 IWebClientServer webServer = serviceProvider.GetService<IWebClientServer>();
                 webServer.Start(config.Data.Client.CApi.WebPort, config.Data.Client.CApi.WebRoot);

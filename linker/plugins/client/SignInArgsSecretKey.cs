@@ -10,13 +10,15 @@ namespace linker.plugins.client
     public sealed class SignInArgsSecretKeyClient : ISignInArgs
     {
         private readonly FileConfig fileConfig;
-        public SignInArgsSecretKeyClient(FileConfig fileConfig)
+        private readonly ClientConfigTransfer clientConfigTransfer;  
+        public SignInArgsSecretKeyClient(FileConfig fileConfig, ClientConfigTransfer clientConfigTransfer)
         {
             this.fileConfig = fileConfig;
+            this.clientConfigTransfer = clientConfigTransfer;
         }
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
-            args.TryAdd("signin-secretkey", fileConfig.Data.Client.ServerInfo.SecretKey);
+            args.TryAdd("signin-secretkey", clientConfigTransfer.Server.SecretKey);
             await Task.CompletedTask;
             return string.Empty;
         }

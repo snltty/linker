@@ -34,7 +34,7 @@ namespace linker.plugins.decenter.messenger
                         Connection = item.Connection,
                         MessengerId = (ushort)DecenterMessengerIds.Sync,
                         Payload = connection.ReceiveRequestWrap.Payload,
-                        Timeout = 1000,
+                        Timeout = 5000,
                     }));
                 }
 

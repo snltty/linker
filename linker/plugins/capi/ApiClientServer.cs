@@ -1,5 +1,6 @@
 ﻿using linker.config;
 using linker.libs.api;
+using linker.plugins.access;
 using System.Reflection;
 
 namespace linker.plugins.capi
@@ -10,10 +11,11 @@ namespace linker.plugins.capi
     public sealed partial class ApiClientServer : ApiServer, IApiClientServer
     {
         private readonly FileConfig config;
-
-        public ApiClientServer(FileConfig config)
+        private readonly AccessTransfer accessTransfer;
+        public ApiClientServer(FileConfig config, AccessTransfer accessTransfer)
         {
             this.config = config;
+            this.accessTransfer = accessTransfer;
         }
 
         /// <summary>
@@ -57,7 +59,7 @@ namespace linker.plugins.capi
         }
         private bool HasAccess(ulong access)
         {
-            return config.Data.Client.HasAccess((ClientApiAccess)access);
+            return accessTransfer.HasAccess((ClientApiAccess)access);
         }
     }
 }

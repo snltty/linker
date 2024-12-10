@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Linq;
+using System.Reflection;
 
 namespace linker.libs
 {
     public static class VersionHelper
     {
+        public static string version  = $"v{string.Join(".", Assembly.GetEntryAssembly().GetName().Version.ToString().Split('.').Take(3))}";
+
         /// <summary>
         /// 比较版本，相差多少
         /// </summary>

@@ -129,7 +129,7 @@ namespace linker.plugins.config
                 client.OnlyNode = true;
                 client.Action.Args.Clear();
 
-                client.Groups = new ClientGroupInfo[] { config.Data.Client.Group };
+                client.Groups = [config.Data.Client.Groups[0]];
                 File.WriteAllText(Path.Combine(configPath, $"client.json"), client.Serialize(client));
 
                 ConfigCommonInfo common = config.Data.Common.ToJson().DeJson<ConfigCommonInfo>();

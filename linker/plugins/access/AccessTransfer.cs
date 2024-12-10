@@ -19,18 +19,20 @@ namespace linker.plugins.access
         private readonly FileConfig fileConfig;
         private readonly IMessengerSender sender;
         private readonly ClientSignInState clientSignInState;
-        public AccessTransfer(FileConfig fileConfig, IMessengerSender sender, ClientSignInState clientSignInState)
+        private readonly ClientConfigTransfer clientConfigTransfer;
+        public AccessTransfer(FileConfig fileConfig, IMessengerSender sender, ClientSignInState clientSignInState, ClientConfigTransfer clientConfigTransfer)
         {
             this.fileConfig = fileConfig;
             this.sender = sender;
             this.clientSignInState = clientSignInState;
+            this.clientConfigTransfer = clientConfigTransfer;
 
             clientSignInState.NetworkEnabledHandle += (times) => DataVersion.Add();
         }
 
         public Memory<byte> GetData()
         {
-            ConfigAccessInfo info = new ConfigAccessInfo { MachineId = fileConfig.Data.Client.Id, Access = fileConfig.Data.Client.Access };
+            ConfigAccessInfo info = new ConfigAccessInfo { MachineId = clientConfigTransfer.Id, Access = fileConfig.Data.Client.Access };
             accesss[info.MachineId] = info.Access;
             Version.Add();
             return MemoryPackSerializer.Serialize(info);
@@ -45,7 +47,7 @@ namespace linker.plugins.access
         {
             List<ConfigAccessInfo> list = data.Select(c => MemoryPackSerializer.Deserialize<ConfigAccessInfo>(c.Span)).ToList();
             accesss = list.ToDictionary(c => c.MachineId, d => d.Access);
-            accesss[fileConfig.Data.Client.Id] = fileConfig.Data.Client.Access;
+            accesss[clientConfigTransfer.Id] = fileConfig.Data.Client.Access;
             Version.Add();
         }
 
@@ -54,10 +56,18 @@ namespace linker.plugins.access
             DataVersion.Add();
         }
 
+        /// <summary>
+        /// 获取所有人的权限
+        /// </summary>
+        /// <returns></returns>
         public Dictionary<string, ClientApiAccess> GetAccesss()
         {
             return accesss;
         }
+        /// <summary>
+        /// 设置权限
+        /// </summary>
+        /// <param name="info"></param>
         public void SetAccess(ConfigUpdateAccessInfo info)
         {
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -71,14 +81,26 @@ namespace linker.plugins.access
                 fileConfig.Data.Client.Access = (ClientApiAccess)info.Access;
                 fileConfig.Data.Update();
             }
-            GetData();
-            Version.Add();
             DataVersion.Add();
         }
+        /// <summary>
+        /// 合并权限
+        /// </summary>
+        /// <param name="access"></param>
+        /// <returns></returns>
         public ClientApiAccess AssignAccess(ClientApiAccess access)
         {
             return fileConfig.Data.Client.Access & access;
         }
 
+        /// <summary>
+        /// 是否拥有某项权限
+        /// </summary>
+        /// <param name="clientManagerAccess"></param>
+        /// <returns></returns>
+        public bool HasAccess(ClientApiAccess clientManagerAccess)
+        {
+            return (fileConfig.Data.Client.Access & clientManagerAccess) == clientManagerAccess;
+        }
     }
 }

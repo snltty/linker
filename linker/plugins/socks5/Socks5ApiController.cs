@@ -10,6 +10,7 @@ using linker.plugins.messenger;
 using linker.client.config;
 using linker.plugins.socks5.config;
 using linker.plugins.socks5.messenger;
+using linker.plugins.access;
 
 namespace linker.plugins.socks5
 {
@@ -21,9 +22,10 @@ namespace linker.plugins.socks5
         private readonly FileConfig config;
         private readonly TunnelProxy tunnelProxy;
         private readonly RunningConfig runningConfig;
+        private readonly AccessTransfer accessTransfer;
+        private readonly ClientConfigTransfer clientConfigTransfer;
 
-
-        public Socks5ClientApiController(IMessengerSender messengerSender, Socks5ConfigTransfer socks5ConfigTransfer, ClientSignInState clientSignInState, FileConfig config, TunnelProxy tunnelProxy, RunningConfig runningConfig, Socks5ConfigTransfer Socks5ConfigTransfer)
+        public Socks5ClientApiController(IMessengerSender messengerSender, Socks5ConfigTransfer socks5ConfigTransfer, ClientSignInState clientSignInState, FileConfig config, TunnelProxy tunnelProxy, RunningConfig runningConfig, Socks5ConfigTransfer Socks5ConfigTransfer, AccessTransfer accessTransfer, ClientConfigTransfer clientConfigTransfer)
         {
             this.messengerSender = messengerSender;
             this.socks5ConfigTransfer = socks5ConfigTransfer;
@@ -31,6 +33,8 @@ namespace linker.plugins.socks5
             this.config = config;
             this.tunnelProxy = tunnelProxy;
             this.runningConfig = runningConfig;
+            this.accessTransfer = accessTransfer;
+            this.clientConfigTransfer = clientConfigTransfer;
         }
 
         public ConnectionListInfo Connections(ApiControllerParamsInfo param)
@@ -88,15 +92,15 @@ namespace linker.plugins.socks5
         public async Task<bool> Run(ApiControllerParamsInfo param)
         {
             //运行自己的
-            if (param.Content == config.Data.Client.Id)
+            if (param.Content == clientConfigTransfer.Id)
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.Socks5StatusSelf) == false) return false;
+                if (accessTransfer.HasAccess(ClientApiAccess.Socks5StatusSelf) == false) return false;
 
                 socks5ConfigTransfer.Retstart();
             }
             else
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.Socks5StatusOther) == false) return false;
+                if (accessTransfer.HasAccess(ClientApiAccess.Socks5StatusOther) == false) return false;
                 //运行别人的
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -115,14 +119,14 @@ namespace linker.plugins.socks5
         public async Task<bool> Stop(ApiControllerParamsInfo param)
         {
             //停止自己的
-            if (param.Content == config.Data.Client.Id)
+            if (param.Content == clientConfigTransfer.Id)
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.Socks5StatusSelf) == false) return false;
+                if (accessTransfer.HasAccess(ClientApiAccess.Socks5StatusSelf) == false) return false;
                 socks5ConfigTransfer.Stop();
             }
             else
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.Socks5StatusOther) == false) return false;
+                if (accessTransfer.HasAccess(ClientApiAccess.Socks5StatusOther) == false) return false;
                 //停止别人的
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -144,14 +148,14 @@ namespace linker.plugins.socks5
 
             Socks5Info info = param.Content.DeJson<Socks5Info>();
             //更新自己的
-            if (info.MachineId == config.Data.Client.Id)
+            if (info.MachineId == clientConfigTransfer.Id)
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.Socks5ChangeSelf) == false) return false;
+                if (accessTransfer.HasAccess(ClientApiAccess.Socks5ChangeSelf) == false) return false;
                 socks5ConfigTransfer.UpdateConfig(info);
             }
             else
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.Socks5ChangeOther) == false) return false;
+                if (accessTransfer.HasAccess(ClientApiAccess.Socks5ChangeOther) == false) return false;
                 //更新别人的
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {

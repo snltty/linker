@@ -22,33 +22,35 @@ namespace linker.plugins.socks5
         private readonly FileConfig config;
         private readonly RunningConfig runningConfig;
         private readonly TunnelProxy tunnelProxy;
+        private readonly ClientConfigTransfer clientConfigTransfer;
 
         public VersionManager Version { get; } = new VersionManager();
         private readonly ConcurrentDictionary<string, Socks5Info> socks5Infos = new ConcurrentDictionary<string, Socks5Info>();
         public ConcurrentDictionary<string, Socks5Info> Infos => socks5Infos;
 
 
-
         private readonly SemaphoreSlim slim = new SemaphoreSlim(1);
-        public Socks5ConfigTransfer(IMessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config, RunningConfig runningConfig, TunnelProxy tunnelProxy)
+        public Socks5ConfigTransfer(IMessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config, RunningConfig runningConfig, TunnelProxy tunnelProxy, ClientConfigTransfer clientConfigTransfer)
         {
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
             this.config = config;
             this.runningConfig = runningConfig;
             this.tunnelProxy = tunnelProxy;
+            this.clientConfigTransfer = clientConfigTransfer;
 
             clientSignInState.NetworkEnabledHandle += (times) => DataVersion.Add();
             tunnelProxy.RefreshConfig += RefreshConfig;
 
             if (runningConfig.Data.Socks5.Running) Retstart();
+            
         }
         public Memory<byte> GetData()
         {
             Socks5Info info = new Socks5Info
             {
                 Lans = runningConfig.Data.Socks5.Lans.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false).Select(c => { c.Exists = false; return c; }).ToList(),
-                MachineId = config.Data.Client.Id,
+                MachineId = clientConfigTransfer.Id,
                 Status = tunnelProxy.Running ? Socks5Status.Running : Socks5Status.Normal,
                 Port = runningConfig.Data.Socks5.Port,
                 SetupError = tunnelProxy.Error
@@ -93,7 +95,7 @@ namespace linker.plugins.socks5
                         socks5Infos.AddOrUpdate(item.MachineId, item, (a, b) => item);
                         item.LastTicks.Update();
                     }
-                    var removes = socks5Infos.Keys.Except(list.Select(c => c.MachineId)).Where(c => c != config.Data.Client.Id).ToList();
+                    var removes = socks5Infos.Keys.Except(list.Select(c => c.MachineId)).Where(c => c != clientConfigTransfer.Id).ToList();
                     foreach (var item in removes)
                     {
                         if (socks5Infos.TryGetValue(item, out Socks5Info socks5Info))
@@ -207,7 +209,7 @@ namespace linker.plugins.socks5
             HashSet<uint> hashSet = new HashSet<uint>();
 
             return infos
-                .Where(c => c.MachineId != config.Data.Client.Id)
+                .Where(c => c.MachineId != clientConfigTransfer.Id)
                 .OrderByDescending(c => c.Status)
                 .OrderByDescending(c => c.LastTicks.Value)
 

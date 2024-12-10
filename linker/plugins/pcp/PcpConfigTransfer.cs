@@ -18,11 +18,15 @@ namespace linker.plugins.pcp
         private readonly RunningConfig runningConfig;
         private readonly FileConfig fileConfig;
         private readonly ClientSignInState clientSignInState;
-        public PcpConfigTransfer(RunningConfig runningConfig, FileConfig fileConfig, ClientSignInState clientSignInState)
+        private readonly ClientConfigTransfer clientConfigTransfer;
+
+        public PcpConfigTransfer(RunningConfig runningConfig, FileConfig fileConfig, ClientSignInState clientSignInState, ClientConfigTransfer clientConfigTransfer)
         {
             this.runningConfig = runningConfig;
             this.fileConfig = fileConfig;
             this.clientSignInState = clientSignInState;
+            this.clientConfigTransfer = clientConfigTransfer;
+
             clientSignInState.NetworkEnabledHandle += (times) => DataVersion.Add();
         }
 
@@ -46,7 +50,7 @@ namespace linker.plugins.pcp
 
         public Memory<byte> GetData()
         {
-            HistoryDecenterInfo historyDecenterInfo = new HistoryDecenterInfo { MachineId = fileConfig.Data.Client.Id, List = runningConfig.Data.TunnelHistory.History };
+            HistoryDecenterInfo historyDecenterInfo = new HistoryDecenterInfo { MachineId = clientConfigTransfer.Id, List = runningConfig.Data.TunnelHistory.History };
             history.AddOrUpdate(historyDecenterInfo.MachineId, historyDecenterInfo.List, (a, b) => historyDecenterInfo.List);
             return MemoryPackSerializer.Serialize(historyDecenterInfo);
         }

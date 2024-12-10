@@ -15,14 +15,17 @@ namespace linker.plugins.relay.client
         private readonly FileConfig fileConfig;
         private readonly RelayTransfer relayTransfer;
         private readonly ClientSignInState clientSignInState;
+        private readonly ClientConfigTransfer clientConfigTransfer;
 
         public List<RelayNodeReportInfo> Nodes { get; private set; } = new List<RelayNodeReportInfo>();
 
-        public RelayTestTransfer(FileConfig fileConfig, RelayTransfer relayTransfer, ClientSignInState clientSignInState)
+        public RelayTestTransfer(FileConfig fileConfig, RelayTransfer relayTransfer, ClientSignInState clientSignInState, ClientConfigTransfer clientConfigTransfer)
         {
             this.fileConfig = fileConfig;
             this.relayTransfer = relayTransfer;
             this.clientSignInState = clientSignInState;
+            this.clientConfigTransfer = clientConfigTransfer;
+
             TestTask();
         }
 
@@ -41,7 +44,7 @@ namespace linker.plugins.relay.client
                 {
                     Nodes = await transport.RelayTestAsync(new RelayTestInfo
                     {
-                        MachineId = fileConfig.Data.Client.Id,
+                        MachineId = clientConfigTransfer.Id,
                         SecretKey = fileConfig.Data.Client.Relay.Server.SecretKey
                     });
                     var tasks = Nodes.Select(async (c) =>

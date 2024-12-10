@@ -28,6 +28,7 @@ namespace linker.plugins.tuntap
         private readonly RunningConfig runningConfig;
         private readonly TuntapTransfer tuntapTransfer;
         private readonly LeaseClientTreansfer leaseClientTreansfer;
+        private readonly ClientConfigTransfer clientConfigTransfer;
 
         private LinkerTunDeviceRouteItem[] routeItems = new LinkerTunDeviceRouteItem[0];
         private List<LinkerTunDeviceForwardItem> forwardItems = new List<LinkerTunDeviceForwardItem>();
@@ -37,9 +38,8 @@ namespace linker.plugins.tuntap
         public ConcurrentDictionary<string, TuntapInfo> Infos => tuntapInfos;
 
 
-
         private readonly SemaphoreSlim slim = new SemaphoreSlim(1);
-        public TuntapConfigTransfer(IMessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig, TuntapTransfer tuntapTransfer, LeaseClientTreansfer leaseClientTreansfer)
+        public TuntapConfigTransfer(IMessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig, TuntapTransfer tuntapTransfer, LeaseClientTreansfer leaseClientTreansfer, ClientConfigTransfer clientConfigTransfer)
         {
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
@@ -48,7 +48,7 @@ namespace linker.plugins.tuntap
             this.runningConfig = runningConfig;
             this.tuntapTransfer = tuntapTransfer;
             this.leaseClientTreansfer = leaseClientTreansfer;
-
+            this.clientConfigTransfer = clientConfigTransfer;
 
             clientSignInState.NetworkEnabledHandle += NetworkEnable;
             tuntapProxy.RefreshConfig = RefreshConfig;
@@ -61,18 +61,17 @@ namespace linker.plugins.tuntap
             tuntapTransfer.OnShutdownAfter += () => { DataVersion.Add(); };
             tuntapTransfer.OnShutdownSuccess += () => { DataVersion.Add(); DeleteForward(); DelRoute(); runningConfig.Data.Tuntap.Running = false; runningConfig.Data.Update(); DataVersion.Add(); };
 
-
             InitConfig();
         }
 
         string groupid = string.Empty;
         private void NetworkEnable(int times)
         {
-            if (groupid != config.Data.Client.Group.Id)
+            if (groupid != clientConfigTransfer.Group.Id)
             {
                 tuntapInfos.Clear(); tuntapProxy.ClearIPs();
             }
-            groupid = config.Data.Client.Group.Id;
+            groupid = clientConfigTransfer.Group.Id;
 
             RefreshIP();
         }
@@ -104,7 +103,7 @@ namespace linker.plugins.tuntap
                 runningConfig.Data.Update();
 
                 TuntapGroup2IPInfo tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = runningConfig.Data.Tuntap.IP, PrefixLength = runningConfig.Data.Tuntap.PrefixLength };
-                runningConfig.Data.Tuntap.Group2IP.AddOrUpdate(config.Data.Client.Group.Id, tuntapGroup2IPInfo, (a, b) => tuntapGroup2IPInfo);
+                runningConfig.Data.Tuntap.Group2IP.AddOrUpdate(clientConfigTransfer.Group.Id, tuntapGroup2IPInfo, (a, b) => tuntapGroup2IPInfo);
 
                 await LeaseIP();
 
@@ -132,7 +131,7 @@ namespace linker.plugins.tuntap
                 IP = runningConfig.Data.Tuntap.IP,
                 Lans = runningConfig.Data.Tuntap.Lans.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false).Select(c => { c.Exists = false; return c; }).ToList(),
                 PrefixLength = runningConfig.Data.Tuntap.PrefixLength,
-                MachineId = config.Data.Client.Id,
+                MachineId = clientConfigTransfer.Id,
                 Status = tuntapTransfer.Status,
                 SetupError = tuntapTransfer.SetupError,
                 NatError = tuntapTransfer.NatError,
@@ -188,7 +187,7 @@ namespace linker.plugins.tuntap
                         tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
                         item.LastTicks.Update();
                     }
-                    var removes = tuntapInfos.Keys.Except(list.Select(c => c.MachineId)).Where(c => c != config.Data.Client.Id).ToList();
+                    var removes = tuntapInfos.Keys.Except(list.Select(c => c.MachineId)).Where(c => c != clientConfigTransfer.Id).ToList();
                     foreach (var item in removes)
                     {
                         if (tuntapInfos.TryGetValue(item, out TuntapInfo tuntapInfo))
@@ -267,7 +266,7 @@ namespace linker.plugins.tuntap
         /// <returns></returns>
         private async Task LeaseIP()
         {
-            if (runningConfig.Data.Tuntap.Group2IP.TryGetValue(config.Data.Client.Group.Id, out TuntapGroup2IPInfo tuntapGroup2IPInfo))
+            if (runningConfig.Data.Tuntap.Group2IP.TryGetValue(clientConfigTransfer.Group.Id, out TuntapGroup2IPInfo tuntapGroup2IPInfo))
             {
                 if (tuntapGroup2IPInfo.IP.Equals(runningConfig.Data.Tuntap.IP) == false || tuntapGroup2IPInfo.PrefixLength != runningConfig.Data.Tuntap.PrefixLength)
                 {
@@ -281,7 +280,7 @@ namespace linker.plugins.tuntap
             runningConfig.Data.Update();
 
             tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = runningConfig.Data.Tuntap.IP, PrefixLength = runningConfig.Data.Tuntap.PrefixLength };
-            runningConfig.Data.Tuntap.Group2IP.AddOrUpdate(config.Data.Client.Group.Id, tuntapGroup2IPInfo, (a, b) => tuntapGroup2IPInfo);
+            runningConfig.Data.Tuntap.Group2IP.AddOrUpdate(clientConfigTransfer.Group.Id, tuntapGroup2IPInfo, (a, b) => tuntapGroup2IPInfo);
         }
 
         /// <summary>
@@ -366,7 +365,7 @@ namespace linker.plugins.tuntap
             HashSet<uint> hashSet = new HashSet<uint>();
 
             return infos
-                .Where(c => c.MachineId != config.Data.Client.Id)
+                .Where(c => c.MachineId != clientConfigTransfer.Id)
                 .OrderByDescending(c => c.Status)
                 .OrderByDescending(c => c.LastTicks.Value)
 

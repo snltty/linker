@@ -30,15 +30,15 @@ namespace linker.plugins.relay.client.transport
         private X509Certificate2 certificate;
 
 
-        public TransportSelfHost(IMessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config)
+        public TransportSelfHost(IMessengerSender messengerSender, ClientSignInState clientSignInState, ClientConfigTransfer clientConfigTransfer)
         {
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
 
-            string path = Path.GetFullPath(config.Data.Client.SSL.File);
+            string path = Path.GetFullPath(clientConfigTransfer.SSL.File);
             if (File.Exists(path))
             {
-                certificate = new X509Certificate2(path, config.Data.Client.SSL.Password, X509KeyStorageFlags.Exportable);
+                certificate = new X509Certificate2(path, clientConfigTransfer.SSL.Password, X509KeyStorageFlags.Exportable);
             }
         }
 

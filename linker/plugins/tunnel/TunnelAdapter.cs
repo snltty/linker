@@ -25,20 +25,24 @@ namespace linker.plugins.tunnel
         private readonly FileConfig config;
         private readonly RunningConfig running;
         private readonly TunnelExcludeIPTransfer excludeIPTransfer;
+        private readonly ClientConfigTransfer clientConfigTransfer;
 
-        public TunnelAdapter(ClientSignInState clientSignInState, IMessengerSender messengerSender, FileConfig config, RunningConfig running, TunnelExcludeIPTransfer excludeIPTransfer)
+        public TunnelAdapter(ClientSignInState clientSignInState, IMessengerSender messengerSender, FileConfig config, RunningConfig running, TunnelExcludeIPTransfer excludeIPTransfer, ClientConfigTransfer clientConfigTransfer)
         {
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
             this.config = config;
             this.running = running;
             this.excludeIPTransfer = excludeIPTransfer;
+            this.clientConfigTransfer = clientConfigTransfer;
 
-            string path = Path.GetFullPath(config.Data.Client.SSL.File);
+            string path = Path.GetFullPath(clientConfigTransfer.SSL.File);
             if (File.Exists(path))
             {
-                Certificate = new X509Certificate2(path, config.Data.Client.SSL.Password, X509KeyStorageFlags.Exportable);
+                Certificate = new X509Certificate2(path, clientConfigTransfer.SSL.Password, X509KeyStorageFlags.Exportable);
             }
+
+           
         }
 
         public List<TunnelTransportItemInfo> GetTunnelTransports()
@@ -75,7 +79,7 @@ namespace linker.plugins.tunnel
                 })
                 .ToArray(),
                 RouteLevel = config.Data.Client.Tunnel.RouteLevel + running.Data.Tunnel.RouteLevelPlus,
-                MachineId = config.Data.Client.Id
+                MachineId = clientConfigTransfer.Id
             };
         }
         public async Task<TunnelTransportWanPortInfo> GetRemoteWanPort(TunnelWanPortProtocolInfo info)

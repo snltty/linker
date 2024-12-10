@@ -7,6 +7,7 @@ using System.Net;
 using linker.config;
 using System.Net.Sockets;
 using linker.libs.extends;
+using linker.plugins.client;
 
 namespace linker.plugins.tuntap
 {
@@ -17,13 +18,17 @@ namespace linker.plugins.tuntap
         private readonly FileConfig config;
         private readonly TuntapProxy tuntapProxy;
         private readonly RunningConfig runningConfig;
-        public TuntapPingTransfer(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig)
+        private readonly ClientConfigTransfer clientConfigTransfer;
+
+        public TuntapPingTransfer(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig, ClientConfigTransfer clientConfigTransfer)
         {
             this.tuntapTransfer = tuntapTransfer;
             this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.config = config;
             this.tuntapProxy = tuntapProxy;
             this.runningConfig = runningConfig;
+            this.clientConfigTransfer = clientConfigTransfer;
+
             PingTask();
         }
 
@@ -52,7 +57,7 @@ namespace linker.plugins.tuntap
                 if ((runningConfig.Data.Tuntap.Switch & TuntapSwitch.AutoConnect) != TuntapSwitch.AutoConnect)
                 {
                     var connections = tuntapProxy.GetConnections();
-                    items = items.Where(c => connections.TryGetValue(c.MachineId, out ITunnelConnection connection) && connection.Connected || c.MachineId == config.Data.Client.Id);
+                    items = items.Where(c => connections.TryGetValue(c.MachineId, out ITunnelConnection connection) && connection.Connected || c.MachineId == clientConfigTransfer.Id);
                 }
 
                 await Task.WhenAll(items.Select(async c =>

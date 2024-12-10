@@ -10,9 +10,11 @@ namespace linker.plugins.signin.messenger
 {
     public sealed class SignInClientMessenger : IMessenger
     {
+        private readonly ClientConfigTransfer clientConfigTransfer;
         private readonly ClientSignInTransfer clientSignInTransfer;
-        public SignInClientMessenger(FileConfig config, ClientSignInTransfer clientSignInTransfer)
+        public SignInClientMessenger(ClientConfigTransfer clientConfigTransfer, ClientSignInTransfer clientSignInTransfer)
         {
+            this.clientConfigTransfer = clientConfigTransfer;
             this.clientSignInTransfer = clientSignInTransfer;
         }
 
@@ -20,7 +22,8 @@ namespace linker.plugins.signin.messenger
         public void Name(IConnection connection)
         {
             ConfigSetNameInfo info = MemoryPackSerializer.Deserialize<ConfigSetNameInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            clientSignInTransfer.Set(info.NewName);
+            clientConfigTransfer.SetName(info.NewName);
+            clientSignInTransfer.ReSignIn();
         }
 
     }
@@ -185,7 +188,7 @@ namespace linker.plugins.signin.messenger
         [MessengerId((ushort)SignInMessengerIds.Version)]
         public void Version(IConnection connection)
         {
-            connection.Write(MemoryPackSerializer.Serialize(config.Data.Version));
+            connection.Write(MemoryPackSerializer.Serialize(VersionHelper.version));
         }
 
 

@@ -10,13 +10,15 @@ namespace linker.plugins.client
     public sealed class SignInArgsGroupPasswordClient : ISignInArgs
     {
         private readonly FileConfig fileConfig;
-        public SignInArgsGroupPasswordClient(FileConfig fileConfig)
+        private readonly ClientConfigTransfer clientConfigTransfer;
+        public SignInArgsGroupPasswordClient(FileConfig fileConfig, ClientConfigTransfer clientConfigTransfer)
         {
             this.fileConfig = fileConfig;
+            this.clientConfigTransfer = clientConfigTransfer;
         }
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
-            args.TryAdd("signin-gpwd", fileConfig.Data.Client.Group.Password);
+            args.TryAdd("signin-gpwd", clientConfigTransfer.Group.Password);
             await Task.CompletedTask;
             return string.Empty;
         }

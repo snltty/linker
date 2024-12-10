@@ -43,7 +43,7 @@ namespace linker
             FileConfig config = new FileConfig();
             //return;
 
-            LoggerHelper.Instance.Warning($"current version : {config.Data.Version}");
+            LoggerHelper.Instance.Warning($"current version : {VersionHelper.version}");
             LoggerHelper.Instance.Warning($"linker env is docker : {Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")}");
             LoggerHelper.Instance.Warning($"linker env os : {System.Runtime.InteropServices.RuntimeInformation.OSDescription}");
 

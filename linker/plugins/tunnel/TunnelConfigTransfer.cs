@@ -25,13 +25,12 @@ namespace linker.plugins.tunnel
         private readonly IMessengerSender messengerSender;
         private readonly ITunnelAdapter tunnelAdapter;
         private readonly TunnelUpnpTransfer upnpTransfer;
+        private readonly ClientConfigTransfer clientConfigTransfer;
 
         public VersionManager Version { get; } = new VersionManager();
         public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> Config { get; } = new ConcurrentDictionary<string, TunnelTransportRouteLevelInfo>();
 
-        
-
-        public TunnelConfigTransfer(FileConfig config, RunningConfig running, ClientSignInState clientSignInState, IMessengerSender messengerSender, ITunnelAdapter tunnelAdapter, TunnelUpnpTransfer upnpTransfer)
+        public TunnelConfigTransfer(FileConfig config, RunningConfig running, ClientSignInState clientSignInState, IMessengerSender messengerSender, ITunnelAdapter tunnelAdapter, TunnelUpnpTransfer upnpTransfer, ClientConfigTransfer clientConfigTransfer)
         {
             this.config = config;
             this.running = running;
@@ -39,6 +38,7 @@ namespace linker.plugins.tunnel
             this.messengerSender = messengerSender;
             this.tunnelAdapter = tunnelAdapter;
             this.upnpTransfer = upnpTransfer;
+            this.clientConfigTransfer = clientConfigTransfer;
 
             clientSignInState.NetworkEnabledHandle += (times) =>
             {
@@ -81,7 +81,7 @@ namespace linker.plugins.tunnel
         {
             TimerHelper.Async(() =>
             {
-                config.Data.Client.Tunnel.RouteLevel = NetworkHelper.GetRouteLevel(config.Data.Client.ServerInfo.Host, out List<IPAddress> ips);
+                config.Data.Client.Tunnel.RouteLevel = NetworkHelper.GetRouteLevel(clientConfigTransfer.Server.Host, out List<IPAddress> ips);
                 config.Data.Client.Tunnel.RouteIPs = ips.ToArray();
                 config.Data.Client.Tunnel.LocalIPs = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
             });
@@ -111,7 +111,7 @@ namespace linker.plugins.tunnel
         {
             return new TunnelTransportRouteLevelInfo
             {
-                MachineId = config.Data.Client.Id,
+                MachineId = clientConfigTransfer.Id,
                 RouteLevel = config.Data.Client.Tunnel.RouteLevel,
                 RouteLevelPlus = running.Data.Tunnel.RouteLevelPlus,
                 PortMapWan = running.Data.Tunnel.PortMapWan,
@@ -170,9 +170,6 @@ namespace linker.plugins.tunnel
             {
                 upnpTransfer.SetMap(clientSignInState.Connection.LocalAddress.Address,18180);
             }
-
         }
-
-       
     }
 }

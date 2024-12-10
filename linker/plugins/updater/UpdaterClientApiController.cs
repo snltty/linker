@@ -10,6 +10,7 @@ using linker.plugins.client;
 using linker.plugins.capi;
 using linker.plugins.messenger;
 using linker.libs;
+using linker.plugins.access;
 
 namespace linker.plugins.updater
 {
@@ -20,14 +21,18 @@ namespace linker.plugins.updater
         private readonly ClientSignInState clientSignInState;
         private readonly FileConfig config;
         private readonly RunningConfig runningConfig;
+        private readonly AccessTransfer accessTransfer;
+        private readonly ClientConfigTransfer clientConfigTransfer;
 
-        public UpdaterClientApiController(IMessengerSender messengerSender, UpdaterClientTransfer updaterTransfer, ClientSignInState clientSignInState, FileConfig config, RunningConfig runningConfig)
+        public UpdaterClientApiController(IMessengerSender messengerSender, UpdaterClientTransfer updaterTransfer, ClientSignInState clientSignInState, FileConfig config, RunningConfig runningConfig, AccessTransfer accessTransfer, ClientConfigTransfer clientConfigTransfer)
         {
             this.messengerSender = messengerSender;
             this.updaterTransfer = updaterTransfer;
             this.clientSignInState = clientSignInState;
             this.config = config;
             this.runningConfig = runningConfig;
+            this.accessTransfer = accessTransfer;
+            this.clientConfigTransfer = clientConfigTransfer;
         }
 
         [ClientApiAccessAttribute(ClientApiAccess.Config)]
@@ -87,7 +92,7 @@ namespace linker.plugins.updater
         public UpdateInfo GetCurrent(ApiControllerParamsInfo param)
         {
             var updaters = updaterTransfer.Get();
-            if (updaters.TryGetValue(config.Data.Client.Id, out UpdateInfo info))
+            if (updaters.TryGetValue(clientConfigTransfer.Id, out UpdateInfo info))
             {
                 return info;
             }
@@ -111,9 +116,9 @@ namespace linker.plugins.updater
         {
             UpdaterConfirmInfo confirm = param.Content.DeJson<UpdaterConfirmInfo>();
 
-            if (confirm.All || confirm.GroupAll || confirm.MachineId != config.Data.Client.Id)
+            if (confirm.All || confirm.GroupAll || confirm.MachineId != clientConfigTransfer.Id)
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.UpdateOther) == false)
+                if (accessTransfer.HasAccess(ClientApiAccess.UpdateOther) == false)
                 {
                     return false;
                 }
@@ -130,9 +135,9 @@ namespace linker.plugins.updater
                     return false;
                 }
             }
-            if (confirm.MachineId == config.Data.Client.Id || confirm.All || confirm.GroupAll)
+            if (confirm.MachineId == clientConfigTransfer.Id || confirm.All || confirm.GroupAll)
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.UpdateSelf) == false)
+                if (accessTransfer.HasAccess(ClientApiAccess.UpdateSelf) == false)
                 {
                     return false;
                 }
@@ -142,15 +147,15 @@ namespace linker.plugins.updater
         }
         public async Task<bool> Exit(ApiControllerParamsInfo param)
         {
-            if (string.IsNullOrWhiteSpace(param.Content) || param.Content == config.Data.Client.Id)
+            if (string.IsNullOrWhiteSpace(param.Content) || param.Content == clientConfigTransfer.Id)
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.UpdateSelf) == false) return false;
+                if (accessTransfer.HasAccess(ClientApiAccess.UpdateSelf) == false) return false;
 
                 Environment.Exit(1);
             }
             else
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.UpdateOther) == false) return false;
+                if (accessTransfer.HasAccess(ClientApiAccess.UpdateOther) == false) return false;
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = clientSignInState.Connection,
@@ -172,7 +177,7 @@ namespace linker.plugins.updater
         }
         public async Task Check(ApiControllerParamsInfo param)
         {
-            if(param.Content != config.Data.Client.Id)
+            if(param.Content != clientConfigTransfer.Id)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -182,7 +187,7 @@ namespace linker.plugins.updater
                 });
             }
             
-            if (string.IsNullOrWhiteSpace(param.Content) || param.Content == config.Data.Client.Id)
+            if (string.IsNullOrWhiteSpace(param.Content) || param.Content == clientConfigTransfer.Id)
             {
                 updaterTransfer.Check();
             }

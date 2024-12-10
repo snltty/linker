@@ -24,23 +24,27 @@ namespace linker.plugins.sforward
         private readonly RunningConfig running;
         private readonly ClientSignInState clientSignInState;
         private readonly IMessengerSender messengerSender;
+        private readonly ClientConfigTransfer clientConfigTransfer;
 
         private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
         private readonly ConcurrentDictionary<string, int> countDic = new ConcurrentDictionary<string, int>();
 
         public VersionManager Version { get; } = new VersionManager();
 
-        public SForwardTransfer(FileConfig fileConfig, RunningConfig running, ClientSignInState clientSignInState, IMessengerSender messengerSender)
+        public SForwardTransfer(FileConfig fileConfig, RunningConfig running, ClientSignInState clientSignInState, IMessengerSender messengerSender, ClientConfigTransfer clientConfigTransfer)
         {
             this.fileConfig = fileConfig;
             this.running = running;
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
+            this.clientConfigTransfer = clientConfigTransfer;
+
             clientSignInState.NetworkFirstEnabledHandle += () => Start();
+            
         }
         public Memory<byte> GetData()
         {
-            CountInfo info = new CountInfo { MachineId = fileConfig.Data.Client.Id, Count = running.Data.SForwards.Count };
+            CountInfo info = new CountInfo { MachineId = clientConfigTransfer.Id, Count = running.Data.SForwards.Count };
             countDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
             Version.Add();
             return MemoryPackSerializer.Serialize(info);

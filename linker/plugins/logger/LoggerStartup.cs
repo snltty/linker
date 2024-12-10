@@ -1,4 +1,5 @@
 ﻿using linker.config;
+using linker.plugins.access;
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,10 +20,7 @@ namespace linker.plugins.logger
         public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
             serviceCollection.AddSingleton<LoggerClientApiController>();
-            if (config.Data.Client.HasAccess(ClientApiAccess.LoggerLevel) == false)
-            {
-                config.Data.Common.LoggerType = libs.LoggerTypes.WARNING;
-            }
+            
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
@@ -34,6 +32,11 @@ namespace linker.plugins.logger
         {
             LoggerClientApiController logger = serviceProvider.GetService<LoggerClientApiController>();
 
+            AccessTransfer accessTransfer = serviceProvider.GetService<AccessTransfer>();
+            if (accessTransfer.HasAccess(ClientApiAccess.LoggerLevel) == false)
+            {
+                config.Data.Common.LoggerType = libs.LoggerTypes.WARNING;
+            }
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config)

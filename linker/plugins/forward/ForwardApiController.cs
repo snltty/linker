@@ -12,6 +12,7 @@ using linker.plugins.client;
 using linker.plugins.capi;
 using linker.plugins.messenger;
 using linker.config;
+using linker.plugins.access;
 
 namespace linker.plugins.forward
 {
@@ -22,15 +23,18 @@ namespace linker.plugins.forward
         private readonly IMessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
         private readonly FileConfig config;
+        private readonly AccessTransfer accessTransfer;
+        private readonly ClientConfigTransfer clientConfigTransfer;
 
-
-        public ForwardClientApiController(ForwardTransfer forwardTransfer, ForwardProxy forwardProxy, IMessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config)
+        public ForwardClientApiController(ForwardTransfer forwardTransfer, ForwardProxy forwardProxy, IMessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config, AccessTransfer accessTransfer, ClientConfigTransfer clientConfigTransfer)
         {
             this.forwardTransfer = forwardTransfer;
             this.forwardProxy = forwardProxy;
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
             this.config = config;
+            this.accessTransfer = accessTransfer;
+            this.clientConfigTransfer = clientConfigTransfer;
         }
 
         public ConnectionListInfo Connections(ApiControllerParamsInfo param)
@@ -83,12 +87,12 @@ namespace linker.plugins.forward
         /// <returns></returns>
         public async Task<List<ForwardInfo>> Get(ApiControllerParamsInfo param)
         {
-            if (param.Content == config.Data.Client.Id)
+            if (param.Content == clientConfigTransfer.Id)
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.ForwardShowSelf) == false) return new List<ForwardInfo>();
+                if (accessTransfer.HasAccess(ClientApiAccess.ForwardShowSelf) == false) return new List<ForwardInfo>();
                 return forwardTransfer.Get();
             }
-            if (config.Data.Client.HasAccess(ClientApiAccess.ForwardShowOther) == false) return new List<ForwardInfo>();
+            if (accessTransfer.HasAccess(ClientApiAccess.ForwardShowOther) == false) return new List<ForwardInfo>();
 
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
@@ -111,12 +115,12 @@ namespace linker.plugins.forward
         public async Task<bool> Add(ApiControllerParamsInfo param)
         {
             ForwardAddForwardInfo info = param.Content.DeJson<ForwardAddForwardInfo>();
-            if (info.MachineId == config.Data.Client.Id)
+            if (info.MachineId == clientConfigTransfer.Id)
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.ForwardSelf) == false) return false;
+                if (accessTransfer.HasAccess(ClientApiAccess.ForwardSelf) == false) return false;
                 return forwardTransfer.Add(info.Data);
             }
-            if (config.Data.Client.HasAccess(ClientApiAccess.ForwardOther) == false) return false;
+            if (accessTransfer.HasAccess(ClientApiAccess.ForwardOther) == false) return false;
 
             return await messengerSender.SendOnly(new MessageRequestWrap
             {
@@ -134,13 +138,13 @@ namespace linker.plugins.forward
         public async Task<bool> Remove(ApiControllerParamsInfo param)
         {
             ForwardRemoveForwardInfo info = param.Content.DeJson<ForwardRemoveForwardInfo>();
-            if (info.MachineId == config.Data.Client.Id)
+            if (info.MachineId == clientConfigTransfer.Id)
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.ForwardSelf) == false) return false;
+                if (accessTransfer.HasAccess(ClientApiAccess.ForwardSelf) == false) return false;
                 return forwardTransfer.Remove(info.Id);
             }
 
-            if (config.Data.Client.HasAccess(ClientApiAccess.ForwardOther) == false) return false;
+            if (accessTransfer.HasAccess(ClientApiAccess.ForwardOther) == false) return false;
             return await messengerSender.SendOnly(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,

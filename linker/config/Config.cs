@@ -123,7 +123,6 @@ namespace linker.config
                 slim.Release();
             }
         }
-
         private void SaveTask()
         {
             TimerHelper.SetInterval(() =>
@@ -157,13 +156,6 @@ namespace linker.config
     {
         public ConfigInfo() { }
         public ConfigCommonInfo Common { get; set; } = new ConfigCommonInfo();
-
-        [JsonIgnore]
-        public string Version { get; set; } = $"v{string.Join(".", Assembly.GetEntryAssembly().GetName().Version.ToString().Split('.').Take(3))}";
-
-        [JsonIgnore]
-        public bool Elevated { get; set; }
-
 
         [JsonIgnore, BsonIgnore]
         public uint Updated { get; set; } = 1;

@@ -17,23 +17,23 @@ namespace linker.plugins.tunnel
         protected virtual string TransactionId { get; }
         protected readonly ConcurrentDictionary<string, ITunnelConnection> connections = new ConcurrentDictionary<string, ITunnelConnection>();
 
-        private readonly FileConfig config;
         private readonly RunningConfig runningConfig;
         private readonly TunnelTransfer tunnelTransfer;
         private readonly RelayTransfer relayTransfer;
         private readonly PcpTransfer pcpTransfer;
         private readonly ClientSignInTransfer clientSignInTransfer;
         private readonly ClientSignInState clientSignInState;
+        private readonly ClientConfigTransfer clientConfigTransfer;
 
-        public TunnelBase(FileConfig config, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, PcpTransfer pcpTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState, RunningConfig runningConfig)
+        public TunnelBase(TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, PcpTransfer pcpTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState, RunningConfig runningConfig, ClientConfigTransfer clientConfigTransfer)
         {
-            this.config = config;
             this.runningConfig = runningConfig;
             this.tunnelTransfer = tunnelTransfer;
             this.relayTransfer = relayTransfer;
             this.pcpTransfer = pcpTransfer;
             this.clientSignInTransfer = clientSignInTransfer;
             this.clientSignInState = clientSignInState;
+            this.clientConfigTransfer = clientConfigTransfer;
 
             //监听打洞成功
             tunnelTransfer.SetConnectedCallback(TransactionId, OnConnected);
@@ -41,6 +41,7 @@ namespace linker.plugins.tunnel
             relayTransfer.SetConnectedCallback(TransactionId, OnConnected);
             //监听节点中继成功回调
             pcpTransfer.SetConnectedCallback(TransactionId, OnConnected);
+         
         }
         protected virtual void Connected(ITunnelConnection connection)
         {
@@ -76,7 +77,7 @@ namespace linker.plugins.tunnel
         }
         protected async ValueTask<ITunnelConnection> ConnectTunnel(string machineId, TunnelProtocolType denyProtocols)
         {
-            if (config.Data.Client.Id == machineId)
+            if (clientConfigTransfer.Id == machineId)
             {
                 return null;
             }
@@ -126,7 +127,7 @@ namespace linker.plugins.tunnel
         {
             //中继
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} relay to {machineId}");
-            ITunnelConnection connection = await relayTransfer.ConnectAsync(config.Data.Client.Id, machineId, TransactionId, runningConfig.Data.Relay.DefaultNodeId).ConfigureAwait(false);
+            ITunnelConnection connection = await relayTransfer.ConnectAsync(clientConfigTransfer.Id, machineId, TransactionId, runningConfig.Data.Relay.DefaultNodeId).ConfigureAwait(false);
             if (connection != null)
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} relay success,{connection.ToString()}");

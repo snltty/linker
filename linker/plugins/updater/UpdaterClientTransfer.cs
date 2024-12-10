@@ -19,20 +19,23 @@ namespace linker.plugins.updater
         private readonly IMessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
         private readonly UpdaterHelper updaterHelper;
+        private readonly ClientConfigTransfer clientConfigTransfer;
 
         private readonly RunningConfig running;
 
         public VersionManager Version { get; } = new VersionManager();
 
-        public UpdaterClientTransfer(FileConfig fileConfig, IMessengerSender messengerSender, ClientSignInState clientSignInState, UpdaterHelper updaterHelper, RunningConfig running)
+        public UpdaterClientTransfer(FileConfig fileConfig, IMessengerSender messengerSender, ClientSignInState clientSignInState, UpdaterHelper updaterHelper, RunningConfig running, ClientConfigTransfer clientConfigTransfer)
         {
             this.fileConfig = fileConfig;
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
             this.updaterHelper = updaterHelper;
             this.running = running;
-            clientSignInState.NetworkFirstEnabledHandle += Init;
+            this.clientConfigTransfer = clientConfigTransfer;
 
+            clientSignInState.NetworkFirstEnabledHandle += Init;
+           
         }
         private void Init()
         {
@@ -117,7 +120,7 @@ namespace linker.plugins.updater
             {
                 if (updateInfo.Updated)
                 {
-                    updateInfo.MachineId = fileConfig.Data.Client.Id;
+                    updateInfo.MachineId = clientConfigTransfer.Id;
                     string[] machines = subscribes.Where(c => c.Value.DiffLessEqual(15000)).Select(c => c.Key).ToArray();
                     if (machines.Length > 0)
                     {

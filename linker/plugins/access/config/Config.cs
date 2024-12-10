@@ -34,15 +34,7 @@ namespace linker.config
         /// 管理权限
         /// </summary>
         public ClientApiAccess Access { get; set; } = ClientApiAccess.Full;
-        /// <summary>
-        /// 是否拥有某项权限
-        /// </summary>
-        /// <param name="clientManagerAccess"></param>
-        /// <returns></returns>
-        public bool HasAccess(ClientApiAccess clientManagerAccess)
-        {
-            return (Access & clientManagerAccess) == clientManagerAccess;
-        }
+       
     }
 
 

@@ -7,7 +7,6 @@ using linker.plugins.client;
 using linker.plugins.messenger;
 using MemoryPack;
 using linker.plugins.access.messenger;
-using linker.plugins.forward;
 
 namespace linker.plugins.access
 {
@@ -17,13 +16,15 @@ namespace linker.plugins.access
         private readonly IMessengerSender sender;
         private readonly ClientSignInState clientSignInState;
         private readonly AccessTransfer accessTransfer;
+        private readonly ClientConfigTransfer clientConfigTransfer;
 
-        public AccessApiController(FileConfig config, IMessengerSender sender, ClientSignInState clientSignInState, AccessTransfer accessTransfer)
+        public AccessApiController(FileConfig config, IMessengerSender sender, ClientSignInState clientSignInState, AccessTransfer accessTransfer, ClientConfigTransfer clientConfigTransfer)
         {
             this.config = config;
             this.sender = sender;
             this.clientSignInState = clientSignInState;
             this.accessTransfer = accessTransfer;
+            this.clientConfigTransfer = clientConfigTransfer;
         }
 
         public void Refresh(ApiControllerParamsInfo param)
@@ -50,11 +51,11 @@ namespace linker.plugins.access
         public async Task<bool> SetAccess(ApiControllerParamsInfo param)
         {
             ConfigUpdateAccessInfo configUpdateAccessInfo = param.Content.DeJson<ConfigUpdateAccessInfo>();
-            if (configUpdateAccessInfo.ToMachineId == config.Data.Client.Id)
+            if (configUpdateAccessInfo.ToMachineId == clientConfigTransfer.Id)
             {
                 return false;
             }
-            configUpdateAccessInfo.FromMachineId = config.Data.Client.Id;
+            configUpdateAccessInfo.FromMachineId = clientConfigTransfer.Id;
             MessageResponeInfo resp = await sender.SendReply(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,

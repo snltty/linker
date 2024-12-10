@@ -20,26 +20,29 @@ namespace linker.plugins.forward
         private readonly ForwardProxy forwardProxy;
         private readonly ClientSignInState clientSignInState;
         private readonly IMessengerSender messengerSender;
+        private readonly ClientConfigTransfer clientConfigTransfer;
 
         private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
         private readonly ConcurrentDictionary<string, int> countDic = new ConcurrentDictionary<string, int>();
 
         public VersionManager Version { get; } = new VersionManager();
 
-        public ForwardTransfer(FileConfig fileConfig, RunningConfig running, ForwardProxy forwardProxy, ClientSignInState clientSignInState, IMessengerSender messengerSender)
+        public ForwardTransfer(FileConfig fileConfig, RunningConfig running, ForwardProxy forwardProxy, ClientSignInState clientSignInState, IMessengerSender messengerSender, ClientConfigTransfer clientConfigTransfer)
         {
             this.fileConfig = fileConfig;
             this.running = running;
             this.forwardProxy = forwardProxy;
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
+            this.clientConfigTransfer = clientConfigTransfer;
 
             clientSignInState.NetworkEnabledHandle += Reset;
+            
         }
 
         public Memory<byte> GetData()
         {
-            CountInfo info = new CountInfo { MachineId = fileConfig.Data.Client.Id, Count = running.Data.Forwards.Count(c => c.GroupId == fileConfig.Data.Client.Group.Id) };
+            CountInfo info = new CountInfo { MachineId = clientConfigTransfer.Id, Count = running.Data.Forwards.Count(c => c.GroupId == clientConfigTransfer.Group.Id) };
             countDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
             Version.Add();
             return MemoryPackSerializer.Serialize(info);
@@ -79,17 +82,17 @@ namespace linker.plugins.forward
                 {
                     foreach (var item in running.Data.Forwards)
                     {
-                        item.GroupId = fileConfig.Data.Client.Group.Id;
+                        item.GroupId = clientConfigTransfer.Group.Id;
                     }
                     running.Data.Update();
                 }
 
-                if (groupid != fileConfig.Data.Client.Group.Id)
+                if (groupid != clientConfigTransfer.Group.Id)
                 {
                     countDic.Clear();
                     Stop();
                 }
-                groupid = fileConfig.Data.Client.Group.Id;
+                groupid = clientConfigTransfer.Group.Id;
 
                 await Task.Delay(5000).ConfigureAwait(false);
                 Start(false);
@@ -103,7 +106,7 @@ namespace linker.plugins.forward
                 uint maxid = running.Data.Forwards.Count > 0 ? running.Data.Forwards.Max(c => c.Id) : 1;
                 ns.Reset(maxid);
 
-                foreach (var item in running.Data.Forwards.Where(c => c.GroupId == fileConfig.Data.Client.Group.Id))
+                foreach (var item in running.Data.Forwards.Where(c => c.GroupId == clientConfigTransfer.Group.Id))
                 {
                     if (item.Started)
                     {
@@ -187,7 +190,7 @@ namespace linker.plugins.forward
 
         public List<ForwardInfo> Get()
         {
-            return running.Data.Forwards.Where(c => c.GroupId == fileConfig.Data.Client.Group.Id).ToList();
+            return running.Data.Forwards.Where(c => c.GroupId == clientConfigTransfer.Group.Id).ToList();
         }
         public bool Add(ForwardInfo forwardInfo)
         {
@@ -208,12 +211,12 @@ namespace linker.plugins.forward
                 old.MachineName = forwardInfo.MachineName;
                 old.Started = forwardInfo.Started;
                 old.BufferSize = forwardInfo.BufferSize;
-                old.GroupId = fileConfig.Data.Client.Group.Id;
+                old.GroupId = clientConfigTransfer.Group.Id;
             }
             else
             {
                 forwardInfo.Id = ns.Increment();
-                forwardInfo.GroupId = fileConfig.Data.Client.Group.Id;
+                forwardInfo.GroupId = clientConfigTransfer.Group.Id;
                 running.Data.Forwards.Add(forwardInfo);
             }
             running.Data.Update();

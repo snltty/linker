@@ -28,16 +28,14 @@ namespace linker.plugins.tuntap
         private HashSet<uint> ipRefreshCache = new HashSet<uint>();
         public Action RefreshConfig = () => { };
 
-        private readonly FileConfig config;
         private readonly RunningConfig runningConfig;
         private readonly ClientSignInState clientSignInState;
         private readonly ClientSignInTransfer clientSignInTransfer;
 
-        public TuntapProxy(FileConfig config, RunningConfig runningConfig, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, PcpTransfer pcpTransfer, ClientSignInTransfer clientSignInTransfer, LinkerTunDeviceAdapter linkerTunDeviceAdapter, ClientSignInState clientSignInState)
-            : base(config, tunnelTransfer, relayTransfer, pcpTransfer, clientSignInTransfer, clientSignInState, runningConfig)
+        public TuntapProxy(ClientConfigTransfer clientConfigTransfer, RunningConfig runningConfig, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, PcpTransfer pcpTransfer, ClientSignInTransfer clientSignInTransfer, LinkerTunDeviceAdapter linkerTunDeviceAdapter, ClientSignInState clientSignInState)
+            : base(tunnelTransfer, relayTransfer, pcpTransfer, clientSignInTransfer, clientSignInState, runningConfig, clientConfigTransfer)
         {
             this.clientSignInTransfer = clientSignInTransfer;
-            this.config = config;
             this.runningConfig = runningConfig;
             this.linkerTunDeviceAdapter = linkerTunDeviceAdapter;
             this.clientSignInState = clientSignInState;

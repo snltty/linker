@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using linker.tunnel.wanport;
 using linker.plugins.tunnel.excludeip;
+using linker.plugins.client;
 
 namespace linker.plugins.tunnel
 {
@@ -66,13 +67,6 @@ namespace linker.plugins.tunnel
 
             serviceCollection.AddSingleton<ConfigSyncTunnelTransports>();
 
-            LoggerHelper.Instance.Info($"tunnel route level getting.");
-            config.Data.Client.Tunnel.RouteLevel = NetworkHelper.GetRouteLevel(config.Data.Client.ServerInfo.Host, out List<IPAddress> ips);
-            config.Data.Client.Tunnel.RouteIPs = ips.ToArray();
-            LoggerHelper.Instance.Warning($"route ips:{string.Join(",", ips.Select(c => c.ToString()))}");
-            config.Data.Client.Tunnel.LocalIPs = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
-            LoggerHelper.Instance.Warning($"tunnel local ips :{string.Join(",", config.Data.Client.Tunnel.LocalIPs.Select(c => c.ToString()))}");
-            LoggerHelper.Instance.Warning($"tunnel route level:{config.Data.Client.Tunnel.RouteLevel}");
 
         }
 
@@ -89,6 +83,16 @@ namespace linker.plugins.tunnel
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
+            ClientConfigTransfer clientConfigTransfer = serviceProvider.GetService<ClientConfigTransfer>();
+            LoggerHelper.Instance.Info($"tunnel route level getting.");
+            config.Data.Client.Tunnel.RouteLevel = NetworkHelper.GetRouteLevel(clientConfigTransfer.Server.Host, out List<IPAddress> ips);
+            config.Data.Client.Tunnel.RouteIPs = ips.ToArray();
+            LoggerHelper.Instance.Warning($"route ips:{string.Join(",", ips.Select(c => c.ToString()))}");
+            config.Data.Client.Tunnel.LocalIPs = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
+            LoggerHelper.Instance.Warning($"tunnel local ips :{string.Join(",", config.Data.Client.Tunnel.LocalIPs.Select(c => c.ToString()))}");
+            LoggerHelper.Instance.Warning($"tunnel route level:{config.Data.Client.Tunnel.RouteLevel}");
+
+
             ITunnelAdapter tunnelAdapter = serviceProvider.GetService<ITunnelAdapter>();
             TunnelUpnpTransfer upnpTransfer = serviceProvider.GetService<TunnelUpnpTransfer>();
 
@@ -116,7 +120,7 @@ namespace linker.plugins.tunnel
             TunnelConfigTransfer tunnelConfigTransfer = serviceProvider.GetService<TunnelConfigTransfer>();
             TunnelExcludeIPTransfer excludeIPTransfer = serviceProvider.GetService<TunnelExcludeIPTransfer>();
             TunnelExcludeIPTypesLoader tunnelExcludeIPTypesLoader = serviceProvider.GetService<TunnelExcludeIPTypesLoader>();
-           
+
 
         }
 

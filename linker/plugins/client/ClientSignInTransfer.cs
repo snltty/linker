@@ -22,8 +22,9 @@ namespace linker.plugins.client
         private readonly IMessengerSender messengerSender;
         private readonly IMessengerResolver messengerResolver;
         private readonly SignInArgsTransfer signInArgsTransfer;
+        private readonly ClientConfigTransfer clientConfigTransfer;
 
-        public ClientSignInTransfer(ClientSignInState clientSignInState, RunningConfig runningConfig, FileConfig config, IMessengerSender messengerSender, IMessengerResolver messengerResolver, SignInArgsTransfer signInArgsTransfer)
+        public ClientSignInTransfer(ClientSignInState clientSignInState, RunningConfig runningConfig, FileConfig config, IMessengerSender messengerSender, IMessengerResolver messengerResolver, SignInArgsTransfer signInArgsTransfer, ClientConfigTransfer clientConfigTransfer)
         {
             this.clientSignInState = clientSignInState;
             this.runningConfig = runningConfig;
@@ -31,6 +32,7 @@ namespace linker.plugins.client
             this.messengerSender = messengerSender;
             this.messengerResolver = messengerResolver;
             this.signInArgsTransfer = signInArgsTransfer;
+            this.clientConfigTransfer = clientConfigTransfer;
         }
 
         /// <summary>
@@ -56,13 +58,19 @@ namespace linker.plugins.client
             }, () => 10000);
         }
 
+        public void ReSignIn()
+        {
+            SignOut();
+            _ = SignIn();
+        }
+
         /// <summary>
         /// 登入
         /// </summary>
         /// <returns></returns>
         public async Task SignIn()
         {
-            if (string.IsNullOrWhiteSpace(config.Data.Client.Group.Id))
+            if (string.IsNullOrWhiteSpace(clientConfigTransfer.Group.Id))
             {
                 LoggerHelper.Instance.Error($"please configure group id");
                 return;
@@ -75,13 +83,13 @@ namespace linker.plugins.client
             try
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Info($"connect to signin server:{config.Data.Client.ServerInfo.Host}");
+                    LoggerHelper.Instance.Info($"connect to signin server:{clientConfigTransfer.Server.Host}");
 
-                IPEndPoint ip = await NetworkHelper.GetEndPointAsync(config.Data.Client.ServerInfo.Host, 1802);
+                IPEndPoint ip = await NetworkHelper.GetEndPointAsync(clientConfigTransfer.Server.Host, 1802);
                 if (ip == null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Error($"get domain ip fail:{config.Data.Client.ServerInfo.Host}");
+                        LoggerHelper.Instance.Error($"get domain ip fail:{clientConfigTransfer.Server.Host}");
                     return;
                 }
 
@@ -131,7 +139,7 @@ namespace linker.plugins.client
         private async Task<bool> SignIn2Server()
         {
             Dictionary<string, string> args = [];
-            string argResult = await signInArgsTransfer.Invoke(config.Data.Client.ServerInfo.Host, args);
+            string argResult = await signInArgsTransfer.Invoke(clientConfigTransfer.Server.Host, args);
             if (string.IsNullOrWhiteSpace(argResult) == false)
             {
                 LoggerHelper.Instance.Error(argResult);
@@ -145,11 +153,11 @@ namespace linker.plugins.client
                 MessengerId = (ushort)SignInMessengerIds.SignIn_V_1_3_1,
                 Payload = MemoryPackSerializer.Serialize(new SignInfo
                 {
-                    MachineName = config.Data.Client.Name,
-                    MachineId = config.Data.Client.Id,
-                    Version = config.Data.Version,
+                    MachineName = clientConfigTransfer.Name,
+                    MachineId = clientConfigTransfer.Id,
+                    Version = VersionHelper.version,
                     Args = args,
-                    GroupId = config.Data.Client.Group.Id,
+                    GroupId = clientConfigTransfer.Group.Id,
                 })
             }).ConfigureAwait(false);
             if (resp.Code != MessageResponeCodes.OK)
@@ -166,9 +174,7 @@ namespace linker.plugins.client
                 clientSignInState.Connection?.Disponse(6);
                 return false;
             }
-
-            config.Data.Client.Id = signResp.MachineId;
-            config.Data.Update();
+            clientConfigTransfer.SetId(signResp.MachineId);
             return true;
         }
 
@@ -201,48 +207,6 @@ namespace linker.plugins.client
                 clientSignInState.Version = "v1.0.0";
             }
         }
-
-
-        /// <summary>
-        /// 修改客户端名称
-        /// </summary>
-        /// <param name="newName"></param>
-        public void Set(string newName)
-        {
-            config.Data.Client.Name = newName;
-            config.Data.Update();
-
-            SignOut();
-            _ = SignIn();
-
-        }
-        /// <summary>
-        /// 修改客户端名称和分组编号
-        /// </summary>
-        /// <param name="newName"></param>
-        /// <param name="groups"></param>
-        public void Set(string newName, ClientGroupInfo[] groups)
-        {
-            config.Data.Client.Name = newName;
-            config.Data.Client.Groups = groups.DistinctBy(c => c.Name).ToArray();
-            config.Data.Update();
-
-            SignOut();
-            _ = SignIn();
-        }
-        /// <summary>
-        /// 设置分组编号
-        /// </summary>
-        /// <param name="groups"></param>
-        public void Set(ClientGroupInfo[] groups)
-        {
-            config.Data.Client.Groups = groups.DistinctBy(c => c.Name).ToArray();
-            config.Data.Update();
-
-            SignOut();
-            _ = SignIn();
-        }
-
 
         /// <summary>
         /// 获取是否在线

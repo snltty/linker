@@ -37,7 +37,6 @@ namespace linker.config
 
     }
 
-
     public partial class ConfigServerInfo
     {
         /// <summary>

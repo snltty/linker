@@ -2,8 +2,6 @@
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
 using linker.config;
-using System.Net;
-using linker.libs.extends;
 
 namespace linker.plugins.client
 {
@@ -30,6 +28,8 @@ namespace linker.plugins.client
             serviceCollection.AddSingleton<ConfigSyncSignInSecretKey>();
             serviceCollection.AddSingleton<ConfigSyncGroupSecretKey>();
 
+            serviceCollection.AddSingleton<ClientConfigTransfer>();
+            
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)

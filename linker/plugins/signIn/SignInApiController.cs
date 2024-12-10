@@ -6,6 +6,7 @@ using MemoryPack;
 using linker.plugins.client;
 using linker.plugins.capi;
 using linker.plugins.messenger;
+using linker.plugins.access;
 
 namespace linker.plugins.signin
 {
@@ -13,36 +14,43 @@ namespace linker.plugins.signin
     {
         private readonly FileConfig config;
         private readonly ClientSignInState clientSignInState;
-        private readonly ClientSignInTransfer clientSignInTransfer;
+        private readonly ClientConfigTransfer clientConfigTransfer;
         private readonly IMessengerSender messengerSender;
+        private readonly AccessTransfer accessTransfer;
+        private readonly ClientSignInTransfer clientSignInTransfer;
 
-        public SignInClientApiController(FileConfig config, ClientSignInState clientSignInState, ClientSignInTransfer clientSignInTransfer, IMessengerSender messengerSender)
+        public SignInClientApiController(FileConfig config, ClientSignInState clientSignInState, ClientConfigTransfer clientConfigTransfer, IMessengerSender messengerSender, AccessTransfer accessTransfer, ClientSignInTransfer clientSignInTransfer)
         {
             this.config = config;
             this.clientSignInState = clientSignInState;
-            this.clientSignInTransfer = clientSignInTransfer;
+            this.clientConfigTransfer = clientConfigTransfer;
             this.messengerSender = messengerSender;
+            this.accessTransfer = accessTransfer;
+            this.clientSignInTransfer = clientSignInTransfer;
         }
 
         public void Set(ApiControllerParamsInfo param)
         {
             ConfigSetInfo info = param.Content.DeJson<ConfigSetInfo>();
-            clientSignInTransfer.Set(info.Name, info.Groups);
+            clientConfigTransfer.SetName(info.Name);
+            clientConfigTransfer.SetGroup(info.Groups);
+            clientSignInTransfer.ReSignIn();
         }
 
         public async Task<bool> SetName(ApiControllerParamsInfo param)
         {
             ConfigSetNameInfo info = param.Content.DeJson<ConfigSetNameInfo>();
 
-            if (info.Id == config.Data.Client.Id)
+            if (info.Id == clientConfigTransfer.Id)
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.RenameSelf) == false) return false;
+                if (accessTransfer.HasAccess(ClientApiAccess.RenameSelf) == false) return false;
 
-                clientSignInTransfer.Set(info.NewName);
+                clientConfigTransfer.SetName(info.NewName);
+                clientSignInTransfer.ReSignIn();
             }
             else
             {
-                if (config.Data.Client.HasAccess(ClientApiAccess.RenameOther) == false) return false;
+                if (accessTransfer.HasAccess(ClientApiAccess.RenameOther) == false) return false;
 
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -56,15 +64,16 @@ namespace linker.plugins.signin
         public void SetGroups(ApiControllerParamsInfo param)
         {
             ClientGroupInfo[] info = param.Content.DeJson<ClientGroupInfo[]>();
-            clientSignInTransfer.Set(info);
+            clientConfigTransfer.SetGroup(info);
+            clientSignInTransfer.ReSignIn();
         }
 
         [ClientApiAccessAttribute(ClientApiAccess.Config)]
         public bool SetServers(ApiControllerParamsInfo param)
         {
             ClientServerInfo servers = param.Content.DeJson<ClientServerInfo>();
-            config.Data.Client.Servers = [servers];
-            config.Data.Update();
+            clientConfigTransfer.SetServer([servers]);
+            clientSignInTransfer.ReSignIn();
             return true;
         }
 
