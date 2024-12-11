@@ -28,7 +28,7 @@ namespace linker.plugins.sforward
             serviceCollection.AddSingleton<SForwardTransfer>();
             serviceCollection.AddSingleton<SForwardClientMessenger>();
 
-            serviceCollection.AddSingleton<ConfigSyncSForwardSecretKey>();
+            serviceCollection.AddSingleton<SForwardConfigSyncSecretKey>();
 
         }
 
@@ -39,6 +39,7 @@ namespace linker.plugins.sforward
             serviceCollection.AddSingleton<ISForwardServerCahing, SForwardServerCahing>();
             serviceCollection.AddSingleton<ISForwardValidator, Validator>();
 
+            serviceCollection.AddSingleton<SForwardServerConfigTransfer>();
         }
 
         bool added = false;
@@ -59,12 +60,13 @@ namespace linker.plugins.sforward
         public void UseServer(ServiceProvider serviceProvider, FileConfig config)
         {
             SForwardProxy sForwardProxy = serviceProvider.GetService<SForwardProxy>();
-            if (config.Data.Server.SForward.WebPort > 0)
+            SForwardServerConfigTransfer sForwardServerConfigTransfer = serviceProvider.GetService<SForwardServerConfigTransfer>();
+            if (sForwardServerConfigTransfer.WebPort > 0)
             {
-                sForwardProxy.Start(config.Data.Server.SForward.WebPort, true, config.Data.Server.SForward.BufferSize,string.Empty);
-                LoggerHelper.Instance.Warning($"listen server forward web in {config.Data.Server.SForward.WebPort}");
+                sForwardProxy.Start(sForwardServerConfigTransfer.WebPort, true, sForwardServerConfigTransfer.BufferSize,string.Empty);
+                LoggerHelper.Instance.Warning($"listen server forward web in {sForwardServerConfigTransfer.WebPort}");
             }
-            LoggerHelper.Instance.Warning($"listen server forward tunnel in {string.Join("-", config.Data.Server.SForward.TunnelPortRange)}");
+            LoggerHelper.Instance.Warning($"listen server forward tunnel in {string.Join("-", sForwardServerConfigTransfer.TunnelPortRange)}");
 
         }
     }

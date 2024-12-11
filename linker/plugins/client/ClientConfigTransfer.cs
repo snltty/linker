@@ -7,7 +7,7 @@ namespace linker.plugins.client
         public ClientServerInfo Server => config.Data.Client.Servers[0];
         public ClientGroupInfo Group => config.Data.Client.Groups[0];
         public ClientCertificateInfo SSL => config.Data.Client.SSL;
-        
+
         public string Id => config.Data.Client.Id;
         public string Name => config.Data.Client.Name;
 
@@ -35,6 +35,12 @@ namespace linker.plugins.client
         public void SetServer(ClientServerInfo[] servers)
         {
             config.Data.Client.Servers = servers;
+            config.Data.Update();
+        }
+
+        public void SetSecretKey(string secretKey)
+        {
+            Server.SecretKey = secretKey;
             config.Data.Update();
         }
 

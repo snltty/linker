@@ -44,11 +44,15 @@ namespace linker.tunnel.transport
 
 
         private readonly ConcurrentDictionary<string, TaskCompletionSource<Socket>> distDic = new ConcurrentDictionary<string, TaskCompletionSource<Socket>>();
-        private readonly ITunnelAdapter tunnelAdapter;
-        public TransportTcpPortMap(ITunnelAdapter tunnelAdapter)
+        private ITunnelAdapter tunnelAdapter;
+        public TransportTcpPortMap()
+        {
+        }
+        public void SetAdapter(ITunnelAdapter tunnelAdapter)
         {
             this.tunnelAdapter = tunnelAdapter;
         }
+
 
         Socket socket;
         public async Task Listen(int localPort)

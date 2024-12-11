@@ -4,6 +4,18 @@ using MemoryPack;
 using System.Collections.Concurrent;
 using System.Net;
 
+
+
+namespace linker.client.config
+{
+    public sealed partial class RunningConfigInfo
+    {
+        /// <summary>
+        /// 虚拟网卡配置
+        /// </summary>
+        public TuntapConfigInfo Tuntap { get; set; } = new TuntapConfigInfo();
+    }
+}
 namespace linker.plugins.tuntap.config
 {
     [MemoryPackable]
@@ -20,16 +32,6 @@ namespace linker.plugins.tuntap.config
         /// </summary>
         public byte PrefixLength { get; set; } = 24;
 
-
-        /// <summary>
-        /// 局域网IP列表
-        /// </summary>
-        [MemoryPackAllowSerialize]
-        public IPAddress[] LanIPs { get; set; } = Array.Empty<IPAddress>();
-        /// <summary>
-        /// 局域网掩码列表，与IP列表一一对应
-        /// </summary>
-        public int[] Masks { get; set; } = Array.Empty<int>();
         /// <summary>
         /// 局域网配置列表
         /// </summary>
@@ -349,14 +351,3 @@ namespace linker.plugins.tuntap.config
     }
 }
 
-
-namespace linker.client.config
-{
-    public sealed partial class RunningConfigInfo
-    {
-        /// <summary>
-        /// 虚拟网卡配置
-        /// </summary>
-        public TuntapConfigInfo Tuntap { get; set; } = new TuntapConfigInfo();
-    }
-}

@@ -19,6 +19,10 @@ namespace linker.plugins.sforward
         public string Name => "sforward";
         public VersionManager DataVersion { get; } = new VersionManager();
 
+        public VersionManager Version { get; } = new VersionManager();
+
+        public string SecretKey => fileConfig.Data.Client.SForward.SecretKey;
+
 
         private readonly FileConfig fileConfig;
         private readonly RunningConfig running;
@@ -28,8 +32,9 @@ namespace linker.plugins.sforward
 
         private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
         private readonly ConcurrentDictionary<string, int> countDic = new ConcurrentDictionary<string, int>();
+        private readonly OperatingManager operatingManager = new OperatingManager();
 
-        public VersionManager Version { get; } = new VersionManager();
+      
 
         public SForwardTransfer(FileConfig fileConfig, RunningConfig running, ClientSignInState clientSignInState, IMessengerSender messengerSender, ClientConfigTransfer clientConfigTransfer)
         {
@@ -68,22 +73,16 @@ namespace linker.plugins.sforward
         {
             DataVersion.Add();
         }
-
         public ConcurrentDictionary<string, int> GetCount()
         {
             return countDic;
         }
-
-        public string GetSecretKey()
-        {
-            return fileConfig.Data.Client.SForward.SecretKey;
-        }
+       
         public void SetSecretKey(string key)
         {
             fileConfig.Data.Client.SForward.SecretKey = key;
             fileConfig.Data.Update();
         }
-
 
         private void Start()
         {
@@ -188,7 +187,6 @@ namespace linker.plugins.sforward
             Version.Add();
         }
 
-
         public List<SForwardInfo> Get()
         {
             return running.Data.SForwards;
@@ -257,9 +255,7 @@ namespace linker.plugins.sforward
             string[] arr = str.Split('/');
             return arr.Length == 2 && int.TryParse(arr[0], out min) && int.TryParse(arr[1], out max);
         }
-
-
-        private readonly OperatingManager operatingManager = new OperatingManager();
+        
         /// <summary>
         /// 测试本机服务
         /// </summary>

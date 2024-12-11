@@ -7,6 +7,12 @@ namespace linker.plugins.action
     {
         public const string ACTION_ARG_KEY = "ACTION_ARGS";
 
+
+        public string SignInActionUrl => config.Data.Action.SignInActionUrl;
+        public string RelayActionUrl => config.Data.Action.SignInActionUrl;
+        public string SForwardActionUrl => config.Data.Action.SignInActionUrl;
+
+
         private readonly FileConfig config;
         public ActionTransfer(FileConfig config)
         {

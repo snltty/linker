@@ -1,5 +1,7 @@
 ﻿using linker.config;
 using linker.plugins.messenger;
+using linker.plugins.relay.server;
+using linker.plugins.sforward;
 using linker.plugins.signin.messenger;
 using MemoryPack;
 
@@ -13,10 +15,12 @@ namespace linker.plugins.flow.messenger
         private readonly RelayFlow relayFlow;
         private readonly SignCaching signCaching;
         private readonly FileConfig fileConfig;
+        private readonly RelayServerConfigTransfer relayServerConfigTransfer;
+        private readonly SForwardServerConfigTransfer sForwardServerConfigTransfer;
 
         private DateTime start = DateTime.Now;
 
-        public FlowMessenger(FlowTransfer flowTransfer, MessengerFlow messengerFlow, SForwardFlow sForwardFlow, RelayFlow relayFlow, SignCaching signCaching, FileConfig fileConfig)
+        public FlowMessenger(FlowTransfer flowTransfer, MessengerFlow messengerFlow, SForwardFlow sForwardFlow, RelayFlow relayFlow, SignCaching signCaching, FileConfig fileConfig, RelayServerConfigTransfer relayServerConfigTransfer, SForwardServerConfigTransfer sForwardServerConfigTransfer)
         {
             this.flowTransfer = flowTransfer;
             this.messengerFlow = messengerFlow;
@@ -24,6 +28,8 @@ namespace linker.plugins.flow.messenger
             this.relayFlow = relayFlow;
             this.signCaching = signCaching;
             this.fileConfig = fileConfig;
+            this.relayServerConfigTransfer = relayServerConfigTransfer;
+            this.sForwardServerConfigTransfer = sForwardServerConfigTransfer;
         }
 
         [MessengerId((ushort)FlowMessengerIds.List)]
@@ -55,7 +61,7 @@ namespace linker.plugins.flow.messenger
             sForwardFlow.Update();
             SForwardFlowRequestInfo info = MemoryPackSerializer.Deserialize<SForwardFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
 
-            if (fileConfig.Data.Server.SForward.SecretKey == info.SecretKey)
+            if (sForwardServerConfigTransfer.SecretKey == info.SecretKey)
             {
                 info.GroupId = string.Empty;
             }
@@ -79,7 +85,7 @@ namespace linker.plugins.flow.messenger
         {
             relayFlow.Update();
             RelayFlowRequestInfo info = MemoryPackSerializer.Deserialize<RelayFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (fileConfig.Data.Server.Relay.SecretKey == info.SecretKey)
+            if (relayServerConfigTransfer.SecretKey == info.SecretKey)
             {
                 info.GroupId = string.Empty;
             }

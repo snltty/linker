@@ -28,8 +28,8 @@ namespace linker.plugins.socks5
 
         protected override string TransactionId => "socks5";
 
-        public TunnelProxy(ClientConfigTransfer clientConfigTransfer, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, PcpTransfer pcpTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState, RunningConfig runningConfig)
-             : base(tunnelTransfer, relayTransfer, pcpTransfer, clientSignInTransfer, clientSignInState, runningConfig, clientConfigTransfer)
+        public TunnelProxy(ClientConfigTransfer clientConfigTransfer, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, PcpTransfer pcpTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState, RelayClientConfigTransfer relayClientConfigTransfer)
+             : base(tunnelTransfer, relayTransfer, pcpTransfer, clientSignInTransfer, clientSignInState, clientConfigTransfer, relayClientConfigTransfer)
         {
             this.clientSignInTransfer = clientSignInTransfer;
             TaskUdp();

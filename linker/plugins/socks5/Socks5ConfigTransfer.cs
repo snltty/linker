@@ -8,6 +8,8 @@ using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.plugins.socks5.config;
 using linker.plugins.decenter;
+using linker.plugins.tunnel;
+using linker.plugins.tuntap;
 
 namespace linker.plugins.socks5
 {
@@ -23,6 +25,8 @@ namespace linker.plugins.socks5
         private readonly RunningConfig runningConfig;
         private readonly TunnelProxy tunnelProxy;
         private readonly ClientConfigTransfer clientConfigTransfer;
+        private readonly TunnelConfigTransfer tunnelConfigTransfer;
+        private readonly TuntapConfigTransfer tuntapConfigTransfer;
 
         public VersionManager Version { get; } = new VersionManager();
         private readonly ConcurrentDictionary<string, Socks5Info> socks5Infos = new ConcurrentDictionary<string, Socks5Info>();
@@ -30,7 +34,7 @@ namespace linker.plugins.socks5
 
 
         private readonly SemaphoreSlim slim = new SemaphoreSlim(1);
-        public Socks5ConfigTransfer(IMessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config, RunningConfig runningConfig, TunnelProxy tunnelProxy, ClientConfigTransfer clientConfigTransfer)
+        public Socks5ConfigTransfer(IMessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config, RunningConfig runningConfig, TunnelProxy tunnelProxy, ClientConfigTransfer clientConfigTransfer, TunnelConfigTransfer tunnelConfigTransfer, TuntapConfigTransfer tuntapConfigTransfer)
         {
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
@@ -38,6 +42,8 @@ namespace linker.plugins.socks5
             this.runningConfig = runningConfig;
             this.tunnelProxy = tunnelProxy;
             this.clientConfigTransfer = clientConfigTransfer;
+            this.tunnelConfigTransfer = tunnelConfigTransfer;
+            this.tuntapConfigTransfer = tuntapConfigTransfer;
 
             clientSignInState.NetworkEnabledHandle += (times) => DataVersion.Add();
             tunnelProxy.RefreshConfig += RefreshConfig;
@@ -122,7 +128,6 @@ namespace linker.plugins.socks5
             });
         }
 
-
         /// <summary>
         /// 重启
         /// </summary>
@@ -196,11 +201,11 @@ namespace linker.plugins.socks5
         {
             //排除的IP，
             uint[] excludeIps =//本机局域网IP
-                config.Data.Client.Tunnel.LocalIPs.Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                tunnelConfigTransfer.LocalIPs.Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                 //路由上的IP
-                .Concat(config.Data.Client.Tunnel.RouteIPs)
+                .Concat(tunnelConfigTransfer.RouteIPs)
                 //网卡IP  服务器IP
-                .Concat(new IPAddress[] { runningConfig.Data.Tuntap.IP, clientSignInState.Connection.Address.Address })
+                .Concat(new IPAddress[] { tuntapConfigTransfer.IP, clientSignInState.Connection.Address.Address })
                 //网卡配置的局域网IP
                 .Concat(runningConfig.Data.Socks5.Lans.Select(c => c.IP))
                 .Select(NetworkHelper.IP2Value)

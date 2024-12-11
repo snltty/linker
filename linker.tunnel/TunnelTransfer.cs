@@ -7,7 +7,6 @@ using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Net;
 using linker.tunnel.wanport;
-using System.Transactions;
 
 namespace linker.tunnel
 {
@@ -43,6 +42,7 @@ namespace linker.tunnel
                 item.OnSendConnectFail = tunnelAdapter.SendConnectFail;
                 item.OnSendConnectSuccess = tunnelAdapter.SendConnectSuccess;
                 item.OnConnected = _OnConnected;
+                item.SetAdapter(tunnelAdapter);
             }
 
             var transportItems = tunnelAdapter.GetTunnelTransports();

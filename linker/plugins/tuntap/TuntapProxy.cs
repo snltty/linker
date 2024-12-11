@@ -26,21 +26,23 @@ namespace linker.plugins.tuntap
         private readonly LinkerTunDeviceAdapter linkerTunDeviceAdapter;
 
         private HashSet<uint> ipRefreshCache = new HashSet<uint>();
-        public Action RefreshConfig = () => { };
 
-        private readonly RunningConfig runningConfig;
-        private readonly ClientSignInState clientSignInState;
         private readonly ClientSignInTransfer clientSignInTransfer;
+        private readonly TuntapConfigTransfer tuntapConfigTransfer;
 
-        public TuntapProxy(ClientConfigTransfer clientConfigTransfer, RunningConfig runningConfig, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, PcpTransfer pcpTransfer, ClientSignInTransfer clientSignInTransfer, LinkerTunDeviceAdapter linkerTunDeviceAdapter, ClientSignInState clientSignInState)
-            : base(tunnelTransfer, relayTransfer, pcpTransfer, clientSignInTransfer, clientSignInState, runningConfig, clientConfigTransfer)
+        public TuntapProxy(ClientConfigTransfer clientConfigTransfer, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, PcpTransfer pcpTransfer, ClientSignInTransfer clientSignInTransfer, LinkerTunDeviceAdapter linkerTunDeviceAdapter, ClientSignInState clientSignInState,RelayClientConfigTransfer relayClientConfigTransfer, TuntapConfigTransfer tuntapConfigTransfer)
+            : base(tunnelTransfer, relayTransfer, pcpTransfer, clientSignInTransfer, clientSignInState, clientConfigTransfer, relayClientConfigTransfer)
         {
             this.clientSignInTransfer = clientSignInTransfer;
-            this.runningConfig = runningConfig;
             this.linkerTunDeviceAdapter = linkerTunDeviceAdapter;
-            this.clientSignInState = clientSignInState;
-        }
+            this.tuntapConfigTransfer = tuntapConfigTransfer;
 
+            tuntapConfigTransfer.HandleReset += ClearIPs;
+            tuntapConfigTransfer.HandleSetIPs += SetIPs;
+            tuntapConfigTransfer.HandleSetIP += SetIP;
+            tuntapConfigTransfer.HandleRemoveIP += RemoveIP;
+        }
+        
         protected override void Connected(ITunnelConnection connection)
         {
             connection.BeginReceive(this, null);
@@ -73,7 +75,7 @@ namespace linker.plugins.tuntap
         /// <returns></returns>
         public async Task Closed(ITunnelConnection connection, object state)
         {
-            RefreshConfig();
+            tuntapConfigTransfer.RefreshConfig();
             Version.Add();
             await Task.CompletedTask;
         }
@@ -88,7 +90,7 @@ namespace linker.plugins.tuntap
             //IPV4广播组播、IPV6 多播
             if (packet.IPV4Broadcast || packet.IPV6Multicast)
             {
-                if (connections.IsEmpty == false && (runningConfig.Data.Tuntap.Switch & TuntapSwitch.Multicast) == 0)
+                if (connections.IsEmpty == false && (tuntapConfigTransfer.Switch & TuntapSwitch.Multicast) == 0)
                 {
                     await Task.WhenAll(connections.Values.Where(c => c != null && c.Connected).Select(c => c.SendAsync(packet.Packet)));
                 }
@@ -130,7 +132,7 @@ namespace linker.plugins.tuntap
         /// 设置IP，等下有连接进来，用IP匹配，才能知道这个连接是要连谁
         /// </summary>
         /// <param name="ips"></param>
-        public void SetIPs(TuntapVeaLanIPAddress[] ips)
+        private void SetIPs(TuntapVeaLanIPAddress[] ips)
         {
             var dic = ips.GroupBy(c => c.NetWork).ToDictionary(c => c.Key, d => d.Select(e => e.MachineId).ToList());
             foreach (var item in dic.Where(c => c.Value.Count > 0))
@@ -151,7 +153,7 @@ namespace linker.plugins.tuntap
         /// </summary>
         /// <param name="machineId"></param>
         /// <param name="ip"></param>
-        public void SetIP(string machineId, uint ip)
+        private void SetIP(string machineId, uint ip)
         {
             ip2MachineDic.AddOrUpdate(ip, machineId, (a, b) => machineId);
             if (ipConnections.TryGetValue(ip, out ITunnelConnection connection) && machineId != connection.RemoteMachineId)
@@ -163,7 +165,7 @@ namespace linker.plugins.tuntap
         /// 移除
         /// </summary>
         /// <param name="machineId"></param>
-        public void RemoveIP(string machineId)
+        private void RemoveIP(string machineId)
         {
             foreach (var item in ip2MachineDic.Where(c => c.Value == machineId).ToList())
             {
@@ -197,7 +199,7 @@ namespace linker.plugins.tuntap
             if (ipRefreshCache.Contains(ip) == false)
             {
                 ipRefreshCache.Add(ip);
-                RefreshConfig();
+                tuntapConfigTransfer.RefreshConfig();
             }
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
@@ -208,7 +210,7 @@ namespace linker.plugins.tuntap
 
         }
 
-        public void ClearIPs()
+        private void ClearIPs()
         {
             ip2MachineDic.Clear();
             ipConnections.Clear();

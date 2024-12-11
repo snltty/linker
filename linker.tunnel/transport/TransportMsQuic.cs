@@ -46,27 +46,15 @@ namespace linker.tunnel.transport
         private byte[] endBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.end");
         private IPEndPoint quicListenEP = null;
 
-        private readonly ITunnelAdapter tunnelAdapter;
-        public TransportMsQuic(ITunnelAdapter tunnelAdapter)
+        private ITunnelAdapter tunnelAdapter;
+        public TransportMsQuic()
+        {
+            _ = QuicListen();
+        }
+
+        public void SetAdapter(ITunnelAdapter tunnelAdapter)
         {
             this.tunnelAdapter = tunnelAdapter;
-            _ = QuicListen();
-
-            /*
-             *  QUIC监听 QuicStart
-             * 
-             *  大致流程
-             *  
-             *  1、ConnectAsync 告诉B，我要连接你
-             *  
-             *  2、B 收到消息调用 OnBegin，然后绑定一个 socketB 等待 A 的消息，
-             *  3、B 给 A 发送一些消息 ，在 BindAndTTL，
-             *  
-             *  4、A 绑定一个监听 socketA，然后发消息给 B , 如果 B 收到消息，就会回一条消息，这个监听就会收到消息，在 ConnectForward
-             *  5、A 再绑定一个 socketA1，用以接收quic的连接，
-             *  
-             *  6、socketA1 收到消息，则通过 socketA 发送给B， socketB 收到消息，创建一个udp，发送给quic监听，完成一个线路
-             */
         }
 
         /// <summary>

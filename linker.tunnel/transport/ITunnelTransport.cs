@@ -1,4 +1,5 @@
-﻿using linker.tunnel.connection;
+﻿using linker.tunnel.adapter;
+using linker.tunnel.connection;
 using linker.tunnel.wanport;
 using System.Net;
 
@@ -60,6 +61,8 @@ namespace linker.tunnel.transport
         /// 收到连接
         /// </summary>
         public Action<ITunnelConnection> OnConnected { get; set; }
+
+        public void SetAdapter(ITunnelAdapter tunnelAdapter);
 
         /// <summary>
         /// 连接对方

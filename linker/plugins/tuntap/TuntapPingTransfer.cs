@@ -15,18 +15,14 @@ namespace linker.plugins.tuntap
     {
         private readonly TuntapTransfer tuntapTransfer;
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
-        private readonly FileConfig config;
         private readonly TuntapProxy tuntapProxy;
-        private readonly RunningConfig runningConfig;
         private readonly ClientConfigTransfer clientConfigTransfer;
 
-        public TuntapPingTransfer(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig, ClientConfigTransfer clientConfigTransfer)
+        public TuntapPingTransfer(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, TuntapProxy tuntapProxy, ClientConfigTransfer clientConfigTransfer)
         {
             this.tuntapTransfer = tuntapTransfer;
             this.tuntapConfigTransfer = tuntapConfigTransfer;
-            this.config = config;
             this.tuntapProxy = tuntapProxy;
-            this.runningConfig = runningConfig;
             this.clientConfigTransfer = clientConfigTransfer;
 
             PingTask();
@@ -51,10 +47,10 @@ namespace linker.plugins.tuntap
         }
         private async Task Ping()
         {
-            if (tuntapTransfer.Status == TuntapStatus.Running && (runningConfig.Data.Tuntap.Switch & TuntapSwitch.ShowDelay) == TuntapSwitch.ShowDelay)
+            if (tuntapTransfer.Status == TuntapStatus.Running && (tuntapConfigTransfer.Switch & TuntapSwitch.ShowDelay) == TuntapSwitch.ShowDelay)
             {
                 var items = tuntapConfigTransfer.Infos.Values.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false && (c.Status & TuntapStatus.Running) == TuntapStatus.Running);
-                if ((runningConfig.Data.Tuntap.Switch & TuntapSwitch.AutoConnect) != TuntapSwitch.AutoConnect)
+                if ((tuntapConfigTransfer.Switch & TuntapSwitch.AutoConnect) != TuntapSwitch.AutoConnect)
                 {
                     var connections = tuntapProxy.GetConnections();
                     items = items.Where(c => connections.TryGetValue(c.MachineId, out ITunnelConnection connection) && connection.Connected || c.MachineId == clientConfigTransfer.Id);

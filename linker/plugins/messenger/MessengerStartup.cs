@@ -1,5 +1,6 @@
 ﻿using linker.config;
 using linker.plugins.client;
+using linker.plugins.server;
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -59,8 +60,10 @@ namespace linker.plugins.messenger
             {
                 loaded = true;
 
+                ServerConfigTransfer serverConfigTransfer = serviceProvider.GetService<ServerConfigTransfer>();
+
                 IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
-                messengerResolver.Initialize(config.Data.Server.SSL.File, config.Data.Server.SSL.Password);
+                messengerResolver.Initialize(serverConfigTransfer.SSL.File, serverConfigTransfer.SSL.Password);
 
                 MessengerResolverTypesLoader messengerResolverTypesLoader = serviceProvider.GetService<MessengerResolverTypesLoader>();
             }

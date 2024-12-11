@@ -1,6 +1,7 @@
 ﻿using linker.plugins.signIn.args;
 using linker.plugins.signin.messenger;
 using linker.config;
+using linker.plugins.signIn;
 
 namespace linker.plugins.client
 {
@@ -36,9 +37,11 @@ namespace linker.plugins.client
     public sealed class SignInArgsSecretKeyServer : ISignInArgs
     {
         private readonly FileConfig fileConfig;
-        public SignInArgsSecretKeyServer(FileConfig fileConfig)
+        private readonly SignInConfigTransfer signInConfigTransfer;
+        public SignInArgsSecretKeyServer(FileConfig fileConfig, SignInConfigTransfer signInConfigTransfer)
         {
             this.fileConfig = fileConfig;
+            this.signInConfigTransfer = signInConfigTransfer;
         }
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
@@ -54,9 +57,9 @@ namespace linker.plugins.client
         /// <returns></returns>
         public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
         {
-            if (string.IsNullOrWhiteSpace(fileConfig.Data.Server.SignIn.SecretKey) == false)
+            if (string.IsNullOrWhiteSpace(signInConfigTransfer.SecretKey) == false)
             {
-                if (signInfo.Args.TryGetValue("signin-secretkey", out string secretkey) == false || secretkey != fileConfig.Data.Server.SignIn.SecretKey)
+                if (signInfo.Args.TryGetValue("signin-secretkey", out string secretkey) == false || secretkey != signInConfigTransfer.SecretKey)
                 {
                     return $"server secretkey validate fail";
                 }

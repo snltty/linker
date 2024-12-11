@@ -1,5 +1,4 @@
 ﻿using linker.libs.extends;
-using linker.plugins.messenger;
 using linker.plugins.resolver;
 using System.Net;
 using System.Net.Sockets;
@@ -22,6 +21,7 @@ namespace linker.plugins.server
 
         public void Start(int port)
         {
+            if (port <= 0) return;
             if (socket == null)
             {
                 socket = BindAccept(port);
@@ -61,8 +61,8 @@ namespace linker.plugins.server
         {
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
             Socket socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            socket.IPv6Only(localEndPoint.AddressFamily, false);
-            socket.ReuseBind(localEndPoint);
+            //socket.IPv6Only(localEndPoint.AddressFamily, false);
+            socket.Bind(localEndPoint);
             socket.Listen(int.MaxValue);
 
             SocketAsyncEventArgs acceptEventArg = new SocketAsyncEventArgs

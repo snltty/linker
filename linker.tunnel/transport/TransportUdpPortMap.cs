@@ -46,11 +46,14 @@ namespace linker.tunnel.transport
 
         private readonly ConcurrentDictionary<string, TaskCompletionSource<State>> distDic = new ConcurrentDictionary<string, TaskCompletionSource<State>>();
         private readonly ConcurrentDictionary<IPEndPoint, ConnectionCacheInfo> connectionsDic = new ConcurrentDictionary<IPEndPoint, ConnectionCacheInfo>(new IPEndPointComparer());
-        private readonly ITunnelAdapter tunnelAdapter;
-        public TransportUdpPortMap(ITunnelAdapter tunnelAdapter)
+        private ITunnelAdapter tunnelAdapter;
+        public TransportUdpPortMap()
+        {
+            CleanTask();
+        }
+        public void SetAdapter(ITunnelAdapter tunnelAdapter)
         {
             this.tunnelAdapter = tunnelAdapter;
-            CleanTask();
         }
 
         Socket socket;

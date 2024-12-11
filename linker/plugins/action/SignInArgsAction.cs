@@ -122,7 +122,7 @@ namespace linker.plugins.action
 
         public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
         {
-            if (string.IsNullOrWhiteSpace(fileConfig.Data.Action.SignInActionUrl) == false)
+            if (string.IsNullOrWhiteSpace(actionTransfer.SignInActionUrl) == false)
             {
                 if (actionTransfer.TryGetActionArg(signInfo.Args, out string str, out string machineKey) == false)
                 {
@@ -140,7 +140,7 @@ namespace linker.plugins.action
                         IPAddress = signInfo.Connection.Address.Address
                     }
                 };
-                return await actionTransfer.ExcuteActions(Replace(replace, str), fileConfig.Data.Action.SignInActionUrl);
+                return await actionTransfer.ExcuteActions(Replace(replace, str), actionTransfer.SignInActionUrl);
             }
 
             return string.Empty;
@@ -160,7 +160,7 @@ namespace linker.plugins.action
 
         public async Task<string> Validate(linker.plugins.relay.client.transport.RelayInfo relayInfo, SignCacheInfo fromMachine, SignCacheInfo toMachine)
         {
-            if (string.IsNullOrWhiteSpace(fileConfig.Data.Action.RelayActionUrl) == false)
+            if (string.IsNullOrWhiteSpace(actionTransfer.RelayActionUrl) == false)
             {
                 if (actionTransfer.TryGetActionArg(fromMachine.Args, out string str, out string machineKey) == false)
                 {
@@ -191,7 +191,7 @@ namespace linker.plugins.action
                         IPAddress = fromMachine.Connection.Address.Address,
                     }
                 };
-                return await actionTransfer.ExcuteActions(Replace(replace, str), fileConfig.Data.Action.RelayActionUrl);
+                return await actionTransfer.ExcuteActions(Replace(replace, str), actionTransfer.RelayActionUrl);
             }
             return string.Empty;
         }
@@ -210,7 +210,7 @@ namespace linker.plugins.action
 
         public async Task<string> Validate(SignCacheInfo cache, SForwardAddInfo sForwardAddInfo)
         {
-            if (string.IsNullOrWhiteSpace(fileConfig.Data.Action.SForwardActionUrl) == false)
+            if (string.IsNullOrWhiteSpace(actionTransfer.SForwardActionUrl) == false)
             {
                 if (actionTransfer.TryGetActionArg(cache.Args, out string str, out string machineKey) == false)
                 {
@@ -233,7 +233,7 @@ namespace linker.plugins.action
                         IPAddress = cache.Connection.Address.Address
                     }
                 };
-                return await actionTransfer.ExcuteActions(Replace(replace, str), fileConfig.Data.Action.SForwardActionUrl);
+                return await actionTransfer.ExcuteActions(Replace(replace, str), actionTransfer.SForwardActionUrl);
             }
             return string.Empty;
         }

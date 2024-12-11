@@ -3,6 +3,7 @@ using linker.libs;
 using linker.libs.extends;
 using linker.plugins.relay.server.caching;
 using linker.plugins.resolver;
+using linker.plugins.server;
 using MemoryPack;
 using System.Buffers;
 using System.Net;
@@ -16,6 +17,8 @@ namespace linker.plugins.relay.server
 
         private readonly IRelayCaching relayCaching;
         private readonly FileConfig fileConfig;
+        private readonly RelayServerConfigTransfer relayServerConfigTransfer;
+        private readonly ServerConfigTransfer serverConfigTransfer;
 
         private readonly ICrypto cryptoNode;
         private readonly ICrypto cryptoMaster;
@@ -25,16 +28,18 @@ namespace linker.plugins.relay.server
 
         RelaySpeedLimit limitTotal = new RelaySpeedLimit();
 
-        public RelayServerNodeTransfer(IRelayCaching relayCaching, FileConfig fileConfig)
+        public RelayServerNodeTransfer(IRelayCaching relayCaching, FileConfig fileConfig, RelayServerConfigTransfer relayServerConfigTransfer, ServerConfigTransfer serverConfigTransfer)
         {
             this.relayCaching = relayCaching;
             this.fileConfig = fileConfig;
+            this.relayServerConfigTransfer = relayServerConfigTransfer;
+            this.serverConfigTransfer = serverConfigTransfer;
 
-            limitTotal.SetLimit((uint)Math.Ceiling((fileConfig.Data.Server.Relay.Distributed.Node.MaxBandwidthTotal * 1024 * 1024) / 8.0));
+            limitTotal.SetLimit((uint)Math.Ceiling((relayServerConfigTransfer.Node.MaxBandwidthTotal * 1024 * 1024) / 8.0));
             ResetBytes();
 
-            cryptoNode = CryptoFactory.CreateSymmetric(fileConfig.Data.Server.Relay.Distributed.Node.MasterSecretKey);
-            cryptoMaster = CryptoFactory.CreateSymmetric(fileConfig.Data.Server.Relay.Distributed.Master.SecretKey);
+            cryptoNode = CryptoFactory.CreateSymmetric(relayServerConfigTransfer.Node.MasterSecretKey);
+            cryptoMaster = CryptoFactory.CreateSymmetric(relayServerConfigTransfer.Master.SecretKey);
             ReportTask();
 
         }
@@ -45,8 +50,8 @@ namespace linker.plugins.relay.server
             try
             {
                 IPEndPoint server = nodeid == RelayNodeInfo.MASTER_NODE_ID
-                    ? new IPEndPoint(IPAddress.Loopback, fileConfig.Data.Server.ServicePort)
-                    : await NetworkHelper.GetEndPointAsync(fileConfig.Data.Server.Relay.Distributed.Node.MasterHost, 1802);
+                    ? new IPEndPoint(IPAddress.Loopback, serverConfigTransfer.Port)
+                    : await NetworkHelper.GetEndPointAsync(relayServerConfigTransfer.Node.MasterHost, 1802);
                 ICrypto crypto = nodeid == RelayNodeInfo.MASTER_NODE_ID ? cryptoMaster : cryptoNode;
 
                 Socket socket = new Socket(server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -103,9 +108,9 @@ namespace linker.plugins.relay.server
         /// <returns></returns>
         public bool ValidateConnection()
         {
-            bool res = fileConfig.Data.Server.Relay.Distributed.Node.MaxConnection == 0 || fileConfig.Data.Server.Relay.Distributed.Node.MaxConnection * 2 > connectionNum;
+            bool res = relayServerConfigTransfer.Node.MaxConnection == 0 || relayServerConfigTransfer.Node.MaxConnection * 2 > connectionNum;
             if (res == false && LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                LoggerHelper.Instance.Debug($"relay  ValidateConnection false,{connectionNum}/{fileConfig.Data.Server.Relay.Distributed.Node.MaxConnection * 2}");
+                LoggerHelper.Instance.Debug($"relay  ValidateConnection false,{connectionNum}/{relayServerConfigTransfer.Node.MaxConnection * 2}");
 
             return res;
         }
@@ -116,11 +121,11 @@ namespace linker.plugins.relay.server
         /// <returns></returns>
         public bool ValidateBytes()
         {
-            bool res = fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotal == 0
-                || (fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotal > 0 && fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotalLastBytes > 0);
+            bool res = relayServerConfigTransfer.Node.MaxGbTotal == 0
+                || (relayServerConfigTransfer.Node.MaxGbTotal > 0 && relayServerConfigTransfer.Node.MaxGbTotalLastBytes > 0);
 
             if (res == false && LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                LoggerHelper.Instance.Debug($"relay  ValidateBytes false,{fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotalLastBytes}bytes/{fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotal}gb");
+                LoggerHelper.Instance.Debug($"relay  ValidateBytes false,{relayServerConfigTransfer.Node.MaxGbTotalLastBytes}bytes/{relayServerConfigTransfer.Node.MaxGbTotal}gb");
 
             return res;
         }
@@ -132,15 +137,15 @@ namespace linker.plugins.relay.server
         public bool AddBytes(ulong length)
         {
             bytes += length;
-            if (fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotal == 0)
+            if (relayServerConfigTransfer.Node.MaxGbTotal == 0)
             {
                 return true;
             }
 
-            if (fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotalLastBytes >= length)
-                fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotalLastBytes -= length;
-            else fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotalLastBytes = 0;
-            return fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotalLastBytes > 0;
+            if (relayServerConfigTransfer.Node.MaxGbTotalLastBytes >= length)
+                relayServerConfigTransfer.Node.MaxGbTotalLastBytes -= length;
+            else relayServerConfigTransfer.Node.MaxGbTotalLastBytes = 0;
+            return relayServerConfigTransfer.Node.MaxGbTotalLastBytes > 0;
         }
 
         /// <summary>
@@ -149,7 +154,7 @@ namespace linker.plugins.relay.server
         /// <returns></returns>
         public uint GetBandwidthLimit()
         {
-            return (uint)Math.Ceiling((fileConfig.Data.Server.Relay.Distributed.Node.MaxBandwidth * 1024 * 1024) / 8.0);
+            return (uint)Math.Ceiling((relayServerConfigTransfer.Node.MaxBandwidth * 1024 * 1024) / 8.0);
         }
         /// <summary>
         /// 是否需要总限速
@@ -172,10 +177,10 @@ namespace linker.plugins.relay.server
 
         private void ResetBytes()
         {
-            if (fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotalMonth != DateTime.Now.Month)
+            if (relayServerConfigTransfer.Node.MaxGbTotalMonth != DateTime.Now.Month)
             {
-                fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotalMonth = DateTime.Now.Month;
-                fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotalLastBytes = (ulong)(fileConfig.Data.Server.Relay.Distributed.Node.MaxGbTotal * 1024 * 1024 * 1024);
+                relayServerConfigTransfer.Node.MaxGbTotalMonth = DateTime.Now.Month;
+                relayServerConfigTransfer.Node.MaxGbTotalLastBytes = (ulong)(relayServerConfigTransfer.Node.MaxGbTotal * 1024 * 1024 * 1024);
                 fileConfig.Data.Update();
             }
         }
@@ -191,9 +196,9 @@ namespace linker.plugins.relay.server
                 {
                     new RelayNodeInfo{
                         Id = RelayNodeInfo.MASTER_NODE_ID,
-                        Host = new IPEndPoint(IPAddress.Any,fileConfig.Data.Server.ServicePort).ToString(),
-                        MasterHost =  new IPEndPoint(IPAddress.Loopback,fileConfig.Data.Server.ServicePort).ToString(),
-                        MasterSecretKey = fileConfig.Data.Server.Relay.Distributed.Master.SecretKey,
+                        Host = new IPEndPoint(IPAddress.Any,serverConfigTransfer.Port).ToString(),
+                        MasterHost =  new IPEndPoint(IPAddress.Loopback,serverConfigTransfer.Port).ToString(),
+                        MasterSecretKey = relayServerConfigTransfer.Master.SecretKey,
                         MaxBandwidth = 0,
                         MaxConnection = 0,
                         MaxBandwidthTotal=0,
@@ -203,7 +208,7 @@ namespace linker.plugins.relay.server
                         Name = "default",
                         Public = false
                     },
-                    fileConfig.Data.Server.Relay.Distributed.Node
+                    relayServerConfigTransfer.Node
                 }.Where(c => string.IsNullOrWhiteSpace(c.MasterHost) == false && string.IsNullOrWhiteSpace(c.MasterSecretKey) == false)
                 .Where(c => string.IsNullOrWhiteSpace(c.Name) == false && string.IsNullOrWhiteSpace(c.Id) == false);
 
@@ -215,7 +220,7 @@ namespace linker.plugins.relay.server
                     try
                     {
                         ICrypto crypto = node.Id == RelayNodeInfo.MASTER_NODE_ID ? cryptoMaster : cryptoNode;
-                        IPEndPoint endPoint = await NetworkHelper.GetEndPointAsync(node.Host, fileConfig.Data.Server.ServicePort) ?? new IPEndPoint(IPAddress.Any, fileConfig.Data.Server.ServicePort);
+                        IPEndPoint endPoint = await NetworkHelper.GetEndPointAsync(node.Host, serverConfigTransfer.Port) ?? new IPEndPoint(IPAddress.Any, serverConfigTransfer.Port);
 
 
                         RelayNodeReportInfo relayNodeReportInfo = new RelayNodeReportInfo
@@ -233,7 +238,7 @@ namespace linker.plugins.relay.server
                             EndPoint = endPoint,
                         };
 
-                        IPEndPoint ep = await NetworkHelper.GetEndPointAsync(node.MasterHost, fileConfig.Data.Server.ServicePort);
+                        IPEndPoint ep = await NetworkHelper.GetEndPointAsync(node.MasterHost, serverConfigTransfer.Port);
 
                         byte[] content = crypto.Encode(MemoryPackSerializer.Serialize(relayNodeReportInfo));
                         byte[] data = new byte[content.Length + 1];

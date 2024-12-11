@@ -13,7 +13,8 @@
                                 @blur="handleEditBlur(scope.row, 'ListenPort')"></el-input>
                         </template>
                         <template v-else>
-                            {{ scope.row.ListenPort }}
+                            <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.ListenPort }}</strong>
+                            <span v-else>{{ scope.row.ListenPort }}</span>
                         </template>
                     </template>
                 </el-table-column>
@@ -24,7 +25,8 @@
                                 @blur="handleEditBlur(scope.row, 'ConnectAddr')"></el-input>
                         </template>
                         <template v-else>
-                            {{ scope.row.ConnectAddr }}
+                            <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.ConnectAddr }}</strong>
+                            <span v-else>{{ scope.row.ConnectAddr }}</span>
                         </template>
                     </template>
                 </el-table-column>
@@ -35,7 +37,8 @@
                                 @blur="handleEditBlur(scope.row, 'ConnectPort')"></el-input>
                         </template>
                         <template v-else>
-                            {{ scope.row.ConnectPort }}
+                            <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.ConnectPort }}</strong>
+                            <span v-else>{{ scope.row.ConnectPort }}</span>
                         </template>
                     </template>
                 </el-table-column>

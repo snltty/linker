@@ -10,8 +10,7 @@ using linker.plugins.tuntap.config;
 using linker.tun;
 using linker.plugins.tuntap.lease;
 using linker.plugins.decenter;
-using System.Text.RegularExpressions;
-using linker.libs.extends;
+using linker.plugins.tunnel;
 
 namespace linker.plugins.tuntap
 {
@@ -20,15 +19,20 @@ namespace linker.plugins.tuntap
         public string Name => "tuntap";
         public VersionManager DataVersion { get; } = new VersionManager();
 
+        private TuntapConfigInfo configInfo => runningConfig.Data.Tuntap;
+        public IPAddress IP=> configInfo.IP;
+        public bool Running => configInfo.Running;
+        public TuntapSwitch Switch => configInfo.Switch;
+        public string DeviceName => "linker";
+
 
         private readonly IMessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
-        private readonly FileConfig config;
-        private readonly TuntapProxy tuntapProxy;
         private readonly RunningConfig runningConfig;
         private readonly TuntapTransfer tuntapTransfer;
         private readonly LeaseClientTreansfer leaseClientTreansfer;
         private readonly ClientConfigTransfer clientConfigTransfer;
+        private readonly TunnelConfigTransfer tunnelConfigTransfer;
 
         private LinkerTunDeviceRouteItem[] routeItems = new LinkerTunDeviceRouteItem[0];
         private List<LinkerTunDeviceForwardItem> forwardItems = new List<LinkerTunDeviceForwardItem>();
@@ -38,30 +42,33 @@ namespace linker.plugins.tuntap
         public ConcurrentDictionary<string, TuntapInfo> Infos => tuntapInfos;
 
 
+        public Action HandleReset { get; set; }
+        public Action<TuntapVeaLanIPAddress[]> HandleSetIPs { get; set; }
+        public Action<string,uint> HandleSetIP { get; set; }
+        public Action<string> HandleRemoveIP { get; set; }
+
+
         private readonly SemaphoreSlim slim = new SemaphoreSlim(1);
-        public TuntapConfigTransfer(IMessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig, TuntapTransfer tuntapTransfer, LeaseClientTreansfer leaseClientTreansfer, ClientConfigTransfer clientConfigTransfer)
+        public TuntapConfigTransfer(IMessengerSender messengerSender, ClientSignInState clientSignInState, RunningConfig runningConfig, TuntapTransfer tuntapTransfer, LeaseClientTreansfer leaseClientTreansfer, ClientConfigTransfer clientConfigTransfer, TunnelConfigTransfer tunnelConfigTransfer)
         {
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
-            this.config = config;
-            this.tuntapProxy = tuntapProxy;
             this.runningConfig = runningConfig;
             this.tuntapTransfer = tuntapTransfer;
             this.leaseClientTreansfer = leaseClientTreansfer;
             this.clientConfigTransfer = clientConfigTransfer;
+            this.tunnelConfigTransfer = tunnelConfigTransfer;
 
             clientSignInState.NetworkEnabledHandle += NetworkEnable;
-            tuntapProxy.RefreshConfig = RefreshConfig;
 
             tuntapTransfer.OnSetupBefore += () => { DataVersion.Add(); };
             tuntapTransfer.OnSetupAfter += () => { DataVersion.Add(); };
-            tuntapTransfer.OnSetupSuccess += () => { DataVersion.Add(); runningConfig.Data.Tuntap.Running = true; runningConfig.Data.Update(); AddForward(); };
+            tuntapTransfer.OnSetupSuccess += () => { DataVersion.Add(); configInfo.Running = true; runningConfig.Data.Update(); AddForward(); };
 
             tuntapTransfer.OnShutdownBefore += () => { DataVersion.Add(); };
             tuntapTransfer.OnShutdownAfter += () => { DataVersion.Add(); };
-            tuntapTransfer.OnShutdownSuccess += () => { DataVersion.Add(); DeleteForward(); DelRoute(); runningConfig.Data.Tuntap.Running = false; runningConfig.Data.Update(); DataVersion.Add(); };
+            tuntapTransfer.OnShutdownSuccess += () => { DataVersion.Add(); DeleteForward(); DelRoute(); configInfo.Running = false; runningConfig.Data.Update(); DataVersion.Add(); };
 
-            InitConfig();
         }
 
         string groupid = string.Empty;
@@ -69,21 +76,13 @@ namespace linker.plugins.tuntap
         {
             if (groupid != clientConfigTransfer.Group.Id)
             {
-                tuntapInfos.Clear(); tuntapProxy.ClearIPs();
+                tuntapInfos.Clear(); HandleReset();
             }
             groupid = clientConfigTransfer.Group.Id;
 
             RefreshIP();
         }
 
-
-        private void InitConfig()
-        {
-            if (runningConfig.Data.Tuntap.Lans.Count == 0 && runningConfig.Data.Tuntap.LanIPs.Length > 0)
-            {
-                runningConfig.Data.Tuntap.Lans = runningConfig.Data.Tuntap.LanIPs.Select((a, b) => new TuntapLanInfo { IP = a, PrefixLength = (byte)runningConfig.Data.Tuntap.Masks[b] }).ToList();
-            }
-        }
         /// <summary>
         /// 更新本机网卡信息
         /// </summary>
@@ -92,25 +91,22 @@ namespace linker.plugins.tuntap
         {
             TimerHelper.Async(async () =>
             {
-                IPAddress oldIP = runningConfig.Data.Tuntap.IP;
-                byte prefixLength = runningConfig.Data.Tuntap.PrefixLength;
+                IPAddress oldIP = configInfo.IP;
+                byte prefixLength = configInfo.PrefixLength;
 
-                runningConfig.Data.Tuntap.IP = info.IP ?? IPAddress.Any;
-                runningConfig.Data.Tuntap.Lans = info.Lans;
-                runningConfig.Data.Tuntap.PrefixLength = info.PrefixLength;
-                runningConfig.Data.Tuntap.Switch = info.Switch;
-                runningConfig.Data.Tuntap.Forwards = info.Forwards;
+                configInfo.IP = info.IP ?? IPAddress.Any;
+                configInfo.Lans = info.Lans;
+                configInfo.PrefixLength = info.PrefixLength;
+                configInfo.Switch = info.Switch;
+                configInfo.Forwards = info.Forwards;
                 runningConfig.Data.Update();
 
-                TuntapGroup2IPInfo tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = runningConfig.Data.Tuntap.IP, PrefixLength = runningConfig.Data.Tuntap.PrefixLength };
-                runningConfig.Data.Tuntap.Group2IP.AddOrUpdate(clientConfigTransfer.Group.Id, tuntapGroup2IPInfo, (a, b) => tuntapGroup2IPInfo);
+                TuntapGroup2IPInfo tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = configInfo.IP, PrefixLength = configInfo.PrefixLength };
+                configInfo.Group2IP.AddOrUpdate(clientConfigTransfer.Group.Id, tuntapGroup2IPInfo, (a, b) => tuntapGroup2IPInfo);
 
                 await LeaseIP();
 
-                bool needReboot = (oldIP.Equals(runningConfig.Data.Tuntap.IP) == false || prefixLength != runningConfig.Data.Tuntap.PrefixLength) && runningConfig.Data.Tuntap.Running
-                || runningConfig.Data.Tuntap.Running && tuntapTransfer.Status != TuntapStatus.Running;
-
-                if (needReboot)
+                if ((oldIP.Equals(configInfo.IP) == false || prefixLength != configInfo.PrefixLength) && configInfo.Running)
                 {
                     await RetstartDevice();
                 }
@@ -123,22 +119,21 @@ namespace linker.plugins.tuntap
                 DataVersion.Add();
             });
         }
-
         public Memory<byte> GetData()
         {
             TuntapInfo info = new TuntapInfo
             {
-                IP = runningConfig.Data.Tuntap.IP,
-                Lans = runningConfig.Data.Tuntap.Lans.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false).Select(c => { c.Exists = false; return c; }).ToList(),
-                PrefixLength = runningConfig.Data.Tuntap.PrefixLength,
+                IP = configInfo.IP,
+                Lans = configInfo.Lans.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false).Select(c => { c.Exists = false; return c; }).ToList(),
+                PrefixLength = configInfo.PrefixLength,
                 MachineId = clientConfigTransfer.Id,
                 Status = tuntapTransfer.Status,
                 SetupError = tuntapTransfer.SetupError,
                 NatError = tuntapTransfer.NatError,
                 SystemInfo = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} {(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")) == false ? "Docker" : "")}",
 
-                Forwards = runningConfig.Data.Tuntap.Forwards,
-                Switch = runningConfig.Data.Tuntap.Switch
+                Forwards = configInfo.Forwards,
+                Switch = configInfo.Switch
             };
             tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
             Version.Add();
@@ -214,7 +209,13 @@ namespace linker.plugins.tuntap
             });
         }
 
-
+        /// <summary>
+        /// 刷新信息，把自己的网卡配置发给别人，顺便把别人的网卡信息带回来
+        /// </summary>
+        public void RefreshConfig()
+        {
+            DataVersion.Add();
+        }
         /// <summary>
         /// 刷新IP
         /// </summary>
@@ -222,8 +223,8 @@ namespace linker.plugins.tuntap
         {
             TimerHelper.Async(async () =>
             {
-                IPAddress oldIP = runningConfig.Data.Tuntap.IP;
-                byte prefixLength = runningConfig.Data.Tuntap.PrefixLength;
+                IPAddress oldIP = configInfo.IP;
+                byte prefixLength = configInfo.PrefixLength;
 
                 await LeaseIP();
                 while (tuntapTransfer.Status == TuntapStatus.Operating)
@@ -231,17 +232,39 @@ namespace linker.plugins.tuntap
                     await Task.Delay(1000);
                 }
 
-                bool run = (oldIP.Equals(runningConfig.Data.Tuntap.IP) == false || prefixLength != runningConfig.Data.Tuntap.PrefixLength) && runningConfig.Data.Tuntap.Running
-                || runningConfig.Data.Tuntap.Running && tuntapTransfer.Status != TuntapStatus.Running;
+                bool run = (oldIP.Equals(configInfo.IP) == false || prefixLength != configInfo.PrefixLength) && configInfo.Running
+                || configInfo.Running && tuntapTransfer.Status != TuntapStatus.Running;
 
                 if (run)
                 {
                     tuntapTransfer.Shutdown();
-                    tuntapTransfer.Setup(runningConfig.Data.Tuntap.IP, runningConfig.Data.Tuntap.PrefixLength);
+                    tuntapTransfer.Setup(configInfo.IP, configInfo.PrefixLength);
                 }
                 DataVersion.Add();
             });
 
+        }
+        /// <summary>
+        /// 租赁IP
+        /// </summary>
+        /// <returns></returns>
+        private async Task LeaseIP()
+        {
+            if (configInfo.Group2IP.TryGetValue(clientConfigTransfer.Group.Id, out TuntapGroup2IPInfo tuntapGroup2IPInfo))
+            {
+                if (tuntapGroup2IPInfo.IP.Equals(configInfo.IP) == false || tuntapGroup2IPInfo.PrefixLength != configInfo.PrefixLength)
+                {
+                    configInfo.IP = tuntapGroup2IPInfo.IP;
+                    configInfo.PrefixLength = tuntapGroup2IPInfo.PrefixLength;
+                }
+            }
+            LeaseInfo leaseInfo = await leaseClientTreansfer.LeaseIp(configInfo.IP, configInfo.PrefixLength);
+            configInfo.IP = leaseInfo.IP;
+            configInfo.PrefixLength = leaseInfo.PrefixLength;
+            runningConfig.Data.Update();
+
+            tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = configInfo.IP, PrefixLength = configInfo.PrefixLength };
+            configInfo.Group2IP.AddOrUpdate(clientConfigTransfer.Group.Id, tuntapGroup2IPInfo, (a, b) => tuntapGroup2IPInfo);
         }
         /// <summary>
         /// 重启网卡
@@ -251,7 +274,7 @@ namespace linker.plugins.tuntap
         {
             tuntapTransfer.Shutdown();
             await LeaseIP();
-            tuntapTransfer.Setup(runningConfig.Data.Tuntap.IP, runningConfig.Data.Tuntap.PrefixLength);
+            tuntapTransfer.Setup(configInfo.IP, configInfo.PrefixLength);
         }
         /// <summary>
         /// 关闭网卡
@@ -260,36 +283,7 @@ namespace linker.plugins.tuntap
         {
             tuntapTransfer.Shutdown();
         }
-        /// <summary>
-        /// 租赁IP
-        /// </summary>
-        /// <returns></returns>
-        private async Task LeaseIP()
-        {
-            if (runningConfig.Data.Tuntap.Group2IP.TryGetValue(clientConfigTransfer.Group.Id, out TuntapGroup2IPInfo tuntapGroup2IPInfo))
-            {
-                if (tuntapGroup2IPInfo.IP.Equals(runningConfig.Data.Tuntap.IP) == false || tuntapGroup2IPInfo.PrefixLength != runningConfig.Data.Tuntap.PrefixLength)
-                {
-                    runningConfig.Data.Tuntap.IP = tuntapGroup2IPInfo.IP;
-                    runningConfig.Data.Tuntap.PrefixLength = tuntapGroup2IPInfo.PrefixLength;
-                }
-            }
-            LeaseInfo leaseInfo = await leaseClientTreansfer.LeaseIp(runningConfig.Data.Tuntap.IP, runningConfig.Data.Tuntap.PrefixLength);
-            runningConfig.Data.Tuntap.IP = leaseInfo.IP;
-            runningConfig.Data.Tuntap.PrefixLength = leaseInfo.PrefixLength;
-            runningConfig.Data.Update();
-
-            tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = runningConfig.Data.Tuntap.IP, PrefixLength = runningConfig.Data.Tuntap.PrefixLength };
-            runningConfig.Data.Tuntap.Group2IP.AddOrUpdate(clientConfigTransfer.Group.Id, tuntapGroup2IPInfo, (a, b) => tuntapGroup2IPInfo);
-        }
-
-        /// <summary>
-        /// 刷新信息，把自己的网卡配置发给别人，顺便把别人的网卡信息带回来
-        /// </summary>
-        public void RefreshConfig()
-        {
-            DataVersion.Add();
-        }
+       
 
         // <summary>
         /// 添加端口转发
@@ -314,7 +308,7 @@ namespace linker.plugins.tuntap
         }
         private List<LinkerTunDeviceForwardItem> ParseForwardItems()
         {
-            return runningConfig.Data.Tuntap.Forwards.Select(c => new LinkerTunDeviceForwardItem { ListenAddr = c.ListenAddr, ListenPort = c.ListenPort, ConnectAddr = c.ConnectAddr, ConnectPort = c.ConnectPort }).ToList();
+            return configInfo.Forwards.Select(c => new LinkerTunDeviceForwardItem { ListenAddr = c.ListenAddr, ListenPort = c.ListenPort, ConnectAddr = c.ConnectAddr, ConnectPort = c.ConnectPort }).ToList();
         }
 
         /// <summary>
@@ -334,16 +328,16 @@ namespace linker.plugins.tuntap
             TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
             routeItems = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.PrefixLength }).ToArray();
 
-            tuntapTransfer.AddRoute(routeItems, runningConfig.Data.Tuntap.IP);
+            tuntapTransfer.AddRoute(routeItems, configInfo.IP);
 
-            tuntapProxy.SetIPs(ips);
+            HandleSetIPs(ips);
             foreach (var item in tuntapInfos.Values)
             {
-                tuntapProxy.SetIP(item.MachineId, NetworkHelper.IP2Value(item.IP));
+                HandleSetIP(item.MachineId, NetworkHelper.IP2Value(item.IP));
             }
             foreach (var item in tuntapInfos.Values.Where(c => c.IP.Equals(IPAddress.Any)))
             {
-                tuntapProxy.RemoveIP(item.MachineId);
+                HandleRemoveIP(item.MachineId);
             }
             Version.Add();
         }
@@ -352,13 +346,13 @@ namespace linker.plugins.tuntap
         {
             //排除的IP，
             uint[] excludeIps =//本机局域网IP
-                config.Data.Client.Tunnel.LocalIPs.Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                tunnelConfigTransfer.LocalIPs.Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                 //路由上的IP
-                .Concat(config.Data.Client.Tunnel.RouteIPs)
+                .Concat(tunnelConfigTransfer.RouteIPs)
                 //网卡IP  服务器IP
-                .Concat(new IPAddress[] { runningConfig.Data.Tuntap.IP, clientSignInState.Connection.Address.Address })
+                .Concat(new IPAddress[] { configInfo.IP, clientSignInState.Connection.Address.Address })
                 //网卡配置的局域网IP
-                .Concat(runningConfig.Data.Tuntap.Lans.Select(c => c.IP))
+                .Concat(configInfo.Lans.Select(c => c.IP))
                 .Select(NetworkHelper.IP2Value)
                 .ToArray();
 

@@ -16,8 +16,6 @@ namespace linker.plugins.tuntap
         public string SetupError => linkerTunDeviceAdapter.SetupError;
         public string NatError => linkerTunDeviceAdapter.NatError;
 
-        public string DeviceName => "linker";
-
         public Action OnSetupBefore { get; set; } = () => { };
         public Action OnSetupAfter { get; set; } = () => { };
         public Action OnSetupSuccess { get; set; } = () => { };
@@ -25,11 +23,14 @@ namespace linker.plugins.tuntap
         public Action OnShutdownAfter { get; set; } = () => { };
         public Action OnShutdownSuccess { get; set; } = () => { };
 
-        public TuntapTransfer(ClientSignInState clientSignInState, LinkerTunDeviceAdapter linkerTunDeviceAdapter, TuntapProxy tuntapProxy, RunningConfig runningConfig)
+        public TuntapTransfer(LinkerTunDeviceAdapter linkerTunDeviceAdapter)
         {
             this.linkerTunDeviceAdapter = linkerTunDeviceAdapter;
+        }
 
-            linkerTunDeviceAdapter.Initialize(DeviceName, tuntapProxy);
+        public void Init(string name,ILinkerTunDeviceCallback linkerTunDeviceCallback)
+        {
+            linkerTunDeviceAdapter.Initialize(name, linkerTunDeviceCallback);
             AppDomain.CurrentDomain.ProcessExit += (s, e) => linkerTunDeviceAdapter.Shutdown();
             Console.CancelKeyPress += (s, e) => linkerTunDeviceAdapter.Shutdown();
         }

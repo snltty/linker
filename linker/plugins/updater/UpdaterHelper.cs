@@ -1,5 +1,4 @@
-﻿using linker.config;
-using linker.libs;
+﻿using linker.libs;
 using MemoryPack;
 using System.Diagnostics;
 using System.IO.Compression;
@@ -13,10 +12,10 @@ namespace linker.plugins.updater
     {
         private string[] extractExcludeFiles = [];
 
-        private readonly FileConfig fileConfig;
-        public UpdaterHelper(FileConfig fileConfig)
+        private readonly UpdaterCommonTransfer updaterCommonTransfer;
+        public UpdaterHelper(UpdaterCommonTransfer updaterCommonTransfer)
         {
-            this.fileConfig = fileConfig;
+            this.updaterCommonTransfer = updaterCommonTransfer;
             ClearFiles();
         }
 
@@ -39,7 +38,7 @@ namespace linker.plugins.updater
                 updateInfo.Status = UpdateStatus.Checking;
 
                 using HttpClient httpClient = new HttpClient();
-                string str = await httpClient.GetStringAsync($"{fileConfig.Data.Common.UpdateUrl}/version.txt").WaitAsync(TimeSpan.FromSeconds(15));
+                string str = await httpClient.GetStringAsync($"{updaterCommonTransfer.UpdateUrl}/version.txt").WaitAsync(TimeSpan.FromSeconds(15));
 
                 string[] arr = str.Split(Environment.NewLine).Select(c => c.Trim('\r').Trim('\n')).ToArray();
 
@@ -95,7 +94,7 @@ namespace linker.plugins.updater
                 }
                 sb.Append(RuntimeInformation.ProcessArchitecture.ToString().ToLower());
 
-                string url = $"{fileConfig.Data.Common.UpdateUrl}/{version}/{sb.ToString()}.zip";
+                string url = $"{updaterCommonTransfer.UpdateUrl}/{version}/{sb.ToString()}.zip";
 
                 using HttpClient httpClient = new HttpClient();
                 using HttpResponseMessage response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);

@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using linker.tunnel.wanport;
+using linker.tunnel.adapter;
 
 namespace linker.tunnel.transport
 {
@@ -50,6 +51,9 @@ namespace linker.tunnel.transport
         private byte[] endBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.end");
 
         public TransportUdp()
+        {
+        }
+        public void SetAdapter(ITunnelAdapter tunnelAdapter)
         {
         }
 

@@ -25,8 +25,8 @@ namespace linker.plugins.client
             serviceCollection.AddSingleton<SignInArgsSecretKeyClient>();
             serviceCollection.AddSingleton<SignInArgsGroupPasswordClient>();
 
-            serviceCollection.AddSingleton<ConfigSyncSignInSecretKey>();
-            serviceCollection.AddSingleton<ConfigSyncGroupSecretKey>();
+            serviceCollection.AddSingleton<ClientConfigSyncSecretKey>();
+            serviceCollection.AddSingleton<ClientConfigSyncGroupSecretKey>();
 
             serviceCollection.AddSingleton<ClientConfigTransfer>();
             

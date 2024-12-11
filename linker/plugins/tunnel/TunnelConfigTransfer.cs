@@ -5,49 +5,58 @@ using linker.plugins.client;
 using linker.plugins.decenter;
 using linker.plugins.messenger;
 using linker.tunnel;
-using linker.tunnel.adapter;
+using linker.tunnel.transport;
 using MemoryPack;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Quic;
+using System.Security.Cryptography.X509Certificates;
 
 namespace linker.plugins.tunnel
 {
-    public sealed class TunnelConfigTransfer:IDecenter
+    public sealed class TunnelConfigTransfer : IDecenter
     {
         public string Name => "tunnel";
         public VersionManager DataVersion { get; } = new VersionManager();
 
+        public int RouteLevel => config.Data.Client.Tunnel.RouteLevel + running.Data.Tunnel.RouteLevelPlus;
+        public IPAddress[] LocalIPs => config.Data.Client.Tunnel.LocalIPs;
+        public IPAddress[] RouteIPs => config.Data.Client.Tunnel.RouteIPs;
+        public List<TunnelTransportItemInfo> Transports => config.Data.Client.Tunnel.Transports;
+        public X509Certificate2 Certificate { get; private set; }
 
         private readonly FileConfig config;
         private readonly RunningConfig running;
         private readonly ClientSignInState clientSignInState;
         private readonly IMessengerSender messengerSender;
-        private readonly ITunnelAdapter tunnelAdapter;
         private readonly TunnelUpnpTransfer upnpTransfer;
         private readonly ClientConfigTransfer clientConfigTransfer;
 
         public VersionManager Version { get; } = new VersionManager();
         public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> Config { get; } = new ConcurrentDictionary<string, TunnelTransportRouteLevelInfo>();
 
-        public TunnelConfigTransfer(FileConfig config, RunningConfig running, ClientSignInState clientSignInState, IMessengerSender messengerSender, ITunnelAdapter tunnelAdapter, TunnelUpnpTransfer upnpTransfer, ClientConfigTransfer clientConfigTransfer)
+        public TunnelConfigTransfer(FileConfig config, RunningConfig running, ClientSignInState clientSignInState, IMessengerSender messengerSender, TunnelUpnpTransfer upnpTransfer, ClientConfigTransfer clientConfigTransfer)
         {
             this.config = config;
             this.running = running;
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
-            this.tunnelAdapter = tunnelAdapter;
             this.upnpTransfer = upnpTransfer;
             this.clientConfigTransfer = clientConfigTransfer;
 
+            string path = Path.GetFullPath(clientConfigTransfer.SSL.File);
+            if (File.Exists(path))
+            {
+                Certificate = new X509Certificate2(path, clientConfigTransfer.SSL.Password, X509KeyStorageFlags.Exportable);
+            }
             clientSignInState.NetworkEnabledHandle += (times) =>
             {
-                RefreshRouteLevel();
-                DataVersion.Add();
+                TimerHelper.Async(RefreshRouteLevel);
                 RefreshPortMap();
             };
             TestQuic();
         }
+
         public Memory<byte> GetData()
         {
             TunnelTransportRouteLevelInfo tunnelTransportRouteLevelInfo = GetLocalRouteLevel();
@@ -73,18 +82,21 @@ namespace linker.plugins.tunnel
             Version.Add();
         }
 
-
+        public void SetTransports(List<TunnelTransportItemInfo> transports)
+        {
+            config.Data.Client.Tunnel.Transports = transports;
+            config.Data.Update();
+        }
+     
         /// <summary>
         /// 刷新网关等级数据
         /// </summary>
-        private void RefreshRouteLevel()
+        public void RefreshRouteLevel()
         {
-            TimerHelper.Async(() =>
-            {
-                config.Data.Client.Tunnel.RouteLevel = NetworkHelper.GetRouteLevel(clientConfigTransfer.Server.Host, out List<IPAddress> ips);
-                config.Data.Client.Tunnel.RouteIPs = ips.ToArray();
-                config.Data.Client.Tunnel.LocalIPs = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
-            });
+            config.Data.Client.Tunnel.RouteLevel = NetworkHelper.GetRouteLevel(clientConfigTransfer.Server.Host, out List<IPAddress> ips);
+            config.Data.Client.Tunnel.RouteIPs = ips.ToArray();
+            config.Data.Client.Tunnel.LocalIPs = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
+            DataVersion.Add();
         }
 
         /// <summary>
@@ -119,7 +131,7 @@ namespace linker.plugins.tunnel
                 NeedReboot = false
             };
         }
-     
+
         private void TestQuic()
         {
             if (OperatingSystem.IsWindows())
@@ -168,7 +180,7 @@ namespace linker.plugins.tunnel
             }
             else
             {
-                upnpTransfer.SetMap(clientSignInState.Connection.LocalAddress.Address,18180);
+                upnpTransfer.SetMap(clientSignInState.Connection.LocalAddress.Address, 18180);
             }
         }
     }

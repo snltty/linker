@@ -57,6 +57,7 @@ namespace linker.plugins.tuntap
             TuntapPingTransfer tuntapPingTransfer = serviceProvider.GetService<TuntapPingTransfer>();
             TuntapDeviceStatusTransfer tuntapDeviceStatusTransfer = serviceProvider.GetService<TuntapDeviceStatusTransfer>();
 
+            tuntapTransfer.Init(tuntapConfigTransfer.DeviceName, tuntapProxy);
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config)

@@ -5,15 +5,15 @@ namespace linker.plugins.tuntap
 {
     public sealed class ExcludeIP : ITunnelExcludeIP
     {
-        private readonly RunningConfig runningConfig;
-        public ExcludeIP(RunningConfig runningConfig)
+        private readonly TuntapConfigTransfer tuntapConfigTransfer;
+        public ExcludeIP(TuntapConfigTransfer tuntapConfigTransfer)
         {
-            this.runningConfig = runningConfig;
+            this.tuntapConfigTransfer = tuntapConfigTransfer;
         }
         public ExcludeIPItem[] Get()
         {
             //网卡IP不参与打洞
-            return new ExcludeIPItem[] { new ExcludeIPItem { IPAddress = runningConfig.Data.Tuntap.IP, Mask = 32 } };
+            return new ExcludeIPItem[] { new ExcludeIPItem { IPAddress = tuntapConfigTransfer.IP, Mask = 32 } };
         }
     }
 }

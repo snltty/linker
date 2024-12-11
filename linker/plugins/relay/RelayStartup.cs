@@ -33,13 +33,16 @@ namespace linker.plugins.relay
             serviceCollection.AddSingleton<RelayTestTransfer>();
 
 
-            serviceCollection.AddSingleton<ConfigSyncRelaySecretKey>();
+            serviceCollection.AddSingleton<RelaConfigSyncSecretKey>();
 
             serviceCollection.AddSingleton<RelayTypesLoader>();
 
             serviceCollection.AddSingleton<RelayServerMasterTransfer>();
             serviceCollection.AddSingleton<RelayServerNodeTransfer>();
             serviceCollection.AddSingleton<IRelayCaching, RelayCachingMemory>();
+
+            serviceCollection.AddSingleton<RelayClientConfigTransfer>();
+            
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
@@ -57,6 +60,7 @@ namespace linker.plugins.relay
 
             serviceCollection.AddSingleton<RelayValidatorSecretKey>();
 
+            serviceCollection.AddSingleton<RelayServerConfigTransfer>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)

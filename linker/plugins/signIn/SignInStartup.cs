@@ -1,5 +1,6 @@
 ﻿using linker.config;
 using linker.plugins.signin.messenger;
+using linker.plugins.signIn;
 using linker.plugins.signIn.args;
 using linker.startup;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +38,10 @@ namespace linker.plugins.signin
             serviceCollection.AddSingleton<SignInArgsTransfer>();
             serviceCollection.AddSingleton<SignInArgsTypesLoader>();
             serviceCollection.AddSingleton<SignInArgsMachineKeyServer>();
+
+            serviceCollection.AddSingleton<SignInConfigTransfer>();
+
+            
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)

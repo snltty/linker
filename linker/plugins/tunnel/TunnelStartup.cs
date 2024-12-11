@@ -65,9 +65,9 @@ namespace linker.plugins.tunnel
 
             serviceCollection.AddSingleton<TunnelUpnpTransfer>();
 
-            serviceCollection.AddSingleton<ConfigSyncTunnelTransports>();
+            serviceCollection.AddSingleton<TunnelConfigSyncTransports>();
 
-
+            serviceCollection.AddSingleton<TunnelConfigTransfer>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
@@ -83,16 +83,6 @@ namespace linker.plugins.tunnel
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
-            ClientConfigTransfer clientConfigTransfer = serviceProvider.GetService<ClientConfigTransfer>();
-            LoggerHelper.Instance.Info($"tunnel route level getting.");
-            config.Data.Client.Tunnel.RouteLevel = NetworkHelper.GetRouteLevel(clientConfigTransfer.Server.Host, out List<IPAddress> ips);
-            config.Data.Client.Tunnel.RouteIPs = ips.ToArray();
-            LoggerHelper.Instance.Warning($"route ips:{string.Join(",", ips.Select(c => c.ToString()))}");
-            config.Data.Client.Tunnel.LocalIPs = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
-            LoggerHelper.Instance.Warning($"tunnel local ips :{string.Join(",", config.Data.Client.Tunnel.LocalIPs.Select(c => c.ToString()))}");
-            LoggerHelper.Instance.Warning($"tunnel route level:{config.Data.Client.Tunnel.RouteLevel}");
-
-
             ITunnelAdapter tunnelAdapter = serviceProvider.GetService<ITunnelAdapter>();
             TunnelUpnpTransfer upnpTransfer = serviceProvider.GetService<TunnelUpnpTransfer>();
 
@@ -117,11 +107,17 @@ namespace linker.plugins.tunnel
             TunnelTransfer tunnel = serviceProvider.GetService<TunnelTransfer>();
             tunnel.LoadTransports(compack, tunnelAdapter, upnpTransfer, transports);
 
-            TunnelConfigTransfer tunnelConfigTransfer = serviceProvider.GetService<TunnelConfigTransfer>();
             TunnelExcludeIPTransfer excludeIPTransfer = serviceProvider.GetService<TunnelExcludeIPTransfer>();
             TunnelExcludeIPTypesLoader tunnelExcludeIPTypesLoader = serviceProvider.GetService<TunnelExcludeIPTypesLoader>();
 
+            ClientConfigTransfer clientConfigTransfer = serviceProvider.GetService<ClientConfigTransfer>();
+            TunnelConfigTransfer tunnelConfigTransfer = serviceProvider.GetService<TunnelConfigTransfer>();
 
+            LoggerHelper.Instance.Info($"tunnel route level getting.");
+            tunnelConfigTransfer.RefreshRouteLevel();
+            LoggerHelper.Instance.Warning($"route ips:{string.Join(",", tunnelConfigTransfer.RouteIPs.Select(c => c.ToString()))}");
+            LoggerHelper.Instance.Warning($"tunnel local ips :{string.Join(",", tunnelConfigTransfer.LocalIPs.Select(c => c.ToString()))}");
+            LoggerHelper.Instance.Warning($"tunnel route level:{tunnelConfigTransfer.RouteLevel}");
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config)

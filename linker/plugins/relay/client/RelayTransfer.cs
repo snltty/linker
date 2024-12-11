@@ -20,9 +20,11 @@ namespace linker.plugins.relay.client
         private ConcurrentDictionary<string, bool> connectingDic = new ConcurrentDictionary<string, bool>();
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
-        public RelayTransfer(FileConfig fileConfig)
+        private readonly RelayClientConfigTransfer relayClientConfigTransfer;
+        public RelayTransfer(FileConfig fileConfig, RelayClientConfigTransfer relayClientConfigTransfer)
         {
             this.fileConfig = fileConfig;
+            this.relayClientConfigTransfer = relayClientConfigTransfer;
         }
 
         public void LoadTransports(List<ITransport> list)
@@ -71,7 +73,7 @@ namespace linker.plugins.relay.client
             }
             try
             {
-                ITransport transport = Transports.FirstOrDefault(c => c.Type == fileConfig.Data.Client.Relay.Server.RelayType && fileConfig.Data.Client.Relay.Server.Disabled == false);
+                ITransport transport = Transports.FirstOrDefault(c => c.Type == relayClientConfigTransfer.Server.RelayType && relayClientConfigTransfer.Server.Disabled == false);
                 if (transport == null)
                 {
                     return null;
@@ -84,10 +86,10 @@ namespace linker.plugins.relay.client
                     FromMachineName = string.Empty,
                     RemoteMachineId = remoteMachineId,
                     RemoteMachineName = string.Empty,
-                    SecretKey = fileConfig.Data.Client.Relay.Server.SecretKey,
+                    SecretKey = relayClientConfigTransfer.Server.SecretKey,
                     TransactionId = transactionId,
                     TransportName = transport.Name,
-                    SSL = fileConfig.Data.Client.Relay.Server.SSL,
+                    SSL = relayClientConfigTransfer.Server.SSL,
                     NodeId = nodeId
                 };
 

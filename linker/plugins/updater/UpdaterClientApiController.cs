@@ -23,8 +23,9 @@ namespace linker.plugins.updater
         private readonly RunningConfig runningConfig;
         private readonly AccessTransfer accessTransfer;
         private readonly ClientConfigTransfer clientConfigTransfer;
+        private readonly UpdaterCommonTransfer updaterCommonTransfer;
 
-        public UpdaterClientApiController(IMessengerSender messengerSender, UpdaterClientTransfer updaterTransfer, ClientSignInState clientSignInState, FileConfig config, RunningConfig runningConfig, AccessTransfer accessTransfer, ClientConfigTransfer clientConfigTransfer)
+        public UpdaterClientApiController(IMessengerSender messengerSender, UpdaterClientTransfer updaterTransfer, ClientSignInState clientSignInState, FileConfig config, RunningConfig runningConfig, AccessTransfer accessTransfer, ClientConfigTransfer clientConfigTransfer, UpdaterCommonTransfer updaterCommonTransfer)
         {
             this.messengerSender = messengerSender;
             this.updaterTransfer = updaterTransfer;
@@ -33,6 +34,7 @@ namespace linker.plugins.updater
             this.runningConfig = runningConfig;
             this.accessTransfer = accessTransfer;
             this.clientConfigTransfer = clientConfigTransfer;
+            this.updaterCommonTransfer = updaterCommonTransfer;
         }
 
         [ClientApiAccessAttribute(ClientApiAccess.Config)]
@@ -50,7 +52,7 @@ namespace linker.plugins.updater
         [ClientApiAccessAttribute(ClientApiAccess.Config)]
         public void SetInterval(ApiControllerParamsInfo param)
         {
-            updaterTransfer.SetInterval(int.Parse(param.Content));
+            updaterCommonTransfer.SetInterval(int.Parse(param.Content));
         }
 
 
@@ -75,7 +77,7 @@ namespace linker.plugins.updater
             {
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)UpdaterMessengerIds.ConfirmServer,
-                Payload = MemoryPackSerializer.Serialize(new UpdaterConfirmServerInfo { SecretKey = config.Data.Client.Updater.SecretKey, Version = param.Content })
+                Payload = MemoryPackSerializer.Serialize(new UpdaterConfirmServerInfo { SecretKey = updaterTransfer.SecretKey, Version = param.Content })
             });
         }
         [ClientApiAccessAttribute(ClientApiAccess.UpdateServer)]
@@ -85,7 +87,7 @@ namespace linker.plugins.updater
             {
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)UpdaterMessengerIds.ExitServer,
-                Payload = MemoryPackSerializer.Serialize(new UpdaterConfirmServerInfo { SecretKey = config.Data.Client.Updater.SecretKey, Version = string.Empty })
+                Payload = MemoryPackSerializer.Serialize(new UpdaterConfirmServerInfo { SecretKey = updaterTransfer.SecretKey, Version = string.Empty })
             });
         }
 
@@ -123,7 +125,7 @@ namespace linker.plugins.updater
                     return false;
                 }
 
-                confirm.SecretKey = config.Data.Client.Updater.SecretKey;
+                confirm.SecretKey = updaterTransfer.SecretKey;
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = clientSignInState.Connection,

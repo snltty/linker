@@ -24,8 +24,9 @@ namespace linker.plugins.sforward.messenger
         private readonly SignCaching signCaching;
         private readonly FileConfig configWrap;
         private readonly ISForwardValidator validator;
+        private readonly SForwardServerConfigTransfer sForwardServerConfigTransfer;
 
-        public SForwardServerMessenger(SForwardProxy proxy, ISForwardServerCahing sForwardServerCahing, IMessengerSender sender, SignCaching signCaching, FileConfig configWrap, ISForwardValidator validator)
+        public SForwardServerMessenger(SForwardProxy proxy, ISForwardServerCahing sForwardServerCahing, IMessengerSender sender, SignCaching signCaching, FileConfig configWrap, ISForwardValidator validator, SForwardServerConfigTransfer sForwardServerConfigTransfer)
         {
             this.proxy = proxy;
             proxy.WebConnect = WebConnect;
@@ -36,6 +37,7 @@ namespace linker.plugins.sforward.messenger
             this.signCaching = signCaching;
             this.configWrap = configWrap;
             this.validator = validator;
+            this.sForwardServerConfigTransfer = sForwardServerConfigTransfer;
         }
 
         /// <summary>
@@ -46,7 +48,7 @@ namespace linker.plugins.sforward.messenger
         public async Task Add(IConnection connection)
         {
             SForwardAddInfo sForwardAddInfo = MemoryPackSerializer.Deserialize<SForwardAddInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            SForwardAddResultInfo result = new SForwardAddResultInfo { Success = true, BufferSize = configWrap.Data.Server.SForward.BufferSize };
+            SForwardAddResultInfo result = new SForwardAddResultInfo { Success = true, BufferSize = sForwardServerConfigTransfer.BufferSize };
 
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
             {
@@ -76,7 +78,7 @@ namespace linker.plugins.sforward.messenger
                             if (sForwardServerCahing.TryAdd(port, connection.Id))
                             {
                                 proxy.Stop(port);
-                                result.Message = proxy.Start(port, false, configWrap.Data.Server.SForward.BufferSize, cache.GroupId);
+                                result.Message = proxy.Start(port, false, sForwardServerConfigTransfer.BufferSize, cache.GroupId);
                                 if (string.IsNullOrWhiteSpace(result.Message) == false)
                                 {
                                     LoggerHelper.Instance.Error(result.Message);
@@ -113,7 +115,7 @@ namespace linker.plugins.sforward.messenger
                     else
                     {
                         proxy.Stop(sForwardAddInfo.RemotePort);
-                        string msg = proxy.Start(sForwardAddInfo.RemotePort, false, configWrap.Data.Server.SForward.BufferSize, cache.GroupId);
+                        string msg = proxy.Start(sForwardAddInfo.RemotePort, false, sForwardServerConfigTransfer.BufferSize, cache.GroupId);
                         if (string.IsNullOrWhiteSpace(msg) == false)
                         {
                             result.Success = false;
@@ -314,7 +316,7 @@ namespace linker.plugins.sforward.messenger
                 {
                     Connection = sign.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.Proxy,
-                    Payload = MemoryPackSerializer.Serialize(new SForwardProxyInfo { Domain = host, RemotePort = port, Id = id, BufferSize = configWrap.Data.Server.SForward.BufferSize })
+                    Payload = MemoryPackSerializer.Serialize(new SForwardProxyInfo { Domain = host, RemotePort = port, Id = id, BufferSize = sForwardServerConfigTransfer.BufferSize })
                 }).ConfigureAwait(false);
             }
             return false;
@@ -334,7 +336,7 @@ namespace linker.plugins.sforward.messenger
                 {
                     Connection = sign.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.Proxy,
-                    Payload = MemoryPackSerializer.Serialize(new SForwardProxyInfo { RemotePort = port, Id = id, BufferSize = configWrap.Data.Server.SForward.BufferSize })
+                    Payload = MemoryPackSerializer.Serialize(new SForwardProxyInfo { RemotePort = port, Id = id, BufferSize = sForwardServerConfigTransfer.BufferSize })
                 }).ConfigureAwait(false);
             }
             return false;
@@ -354,7 +356,7 @@ namespace linker.plugins.sforward.messenger
                 {
                     Connection = sign.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.ProxyUdp,
-                    Payload = MemoryPackSerializer.Serialize(new SForwardProxyInfo { RemotePort = port, Id = id, BufferSize = configWrap.Data.Server.SForward.BufferSize })
+                    Payload = MemoryPackSerializer.Serialize(new SForwardProxyInfo { RemotePort = port, Id = id, BufferSize = sForwardServerConfigTransfer.BufferSize })
                 }).ConfigureAwait(false);
             }
             return false;

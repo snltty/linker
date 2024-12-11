@@ -116,7 +116,7 @@ namespace linker.plugins.updater.messenger
         public void ConfirmServer(IConnection connection)
         {
             UpdaterConfirmServerInfo confirm = MemoryPackSerializer.Deserialize<UpdaterConfirmServerInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (fileConfig.Data.Server.Updater.SecretKey == confirm.SecretKey)
+            if (updaterServerTransfer.SecretKey == confirm.SecretKey)
             {
                 updaterServerTransfer.Confirm(confirm.Version);
             }
@@ -129,7 +129,7 @@ namespace linker.plugins.updater.messenger
         public void ExitServer(IConnection connection)
         {
             UpdaterConfirmServerInfo confirm = MemoryPackSerializer.Deserialize<UpdaterConfirmServerInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (fileConfig.Data.Server.Updater.SecretKey == confirm.SecretKey)
+            if (updaterServerTransfer.SecretKey == confirm.SecretKey)
             {
                 Environment.Exit(1);
             }
@@ -152,7 +152,7 @@ namespace linker.plugins.updater.messenger
             }
 
             //需要密钥
-            if ((confirm.All || confirm.GroupAll) && fileConfig.Data.Server.Updater.SecretKey != confirm.SecretKey)
+            if ((confirm.All || confirm.GroupAll) && updaterServerTransfer.SecretKey != confirm.SecretKey)
             {
                 connection.Write(Helper.FalseArray);
                 return;

@@ -9,6 +9,8 @@ using linker.plugins.flow.messenger;
 using linker.libs.extends;
 using linker.plugins.sforward.proxy;
 using linker.plugins.relay;
+using linker.plugins.relay.client;
+using linker.plugins.sforward;
 
 namespace linker.plugins.flow
 {
@@ -18,13 +20,17 @@ namespace linker.plugins.flow
         private readonly ClientSignInState clientSignInState;
         private readonly FileConfig config;
         private readonly RunningConfig runningConfig;
+        private readonly RelayClientConfigTransfer relayClientConfigTransfer;
+        private readonly SForwardTransfer sForwardTransfer;
 
-        public FlowClientApiController(IMessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config, RunningConfig runningConfig)
+        public FlowClientApiController(IMessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config, RunningConfig runningConfig, RelayClientConfigTransfer relayClientConfigTransfer, SForwardTransfer sForwardTransfer)
         {
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
             this.config = config;
             this.runningConfig = runningConfig;
+            this.relayClientConfigTransfer = relayClientConfigTransfer;
+            this.sForwardTransfer = sForwardTransfer;
         }
 
         public async Task<FlowInfo> GetFlows(ApiControllerParamsInfo param)
@@ -58,7 +64,7 @@ namespace linker.plugins.flow
         public async Task<SForwardFlowResponseInfo> GetSForwardFlows(ApiControllerParamsInfo param)
         {
             SForwardFlowRequestInfo info = param.Content.DeJson<SForwardFlowRequestInfo>();
-            info.SecretKey = config.Data.Client.SForward.SecretKey;
+            info.SecretKey = sForwardTransfer.SecretKey;
 
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
@@ -77,7 +83,7 @@ namespace linker.plugins.flow
         public async Task<RelayFlowResponseInfo> GetRelayFlows(ApiControllerParamsInfo param)
         {
             RelayFlowRequestInfo info = param.Content.DeJson<RelayFlowRequestInfo>();
-            info.SecretKey = config.Data.Client.Relay.Server.SecretKey;
+            info.SecretKey = relayClientConfigTransfer.Server.SecretKey;
 
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {

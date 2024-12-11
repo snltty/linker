@@ -15,17 +15,20 @@ namespace linker.plugins.updater
         private ConcurrentDictionary<string, UpdateInfo> updateInfos = new ConcurrentDictionary<string, UpdateInfo>();
         private ConcurrentDictionary<string, LastTicksManager> subscribes = new ConcurrentDictionary<string, LastTicksManager>();
 
+        public string SecretKey => fileConfig.Data.Client.Updater.SecretKey;
+
         private readonly FileConfig fileConfig;
         private readonly IMessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
         private readonly UpdaterHelper updaterHelper;
         private readonly ClientConfigTransfer clientConfigTransfer;
+        private readonly UpdaterCommonTransfer updaterCommonTransfer;
 
         private readonly RunningConfig running;
 
         public VersionManager Version { get; } = new VersionManager();
 
-        public UpdaterClientTransfer(FileConfig fileConfig, IMessengerSender messengerSender, ClientSignInState clientSignInState, UpdaterHelper updaterHelper, RunningConfig running, ClientConfigTransfer clientConfigTransfer)
+        public UpdaterClientTransfer(FileConfig fileConfig, IMessengerSender messengerSender, ClientSignInState clientSignInState, UpdaterHelper updaterHelper, RunningConfig running, ClientConfigTransfer clientConfigTransfer, UpdaterCommonTransfer updaterCommonTransfer)
         {
             this.fileConfig = fileConfig;
             this.messengerSender = messengerSender;
@@ -33,6 +36,7 @@ namespace linker.plugins.updater
             this.updaterHelper = updaterHelper;
             this.running = running;
             this.clientConfigTransfer = clientConfigTransfer;
+            this.updaterCommonTransfer = updaterCommonTransfer;
 
             clientSignInState.NetworkFirstEnabledHandle += Init;
            
@@ -51,11 +55,6 @@ namespace linker.plugins.updater
         public void SetSecretKey(string key)
         {
             fileConfig.Data.Client.Updater.SecretKey = key;
-            fileConfig.Data.Update();
-        }
-        public void SetInterval(int sec)
-        {
-            fileConfig.Data.Common.UpdateIntervalSeconds = sec;
             fileConfig.Data.Update();
         }
 
@@ -143,7 +142,7 @@ namespace linker.plugins.updater
             {
                 await updaterHelper.GetUpdateInfo(updateInfo);
                 return true;
-            }, () => fileConfig.Data.Common.UpdateIntervalSeconds*1000);
+            }, () => updaterCommonTransfer.UpdateIntervalSeconds*1000);
         }
     }
 

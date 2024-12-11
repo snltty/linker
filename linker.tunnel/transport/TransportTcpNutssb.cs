@@ -54,8 +54,11 @@ namespace linker.tunnel.transport
         /// </summary>
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
 
-        private readonly ITunnelAdapter tunnelAdapter;
-        public TunnelTransportTcpNutssb(ITunnelAdapter tunnelAdapter)
+        private ITunnelAdapter tunnelAdapter;
+        public TunnelTransportTcpNutssb()
+        {
+        }
+        public void SetAdapter(ITunnelAdapter tunnelAdapter)
         {
             this.tunnelAdapter = tunnelAdapter;
         }

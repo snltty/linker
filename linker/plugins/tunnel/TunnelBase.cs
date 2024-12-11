@@ -17,23 +17,23 @@ namespace linker.plugins.tunnel
         protected virtual string TransactionId { get; }
         protected readonly ConcurrentDictionary<string, ITunnelConnection> connections = new ConcurrentDictionary<string, ITunnelConnection>();
 
-        private readonly RunningConfig runningConfig;
         private readonly TunnelTransfer tunnelTransfer;
         private readonly RelayTransfer relayTransfer;
         private readonly PcpTransfer pcpTransfer;
         private readonly ClientSignInTransfer clientSignInTransfer;
         private readonly ClientSignInState clientSignInState;
         private readonly ClientConfigTransfer clientConfigTransfer;
+        private readonly RelayClientConfigTransfer relayClientConfigTransfer;
 
-        public TunnelBase(TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, PcpTransfer pcpTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState, RunningConfig runningConfig, ClientConfigTransfer clientConfigTransfer)
+        public TunnelBase(TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, PcpTransfer pcpTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState, ClientConfigTransfer clientConfigTransfer, RelayClientConfigTransfer relayClientConfigTransfer)
         {
-            this.runningConfig = runningConfig;
             this.tunnelTransfer = tunnelTransfer;
             this.relayTransfer = relayTransfer;
             this.pcpTransfer = pcpTransfer;
             this.clientSignInTransfer = clientSignInTransfer;
             this.clientSignInState = clientSignInState;
             this.clientConfigTransfer = clientConfigTransfer;
+            this.relayClientConfigTransfer = relayClientConfigTransfer;
 
             //监听打洞成功
             tunnelTransfer.SetConnectedCallback(TransactionId, OnConnected);
@@ -127,7 +127,7 @@ namespace linker.plugins.tunnel
         {
             //中继
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} relay to {machineId}");
-            ITunnelConnection connection = await relayTransfer.ConnectAsync(clientConfigTransfer.Id, machineId, TransactionId, runningConfig.Data.Relay.DefaultNodeId).ConfigureAwait(false);
+            ITunnelConnection connection = await relayTransfer.ConnectAsync(clientConfigTransfer.Id, machineId, TransactionId, relayClientConfigTransfer.DefaultNodeId).ConfigureAwait(false);
             if (connection != null)
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} relay success,{connection.ToString()}");

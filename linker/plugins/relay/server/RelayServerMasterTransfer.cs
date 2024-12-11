@@ -14,16 +14,14 @@ namespace linker.plugins.relay.server
 
 
         private readonly IRelayCaching relayCaching;
-        private readonly FileConfig fileConfig;
 
         private readonly ICrypto crypto;
         private readonly ConcurrentDictionary<string, RelayNodeReportInfo> reports = new ConcurrentDictionary<string, RelayNodeReportInfo>();
 
-        public RelayServerMasterTransfer(IRelayCaching relayCaching, FileConfig fileConfig)
+        public RelayServerMasterTransfer(IRelayCaching relayCaching, RelayServerConfigTransfer relayServerConfigTransfer)
         {
             this.relayCaching = relayCaching;
-            this.fileConfig = fileConfig;
-            crypto = CryptoFactory.CreateSymmetric(fileConfig.Data.Server.Relay.Distributed.Master.SecretKey);
+            crypto = CryptoFactory.CreateSymmetric(relayServerConfigTransfer.Master.SecretKey);
         }
 
 

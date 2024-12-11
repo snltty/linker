@@ -16,15 +16,17 @@ namespace linker.plugins.relay.client
         private readonly RelayTransfer relayTransfer;
         private readonly ClientSignInState clientSignInState;
         private readonly ClientConfigTransfer clientConfigTransfer;
+        private readonly RelayClientConfigTransfer relayClientConfigTransfer;
 
         public List<RelayNodeReportInfo> Nodes { get; private set; } = new List<RelayNodeReportInfo>();
 
-        public RelayTestTransfer(FileConfig fileConfig, RelayTransfer relayTransfer, ClientSignInState clientSignInState, ClientConfigTransfer clientConfigTransfer)
+        public RelayTestTransfer(FileConfig fileConfig, RelayTransfer relayTransfer, ClientSignInState clientSignInState, ClientConfigTransfer clientConfigTransfer, RelayClientConfigTransfer relayClientConfigTransfer)
         {
             this.fileConfig = fileConfig;
             this.relayTransfer = relayTransfer;
             this.clientSignInState = clientSignInState;
             this.clientConfigTransfer = clientConfigTransfer;
+            this.relayClientConfigTransfer = relayClientConfigTransfer;
 
             TestTask();
         }
@@ -39,13 +41,13 @@ namespace linker.plugins.relay.client
         {
             try
             {
-                ITransport transport = relayTransfer.Transports.FirstOrDefault(d => d.Type == fileConfig.Data.Client.Relay.Server.RelayType);
+                ITransport transport = relayTransfer.Transports.FirstOrDefault(d => d.Type == relayClientConfigTransfer.Server.RelayType);
                 if (transport != null)
                 {
                     Nodes = await transport.RelayTestAsync(new RelayTestInfo
                     {
                         MachineId = clientConfigTransfer.Id,
-                        SecretKey = fileConfig.Data.Client.Relay.Server.SecretKey
+                        SecretKey = relayClientConfigTransfer.Server.SecretKey
                     });
                     var tasks = Nodes.Select(async (c) =>
                     {

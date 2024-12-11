@@ -19,15 +19,16 @@ namespace linker.plugins.relay.server.validator
     public sealed class RelayValidatorSecretKey : IRelayValidator
     {
         private readonly FileConfig fileConfig;
-
-        public RelayValidatorSecretKey(FileConfig fileConfig)
+        private readonly RelayServerConfigTransfer relayServerConfigTransfer;
+        public RelayValidatorSecretKey(FileConfig fileConfig, RelayServerConfigTransfer relayServerConfigTransfer)
         {
             this.fileConfig = fileConfig;
+            this.relayServerConfigTransfer = relayServerConfigTransfer;
         }
 
         public async Task<string> Validate(RelayInfo relayInfo, SignCacheInfo fromMachine, SignCacheInfo toMachine)
         {
-            if (relayInfo.SecretKey != fileConfig.Data.Server.Relay.SecretKey)
+            if (relayInfo.SecretKey != relayServerConfigTransfer.SecretKey)
             {
                 return $"SecretKey validate fail";
             }

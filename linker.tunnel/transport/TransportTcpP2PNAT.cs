@@ -56,8 +56,11 @@ namespace linker.tunnel.transport
         private byte[] endBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.end");
 
 
-        private readonly ITunnelAdapter tunnelAdapter;
-        public TransportTcpP2PNAT(ITunnelAdapter tunnelAdapter)
+        private ITunnelAdapter tunnelAdapter;
+        public TransportTcpP2PNAT()
+        {
+        }
+        public void SetAdapter(ITunnelAdapter tunnelAdapter)
         {
             this.tunnelAdapter = tunnelAdapter;
         }

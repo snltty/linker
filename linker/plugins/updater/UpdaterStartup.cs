@@ -28,7 +28,9 @@ namespace linker.plugins.updater
             serviceCollection.AddSingleton<UpdaterClientMessenger>();
             serviceCollection.AddSingleton<UpdaterClientApiController>();
 
-            serviceCollection.AddSingleton<ConfigSyncUpdaterSecretKey>();
+            serviceCollection.AddSingleton<UpdaterConfigSyncSecretKey>();
+
+            serviceCollection.AddSingleton<UpdaterCommonTransfer>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
@@ -37,6 +39,8 @@ namespace linker.plugins.updater
             serviceCollection.AddSingleton<UpdaterServerTransfer>();
 
             serviceCollection.AddSingleton<UpdaterServerMessenger>();
+
+            serviceCollection.AddSingleton<UpdaterCommonTransfer>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)

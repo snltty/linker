@@ -15,13 +15,15 @@ namespace linker.plugins.relay.client
         private readonly RunningConfig runningConfig;
         private readonly RelayTestTransfer relayTestTransfer;
         private readonly RelayTransfer relayTransfer;
+        private readonly RelayClientConfigTransfer relayClientConfigTransfer;
 
-        public RelayApiController(FileConfig config, RunningConfig runningConfig, RelayTestTransfer relayTestTransfer, RelayTransfer relayTransfer)
+        public RelayApiController(FileConfig config, RunningConfig runningConfig, RelayTestTransfer relayTestTransfer, RelayTransfer relayTransfer, RelayClientConfigTransfer relayClientConfigTransfer)
         {
             this.config = config;
             this.runningConfig = runningConfig;
             this.relayTestTransfer = relayTestTransfer;
             this.relayTransfer = relayTransfer;
+            this.relayClientConfigTransfer = relayClientConfigTransfer;
         }
 
         /// <summary>
@@ -33,8 +35,7 @@ namespace linker.plugins.relay.client
         public bool SetServers(ApiControllerParamsInfo param)
         {
             RelayServerInfo info = param.Content.DeJson<RelayServerInfo>();
-            config.Data.Client.Relay.Servers = [info];
-            config.Data.Update();
+            relayClientConfigTransfer.SetServer(info);
             return true;
         }
 
@@ -48,8 +49,7 @@ namespace linker.plugins.relay.client
         {
             RelayConnectInfo relayConnectInfo = param.Content.DeJson<RelayConnectInfo>();
             _ = relayTransfer.ConnectAsync(relayConnectInfo.FromMachineId, relayConnectInfo.ToMachineId, relayConnectInfo.TransactionId, relayConnectInfo.NodeId);
-            runningConfig.Data.Relay.DefaultNodeId = relayConnectInfo.NodeId;
-            runningConfig.Data.Update();
+            relayClientConfigTransfer.SetDefaultNodeId(relayConnectInfo.NodeId);
             return true;
         }
 

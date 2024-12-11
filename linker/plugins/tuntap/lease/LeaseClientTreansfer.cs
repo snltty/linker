@@ -4,7 +4,6 @@ using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.plugins.tuntap.messenger;
 using linker.libs;
-using linker.libs.extends;
 
 namespace linker.plugins.tuntap.lease
 {

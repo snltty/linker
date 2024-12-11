@@ -38,7 +38,7 @@ namespace linker.plugins.sforward
         /// <returns></returns>
         public string GetSecretKey(ApiControllerParamsInfo param)
         {
-            return forwardTransfer.GetSecretKey();
+            return forwardTransfer.SecretKey;
         }
         /// <summary>
         /// 设置密钥
@@ -172,7 +172,7 @@ namespace linker.plugins.sforward
 
     public sealed class SForwardListInfo
     {
-        public ConcurrentDictionary<string,int> List { get; set; }
+        public ConcurrentDictionary<string, int> List { get; set; }
         public ulong HashCode { get; set; }
     }
 }

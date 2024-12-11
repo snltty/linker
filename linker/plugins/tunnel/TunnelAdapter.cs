@@ -17,42 +17,30 @@ namespace linker.plugins.tunnel
     {
         public IPAddress LocalIP => clientSignInState.Connection?.LocalAddress.Address ?? IPAddress.Any;
         public IPEndPoint ServerHost => clientSignInState.Connection?.Address ?? null;
-
-        public X509Certificate2 Certificate { get; private set; }
+        public X509Certificate2 Certificate => tunnelConfigTransfer.Certificate;
 
         private readonly ClientSignInState clientSignInState;
         private readonly IMessengerSender messengerSender;
-        private readonly FileConfig config;
-        private readonly RunningConfig running;
         private readonly TunnelExcludeIPTransfer excludeIPTransfer;
         private readonly ClientConfigTransfer clientConfigTransfer;
+        private readonly TunnelConfigTransfer tunnelConfigTransfer;
 
-        public TunnelAdapter(ClientSignInState clientSignInState, IMessengerSender messengerSender, FileConfig config, RunningConfig running, TunnelExcludeIPTransfer excludeIPTransfer, ClientConfigTransfer clientConfigTransfer)
+        public TunnelAdapter(ClientSignInState clientSignInState, IMessengerSender messengerSender, TunnelExcludeIPTransfer excludeIPTransfer, ClientConfigTransfer clientConfigTransfer, TunnelConfigTransfer tunnelConfigTransfer)
         {
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
-            this.config = config;
-            this.running = running;
             this.excludeIPTransfer = excludeIPTransfer;
             this.clientConfigTransfer = clientConfigTransfer;
-
-            string path = Path.GetFullPath(clientConfigTransfer.SSL.File);
-            if (File.Exists(path))
-            {
-                Certificate = new X509Certificate2(path, clientConfigTransfer.SSL.Password, X509KeyStorageFlags.Exportable);
-            }
-
-           
+            this.tunnelConfigTransfer = tunnelConfigTransfer;
         }
 
         public List<TunnelTransportItemInfo> GetTunnelTransports()
         {
-            return config.Data.Client.Tunnel.Transports;
+            return tunnelConfigTransfer.Transports;
         }
         public void SetTunnelTransports(List<TunnelTransportItemInfo> transports, bool updateVersion)
         {
-            config.Data.Client.Tunnel.Transports = transports;
-            config.Data.Update();
+            tunnelConfigTransfer.SetTransports(transports);
         }
 
         public NetworkInfo GetLocalConfig()
@@ -60,7 +48,7 @@ namespace linker.plugins.tunnel
             var excludeips = excludeIPTransfer.Get();
             return new NetworkInfo
             {
-                LocalIps = config.Data.Client.Tunnel.LocalIPs.Where(c =>
+                LocalIps = tunnelConfigTransfer.LocalIPs.Where(c =>
                 {
                     if (c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                     {
@@ -78,7 +66,7 @@ namespace linker.plugins.tunnel
                     return true;
                 })
                 .ToArray(),
-                RouteLevel = config.Data.Client.Tunnel.RouteLevel + running.Data.Tunnel.RouteLevelPlus,
+                RouteLevel = tunnelConfigTransfer.RouteLevel,
                 MachineId = clientConfigTransfer.Id
             };
         }
