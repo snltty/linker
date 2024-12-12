@@ -1,28 +1,25 @@
-﻿using linker.client.config;
-using linker.libs;
+﻿using linker.libs;
 using linker.plugins.tuntap.config;
-using linker.tun;
 using System.Net.NetworkInformation;
 
 namespace linker.plugins.tuntap
 {
     public sealed class TuntapDeviceStatusTransfer
     {
-        private readonly RunningConfig runningConfig;
         private readonly TuntapTransfer tuntapTransfer;
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
-        private readonly LinkerTunDeviceAdapter linkerTunDeviceAdapter;
+        private readonly TuntapAdapter tuntapAdapter;
         private ulong setupTimes = 0;
-        public TuntapDeviceStatusTransfer(RunningConfig runningConfig, TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, LinkerTunDeviceAdapter linkerTunDeviceAdapter)
+        public TuntapDeviceStatusTransfer(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, TuntapAdapter tuntapAdapter)
         {
-            this.runningConfig = runningConfig;
             this.tuntapTransfer = tuntapTransfer;
             this.tuntapConfigTransfer = tuntapConfigTransfer;
-            this.linkerTunDeviceAdapter = linkerTunDeviceAdapter;
+            this.tuntapAdapter = tuntapAdapter;
 
             tuntapTransfer.OnSetupSuccess += () => { setupTimes++; };
 
             CheckTuntapStatusTask();
+           
         }
         private void CheckTuntapStatusTask()
         {
@@ -41,11 +38,10 @@ namespace linker.plugins.tuntap
             if (await InterfaceAvailable() == false && tuntapTransfer.Status != TuntapStatus.Operating)
             {
                 LoggerHelper.Instance.Error($"tuntap inerface {tuntapConfigTransfer.DeviceName} is down, restarting");
-                linkerTunDeviceAdapter.Shutdown();
                 await Task.Delay(5000).ConfigureAwait(false);
                 if (await InterfaceAvailable() == false && tuntapTransfer.Status != TuntapStatus.Operating)
                 {
-                    await tuntapConfigTransfer.RetstartDevice();
+                    await tuntapAdapter.RetstartDevice().ConfigureAwait(false);
                 }
             }
         }
@@ -53,18 +49,19 @@ namespace linker.plugins.tuntap
         {
             NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == tuntapConfigTransfer.DeviceName);
             return networkInterface != null && networkInterface.OperationalStatus == OperationalStatus.Up && await InterfacePing();
-        }
-        private async Task<bool> InterfacePing()
-        {
-            try
+
+            async Task<bool> InterfacePing()
             {
-                using Ping ping = new Ping();
-                PingReply pingReply = await ping.SendPingAsync(tuntapConfigTransfer.IP, 500);
-                return pingReply.Status == IPStatus.Success;
-            }
-            catch (Exception)
-            {
-                return false;
+                try
+                {
+                    using Ping ping = new Ping();
+                    PingReply pingReply = await ping.SendPingAsync(tuntapConfigTransfer.IP, 500);
+                    return pingReply.Status == IPStatus.Success;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
             }
         }
 

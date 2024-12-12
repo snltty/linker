@@ -5,7 +5,6 @@ using LiteDB;
 using MemoryPack;
 using System.Net;
 using System.Text.Json.Serialization;
-using linker.tunnel.adapter;
 
 
 namespace linker.client.config

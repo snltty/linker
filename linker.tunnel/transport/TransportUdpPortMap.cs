@@ -6,7 +6,7 @@ using System.Text;
 using linker.libs.extends;
 using System.Collections.Concurrent;
 using linker.libs;
-using linker.tunnel.adapter;
+using System.Security.Cryptography.X509Certificates;
 
 namespace linker.tunnel.transport
 {
@@ -46,14 +46,15 @@ namespace linker.tunnel.transport
 
         private readonly ConcurrentDictionary<string, TaskCompletionSource<State>> distDic = new ConcurrentDictionary<string, TaskCompletionSource<State>>();
         private readonly ConcurrentDictionary<IPEndPoint, ConnectionCacheInfo> connectionsDic = new ConcurrentDictionary<IPEndPoint, ConnectionCacheInfo>(new IPEndPointComparer());
-        private ITunnelAdapter tunnelAdapter;
+       
         public TransportUdpPortMap()
         {
             CleanTask();
         }
-        public void SetAdapter(ITunnelAdapter tunnelAdapter)
+        private X509Certificate2 certificate;
+        public void SetSSL(X509Certificate2 certificate)
         {
-            this.tunnelAdapter = tunnelAdapter;
+            this.certificate = certificate;
         }
 
         Socket socket;
@@ -197,7 +198,7 @@ namespace linker.tunnel.transport
         }
         public async Task OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
-            if (tunnelTransportInfo.SSL && tunnelAdapter.Certificate == null)
+            if (tunnelTransportInfo.SSL && certificate == null)
             {
                 LoggerHelper.Instance.Error($"{Name}->ssl Certificate not found");
                 await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);

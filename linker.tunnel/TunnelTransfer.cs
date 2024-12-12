@@ -1,5 +1,4 @@
-﻿using linker.tunnel.adapter;
-using linker.tunnel.connection;
+﻿using linker.tunnel.connection;
 using linker.tunnel.transport;
 using linker.libs;
 using linker.libs.extends;
@@ -7,14 +6,63 @@ using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Net;
 using linker.tunnel.wanport;
+using System.Security.Cryptography.X509Certificates;
 
 namespace linker.tunnel
 {
     public sealed class TunnelTransfer
     {
+
+        /// <summary>
+        /// 本机局域网IP，当然你也可以使用0.0.0.0，但是使用局域网IP会提高打洞成功率
+        /// </summary>
+        public Func<IPAddress> LocalIP { get; set; } = () => IPAddress.Any;
+        /// <summary>
+        /// 服务器地址
+        /// </summary>
+        public Func<IPEndPoint> ServerHost { get; set; } = () => new IPEndPoint(IPAddress.Any, 0);
+        /// <summary>
+        /// ssl加密证书，没有证书则无法加密通信
+        /// </summary>
+        public Func<X509Certificate2> Certificate { get; set; } = () => null;
+        /// <summary>
+        /// 获取打洞协议列表
+        /// </summary>
+        /// <returns></returns>
+        public Func<List<TunnelTransportItemInfo>> GetTunnelTransports { get; set; } = () => new List<TunnelTransportItemInfo>();
+        /// <summary>
+        /// 保存打洞协议列表
+        /// </summary>
+        /// <param name="transports"></param>
+        public Action<List<TunnelTransportItemInfo>, bool> SetTunnelTransports { get; set; } = (list, update) => { };
+
+        /// <summary>
+        /// 获取本地网络信息
+        /// </summary>
+        /// <returns></returns>
+        public Func<NetworkInfo> GetLocalConfig { get; set; } = () => new NetworkInfo();
+
+        /// <summary>
+        /// 获取远端的外网信息，比如你是A，你要获取B的信息，可以在B调用  TunnelTransfer.GetWanPort() 发送回来
+        /// </summary>
+        public Func<TunnelWanPortProtocolInfo, Task<TunnelTransportWanPortInfo>> GetRemoteWanPort { get; set; } = async (info) => { return await Task.FromResult(new TunnelTransportWanPortInfo()); };
+
+        /// <summary>
+        /// 发送开始打洞
+        /// </summary>
+        public Func<TunnelTransportInfo, Task<bool>> SendConnectBegin { get; set; } = async (info) => { return await Task.FromResult(false); };
+        /// <summary>
+        /// 发送打洞失败
+        /// </summary>
+        public Func<TunnelTransportInfo, Task<bool>> SendConnectFail { get; set; } = async (info) => { return await Task.FromResult(false); };
+        /// <summary>
+        /// 发送打洞成功
+        /// </summary>
+        public Func<TunnelTransportInfo, Task<bool>> SendConnectSuccess { get; set; } = async (info) => { return await Task.FromResult(false); };
+
+
         private List<ITunnelTransport> transports;
-        private TunnelWanPortTransfer compactTransfer;
-        private ITunnelAdapter tunnelAdapter;
+        private TunnelWanPortTransfer tunnelWanPortTransfer;
         private TunnelUpnpTransfer TunnelUpnpTransfer;
 
         private ConcurrentDictionary<string, bool> connectingDic = new ConcurrentDictionary<string, bool>();
@@ -29,23 +77,22 @@ namespace linker.tunnel
         /// 加载打洞协议
         /// </summary>
         /// <param name="assembs"></param>
-        public void LoadTransports(TunnelWanPortTransfer compactTransfer, ITunnelAdapter tunnelAdapter, TunnelUpnpTransfer TunnelUpnpTransfer, List<ITunnelTransport> transports)
+        public void LoadTransports(TunnelWanPortTransfer  tunnelWanPortTransfer, TunnelUpnpTransfer TunnelUpnpTransfer, List<ITunnelTransport> transports)
         {
-            this.compactTransfer = compactTransfer;
-            this.tunnelAdapter = tunnelAdapter;
+            this.tunnelWanPortTransfer = tunnelWanPortTransfer;
             this.transports = transports;
             this.TunnelUpnpTransfer = TunnelUpnpTransfer;
 
             foreach (var item in transports)
             {
-                item.OnSendConnectBegin = tunnelAdapter.SendConnectBegin;
-                item.OnSendConnectFail = tunnelAdapter.SendConnectFail;
-                item.OnSendConnectSuccess = tunnelAdapter.SendConnectSuccess;
+                item.OnSendConnectBegin = SendConnectBegin;
+                item.OnSendConnectFail = SendConnectFail;
+                item.OnSendConnectSuccess = SendConnectSuccess;
                 item.OnConnected = _OnConnected;
-                item.SetAdapter(tunnelAdapter);
+                item.SetSSL(Certificate());
             }
 
-            var transportItems = tunnelAdapter.GetTunnelTransports();
+            var transportItems = GetTunnelTransports();
             //有新的协议
             var newTransportNames = transports.Select(c => c.Name).Except(transportItems.Select(c => c.Name));
             if (newTransportNames.Any())
@@ -96,10 +143,9 @@ namespace linker.tunnel
                 }
             }
 
-            tunnelAdapter.SetTunnelTransports(transportItems, true);
+            SetTunnelTransports(transportItems, true);
             LoggerHelper.Instance.Info($"load tunnel transport:{string.Join(",", transports.Select(c => c.Name))}");
         }
-
 
         /// <summary>
         /// 设置成功打洞回调
@@ -154,7 +200,7 @@ namespace linker.tunnel
 
             try
             {
-                foreach (TunnelTransportItemInfo transportItem in tunnelAdapter.GetTunnelTransports().OrderBy(c => c.Order).Where(c => c.Disabled == false))
+                foreach (TunnelTransportItemInfo transportItem in GetTunnelTransports().OrderBy(c => c.Order).Where(c => c.Disabled == false))
                 {
                     ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == transportItem.Name);
                     //找不到这个打洞协议，或者是不支持的协议
@@ -163,7 +209,7 @@ namespace linker.tunnel
                         continue;
                     }
 
-                    foreach (var wanPortProtocol in compactTransfer.Protocols)
+                    foreach (var wanPortProtocol in tunnelWanPortTransfer.Protocols)
                     {
 
                         //这个打洞协议不支持这个外网端口协议
@@ -182,7 +228,7 @@ namespace linker.tunnel
                                 //获取自己的外网ip
                                 Task<TunnelTransportWanPortInfo> localInfo = GetLocalInfo(wanPortProtocol);
                                 //获取对方的外网ip
-                                Task<TunnelTransportWanPortInfo> remoteInfo = tunnelAdapter.GetRemoteWanPort(new TunnelWanPortProtocolInfo
+                                Task<TunnelTransportWanPortInfo> remoteInfo = GetRemoteWanPort(new TunnelWanPortProtocolInfo
                                 {
                                     MachineId = remoteMachineId,
                                     ProtocolType = wanPortProtocol
@@ -270,7 +316,7 @@ namespace linker.tunnel
             try
             {
                 ITunnelTransport _transports = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
-                TunnelTransportItemInfo item = tunnelAdapter.GetTunnelTransports().FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.Disabled == false);
+                TunnelTransportItemInfo item = GetTunnelTransports().FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.Disabled == false);
                 if (_transports != null && item != null)
                 {
                     OnConnectBegin(tunnelTransportInfo);
@@ -283,7 +329,7 @@ namespace linker.tunnel
                 else
                 {
                     connectingDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out _);
-                    _ = tunnelAdapter.SendConnectFail(tunnelTransportInfo);
+                    _ = SendConnectFail(tunnelTransportInfo);
                 }
             }
             catch (Exception ex)
@@ -331,11 +377,11 @@ namespace linker.tunnel
         /// <returns></returns>
         private async Task<TunnelTransportWanPortInfo> GetLocalInfo(TunnelWanPortProtocolType tunnelWanPortProtocolType)
         {
-            TunnelWanPortEndPoint ip = await compactTransfer.GetWanPortAsync(tunnelAdapter.LocalIP, tunnelWanPortProtocolType).ConfigureAwait(false);
+            TunnelWanPortEndPoint ip = await tunnelWanPortTransfer.GetWanPortAsync(ServerHost(), LocalIP(), tunnelWanPortProtocolType).ConfigureAwait(false);
             if (ip != null)
             {
                 MapInfo portMapInfo = TunnelUpnpTransfer.PortMap ?? new MapInfo { PrivatePort = 0, PublicPort = 0 };
-                var config = tunnelAdapter.GetLocalConfig();
+                var config = GetLocalConfig();
                 return new TunnelTransportWanPortInfo
                 {
                     Local = ip.Local,
@@ -492,6 +538,12 @@ namespace linker.tunnel
         {
             backgroundDic.TryRemove(GetBackgroundKey(remoteMachineId, transactionId), out _);
         }
+        /// <summary>
+        /// 是否正在后台打洞
+        /// </summary>
+        /// <param name="remoteMachineId"></param>
+        /// <param name="transactionId"></param>
+        /// <returns></returns>
         public bool IsBackground(string remoteMachineId, string transactionId)
         {
             return backgroundDic.ContainsKey(GetBackgroundKey(remoteMachineId, transactionId));

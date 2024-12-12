@@ -146,7 +146,6 @@ namespace linker.config
         public IConfig PropertyMethod { get; set; }
     }
 
-
     public interface IConfig
     {
         public string Serialize(object obj);
@@ -216,7 +215,6 @@ namespace linker.config
             return text.DeJson<ConfigCommonInfo>();
         }
     }
-
 
     [AttributeUsage(AttributeTargets.Class)]
     public class JsonAotAttribute : Attribute { }

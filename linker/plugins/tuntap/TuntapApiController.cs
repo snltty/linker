@@ -22,28 +22,30 @@ namespace linker.plugins.tuntap
         private readonly IMessengerSender messengerSender;
         private readonly TuntapTransfer tuntapTransfer;
         private readonly ClientSignInState clientSignInState;
-        private readonly FileConfig config;
         private readonly TuntapProxy tuntapProxy;
-        private readonly RunningConfig runningConfig;
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
         private readonly LeaseClientTreansfer leaseClientTreansfer;
         private readonly TuntapPingTransfer pingTransfer;
         private readonly AccessTransfer accessTransfer;
         private readonly ClientConfigTransfer clientConfigTransfer;
+        private readonly TuntapDecenter tuntapDecenter;
+        private readonly TuntapAdapter tuntapAdapter;
 
-        public TuntapClientApiController(IMessengerSender messengerSender, TuntapTransfer tuntapTransfer, ClientSignInState clientSignInState, FileConfig config, TuntapProxy tuntapProxy, RunningConfig runningConfig, TuntapConfigTransfer tuntapConfigTransfer, LeaseClientTreansfer leaseClientTreansfer, TuntapPingTransfer pingTransfer, AccessTransfer accessTransfer, ClientConfigTransfer clientConfigTransfer)
+        public TuntapClientApiController(IMessengerSender messengerSender, TuntapTransfer tuntapTransfer, ClientSignInState clientSignInState,
+            TuntapProxy tuntapProxy,TuntapConfigTransfer tuntapConfigTransfer, LeaseClientTreansfer leaseClientTreansfer, 
+            TuntapPingTransfer pingTransfer, AccessTransfer accessTransfer, ClientConfigTransfer clientConfigTransfer, TuntapDecenter tuntapDecenter, TuntapAdapter tuntapAdapter)
         {
             this.messengerSender = messengerSender;
             this.tuntapTransfer = tuntapTransfer;
             this.clientSignInState = clientSignInState;
-            this.config = config;
             this.tuntapProxy = tuntapProxy;
-            this.runningConfig = runningConfig;
             this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.leaseClientTreansfer = leaseClientTreansfer;
             this.pingTransfer = pingTransfer;
             this.accessTransfer = accessTransfer;
             this.clientConfigTransfer = clientConfigTransfer;
+            this.tuntapDecenter = tuntapDecenter;
+            this.tuntapAdapter = tuntapAdapter;
         }
 
         public ConnectionListInfo Connections(ApiControllerParamsInfo param)
@@ -74,11 +76,11 @@ namespace linker.plugins.tuntap
         public TuntabListInfo Get(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);
-            if (tuntapConfigTransfer.Version.Eq(hashCode, out ulong version) == false)
+            if (tuntapDecenter.Version.Eq(hashCode, out ulong version) == false)
             {
                 return new TuntabListInfo
                 {
-                    List = tuntapConfigTransfer.Infos,
+                    List = tuntapDecenter.Infos,
                     HashCode = version
                 };
             }
@@ -90,7 +92,7 @@ namespace linker.plugins.tuntap
         /// <param name="param"></param>
         public void Refresh(ApiControllerParamsInfo param)
         {
-            tuntapConfigTransfer.RefreshConfig();
+            tuntapDecenter.Refresh();
         }
 
         /// <summary>
@@ -105,7 +107,7 @@ namespace linker.plugins.tuntap
             {
                 if (accessTransfer.HasAccess(ClientApiAccess.TuntapStatusSelf) == false) return false;
 
-                await tuntapConfigTransfer.RetstartDevice();
+                await tuntapAdapter.RetstartDevice();
             }
             else
             {
@@ -131,7 +133,7 @@ namespace linker.plugins.tuntap
             if (param.Content == clientConfigTransfer.Id)
             {
                 if (accessTransfer.HasAccess(ClientApiAccess.TuntapStatusSelf) == false) return false;
-                tuntapConfigTransfer.StopDevice();
+                tuntapAdapter.StopDevice();
             }
             else
             {
@@ -160,7 +162,7 @@ namespace linker.plugins.tuntap
             if (info.MachineId == clientConfigTransfer.Id)
             {
                 if (accessTransfer.HasAccess(ClientApiAccess.TuntapChangeSelf) == false) return false;
-                tuntapConfigTransfer.UpdateConfig(info);
+                tuntapConfigTransfer.Update(info);
             }
             else
             {

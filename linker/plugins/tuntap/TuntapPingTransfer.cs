@@ -1,10 +1,8 @@
-﻿using linker.client.config;
-using linker.libs;
+﻿using linker.libs;
 using linker.plugins.tuntap.config;
 using linker.tunnel.connection;
 using System.Net.NetworkInformation;
 using System.Net;
-using linker.config;
 using System.Net.Sockets;
 using linker.libs.extends;
 using linker.plugins.client;
@@ -17,19 +15,21 @@ namespace linker.plugins.tuntap
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
         private readonly TuntapProxy tuntapProxy;
         private readonly ClientConfigTransfer clientConfigTransfer;
+        private readonly TuntapDecenter tuntapDecenter;
 
-        public TuntapPingTransfer(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, TuntapProxy tuntapProxy, ClientConfigTransfer clientConfigTransfer)
+        public TuntapPingTransfer(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, TuntapProxy tuntapProxy, ClientConfigTransfer clientConfigTransfer, TuntapDecenter tuntapDecenter)
         {
             this.tuntapTransfer = tuntapTransfer;
             this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.tuntapProxy = tuntapProxy;
             this.clientConfigTransfer = clientConfigTransfer;
+            this.tuntapDecenter = tuntapDecenter;
 
             PingTask();
+           
         }
 
         private readonly LastTicksManager lastTicksManager = new LastTicksManager();
-        private readonly LastTicksManager lastTicksManager1 = new LastTicksManager();
         public void SubscribePing()
         {
             lastTicksManager.Update();
@@ -49,7 +49,7 @@ namespace linker.plugins.tuntap
         {
             if (tuntapTransfer.Status == TuntapStatus.Running && (tuntapConfigTransfer.Switch & TuntapSwitch.ShowDelay) == TuntapSwitch.ShowDelay)
             {
-                var items = tuntapConfigTransfer.Infos.Values.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false && (c.Status & TuntapStatus.Running) == TuntapStatus.Running);
+                var items = tuntapDecenter.Infos.Values.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false && (c.Status & TuntapStatus.Running) == TuntapStatus.Running);
                 if ((tuntapConfigTransfer.Switch & TuntapSwitch.AutoConnect) != TuntapSwitch.AutoConnect)
                 {
                     var connections = tuntapProxy.GetConnections();
@@ -61,7 +61,7 @@ namespace linker.plugins.tuntap
                     using Ping ping = new Ping();
                     PingReply pingReply = await ping.SendPingAsync(c.IP, 500);
                     c.Delay = pingReply.Status == IPStatus.Success ? (int)pingReply.RoundtripTime : -1;
-                    tuntapConfigTransfer.Version.Add();
+                    tuntapDecenter.Version.Add();
                 }));
             }
         }

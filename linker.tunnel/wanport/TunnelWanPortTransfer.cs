@@ -1,5 +1,4 @@
 ﻿using linker.libs;
-using linker.tunnel.adapter;
 using System.Net;
 
 namespace linker.tunnel.wanport
@@ -13,13 +12,9 @@ namespace linker.tunnel.wanport
 
         public List<TunnelWanPortProtocolType> Protocols => tunnelWanPorts.Select(p => p.ProtocolType).ToList();
 
-        private readonly ITunnelAdapter tunnelAdapter;
-        public TunnelWanPortTransfer(ITunnelAdapter tunnelAdapter)
+        public TunnelWanPortTransfer()
         {
-            this.tunnelAdapter = tunnelAdapter;
         }
-
-
 
         /// <summary>
         /// 加载所有外网端口协议
@@ -37,14 +32,13 @@ namespace linker.tunnel.wanport
         /// </summary>
         /// <param name="localIP">你的局域网IP</param>
         /// <returns></returns>
-        public async Task<TunnelWanPortEndPoint> GetWanPortAsync(IPAddress localIP, TunnelWanPortProtocolType protocolType)
+        public async Task<TunnelWanPortEndPoint> GetWanPortAsync(IPEndPoint server,IPAddress localIP, TunnelWanPortProtocolType protocolType)
         {
             var tunnelWanPort = tunnelWanPorts.FirstOrDefault(c => c.ProtocolType == protocolType);
             if (tunnelWanPort == null) return null;
             try
             {
-                if (tunnelAdapter.ServerHost == null) return null;
-                TunnelWanPortEndPoint wanPort = await tunnelWanPort.GetAsync(localIP, tunnelAdapter.ServerHost).ConfigureAwait(false);
+                TunnelWanPortEndPoint wanPort = await tunnelWanPort.GetAsync(localIP, server).ConfigureAwait(false);
                 if (wanPort != null)
                 {
                     wanPort.Local.Address = localIP;

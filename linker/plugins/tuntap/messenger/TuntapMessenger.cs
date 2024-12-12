@@ -17,8 +17,10 @@ namespace linker.plugins.tuntap.messenger
         private readonly LeaseClientTreansfer leaseClientTreansfer;
         private readonly TuntapPingTransfer pingTransfer;
         private readonly IMessengerSender messengerSender;
+        private readonly TuntapAdapter tuntapAdapter;
 
-        public TuntapClientMessenger(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, TuntapProxy tuntapProxy, LeaseClientTreansfer leaseClientTreansfer, TuntapPingTransfer pingTransfer, IMessengerSender messengerSender)
+        public TuntapClientMessenger(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer,
+            TuntapProxy tuntapProxy, LeaseClientTreansfer leaseClientTreansfer, TuntapPingTransfer pingTransfer, IMessengerSender messengerSender, TuntapAdapter tuntapAdapter)
         {
             this.tuntapTransfer = tuntapTransfer;
             this.tuntapConfigTransfer = tuntapConfigTransfer;
@@ -26,6 +28,7 @@ namespace linker.plugins.tuntap.messenger
             this.leaseClientTreansfer = leaseClientTreansfer;
             this.pingTransfer = pingTransfer;
             this.messengerSender = messengerSender;
+            this.tuntapAdapter = tuntapAdapter;
         }
 
         /// <summary>
@@ -35,7 +38,7 @@ namespace linker.plugins.tuntap.messenger
         [MessengerId((ushort)TuntapMessengerIds.Run)]
         public void Run(IConnection connection)
         {
-            _ = tuntapConfigTransfer.RetstartDevice();
+            _ = tuntapAdapter.RetstartDevice();
         }
 
         /// <summary>
@@ -45,7 +48,7 @@ namespace linker.plugins.tuntap.messenger
         [MessengerId((ushort)TuntapMessengerIds.Stop)]
         public void Stop(IConnection connection)
         {
-            tuntapConfigTransfer.StopDevice();
+            tuntapAdapter.StopDevice();
         }
 
         /// <summary>
@@ -56,7 +59,7 @@ namespace linker.plugins.tuntap.messenger
         public void Update(IConnection connection)
         {
             TuntapInfo info = MemoryPackSerializer.Deserialize<TuntapInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            tuntapConfigTransfer.UpdateConfig(info);
+            tuntapConfigTransfer.Update(info);
         }
 
         /// <summary>

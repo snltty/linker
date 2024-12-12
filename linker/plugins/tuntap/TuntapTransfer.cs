@@ -1,7 +1,5 @@
-﻿using linker.client.config;
-using linker.libs;
+﻿using linker.libs;
 using System.Net;
-using linker.plugins.client;
 using linker.plugins.tuntap.config;
 using linker.tun;
 
@@ -28,11 +26,19 @@ namespace linker.plugins.tuntap
             this.linkerTunDeviceAdapter = linkerTunDeviceAdapter;
         }
 
+        bool inited = false;
         public void Init(string name,ILinkerTunDeviceCallback linkerTunDeviceCallback)
         {
+            if (inited) return;
+            inited = true;
+
             linkerTunDeviceAdapter.Initialize(name, linkerTunDeviceCallback);
             AppDomain.CurrentDomain.ProcessExit += (s, e) => linkerTunDeviceAdapter.Shutdown();
             Console.CancelKeyPress += (s, e) => linkerTunDeviceAdapter.Shutdown();
+        }
+        public bool Write(ReadOnlyMemory<byte> buffer)
+        {
+            return linkerTunDeviceAdapter.Write(buffer);
         }
 
         /// <summary>

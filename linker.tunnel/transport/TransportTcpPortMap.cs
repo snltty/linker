@@ -6,7 +6,6 @@ using System.Text;
 using linker.libs.extends;
 using System.Collections.Concurrent;
 using linker.libs;
-using linker.tunnel.adapter;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Authentication;
@@ -44,13 +43,14 @@ namespace linker.tunnel.transport
 
 
         private readonly ConcurrentDictionary<string, TaskCompletionSource<Socket>> distDic = new ConcurrentDictionary<string, TaskCompletionSource<Socket>>();
-        private ITunnelAdapter tunnelAdapter;
+       
         public TransportTcpPortMap()
         {
         }
-        public void SetAdapter(ITunnelAdapter tunnelAdapter)
+        private X509Certificate2 certificate;
+        public void SetSSL(X509Certificate2 certificate)
         {
-            this.tunnelAdapter = tunnelAdapter;
+            this.certificate = certificate;
         }
 
 
@@ -181,7 +181,7 @@ namespace linker.tunnel.transport
         }
         public async Task OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
-            if (tunnelTransportInfo.SSL && tunnelAdapter.Certificate == null)
+            if (tunnelTransportInfo.SSL && certificate == null)
             {
                 LoggerHelper.Instance.Error($"{Name}->ssl Certificate not found");
                 await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
@@ -246,7 +246,7 @@ namespace linker.tunnel.transport
                 SslStream sslStream = null;
                 if (tunnelTransportInfo.SSL)
                 {
-                    if (tunnelAdapter.Certificate == null)
+                    if (certificate == null)
                     {
                         LoggerHelper.Instance.Error($"{Name}-> ssl Certificate not found");
                         socket.SafeClose();
@@ -254,7 +254,7 @@ namespace linker.tunnel.transport
                     }
 
                     sslStream = new SslStream(new NetworkStream(socket, false), false);
-                    await sslStream.AuthenticateAsServerAsync(tunnelAdapter.Certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false).ConfigureAwait(false);
+                    await sslStream.AuthenticateAsServerAsync(certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false).ConfigureAwait(false);
                 }
 
                 TunnelConnectionTcp result = new TunnelConnectionTcp

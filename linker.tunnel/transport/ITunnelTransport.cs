@@ -1,7 +1,7 @@
-﻿using linker.tunnel.adapter;
-using linker.tunnel.connection;
+﻿using linker.tunnel.connection;
 using linker.tunnel.wanport;
 using System.Net;
+using System.Security.Cryptography.X509Certificates;
 
 namespace linker.tunnel.transport
 {
@@ -62,7 +62,7 @@ namespace linker.tunnel.transport
         /// </summary>
         public Action<ITunnelConnection> OnConnected { get; set; }
 
-        public void SetAdapter(ITunnelAdapter tunnelAdapter);
+        public void SetSSL(X509Certificate2 certificate);
 
         /// <summary>
         /// 连接对方
@@ -228,4 +228,32 @@ namespace linker.tunnel.transport
     }
 
 
+
+    public sealed class NetworkInfo
+    {
+        /// <summary>
+        /// 本机局域网IP列表，可以通过NetworkHelper.GetRouteLevel 获取
+        /// </summary>
+        public IPAddress[] LocalIps { get; set; }
+        /// <summary>
+        /// 本机与外网的距离，通过多少网关，可以通过NetworkHelper.GetRouteLevel 获取
+        /// </summary>
+        public int RouteLevel { get; set; }
+        /// <summary>
+        /// 本机名
+        /// </summary>
+        public string MachineId { get; set; }
+    }
+
+    public sealed class TunnelWanPortProtocolInfo
+    {
+        /// <summary>
+        /// 协议
+        /// </summary>
+        public TunnelWanPortProtocolType ProtocolType { get; set; } = TunnelWanPortProtocolType.Udp;
+        /// <summary>
+        /// 对方id
+        /// </summary>
+        public string MachineId { get; set; }
+    }
 }

@@ -1,7 +1,6 @@
 ﻿using linker.config;
 using linker.plugins.signin.messenger;
 using linker.tunnel;
-using linker.tunnel.adapter;
 using linker.tunnel.transport;
 using linker.libs;
 using MemoryPack;

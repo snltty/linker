@@ -2,26 +2,22 @@
 using linker.config;
 using linker.libs;
 using linker.plugins.client;
-using linker.plugins.decenter;
 using linker.plugins.messenger;
 using linker.tunnel;
 using linker.tunnel.transport;
-using MemoryPack;
-using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Quic;
 using System.Security.Cryptography.X509Certificates;
 
 namespace linker.plugins.tunnel
 {
-    public sealed class TunnelConfigTransfer : IDecenter
+    public sealed class TunnelConfigTransfer
     {
-        public string Name => "tunnel";
-        public VersionManager DataVersion { get; } = new VersionManager();
-
         public int RouteLevel => config.Data.Client.Tunnel.RouteLevel + running.Data.Tunnel.RouteLevelPlus;
         public IPAddress[] LocalIPs => config.Data.Client.Tunnel.LocalIPs;
         public IPAddress[] RouteIPs => config.Data.Client.Tunnel.RouteIPs;
+        public int PortMapLan => running.Data.Tunnel.PortMapLan;
+        public int PortMapWan => running.Data.Tunnel.PortMapWan;
         public List<TunnelTransportItemInfo> Transports => config.Data.Client.Tunnel.Transports;
         public X509Certificate2 Certificate { get; private set; }
 
@@ -32,8 +28,7 @@ namespace linker.plugins.tunnel
         private readonly TunnelUpnpTransfer upnpTransfer;
         private readonly ClientConfigTransfer clientConfigTransfer;
 
-        public VersionManager Version { get; } = new VersionManager();
-        public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> Config { get; } = new ConcurrentDictionary<string, TunnelTransportRouteLevelInfo>();
+        public Action OnChanged { get; set; } = () => { };
 
         public TunnelConfigTransfer(FileConfig config, RunningConfig running, ClientSignInState clientSignInState, IMessengerSender messengerSender, TunnelUpnpTransfer upnpTransfer, ClientConfigTransfer clientConfigTransfer)
         {
@@ -52,34 +47,8 @@ namespace linker.plugins.tunnel
             clientSignInState.NetworkEnabledHandle += (times) =>
             {
                 TimerHelper.Async(RefreshRouteLevel);
-                RefreshPortMap();
             };
             TestQuic();
-        }
-
-        public Memory<byte> GetData()
-        {
-            TunnelTransportRouteLevelInfo tunnelTransportRouteLevelInfo = GetLocalRouteLevel();
-            Config.AddOrUpdate(tunnelTransportRouteLevelInfo.MachineId, tunnelTransportRouteLevelInfo, (a, b) => tunnelTransportRouteLevelInfo);
-            Version.Add();
-            return MemoryPackSerializer.Serialize(tunnelTransportRouteLevelInfo);
-        }
-        public void SetData(Memory<byte> data)
-        {
-            TunnelTransportRouteLevelInfo tunnelTransportRouteLevelInfo = MemoryPackSerializer.Deserialize<TunnelTransportRouteLevelInfo>(data.Span);
-            Config.AddOrUpdate(tunnelTransportRouteLevelInfo.MachineId, tunnelTransportRouteLevelInfo, (a, b) => tunnelTransportRouteLevelInfo);
-            Version.Add();
-        }
-        public void SetData(List<ReadOnlyMemory<byte>> data)
-        {
-            List<TunnelTransportRouteLevelInfo> list = data.Select(c => MemoryPackSerializer.Deserialize<TunnelTransportRouteLevelInfo>(c.Span)).ToList();
-            foreach (var item in list)
-            {
-                Config.AddOrUpdate(item.MachineId, item, (a, b) => item);
-            }
-            TunnelTransportRouteLevelInfo config = GetLocalRouteLevel();
-            Config.AddOrUpdate(config.MachineId, config, (a, b) => config);
-            Version.Add();
         }
 
         public void SetTransports(List<TunnelTransportItemInfo> transports)
@@ -96,16 +65,9 @@ namespace linker.plugins.tunnel
             config.Data.Client.Tunnel.RouteLevel = NetworkHelper.GetRouteLevel(clientConfigTransfer.Server.Host, out List<IPAddress> ips);
             config.Data.Client.Tunnel.RouteIPs = ips.ToArray();
             config.Data.Client.Tunnel.LocalIPs = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
-            DataVersion.Add();
+            OnChanged();
         }
 
-        /// <summary>
-        /// 刷新关于隧道的配置信息，也就是获取自己的和别的客户端的，方便查看
-        /// </summary>
-        public void RefreshConfig()
-        {
-            DataVersion.Add();
-        }
         /// <summary>
         /// 修改自己的网关层级信息
         /// </summary>
@@ -116,10 +78,9 @@ namespace linker.plugins.tunnel
             running.Data.Tunnel.PortMapWan = tunnelTransportFileConfigInfo.PortMapWan;
             running.Data.Tunnel.PortMapLan = tunnelTransportFileConfigInfo.PortMapLan;
             running.Data.Update();
-            GetData();
-            DataVersion.Add();
+            OnChanged();
         }
-        private TunnelTransportRouteLevelInfo GetLocalRouteLevel()
+        public TunnelTransportRouteLevelInfo GetLocalRouteLevel()
         {
             return new TunnelTransportRouteLevelInfo
             {
@@ -172,16 +133,6 @@ namespace linker.plugins.tunnel
                 }
             }
         }
-        private void RefreshPortMap()
-        {
-            if (running.Data.Tunnel.PortMapLan > 0)
-            {
-                upnpTransfer.SetMap(running.Data.Tunnel.PortMapLan, running.Data.Tunnel.PortMapWan);
-            }
-            else
-            {
-                upnpTransfer.SetMap(clientSignInState.Connection.LocalAddress.Address, 18180);
-            }
-        }
+      
     }
 }

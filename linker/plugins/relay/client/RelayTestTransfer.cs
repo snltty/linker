@@ -12,7 +12,6 @@ namespace linker.plugins.relay.client
     /// </summary>
     public sealed class RelayTestTransfer
     {
-        private readonly FileConfig fileConfig;
         private readonly RelayTransfer relayTransfer;
         private readonly ClientSignInState clientSignInState;
         private readonly ClientConfigTransfer clientConfigTransfer;
@@ -20,9 +19,8 @@ namespace linker.plugins.relay.client
 
         public List<RelayNodeReportInfo> Nodes { get; private set; } = new List<RelayNodeReportInfo>();
 
-        public RelayTestTransfer(FileConfig fileConfig, RelayTransfer relayTransfer, ClientSignInState clientSignInState, ClientConfigTransfer clientConfigTransfer, RelayClientConfigTransfer relayClientConfigTransfer)
+        public RelayTestTransfer( RelayTransfer relayTransfer, ClientSignInState clientSignInState, ClientConfigTransfer clientConfigTransfer, RelayClientConfigTransfer relayClientConfigTransfer)
         {
-            this.fileConfig = fileConfig;
             this.relayTransfer = relayTransfer;
             this.clientSignInState = clientSignInState;
             this.clientConfigTransfer = clientConfigTransfer;

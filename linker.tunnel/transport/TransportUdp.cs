@@ -6,7 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using linker.tunnel.wanport;
-using linker.tunnel.adapter;
+using System.Security.Cryptography.X509Certificates;
 
 namespace linker.tunnel.transport
 {
@@ -53,7 +53,7 @@ namespace linker.tunnel.transport
         public TransportUdp()
         {
         }
-        public void SetAdapter(ITunnelAdapter tunnelAdapter)
+        public void SetSSL(X509Certificate2 certificate)
         {
         }
 

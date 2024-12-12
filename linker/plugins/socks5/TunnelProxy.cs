@@ -54,17 +54,6 @@ namespace linker.plugins.socks5
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error(ex);
             }
-            /*
-            bool online = await clientSignInTransfer.GetOnline(connection.RemoteMachineId);
-            if (online == false)
-            {
-                foreach (var item in ip2MachineDic.Where(c => c.Value == connection.RemoteMachineId).Select(c => c.Key).ToList())
-                {
-                    ip2MachineDic.TryRemove(item, out string str);
-                }
-                RefreshConfig();
-            }
-            */
             await Task.CompletedTask;
         }
         /// <summary>

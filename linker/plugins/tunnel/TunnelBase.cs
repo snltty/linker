@@ -1,5 +1,4 @@
-﻿using linker.config;
-using linker.libs;
+﻿using linker.libs;
 using linker.libs.extends;
 using linker.plugins.client;
 using linker.tunnel;
@@ -7,7 +6,6 @@ using linker.tunnel.connection;
 using System.Collections.Concurrent;
 using linker.plugins.relay.client;
 using linker.plugins.pcp;
-using linker.client.config;
 
 namespace linker.plugins.tunnel
 {

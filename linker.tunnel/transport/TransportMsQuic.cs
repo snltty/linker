@@ -1,4 +1,4 @@
-﻿using linker.tunnel.adapter;
+﻿
 using linker.tunnel.connection;
 using linker.libs;
 using linker.libs.extends;
@@ -10,6 +10,7 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Text;
 using linker.tunnel.wanport;
+using System.Security.Cryptography.X509Certificates;
 
 namespace linker.tunnel.transport
 {
@@ -46,15 +47,16 @@ namespace linker.tunnel.transport
         private byte[] endBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.end");
         private IPEndPoint quicListenEP = null;
 
-        private ITunnelAdapter tunnelAdapter;
+        
         public TransportMsQuic()
         {
             _ = QuicListen();
         }
 
-        public void SetAdapter(ITunnelAdapter tunnelAdapter)
+        private X509Certificate2 certificate;
+        public void SetSSL(X509Certificate2 certificate)
         {
-            this.tunnelAdapter = tunnelAdapter;
+            this.certificate = certificate;
         }
 
         /// <summary>
@@ -72,7 +74,7 @@ namespace linker.tunnel.transport
                     await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                     return null;
                 }
-                if (tunnelAdapter.Certificate == null)
+                if (certificate == null)
                 {
                     LoggerHelper.Instance.Warning($"msquic need ssl");
                     await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
@@ -132,7 +134,7 @@ namespace linker.tunnel.transport
                     await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                     return;
                 }
-                if (tunnelAdapter.Certificate == null)
+                if (certificate == null)
                 {
                     LoggerHelper.Instance.Warning($"msquic need ssl");
                     await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
@@ -661,7 +663,7 @@ namespace linker.tunnel.transport
                     LoggerHelper.Instance.Warning($"msquic not supported, need win11+,or linux, or try to restart linker");
                     return;
                 }
-                if (tunnelAdapter.Certificate == null)
+                if (certificate == null)
                 {
                     LoggerHelper.Instance.Warning($"msquic need ssl");
                     return;
@@ -683,7 +685,7 @@ namespace linker.tunnel.transport
                             IdleTimeout = TimeSpan.FromMilliseconds(15000),
                             ServerAuthenticationOptions = new SslServerAuthenticationOptions
                             {
-                                ServerCertificate = tunnelAdapter.Certificate,
+                                ServerCertificate = certificate,
                                 EnabledSslProtocols = SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13,
                                 ApplicationProtocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http3 }
                             }

@@ -1,46 +1,73 @@
-﻿using linker.client.config;
-using linker.config;
-using linker.plugins.tunnel.messenger;
-using linker.tunnel.adapter;
+﻿using linker.plugins.tunnel.messenger;
 using linker.tunnel.transport;
 using linker.libs;
 using MemoryPack;
 using System.Net;
-using System.Security.Cryptography.X509Certificates;
 using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.plugins.tunnel.excludeip;
+using linker.tunnel.wanport;
+using linker.tunnel;
 
 namespace linker.plugins.tunnel
 {
-    public sealed class TunnelAdapter : ITunnelAdapter
+    public sealed class TunnelAdapter
     {
-        public IPAddress LocalIP => clientSignInState.Connection?.LocalAddress.Address ?? IPAddress.Any;
-        public IPEndPoint ServerHost => clientSignInState.Connection?.Address ?? null;
-        public X509Certificate2 Certificate => tunnelConfigTransfer.Certificate;
-
         private readonly ClientSignInState clientSignInState;
         private readonly IMessengerSender messengerSender;
+
         private readonly TunnelExcludeIPTransfer excludeIPTransfer;
         private readonly ClientConfigTransfer clientConfigTransfer;
         private readonly TunnelConfigTransfer tunnelConfigTransfer;
 
-        public TunnelAdapter(ClientSignInState clientSignInState, IMessengerSender messengerSender, TunnelExcludeIPTransfer excludeIPTransfer, ClientConfigTransfer clientConfigTransfer, TunnelConfigTransfer tunnelConfigTransfer)
+        private readonly TunnelWanPortTransfer tunnelWanPortTransfer;
+        private readonly TunnelUpnpTransfer tunnelUpnpTransfer;
+        private readonly TunnelTransfer tunnelTransfer;
+
+        public TunnelAdapter(ClientSignInState clientSignInState, IMessengerSender messengerSender,
+            TunnelExcludeIPTransfer excludeIPTransfer, ClientConfigTransfer clientConfigTransfer, TunnelConfigTransfer tunnelConfigTransfer,
+            TunnelWanPortTransfer tunnelWanPortTransfer, TunnelUpnpTransfer tunnelUpnpTransfer, TunnelTransfer tunnelTransfer)
         {
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
             this.excludeIPTransfer = excludeIPTransfer;
             this.clientConfigTransfer = clientConfigTransfer;
             this.tunnelConfigTransfer = tunnelConfigTransfer;
-        }
 
-        public List<TunnelTransportItemInfo> GetTunnelTransports()
-        {
-            return tunnelConfigTransfer.Transports;
-        }
-        public void SetTunnelTransports(List<TunnelTransportItemInfo> transports, bool updateVersion)
-        {
-            tunnelConfigTransfer.SetTransports(transports);
+            this.tunnelWanPortTransfer = tunnelWanPortTransfer;
+            this.tunnelUpnpTransfer = tunnelUpnpTransfer;
+            this.tunnelTransfer = tunnelTransfer;
+
+            tunnelWanPortTransfer.LoadTransports(new List<ITunnelWanPortProtocol>
+            {
+                new TunnelWanPortProtocolLinkerUdp(),
+                new TunnelWanPortProtocolLinkerTcp(),
+            });
+
+            tunnelTransfer.LocalIP = () => clientSignInState.Connection?.LocalAddress.Address ?? IPAddress.Any;
+            tunnelTransfer.ServerHost = () => clientSignInState.Connection?.Address ?? null;
+            tunnelTransfer.Certificate = () => tunnelConfigTransfer.Certificate;
+            tunnelTransfer.GetTunnelTransports = () => tunnelConfigTransfer.Transports;
+            tunnelTransfer.SetTunnelTransports = (transports,update) => tunnelConfigTransfer.SetTransports(transports);
+            tunnelTransfer.GetLocalConfig = GetLocalConfig;
+            tunnelTransfer.GetRemoteWanPort = GetRemoteWanPort;
+            tunnelTransfer.SendConnectBegin = SendConnectBegin;
+            tunnelTransfer.SendConnectFail = SendConnectFail;
+            tunnelTransfer.SendConnectSuccess = SendConnectSuccess;
+            tunnelTransfer.LoadTransports(tunnelWanPortTransfer, tunnelUpnpTransfer, new List<ITunnelTransport> {
+                new TunnelTransportTcpNutssb(),
+                new TransportMsQuic(),
+                new TransportTcpP2PNAT(),
+                new TransportTcpPortMap(),
+                new TransportUdpPortMap(),
+                new TransportUdp(),
+            });
+
+            clientSignInState.NetworkEnabledHandle += (times) =>
+            {
+                RefreshPortMap();
+            };
+            tunnelConfigTransfer.OnChanged += RefreshPortMap;
         }
 
         public NetworkInfo GetLocalConfig()
@@ -70,6 +97,7 @@ namespace linker.plugins.tunnel
                 MachineId = clientConfigTransfer.Id
             };
         }
+
         public async Task<TunnelTransportWanPortInfo> GetRemoteWanPort(TunnelWanPortProtocolInfo info)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -118,5 +146,17 @@ namespace linker.plugins.tunnel
             return true;
         }
 
+
+        private void RefreshPortMap()
+        {
+            if (tunnelConfigTransfer.PortMapLan > 0)
+            {
+                tunnelUpnpTransfer.SetMap(tunnelConfigTransfer.PortMapLan, tunnelConfigTransfer.PortMapWan);
+            }
+            else
+            {
+                tunnelUpnpTransfer.SetMap(clientSignInState.Connection.LocalAddress.Address, 18180);
+            }
+        }
     }
 }

@@ -4,7 +4,6 @@ using System.Net;
 using linker.libs;
 using MemoryPack;
 using System.Collections.Concurrent;
-using linker.libs.extends;
 
 namespace linker.plugins.tuntap.lease
 {

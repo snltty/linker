@@ -1,8 +1,6 @@
 ﻿using linker.client.config;
 using linker.config;
-using linker.libs;
 using linker.plugins.client;
-using MemoryPack;
 
 namespace linker.plugins.tunnel.excludeip
 {

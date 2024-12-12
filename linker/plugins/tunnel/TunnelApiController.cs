@@ -1,6 +1,5 @@
 ﻿using linker.config;
 using linker.plugins.tunnel.messenger;
-using linker.tunnel.adapter;
 using linker.tunnel.transport;
 using linker.libs.api;
 using linker.libs.extends;
@@ -20,27 +19,23 @@ namespace linker.plugins.tunnel
     /// </summary>
     public sealed class TunnelApiController : IApiClientController
     {
-        private readonly FileConfig config;
-        private readonly TunnelWanPortTransfer compactTransfer;
         private readonly ClientSignInState clientSignInState;
         private readonly IMessengerSender messengerSender;
         private readonly TunnelConfigTransfer tunnelConfigTransfer;
-        private readonly ITunnelAdapter tunnelMessengerAdapter;
         private readonly TunnelExcludeIPTransfer excludeIPTransfer;
         private readonly AccessTransfer accessTransfer;
         private readonly ClientConfigTransfer clientConfigTransfer;
+        private readonly TunnelDecenter tunnelDecenter;
 
-        public TunnelApiController(FileConfig config, TunnelWanPortTransfer compactTransfer, ClientSignInState clientSignInState, IMessengerSender messengerSender, TunnelConfigTransfer tunnelConfigTransfer, ITunnelAdapter tunnelMessengerAdapter, TunnelExcludeIPTransfer excludeIPTransfer, AccessTransfer accessTransfer, ClientConfigTransfer clientConfigTransfer)
+        public TunnelApiController(ClientSignInState clientSignInState, IMessengerSender messengerSender, TunnelConfigTransfer tunnelConfigTransfer, TunnelExcludeIPTransfer excludeIPTransfer, AccessTransfer accessTransfer, ClientConfigTransfer clientConfigTransfer, TunnelDecenter tunnelDecenter)
         {
-            this.config = config;
-            this.compactTransfer = compactTransfer;
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
             this.tunnelConfigTransfer = tunnelConfigTransfer;
-            this.tunnelMessengerAdapter = tunnelMessengerAdapter;
             this.excludeIPTransfer = excludeIPTransfer;
             this.accessTransfer = accessTransfer;
             this.clientConfigTransfer = clientConfigTransfer;
+            this.tunnelDecenter = tunnelDecenter;
         }
 
         /// <summary>
@@ -51,11 +46,11 @@ namespace linker.plugins.tunnel
         public TunnelListInfo Get(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);
-            if (tunnelConfigTransfer.Version.Eq(hashCode, out ulong version) == false)
+            if (tunnelDecenter.Version.Eq(hashCode, out ulong version) == false)
             {
                 return new TunnelListInfo
                 {
-                    List = tunnelConfigTransfer.Config,
+                    List = tunnelDecenter.Config,
                     HashCode = version
                 };
             }
@@ -67,7 +62,7 @@ namespace linker.plugins.tunnel
         /// <param name="param"></param>
         public void Refresh(ApiControllerParamsInfo param)
         {
-            tunnelConfigTransfer.RefreshConfig();
+            tunnelDecenter.Refresh();
         }
 
         /// <summary>
@@ -105,7 +100,7 @@ namespace linker.plugins.tunnel
         /// <returns></returns>
         public List<TunnelTransportItemInfo> GetTransports(ApiControllerParamsInfo param)
         {
-            return tunnelMessengerAdapter.GetTunnelTransports();
+            return tunnelConfigTransfer.Transports;
         }
         /// <summary>
         /// 设置打洞协议
@@ -116,7 +111,7 @@ namespace linker.plugins.tunnel
         public bool SetTransports(ApiControllerParamsInfo param)
         {
             List<TunnelTransportItemInfo> info = param.Content.DeJson<List<TunnelTransportItemInfo>>();
-            tunnelMessengerAdapter.SetTunnelTransports(info, true);
+            tunnelConfigTransfer.SetTransports(info);
             return true;
         }
 
