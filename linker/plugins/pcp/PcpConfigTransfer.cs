@@ -12,6 +12,7 @@ namespace linker.plugins.pcp
     public sealed class PcpConfigTransfer : IDecenter
     {
         public string Name => "pcp";
+        public VersionManager SyncVersion { get; } = new VersionManager();
         public VersionManager DataVersion { get; } = new VersionManager();
 
         private ConcurrentDictionary<string, List<string>> history = new ConcurrentDictionary<string, List<string>>();
@@ -27,7 +28,7 @@ namespace linker.plugins.pcp
             this.clientSignInState = clientSignInState;
             this.clientConfigTransfer = clientConfigTransfer;
 
-            clientSignInState.NetworkEnabledHandle += (times) => DataVersion.Add();
+            clientSignInState.NetworkEnabledHandle += (times) => SyncVersion.Add();
         }
 
         public void AddHistory(ITunnelConnection connection)
@@ -36,7 +37,7 @@ namespace linker.plugins.pcp
             {
                 runningConfig.Data.TunnelHistory.History.Add(connection.RemoteMachineId);
                 runningConfig.Data.Update();
-                DataVersion.Add();
+                SyncVersion.Add();
             }
         }
         public List<string> GetNodes(string fromMachineId, string toMachineId)

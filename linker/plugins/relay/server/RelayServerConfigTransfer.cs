@@ -14,5 +14,18 @@ namespace linker.plugins.relay.server
         {
             this.config = config;
         }
+
+        public void SetMaxGbTotalMonth(int month)
+        {
+            Node.MaxGbTotalMonth = month;
+        }
+        public void SetMaxGbTotalLastBytes(ulong value)
+        {
+            Node.MaxGbTotalLastBytes = value;
+        }
+        public void Update()
+        {
+            config.Data.Update();
+        }
     }
 }

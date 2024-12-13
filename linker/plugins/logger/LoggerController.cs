@@ -51,7 +51,6 @@ namespace linker.plugins.logger
             return true;
         }
 
-
         public LoggerSetParamInfo GetConfig(ApiControllerParamsInfo param)
         {
             return new LoggerSetParamInfo

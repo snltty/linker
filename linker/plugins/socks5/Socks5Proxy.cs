@@ -12,7 +12,6 @@ using linker.plugins.client;
 using linker.plugins.socks5.config;
 using System.Text;
 using linker.plugins.relay.client;
-using linker.client.config;
 using linker.plugins.pcp;
 
 namespace linker.plugins.socks5

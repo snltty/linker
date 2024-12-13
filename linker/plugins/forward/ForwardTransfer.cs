@@ -1,21 +1,18 @@
 ﻿using linker.client.config;
-using linker.config;
 using linker.libs;
 using linker.plugins.client;
-using linker.plugins.decenter;
 using linker.plugins.forward.proxy;
 using linker.plugins.messenger;
 using MemoryPack;
-using System.Collections.Concurrent;
 
 namespace linker.plugins.forward
 {
-    public sealed class ForwardTransfer : IDecenter
+    public sealed class ForwardTransfer
     {
-        public string Name => "forward";
-        public VersionManager DataVersion { get; } = new VersionManager();
+        public int Count => running.Data.Forwards.Count(c => c.GroupId == clientConfigTransfer.Group.Id);
+        public Action OnChanged { get; set; } = () => { };
+        public Action OnReset{ get; set; } = () => { };
 
-        private readonly FileConfig fileConfig;
         private readonly RunningConfig running;
         private readonly ForwardProxy forwardProxy;
         private readonly ClientSignInState clientSignInState;
@@ -23,13 +20,9 @@ namespace linker.plugins.forward
         private readonly ClientConfigTransfer clientConfigTransfer;
 
         private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
-        private readonly ConcurrentDictionary<string, int> countDic = new ConcurrentDictionary<string, int>();
 
-        public VersionManager Version { get; } = new VersionManager();
-
-        public ForwardTransfer(FileConfig fileConfig, RunningConfig running, ForwardProxy forwardProxy, ClientSignInState clientSignInState, IMessengerSender messengerSender, ClientConfigTransfer clientConfigTransfer)
+        public ForwardTransfer( RunningConfig running, ForwardProxy forwardProxy, ClientSignInState clientSignInState, IMessengerSender messengerSender, ClientConfigTransfer clientConfigTransfer)
         {
-            this.fileConfig = fileConfig;
             this.running = running;
             this.forwardProxy = forwardProxy;
             this.clientSignInState = clientSignInState;
@@ -37,40 +30,6 @@ namespace linker.plugins.forward
             this.clientConfigTransfer = clientConfigTransfer;
 
             clientSignInState.NetworkEnabledHandle += Reset;
-            
-        }
-
-        public Memory<byte> GetData()
-        {
-            CountInfo info = new CountInfo { MachineId = clientConfigTransfer.Id, Count = running.Data.Forwards.Count(c => c.GroupId == clientConfigTransfer.Group.Id) };
-            countDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
-            Version.Add();
-            return MemoryPackSerializer.Serialize(info);
-        }
-        public void SetData(Memory<byte> data)
-        {
-            CountInfo info = MemoryPackSerializer.Deserialize<CountInfo>(data.Span);
-            countDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
-            Version.Add();
-        }
-        public void SetData(List<ReadOnlyMemory<byte>> data)
-        {
-            List<CountInfo> list = data.Select(c => MemoryPackSerializer.Deserialize<CountInfo>(c.Span)).ToList();
-            foreach (var info in list)
-            {
-                countDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
-            }
-            Version.Add();
-        }
-        public void RefreshConfig()
-        {
-            DataVersion.Add();
-        }
-
-        public ConcurrentDictionary<string, int> GetCount()
-        {
-            DataVersion.Add();
-            return countDic;
         }
 
         string groupid = string.Empty;
@@ -89,7 +48,7 @@ namespace linker.plugins.forward
 
                 if (groupid != clientConfigTransfer.Group.Id)
                 {
-                    countDic.Clear();
+                    OnReset();
                     Stop();
                 }
                 groupid = clientConfigTransfer.Group.Id;
@@ -117,7 +76,7 @@ namespace linker.plugins.forward
                         Stop(item);
                     }
                 }
-                DataVersion.Add();
+                OnChanged();
             }
         }
         private void Start(ForwardInfo forwardInfo, bool errorStop = true)
@@ -157,7 +116,7 @@ namespace linker.plugins.forward
                 }
             }
 
-            Version.Add();
+            OnChanged();
         }
 
         private void Stop()
@@ -185,7 +144,7 @@ namespace linker.plugins.forward
             {
                 LoggerHelper.Instance.Error(ex);
             }
-            Version.Add();
+            OnChanged();
         }
 
         public List<ForwardInfo> Get()

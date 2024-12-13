@@ -17,18 +17,14 @@ namespace linker.plugins.client
     public sealed class ClientSignInTransfer
     {
         private readonly ClientSignInState clientSignInState;
-        private readonly RunningConfig runningConfig;
-        private readonly FileConfig config;
         private readonly IMessengerSender messengerSender;
         private readonly IMessengerResolver messengerResolver;
         private readonly SignInArgsTransfer signInArgsTransfer;
         private readonly ClientConfigTransfer clientConfigTransfer;
 
-        public ClientSignInTransfer(ClientSignInState clientSignInState, RunningConfig runningConfig, FileConfig config, IMessengerSender messengerSender, IMessengerResolver messengerResolver, SignInArgsTransfer signInArgsTransfer, ClientConfigTransfer clientConfigTransfer)
+        public ClientSignInTransfer(ClientSignInState clientSignInState, IMessengerSender messengerSender, IMessengerResolver messengerResolver, SignInArgsTransfer signInArgsTransfer, ClientConfigTransfer clientConfigTransfer)
         {
             this.clientSignInState = clientSignInState;
-            this.runningConfig = runningConfig;
-            this.config = config;
             this.messengerSender = messengerSender;
             this.messengerResolver = messengerResolver;
             this.signInArgsTransfer = signInArgsTransfer;

@@ -10,9 +10,9 @@ namespace linker.plugins.tuntap
     public sealed class TuntapDecenter : IDecenter
     {
         public string Name => "tuntap";
-        public VersionManager DataVersion { get; } = new VersionManager();
+        public VersionManager SyncVersion { get; } = new VersionManager();
 
-        public VersionManager Version { get; } = new VersionManager();
+        public VersionManager DataVersion { get; } = new VersionManager();
         public ConcurrentDictionary<string, TuntapInfo> Infos => tuntapInfos;
 
         private readonly SemaphoreSlim slim = new SemaphoreSlim(1);
@@ -43,14 +43,14 @@ namespace linker.plugins.tuntap
 
         public void Refresh()
         {
-            DataVersion.Add();
+            SyncVersion.Add();
         }
 
         public Memory<byte> GetData()
         {
             TuntapInfo info = HandleCurrentInfo();
             tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
-            Version.Add();
+            DataVersion.Add();
             return MemoryPackSerializer.Serialize(info);
         }
         public void SetData(Memory<byte> data)
@@ -68,7 +68,7 @@ namespace linker.plugins.tuntap
                 {
                     OnChangeBefore();
                     tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
-                    Version.Add();
+                    DataVersion.Add();
                     OnChangeAfter();
                 }
                 catch (Exception ex)
@@ -105,7 +105,7 @@ namespace linker.plugins.tuntap
                             tuntapInfo.LastTicks.Clear();
                         }
                     }
-                    Version.Add();
+                    DataVersion.Add();
                     OnChangeAfter();
                 }
                 catch (Exception ex)

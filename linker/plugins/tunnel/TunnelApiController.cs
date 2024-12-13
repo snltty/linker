@@ -46,7 +46,7 @@ namespace linker.plugins.tunnel
         public TunnelListInfo Get(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);
-            if (tunnelDecenter.Version.Eq(hashCode, out ulong version) == false)
+            if (tunnelDecenter.DataVersion.Eq(hashCode, out ulong version) == false)
             {
                 return new TunnelListInfo
                 {

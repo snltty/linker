@@ -1,5 +1,7 @@
 ﻿using linker.client.config;
+using linker.plugins.route;
 using linker.plugins.tunnel.excludeip;
+using System.Net;
 
 namespace linker.plugins.tuntap
 {
@@ -14,6 +16,19 @@ namespace linker.plugins.tuntap
         {
             //网卡IP不参与打洞
             return new ExcludeIPItem[] { new ExcludeIPItem { IPAddress = tuntapConfigTransfer.IP, Mask = 32 } };
+        }
+    }
+
+    public sealed class RouteExcludeIPTuntap : IRouteExcludeIP
+    {
+        private readonly TuntapConfigTransfer tuntapConfigTransfer;
+        public RouteExcludeIPTuntap(TuntapConfigTransfer tuntapConfigTransfer)
+        {
+            this.tuntapConfigTransfer = tuntapConfigTransfer;
+        }
+        public List<IPAddress> Get()
+        {
+            return new List<IPAddress> { tuntapConfigTransfer.IP };
         }
     }
 }

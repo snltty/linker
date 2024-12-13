@@ -24,6 +24,7 @@ namespace linker.plugins.forward
 
             serviceCollection.AddSingleton<ForwardClientMessenger>();
 
+            serviceCollection.AddSingleton<ForwardDecenter>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)

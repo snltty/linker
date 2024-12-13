@@ -19,22 +19,20 @@ namespace linker.plugins.socks5
         private readonly IMessengerSender messengerSender;
         private readonly Socks5ConfigTransfer socks5ConfigTransfer;
         private readonly ClientSignInState clientSignInState;
-        private readonly FileConfig config;
         private readonly TunnelProxy tunnelProxy;
-        private readonly RunningConfig runningConfig;
         private readonly AccessTransfer accessTransfer;
         private readonly ClientConfigTransfer clientConfigTransfer;
+        private readonly Socks5Decenter socks5Decenter;
 
-        public Socks5ClientApiController(IMessengerSender messengerSender, Socks5ConfigTransfer socks5ConfigTransfer, ClientSignInState clientSignInState, FileConfig config, TunnelProxy tunnelProxy, RunningConfig runningConfig, Socks5ConfigTransfer Socks5ConfigTransfer, AccessTransfer accessTransfer, ClientConfigTransfer clientConfigTransfer)
+        public Socks5ClientApiController(IMessengerSender messengerSender, Socks5ConfigTransfer socks5ConfigTransfer, ClientSignInState clientSignInState,  TunnelProxy tunnelProxy, Socks5ConfigTransfer Socks5ConfigTransfer, AccessTransfer accessTransfer, ClientConfigTransfer clientConfigTransfer, Socks5Decenter socks5Decenter)
         {
             this.messengerSender = messengerSender;
             this.socks5ConfigTransfer = socks5ConfigTransfer;
             this.clientSignInState = clientSignInState;
-            this.config = config;
             this.tunnelProxy = tunnelProxy;
-            this.runningConfig = runningConfig;
             this.accessTransfer = accessTransfer;
             this.clientConfigTransfer = clientConfigTransfer;
+            this.socks5Decenter = socks5Decenter;
         }
 
         public ConnectionListInfo Connections(ApiControllerParamsInfo param)
@@ -65,11 +63,11 @@ namespace linker.plugins.socks5
         public Socks5ListInfo Get(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);
-            if (socks5ConfigTransfer.Version.Eq(hashCode, out ulong version) == false)
+            if (socks5Decenter.DataVersion.Eq(hashCode, out ulong version) == false)
             {
                 return new Socks5ListInfo
                 {
-                    List = socks5ConfigTransfer.Infos,
+                    List = socks5Decenter.Infos,
                     HashCode = version
                 };
             }
@@ -81,7 +79,7 @@ namespace linker.plugins.socks5
         /// <param name="param"></param>
         public void Refresh(ApiControllerParamsInfo param)
         {
-            socks5ConfigTransfer.RefreshConfig();
+            socks5Decenter.Refresh();
         }
 
         /// <summary>

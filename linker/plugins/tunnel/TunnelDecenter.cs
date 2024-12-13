@@ -8,9 +8,9 @@ namespace linker.plugins.tunnel
     public sealed class TunnelDecenter:IDecenter
     {
         public string Name => "tunnel";
-        public VersionManager DataVersion { get; } = new VersionManager();
+        public VersionManager SyncVersion { get; } = new VersionManager();
 
-        public VersionManager Version { get; } = new VersionManager();
+        public VersionManager DataVersion { get; } = new VersionManager();
         public ConcurrentDictionary<string, TunnelTransportRouteLevelInfo> Config { get; } = new ConcurrentDictionary<string, TunnelTransportRouteLevelInfo>();
 
         private readonly TunnelConfigTransfer tunnelConfigTransfer;
@@ -25,20 +25,20 @@ namespace linker.plugins.tunnel
         /// </summary>
         public void Refresh()
         {
-            DataVersion.Add();
+            SyncVersion.Add();
         }
         public Memory<byte> GetData()
         {
             TunnelTransportRouteLevelInfo tunnelTransportRouteLevelInfo = tunnelConfigTransfer.GetLocalRouteLevel();
             Config.AddOrUpdate(tunnelTransportRouteLevelInfo.MachineId, tunnelTransportRouteLevelInfo, (a, b) => tunnelTransportRouteLevelInfo);
-            Version.Add();
+            DataVersion.Add();
             return MemoryPackSerializer.Serialize(tunnelTransportRouteLevelInfo);
         }
         public void SetData(Memory<byte> data)
         {
             TunnelTransportRouteLevelInfo tunnelTransportRouteLevelInfo = MemoryPackSerializer.Deserialize<TunnelTransportRouteLevelInfo>(data.Span);
             Config.AddOrUpdate(tunnelTransportRouteLevelInfo.MachineId, tunnelTransportRouteLevelInfo, (a, b) => tunnelTransportRouteLevelInfo);
-            Version.Add();
+            DataVersion.Add();
         }
         public void SetData(List<ReadOnlyMemory<byte>> data)
         {
@@ -49,7 +49,7 @@ namespace linker.plugins.tunnel
             }
             TunnelTransportRouteLevelInfo config = tunnelConfigTransfer.GetLocalRouteLevel();
             Config.AddOrUpdate(config.MachineId, config, (a, b) => config);
-            Version.Add();
+            DataVersion.Add();
         }
     }
 }

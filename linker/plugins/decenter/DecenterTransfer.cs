@@ -50,7 +50,7 @@ namespace linker.plugins.decenter
             {
                 try
                 {
-                    var tasks = syncs.Where(c => c.DataVersion.Reset()).Select(c =>
+                    var tasks = syncs.Where(c => c.SyncVersion.Reset()).Select(c =>
                     {
                         return new DecenterSyncTaskInfo
                         {

@@ -76,7 +76,7 @@ namespace linker.plugins.tuntap
         public TuntabListInfo Get(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);
-            if (tuntapDecenter.Version.Eq(hashCode, out ulong version) == false)
+            if (tuntapDecenter.DataVersion.Eq(hashCode, out ulong version) == false)
             {
                 return new TuntabListInfo
                 {

@@ -54,7 +54,7 @@ namespace linker.tunnel.transport
 
         private byte[] authBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.ttl");
         private byte[] endBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.end");
-        
+
         public TransportTcpP2PNAT()
         {
         }
@@ -174,7 +174,10 @@ namespace linker.tunnel.transport
                 if (state.SSL)
                 {
                     sslStream = new SslStream(new NetworkStream(socket, false), false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
-                    await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 }).ConfigureAwait(false);
+                    await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
+                    {
+                        EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13
+                    }).ConfigureAwait(false);
                 }
 
                 return new TunnelConnectionTcp

@@ -1,5 +1,4 @@
-﻿using linker.config;
-using linker.plugins.config;
+﻿using linker.plugins.config;
 using MemoryPack;
 
 namespace linker.plugins.relay.client
@@ -8,11 +7,9 @@ namespace linker.plugins.relay.client
     {
         public string Name => "RelaySecretKey";
 
-        private readonly FileConfig fileConfig;
         private readonly RelayClientConfigTransfer relayClientConfigTransfer;
-        public RelaConfigSyncSecretKey(FileConfig fileConfig, RelayClientConfigTransfer relayClientConfigTransfer)
+        public RelaConfigSyncSecretKey(RelayClientConfigTransfer relayClientConfigTransfer)
         {
-            this.fileConfig = fileConfig;
             this.relayClientConfigTransfer = relayClientConfigTransfer;
         }
         public Memory<byte> GetData()

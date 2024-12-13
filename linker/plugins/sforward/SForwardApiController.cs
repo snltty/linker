@@ -17,18 +17,18 @@ namespace linker.plugins.sforward
         private readonly SForwardTransfer forwardTransfer;
         private readonly IMessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
-        private readonly FileConfig config;
         private readonly AccessTransfer accessTransfer;
         private readonly ClientConfigTransfer clientConfigTransfer;
+        private readonly SForwardDecenter sForwardDecenter;
 
-        public SForwardClientApiController(SForwardTransfer forwardTransfer, IMessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config, AccessTransfer accessTransfer, ClientConfigTransfer clientConfigTransfer)
+        public SForwardClientApiController(SForwardTransfer forwardTransfer, IMessengerSender messengerSender, ClientSignInState clientSignInState,  AccessTransfer accessTransfer, ClientConfigTransfer clientConfigTransfer, SForwardDecenter sForwardDecenter)
         {
             this.forwardTransfer = forwardTransfer;
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
-            this.config = config;
             this.accessTransfer = accessTransfer;
             this.clientConfigTransfer = clientConfigTransfer;
+            this.sForwardDecenter = sForwardDecenter;
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace linker.plugins.sforward
 
         public void Refresh(ApiControllerParamsInfo param)
         {
-            forwardTransfer.RefreshConfig();
+            sForwardDecenter.Refresh();
         }
         /// <summary>
         /// 获取数量
@@ -63,11 +63,11 @@ namespace linker.plugins.sforward
         public SForwardListInfo GetCount(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);
-            if (forwardTransfer.Version.Eq(hashCode, out ulong version) == false)
+            if (sForwardDecenter.DataVersion.Eq(hashCode, out ulong version) == false)
             {
                 return new SForwardListInfo
                 {
-                    List = forwardTransfer.GetCount(),
+                    List = sForwardDecenter.CountDic,
                     HashCode = version
                 };
             }

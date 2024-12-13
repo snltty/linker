@@ -26,7 +26,8 @@ namespace linker.plugins.Socks5
             serviceCollection.AddSingleton<Socks5ClientMessenger>();
 
             serviceCollection.AddSingleton<Socks5ConfigTransfer>();
-
+            serviceCollection.AddSingleton<Socks5Decenter>();
+            
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)

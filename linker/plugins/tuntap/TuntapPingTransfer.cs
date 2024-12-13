@@ -61,7 +61,7 @@ namespace linker.plugins.tuntap
                     using Ping ping = new Ping();
                     PingReply pingReply = await ping.SendPingAsync(c.IP, 500);
                     c.Delay = pingReply.Status == IPStatus.Success ? (int)pingReply.RoundtripTime : -1;
-                    tuntapDecenter.Version.Add();
+                    tuntapDecenter.DataVersion.Add();
                 }));
             }
         }

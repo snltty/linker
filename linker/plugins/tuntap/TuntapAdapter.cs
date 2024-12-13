@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.plugins.client;
+using linker.plugins.route;
 using linker.plugins.tunnel;
 using linker.plugins.tuntap.config;
 using linker.tun;
@@ -16,20 +17,18 @@ namespace linker.plugins.tuntap
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
         private readonly TuntapDecenter tuntapDecenter;
         private readonly TuntapProxy tuntapProxy;
-        private readonly ClientSignInState clientSignInState;
-        private readonly TunnelConfigTransfer tunnelConfigTransfer;
         private readonly ClientConfigTransfer clientConfigTransfer;
+        private readonly RouteExcludeIPTransfer routeExcludeIPTransfer;
 
         public TuntapAdapter(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, TuntapDecenter tuntapDecenter, TuntapProxy tuntapProxy,
-            ClientSignInState clientSignInState, TunnelConfigTransfer tunnelConfigTransfer, ClientConfigTransfer clientConfigTransfer)
+            ClientSignInState clientSignInState, ClientConfigTransfer clientConfigTransfer, RouteExcludeIPTransfer routeExcludeIPTransfer)
         {
             this.tuntapTransfer = tuntapTransfer;
             this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.tuntapDecenter = tuntapDecenter;
             this.tuntapProxy = tuntapProxy;
-            this.clientSignInState = clientSignInState;
-            this.tunnelConfigTransfer = tunnelConfigTransfer;
             this.clientConfigTransfer = clientConfigTransfer;
+            this.routeExcludeIPTransfer = routeExcludeIPTransfer;
 
             //初始化网卡
             tuntapTransfer.Init(tuntapConfigTransfer.DeviceName, this);
@@ -169,17 +168,7 @@ namespace linker.plugins.tuntap
         private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)
         {
             //排除的IP，
-            uint[] excludeIps =//本机局域网IP
-                tunnelConfigTransfer.LocalIPs.Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                //路由上的IP
-                .Concat(tunnelConfigTransfer.RouteIPs)
-                //网卡IP  服务器IP
-                .Concat(new IPAddress[] { tuntapConfigTransfer.Info.IP, clientSignInState.Connection.Address.Address })
-                //网卡配置的局域网IP
-                .Concat(tuntapConfigTransfer.Info.Lans.Select(c => c.IP))
-                .Select(NetworkHelper.IP2Value)
-                .ToArray();
-
+            uint[] excludeIps = routeExcludeIPTransfer.Get().Select(NetworkHelper.IP2Value) .ToArray();
             HashSet<uint> hashSet = new HashSet<uint>();
 
             return infos

@@ -22,19 +22,19 @@ namespace linker.plugins.forward
         private readonly ForwardProxy forwardProxy;
         private readonly IMessengerSender messengerSender;
         private readonly ClientSignInState clientSignInState;
-        private readonly FileConfig config;
         private readonly AccessTransfer accessTransfer;
         private readonly ClientConfigTransfer clientConfigTransfer;
+        private readonly ForwardDecenter forwardDecenter;
 
-        public ForwardClientApiController(ForwardTransfer forwardTransfer, ForwardProxy forwardProxy, IMessengerSender messengerSender, ClientSignInState clientSignInState, FileConfig config, AccessTransfer accessTransfer, ClientConfigTransfer clientConfigTransfer)
+        public ForwardClientApiController(ForwardTransfer forwardTransfer, ForwardProxy forwardProxy, IMessengerSender messengerSender, ClientSignInState clientSignInState, AccessTransfer accessTransfer, ClientConfigTransfer clientConfigTransfer, ForwardDecenter forwardDecenter)
         {
             this.forwardTransfer = forwardTransfer;
             this.forwardProxy = forwardProxy;
             this.messengerSender = messengerSender;
             this.clientSignInState = clientSignInState;
-            this.config = config;
             this.accessTransfer = accessTransfer;
             this.clientConfigTransfer = clientConfigTransfer;
+            this.forwardDecenter = forwardDecenter;
         }
 
         public ConnectionListInfo Connections(ApiControllerParamsInfo param)
@@ -64,16 +64,16 @@ namespace linker.plugins.forward
 
         public void Refresh(ApiControllerParamsInfo param)
         {
-            forwardTransfer.RefreshConfig();
+            forwardDecenter.Refresh();
         }
         public ForwardListInfo GetCount(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);
-            if (forwardTransfer.Version.Eq(hashCode, out ulong version) == false)
+            if (forwardDecenter.DataVersion.Eq(hashCode, out ulong version) == false)
             {
                 return new ForwardListInfo
                 {
-                    List = forwardTransfer.GetCount(),
+                    List = forwardDecenter.CountDic,
                     HashCode = version
                 };
             }

@@ -9,20 +9,15 @@ using linker.libs.extends;
 using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.config;
-using System.Collections.Concurrent;
-using linker.plugins.decenter;
 
 namespace linker.plugins.sforward
 {
-    public sealed class SForwardTransfer : IDecenter
+    public sealed class SForwardTransfer
     {
-        public string Name => "sforward";
-        public VersionManager DataVersion { get; } = new VersionManager();
-
-        public VersionManager Version { get; } = new VersionManager();
-
         public string SecretKey => fileConfig.Data.Client.SForward.SecretKey;
+        public int Count => running.Data.SForwards.Count;
 
+        public Action OnChanged { get; set; } = () => { };
 
         private readonly FileConfig fileConfig;
         private readonly RunningConfig running;
@@ -31,10 +26,7 @@ namespace linker.plugins.sforward
         private readonly ClientConfigTransfer clientConfigTransfer;
 
         private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
-        private readonly ConcurrentDictionary<string, int> countDic = new ConcurrentDictionary<string, int>();
         private readonly OperatingManager operatingManager = new OperatingManager();
-
-      
 
         public SForwardTransfer(FileConfig fileConfig, RunningConfig running, ClientSignInState clientSignInState, IMessengerSender messengerSender, ClientConfigTransfer clientConfigTransfer)
         {
@@ -47,37 +39,7 @@ namespace linker.plugins.sforward
             clientSignInState.NetworkFirstEnabledHandle += () => Start();
             
         }
-        public Memory<byte> GetData()
-        {
-            CountInfo info = new CountInfo { MachineId = clientConfigTransfer.Id, Count = running.Data.SForwards.Count };
-            countDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
-            Version.Add();
-            return MemoryPackSerializer.Serialize(info);
-        }
-        public void SetData(Memory<byte> data)
-        {
-            CountInfo info = MemoryPackSerializer.Deserialize<CountInfo>(data.Span);
-            countDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
-            Version.Add();
-        }
-        public void SetData(List<ReadOnlyMemory<byte>> data)
-        {
-            List<CountInfo> list = data.Select(c => MemoryPackSerializer.Deserialize<CountInfo>(c.Span)).ToList();
-            foreach (var info in list)
-            {
-                countDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
-            }
-            Version.Add();
-        }
-        public void RefreshConfig()
-        {
-            DataVersion.Add();
-        }
-        public ConcurrentDictionary<string, int> GetCount()
-        {
-            return countDic;
-        }
-       
+      
         public void SetSecretKey(string key)
         {
             fileConfig.Data.Client.SForward.SecretKey = key;
@@ -101,7 +63,7 @@ namespace linker.plugins.sforward
                 }
 
             }
-            DataVersion.Add();
+            OnChanged();
         }
         private void Start(SForwardInfo forwardInfo)
         {
@@ -147,7 +109,7 @@ namespace linker.plugins.sforward
                 LoggerHelper.Instance.Error(ex);
             }
 
-            Version.Add();
+            OnChanged();
         }
         private void Stop(SForwardInfo forwardInfo)
         {
@@ -184,7 +146,7 @@ namespace linker.plugins.sforward
             {
                 LoggerHelper.Instance.Error(ex);
             }
-            Version.Add();
+            OnChanged();
         }
 
         public List<SForwardInfo> Get()
@@ -278,7 +240,7 @@ namespace linker.plugins.sforward
                             forward.LocalMsg = item.Item2;
                         }
                     }
-                    Version.Add();
+                    OnChanged();
                 }
                 catch (Exception)
                 {
@@ -301,13 +263,5 @@ namespace linker.plugins.sforward
                 }
             }
         }
-
-    }
-
-    [MemoryPackable]
-    public sealed partial class CountInfo
-    {
-        public string MachineId { get; set; }
-        public int Count { get; set; }
     }
 }

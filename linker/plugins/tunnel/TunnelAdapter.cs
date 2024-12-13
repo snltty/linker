@@ -63,10 +63,7 @@ namespace linker.plugins.tunnel
                 new TransportUdp(),
             });
 
-            clientSignInState.NetworkEnabledHandle += (times) =>
-            {
-                RefreshPortMap();
-            };
+            clientSignInState.NetworkEnabledHandle += (times) => RefreshPortMap();
             tunnelConfigTransfer.OnChanged += RefreshPortMap;
         }
 

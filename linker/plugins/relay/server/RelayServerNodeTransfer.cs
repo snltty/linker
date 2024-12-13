@@ -36,12 +36,10 @@ namespace linker.plugins.relay.server
             this.serverConfigTransfer = serverConfigTransfer;
 
             limitTotal.SetLimit((uint)Math.Ceiling((relayServerConfigTransfer.Node.MaxBandwidthTotal * 1024 * 1024) / 8.0));
-            ResetBytes();
 
             cryptoNode = CryptoFactory.CreateSymmetric(relayServerConfigTransfer.Node.MasterSecretKey);
             cryptoMaster = CryptoFactory.CreateSymmetric(relayServerConfigTransfer.Master.SecretKey);
             ReportTask();
-
         }
 
         public async ValueTask<RelayCache> TryGetRelayCache(string key, string nodeid)
@@ -143,8 +141,8 @@ namespace linker.plugins.relay.server
             }
 
             if (relayServerConfigTransfer.Node.MaxGbTotalLastBytes >= length)
-                relayServerConfigTransfer.Node.MaxGbTotalLastBytes -= length;
-            else relayServerConfigTransfer.Node.MaxGbTotalLastBytes = 0;
+                relayServerConfigTransfer.SetMaxGbTotalLastBytes(relayServerConfigTransfer.Node.MaxGbTotalLastBytes - length);
+            else relayServerConfigTransfer.SetMaxGbTotalLastBytes(0);
             return relayServerConfigTransfer.Node.MaxGbTotalLastBytes > 0;
         }
 
@@ -179,21 +177,20 @@ namespace linker.plugins.relay.server
         {
             if (relayServerConfigTransfer.Node.MaxGbTotalMonth != DateTime.Now.Month)
             {
-                relayServerConfigTransfer.Node.MaxGbTotalMonth = DateTime.Now.Month;
-                relayServerConfigTransfer.Node.MaxGbTotalLastBytes = (ulong)(relayServerConfigTransfer.Node.MaxGbTotal * 1024 * 1024 * 1024);
-                fileConfig.Data.Update();
+                relayServerConfigTransfer.SetMaxGbTotalMonth(DateTime.Now.Month);
+                relayServerConfigTransfer.SetMaxGbTotalLastBytes((ulong)(relayServerConfigTransfer.Node.MaxGbTotal * 1024 * 1024 * 1024));
             }
+            relayServerConfigTransfer.Update();
         }
 
         private void ReportTask()
         {
             TimerHelper.SetInterval(async () =>
             {
-
                 ResetBytes();
-
                 IEnumerable<RelayNodeInfo> nodes = new List<RelayNodeInfo>
                 {
+                    //默认报告给自己，作为本服务器的一个默认中继节点
                     new RelayNodeInfo{
                         Id = RelayNodeInfo.MASTER_NODE_ID,
                         Host = new IPEndPoint(IPAddress.Any,serverConfigTransfer.Port).ToString(),
@@ -208,6 +205,7 @@ namespace linker.plugins.relay.server
                         Name = "default",
                         Public = false
                     },
+                    //配置的中继节点
                     relayServerConfigTransfer.Node
                 }.Where(c => string.IsNullOrWhiteSpace(c.MasterHost) == false && string.IsNullOrWhiteSpace(c.MasterSecretKey) == false)
                 .Where(c => string.IsNullOrWhiteSpace(c.Name) == false && string.IsNullOrWhiteSpace(c.Id) == false);
@@ -221,7 +219,6 @@ namespace linker.plugins.relay.server
                     {
                         ICrypto crypto = node.Id == RelayNodeInfo.MASTER_NODE_ID ? cryptoMaster : cryptoNode;
                         IPEndPoint endPoint = await NetworkHelper.GetEndPointAsync(node.Host, serverConfigTransfer.Port) ?? new IPEndPoint(IPAddress.Any, serverConfigTransfer.Port);
-
 
                         RelayNodeReportInfo relayNodeReportInfo = new RelayNodeReportInfo
                         {
@@ -253,12 +250,8 @@ namespace linker.plugins.relay.server
                     {
                     }
                 }
-
-
                 return true;
             }, () => 5000);
         }
     }
-
-
 }

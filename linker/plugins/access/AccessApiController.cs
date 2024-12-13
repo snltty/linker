@@ -12,41 +12,38 @@ namespace linker.plugins.access
 {
     public sealed class AccessApiController : IApiClientController
     {
-        private readonly FileConfig config;
         private readonly IMessengerSender sender;
         private readonly ClientSignInState clientSignInState;
-        private readonly AccessTransfer accessTransfer;
+        private readonly AccessDecenter accessDecenter;
         private readonly ClientConfigTransfer clientConfigTransfer;
 
-        public AccessApiController(FileConfig config, IMessengerSender sender, ClientSignInState clientSignInState, AccessTransfer accessTransfer, ClientConfigTransfer clientConfigTransfer)
+        public AccessApiController(IMessengerSender sender, ClientSignInState clientSignInState, AccessDecenter accessDecenter, ClientConfigTransfer clientConfigTransfer)
         {
-            this.config = config;
             this.sender = sender;
             this.clientSignInState = clientSignInState;
-            this.accessTransfer = accessTransfer;
+            this.accessDecenter = accessDecenter;
             this.clientConfigTransfer = clientConfigTransfer;
         }
 
         public void Refresh(ApiControllerParamsInfo param)
         {
-            accessTransfer.RefreshConfig();
+            accessDecenter.Refresh();
         }
 
         public AccessListInfo GetAccesss(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);
-            if (accessTransfer.Version.Eq(hashCode, out ulong version) == false)
+            if (accessDecenter.DataVersion.Eq(hashCode, out ulong version) == false)
             {
                 return new AccessListInfo
                 {
-
                     HashCode = version,
-                    List = accessTransfer.GetAccesss()
-
+                    List = accessDecenter.Accesss
                 };
             }
             return new AccessListInfo { HashCode = version };
         }
+
         [ClientApiAccessAttribute(ClientApiAccess.Access)]
         public async Task<bool> SetAccess(ApiControllerParamsInfo param)
         {

@@ -1,5 +1,4 @@
-﻿using linker.client.config;
-using linker.config;
+﻿using linker.config;
 using linker.libs.api;
 using linker.libs.extends;
 using linker.plugins.capi;
@@ -11,16 +10,12 @@ namespace linker.plugins.relay.client
     /// </summary>
     public sealed class RelayApiController : IApiClientController
     {
-        private readonly FileConfig config;
-        private readonly RunningConfig runningConfig;
         private readonly RelayTestTransfer relayTestTransfer;
         private readonly RelayTransfer relayTransfer;
         private readonly RelayClientConfigTransfer relayClientConfigTransfer;
 
-        public RelayApiController(FileConfig config, RunningConfig runningConfig, RelayTestTransfer relayTestTransfer, RelayTransfer relayTransfer, RelayClientConfigTransfer relayClientConfigTransfer)
+        public RelayApiController(RelayTestTransfer relayTestTransfer, RelayTransfer relayTransfer, RelayClientConfigTransfer relayClientConfigTransfer)
         {
-            this.config = config;
-            this.runningConfig = runningConfig;
             this.relayTestTransfer = relayTestTransfer;
             this.relayTransfer = relayTransfer;
             this.relayClientConfigTransfer = relayClientConfigTransfer;

@@ -1,6 +1,5 @@
 ﻿using linker.plugins.signIn.args;
 using linker.plugins.signin.messenger;
-using linker.config;
 
 namespace linker.plugins.client
 {
@@ -9,11 +8,9 @@ namespace linker.plugins.client
     /// </summary>
     public sealed class SignInArgsGroupPasswordClient : ISignInArgs
     {
-        private readonly FileConfig fileConfig;
         private readonly ClientConfigTransfer clientConfigTransfer;
-        public SignInArgsGroupPasswordClient(FileConfig fileConfig, ClientConfigTransfer clientConfigTransfer)
+        public SignInArgsGroupPasswordClient( ClientConfigTransfer clientConfigTransfer)
         {
-            this.fileConfig = fileConfig;
             this.clientConfigTransfer = clientConfigTransfer;
         }
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
@@ -35,10 +32,8 @@ namespace linker.plugins.client
     /// </summary>
     public sealed class SignInArgsGroupPasswordServer : ISignInArgs
     {
-        private readonly FileConfig fileConfig;
-        public SignInArgsGroupPasswordServer(FileConfig fileConfig)
+        public SignInArgsGroupPasswordServer()
         {
-            this.fileConfig = fileConfig;
         }
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {

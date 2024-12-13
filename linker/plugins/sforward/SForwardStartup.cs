@@ -30,6 +30,8 @@ namespace linker.plugins.sforward
 
             serviceCollection.AddSingleton<SForwardConfigSyncSecretKey>();
 
+            serviceCollection.AddSingleton<SForwardDecenter>();
+            
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)

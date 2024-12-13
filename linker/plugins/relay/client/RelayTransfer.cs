@@ -14,16 +14,12 @@ namespace linker.plugins.relay.client
     {
         public List<ITransport> Transports { get; private set; }
 
-
-        private readonly FileConfig fileConfig;
-
         private ConcurrentDictionary<string, bool> connectingDic = new ConcurrentDictionary<string, bool>();
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
         private readonly RelayClientConfigTransfer relayClientConfigTransfer;
-        public RelayTransfer(FileConfig fileConfig, RelayClientConfigTransfer relayClientConfigTransfer)
+        public RelayTransfer(RelayClientConfigTransfer relayClientConfigTransfer)
         {
-            this.fileConfig = fileConfig;
             this.relayClientConfigTransfer = relayClientConfigTransfer;
         }
 

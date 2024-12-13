@@ -23,6 +23,7 @@ namespace linker.plugins.access
 
             serviceCollection.AddSingleton<AccessClientMessenger>();
             serviceCollection.AddSingleton<AccessTransfer>();
+            serviceCollection.AddSingleton<AccessDecenter>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)

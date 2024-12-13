@@ -1,6 +1,4 @@
 ﻿using linker.client.config;
-using linker.config;
-using linker.plugins.client;
 
 namespace linker.plugins.tunnel.excludeip
 {
@@ -8,15 +6,8 @@ namespace linker.plugins.tunnel.excludeip
     {
         private List<ITunnelExcludeIP> excludeIPs;
 
-        private readonly RunningConfig running;
-        private readonly ClientSignInState clientSignInState;
-        private readonly FileConfig fileConfig;
-
-        public TunnelExcludeIPTransfer(RunningConfig running, ClientSignInState clientSignInState, FileConfig fileConfig)
+        public TunnelExcludeIPTransfer()
         {
-            this.running = running;
-            this.clientSignInState = clientSignInState;
-            this.fileConfig = fileConfig;
         }
 
         public void LoadTunnelExcludeIPs(List<ITunnelExcludeIP> list)

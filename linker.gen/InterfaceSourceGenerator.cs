@@ -4,8 +4,6 @@ using System.Linq;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
 using System.Text;
-using System;
-using System.Diagnostics;
 
 namespace linker.gen
 {
@@ -25,6 +23,7 @@ namespace linker.gen
              new GeneratorInfo{ ClassName="ApiClientTypesLoader", ClassNameSpace="linker.plugins.capi", InterfaceName="linker.plugins.capi.IApiClientController"},
              new GeneratorInfo{ ClassName="ConfigSyncTypesLoader", ClassNameSpace="linker.plugins.config", InterfaceName="linker.plugins.config.IConfigSync"},
              new GeneratorInfo{ ClassName="DecenterTypesLoader", ClassNameSpace="linker.plugins.decenter", InterfaceName="linker.plugins.decenter.IDecenter"},
+             new GeneratorInfo{ ClassName="RouteExcludeIPTypesLoader", ClassNameSpace="linker.plugins.route", InterfaceName="linker.plugins.route.IRouteExcludeIP" },
         };
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -33,7 +32,7 @@ namespace linker.gen
 
             context.RegisterSourceOutput(compilations, (sourceProductionContext, compilation) =>
             {
-                
+
 
                 foreach (GeneratorInfo info in generators)
                 {

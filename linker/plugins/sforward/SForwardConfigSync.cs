@@ -1,5 +1,4 @@
-﻿using linker.config;
-using linker.plugins.config;
+﻿using linker.plugins.config;
 using MemoryPack;
 
 namespace linker.plugins.sforward
