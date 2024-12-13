@@ -55,28 +55,32 @@ namespace linker.tunnel.transport
 
 
         Socket socket;
+        SemaphoreSlim slim = new SemaphoreSlim(1);
         public async Task Listen(int localPort)
         {
-            if (socket != null && (socket.LocalEndPoint as IPEndPoint).Port == localPort)
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Warning($"{Name} {socket.LocalEndPoint} already exists");
-                }
-                return;
-            }
-
+            await slim.WaitAsync();
             try
             {
-                socket?.SafeClose();
                 if (localPort == 0) return;
+
+                if (socket != null && (socket.LocalEndPoint as IPEndPoint).Port == localPort)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Warning($"{Name} {socket.LocalEndPoint} already exists");
+                    }
+                    return;
+                }
+
+                socket?.SafeClose();
 
                 IPAddress localIP = IPAddress.Any;
 
-                socket = new Socket(localIP.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
-                socket.IPv6Only(localIP.AddressFamily, false);
-                socket.ReuseBind(new IPEndPoint(localIP, localPort));
-                socket.Listen(int.MaxValue);
+                Socket _socket = new Socket(localIP.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+                _socket.IPv6Only(localIP.AddressFamily, false);
+                _socket.ReuseBind(new IPEndPoint(localIP, localPort));
+                _socket.Listen(int.MaxValue);
+                socket = _socket;
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
@@ -125,6 +129,10 @@ namespace linker.tunnel.transport
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
+            }
+            finally
+            {
+                slim.Release();
             }
         }
 

@@ -19,10 +19,6 @@ namespace linker.plugins.tunnel
             this.tunnelConfigTransfer = tunnelConfigTransfer;
             tunnelConfigTransfer.OnChanged += Refresh;
         }
-
-        /// <summary>
-        /// 刷新关于隧道的配置信息，也就是获取自己的和别的客户端的，方便查看
-        /// </summary>
         public void Refresh()
         {
             SyncVersion.Add();

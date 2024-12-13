@@ -24,6 +24,10 @@ namespace linker.plugins.tunnel
         private readonly TunnelUpnpTransfer tunnelUpnpTransfer;
         private readonly TunnelTransfer tunnelTransfer;
 
+
+        private readonly TransportTcpPortMap transportTcpPortMap;
+        private readonly TransportUdpPortMap transportUdpPortMap;
+
         public TunnelAdapter(ClientSignInState clientSignInState, IMessengerSender messengerSender,
             TunnelExcludeIPTransfer excludeIPTransfer, ClientConfigTransfer clientConfigTransfer, TunnelConfigTransfer tunnelConfigTransfer,
             TunnelWanPortTransfer tunnelWanPortTransfer, TunnelUpnpTransfer tunnelUpnpTransfer, TunnelTransfer tunnelTransfer)
@@ -48,18 +52,20 @@ namespace linker.plugins.tunnel
             tunnelTransfer.ServerHost = () => clientSignInState.Connection?.Address ?? null;
             tunnelTransfer.Certificate = () => tunnelConfigTransfer.Certificate;
             tunnelTransfer.GetTunnelTransports = () => tunnelConfigTransfer.Transports;
-            tunnelTransfer.SetTunnelTransports = (transports,update) => tunnelConfigTransfer.SetTransports(transports);
+            tunnelTransfer.SetTunnelTransports = (transports, update) => tunnelConfigTransfer.SetTransports(transports);
             tunnelTransfer.GetLocalConfig = GetLocalConfig;
             tunnelTransfer.GetRemoteWanPort = GetRemoteWanPort;
             tunnelTransfer.SendConnectBegin = SendConnectBegin;
             tunnelTransfer.SendConnectFail = SendConnectFail;
             tunnelTransfer.SendConnectSuccess = SendConnectSuccess;
+            transportTcpPortMap = new TransportTcpPortMap();
+            transportUdpPortMap = new TransportUdpPortMap();
             tunnelTransfer.LoadTransports(tunnelWanPortTransfer, tunnelUpnpTransfer, new List<ITunnelTransport> {
                 new TunnelTransportTcpNutssb(),
                 new TransportMsQuic(),
                 new TransportTcpP2PNAT(),
-                new TransportTcpPortMap(),
-                new TransportUdpPortMap(),
+                transportTcpPortMap,
+                transportUdpPortMap,
                 new TransportUdp(),
             });
 
@@ -149,11 +155,21 @@ namespace linker.plugins.tunnel
             if (tunnelConfigTransfer.PortMapLan > 0)
             {
                 tunnelUpnpTransfer.SetMap(tunnelConfigTransfer.PortMapLan, tunnelConfigTransfer.PortMapWan);
+                _ = transportTcpPortMap.Listen(tunnelConfigTransfer.PortMapLan);
+                _ = transportUdpPortMap.Listen(tunnelConfigTransfer.PortMapLan);
             }
             else
             {
-                tunnelUpnpTransfer.SetMap(clientSignInState.Connection.LocalAddress.Address, 18180);
+                if (clientSignInState.Connected)
+                {
+                    int ip = clientSignInState.Connection.LocalAddress.Address.GetAddressBytes()[3];
+                    tunnelUpnpTransfer.SetMap(18180 + ip);
+
+                    _ = transportTcpPortMap.Listen(18180 + ip);
+                    _ = transportUdpPortMap.Listen(18180 + ip);
+                }
             }
+
         }
     }
 }

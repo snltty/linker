@@ -11,15 +11,19 @@ namespace linker.plugins.sforward
         public string Name => "sforward";
         public VersionManager SyncVersion { get; } = new VersionManager();
         public VersionManager DataVersion { get; } = new VersionManager();
-
         public ConcurrentDictionary<string, int> CountDic { get; } = new ConcurrentDictionary<string, int>();
 
         private readonly ClientConfigTransfer clientConfigTransfer;
         private readonly SForwardTransfer sForwardTransfer;
-        public SForwardDecenter(  ClientConfigTransfer clientConfigTransfer, SForwardTransfer sForwardTransfer)
+        public SForwardDecenter(ClientConfigTransfer clientConfigTransfer, SForwardTransfer sForwardTransfer)
         {
             this.clientConfigTransfer = clientConfigTransfer;
             this.sForwardTransfer = sForwardTransfer;
+        }
+
+        public void Refresh()
+        {
+            SyncVersion.Add();
         }
 
         public Memory<byte> GetData()
@@ -43,10 +47,6 @@ namespace linker.plugins.sforward
                 CountDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
             }
             DataVersion.Add();
-        }
-        public void Refresh()
-        {
-            SyncVersion.Add();
         }
     }
 

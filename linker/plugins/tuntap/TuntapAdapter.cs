@@ -1,7 +1,6 @@
 ﻿using linker.libs;
 using linker.plugins.client;
 using linker.plugins.route;
-using linker.plugins.tunnel;
 using linker.plugins.tuntap.config;
 using linker.tun;
 using System.Net;
