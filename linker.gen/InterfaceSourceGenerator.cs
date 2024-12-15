@@ -12,18 +12,18 @@ namespace linker.gen
     public class InterfaceSourceGenerator : IIncrementalGenerator
     {
         private List<GeneratorInfo> generators = new List<GeneratorInfo> {
-             new GeneratorInfo{ ClassName="FlowTypesLoader", ClassNameSpace="linker.plugins.flow", InterfaceName="linker.plugins.flow.IFlow" },
-             new GeneratorInfo{ ClassName="RelayTypesLoader", ClassNameSpace="linker.plugins.relay.client", InterfaceName="linker.plugins.relay.client.transport.ITransport" },
-             new GeneratorInfo{ ClassName="RelayValidatorTypeLoader", ClassNameSpace="linker.plugins.relay.server.validator", InterfaceName="linker.plugins.relay.server.validator.IRelayValidator" },
-             new GeneratorInfo{ ClassName="SignInArgsTypesLoader", ClassNameSpace="linker.plugins.signIn.args", InterfaceName="linker.plugins.signIn.args.ISignInArgs" },
-             new GeneratorInfo{ ClassName="ResolverTypesLoader", ClassNameSpace="linker.plugins.resolver", InterfaceName="linker.plugins.resolver.IResolver" },
-             new GeneratorInfo{ ClassName="TunnelExcludeIPTypesLoader", ClassNameSpace="linker.plugins.tunnel.excludeip", InterfaceName="linker.plugins.tunnel.excludeip.ITunnelExcludeIP" },
-             new GeneratorInfo{ ClassName="StartupTransfer", ClassNameSpace="linker.startup", InterfaceName="linker.startup.IStartup", Instance=true },
-             new GeneratorInfo{ ClassName="MessengerResolverTypesLoader", ClassNameSpace="linker.plugins.messenger", InterfaceName="linker.plugins.messenger.IMessenger"},
-             new GeneratorInfo{ ClassName="ApiClientTypesLoader", ClassNameSpace="linker.plugins.capi", InterfaceName="linker.plugins.capi.IApiClientController"},
-             new GeneratorInfo{ ClassName="ConfigSyncTypesLoader", ClassNameSpace="linker.plugins.config", InterfaceName="linker.plugins.config.IConfigSync"},
-             new GeneratorInfo{ ClassName="DecenterTypesLoader", ClassNameSpace="linker.plugins.decenter", InterfaceName="linker.plugins.decenter.IDecenter"},
-             new GeneratorInfo{ ClassName="RouteExcludeIPTypesLoader", ClassNameSpace="linker.plugins.route", InterfaceName="linker.plugins.route.IRouteExcludeIP" },
+             new GeneratorInfo{ ClassName="linker.plugins.flow.FlowTypesLoader", InterfaceName="linker.plugins.flow.IFlow" },
+             new GeneratorInfo{ ClassName="linker.plugins.relay.client.RelayTypesLoader", InterfaceName="linker.plugins.relay.client.transport.ITransport" },
+             new GeneratorInfo{ ClassName="linker.plugins.relay.server.validator.RelayValidatorTypeLoader", InterfaceName="linker.plugins.relay.server.validator.IRelayValidator" },
+             new GeneratorInfo{ ClassName="linker.plugins.signIn.args.SignInArgsTypesLoader", InterfaceName="linker.plugins.signIn.args.ISignInArgs" },
+             new GeneratorInfo{ ClassName="linker.plugins.resolver.ResolverTypesLoader", InterfaceName="linker.plugins.resolver.IResolver" },
+             new GeneratorInfo{ ClassName="linker.plugins.tunnel.excludeip.TunnelExcludeIPTypesLoader",  InterfaceName="linker.plugins.tunnel.excludeip.ITunnelExcludeIP" },
+             new GeneratorInfo{ ClassName="linker.startup.StartupTransfer", InterfaceName="linker.startup.IStartup", Instance=true },
+             new GeneratorInfo{ ClassName="linker.plugins.messenger.MessengerResolverTypesLoader", InterfaceName="linker.messenger.IMessenger"},
+             new GeneratorInfo{ ClassName="linker.plugins.capi.ApiClientTypesLoader",InterfaceName="linker.plugins.capi.IApiClientController"},
+             new GeneratorInfo{ ClassName="linker.plugins.config.ConfigSyncTypesLoader",  InterfaceName="linker.plugins.config.IConfigSync"},
+             new GeneratorInfo{ ClassName="linker.plugins.decenter.DecenterTypesLoader",  InterfaceName="linker.plugins.decenter.IDecenter"},
+             new GeneratorInfo{ ClassName="linker.plugins.route.RouteExcludeIPTypesLoader", InterfaceName="linker.plugins.route.IRouteExcludeIP" },
         };
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -74,14 +74,16 @@ namespace linker.gen
                         }
                     }
 
+                    var spaces = info.ClassName.Split('.');
+
                     var source = $@"
                     using System;
                     using System.Collections.Generic;
                     {string.Join("\r\n", namespaces)}
 
-                    namespace {info.ClassNameSpace}
+                    namespace {string.Join(".", spaces.Take(spaces.Count() - 1))}
                     {{
-                        public partial class {info.ClassName}
+                        public partial class {spaces.LastOrDefault()}
                         {{
                              public static List<Type> GetSourceGeneratorTypes()
                              {{
@@ -110,7 +112,6 @@ namespace linker.gen
         public sealed class GeneratorInfo
         {
             public string ClassName { get; set; }
-            public string ClassNameSpace { get; set; }
             public string InterfaceName { get; set; }
             public bool Instance { get; set; }
         }

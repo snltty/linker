@@ -37,12 +37,7 @@ namespace linker.plugins.relay
 
             serviceCollection.AddSingleton<RelayTypesLoader>();
 
-            serviceCollection.AddSingleton<RelayServerMasterTransfer>();
-            serviceCollection.AddSingleton<RelayServerNodeTransfer>();
-            serviceCollection.AddSingleton<IRelayCaching, RelayCachingMemory>();
-
             serviceCollection.AddSingleton<RelayClientConfigTransfer>();
-            
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
@@ -67,11 +62,6 @@ namespace linker.plugins.relay
         {
             RelayTransfer relayTransfer = serviceProvider.GetService<RelayTransfer>();
             RelayTypesLoader relayTypesLoader = serviceProvider.GetService<RelayTypesLoader>();
-
-            IRelayCaching relayCaching = serviceProvider.GetService<IRelayCaching>();
-
-            RelayServerMasterTransfer relayServerMasterTransfer = serviceProvider.GetService<RelayServerMasterTransfer>();
-            RelayServerNodeTransfer relayServerNodeTransfer = serviceProvider.GetService<RelayServerNodeTransfer>();
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config)

@@ -11,6 +11,7 @@ using linker.client.config;
 using linker.plugins.socks5.config;
 using linker.plugins.socks5.messenger;
 using linker.plugins.access;
+using linker.messenger;
 
 namespace linker.plugins.socks5
 {

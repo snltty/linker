@@ -41,8 +41,9 @@ export default {
     components:{SForward,Updater,RelayServers},
     setup(props) {
         const globalData = injectGlobalData();
+        console.log(globalData.value.config.Client.Server);
         const state = reactive({
-            list:globalData.value.config.Client.ServerInfo,
+            list:globalData.value.config.Client.Server,
             height: computed(()=>globalData.value.height-90),
         });
 

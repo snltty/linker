@@ -15,6 +15,7 @@ using System.Buffers;
 using linker.plugins.relay.server;
 using linker.plugins.resolver;
 using System.Net.NetworkInformation;
+using linker.messenger;
 
 namespace linker.plugins.relay.client.transport
 {

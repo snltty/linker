@@ -5,8 +5,8 @@ using MemoryPack;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Text.Json.Serialization;
-using linker.plugins.messenger;
 using linker.plugins.signIn.args;
+using linker.messenger;
 
 namespace linker.plugins.signin.messenger
 {
@@ -99,7 +99,6 @@ namespace linker.plugins.signin.messenger
         {
             return Clients.TryGetValue(machineId, out SignCacheInfo cache) && cache.Connected;
         }
-
         public void GetOnline(out int all, out int online)
         {
             all = Clients.Count;
@@ -115,7 +114,6 @@ namespace linker.plugins.signin.messenger
             }
             return true;
         }
-
 
         private void ClearTask()
         {
@@ -216,7 +214,6 @@ namespace linker.plugins.signin.messenger
     [MemoryPackable]
     public sealed partial class SignInfo
     {
-
         public string MachineId { get; set; } = string.Empty;
         public string MachineName { get; set; } = string.Empty;
         public string GroupId { get; set; } = string.Empty;

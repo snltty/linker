@@ -8,6 +8,7 @@ using linker.plugins.messenger;
 using linker.plugins.tunnel.excludeip;
 using linker.tunnel.wanport;
 using linker.tunnel;
+using linker.messenger;
 
 namespace linker.plugins.tunnel
 {
@@ -42,12 +43,13 @@ namespace linker.plugins.tunnel
             this.tunnelUpnpTransfer = tunnelUpnpTransfer;
             this.tunnelTransfer = tunnelTransfer;
 
+            //加载外网端口
             tunnelWanPortTransfer.LoadTransports(new List<ITunnelWanPortProtocol>
             {
                 new TunnelWanPortProtocolLinkerUdp(),
                 new TunnelWanPortProtocolLinkerTcp(),
             });
-
+            
             tunnelTransfer.LocalIP = () => clientSignInState.Connection?.LocalAddress.Address ?? IPAddress.Any;
             tunnelTransfer.ServerHost = () => clientSignInState.Connection?.Address ?? null;
             tunnelTransfer.Certificate = () => tunnelConfigTransfer.Certificate;
@@ -58,6 +60,7 @@ namespace linker.plugins.tunnel
             tunnelTransfer.SendConnectBegin = SendConnectBegin;
             tunnelTransfer.SendConnectFail = SendConnectFail;
             tunnelTransfer.SendConnectSuccess = SendConnectSuccess;
+            //加载打洞协议
             transportTcpPortMap = new TransportTcpPortMap();
             transportUdpPortMap = new TransportUdpPortMap();
             tunnelTransfer.LoadTransports(tunnelWanPortTransfer, tunnelUpnpTransfer, new List<ITunnelTransport> {

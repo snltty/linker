@@ -30,6 +30,7 @@ namespace linker.config
             new ClientServerInfo{ Name="Linker", Host="linker.snltty.com:1802" }
 #endif
         };
+        public ClientServerInfo Server => Servers[0];
         public ClientServerInfo[] Servers
         {
             get => servers; set { servers = value; }
@@ -54,6 +55,7 @@ namespace linker.config
         }
 
         private ClientGroupInfo[] groups = new[] { new ClientGroupInfo { } };
+        public ClientGroupInfo Group => Groups[0];
         public ClientGroupInfo[] Groups
         {
             get => groups; set

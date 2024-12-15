@@ -12,7 +12,6 @@ namespace linker.plugins.sforward.proxy
         private ConcurrentDictionary<int, AsyncUserToken> tcpListens = new ConcurrentDictionary<int, AsyncUserToken>();
         private ConcurrentDictionary<ulong, TaskCompletionSource<Socket>> tcpConnections = new ConcurrentDictionary<ulong, TaskCompletionSource<Socket>>();
 
-
         public Func<int, ulong, Task<bool>> TunnelConnect { get; set; } = async (port, id) => { return await Task.FromResult(false); };
         public Func<string, int, ulong, Task<bool>> WebConnect { get; set; } = async (host, port, id) => { return await Task.FromResult(false); };
 
@@ -150,7 +149,7 @@ namespace linker.plugins.sforward.proxy
                 //等待回复
                 TaskCompletionSource<Socket> tcs = new TaskCompletionSource<Socket>(TaskCreationOptions.RunContinuationsAsynchronously);
                 tcpConnections.TryAdd(id, tcs);
-                token.TargetSocket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(2000)).ConfigureAwait(false);
+                token.TargetSocket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
 
                 //数据
                 await token.TargetSocket.SendAsync(buffer1.AsMemory(0, length)).ConfigureAwait(false);
@@ -160,8 +159,12 @@ namespace linker.plugins.sforward.proxy
 
                 CloseClientSocket(token);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
                 CloseClientSocket(token);
             }
             finally
@@ -195,11 +198,6 @@ namespace linker.plugins.sforward.proxy
         private readonly byte[] hostBytes = Encoding.UTF8.GetBytes("Host: ");
         private readonly byte[] wrapBytes = Encoding.UTF8.GetBytes("\r\n");
         private readonly byte[] colonBytes = Encoding.UTF8.GetBytes(":");
-        /// <summary>
-        /// 截取http请求头的host内容
-        /// </summary>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
         private string GetHost(Memory<byte> buffer)
         {
             int start = buffer.Span.IndexOf(hostBytes);
@@ -216,7 +214,6 @@ namespace linker.plugins.sforward.proxy
 
 
         #endregion
-
 
         /// <summary>
         /// 客户端，收到服务端的连接请求
@@ -263,7 +260,6 @@ namespace linker.plugins.sforward.proxy
             }
         }
 
-
         /// <summary>
         /// 读取数据，然后发送给对方，用户两端交换数据
         /// </summary>
@@ -309,7 +305,6 @@ namespace linker.plugins.sforward.proxy
                 target.SafeClose();
             }
         }
-
 
     }
 

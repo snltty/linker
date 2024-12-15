@@ -8,6 +8,8 @@ using System.Net;
 using System.Net.Sockets;
 using linker.plugins.messenger;
 using linker.plugins.signIn.args;
+using linker.messenger;
+using linker.plugins.resolver;
 
 namespace linker.plugins.client
 {
@@ -124,7 +126,7 @@ namespace linker.plugins.client
             Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.KeepAlive();
             await socket.ConnectAsync(remote).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
-            clientSignInState.Connection = await messengerResolver.BeginReceiveClient(socket).ConfigureAwait(false);
+            clientSignInState.Connection = await messengerResolver.BeginReceiveClient(socket, true, (byte)ResolverType.Messenger).ConfigureAwait(false);
 
             return true;
         }

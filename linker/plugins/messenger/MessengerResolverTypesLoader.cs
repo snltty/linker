@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.messenger;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace linker.plugins.messenger

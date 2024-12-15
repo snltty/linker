@@ -7,6 +7,7 @@ using linker.plugins.client;
 using linker.plugins.capi;
 using linker.plugins.messenger;
 using linker.plugins.access;
+using linker.messenger;
 
 namespace linker.plugins.signin
 {

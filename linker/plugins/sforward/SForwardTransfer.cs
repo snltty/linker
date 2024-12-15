@@ -9,6 +9,7 @@ using linker.libs.extends;
 using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.config;
+using linker.messenger;
 
 namespace linker.plugins.sforward
 {

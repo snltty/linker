@@ -8,6 +8,7 @@ using linker.libs;
 using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.plugins.access;
+using linker.messenger;
 namespace linker.plugins.config
 {
     public sealed class ConfigClientApiController : IApiClientController

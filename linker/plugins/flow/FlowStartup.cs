@@ -1,7 +1,7 @@
 ﻿using linker.config;
+using linker.messenger;
 using linker.plugins.flow.messenger;
 using linker.plugins.messenger;
-using linker.plugins.relay;
 using linker.plugins.relay.server;
 using linker.plugins.sforward.proxy;
 using linker.plugins.tunnel;
@@ -28,12 +28,6 @@ namespace linker.plugins.flow
             serviceCollection.AddSingleton<IMessengerResolver, MessengerResolverFlow>();
             serviceCollection.AddSingleton<IMessengerSender, MessengerSenderFlow>();
 
-            serviceCollection.AddSingleton<RelayFlow>();
-            serviceCollection.AddSingleton<RelayResolver, RelayResolverFlow>();
-
-            serviceCollection.AddSingleton<RelayReportFlow>();
-            serviceCollection.AddSingleton<RelayReportResolver, RelayReportResolverFlow>();
-
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
@@ -49,15 +43,14 @@ namespace linker.plugins.flow
 
             serviceCollection.AddSingleton<RelayFlow>();
             serviceCollection.AddSingleton<RelayResolver, RelayResolverFlow>();
+            serviceCollection.AddSingleton<RelayReportFlow>();
+            serviceCollection.AddSingleton<RelayReportResolver, RelayReportResolverFlow>();
 
             serviceCollection.AddSingleton<ExternalFlow>();
             serviceCollection.AddSingleton<ExternalResolver, ExternalResolverFlow>();
 
             serviceCollection.AddSingleton<SForwardFlow>();
             serviceCollection.AddSingleton<SForwardProxy, SForwardProxyFlow>();
-
-            serviceCollection.AddSingleton<RelayReportFlow>();
-            serviceCollection.AddSingleton<RelayReportResolver, RelayReportResolverFlow>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)

@@ -1,5 +1,6 @@
 ﻿using linker.config;
 using linker.libs;
+using linker.messenger;
 using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.plugins.signin.messenger;

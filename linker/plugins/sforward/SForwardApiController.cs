@@ -9,6 +9,7 @@ using linker.plugins.messenger;
 using linker.config;
 using System.Collections.Concurrent;
 using linker.plugins.access;
+using linker.messenger;
 
 namespace linker.plugins.sforward
 {

@@ -123,7 +123,7 @@ export default {
                 password:step.value.form.client.password || globalData.value.config.Client.CApi.ApiPassword,
 
                 hasServer:step.value.form.client.hasServer ||false,
-                server:step.value.form.client.server ||globalData.value.config.Client.ServerInfo.Host,
+                server:step.value.form.client.server ||globalData.value.config.Client.Server.Host,
                 serverSecretKey:step.value.form.client.serverSecretKey ||globalData.value.config.Client.ServerSecretKey,
                 sForwardSecretKey:step.value.form.client.sForwardSecretKey ||globalData.value.config.Client.SForward.SecretKey,
                 relaySecretKey:step.value.form.client.relaySecretKey ||(globalData.value.config.Client.Relay.Servers[0] || {SecretKey:'snltty'}).SecretKey,

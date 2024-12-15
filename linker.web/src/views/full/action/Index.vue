@@ -22,7 +22,7 @@ export default {
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({
-            list:globalData.value.config.Client.Action.Args[globalData.value.config.Client.ServerInfo.Host] || ''
+            list:globalData.value.config.Client.Action.Args[globalData.value.config.Client.Server.Host] || ''
         });
         const handleSave = ()=>{
             try{
@@ -35,7 +35,7 @@ export default {
                 return;
             }
             const json = {};
-            json[globalData.value.config.Client.ServerInfo.Host] = state.list;
+            json[globalData.value.config.Client.Server.Host] = state.list;
             setArgs(json).then(()=>{
                 ElMessage.success('已操作');
             }).catch((err)=>{

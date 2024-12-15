@@ -1,10 +1,9 @@
-﻿using linker.config;
-using MemoryPack;
+﻿using MemoryPack;
 using linker.plugins.client;
-using linker.plugins.messenger;
 using linker.libs;
 using LiteDB;
 using linker.libs.extends;
+using linker.messenger;
 
 namespace linker.plugins.signin.messenger
 {
@@ -31,13 +30,11 @@ namespace linker.plugins.signin.messenger
     public sealed class SignInServerMessenger : IMessenger
     {
         private readonly SignCaching signCaching;
-        private readonly FileConfig config;
         private readonly IMessengerSender messengerSender;
 
-        public SignInServerMessenger(SignCaching signCaching, FileConfig config, IMessengerSender messengerSender)
+        public SignInServerMessenger(SignCaching signCaching, IMessengerSender messengerSender)
         {
             this.signCaching = signCaching;
-            this.config = config;
             this.messengerSender = messengerSender;
         }
 

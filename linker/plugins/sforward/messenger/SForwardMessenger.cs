@@ -9,6 +9,7 @@ using LiteDB;
 using System.Net;
 using linker.plugins.messenger;
 using linker.libs;
+using linker.messenger;
 
 namespace linker.plugins.sforward.messenger
 {

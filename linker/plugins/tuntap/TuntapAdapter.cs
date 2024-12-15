@@ -173,7 +173,7 @@ namespace linker.plugins.tuntap
             return infos
                 .Where(c => c.MachineId != clientConfigTransfer.Id)
                 .OrderByDescending(c => c.Status)
-                .OrderByDescending(c => c.LastTicks.Value)
+                .OrderByDescending(c => c.IP)
 
                 .Select(c =>
                 {

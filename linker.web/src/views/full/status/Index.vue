@@ -3,7 +3,7 @@
         <div class="copy">
             <a href="javascript:;" class="memory" title="赞助一笔，让作者饱餐一顿" @click="state.showPay = true">
                 <img src="@/assets/coin.svg" alt="memory" />
-                <span>各位老板行行好</span>
+                <span>赞助</span>
             </a>
             <a href="https://github.com/snltty/linker" target="_blank">©linker {{ self.Version }}</a>
         </div>

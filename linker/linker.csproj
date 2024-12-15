@@ -30,9 +30,9 @@
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.6.3</Version>
-		<AssemblyVersion>1.6.3</AssemblyVersion>
-		<FileVersion>1.6.3</FileVersion>
+		<Version>1.6.4</Version>
+		<AssemblyVersion>1.6.4</AssemblyVersion>
+		<FileVersion>1.6.4</FileVersion>
 	</PropertyGroup>
 
 
@@ -66,6 +66,7 @@
 			<ReferenceOutputAssembly>false</ReferenceOutputAssembly>
 			<IsTrimmable>false</IsTrimmable>
 		</ProjectReference>
+		<ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
 		<ProjectReference Include="..\linker.tunnel\linker.tunnel.csproj" />
 		<ProjectReference Include="..\linker.libs\linker.libs.csproj" />
 		<ProjectReference Include="..\linker.tun\linker.tun.csproj" />

@@ -1,4 +1,5 @@
 ﻿using linker.config;
+using linker.messenger;
 using linker.plugins.client;
 using linker.plugins.server;
 using linker.startup;
@@ -23,7 +24,7 @@ namespace linker.plugins.messenger
             serviceCollection.AddSingleton<IMessengerSender, MessengerSender>();
             serviceCollection.AddSingleton<IMessengerResolver, MessengerResolver>();
             serviceCollection.AddSingleton<MessengerResolverResolver>();
-            
+
             serviceCollection.AddSingleton<MessengerResolverTypesLoader>();
 
 

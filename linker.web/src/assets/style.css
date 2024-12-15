@@ -32,32 +32,6 @@ a.a-line {
     ;
 }
 
-span.point {
-    width: .8rem;
-    height: .8rem;
-    border-radius: 50%;
-    display: inline-block;
-    vertical-align: middle;
-    margin: -.2rem .3rem 0 -1.3rem;
-    background-color: #eee;
-    border: 1px solid #ddd;
-}
-
-span.point.p2p {
-    background-color: #01c901;
-    border: 1px solid #049538;
-}
-
-span.point.relay {
-    background-color: #e3e811;
-    border: 1px solid #b3c410;
-}
-
-span.point.node {
-    background-color: #09dda9;
-    border: 1px solid #0cac90;
-}
-
 
 .flex {
     display: flex;

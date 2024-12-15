@@ -4,20 +4,7 @@
             <template v-if="scope.row.Connected">
                 <template v-if="scope.row.isSelf && (hasForwardShowSelf || hasForwardSelf)">
                     <div>
-                        <template v-if="connections.list[scope.row.MachineId] && connections.list[scope.row.MachineId].Connected">
-                            <template v-if="connections.list[scope.row.MachineId].Type == 0">
-                                <span class="point p2p" title="打洞直连"></span>
-                            </template>
-                            <template v-else-if="connections.list[scope.row.MachineId].Type == 1">
-                                <span class="point relay" title="中继连接"></span>
-                            </template>
-                            <template v-else-if="connections.list[scope.row.MachineId].Type == 2">
-                                <span class="point node" title="节点连接"></span>
-                            </template>
-                        </template>
-                        <template v-else>
-                            <span class="point" title="未连接"></span>
-                        </template>
+                        <ConnectionShow :data="connections.list[scope.row.MachineId]"></ConnectionShow>
                         <a href="javascript:;" title="管理自己的端口转发" :class="{green:forward.list[scope.row.MachineId]>0 }" @click="handleEdit(scope.row.MachineId,scope.row.MachineName)">
                             <span :class="{gateway:forward.list[scope.row.MachineId]>0}">端口转发({{forward.list[scope.row.MachineId]>99 ? '99+' : forward.list[scope.row.MachineId]}})</span>
                         </a>
@@ -30,20 +17,7 @@
                 </template>
                 <template v-else-if="hasForwardShowOther || hasForwardOther">
                     <div>
-                        <template v-if="connections.list[scope.row.MachineId] && connections.list[scope.row.MachineId].Connected">
-                            <template v-if="connections.list[scope.row.MachineId].Type == 0">
-                                <span class="point p2p" title="打洞直连"></span>
-                            </template>
-                            <template v-else-if="connections.list[scope.row.MachineId].Type == 1">
-                                <span class="point relay" title="中继连接"></span>
-                            </template>
-                            <template v-else-if="connections.list[scope.row.MachineId].Type == 2">
-                                <span class="point node" title="节点连接"></span>
-                            </template>
-                        </template>
-                        <template v-else>
-                            <span class="point" title="未连接"></span>
-                        </template>
+                        <ConnectionShow :data="connections.list[scope.row.MachineId]"></ConnectionShow>
                         <a href="javascript:;" title="管理自己的端口转发" :class="{green:forward.list[scope.row.MachineId]>0}" @click="handleEdit(scope.row.MachineId,scope.row.MachineName)">
                             <span :class="{gateway:forward.list[scope.row.MachineId]>0}">端口转发({{forward.list[scope.row.MachineId]>99 ? '99+' : forward.list[scope.row.MachineId]}})</span>
                         </a>
@@ -64,9 +38,11 @@ import { useForward } from './forward';
 import { useSforward } from './sforward';
 import { computed } from 'vue';
 import { useForwardConnections } from './connections';
+import ConnectionShow from './ConnectionShow.vue';
 
 export default {
     emits: ['edit','sedit'],
+    components:{ConnectionShow},
     setup(props, { emit }) {
 
         const forward = useForward()

@@ -1,5 +1,6 @@
 ﻿using linker.client.config;
 using linker.libs;
+using linker.messenger;
 using linker.plugins.client;
 using linker.plugins.forward.proxy;
 using linker.plugins.messenger;

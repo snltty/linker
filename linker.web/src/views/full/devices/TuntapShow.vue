@@ -2,20 +2,7 @@
     <div>
         <div class="flex">
             <div class="flex-1">
-                <template v-if="connections.list[item.MachineId] && connections.list[item.MachineId].Connected">
-                    <template v-if="connections.list[item.MachineId].Type == 0">
-                        <span class="point p2p" title="打洞直连"></span>
-                    </template>
-                    <template v-else-if="connections.list[item.MachineId].Type == 1">
-                        <span class="point relay" title="中继连接"></span>
-                    </template>
-                    <template v-else-if="connections.list[item.MachineId].Type == 2">
-                        <span class="point node" title="节点连接"></span>
-                    </template>
-                </template>
-                <template v-else>
-                    <span class="point" title="未连接"></span>
-                </template>
+                <ConnectionShow :data="connections.list[item.MachineId]"></ConnectionShow>
                 <a href="javascript:;" class="a-line" @click="handleTuntapIP(tuntap.list[item.MachineId])" title="此设备的虚拟网卡IP">
                     <template v-if="tuntap.list[item.MachineId].SetupError">
                         <strong class="red" :title="tuntap.list[item.MachineId].SetupError">{{ tuntap.list[item.MachineId].IP }}</strong>
@@ -77,10 +64,11 @@ import {Loading} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
 import { computed } from 'vue';
 import { useTuntapConnections } from './connections';
+import ConnectionShow from './ConnectionShow.vue';
 export default {
     props:['item','config'],
     emits: ['edit','refresh'],
-    components:{Loading},
+    components:{Loading,ConnectionShow},
     setup (props,{emit}) {
         
         const tuntap = useTuntap();

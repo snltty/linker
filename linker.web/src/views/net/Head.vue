@@ -30,7 +30,7 @@ export default {
         });
         watch(()=>globalData.value.config.Client.Servers,()=>{
             state.servers = (globalData.value.config.Client.Servers || []).slice(0,1);
-            state.server = globalData.value.config.Client.ServerInfo.Host;
+            state.server = globalData.value.config.Client.Server.Host;
         });
         const handleRefresh = ()=>{
             window.location.reload();

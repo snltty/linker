@@ -33,6 +33,7 @@ namespace linker.config
         /// 中继服务器列表
         /// </summary>
         public RelayServerInfo[] Servers { get; set; } = new RelayServerInfo[] { new RelayServerInfo { } };
+        public RelayServerInfo Server => Servers[0];
 
     }
 

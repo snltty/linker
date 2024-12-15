@@ -1,4 +1,5 @@
-﻿using linker.plugins.messenger;
+﻿using linker.messenger;
+using linker.plugins.messenger;
 using System.Text.Json.Serialization;
 
 namespace linker.plugins.client
