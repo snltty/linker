@@ -9,6 +9,7 @@ namespace linker.plugins.messenger
         public MessengerResolverTypesLoader(IMessengerResolver messengerResolver, ServiceProvider serviceProvider)
         {
             var types = GetSourceGeneratorTypes();
+
             var messengers = types.Select(c => (IMessenger)serviceProvider.GetService(c)).Where(c => c != null).ToList();
             messengerResolver.LoadMessenger(messengers);
 

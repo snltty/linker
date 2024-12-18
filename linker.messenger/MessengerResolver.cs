@@ -15,11 +15,9 @@ namespace linker.messenger
         public Task<IConnection> BeginReceiveClient(Socket socket);
         public Task<IConnection> BeginReceiveClient(Socket socket, bool sendFlag, byte flag);
         public void LoadMessenger(List<IMessenger> list);
-        public Task Resolve(Socket socket, Memory<byte> memory);
-        public Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory);
+        public Task BeginReceiveServer(Socket socket, Memory<byte> memory);
+        public Task BeginReceiveServer(Socket socket, IPEndPoint ep, Memory<byte> memory);
     }
-
-   
 
     /// <summary>
     /// 消息处理总线
@@ -56,7 +54,7 @@ namespace linker.messenger
         public virtual void AddReceive(ushort id, ulong bytes) { }
         public virtual void AddSendt(ushort id, ulong bytes) { }
 
-        public async Task Resolve(Socket socket, Memory<byte> memory)
+        public async Task BeginReceiveServer(Socket socket, Memory<byte> memory)
         {
             try
             {
@@ -73,7 +71,7 @@ namespace linker.messenger
                     LoggerHelper.Instance.Error(ex);
             }
         }
-        public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
+        public async Task BeginReceiveServer(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
             await Task.CompletedTask;
         }
@@ -139,8 +137,9 @@ namespace linker.messenger
 
             foreach (IMessenger messenger in list.Distinct())
             {
+
                 Type type = messenger.GetType();
-                foreach (var method in type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
+                foreach (var method in type.GetMethods( BindingFlags.Public | BindingFlags.Instance))
                 {
                     MessengerIdAttribute mid = method.GetCustomAttribute(midType) as MessengerIdAttribute;
                     if (mid != null)

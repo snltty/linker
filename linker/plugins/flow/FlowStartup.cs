@@ -47,7 +47,7 @@ namespace linker.plugins.flow
             serviceCollection.AddSingleton<RelayReportResolver, RelayReportResolverFlow>();
 
             serviceCollection.AddSingleton<ExternalFlow>();
-            serviceCollection.AddSingleton<ExternalResolver, ExternalResolverFlow>();
+            serviceCollection.AddSingleton<PlusTunnelExternalResolver, ExternalResolverFlow>();
 
             serviceCollection.AddSingleton<SForwardFlow>();
             serviceCollection.AddSingleton<SForwardProxy, SForwardProxyFlow>();

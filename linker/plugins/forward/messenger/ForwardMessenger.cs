@@ -1,7 +1,6 @@
 ﻿using linker.client.config;
 using linker.messenger;
-using linker.plugins.messenger;
-using linker.plugins.signin.messenger;
+using linker.messenger.signin;
 using MemoryPack;
 
 namespace linker.plugins.forward.messenger

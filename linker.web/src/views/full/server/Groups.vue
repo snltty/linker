@@ -100,7 +100,7 @@ export default {
 
         const handleSave = ()=>{
             setSignInGroups(state.list).then(()=>{
-                ElMessage.success('已操作');
+                ElMessage.success('已操作，请在右下角【信标服务器】重连');
             }).catch((err)=>{
                 console.log(err);
                 ElMessage.error('操作失败');

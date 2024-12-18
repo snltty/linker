@@ -1,13 +1,12 @@
 ﻿using linker.config;
-using linker.plugins.tunnel.messenger;
 using linker.startup;
 using linker.tunnel;
 using linker.libs;
 using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
 using linker.tunnel.wanport;
-using linker.plugins.tunnel.excludeip;
 using linker.plugins.client;
+using linker.messenger.tunnel;
 
 namespace linker.plugins.tunnel
 {
@@ -36,7 +35,7 @@ namespace linker.plugins.tunnel
             //管理接口
             serviceCollection.AddSingleton<TunnelApiController>();
             //命令接口
-            serviceCollection.AddSingleton<TunnelClientMessenger>();
+            serviceCollection.AddSingleton<PlusTunnelClientMessenger>();
 
             //外网端口协议
             serviceCollection.AddSingleton<TunnelWanPortTransfer>();
@@ -51,7 +50,7 @@ namespace linker.plugins.tunnel
             serviceCollection.AddSingleton<TunnelConfigSyncTransports>();
             serviceCollection.AddSingleton<TunnelDecenter>();
 
-            serviceCollection.AddSingleton<TunnelAdapter>();
+            serviceCollection.AddSingleton<PlusTunnelAdapter>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
@@ -61,8 +60,9 @@ namespace linker.plugins.tunnel
             MemoryPackFormatterProvider.Register(new TunnelTransportInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelWanPortProtocolInfoFormatter());
 
-            serviceCollection.AddSingleton<TunnelServerMessenger>();
-            serviceCollection.AddSingleton<ExternalResolver, ExternalResolver>();
+            serviceCollection.AddSingleton<PlusTunnelServerMessenger>();
+            serviceCollection.AddSingleton<PlusTunnelExternalResolver, PlusTunnelExternalResolver>();
+            serviceCollection.AddSingleton<TunnelExternalResolver>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)
@@ -73,7 +73,7 @@ namespace linker.plugins.tunnel
             ClientConfigTransfer clientConfigTransfer = serviceProvider.GetService<ClientConfigTransfer>();
             TunnelConfigTransfer tunnelConfigTransfer = serviceProvider.GetService<TunnelConfigTransfer>();
 
-            TunnelAdapter tunnelAdapter = serviceProvider.GetService<TunnelAdapter>();
+            PlusTunnelAdapter tunnelAdapter = serviceProvider.GetService<PlusTunnelAdapter>();
 
             LoggerHelper.Instance.Info($"tunnel route level getting.");
             tunnelConfigTransfer.RefreshRouteLevel();

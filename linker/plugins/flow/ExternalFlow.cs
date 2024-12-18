@@ -1,4 +1,5 @@
-﻿using linker.plugins.tunnel;
+﻿using linker.messenger.tunnel;
+using linker.plugins.tunnel;
 namespace linker.plugins.flow
 {
     public sealed class ExternalFlow : IFlow
@@ -18,10 +19,10 @@ namespace linker.plugins.flow
     /// <summary>
     /// 外网端口处理器
     /// </summary>
-    public sealed class ExternalResolverFlow : ExternalResolver
+    public sealed class ExternalResolverFlow : PlusTunnelExternalResolver
     {
         private readonly ExternalFlow externalFlow;
-        public ExternalResolverFlow(ExternalFlow externalFlow)
+        public ExternalResolverFlow(ExternalFlow externalFlow, TunnelExternalResolver tunnelExternalResolver) :base(tunnelExternalResolver)
         {
             this.externalFlow = externalFlow;
         }

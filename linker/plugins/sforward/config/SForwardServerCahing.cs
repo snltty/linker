@@ -1,4 +1,4 @@
-﻿using linker.plugins.signin.messenger;
+﻿using linker.messenger.signin;
 using System.Collections.Concurrent;
 
 namespace linker.plugins.sforward.config

@@ -1,7 +1,6 @@
 ﻿using linker.config;
 using linker.messenger;
-using linker.plugins.messenger;
-using linker.plugins.signin.messenger;
+using linker.messenger.signin;
 using linker.plugins.socks5.config;
 using MemoryPack;
 

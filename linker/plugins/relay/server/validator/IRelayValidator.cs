@@ -1,5 +1,5 @@
 ﻿using linker.config;
-using linker.plugins.signin.messenger;
+using linker.messenger.signin;
 using RelayInfo = linker.plugins.relay.client.transport.RelayInfo;
 
 namespace linker.plugins.relay.server.validator

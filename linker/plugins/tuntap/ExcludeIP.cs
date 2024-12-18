@@ -1,6 +1,5 @@
-﻿using linker.client.config;
+﻿using linker.messenger.tunnel;
 using linker.plugins.route;
-using linker.plugins.tunnel.excludeip;
 using System.Net;
 
 namespace linker.plugins.tuntap

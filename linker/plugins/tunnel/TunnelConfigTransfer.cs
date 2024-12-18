@@ -3,12 +3,16 @@ using linker.config;
 using linker.libs;
 using linker.messenger;
 using linker.plugins.client;
-using linker.plugins.messenger;
 using linker.tunnel;
 using linker.tunnel.transport;
+using LiteDB;
 using System.Net;
 using System.Net.Quic;
 using System.Security.Cryptography.X509Certificates;
+using MemoryPack;
+using System.Text.Json.Serialization;
+
+
 
 namespace linker.plugins.tunnel
 {
@@ -136,4 +140,69 @@ namespace linker.plugins.tunnel
         }
       
     }
+}
+
+
+namespace linker.client.config
+{
+    public sealed partial class RunningConfigInfo
+    {
+        /// <summary>
+        /// 打洞配置
+        /// </summary>
+        public TunnelRunningInfo Tunnel { get; set; } = new TunnelRunningInfo();
+    }
+
+    public sealed class TunnelRunningInfo
+    {
+        public TunnelRunningInfo() { }
+        public ObjectId Id { get; set; }
+        /// <summary>
+        /// 附加的网关层级
+        /// </summary>
+        public int RouteLevelPlus { get; set; }
+
+        public int PortMapWan { get; set; }
+        public int PortMapLan { get; set; }
+
+    }
+}
+
+namespace linker.config
+{
+    public partial class ConfigClientInfo
+    {
+        public TunnelConfigClientInfo Tunnel { get; set; } = new TunnelConfigClientInfo();
+    }
+    public sealed class TunnelConfigClientInfo
+    {
+        [JsonIgnore]
+        public int RouteLevel { get; set; }
+
+        [JsonIgnore]
+        public IPAddress[] LocalIPs { get; set; }
+
+        [JsonIgnore]
+        public IPAddress[] RouteIPs { get; set; }
+
+        /// <summary>
+        /// 打洞协议列表
+        /// </summary>
+        public List<TunnelTransportItemInfo> Transports { get; set; } = new List<TunnelTransportItemInfo>();
+    }
+
+
+    [MemoryPackable]
+    public sealed partial class TunnelTransportRouteLevelInfo
+    {
+        public string MachineId { get; set; }
+        public int RouteLevel { get; set; }
+        public int RouteLevelPlus { get; set; }
+
+        public bool NeedReboot { get; set; }
+
+        public int PortMapWan { get; set; }
+        public int PortMapLan { get; set; }
+    }
+
 }

@@ -1,13 +1,12 @@
 ﻿using linker.config;
-using linker.plugins.signin.messenger;
 using linker.libs.api;
 using linker.libs.extends;
 using MemoryPack;
 using linker.plugins.client;
 using linker.plugins.capi;
-using linker.plugins.messenger;
 using linker.plugins.access;
 using linker.messenger;
+using linker.messenger.signin;
 
 namespace linker.plugins.signin
 {
@@ -66,7 +65,7 @@ namespace linker.plugins.signin
         {
             ClientGroupInfo[] info = param.Content.DeJson<ClientGroupInfo[]>();
             clientConfigTransfer.SetGroup(info);
-            clientSignInTransfer.ReSignIn();
+            //clientSignInTransfer.ReSignIn();
         }
 
         [ClientApiAccessAttribute(ClientApiAccess.Config)]
@@ -74,7 +73,7 @@ namespace linker.plugins.signin
         {
             ClientServerInfo servers = param.Content.DeJson<ClientServerInfo>();
             clientConfigTransfer.SetServer([servers]);
-            clientSignInTransfer.ReSignIn();
+            //clientSignInTransfer.ReSignIn();
             return true;
         }
 

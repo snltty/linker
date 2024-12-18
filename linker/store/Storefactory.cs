@@ -1,5 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using linker.messenger;
+using linker.tunnel.connection;
 using LiteDB;
 using LiteDB.Engine;
 using System.Net;
@@ -19,17 +21,10 @@ namespace linker.store
             bsonMapper.RegisterType<IPEndPoint>(serialize: (a) => a.ToString(), deserialize: (a) => IPEndPoint.Parse(a.AsString));
             bsonMapper.RegisterType<IPAddress>(serialize: (a) => a.ToString(), deserialize: (a) => IPAddress.Parse(a.AsString));
             bsonMapper.RegisterType<IPAddress[]>(serialize: (a) => a.ToJson(), deserialize: (a) => a.AsString.DeJson<IPAddress[]>());
+            bsonMapper.RegisterType<ITunnelConnection>(serialize: (a) => string.Empty, deserialize: (a) => null);
+            bsonMapper.RegisterType<IConnection>(serialize: (a) => string.Empty, deserialize: (a) => null);
 
-            if (Encoded() == false)
-            {
-                database = new LiteDatabase(@"./configs/db.db", bsonMapper);
-                var rebuildOptions = new RebuildOptions { Password = Helper.GlobalString };
-                database.Rebuild(rebuildOptions);
-            }
-            else
-            {
-                database = new LiteDatabase(new ConnectionString($"Filename=./configs/db.db; Password={Helper.GlobalString}"), bsonMapper);
-            }
+            database = new LiteDatabase(new ConnectionString($"Filename=./configs/db.db; Password={Helper.GlobalString}"), bsonMapper);
         }
 
         private bool Encoded()

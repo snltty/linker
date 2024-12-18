@@ -41,7 +41,6 @@ export default {
     components:{SForward,Updater,RelayServers},
     setup(props) {
         const globalData = injectGlobalData();
-        console.log(globalData.value.config.Client.Server);
         const state = reactive({
             list:globalData.value.config.Client.Server,
             height: computed(()=>globalData.value.height-90),
@@ -49,7 +48,7 @@ export default {
 
         const handleSave = ()=>{
             setSignInServers(state.list).then(()=>{
-                ElMessage.success('已操作');
+                ElMessage.success('已操作，请在右下角【信标服务器】重连');
             }).catch((err)=>{
                 console.log(err);
                 ElMessage.error('操作失败');

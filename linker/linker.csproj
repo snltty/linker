@@ -66,7 +66,9 @@
 			<ReferenceOutputAssembly>false</ReferenceOutputAssembly>
 			<IsTrimmable>false</IsTrimmable>
 		</ProjectReference>
+		<ProjectReference Include="..\linker.messenger.tunnel\linker.messenger.tunnel.csproj" />
 		<ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
+		<ProjectReference Include="..\linker.signin\linker.messenger.signin.csproj" />
 		<ProjectReference Include="..\linker.tunnel\linker.tunnel.csproj" />
 		<ProjectReference Include="..\linker.libs\linker.libs.csproj" />
 		<ProjectReference Include="..\linker.tun\linker.tun.csproj" />

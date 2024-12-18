@@ -16,11 +16,11 @@ namespace linker.plugins.messenger
         }
         public async Task Resolve(Socket socket, Memory<byte> memory)
         {
-            await messengerResolver.Resolve(socket, memory);
+            await messengerResolver.BeginReceiveServer(socket, memory);
         }
         public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
-            await messengerResolver.Resolve(socket, ep, memory);
+            await messengerResolver.BeginReceiveServer(socket, ep, memory);
         }
     }
 }
