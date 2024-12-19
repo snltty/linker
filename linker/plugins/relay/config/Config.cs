@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.extends;
-using linker.plugins.relay.client.transport;
+using linker.messenger.relay.client.transport;
+using linker.messenger.relay.server;
 using MemoryPack;
 using System.Net;
 
@@ -51,104 +52,14 @@ namespace linker.config
 #else
         public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
 #endif
-
         public DistributedInfo Distributed { get; set; } = new DistributedInfo { };
     }
 
     public sealed class DistributedInfo
     {
-        public RelayNodeInfo Node { get; set; } = new RelayNodeInfo { };
-        public RelayMasterInfo Master { get; set; } = new RelayMasterInfo { };
+        public RelayServerNodeInfo Node { get; set; } = new RelayServerNodeInfo { };
+        public RelayServerMasterInfo Master { get; set; } = new RelayServerMasterInfo { };
     }
-    public sealed class RelayMasterInfo
-    {
-#if DEBUG
-        public string SecretKey { get; set; } = Helper.GlobalString;
-#else
-        public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
-#endif
-    }
-    public sealed class RelayNodeInfo
-    {
-        public const string MASTER_NODE_ID = "824777CF-2804-83FE-DE71-69B7B7D3BBA7";
-
-        private string id = Guid.NewGuid().ToString().ToUpper();
-        public string Id
-        {
-            get => id; set
-            {
-                id = value.SubStr(0, 36);
-            }
-        }
-
-        private string name = Dns.GetHostName().SubStr(0, 12);
-        public string Name
-        {
-            get => name; set
-            {
-                name = value.SubStr(0, 12);
-            }
-        }
-        public string Host { get; set; } = string.Empty;
-
-        public int MaxConnection { get; set; } = 100;
-        public double MaxBandwidth { get; set; } = 1;
-        public double MaxBandwidthTotal { get; set; }
-        public double MaxGbTotal { get; set; }
-        public ulong MaxGbTotalLastBytes { get; set; }
-        public int MaxGbTotalMonth { get; set; }
-
-        public bool Public { get; set; }
-
-        public string MasterHost { get; set; } = string.Empty;
-#if DEBUG
-        public string MasterSecretKey { get; set; } = Helper.GlobalString;
-#else
-        public string MasterSecretKey { get; set; } = string.Empty;
-#endif
-    }
-
-    [MemoryPackable]
-    public sealed partial class RelayNodeReportInfo
-    {
-        public string Id { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-
-        public int MaxConnection { get; set; }
-        public double MaxBandwidth { get; set; }
-        public double MaxBandwidthTotal { get; set; }
-        public double MaxGbTotal { get; set; }
-        public ulong MaxGbTotalLastBytes { get; set; }
-
-        public double ConnectionRatio { get; set; }
-        public double BandwidthRatio { get; set; }
-
-        public bool Public { get; set; }
-
-        public int Delay { get; set; }
-
-        [MemoryPackAllowSerialize]
-        public IPEndPoint EndPoint { get; set; }
-
-        public long LastTicks { get; set; }
-    }
-
-    [MemoryPackable]
-    public sealed partial class RelayNodeDelayInfo
-    {
-        public string Id { get; set; } = string.Empty;
-        public int Delay { get; set; }
-
-        [MemoryPackAllowSerialize]
-        public IPAddress IP { get; set; }
-    }
-    [MemoryPackable]
-    public sealed partial class RelayNodeDelayWrapInfo
-    {
-        public string MachineId { get; set; } = string.Empty;
-        public Dictionary<string, RelayNodeDelayInfo> Nodes { get; set; }
-    }
-
     /// <summary>
     /// 中继服务器
     /// </summary>
@@ -169,7 +80,7 @@ namespace linker.config
         /// </summary>
         public bool SSL { get; set; } = true;
 
-        public RelayType RelayType { get; set; } = RelayType.Linker;
+        public RelayClientType RelayType { get; set; } = RelayClientType.Linker;
     }
 
 }

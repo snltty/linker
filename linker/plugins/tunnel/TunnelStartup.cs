@@ -26,31 +26,33 @@ namespace linker.plugins.tunnel
 
         public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
-            //序列化扩展
-            MemoryPackFormatterProvider.Register(new TunnelTransportWanPortInfoFormatter());
-            MemoryPackFormatterProvider.Register(new TunnelTransportItemInfoFormatter());
-            MemoryPackFormatterProvider.Register(new TunnelTransportInfoFormatter());
-            MemoryPackFormatterProvider.Register(new TunnelWanPortProtocolInfoFormatter());
-
-            //管理接口
-            serviceCollection.AddSingleton<TunnelApiController>();
-            //命令接口
-            serviceCollection.AddSingleton<PlusTunnelClientMessenger>();
 
             //外网端口协议
             serviceCollection.AddSingleton<TunnelWanPortTransfer>();
             //打洞协议
             serviceCollection.AddSingleton<TunnelTransfer>();
             serviceCollection.AddSingleton<TunnelUpnpTransfer>();
-
-
             serviceCollection.AddSingleton<TunnelExcludeIPTransfer>();
+
+            //序列化扩展
+            MemoryPackFormatterProvider.Register(new TunnelTransportWanPortInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TunnelTransportItemInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TunnelTransportInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TunnelWanPortProtocolInfoFormatter());
+
+
+            //命令接口
+            serviceCollection.AddSingleton<PlusTunnelClientMessenger>();
+            serviceCollection.AddSingleton<ITunnelMessengerAdapterStore, PlusTunnelMessengerAdapterStore>();
+
+
             serviceCollection.AddSingleton<TunnelExcludeIPTypesLoader>();
             serviceCollection.AddSingleton<TunnelConfigTransfer>();
             serviceCollection.AddSingleton<TunnelConfigSyncTransports>();
             serviceCollection.AddSingleton<TunnelDecenter>();
+            //管理接口
+            serviceCollection.AddSingleton<TunnelApiController>();
 
-            serviceCollection.AddSingleton<PlusTunnelAdapter>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
@@ -62,7 +64,6 @@ namespace linker.plugins.tunnel
 
             serviceCollection.AddSingleton<PlusTunnelServerMessenger>();
             serviceCollection.AddSingleton<PlusTunnelExternalResolver, PlusTunnelExternalResolver>();
-            serviceCollection.AddSingleton<TunnelExternalResolver>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)
@@ -73,7 +74,7 @@ namespace linker.plugins.tunnel
             ClientConfigTransfer clientConfigTransfer = serviceProvider.GetService<ClientConfigTransfer>();
             TunnelConfigTransfer tunnelConfigTransfer = serviceProvider.GetService<TunnelConfigTransfer>();
 
-            PlusTunnelAdapter tunnelAdapter = serviceProvider.GetService<PlusTunnelAdapter>();
+            ITunnelMessengerAdapterStore tunnelAdapter = serviceProvider.GetService<ITunnelMessengerAdapterStore>();
 
             LoggerHelper.Instance.Info($"tunnel route level getting.");
             tunnelConfigTransfer.RefreshRouteLevel();

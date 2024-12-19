@@ -10,6 +10,7 @@ using linker.plugins.tunnel;
 using System.Buffers;
 using linker.plugins.relay.client;
 using linker.plugins.pcp;
+using linker.messenger.relay.client;
 
 namespace linker.plugins.tuntap
 {
@@ -29,7 +30,7 @@ namespace linker.plugins.tuntap
         protected override string TransactionId => "tuntap";
 
         public TuntapProxy(ClientConfigTransfer clientConfigTransfer,
-            TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, PcpTransfer pcpTransfer,
+            TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
             ClientSignInTransfer clientSignInTransfer, TuntapTransfer tuntapTransfer, ClientSignInState clientSignInState,
             RelayClientConfigTransfer relayClientConfigTransfer, TuntapConfigTransfer tuntapConfigTransfer)
             : base(tunnelTransfer, relayTransfer, pcpTransfer, clientSignInTransfer, clientSignInState, clientConfigTransfer, relayClientConfigTransfer)

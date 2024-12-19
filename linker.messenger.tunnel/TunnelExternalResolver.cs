@@ -27,7 +27,7 @@ namespace linker.messenger.tunnel
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{ep} get udp external port");
 
             AddReceive((ulong)memory.Length);
-            byte[] sendData = ArrayPool<byte>.Shared.Rent(20);
+            byte[] sendData = ArrayPool<byte>.Shared.Rent(1024);
             try
             {
                 var send = BuildSendData(sendData, ep);

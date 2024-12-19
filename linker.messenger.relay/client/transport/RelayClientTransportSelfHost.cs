@@ -1,46 +1,32 @@
-﻿using linker.config;
-using linker.plugins.relay.messenger;
+﻿
+using linker.messenger.relay.messenger;
 using linker.tunnel.connection;
 using linker.libs;
 using linker.libs.extends;
-using MemoryPack;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
-using linker.plugins.messenger;
-using linker.plugins.client;
 using System.Buffers;
-using linker.plugins.relay.server;
-using linker.plugins.resolver;
-using System.Net.NetworkInformation;
-using linker.messenger;
+using linker.messenger.relay.server;
 
-namespace linker.plugins.relay.client.transport
+namespace linker.messenger.relay.client.transport
 {
-    public sealed class TransportSelfHost : ITransport
+    public sealed class RelayClientTransportSelfHost : IRelayClientTransport
     {
         public string Name => "Linker";
-        public RelayType Type => RelayType.Linker;
+        public RelayClientType Type => RelayClientType.Linker;
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Tcp;
 
         private readonly IMessengerSender messengerSender;
-        private readonly ClientSignInState clientSignInState;
-
-        private X509Certificate2 certificate;
-
-
-        public TransportSelfHost(IMessengerSender messengerSender, ClientSignInState clientSignInState, ClientConfigTransfer clientConfigTransfer)
+        private readonly ISerializer serializer;
+        private readonly IRelayClientStore relayClientStore;
+        public RelayClientTransportSelfHost(IMessengerSender messengerSender, ISerializer serializer, IRelayClientStore relayClientStore)
         {
             this.messengerSender = messengerSender;
-            this.clientSignInState = clientSignInState;
-
-            string path = Path.GetFullPath(clientConfigTransfer.SSL.File);
-            if (File.Exists(path))
-            {
-                certificate = new X509Certificate2(path, clientConfigTransfer.SSL.Password, X509KeyStorageFlags.Exportable);
-            }
+            this.serializer = serializer;
+            this.relayClientStore = relayClientStore;
         }
 
         public async Task<ITunnelConnection> RelayAsync(RelayInfo relayInfo)
@@ -128,9 +114,9 @@ namespace linker.plugins.relay.client.transport
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
-                Connection = clientSignInState.Connection,
+                Connection = relayClientStore.SigninConnection,
                 MessengerId = (ushort)RelayMessengerIds.RelayAsk,
-                Payload = MemoryPackSerializer.Serialize(relayInfo),
+                Payload = serializer.Serialize(relayInfo),
                 Timeout = 2000
             }).ConfigureAwait(false);
             if (resp.Code != MessageResponeCodes.OK)
@@ -138,66 +124,12 @@ namespace linker.plugins.relay.client.transport
                 return new RelayAskResultInfo();
             }
 
-            RelayAskResultInfo result = MemoryPackSerializer.Deserialize<RelayAskResultInfo>(resp.Data.Span);
+            RelayAskResultInfo result = serializer.Deserialize<RelayAskResultInfo>(resp.Data.Span);
 
             return result;
 
         }
-        private async Task<List<RelayNodeReportInfo>> TestDelay(List<RelayNodeReportInfo> list)
-        {
-            //测试前几个就行了
-            List<RelayNodeReportInfo> result = list.Take(10).ToList();
-
-            Dictionary<string, RelayNodeDelayInfo> delays = result.ToDictionary(c => c.Id, d => new RelayNodeDelayInfo
-            {
-                Delay = 65535,
-                Id = d.Id,
-                IP = d.EndPoint == null || d.EndPoint.Address.Equals(IPAddress.Any) ? clientSignInState.Connection.Address.Address : d.EndPoint.Address
-            });
-
-            //让对面测一测
-            Task<MessageResponeInfo> respTask = messengerSender.SendReply(new MessageRequestWrap
-            {
-                Connection = clientSignInState.Connection,
-                MessengerId = (ushort)RelayMessengerIds.NodeDelayForward,
-                Payload = MemoryPackSerializer.Serialize(delays),
-                Timeout = 5000
-            });
-            //自己测一测
-            var tasks = delays.Select(async (c) =>
-            {
-                using Ping ping = new Ping();
-                var resp = await ping.SendPingAsync(c.Value.IP, 1000);
-                c.Value.Delay = resp.Status == IPStatus.Success ? (int)resp.RoundtripTime : 65535;
-            });
-            await Task.WhenAll(tasks);
-            MessageResponeInfo resp = await respTask;
-
-            //两边的延迟加起来，看哪个服务器更快
-            if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
-            {
-                Dictionary<string, RelayNodeDelayInfo> remotes = MemoryPackSerializer.Deserialize<Dictionary<string, RelayNodeDelayInfo>>(resp.Data.Span);
-                foreach (var item in result)
-                {
-                    if (delays.TryGetValue(item.Id, out RelayNodeDelayInfo local) && remotes.TryGetValue(item.Id, out RelayNodeDelayInfo remote))
-                    {
-                        item.Delay = local.Delay + remote.Delay;
-                    }
-                }
-                return result.OrderByDescending(c => c.LastTicks)
-                    //带宽倒序
-                    .OrderByDescending(c => c.MaxBandwidth)
-                    //最大连接数倒序
-                    .OrderByDescending(c => c.MaxConnection)
-                    //连接数比例升序
-                    .OrderBy(c => c.ConnectionRatio)
-                    //延迟升序
-                    .OrderBy(c => c.Delay).ToList();
-            }
-
-            return result;
-        }
-        private async Task<Socket> ConnectNodeServer(RelayInfo relayInfo, List<RelayNodeReportInfo> nodes)
+        private async Task<Socket> ConnectNodeServer(RelayInfo relayInfo, List<RelayServerNodeReportInfo> nodes)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1 * 1024);
 
@@ -210,7 +142,7 @@ namespace linker.plugins.relay.client.transport
                         IPEndPoint ep = node.EndPoint;
                         if (ep == null || ep.Address.Equals(IPAddress.Any))
                         {
-                            ep = clientSignInState.Connection.Address;
+                            ep = relayClientStore.SigninConnection.Address;
                         }
 
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -222,7 +154,7 @@ namespace linker.plugins.relay.client.transport
                         await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
 
                         //建立关联
-                        RelayMessage relayMessage = new RelayMessage
+                        RelayMessageInfo relayMessage = new RelayMessageInfo
                         {
                             FlowId = relayInfo.FlowingId,
                             Type = RelayMessengerType.Ask,
@@ -230,8 +162,9 @@ namespace linker.plugins.relay.client.transport
                             ToId = relayInfo.RemoteMachineId,
                             NodeId = node.Id,
                         };
-                        await socket.SendAsync(new byte[] { (byte)ResolverType.Relay });
-                        await socket.SendAsync(MemoryPackSerializer.Serialize(relayMessage));
+                        if (relayClientStore.Flag > 0)
+                            await socket.SendAsync(new byte[] { relayClientStore.Flag });
+                        await socket.SendAsync(serializer.Serialize(relayMessage));
 
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"relay  connected {ep}");
 
@@ -275,9 +208,9 @@ namespace linker.plugins.relay.client.transport
             //通知对方去确认中继
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
-                Connection = clientSignInState.Connection,
+                Connection = relayClientStore.SigninConnection,
                 MessengerId = (ushort)RelayMessengerIds.RelayForward,
-                Payload = MemoryPackSerializer.Serialize(relayInfo),
+                Payload = serializer.Serialize(relayInfo),
             });
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
@@ -291,13 +224,13 @@ namespace linker.plugins.relay.client.transport
         {
             try
             {
-                IPEndPoint ep = relayInfo.Server == null || relayInfo.Server.Address.Equals(IPAddress.Any) ? clientSignInState.Connection.Address : relayInfo.Server;
+                IPEndPoint ep = relayInfo.Server == null || relayInfo.Server.Address.Equals(IPAddress.Any) ? relayClientStore.SigninConnection.Address : relayInfo.Server;
 
                 Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 socket.KeepAlive();
                 await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
 
-                RelayMessage relayMessage = new RelayMessage
+                RelayMessageInfo relayMessage = new RelayMessageInfo
                 {
                     FlowId = relayInfo.FlowingId,
                     Type = RelayMessengerType.Answer,
@@ -305,8 +238,9 @@ namespace linker.plugins.relay.client.transport
                     ToId = relayInfo.RemoteMachineId,
                     NodeId = relayInfo.NodeId,
                 };
-                await socket.SendAsync(new byte[] { (byte)ResolverType.Relay });
-                await socket.SendAsync(MemoryPackSerializer.Serialize(relayMessage));
+                if (relayClientStore.Flag > 0)
+                    await socket.SendAsync(new byte[] { relayClientStore.Flag });
+                await socket.SendAsync(serializer.Serialize(relayMessage));
 
                 _ = WaitSSL(socket, relayInfo).ContinueWith((result) =>
                 {
@@ -333,14 +267,8 @@ namespace linker.plugins.relay.client.transport
                 SslStream sslStream = null;
                 if (relayInfo.SSL)
                 {
-                    if (certificate == null)
-                    {
-                        LoggerHelper.Instance.Error($"need ssl");
-                        socket.SafeClose();
-                        return null;
-                    }
                     sslStream = new SslStream(new NetworkStream(socket, false), false);
-                    await sslStream.AuthenticateAsServerAsync(certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false).ConfigureAwait(false);
+                    await sslStream.AuthenticateAsServerAsync(relayClientStore.Certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false).ConfigureAwait(false);
                 }
                 return new TunnelConnectionTcp
                 {
@@ -371,27 +299,27 @@ namespace linker.plugins.relay.client.transport
             return null;
         }
 
-        public async Task<List<RelayNodeReportInfo>> RelayTestAsync(RelayTestInfo relayTestInfo)
+        public async Task<List<RelayServerNodeReportInfo>> RelayTestAsync(RelayTestInfo relayTestInfo)
         {
             try
             {
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
-                    Connection = clientSignInState.Connection,
+                    Connection = relayClientStore.SigninConnection,
                     MessengerId = (ushort)RelayMessengerIds.RelayTest,
-                    Payload = MemoryPackSerializer.Serialize(relayTestInfo),
+                    Payload = serializer.Serialize(relayTestInfo),
                     Timeout = 2000
                 }).ConfigureAwait(false);
 
                 if (resp.Code == MessageResponeCodes.OK)
                 {
-                    return MemoryPackSerializer.Deserialize<List<RelayNodeReportInfo>>(resp.Data.Span);
+                    return serializer.Deserialize<List<RelayServerNodeReportInfo>>(resp.Data.Span);
                 }
             }
             catch (Exception)
             {
             }
-            return new List<RelayNodeReportInfo>();
+            return new List<RelayServerNodeReportInfo>();
         }
     }
 }

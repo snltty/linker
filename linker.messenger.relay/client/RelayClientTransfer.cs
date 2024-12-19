@@ -1,29 +1,28 @@
-﻿using linker.config;
-using linker.plugins.relay.client.transport;
+﻿using linker.messenger.relay.client.transport;
 using linker.tunnel.connection;
 using linker.libs;
 using linker.libs.extends;
 using System.Collections.Concurrent;
 
-namespace linker.plugins.relay.client
+namespace linker.messenger.relay.client
 {
     /// <summary>
     /// 中继
     /// </summary>
-    public sealed class RelayTransfer
+    public sealed class RelayClientTransfer
     {
-        public List<ITransport> Transports { get; private set; }
+        public List<IRelayClientTransport> Transports { get; private set; }
 
         private ConcurrentDictionary<string, bool> connectingDic = new ConcurrentDictionary<string, bool>();
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
-        private readonly RelayClientConfigTransfer relayClientConfigTransfer;
-        public RelayTransfer(RelayClientConfigTransfer relayClientConfigTransfer)
+        private readonly IRelayClientStore relayClientStore;
+        public RelayClientTransfer(IRelayClientStore relayClientStore)
         {
-            this.relayClientConfigTransfer = relayClientConfigTransfer;
+            this.relayClientStore = relayClientStore;
         }
 
-        public void LoadTransports(List<ITransport> list)
+        public void LoadTransports(List<IRelayClientTransport> list)
         {
             Transports = list;
         }
@@ -69,7 +68,7 @@ namespace linker.plugins.relay.client
             }
             try
             {
-                ITransport transport = Transports.FirstOrDefault(c => c.Type == relayClientConfigTransfer.Server.RelayType && relayClientConfigTransfer.Server.Disabled == false);
+                IRelayClientTransport transport = Transports.FirstOrDefault(c => c.Type == relayClientStore.RelayType && relayClientStore.Disabled == false);
                 if (transport == null)
                 {
                     return null;
@@ -82,10 +81,10 @@ namespace linker.plugins.relay.client
                     FromMachineName = string.Empty,
                     RemoteMachineId = remoteMachineId,
                     RemoteMachineName = string.Empty,
-                    SecretKey = relayClientConfigTransfer.Server.SecretKey,
+                    SecretKey = relayClientStore.SecretKey,
                     TransactionId = transactionId,
                     TransportName = transport.Name,
-                    SSL = relayClientConfigTransfer.Server.SSL,
+                    SSL = relayClientStore.SSL,
                     NodeId = nodeId
                 };
 
@@ -131,7 +130,7 @@ namespace linker.plugins.relay.client
 
             try
             {
-                ITransport _transports = Transports.FirstOrDefault(c => c.Name == relayInfo.TransportName);
+                IRelayClientTransport _transports = Transports.FirstOrDefault(c => c.Name == relayInfo.TransportName);
                 if (_transports == null) return false;
 
                 await _transports.OnBeginAsync(relayInfo, (connection) =>

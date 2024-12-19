@@ -22,6 +22,8 @@ namespace linker.plugins.signin
 
         public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
+            serviceCollection.AddSingleton<SignInArgsTransfer>();
+
             MemoryPackFormatterProvider.Register(new SignInfoFormatter());
             MemoryPackFormatterProvider.Register(new SignCacheInfoFormatter());
             MemoryPackFormatterProvider.Register(new SignInListRequestInfoFormatter());
@@ -34,15 +36,17 @@ namespace linker.plugins.signin
 
             serviceCollection.AddSingleton<PlusSignInClientMessenger>();
 
-            serviceCollection.AddSingleton<SignInArgsTransfer>();
+           
             serviceCollection.AddSingleton<SignInArgsTypesLoader>();
             serviceCollection.AddSingleton<SignInArgsMachineKeyClient>();
-
             serviceCollection.AddSingleton<SignInClientApiController>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
+            serviceCollection.AddSingleton<SignCaching>();
+            serviceCollection.AddSingleton<SignInArgsTransfer>();
+
             MemoryPackFormatterProvider.Register(new SignInfoFormatter());
             MemoryPackFormatterProvider.Register(new SignCacheInfoFormatter());
             MemoryPackFormatterProvider.Register(new SignInListRequestInfoFormatter());
@@ -52,16 +56,13 @@ namespace linker.plugins.signin
             MemoryPackFormatterProvider.Register(new SignInIdsResponseItemInfoFormatter());
             MemoryPackFormatterProvider.Register(new SignInResponseInfoFormatter());
 
-            serviceCollection.AddSingleton<SignCaching>();
-            serviceCollection.AddSingleton<SignInServerMessenger>();
+          
             serviceCollection.AddSingleton<ISignInStore, SignInStore>();
-
             serviceCollection.AddSingleton<PlusSignInServerMessenger>();
 
-            serviceCollection.AddSingleton<SignInArgsTransfer>();
+          
             serviceCollection.AddSingleton<SignInArgsTypesLoader>();
             serviceCollection.AddSingleton<SignInArgsMachineKeyServer>();
-
             serviceCollection.AddSingleton<SignInConfigTransfer>();
         }
 

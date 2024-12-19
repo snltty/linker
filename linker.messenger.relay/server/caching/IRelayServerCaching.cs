@@ -1,6 +1,6 @@
-﻿namespace linker.plugins.relay.server.caching
+﻿namespace linker.messenger.relay.server.caching
 {
-    public interface IRelayCaching
+    public interface IRelayServerCaching
     {
         public string Name { get; }
 

@@ -42,9 +42,9 @@ namespace linker.plugins.flow
             serviceCollection.AddSingleton<IMessengerSender, MessengerSenderFlow>();
 
             serviceCollection.AddSingleton<RelayFlow>();
-            serviceCollection.AddSingleton<RelayResolver, RelayResolverFlow>();
+            serviceCollection.AddSingleton<PlusRelayServerResolver, RelayResolverFlow>();
             serviceCollection.AddSingleton<RelayReportFlow>();
-            serviceCollection.AddSingleton<RelayReportResolver, RelayReportResolverFlow>();
+            serviceCollection.AddSingleton<PlusRelayServerReportResolver, RelayReportResolverFlow>();
 
             serviceCollection.AddSingleton<ExternalFlow>();
             serviceCollection.AddSingleton<PlusTunnelExternalResolver, ExternalResolverFlow>();

@@ -2,29 +2,25 @@
 using System.Buffers;
 using linker.libs.extends;
 using System.Collections.Concurrent;
-using linker.plugins.resolver;
 using System.Net;
-using MemoryPack;
-using linker.config;
 using linker.libs;
 
-namespace linker.plugins.relay.server
+namespace linker.messenger.relay.server
 {
     /// <summary>
     /// 中继连接处理
     /// </summary>
-    public class RelayResolver : IResolver
+    public class RelayServerResolver
     {
-        public ResolverType Type => ResolverType.Relay;
-
         private readonly RelayServerNodeTransfer relayServerNodeTransfer;
-
-        public RelayResolver(RelayServerNodeTransfer relayServerNodeTransfer)
+        private readonly ISerializer serializer;
+        public RelayServerResolver(RelayServerNodeTransfer relayServerNodeTransfer, ISerializer serializer)
         {
             this.relayServerNodeTransfer = relayServerNodeTransfer;
+            this.serializer = serializer;
         }
 
-        private readonly ConcurrentDictionary<ulong, RelayWrap> relayDic = new ConcurrentDictionary<ulong, RelayWrap>();
+        private readonly ConcurrentDictionary<ulong, RelayWrapInfo> relayDic = new ConcurrentDictionary<ulong, RelayWrapInfo>();
 
 
         public virtual void AddReceive(string key, string from, string to, string groupid, ulong bytes)
@@ -51,9 +47,9 @@ namespace linker.plugins.relay.server
             try
             {
                 int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
-                RelayMessage relayMessage = MemoryPackSerializer.Deserialize<RelayMessage>(buffer.AsMemory(0, length).Span);
+                RelayMessageInfo relayMessage = serializer.Deserialize<RelayMessageInfo>(buffer.AsMemory(0, length).Span);
 
-                if (relayMessage.Type == RelayMessengerType.Ask && relayMessage.NodeId != RelayNodeInfo.MASTER_NODE_ID)
+                if (relayMessage.Type == RelayMessengerType.Ask && relayMessage.NodeId != RelayServerNodeInfo.MASTER_NODE_ID)
                 {
                     if (relayServerNodeTransfer.Validate() == false)
                     {
@@ -67,7 +63,7 @@ namespace linker.plugins.relay.server
                 //ask 是发起端来的，那key就是 发起端->目标端， answer的，目标和来源会交换，所以转换一下
                 string key = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}->{relayMessage.FlowId}" : $"{relayMessage.ToId}->{relayMessage.FromId}->{relayMessage.FlowId}";
                 //获取缓存
-                RelayCache relayCache = await relayServerNodeTransfer.TryGetRelayCache(key, relayMessage.NodeId);
+                RelayCacheInfo relayCache = await relayServerNodeTransfer.TryGetRelayCache(key, relayMessage.NodeId);
                 if (relayCache == null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -84,7 +80,7 @@ namespace linker.plugins.relay.server
                         case RelayMessengerType.Ask:
                             {
                                 //添加本地缓存
-                                RelayWrap relayWrap = new RelayWrap { Socket = socket, Tcs = new TaskCompletionSource<Socket>() };
+                                RelayWrapInfo relayWrap = new RelayWrapInfo { Socket = socket, Tcs = new TaskCompletionSource<Socket>() };
                                 relayWrap.Limit.SetLimit(relayServerNodeTransfer.GetBandwidthLimit());
 
                                 relayDic.TryAdd(relayCache.FlowId, relayWrap);
@@ -99,7 +95,7 @@ namespace linker.plugins.relay.server
                         case RelayMessengerType.Answer:
                             {
                                 //看发起端缓存
-                                if (relayDic.TryRemove(relayCache.FlowId, out RelayWrap relayWrap) == false || relayWrap.Socket == null)
+                                if (relayDic.TryRemove(relayCache.FlowId, out RelayWrapInfo relayWrap) == false || relayWrap.Socket == null)
                                 {
                                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                                         LoggerHelper.Instance.Error($"relay {relayMessage.Type} get cache fail,flowid:{relayMessage.FlowId}");
@@ -124,7 +120,7 @@ namespace linker.plugins.relay.server
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         LoggerHelper.Instance.Error($"{ex},flowid:{relayMessage.FlowId}");
-                    if (relayDic.TryRemove(relayCache.FlowId, out RelayWrap remove))
+                    if (relayDic.TryRemove(relayCache.FlowId, out RelayWrapInfo remove))
                     {
                         remove.Socket?.SafeClose();
                     }
@@ -141,7 +137,7 @@ namespace linker.plugins.relay.server
                 ArrayPool<byte>.Shared.Return(buffer);
             }
         }
-        private async Task CopyToAsync(RelayCache cache, RelaySpeedLimit limit, Socket source, Socket destination)
+        private async Task CopyToAsync(RelayCacheInfo cache, RelaySpeedLimit limit, Socket source, Socket destination)
         {
             byte[] buffer = new byte[4 * 1024];
             try
@@ -202,7 +198,6 @@ namespace linker.plugins.relay.server
         Ask = 0,
         Answer = 1,
     }
-
     public class RelaySpeedLimit
     {
         private uint relayLimit = 0;
@@ -247,8 +242,7 @@ namespace linker.plugins.relay.server
         }
     }
 
-    [MemoryPackable]
-    public sealed partial class RelayCache
+    public sealed partial class RelayCacheInfo
     {
         public ulong FlowId { get; set; }
         public string FromId { get; set; }
@@ -258,17 +252,14 @@ namespace linker.plugins.relay.server
         public string GroupId { get; set; }
     }
 
-    public sealed class RelayWrap
+    public sealed class RelayWrapInfo
     {
         public TaskCompletionSource<Socket> Tcs { get; set; }
         public Socket Socket { get; set; }
-
-        [MemoryPackIgnore]
         public RelaySpeedLimit Limit { get; set; } = new RelaySpeedLimit();
     }
 
-    [MemoryPackable]
-    public sealed partial class RelayMessage
+    public sealed partial class RelayMessageInfo
     {
         public RelayMessengerType Type { get; set; }
         public ulong FlowId { get; set; }

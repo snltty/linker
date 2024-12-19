@@ -1,14 +1,12 @@
-﻿using linker.config;
-using linker.tunnel;
+﻿using linker.tunnel;
 using linker.tunnel.connection;
 using System.Collections.Concurrent;
 using System.Net;
 using linker.plugins.client;
 using linker.plugins.tunnel;
-using linker.plugins.messenger;
 using linker.plugins.relay.client;
-using linker.client.config;
 using linker.plugins.pcp;
+using linker.messenger.relay.client;
 
 namespace linker.plugins.forward.proxy
 {
@@ -20,7 +18,7 @@ namespace linker.plugins.forward.proxy
 
         protected override string TransactionId => "forward";
 
-        public ForwardProxy(ClientConfigTransfer clientConfigTransfer, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, PcpTransfer pcpTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState, RelayClientConfigTransfer  relayClientConfigTransfer)
+        public ForwardProxy(ClientConfigTransfer clientConfigTransfer, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState, RelayClientConfigTransfer  relayClientConfigTransfer)
             : base(tunnelTransfer, relayTransfer, pcpTransfer, clientSignInTransfer, clientSignInState, clientConfigTransfer, relayClientConfigTransfer)
         {
             TaskUdp();

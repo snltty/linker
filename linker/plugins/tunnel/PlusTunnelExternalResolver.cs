@@ -10,10 +10,8 @@ namespace linker.plugins.tunnel
     {
         public ResolverType Type => ResolverType.External;
 
-        private readonly TunnelExternalResolver tunnelExternalResolver;
-        public PlusTunnelExternalResolver(TunnelExternalResolver tunnelExternalResolver)
+        public PlusTunnelExternalResolver()
         {
-            this.tunnelExternalResolver = tunnelExternalResolver;
         }
     }
 }

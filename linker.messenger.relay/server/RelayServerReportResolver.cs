@@ -1,17 +1,14 @@
 ﻿using linker.libs.extends;
-using linker.plugins.resolver;
 using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
 
-namespace linker.plugins.relay.server
+namespace linker.messenger.relay.server
 {
-    public class RelayReportResolver : IResolver
+    public class RelayServerReportResolver
     {
-        public ResolverType Type => ResolverType.RelayReport;
-
         private readonly RelayServerMasterTransfer relayServerTransfer;
-        public RelayReportResolver(RelayServerMasterTransfer relayServerTransfer)
+        public RelayServerReportResolver(RelayServerMasterTransfer relayServerTransfer)
         {
             this.relayServerTransfer = relayServerTransfer;
         }

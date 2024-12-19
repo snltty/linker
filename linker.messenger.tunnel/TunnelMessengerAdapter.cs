@@ -9,33 +9,37 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace linker.plugins.tunnel
 {
+    public interface ITunnelMessengerAdapterStore
+    {
+        /// <summary>
+        /// 获取信标连接
+        /// </summary>
+        public IConnection SignConnection { get; }
+        /// <summary>
+        /// 获取本地网信息
+        /// </summary>
+        public NetworkInfo Network { get; }
+        /// <summary>
+        /// ssl
+        /// </summary>
+        public X509Certificate2 Certificate { get; }
+        /// <summary>
+        /// 打洞协议列表，按照这个列表去打洞
+        /// </summary>
+        public List<TunnelTransportItemInfo> TunnelTransports { get; }
+        /// <summary>
+        /// 保存打洞协议列表，因为可能会有新的打洞协议
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public bool SetTunnelTransports(List<TunnelTransportItemInfo> list);
+
+    }
     /// <summary>
     /// 打洞信标适配
     /// </summary>
     public class TunnelMessengerAdapter
     {
-        /// <summary>
-        /// 获取信标连接
-        /// </summary>
-        public Func<IConnection> GetSignConnection { get; set; } = () => { return null; };
-        /// <summary>
-        /// 获取本地网信息
-        /// </summary>
-        public Func<NetworkInfo> GetNetwork { get; set; } = () => { return new NetworkInfo(); };
-        /// <summary>
-        /// ssl
-        /// </summary>
-        public Func<X509Certificate2> Certificate { get; set; } = () => null;
-        /// <summary>
-        /// 打洞协议列表，按照这个列表去打洞
-        /// </summary>
-        public Func<List<TunnelTransportItemInfo>> GetTunnelTransports { get; set; } = () => new List<TunnelTransportItemInfo>();
-        /// <summary>
-        /// 保存打洞协议列表，因为可能会有新的打洞协议
-        /// </summary>
-        public Action<List<TunnelTransportItemInfo>, bool> SetTunnelTransports { get; set; } = (list, update) => { };
-
-
         private readonly IMessengerSender messengerSender;
 
         private readonly TunnelExcludeIPTransfer excludeIPTransfer;
@@ -50,7 +54,9 @@ namespace linker.plugins.tunnel
 
         private readonly ISerializer serializer;
 
-        public TunnelMessengerAdapter(IMessengerSender messengerSender, TunnelExcludeIPTransfer excludeIPTransfer, TunnelWanPortTransfer tunnelWanPortTransfer, TunnelUpnpTransfer tunnelUpnpTransfer, TunnelTransfer tunnelTransfer, ISerializer serializer)
+        private readonly ITunnelMessengerAdapterStore tunnelMessengerAdapterStore;
+
+        public TunnelMessengerAdapter(IMessengerSender messengerSender, TunnelExcludeIPTransfer excludeIPTransfer, TunnelWanPortTransfer tunnelWanPortTransfer, TunnelUpnpTransfer tunnelUpnpTransfer, TunnelTransfer tunnelTransfer, ISerializer serializer,ITunnelMessengerAdapterStore tunnelMessengerAdapterStore)
         {
             this.messengerSender = messengerSender;
             this.excludeIPTransfer = excludeIPTransfer;
@@ -61,6 +67,8 @@ namespace linker.plugins.tunnel
 
             this.serializer = serializer;
 
+            this.tunnelMessengerAdapterStore = tunnelMessengerAdapterStore;
+
             //加载外网端口
             tunnelWanPortTransfer.LoadTransports(new List<ITunnelWanPortProtocol>
             {
@@ -68,11 +76,11 @@ namespace linker.plugins.tunnel
                 new TunnelWanPortProtocolLinkerTcp(),
             });
 
-            tunnelTransfer.LocalIP = () => { IConnection connection = GetSignConnection(); return connection?.LocalAddress.Address ?? IPAddress.Any; };
-            tunnelTransfer.ServerHost = () => { IConnection connection = GetSignConnection(); return connection?.Address ?? null; };
-            tunnelTransfer.Certificate = () => Certificate();
-            tunnelTransfer.GetTunnelTransports = () => GetTunnelTransports();
-            tunnelTransfer.SetTunnelTransports = (transports, update) => SetTunnelTransports(transports, update);
+            tunnelTransfer.LocalIP = () => tunnelMessengerAdapterStore.SignConnection?.LocalAddress.Address ?? IPAddress.Any; ;
+            tunnelTransfer.ServerHost = () =>  tunnelMessengerAdapterStore.SignConnection?.Address ?? null; 
+            tunnelTransfer.Certificate = () => tunnelMessengerAdapterStore.Certificate;
+            tunnelTransfer.GetTunnelTransports = () => tunnelMessengerAdapterStore.TunnelTransports;
+            tunnelTransfer.SetTunnelTransports = (transports, update) => tunnelMessengerAdapterStore.SetTunnelTransports(transports);
             tunnelTransfer.GetLocalConfig = GetLocalConfig;
             tunnelTransfer.GetRemoteWanPort = GetRemoteWanPort;
             tunnelTransfer.SendConnectBegin = SendConnectBegin;
@@ -96,7 +104,7 @@ namespace linker.plugins.tunnel
         {
             var excludeips = excludeIPTransfer.Get();
 
-            NetworkInfo networkInfo = GetNetwork();
+            NetworkInfo networkInfo = tunnelMessengerAdapterStore.Network;
             networkInfo.LocalIps = networkInfo.LocalIps.Where(c =>
             {
                 if (c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
@@ -122,7 +130,7 @@ namespace linker.plugins.tunnel
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
-                Connection = GetSignConnection(),
+                Connection = tunnelMessengerAdapterStore.SignConnection,
                 MessengerId = (ushort)TunnelMessengerIds.InfoForward,
                 Payload = serializer.Serialize(info)
             }).ConfigureAwait(false);
@@ -136,7 +144,7 @@ namespace linker.plugins.tunnel
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
-                Connection = GetSignConnection(),
+                Connection = tunnelMessengerAdapterStore.SignConnection,
                 MessengerId = (ushort)TunnelMessengerIds.BeginForward,
                 Payload = serializer.Serialize(tunnelTransportInfo)
             }).ConfigureAwait(false);
@@ -146,7 +154,7 @@ namespace linker.plugins.tunnel
         {
             await messengerSender.SendOnly(new MessageRequestWrap
             {
-                Connection = GetSignConnection(),
+                Connection = tunnelMessengerAdapterStore.SignConnection,
                 MessengerId = (ushort)TunnelMessengerIds.FailForward,
                 Payload = serializer.Serialize(tunnelTransportInfo)
             }).ConfigureAwait(false);
@@ -156,7 +164,7 @@ namespace linker.plugins.tunnel
         {
             await messengerSender.SendOnly(new MessageRequestWrap
             {
-                Connection = GetSignConnection(),
+                Connection = tunnelMessengerAdapterStore.SignConnection,
                 MessengerId = (ushort)TunnelMessengerIds.SuccessForward,
                 Payload = serializer.Serialize(tunnelTransportInfo)
             }).ConfigureAwait(false);
@@ -178,10 +186,9 @@ namespace linker.plugins.tunnel
             }
             else
             {
-                IConnection connection = GetSignConnection();
-                if (connection != null && connection.Connected)
+                if (tunnelMessengerAdapterStore.SignConnection != null && tunnelMessengerAdapterStore.SignConnection.Connected)
                 {
-                    int ip = connection.LocalAddress.Address.GetAddressBytes()[3];
+                    int ip = tunnelMessengerAdapterStore.SignConnection.LocalAddress.Address.GetAddressBytes()[3];
                     tunnelUpnpTransfer.SetMap(18180 + ip);
 
                     _ = transportTcpPortMap.Listen(18180 + ip);

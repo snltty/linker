@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.messenger.relay.server;
 using linker.plugins.relay.server;
 using MemoryPack;
 using System.Text.Json.Serialization;
@@ -19,7 +20,7 @@ namespace linker.plugins.flow
 
     }
 
-    public sealed class RelayReportResolverFlow : RelayReportResolver
+    public sealed class RelayReportResolverFlow : PlusRelayServerReportResolver
     {
         private readonly RelayReportFlow relayReportFlow;
         public RelayReportResolverFlow(RelayReportFlow relayReportFlow, RelayServerMasterTransfer relayServerTransfer) : base(relayServerTransfer)
@@ -34,10 +35,10 @@ namespace linker.plugins.flow
 
 
 
-    public sealed class RelayResolverFlow : RelayResolver
+    public sealed class RelayResolverFlow : PlusRelayServerResolver
     {
         private readonly RelayFlow relayFlow;
-        public RelayResolverFlow(RelayFlow relayFlow, RelayServerNodeTransfer relayServerNodeTransfer) : base(relayServerNodeTransfer)
+        public RelayResolverFlow(RelayFlow relayFlow, RelayServerNodeTransfer relayServerNodeTransfer,ISerializer serializer) : base(relayServerNodeTransfer, serializer)
         {
             this.relayFlow = relayFlow;
         }

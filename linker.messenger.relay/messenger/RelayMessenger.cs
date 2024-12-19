@@ -1,25 +1,24 @@
-﻿using linker.config;
-using linker.plugins.relay.client.transport;
+﻿
+using linker.messenger.relay.client.transport;
 using linker.libs;
-using MemoryPack;
-using linker.plugins.relay.client;
-using linker.plugins.relay.server.validator;
-using linker.plugins.relay.server;
-using System.Net.NetworkInformation;
-using linker.messenger;
+using linker.messenger.relay.client;
+using linker.messenger.relay.server;
 using linker.messenger.signin;
+using linker.messenger.relay.server.validator;
 
-namespace linker.plugins.relay.messenger
+namespace linker.messenger.relay.messenger
 {
     /// <summary>
     /// 中继客户端
     /// </summary>
-    public sealed class RelayClientMessenger : IMessenger
+    public class RelayClientMessenger : IMessenger
     {
-        private readonly RelayTransfer relayTransfer;
-        public RelayClientMessenger(RelayTransfer relayTransfer)
+        private readonly RelayClientTransfer relayTransfer;
+        private readonly ISerializer serializer;
+        public RelayClientMessenger(RelayClientTransfer relayTransfer, ISerializer serializer)
         {
             this.relayTransfer = relayTransfer;
+            this.serializer = serializer;
         }
 
         /// <summary>
@@ -30,52 +29,30 @@ namespace linker.plugins.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.Relay)]
         public async Task Relay(IConnection connection)
         {
-            client.transport.RelayInfo info = MemoryPackSerializer.Deserialize<client.transport.RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            client.transport.RelayInfo info = serializer.Deserialize<client.transport.RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
             bool res = await relayTransfer.OnBeginAsync(info).ConfigureAwait(false);
             connection.Write(res ? Helper.TrueArray : Helper.FalseArray);
-        }
-
-        /// <summary>
-        /// 测试延迟
-        /// </summary>
-        /// <param name="connection"></param>
-        [MessengerId((ushort)RelayMessengerIds.NodeDelay)]
-        public void NodeDelay(IConnection connection)
-        {
-            Dictionary<string, RelayNodeDelayInfo> nodes = MemoryPackSerializer.Deserialize<Dictionary<string, RelayNodeDelayInfo>>(connection.ReceiveRequestWrap.Payload.Span);
-
-            var tasks = nodes.Select(async (c) =>
-            {
-                using Ping ping = new Ping();
-                var resp = await ping.SendPingAsync(c.Value.IP, 1000);
-                c.Value.Delay = resp.Status == IPStatus.Success ? (int)resp.RoundtripTime : 65535;
-            });
-            Task.WhenAll(tasks).ContinueWith((result) =>
-            {
-                connection.Write(MemoryPackSerializer.Serialize(nodes));
-            });
         }
     }
 
     /// <summary>
     /// 中继服务端
     /// </summary>
-    public sealed class RelayServerMessenger : IMessenger
+    public class RelayServerMessenger : IMessenger
     {
-        private readonly FileConfig config;
         private readonly IMessengerSender messengerSender;
         private readonly SignCaching signCaching;
         private readonly RelayServerMasterTransfer relayServerTransfer;
-        private readonly RelayValidatorTransfer relayValidatorTransfer;
+        private readonly RelayServerValidatorTransfer relayValidatorTransfer;
+        private readonly ISerializer serializer;
 
-
-        public RelayServerMessenger(FileConfig config, IMessengerSender messengerSender, SignCaching signCaching, RelayServerMasterTransfer relayServerTransfer, RelayValidatorTransfer relayValidatorTransfer)
+        public RelayServerMessenger(IMessengerSender messengerSender, SignCaching signCaching, RelayServerMasterTransfer relayServerTransfer, RelayServerValidatorTransfer relayValidatorTransfer, ISerializer serializer)
         {
-            this.config = config;
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
             this.relayServerTransfer = relayServerTransfer;
             this.relayValidatorTransfer = relayValidatorTransfer;
+            this.serializer = serializer;
         }
 
         /// <summary>
@@ -85,7 +62,7 @@ namespace linker.plugins.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.RelayTest)]
         public async Task RelayTest(IConnection connection)
         {
-            RelayTestInfo info = MemoryPackSerializer.Deserialize<RelayTestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            RelayTestInfo info = serializer.Deserialize<RelayTestInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
             {
                 connection.Write(Helper.FalseArray);
@@ -101,7 +78,7 @@ namespace linker.plugins.relay.messenger
             }, cache, null);
 
             var nodes = relayServerTransfer.GetNodes(string.IsNullOrWhiteSpace(result));
-            connection.Write(MemoryPackSerializer.Serialize(nodes));
+            connection.Write(serializer.Serialize(nodes));
         }
 
 
@@ -112,10 +89,10 @@ namespace linker.plugins.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.RelayAsk)]
         public async Task RelayAsk(IConnection connection)
         {
-            client.transport.RelayInfo info = MemoryPackSerializer.Deserialize<client.transport.RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            client.transport.RelayInfo info = serializer.Deserialize<client.transport.RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) == false || signCaching.TryGet(info.RemoteMachineId, out SignCacheInfo cacheTo) == false || cacheFrom.GroupId != cacheTo.GroupId)
             {
-                connection.Write(MemoryPackSerializer.Serialize(new RelayAskResultInfo { }));
+                connection.Write(serializer.Serialize(new RelayAskResultInfo { }));
                 return;
             }
 
@@ -133,7 +110,7 @@ namespace linker.plugins.relay.messenger
                 result.FlowingId = relayServerTransfer.AddRelay(cacheFrom.MachineId, cacheFrom.MachineName, cacheTo.MachineId, cacheTo.MachineName, cacheFrom.GroupId);
             }
 
-            connection.Write(MemoryPackSerializer.Serialize(result));
+            connection.Write(serializer.Serialize(result));
         }
 
         /// <summary>
@@ -144,7 +121,7 @@ namespace linker.plugins.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.RelayForward)]
         public async Task RelayForward(IConnection connection)
         {
-            client.transport.RelayInfo info = MemoryPackSerializer.Deserialize<client.transport.RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            client.transport.RelayInfo info = serializer.Deserialize<client.transport.RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) == false || signCaching.TryGet(info.RemoteMachineId, out SignCacheInfo cacheTo) == false || cacheFrom.GroupId != cacheTo.GroupId)
             {
                 connection.Write(Helper.FalseArray);
@@ -176,7 +153,7 @@ namespace linker.plugins.relay.messenger
                 {
                     Connection = cacheTo.Connection,
                     MessengerId = (ushort)RelayMessengerIds.Relay,
-                    Payload = MemoryPackSerializer.Serialize(info)
+                    Payload = serializer.Serialize(info)
                 }).ConfigureAwait(false);
                 if (resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray))
                 {
@@ -190,59 +167,5 @@ namespace linker.plugins.relay.messenger
                 connection.Write(Helper.FalseArray);
             }
         }
-
-
-        /// <summary>
-        /// 测试延迟
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <returns></returns>
-        [MessengerId((ushort)RelayMessengerIds.NodeDelayForward)]
-        public void NodeDelayForward(IConnection connection)
-        {
-            RelayNodeDelayWrapInfo info = MemoryPackSerializer.Deserialize<RelayNodeDelayWrapInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) == false || signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) == false || cacheFrom.GroupId != cacheTo.GroupId)
-            {
-                connection.Write(Helper.FalseArray);
-                return;
-            }
-
-            uint requiestid = connection.ReceiveRequestWrap.RequestId;
-            messengerSender.SendReply(new MessageRequestWrap
-            {
-                Connection = cacheTo.Connection,
-                MessengerId = (ushort)RelayMessengerIds.NodeDelay,
-                Payload = MemoryPackSerializer.Serialize(info.Nodes)
-            }).ContinueWith(async (result) =>
-            {
-                if (result.Result.Code == MessageResponeCodes.OK)
-                {
-                    await messengerSender.ReplyOnly(new MessageResponseWrap
-                    {
-                        RequestId = requiestid,
-                        Connection = connection,
-                        Payload = MemoryPackSerializer.Serialize(MemoryPackSerializer.Deserialize<Dictionary<string, RelayNodeDelayInfo>>(result.Result.Data.Span))
-                    }, (ushort)RelayMessengerIds.NodeDelayForward).ConfigureAwait(false);
-                    return;
-                }
-                await messengerSender.ReplyOnly(new MessageResponseWrap
-                {
-                    RequestId = requiestid,
-                    Connection = connection,
-                    Payload = Helper.EmptyArray
-                }, (ushort)RelayMessengerIds.NodeDelayForward).ConfigureAwait(false);
-            });
-        }
-
     }
-
-    [MemoryPackable]
-    public sealed partial class RelayAskResultInfo
-    {
-        public ulong FlowingId { get; set; }
-
-        [MemoryPackAllowSerialize]
-        public List<RelayNodeReportInfo> Nodes { get; set; } = new List<RelayNodeReportInfo>();
-    }
-
 }

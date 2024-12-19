@@ -85,6 +85,7 @@ export default {
             'Relay':{text:'中继',detail:hasRelayFlow.value},
             'Messenger':{text:'信标',detail:hasSigninFlow.value},
             'SForward':{text:'内网穿透',detail:hasSForwardFlow.value},
+            'flow':{text:'在线报告',detail:false},
         };
         const _getFlows = ()=>{
             getFlows().then(res => {
@@ -119,7 +120,7 @@ export default {
                 for(let j in res.Items){
                     const item = res.Items[j];
                     const itemOld = old.Items[j];
-                    const text = id2text[`${j}`] || {text:'未知',detail:false};
+                    const text = id2text[`${j}`] || {text:`未知${j}`,detail:false};
                     list.push({
                         id:j,
                         text:text.text,

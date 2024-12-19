@@ -1,19 +1,22 @@
-﻿using MemoryPack;
+﻿using linker.libs;
 using Microsoft.Extensions.Caching.Memory;
-namespace linker.plugins.relay.server.caching
+namespace linker.messenger.relay.server.caching
 {
-    public sealed class RelayCachingMemory : IRelayCaching
+    public sealed class RelayServerCachingMemory : IRelayServerCaching
     {
         public string Name => "memory";
 
         private readonly IMemoryCache cache = new MemoryCache(new MemoryCacheOptions { });
-        public RelayCachingMemory()
+
+        private readonly ISerializer serializer;
+        public RelayServerCachingMemory(ISerializer serializer)
         {
+            this.serializer = serializer;
         }
 
         public bool TryAdd<T>(string key, T value, int expired)
         {
-            cache.Set(key, MemoryPackSerializer.Serialize(value), TimeSpan.FromMilliseconds(expired));
+            cache.Set(key, serializer.Serialize(value), TimeSpan.FromMilliseconds(expired));
 
             return true;
         }
@@ -22,7 +25,7 @@ namespace linker.plugins.relay.server.caching
             bool result = cache.TryGetValue(key, out byte[] bytes);
 
             if (result)
-                value = MemoryPackSerializer.Deserialize<T>(bytes);
+                value = serializer.Deserialize<T>(bytes);
             else value = default;
 
             return true;

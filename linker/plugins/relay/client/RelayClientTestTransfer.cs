@@ -1,7 +1,8 @@
-﻿using linker.config;
-using linker.libs;
+﻿using linker.libs;
+using linker.messenger.relay.client;
+using linker.messenger.relay.client.transport;
+using linker.messenger.relay.server;
 using linker.plugins.client;
-using linker.plugins.relay.client.transport;
 using System.Net;
 using System.Net.NetworkInformation;
 
@@ -10,16 +11,16 @@ namespace linker.plugins.relay.client
     /// <summary>
     /// 中继
     /// </summary>
-    public sealed class RelayTestTransfer
+    public sealed class RelayClientTestTransfer
     {
-        private readonly RelayTransfer relayTransfer;
+        private readonly RelayClientTransfer relayTransfer;
         private readonly ClientSignInState clientSignInState;
         private readonly ClientConfigTransfer clientConfigTransfer;
         private readonly RelayClientConfigTransfer relayClientConfigTransfer;
 
-        public List<RelayNodeReportInfo> Nodes { get; private set; } = new List<RelayNodeReportInfo>();
+        public List<RelayServerNodeReportInfo> Nodes { get; private set; } = new List<RelayServerNodeReportInfo>();
 
-        public RelayTestTransfer( RelayTransfer relayTransfer, ClientSignInState clientSignInState, ClientConfigTransfer clientConfigTransfer, RelayClientConfigTransfer relayClientConfigTransfer)
+        public RelayClientTestTransfer(RelayClientTransfer relayTransfer, ClientSignInState clientSignInState, ClientConfigTransfer clientConfigTransfer, RelayClientConfigTransfer relayClientConfigTransfer)
         {
             this.relayTransfer = relayTransfer;
             this.clientSignInState = clientSignInState;
@@ -39,7 +40,7 @@ namespace linker.plugins.relay.client
         {
             try
             {
-                ITransport transport = relayTransfer.Transports.FirstOrDefault(d => d.Type == relayClientConfigTransfer.Server.RelayType);
+                IRelayClientTransport transport = relayTransfer.Transports.FirstOrDefault(d => d.Type == relayClientConfigTransfer.Server.RelayType);
                 if (transport != null)
                 {
                     Nodes = await transport.RelayTestAsync(new RelayTestInfo

@@ -1,17 +1,17 @@
 ﻿using linker.messenger.signin;
-using linker.plugins.relay.client.transport;
+using linker.messenger.relay.client.transport;
 
-namespace linker.plugins.relay.server.validator
+namespace linker.messenger.relay.server.validator
 {
-    public sealed partial class RelayValidatorTransfer
+    public sealed partial class RelayServerValidatorTransfer
     {
-        private List<IRelayValidator> validators;
+        private List<IRelayServerValidator> validators;
 
-        public RelayValidatorTransfer()
+        public RelayServerValidatorTransfer()
         {
         }
 
-        public void LoadValidators(List<IRelayValidator> list)
+        public void LoadValidators(List<IRelayServerValidator> list)
         {
             validators = list;
         }

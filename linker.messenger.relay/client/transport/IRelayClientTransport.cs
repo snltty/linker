@@ -1,18 +1,17 @@
-﻿using linker.config;
+﻿using linker.messenger.relay.server;
 using linker.tunnel.connection;
-using MemoryPack;
 using System.Net;
 
-namespace linker.plugins.relay.client.transport
+namespace linker.messenger.relay.client.transport
 {
-    public enum RelayType : byte
+    public enum RelayClientType : byte
     {
         Linker = 0,
     }
     /// <summary>
     /// 中继接口
     /// </summary>
-    public interface ITransport
+    public interface IRelayClientTransport
     {
         /// <summary>
         /// 接口名
@@ -21,7 +20,7 @@ namespace linker.plugins.relay.client.transport
         /// <summary>
         /// 中继类型
         /// </summary>
-        public RelayType Type { get; }
+        public RelayClientType Type { get; }
         /// <summary>
         /// 协议
         /// </summary>
@@ -44,26 +43,22 @@ namespace linker.plugins.relay.client.transport
         /// </summary>
         /// <param name="relayTestInfo"></param>
         /// <returns></returns>
-        public Task<List<RelayNodeReportInfo>> RelayTestAsync(RelayTestInfo relayTestInfo);
+        public Task<List<RelayServerNodeReportInfo>> RelayTestAsync(RelayTestInfo relayTestInfo);
     }
 
     /// <summary>
     /// 中继测试
     /// </summary>
-    [MemoryPackable]
     public sealed partial class RelayTestInfo
     {
         public string MachineId { get; set; }
         public string SecretKey { get; set; }
-
-        [MemoryPackAllowSerialize]
         public IPEndPoint Server { get; set; }
     }
 
     /// <summary>
     /// 中继交换数据
     /// </summary>
-    [MemoryPackable]
     public sealed partial class RelayInfo
     {
         /// <summary>
@@ -107,7 +102,6 @@ namespace linker.plugins.relay.client.transport
         /// <summary>
         /// 服务器，a端选择用什么服务器，就带给b，b直接用，不需要再做复杂的选择
         /// </summary>
-        [MemoryPackAllowSerialize]
         public IPEndPoint Server { get; set; }
 
         /// <summary>
@@ -115,4 +109,5 @@ namespace linker.plugins.relay.client.transport
         /// </summary>
         public bool SSL { get; set; } = true;
     }
+
 }

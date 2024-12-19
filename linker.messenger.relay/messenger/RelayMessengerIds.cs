@@ -1,4 +1,4 @@
-﻿namespace linker.plugins.relay.messenger
+﻿namespace linker.messenger.relay.messenger
 {
     public enum RelayMessengerIds : ushort
     {

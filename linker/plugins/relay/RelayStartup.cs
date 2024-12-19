@@ -1,11 +1,15 @@
 ﻿using linker.config;
+using linker.messenger.relay.client;
+using linker.messenger.relay.client.transport;
+using linker.messenger.relay.server;
+using linker.messenger.relay.server.caching;
+using linker.messenger.relay.server.validator;
 using linker.plugins.relay.client;
-using linker.plugins.relay.client.transport;
 using linker.plugins.relay.messenger;
 using linker.plugins.relay.server;
-using linker.plugins.relay.server.caching;
 using linker.plugins.relay.server.validator;
 using linker.startup;
+using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace linker.plugins.relay
@@ -26,50 +30,68 @@ namespace linker.plugins.relay
 
         public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
+            serviceCollection.AddSingleton<RelayClientTransportSelfHost>();
+            serviceCollection.AddSingleton<RelayClientTransfer>();
+
+           
+            serviceCollection.AddSingleton<PlusRelayClientMessenger>();
+            serviceCollection.AddSingleton<IRelayClientStore, PlusRelayClientStore>();
+
+
+            MemoryPackFormatterProvider.Register(new RelayTestInfoFormatter());
+            MemoryPackFormatterProvider.Register(new RelayInfoFormatter());
+            MemoryPackFormatterProvider.Register(new RelayServerNodeReportInfoFormatter());
+            MemoryPackFormatterProvider.Register(new RelayAskResultInfoFormatter());
+            MemoryPackFormatterProvider.Register(new RelayCacheInfoFormatter());
+            MemoryPackFormatterProvider.Register(new RelayMessageInfoFormatter());
+
+
             serviceCollection.AddSingleton<RelayApiController>();
-            serviceCollection.AddSingleton<RelayClientMessenger>();
-            serviceCollection.AddSingleton<TransportSelfHost>();
-            serviceCollection.AddSingleton<RelayTransfer>();
-            serviceCollection.AddSingleton<RelayTestTransfer>();
-
-
+            serviceCollection.AddSingleton<RelayClientTestTransfer>();
+            serviceCollection.AddSingleton<RelayClientTypesLoader>();
             serviceCollection.AddSingleton<RelaConfigSyncSecretKey>();
-
-            serviceCollection.AddSingleton<RelayTypesLoader>();
-
             serviceCollection.AddSingleton<RelayClientConfigTransfer>();
         }
 
         public void AddServer(ServiceCollection serviceCollection, FileConfig config)
         {
-            serviceCollection.AddSingleton<RelayServerMessenger>();
 
-            serviceCollection.AddSingleton<RelayResolver>();
-            serviceCollection.AddSingleton<RelayReportResolver>();
             serviceCollection.AddSingleton<RelayServerMasterTransfer>();
             serviceCollection.AddSingleton<RelayServerNodeTransfer>();
-            serviceCollection.AddSingleton<IRelayCaching, RelayCachingMemory>();
+            serviceCollection.AddSingleton<IRelayServerCaching, RelayServerCachingMemory>();
+            serviceCollection.AddSingleton<RelayServerValidatorTransfer>();
+            serviceCollection.AddSingleton<IRelayServerNodeStore, PlusRelayServerNodeStore>();
+            serviceCollection.AddSingleton<IRelayServerMasterStore, PlusRelayServerMasterStore>();
 
-            serviceCollection.AddSingleton<RelayValidatorTransfer>();
-            serviceCollection.AddSingleton<RelayValidatorTypeLoader>();
+            serviceCollection.AddSingleton<PlusRelayServerMessenger>();
+            serviceCollection.AddSingleton<PlusRelayServerResolver>();
+            serviceCollection.AddSingleton<PlusRelayServerReportResolver>();
 
-            serviceCollection.AddSingleton<RelayValidatorSecretKey>();
+            MemoryPackFormatterProvider.Register(new RelayTestInfoFormatter());
+            MemoryPackFormatterProvider.Register(new RelayInfoFormatter());
+            MemoryPackFormatterProvider.Register(new RelayServerNodeReportInfoFormatter());
+            MemoryPackFormatterProvider.Register(new RelayAskResultInfoFormatter());
+            MemoryPackFormatterProvider.Register(new RelayCacheInfoFormatter());
+            MemoryPackFormatterProvider.Register(new RelayMessageInfoFormatter());
 
+
+            serviceCollection.AddSingleton<RelayServerValidatorTypeLoader>();
+            serviceCollection.AddSingleton<RelayServerValidatorSecretKey>();
             serviceCollection.AddSingleton<RelayServerConfigTransfer>();
         }
 
         public void UseClient(ServiceProvider serviceProvider, FileConfig config)
         {
-            RelayTransfer relayTransfer = serviceProvider.GetService<RelayTransfer>();
-            RelayTypesLoader relayTypesLoader = serviceProvider.GetService<RelayTypesLoader>();
+            RelayClientTransfer relayTransfer = serviceProvider.GetService<RelayClientTransfer>();
+            RelayClientTypesLoader relayTypesLoader = serviceProvider.GetService<RelayClientTypesLoader>();
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config)
         {
-            RelayValidatorTypeLoader relayValidatorTypeLoader = serviceProvider.GetService<RelayValidatorTypeLoader>();
-            IRelayCaching relayCaching = serviceProvider.GetService<IRelayCaching>();
+            RelayServerValidatorTypeLoader relayValidatorTypeLoader = serviceProvider.GetService<RelayServerValidatorTypeLoader>();
+            IRelayServerCaching relayCaching = serviceProvider.GetService<IRelayServerCaching>();
 
-            RelayReportResolver relayReportResolver = serviceProvider.GetService<RelayReportResolver>();
+            PlusRelayServerReportResolver relayReportResolver = serviceProvider.GetService<PlusRelayServerReportResolver>();
 
 
             RelayServerMasterTransfer relayServerMasterTransfer = serviceProvider.GetService<RelayServerMasterTransfer>();

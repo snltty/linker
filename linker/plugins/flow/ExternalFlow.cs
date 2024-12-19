@@ -22,7 +22,7 @@ namespace linker.plugins.flow
     public sealed class ExternalResolverFlow : PlusTunnelExternalResolver
     {
         private readonly ExternalFlow externalFlow;
-        public ExternalResolverFlow(ExternalFlow externalFlow, TunnelExternalResolver tunnelExternalResolver) :base(tunnelExternalResolver)
+        public ExternalResolverFlow(ExternalFlow externalFlow)
         {
             this.externalFlow = externalFlow;
         }

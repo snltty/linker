@@ -14,8 +14,8 @@ namespace linker.gen
     {
         private List<GeneratorInfo> generators = new List<GeneratorInfo> {
              new GeneratorInfo{ ClassName="linker.plugins.flow.FlowTypesLoader", InterfaceName="linker.plugins.flow.IFlow" },
-             new GeneratorInfo{ ClassName="linker.plugins.relay.client.RelayTypesLoader", InterfaceName="linker.plugins.relay.client.transport.ITransport" },
-             new GeneratorInfo{ ClassName="linker.plugins.relay.server.validator.RelayValidatorTypeLoader", InterfaceName="linker.plugins.relay.server.validator.IRelayValidator" },
+             new GeneratorInfo{ ClassName="linker.plugins.relay.client.RelayClientTypesLoader", InterfaceName="linker.messenger.relay.client.transport.IRelayClientTransport" },
+             new GeneratorInfo{ ClassName="linker.plugins.relay.server.validator.RelayServerValidatorTypeLoader", InterfaceName="linker.messenger.relay.server.validator.IRelayServerValidator" },
              new GeneratorInfo{ ClassName="linker.plugins.signIn.args.SignInArgsTypesLoader", InterfaceName="linker.messenger.signin.ISignInArgs" },
              new GeneratorInfo{ ClassName="linker.plugins.resolver.ResolverTypesLoader", InterfaceName="linker.plugins.resolver.IResolver" },
              new GeneratorInfo{ ClassName="linker.plugins.tunnel.TunnelExcludeIPTypesLoader",  InterfaceName="linker.messenger.tunnel.ITunnelExcludeIP" },

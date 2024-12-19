@@ -1,9 +1,9 @@
 ﻿using linker.config;
 using linker.libs.extends;
 using linker.messenger.signin;
-using linker.plugins.relay.server.validator;
 using linker.plugins.sforward.config;
 using linker.plugins.sforward.validator;
+using linker.messenger.relay.server.validator;
 using System.Net;
 using System.Text.Json.Nodes;
 
@@ -146,7 +146,7 @@ namespace linker.plugins.action
         }
     }
 
-    public sealed class RelayValidatorAction : JsonArgReplace, IRelayValidator
+    public sealed class RelayValidatorAction : JsonArgReplace, IRelayServerValidator
     {
         private readonly ActionTransfer actionTransfer;
         private readonly FileConfig fileConfig;
@@ -157,7 +157,7 @@ namespace linker.plugins.action
             this.fileConfig = fileConfig;
         }
 
-        public async Task<string> Validate(linker.plugins.relay.client.transport.RelayInfo relayInfo, SignCacheInfo fromMachine, SignCacheInfo toMachine)
+        public async Task<string> Validate(linker.messenger.relay.client.transport.RelayInfo relayInfo, SignCacheInfo fromMachine, SignCacheInfo toMachine)
         {
             if (string.IsNullOrWhiteSpace(actionTransfer.RelayActionUrl) == false)
             {

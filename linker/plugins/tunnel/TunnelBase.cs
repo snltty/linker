@@ -6,6 +6,7 @@ using linker.tunnel.connection;
 using System.Collections.Concurrent;
 using linker.plugins.relay.client;
 using linker.plugins.pcp;
+using linker.messenger.relay.client;
 
 namespace linker.plugins.tunnel
 {
@@ -16,14 +17,14 @@ namespace linker.plugins.tunnel
         protected readonly ConcurrentDictionary<string, ITunnelConnection> connections = new ConcurrentDictionary<string, ITunnelConnection>();
 
         private readonly TunnelTransfer tunnelTransfer;
-        private readonly RelayTransfer relayTransfer;
+        private readonly RelayClientTransfer relayTransfer;
         private readonly PcpTransfer pcpTransfer;
         private readonly ClientSignInTransfer clientSignInTransfer;
         private readonly ClientSignInState clientSignInState;
         private readonly ClientConfigTransfer clientConfigTransfer;
         private readonly RelayClientConfigTransfer relayClientConfigTransfer;
 
-        public TunnelBase(TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, PcpTransfer pcpTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState, ClientConfigTransfer clientConfigTransfer, RelayClientConfigTransfer relayClientConfigTransfer)
+        public TunnelBase(TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState, ClientConfigTransfer clientConfigTransfer, RelayClientConfigTransfer relayClientConfigTransfer)
         {
             this.tunnelTransfer = tunnelTransfer;
             this.relayTransfer = relayTransfer;

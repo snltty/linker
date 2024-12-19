@@ -1,5 +1,4 @@
-﻿using linker.config;
-using linker.tunnel;
+﻿using linker.tunnel;
 using linker.tunnel.connection;
 using linker.libs;
 using linker.libs.socks5;
@@ -13,6 +12,7 @@ using linker.plugins.socks5.config;
 using System.Text;
 using linker.plugins.relay.client;
 using linker.plugins.pcp;
+using linker.messenger.relay.client;
 
 namespace linker.plugins.socks5
 {
@@ -27,7 +27,7 @@ namespace linker.plugins.socks5
 
         protected override string TransactionId => "socks5";
 
-        public TunnelProxy(ClientConfigTransfer clientConfigTransfer, TunnelTransfer tunnelTransfer, RelayTransfer relayTransfer, PcpTransfer pcpTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState, RelayClientConfigTransfer relayClientConfigTransfer)
+        public TunnelProxy(ClientConfigTransfer clientConfigTransfer, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState, RelayClientConfigTransfer relayClientConfigTransfer)
              : base(tunnelTransfer, relayTransfer, pcpTransfer, clientSignInTransfer, clientSignInState, clientConfigTransfer, relayClientConfigTransfer)
         {
             this.clientSignInTransfer = clientSignInTransfer;

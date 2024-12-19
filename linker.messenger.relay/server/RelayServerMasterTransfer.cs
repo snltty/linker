@@ -1,27 +1,25 @@
-﻿using linker.config;
-using linker.libs;
-using linker.plugins.relay.server.caching;
-using MemoryPack;
+﻿using linker.libs;
+using linker.messenger.relay.server.caching;
 using System.Collections.Concurrent;
 using System.Net;
 
-namespace linker.plugins.relay.server
+namespace linker.messenger.relay.server
 {
     public class RelayServerMasterTransfer
     {
 
         private ulong relayFlowingId = 0;
-
-
-        private readonly IRelayCaching relayCaching;
-
         private readonly ICrypto crypto;
-        private readonly ConcurrentDictionary<string, RelayNodeReportInfo> reports = new ConcurrentDictionary<string, RelayNodeReportInfo>();
+        private readonly ConcurrentDictionary<string, RelayServerNodeReportInfo> reports = new ConcurrentDictionary<string, RelayServerNodeReportInfo>();
 
-        public RelayServerMasterTransfer(IRelayCaching relayCaching, RelayServerConfigTransfer relayServerConfigTransfer)
+
+        private readonly IRelayServerCaching relayCaching;
+        private readonly ISerializer serializer;
+        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, ISerializer serializer, IRelayServerMasterStore relayServerMasterStore)
         {
             this.relayCaching = relayCaching;
-            crypto = CryptoFactory.CreateSymmetric(relayServerConfigTransfer.Master.SecretKey);
+            this.serializer = serializer;
+            crypto = CryptoFactory.CreateSymmetric(relayServerMasterStore.Master.SecretKey);
         }
 
 
@@ -29,7 +27,7 @@ namespace linker.plugins.relay.server
         {
             ulong flowingId = Interlocked.Increment(ref relayFlowingId);
 
-            RelayCache cache = new RelayCache
+            RelayCacheInfo cache = new RelayCacheInfo
             {
                 FlowId = flowingId,
                 FromId = fromid,
@@ -46,9 +44,9 @@ namespace linker.plugins.relay.server
 
         public Memory<byte> TryGetRelayCache(string key)
         {
-            if (relayCaching.TryGetValue(key, out RelayCache value))
+            if (relayCaching.TryGetValue(key, out RelayCacheInfo value))
             {
-                byte[] bytes = crypto.Encode(MemoryPackSerializer.Serialize(value));
+                byte[] bytes = crypto.Encode(serializer.Serialize(value));
                 return bytes;
             }
             return Helper.EmptyArray;
@@ -66,9 +64,9 @@ namespace linker.plugins.relay.server
                 if (crypto == null) return;
 
                 data = crypto.Decode(data.ToArray());
-                RelayNodeReportInfo relayNodeReportInfo = MemoryPackSerializer.Deserialize<RelayNodeReportInfo>(data.Span);
+                RelayServerNodeReportInfo relayNodeReportInfo = serializer.Deserialize<RelayServerNodeReportInfo>(data.Span);
 
-                if (relayNodeReportInfo.Id == RelayNodeInfo.MASTER_NODE_ID)
+                if (relayNodeReportInfo.Id == RelayServerNodeInfo.MASTER_NODE_ID)
                 {
                     relayNodeReportInfo.EndPoint = new IPEndPoint(IPAddress.Any, 0);
                 }
@@ -88,7 +86,7 @@ namespace linker.plugins.relay.server
         /// </summary>
         /// <param name="validated">是否已认证</param>
         /// <returns></returns>
-        public List<RelayNodeReportInfo> GetNodes(bool validated)
+        public List<RelayServerNodeReportInfo> GetNodes(bool validated)
         {
             var result = reports.Values
                 .Where(c => c.Public || (c.Public == false && validated))
@@ -113,7 +111,7 @@ namespace linker.plugins.relay.server
         /// <returns></returns>
         public bool NodeValidate(string nodeId)
         {
-            return reports.TryGetValue(nodeId, out RelayNodeReportInfo relayNodeReportInfo) && relayNodeReportInfo.Public == false;
+            return reports.TryGetValue(nodeId, out RelayServerNodeReportInfo relayNodeReportInfo) && relayNodeReportInfo.Public == false;
         }
     }
 

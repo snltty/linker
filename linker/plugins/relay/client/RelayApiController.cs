@@ -1,6 +1,8 @@
 ﻿using linker.config;
 using linker.libs.api;
 using linker.libs.extends;
+using linker.messenger.relay.client;
+using linker.messenger.relay.server;
 using linker.plugins.capi;
 
 namespace linker.plugins.relay.client
@@ -10,11 +12,11 @@ namespace linker.plugins.relay.client
     /// </summary>
     public sealed class RelayApiController : IApiClientController
     {
-        private readonly RelayTestTransfer relayTestTransfer;
-        private readonly RelayTransfer relayTransfer;
+        private readonly RelayClientTestTransfer relayTestTransfer;
+        private readonly RelayClientTransfer relayTransfer;
         private readonly RelayClientConfigTransfer relayClientConfigTransfer;
 
-        public RelayApiController(RelayTestTransfer relayTestTransfer, RelayTransfer relayTransfer, RelayClientConfigTransfer relayClientConfigTransfer)
+        public RelayApiController(RelayClientTestTransfer relayTestTransfer, RelayClientTransfer relayTransfer, RelayClientConfigTransfer relayClientConfigTransfer)
         {
             this.relayTestTransfer = relayTestTransfer;
             this.relayTransfer = relayTransfer;
@@ -34,7 +36,7 @@ namespace linker.plugins.relay.client
             return true;
         }
 
-        public List<RelayNodeReportInfo> Subscribe(ApiControllerParamsInfo param)
+        public List<RelayServerNodeReportInfo> Subscribe(ApiControllerParamsInfo param)
         {
             relayTestTransfer.Subscribe();
             return relayTestTransfer.Nodes;
