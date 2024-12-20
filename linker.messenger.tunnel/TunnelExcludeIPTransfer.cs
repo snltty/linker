@@ -11,11 +11,19 @@
         {
         }
 
+        /// <summary>
+        /// 加载排除IP的实现类
+        /// </summary>
+        /// <param name="list"></param>
         public void LoadTunnelExcludeIPs(List<ITunnelExcludeIP> list)
         {
             excludeIPs = list;
         }
 
+        /// <summary>
+        /// 获取所有实现类的排除IP
+        /// </summary>
+        /// <returns></returns>
         public List<ExcludeIPItem> Get()
         {
             return excludeIPs.SelectMany(c => c.Get()).ToList();

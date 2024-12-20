@@ -8,6 +8,9 @@ using System.Net.Sockets;
 
 namespace linker.tunnel.connection
 {
+    /// <summary>
+    /// UDP隧道
+    /// </summary>
     public sealed class TunnelConnectionUdp : ITunnelConnection
     {
         public TunnelConnectionUdp()

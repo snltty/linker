@@ -4,6 +4,9 @@ using linker.libs.extends;
 
 namespace linker.messenger.relay.server
 {
+    /// <summary>
+    /// 中继节点存储器
+    /// </summary>
     public interface IRelayServerNodeStore
     {
         /// <summary>

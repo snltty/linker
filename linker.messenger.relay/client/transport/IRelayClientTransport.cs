@@ -4,6 +4,9 @@ using System.Net;
 
 namespace linker.messenger.relay.client.transport
 {
+    /// <summary>
+    /// 中继类型
+    /// </summary>
     public enum RelayClientType : byte
     {
         Linker = 0,

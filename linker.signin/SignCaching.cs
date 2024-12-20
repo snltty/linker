@@ -4,6 +4,9 @@ using System.Net;
 
 namespace linker.messenger.signin
 {
+    /// <summary>
+    /// 登录缓存
+    /// </summary>
     public sealed class SignCaching
     {
         private readonly SignInArgsTransfer signInArgsTransfer;
@@ -43,7 +46,7 @@ namespace linker.messenger.signin
             }
 
             //参数验证失败
-            string verifyResult = await signInArgsTransfer.Verify(signInfo, cache);
+            string verifyResult = await signInArgsTransfer.Validate(signInfo, cache);
             if (string.IsNullOrWhiteSpace(verifyResult) == false)
             {
                 cache.Connected = false;
@@ -156,15 +159,36 @@ namespace linker.messenger.signin
         }
     }
 
+    /// <summary>
+    /// 登录缓存对象
+    /// </summary>
     public sealed class SignCacheInfo
     {
-        public string Id { get; set; }
 
+        public string Id { get; set; }
+        /// <summary>
+        /// 客户端id
+        /// </summary>
         public string MachineId { get; set; }
+        /// <summary>
+        /// 客户端名
+        /// </summary>
         public string MachineName { get; set; }
+        /// <summary>
+        /// 客户端版本
+        /// </summary>
         public string Version { get; set; } = "v1.0.0";
+        /// <summary>
+        /// 分组编号
+        /// </summary>
         public string GroupId { get; set; } = Helper.GlobalString;
+        /// <summary>
+        /// 最后登录
+        /// </summary>
         public DateTime LastSignIn { get; set; } = DateTime.Now;
+        /// <summary>
+        /// 额外参数，就是ISignInArgs
+        /// </summary>
         public Dictionary<string, string> Args { get; set; } = new Dictionary<string, string>();
 
         private IPEndPoint ip = new IPEndPoint(IPAddress.Any, 0);
@@ -201,11 +225,17 @@ namespace linker.messenger.signin
             }
         }
 
+        /// <summary>
+        /// 连接对象
+        /// </summary>
         public IConnection Connection { get; set; }
 
         public uint Order { get; set; } = int.MaxValue;
     }
 
+    /// <summary>
+    /// 登录参数
+    /// </summary>
     public sealed class SignInfo
     {
         public string MachineId { get; set; } = string.Empty;

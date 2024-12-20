@@ -1,5 +1,8 @@
 ﻿namespace linker.messenger.signin
 {
+    /// <summary>
+    /// 登录参数处理
+    /// </summary>
     public sealed partial class SignInArgsTransfer
     {
         private List<ISignInArgs> startups;
@@ -8,11 +11,21 @@
         {
         }
 
+        /// <summary>
+        /// 加载所有登录参数实现类
+        /// </summary>
+        /// <param name="list"></param>
         public void LoadArgs(List<ISignInArgs> list)
         {
             startups = list;
         }
 
+        /// <summary>
+        /// 客户端调用
+        /// </summary>
+        /// <param name="host"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             foreach (var item in startups)
@@ -25,7 +38,13 @@
             }
             return string.Empty;
         }
-        public async Task<string> Verify(SignInfo signInfo, SignCacheInfo cache)
+        /// <summary>
+        /// 服务器调用
+        /// </summary>
+        /// <param name="signInfo"></param>
+        /// <param name="cache"></param>
+        /// <returns></returns>
+        public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
         {
             foreach (var item in startups)
             {

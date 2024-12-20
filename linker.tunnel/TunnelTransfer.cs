@@ -74,7 +74,7 @@ namespace linker.tunnel
         }
 
         /// <summary>
-        /// 加载打洞协议
+        /// 装载打洞协议
         /// </summary>
         /// <param name="assembs"></param>
         public void LoadTransports(TunnelWanPortTransfer  tunnelWanPortTransfer, TunnelUpnpTransfer TunnelUpnpTransfer, List<ITunnelTransport> transports)

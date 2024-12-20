@@ -6,6 +6,9 @@ using System.Net.Sockets;
 
 namespace linker.messenger.relay.server
 {
+    /// <summary>
+    /// 中继节点操作
+    /// </summary>
     public class RelayServerNodeTransfer
     {
         private uint connectionNum = 0;

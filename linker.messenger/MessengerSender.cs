@@ -3,6 +3,9 @@ using System.Collections.Concurrent;
 
 namespace linker.messenger
 {
+    /// <summary>
+    /// 信标消息发送
+    /// </summary>
     public interface IMessengerSender
     {
         /// <summary>

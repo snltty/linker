@@ -13,6 +13,9 @@ using linker.messenger.relay.server;
 
 namespace linker.messenger.relay.client.transport
 {
+    /// <summary>
+    /// linker中继
+    /// </summary>
     public class RelayClientTransportSelfHost : IRelayClientTransport
     {
         public string Name => "Linker";

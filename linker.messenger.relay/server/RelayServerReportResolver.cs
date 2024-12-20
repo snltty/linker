@@ -5,6 +5,9 @@ using System.Net.Sockets;
 
 namespace linker.messenger.relay.server
 {
+    /// <summary>
+    /// 中继节点报告处理器
+    /// </summary>
     public class RelayServerReportResolver
     {
         private readonly RelayServerMasterTransfer relayServerTransfer;

@@ -3,6 +3,9 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace linker.messenger.relay.client
 {
+    /// <summary>
+    /// 中继客户端存储信息
+    /// </summary>
     public interface IRelayClientStore
     {
         /// <summary>

@@ -3,6 +3,9 @@ using linker.libs.extends;
 
 namespace linker.messenger.signin
 {
+    /// <summary>
+    /// 登录的服务端信标
+    /// </summary>
     public class SignInServerMessenger : IMessenger
     {
         private readonly SignCaching signCaching;
@@ -202,6 +205,9 @@ namespace linker.messenger.signin
         }
     }
 
+    /// <summary>
+    /// 客户端列表查询
+    /// </summary>
     public sealed class SignInListRequestInfo
     {
         /// <summary>
@@ -230,14 +236,18 @@ namespace linker.messenger.signin
         /// </summary>
         public string Prop { get; set; }
     }
-
+    /// <summary>
+    /// 客户端列表查询返回
+    /// </summary>
     public sealed class SignInListResponseInfo
     {
         public SignInListRequestInfo Request { get; set; } = new SignInListRequestInfo();
         public int Count { get; set; }
         public List<SignCacheInfo> List { get; set; } = new List<SignCacheInfo>();
     }
-
+    /// <summary>
+    /// 查询客户端id列表
+    /// </summary>
     public sealed class SignInIdsRequestInfo
     {
         /// <summary>
@@ -253,7 +263,9 @@ namespace linker.messenger.signin
         /// </summary>
         public string Name { get; set; }
     }
-
+    /// <summary>
+    /// 查询客户端id列表 返回
+    /// </summary>
     public sealed class SignInIdsResponseInfo
     {
         public SignInIdsRequestInfo Request { get; set; } = new SignInIdsRequestInfo();
@@ -267,6 +279,9 @@ namespace linker.messenger.signin
         public string MachineName { get; set; }
     }
 
+    /// <summary>
+    /// 登录返回
+    /// </summary>
     public sealed class SignInResponseInfo
     {
         public bool Status { get; set; }

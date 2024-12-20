@@ -5,6 +5,9 @@ using System.Net;
 
 namespace linker.messenger.relay.server
 {
+    /// <summary>
+    /// 中继主机操作
+    /// </summary>
     public class RelayServerMasterTransfer
     {
 

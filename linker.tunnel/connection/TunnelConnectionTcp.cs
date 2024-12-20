@@ -9,6 +9,9 @@ using System.Net.Sockets;
 
 namespace linker.tunnel.connection
 {
+    /// <summary>
+    /// TCP隧道
+    /// </summary>
     public sealed class TunnelConnectionTcp : ITunnelConnection
     {
         public TunnelConnectionTcp()

@@ -2,6 +2,9 @@
 
 namespace linker.messenger.relay.server
 {
+    /// <summary>
+    /// 中继主机存储器
+    /// </summary>
     public interface IRelayServerMasterStore
     {
         /// <summary>

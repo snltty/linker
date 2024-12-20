@@ -110,6 +110,9 @@ namespace linker.tun
         public Task Callback(LinkerTunDevicPacket packet);
     }
 
+    /// <summary>
+    /// 网卡端口转发
+    /// </summary>
     public sealed class LinkerTunDeviceForwardItem
     {
         public IPAddress ListenAddr { get; set; } = IPAddress.Any;

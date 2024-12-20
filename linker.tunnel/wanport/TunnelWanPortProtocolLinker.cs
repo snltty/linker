@@ -7,6 +7,9 @@ using System.Text;
 
 namespace linker.tunnel.wanport
 {
+    /// <summary>
+    /// 获取外网端口UDP
+    /// </summary>
     public sealed class TunnelWanPortProtocolLinkerUdp : ITunnelWanPortProtocol
     {
         public string Name => "Linker Udp";
@@ -80,7 +83,9 @@ namespace linker.tunnel.wanport
         }
     }
 
-
+    /// <summary>
+    /// 获取外网端口TCP
+    /// </summary>
     public sealed class TunnelWanPortProtocolLinkerTcp : ITunnelWanPortProtocol
     {
         public string Name => "Linker Tcp";

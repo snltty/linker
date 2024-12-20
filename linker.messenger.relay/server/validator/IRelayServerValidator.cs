@@ -3,6 +3,9 @@ using RelayInfo = linker.messenger.relay.client.transport.RelayInfo;
 
 namespace linker.messenger.relay.server.validator
 {
+    /// <summary>
+    /// 中继验证
+    /// </summary>
     public interface IRelayServerValidator
     {
         /// <summary>

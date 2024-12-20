@@ -9,6 +9,9 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace linker.plugins.tunnel
 {
+    /// <summary>
+    /// 打洞信标适配存储
+    /// </summary>
     public interface ITunnelMessengerAdapterStore
     {
         /// <summary>

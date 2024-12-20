@@ -4,7 +4,7 @@ using System.Net;
 namespace linker.tunnel.wanport
 {
     /// <summary>
-    /// 外网端口协议
+    /// 获取外网端口
     /// </summary>
     public sealed class TunnelWanPortTransfer
     {

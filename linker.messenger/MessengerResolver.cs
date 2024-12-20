@@ -9,6 +9,9 @@ using linker.libs.extends;
 
 namespace linker.messenger
 {
+    /// <summary>
+    /// 信标消息处理总线
+    /// </summary>
     public interface IMessengerResolver
     {
         public void Initialize(string certificate, string password);

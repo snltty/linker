@@ -10,7 +10,7 @@ using System.Net.Sockets;
 namespace linker.tunnel.connection
 {
     /// <summary>
-    /// msquic
+    /// msquic隧道
     /// </summary>
     public sealed class TunnelConnectionMsQuic : ITunnelConnection
     {

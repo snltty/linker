@@ -4,6 +4,9 @@ using System.Collections.Concurrent;
 
 namespace linker.tunnel
 {
+    /// <summary>
+    /// 给网关添加端口映射
+    /// </summary>
     public sealed class TunnelUpnpTransfer
     {
 
@@ -94,11 +97,20 @@ namespace linker.tunnel
             return false;
         }
 
+        /// <summary>
+        /// 设置端口映射，内网端口和外网端口一样
+        /// </summary>
+        /// <param name="privatePort"></param>
         public void SetMap(int privatePort)
         {
             MapInfo = new MapInfo { PrivatePort = privatePort, PublicPort = privatePort };
             AddMap();
         }
+        /// <summary>
+        /// 设置端口映射，内网端口和外网端口不一样
+        /// </summary>
+        /// <param name="privatePort"></param>
+        /// <param name="publicPort"></param>
         public void SetMap(int privatePort, int publicPort)
         {
             MapInfo1 = new MapInfo { PrivatePort = privatePort, PublicPort = publicPort };

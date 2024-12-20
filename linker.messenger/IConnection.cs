@@ -8,11 +8,17 @@ using System.Text;
 
 namespace linker.messenger
 {
+    /// <summary>
+    /// 服务器连接对象接收数据回调
+    /// </summary>
     public interface IConnectionReceiveCallback
     {
         public Task Receive(IConnection connection, ReadOnlyMemory<byte> data, object state);
     }
 
+    /// <summary>
+    /// 服务器连接对象
+    /// </summary>
     public interface IConnection
     {
         /// <summary>
@@ -225,6 +231,9 @@ namespace linker.messenger
         }
     }
 
+    /// <summary>
+    /// tcp连接对象
+    /// </summary>
     public sealed class TcpConnection : Connection
     {
         public TcpConnection(SslStream stream, NetworkStream networkStream, Socket socket, IPEndPoint local, IPEndPoint remote) : base()

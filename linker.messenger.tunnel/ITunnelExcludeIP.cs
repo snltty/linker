@@ -10,6 +10,9 @@ namespace linker.messenger.tunnel
         public ExcludeIPItem[] Get();
     }
 
+    /// <summary>
+    /// 排除的IP
+    /// </summary>
     public sealed partial class ExcludeIPItem
     {
         public ExcludeIPItem() { }
