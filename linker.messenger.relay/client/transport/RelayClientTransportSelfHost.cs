@@ -13,7 +13,7 @@ using linker.messenger.relay.server;
 
 namespace linker.messenger.relay.client.transport
 {
-    public sealed class RelayClientTransportSelfHost : IRelayClientTransport
+    public class RelayClientTransportSelfHost : IRelayClientTransport
     {
         public string Name => "Linker";
         public RelayClientType Type => RelayClientType.Linker;

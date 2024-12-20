@@ -1,4 +1,5 @@
-﻿using linker.messenger;
+﻿using linker.libs;
+using linker.messenger;
 using linker.messenger.relay.client;
 using linker.messenger.relay.client.transport;
 using linker.plugins.client;
@@ -7,7 +8,11 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace linker.plugins.relay.client
 {
-    public class PlusRelayClientStore : IRelayClientStore
+    public sealed class PlusRelayClientTransportSelfHost : RelayClientTransportSelfHost
+    {
+        public PlusRelayClientTransportSelfHost(IMessengerSender messengerSender,ISerializer serializer, IRelayClientStore relayClientStore) :base(messengerSender, serializer, relayClientStore) { }
+    }
+    public sealed class PlusRelayClientStore : IRelayClientStore
     {
         public byte Flag => (byte)(ResolverType.Relay);
 

@@ -44,6 +44,8 @@ namespace linker.plugins.tunnel
             //命令接口
             serviceCollection.AddSingleton<PlusTunnelClientMessenger>();
             serviceCollection.AddSingleton<ITunnelMessengerAdapterStore, PlusTunnelMessengerAdapterStore>();
+            serviceCollection.AddSingleton<TunnelMessengerAdapter>();
+            serviceCollection.AddSingleton<PlusTunnelMessengerAdapter>();
 
 
             serviceCollection.AddSingleton<TunnelExcludeIPTypesLoader>();
@@ -75,6 +77,7 @@ namespace linker.plugins.tunnel
             TunnelConfigTransfer tunnelConfigTransfer = serviceProvider.GetService<TunnelConfigTransfer>();
 
             ITunnelMessengerAdapterStore tunnelAdapter = serviceProvider.GetService<ITunnelMessengerAdapterStore>();
+            PlusTunnelMessengerAdapter plusTunnelMessengerAdapter = serviceProvider.GetService<PlusTunnelMessengerAdapter>();
 
             LoggerHelper.Instance.Info($"tunnel route level getting.");
             tunnelConfigTransfer.RefreshRouteLevel();

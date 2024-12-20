@@ -12,6 +12,7 @@ namespace linker.messenger
     public interface IMessengerResolver
     {
         public void Initialize(string certificate, string password);
+        public void Initialize(X509Certificate2 certificate);
         public Task<IConnection> BeginReceiveClient(Socket socket);
         public Task<IConnection> BeginReceiveClient(Socket socket, bool sendFlag, byte flag);
         public void LoadMessenger(List<IMessenger> list);
@@ -31,7 +32,7 @@ namespace linker.messenger
 
         private readonly IMessengerSender messengerSender;
 
-        private X509Certificate serverCertificate;
+        private X509Certificate2 serverCertificate;
         public MessengerResolver(IMessengerSender messengerSender)
         {
             this.messengerSender = messengerSender;
@@ -42,13 +43,17 @@ namespace linker.messenger
             string path = Path.GetFullPath(certificate);
             if (File.Exists(path))
             {
-                serverCertificate = new X509Certificate(path, password);
+                serverCertificate = new X509Certificate2(path, password, X509KeyStorageFlags.Exportable);
             }
             else
             {
                 LoggerHelper.Instance.Error($"file {path} not found");
                 Environment.Exit(0);
             }
+        }
+        public void Initialize(X509Certificate2 certificate)
+        {
+            serverCertificate = certificate;
         }
 
         public virtual void AddReceive(ushort id, ulong bytes) { }

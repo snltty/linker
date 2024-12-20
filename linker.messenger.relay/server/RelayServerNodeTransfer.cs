@@ -1,6 +1,5 @@
 ﻿using linker.libs;
 using linker.libs.extends;
-using linker.messenger.relay.server.caching;
 using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
@@ -19,13 +18,11 @@ namespace linker.messenger.relay.server
         RelaySpeedLimit limitTotal = new RelaySpeedLimit();
 
         private readonly ISerializer serializer;
-        private readonly IRelayServerCaching relayCaching;
         private readonly IRelayServerNodeStore relayServerNodeStore;
         private readonly IRelayServerMasterStore relayServerMasterStore;
-        public RelayServerNodeTransfer(ISerializer serializer, IRelayServerCaching relayCaching, IRelayServerNodeStore relayServerNodeStore, IRelayServerMasterStore relayServerMasterStore)
+        public RelayServerNodeTransfer(ISerializer serializer, IRelayServerNodeStore relayServerNodeStore, IRelayServerMasterStore relayServerMasterStore)
         {
             this.serializer = serializer;
-            this.relayCaching = relayCaching;
             this.relayServerNodeStore = relayServerNodeStore;
             this.relayServerMasterStore = relayServerMasterStore;
 

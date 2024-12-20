@@ -71,6 +71,8 @@ namespace linker.messenger.relay.client
                 IRelayClientTransport transport = Transports.FirstOrDefault(c => c.Type == relayClientStore.RelayType && relayClientStore.Disabled == false);
                 if (transport == null)
                 {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        LoggerHelper.Instance.Error($"relay to {remoteMachineId} fail,transport not found {relayClientStore.RelayType},{relayClientStore.Disabled}");
                     return null;
                 }
 

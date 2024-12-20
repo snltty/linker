@@ -1,6 +1,4 @@
 ﻿using linker.messenger.relay.server;
-using linker.plugins.resolver;
-using linker.plugins.server;
 
 namespace linker.plugins.relay.server
 {

@@ -46,7 +46,7 @@ namespace linker.messenger.relay.messenger
         private readonly RelayServerValidatorTransfer relayValidatorTransfer;
         private readonly ISerializer serializer;
 
-        public RelayServerMessenger(IMessengerSender messengerSender, SignCaching signCaching, RelayServerMasterTransfer relayServerTransfer, RelayServerValidatorTransfer relayValidatorTransfer, ISerializer serializer)
+        public RelayServerMessenger(IMessengerSender messengerSender, SignCaching signCaching, ISerializer serializer, RelayServerMasterTransfer relayServerTransfer, RelayServerValidatorTransfer relayValidatorTransfer)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;

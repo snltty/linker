@@ -1,6 +1,5 @@
 ﻿using linker.libs;
 using linker.libs.extends;
-using linker.messenger;
 
 namespace linker.messenger.signin
 {
@@ -10,7 +9,7 @@ namespace linker.messenger.signin
         private readonly IMessengerSender messengerSender;
         private readonly ISerializer serializer;
 
-        public SignInServerMessenger(SignCaching signCaching, IMessengerSender messengerSender, ISerializer serializer)
+        public SignInServerMessenger(IMessengerSender messengerSender, SignCaching signCaching, ISerializer serializer)
         {
             this.signCaching = signCaching;
             this.messengerSender = messengerSender;

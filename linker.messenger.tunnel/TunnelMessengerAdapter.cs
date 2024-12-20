@@ -97,7 +97,6 @@ namespace linker.plugins.tunnel
                 transportUdpPortMap,
                 new TransportUdp(),
             });
-
         }
 
         private NetworkInfo GetLocalConfig()
