@@ -309,12 +309,12 @@ namespace linker.messenger.example
                             //外网端口
                             if (buffer[0] == 0)
                             {
-                                await tunnelExternalResolver.Resolve(socketUdp, ep, buffer.AsMemory(0, result.ReceivedBytes));
+                                await tunnelExternalResolver.Resolve(socketUdp, ep, buffer.AsMemory(1, result.ReceivedBytes-1));
                             }
                             //中继节点报告
                             else if (buffer[0] == 3)
                             {
-                                await relayServerReportResolver.Resolve(socketUdp, ep, buffer.AsMemory(0, result.ReceivedBytes));
+                                await relayServerReportResolver.Resolve(socketUdp, ep, buffer.AsMemory(1, result.ReceivedBytes-1));
                             }
                         }
                         catch (Exception ex)

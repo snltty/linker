@@ -65,7 +65,6 @@ namespace linker.messenger.relay.server
             try
             {
                 if (crypto == null) return;
-
                 data = crypto.Decode(data.ToArray());
                 RelayServerNodeReportInfo relayNodeReportInfo = serializer.Deserialize<RelayServerNodeReportInfo>(data.Span);
 
@@ -80,8 +79,12 @@ namespace linker.messenger.relay.server
                 relayNodeReportInfo.LastTicks = Environment.TickCount64;
                 reports.AddOrUpdate(relayNodeReportInfo.Id, relayNodeReportInfo, (a, b) => relayNodeReportInfo);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if(LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
             }
         }
         /// <summary>
