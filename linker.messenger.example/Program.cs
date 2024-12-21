@@ -89,9 +89,14 @@ namespace linker.messenger.example
                 Console.WriteLine($"打洞成功，收到 {connection.IPEndPoint} {connection.RemoteMachineId} 的连接");
                 connection.BeginReceive(new TunnelConnectionReceiveCallback(), null);
             });
+            //打洞排除IP
+            TunnelExcludeIPTransfer tunnelExcludeIPTransfer = new TunnelExcludeIPTransfer();
+            //
+            //tunnelExcludeIPTransfer.LoadTunnelExcludeIPs(new List<ITunnelExcludeIP>());
+
             TunnelClientMessenger tunnelClientMessenger = new TunnelClientMessenger(tunnelTransfer, messengerSender, serializer);
             TunnelMessengerAdapter tunnelMessengerAdapter = new TunnelMessengerAdapter(messengerSender,
-                new TunnelExcludeIPTransfer(), tunnelWanPortTransfer, new TunnelUpnpTransfer(),
+                tunnelExcludeIPTransfer, tunnelWanPortTransfer, new TunnelUpnpTransfer(),
                 tunnelTransfer, serializer, new TunnelMessengerAdapterStore());
 
             //中继相关
@@ -184,7 +189,6 @@ namespace linker.messenger.example
             }
             if (tunnelConnection != null)
             {
-               
                 for (int i = 0; i < 10; i++)
                 {
                     string msg = $"hello {i}";
