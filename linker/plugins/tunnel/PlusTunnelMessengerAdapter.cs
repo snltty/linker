@@ -11,15 +11,16 @@ namespace linker.plugins.tunnel
         {
 
             clientSignInState.NetworkEnabledHandle += (times) => tunnelMessengerAdapter.RefreshPortMap(tunnelConfigTransfer.PortMapLan, tunnelConfigTransfer.PortMapWan);
+            clientSignInState.NetworkEnabledHandle += (times) => tunnelMessengerAdapter.RefreshNetwork();
             tunnelConfigTransfer.OnChanged += () => tunnelMessengerAdapter.RefreshPortMap(tunnelConfigTransfer.PortMapLan, tunnelConfigTransfer.PortMapWan);
         }
     }
     public sealed class PlusTunnelMessengerAdapterStore : ITunnelMessengerAdapterStore
     {
         public IConnection SignConnection => clientSignInState.Connection;
-        public NetworkInfo Network => GetLocalConfig();
         public X509Certificate2 Certificate => tunnelConfigTransfer.Certificate;
         public List<TunnelTransportItemInfo> TunnelTransports => tunnelConfigTransfer.Transports;
+        public int RouteLevelPlus => tunnelConfigTransfer.RouteLevelPlus;
 
         private readonly ClientSignInState clientSignInState;
         private readonly ClientConfigTransfer clientConfigTransfer;
@@ -37,16 +38,6 @@ namespace linker.plugins.tunnel
         {
             tunnelConfigTransfer.SetTransports(list);
             return true;
-        }
-
-        private NetworkInfo GetLocalConfig()
-        {
-            return new NetworkInfo
-            {
-                LocalIps = tunnelConfigTransfer.LocalIPs,
-                RouteLevel = tunnelConfigTransfer.RouteLevel,
-                MachineId = clientConfigTransfer.Id
-            };
         }
     }
 }

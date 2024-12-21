@@ -195,7 +195,7 @@ namespace linker.messenger.example
                     var msgBytes = msg.ToBytes();
 
                     //首部4字节存长度，剩下的才是真实数据
-                    byte[] bytes = new byte[4+ msgBytes.Length];
+                    byte[] bytes = new byte[4 + msgBytes.Length];
                     msgBytes.Length.ToBytes(bytes);
                     msgBytes.AsMemory().CopyTo(bytes.AsMemory(4));
 
@@ -313,12 +313,12 @@ namespace linker.messenger.example
                             //外网端口
                             if (buffer[0] == 0)
                             {
-                                await tunnelExternalResolver.Resolve(socketUdp, ep, buffer.AsMemory(1, result.ReceivedBytes-1));
+                                await tunnelExternalResolver.Resolve(socketUdp, ep, buffer.AsMemory(1, result.ReceivedBytes - 1));
                             }
                             //中继节点报告
                             else if (buffer[0] == 3)
                             {
-                                await relayServerReportResolver.Resolve(socketUdp, ep, buffer.AsMemory(1, result.ReceivedBytes-1));
+                                await relayServerReportResolver.Resolve(socketUdp, ep, buffer.AsMemory(1, result.ReceivedBytes - 1));
                             }
                         }
                         catch (Exception ex)
@@ -435,16 +435,12 @@ namespace linker.messenger.example
     {
         public IConnection SignConnection => Program.publicConfigInfo.SignConnection;
 
-        public NetworkInfo Network => new NetworkInfo
-        {
-            MachineId = Program.publicConfigInfo.MachineId,
-            LocalIps = Program.publicConfigInfo.LocalIps,
-            RouteLevel = Program.publicConfigInfo.RouteLevel
-        };
 
         public X509Certificate2 Certificate => Program.publicConfigInfo.Certificate;
 
         public List<TunnelTransportItemInfo> TunnelTransports => Program.publicConfigInfo.TunnelTransports;
+
+        public int RouteLevelPlus => 0;
 
         public TunnelMessengerAdapterStore()
         {

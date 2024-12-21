@@ -18,7 +18,7 @@ namespace linker.plugins.tunnel
 {
     public sealed class TunnelConfigTransfer
     {
-        public int RouteLevel => config.Data.Client.Tunnel.RouteLevel + running.Data.Tunnel.RouteLevelPlus;
+        public int RouteLevelPlus => running.Data.Tunnel.RouteLevelPlus;
         public IPAddress[] LocalIPs => config.Data.Client.Tunnel.LocalIPs;
         public IPAddress[] RouteIPs => config.Data.Client.Tunnel.RouteIPs;
         public int PortMapLan => running.Data.Tunnel.PortMapLan;

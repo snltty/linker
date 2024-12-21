@@ -6,6 +6,7 @@ using linker.tunnel;
 using linker.messenger;
 using linker.messenger.tunnel;
 using System.Security.Cryptography.X509Certificates;
+using linker.libs.extends;
 
 namespace linker.plugins.tunnel
 {
@@ -18,10 +19,12 @@ namespace linker.plugins.tunnel
         /// 获取信标连接
         /// </summary>
         public IConnection SignConnection { get; }
+
         /// <summary>
-        /// 获取本地网信息
+        /// 调整的网络层级
         /// </summary>
-        public NetworkInfo Network { get; }
+        public int RouteLevelPlus { get; }  
+
         /// <summary>
         /// ssl
         /// </summary>
@@ -102,11 +105,12 @@ namespace linker.plugins.tunnel
             });
         }
 
+        private readonly NetworkInfo network = new NetworkInfo();
         private NetworkInfo GetLocalConfig()
         {
             var excludeips = excludeIPTransfer.Get();
 
-            NetworkInfo networkInfo = tunnelMessengerAdapterStore.Network;
+            NetworkInfo networkInfo = new NetworkInfo { LocalIps= network.LocalIps, MachineId= network.MachineId, RouteLevel=network.RouteLevel+ tunnelMessengerAdapterStore.RouteLevelPlus };
             networkInfo.LocalIps = networkInfo.LocalIps.Where(c =>
             {
                 if (c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
@@ -173,6 +177,15 @@ namespace linker.plugins.tunnel
             return true;
         }
 
+        public void RefreshNetwork()
+        {
+            TimerHelper.Async(() =>
+            {
+                network.RouteLevel = NetworkHelper.GetRouteLevel(tunnelMessengerAdapterStore.SignConnection.Address.ToString(), out List<IPAddress> ips);
+                network.LocalIps = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
+                network.MachineId = tunnelMessengerAdapterStore.SignConnection.Id;
+            });
+        }
         /// <summary>
         /// 刷新端口映射，一般来说，端口发生变化，或者网络发生变化就刷新一下
         /// </summary>

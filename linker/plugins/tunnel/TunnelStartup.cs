@@ -78,12 +78,6 @@ namespace linker.plugins.tunnel
 
             ITunnelMessengerAdapterStore tunnelAdapter = serviceProvider.GetService<ITunnelMessengerAdapterStore>();
             PlusTunnelMessengerAdapter plusTunnelMessengerAdapter = serviceProvider.GetService<PlusTunnelMessengerAdapter>();
-
-            LoggerHelper.Instance.Info($"tunnel route level getting.");
-            tunnelConfigTransfer.RefreshRouteLevel();
-            LoggerHelper.Instance.Warning($"route ips:{string.Join(",", tunnelConfigTransfer.RouteIPs.Select(c => c.ToString()))}");
-            LoggerHelper.Instance.Warning($"tunnel local ips :{string.Join(",", tunnelConfigTransfer.LocalIPs.Select(c => c.ToString()))}");
-            LoggerHelper.Instance.Warning($"tunnel route level:{tunnelConfigTransfer.RouteLevel}");
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config)

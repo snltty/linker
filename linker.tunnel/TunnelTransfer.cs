@@ -377,11 +377,16 @@ namespace linker.tunnel
         /// <returns></returns>
         private async Task<TunnelTransportWanPortInfo> GetLocalInfo(TunnelWanPortProtocolType tunnelWanPortProtocolType)
         {
+            var config = GetLocalConfig();
+            if (string.IsNullOrWhiteSpace(config.MachineId))
+            {
+                return null;
+            }
             TunnelWanPortEndPoint ip = await tunnelWanPortTransfer.GetWanPortAsync(ServerHost(), LocalIP(), tunnelWanPortProtocolType).ConfigureAwait(false);
             if (ip != null)
             {
                 MapInfo portMapInfo = TunnelUpnpTransfer.PortMap ?? new MapInfo { PrivatePort = 0, PublicPort = 0 };
-                var config = GetLocalConfig();
+                
                 return new TunnelTransportWanPortInfo
                 {
                     Local = ip.Local,
