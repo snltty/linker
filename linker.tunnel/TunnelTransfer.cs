@@ -92,7 +92,7 @@ namespace linker.tunnel
                 item.SetSSL(Certificate());
             }
 
-            var transportItems = GetTunnelTransports();
+            var transportItems = GetTunnelTransports().ToList();
             //有新的协议
             var newTransportNames = transports.Select(c => c.Name).Except(transportItems.Select(c => c.Name));
             if (newTransportNames.Any())

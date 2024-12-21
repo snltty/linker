@@ -8,7 +8,7 @@ namespace linker.messenger.relay.server.validator
     /// </summary>
     public sealed partial class RelayServerValidatorTransfer
     {
-        private List<IRelayServerValidator> validators;
+        private List<IRelayServerValidator> validators = new List<IRelayServerValidator>();
 
         public RelayServerValidatorTransfer()
         {

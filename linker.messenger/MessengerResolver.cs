@@ -215,7 +215,6 @@ namespace linker.messenger
                     return;
                 }
 
-
                 if (plugin.VoidMethod != null)
                 {
                     plugin.VoidMethod(connection);

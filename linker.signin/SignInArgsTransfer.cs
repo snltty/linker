@@ -5,7 +5,7 @@
     /// </summary>
     public sealed partial class SignInArgsTransfer
     {
-        private List<ISignInArgs> startups;
+        private List<ISignInArgs> startups =new List<ISignInArgs>();
 
         public SignInArgsTransfer()
         {

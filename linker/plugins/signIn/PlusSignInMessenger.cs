@@ -32,7 +32,7 @@ namespace linker.plugins.signIn
         private readonly SignCaching signCaching;
         private readonly IMessengerSender messengerSender;
 
-        public PlusSignInServerMessenger(SignCaching signCaching, IMessengerSender messengerSender, ISerializer serializer) : base(signCaching, messengerSender, serializer)
+        public PlusSignInServerMessenger(SignCaching signCaching, IMessengerSender messengerSender, ISerializer serializer) : base(messengerSender,signCaching, serializer)
         {
             this.signCaching = signCaching;
             this.messengerSender = messengerSender;

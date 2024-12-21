@@ -33,7 +33,6 @@ namespace linker.messenger.signin
             if (VersionHelper.Compare(info.Version, "v1.5.0", false) < 0)
             {
                 connection.Write(serializer.Serialize(new SignInResponseInfo { MachineId = string.Empty, Status = false, Msg = "need v1.5.0+" }));
-                connection.Disponse();
                 return;
             }
 

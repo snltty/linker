@@ -5,7 +5,7 @@
     /// </summary>
     public sealed class TunnelExcludeIPTransfer
     {
-        private List<ITunnelExcludeIP> excludeIPs;
+        private List<ITunnelExcludeIP> excludeIPs = new List<ITunnelExcludeIP>();
 
         public TunnelExcludeIPTransfer()
         {

@@ -26,7 +26,7 @@ namespace linker.plugins.relay.messenger
     public sealed class PlusRelayServerMessenger : RelayServerMessenger, IMessenger
     {
         public PlusRelayServerMessenger(IMessengerSender messengerSender, SignCaching signCaching, RelayServerMasterTransfer relayServerTransfer, RelayServerValidatorTransfer relayValidatorTransfer, ISerializer serializer)
-            : base(messengerSender, signCaching, relayServerTransfer, relayValidatorTransfer, serializer)
+            : base(messengerSender, signCaching, serializer, relayServerTransfer, relayValidatorTransfer)
         {
         }
     }

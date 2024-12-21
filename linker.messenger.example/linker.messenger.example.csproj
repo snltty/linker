@@ -1,18 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-	  <EnablePreviewFeatures>true</EnablePreviewFeatures>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<EnablePreviewFeatures>true</EnablePreviewFeatures>
+		<Version>1.6.4</Version>
+		<AssemblyVersion>1.6.4</AssemblyVersion>
+		<FileVersion>1.6.4</FileVersion>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\linker.messenger.relay\linker.messenger.relay.csproj" />
-    <ProjectReference Include="..\linker.messenger.tunnel\linker.messenger.tunnel.csproj" />
-    <ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
-    <ProjectReference Include="..\linker.signin\linker.messenger.signin.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\linker.messenger.relay\linker.messenger.relay.csproj" />
+		<ProjectReference Include="..\linker.messenger.tunnel\linker.messenger.tunnel.csproj" />
+		<ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
+		<ProjectReference Include="..\linker.signin\linker.messenger.signin.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="snltty.pfx">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
 
 </Project>
