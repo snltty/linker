@@ -165,8 +165,6 @@ namespace linker.messenger.example
             if (resp.Code == MessageResponeCodes.OK)
             {
                 Console.WriteLine($"当前在线 : {serializer.Deserialize<SignInListResponseInfo>(resp.Data.Span).List.ToJson()}");
-                publicConfigInfo.SignConnection?.Disponse(6);
-                return;
             }
 
 
