@@ -8,7 +8,7 @@
 		<PublishAot>false</PublishAot>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
 		<EnablePreviewFeatures>True</EnablePreviewFeatures>
-		<Title>linker signin</Title>
+		<Title>linker messenger signin</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>linker messenger tunnel</Description>

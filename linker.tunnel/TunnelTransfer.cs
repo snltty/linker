@@ -100,7 +100,7 @@ namespace linker.tunnel
             }
 
             await tunnelMessengerAdapter.SetTunnelTransports(transportItems);
-            LoggerHelper.Instance.Info($"load tunnel transport:{string.Join(",", transports.Select(c => c.Name))}");
+            LoggerHelper.Instance.Info($"load tunnel transport:{string.Join(",", transports.Select(c => c.GetType().Name))}");
         }
 
         /// <summary>
@@ -138,6 +138,7 @@ namespace linker.tunnel
                     try
                     {
                         await socket.ConnectAsync(server);
+                        await socket.SendAsync(new byte[] { 255 });
                         return (socket.LocalEndPoint as IPEndPoint).Address;
                     }
                     catch (Exception)

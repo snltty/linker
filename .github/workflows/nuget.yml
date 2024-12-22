@@ -25,6 +25,9 @@ jobs:
         dotnet build ./linker.tunnel -c release
         dotnet build ./linker.tun -c release
         dotnet build ./linker.messenger -c release
+        dotnet build ./linker.messenger.relay -c release
+        dotnet build ./linker.messenger.signin -c release
+        dotnet build ./linker.messenger.tunnel -c release
 
     - name: Pack
       run: |
@@ -32,6 +35,9 @@ jobs:
         dotnet pack ./linker.tunnel -c release
         dotnet pack ./linker.tun -c release
         dotnet pack ./linker.messenger -c release
+        dotnet pack ./linker.messenger.relay -c release
+        dotnet pack ./linker.messenger.signin -c release
+        dotnet pack ./linker.messenger.tunnel -c release
         
     - name: Install Nuget
       uses: nuget/setup-nuget@v1
@@ -44,3 +50,6 @@ jobs:
         nuget push ./linker.libs/bin/release/linker.libs.1.6.4.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate -ApiKey ${{ secrets.NUGET_KEY }} -NoSymbol
         nuget push ./linker.tun/bin/release/linker.tun.1.6.4.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate -ApiKey ${{ secrets.NUGET_KEY }} -NoSymbol
         nuget push ./linker.messenger/bin/release/linker.messenger.1.6.4.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate -ApiKey ${{ secrets.NUGET_KEY }} -NoSymbol
+        nuget push ./linker.messenger/bin/release/linker.messenger.relay.1.6.4.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate -ApiKey ${{ secrets.NUGET_KEY }} -NoSymbol
+        nuget push ./linker.messenger/bin/release/linker.messenger.signin.1.6.4.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate -ApiKey ${{ secrets.NUGET_KEY }} -NoSymbol
+        nuget push ./linker.messenger/bin/release/linker.messenger.tunnel.1.6.4.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate -ApiKey ${{ secrets.NUGET_KEY }} -NoSymbol

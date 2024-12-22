@@ -3,7 +3,6 @@ using linker.startup;
 using linker.tunnel;
 using MemoryPack;
 using Microsoft.Extensions.DependencyInjection;
-using linker.tunnel.wanport;
 using linker.plugins.client;
 using linker.messenger.tunnel;
 
@@ -28,11 +27,13 @@ namespace linker.plugins.tunnel
             //打洞协议
             serviceCollection.AddSingleton<TunnelTransfer>();
             serviceCollection.AddSingleton<TunnelExcludeIPTransfer>();
-            serviceCollection.AddSingleton<TunnelMessengerAdapter>();
+            serviceCollection.AddSingleton<ITunnelMessengerAdapter,TunnelMessengerAdapter>();
 
             //命令接口
             serviceCollection.AddSingleton<PlusTunnelClientMessenger>();
             serviceCollection.AddSingleton<ITunnelMessengerAdapterStore, PlusTunnelMessengerAdapterStore>();
+            serviceCollection.AddSingleton<PlusTunnelMessengerAdapter>();
+            
 
             //序列化扩展
             MemoryPackFormatterProvider.Register(new TunnelTransportWanPortInfoFormatter());
@@ -69,6 +70,7 @@ namespace linker.plugins.tunnel
             TunnelConfigTransfer tunnelConfigTransfer = serviceProvider.GetService<TunnelConfigTransfer>();
 
             ITunnelMessengerAdapterStore tunnelAdapter = serviceProvider.GetService<ITunnelMessengerAdapterStore>();
+            PlusTunnelMessengerAdapter plusTunnelMessengerAdapter = serviceProvider.GetService<PlusTunnelMessengerAdapter>();
         }
 
         public void UseServer(ServiceProvider serviceProvider, FileConfig config)

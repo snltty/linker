@@ -27,7 +27,7 @@ namespace linker.plugins.client
 
             serviceCollection.AddSingleton<ClientConfigSyncSecretKey>();
             serviceCollection.AddSingleton<ClientConfigSyncGroupSecretKey>();
-
+           
             serviceCollection.AddSingleton<ClientConfigTransfer>();
             
         }

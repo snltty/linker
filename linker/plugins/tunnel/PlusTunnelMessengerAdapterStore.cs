@@ -19,14 +19,11 @@ namespace linker.plugins.tunnel
         private readonly ClientSignInState clientSignInState;
         private readonly ClientConfigTransfer clientConfigTransfer;
         private readonly TunnelConfigTransfer tunnelConfigTransfer;
-        public PlusTunnelMessengerAdapterStore(ClientSignInState clientSignInState, ClientConfigTransfer clientConfigTransfer, TunnelConfigTransfer tunnelConfigTransfer,TunnelTransfer tunnelTransfer)
+        public PlusTunnelMessengerAdapterStore(ClientSignInState clientSignInState, ClientConfigTransfer clientConfigTransfer, TunnelConfigTransfer tunnelConfigTransfer)
         {
             this.clientSignInState = clientSignInState;
             this.clientConfigTransfer = clientConfigTransfer;
             this.tunnelConfigTransfer = tunnelConfigTransfer;
-
-            clientSignInState.NetworkEnabledHandle += (times) => tunnelTransfer.Refresh();
-            tunnelConfigTransfer.OnChanged += () => tunnelTransfer.Refresh();
         }
         public async Task<bool> SetTunnelTransports(List<TunnelTransportItemInfo> list)
         {

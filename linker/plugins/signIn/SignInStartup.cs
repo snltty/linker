@@ -39,6 +39,7 @@ namespace linker.plugins.signin
            
             serviceCollection.AddSingleton<SignInArgsTypesLoader>();
             serviceCollection.AddSingleton<SignInArgsMachineKeyClient>();
+            serviceCollection.AddSingleton<SignInArgsVersionClient>();
             serviceCollection.AddSingleton<SignInClientApiController>();
         }
 
@@ -63,6 +64,7 @@ namespace linker.plugins.signin
           
             serviceCollection.AddSingleton<SignInArgsTypesLoader>();
             serviceCollection.AddSingleton<SignInArgsMachineKeyServer>();
+            serviceCollection.AddSingleton<SignInArgsVersionServer>();
             serviceCollection.AddSingleton<SignInConfigTransfer>();
         }
 

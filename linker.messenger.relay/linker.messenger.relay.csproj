@@ -10,7 +10,7 @@
 		<PublishAot>false</PublishAot>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
 		<EnablePreviewFeatures>True</EnablePreviewFeatures>
-		<Title>linker relay</Title>
+		<Title>linker messenger relay</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>linker messenger relay</Description>

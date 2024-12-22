@@ -1,5 +1,6 @@
 ﻿using linker.messenger.signin;
 using linker.messenger.relay.client.transport;
+using linker.libs;
 
 namespace linker.messenger.relay.server.validator
 {
@@ -21,6 +22,7 @@ namespace linker.messenger.relay.server.validator
         public void LoadValidators(List<IRelayServerValidator> list)
         {
             validators = list;
+            LoggerHelper.Instance.Info($"load relay server validator :{string.Join(",", validators.Select(c => c.GetType().Name))}");
         }
 
         /// <summary>

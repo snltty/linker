@@ -23,6 +23,7 @@ namespace linker.messenger.relay.client
             Transports = new List<IRelayClientTransport> { 
                 new RelayClientTransportSelfHost(messengerSender,serializer,relayClientStore),
             };
+            LoggerHelper.Instance.Info($"load relay transport:{string.Join(",", Transports.Select(c => c.GetType().Name))}");
         }
 
         /// <summary>

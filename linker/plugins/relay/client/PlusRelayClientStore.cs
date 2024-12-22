@@ -23,8 +23,6 @@ namespace linker.plugins.relay.client
 
         public RelayClientType RelayType => relayClientConfigTransfer.Server.RelayType;
 
-
-        private readonly X509Certificate2 certificate = null;
         private readonly RelayClientConfigTransfer relayClientConfigTransfer;
         private readonly ClientSignInState clientSignInState;
         private readonly ClientConfigTransfer clientConfigTransfer;

@@ -37,7 +37,7 @@ jobs:
           release_name: v1.6.4.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 优化UI，显示网络计算IP数\r\n2. 修复内网穿透不停止直接删除导致的无法再次添加的问题\r\n3. 优化网卡的端口转发\r\n4. 修复网络掩码计算错误\r\n5. 测试中，不要更，不要更，不要更"
+          body: "1. 优化代码，解耦，简单几步将打洞和中继集成到你自己的项目中\r\n2. 增加了组件组合demo\r\n3. 测试中，不要更，不要更，不要更"
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
         uses: tvrcgo/oss-action@v0.1.1

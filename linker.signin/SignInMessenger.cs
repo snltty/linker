@@ -30,12 +30,7 @@ namespace linker.messenger.signin
         public async Task SignIn_V_1_3_1(IConnection connection)
         {
             SignInfo info = serializer.Deserialize<SignInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (VersionHelper.Compare(info.Version, "v1.5.0", false) < 0)
-            {
-                connection.Write(serializer.Serialize(new SignInResponseInfo { MachineId = string.Empty, Status = false, Msg = "need v1.5.0+" }));
-                return;
-            }
-
+            
             LoggerHelper.Instance.Info($"sign in from >=v131 {connection.Address}->{info.ToJson()}");
             info.Connection = connection;
             string msg = await signCaching.Sign(info);

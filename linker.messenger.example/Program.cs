@@ -132,7 +132,7 @@ namespace linker.messenger.example
             }).ConfigureAwait(false);
             if (resp.Code != MessageResponeCodes.OK)
             {
-                Console.WriteLine($"sign in fail : {resp.Code}");
+                Console.WriteLine($"登录失败 : {resp.Code}");
                 publicConfigInfo.SignConnection?.Disponse(6);
                 return;
             }
@@ -140,13 +140,36 @@ namespace linker.messenger.example
             SignInResponseInfo signResp = serializer.Deserialize<string>(resp.Data.Span).DeJson<SignInResponseInfo>();
             if (signResp.Status == false)
             {
-                Console.WriteLine($"sign in fail : {signResp.Msg}");
+                Console.WriteLine($"登录失败 : {signResp.Msg}");
                 publicConfigInfo.SignConnection?.Disponse(6);
                 return;
             }
             publicConfigInfo.SignConnection.Id = signResp.MachineId;
             Console.WriteLine($"你的id:{signResp.MachineId}");
             tunnelTransfer.Refresh();
+
+
+            //获取在线列表，其它功能，参照  SignInServerMessenger 里的方法serializer.Deserialize 什么，就传什么
+            resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = publicConfigInfo.SignConnection,
+                MessengerId = (ushort)SignInMessengerIds.List,
+                Timeout = 2000,
+                Payload = serializer.Serialize(new SignInListRequestInfo
+                {
+                    Asc = true,
+                    Page = 1,
+                    Size = 10
+                })
+            }).ConfigureAwait(false);
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                Console.WriteLine($"当前在线 : {serializer.Deserialize<SignInListResponseInfo>(resp.Data.Span).List.ToJson()}");
+                publicConfigInfo.SignConnection?.Disponse(6);
+                return;
+            }
+
+
 
             Console.WriteLine($"去连接吗?，1打洞，2中继:");
             string connect = Console.ReadLine();
