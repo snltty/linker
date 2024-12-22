@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.tunnel.transport;
 using Mono.Nat;
 using System.Collections.Concurrent;
 
@@ -18,11 +19,17 @@ namespace linker.tunnel
 
         public MapInfo PortMap => MapInfo1 ?? MapInfo;
 
-        public TunnelUpnpTransfer()
+        private readonly TransportUdpPortMap transportUdpPortMap;
+        private readonly TransportTcpPortMap transportTcpPortMap;
+        public TunnelUpnpTransfer(TransportUdpPortMap transportUdpPortMap,TransportTcpPortMap transportTcpPortMap)
         {
+            this.transportUdpPortMap = transportUdpPortMap;
+            this.transportTcpPortMap = transportTcpPortMap;
+
             NatUtility.DeviceFound += DeviceFound;
             NatUtility.StartDiscovery();
             LoopDiscovery();
+           
         }
 
         private void LoopDiscovery()
@@ -105,6 +112,9 @@ namespace linker.tunnel
         {
             MapInfo = new MapInfo { PrivatePort = privatePort, PublicPort = privatePort };
             AddMap();
+
+            _ = transportTcpPortMap.Listen(privatePort);
+            _ = transportUdpPortMap.Listen(privatePort);
         }
         /// <summary>
         /// 设置端口映射，内网端口和外网端口不一样
@@ -114,6 +124,9 @@ namespace linker.tunnel
         public void SetMap(int privatePort, int publicPort)
         {
             MapInfo1 = new MapInfo { PrivatePort = privatePort, PublicPort = publicPort };
+
+            _ = transportTcpPortMap.Listen(privatePort);
+            _ = transportUdpPortMap.Listen(privatePort);
         }
     }
 

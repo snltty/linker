@@ -30,7 +30,6 @@ namespace linker.plugins.relay
 
         public void AddClient(ServiceCollection serviceCollection, FileConfig config)
         {
-            serviceCollection.AddSingleton<PlusRelayClientTransportSelfHost>();
             serviceCollection.AddSingleton<RelayClientTransfer>();
 
            

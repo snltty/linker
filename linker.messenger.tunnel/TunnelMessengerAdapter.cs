@@ -1,12 +1,10 @@
 ﻿using linker.tunnel.transport;
 using linker.libs;
 using System.Net;
-using linker.tunnel.wanport;
 using linker.tunnel;
 using linker.messenger;
 using linker.messenger.tunnel;
 using System.Security.Cryptography.X509Certificates;
-using linker.libs.extends;
 
 namespace linker.plugins.tunnel
 {
@@ -21,118 +19,81 @@ namespace linker.plugins.tunnel
         public IConnection SignConnection { get; }
 
         /// <summary>
-        /// 调整的网络层级
+        /// 配置的额外网络层级
         /// </summary>
-        public int RouteLevelPlus { get; }  
+        public int RouteLevelPlus { get; }
 
         /// <summary>
-        /// ssl
+        /// 加密密钥
         /// </summary>
         public X509Certificate2 Certificate { get; }
+
         /// <summary>
-        /// 打洞协议列表，按照这个列表去打洞
+        /// 端口映射内外端口
         /// </summary>
-        public List<TunnelTransportItemInfo> TunnelTransports { get; }
+        public int PortMapPrivate { get; }
         /// <summary>
-        /// 保存打洞协议列表，因为可能会有新的打洞协议
+        /// 端口映射外网端口
         /// </summary>
-        /// <param name="list"></param>
+        public int PortMapPublic { get; }
+
+        /// <summary>
+        /// 获取打洞协议列表
+        /// </summary>
         /// <returns></returns>
-        public bool SetTunnelTransports(List<TunnelTransportItemInfo> list);
+        public Task<List<TunnelTransportItemInfo>> GetTunnelTransports();
+        /// <summary>
+        /// 保存打洞协议列表
+        /// </summary>
+        /// <param name="transports"></param>
+        public Task<bool> SetTunnelTransports(List<TunnelTransportItemInfo> list);
 
     }
     /// <summary>
     /// 打洞信标适配
     /// </summary>
-    public class TunnelMessengerAdapter
+    public class TunnelMessengerAdapter: ITunnelMessengerAdapter
     {
+        public string MachineId => tunnelMessengerAdapterStore.SignConnection?.Id ?? string.Empty;
+        public int RouteLevelPlus => tunnelMessengerAdapterStore.RouteLevelPlus;
+        public IPEndPoint ServerHost => tunnelMessengerAdapterStore.SignConnection?.Address ?? null;
+        public X509Certificate2 Certificate => tunnelMessengerAdapterStore.Certificate;
+        public int PortMapPrivate => tunnelMessengerAdapterStore.PortMapPrivate;
+        public int PortMapPublic => tunnelMessengerAdapterStore.PortMapPublic;
+
+
         private readonly IMessengerSender messengerSender;
 
         private readonly TunnelExcludeIPTransfer excludeIPTransfer;
-
-        private readonly TunnelWanPortTransfer tunnelWanPortTransfer;
-        private readonly TunnelUpnpTransfer tunnelUpnpTransfer;
-        private readonly TunnelTransfer tunnelTransfer;
-
-
-        private readonly TransportTcpPortMap transportTcpPortMap;
-        private readonly TransportUdpPortMap transportUdpPortMap;
 
         private readonly ISerializer serializer;
 
         private readonly ITunnelMessengerAdapterStore tunnelMessengerAdapterStore;
 
-        public TunnelMessengerAdapter(IMessengerSender messengerSender, TunnelExcludeIPTransfer excludeIPTransfer, TunnelWanPortTransfer tunnelWanPortTransfer, TunnelUpnpTransfer tunnelUpnpTransfer, TunnelTransfer tunnelTransfer, ISerializer serializer,ITunnelMessengerAdapterStore tunnelMessengerAdapterStore)
+        public TunnelMessengerAdapter(IMessengerSender messengerSender, TunnelExcludeIPTransfer excludeIPTransfer, ISerializer serializer, ITunnelMessengerAdapterStore tunnelMessengerAdapterStore)
         {
             this.messengerSender = messengerSender;
             this.excludeIPTransfer = excludeIPTransfer;
-
-            this.tunnelWanPortTransfer = tunnelWanPortTransfer;
-            this.tunnelUpnpTransfer = tunnelUpnpTransfer;
-            this.tunnelTransfer = tunnelTransfer;
-
             this.serializer = serializer;
-
             this.tunnelMessengerAdapterStore = tunnelMessengerAdapterStore;
-
-            //加载外网端口
-            tunnelWanPortTransfer.LoadTransports(new List<ITunnelWanPortProtocol>
-            {
-                new TunnelWanPortProtocolLinkerUdp(),
-                new TunnelWanPortProtocolLinkerTcp(),
-            });
-
-            tunnelTransfer.LocalIP = () => tunnelMessengerAdapterStore.SignConnection?.LocalAddress.Address ?? IPAddress.Any; ;
-            tunnelTransfer.ServerHost = () =>  tunnelMessengerAdapterStore.SignConnection?.Address ?? null; 
-            tunnelTransfer.Certificate = () => tunnelMessengerAdapterStore.Certificate;
-            tunnelTransfer.GetTunnelTransports = () => tunnelMessengerAdapterStore.TunnelTransports;
-            tunnelTransfer.SetTunnelTransports = (transports, update) => tunnelMessengerAdapterStore.SetTunnelTransports(transports);
-            tunnelTransfer.GetLocalConfig = GetLocalConfig;
-            tunnelTransfer.GetRemoteWanPort = GetRemoteWanPort;
-            tunnelTransfer.SendConnectBegin = SendConnectBegin;
-            tunnelTransfer.SendConnectFail = SendConnectFail;
-            tunnelTransfer.SendConnectSuccess = SendConnectSuccess;
-            //加载打洞协议
-            transportTcpPortMap = new TransportTcpPortMap();
-            transportUdpPortMap = new TransportUdpPortMap();
-            tunnelTransfer.LoadTransports(tunnelWanPortTransfer, tunnelUpnpTransfer, new List<ITunnelTransport> {
-                new TunnelTransportTcpNutssb(),
-                new TransportMsQuic(),
-                new TransportTcpP2PNAT(),
-                transportTcpPortMap,
-                transportUdpPortMap,
-                new TransportUdp(),
-            });
         }
 
-        private readonly NetworkInfo network = new NetworkInfo();
-        private NetworkInfo GetLocalConfig()
+        public async Task<List<IPAddress>> GetExcludeIps()
         {
-            var excludeips = excludeIPTransfer.Get();
-
-            NetworkInfo networkInfo = new NetworkInfo { LocalIps= network.LocalIps, MachineId= network.MachineId, RouteLevel=network.RouteLevel+ tunnelMessengerAdapterStore.RouteLevelPlus };
-            networkInfo.LocalIps = networkInfo.LocalIps.Where(c =>
-            {
-                if (c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                {
-                    uint ip = NetworkHelper.IP2Value(c);
-                    foreach (var item in excludeips)
-                    {
-                        uint maskValue = NetworkHelper.PrefixLength2Value(item.Mask);
-                        uint ip1 = NetworkHelper.IP2Value(item.IPAddress);
-                        if ((ip & maskValue) == (ip1 & maskValue))
-                        {
-                            return false;
-                        }
-                    }
-                }
-                return true;
-            }).ToArray();
-
-            return networkInfo;
+            return await Task.FromResult(excludeIPTransfer.Get());
         }
 
-        private async Task<TunnelTransportWanPortInfo> GetRemoteWanPort(TunnelWanPortProtocolInfo info)
+        public async Task<List<TunnelTransportItemInfo>> GetTunnelTransports()
+        {
+            return await tunnelMessengerAdapterStore.GetTunnelTransports();
+        }
+
+        public async Task<bool> SetTunnelTransports(List<TunnelTransportItemInfo> list)
+        {
+            return await tunnelMessengerAdapterStore.SetTunnelTransports(list);
+        }
+
+        public async Task<TunnelTransportWanPortInfo> GetRemoteWanPort(TunnelWanPortProtocolInfo info)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
@@ -146,7 +107,8 @@ namespace linker.plugins.tunnel
             }
             return null;
         }
-        private async Task<bool> SendConnectBegin(TunnelTransportInfo tunnelTransportInfo)
+
+        public async Task<bool> SendConnectBegin(TunnelTransportInfo tunnelTransportInfo)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
@@ -156,7 +118,7 @@ namespace linker.plugins.tunnel
             }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
-        private async Task<bool> SendConnectFail(TunnelTransportInfo tunnelTransportInfo)
+        public async Task<bool> SendConnectFail(TunnelTransportInfo tunnelTransportInfo)
         {
             await messengerSender.SendOnly(new MessageRequestWrap
             {
@@ -166,7 +128,7 @@ namespace linker.plugins.tunnel
             }).ConfigureAwait(false);
             return true;
         }
-        private async Task<bool> SendConnectSuccess(TunnelTransportInfo tunnelTransportInfo)
+        public async Task<bool> SendConnectSuccess(TunnelTransportInfo tunnelTransportInfo)
         {
             await messengerSender.SendOnly(new MessageRequestWrap
             {
@@ -177,40 +139,5 @@ namespace linker.plugins.tunnel
             return true;
         }
 
-        public void RefreshNetwork()
-        {
-            TimerHelper.Async(() =>
-            {
-                network.RouteLevel = NetworkHelper.GetRouteLevel(tunnelMessengerAdapterStore.SignConnection.Address.ToString(), out List<IPAddress> ips);
-                network.LocalIps = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
-                network.MachineId = tunnelMessengerAdapterStore.SignConnection.Id;
-            });
-        }
-        /// <summary>
-        /// 刷新端口映射，一般来说，端口发生变化，或者网络发生变化就刷新一下
-        /// </summary>
-        /// <param name="publicPort"></param>
-        /// <param name="privatePort"></param>
-        public void RefreshPortMap(int publicPort, int privatePort)
-        {
-            if (privatePort > 0)
-            {
-                tunnelUpnpTransfer.SetMap(privatePort, publicPort);
-                _ = transportTcpPortMap.Listen(privatePort);
-                _ = transportUdpPortMap.Listen(privatePort);
-            }
-            else
-            {
-                if (tunnelMessengerAdapterStore.SignConnection != null && tunnelMessengerAdapterStore.SignConnection.Connected)
-                {
-                    int ip = tunnelMessengerAdapterStore.SignConnection.LocalAddress.Address.GetAddressBytes()[3];
-                    tunnelUpnpTransfer.SetMap(18180 + ip);
-
-                    _ = transportTcpPortMap.Listen(18180 + ip);
-                    _ = transportUdpPortMap.Listen(18180 + ip);
-                }
-            }
-
-        }
     }
 }

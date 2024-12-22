@@ -12,7 +12,6 @@ using linker.plugins.tunnel;
 using linker.tunnel;
 using linker.tunnel.connection;
 using linker.tunnel.transport;
-using linker.tunnel.wanport;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
@@ -75,34 +74,22 @@ namespace linker.messenger.example
             IMessengerSender messengerSender = new MessengerSender();
             IMessengerResolver messengerResolver = new MessengerResolver(messengerSender);
 
-
-            //外网端口相关
-            TunnelWanPortTransfer tunnelWanPortTransfer = new TunnelWanPortTransfer();
-            tunnelWanPortTransfer.LoadTransports(new List<ITunnelWanPortProtocol> {
-                 new TunnelWanPortProtocolLinkerUdp(),
-                 new TunnelWanPortProtocolLinkerTcp(),
-            });
             //打洞相关
-            TunnelTransfer tunnelTransfer = new TunnelTransfer();
+            TunnelExcludeIPTransfer tunnelExcludeIPTransfer = new TunnelExcludeIPTransfer();
+            //tunnelExcludeIPTransfer.LoadTunnelExcludeIPs(new List<ITunnelExcludeIP>());
+            TunnelMessengerAdapter tunnelMessengerAdapter = new TunnelMessengerAdapter(messengerSender, tunnelExcludeIPTransfer, serializer, new TunnelMessengerAdapterStore());
+            TunnelTransfer tunnelTransfer = new TunnelTransfer(tunnelMessengerAdapter);
             tunnelTransfer.SetConnectedCallback("default", (connection) =>
             {
                 Console.WriteLine($"打洞成功，收到 {connection.IPEndPoint} {connection.RemoteMachineId} 的连接");
                 connection.BeginReceive(new TunnelConnectionReceiveCallback(), null);
             });
-            //打洞排除IP
-            TunnelExcludeIPTransfer tunnelExcludeIPTransfer = new TunnelExcludeIPTransfer();
-            //
-            //tunnelExcludeIPTransfer.LoadTunnelExcludeIPs(new List<ITunnelExcludeIP>());
-
             TunnelClientMessenger tunnelClientMessenger = new TunnelClientMessenger(tunnelTransfer, messengerSender, serializer);
-            TunnelMessengerAdapter tunnelMessengerAdapter = new TunnelMessengerAdapter(messengerSender,
-                tunnelExcludeIPTransfer, tunnelWanPortTransfer, new TunnelUpnpTransfer(),
-                tunnelTransfer, serializer, new TunnelMessengerAdapterStore());
+
 
             //中继相关
             IRelayClientStore relayClientStore = new RelayClientStore();
-            RelayClientTransfer relayClientTransfer = new RelayClientTransfer(relayClientStore);
-            relayClientTransfer.LoadTransports(new List<IRelayClientTransport> { new RelayClientTransportSelfHost(messengerSender, serializer, relayClientStore) });
+            RelayClientTransfer relayClientTransfer = new RelayClientTransfer(messengerSender, serializer, relayClientStore);
             relayClientTransfer.SetConnectedCallback("default", (connection) =>
             {
                 Console.WriteLine($"中继成功，收到 {connection.IPEndPoint} {connection.RemoteMachineId} 的连接");
@@ -120,11 +107,6 @@ namespace linker.messenger.example
 
             Console.WriteLine($"输入服务端ip端口:");
             publicConfigInfo.Host = Console.ReadLine();
-
-            publicConfigInfo.RouteLevel = NetworkHelper.GetRouteLevel(publicConfigInfo.Host, out List<IPAddress> ips);
-            publicConfigInfo.LocalIps = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
-            Console.WriteLine($"本地IP : {string.Join(",", publicConfigInfo.LocalIps.Select(c => c.ToString()))}");
-            Console.WriteLine($"外网距离 : {publicConfigInfo.RouteLevel}");
 
             Console.WriteLine($"开始连接服务器");
             IPEndPoint server = NetworkHelper.GetEndPoint(publicConfigInfo.Host, 1802);
@@ -162,8 +144,9 @@ namespace linker.messenger.example
                 publicConfigInfo.SignConnection?.Disponse(6);
                 return;
             }
-            publicConfigInfo.MachineId = signResp.MachineId;
+            publicConfigInfo.SignConnection.Id = signResp.MachineId;
             Console.WriteLine($"你的id:{signResp.MachineId}");
+            tunnelTransfer.Refresh();
 
             Console.WriteLine($"去连接吗?，1打洞，2中继:");
             string connect = Console.ReadLine();
@@ -181,7 +164,7 @@ namespace linker.messenger.example
                     break;
                 case "2":
                     {
-                        tunnelConnection = await relayClientTransfer.ConnectAsync(publicConfigInfo.MachineId, id, "default");
+                        tunnelConnection = await relayClientTransfer.ConnectAsync(publicConfigInfo.SignConnection.Id, id, "default");
                     }
                     break;
                 default:
@@ -366,10 +349,7 @@ namespace linker.messenger.example
 
     public sealed class PublicConfigInfo
     {
-        public string MachineId { get; set; }
         public IConnection SignConnection { get; set; }
-        public IPAddress[] LocalIps { get; set; }
-        public int RouteLevel { get; set; }
         public X509Certificate2 Certificate { get; set; }
         public List<TunnelTransportItemInfo> TunnelTransports { get; set; }
 
@@ -434,20 +414,23 @@ namespace linker.messenger.example
     public sealed class TunnelMessengerAdapterStore : ITunnelMessengerAdapterStore
     {
         public IConnection SignConnection => Program.publicConfigInfo.SignConnection;
-
-
         public X509Certificate2 Certificate => Program.publicConfigInfo.Certificate;
 
-        public List<TunnelTransportItemInfo> TunnelTransports => Program.publicConfigInfo.TunnelTransports;
-
         public int RouteLevelPlus => 0;
+        public int PortMapPrivate => 0;
+        public int PortMapPublic => 0;
 
         public TunnelMessengerAdapterStore()
         {
         }
-        public bool SetTunnelTransports(List<TunnelTransportItemInfo> list)
+
+        public async Task<List<TunnelTransportItemInfo>> GetTunnelTransports()
         {
-            return true;
+            return await Task.FromResult(Program.publicConfigInfo.TunnelTransports);
+        }
+        public async Task<bool> SetTunnelTransports(List<TunnelTransportItemInfo> list)
+        {
+            return await Task.FromResult(true);
         }
     }
 

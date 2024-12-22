@@ -26,6 +26,7 @@ namespace linker.tunnel.wanport
             UdpClient udpClient = new UdpClient(AddressFamily.InterNetwork);
             udpClient.Client.ReuseBind(new IPEndPoint(localIP, 0));
             udpClient.Client.WindowsUdpBug();
+            udpClient.Connect(server);
 
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
             try

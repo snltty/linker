@@ -1,5 +1,4 @@
-﻿using linker.libs;
-using linker.messenger;
+﻿using linker.messenger;
 using linker.messenger.relay.client;
 using linker.messenger.relay.client.transport;
 using linker.plugins.client;
@@ -8,15 +7,11 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace linker.plugins.relay.client
 {
-    public sealed class PlusRelayClientTransportSelfHost : RelayClientTransportSelfHost
-    {
-        public PlusRelayClientTransportSelfHost(IMessengerSender messengerSender,ISerializer serializer, IRelayClientStore relayClientStore) :base(messengerSender, serializer, relayClientStore) { }
-    }
     public sealed class PlusRelayClientStore : IRelayClientStore
     {
         public byte Flag => (byte)(ResolverType.Relay);
 
-        public X509Certificate2 Certificate => certificate;
+        public X509Certificate2 Certificate => clientConfigTransfer.Certificate;
 
         public IConnection SigninConnection => clientSignInState.Connection;
 
@@ -32,16 +27,12 @@ namespace linker.plugins.relay.client
         private readonly X509Certificate2 certificate = null;
         private readonly RelayClientConfigTransfer relayClientConfigTransfer;
         private readonly ClientSignInState clientSignInState;
+        private readonly ClientConfigTransfer clientConfigTransfer;
         public PlusRelayClientStore(RelayClientConfigTransfer relayClientConfigTransfer, ClientSignInState clientSignInState, ClientConfigTransfer clientConfigTransfer)
         {
             this.relayClientConfigTransfer = relayClientConfigTransfer;
             this.clientSignInState = clientSignInState;
-
-            string path = Path.GetFullPath(clientConfigTransfer.SSL.File);
-            if (File.Exists(path))
-            {
-                certificate = new X509Certificate2(path, clientConfigTransfer.SSL.Password, X509KeyStorageFlags.Exportable);
-            }
+            this.clientConfigTransfer = clientConfigTransfer;
         }
     }
 }

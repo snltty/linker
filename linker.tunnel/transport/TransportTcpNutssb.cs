@@ -20,7 +20,7 @@ namespace linker.tunnel.transport
     ///  B 收到通知，开始监听连接，并且以低TTL方式尝试连接A，这时候A肯定收不到
     ///  A 正常去连接 B，能连接成功则通道可用
     /// </summary>
-    public sealed class TunnelTransportTcpNutssb : ITunnelTransport
+    public sealed class TransportTcpNutssb : ITunnelTransport
     {
         public string Name => "TcpNutssb";
         public string Label => "TCP、低TTL";
@@ -36,26 +36,15 @@ namespace linker.tunnel.transport
 
         public byte Order => 2;
 
-
-        /// <summary>
-        /// 发送开始连接消息
-        /// </summary>
-        public Func<TunnelTransportInfo, Task<bool>> OnSendConnectBegin { get; set; } = async (info) => { return await Task.FromResult<bool>(false); };
-        /// <summary>
-        /// 发送连接失败消息
-        /// </summary>
-        public Func<TunnelTransportInfo, Task> OnSendConnectFail { get; set; } = async (info) => { await Task.CompletedTask; };
-        /// <summary>
-        /// 发送连接成功消息
-        /// </summary>
-        public Func<TunnelTransportInfo, Task> OnSendConnectSuccess { get; set; } = async (info) => { await Task.CompletedTask; };
         /// <summary>
         /// 连接成功
         /// </summary>
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
 
-        public TunnelTransportTcpNutssb()
+        private readonly ITunnelMessengerAdapter tunnelMessengerAdapter;
+        public TransportTcpNutssb(ITunnelMessengerAdapter tunnelMessengerAdapter)
         {
+            this.tunnelMessengerAdapter = tunnelMessengerAdapter;
         }
         private X509Certificate2 certificate;
         public void SetSSL(X509Certificate2 certificate)
@@ -73,7 +62,7 @@ namespace linker.tunnel.transport
             if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
             {
                 //正向连接
-                if (await OnSendConnectBegin(tunnelTransportInfo).ConfigureAwait(false) == false)
+                if (await tunnelMessengerAdapter.SendConnectBegin(tunnelTransportInfo).ConfigureAwait(false) == false)
                 {
                     return null;
                 }
@@ -81,7 +70,7 @@ namespace linker.tunnel.transport
                 ITunnelConnection connection = await ConnectForward(tunnelTransportInfo).ConfigureAwait(false);
                 if (connection != null)
                 {
-                    await OnSendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
+                    await tunnelMessengerAdapter.SendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
                     return connection;
                 }
             }
@@ -91,7 +80,7 @@ namespace linker.tunnel.transport
                 TunnelTransportInfo tunnelTransportInfo1 = tunnelTransportInfo.ToJsonFormat().DeJson<TunnelTransportInfo>();
                 _ = StartListen(tunnelTransportInfo1.Local.Local, tunnelTransportInfo1);
                 BindAndTTL(tunnelTransportInfo1);
-                if (await OnSendConnectBegin(tunnelTransportInfo1).ConfigureAwait(false) == false)
+                if (await tunnelMessengerAdapter.SendConnectBegin(tunnelTransportInfo1).ConfigureAwait(false) == false)
                 {
                     return null;
                 }
@@ -99,13 +88,13 @@ namespace linker.tunnel.transport
                 ITunnelConnection connection = await WaitReverse(tunnelTransportInfo1).ConfigureAwait(false);
                 if (connection != null)
                 {
-                    await OnSendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
+                    await tunnelMessengerAdapter.SendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
                     return connection;
                 }
             }
 
 
-            await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
+            await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
             return null;
         }
         /// <summary>
@@ -117,7 +106,7 @@ namespace linker.tunnel.transport
             if (tunnelTransportInfo.SSL && certificate == null)
             {
                 LoggerHelper.Instance.Error($"{Name}->ssl Certificate not found");
-                await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
+                await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                 return;
             }
             //正向连接，也就是它要连接我，那我就监听
@@ -137,11 +126,11 @@ namespace linker.tunnel.transport
                 if (connection != null)
                 {
                     OnConnected(connection);
-                    await OnSendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
+                    await tunnelMessengerAdapter.SendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
                 }
                 else
                 {
-                    await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
+                    await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                 }
             }
         }

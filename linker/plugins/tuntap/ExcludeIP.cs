@@ -11,10 +11,10 @@ namespace linker.plugins.tuntap
         {
             this.tuntapConfigTransfer = tuntapConfigTransfer;
         }
-        public ExcludeIPItem[] Get()
+        public List<IPAddress> Get()
         {
             //网卡IP不参与打洞
-            return new ExcludeIPItem[] { new ExcludeIPItem { IPAddress = tuntapConfigTransfer.IP, Mask = 32 } };
+            return new List<IPAddress> { tuntapConfigTransfer.IP };
         }
     }
 

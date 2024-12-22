@@ -34,9 +34,6 @@ namespace linker.tunnel.transport
 
         public byte Order => 5;
 
-        public Func<TunnelTransportInfo, Task<bool>> OnSendConnectBegin { get; set; } = async (info) => { return await Task.FromResult<bool>(false); };
-        public Func<TunnelTransportInfo, Task> OnSendConnectFail { get; set; } = async (info) => { await Task.CompletedTask; };
-        public Func<TunnelTransportInfo, Task> OnSendConnectSuccess { get; set; } = async (info) => { await Task.CompletedTask; };
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
 
 
@@ -46,9 +43,11 @@ namespace linker.tunnel.transport
 
         private readonly ConcurrentDictionary<string, TaskCompletionSource<State>> distDic = new ConcurrentDictionary<string, TaskCompletionSource<State>>();
         private readonly ConcurrentDictionary<IPEndPoint, ConnectionCacheInfo> connectionsDic = new ConcurrentDictionary<IPEndPoint, ConnectionCacheInfo>(new IPEndPointComparer());
-       
-        public TransportUdpPortMap()
+
+        private readonly ITunnelMessengerAdapter tunnelMessengerAdapter;
+        public TransportUdpPortMap(ITunnelMessengerAdapter tunnelMessengerAdapter)
         {
+            this.tunnelMessengerAdapter = tunnelMessengerAdapter;
             CleanTask();
         }
         private X509Certificate2 certificate;
@@ -156,7 +155,7 @@ namespace linker.tunnel.transport
                     return null;
                 }
                 //正向连接
-                if (await OnSendConnectBegin(tunnelTransportInfo).ConfigureAwait(false) == false)
+                if (await tunnelMessengerAdapter.SendConnectBegin(tunnelTransportInfo).ConfigureAwait(false) == false)
                 {
                     return null;
                 }
@@ -164,7 +163,7 @@ namespace linker.tunnel.transport
                 ITunnelConnection connection = await ConnectForward(tunnelTransportInfo).ConfigureAwait(false);
                 if (connection != null)
                 {
-                    await OnSendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
+                    await tunnelMessengerAdapter.SendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
                     return connection;
                 }
             }
@@ -180,20 +179,20 @@ namespace linker.tunnel.transport
                 TunnelTransportInfo tunnelTransportInfo1 = tunnelTransportInfo.ToJsonFormat().DeJson<TunnelTransportInfo>();
                 //等待对方连接，如果连接成功，我会收到一个socket，并且创建一个连接对象，失败的话会超时，那就是null
                 var task = WaitConnect(tunnelTransportInfo1);
-                if (await OnSendConnectBegin(tunnelTransportInfo1).ConfigureAwait(false) == false)
+                if (await tunnelMessengerAdapter.SendConnectBegin(tunnelTransportInfo1).ConfigureAwait(false) == false)
                 {
                     return null;
                 }
                 ITunnelConnection connection = await task.ConfigureAwait(false);
                 if (connection != null)
                 {
-                    await OnSendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
+                    await tunnelMessengerAdapter.SendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
                     return connection;
                 }
             }
 
 
-            await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
+            await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
             return null;
         }
         public async Task OnBegin(TunnelTransportInfo tunnelTransportInfo)
@@ -201,7 +200,7 @@ namespace linker.tunnel.transport
             if (tunnelTransportInfo.SSL && certificate == null)
             {
                 LoggerHelper.Instance.Error($"{Name}->ssl Certificate not found");
-                await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
+                await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                 return;
             }
             //正向连接，等他来连
@@ -211,7 +210,7 @@ namespace linker.tunnel.transport
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         LoggerHelper.Instance.Error($"OnBegin WaitConnect 【{Name}】{tunnelTransportInfo.Local.MachineName} port mapping not configured");
-                    await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
+                    await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                     return;
                 }
                 _ = WaitConnect(tunnelTransportInfo).ContinueWith((result) =>
@@ -226,7 +225,7 @@ namespace linker.tunnel.transport
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         LoggerHelper.Instance.Error($"OnBegin ConnectForward 【{Name}】{tunnelTransportInfo.Remote.MachineName} port mapping not configured");
-                    await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
+                    await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                     return;
                 }
 
@@ -234,11 +233,11 @@ namespace linker.tunnel.transport
                 if (connection != null)
                 {
                     OnConnected(connection);
-                    await OnSendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
+                    await tunnelMessengerAdapter.SendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
                 }
                 else
                 {
-                    await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
+                    await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                 }
             }
         }

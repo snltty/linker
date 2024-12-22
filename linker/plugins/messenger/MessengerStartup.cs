@@ -48,7 +48,7 @@ namespace linker.plugins.messenger
 
                 IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
                 ClientConfigTransfer clientConfigTransfer = serviceProvider.GetService<ClientConfigTransfer>();
-                messengerResolver.Initialize(clientConfigTransfer.SSL.File, clientConfigTransfer.SSL.Password);
+                messengerResolver.Initialize(clientConfigTransfer.Certificate);
 
                 MessengerResolverTypesLoader messengerResolverTypesLoader = serviceProvider.GetService<MessengerResolverTypesLoader>();
 

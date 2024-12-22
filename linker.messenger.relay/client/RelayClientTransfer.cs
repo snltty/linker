@@ -17,14 +17,12 @@ namespace linker.messenger.relay.client
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
         private readonly IRelayClientStore relayClientStore;
-        public RelayClientTransfer(IRelayClientStore relayClientStore)
+        public RelayClientTransfer(IMessengerSender messengerSender,ISerializer serializer,IRelayClientStore relayClientStore)
         {
             this.relayClientStore = relayClientStore;
-        }
-
-        public void LoadTransports(List<IRelayClientTransport> list)
-        {
-            Transports = list;
+            Transports = new List<IRelayClientTransport> { 
+                new RelayClientTransportSelfHost(messengerSender,serializer,relayClientStore),
+            };
         }
 
         /// <summary>

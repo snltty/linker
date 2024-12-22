@@ -24,31 +24,23 @@ namespace linker.plugins.tunnel
         public int PortMapLan => running.Data.Tunnel.PortMapLan;
         public int PortMapWan => running.Data.Tunnel.PortMapWan;
         public List<TunnelTransportItemInfo> Transports => config.Data.Client.Tunnel.Transports;
-        public X509Certificate2 Certificate { get; private set; }
+        public X509Certificate2 Certificate => clientConfigTransfer.Certificate;
 
         private readonly FileConfig config;
         private readonly RunningConfig running;
         private readonly ClientSignInState clientSignInState;
         private readonly IMessengerSender messengerSender;
-        private readonly TunnelUpnpTransfer upnpTransfer;
         private readonly ClientConfigTransfer clientConfigTransfer;
 
         public Action OnChanged { get; set; } = () => { };
 
-        public TunnelConfigTransfer(FileConfig config, RunningConfig running, ClientSignInState clientSignInState, IMessengerSender messengerSender, TunnelUpnpTransfer upnpTransfer, ClientConfigTransfer clientConfigTransfer)
+        public TunnelConfigTransfer(FileConfig config, RunningConfig running, ClientSignInState clientSignInState, IMessengerSender messengerSender,  ClientConfigTransfer clientConfigTransfer)
         {
             this.config = config;
             this.running = running;
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
-            this.upnpTransfer = upnpTransfer;
             this.clientConfigTransfer = clientConfigTransfer;
-
-            string path = Path.GetFullPath(clientConfigTransfer.SSL.File);
-            if (File.Exists(path))
-            {
-                Certificate = new X509Certificate2(path, clientConfigTransfer.SSL.Password, X509KeyStorageFlags.Exportable);
-            }
             clientSignInState.NetworkEnabledHandle += (times) =>
             {
                 TimerHelper.Async(RefreshRouteLevel);
@@ -77,11 +69,11 @@ namespace linker.plugins.tunnel
         /// 修改自己的网关层级信息
         /// </summary>
         /// <param name="tunnelTransportFileConfigInfo"></param>
-        public void OnLocalRouteLevel(TunnelTransportRouteLevelInfo tunnelTransportFileConfigInfo)
+        public void OnLocalRouteLevel(TunnelTransportRouteLevelInfo tunnelTransportRouteLevelInfo)
         {
-            running.Data.Tunnel.RouteLevelPlus = tunnelTransportFileConfigInfo.RouteLevelPlus;
-            running.Data.Tunnel.PortMapWan = tunnelTransportFileConfigInfo.PortMapWan;
-            running.Data.Tunnel.PortMapLan = tunnelTransportFileConfigInfo.PortMapLan;
+            running.Data.Tunnel.RouteLevelPlus = tunnelTransportRouteLevelInfo.RouteLevelPlus;
+            running.Data.Tunnel.PortMapWan = tunnelTransportRouteLevelInfo.PortMapWan;
+            running.Data.Tunnel.PortMapLan = tunnelTransportRouteLevelInfo.PortMapLan;
             running.Data.Update();
             OnChanged();
         }

@@ -46,18 +46,6 @@ namespace linker.tunnel.transport
         public byte Order { get; }
 
         /// <summary>
-        /// 发送连接开始信息
-        /// </summary>
-        public Func<TunnelTransportInfo, Task<bool>> OnSendConnectBegin { get; set; }
-        /// <summary>
-        /// 发送连接失败消息
-        /// </summary>
-        public Func<TunnelTransportInfo, Task> OnSendConnectFail { get; set; }
-        /// <summary>
-        /// 发送连接成功消息
-        /// </summary>
-        public Func<TunnelTransportInfo, Task> OnSendConnectSuccess { get; set; }
-        /// <summary>
         /// 收到连接
         /// </summary>
         public Action<ITunnelConnection> OnConnected { get; set; }
@@ -235,6 +223,10 @@ namespace linker.tunnel.transport
         /// 本机局域网IP列表，可以通过NetworkHelper.GetRouteLevel 获取
         /// </summary>
         public IPAddress[] LocalIps { get; set; } = Array.Empty<IPAddress>();
+        /// <summary>
+        /// 本机网卡IP
+        /// </summary>
+        public IPAddress LocalIp { get; set; } = IPAddress.Any;
         /// <summary>
         /// 本机与外网的距离，通过多少网关，可以通过NetworkHelper.GetRouteLevel 获取
         /// </summary>

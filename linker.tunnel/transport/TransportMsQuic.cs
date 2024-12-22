@@ -35,11 +35,7 @@ namespace linker.tunnel.transport
 
         public byte Order => 255;
 
-        public Func<TunnelTransportInfo, Task<bool>> OnSendConnectBegin { get; set; } = async (info) => { return await Task.FromResult<bool>(false); };
-        public Func<TunnelTransportInfo, Task> OnSendConnectFail { get; set; } = async (info) => { await Task.CompletedTask; };
-        public Func<TunnelTransportInfo, Task> OnSendConnectSuccess { get; set; } = async (info) => { await Task.CompletedTask; };
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
-
 
 
         private ConcurrentDictionary<int, ListenAsyncToken> stateDic = new ConcurrentDictionary<int, ListenAsyncToken>();
@@ -47,10 +43,12 @@ namespace linker.tunnel.transport
         private byte[] endBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.end");
         private IPEndPoint quicListenEP = null;
 
-        
-        public TransportMsQuic()
+        private readonly ITunnelMessengerAdapter tunnelMessengerAdapter;
+        public TransportMsQuic(ITunnelMessengerAdapter tunnelMessengerAdapter)
         {
+            this.tunnelMessengerAdapter = tunnelMessengerAdapter;
             _ = QuicListen();
+           
         }
 
         private X509Certificate2 certificate;
@@ -71,13 +69,13 @@ namespace linker.tunnel.transport
                 if (QuicListener.IsSupported == false)
                 {
                     LoggerHelper.Instance.Warning($"msquic not supported, need win11+,or linux");
-                    await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
+                    await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                     return null;
                 }
                 if (certificate == null)
                 {
                     LoggerHelper.Instance.Warning($"msquic need ssl");
-                    await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
+                    await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                     return null;
                 }
             }
@@ -85,7 +83,7 @@ namespace linker.tunnel.transport
             if (tunnelTransportInfo.Direction == TunnelDirection.Forward)
             {
                 //正向连接
-                if (await OnSendConnectBegin(tunnelTransportInfo).ConfigureAwait(false) == false)
+                if (await tunnelMessengerAdapter.SendConnectBegin(tunnelTransportInfo).ConfigureAwait(false) == false)
                 {
                     return null;
                 }
@@ -93,7 +91,7 @@ namespace linker.tunnel.transport
                 ITunnelConnection connection = await ConnectForward(tunnelTransportInfo).ConfigureAwait(false);
                 if (connection != null)
                 {
-                    await OnSendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
+                    await tunnelMessengerAdapter.SendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
                     return connection;
                 }
             }
@@ -104,19 +102,19 @@ namespace linker.tunnel.transport
                 _ = ListenRemoteConnect(tunnelTransportInfo.BufferSize, tunnelTransportInfo1.Local.Local, quicListenEP, tunnelTransportInfo1);
                 await Task.Delay(50).ConfigureAwait(false);
                 BindAndTTL(tunnelTransportInfo1);
-                if (await OnSendConnectBegin(tunnelTransportInfo1).ConfigureAwait(false) == false)
+                if (await tunnelMessengerAdapter.SendConnectBegin(tunnelTransportInfo1).ConfigureAwait(false) == false)
                 {
                     return null;
                 }
                 ITunnelConnection connection = await WaitReverse(tunnelTransportInfo1).ConfigureAwait(false);
                 if (connection != null)
                 {
-                    await OnSendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
+                    await tunnelMessengerAdapter.SendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
                     return connection;
                 }
             }
 
-            await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
+            await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
             return null;
         }
         /// <summary>
@@ -131,13 +129,13 @@ namespace linker.tunnel.transport
                 if (QuicListener.IsSupported == false)
                 {
                     LoggerHelper.Instance.Warning($"msquic not supported, need win11+,or linux");
-                    await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
+                    await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                     return;
                 }
                 if (certificate == null)
                 {
                     LoggerHelper.Instance.Warning($"msquic need ssl");
-                    await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
+                    await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                     return;
                 }
             }
@@ -154,11 +152,11 @@ namespace linker.tunnel.transport
                 if (connection != null)
                 {
                     OnConnected(connection);
-                    await OnSendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
+                    await tunnelMessengerAdapter.SendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
                 }
                 else
                 {
-                    await OnSendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
+                    await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                 }
             }
         }

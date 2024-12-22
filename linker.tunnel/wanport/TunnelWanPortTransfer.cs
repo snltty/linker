@@ -1,5 +1,7 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using System.Net;
+using System.Net.Sockets;
 
 namespace linker.tunnel.wanport
 {
@@ -8,24 +10,16 @@ namespace linker.tunnel.wanport
     /// </summary>
     public sealed class TunnelWanPortTransfer
     {
-        private List<ITunnelWanPortProtocol> tunnelWanPorts = new List<ITunnelWanPortProtocol>();
+        private List<ITunnelWanPortProtocol> tunnelWanPorts = new List<ITunnelWanPortProtocol> {
+            new TunnelWanPortProtocolLinkerUdp(),
+            new TunnelWanPortProtocolLinkerTcp()
+        };
 
         public List<TunnelWanPortProtocolType> Protocols => tunnelWanPorts.Select(p => p.ProtocolType).ToList();
 
         public TunnelWanPortTransfer()
         {
         }
-
-        /// <summary>
-        /// 加载所有外网端口协议
-        /// </summary>
-        /// <param name="assembs"></param>
-        public void LoadTransports(List<ITunnelWanPortProtocol> tunnelWanPorts)
-        {
-            this.tunnelWanPorts = tunnelWanPorts;
-            LoggerHelper.Instance.Info($"load tunnel wanport compacts:{string.Join(",", tunnelWanPorts.Select(c => c.Name))}");
-        }
-
 
         /// <summary>
         /// 获取外网端口
@@ -51,5 +45,6 @@ namespace linker.tunnel.wanport
             }
             return null;
         }
+
     }
 }

@@ -1,4 +1,5 @@
 ﻿using linker.config;
+using System.Security.Cryptography.X509Certificates;
 
 namespace linker.plugins.client
 {
@@ -6,15 +7,21 @@ namespace linker.plugins.client
     {
         public ClientServerInfo Server => config.Data.Client.Servers[0];
         public ClientGroupInfo Group => config.Data.Client.Groups[0];
-        public ClientCertificateInfo SSL => config.Data.Client.SSL;
 
         public string Id => config.Data.Client.Id;
         public string Name => config.Data.Client.Name;
+
+        public X509Certificate2 Certificate { get; private set; }
 
         private readonly FileConfig config;
         public ClientConfigTransfer(FileConfig config)
         {
             this.config = config;
+            string path = Path.GetFullPath(config.Data.Client.SSL.File);
+            if (File.Exists(path))
+            {
+                Certificate = new X509Certificate2(path, config.Data.Client.SSL.Password, X509KeyStorageFlags.Exportable);
+            }
         }
 
         public void SetName(string newName)

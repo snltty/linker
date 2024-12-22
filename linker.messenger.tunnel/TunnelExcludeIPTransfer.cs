@@ -1,4 +1,6 @@
-﻿namespace linker.messenger.tunnel
+﻿using System.Net;
+
+namespace linker.messenger.tunnel
 {
     /// <summary>
     /// 打洞排除IP
@@ -24,7 +26,7 @@
         /// 获取所有实现类的排除IP
         /// </summary>
         /// <returns></returns>
-        public List<ExcludeIPItem> Get()
+        public List<IPAddress> Get()
         {
             return excludeIPs.SelectMany(c => c.Get()).ToList();
         }

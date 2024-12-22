@@ -14,7 +14,7 @@ namespace linker.messenger.tunnel
         private readonly IMessengerSender messengerSender;
         private readonly ISerializer serializer;
 
-        public TunnelClientMessenger(TunnelTransfer tunnel,  IMessengerSender messengerSender, ISerializer serializer)
+        public TunnelClientMessenger(TunnelTransfer tunnel, IMessengerSender messengerSender, ISerializer serializer)
         {
             this.tunnel = tunnel;
             this.messengerSender = messengerSender;
@@ -29,7 +29,7 @@ namespace linker.messenger.tunnel
             tunnelTransportInfo.Local = tunnelTransportInfo.Remote;
             tunnelTransportInfo.Remote = local;
 
-            tunnel.OnBegin(tunnelTransportInfo);
+            _ = tunnel.OnBegin(tunnelTransportInfo);
             connection.Write(Helper.TrueArray);
         }
 
