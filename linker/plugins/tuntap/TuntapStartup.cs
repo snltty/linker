@@ -34,7 +34,6 @@ namespace linker.plugins.tuntap
 
             serviceCollection.AddSingleton<TuntapConfigTransfer>();
             serviceCollection.AddSingleton<TuntapPingTransfer>();
-            serviceCollection.AddSingleton<TuntapDeviceStatusTransfer>();
 
             serviceCollection.AddSingleton<TuntapDecenter>();
 
@@ -57,7 +56,6 @@ namespace linker.plugins.tuntap
 
             TuntapConfigTransfer tuntapConfigTransfer = serviceProvider.GetService<TuntapConfigTransfer>();
             TuntapPingTransfer tuntapPingTransfer = serviceProvider.GetService<TuntapPingTransfer>();
-            TuntapDeviceStatusTransfer tuntapDeviceStatusTransfer = serviceProvider.GetService<TuntapDeviceStatusTransfer>();
 
             TuntapAdapter tuntapAdapter = serviceProvider.GetService<TuntapAdapter>();
         }

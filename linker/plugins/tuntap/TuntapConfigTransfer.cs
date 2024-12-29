@@ -4,6 +4,7 @@ using System.Net;
 using linker.plugins.client;
 using linker.plugins.tuntap.config;
 using linker.plugins.tuntap.lease;
+using linker.messenger.signin;
 
 namespace linker.plugins.tuntap
 {
@@ -14,20 +15,24 @@ namespace linker.plugins.tuntap
         public bool Running => Info.Running;
         public TuntapSwitch Switch => Info.Switch;
 
+        public VersionManager Version { get; } = new VersionManager();
+
         public string DeviceName => "linker";
 
         private readonly RunningConfig runningConfig;
         private readonly LeaseClientTreansfer leaseClientTreansfer;
-        private readonly ClientConfigTransfer clientConfigTransfer;
+        private readonly ISignInClientStore signInClientStore;
 
+        /// <summary>
+        /// 有操作
+        /// </summary>
         public Action OnUpdate { get; set; } = () => { };
-        public Func<Task> OnChanged { get; set; } = async () => { await Task.CompletedTask; };
 
-        public TuntapConfigTransfer(RunningConfig runningConfig, LeaseClientTreansfer leaseClientTreansfer, ClientConfigTransfer clientConfigTransfer)
+        public TuntapConfigTransfer(RunningConfig runningConfig, LeaseClientTreansfer leaseClientTreansfer, ISignInClientStore signInClientStore)
         {
             this.runningConfig = runningConfig;
             this.leaseClientTreansfer = leaseClientTreansfer;
-            this.clientConfigTransfer = clientConfigTransfer;
+            this.signInClientStore = signInClientStore;
         }
 
         /// <summary>
@@ -63,7 +68,7 @@ namespace linker.plugins.tuntap
 
                 if ((ip.Equals(Info.IP) == false || prefixLength != Info.PrefixLength) && Info.Running)
                 {
-                    await OnChanged();
+                    Version.Add();
                 }
 
                 OnUpdate();
@@ -83,7 +88,7 @@ namespace linker.plugins.tuntap
 
                 if ((oldIP.Equals(Info.IP) == false || prefixLength != Info.PrefixLength) && Info.Running)
                 {
-                    await OnChanged();
+                    Version.Add();
                 }
                 OnUpdate();
             });
@@ -109,7 +114,7 @@ namespace linker.plugins.tuntap
 
         private void LoadGroupIP()
         {
-            if (Info.Group2IP.TryGetValue(clientConfigTransfer.Group.Id, out TuntapGroup2IPInfo tuntapGroup2IPInfo))
+            if (Info.Group2IP.TryGetValue(signInClientStore.Group.Id, out TuntapGroup2IPInfo tuntapGroup2IPInfo))
             {
                 if (tuntapGroup2IPInfo.IP.Equals(Info.IP) == false || tuntapGroup2IPInfo.PrefixLength != Info.PrefixLength)
                 {
@@ -121,7 +126,7 @@ namespace linker.plugins.tuntap
         private void SetGroupIP()
         {
             TuntapGroup2IPInfo tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = Info.IP, PrefixLength = Info.PrefixLength };
-            Info.Group2IP.AddOrUpdate(clientConfigTransfer.Group.Id, tuntapGroup2IPInfo, (a, b) => tuntapGroup2IPInfo);
+            Info.Group2IP.AddOrUpdate(signInClientStore.Group.Id, tuntapGroup2IPInfo, (a, b) => tuntapGroup2IPInfo);
         }
 
     }

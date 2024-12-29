@@ -141,7 +141,6 @@ namespace linker.libs.socks5
                 res[^1] = *pp;
             }
 
-
             return res;
         }
         /// <summary>
@@ -212,21 +211,13 @@ namespace linker.libs.socks5
         {
             /*
              * VERSION	METHODS_COUNT	METHODS
-                1字节	1字节	        1到255字节，长度由METHODS_COUNT值决定
-                0x05	0x03	        0x00 0x01 0x02
+             * 1字节	1字节	        1到255字节，长度由METHODS_COUNT值决定
+             *  0x05	0x03	        0x00 0x01 0x02
              */
-
-
             if (data.Length < 2 || data.Length < 2 + data.Span[1])
             {
                 return EnumProxyValidateDataResult.TooShort;
             }
-            /*
-            if (data.Length > 2 + data.Span[1])
-            {
-                return EnumProxyValidateDataResult.TooLong;
-            }*/
-
             return EnumProxyValidateDataResult.Equal;
         }
         /// <summary>
@@ -255,12 +246,6 @@ namespace linker.libs.socks5
             {
                 return EnumProxyValidateDataResult.TooShort;
             }
-            /*
-            if (data.Length > 4 + addrLength)
-            {
-                return EnumProxyValidateDataResult.TooLong;
-            }
-            */
             return EnumProxyValidateDataResult.Equal;
         }
         /// <summary>
@@ -309,12 +294,6 @@ namespace linker.libs.socks5
             {
                 return EnumProxyValidateDataResult.TooShort;
             }
-            /*
-            if (span.Length > 1 + 1 + nameLength + passwordLength)
-            {
-                return EnumProxyValidateDataResult.TooLong;
-            }
-            */
             return EnumProxyValidateDataResult.Equal;
         }
 

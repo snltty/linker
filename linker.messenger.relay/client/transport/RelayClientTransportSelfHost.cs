@@ -10,6 +10,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Buffers;
 using linker.messenger.relay.server;
+using linker.messenger.signin;
 
 namespace linker.messenger.relay.client.transport
 {
@@ -25,11 +26,13 @@ namespace linker.messenger.relay.client.transport
         private readonly IMessengerSender messengerSender;
         private readonly ISerializer serializer;
         private readonly IRelayClientStore relayClientStore;
-        public RelayClientTransportSelfHost(IMessengerSender messengerSender, ISerializer serializer, IRelayClientStore relayClientStore)
+        private readonly SignInClientState signInClientState;
+        public RelayClientTransportSelfHost(IMessengerSender messengerSender, ISerializer serializer, IRelayClientStore relayClientStore, SignInClientState signInClientState)
         {
             this.messengerSender = messengerSender;
             this.serializer = serializer;
             this.relayClientStore = relayClientStore;
+            this.signInClientState = signInClientState;
         }
 
         public async Task<ITunnelConnection> RelayAsync(RelayInfo relayInfo)
@@ -117,7 +120,7 @@ namespace linker.messenger.relay.client.transport
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
-                Connection = relayClientStore.SigninConnection,
+                Connection = signInClientState.Connection,
                 MessengerId = (ushort)RelayMessengerIds.RelayAsk,
                 Payload = serializer.Serialize(relayInfo),
                 Timeout = 2000
@@ -145,7 +148,7 @@ namespace linker.messenger.relay.client.transport
                         IPEndPoint ep = node.EndPoint;
                         if (ep == null || ep.Address.Equals(IPAddress.Any))
                         {
-                            ep = relayClientStore.SigninConnection.Address;
+                            ep = signInClientState.Connection.Address;
                         }
 
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -165,8 +168,7 @@ namespace linker.messenger.relay.client.transport
                             ToId = relayInfo.RemoteMachineId,
                             NodeId = node.Id,
                         };
-                        if (relayClientStore.Flag > 0)
-                            await socket.SendAsync(new byte[] { relayClientStore.Flag });
+                        await socket.SendAsync(new byte[] { (byte)ResolverType.Relay });
                         await socket.SendAsync(serializer.Serialize(relayMessage));
 
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"relay  connected {ep}");
@@ -211,7 +213,7 @@ namespace linker.messenger.relay.client.transport
             //通知对方去确认中继
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
-                Connection = relayClientStore.SigninConnection,
+                Connection = signInClientState.Connection,
                 MessengerId = (ushort)RelayMessengerIds.RelayForward,
                 Payload = serializer.Serialize(relayInfo),
             });
@@ -227,7 +229,7 @@ namespace linker.messenger.relay.client.transport
         {
             try
             {
-                IPEndPoint ep = relayInfo.Server == null || relayInfo.Server.Address.Equals(IPAddress.Any) ? relayClientStore.SigninConnection.Address : relayInfo.Server;
+                IPEndPoint ep = relayInfo.Server == null || relayInfo.Server.Address.Equals(IPAddress.Any) ? signInClientState.Connection.Address : relayInfo.Server;
 
                 Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 socket.KeepAlive();
@@ -241,8 +243,7 @@ namespace linker.messenger.relay.client.transport
                     ToId = relayInfo.RemoteMachineId,
                     NodeId = relayInfo.NodeId,
                 };
-                if (relayClientStore.Flag > 0)
-                    await socket.SendAsync(new byte[] { relayClientStore.Flag });
+                await socket.SendAsync(new byte[] { (byte)ResolverType.Relay });
                 await socket.SendAsync(serializer.Serialize(relayMessage));
 
                 _ = WaitSSL(socket, relayInfo).ContinueWith((result) =>
@@ -271,7 +272,7 @@ namespace linker.messenger.relay.client.transport
                 if (relayInfo.SSL)
                 {
                     sslStream = new SslStream(new NetworkStream(socket, false), false);
-                    await sslStream.AuthenticateAsServerAsync(relayClientStore.Certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false).ConfigureAwait(false);
+                    await sslStream.AuthenticateAsServerAsync(Entry.certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false).ConfigureAwait(false);
                 }
                 return new TunnelConnectionTcp
                 {
@@ -308,7 +309,7 @@ namespace linker.messenger.relay.client.transport
             {
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
-                    Connection = relayClientStore.SigninConnection,
+                    Connection = signInClientState.Connection,
                     MessengerId = (ushort)RelayMessengerIds.RelayTest,
                     Payload = serializer.Serialize(relayTestInfo),
                     Timeout = 2000

@@ -372,6 +372,48 @@ namespace linker.tun
             {
             }
         }
+
+        public async Task<bool> CheckAvailable()
+        {
+            NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == Name);
+            return networkInterface != null && networkInterface.OperationalStatus == OperationalStatus.Up && await InterfacePing();
+
+            async Task<bool> InterfacePing()
+            {
+                try
+                {
+                    using Ping ping = new Ping();
+                    PingReply pingReply = await ping.SendPingAsync(address, 100);
+                    return pingReply.Status == IPStatus.Success;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+        }
+        private void InterfaceOrder()
+        {
+            NetworkInterface linker = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == Name);
+            NetworkInterface first = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault();
+
+            if (linker != null && linker.Name != first.Name)
+            {
+                int metricv4 = 0;
+                int metricv6 = 0;
+                List<string> commands = new List<string> {
+                    $"netsh interface ipv4 set interface \"{Name}\" metric={++metricv4}",
+                    $"netsh interface ipv6 set interface \"{Name}\" metric={++metricv6}"
+                };
+                commands.AddRange(NetworkInterface.GetAllNetworkInterfaces()
+                    .Where(c => c.Name != Name)
+                    .Select(c => $"netsh interface ipv4 set interface \"{c.Name}\" metric={++metricv4}"));
+                commands.AddRange(NetworkInterface.GetAllNetworkInterfaces()
+                    .Where(c => c.Name != Name)
+                    .Select(c => $"netsh interface ipv6 set interface \"{c.Name}\" metric={++metricv6}"));
+                CommandHelper.Windows(string.Empty, commands.ToArray());
+            }
+        }
     }
 }
 

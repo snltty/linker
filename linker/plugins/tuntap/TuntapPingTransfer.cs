@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using linker.libs.extends;
 using linker.plugins.client;
+using linker.messenger.signin;
 
 namespace linker.plugins.tuntap
 {
@@ -14,15 +15,15 @@ namespace linker.plugins.tuntap
         private readonly TuntapTransfer tuntapTransfer;
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
         private readonly TuntapProxy tuntapProxy;
-        private readonly ClientConfigTransfer clientConfigTransfer;
+        private readonly ISignInClientStore signInClientStore;
         private readonly TuntapDecenter tuntapDecenter;
 
-        public TuntapPingTransfer(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, TuntapProxy tuntapProxy, ClientConfigTransfer clientConfigTransfer, TuntapDecenter tuntapDecenter)
+        public TuntapPingTransfer(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, TuntapProxy tuntapProxy, ISignInClientStore signInClientStore, TuntapDecenter tuntapDecenter)
         {
             this.tuntapTransfer = tuntapTransfer;
             this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.tuntapProxy = tuntapProxy;
-            this.clientConfigTransfer = clientConfigTransfer;
+            this.signInClientStore = signInClientStore;
             this.tuntapDecenter = tuntapDecenter;
 
             PingTask();
@@ -53,7 +54,7 @@ namespace linker.plugins.tuntap
                 if ((tuntapConfigTransfer.Switch & TuntapSwitch.AutoConnect) != TuntapSwitch.AutoConnect)
                 {
                     var connections = tuntapProxy.GetConnections();
-                    items = items.Where(c => connections.TryGetValue(c.MachineId, out ITunnelConnection connection) && connection.Connected || c.MachineId == clientConfigTransfer.Id);
+                    items = items.Where(c => connections.TryGetValue(c.MachineId, out ITunnelConnection connection) && connection.Connected || c.MachineId == signInClientStore.Id);
                 }
 
                 await Task.WhenAll(items.Select(async c =>

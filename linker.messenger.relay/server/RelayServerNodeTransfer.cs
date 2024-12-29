@@ -51,8 +51,7 @@ namespace linker.messenger.relay.server
                 await socket.ConnectAsync(server).ConfigureAwait(false);
                 long time = Environment.TickCount64 - start;
 
-                if (relayServerNodeStore.Flag > 0)
-                    await socket.SendAsync(new byte[] { relayServerNodeStore.Flag });
+                await socket.SendAsync(new byte[] { (byte)ResolverType.RelayReport });
                 await socket.SendAsync(key.ToBytes());
                 int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(Math.Max(time * 2, 5000))).ConfigureAwait(false);
                 socket.SafeClose();
@@ -234,7 +233,7 @@ namespace linker.messenger.relay.server
 
                         byte[] content = crypto.Encode(serializer.Serialize(relayNodeReportInfo));
                         byte[] data = new byte[content.Length + 1];
-                        data[0] = relayServerNodeStore.Flag;
+                        data[0] = (byte)ResolverType.RelayReport;
                         content.AsMemory().CopyTo(data.AsMemory(1));
 
                         using UdpClient udpClient = new UdpClient(AddressFamily.InterNetwork);

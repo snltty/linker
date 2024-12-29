@@ -10,10 +10,6 @@ namespace linker.messenger.relay.server
     public interface IRelayServerNodeStore
     {
         /// <summary>
-        /// 标志，0不发送，大于0发送，当一个端口用于多个服务时使用，用于区分不同业务
-        /// </summary>
-        public byte Flag { get; }
-        /// <summary>
         /// 服务端端口
         /// </summary>
         public int ServicePort { get; }

@@ -7,13 +7,14 @@ using linker.plugins.forward.proxy;
 using linker.tunnel.connection;
 using System.Collections.Concurrent;
 using linker.plugins.forward.messenger;
-using MemoryPack;
+using linker.serializer;
 using linker.plugins.client;
 using linker.plugins.capi;
 using linker.plugins.messenger;
 using linker.config;
 using linker.plugins.access;
 using linker.messenger;
+using linker.messenger.signin;
 
 namespace linker.plugins.forward
 {
@@ -22,19 +23,19 @@ namespace linker.plugins.forward
         private readonly ForwardTransfer forwardTransfer;
         private readonly ForwardProxy forwardProxy;
         private readonly IMessengerSender messengerSender;
-        private readonly ClientSignInState clientSignInState;
+        private readonly SignInClientState signInClientState;
         private readonly AccessTransfer accessTransfer;
-        private readonly ClientConfigTransfer clientConfigTransfer;
+        private readonly ISignInClientStore signInClientStore;
         private readonly ForwardDecenter forwardDecenter;
 
-        public ForwardClientApiController(ForwardTransfer forwardTransfer, ForwardProxy forwardProxy, IMessengerSender messengerSender, ClientSignInState clientSignInState, AccessTransfer accessTransfer, ClientConfigTransfer clientConfigTransfer, ForwardDecenter forwardDecenter)
+        public ForwardClientApiController(ForwardTransfer forwardTransfer, ForwardProxy forwardProxy, IMessengerSender messengerSender, SignInClientState signInClientState, AccessTransfer accessTransfer, ISignInClientStore signInClientStore, ForwardDecenter forwardDecenter)
         {
             this.forwardTransfer = forwardTransfer;
             this.forwardProxy = forwardProxy;
             this.messengerSender = messengerSender;
-            this.clientSignInState = clientSignInState;
+            this.signInClientState = signInClientState;
             this.accessTransfer = accessTransfer;
-            this.clientConfigTransfer = clientConfigTransfer;
+            this.signInClientStore = signInClientStore;
             this.forwardDecenter = forwardDecenter;
         }
 
@@ -88,7 +89,7 @@ namespace linker.plugins.forward
         /// <returns></returns>
         public async Task<List<ForwardInfo>> Get(ApiControllerParamsInfo param)
         {
-            if (param.Content == clientConfigTransfer.Id)
+            if (param.Content == signInClientStore.Id)
             {
                 if (accessTransfer.HasAccess(ClientApiAccess.ForwardShowSelf) == false) return new List<ForwardInfo>();
                 return forwardTransfer.Get();
@@ -97,13 +98,13 @@ namespace linker.plugins.forward
 
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
-                Connection = clientSignInState.Connection,
+                Connection = signInClientState.Connection,
                 MessengerId = (ushort)ForwardMessengerIds.GetForward,
-                Payload = MemoryPackSerializer.Serialize(param.Content)
+                Payload = Serializer.Serialize(param.Content)
             });
             if (resp.Code == MessageResponeCodes.OK)
             {
-                return MemoryPackSerializer.Deserialize<List<ForwardInfo>>(resp.Data.Span);
+                return Serializer.Deserialize<List<ForwardInfo>>(resp.Data.Span);
             }
             return new List<ForwardInfo>();
         }
@@ -116,7 +117,7 @@ namespace linker.plugins.forward
         public async Task<bool> Add(ApiControllerParamsInfo param)
         {
             ForwardAddForwardInfo info = param.Content.DeJson<ForwardAddForwardInfo>();
-            if (info.MachineId == clientConfigTransfer.Id)
+            if (info.MachineId == signInClientStore.Id)
             {
                 if (accessTransfer.HasAccess(ClientApiAccess.ForwardSelf) == false) return false;
                 return forwardTransfer.Add(info.Data);
@@ -125,9 +126,9 @@ namespace linker.plugins.forward
 
             return await messengerSender.SendOnly(new MessageRequestWrap
             {
-                Connection = clientSignInState.Connection,
+                Connection = signInClientState.Connection,
                 MessengerId = (ushort)ForwardMessengerIds.AddClientForward,
-                Payload = MemoryPackSerializer.Serialize(info)
+                Payload = Serializer.Serialize(info)
             });
         }
 
@@ -139,7 +140,7 @@ namespace linker.plugins.forward
         public async Task<bool> Remove(ApiControllerParamsInfo param)
         {
             ForwardRemoveForwardInfo info = param.Content.DeJson<ForwardRemoveForwardInfo>();
-            if (info.MachineId == clientConfigTransfer.Id)
+            if (info.MachineId == signInClientStore.Id)
             {
                 if (accessTransfer.HasAccess(ClientApiAccess.ForwardSelf) == false) return false;
                 return forwardTransfer.Remove(info.Id);
@@ -148,9 +149,9 @@ namespace linker.plugins.forward
             if (accessTransfer.HasAccess(ClientApiAccess.ForwardOther) == false) return false;
             return await messengerSender.SendOnly(new MessageRequestWrap
             {
-                Connection = clientSignInState.Connection,
+                Connection = signInClientState.Connection,
                 MessengerId = (ushort)ForwardMessengerIds.RemoveClientForward,
-                Payload = MemoryPackSerializer.Serialize(info)
+                Payload = Serializer.Serialize(info)
             });
         }
     }

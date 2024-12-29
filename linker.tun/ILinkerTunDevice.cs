@@ -95,6 +95,12 @@ namespace linker.tun
         /// <param name="buffer"></param>
         /// <returns></returns>
         public bool Write(ReadOnlyMemory<byte> buffer);
+
+        /// <summary>
+        /// 检查网卡是否可用
+        /// </summary>
+        /// <returns></returns>
+        public Task<bool> CheckAvailable();
     }
 
     /// <summary>

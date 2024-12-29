@@ -97,7 +97,7 @@ namespace linker.libs.websocket
             }
 
             var socket = new Socket(ep.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            //socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             socket.KeepAlive();
 
             AsyncServerUserToken token = new AsyncServerUserToken

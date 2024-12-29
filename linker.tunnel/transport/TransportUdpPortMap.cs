@@ -73,11 +73,12 @@ namespace linker.tunnel.transport
                 socket?.SafeClose();
                 if (localPort == 0) return;
 
-                IPAddress localIP = IPAddress.Any;
+                IPAddress localIP = IPAddress.IPv6Any;
 
                 socket = new Socket(localIP.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
                 socket.WindowsUdpBug();
-                socket.ReuseBind(new IPEndPoint(localIP, localPort));
+                socket.IPv6Only(localIP.AddressFamily, false);
+                socket.Bind(new IPEndPoint(localIP, localPort));
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
@@ -299,54 +300,64 @@ namespace linker.tunnel.transport
                 LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", tunnelTransportInfo.RemoteEndPoints.Select(c => c.ToString()))}");
             }
 
-            IPEndPoint ep = new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address, tunnelTransportInfo.Remote.PortMapWan);
-            Socket targetSocket = new(ep.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
-            try
+            List<IPEndPoint> eps = new List<IPEndPoint>();
+            if (tunnelTransportInfo.Remote.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6)
+              && tunnelTransportInfo.Local.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6))
             {
-                targetSocket.WindowsUdpBug();
-                targetSocket.ReuseBind(new IPEndPoint(tunnelTransportInfo.Local.Local.Address, tunnelTransportInfo.Local.Local.Port));
-
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
-                }
-
-                await targetSocket.SendToAsync($"{flagTexts}-{tunnelTransportInfo.Local.MachineId}-{tunnelTransportInfo.FlowId}".ToBytes(), ep).ConfigureAwait(false);
-                await targetSocket.ReceiveFromAsync(new byte[1024], new IPEndPoint(IPAddress.Any, 0)).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
-
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Debug($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep} success");
-
-                TunnelConnectionUdp result = new TunnelConnectionUdp
-                {
-                    IPEndPoint = ep,
-                    TransactionId = tunnelTransportInfo.TransactionId,
-                    TransactionTag = tunnelTransportInfo.TransactionTag,
-                    RemoteMachineId = tunnelTransportInfo.Remote.MachineId,
-                    RemoteMachineName = tunnelTransportInfo.Remote.MachineName,
-                    TransportName = Name,
-                    Direction = tunnelTransportInfo.Direction,
-                    ProtocolType = TunnelProtocolType.Udp,
-                    Type = TunnelType.P2P,
-                    Mode = TunnelMode.Client,
-                    Label = string.Empty,
-                    BufferSize = tunnelTransportInfo.BufferSize,
-                    Receive = true,
-                    UdpClient = targetSocket,
-                    SSL = tunnelTransportInfo.SSL,
-                    Crypto = CryptoFactory.CreateSymmetric(tunnelTransportInfo.Remote.MachineId)
-                };
-                ConnectionCacheInfo cache = new ConnectionCacheInfo { Connection = result };
-                connectionsDic.AddOrUpdate(ep, cache, (a, b) => cache);
-                return result;
+                eps.Add(new IPEndPoint(tunnelTransportInfo.Remote.LocalIps.FirstOrDefault(c => c.AddressFamily == AddressFamily.InterNetworkV6), tunnelTransportInfo.Remote.PortMapWan));
             }
-            catch (Exception ex)
+            eps.Add(new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address, tunnelTransportInfo.Remote.PortMapWan));
+
+            foreach (var ep in eps)
             {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                Socket targetSocket = new(ep.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
+                try
                 {
-                    LoggerHelper.Instance.Error($"{Name} connect {ep} fail {ex}");
+                    targetSocket.WindowsUdpBug();
+                    targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? tunnelTransportInfo.Local.Local.Address : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
+
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
+                    }
+
+                    await targetSocket.SendToAsync($"{flagTexts}-{tunnelTransportInfo.Local.MachineId}-{tunnelTransportInfo.FlowId}".ToBytes(), ep).ConfigureAwait(false);
+                    await targetSocket.ReceiveFromAsync(new byte[1024], new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any: IPAddress.IPv6Any, 0)).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        LoggerHelper.Instance.Debug($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep} success");
+
+                    TunnelConnectionUdp result = new TunnelConnectionUdp
+                    {
+                        IPEndPoint = ep,
+                        TransactionId = tunnelTransportInfo.TransactionId,
+                        TransactionTag = tunnelTransportInfo.TransactionTag,
+                        RemoteMachineId = tunnelTransportInfo.Remote.MachineId,
+                        RemoteMachineName = tunnelTransportInfo.Remote.MachineName,
+                        TransportName = Name,
+                        Direction = tunnelTransportInfo.Direction,
+                        ProtocolType = TunnelProtocolType.Udp,
+                        Type = TunnelType.P2P,
+                        Mode = TunnelMode.Client,
+                        Label = string.Empty,
+                        BufferSize = tunnelTransportInfo.BufferSize,
+                        Receive = true,
+                        UdpClient = targetSocket,
+                        SSL = tunnelTransportInfo.SSL,
+                        Crypto = CryptoFactory.CreateSymmetric(tunnelTransportInfo.Remote.MachineId)
+                    };
+                    ConnectionCacheInfo cache = new ConnectionCacheInfo { Connection = result };
+                    connectionsDic.AddOrUpdate(ep, cache, (a, b) => cache);
+                    return result;
                 }
-                targetSocket.SafeClose();
+                catch (Exception ex)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error($"{Name} connect {ep} fail {ex}");
+                    }
+                    targetSocket.SafeClose();
+                }
             }
             return null;
         }

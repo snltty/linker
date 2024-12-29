@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>disable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<PublishAot>false</PublishAot>
+		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+		<EnablePreviewFeatures>True</EnablePreviewFeatures>
+		<Title>linker messenger decenter</Title>
+		<Authors>snltty</Authors>
+		<Company>snltty</Company>
+		<Description>linker messenger decenter</Description>
+		<Copyright>snltty</Copyright>
+		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
+		<PackageReleaseNotes>linker messenger decenter</PackageReleaseNotes>
+		<Version>1.6.4</Version>
+		<AssemblyVersion>1.6.4</AssemblyVersion>
+		<FileVersion>1.6.4</FileVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DebugType>none</DebugType>
+		<DebugSymbols>false</DebugSymbols>
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\linker.libs\linker.libs.csproj" />
+		<ProjectReference Include="..\linker.messenger.signin\linker.messenger.signin.csproj" />
+		<ProjectReference Include="..\linker.signin\linker.messenger.signin.csproj" />
+	</ItemGroup>
+
+</Project>

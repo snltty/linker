@@ -4,11 +4,11 @@ import styles from './styles.module.css';
 
 const FeatureList = [
     {
-        title: '跨平台、易操作、且安全',
+        title: '跨平台、高性能、可视化',
         Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
         description: (
             <>
-                <code>.NET8</code>，高性能<code>MemoryPack</code>序列化，易操作web管理页面，所有通信均SSL加密
+                跨平台高性能的<code>.NET8</code>，简洁明了的web管理页面，安全的SSL加密通信
             </>
         ),
     },
@@ -17,12 +17,12 @@ const FeatureList = [
         Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
         description: (
             <>
-                3TCP打洞 + 1UDP打洞 + 1TCP端口映射连接 + 1TCP服务器中继连接 + 1TCP+UDP服务器穿透穿透
+                TCP+UDP打洞、服务器中继、服务器穿透，简单几步，将打洞和中继集成到你自己的项目中
             </>
         ),
     },
     {
-        title: 'TCP、UDP、什么P',
+        title: '组网和转发',
         Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
         description: (
             <>

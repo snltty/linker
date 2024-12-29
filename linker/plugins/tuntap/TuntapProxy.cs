@@ -11,6 +11,7 @@ using System.Buffers;
 using linker.plugins.relay.client;
 using linker.plugins.pcp;
 using linker.messenger.relay.client;
+using linker.messenger.signin;
 
 namespace linker.plugins.tuntap
 {
@@ -29,11 +30,10 @@ namespace linker.plugins.tuntap
         private HashSet<uint> ipRefreshCache = new HashSet<uint>();
         protected override string TransactionId => "tuntap";
 
-        public TuntapProxy(ClientConfigTransfer clientConfigTransfer,
+        public TuntapProxy(ISignInClientStore signInClientStore,
             TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
-            ClientSignInTransfer clientSignInTransfer, TuntapTransfer tuntapTransfer, ClientSignInState clientSignInState,
-            RelayClientConfigTransfer relayClientConfigTransfer, TuntapConfigTransfer tuntapConfigTransfer)
-            : base(tunnelTransfer, relayTransfer, pcpTransfer, clientSignInTransfer, clientSignInState, clientConfigTransfer, relayClientConfigTransfer)
+            SignInClientTransfer signInClientTransfer, RelayClientConfigTransfer relayClientConfigTransfer)
+            : base(tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, signInClientStore, relayClientConfigTransfer)
         {
         }
 

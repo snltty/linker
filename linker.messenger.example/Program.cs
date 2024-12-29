@@ -7,6 +7,7 @@ using linker.messenger.relay.server;
 using linker.messenger.relay.server.caching;
 using linker.messenger.relay.server.validator;
 using linker.messenger.signin;
+using linker.messenger.signin.args;
 using linker.messenger.tunnel;
 using linker.plugins.tunnel;
 using linker.tunnel;
@@ -26,9 +27,11 @@ namespace linker.messenger.example
             Certificate = new X509Certificate2("./snltty.pfx", "oeq9tw1o"),
             TunnelTransports = new List<TunnelTransportItemInfo>
             {
-                new TunnelTransportItemInfo{ BufferSize=3, Disabled=false, DisableReverse=false, DisableSSL=false, Name="udp", Order=0, ProtocolType= TunnelProtocolType.Udp.ToString(), Reverse=true, SSL=true },
-                new TunnelTransportItemInfo{ BufferSize=3, Disabled=false, DisableReverse=false, DisableSSL=false, Name="TcpP2PNAT", Order=1, ProtocolType= TunnelProtocolType.Tcp.ToString(), Reverse=true, SSL=true },
-                new TunnelTransportItemInfo{ BufferSize=3, Disabled=false, DisableReverse=false, DisableSSL=false, Name="TcpNutssb", Order=2, ProtocolType= TunnelProtocolType.Tcp.ToString(), Reverse=true, SSL=true },
+               new TunnelTransportItemInfo{ BufferSize=3, Disabled=false, DisableReverse=false, DisableSSL=false, Name="udp", Order=1, ProtocolType= TunnelProtocolType.Udp.ToString(), Reverse=true, SSL=true },
+               // new TunnelTransportItemInfo{ BufferSize=3, Disabled=false, DisableReverse=false, DisableSSL=false, Name="UdpPortMap", Order=2, ProtocolType= TunnelProtocolType.Udp.ToString(), Reverse=true, SSL=true },
+                new TunnelTransportItemInfo{ BufferSize=3, Disabled=false, DisableReverse=false, DisableSSL=false, Name="TcpP2PNAT", Order=3, ProtocolType= TunnelProtocolType.Tcp.ToString(), Reverse=true, SSL=true },
+               // new TunnelTransportItemInfo{ BufferSize=3, Disabled=false, DisableReverse=false, DisableSSL=false, Name="TransportUdpPortMap", Order=4, ProtocolType= TunnelProtocolType.Tcp.ToString(), Reverse=true, SSL=true },
+               // new TunnelTransportItemInfo{ BufferSize=3, Disabled=false, DisableReverse=false, DisableSSL=false, Name="TcpPortMap", Order=5, ProtocolType= TunnelProtocolType.Tcp.ToString(), Reverse=true, SSL=true },
             }
         };
 
@@ -75,9 +78,9 @@ namespace linker.messenger.example
             IMessengerResolver messengerResolver = new MessengerResolver(messengerSender);
 
             //打洞相关
-            TunnelExcludeIPTransfer tunnelExcludeIPTransfer = new TunnelExcludeIPTransfer();
+            TunnelClientExcludeIPTransfer tunnelExcludeIPTransfer = new TunnelClientExcludeIPTransfer();
             //tunnelExcludeIPTransfer.LoadTunnelExcludeIPs(new List<ITunnelExcludeIP>());
-            TunnelMessengerAdapter tunnelMessengerAdapter = new TunnelMessengerAdapter(messengerSender, tunnelExcludeIPTransfer, serializer, new TunnelMessengerAdapterStore());
+            TunnelClientMessengerAdapter tunnelMessengerAdapter = new TunnelClientMessengerAdapter(messengerSender, tunnelExcludeIPTransfer, serializer, new TunnelMessengerAdapterStore());
             TunnelTransfer tunnelTransfer = new TunnelTransfer(tunnelMessengerAdapter);
             tunnelTransfer.SetConnectedCallback("default", (connection) =>
             {
@@ -98,12 +101,20 @@ namespace linker.messenger.example
             RelayClientMessenger relayClientMessenger = new RelayClientMessenger(relayClientTransfer, serializer);
 
             //加载这些信标处理器
-            messengerResolver.LoadMessenger(new List<IMessenger>
+            messengerResolver.AddMessenger(new List<IMessenger>
             {
                 tunnelClientMessenger,
                 relayClientMessenger
             });
 
+
+            //加载登录参数
+            SignInArgsTransfer signInArgsTransfer = new SignInArgsTransfer();
+            signInArgsTransfer.AddArgs(new List<ISignInArgs> {
+                new MySignInArgs()
+            });
+            Dictionary<string, string> argsDic = new Dictionary<string, string>();
+            await signInArgsTransfer.Invoke(string.Empty, argsDic);
 
             Console.WriteLine($"输入服务端ip端口:");
             publicConfigInfo.Host = Console.ReadLine();
@@ -113,7 +124,7 @@ namespace linker.messenger.example
             Socket socket = new Socket(server.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.KeepAlive();
             await socket.ConnectAsync(server).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
-            publicConfigInfo.SignConnection = await messengerResolver.BeginReceiveClient(socket, true, 1).ConfigureAwait(false);
+            publicConfigInfo.SignConnection = await messengerResolver.BeginReceiveClient(socket, true, (byte)ResolverType.Messenger).ConfigureAwait(false);
 
             Console.WriteLine($"开始登录");
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -126,7 +137,7 @@ namespace linker.messenger.example
                     MachineName = Dns.GetHostName(),
                     MachineId = string.Empty,
                     Version = VersionHelper.version,
-                    Args = new Dictionary<string, string>(),
+                    Args = argsDic,
                     GroupId = "default"
                 })
             }).ConfigureAwait(false);
@@ -180,12 +191,16 @@ namespace linker.messenger.example
             {
                 case "1":
                     {
+                        Console.WriteLine($"正在打洞.......");
                         tunnelConnection = await tunnelTransfer.ConnectAsync(id, "default", TunnelProtocolType.None);
+                        Console.WriteLine($"打洞==》{(tunnelConnection == null ? "失败" : "成功")}");
                     }
                     break;
                 case "2":
                     {
+                        Console.WriteLine($"正在中继.......");
                         tunnelConnection = await relayClientTransfer.ConnectAsync(publicConfigInfo.SignConnection.Id, id, "default");
+                        Console.WriteLine($"中继==》{(tunnelConnection == null ? "失败" : "成功")}");
                     }
                     break;
                 default:
@@ -196,6 +211,7 @@ namespace linker.messenger.example
                 for (int i = 0; i < 10; i++)
                 {
                     string msg = $"hello {i}";
+                    Console.WriteLine($"发送:{msg}");
                     var msgBytes = msg.ToBytes();
 
                     //首部4字节存长度，剩下的才是真实数据
@@ -221,16 +237,19 @@ namespace linker.messenger.example
             IMessengerSender messengerSender = new MessengerSender();
             IMessengerResolver messengerResolver = new MessengerResolver(messengerSender);
             messengerResolver.Initialize(publicConfigInfo.Certificate);
+            MessengerResolverResolver messengerResolverResolver = new MessengerResolverResolver(messengerResolver);
 
             //登录相关
             SignInArgsTransfer signInArgsTransfer = new SignInArgsTransfer();
-            //signInArgsTransfer.LoadArgs(new List<ISignInArgs>());
-            ISignInStore signInStore = new SignInStore();
-            SignCaching signCaching = new SignCaching(signInStore, signInArgsTransfer);
+            signInArgsTransfer.AddArgs(new List<ISignInArgs> {
+                new MySignInArgs()
+            });
+            ISignInServerStore signInStore = new SignInStore();
+            SignInServerCaching signCaching = new SignInServerCaching(signInStore, signInArgsTransfer);
             SignInServerMessenger signInServerMessenger = new SignInServerMessenger(messengerSender, signCaching, serializer);
 
             //打洞相关
-            TunnelExternalResolver tunnelExternalResolver = new TunnelExternalResolver();
+            TunnelServerExternalResolver tunnelExternalResolver = new TunnelServerExternalResolver();
             TunnelServerMessenger tunnelServerMessenger = new TunnelServerMessenger(messengerSender, signCaching, serializer);
 
             //中继相关
@@ -246,12 +265,22 @@ namespace linker.messenger.example
             //relayServerValidatorTransfer.LoadValidators(new List<IRelayServerValidator> { });
             RelayServerMessenger relayServerMessenger = new RelayServerMessenger(messengerSender, signCaching, serializer, relayServerMasterTransfer, relayServerValidatorTransfer);
 
-            //加载这些信标处理器
-            messengerResolver.LoadMessenger(new List<IMessenger>
+            //加载信标处理器
+            messengerResolver.AddMessenger(new List<IMessenger>
             {
                 signInServerMessenger,
                 tunnelServerMessenger,
                 relayServerMessenger
+            });
+
+
+            //加载消息分发器
+            ResolverTransfer resolverTransfer = new ResolverTransfer();
+            resolverTransfer.AddResolvers(new List<IResolver> {
+                messengerResolverResolver,
+                tunnelExternalResolver,
+                relayServerReportResolver,
+                relayServerResolver
             });
 
             //TCP
@@ -263,38 +292,7 @@ namespace linker.messenger.example
                 while (true)
                 {
                     var client = await socket.AcceptAsync();
-                    TimerHelper.Async(async () =>
-                    {
-                        try
-                        {
-                            var bytes = new byte[1024];
-                            int length = await client.ReceiveAsync(bytes.AsMemory(0, 1));
-                            //外网端口
-                            if (bytes[0] == 0)
-                            {
-                                await tunnelExternalResolver.Resolve(client, Helper.EmptyArray);
-                            }
-                            //信标
-                            else if (bytes[0] == 1)
-                            {
-                                await messengerResolver.BeginReceiveServer(client, Helper.EmptyArray);
-                            }
-                            //中继
-                            else if (bytes[0] == 2)
-                            {
-                                await relayServerResolver.Resolve(client, Helper.EmptyArray);
-                            }
-                            //中继节点报告
-                            else if (bytes[0] == 3)
-                            {
-                                await relayServerReportResolver.Resolve(client, Helper.EmptyArray);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            LoggerHelper.Instance.Error(ex);
-                        }
-                    });
+                    _ = resolverTransfer.BeginReceive(client);
                 }
             });
 
@@ -312,23 +310,7 @@ namespace linker.messenger.example
                     {
                         SocketReceiveFromResult result = await socketUdp.ReceiveFromAsync(buffer, SocketFlags.None, endPoint).ConfigureAwait(false);
                         IPEndPoint ep = result.RemoteEndPoint as IPEndPoint;
-                        try
-                        {
-                            //外网端口
-                            if (buffer[0] == 0)
-                            {
-                                await tunnelExternalResolver.Resolve(socketUdp, ep, buffer.AsMemory(1, result.ReceivedBytes - 1));
-                            }
-                            //中继节点报告
-                            else if (buffer[0] == 3)
-                            {
-                                await relayServerReportResolver.Resolve(socketUdp, ep, buffer.AsMemory(1, result.ReceivedBytes - 1));
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            LoggerHelper.Instance.Error(ex);
-                        }
+                        _ = resolverTransfer.BeginReceive(socketUdp, ep, buffer.AsMemory(0, result.ReceivedBytes));
                     }
                     catch (Exception ex)
                     {
@@ -368,6 +350,54 @@ namespace linker.messenger.example
         }
     }
 
+    public sealed class MyRelayServerValidator : IRelayServerValidator
+    {
+        /// <summary>
+        /// 验证，服务端会调用
+        /// </summary>
+        /// <param name="relayInfo">中继参数</param>
+        /// <param name="fromMachine">来源客户端</param>
+        /// <param name="toMachine">目标客户端</param>
+        /// <returns></returns>
+        public async Task<string> Validate(RelayInfo relayInfo, SignCacheInfo fromMachine, SignCacheInfo toMachine)
+        {
+            //返回空字符串，表示成功，不空为错误信息则登录失败
+            return await Task.FromResult(string.Empty);
+        }
+    }
+
+    public sealed class MySignInArgs : ISignInArgs
+    {
+        /// <summary>
+        /// 客户端调用
+        /// </summary>
+        /// <param name="host"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public async Task<string> Invoke(string host, Dictionary<string, string> args)
+        {
+            //在这里加入你喜欢的数据
+
+            //返回空字符串，表示成功，不空为错误信息
+            return await Task.FromResult(string.Empty);
+        }
+
+        /// <summary>
+        /// 服务端调用
+        /// </summary>
+        /// <param name="signInfo">本次登录的信息</param>
+        /// <param name="cache">如果以前登录过就有信息，否则MachineId为空</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
+        {
+            //在这里进行你的验证
+
+            //返回空字符串，表示成功，不空为错误信息则登录失败
+            return await Task.FromResult(string.Empty);
+        }
+    }
+
     public sealed class PublicConfigInfo
     {
         public IConnection SignConnection { get; set; }
@@ -383,8 +413,6 @@ namespace linker.messenger.example
     /// </summary>
     public sealed class RelayClientStore : IRelayClientStore
     {
-        public byte Flag => 2;
-
         public X509Certificate2 Certificate => Program.publicConfigInfo.Certificate;
 
         public IConnection SigninConnection => Program.publicConfigInfo.SignConnection;
@@ -403,8 +431,6 @@ namespace linker.messenger.example
     /// </summary>
     public sealed class RelayServerNodeStore : IRelayServerNodeStore
     {
-        public byte Flag => 3;
-
         public int ServicePort => Program.publicConfigInfo.Port;
 
         public RelayServerNodeInfo Node => new RelayServerNodeInfo { };
@@ -432,7 +458,7 @@ namespace linker.messenger.example
     /// <summary>
     /// 自定义打洞的存储库
     /// </summary>
-    public sealed class TunnelMessengerAdapterStore : ITunnelMessengerAdapterStore
+    public sealed class TunnelMessengerAdapterStore : ITunnelClientStore
     {
         public IConnection SignConnection => Program.publicConfigInfo.SignConnection;
         public X509Certificate2 Certificate => Program.publicConfigInfo.Certificate;
@@ -473,7 +499,7 @@ namespace linker.messenger.example
     /// <summary>
     /// 自定义登录持久化存储
     /// </summary>
-    public sealed class SignInStore : ISignInStore
+    public sealed class SignInStore : ISignInServerStore
     {
         public void Confirm()
         {

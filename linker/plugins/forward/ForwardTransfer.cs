@@ -1,36 +1,36 @@
 ﻿using linker.client.config;
 using linker.libs;
 using linker.messenger;
+using linker.messenger.signin;
 using linker.plugins.client;
 using linker.plugins.forward.proxy;
-using linker.plugins.messenger;
 using MemoryPack;
 
 namespace linker.plugins.forward
 {
     public sealed class ForwardTransfer
     {
-        public int Count => running.Data.Forwards.Count(c => c.GroupId == clientConfigTransfer.Group.Id);
+        public int Count => running.Data.Forwards.Count(c => c.GroupId == signInClientStore.Group.Id);
         public Action OnChanged { get; set; } = () => { };
         public Action OnReset{ get; set; } = () => { };
 
         private readonly RunningConfig running;
         private readonly ForwardProxy forwardProxy;
-        private readonly ClientSignInState clientSignInState;
+        private readonly SignInClientState signInClientState;
         private readonly IMessengerSender messengerSender;
-        private readonly ClientConfigTransfer clientConfigTransfer;
+        private readonly ISignInClientStore signInClientStore;
 
         private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
 
-        public ForwardTransfer( RunningConfig running, ForwardProxy forwardProxy, ClientSignInState clientSignInState, IMessengerSender messengerSender, ClientConfigTransfer clientConfigTransfer)
+        public ForwardTransfer( RunningConfig running, ForwardProxy forwardProxy, SignInClientState signInClientState, IMessengerSender messengerSender, ISignInClientStore signInClientStore)
         {
             this.running = running;
             this.forwardProxy = forwardProxy;
-            this.clientSignInState = clientSignInState;
+            this.signInClientState = signInClientState;
             this.messengerSender = messengerSender;
-            this.clientConfigTransfer = clientConfigTransfer;
+            this.signInClientStore = signInClientStore;
 
-            clientSignInState.NetworkEnabledHandle += Reset;
+            signInClientState.NetworkEnabledHandle += Reset;
         }
 
         string groupid = string.Empty;
@@ -42,17 +42,17 @@ namespace linker.plugins.forward
                 {
                     foreach (var item in running.Data.Forwards)
                     {
-                        item.GroupId = clientConfigTransfer.Group.Id;
+                        item.GroupId = signInClientStore.Group.Id;
                     }
                     running.Data.Update();
                 }
 
-                if (groupid != clientConfigTransfer.Group.Id)
+                if (groupid != signInClientStore.Group.Id)
                 {
                     OnReset();
                     Stop();
                 }
-                groupid = clientConfigTransfer.Group.Id;
+                groupid = signInClientStore.Group.Id;
 
                 await Task.Delay(5000).ConfigureAwait(false);
                 Start(false);
@@ -66,7 +66,7 @@ namespace linker.plugins.forward
                 uint maxid = running.Data.Forwards.Count > 0 ? running.Data.Forwards.Max(c => c.Id) : 1;
                 ns.Reset(maxid);
 
-                foreach (var item in running.Data.Forwards.Where(c => c.GroupId == clientConfigTransfer.Group.Id))
+                foreach (var item in running.Data.Forwards.Where(c => c.GroupId == signInClientStore.Group.Id))
                 {
                     if (item.Started)
                     {
@@ -150,7 +150,7 @@ namespace linker.plugins.forward
 
         public List<ForwardInfo> Get()
         {
-            return running.Data.Forwards.Where(c => c.GroupId == clientConfigTransfer.Group.Id).ToList();
+            return running.Data.Forwards.Where(c => c.GroupId == signInClientStore.Group.Id).ToList();
         }
         public bool Add(ForwardInfo forwardInfo)
         {
@@ -171,12 +171,12 @@ namespace linker.plugins.forward
                 old.MachineName = forwardInfo.MachineName;
                 old.Started = forwardInfo.Started;
                 old.BufferSize = forwardInfo.BufferSize;
-                old.GroupId = clientConfigTransfer.Group.Id;
+                old.GroupId = signInClientStore.Group.Id;
             }
             else
             {
                 forwardInfo.Id = ns.Increment();
-                forwardInfo.GroupId = clientConfigTransfer.Group.Id;
+                forwardInfo.GroupId = signInClientStore.Group.Id;
                 running.Data.Forwards.Add(forwardInfo);
             }
             running.Data.Update();

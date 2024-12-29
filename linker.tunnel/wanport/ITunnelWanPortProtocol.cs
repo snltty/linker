@@ -14,10 +14,9 @@ namespace linker.tunnel.wanport
         /// <summary>
         /// 获取外网端口
         /// </summary>
-        /// <param name="inter">本地网卡</param>
         /// <param name="server">服务器</param>
         /// <returns></returns>
-        public Task<TunnelWanPortEndPoint> GetAsync(IPAddress inter, IPEndPoint server);
+        public Task<TunnelWanPortEndPoint> GetAsync(IPEndPoint server);
 
     }
 

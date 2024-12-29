@@ -3,6 +3,7 @@ using linker.tunnel.connection;
 using linker.libs;
 using linker.libs.extends;
 using System.Collections.Concurrent;
+using linker.messenger.signin;
 
 namespace linker.messenger.relay.client
 {
@@ -17,11 +18,11 @@ namespace linker.messenger.relay.client
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
         private readonly IRelayClientStore relayClientStore;
-        public RelayClientTransfer(IMessengerSender messengerSender,ISerializer serializer,IRelayClientStore relayClientStore)
+        public RelayClientTransfer(IMessengerSender messengerSender,ISerializer serializer,IRelayClientStore relayClientStore,SignInClientState signInClientState)
         {
             this.relayClientStore = relayClientStore;
             Transports = new List<IRelayClientTransport> { 
-                new RelayClientTransportSelfHost(messengerSender,serializer,relayClientStore),
+                new RelayClientTransportSelfHost(messengerSender,serializer,relayClientStore,signInClientState),
             };
             LoggerHelper.Instance.Info($"load relay transport:{string.Join(",", Transports.Select(c => c.GetType().Name))}");
         }
@@ -67,11 +68,11 @@ namespace linker.messenger.relay.client
             }
             try
             {
-                IRelayClientTransport transport = Transports.FirstOrDefault(c => c.Type == relayClientStore.RelayType && relayClientStore.Disabled == false);
+                IRelayClientTransport transport = Transports.FirstOrDefault(c => c.Type == relayClientStore.Server.RelayType && relayClientStore.Server.Disabled == false);
                 if (transport == null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Error($"relay to {remoteMachineId} fail,transport not found {relayClientStore.RelayType},{relayClientStore.Disabled}");
+                        LoggerHelper.Instance.Error($"relay to {remoteMachineId} fail,transport not found {relayClientStore.Server.RelayType},{relayClientStore.Server.Disabled}");
                     return null;
                 }
 
@@ -82,10 +83,10 @@ namespace linker.messenger.relay.client
                     FromMachineName = string.Empty,
                     RemoteMachineId = remoteMachineId,
                     RemoteMachineName = string.Empty,
-                    SecretKey = relayClientStore.SecretKey,
+                    SecretKey = relayClientStore.Server.SecretKey,
                     TransactionId = transactionId,
                     TransportName = transport.Name,
-                    SSL = relayClientStore.SSL,
+                    SSL = relayClientStore.Server.SSL,
                     NodeId = nodeId
                 };
 

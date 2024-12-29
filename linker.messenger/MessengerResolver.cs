@@ -14,13 +14,30 @@ namespace linker.messenger
     /// </summary>
     public interface IMessengerResolver
     {
-        public void Initialize(string certificate, string password);
-        public void Initialize(X509Certificate2 certificate);
         public Task<IConnection> BeginReceiveClient(Socket socket);
         public Task<IConnection> BeginReceiveClient(Socket socket, bool sendFlag, byte flag);
-        public void LoadMessenger(List<IMessenger> list);
+        public void AddMessenger(List<IMessenger> list);
         public Task BeginReceiveServer(Socket socket, Memory<byte> memory);
         public Task BeginReceiveServer(Socket socket, IPEndPoint ep, Memory<byte> memory);
+    }
+
+    public class MessengerResolverResolver : IResolver
+    {
+        public ResolverType Type => ResolverType.Messenger;
+
+        private readonly IMessengerResolver messengerResolver;
+        public MessengerResolverResolver(IMessengerResolver messengerResolver)
+        {
+            this.messengerResolver = messengerResolver;
+        }
+        public async Task Resolve(Socket socket, Memory<byte> memory)
+        {
+            await messengerResolver.BeginReceiveServer(socket, memory);
+        }
+        public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
+        {
+            await messengerResolver.BeginReceiveServer(socket, ep, memory);
+        }
     }
 
     /// <summary>
@@ -36,17 +53,14 @@ namespace linker.messenger
         private readonly IMessengerSender messengerSender;
 
         private X509Certificate2 serverCertificate;
-        public MessengerResolver(IMessengerSender messengerSender)
+        public MessengerResolver(IMessengerSender messengerSender, IMessengerStore messengerStore)
         {
             this.messengerSender = messengerSender;
-        }
 
-        public void Initialize(string certificate, string password)
-        {
-            string path = Path.GetFullPath(certificate);
+            string path = Path.GetFullPath(messengerStore.SSL.File);
             if (File.Exists(path))
             {
-                serverCertificate = new X509Certificate2(path, password, X509KeyStorageFlags.Exportable);
+                serverCertificate = new X509Certificate2(path, messengerStore.SSL.Password, X509KeyStorageFlags.Exportable);
             }
             else
             {
@@ -54,14 +68,17 @@ namespace linker.messenger
                 Environment.Exit(0);
             }
         }
-        public void Initialize(X509Certificate2 certificate)
-        {
-            serverCertificate = certificate;
-        }
+
 
         public virtual void AddReceive(ushort id, ulong bytes) { }
         public virtual void AddSendt(ushort id, ulong bytes) { }
 
+        /// <summary>
+        /// 以服务器模式接收数据 TCP
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="memory"></param>
+        /// <returns></returns>
         public async Task BeginReceiveServer(Socket socket, Memory<byte> memory)
         {
             try
@@ -79,16 +96,35 @@ namespace linker.messenger
                     LoggerHelper.Instance.Error(ex);
             }
         }
+        /// <summary>
+        /// 以服务器模式接收数据 UDP
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="ep"></param>
+        /// <param name="memory"></param>
+        /// <returns></returns>
         public async Task BeginReceiveServer(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
             await Task.CompletedTask;
         }
 
+        /// <summary>
+        /// 以客户端模式接收数据
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <returns></returns>
         public async Task<IConnection> BeginReceiveClient(Socket socket)
         {
-            return await BeginReceiveClient(socket,false,0);
+            return await BeginReceiveClient(socket, false, 0);
         }
-        public async Task<IConnection> BeginReceiveClient(Socket socket,bool sendFlag,byte flag)
+        /// <summary>
+        /// 以客户端模式接收数据
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="sendFlag"></param>
+        /// <param name="flag"></param>
+        /// <returns></returns>
+        public async Task<IConnection> BeginReceiveClient(Socket socket, bool sendFlag, byte flag)
         {
             try
             {
@@ -125,7 +161,6 @@ namespace linker.messenger
         {
             return true;
         }
-
         private IConnection CreateConnection(SslStream stream, NetworkStream networkStream, Socket socket, IPEndPoint local, IPEndPoint remote)
         {
             return new TcpConnection(stream, networkStream, socket, local, remote)
@@ -136,9 +171,9 @@ namespace linker.messenger
         }
 
         /// <summary>
-        /// 加载所有消息处理器
+        /// 添加信标
         /// </summary>
-        public void LoadMessenger(List<IMessenger> list)
+        public void AddMessenger(List<IMessenger> list)
         {
             Type voidType = typeof(void);
             Type midType = typeof(MessengerIdAttribute);
@@ -147,7 +182,7 @@ namespace linker.messenger
             {
 
                 Type type = messenger.GetType();
-                foreach (var method in type.GetMethods( BindingFlags.Public | BindingFlags.Instance))
+                foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance))
                 {
                     MessengerIdAttribute mid = method.GetCustomAttribute(midType) as MessengerIdAttribute;
                     if (mid != null)
@@ -177,7 +212,7 @@ namespace linker.messenger
         }
 
         /// <summary>
-        /// 处理消息
+        /// 处理消息，不需要调用，内部会处理
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="data"></param>

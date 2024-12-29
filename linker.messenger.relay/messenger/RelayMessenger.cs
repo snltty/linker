@@ -41,12 +41,12 @@ namespace linker.messenger.relay.messenger
     public class RelayServerMessenger : IMessenger
     {
         private readonly IMessengerSender messengerSender;
-        private readonly SignCaching signCaching;
+        private readonly SignInServerCaching signCaching;
         private readonly RelayServerMasterTransfer relayServerTransfer;
         private readonly RelayServerValidatorTransfer relayValidatorTransfer;
         private readonly ISerializer serializer;
 
-        public RelayServerMessenger(IMessengerSender messengerSender, SignCaching signCaching, ISerializer serializer, RelayServerMasterTransfer relayServerTransfer, RelayServerValidatorTransfer relayValidatorTransfer)
+        public RelayServerMessenger(IMessengerSender messengerSender, SignInServerCaching signCaching, ISerializer serializer, RelayServerMasterTransfer relayServerTransfer, RelayServerValidatorTransfer relayValidatorTransfer)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;

@@ -3,7 +3,7 @@ using linker.messenger;
 using linker.messenger.signin;
 using linker.plugins.relay.server;
 using linker.plugins.sforward;
-using MemoryPack;
+using linker.serializer;
 
 namespace linker.plugins.flow.messenger
 {
@@ -13,14 +13,14 @@ namespace linker.plugins.flow.messenger
         private readonly MessengerFlow messengerFlow;
         private readonly SForwardFlow sForwardFlow;
         private readonly RelayFlow relayFlow;
-        private readonly SignCaching signCaching;
+        private readonly SignInServerCaching signCaching;
         private readonly FileConfig fileConfig;
         private readonly RelayServerConfigTransfer relayServerConfigTransfer;
         private readonly SForwardServerConfigTransfer sForwardServerConfigTransfer;
 
         private DateTime start = DateTime.Now;
 
-        public FlowMessenger(FlowTransfer flowTransfer, MessengerFlow messengerFlow, SForwardFlow sForwardFlow, RelayFlow relayFlow, SignCaching signCaching, FileConfig fileConfig, RelayServerConfigTransfer relayServerConfigTransfer, SForwardServerConfigTransfer sForwardServerConfigTransfer)
+        public FlowMessenger(FlowTransfer flowTransfer, MessengerFlow messengerFlow, SForwardFlow sForwardFlow, RelayFlow relayFlow, SignInServerCaching signCaching, FileConfig fileConfig, RelayServerConfigTransfer relayServerConfigTransfer, SForwardServerConfigTransfer sForwardServerConfigTransfer)
         {
             this.flowTransfer = flowTransfer;
             this.messengerFlow = messengerFlow;
@@ -46,20 +46,20 @@ namespace linker.plugins.flow.messenger
                 Start = start,
                 Now = DateTime.Now,
             };
-            connection.Write(MemoryPackSerializer.Serialize(serverFlowInfo));
+            connection.Write(Serializer.Serialize(serverFlowInfo));
         }
 
         [MessengerId((ushort)FlowMessengerIds.Messenger)]
         public void Messenger(IConnection connection)
         {
-            connection.Write(MemoryPackSerializer.Serialize(messengerFlow.GetFlows()));
+            connection.Write(Serializer.Serialize(messengerFlow.GetFlows()));
         }
 
         [MessengerId((ushort)FlowMessengerIds.SForward)]
         public void SForward(IConnection connection)
         {
             sForwardFlow.Update();
-            SForwardFlowRequestInfo info = MemoryPackSerializer.Deserialize<SForwardFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            SForwardFlowRequestInfo info = Serializer.Deserialize<SForwardFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
 
             if (sForwardServerConfigTransfer.SecretKey == info.SecretKey)
             {
@@ -77,14 +77,14 @@ namespace linker.plugins.flow.messenger
                 }
             }
 
-            connection.Write(MemoryPackSerializer.Serialize(sForwardFlow.GetFlows(info)));
+            connection.Write(Serializer.Serialize(sForwardFlow.GetFlows(info)));
         }
 
         [MessengerId((ushort)FlowMessengerIds.Relay)]
         public void Relay(IConnection connection)
         {
             relayFlow.Update();
-            RelayFlowRequestInfo info = MemoryPackSerializer.Deserialize<RelayFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            RelayFlowRequestInfo info = Serializer.Deserialize<RelayFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (relayServerConfigTransfer.SecretKey == info.SecretKey)
             {
                 info.GroupId = string.Empty;
@@ -101,7 +101,7 @@ namespace linker.plugins.flow.messenger
                 }
             }
 
-            connection.Write(MemoryPackSerializer.Serialize(relayFlow.GetFlows(info)));
+            connection.Write(Serializer.Serialize(relayFlow.GetFlows(info)));
         }
     }
 

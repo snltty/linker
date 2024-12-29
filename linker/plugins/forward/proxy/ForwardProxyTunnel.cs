@@ -7,6 +7,7 @@ using linker.plugins.tunnel;
 using linker.plugins.relay.client;
 using linker.plugins.pcp;
 using linker.messenger.relay.client;
+using linker.messenger.signin;
 
 namespace linker.plugins.forward.proxy
 {
@@ -18,8 +19,8 @@ namespace linker.plugins.forward.proxy
 
         protected override string TransactionId => "forward";
 
-        public ForwardProxy(ClientConfigTransfer clientConfigTransfer, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer, ClientSignInTransfer clientSignInTransfer, ClientSignInState clientSignInState, RelayClientConfigTransfer  relayClientConfigTransfer)
-            : base(tunnelTransfer, relayTransfer, pcpTransfer, clientSignInTransfer, clientSignInState, clientConfigTransfer, relayClientConfigTransfer)
+        public ForwardProxy(ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer, SignInClientTransfer signInClientTransfer, RelayClientConfigTransfer  relayClientConfigTransfer)
+            : base(tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, signInClientStore, relayClientConfigTransfer)
         {
             TaskUdp();
         }

@@ -276,5 +276,11 @@ namespace linker.tun
             sum = ~sum;
             return ((ushort)sum);
         }
+
+
+        public async Task<bool> CheckAvailable()
+        {
+            return await linkerTunDevice?.CheckAvailable();
+        }
     }
 }

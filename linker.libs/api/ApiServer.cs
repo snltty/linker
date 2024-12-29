@@ -38,7 +38,7 @@ namespace linker.libs.api
             server = new WebSocketServer();
             try
             {
-                server.Start(System.Net.IPAddress.Any, port);
+                server.Start( port);
             }
             catch (Exception ex)
             {

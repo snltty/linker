@@ -8,8 +8,10 @@ namespace linker.messenger.relay.server
     /// <summary>
     /// 中继节点报告处理器
     /// </summary>
-    public class RelayServerReportResolver
+    public class RelayServerReportResolver: IResolver
     {
+        public ResolverType Type => ResolverType.RelayReport;
+
         private readonly RelayServerMasterTransfer relayServerTransfer;
         public RelayServerReportResolver(RelayServerMasterTransfer relayServerTransfer)
         {

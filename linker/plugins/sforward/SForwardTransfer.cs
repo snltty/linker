@@ -1,7 +1,7 @@
 ﻿using linker.client.config;
 using linker.libs;
 using linker.plugins.sforward.messenger;
-using MemoryPack;
+using linker.serializer;
 using linker.plugins.sforward.config;
 using System.Net.Sockets;
 using System.Net;
@@ -10,6 +10,7 @@ using linker.plugins.client;
 using linker.plugins.messenger;
 using linker.config;
 using linker.messenger;
+using linker.messenger.signin;
 
 namespace linker.plugins.sforward
 {
@@ -22,22 +23,22 @@ namespace linker.plugins.sforward
 
         private readonly FileConfig fileConfig;
         private readonly RunningConfig running;
-        private readonly ClientSignInState clientSignInState;
+        private readonly SignInClientState signInClientState;
         private readonly IMessengerSender messengerSender;
-        private readonly ClientConfigTransfer clientConfigTransfer;
+        private readonly ISignInClientStore signInClientStore;
 
         private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
         private readonly OperatingManager operatingManager = new OperatingManager();
 
-        public SForwardTransfer(FileConfig fileConfig, RunningConfig running, ClientSignInState clientSignInState, IMessengerSender messengerSender, ClientConfigTransfer clientConfigTransfer)
+        public SForwardTransfer(FileConfig fileConfig, RunningConfig running, SignInClientState signInClientState, IMessengerSender messengerSender, ISignInClientStore signInClientStore)
         {
             this.fileConfig = fileConfig;
             this.running = running;
-            this.clientSignInState = clientSignInState;
+            this.signInClientState = signInClientState;
             this.messengerSender = messengerSender;
-            this.clientConfigTransfer = clientConfigTransfer;
+            this.signInClientStore = signInClientStore;
 
-            clientSignInState.NetworkFirstEnabledHandle += () => Start();
+            signInClientState.NetworkFirstEnabledHandle += () => Start();
             
         }
       
@@ -80,14 +81,14 @@ namespace linker.plugins.sforward
             {
                 messengerSender.SendReply(new MessageRequestWrap
                 {
-                    Connection = clientSignInState.Connection,
+                    Connection = signInClientState.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.Add,
-                    Payload = MemoryPackSerializer.Serialize(new SForwardAddInfo { Domain = forwardInfo.Domain, RemotePort = forwardInfo.RemotePort, SecretKey = fileConfig.Data.Client.SForward.SecretKey })
+                    Payload = Serializer.Serialize(new SForwardAddInfo { Domain = forwardInfo.Domain, RemotePort = forwardInfo.RemotePort, SecretKey = fileConfig.Data.Client.SForward.SecretKey })
                 }).ContinueWith((result) =>
                 {
                     if (result.Result.Code == MessageResponeCodes.OK)
                     {
-                        SForwardAddResultInfo sForwardAddResultInfo = MemoryPackSerializer.Deserialize<SForwardAddResultInfo>(result.Result.Data.Span);
+                        SForwardAddResultInfo sForwardAddResultInfo = Serializer.Deserialize<SForwardAddResultInfo>(result.Result.Data.Span);
                         forwardInfo.BufferSize = sForwardAddResultInfo.BufferSize;
                         if (sForwardAddResultInfo.Success)
                         {
@@ -120,14 +121,14 @@ namespace linker.plugins.sforward
                 {
                     messengerSender.SendReply(new MessageRequestWrap
                     {
-                        Connection = clientSignInState.Connection,
+                        Connection = signInClientState.Connection,
                         MessengerId = (ushort)SForwardMessengerIds.Remove,
-                        Payload = MemoryPackSerializer.Serialize(new SForwardAddInfo { Domain = forwardInfo.Domain, RemotePort = forwardInfo.RemotePort, SecretKey = fileConfig.Data.Client.SForward.SecretKey })
+                        Payload = Serializer.Serialize(new SForwardAddInfo { Domain = forwardInfo.Domain, RemotePort = forwardInfo.RemotePort, SecretKey = fileConfig.Data.Client.SForward.SecretKey })
                     }).ContinueWith((result) =>
                     {
                         if (result.Result.Code == MessageResponeCodes.OK)
                         {
-                            SForwardAddResultInfo sForwardAddResultInfo = MemoryPackSerializer.Deserialize<SForwardAddResultInfo>(result.Result.Data.Span);
+                            SForwardAddResultInfo sForwardAddResultInfo = Serializer.Deserialize<SForwardAddResultInfo>(result.Result.Data.Span);
                             if (sForwardAddResultInfo.Success)
                             {
                                 forwardInfo.Proxy = false;

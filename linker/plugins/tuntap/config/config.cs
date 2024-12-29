@@ -5,7 +5,6 @@ using System.Collections.Concurrent;
 using System.Net;
 
 
-
 namespace linker.client.config
 {
     public sealed partial class RunningConfigInfo

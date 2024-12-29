@@ -1,6 +1,7 @@
 ﻿using linker.client.config;
 using linker.messenger;
 using linker.messenger.signin;
+using linker.serializer;
 using MemoryPack;
 
 namespace linker.plugins.forward.messenger
@@ -9,9 +10,9 @@ namespace linker.plugins.forward.messenger
     {
 
         private readonly IMessengerSender sender;
-        private readonly SignCaching signCaching;
+        private readonly SignInServerCaching signCaching;
 
-        public ForwardServerMessenger(IMessengerSender sender, SignCaching signCaching)
+        public ForwardServerMessenger(IMessengerSender sender, SignInServerCaching signCaching)
         {
             this.sender = sender;
             this.signCaching = signCaching;
@@ -24,7 +25,7 @@ namespace linker.plugins.forward.messenger
         [MessengerId((ushort)ForwardMessengerIds.GetForward)]
         public void GetForward(IConnection connection)
         {
-            string machineId = MemoryPackSerializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            string machineId = Serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(machineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
@@ -55,7 +56,7 @@ namespace linker.plugins.forward.messenger
         [MessengerId((ushort)ForwardMessengerIds.AddClientForward)]
         public async Task AddClientForward(IConnection connection)
         {
-            ForwardAddForwardInfo info = MemoryPackSerializer.Deserialize<ForwardAddForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            ForwardAddForwardInfo info = Serializer.Deserialize<ForwardAddForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
@@ -63,7 +64,7 @@ namespace linker.plugins.forward.messenger
                 {
                     Connection = cacheTo.Connection,
                     MessengerId = (ushort)ForwardMessengerIds.AddClient,
-                    Payload = MemoryPackSerializer.Serialize(info.Data)
+                    Payload = Serializer.Serialize(info.Data)
                 });
             }
         }
@@ -74,7 +75,7 @@ namespace linker.plugins.forward.messenger
         [MessengerId((ushort)ForwardMessengerIds.RemoveClientForward)]
         public async Task RemoveClientForward(IConnection connection)
         {
-            ForwardRemoveForwardInfo info = MemoryPackSerializer.Deserialize<ForwardRemoveForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            ForwardRemoveForwardInfo info = Serializer.Deserialize<ForwardRemoveForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
@@ -82,7 +83,7 @@ namespace linker.plugins.forward.messenger
                 {
                     Connection = cacheTo.Connection,
                     MessengerId = (ushort)ForwardMessengerIds.RemoveClient,
-                    Payload = MemoryPackSerializer.Serialize(info.Id)
+                    Payload = Serializer.Serialize(info.Id)
                 });
             }
         }
@@ -103,7 +104,7 @@ namespace linker.plugins.forward.messenger
         [MessengerId((ushort)ForwardMessengerIds.Get)]
         public void Get(IConnection connection)
         {
-            connection.Write(MemoryPackSerializer.Serialize(forwardTransfer.Get()));
+            connection.Write(Serializer.Serialize(forwardTransfer.Get()));
         }
         /// <summary>
         /// 添加
@@ -112,7 +113,7 @@ namespace linker.plugins.forward.messenger
         [MessengerId((ushort)ForwardMessengerIds.AddClient)]
         public void AddClient(IConnection connection)
         {
-            ForwardInfo info = MemoryPackSerializer.Deserialize<ForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            ForwardInfo info = Serializer.Deserialize<ForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
             forwardTransfer.Add(info);
         }
         // <summary>
@@ -122,7 +123,7 @@ namespace linker.plugins.forward.messenger
         [MessengerId((ushort)ForwardMessengerIds.RemoveClient)]
         public void RemoveClient(IConnection connection)
         {
-            uint id = MemoryPackSerializer.Deserialize<uint>(connection.ReceiveRequestWrap.Payload.Span);
+            uint id = Serializer.Deserialize<uint>(connection.ReceiveRequestWrap.Payload.Span);
             forwardTransfer.Remove(id);
         }
     }

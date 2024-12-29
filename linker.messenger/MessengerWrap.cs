@@ -5,12 +5,12 @@ using System.ComponentModel;
 namespace linker.messenger
 {
     /// <summary>
-    /// 请求数据包
+    /// 请求数据包，只填  MessengerId  Payload Connection 就可以，Timeout可选，其它不用填
     /// </summary>
     public sealed class MessageRequestWrap
     {
         /// <summary>
-        /// 超时ms
+        /// 超时ms,默认15000
         /// </summary>
         public int Timeout { get; set; }
         /// <summary>
@@ -18,7 +18,7 @@ namespace linker.messenger
         /// </summary>
         public ushort MessengerId { get; set; }
         /// <summary>
-        /// 请求id
+        /// 请求id，不用填
         /// </summary>
         public uint RequestId { get; set; }
         /// <summary>

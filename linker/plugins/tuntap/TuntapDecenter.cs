@@ -1,9 +1,10 @@
 ﻿using linker.libs;
 using linker.plugins.client;
-using linker.plugins.decenter;
+using linker.messenger.decenter;
 using linker.plugins.tuntap.config;
-using MemoryPack;
+using linker.serializer;
 using System.Collections.Concurrent;
+using linker.messenger.signin;
 
 namespace linker.plugins.tuntap
 {
@@ -24,21 +25,21 @@ namespace linker.plugins.tuntap
 
         public Func<TuntapInfo> HandleCurrentInfo { get; set; } = () => { return null; };
 
-        private readonly ClientConfigTransfer clientConfigTransfer;
-        public TuntapDecenter(ClientConfigTransfer clientConfigTransfer, ClientSignInState clientSignInState)
+        private readonly ISignInClientStore signInClientStore;
+        public TuntapDecenter(ISignInClientStore signInClientStore, SignInClientState signInClientState)
         {
-            this.clientConfigTransfer = clientConfigTransfer;
-            clientSignInState.NetworkEnabledHandle += NetworkEnable;
+            this.signInClientStore = signInClientStore;
+            signInClientState.NetworkEnabledHandle += NetworkEnable;
         }
         string groupid = string.Empty;
         private void NetworkEnable(int times)
         {
-            if (groupid != clientConfigTransfer.Group.Id)
+            if (groupid != signInClientStore.Group.Id)
             {
                 tuntapInfos.Clear();
                 OnReset();
             }
-            groupid = clientConfigTransfer.Group.Id;
+            groupid = signInClientStore.Group.Id;
         }
 
         public void Refresh()
@@ -51,11 +52,11 @@ namespace linker.plugins.tuntap
             TuntapInfo info = HandleCurrentInfo();
             tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
             DataVersion.Add();
-            return MemoryPackSerializer.Serialize(info);
+            return Serializer.Serialize(info);
         }
         public void SetData(Memory<byte> data)
         {
-            TuntapInfo info = MemoryPackSerializer.Deserialize<TuntapInfo>(data.Span);
+            TuntapInfo info = Serializer.Deserialize<TuntapInfo>(data.Span);
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
                 LoggerHelper.Instance.Debug($"tuntap got {info.IP}");
@@ -83,7 +84,7 @@ namespace linker.plugins.tuntap
         }
         public void SetData(List<ReadOnlyMemory<byte>> data)
         {
-            List<TuntapInfo> list = data.Select(c => MemoryPackSerializer.Deserialize<TuntapInfo>(c.Span)).ToList();
+            List<TuntapInfo> list = data.Select(c => Serializer.Deserialize<TuntapInfo>(c.Span)).ToList();
             TimerHelper.Async(async () =>
             {
                 await slim.WaitAsync();
@@ -96,7 +97,7 @@ namespace linker.plugins.tuntap
                         tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
                         item.LastTicks.Update();
                     }
-                    var removes = tuntapInfos.Keys.Except(list.Select(c => c.MachineId)).Where(c => c != clientConfigTransfer.Id).ToList();
+                    var removes = tuntapInfos.Keys.Except(list.Select(c => c.MachineId)).Where(c => c != signInClientStore.Id).ToList();
                     foreach (var item in removes)
                     {
                         if (tuntapInfos.TryGetValue(item, out TuntapInfo tuntapInfo))

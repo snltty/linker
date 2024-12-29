@@ -33,7 +33,7 @@ export default function Home() {
     return (
         <Layout
             title={`${siteConfig.title}`}
-            description="linker、一个免费开源的P2P内网穿透内核">
+            description="linker、一个免费开源的P2P异地组网和内网穿透内核">
             <HomepageHeader />
             <main>
                 <HomepageFeatures />

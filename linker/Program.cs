@@ -11,6 +11,12 @@ namespace linker
     {
         static async Task Main(string[] args)
         {
+            //linker.libs.FireWallHelper.Write(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
+#if DEBUG
+#else
+            linker.libs.FireWallHelper.Write(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
+#endif
+
             if (Environment.UserInteractive == false && OperatingSystem.IsWindows())
             {
                 AppDomain.CurrentDomain.UnhandledException += (a, b) =>

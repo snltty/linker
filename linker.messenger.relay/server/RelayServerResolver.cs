@@ -10,8 +10,10 @@ namespace linker.messenger.relay.server
     /// <summary>
     /// 中继连接处理
     /// </summary>
-    public class RelayServerResolver
+    public class RelayServerResolver: IResolver
     {
+        public ResolverType Type => ResolverType.Relay;
+
         private readonly RelayServerNodeTransfer relayServerNodeTransfer;
         private readonly ISerializer serializer;
         public RelayServerResolver(RelayServerNodeTransfer relayServerNodeTransfer, ISerializer serializer)
@@ -22,6 +24,7 @@ namespace linker.messenger.relay.server
 
         private readonly ConcurrentDictionary<ulong, RelayWrapInfo> relayDic = new ConcurrentDictionary<ulong, RelayWrapInfo>();
 
+       
 
         public virtual void AddReceive(string key, string from, string to, string groupid, ulong bytes)
         {

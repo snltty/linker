@@ -224,10 +224,6 @@ namespace linker.tunnel.transport
         /// </summary>
         public IPAddress[] LocalIps { get; set; } = Array.Empty<IPAddress>();
         /// <summary>
-        /// 本机网卡IP
-        /// </summary>
-        public IPAddress LocalIp { get; set; } = IPAddress.Any;
-        /// <summary>
         /// 本机与外网的距离，通过多少网关，可以通过NetworkHelper.GetRouteLevel 获取
         /// </summary>
         public int RouteLevel { get; set; }

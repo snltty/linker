@@ -1,7 +1,5 @@
 ﻿using linker.libs;
-using linker.libs.extends;
 using System.Net;
-using System.Net.Sockets;
 
 namespace linker.tunnel.wanport
 {
@@ -26,18 +24,14 @@ namespace linker.tunnel.wanport
         /// </summary>
         /// <param name="localIP">你的局域网IP</param>
         /// <returns></returns>
-        public async Task<TunnelWanPortEndPoint> GetWanPortAsync(IPEndPoint server,IPAddress localIP, TunnelWanPortProtocolType protocolType)
+        public async Task<TunnelWanPortEndPoint> GetWanPortAsync(IPEndPoint server, TunnelWanPortProtocolType protocolType)
         {
             var tunnelWanPort = tunnelWanPorts.FirstOrDefault(c => c.ProtocolType == protocolType);
             if (tunnelWanPort == null) return null;
             try
             {
-                TunnelWanPortEndPoint wanPort = await tunnelWanPort.GetAsync(localIP, server).ConfigureAwait(false);
-                if (wanPort != null)
-                {
-                    wanPort.Local.Address = localIP;
-                    return wanPort;
-                }
+                TunnelWanPortEndPoint wanPort = await tunnelWanPort.GetAsync(server).ConfigureAwait(false);
+                return wanPort;
             }
             catch (Exception ex)
             {

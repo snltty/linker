@@ -163,7 +163,6 @@ namespace linker.tunnel.transport
                 try
                 {
 
-                    targetSocket.IPv6Only(ep.Address.AddressFamily, false);
                     targetSocket.KeepAlive();
                     targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
 
@@ -218,7 +217,6 @@ namespace linker.tunnel.transport
                 Socket targetSocket = new(ip.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 try
                 {
-                    targetSocket.IPv6Only(ip.Address.AddressFamily, false);
                     targetSocket.Ttl = ip.Address.AddressFamily == AddressFamily.InterNetworkV6 ? (short)2 : (short)(tunnelTransportInfo.Local.RouteLevel);
                     targetSocket.ReuseBind(new IPEndPoint(ip.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
                     _ = targetSocket.ConnectAsync(ip);
@@ -324,8 +322,8 @@ namespace linker.tunnel.transport
             Socket socket = new Socket(localIP.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
             //socket.ReceiveBufferSize = 5 * 1024 * 1024;
 
-            socket.IPv6Only(localIP.AddressFamily, false);
-            socket.ReuseBind(new IPEndPoint(localIP, local.Port));
+            //socket.IPv6Only(localIP.AddressFamily, false);
+            socket.Bind(new IPEndPoint(localIP, local.Port));
             socket.Listen(int.MaxValue);
 
             try

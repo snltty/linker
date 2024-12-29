@@ -8,7 +8,7 @@
 		<PublishAot>false</PublishAot>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
 		<EnablePreviewFeatures>True</EnablePreviewFeatures>
-		<Title>linker messenger signin</Title>
+		<Title>linker messenger tunnel</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>linker messenger tunnel</Description>
@@ -32,6 +32,10 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\linker.libs\linker.libs.csproj" />
+		<ProjectReference Include="..\linker.messenger.decenter\linker.messenger.decenter.csproj" />
+		<ProjectReference Include="..\linker.messenger.exroute\linker.messenger.exroute.csproj" />
+		<ProjectReference Include="..\linker.messenger.signin\linker.messenger.signin.csproj" />
+		<ProjectReference Include="..\linker.messenger.sync\linker.messenger.sync.csproj" />
 		<ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
 		<ProjectReference Include="..\linker.signin\linker.messenger.signin.csproj" />
 		<ProjectReference Include="..\linker.tunnel\linker.tunnel.csproj" />

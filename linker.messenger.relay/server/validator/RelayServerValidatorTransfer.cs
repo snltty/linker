@@ -1,6 +1,7 @@
 ﻿using linker.messenger.signin;
 using linker.messenger.relay.client.transport;
 using linker.libs;
+using System.Diagnostics.CodeAnalysis;
 
 namespace linker.messenger.relay.server.validator
 {
@@ -19,10 +20,11 @@ namespace linker.messenger.relay.server.validator
         /// 加载中继验证实现类
         /// </summary>
         /// <param name="list"></param>
-        public void LoadValidators(List<IRelayServerValidator> list)
+        public void AddValidators(List<IRelayServerValidator> list)
         {
-            validators = list;
-            LoggerHelper.Instance.Info($"load relay server validator :{string.Join(",", validators.Select(c => c.GetType().Name))}");
+            if (list == null) return;
+            validators = validators.Concat(list).Distinct(new RelayServerValidatorEqualityComparer()).ToList();
+            LoggerHelper.Instance.Info($"load relay server validator :{string.Join(",", list.Select(c => c.GetType().Name))}");
         }
 
         /// <summary>
@@ -43,6 +45,19 @@ namespace linker.messenger.relay.server.validator
                 }
             }
             return string.Empty;
+        }
+
+        public sealed class RelayServerValidatorEqualityComparer : IEqualityComparer<IRelayServerValidator>
+        {
+            public bool Equals(IRelayServerValidator x, IRelayServerValidator y)
+            {
+                return x.GetType().FullName == y.GetType().FullName;
+            }
+
+            public int GetHashCode([DisallowNull] IRelayServerValidator obj)
+            {
+                return obj.GetHashCode();
+            }
         }
     }
 }

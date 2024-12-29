@@ -2,6 +2,7 @@
 using linker.tunnel.transport;
 using linker.libs;
 using linker.messenger.signin;
+using linker.plugins.tunnel;
 
 namespace linker.messenger.tunnel
 {
@@ -13,12 +14,14 @@ namespace linker.messenger.tunnel
         private readonly TunnelTransfer tunnel;
         private readonly IMessengerSender messengerSender;
         private readonly ISerializer serializer;
+        private readonly ITunnelClientStore tunnelClientStore;
 
-        public TunnelClientMessenger(TunnelTransfer tunnel, IMessengerSender messengerSender, ISerializer serializer)
+        public TunnelClientMessenger(TunnelTransfer tunnel, IMessengerSender messengerSender, ISerializer serializer, ITunnelClientStore tunnelClientStore)
         {
             this.tunnel = tunnel;
             this.messengerSender = messengerSender;
             this.serializer = serializer;
+            this.tunnelClientStore = tunnelClientStore;
         }
 
         [MessengerId((ushort)TunnelMessengerIds.Begin)]
@@ -85,6 +88,15 @@ namespace linker.messenger.tunnel
 
             tunnel.OnSuccess(tunnelTransportInfo);
         }
+
+
+        [MessengerId((ushort)TunnelMessengerIds.RouteLevel)]
+        public async Task RouteLevel(IConnection connection)
+        {
+            TunnelSetRouteLevelInfo tunnelTransportFileConfigInfo = serializer.Deserialize<TunnelSetRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            await tunnelClientStore.SetRouteLevelPlus(tunnelTransportFileConfigInfo.RouteLevelPlus);
+            await tunnelClientStore.SetPortMap(tunnelTransportFileConfigInfo.PortMapLan, tunnelTransportFileConfigInfo.PortMapWan);
+        }
     }
 
     /// <summary>
@@ -93,10 +105,10 @@ namespace linker.messenger.tunnel
     public class TunnelServerMessenger : IMessenger
     {
         private readonly IMessengerSender messengerSender;
-        private readonly SignCaching signCaching;
+        private readonly SignInServerCaching signCaching;
         private readonly ISerializer serializer;
 
-        public TunnelServerMessenger(IMessengerSender messengerSender, SignCaching signCaching, ISerializer serializer)
+        public TunnelServerMessenger(IMessengerSender messengerSender, SignInServerCaching signCaching, ISerializer serializer)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
@@ -187,5 +199,20 @@ namespace linker.messenger.tunnel
             }
         }
 
+
+        [MessengerId((ushort)TunnelMessengerIds.RouteLevelForward)]
+        public async Task RouteLevelForward(IConnection connection)
+        {
+            TunnelRouteLevelInfo tunnelTransportInfo = serializer.Deserialize<TunnelRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(tunnelTransportInfo.MachineId, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cache.Connection,
+                    MessengerId = (ushort)TunnelMessengerIds.RouteLevel,
+                    Payload = connection.ReceiveRequestWrap.Payload
+                }).ConfigureAwait(false);
+            }
+        }
     }
 }

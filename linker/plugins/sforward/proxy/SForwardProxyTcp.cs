@@ -233,12 +233,12 @@ namespace linker.plugins.sforward.proxy
             {
                 //连接服务器
                 sourceSocket = new Socket(server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                sourceSocket.IPv6Only(server.AddressFamily, false);
+                //sourceSocket.IPv6Only(server.AddressFamily, false);
                 await sourceSocket.ConnectAsync(server).ConfigureAwait(false);
 
                 //连接本地服务
                 targetSocket = new Socket(service.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                targetSocket.IPv6Only(service.AddressFamily, false);
+                //targetSocket.IPv6Only(service.AddressFamily, false);
                 await targetSocket.ConnectAsync(service).ConfigureAwait(false);
 
                 //给服务器回复，带上id

@@ -70,6 +70,10 @@ namespace linker.libs.extends
         }
         public static void ReuseBind(this Socket socket, IPEndPoint ip)
         {
+            if(ip.AddressFamily == AddressFamily.InterNetworkV6)
+            {
+                socket.IPv6Only(ip.AddressFamily,false);
+            }
             socket.Reuse(true);
             socket.Bind(ip);
         }

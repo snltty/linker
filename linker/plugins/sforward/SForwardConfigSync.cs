@@ -1,5 +1,5 @@
 ﻿using linker.plugins.config;
-using MemoryPack;
+using linker.serializer;
 
 namespace linker.plugins.sforward
 {
@@ -14,12 +14,12 @@ namespace linker.plugins.sforward
         }
         public Memory<byte> GetData()
         {
-            return MemoryPackSerializer.Serialize(sForwardTransfer.SecretKey);
+            return Serializer.Serialize(sForwardTransfer.SecretKey);
         }
 
         public void SetData(Memory<byte> data)
         {
-            sForwardTransfer.SetSecretKey(MemoryPackSerializer.Deserialize<string>(data.Span));
+            sForwardTransfer.SetSecretKey(Serializer.Deserialize<string>(data.Span));
         }
     }
 }

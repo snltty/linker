@@ -83,12 +83,12 @@ namespace linker.libs.websocket
                 { WebSocketFrameInfo.EnumOpcode.Pong,HandlePong},
             };
         }
-        public void Start(IPAddress bindip, int port)
+        public void Start(int port)
         {
-            IPEndPoint localEndPoint = new IPEndPoint(bindip, port);
+            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.IPv6Any, port);
 
             socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            socket.IPv6Only(localEndPoint.AddressFamily,false);
             socket.Bind(localEndPoint);
             socket.Listen(int.MaxValue);
 
@@ -351,7 +351,7 @@ namespace linker.libs.websocket
         private void HandleConnect(AsyncUserToken token, Memory<byte> data)
         {
             WebsocketHeaderInfo header = WebsocketHeaderInfo.Parse(data);
-            if (header.TryGetHeaderValue(WebsocketHeaderKey.SecWebSocketKey,out string key) == false)
+            if (header.TryGetHeaderValue(WebsocketHeaderKey.SecWebSocketKey, out string key) == false)
             {
                 header.StatusCode = HttpStatusCode.MethodNotAllowed;
                 token.Connectrion.ConnectResponse(header);

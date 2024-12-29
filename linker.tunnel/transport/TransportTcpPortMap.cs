@@ -73,11 +73,11 @@ namespace linker.tunnel.transport
 
                 socket?.SafeClose();
 
-                IPAddress localIP = IPAddress.Any;
+                IPAddress localIP = IPAddress.IPv6Any;
 
                 Socket _socket = new Socket(localIP.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 _socket.IPv6Only(localIP.AddressFamily, false);
-                _socket.ReuseBind(new IPEndPoint(localIP, localPort));
+                _socket.Bind(new IPEndPoint(localIP, localPort));
                 _socket.Listen(int.MaxValue);
                 socket = _socket;
 
@@ -300,56 +300,66 @@ namespace linker.tunnel.transport
                 LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", tunnelTransportInfo.RemoteEndPoints.Select(c => c.ToString()))}");
             }
 
-            IPEndPoint ep = new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address, tunnelTransportInfo.Remote.PortMapWan);
-            Socket targetSocket = new(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
-            try
+            List<IPEndPoint> eps = new List<IPEndPoint>();
+            if (tunnelTransportInfo.Remote.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6)
+              && tunnelTransportInfo.Local.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6))
             {
-                targetSocket.KeepAlive();
-                targetSocket.ReuseBind(new IPEndPoint(tunnelTransportInfo.Local.Local.Address, tunnelTransportInfo.Local.Local.Port));
-
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
-                }
-                await targetSocket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
-
-                await targetSocket.SendAsync($"{tunnelTransportInfo.Local.MachineId}-{tunnelTransportInfo.FlowId}".ToBytes());
-                await targetSocket.ReceiveAsync(new byte[1024]).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false); ;
-
-                //需要ssl
-                SslStream sslStream = null;
-                if (tunnelTransportInfo.SSL)
-                {
-                    sslStream = new SslStream(new NetworkStream(targetSocket, false), false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
-                    await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 }).ConfigureAwait(false);
-                }
-
-                return new TunnelConnectionTcp
-                {
-                    Stream = sslStream,
-                    Socket = targetSocket,
-                    IPEndPoint = targetSocket.RemoteEndPoint as IPEndPoint,
-                    TransactionId = tunnelTransportInfo.TransactionId,
-                    TransactionTag = tunnelTransportInfo.TransactionTag,
-                    RemoteMachineId = tunnelTransportInfo.Remote.MachineId,
-                    RemoteMachineName = tunnelTransportInfo.Remote.MachineName,
-                    TransportName = Name,
-                    Direction = tunnelTransportInfo.Direction,
-                    ProtocolType = ProtocolType,
-                    Type = TunnelType.P2P,
-                    Mode = TunnelMode.Client,
-                    Label = string.Empty,
-                    SSL = tunnelTransportInfo.SSL,
-                    BufferSize = tunnelTransportInfo.BufferSize,
-                };
+                eps.Add(new IPEndPoint(tunnelTransportInfo.Remote.LocalIps.FirstOrDefault(c => c.AddressFamily == AddressFamily.InterNetworkV6), tunnelTransportInfo.Remote.PortMapWan));
             }
-            catch (Exception ex)
+            eps.Add(new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address, tunnelTransportInfo.Remote.PortMapWan));
+
+            foreach (var ep in eps)
             {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                Socket targetSocket = new(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+                try
                 {
-                    LoggerHelper.Instance.Error($"{Name} connect {ep} fail {ex}");
+                    targetSocket.KeepAlive();
+                    targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? tunnelTransportInfo.Local.Local.Address : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
+
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
+                    }
+                    await targetSocket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+
+                    await targetSocket.SendAsync($"{tunnelTransportInfo.Local.MachineId}-{tunnelTransportInfo.FlowId}".ToBytes());
+                    await targetSocket.ReceiveAsync(new byte[1024]).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false); ;
+
+                    //需要ssl
+                    SslStream sslStream = null;
+                    if (tunnelTransportInfo.SSL)
+                    {
+                        sslStream = new SslStream(new NetworkStream(targetSocket, false), false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
+                        await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 }).ConfigureAwait(false);
+                    }
+
+                    return new TunnelConnectionTcp
+                    {
+                        Stream = sslStream,
+                        Socket = targetSocket,
+                        IPEndPoint = targetSocket.RemoteEndPoint as IPEndPoint,
+                        TransactionId = tunnelTransportInfo.TransactionId,
+                        TransactionTag = tunnelTransportInfo.TransactionTag,
+                        RemoteMachineId = tunnelTransportInfo.Remote.MachineId,
+                        RemoteMachineName = tunnelTransportInfo.Remote.MachineName,
+                        TransportName = Name,
+                        Direction = tunnelTransportInfo.Direction,
+                        ProtocolType = ProtocolType,
+                        Type = TunnelType.P2P,
+                        Mode = TunnelMode.Client,
+                        Label = string.Empty,
+                        SSL = tunnelTransportInfo.SSL,
+                        BufferSize = tunnelTransportInfo.BufferSize,
+                    };
                 }
-                targetSocket.SafeClose();
+                catch (Exception ex)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error($"{Name} connect {ep} fail {ex}");
+                    }
+                    targetSocket.SafeClose();
+                }
             }
             return null;
         }

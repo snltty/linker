@@ -119,18 +119,21 @@ namespace linker.tunnel.transport
                 LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", tunnelTransportInfo.RemoteEndPoints.Select(c => c.ToString()))}");
             }
 
-            IPEndPoint ep = tunnelTransportInfo.Remote.Remote;
+            IPEndPoint ep = tunnelTransportInfo.Remote.LocalIps.Any(c=>c.AddressFamily == AddressFamily.InterNetworkV6) 
+                && tunnelTransportInfo.Local.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6)
+                ? new IPEndPoint(tunnelTransportInfo.Remote.LocalIps.FirstOrDefault(c=>c.AddressFamily == AddressFamily.InterNetworkV6), tunnelTransportInfo.Remote.Remote.Port)  
+                :   tunnelTransportInfo.Remote.Remote;
             Socket targetSocket = new(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
             try
             {
                 targetSocket.KeepAlive();
-                targetSocket.ReuseBind(new IPEndPoint(tunnelTransportInfo.Local.Local.Address, tunnelTransportInfo.Local.Local.Port));
+                targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? tunnelTransportInfo.Local.Local.Address : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
                 }
-                await targetSocket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                await targetSocket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(2000)).ConfigureAwait(false);
 
                 if (mode == TunnelMode.Client)
                 {

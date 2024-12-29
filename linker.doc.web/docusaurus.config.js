@@ -9,7 +9,7 @@ import { themes as prismThemes } from 'prism-react-renderer';
 /** @type {import('@docusaurus/types').Config} */
 const config = {
     title: 'linker-doc',
-    tagline: 'linker、一个免费开源的P2P内网穿透内核',
+    tagline: 'linker、一个免费开源的P2P异地组网和内网穿透内核',
     favicon: 'img/favicon.ico',
 
     // Set the production url of your site here
@@ -20,7 +20,7 @@ const config = {
 
     // GitHub pages deployment config.
     // If you aren't using GitHub pages, you don't need these.
-    organizationName: 'facebook', // Usually your GitHub org/user name.
+    organizationName: 'snltty', // Usually your GitHub org/user name.
     projectName: 'linker.doc.web', // Usually your repo name.
 
     onBrokenLinks: 'throw',
@@ -93,6 +93,8 @@ const config = {
             footer: {
                 style: 'light',
                 links: [
+                    { href: 'https://mi-d.cn', label: '米多贝克', position: 'left' },
+                    { href: 'https://www.wpe64.com', label: 'WPE64代理和抓包', position: 'left' },
                 ],
                 copyright: `Copyright © ${new Date().getFullYear()} linker, Inc. Built with Docusaurus.`,
             },

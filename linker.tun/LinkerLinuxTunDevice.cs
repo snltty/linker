@@ -303,6 +303,12 @@ namespace linker.tun
         public void Clear()
         {
         }
+
+        public async Task<bool> CheckAvailable()
+        {
+            string output = CommandHelper.Linux(string.Empty, new string[] { $"ip linker show {Name}" });
+            return await Task.FromResult(output.Contains("state UP"));
+        }
     }
 
 

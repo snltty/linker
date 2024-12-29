@@ -11,8 +11,8 @@ namespace linker.plugins.sforward.config
         private ConcurrentDictionary<string, string> serverDoamins = new ConcurrentDictionary<string, string>();
         private ConcurrentDictionary<int, string> serverPorts = new ConcurrentDictionary<int, string>();
 
-        private readonly SignCaching signCaching;
-        public SForwardServerCahing(SignCaching signCaching)
+        private readonly SignInServerCaching signCaching;
+        public SForwardServerCahing(SignInServerCaching signCaching)
         {
             this.signCaching = signCaching;
         }

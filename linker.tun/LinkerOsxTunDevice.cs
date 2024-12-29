@@ -179,5 +179,10 @@ namespace linker.tun
         {
 
         }
+
+        public async Task<bool> CheckAvailable()
+        {
+            return await Task.FromResult(true);
+        }
     }
 }

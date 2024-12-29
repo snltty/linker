@@ -4,7 +4,7 @@ using System.Net;
 
 namespace linker.plugins.tuntap
 {
-    public sealed class ExcludeIP : ITunnelExcludeIP
+    public sealed class ExcludeIP : ITunnelClientExcludeIP
     {
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
         public ExcludeIP(TuntapConfigTransfer tuntapConfigTransfer)

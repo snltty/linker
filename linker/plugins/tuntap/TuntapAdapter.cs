@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.messenger.signin;
 using linker.plugins.client;
 using linker.plugins.route;
 using linker.plugins.tuntap.config;
@@ -16,41 +17,40 @@ namespace linker.plugins.tuntap
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
         private readonly TuntapDecenter tuntapDecenter;
         private readonly TuntapProxy tuntapProxy;
-        private readonly ClientConfigTransfer clientConfigTransfer;
+        private readonly ISignInClientStore signInClientStore;
         private readonly RouteExcludeIPTransfer routeExcludeIPTransfer;
 
         public TuntapAdapter(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, TuntapDecenter tuntapDecenter, TuntapProxy tuntapProxy,
-            ClientSignInState clientSignInState, ClientConfigTransfer clientConfigTransfer, RouteExcludeIPTransfer routeExcludeIPTransfer)
+            SignInClientState signInClientState, ISignInClientStore signInClientStore, RouteExcludeIPTransfer routeExcludeIPTransfer)
         {
             this.tuntapTransfer = tuntapTransfer;
             this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.tuntapDecenter = tuntapDecenter;
             this.tuntapProxy = tuntapProxy;
-            this.clientConfigTransfer = clientConfigTransfer;
+            this.signInClientStore = signInClientStore;
             this.routeExcludeIPTransfer = routeExcludeIPTransfer;
+
+            //与服务器连接，刷新一下IP
+            signInClientState.NetworkEnabledHandle += (times) => tuntapConfigTransfer.RefreshIP();
 
             //初始化网卡
             tuntapTransfer.Init(tuntapConfigTransfer.DeviceName, this);
-            //与服务器连接，刷新一下IP
-            clientSignInState.NetworkEnabledHandle += (times) => tuntapConfigTransfer.RefreshIP();
-            //配置又更新，去同步一下
+            //网卡状态发生变化，同步一下信息
+            tuntapTransfer.OnSetupBefore += () => { tuntapDecenter.Refresh(); };
+            tuntapTransfer.OnSetupAfter += () => { tuntapDecenter.Refresh(); };
+            tuntapTransfer.OnSetupSuccess += () => { AddForward(); tuntapConfigTransfer.SetRunning(true); };
+            tuntapTransfer.OnShutdownBefore += () => { tuntapDecenter.Refresh(); };
+            tuntapTransfer.OnShutdownAfter += () => { tuntapDecenter.Refresh(); };
+            tuntapTransfer.OnShutdownSuccess += () => { DeleteForward(); tuntapConfigTransfer.SetRunning(false); };
+
+            //配置有更新，去同步一下
             tuntapConfigTransfer.OnUpdate += tuntapDecenter.Refresh;
-            //配置发生变化，重启网卡
-            tuntapConfigTransfer.OnChanged += RetstartDevice;
 
             //收到新的信息，添加一下路由
             tuntapDecenter.OnChangeBefore += DelRoute;
             tuntapDecenter.OnChangeAfter += AddRoute;
             tuntapDecenter.OnReset += tuntapProxy.ClearIPs;
             tuntapDecenter.HandleCurrentInfo = GetCurrentInfo;
-
-            //网卡状态发生变化，同步一下信息
-            tuntapTransfer.OnSetupBefore += tuntapDecenter.Refresh;
-            tuntapTransfer.OnSetupAfter += tuntapDecenter.Refresh;
-            tuntapTransfer.OnSetupSuccess += () => { tuntapDecenter.Refresh(); AddForward(); tuntapConfigTransfer.SetRunning(true); };
-            tuntapTransfer.OnShutdownBefore += tuntapDecenter.Refresh;
-            tuntapTransfer.OnShutdownAfter += tuntapDecenter.Refresh;
-            tuntapTransfer.OnShutdownSuccess += () => { tuntapDecenter.Refresh(); DeleteForward(); tuntapConfigTransfer.SetRunning(false); };
 
             //隧道关闭
             tuntapProxy.OnTunnelClose += async (connection) => { tuntapDecenter.Refresh(); await Task.CompletedTask; };
@@ -59,6 +59,24 @@ namespace linker.plugins.tuntap
             //IP没找到，是否需要同步一下数据
             tuntapProxy.OnIPNotFound += (ip) => tuntapDecenter.Refresh();
 
+            CheckDeviceTask();
+        }
+
+        private void CheckDeviceTask()
+        {
+            ulong configVersion = 0;
+            TimerHelper.SetInterval(async () =>
+            {
+                bool restart =
+                (tuntapConfigTransfer.Version.Eq(configVersion, out ulong _version) == false || await tuntapTransfer.CheckAvailable() == false)
+                && tuntapConfigTransfer.Running && tuntapTransfer.Status != TuntapStatus.Running && tuntapTransfer.Status != TuntapStatus.Operating;
+                if (restart)
+                {
+                    configVersion = _version;
+                    await RetstartDevice();
+                }
+                return true;
+            }, () => 30000);
         }
         private TuntapInfo GetCurrentInfo()
         {
@@ -67,7 +85,7 @@ namespace linker.plugins.tuntap
                 IP = tuntapConfigTransfer.Info.IP,
                 Lans = tuntapConfigTransfer.Info.Lans.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false).Select(c => { c.Exists = false; return c; }).ToList(),
                 PrefixLength = tuntapConfigTransfer.Info.PrefixLength,
-                MachineId = clientConfigTransfer.Id,
+                MachineId = signInClientStore.Id,
                 Status = tuntapTransfer.Status,
                 SetupError = tuntapTransfer.SetupError,
                 NatError = tuntapTransfer.NatError,
@@ -167,13 +185,13 @@ namespace linker.plugins.tuntap
         private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)
         {
             //排除的IP，
-            uint[] excludeIps = routeExcludeIPTransfer.Get().Select(NetworkHelper.IP2Value) .ToArray();
+            uint[] excludeIps = routeExcludeIPTransfer.Get().Select(NetworkHelper.IP2Value).ToArray();
             HashSet<uint> hashSet = new HashSet<uint>();
 
             return infos
-                .Where(c => c.MachineId != clientConfigTransfer.Id)
+                .Where(c => c.MachineId != signInClientStore.Id)
                 .OrderByDescending(c => c.Status)
-                .OrderByDescending(c => c.IP)
+                .OrderBy(c => c.IP, new IPAddressComparer())
 
                 .Select(c =>
                 {
@@ -220,6 +238,14 @@ namespace linker.plugins.tuntap
             };
         }
 
+
+        class IPAddressComparer : IComparer<IPAddress>
+        {
+            public int Compare(IPAddress x, IPAddress y)
+            {
+                return (int)(NetworkHelper.IP2Value(x) - NetworkHelper.IP2Value(y));
+            }
+        }
 
     }
 }

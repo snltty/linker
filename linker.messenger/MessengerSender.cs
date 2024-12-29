@@ -14,6 +14,7 @@ namespace linker.messenger
         /// <param name="msg"></param>
         /// <returns></returns>
         public Task<MessageResponeInfo> SendReply(MessageRequestWrap msg);
+
         /// <summary>
         /// 仅发送
         /// </summary>
@@ -48,12 +49,6 @@ namespace linker.messenger
 
         public virtual void AddReceive(ushort id, ulong bytes) { }
         public virtual void AddSendt(ushort id, ulong bytes) { }
-
-        /// <summary>
-        /// 发送并等待回复
-        /// </summary>
-        /// <param name="msg"></param>
-        /// <returns></returns>
         public async Task<MessageResponeInfo> SendReply(MessageRequestWrap msg)
         {
             if (msg.Connection == null || msg.Connection.Connected == false)
@@ -92,12 +87,6 @@ namespace linker.messenger
                 return new MessageResponeInfo { Code = MessageResponeCodes.TIMEOUT };
             }
         }
-
-        /// <summary>
-        /// 只发送，不等回复
-        /// </summary>
-        /// <param name="msg"></param>
-        /// <returns></returns>
         public async Task<bool> SendOnly(MessageRequestWrap msg)
         {
             if (msg.Connection == null || msg.Connection.Connected == false)
@@ -129,11 +118,6 @@ namespace linker.messenger
             return false;
         }
 
-        /// <summary>
-        /// 回复远程消息，收到某个连接的消息后，通过这个再返回消息给它
-        /// </summary>
-        /// <param name="msg"></param>
-        /// <returns></returns>
         public async ValueTask<bool> ReplyOnly(MessageResponseWrap msg, ushort messengerId)
         {
             if (msg.Connection == null)
@@ -159,10 +143,7 @@ namespace linker.messenger
             }
             return false;
         }
-        /// <summary>
-        /// 回复本地消息，发送消息后，socket收到消息，通过这个方法回复给刚刚发送的对象
-        /// </summary>
-        /// <param name="wrap"></param>
+
         public void Response(MessageResponseWrap wrap)
         {
             if (sends.TryRemove(wrap.RequestId, out ReplyWrapInfo info))

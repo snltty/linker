@@ -1,7 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using linker.messenger;
 using linker.messenger.signin;
-using linker.plugins.resolver;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
@@ -25,8 +25,8 @@ namespace linker.plugins.flow
 
 
         private ConcurrentDictionary<IPAddress, OnlineFlowInfo> servers = new ConcurrentDictionary<IPAddress, OnlineFlowInfo>(new IPAddressComparer());
-        private readonly SignCaching signCaching;
-        public FlowResolver(SignCaching signCaching)
+        private readonly SignInServerCaching signCaching;
+        public FlowResolver(SignInServerCaching signCaching)
         {
             this.signCaching = signCaching;
             OnlineTask();

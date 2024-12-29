@@ -133,6 +133,9 @@ namespace linker.plugins.tuntap
         {
             linkerTunDeviceAdapter.DelRoute(ips);
         }
-
+        public async Task<bool> CheckAvailable()
+        {
+            return await linkerTunDeviceAdapter.CheckAvailable();
+        }
     }
 }

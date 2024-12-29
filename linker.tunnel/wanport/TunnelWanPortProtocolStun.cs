@@ -15,10 +15,10 @@ namespace linker.tunnel.wanport
         {
         }
 
-        public async Task<TunnelWanPortEndPoint> GetAsync(IPAddress localIP, IPEndPoint server)
+        public async Task<TunnelWanPortEndPoint> GetAsync(IPEndPoint server)
         {
             UdpClient udpClient = new UdpClient(AddressFamily.InterNetwork);
-            udpClient.Client.ReuseBind(new IPEndPoint(localIP, 0));
+            udpClient.Client.ReuseBind(new IPEndPoint(IPAddress.Any, 0));
             udpClient.Client.WindowsUdpBug();
             try
             {

@@ -1,4 +1,5 @@
-﻿using linker.messenger.relay.server;
+﻿using linker.libs;
+using linker.messenger.relay.server;
 using linker.tunnel.connection;
 using System.Net;
 
@@ -113,4 +114,23 @@ namespace linker.messenger.relay.client.transport
         public bool SSL { get; set; } = true;
     }
 
+
+    public sealed partial class RelayServerInfo
+    {
+        public RelayServerInfo() { }
+        /// <summary>
+        /// 密钥
+        /// </summary>
+        public string SecretKey { get; set; } = Helper.GlobalString;
+        /// <summary>
+        /// 禁用
+        /// </summary>
+        public bool Disabled { get; set; }
+        /// <summary>
+        /// 开启ssl
+        /// </summary>
+        public bool SSL { get; set; } = true;
+
+        public RelayClientType RelayType { get; set; } = RelayClientType.Linker;
+    }
 }

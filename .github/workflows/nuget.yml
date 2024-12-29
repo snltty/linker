@@ -28,6 +28,7 @@ jobs:
         dotnet build ./linker.messenger.relay -c release
         dotnet build ./linker.messenger.signin -c release
         dotnet build ./linker.messenger.tunnel -c release
+        dotnet build ./linker.messenger.decenter -c release
 
     - name: Pack
       run: |
@@ -38,6 +39,7 @@ jobs:
         dotnet pack ./linker.messenger.relay -c release
         dotnet pack ./linker.messenger.signin -c release
         dotnet pack ./linker.messenger.tunnel -c release
+        dotnet pack ./linker.messenger.decenter -c release
         
     - name: Install Nuget
       uses: nuget/setup-nuget@v1
@@ -53,3 +55,4 @@ jobs:
         nuget push ./linker.messenger/bin/release/linker.messenger.relay.1.6.4.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate -ApiKey ${{ secrets.NUGET_KEY }} -NoSymbol
         nuget push ./linker.messenger/bin/release/linker.messenger.signin.1.6.4.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate -ApiKey ${{ secrets.NUGET_KEY }} -NoSymbol
         nuget push ./linker.messenger/bin/release/linker.messenger.tunnel.1.6.4.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate -ApiKey ${{ secrets.NUGET_KEY }} -NoSymbol
+        nuget push ./linker.messenger/bin/release/linker.messenger.decenter.1.6.4.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate -ApiKey ${{ secrets.NUGET_KEY }} -NoSymbol

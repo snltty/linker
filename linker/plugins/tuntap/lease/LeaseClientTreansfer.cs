@@ -1,22 +1,22 @@
 ﻿using System.Net;
-using MemoryPack;
+using linker.serializer;
 using linker.plugins.client;
-using linker.plugins.messenger;
 using linker.plugins.tuntap.messenger;
 using linker.libs;
 using linker.messenger;
+using linker.messenger.signin;
 
 namespace linker.plugins.tuntap.lease
 {
     public sealed class LeaseClientTreansfer
     {
         private readonly IMessengerSender messengerSender;
-        private readonly ClientSignInState clientSignInState;
+        private readonly SignInClientState signInClientState;
 
-        public LeaseClientTreansfer(IMessengerSender messengerSender, ClientSignInState clientSignInState)
+        public LeaseClientTreansfer(IMessengerSender messengerSender, SignInClientState signInClientState)
         {
             this.messengerSender = messengerSender;
-            this.clientSignInState = clientSignInState;
+            this.signInClientState = signInClientState;
 
             LeaseExpTask();
         }
@@ -25,22 +25,22 @@ namespace linker.plugins.tuntap.lease
         {
             await messengerSender.SendOnly(new MessageRequestWrap
             {
-                Connection = clientSignInState.Connection,
+                Connection = signInClientState.Connection,
                 MessengerId = (ushort)TuntapMessengerIds.LeaseAddNetwork,
-                Payload = MemoryPackSerializer.Serialize(info)
+                Payload = Serializer.Serialize(info)
             });
         }
         public async Task<LeaseInfo> GetNetwork()
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
-                Connection = clientSignInState.Connection,
+                Connection = signInClientState.Connection,
                 MessengerId = (ushort)TuntapMessengerIds.LeaseGetNetwork
 
             });
             if (resp.Code == MessageResponeCodes.OK)
             {
-                LeaseInfo info = MemoryPackSerializer.Deserialize<LeaseInfo>(resp.Data.Span);
+                LeaseInfo info = Serializer.Deserialize<LeaseInfo>(resp.Data.Span);
                 return info;
             }
             return new LeaseInfo { IP = IPAddress.Any, PrefixLength = 24 };
@@ -49,7 +49,7 @@ namespace linker.plugins.tuntap.lease
         {
             await messengerSender.SendOnly(new MessageRequestWrap
             {
-                Connection = clientSignInState.Connection,
+                Connection = signInClientState.Connection,
                 MessengerId = (ushort)TuntapMessengerIds.LeaseChangeForward
             });
         }
@@ -58,14 +58,14 @@ namespace linker.plugins.tuntap.lease
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
-                Connection = clientSignInState.Connection,
+                Connection = signInClientState.Connection,
                 MessengerId = (ushort)TuntapMessengerIds.LeaseIP,
-                Payload = MemoryPackSerializer.Serialize(new LeaseInfo { IP = ip, PrefixLength = prefixLength })
+                Payload = Serializer.Serialize(new LeaseInfo { IP = ip, PrefixLength = prefixLength })
 
             });
             if (resp.Code == MessageResponeCodes.OK)
             {
-                LeaseInfo newip = MemoryPackSerializer.Deserialize<LeaseInfo>(resp.Data.Span);
+                LeaseInfo newip = Serializer.Deserialize<LeaseInfo>(resp.Data.Span);
                 if (newip.Equals(IPAddress.Any) == false)
                 {
                     return newip;
@@ -80,7 +80,7 @@ namespace linker.plugins.tuntap.lease
             {
                 await messengerSender.SendReply(new MessageRequestWrap
                 {
-                    Connection = clientSignInState.Connection,
+                    Connection = signInClientState.Connection,
                     MessengerId = (ushort)TuntapMessengerIds.LeaseExp,
                 });
 

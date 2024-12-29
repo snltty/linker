@@ -112,25 +112,27 @@ namespace linker.tunnel
         }
         private void RefreshNetwork()
         {
-            TimerHelper.Async(async () =>
+            TimerHelper.Async(() =>
             {
                 networkInfo.RouteLevel = NetworkHelper.GetRouteLevel(tunnelMessengerAdapter.ServerHost.ToString(), out List<IPAddress> ips);
                 networkInfo.LocalIps = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
                 networkInfo.MachineId = tunnelMessengerAdapter.MachineId;
-                networkInfo.LocalIp = await GetLocalIP(tunnelMessengerAdapter.ServerHost);
 
-                if (tunnelMessengerAdapter.PortMapPrivate > 0)
+                GetLocalIP(tunnelMessengerAdapter.ServerHost).ContinueWith((result) =>
                 {
-                    tunnelUpnpTransfer.SetMap(tunnelMessengerAdapter.PortMapPrivate, tunnelMessengerAdapter.PortMapPublic);
-                }
-                else
-                {
-                    if (networkInfo.LocalIp.Equals(IPAddress.Any) == false)
+                    if (tunnelMessengerAdapter.PortMapPrivate > 0)
                     {
-                        int ip = networkInfo.LocalIp.GetAddressBytes()[3];
-                        tunnelUpnpTransfer.SetMap(18180 + ip);
+                        tunnelUpnpTransfer.SetMap(tunnelMessengerAdapter.PortMapPrivate, tunnelMessengerAdapter.PortMapPublic);
                     }
-                }
+                    else
+                    {
+                        if (result.Result.Equals(IPAddress.Any) == false)
+                        {
+                            int ip = result.Result.GetAddressBytes()[3];
+                            tunnelUpnpTransfer.SetMap(18180 + ip);
+                        }
+                    }
+                });
 
                 async Task<IPAddress> GetLocalIP(IPEndPoint server)
                 {
@@ -211,12 +213,13 @@ namespace linker.tunnel
                 foreach (TunnelTransportItemInfo transportItem in _transports.OrderBy(c => c.Order).Where(c => c.Disabled == false))
                 {
                     ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == transportItem.Name);
-                    transport.SetSSL(tunnelMessengerAdapter.Certificate);
+                    
                     //找不到这个打洞协议，或者是不支持的协议
                     if (transport == null || (transport.ProtocolType & denyProtocols) == transport.ProtocolType)
                     {
                         continue;
                     }
+                    transport.SetSSL(tunnelMessengerAdapter.Certificate);
 
                     foreach (var wanPortProtocol in tunnelWanPortTransfer.Protocols)
                     {
@@ -394,15 +397,13 @@ namespace linker.tunnel
             {
                 LocalIps = networkInfo.LocalIps.Where(c => excludeips.Contains(c) == false).ToArray(),
                 RouteLevel = networkInfo.RouteLevel + tunnelMessengerAdapter.RouteLevelPlus,
-                MachineId = tunnelMessengerAdapter.MachineId,
-                LocalIp = networkInfo.LocalIp,
+                MachineId = tunnelMessengerAdapter.MachineId
             };
             if (string.IsNullOrWhiteSpace(network.MachineId))
             {
                 return null;
             }
-            Console.WriteLine(network.ToJson());
-            TunnelWanPortEndPoint ip = await tunnelWanPortTransfer.GetWanPortAsync(tunnelMessengerAdapter.ServerHost, network.LocalIp, tunnelWanPortProtocolType).ConfigureAwait(false);
+            TunnelWanPortEndPoint ip = await tunnelWanPortTransfer.GetWanPortAsync(tunnelMessengerAdapter.ServerHost, tunnelWanPortProtocolType).ConfigureAwait(false);
             if (ip != null)
             {
                 MapInfo portMapInfo = tunnelUpnpTransfer.PortMap ?? new MapInfo { PrivatePort = 0, PublicPort = 0 };

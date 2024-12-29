@@ -1,6 +1,6 @@
 ﻿using linker.libs.api;
 using linker.plugins.tuntap.messenger;
-using MemoryPack;
+using linker.serializer;
 using linker.libs.extends;
 using System.Collections.Concurrent;
 using linker.config;
@@ -15,6 +15,7 @@ using System.Net;
 using linker.libs;
 using linker.plugins.access;
 using linker.messenger;
+using linker.messenger.signin;
 
 namespace linker.plugins.tuntap
 {
@@ -22,29 +23,29 @@ namespace linker.plugins.tuntap
     {
         private readonly IMessengerSender messengerSender;
         private readonly TuntapTransfer tuntapTransfer;
-        private readonly ClientSignInState clientSignInState;
+        private readonly SignInClientState signInClientState;
         private readonly TuntapProxy tuntapProxy;
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
         private readonly LeaseClientTreansfer leaseClientTreansfer;
         private readonly TuntapPingTransfer pingTransfer;
         private readonly AccessTransfer accessTransfer;
-        private readonly ClientConfigTransfer clientConfigTransfer;
+        private readonly ISignInClientStore signInClientStore;
         private readonly TuntapDecenter tuntapDecenter;
         private readonly TuntapAdapter tuntapAdapter;
 
-        public TuntapClientApiController(IMessengerSender messengerSender, TuntapTransfer tuntapTransfer, ClientSignInState clientSignInState,
+        public TuntapClientApiController(IMessengerSender messengerSender, TuntapTransfer tuntapTransfer, SignInClientState signInClientState,
             TuntapProxy tuntapProxy,TuntapConfigTransfer tuntapConfigTransfer, LeaseClientTreansfer leaseClientTreansfer, 
-            TuntapPingTransfer pingTransfer, AccessTransfer accessTransfer, ClientConfigTransfer clientConfigTransfer, TuntapDecenter tuntapDecenter, TuntapAdapter tuntapAdapter)
+            TuntapPingTransfer pingTransfer, AccessTransfer accessTransfer, ISignInClientStore signInClientStore, TuntapDecenter tuntapDecenter, TuntapAdapter tuntapAdapter)
         {
             this.messengerSender = messengerSender;
             this.tuntapTransfer = tuntapTransfer;
-            this.clientSignInState = clientSignInState;
+            this.signInClientState = signInClientState;
             this.tuntapProxy = tuntapProxy;
             this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.leaseClientTreansfer = leaseClientTreansfer;
             this.pingTransfer = pingTransfer;
             this.accessTransfer = accessTransfer;
-            this.clientConfigTransfer = clientConfigTransfer;
+            this.signInClientStore = signInClientStore;
             this.tuntapDecenter = tuntapDecenter;
             this.tuntapAdapter = tuntapAdapter;
         }
@@ -104,7 +105,7 @@ namespace linker.plugins.tuntap
         public async Task<bool> Run(ApiControllerParamsInfo param)
         {
             //运行自己的
-            if (param.Content == clientConfigTransfer.Id)
+            if (param.Content == signInClientStore.Id)
             {
                 if (accessTransfer.HasAccess(ClientApiAccess.TuntapStatusSelf) == false) return false;
 
@@ -116,9 +117,9 @@ namespace linker.plugins.tuntap
                 //运行别人的
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = clientSignInState.Connection,
+                    Connection = signInClientState.Connection,
                     MessengerId = (ushort)TuntapMessengerIds.RunForward,
-                    Payload = MemoryPackSerializer.Serialize(param.Content)
+                    Payload = Serializer.Serialize(param.Content)
                 }).ConfigureAwait(false);
             }
             return true;
@@ -131,7 +132,7 @@ namespace linker.plugins.tuntap
         public async Task<bool> Stop(ApiControllerParamsInfo param)
         {
             //停止自己的
-            if (param.Content == clientConfigTransfer.Id)
+            if (param.Content == signInClientStore.Id)
             {
                 if (accessTransfer.HasAccess(ClientApiAccess.TuntapStatusSelf) == false) return false;
                 tuntapAdapter.StopDevice();
@@ -142,9 +143,9 @@ namespace linker.plugins.tuntap
                 //停止别人的
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = clientSignInState.Connection,
+                    Connection = signInClientState.Connection,
                     MessengerId = (ushort)TuntapMessengerIds.StopForward,
-                    Payload = MemoryPackSerializer.Serialize(param.Content)
+                    Payload = Serializer.Serialize(param.Content)
                 }).ConfigureAwait(false);
             }
             return true;
@@ -160,7 +161,7 @@ namespace linker.plugins.tuntap
 
             TuntapInfo info = param.Content.DeJson<TuntapInfo>();
             //更新自己的
-            if (info.MachineId == clientConfigTransfer.Id)
+            if (info.MachineId == signInClientStore.Id)
             {
                 if (accessTransfer.HasAccess(ClientApiAccess.TuntapChangeSelf) == false) return false;
                 tuntapConfigTransfer.Update(info);
@@ -171,9 +172,9 @@ namespace linker.plugins.tuntap
                 //更新别人的
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = clientSignInState.Connection,
+                    Connection = signInClientState.Connection,
                     MessengerId = (ushort)TuntapMessengerIds.UpdateForward,
-                    Payload = MemoryPackSerializer.Serialize(info)
+                    Payload = Serializer.Serialize(info)
                 }).ConfigureAwait(false);
             }
             return true;
@@ -242,7 +243,7 @@ namespace linker.plugins.tuntap
         {
             TuntapForwardTestWrapInfo tuntapForwardTestWrapInfo = param.Content.DeJson<TuntapForwardTestWrapInfo>();
 
-            if (tuntapForwardTestWrapInfo.MachineId == clientConfigTransfer.Id)
+            if (tuntapForwardTestWrapInfo.MachineId == signInClientStore.Id)
             {
                 await pingTransfer.SubscribeForwardTest(tuntapForwardTestWrapInfo.List);
             }
@@ -250,14 +251,14 @@ namespace linker.plugins.tuntap
             {
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
-                    Connection = clientSignInState.Connection,
+                    Connection = signInClientState.Connection,
                     MessengerId = (ushort)TuntapMessengerIds.SubscribeForwardTestForward,
-                    Payload = MemoryPackSerializer.Serialize(tuntapForwardTestWrapInfo),
+                    Payload = Serializer.Serialize(tuntapForwardTestWrapInfo),
                     Timeout = 2000
                 }).ConfigureAwait(false);
                 if (resp.Code == MessageResponeCodes.OK && resp.Data.Span.Length > 0)
                 {
-                    tuntapForwardTestWrapInfo = MemoryPackSerializer.Deserialize<TuntapForwardTestWrapInfo>(resp.Data.Span);
+                    tuntapForwardTestWrapInfo = Serializer.Deserialize<TuntapForwardTestWrapInfo>(resp.Data.Span);
                 }
             }
             return tuntapForwardTestWrapInfo;
