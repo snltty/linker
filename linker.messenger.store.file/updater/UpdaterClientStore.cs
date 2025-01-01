@@ -1,10 +1,4 @@
-﻿using linker.config;
-using linker.messenger.updater;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using linker.messenger.updater;
 
 namespace linker.messenger.store.file.updater
 {

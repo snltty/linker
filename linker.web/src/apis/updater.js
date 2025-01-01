@@ -2,40 +2,40 @@ import { sendWebsocketMsg } from './request'
 
 
 export const getUpdater = (hashcode = '0') => {
-    return sendWebsocketMsg('updaterclient/get', hashcode);
+    return sendWebsocketMsg('updater/get', hashcode);
 }
 export const confirm = (data) => {
-    return sendWebsocketMsg('updaterclient/confirm', data);
+    return sendWebsocketMsg('updater/confirm', data);
 }
 export const exit = (machineId) => {
-    return sendWebsocketMsg('updaterclient/exit', machineId);
+    return sendWebsocketMsg('updater/exit', machineId);
 }
 
 export const getSecretKey = () => {
-    return sendWebsocketMsg('updaterclient/GetSecretKey');
+    return sendWebsocketMsg('updater/GetSecretKey');
 }
 export const setSecretKey = (data) => {
-    return sendWebsocketMsg('updaterclient/SetSecretKey', data);
+    return sendWebsocketMsg('updater/SetSecretKey', data);
 }
 export const setUpdateInterval = (data) => {
-    return sendWebsocketMsg('updaterclient/SetInterval', data);
+    return sendWebsocketMsg('updater/SetInterval', data);
 }
 
 export const getUpdaterCurrent = () => {
-    return sendWebsocketMsg('updaterclient/getcurrent');
+    return sendWebsocketMsg('updater/getcurrent');
 }
 export const getUpdaterServer = () => {
-    return sendWebsocketMsg('updaterclient/getserver');
+    return sendWebsocketMsg('updater/getserver');
 }
 export const confirmServer = (version) => {
-    return sendWebsocketMsg('updaterclient/confirmserver', version);
+    return sendWebsocketMsg('updater/confirmserver', version);
 }
 export const exitServer = () => {
-    return sendWebsocketMsg('updaterclient/exitserver');
+    return sendWebsocketMsg('updater/exitserver');
 }
 export const subscribeUpdater = () => {
-    return sendWebsocketMsg('updaterclient/Subscribe');
+    return sendWebsocketMsg('updater/Subscribe');
 }
 export const checkUpdater = (data) => {
-    return sendWebsocketMsg('updaterclient/check', data);
+    return sendWebsocketMsg('updater/check', data);
 }

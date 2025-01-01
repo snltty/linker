@@ -1,4 +1,5 @@
-﻿using linker.libs.api;
+﻿using linker.libs;
+using linker.libs.api;
 using System.Reflection;
 
 namespace linker.messenger.api
@@ -8,8 +9,10 @@ namespace linker.messenger.api
     /// </summary>
     public sealed partial class ApiServer : libs.api.ApiServer, IApiServer
     {
-        public ApiServer()
+        private readonly IAccessStore accessStore;
+        public ApiServer(IAccessStore accessStore)
         {
+            this.accessStore = accessStore;
         }
 
         /// <summary>
@@ -18,6 +21,8 @@ namespace linker.messenger.api
         public void AddPlugins(List<IApiController> list)
         {
             Type voidType = typeof(void);
+
+            LoggerHelper.Instance.Info($"add api {string.Join(",", list.Select(c => c.GetType().Name))}");
 
             foreach (IApiController obj in list)
             {
@@ -30,14 +35,14 @@ namespace linker.messenger.api
                     {
                         bool istask = method.ReturnType.GetProperty("IsCompleted") != null && method.ReturnType.GetMethod("GetAwaiter") != null;
                         bool isTaskResult = method.ReturnType.GetProperty("Result") != null;
-                        /*
-                        ClientApiAccessAttribute accessAttr = method.GetCustomAttribute<ClientApiAccessAttribute>();
+                        
+                        AccessAttribute accessAttr = method.GetCustomAttribute<AccessAttribute>();
                         ulong access = 0;
                         if (accessAttr != null)
                         {
                             access = (ulong)accessAttr.Value;
                         }
-                        */
+                        
                         plugins.TryAdd(key, new PluginPathCacheInfo
                         {
                             IsVoid = method.ReturnType == voidType,
@@ -54,8 +59,7 @@ namespace linker.messenger.api
         }
         private bool HasAccess(ulong access)
         {
-            return true;
-            //return accessTransfer.HasAccess((ClientApiAccess)access);
+            return accessStore.HasAccess((AccessValue)access);
         }
     }
 }

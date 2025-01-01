@@ -34,7 +34,7 @@ namespace linker.tunnel.transport
 
         public bool DisableSSL => false;
 
-        public byte Order => 2;
+        public byte Order => 3;
 
         /// <summary>
         /// 连接成功

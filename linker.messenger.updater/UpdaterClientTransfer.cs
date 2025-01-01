@@ -19,7 +19,7 @@ namespace linker.messenger.updater
 
         public VersionManager Version { get; } = new VersionManager();
 
-        public UpdaterClientTransfer( IMessengerSender messengerSender, SignInClientState signInClientState, UpdaterHelper updaterHelper, ISignInClientStore signInClientStore, IUpdaterCommonStore updaterCommonTransfer, ISerializer serializer)
+        public UpdaterClientTransfer(IMessengerSender messengerSender, SignInClientState signInClientState, UpdaterHelper updaterHelper, ISignInClientStore signInClientStore, IUpdaterCommonStore updaterCommonTransfer, ISerializer serializer)
         {
             this.messengerSender = messengerSender;
             this.signInClientState = signInClientState;
@@ -29,7 +29,7 @@ namespace linker.messenger.updater
             this.serializer = serializer;
 
             signInClientState.NetworkFirstEnabledHandle += Init;
-           
+
         }
         private void Init()
         {
@@ -120,12 +120,13 @@ namespace linker.messenger.updater
         {
             TimerHelper.SetInterval(async () =>
             {
-                await updaterHelper.GetUpdateInfo(updateInfo);
+                if (updaterCommonTransfer.CheckUpdate)
+                    await updaterHelper.GetUpdateInfo(updateInfo);
                 return true;
-            }, () => updaterCommonTransfer.UpdateIntervalSeconds*1000);
+            }, () => updaterCommonTransfer.UpdateIntervalSeconds * 1000);
         }
     }
 
-  
+
 
 }

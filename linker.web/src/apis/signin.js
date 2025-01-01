@@ -2,32 +2,32 @@ import { sendWebsocketMsg } from './request'
 
 
 export const setSignIn = (data) => {
-    return sendWebsocketMsg('signInclient/set', data);
+    return sendWebsocketMsg('signIn/set', data);
 }
 
 export const setSignInServers = (servers) => {
-    return sendWebsocketMsg('signInclient/setservers', servers);
+    return sendWebsocketMsg('signIn/setservers', servers);
 }
 
 export const getSignInfo = () => {
-    return sendWebsocketMsg('signInclient/info');
+    return sendWebsocketMsg('signIn/info');
 }
 export const setSignInOrder = (ids) => {
-    return sendWebsocketMsg('signInclient/setorder', ids);
+    return sendWebsocketMsg('signIn/setorder', ids);
 }
 export const getSignInList = (data) => {
-    return sendWebsocketMsg('signInclient/List', data);
+    return sendWebsocketMsg('signIn/List', data);
 }
 export const getSignInIds = (data) => {
-    return sendWebsocketMsg('signInclient/ids', data);
+    return sendWebsocketMsg('signIn/ids', data);
 }
 export const signInDel = (machineId) => {
-    return sendWebsocketMsg('signInclient/del', machineId);
+    return sendWebsocketMsg('signIn/del', machineId);
 }
 
 export const setSignInName = (data) => {
-    return sendWebsocketMsg('signInclient/setname', data);
+    return sendWebsocketMsg('signIn/setname', data);
 }
 export const setSignInGroups = (data) => {
-    return sendWebsocketMsg('signInclient/SetGroups', data);
+    return sendWebsocketMsg('signIn/SetGroups', data);
 }

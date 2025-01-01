@@ -1,4 +1,7 @@
 ﻿using linker.messenger.action;
+using linker.messenger.relay.server.validator;
+using linker.messenger.sforward.server.validator;
+using linker.messenger.signin.args;
 using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.api
 {
@@ -10,14 +13,15 @@ namespace linker.messenger.api
 
             serviceCollection.AddSingleton<ActionTransfer>();
             serviceCollection.AddSingleton<SignInArgsAction>();
-            serviceCollection.AddSingleton<RelayValidatorAction>();
-            serviceCollection.AddSingleton<SForwardValidatorAction>();
             return serviceCollection;
         }
         public static ServiceProvider UseActionClient(this ServiceProvider serviceProvider)
         {
-            ApiServer apiServer=serviceProvider.GetService<ApiServer>();
+            IApiServer apiServer = serviceProvider.GetService<IApiServer>();
             apiServer.AddPlugins(new List<libs.api.IApiController> { serviceProvider.GetService<ActionApiController>() });
+
+            SignInArgsTransfer signInArgsTransfer = serviceProvider.GetService<SignInArgsTransfer>();
+            signInArgsTransfer.AddArgs(new List<ISignInArgs> { serviceProvider.GetService<SignInArgsAction>() });
 
             return serviceProvider;
         }
@@ -32,6 +36,14 @@ namespace linker.messenger.api
         }
         public static ServiceProvider UseActionServer(this ServiceProvider serviceProvider)
         {
+            SignInArgsTransfer signInArgsTransfer = serviceProvider.GetService<SignInArgsTransfer>();
+            signInArgsTransfer.AddArgs(new List<ISignInArgs> { serviceProvider.GetService<SignInArgsAction>() });
+
+            RelayServerValidatorTransfer relayServerValidatorTransfer = serviceProvider.GetService<RelayServerValidatorTransfer>();
+            relayServerValidatorTransfer.AddValidators(new List<IRelayServerValidator> { serviceProvider.GetService<RelayValidatorAction>() });
+
+            SForwardValidatorTransfer sForwardValidatorTransfer = serviceProvider.GetService<SForwardValidatorTransfer>();
+            sForwardValidatorTransfer.AddValidators(new List<ISForwardValidator> { serviceProvider.GetService<SForwardValidatorAction>() });
             return serviceProvider;
         }
     }

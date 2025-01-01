@@ -151,7 +151,7 @@ namespace linker.tunnel.connection
         {
             ReceiveBytes += packet.Length;
             LastTicks.Update();
-            if (packet.Length == pingBytes.Length && (packet.Span.SequenceEqual(pingBytes) || packet.Span.SequenceEqual(pongBytes)))
+            if (packet.Length == pingBytes.Length && packet.Span.Slice(0, pingBytes.Length - 4).SequenceEqual(pingBytes.AsSpan(0, pingBytes.Length - 4)))
             {
                 if (packet.Span.SequenceEqual(pingBytes))
                 {

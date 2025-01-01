@@ -1,8 +1,6 @@
-﻿using linker.libs;
-using linker.libs.extends;
+﻿using linker.libs.extends;
 using linker.messenger.signin;
 using System.Net;
-using System.Text;
 
 namespace linker.messenger.store.file
 {
@@ -15,7 +13,7 @@ namespace linker.messenger.store.file
 #if DEBUG
             new SignInClientServerInfo{ Name="Linker", Host=new IPEndPoint(IPAddress.Loopback, 1802).ToString() }
 #else
-            new ClientServerInfo{ Name="Linker", Host="linker.snltty.com:1802" }
+            new SignInClientServerInfo{ Name="Linker", Host="linker.snltty.com:1802" }
 #endif
         };
         public SignInClientServerInfo Server => Servers[0];
@@ -33,12 +31,12 @@ namespace linker.messenger.store.file
             }
         }
 
-        private string name = Dns.GetHostName().SubStr(0, 12);
+        private string name = Dns.GetHostName().SubStr(0, 32);
         public string Name
         {
             get => name; set
             {
-                name = value.SubStr(0, 12);
+                name = value.SubStr(0, 32);
             }
         }
 
@@ -53,20 +51,8 @@ namespace linker.messenger.store.file
             }
         }
 
-        /// <summary>
-        /// 加密证书
-        /// </summary>
-        public ClientCertificateInfo SSL { get; set; } = new ClientCertificateInfo();
 
     }
-
-    public sealed partial class ClientCertificateInfo
-    {
-        public ClientCertificateInfo() { }
-        public string File { get; set; } = "./snltty.pfx";
-        public string Password { get; set; } = "oeq9tw1o";
-    }
-
 
     public partial class ConfigServerInfo
     {

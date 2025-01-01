@@ -3,7 +3,7 @@
     public interface IUpdaterClientStore
     {
         public string SecretKey { get; }
-
+      
         public void SetSecretKey(string key);
     }
 }

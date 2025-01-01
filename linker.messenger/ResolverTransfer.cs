@@ -22,6 +22,7 @@ namespace linker.messenger
         /// <param name="list"></param>
         public void AddResolvers(List<IResolver> list)
         {
+            LoggerHelper.Instance.Info($"add resolver {string.Join(",", list.Select(c => c.GetType().Name))}");
             foreach (IResolver resolver in list)
             {
                 resolvers.TryAdd(resolver.Type, resolver);
@@ -42,7 +43,7 @@ namespace linker.messenger
                 {
                     return;
                 }
-               
+
                 socket.KeepAlive();
 
                 int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).ConfigureAwait(false);

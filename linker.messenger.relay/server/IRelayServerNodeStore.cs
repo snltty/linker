@@ -48,12 +48,12 @@ namespace linker.messenger.relay.server
             }
         }
 
-        private string name = Dns.GetHostName().SubStr(0, 12);
+        private string name = Dns.GetHostName().SubStr(0, 32);
         public string Name
         {
             get => name; set
             {
-                name = value.SubStr(0, 12);
+                name = value.SubStr(0, 32);
             }
         }
         public string Host { get; set; } = string.Empty;

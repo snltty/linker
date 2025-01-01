@@ -43,6 +43,7 @@ export default {
                 globalData.value.config.Client.Accesss.FullManager.Value,
                 globalData.value.config.Client.Accesss.Transport.Value,
                 globalData.value.config.Client.Accesss.Action.Value,
+                globalData.value.config.Client.Accesss.Group.Value,
             ],
             checkAll:false,
             isIndeterminate:false

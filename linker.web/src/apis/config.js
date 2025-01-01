@@ -1,19 +1,12 @@
 import { sendWebsocketMsg } from './request'
 
 export const getConfig = () => {
-    return sendWebsocketMsg('configclient/get');
+    return sendWebsocketMsg('config/get');
 }
 
 export const install = (data) => {
-    return sendWebsocketMsg('configclient/install', data);
+    return sendWebsocketMsg('config/install', data);
 }
 export const exportConfig = (data) => {
-    return sendWebsocketMsg('configclient/export', data);
-}
-
-export const getSyncNames = () => {
-    return sendWebsocketMsg('configclient/SyncNames');
-}
-export const setSync = (data) => {
-    return sendWebsocketMsg('configclient/Sync', data);
+    return sendWebsocketMsg('config/export', data);
 }

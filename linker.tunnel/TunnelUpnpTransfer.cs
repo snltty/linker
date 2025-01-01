@@ -21,7 +21,7 @@ namespace linker.tunnel
 
         private readonly TransportUdpPortMap transportUdpPortMap;
         private readonly TransportTcpPortMap transportTcpPortMap;
-        public TunnelUpnpTransfer(TransportUdpPortMap transportUdpPortMap,TransportTcpPortMap transportTcpPortMap)
+        public TunnelUpnpTransfer(TransportUdpPortMap transportUdpPortMap, TransportTcpPortMap transportTcpPortMap)
         {
             this.transportUdpPortMap = transportUdpPortMap;
             this.transportTcpPortMap = transportTcpPortMap;
@@ -29,7 +29,7 @@ namespace linker.tunnel
             NatUtility.DeviceFound += DeviceFound;
             NatUtility.StartDiscovery();
             LoopDiscovery();
-           
+
         }
 
         private void LoopDiscovery()
@@ -46,10 +46,8 @@ namespace linker.tunnel
         {
             INatDevice device = args.Device;
 
-            if (natDevices.Count == 0 || natDevices.TryGetValue(device.NatProtocol, out INatDevice _device))
-            {
-                natDevices.AddOrUpdate(device.NatProtocol, device, (a, b) => device);
-            }
+            natDevices.AddOrUpdate(device.NatProtocol, device, (a, b) => device);
+
             AddMap();
         }
         private void AddMap()
@@ -60,34 +58,34 @@ namespace linker.tunnel
             {
                 await locker.WaitAsync();
 
-                INatDevice device = natDevices.FirstOrDefault().Value;
-
-                try
+                foreach (var device in natDevices.Values)
                 {
-                    if (await HasMap(device, Protocol.Tcp, MapInfo.PublicPort) == false)
+                    try
                     {
-                        Mapping mapping = new Mapping(Protocol.Tcp, MapInfo.PrivatePort, MapInfo.PublicPort, 720, $"linker-tcp-{MapInfo.PublicPort}-{MapInfo.PrivatePort}");
-                        await device.CreatePortMapAsync(mapping);
-                        Mapping m = await device.GetSpecificMappingAsync(Protocol.Tcp, mapping.PublicPort);
+                        if (await HasMap(device, Protocol.Tcp, MapInfo.PublicPort) == false)
+                        {
+                            Mapping mapping = new Mapping(Protocol.Tcp, MapInfo.PrivatePort, MapInfo.PublicPort, 720, $"linker-tcp-{MapInfo.PublicPort}-{MapInfo.PrivatePort}");
+                            await device.CreatePortMapAsync(mapping);
+                            Mapping m = await device.GetSpecificMappingAsync(Protocol.Tcp, mapping.PublicPort);
+                        }
+                    }
+                    catch
+                    {
+                    }
+
+                    try
+                    {
+                        if (await HasMap(device, Protocol.Udp, MapInfo.PublicPort) == false)
+                        {
+                            Mapping mapping = new Mapping(Protocol.Udp, MapInfo.PrivatePort, MapInfo.PublicPort, 720, $"linker-udp-{MapInfo.PublicPort}-{MapInfo.PrivatePort}");
+                            await device.CreatePortMapAsync(mapping);
+                            Mapping m = await device.GetSpecificMappingAsync(Protocol.Udp, mapping.PublicPort);
+                        }
+                    }
+                    catch
+                    {
                     }
                 }
-                catch
-                {
-                }
-
-                try
-                {
-                    if (await HasMap(device, Protocol.Udp, MapInfo.PublicPort) == false)
-                    {
-                        Mapping mapping = new Mapping(Protocol.Udp, MapInfo.PrivatePort, MapInfo.PublicPort, 720, $"linker-udp-{MapInfo.PublicPort}-{MapInfo.PrivatePort}");
-                        await device.CreatePortMapAsync(mapping);
-                        Mapping m = await device.GetSpecificMappingAsync(Protocol.Udp, mapping.PublicPort);
-                    }
-                }
-                catch
-                {
-                }
-
                 locker.Release();
             });
         }

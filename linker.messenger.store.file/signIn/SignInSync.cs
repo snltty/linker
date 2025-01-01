@@ -13,6 +13,7 @@ namespace linker.messenger.store.file.signIn
         public SignInSyncSecretKey(ISignInClientStore signInClientStore, ISerializer serializer)
         {
             this.signInClientStore = signInClientStore;
+            this.serializer = serializer;
         }
         public Memory<byte> GetData()
         {

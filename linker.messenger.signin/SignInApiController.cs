@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.api;
 using linker.libs.extends;
+using linker.messenger.api;
 
 namespace linker.messenger.signin
 {
@@ -11,21 +12,30 @@ namespace linker.messenger.signin
         private readonly IMessengerSender messengerSender;
         private readonly SignInClientTransfer signInClientTransfer;
         private readonly ISerializer serializer;
+        private readonly IAccessStore accessStore;
 
-        public SignInApiController( SignInClientState signInClientState, ISignInClientStore signInClientStore, IMessengerSender messengerSender,SignInClientTransfer signInClientTransfer, ISerializer serializer)
+        public SignInApiController( SignInClientState signInClientState, ISignInClientStore signInClientStore, IMessengerSender messengerSender,SignInClientTransfer signInClientTransfer, ISerializer serializer, IAccessStore accessStore)
         {
             this.signInClientState = signInClientState;
             this.signInClientStore = signInClientStore;
             this.messengerSender = messengerSender;
             this.signInClientTransfer = signInClientTransfer;
             this.serializer = serializer;
+            this.accessStore = accessStore;
         }
 
         public void Set(ApiControllerParamsInfo param)
         {
             ConfigSetInfo info = param.Content.DeJson<ConfigSetInfo>();
-            signInClientStore.SetName(info.Name);
-            signInClientStore.SetGroup(info.Groups[0]);
+            if (accessStore.HasAccess(AccessValue.RenameSelf))
+            {
+                signInClientStore.SetName(info.Name);
+            }
+            if (accessStore.HasAccess(AccessValue.RenameSelf))
+            {
+                signInClientStore.SetGroups(info.Groups);
+            }
+           
             signInClientTransfer.ReSignIn();
         }
 
@@ -35,11 +45,13 @@ namespace linker.messenger.signin
 
             if (info.Id == signInClientStore.Id)
             {
+                if (accessStore.HasAccess(AccessValue.RenameSelf) == false) return false;
                 signInClientStore.SetName(info.NewName);
                 signInClientTransfer.ReSignIn();
             }
             else
             {
+                if (accessStore.HasAccess(AccessValue.RenameSelf) == false) return false;
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = signInClientState.Connection,
@@ -49,13 +61,15 @@ namespace linker.messenger.signin
             }
             return true;
         }
+        [Access(AccessValue.Group)]
         public void SetGroups(ApiControllerParamsInfo param)
         {
             SignInClientGroupInfo[] info = param.Content.DeJson<SignInClientGroupInfo[]>();
-            signInClientStore.SetGroup(info[0]);
+            signInClientStore.SetGroups(info);
             //signInClientTransfer.ReSignIn();
         }
 
+        [Access(AccessValue.Config)]
         public bool SetServers(ApiControllerParamsInfo param)
         {
             SignInClientServerInfo servers = param.Content.DeJson<SignInClientServerInfo>();
@@ -69,6 +83,7 @@ namespace linker.messenger.signin
             return signInClientState;
         }
 
+        [Access(AccessValue.Config)]
         public async Task Del(ApiControllerParamsInfo param)
         {
             await messengerSender.SendOnly(new MessageRequestWrap

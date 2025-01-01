@@ -6,6 +6,7 @@ using System.Net;
 using System.Text.Json.Serialization;
 using System.Text;
 using System.Net.Sockets;
+using System;
 
 namespace linker.tunnel.connection
 {
@@ -89,6 +90,7 @@ namespace linker.tunnel.connection
                     {
                         length = await Stream.ReadAsync(buffer).ConfigureAwait(false);
                         if (length == 0) break;
+
                         await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
                     }
                     else
@@ -101,7 +103,6 @@ namespace linker.tunnel.connection
                         {
                             length = Socket.Receive(buffer);
                             if (length == 0) break;
-
                             await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
                         }
                     }
@@ -163,18 +164,19 @@ namespace linker.tunnel.connection
         {
             ReceiveBytes += packet.Length;
             LastTicks.Update();
-            if (packet.Length == pingBytes.Length)
+            if (packet.Length == pingBytes.Length && packet.Span.Slice(0, pingBytes.Length - 4).SequenceEqual(pingBytes.AsSpan(0, pingBytes.Length - 4)))
             {
                 if (packet.Span.SequenceEqual(pingBytes))
                 {
                     await SendPingPong(pongBytes).ConfigureAwait(false);
+                    return;
                 }
                 else if (packet.Span.SequenceEqual(pongBytes))
                 {
                     Delay = (int)pingTicks.Diff();
                     pong = true;
+                    return;
                 }
-                return;
             }
             try
             {

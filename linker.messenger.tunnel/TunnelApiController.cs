@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using linker.messenger.signin;
 using linker.plugins.tunnel;
 using linker.libs;
+using linker.messenger.api;
 
 namespace linker.messenger.tunnel
 {
@@ -97,6 +98,7 @@ namespace linker.messenger.tunnel
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
+        [Access(AccessValue.Transport)]
         public async Task<bool> SetTransports(ApiControllerParamsInfo param)
         {
             List<TunnelTransportItemInfo> info = param.Content.DeJson<List<TunnelTransportItemInfo>>();

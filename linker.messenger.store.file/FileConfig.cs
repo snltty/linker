@@ -213,37 +213,12 @@ namespace linker.messenger.store.file
     public sealed partial class ConfigCommonInfo : IConfig
     {
         public ConfigCommonInfo() { }
-        public string[] Modes { get; set; } = new string[] { "client", "server" };
-
-
 
 #if DEBUG
-        private LoggerTypes loggerType { get; set; } = LoggerTypes.DEBUG;
         public bool Install { get; set; } = false;
 #else
-        private LoggerTypes loggerType { get; set; } = LoggerTypes.WARNING;
         public bool Install { get; set; } = false;
 #endif
-
-        [JsonIgnore]
-        public string[] Plugins { get; set; } = Array.Empty<string>();
-
-        public LoggerTypes LoggerType
-        {
-            get => loggerType; set
-            {
-                loggerType = value;
-                LoggerHelper.Instance.LoggerLevel = value;
-            }
-        }
-        public int LoggerSize { get; set; } = 100;
-
-        [JsonIgnore]
-        public string[] IncludePlugins { get; set; } = Array.Empty<string>();
-        [JsonIgnore]
-        public string[] ExcludePlugins { get; set; } = Array.Empty<string>();
-
-
         public ConfigCommonInfo Load(string text)
         {
             return text.DeJson<ConfigCommonInfo>();

@@ -6,6 +6,7 @@ namespace linker.messenger.store.file
     {
         public string UpdateUrl { get; set; } = "https://static.qbcode.cn/downloads/linker";
         public int UpdateIntervalSeconds { get; set; } = 60;
+        public bool CheckUpdate { get; set; } = true;
     }
     public partial class ConfigClientInfo
     {

@@ -1,10 +1,10 @@
 <template>
-    <div class="servers-wrap" v-if="hasConfig">
+    <div class="servers-wrap" >
         <el-tabs type="border-card" style="width:100%" v-model="state.tab">
-            <el-tab-pane label="信标服务器" name="signin">
+            <el-tab-pane label="信标服务器" name="signin" v-if="hasConfig">
                 <SignInServers></SignInServers>
             </el-tab-pane>
-            <el-tab-pane label="分组设置" name="groups">
+            <el-tab-pane label="分组设置" name="groups" v-if="hasGroup">
                 <Groups></Groups>
             </el-tab-pane>
             <el-tab-pane label="配置同步" name="async" v-if="hasSync">
@@ -26,13 +26,14 @@ export default {
         const globalData = injectGlobalData();
         const hasConfig = computed(()=>globalData.value.hasAccess('Config'))
         const hasSync = computed(()=>globalData.value.hasAccess('Sync'));
+        const hasGroup = computed(()=>globalData.value.hasAccess('Group'));
 
         const state = reactive({
             tab:'signin'
         });
 
         return {
-            state,hasConfig,hasSync
+            state,hasConfig,hasSync,hasGroup
         }
     }
 }

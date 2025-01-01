@@ -3,7 +3,7 @@ using linker.messenger.access;
 using linker.messenger.api;
 using System.Reflection;
 
-namespace linker.config
+namespace linker.messenger.store.file
 {
     public partial class ConfigClientInfo
     {

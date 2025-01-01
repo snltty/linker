@@ -1,5 +1,6 @@
 ﻿using linker.libs.api;
 using linker.libs.extends;
+using linker.messenger.api;
 namespace linker.messenger.sync
 {
     public sealed class SyncApiController : IApiController
@@ -11,10 +12,12 @@ namespace linker.messenger.sync
             this.syncTreansfer = syncTreansfer;
         }
 
-        public List<string> SyncNames(ApiControllerParamsInfo param)
+        public List<string> Names(ApiControllerParamsInfo param)
         {
             return syncTreansfer.GetNames();
         }
+
+        [Access(AccessValue.Sync)]
         public async Task<bool> Sync(ApiControllerParamsInfo param)
         {
             string[] names = param.Content.DeJson<string[]>();

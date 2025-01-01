@@ -2,7 +2,7 @@
 {
     public sealed class ActionInfo
     {
-        public string Arg { get; set; }
+        public string Arg { get; set; } = string.Empty;
         public Dictionary<string, string> Args { get; set; } = new Dictionary<string, string>();
     }
     public interface IActionStore

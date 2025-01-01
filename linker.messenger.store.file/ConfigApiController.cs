@@ -3,6 +3,7 @@ using linker.libs.extends;
 using System.IO.Compression;
 using linker.libs;
 using linker.messenger.signin;
+using linker.messenger.api;
 namespace linker.messenger.store.file
 {
     public sealed class ConfigApiController : IApiController
@@ -76,6 +77,7 @@ namespace linker.messenger.store.file
             return true;
         }
 
+        [Access(AccessValue.Export)]
         public async Task<bool> Export(ApiControllerParamsInfo param)
         {
             try
@@ -114,9 +116,10 @@ namespace linker.messenger.store.file
                     client.CApi.ApiPassword = configExportInfo.ApiPassword;
                 }
 
-                client.Access = accessTransfer.AssignAccess((ClientApiAccess)configExportInfo.Access);
+                client.Access = config.Data.Client.Access & (AccessValue)configExportInfo.Access;
                 client.OnlyNode = true;
                 client.Action.Args.Clear();
+                client.Action.Arg = string.Empty;
 
                 client.Groups = [config.Data.Client.Groups[0]];
                 File.WriteAllText(Path.Combine(configPath, $"client.json"), client.Serialize(client));

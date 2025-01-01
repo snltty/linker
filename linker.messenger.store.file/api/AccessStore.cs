@@ -1,6 +1,5 @@
-﻿using linker.config;
-using linker.libs;
-using linker.messenger.access;
+﻿using linker.libs;
+using linker.messenger.api;
 
 namespace linker.messenger.store.file.api
 {

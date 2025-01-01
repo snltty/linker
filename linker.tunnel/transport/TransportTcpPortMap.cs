@@ -34,7 +34,7 @@ namespace linker.tunnel.transport
 
         public bool DisableSSL => false;
 
-        public byte Order => 4;
+        public byte Order => 5;
 
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
 

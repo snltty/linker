@@ -1,14 +1,14 @@
 import { sendWebsocketMsg } from './request'
 
 export const getFlows = () => {
-    return sendWebsocketMsg('flowClient/GetFlows');
+    return sendWebsocketMsg('flow/GetFlows');
 }
 export const getMessengerFlows = () => {
-    return sendWebsocketMsg('flowClient/GetMessengerFlows');
+    return sendWebsocketMsg('flow/GetMessengerFlows');
 }
 export const getSForwardFlows = (data) => {
-    return sendWebsocketMsg('flowClient/GetSForwardFlows', data);
+    return sendWebsocketMsg('flow/GetSForwardFlows', data);
 }
 export const getRelayFlows = (data) => {
-    return sendWebsocketMsg('flowClient/GetRelayFlows', data);
+    return sendWebsocketMsg('flow/GetRelayFlows', data);
 }

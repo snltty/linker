@@ -8,6 +8,7 @@ namespace linker.messenger
             serviceCollection.AddSingleton<IMessengerSender, MessengerSender>();
             serviceCollection.AddSingleton<IMessengerResolver, MessengerResolver>();
             serviceCollection.AddSingleton<MessengerResolverResolver>();
+            serviceCollection.AddSingleton<ResolverTransfer>();
             return serviceCollection;
         }
         public static ServiceProvider UseMessenger(this ServiceProvider serviceProvider)

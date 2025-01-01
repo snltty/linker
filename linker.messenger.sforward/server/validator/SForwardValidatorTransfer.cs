@@ -1,0 +1,48 @@
+﻿using linker.messenger.signin;
+using linker.libs;
+
+namespace linker.messenger.sforward.server.validator
+{
+    /// <summary>
+    /// 验证
+    /// </summary>
+    public sealed partial class SForwardValidatorTransfer
+    {
+        private List<ISForwardValidator> validators = new List<ISForwardValidator>();
+
+        public SForwardValidatorTransfer()
+        {
+        }
+
+        /// <summary>
+        /// 加载验证实现类
+        /// </summary>
+        /// <param name="list"></param>
+        public void AddValidators(List<ISForwardValidator> list)
+        {
+            if (list == null) return;
+            validators = validators.Concat(list).Distinct().ToList();
+            LoggerHelper.Instance.Info($"load sforward server validator :{string.Join(",", list.Select(c => c.GetType().Name))}");
+        }
+
+        /// <summary>
+        /// 验证
+        /// </summary>
+        /// <param name="signCacheInfo"></param>
+        /// <param name="sForwardAddInfo"></param>
+        /// <returns></returns>
+        public async Task<string> Validate(SignCacheInfo signCacheInfo, SForwardAddInfo sForwardAddInfo)
+        {
+            foreach (var item in validators)
+            {
+                string result = await item.Validate(signCacheInfo, sForwardAddInfo);
+                if (string.IsNullOrWhiteSpace(result) == false)
+                {
+                    return result;
+                }
+            }
+            return string.Empty;
+        }
+
+    }
+}

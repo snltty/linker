@@ -18,11 +18,11 @@ namespace linker.messenger.relay.client
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
         private readonly IRelayClientStore relayClientStore;
-        public RelayClientTransfer(IMessengerSender messengerSender,ISerializer serializer,IRelayClientStore relayClientStore,SignInClientState signInClientState)
+        public RelayClientTransfer(IMessengerSender messengerSender,ISerializer serializer,IRelayClientStore relayClientStore,SignInClientState signInClientState,IMessengerStore messengerStore)
         {
             this.relayClientStore = relayClientStore;
             Transports = new List<IRelayClientTransport> { 
-                new RelayClientTransportSelfHost(messengerSender,serializer,relayClientStore,signInClientState),
+                new RelayClientTransportSelfHost(messengerSender,serializer,relayClientStore,signInClientState,messengerStore),
             };
             LoggerHelper.Instance.Info($"load relay transport:{string.Join(",", Transports.Select(c => c.GetType().Name))}");
         }

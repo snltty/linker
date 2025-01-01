@@ -1,6 +1,4 @@
-﻿using linker.config;
-using linker.messenger.signin;
-using System.Security.Cryptography.X509Certificates;
+﻿using linker.messenger.signin;
 
 namespace linker.messenger.store.file.signIn
 {
@@ -12,17 +10,10 @@ namespace linker.messenger.store.file.signIn
         public string Id => config.Data.Client.Id;
         public string Name => config.Data.Client.Name;
 
-        public X509Certificate2 Certificate { get; private set; }
-
         private readonly FileConfig config;
         public SignInClientStore(FileConfig config)
         {
             this.config = config;
-            string path = Path.GetFullPath(config.Data.Client.SSL.File);
-            if (File.Exists(path))
-            {
-                Certificate = new X509Certificate2(path, config.Data.Client.SSL.Password, X509KeyStorageFlags.Exportable);
-            }
         }
 
         public void SetName(string newName)
@@ -30,9 +21,9 @@ namespace linker.messenger.store.file.signIn
             config.Data.Client.Name = newName;
             config.Data.Update();
         }
-        public void SetGroup(SignInClientGroupInfo group)
+        public void SetGroups(SignInClientGroupInfo[] groups)
         {
-            config.Data.Client.Groups = [group];
+            config.Data.Client.Groups = groups;
             config.Data.Update();
         }
         public void SetGroupPassword(string password)

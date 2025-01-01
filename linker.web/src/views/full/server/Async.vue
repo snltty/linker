@@ -26,7 +26,7 @@
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { computed, onMounted, reactive } from 'vue'
-import { getSyncNames, setSync } from '@/apis/config';
+import { getSyncNames, setSync } from '@/apis/sync';
 export default {
     label:'同步配置',
     name:'async',

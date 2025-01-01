@@ -47,14 +47,14 @@ namespace linker.tunnel.transport
         public TransportMsQuic(ITunnelMessengerAdapter tunnelMessengerAdapter)
         {
             this.tunnelMessengerAdapter = tunnelMessengerAdapter;
-            _ = QuicListen();
-           
         }
 
         private X509Certificate2 certificate;
         public void SetSSL(X509Certificate2 certificate)
         {
             this.certificate = certificate;
+            if (quicListenEP == null)
+                _ = QuicListen();
         }
 
         /// <summary>

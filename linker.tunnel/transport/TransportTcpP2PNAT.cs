@@ -32,7 +32,7 @@ namespace linker.tunnel.transport
 
         public bool DisableSSL => false;
 
-        public byte Order => 1;
+        public byte Order => 2;
 
         /// <summary>
         /// 连接成功

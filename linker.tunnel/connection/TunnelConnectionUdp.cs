@@ -99,7 +99,6 @@ namespace linker.tunnel.connection
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
                     SocketReceiveFromResult result = await UdpClient.ReceiveFromAsync(buffer.AsMemory(), ep, cancellationTokenSource.Token).ConfigureAwait(false);
-
                     if (result.ReceivedBytes == 0)
                     {
                         break;

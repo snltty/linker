@@ -1,21 +1,18 @@
 ﻿using linker.messenger.api;
 using linker.messenger.decenter;
 using linker.messenger.exroute;
-using linker.messenger.signin;
 using linker.plugins.tunnel;
 using linker.tunnel;
 using Microsoft.Extensions.DependencyInjection;
-using System.Security.Cryptography.X509Certificates;
 namespace linker.messenger.tunnel
 {
     public static class Entry
     {
-        public static X509Certificate2 certificate;
         public static ServiceCollection AddTunnelClient(this ServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<TunnelTransfer>();
             serviceCollection.AddSingleton<TunnelClientExcludeIPTransfer>();
-            serviceCollection.AddSingleton<TunnelClientMessengerAdapter>();
+            serviceCollection.AddSingleton<ITunnelMessengerAdapter, TunnelMessengerAdapter>();
             serviceCollection.AddSingleton<TunnelClientMessenger>();
 
             serviceCollection.AddSingleton<TunnelNetworkTransfer>();
@@ -28,10 +25,8 @@ namespace linker.messenger.tunnel
 
             return serviceCollection;
         }
-        public static ServiceProvider UseTunnelClient(this ServiceProvider serviceProvider, X509Certificate2 certificate)
+        public static ServiceProvider UseTunnelClient(this ServiceProvider serviceProvider)
         {
-            Entry.certificate = certificate;
-
             TunnelNetworkTransfer tunnelNetworkTransfer = serviceProvider.GetService<TunnelNetworkTransfer>();
 
             TunnelTransfer tunnelTransfer = serviceProvider.GetService<TunnelTransfer>();
@@ -66,7 +61,7 @@ namespace linker.messenger.tunnel
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<TunnelServerMessenger>() });
 
-            ResolverTransfer resolverTransfer = new ResolverTransfer();
+            ResolverTransfer resolverTransfer = serviceProvider.GetService<ResolverTransfer>();
             resolverTransfer.AddResolvers(new List<IResolver> { serviceProvider.GetService<TunnelServerExternalResolver>() });
 
             return serviceProvider;

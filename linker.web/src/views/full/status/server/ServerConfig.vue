@@ -5,10 +5,10 @@
     <el-dialog v-model="state.show" title="连接设置" width="300" append-to-body>
         <div>
             <el-form :model="state.form" :rules="state.rules" label-width="6rem">
-                <el-form-item label="机器名" prop="name">
-                    <el-input v-model="state.form.name" maxlength="12" show-word-limit />
+                <el-form-item label="机器名" prop="name" v-if="hasRenameSelf">
+                    <el-input v-model="state.form.name" maxlength="32" show-word-limit />
                 </el-form-item>
-                <el-form-item label="分组名" prop="groupid">
+                <el-form-item label="分组名" prop="groupid" v-if="hasGroup">
                     <el-select v-model="state.groupid" @change="handleGroupChange">
                         <el-option v-for="item in state.form.groups" :key="item.Id" :label="item.Name" :value="item.Id"/>
                     </el-select>
@@ -35,7 +35,8 @@ export default {
     setup(props) {
 
         const globalData = injectGlobalData();
-        const hasConfig = computed(()=>globalData.value.hasAccess('Config')); 
+        const hasRenameSelf = computed(()=>globalData.value.hasAccess('RenameSelf')); 
+        const hasGroup = computed(()=>globalData.value.hasAccess('Group')); 
         const state = reactive({
             show: false,
             loading: false,
@@ -49,7 +50,7 @@ export default {
         });
 
         const handleConfig = () => {
-            if(!props.config || !hasConfig.value){
+            if(!props.config || (!hasGroup.value && !hasRenameSelf.value)){
                 return;
             }
             state.form.name = globalData.value.config.Client.Name;
@@ -84,7 +85,7 @@ export default {
             });
         }
         return {
-         config:props.config,  state, handleConfig, handleSave,handleGroupChange
+         config:props.config,hasRenameSelf,hasGroup,  state, handleConfig, handleSave,handleGroupChange
         }
     }
 }

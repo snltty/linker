@@ -8,7 +8,7 @@ namespace linker.messenger.socks5
     {
         public static ServiceCollection AddSocks5Client(this ServiceCollection serviceCollection)
         {
-            serviceCollection.AddSingleton<Socks5ClientApiController>();
+            serviceCollection.AddSingleton<Socks5ApiController>();
             serviceCollection.AddSingleton<TunnelProxy>();
 
             serviceCollection.AddSingleton<Socks5ClientMessenger>();
@@ -29,7 +29,7 @@ namespace linker.messenger.socks5
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<Socks5ClientMessenger>() });
 
             IApiServer apiServer = serviceProvider.GetService<IApiServer>();
-            apiServer.AddPlugins(new List<libs.api.IApiController> { serviceProvider.GetService<Socks5ClientApiController>() });
+            apiServer.AddPlugins(new List<libs.api.IApiController> { serviceProvider.GetService<Socks5ApiController>() });
 
             DecenterClientTransfer decenterClientTransfer = serviceProvider.GetService<DecenterClientTransfer>();
             decenterClientTransfer.AddDecenters(new List<IDecenter> { serviceProvider.GetService<Socks5Decenter>() });

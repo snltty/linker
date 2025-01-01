@@ -8,7 +8,7 @@
         public string Name { get; }
 
         public void SetName(string newName);
-        public void SetGroup(SignInClientGroupInfo groups);
+        public void SetGroups(SignInClientGroupInfo[] groups);
         public void SetGroupPassword(string password);
         public void SetServer(SignInClientServerInfo servers);
         public void SetSecretKey(string secretKey);

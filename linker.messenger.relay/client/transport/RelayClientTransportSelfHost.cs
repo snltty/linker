@@ -27,12 +27,14 @@ namespace linker.messenger.relay.client.transport
         private readonly ISerializer serializer;
         private readonly IRelayClientStore relayClientStore;
         private readonly SignInClientState signInClientState;
-        public RelayClientTransportSelfHost(IMessengerSender messengerSender, ISerializer serializer, IRelayClientStore relayClientStore, SignInClientState signInClientState)
+        private readonly IMessengerStore messengerStore;
+        public RelayClientTransportSelfHost(IMessengerSender messengerSender, ISerializer serializer, IRelayClientStore relayClientStore, SignInClientState signInClientState, IMessengerStore messengerStore)
         {
             this.messengerSender = messengerSender;
             this.serializer = serializer;
             this.relayClientStore = relayClientStore;
             this.signInClientState = signInClientState;
+            this.messengerStore = messengerStore;
         }
 
         public async Task<ITunnelConnection> RelayAsync(RelayInfo relayInfo)
@@ -272,7 +274,7 @@ namespace linker.messenger.relay.client.transport
                 if (relayInfo.SSL)
                 {
                     sslStream = new SslStream(new NetworkStream(socket, false), false);
-                    await sslStream.AuthenticateAsServerAsync(Entry.certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false).ConfigureAwait(false);
+                    await sslStream.AuthenticateAsServerAsync(messengerStore.Certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false).ConfigureAwait(false);
                 }
                 return new TunnelConnectionTcp
                 {

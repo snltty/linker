@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Security.Cryptography.X509Certificates;
 
 namespace linker.messenger
 {
@@ -15,5 +11,7 @@ namespace linker.messenger
     public interface IMessengerStore
     {
         public ServerCertificateInfo SSL { get; }
+
+        public X509Certificate2 Certificate { get; }
     }
 }

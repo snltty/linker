@@ -58,34 +58,33 @@ namespace linker.plugins.tunnel
     /// <summary>
     /// 打洞信标适配
     /// </summary>
-    public class TunnelClientMessengerAdapter : ITunnelMessengerAdapter
+    public class TunnelMessengerAdapter : ITunnelMessengerAdapter
     {
         public string MachineId => signInClientState.Connection?.Id ?? string.Empty;
-        public int RouteLevelPlus => tunnelMessengerAdapterStore.RouteLevelPlus;
+        public int RouteLevelPlus => tunnelClientStore.RouteLevelPlus;
         public IPEndPoint ServerHost => signInClientState.Connection?.Address ?? null;
-        public X509Certificate2 Certificate => linker.messenger.tunnel.Entry.certificate;
-        public int PortMapPrivate => tunnelMessengerAdapterStore.PortMapPrivate;
-        public int PortMapPublic => tunnelMessengerAdapterStore.PortMapPublic;
+        public X509Certificate2 Certificate => messengerStore.Certificate;
+        public int PortMapPrivate => tunnelClientStore.PortMapPrivate;
+        public int PortMapPublic => tunnelClientStore.PortMapPublic;
 
 
         private readonly IMessengerSender messengerSender;
-
         private readonly TunnelClientExcludeIPTransfer excludeIPTransfer;
-
         private readonly ISerializer serializer;
-
-        private readonly ITunnelClientStore tunnelMessengerAdapterStore;
-
+        private readonly ITunnelClientStore tunnelClientStore;
         private readonly SignInClientState signInClientState;
+        private readonly IMessengerStore messengerStore;
 
-        public TunnelClientMessengerAdapter(IMessengerSender messengerSender, TunnelClientExcludeIPTransfer excludeIPTransfer,
-            ISerializer serializer, ITunnelClientStore tunnelMessengerAdapterStore, SignInClientState signInClientState)
+
+        public TunnelMessengerAdapter(IMessengerSender messengerSender, TunnelClientExcludeIPTransfer excludeIPTransfer,
+            ISerializer serializer, ITunnelClientStore tunnelClientStore, SignInClientState signInClientState, IMessengerStore messengerStore)
         {
             this.messengerSender = messengerSender;
             this.excludeIPTransfer = excludeIPTransfer;
             this.serializer = serializer;
-            this.tunnelMessengerAdapterStore = tunnelMessengerAdapterStore;
+            this.tunnelClientStore = tunnelClientStore;
             this.signInClientState = signInClientState;
+            this.messengerStore = messengerStore;
         }
 
         public async Task<List<IPAddress>> GetExcludeIps()
@@ -95,12 +94,12 @@ namespace linker.plugins.tunnel
 
         public async Task<List<TunnelTransportItemInfo>> GetTunnelTransports()
         {
-            return await tunnelMessengerAdapterStore.GetTunnelTransports();
+            return await tunnelClientStore.GetTunnelTransports();
         }
 
         public async Task<bool> SetTunnelTransports(List<TunnelTransportItemInfo> list)
         {
-            return await tunnelMessengerAdapterStore.SetTunnelTransports(list);
+            return await tunnelClientStore.SetTunnelTransports(list);
         }
 
         public async Task<TunnelTransportWanPortInfo> GetRemoteWanPort(TunnelWanPortProtocolInfo info)

@@ -33,7 +33,6 @@
 	<ItemGroup>
 		<ProjectReference Include="..\linker.libs\linker.libs.csproj" />
 		<ProjectReference Include="..\linker.messenger.signin\linker.messenger.signin.csproj" />
-		<ProjectReference Include="..\linker.signin\linker.messenger.signin.csproj" />
 	</ItemGroup>
 
 </Project>

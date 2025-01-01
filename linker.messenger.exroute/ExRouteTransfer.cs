@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using linker.libs;
+using System.Net;
 
 namespace linker.messenger.exroute
 {
@@ -12,6 +13,7 @@ namespace linker.messenger.exroute
 
         public void AddExRoutes(List<IExRoute> list)
         {
+            LoggerHelper.Instance.Info($"add exroute {string.Join(",", list.Select(c => c.GetType().Name))}");
             excludes = excludes.Concat(list).Distinct().ToList();
            
         }

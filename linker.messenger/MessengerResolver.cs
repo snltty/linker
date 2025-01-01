@@ -51,22 +51,11 @@ namespace linker.messenger
         private readonly Dictionary<ushort, MessengerCacheInfo> messengers = new();
 
         private readonly IMessengerSender messengerSender;
-
-        private X509Certificate2 serverCertificate;
+        private readonly IMessengerStore messengerStore;
         public MessengerResolver(IMessengerSender messengerSender, IMessengerStore messengerStore)
         {
             this.messengerSender = messengerSender;
-
-            string path = Path.GetFullPath(messengerStore.SSL.File);
-            if (File.Exists(path))
-            {
-                serverCertificate = new X509Certificate2(path, messengerStore.SSL.Password, X509KeyStorageFlags.Exportable);
-            }
-            else
-            {
-                LoggerHelper.Instance.Error($"file {path} not found");
-                Environment.Exit(0);
-            }
+            this.messengerStore = messengerStore;
         }
 
 
@@ -85,7 +74,7 @@ namespace linker.messenger
             {
                 NetworkStream networkStream = new NetworkStream(socket, false);
                 SslStream sslStream = new SslStream(networkStream, true);
-                await sslStream.AuthenticateAsServerAsync(serverCertificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false).ConfigureAwait(false);
+                await sslStream.AuthenticateAsServerAsync(messengerStore.Certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false).ConfigureAwait(false);
                 IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
 
                 connection.BeginReceive(this, null, true);
@@ -177,6 +166,8 @@ namespace linker.messenger
         {
             Type voidType = typeof(void);
             Type midType = typeof(MessengerIdAttribute);
+
+            LoggerHelper.Instance.Info($"add messenger {string.Join(",",list.Select(c=>c.GetType().Name))}");
 
             foreach (IMessenger messenger in list.Distinct())
             {

@@ -1,5 +1,6 @@
 ﻿using linker.libs.api;
 using linker.libs.extends;
+using linker.messenger.api;
 
 namespace linker.messenger.action
 {
@@ -13,12 +14,13 @@ namespace linker.messenger.action
         }
 
 
+        [Access(AccessValue.Action)]
         public bool SetArgs(ApiControllerParamsInfo param)
         {
             actionStore.SetActionArg(param.Content);
             return true;
         }
-
+        [Access(AccessValue.Action)]
         public bool SetServerArgs(ApiControllerParamsInfo param)
         {
             actionStore.SetActionArgs(param.Content.DeJson<Dictionary<string, string>>());

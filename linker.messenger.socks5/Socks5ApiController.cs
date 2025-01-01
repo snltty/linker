@@ -4,10 +4,11 @@ using System.Collections.Concurrent;
 using linker.tunnel.connection;
 using linker.messenger.signin;
 using linker.libs;
+using linker.messenger.api;
 
 namespace linker.messenger.socks5
 {
-    public sealed class Socks5ClientApiController : IApiController
+    public sealed class Socks5ApiController : IApiController
     {
         private readonly IMessengerSender messengerSender;
         private readonly Socks5Transfer socks5Transfer;
@@ -16,7 +17,8 @@ namespace linker.messenger.socks5
         private readonly ISignInClientStore signInClientStore;
         private readonly Socks5Decenter socks5Decenter;
         private readonly ISerializer serializer;
-        public Socks5ClientApiController(IMessengerSender messengerSender,  SignInClientState signInClientState, TunnelProxy tunnelProxy, Socks5Transfer socks5Transfer, ISignInClientStore signInClientStore, Socks5Decenter socks5Decenter, ISerializer serializer)
+        private readonly IAccessStore accessStore;
+        public Socks5ApiController(IMessengerSender messengerSender,  SignInClientState signInClientState, TunnelProxy tunnelProxy, Socks5Transfer socks5Transfer, ISignInClientStore signInClientStore, Socks5Decenter socks5Decenter, ISerializer serializer, IAccessStore accessStore)
         {
             this.messengerSender = messengerSender;
             this.socks5Transfer = socks5Transfer;
@@ -25,6 +27,7 @@ namespace linker.messenger.socks5
             this.signInClientStore = signInClientStore;
             this.socks5Decenter = socks5Decenter;
             this.serializer = serializer;
+            this.accessStore = accessStore;
         }
 
         public ConnectionListInfo Connections(ApiControllerParamsInfo param)
@@ -41,6 +44,7 @@ namespace linker.messenger.socks5
             return new ConnectionListInfo { HashCode = version };
         }
 
+        [Access(AccessValue.TunnelRemove)]
         public void RemoveConnection(ApiControllerParamsInfo param)
         {
             tunnelProxy.RemoveConnection(param.Content);
@@ -83,10 +87,12 @@ namespace linker.messenger.socks5
             //运行自己的
             if (param.Content == signInClientStore.Id)
             {
+                if (accessStore.HasAccess(AccessValue.Socks5StatusSelf) == false) return false;
                 socks5Transfer.Retstart();
             }
             else
             {
+                if (accessStore.HasAccess(AccessValue.Socks5StatusOther) == false) return false;
                 //运行别人的
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -107,10 +113,12 @@ namespace linker.messenger.socks5
             //停止自己的
             if (param.Content == signInClientStore.Id)
             {
+                if (accessStore.HasAccess(AccessValue.Socks5StatusSelf) == false) return false;
                 socks5Transfer.Stop();
             }
             else
             {
+                if (accessStore.HasAccess(AccessValue.Socks5StatusOther) == false) return false;
                 //停止别人的
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -134,10 +142,12 @@ namespace linker.messenger.socks5
             //更新自己的
             if (info.MachineId == signInClientStore.Id)
             {
+                if (accessStore.HasAccess(AccessValue.Socks5ChangeSelf) == false) return false;
                 socks5Transfer.UpdateConfig(info);
             }
             else
             {
+                if (accessStore.HasAccess(AccessValue.Socks5ChangeOther) == false) return false;
                 //更新别人的
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {

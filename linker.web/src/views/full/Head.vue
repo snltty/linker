@@ -42,7 +42,7 @@ export default {
     setup() {
 
         const globalData = injectGlobalData();
-        const hasConfig = computed(()=>globalData.value.hasAccess('Config')); 
+        const hasConfig = computed(()=>globalData.value.hasAccess('Config') || globalData.value.hasAccess('Sync') || globalData.value.hasAccess('Group')); 
         const hasLogger = computed(()=>globalData.value.hasAccess('LoggerShow')); 
         const hasTransport = computed(()=>globalData.value.hasAccess('Transport')); 
         const hasAction = computed(()=>globalData.value.hasAccess('Action')); 

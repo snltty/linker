@@ -6,12 +6,10 @@ using linker.messenger.relay.server.caching;
 using linker.messenger.relay.server.validator;
 using linker.messenger.sync;
 using Microsoft.Extensions.DependencyInjection;
-using System.Security.Cryptography.X509Certificates;
 namespace linker.messenger.relay
 {
     public static class Entry
     {
-        public static X509Certificate2 certificate;
         public static ServiceCollection AddRelayClient(this ServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<RelayClientTransfer>();
@@ -25,10 +23,8 @@ namespace linker.messenger.relay
 
             return serviceCollection;
         }
-        public static ServiceProvider UseRelayClient(this ServiceProvider serviceProvider, X509Certificate2 certificate)
+        public static ServiceProvider UseRelayClient(this ServiceProvider serviceProvider)
         {
-            Entry.certificate = certificate;
-
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<RelayClientMessenger>() });
 

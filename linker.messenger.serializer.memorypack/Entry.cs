@@ -59,6 +59,39 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new Socks5LanInfoFormatter());
             MemoryPackFormatterProvider.Register(new Socks5InfoFormatter());
 
+
+            MemoryPackFormatterProvider.Register(new SForwardInfoFormatter());
+            MemoryPackFormatterProvider.Register(new SForwardAddInfoFormatter());
+            MemoryPackFormatterProvider.Register(new SForwardAddResultInfoFormatter());
+            MemoryPackFormatterProvider.Register(new SForwardAddForwardInfoFormatter());
+            MemoryPackFormatterProvider.Register(new SForwardRemoveForwardInfoFormatter());
+            MemoryPackFormatterProvider.Register(new SForwardProxyInfoFormatter());
+            MemoryPackFormatterProvider.Register(new SForwardCountInfoFormatter());
+
+
+            MemoryPackFormatterProvider.Register(new ForwardInfoFormatter());
+            MemoryPackFormatterProvider.Register(new ForwardAddForwardInfoFormatter());
+            MemoryPackFormatterProvider.Register(new ForwardRemoveForwardInfoFormatter());
+            MemoryPackFormatterProvider.Register(new ForwardCountInfoFormatter());
+
+            MemoryPackFormatterProvider.Register(new FlowItemInfoFormatter());
+            MemoryPackFormatterProvider.Register(new FlowInfoFormatter());
+            MemoryPackFormatterProvider.Register(new RelayFlowItemInfoFormatter());
+            MemoryPackFormatterProvider.Register(new RelayFlowRequestInfoFormatter());
+            MemoryPackFormatterProvider.Register(new RelayFlowResponseInfoFormatter());
+            MemoryPackFormatterProvider.Register(new SForwardFlowItemInfoFormatter());
+            MemoryPackFormatterProvider.Register(new SForwardFlowRequestInfoFormatter());
+            MemoryPackFormatterProvider.Register(new SForwardFlowResponseInfoFormatter());
+
+            MemoryPackFormatterProvider.Register(new TuntapVeaLanIPAddressFormatter());
+            MemoryPackFormatterProvider.Register(new TuntapVeaLanIPAddressListFormatter());
+            MemoryPackFormatterProvider.Register(new TuntapInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TuntapForwardInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TuntapForwardTestWrapInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TuntapForwardTestInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TuntapLanInfoFormatter());
+            MemoryPackFormatterProvider.Register(new LeaseInfoFormatter());
+
             return serviceCollection;
         }
         public static ServiceProvider UseSerializerMemoryPack(this ServiceProvider serviceProvider)

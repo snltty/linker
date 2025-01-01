@@ -8,6 +8,8 @@ namespace linker.messenger.store.file.updater
 
         public int UpdateIntervalSeconds => fileConfig.Data.Common.UpdateIntervalSeconds;
 
+        public bool CheckUpdate => fileConfig.Data.Common.CheckUpdate;
+
         private readonly FileConfig fileConfig;
         public UpdaterCommonStore(FileConfig fileConfig)
         {

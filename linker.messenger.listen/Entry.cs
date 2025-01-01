@@ -1,6 +1,5 @@
 ﻿using linker.libs;
 using Microsoft.Extensions.DependencyInjection;
-using System.Security.Cryptography.X509Certificates;
 namespace linker.messenger.listen
 {
     public static class Entry
@@ -10,7 +9,7 @@ namespace linker.messenger.listen
             serviceCollection.AddSingleton<TcpServer>();
             return serviceCollection;
         }
-        public static ServiceProvider UseListen(this ServiceProvider serviceProvider, X509Certificate2 certificate)
+        public static ServiceProvider UseListen(this ServiceProvider serviceProvider)
         {
             TcpServer tcpServer = serviceProvider.GetService<TcpServer>();
             IListenStore listenStore = serviceProvider.GetService<IListenStore>();

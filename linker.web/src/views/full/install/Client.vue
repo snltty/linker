@@ -10,7 +10,7 @@
                 <el-row>
                     <el-col :span="12">
                         <el-form-item label="机器名" prop="name">
-                            <el-input v-model="state.form.name" maxlength="12" show-word-limit />
+                            <el-input v-model="state.form.name" maxlength="32" show-word-limit />
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">

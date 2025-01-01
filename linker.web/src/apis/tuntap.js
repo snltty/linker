@@ -2,41 +2,41 @@ import { sendWebsocketMsg } from './request'
 
 
 export const getTuntapConnections = (hashcode = '0') => {
-    return sendWebsocketMsg('tuntapclient/connections', hashcode);
+    return sendWebsocketMsg('tuntap/connections', hashcode);
 }
 export const removeTuntapConnection = (id) => {
-    return sendWebsocketMsg('tuntapclient/removeconnection', id);
+    return sendWebsocketMsg('tuntap/removeconnection', id);
 }
 
 export const getTuntapInfo = (hashcode = '0') => {
-    return sendWebsocketMsg('tuntapclient/get', hashcode);
+    return sendWebsocketMsg('tuntap/get', hashcode);
 }
 export const runTuntap = (name) => {
-    return sendWebsocketMsg('tuntapclient/run', name);
+    return sendWebsocketMsg('tuntap/run', name);
 }
 export const stopTuntap = (name) => {
-    return sendWebsocketMsg('tuntapclient/stop', name);
+    return sendWebsocketMsg('tuntap/stop', name);
 }
 export const updateTuntap = (name) => {
-    return sendWebsocketMsg('tuntapclient/update', name);
+    return sendWebsocketMsg('tuntap/update', name);
 }
 export const refreshTuntap = () => {
-    return sendWebsocketMsg('tuntapclient/refresh');
+    return sendWebsocketMsg('tuntap/refresh');
 }
 export const subscribePing = () => {
-    return sendWebsocketMsg('tuntapclient/SubscribePing');
+    return sendWebsocketMsg('tuntap/SubscribePing');
 }
 export const subscribeForwardTest = (machineid) => {
-    return sendWebsocketMsg('tuntapclient/SubscribeForwardTest', machineid);
+    return sendWebsocketMsg('tuntap/SubscribeForwardTest', machineid);
 }
 
 
 export const calcNetwork = (data) => {
-    return sendWebsocketMsg('tuntapclient/CalcNetwork', data);
+    return sendWebsocketMsg('tuntap/CalcNetwork', data);
 }
 export const getNetwork = () => {
-    return sendWebsocketMsg('tuntapclient/GetNetwork');
+    return sendWebsocketMsg('tuntap/GetNetwork');
 }
 export const addNetwork = (data) => {
-    return sendWebsocketMsg('tuntapclient/AddNetwork', data);
+    return sendWebsocketMsg('tuntap/AddNetwork', data);
 }

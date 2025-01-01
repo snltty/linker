@@ -18,7 +18,7 @@
                                         <el-checkbox :disabled="onlyNode" v-model="state.single" label="单设备" />
                                     </div>
                                     <div style="margin-left: 2rem;">
-                                        <span>设备名 : </span><el-input :disabled="!state.single" v-model="state.name" maxlength="12" show-word-limit style="width:15rem"></el-input>
+                                        <span>设备名 : </span><el-input :disabled="!state.single" v-model="state.name" maxlength="32" show-word-limit style="width:15rem"></el-input>
                                     </div>
                                     <div>
                                         <span>管理密码 : </span><el-input type="password" show-password :disabled="onlyNode" v-model="state.apipassword" maxlength="36" show-word-limit style="width:15rem"></el-input>

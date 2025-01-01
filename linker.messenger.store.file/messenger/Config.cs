@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace linker.messenger.store.file
 {
-    public sealed partial class ConfigServerInfo
+    public sealed partial class ConfigCommonInfo
     {
         public ServerCertificateInfo SSL { get; set; } = new ServerCertificateInfo();
     }

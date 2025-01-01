@@ -1,5 +1,6 @@
 ﻿using linker.libs.api;
 using linker.libs.extends;
+using linker.messenger.api;
 using linker.messenger.relay.client;
 using linker.messenger.relay.client.transport;
 using linker.messenger.relay.server;
@@ -27,6 +28,7 @@ namespace linker.messenger.relay
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
+        [Access(AccessValue.Config)]
         public bool SetServers(ApiControllerParamsInfo param)
         {
             RelayServerInfo info = param.Content.DeJson<RelayServerInfo>();

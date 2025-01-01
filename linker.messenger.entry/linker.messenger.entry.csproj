@@ -30,4 +30,28 @@
 		<DebugSymbols>false</DebugSymbols>
 		<Optimize>True</Optimize>
 	</PropertyGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\linker.messenger.access\linker.messenger.access.csproj" />
+	  <ProjectReference Include="..\linker.messenger.action\linker.messenger.action.csproj" />
+	  <ProjectReference Include="..\linker.messenger.api\linker.messenger.api.csproj" />
+	  <ProjectReference Include="..\linker.messenger.channel\linker.messenger.channel.csproj" />
+	  <ProjectReference Include="..\linker.messenger.decenter\linker.messenger.decenter.csproj" />
+	  <ProjectReference Include="..\linker.messenger.exroute\linker.messenger.exroute.csproj" />
+	  <ProjectReference Include="..\linker.messenger.flow\linker.messenger.flow.csproj" />
+	  <ProjectReference Include="..\linker.messenger.forward\linker.messenger.forward.csproj" />
+	  <ProjectReference Include="..\linker.messenger.listen\linker.messenger.listen.csproj" />
+	  <ProjectReference Include="..\linker.messenger.logger\linker.messenger.logger.csproj" />
+	  <ProjectReference Include="..\linker.messenger.pcp\linker.messenger.pcp.csproj" />
+	  <ProjectReference Include="..\linker.messenger.relay\linker.messenger.relay.csproj" />
+	  <ProjectReference Include="..\linker.messenger.serializer.memorypack\linker.messenger.serializer.memorypack.csproj" />
+	  <ProjectReference Include="..\linker.messenger.sforward\linker.messenger.sforward.csproj" />
+	  <ProjectReference Include="..\linker.messenger.signin\linker.messenger.signin.csproj" />
+	  <ProjectReference Include="..\linker.messenger.socks5\linker.messenger.socks5.csproj" />
+	  <ProjectReference Include="..\linker.messenger.store.file\linker.messenger.store.file.csproj" />
+	  <ProjectReference Include="..\linker.messenger.sync\linker.messenger.sync.csproj" />
+	  <ProjectReference Include="..\linker.messenger.tunnel\linker.messenger.tunnel.csproj" />
+	  <ProjectReference Include="..\linker.messenger.tuntap\linker.messenger.tuntap.csproj" />
+	  <ProjectReference Include="..\linker.messenger.updater\linker.messenger.updater.csproj" />
+	  <ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
+	</ItemGroup>
 </Project>

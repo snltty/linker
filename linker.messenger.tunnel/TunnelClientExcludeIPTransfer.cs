@@ -17,7 +17,7 @@ namespace linker.messenger.tunnel
         /// 加载排除IP的实现类
         /// </summary>
         /// <param name="list"></param>
-        public void LoadTunnelExcludeIPs(List<ITunnelClientExcludeIP> list)
+        public void AddTunnelExcludeIPs(List<ITunnelClientExcludeIP> list)
         {
             excludeIPs = excludeIPs.Concat(list).ToList();
         }
