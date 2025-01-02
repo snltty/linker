@@ -12,5 +12,15 @@ namespace linker.messenger.store.file.relay
             this.config = config;
         }
 
+        public void SetInfo(RelayServerMasterInfo info)
+        {
+            config.Data.Server.Relay.Distributed.Master = info;
+        }
+
+        public bool Confirm()
+        {
+            config.Data.Update();
+            return true;
+        }
     }
 }

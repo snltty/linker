@@ -16,10 +16,15 @@ namespace linker.messenger.store.file.signIn
             liteCollection = dBfactory.GetCollection<SignCacheInfo>("signs");
             this.fileConfig = fileConfig;
         }
+        public void SetSecretKey(string secretKey)
+        {
+            fileConfig.Data.Server.SignIn.SecretKey = secretKey;
+        }
 
         public void Confirm()
         {
             dBfactory.Confirm();
+            fileConfig.Data.Update();
         }
 
         public bool Delete(string id)
@@ -51,5 +56,7 @@ namespace linker.messenger.store.file.signIn
         {
             return liteCollection.Update(value);
         }
+
+      
     }
 }

@@ -12,5 +12,16 @@ namespace linker.messenger.store.file.updater
         {
             this.fileConfig = fileConfig;
         }
+
+        public void SetSecretKey(string key)
+        {
+            fileConfig.Data.Server.Updater.SecretKey = key;
+        }
+
+        public bool Confirm()
+        {
+            fileConfig.Data.Update();
+            return true;
+        }
     }
 }

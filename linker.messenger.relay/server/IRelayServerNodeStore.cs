@@ -19,6 +19,12 @@ namespace linker.messenger.relay.server
         public RelayServerNodeInfo Node { get; }
 
         /// <summary>
+        /// 设置
+        /// </summary>
+        /// <param name="node"></param>
+        public void SetInfo(RelayServerNodeInfo node);
+
+        /// <summary>
         /// 设置月份
         /// </summary>
         /// <param name="month"></param>

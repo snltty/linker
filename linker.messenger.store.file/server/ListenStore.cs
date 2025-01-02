@@ -11,5 +11,17 @@ namespace linker.messenger.store.file.server
         {
             this.config = config;
         }
+
+        public bool SetPort(int port)
+        {
+            config.Data.Server.ServicePort = port;
+            return true;
+        }
+
+        public bool Confirm()
+        {
+            config.Data.Update();
+            return true;
+        }
     }
 }

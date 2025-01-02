@@ -83,12 +83,38 @@ namespace linker.messenger.socks5
     }
     public interface ISocks5Store
     {
+        /// <summary>
+        /// 局域网IP
+        /// </summary>
         public List<Socks5LanInfo> Lans { get; }
+        /// <summary>
+        /// 监听端口
+        /// </summary>
         public int Port { get; }
+        /// <summary>
+        /// 是否启动
+        /// </summary>
         public bool Running { get;}
 
+        /// <summary>
+        /// 设置局域网ip
+        /// </summary>
+        /// <param name="lans"></param>
         public void SetLans(List<Socks5LanInfo> lans);
+        /// <summary>
+        /// 设置监听端口
+        /// </summary>
+        /// <param name="port"></param>
         public void SetPort(int port);
+        /// <summary>
+        /// 设置启动状态
+        /// </summary>
+        /// <param name="running"></param>
         public void SetRunning(bool running);
+        /// <summary>
+        /// 提交保存
+        /// </summary>
+        /// <returns></returns>
+        public bool Confirm();
     }
 }

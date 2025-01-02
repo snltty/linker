@@ -214,11 +214,7 @@ namespace linker.messenger.store.file
     {
         public ConfigCommonInfo() { }
 
-#if DEBUG
-        public bool Install { get; set; } = false;
-#else
-        public bool Install { get; set; } = false;
-#endif
+
         public ConfigCommonInfo Load(string text)
         {
             return text.DeJson<ConfigCommonInfo>();

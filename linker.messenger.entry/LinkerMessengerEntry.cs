@@ -27,6 +27,7 @@ namespace linker.messenger.entry
         private static ServiceProvider serviceProvider;
         private static OperatingManager inited = new OperatingManager();
         private static OperatingManager builded = new OperatingManager();
+        private static OperatingManager setuped = new OperatingManager();
 
         /// <summary>
         /// 开始初始化
@@ -85,7 +86,6 @@ namespace linker.messenger.entry
                 //序列化 MemoryPack
                 .AddSerializerMemoryPack();
         }
-
         /// <summary>
         /// 注入
         /// </summary>
@@ -105,7 +105,7 @@ namespace linker.messenger.entry
         }
 
         /// <summary>
-        /// 运行起来
+        /// 构建
         /// </summary>
         /// <returns></returns>
         public static void Build()
@@ -114,8 +114,27 @@ namespace linker.messenger.entry
 
             serviceProvider = serviceCollection.BuildServiceProvider();
             serviceProvider.UseMessenger().UseStoreFile().UseSerializerMemoryPack();
+        }
+        /// <summary>
+        /// 获取服务
+        /// </summary>
+        /// <typeparam name="TService"></typeparam>
+        /// <returns></returns>
+        public static TService GetService<TService>() where TService : class
+        {
+            return serviceProvider.GetService<TService>();
+        }
+
+
+        /// <summary>
+        /// 开始运行
+        /// </summary>
+        public static void Setup()
+        {
+            if (setuped.StartOperation() == false) return;
 
             ICommonStore commonStore = serviceProvider.GetService<ICommonStore>();
+
             if ((commonStore.Modes & CommonModes.Server) == CommonModes.Server)
             {
                 serviceProvider.UseAccessServer().UseActionServer().UseDecenterServer().UseForwardServer().UsePcpServer().UseRelayServer().UseSForwardServer().UseSignInServer().UseSocks5Server().UseSyncServer().UseTunnelServer().UseTuntapServer().UseUpdaterServer().UseFlowServer();
@@ -131,15 +150,7 @@ namespace linker.messenger.entry
             }
         }
 
-        /// <summary>
-        /// 获取服务
-        /// </summary>
-        /// <typeparam name="TService"></typeparam>
-        /// <returns></returns>
-        public static TService GetService<TService>() where TService : class
-        {
-            return serviceProvider.GetService<TService>();
-        }
+
 
     }
 }

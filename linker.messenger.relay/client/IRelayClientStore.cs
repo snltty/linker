@@ -17,9 +17,27 @@ namespace linker.messenger.relay.client
         /// </summary>
         public RelayServerInfo Server { get; }
 
-
+        /// <summary>
+        /// 设置默认节点id
+        /// </summary>
+        /// <param name="defaultNodeId"></param>
         public void SetDefaultNodeId(string defaultNodeId);
+        /// <summary>
+        /// 设置中继服务器
+        /// </summary>
+        /// <param name="server"></param>
         public void SetServer(RelayServerInfo server);
+
+        /// <summary>
+        /// 设置中继密钥
+        /// </summary>
+        /// <param name="secretKey"></param>
         public void SetServerSecretKey(string secretKey);
+
+        /// <summary>
+        /// 提交
+        /// </summary>
+        /// <returns></returns>
+        public bool Confirm();
     }
 }

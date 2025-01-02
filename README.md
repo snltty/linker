@@ -51,7 +51,7 @@
 - [x] 网络配置，主客户端设置网络，所有客户端自动分配IP
 - [x] 分布式，多中继服务器节点，承载海量设备
 - [x] socks5代理，端口转发需要指定端口，而socks5代理可以代理所有端口
-- [x] 集成linker，使用`linker.messenger`信标，`linker.messenger.signin`登录，`linker.messenger.tunnel`打洞，`linker.messenger.relay`中继，轻松在你的项目中集成打洞和中继，`linker.messenger.example`是一个完整的登录打洞中继demo
+- [x] 集成linker，使用`linker.messenger.entry`入口库，轻松集成到你的项目中
 
 
 ## 大概长这个样子

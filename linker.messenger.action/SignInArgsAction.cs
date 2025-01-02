@@ -104,12 +104,13 @@ namespace linker.messenger.action
     public sealed class SignInArgsAction : JsonArgReplace, ISignInArgs
     {
         private readonly ActionTransfer actionTransfer;
-        private readonly IActionStore actionStore;
-
-        public SignInArgsAction(ActionTransfer actionTransfer, IActionStore actionStore)
+        private readonly IActionClientStore actionStore;
+        private readonly IActionServerStore actionServerStore;
+        public SignInArgsAction(ActionTransfer actionTransfer, IActionClientStore actionStore, IActionServerStore actionServerStore)
         {
             this.actionTransfer = actionTransfer;
             this.actionStore = actionStore;
+            this.actionServerStore = actionServerStore;
         }
 
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
@@ -121,9 +122,9 @@ namespace linker.messenger.action
 
         public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
         {
-            if (string.IsNullOrWhiteSpace(actionStore.SignInActionUrl) == false)
+            if (string.IsNullOrWhiteSpace(actionServerStore.SignInActionUrl) == false)
             {
-                if (actionStore.TryGetActionArg(signInfo.Args, out string str, out string machineKey) == false)
+                if (actionServerStore.TryGetActionArg(signInfo.Args, out string str, out string machineKey) == false)
                 {
                     return $"singin action URL exists, but [{signInfo.MachineName}] action value is not configured";
                 }
@@ -139,7 +140,7 @@ namespace linker.messenger.action
                         IPAddress = signInfo.Connection.Address.Address
                     }
                 };
-                return await actionTransfer.ExcuteActions(Replace(replace, str), actionStore.SignInActionUrl);
+                return await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.SignInActionUrl);
             }
 
             return string.Empty;
@@ -149,22 +150,22 @@ namespace linker.messenger.action
     public sealed class RelayValidatorAction : JsonArgReplace, IRelayServerValidator
     {
         private readonly ActionTransfer actionTransfer;
-        private readonly IActionStore actionStore;
-        public RelayValidatorAction(ActionTransfer actionTransfer, IActionStore actionStore)
+        private readonly IActionServerStore actionServerStore;
+        public RelayValidatorAction(ActionTransfer actionTransfer,  IActionServerStore actionServerStore)
         {
             this.actionTransfer = actionTransfer;
-            this.actionStore = actionStore;
+            this.actionServerStore = actionServerStore;
         }
 
         public async Task<string> Validate(linker.messenger.relay.client.transport.RelayInfo relayInfo, SignCacheInfo fromMachine, SignCacheInfo toMachine)
         {
-            if (string.IsNullOrWhiteSpace(actionStore.RelayActionUrl) == false)
+            if (string.IsNullOrWhiteSpace(actionServerStore.RelayActionUrl) == false)
             {
-                if (actionStore.TryGetActionArg(fromMachine.Args, out string str, out string machineKey) == false)
+                if (actionServerStore.TryGetActionArg(fromMachine.Args, out string str, out string machineKey) == false)
                 {
                     return $"relay action URL exists, but [{fromMachine.MachineName}] action value is not configured";
                 }
-                if (toMachine != null && actionStore.TryGetActionArg(toMachine.Args, out string str1, out string machineKey1) == false)
+                if (toMachine != null && actionServerStore.TryGetActionArg(toMachine.Args, out string str1, out string machineKey1) == false)
                 {
                     return $"relay action URL exists, but [{toMachine.MachineName}]e action value is not configured";
                 }
@@ -189,7 +190,7 @@ namespace linker.messenger.action
                         IPAddress = fromMachine.Connection.Address.Address,
                     }
                 };
-                return await actionTransfer.ExcuteActions(Replace(replace, str), actionStore.RelayActionUrl);
+                return await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.RelayActionUrl);
             }
             return string.Empty;
         }
@@ -198,18 +199,18 @@ namespace linker.messenger.action
     public sealed class SForwardValidatorAction : JsonArgReplace, ISForwardValidator
     {
         private readonly ActionTransfer actionTransfer;
-        private readonly IActionStore actionStore;
-        public SForwardValidatorAction(ActionTransfer actionTransfer, IActionStore actionStore)
+        private readonly IActionServerStore actionServerStore;
+        public SForwardValidatorAction(ActionTransfer actionTransfer, IActionServerStore actionServerStore)
         {
             this.actionTransfer = actionTransfer;
-            this.actionStore = actionStore;
+            this.actionServerStore = actionServerStore;
         }
 
         public async Task<string> Validate(SignCacheInfo cache, SForwardAddInfo sForwardAddInfo)
         {
-            if (string.IsNullOrWhiteSpace(actionStore.SForwardActionUrl) == false)
+            if (string.IsNullOrWhiteSpace(actionServerStore.SForwardActionUrl) == false)
             {
-                if (actionStore.TryGetActionArg(cache.Args, out string str, out string machineKey) == false)
+                if (actionServerStore.TryGetActionArg(cache.Args, out string str, out string machineKey) == false)
                 {
                     return $"sforward action URL exists, but [{cache.MachineName}] action value is not configured";
                 }
@@ -230,7 +231,7 @@ namespace linker.messenger.action
                         IPAddress = cache.Connection.Address.Address
                     }
                 };
-                return await actionTransfer.ExcuteActions(Replace(replace, str), actionStore.SForwardActionUrl);
+                return await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.SForwardActionUrl);
             }
             return string.Empty;
         }

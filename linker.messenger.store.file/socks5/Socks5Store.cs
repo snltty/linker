@@ -33,5 +33,11 @@ namespace linker.messenger.store.file.socks5
             runningConfig.Data.Socks5.Running = running;
             runningConfig.Data.Update();
         }
+
+        public bool Confirm()
+        {
+            runningConfig.Data.Update();
+            return true;
+        }
     }
 }

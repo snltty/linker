@@ -3,7 +3,7 @@
         <el-card shadow="never">
             <template #header>设置定义验证的静态Json参数</template>
             <div>
-                <el-input v-model="state.list" :rows="10" type="textarea" resize="none" @change="handleSave"/>
+                <el-input v-model="state.list" :rows="10" type="textarea" resize="none" @change="handleSave" />
             </div>
             <template #footer>
                 <div class="t-c">
@@ -17,34 +17,34 @@
 import { setArgs } from '@/apis/action';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import {  reactive } from 'vue'
+import { reactive } from 'vue'
 export default {
     setup(props) {
         const globalData = injectGlobalData();
         const state = reactive({
-            list:globalData.value.config.Client.Action.Args[globalData.value.config.Client.Server.Host] || ''
+            list: globalData.value.config.Client.Action.Args[globalData.value.config.Client.Server.Host] || ''
         });
-        const handleSave = ()=>{
-            try{
-                if(state.list && typeof(JSON.parse(state.list)) != 'object'){
+        const handleSave = () => {
+            try {
+                if (state.list && typeof (JSON.parse(state.list)) != 'object') {
                     ElMessage.error('Json格式错误');
                     return;
                 }
-            }catch(e){
+            } catch (e) {
                 ElMessage.error('Json格式错误');
                 return;
             }
-            const json = {};
+            const json = JSON.parse(JSON.stringify(globalData.value.config.Client.Action.Args));
             json[globalData.value.config.Client.Server.Host] = state.list;
-            setArgs(json).then(()=>{
+            setArgs(json).then(() => {
                 ElMessage.success('已操作');
-            }).catch((err)=>{
+            }).catch((err) => {
                 console.log(err);
                 ElMessage.error('操作失败');
             });;
         }
 
-        return {state,handleSave}
+        return { state, handleSave }
     }
 }
 </script>

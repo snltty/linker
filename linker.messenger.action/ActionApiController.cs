@@ -6,9 +6,9 @@ namespace linker.messenger.action
 {
     public sealed class ActionApiController : IApiController
     {
-        private readonly IActionStore actionStore;
+        private readonly IActionClientStore actionStore;
 
-        public ActionApiController(IActionStore actionStore)
+        public ActionApiController(IActionClientStore actionStore)
         {
             this.actionStore = actionStore;
         }
@@ -18,13 +18,13 @@ namespace linker.messenger.action
         public bool SetArgs(ApiControllerParamsInfo param)
         {
             actionStore.SetActionArg(param.Content);
-            return true;
+            return actionStore.Confirm();
         }
         [Access(AccessValue.Action)]
         public bool SetServerArgs(ApiControllerParamsInfo param)
         {
             actionStore.SetActionArgs(param.Content.DeJson<Dictionary<string, string>>());
-            return true;
+            return actionStore.Confirm();
         }
     }
 

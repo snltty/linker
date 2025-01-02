@@ -11,6 +11,18 @@ namespace linker.messenger.relay.server
         /// 主服务器信息
         /// </summary>
         public RelayServerMasterInfo Master { get; }
+
+        /// <summary>
+        /// 设置
+        /// </summary>
+        /// <param name="info"></param>
+        public void SetInfo(RelayServerMasterInfo info);
+
+        /// <summary>
+        /// 提交
+        /// </summary>
+        /// <returns></returns>
+        public bool Confirm();
     }
 
     public sealed class RelayServerMasterInfo

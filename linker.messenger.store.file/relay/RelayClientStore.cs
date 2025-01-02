@@ -43,5 +43,11 @@ namespace linker.messenger.store.file.relay
             }
             config.Data.Update();
         }
+
+        public bool Confirm()
+        {
+            config.Data.Update();
+            return true;
+        }
     }
 }

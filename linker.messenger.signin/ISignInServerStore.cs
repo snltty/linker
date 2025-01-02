@@ -7,6 +7,14 @@ namespace linker.messenger.signin
     /// </summary>
     public interface ISignInServerStore : IStore<SignCacheInfo>
     {
+        /// <summary>
+        /// 信标密钥
+        /// </summary>
         public string SecretKey { get; }
+        /// <summary>
+        /// 设置信标密钥
+        /// </summary>
+        /// <param name="secretKey"></param>
+        public void SetSecretKey(string secretKey);
     }
 }

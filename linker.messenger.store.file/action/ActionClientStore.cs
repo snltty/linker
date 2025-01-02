@@ -1,16 +1,12 @@
 ﻿using linker.messenger.action;
 namespace linker.messenger.store.file.action
 {
-    public sealed class ActionStore : IActionStore
+    public sealed class ActionClientStore : IActionClientStore
     {
-        public const string ACTION_ARG_KEY = "ACTION_ARGS";
-
-        public string SignInActionUrl => config.Data.Action.SignInActionUrl;
-        public string RelayActionUrl => config.Data.Action.SignInActionUrl;
-        public string SForwardActionUrl => config.Data.Action.SignInActionUrl;
+        public const string ACTION_ARG_KEY = "SNLTTY_ACTION_ARGS";
 
         private readonly FileConfig config;
-        public ActionStore(FileConfig config)
+        public ActionClientStore(FileConfig config)
         {
             this.config = config;
         }
@@ -22,7 +18,7 @@ namespace linker.messenger.store.file.action
         public void SetActionArgs(Dictionary<string, string> actions)
         {
             config.Data.Client.Action.Args = actions;
-            config.Data.Update();
+           
         }
         public bool TryAddActionArg(string host, Dictionary<string, string> args)
         {
@@ -36,13 +32,10 @@ namespace linker.messenger.store.file.action
             }
             return true;
         }
-
-        public bool TryGetActionArg(Dictionary<string, string> args, out string str, out string machineKey)
+        public bool Confirm()
         {
-            args.TryGetValue("machineKey", out machineKey);
-            machineKey = machineKey ?? string.Empty;
-
-            return args.TryGetValue(ACTION_ARG_KEY, out str) && string.IsNullOrWhiteSpace(str) == false;
+            config.Data.Update();
+            return true;
         }
     }
 

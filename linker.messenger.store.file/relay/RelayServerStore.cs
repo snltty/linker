@@ -10,5 +10,16 @@ namespace linker.messenger.store.file.relay
         {
             this.config = config;
         }
+
+        public void SetSecretKey(string secretKey)
+        {
+            config.Data.Server.Relay.SecretKey = secretKey;
+        }
+
+        public bool Confirm()
+        {
+            config.Data.Update();
+            return true;
+        }
     }
 }

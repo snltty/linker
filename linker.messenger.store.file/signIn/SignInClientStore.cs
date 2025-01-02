@@ -23,6 +23,7 @@ namespace linker.messenger.store.file.signIn
         }
         public void SetGroups(SignInClientGroupInfo[] groups)
         {
+            if (groups == null || groups.Length == 0) return;
             config.Data.Client.Groups = groups;
             config.Data.Update();
         }
@@ -47,6 +48,12 @@ namespace linker.messenger.store.file.signIn
         {
             config.Data.Client.Id = id;
             config.Data.Update();
+        }
+
+        public bool Confirm()
+        {
+            config.Data.Update();
+            return true;
         }
     }
 }

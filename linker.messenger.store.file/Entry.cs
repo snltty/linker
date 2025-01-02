@@ -69,7 +69,8 @@ namespace linker.messenger.store.file
             serviceCollection.AddSingleton<SignInSyncGroupSecretKey>();
 
 
-            serviceCollection.AddSingleton<IActionStore, ActionStore>();
+            serviceCollection.AddSingleton<IActionClientStore, ActionClientStore>();
+            serviceCollection.AddSingleton<IActionServerStore, ActionServerStore>();
 
             serviceCollection.AddSingleton<IListenStore, ListenStore>();
 

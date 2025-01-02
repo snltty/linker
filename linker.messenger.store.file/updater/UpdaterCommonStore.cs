@@ -21,5 +21,20 @@ namespace linker.messenger.store.file.updater
             fileConfig.Data.Common.UpdateIntervalSeconds = sec;
             fileConfig.Data.Update();
         }
+
+        public void SetUrl(string url)
+        {
+            fileConfig.Data.Common.UpdateUrl = url;
+        }
+
+        public void SetCheck(bool checke)
+        {
+            fileConfig.Data.Common.CheckUpdate = checke;
+        }
+
+        public void Confirm()
+        {
+            fileConfig.Data.Update();
+        }
     }
 }
