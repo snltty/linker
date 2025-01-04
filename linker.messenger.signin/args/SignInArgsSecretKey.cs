@@ -5,6 +5,8 @@
     /// </summary>
     public sealed class SignInArgsSecretKeyClient : ISignInArgs
     {
+        public string Name => "secretKey";
+
         private readonly ISignInClientStore signInClientStore;
         public SignInArgsSecretKeyClient(ISignInClientStore signInClientStore)
         {
@@ -29,6 +31,7 @@
     /// </summary>
     public sealed class SignInArgsSecretKeyServer : ISignInArgs
     {
+        public string Name => "secretKey";
         private readonly ISignInServerStore signInServerStore;
         public SignInArgsSecretKeyServer(ISignInServerStore signInServerStore)
         {

@@ -2,6 +2,7 @@
 using linker.libs.extends;
 using linker.messenger.forward.proxy;
 using linker.messenger.signin;
+using System.Net.Sockets;
 
 namespace linker.messenger.forward
 {
@@ -200,5 +201,43 @@ namespace linker.messenger.forward
             forwardClientStore.Confirm();
             return true;
         }
+
+        private readonly OperatingManager testing = new OperatingManager();
+        public void SubscribeTest()
+        {
+            if (testing.StartOperation() == false)
+            {
+                return;
+            }
+
+            IEnumerable<Task<bool>> tasks = Get().Select(Connect);
+            Task.WhenAll(tasks).ContinueWith((result) =>
+            {
+                testing.StopOperation();
+                OnChanged();
+            });
+
+            async Task<bool> Connect(ForwardInfo info)
+            {
+                Socket socket = new Socket(info.TargetEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                try
+                {
+                    await socket.ConnectAsync(info.TargetEP).WaitAsync(TimeSpan.FromMilliseconds(500));
+                    info.TargetMsg = string.Empty;
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    info.TargetMsg = ex.Message;
+                }
+                finally
+                {
+                    socket.SafeClose();
+                }
+                return false;
+            }
+
+        }
+
     }
 }

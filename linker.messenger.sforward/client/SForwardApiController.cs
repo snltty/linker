@@ -154,7 +154,7 @@ namespace linker.messenger.sforward.client
         {
             if (param.Content == signInClientStore.Id)
             {
-                forwardTransfer.TestLocal();
+                forwardTransfer.SubscribeTest();
                 return true;
             }
             await messengerSender.SendOnly(new MessageRequestWrap

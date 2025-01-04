@@ -19,7 +19,7 @@ namespace linker.messenger.sforward.client
         private readonly ISerializer serializer;
 
         private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
-        private readonly OperatingManager operatingManager = new OperatingManager();
+
 
         public SForwardClientTransfer(SignInClientState signInClientState, IMessengerSender messengerSender, ISignInClientStore signInClientStore, ISForwardClientStore sForwardClientStore, ISerializer serializer)
         {
@@ -214,49 +214,39 @@ namespace linker.messenger.sforward.client
             return arr.Length == 2 && int.TryParse(arr[0], out min) && int.TryParse(arr[1], out max);
         }
 
-        /// <summary>
-        /// 测试本机服务
-        /// </summary>
-        public void TestLocal()
+        private readonly OperatingManager testing = new OperatingManager();
+        public void SubscribeTest()
         {
-            if (operatingManager.StartOperation() == false) return;
-
-            TimerHelper.Async(async () =>
+            if (testing.StartOperation() == false)
             {
-                try
-                {
-                    var results = sForwardClientStore.Get().Select(c => c.LocalEP).Select(ConnectAsync);
-                    await Task.Delay(200).ConfigureAwait(false);
+                return;
+            }
 
-                    foreach (var item in results.Select(c => c.Result))
-                    {
-                        var forward = sForwardClientStore.Get().FirstOrDefault(c => c.LocalEP.Equals(item.Item1));
-                        if (forward != null)
-                        {
-                            forward.LocalMsg = item.Item2;
-                        }
-                    }
-                    OnChanged();
-                }
-                catch (Exception)
-                {
-                }
-                operatingManager.StopOperation();
+            IEnumerable<Task<bool>> tasks = sForwardClientStore.Get().Select(Connect);
+            Task.WhenAll(tasks).ContinueWith((result) =>
+            {
+                testing.StopOperation();
+                OnChanged();
             });
 
-            async Task<(IPEndPoint, string)> ConnectAsync(IPEndPoint ep)
+            async Task<bool> Connect(SForwardInfo info)
             {
+                Socket socket = new Socket(info.LocalEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 try
                 {
-                    using Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                    await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
-                    socket.SafeClose();
-                    return (ep, string.Empty);
+                    await socket.ConnectAsync(info.LocalEP).WaitAsync(TimeSpan.FromMilliseconds(500));
+                    info.LocalMsg = string.Empty;
+                    return true;
                 }
                 catch (Exception ex)
                 {
-                    return (ep, ex.Message);
+                    info.LocalMsg = ex.Message;
                 }
+                finally
+                {
+                    socket.SafeClose();
+                }
+                return false;
             }
         }
     }

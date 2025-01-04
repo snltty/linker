@@ -103,6 +103,7 @@ namespace linker.messenger.action
 
     public sealed class SignInArgsAction : JsonArgReplace, ISignInArgs
     {
+        public string Name => "action";
         private readonly ActionTransfer actionTransfer;
         private readonly IActionClientStore actionStore;
         private readonly IActionServerStore actionServerStore;

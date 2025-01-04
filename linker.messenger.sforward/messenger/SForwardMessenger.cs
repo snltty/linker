@@ -416,13 +416,13 @@ namespace linker.plugins.sforward.messenger
             sForwardTransfer.Remove(id);
         }
         // <summary>
-        /// 删除
+        /// 测试
         /// </summary>
         /// <param name="connection"></param>
         [MessengerId((ushort)SForwardMessengerIds.TestClient)]
         public void TestClient(IConnection connection)
         {
-            sForwardTransfer.TestLocal();
+            sForwardTransfer.SubscribeTest();
         }
 
 

@@ -5,11 +5,16 @@
     /// </summary>
     public sealed class SignInArgsGroupPasswordClient : ISignInArgs
     {
+        public string Name => "group";
+
         private readonly ISignInClientStore signInClientStore;
         public SignInArgsGroupPasswordClient(ISignInClientStore signInClientStore)
         {
             this.signInClientStore = signInClientStore;
         }
+
+      
+
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             args.TryAdd("signin-gpwd", signInClientStore.Group.Password);
@@ -29,6 +34,7 @@
     /// </summary>
     public sealed class SignInArgsGroupPasswordServer : ISignInArgs
     {
+        public string Name => "group";
         public SignInArgsGroupPasswordServer()
         {
         }

@@ -42,7 +42,7 @@ namespace linker.messenger.tuntap
             tuntapTransfer.OnShutdownSuccess += () => { DeleteForward(); tuntapConfigTransfer.SetRunning(false); };
 
             //配置有更新，去同步一下
-            tuntapConfigTransfer.OnUpdate += tuntapDecenter.Refresh;
+            tuntapConfigTransfer.OnUpdate += () => { _ = CheckDevice(); tuntapDecenter.Refresh(); };
 
             //收到新的信息，添加一下路由
             tuntapDecenter.OnChangeBefore += DelRoute;
@@ -60,22 +60,28 @@ namespace linker.messenger.tuntap
             CheckDeviceTask();
         }
 
+       
         private void CheckDeviceTask()
         {
-            ulong configVersion = 0;
             TimerHelper.SetInterval(async () =>
             {
-                bool restart =
-                (tuntapConfigTransfer.Version.Eq(configVersion, out ulong _version) == false || await tuntapTransfer.CheckAvailable() == false)
-                && tuntapConfigTransfer.Running && tuntapTransfer.Status != TuntapStatus.Running && tuntapTransfer.Status != TuntapStatus.Operating;
-                if (restart)
-                {
-                    configVersion = _version;
-                    await RetstartDevice();
-                }
+                await CheckDevice();
                 return true;
             }, () => 30000);
         }
+        ulong configVersion = 0;
+        private async Task CheckDevice()
+        {
+            bool restart =
+               (tuntapConfigTransfer.Version.Eq(configVersion, out ulong _version) == false || await tuntapTransfer.CheckAvailable() == false)
+               && tuntapConfigTransfer.Running && tuntapTransfer.Status != TuntapStatus.Operating;
+            if (restart)
+            {
+                configVersion = _version;
+                await RetstartDevice();
+            }
+        }
+
         private TuntapInfo GetCurrentInfo()
         {
             return new TuntapInfo
@@ -188,9 +194,8 @@ namespace linker.messenger.tuntap
 
             return infos
                 .Where(c => c.MachineId != signInClientStore.Id)
-                .OrderByDescending(c => c.Status)
                 .OrderBy(c => c.IP, new IPAddressComparer())
-
+                 .OrderByDescending(c => c.Status)
                 .Select(c =>
                 {
                     var lans = c.Lans.Where(c => c.Disabled == false && c.IP.Equals(IPAddress.Any) == false).Where(c =>

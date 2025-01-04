@@ -1,4 +1,4 @@
-import { getForwardCountInfo, refreshForward, testTargetForwardInfo } from "@/apis/forward";
+import { getForwardCountInfo, refreshForward } from "@/apis/forward";
 import { injectGlobalData } from "@/provide";
 import { inject, provide, ref } from "vue";
 

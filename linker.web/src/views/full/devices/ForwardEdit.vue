@@ -126,8 +126,8 @@
     </el-dialog>
 </template>
 <script>
-import {  onMounted,reactive, watch } from 'vue';
-import { getForwardInfo, removeForwardInfo, addForwardInfo ,getForwardIpv4 } from '@/apis/forward'
+import {  onMounted,onUnmounted,reactive, watch } from 'vue';
+import { getForwardInfo, removeForwardInfo, addForwardInfo ,getForwardIpv4,testTargetForwardInfo } from '@/apis/forward'
 import { ElMessage } from 'element-plus';
 import {WarnTriangleFilled,Delete} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
@@ -164,6 +164,14 @@ export default {
                 }, 300);
             }
         });
+
+        const _testTargetForwardInfo = ()=>{
+            testTargetForwardInfo(forward.value.machineId).then((res)=>{
+               state.timer = setTimeout(_testTargetForwardInfo,1000);
+            }).catch(()=>{
+                state.timer = setTimeout(_testTargetForwardInfo,1000);
+            });
+        }
 
         const _getForwardIpv4 = ()=>{
             getForwardIpv4().then((res)=>{
@@ -265,6 +273,10 @@ export default {
         onMounted(()=>{
             _getForwardInfo();
             _getForwardIpv4();
+            _testTargetForwardInfo();
+        });
+        onUnmounted(()=>{
+            clearTimeout(state.timer);
         });
 
         return {

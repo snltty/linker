@@ -60,62 +60,6 @@
 <p><img src="./readme/full.png"></p> 
 </div>
 
-## 收费项目
-
-<div align="center">
-
-<table width="100%">
-    <thead>
-        <tr>
-            <th></th>
-            <th>2设备内</th>
-            <th>2-5设备</th>
-            <th>5-10设备</th>
-            <th>10设备以上</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>使用</td>
-            <td>免费</td>
-            <td>免费</td>
-            <td>免费</td>
-            <td>免费</td>
-        </tr>
-         <tr>
-            <td>开源集成</td>
-            <td>免费</td>
-            <td>免费</td>
-            <td>免费</td>
-            <td>免费</td>
-        </tr>
-        <tr>
-            <td>安装维护/次</td>
-            <td>免费</td>
-            <td>9.9/台</td>
-            <td>9.9/台</td>
-            <td>9.9/台</td>
-        </tr>
-        <tr>
-            <td>安装维护/年</td>
-            <td>19.9/年</td>
-            <td>39.9/年</td>
-            <td>79.9/年</td>
-            <td>9.9/年/台</td>
-        </tr>
-        <tr>
-            <td>商业集成</td>
-            <td colspan="4" align="center">详谈</td>
-        </tr>
-        <tr>
-            <td>商业功能定制</td>
-            <td colspan="4" align="center">详谈</td>
-        </tr>
-    </tbody>
-</table>
-
-</div>
-
 ## 可怜作者
 
 <div align="center">

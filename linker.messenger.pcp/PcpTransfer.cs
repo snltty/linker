@@ -40,6 +40,13 @@ namespace linker.messenger.pcp
                 }
             }
         }
+        /// <summary>
+        /// 连接
+        /// </summary>
+        /// <param name="remoteMachineId">目标id</param>
+        /// <param name="transactionId">事务ID，属于什么事务的，端口转发还是虚拟网卡</param>
+        /// <param name="denyProtocols">不想使用哪些打洞协议</param>
+        /// <returns></returns>
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols)
         {
             await Task.CompletedTask;

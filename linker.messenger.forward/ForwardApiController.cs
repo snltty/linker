@@ -148,6 +148,27 @@ namespace linker.messenger.forward
                 Payload = serializer.Serialize(info)
             });
         }
+
+        /// <summary>
+        /// 检测
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public async Task<bool> Test(ApiControllerParamsInfo param)
+        {
+            if (param.Content == signInClientStore.Id)
+            {
+                forwardTransfer.SubscribeTest();
+                return true;
+            }
+            await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)ForwardMessengerIds.TestClientForward,
+                Payload = serializer.Serialize(param.Content)
+            });
+            return true;
+        }
     }
 
     public sealed class ForwardListInfo

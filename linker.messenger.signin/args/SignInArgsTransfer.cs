@@ -21,6 +21,20 @@
         }
 
         /// <summary>
+        /// 删除实现类
+        /// </summary>
+        /// <param name="names"></param>
+        public void RemoveArgs(List<string> names)
+        {
+            foreach (string name in names)
+            {
+                ISignInArgs item = startups.FirstOrDefault(c => c.Name == name);
+                if (item != null)
+                    startups.Remove(item);
+            }
+        }
+
+        /// <summary>
         /// 客户端调用
         /// </summary>
         /// <param name="host"></param>

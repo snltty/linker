@@ -537,7 +537,6 @@ namespace linker.tunnel
                         connection = await ConnectAsync(remoteMachineId, transactionId, denyProtocols);
                         if (connection != null)
                         {
-
                             break;
                         }
                         await Task.Delay(i * 3000);

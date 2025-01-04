@@ -107,7 +107,6 @@ export default {
             }
         });
         const _testLocalSForwardInfo = ()=>{
-            console.log(sforward.value.machineid);
             testLocalSForwardInfo(sforward.value.machineid).then((res)=>{
                state.timerTestLocal = setTimeout(_testLocalSForwardInfo,1000);
             }).catch(()=>{

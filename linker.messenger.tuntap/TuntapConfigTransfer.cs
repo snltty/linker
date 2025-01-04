@@ -64,7 +64,7 @@ namespace linker.messenger.tuntap
                 await LeaseIP();
                 SetGroupIP();
 
-                if ((ip.Equals(Info.IP) == false || prefixLength != Info.PrefixLength) && Info.Running)
+                if ((ip.Equals(Info.IP) == false || prefixLength != Info.PrefixLength))
                 {
                     Version.Add();
                 }
@@ -77,19 +77,7 @@ namespace linker.messenger.tuntap
         /// </summary>
         public void RefreshIP()
         {
-            TimerHelper.Async(async () =>
-            {
-                IPAddress oldIP = Info.IP;
-                byte prefixLength = Info.PrefixLength;
-
-                await RefreshIPASync();
-
-                if ((oldIP.Equals(Info.IP) == false || prefixLength != Info.PrefixLength) && Info.Running)
-                {
-                    Version.Add();
-                }
-                OnUpdate();
-            });
+            _ = RefreshIPASync();
         }
         /// <summary>
         /// 刷新IP，不会触发OnChanged
@@ -97,9 +85,18 @@ namespace linker.messenger.tuntap
         /// <returns></returns>
         public async Task RefreshIPASync()
         {
+            IPAddress oldIP = Info.IP;
+            byte prefixLength = Info.PrefixLength;
+
             LoadGroupIP();
             await LeaseIP();
             SetGroupIP();
+
+            if ((oldIP.Equals(Info.IP) == false || prefixLength != Info.PrefixLength) && Info.Running)
+            {
+                Version.Add();
+            }
+
             OnUpdate();
         }
         private async Task LeaseIP()

@@ -5,6 +5,7 @@
     /// </summary>
     public interface ISignInArgs
     {
+        public string Name { get; }
         /// <summary>
         /// 添加参数，客户端调用
         /// </summary>

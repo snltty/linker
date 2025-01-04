@@ -1,6 +1,4 @@
 ﻿using linker.libs;
-using linker.messenger.signin;
-using linker.messenger.signin.args;
 
 namespace linker.messenger.signin.args
 {
@@ -9,6 +7,7 @@ namespace linker.messenger.signin.args
     /// </summary>
     public sealed class SignInArgsMachineKeyClient : ISignInArgs
     {
+        public string Name => "machineId";
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             string machineKey = SystemIdHelper.GetSystemId();
@@ -38,6 +37,7 @@ namespace linker.messenger.signin.args
     /// </summary>
     public sealed class SignInArgsMachineKeyServer : ISignInArgs
     {
+        public string Name => "machineId";
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             await Task.CompletedTask;

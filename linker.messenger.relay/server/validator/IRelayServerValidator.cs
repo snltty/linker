@@ -8,6 +8,7 @@ namespace linker.messenger.relay.server.validator
     /// </summary>
     public interface IRelayServerValidator
     {
+         public string Name { get; }
         /// <summary>
         /// 验证
         /// </summary>

@@ -26,5 +26,5 @@ export const refreshForward = () => {
 }
 
 export const testTargetForwardInfo = (machineid) => {
-    return sendWebsocketMsg('forward/TestTarget', machineid);
+    return sendWebsocketMsg('forward/Test', machineid);
 }

@@ -113,7 +113,7 @@ namespace linker.messenger.entry
             if (builded.StartOperation() == false) return;
 
             serviceProvider = serviceCollection.BuildServiceProvider();
-            serviceProvider.UseMessenger().UseStoreFile().UseSerializerMemoryPack();
+
         }
         /// <summary>
         /// 获取服务
@@ -129,28 +129,110 @@ namespace linker.messenger.entry
         /// <summary>
         /// 开始运行
         /// </summary>
-        public static void Setup()
+        /// <param name="modules">排除哪些模块，默认无</param>
+        public static void Setup(ExcludeModule modules = ExcludeModule.None)
         {
             if (setuped.StartOperation() == false) return;
 
             ICommonStore commonStore = serviceProvider.GetService<ICommonStore>();
 
+            serviceProvider.UseMessenger();
+            if ((modules & ExcludeModule.StoreFile) != ExcludeModule.StoreFile)
+                serviceProvider.UseStoreFile();
+            if ((modules & ExcludeModule.SerializerMemoryPack) != ExcludeModule.SerializerMemoryPack)
+                serviceProvider.UseSerializerMemoryPack();
+
             if ((commonStore.Modes & CommonModes.Server) == CommonModes.Server)
             {
-                serviceProvider.UseAccessServer().UseActionServer().UseDecenterServer().UseForwardServer().UsePcpServer().UseRelayServer().UseSForwardServer().UseSignInServer().UseSocks5Server().UseSyncServer().UseTunnelServer().UseTuntapServer().UseUpdaterServer().UseFlowServer();
+                if ((modules & ExcludeModule.Action) != ExcludeModule.Action)
+                    serviceProvider.UseActionServer();
+                if ((modules & ExcludeModule.Forward) != ExcludeModule.Forward)
+                    serviceProvider.UseForwardServer();
+                if ((modules & ExcludeModule.SForward) != ExcludeModule.SForward)
+                    serviceProvider.UseSForwardServer();
+                if ((modules & ExcludeModule.Socks5) != ExcludeModule.Socks5)
+                    serviceProvider.UseSocks5Server();
+                if ((modules & ExcludeModule.Tuntap) != ExcludeModule.Tuntap)
+                    serviceProvider.UseTuntapServer();
+                if ((modules & ExcludeModule.Updater) != ExcludeModule.Updater)
+                    serviceProvider.UseUpdaterServer();
+
+                serviceProvider.UseAccessServer().UseDecenterServer().UsePcpServer().UseRelayServer()
+                 .UseSignInServer().UseSyncServer().UseTunnelServer().UseFlowServer();
 
                 serviceProvider.UseListen();
             }
 
             if ((commonStore.Modes & CommonModes.Client) == CommonModes.Client)
             {
-                serviceProvider.UseLoggerClient().UseApiClient().UseExRoute().UseAccessClient().UseActionClient().UseDecenterClient().UseForwardClient().UsePcpClient().UseRelayClient().UseSForwardClient().UseSocks5Client().UseSyncClient().UseTunnelClient().UseTuntapClient().UseUpdaterClient().UseFlowClient();
+                serviceProvider.UseLoggerClient();
+                if ((modules & ExcludeModule.Api) != ExcludeModule.Api)
+                    serviceProvider.UseApiClient();
+                if ((modules & ExcludeModule.Action) != ExcludeModule.Action)
+                    serviceProvider.UseActionClient();
+                if ((modules & ExcludeModule.Forward) != ExcludeModule.Forward)
+                    serviceProvider.UseForwardClient();
+                if ((modules & ExcludeModule.SForward) != ExcludeModule.SForward)
+                    serviceProvider.UseSForwardClient();
+                if ((modules & ExcludeModule.Socks5) != ExcludeModule.Socks5)
+                    serviceProvider.UseSocks5Client();
+                if ((modules & ExcludeModule.Tuntap) != ExcludeModule.Tuntap)
+                    serviceProvider.UseTuntapClient();
+                if ((modules & ExcludeModule.Updater) != ExcludeModule.Updater)
+                    serviceProvider.UseUpdaterClient();
+                serviceProvider.UseExRoute().UseAccessClient().UseDecenterClient().UsePcpClient().UseRelayClient().UseSyncClient().UseTunnelClient().UseFlowClient();
 
                 serviceProvider.UseSignInClient();
             }
         }
 
+    }
 
-
+    /// <summary>
+    /// 排除那些模块
+    /// </summary>
+    [Flags]
+    public enum ExcludeModule : uint
+    {
+        /// <summary>
+        /// 无
+        /// </summary>
+        None = 0,
+        /// <summary>
+        /// 端口转发
+        /// </summary>
+        Forward = 1,
+        /// <summary>
+        /// 内网穿透
+        /// </summary>
+        SForward = 2,
+        /// <summary>
+        /// socks5
+        /// </summary>
+        Socks5 = 4,
+        /// <summary>
+        /// 虚拟网卡
+        /// </summary>
+        Tuntap = 8,
+        /// <summary>
+        /// 更新检测
+        /// </summary>
+        Updater = 16,
+        /// <summary>
+        /// 文件存储库
+        /// </summary>
+        StoreFile = 32,
+        /// <summary>
+        /// MemoryPack序列化库
+        /// </summary>
+        SerializerMemoryPack = 64,
+        /// <summary>
+        /// 管理接口和网页
+        /// </summary>
+        Api = 128,
+        /// <summary>
+        /// 自定义认证
+        /// </summary>
+        Action = 256,
     }
 }

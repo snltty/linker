@@ -67,7 +67,7 @@ namespace linker.messenger.tuntap
 
         public async Task SubscribeForwardTest(List<TuntapForwardTestInfo> list)
         {
-            await Task.WhenAll(list.Select(async c =>
+            await Task.WhenAll(list.Where(c=>c.ConnectAddr.Equals(IPAddress.Any)==false && c.ConnectPort > 0 && c.ListenPort > 0).Select(async c =>
             {
                 try
                 {

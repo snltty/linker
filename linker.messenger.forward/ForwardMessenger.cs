@@ -86,6 +86,22 @@ namespace linker.messenger.forward
             }
         }
 
+
+        [MessengerId((ushort)ForwardMessengerIds.TestClientForward)]
+        public async Task TestClientForward(IConnection connection)
+        {
+            string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(machineid, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                await sender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cacheTo.Connection,
+                    MessengerId = (ushort)ForwardMessengerIds.TestClientForward
+                });
+            }
+        }
+
     }
 
     public sealed class ForwardClientMessenger : IMessenger
@@ -125,7 +141,14 @@ namespace linker.messenger.forward
             uint id = serializer.Deserialize<uint>(connection.ReceiveRequestWrap.Payload.Span);
             forwardTransfer.Remove(id);
         }
+
+
+        [MessengerId((ushort)ForwardMessengerIds.TestClient)]
+        public void TestClient(IConnection connection)
+        {
+            forwardTransfer.SubscribeTest();
+        }
     }
 
-  
+
 }

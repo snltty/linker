@@ -13,10 +13,9 @@
         <div class="api"><Api :config="config"></Api></div>
         <div class="server"><Server :config="config"></Server></div>
 
-        <el-dialog v-model="state.showPay" title="赞助linker" width="300" top="1vh">
+        <el-dialog v-model="state.showPay" title="赞助linker" width="400">
             <div class="pay">
-                <img src="@/assets/wechat.jpg" alt=""/>
-                <img src="@/assets/alipay.jpg" alt=""/>
+                <img src="@/assets/qr.jpg" alt=""/>
             </div>
         </el-dialog>
     </div>

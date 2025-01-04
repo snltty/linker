@@ -8,7 +8,8 @@ using System.Buffers;
 using linker.messenger.relay.client;
 using linker.messenger.signin;
 using linker.messenger.pcp;
-using System;
+using System.Net;
+using System.Reflection.PortableExecutable;
 
 namespace linker.messenger.tuntap
 {
@@ -113,6 +114,7 @@ namespace linker.messenger.tuntap
                 }, ip);
                 return;
             }
+
             await connection.SendAsync(packet.Packet);
         }
 
@@ -177,8 +179,10 @@ namespace linker.messenger.tuntap
             {
                 string machineId = item.Value[0];
                 ip2MachineDic.AddOrUpdate(item.Key, machineId, (a, b) => machineId);
-
-                if (ipConnections.TryGetValue(item.Key, out ITunnelConnection connection) && item.Value.Count > 0 && machineId != connection.RemoteMachineId)
+            }
+            foreach (var ip in ips)
+            {
+                foreach (var item in ipConnections.Where(c=>(c.Key & ip.NetWork)==ip.NetWork && c.Value.RemoteMachineId != ip.MachineId).ToList())
                 {
                     ipConnections.TryRemove(item.Key, out _);
                 }
