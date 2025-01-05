@@ -67,8 +67,6 @@ namespace linker.messenger.store.file
                         }
 
                         string text = File.ReadAllText(item.Value.Path, encoding: System.Text.Encoding.UTF8);
-                        Console.WriteLine(item.Value.Path);
-                        Console.WriteLine(text);
                         if (string.IsNullOrWhiteSpace(text))
                         {
                             LoggerHelper.Instance.Error($"{item.Value.Path} empty");
@@ -76,7 +74,6 @@ namespace linker.messenger.store.file
                         }
                         object value = item.Value.PropertyMethod.Deserialize(text);
                         item.Value.Property.SetValue(Data, value);
-                        Console.WriteLine(value.ToJson());
                     }
                     catch (Exception ex)
                     {
