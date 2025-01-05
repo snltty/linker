@@ -85,10 +85,10 @@ namespace linker.libs.websocket
         }
         public void Start(int port)
         {
-            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.IPv6Any, port);
+            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
 
             socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            socket.IPv6Only(localEndPoint.AddressFamily,false);
+            // socket.IPv6Only(localEndPoint.AddressFamily,false);
             socket.Bind(localEndPoint);
             socket.Listen(int.MaxValue);
 

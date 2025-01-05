@@ -56,6 +56,15 @@ namespace linker.messenger.tuntap
         /// <returns></returns>
         public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer, object state)
         {
+            /*
+            var bytes = new byte[buffer.Length + 4];
+            buffer.CopyTo(bytes.AsMemory(4));
+
+            LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
+            packet.Unpacket(bytes);
+
+            Console.WriteLine($"Receive {packet.Dist}");
+            */
             await OnReceivePacket(connection, buffer).ConfigureAwait(false);
         }
         /// <summary>
@@ -114,7 +123,7 @@ namespace linker.messenger.tuntap
                 }, ip);
                 return;
             }
-
+            //Console.WriteLine($"InputPacket {packet.Dist}");
             await connection.SendAsync(packet.Packet);
         }
 
@@ -180,7 +189,7 @@ namespace linker.messenger.tuntap
                 string machineId = item.Value[0];
                 ip2MachineDic.AddOrUpdate(item.Key, machineId, (a, b) => machineId);
             }
-            /*
+            
             foreach (var ip in ips)
             {
                 foreach (var item in ipConnections.Where(c=>(c.Key & ip.NetWork)==ip.NetWork && c.Value.RemoteMachineId != ip.MachineId).ToList())
@@ -188,7 +197,7 @@ namespace linker.messenger.tuntap
                     ipConnections.TryRemove(item.Key, out _);
                 }
             }
-            */
+            
             maskValues = ips.Select(c => c.MaskValue).Distinct().OrderBy(c => c).ToArray();
 
         }
