@@ -24,6 +24,19 @@ namespace linker.messenger.sforward.server.validator
             validators = validators.Concat(list).Distinct().ToList();
             LoggerHelper.Instance.Info($"load sforward server validator :{string.Join(",", list.Select(c => c.GetType().Name))}");
         }
+        /// <summary>
+        /// 删除一些验证实现类
+        /// </summary>
+        /// <param name="names"></param>
+        public void RemoveValidators(List<string> names)
+        {
+            foreach (string name in names)
+            {
+                ISForwardValidator item = validators.FirstOrDefault(c => c.Name == name);
+                if (item != null)
+                    validators.Remove(item);
+            }
+        }
 
         /// <summary>
         /// 验证

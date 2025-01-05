@@ -10,7 +10,7 @@ namespace linker.messenger.relay.server
     /// </summary>
     public class RelayServerReportResolver: IResolver
     {
-        public ResolverType Type => ResolverType.RelayReport;
+        public byte Type => (byte)ResolverType.RelayReport;
 
         private readonly RelayServerMasterTransfer relayServerTransfer;
         public RelayServerReportResolver(RelayServerMasterTransfer relayServerTransfer)

@@ -11,6 +11,9 @@ namespace linker.messenger.access
         public VersionManager SyncVersion { get; } = new VersionManager();
         public VersionManager DataVersion { get; } = new VersionManager();
 
+        /// <summary>
+        /// 各个设备的权限列表
+        /// </summary>
         public Dictionary<string, AccessValue> Accesss { get; } = new Dictionary<string, AccessValue>();
 
         private readonly ISignInClientStore signInClientStore;
@@ -26,6 +29,9 @@ namespace linker.messenger.access
             accessStore.OnChanged += SyncVersion.Add;
            
         }
+        /// <summary>
+        /// 刷新同步
+        /// </summary>
         public void Refresh()
         {
             SyncVersion.Add();

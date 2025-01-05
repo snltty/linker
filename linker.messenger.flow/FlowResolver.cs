@@ -10,7 +10,7 @@ namespace linker.messenger.flow
 {
     public sealed class FlowResolver : IResolver, IFlow
     {
-        public ResolverType Type => ResolverType.FlowReport;
+        public byte Type => (byte)ResolverType.FlowReport;
         public string FlowName => "flow";
 
         /// <summary>

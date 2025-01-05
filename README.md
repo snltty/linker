@@ -53,6 +53,13 @@
 - [x] socks5代理，端口转发需要指定端口，而socks5代理可以代理所有端口
 - [x] 集成linker，使用`linker.messenger.entry`入口库，轻松集成到你的项目中
 
+## 轻松集成
+在.NET8+项目中，nuget 安装 `linker.messenger.entry`
+```
+LinkerMessengerEntry.Initialize();
+LinkerMessengerEntry.Build();
+LinkerMessengerEntry.Setup(ExcludeModule.None);
+```
 
 ## 管理页面
 

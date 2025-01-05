@@ -7,6 +7,8 @@ namespace linker.messenger.sforward.server.validator
     /// </summary>
     public sealed class SForwardValidator : ISForwardValidator
     {
+        public string Name => "default";
+
         private readonly ISForwardServerStore sForwardServerStore;
         public SForwardValidator(ISForwardServerStore sForwardServerStore)
         {

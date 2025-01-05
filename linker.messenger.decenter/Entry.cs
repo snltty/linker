@@ -15,7 +15,7 @@ namespace linker.messenger.decenter
         {
             DecenterClientTransfer decenterClientTransfer = serviceProvider.GetService<DecenterClientTransfer>();
 
-           IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
+            IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<DecenterClientMessenger>() });
 
             return serviceProvider;

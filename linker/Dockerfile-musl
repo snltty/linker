@@ -21,5 +21,6 @@ COPY . .
 RUN mkdir -p /dev/net && mknod /dev/net/tun c 10 200 && chmod 600 /dev/net/tun
 
 ENV SNLTTY_LINKER_IS_DOCKER="linker"
+ENV DOTNET_ThreadPool_UnfairSemaphoreSpinLimit=0
 
 ENTRYPOINT ["./linker"]

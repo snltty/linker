@@ -12,7 +12,7 @@ namespace linker.messenger.tunnel
     /// </summary>
     public class TunnelServerExternalResolver: IResolver
     {
-        public ResolverType Type =>  ResolverType.External;
+        public byte Type =>  (byte)ResolverType.External;
 
         public virtual void AddReceive( ulong bytes) { }
         public virtual void AddSendt(ulong bytes) { }

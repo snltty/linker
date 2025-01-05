@@ -4,6 +4,7 @@ namespace linker.messenger.sforward.server.validator
 {
     public interface ISForwardValidator
     {
+        public string Name { get; }
         /// <summary>
         /// 验证
         /// </summary>

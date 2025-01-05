@@ -25,12 +25,21 @@ namespace linker.messenger.decenter
             SyncTask();
         }
 
+        /// <summary>
+        /// 添加
+        /// </summary>
+        /// <param name="list"></param>
         public void AddDecenters(List<IDecenter> list)
         {
             LoggerHelper.Instance.Info($"add decenter {string.Join(",", list.Select(c => c.GetType().Name))}");
             syncs = syncs.Concat(list).Distinct().ToList();
         }
 
+        /// <summary>
+        /// 同步
+        /// </summary>
+        /// <param name="decenterSyncInfo"></param>
+        /// <returns></returns>
         public Memory<byte> Sync(DecenterSyncInfo decenterSyncInfo)
         {
             IDecenter sync = syncs.FirstOrDefault(c => c.Name == decenterSyncInfo.Name);

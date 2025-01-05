@@ -23,7 +23,7 @@ namespace linker.messenger
 
     public class MessengerResolverResolver : IResolver
     {
-        public ResolverType Type => ResolverType.Messenger;
+        public byte Type => (byte)ResolverType.Messenger;
 
         private readonly IMessengerResolver messengerResolver;
         public MessengerResolverResolver(IMessengerResolver messengerResolver)

@@ -10,7 +10,7 @@ namespace linker.messenger
     /// </summary>
     public sealed class ResolverTransfer
     {
-        private readonly Dictionary<ResolverType, IResolver> resolvers = new Dictionary<ResolverType, IResolver>();
+        private readonly Dictionary<byte, IResolver> resolvers = new Dictionary<byte, IResolver>();
 
         public ResolverTransfer()
         {
@@ -25,7 +25,7 @@ namespace linker.messenger
             LoggerHelper.Instance.Info($"add resolver {string.Join(",", list.Select(c => c.GetType().Name))}");
             foreach (IResolver resolver in list)
             {
-                resolvers.TryAdd(resolver.Type, resolver);
+                resolvers.TryAdd((byte)resolver.Type, resolver);
             }
         }
 
@@ -47,7 +47,7 @@ namespace linker.messenger
                 socket.KeepAlive();
 
                 int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).ConfigureAwait(false);
-                ResolverType type = (ResolverType)buffer[0];
+                byte type = buffer[0];
 
                 if (resolvers.TryGetValue(type, out IResolver resolver))
                 {
@@ -73,7 +73,7 @@ namespace linker.messenger
         /// <returns></returns>
         public async Task BeginReceive(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
-            if (resolvers.TryGetValue((ResolverType)memory.Span[0], out IResolver resolver))
+            if (resolvers.TryGetValue(memory.Span[0], out IResolver resolver))
             {
                 await resolver.Resolve(socket, ep, memory.Slice(1));
             }

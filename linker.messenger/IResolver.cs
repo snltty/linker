@@ -36,7 +36,7 @@ namespace linker.messenger
     }
     public interface IResolver
     {
-        public ResolverType Type { get; }
+        public byte Type { get; }
         /// <summary>
         /// TCP
         /// </summary>

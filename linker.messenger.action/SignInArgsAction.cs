@@ -150,6 +150,7 @@ namespace linker.messenger.action
 
     public sealed class RelayValidatorAction : JsonArgReplace, IRelayServerValidator
     {
+        public string Name => "action";
         private readonly ActionTransfer actionTransfer;
         private readonly IActionServerStore actionServerStore;
         public RelayValidatorAction(ActionTransfer actionTransfer,  IActionServerStore actionServerStore)
@@ -199,6 +200,7 @@ namespace linker.messenger.action
 
     public sealed class SForwardValidatorAction : JsonArgReplace, ISForwardValidator
     {
+        public string Name => "action";
         private readonly ActionTransfer actionTransfer;
         private readonly IActionServerStore actionServerStore;
         public SForwardValidatorAction(ActionTransfer actionTransfer, IActionServerStore actionServerStore)

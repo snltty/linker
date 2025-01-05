@@ -21,8 +21,11 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 优化代码，解耦，简单几步将打洞和中继集成到你自己的项目中
-2. 增加了组件组合demo
-3. 测试中，不要更，不要更，不要更</Description>
+2. 端口转发检测目标服务连通性
+3. 虚拟网卡端口转发检测目标服务连通性
+4. 增加《分组配置》权限项
+5. 定时网卡检测，异常关闭自动重启
+6. 测试中，不要更，不要更，不要更</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

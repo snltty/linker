@@ -14,7 +14,7 @@
     </div>
 </template>
 <script>
-import { computed, reactive } from 'vue';
+import { computed, onMounted, reactive } from 'vue';
 import { injectGlobalData } from '@/provide';
 import SignInServers from './SignInServers.vue';
 import Groups from './Groups.vue';
@@ -30,6 +30,9 @@ export default {
 
         const state = reactive({
             tab:'signin'
+        });
+        onMounted(()=>{
+            state.tab =hasConfig.value ? 'signin' : hasGroup.value ? 'groups' : 'async';
         });
 
         return {
