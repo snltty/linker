@@ -8,14 +8,14 @@
 		<PublishAot>false</PublishAot>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
 		<EnablePreviewFeatures>True</EnablePreviewFeatures>
-		<Title>linker messenger api access</Title>
+		<Title>linker messenger api action</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>linker messenger api access</Description>
+		<Description>linker messenger api action</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
-		<PackageReleaseNotes>linker messenger api access</PackageReleaseNotes>
+		<PackageReleaseNotes>linker messenger api action</PackageReleaseNotes>
 		<Version>1.6.4</Version>
 		<AssemblyVersion>1.6.4</AssemblyVersion>
 		<FileVersion>1.6.4</FileVersion>
