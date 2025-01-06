@@ -90,6 +90,7 @@ namespace linker.messenger.updater
 
         public void Check()
         {
+            LoggerHelper.Instance.Info($"check update");
             _ = updaterHelper.GetUpdateInfo(updateInfo);
         }
 
@@ -121,7 +122,10 @@ namespace linker.messenger.updater
             TimerHelper.SetInterval(async () =>
             {
                 if (updaterCommonTransfer.CheckUpdate)
+                {
+                    LoggerHelper.Instance.Info($"auto check update");
                     await updaterHelper.GetUpdateInfo(updateInfo);
+                }
                 return true;
             }, () => updaterCommonTransfer.UpdateIntervalSeconds * 1000);
         }

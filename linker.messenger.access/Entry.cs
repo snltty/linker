@@ -1,5 +1,6 @@
 ﻿using linker.messenger.access;
 using linker.messenger.decenter;
+using linker.messenger.signin;
 using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.api
 {
@@ -20,6 +21,10 @@ namespace linker.messenger.api
             DecenterClientTransfer decenterClientTransfer = serviceProvider.GetService<DecenterClientTransfer>();
             decenterClientTransfer.AddDecenters(new List<IDecenter> { serviceProvider.GetService<AccessDecenter>() });
 
+
+            IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
+            messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<AccessClientMessenger>() });
+
             return serviceProvider;
         }
 
@@ -30,6 +35,8 @@ namespace linker.messenger.api
         }
         public static ServiceProvider UseAccessServer(this ServiceProvider serviceProvider)
         {
+            IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
+            messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<AccessServerMessenger>() });
 
             return serviceProvider;
         }

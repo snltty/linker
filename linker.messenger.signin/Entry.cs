@@ -22,6 +22,8 @@ namespace linker.messenger.signin
 
             serviceCollection.AddSingleton<SignInExRoute>();
 
+            serviceCollection.AddSingleton<SignInClientMessenger>();
+
             return serviceCollection;
         }
         public static ServiceProvider UseSignInClient(this ServiceProvider serviceProvider)
@@ -38,6 +40,9 @@ namespace linker.messenger.signin
             apiServer.AddPlugins(new List<IApiController> {
                 serviceProvider.GetService<SignInApiController>()
             });
+
+            IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
+            messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<SignInClientMessenger>() });
 
             ExRouteTransfer exRouteTransfer= serviceProvider.GetService<ExRouteTransfer>();
             exRouteTransfer.AddExRoutes(new List<IExRoute> { serviceProvider.GetService<SignInExRoute>() });
