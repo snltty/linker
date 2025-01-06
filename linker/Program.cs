@@ -15,9 +15,6 @@ namespace linker
             //添加防火墙，不添加ICMP
             linker.libs.FireWallHelper.Write(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
 #endif
-            //根目录
-            string serviceDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
-            Directory.SetCurrentDirectory(serviceDirectory);
             //全局异常
             AppDomain.CurrentDomain.UnhandledException += (a, b) =>
             {
@@ -31,6 +28,10 @@ namespace linker
             //windows服务运行
             if (Environment.UserInteractive == false && OperatingSystem.IsWindows())
             {
+                //根目录
+                string serviceDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+                Directory.SetCurrentDirectory(serviceDirectory);
+
                 ServiceBase[] ServicesToRun;
                 ServicesToRun = new ServiceBase[]
                 {

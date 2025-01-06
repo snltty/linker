@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.messenger.exroute;
 using linker.messenger.signin;
 using linker.tun;
@@ -60,7 +61,7 @@ namespace linker.messenger.tuntap
             CheckDeviceTask();
         }
 
-       
+
         private void CheckDeviceTask()
         {
             TimerHelper.SetInterval(async () =>
@@ -77,6 +78,7 @@ namespace linker.messenger.tuntap
                && tuntapConfigTransfer.Running && tuntapTransfer.Status != TuntapStatus.Operating;
             if (restart)
             {
+                LoggerHelper.Instance.Warning($"tuntap config version changed, restarting device");
                 configVersion = _version;
                 await RetstartDevice();
             }
@@ -142,6 +144,8 @@ namespace linker.messenger.tuntap
                 tuntapTransfer.RemoveForward(removes.ToList());
             }
             forwardItems = temp;
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Debug($"add tuntap forward {forwardItems.ToJson()}");
             tuntapTransfer.AddForward(forwardItems);
         }
         /// <summary>

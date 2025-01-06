@@ -375,6 +375,7 @@ namespace linker.tun
 
         public async Task<bool> CheckAvailable()
         {
+            InterfaceOrder();
             NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == Name);
             return networkInterface != null && networkInterface.OperationalStatus == OperationalStatus.Up && await InterfacePing();
 
