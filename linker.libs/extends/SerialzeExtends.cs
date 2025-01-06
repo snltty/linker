@@ -32,6 +32,11 @@ namespace linker.libs.extends
                 jsonSerializerOptions.TypeInfoResolverChain.Insert(0, context);
             }
         }
+        public static void AddJsonConverter(JsonConverter jsonConverter)
+        {
+            jsonSerializerOptions.Converters.Add(jsonConverter);
+            jsonSerializerOptions1.Converters.Add(jsonConverter);
+        }
 
         public static string ToJson(this object obj)
         {

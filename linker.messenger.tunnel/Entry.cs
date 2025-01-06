@@ -4,12 +4,19 @@ using linker.messenger.exroute;
 using linker.plugins.tunnel;
 using linker.tunnel;
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.Json.Serialization;
+using System.Text.Json;
+using linker.tunnel.connection;
+using linker.libs.extends;
 namespace linker.messenger.tunnel
 {
     public static class Entry
     {
         public static ServiceCollection AddTunnelClient(this ServiceCollection serviceCollection)
         {
+
+            SerialzeExtends.AddJsonConverter(new ITunnelConnectionConverter());
+
             serviceCollection.AddSingleton<TunnelTransfer>();
             serviceCollection.AddSingleton<TunnelClientExcludeIPTransfer>();
             serviceCollection.AddSingleton<ITunnelMessengerAdapter, TunnelMessengerAdapter>();
@@ -52,6 +59,8 @@ namespace linker.messenger.tunnel
 
         public static ServiceCollection AddTunnelServer(this ServiceCollection serviceCollection)
         {
+            SerialzeExtends.AddJsonConverter(new ITunnelConnectionConverter());
+
             serviceCollection.AddSingleton<TunnelServerMessenger>();
             serviceCollection.AddSingleton<TunnelServerExternalResolver>();
             return serviceCollection;
@@ -65,6 +74,19 @@ namespace linker.messenger.tunnel
             resolverTransfer.AddResolvers(new List<IResolver> { serviceProvider.GetService<TunnelServerExternalResolver>() });
 
             return serviceProvider;
+        }
+    }
+
+    public sealed class ITunnelConnectionConverter : JsonConverter<ITunnelConnection>
+    {
+        public override ITunnelConnection Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            return null;
+        }
+
+        public override void Write(Utf8JsonWriter writer, ITunnelConnection value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(string.Empty);
         }
     }
 }
