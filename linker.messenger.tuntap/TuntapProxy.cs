@@ -8,8 +8,6 @@ using System.Buffers;
 using linker.messenger.relay.client;
 using linker.messenger.signin;
 using linker.messenger.pcp;
-using System.Net;
-using System.Reflection.PortableExecutable;
 
 namespace linker.messenger.tuntap
 {

@@ -15,7 +15,7 @@ namespace linker.messenger.tunnel
         public static ServiceCollection AddTunnelClient(this ServiceCollection serviceCollection)
         {
 
-            SerialzeExtends.AddJsonConverter(new ITunnelConnectionConverter());
+            //SerialzeExtends.AddJsonConverter(new ITunnelConnectionConverter());
 
             serviceCollection.AddSingleton<TunnelTransfer>();
             serviceCollection.AddSingleton<TunnelClientExcludeIPTransfer>();
@@ -59,7 +59,7 @@ namespace linker.messenger.tunnel
 
         public static ServiceCollection AddTunnelServer(this ServiceCollection serviceCollection)
         {
-            SerialzeExtends.AddJsonConverter(new ITunnelConnectionConverter());
+            //SerialzeExtends.AddJsonConverter(new ITunnelConnectionConverter());
 
             serviceCollection.AddSingleton<TunnelServerMessenger>();
             serviceCollection.AddSingleton<TunnelServerExternalResolver>();
