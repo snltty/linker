@@ -40,7 +40,7 @@ namespace linker.messenger.tuntap
             tuntapTransfer.OnSetupSuccess += () => { AddForward(); tuntapConfigTransfer.SetRunning(true); };
             tuntapTransfer.OnShutdownBefore += () => { tuntapDecenter.Refresh(); };
             tuntapTransfer.OnShutdownAfter += () => { tuntapDecenter.Refresh(); };
-            tuntapTransfer.OnShutdownSuccess += () => { DeleteForward(); DelRoute(); tuntapConfigTransfer.SetRunning(false); };
+            tuntapTransfer.OnShutdownSuccess += () => { DeleteForward(); tuntapConfigTransfer.SetRunning(false); };
 
             //配置有更新，去同步一下
             tuntapConfigTransfer.OnUpdate += () => { _ = CheckDevice(); tuntapDecenter.Refresh(); };
