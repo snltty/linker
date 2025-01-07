@@ -173,20 +173,25 @@ namespace linker.messenger.tuntap
         /// </summary>
         private void AddRoute()
         {
-            List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapDecenter.Infos.Values.ToList());
-            TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
-            routeItems = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.PrefixLength }).ToArray();
-
-            tuntapTransfer.AddRoute(routeItems, tuntapConfigTransfer.Info.IP);
-
-            tuntapProxy.SetIPs(ips);
-            foreach (var item in tuntapDecenter.Infos.Values)
+            DelRoute();
+            if (tuntapTransfer.Status != TuntapStatus.Normal)
             {
-                tuntapProxy.SetIP(item.MachineId, NetworkHelper.IP2Value(item.IP));
-            }
-            foreach (var item in tuntapDecenter.Infos.Values.Where(c => c.IP.Equals(IPAddress.Any)))
-            {
-                tuntapProxy.RemoveIP(item.MachineId);
+                List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapDecenter.Infos.Values.ToList());
+                TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
+                routeItems = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.PrefixLength }).ToArray();
+
+
+                tuntapTransfer.AddRoute(routeItems, tuntapConfigTransfer.Info.IP);
+
+                tuntapProxy.SetIPs(ips);
+                foreach (var item in tuntapDecenter.Infos.Values)
+                {
+                    tuntapProxy.SetIP(item.MachineId, NetworkHelper.IP2Value(item.IP));
+                }
+                foreach (var item in tuntapDecenter.Infos.Values.Where(c => c.IP.Equals(IPAddress.Any)))
+                {
+                    tuntapProxy.RemoveIP(item.MachineId);
+                }
             }
         }
 
