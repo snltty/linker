@@ -21,6 +21,9 @@ namespace linker.messenger.tunnel
                 tunnelTransfer.Refresh();
             };
             TestQuic();
+
+            RefreshRouteLevel();
+            tunnelTransfer.Refresh();
         }
         /// <summary>
         /// 刷新网关等级数据
