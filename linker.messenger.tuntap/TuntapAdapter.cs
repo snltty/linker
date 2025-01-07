@@ -198,7 +198,11 @@ namespace linker.messenger.tuntap
         private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)
         {
             //排除的IP，
-            uint[] excludeIps = exRouteTransfer.Get().Select(NetworkHelper.IP2Value).ToArray();
+            uint[] excludeIps = exRouteTransfer.Get().Select(NetworkHelper.IP2Value).Distinct().ToArray();
+
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Warning($"tuntap route ex ips : {string.Join(",", excludeIps.Select(c => NetworkHelper.Value2IP(c)).ToList())}");
+
             HashSet<uint> hashSet = new HashSet<uint>();
 
             return infos

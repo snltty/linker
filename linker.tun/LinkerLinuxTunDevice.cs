@@ -199,7 +199,7 @@ namespace linker.tun
                 {
                     IPEndPoint dist = IPEndPoint.Parse(c[^1].Replace("to:", ""));
                     int port = int.Parse(c[^2].Replace("dpt:", ""));
-                    return new LinkerTunDeviceForwardItem { ListenAddr=IPAddress.Any, ListenPort=port, ConnectAddr=dist.Address, ConnectPort=dist.Port };
+                    return new LinkerTunDeviceForwardItem { ListenAddr = IPAddress.Any, ListenPort = port, ConnectAddr = dist.Address, ConnectPort = dist.Port };
                 });
             return lines.ToList();
         }
@@ -246,6 +246,8 @@ namespace linker.tun
             }).ToArray();
             if (commands.Length > 0)
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Warning($"tuntap linux add route: {string.Join("\r\n", commands)}");
                 CommandHelper.Linux(string.Empty, commands);
             }
         }
@@ -257,7 +259,14 @@ namespace linker.tun
                 IPAddress network = NetworkHelper.NetworkIP2IP(item.Address, prefixValue);
                 return $"ip route del {network}/{item.PrefixLength}";
             }).ToArray();
-            CommandHelper.Linux(string.Empty, commands);
+
+            if (commands.Length > 0)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Warning($"tuntap linux del route: {string.Join("\r\n", commands)}");
+                CommandHelper.Linux(string.Empty, commands);
+            }
+
         }
 
 

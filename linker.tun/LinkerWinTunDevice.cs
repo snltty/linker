@@ -239,6 +239,8 @@ namespace linker.tun
                 }).ToArray();
                 if (commands.Length > 0)
                 {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        LoggerHelper.Instance.Warning($"tuntap win add route: {string.Join("\r\n", commands)}");
                     CommandHelper.Windows(string.Empty, commands);
                 }
             }
@@ -254,6 +256,8 @@ namespace linker.tun
             }).ToArray();
             if (commands.Length > 0)
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Warning($"tuntap win del route: {string.Join("\r\n", commands)}");
                 CommandHelper.Windows(string.Empty, commands.ToArray());
             }
         }
