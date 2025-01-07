@@ -165,6 +165,8 @@ namespace linker.messenger.entry
 
             if ((commonStore.Modes & CommonModes.Client) == CommonModes.Client)
             {
+                serviceProvider.UseTunnelClient();
+
                 serviceProvider.UseLoggerClient();
                 if ((modules & ExcludeModule.Api) != ExcludeModule.Api)
                     serviceProvider.UseApiClient();
@@ -180,7 +182,7 @@ namespace linker.messenger.entry
                     serviceProvider.UseTuntapClient();
                 if ((modules & ExcludeModule.Updater) != ExcludeModule.Updater)
                     serviceProvider.UseUpdaterClient();
-                serviceProvider.UseExRoute().UseAccessClient().UseDecenterClient().UsePcpClient().UseRelayClient().UseSyncClient().UseTunnelClient().UseFlowClient();
+                serviceProvider.UseExRoute().UseAccessClient().UseDecenterClient().UsePcpClient().UseRelayClient().UseSyncClient().UseFlowClient();
 
                 serviceProvider.UseSignInClient();
             }
