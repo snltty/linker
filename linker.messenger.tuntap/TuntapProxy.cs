@@ -187,15 +187,19 @@ namespace linker.messenger.tuntap
                 string machineId = item.Value[0];
                 ip2MachineDic.AddOrUpdate(item.Key, machineId, (a, b) => machineId);
             }
-            
+
             foreach (var ip in ips)
             {
-                foreach (var item in ipConnections.Where(c=>(c.Key & ip.NetWork)==ip.NetWork && c.Value.RemoteMachineId != ip.MachineId).ToList())
+                foreach (var item in ipConnections.Where(c => (c.Key & ip.MaskValue) == ip.NetWork && c.Value.Connected && c.Value.RemoteMachineId != ip.MachineId).ToList())
                 {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Debug($"tuntap {NetworkHelper.Value2IP(item.Key)} dist change {c.Value.RemoteMachineId} to {ip.MachineId}");
+                    }
                     ipConnections.TryRemove(item.Key, out _);
                 }
             }
-            
+
             maskValues = ips.Select(c => c.MaskValue).Distinct().OrderBy(c => c).ToArray();
 
         }
