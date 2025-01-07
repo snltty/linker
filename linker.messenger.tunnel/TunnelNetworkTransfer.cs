@@ -14,11 +14,11 @@ namespace linker.messenger.tunnel
         public TunnelNetworkTransfer(ISignInClientStore signInClientStore, SignInClientState signInClientState,TunnelTransfer tunnelTransfer)
         {
             this.signInClientStore = signInClientStore;
-            signInClientState.NetworkEnabledHandle += (times) =>
-            {
-                TimerHelper.Async(RefreshRouteLevel);
-                tunnelTransfer.Refresh();
 
+            signInClientState.NetworkEnabledHandleBefore += () =>
+            {
+                RefreshRouteLevel();
+                tunnelTransfer.Refresh();
             };
             TestQuic();
         }

@@ -98,9 +98,10 @@ namespace linker.messenger.signin
 
                 await GetServerVersion().ConfigureAwait(false);
 
-                GCHelper.FlushMemory();
+                clientSignInState.PushNetworkEnabledBefore();
                 clientSignInState.PushNetworkEnabled();
 
+                GCHelper.FlushMemory();
             }
             catch (Exception ex)
             {

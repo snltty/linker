@@ -27,6 +27,8 @@ namespace linker.messenger.signin
         public string Version { get; set; }
 
         private int networdkEnabledTimes = 0;
+        [JsonIgnore]
+        public Action NetworkEnabledHandleBefore { get; set; }
         /// <summary>
         /// 上线事件
         /// </summary>
@@ -37,6 +39,15 @@ namespace linker.messenger.signin
         /// </summary>
         [JsonIgnore]
         public Action NetworkFirstEnabledHandle { get; set; }
+
+        public void PushNetworkEnabledBefore()
+        {
+            if (networdkEnabledTimes == 0)
+            {
+                NetworkFirstEnabledHandle?.Invoke();
+            }
+            NetworkEnabledHandleBefore?.Invoke();
+        }
         /// <summary>
         /// 发布上线事件
         /// </summary>
