@@ -194,7 +194,7 @@ namespace linker.messenger.tuntap
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        LoggerHelper.Instance.Debug($"tuntap {NetworkHelper.Value2IP(item.Key)} dist change {c.Value.RemoteMachineId} to {ip.MachineId}");
+                        LoggerHelper.Instance.Debug($"tuntap {NetworkHelper.Value2IP(item.Key)} target machine change {item.Value.RemoteMachineId} to {ip.MachineId}");
                     }
                     ipConnections.TryRemove(item.Key, out _);
                 }
