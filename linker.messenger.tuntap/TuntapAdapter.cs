@@ -40,13 +40,12 @@ namespace linker.messenger.tuntap
             tuntapTransfer.OnSetupSuccess += () => { AddForward(); tuntapConfigTransfer.SetRunning(true); };
             tuntapTransfer.OnShutdownBefore += () => { tuntapDecenter.Refresh(); };
             tuntapTransfer.OnShutdownAfter += () => { tuntapDecenter.Refresh(); };
-            tuntapTransfer.OnShutdownSuccess += () => { DeleteForward(); tuntapConfigTransfer.SetRunning(false); };
+            tuntapTransfer.OnShutdownSuccess += () => { DeleteForward(); DelRoute(); tuntapConfigTransfer.SetRunning(false); };
 
             //配置有更新，去同步一下
             tuntapConfigTransfer.OnUpdate += () => { _ = CheckDevice(); tuntapDecenter.Refresh(); };
 
             //收到新的信息，添加一下路由
-            tuntapDecenter.OnChangeBefore += DelRoute;
             tuntapDecenter.OnChangeAfter += AddRoute;
             tuntapDecenter.OnReset += tuntapProxy.ClearIPs;
             tuntapDecenter.HandleCurrentInfo = GetCurrentInfo;
@@ -173,26 +172,27 @@ namespace linker.messenger.tuntap
         /// </summary>
         private void AddRoute()
         {
-            DelRoute();
-            if (tuntapTransfer.Status != TuntapStatus.Normal)
+            List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapDecenter.Infos.Values.ToList());
+            TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
+            var _routeItems = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.PrefixLength }).ToArray();
+
+            var removeItems = routeItems.Except(_routeItems, new LinkerTunDeviceRouteItemComparer()).ToArray();
+            if (removeItems.Length > 0)
+                tuntapTransfer.DelRoute(removeItems);
+
+            tuntapTransfer.AddRoute(_routeItems, tuntapConfigTransfer.Info.IP);
+
+            tuntapProxy.SetIPs(ips);
+            foreach (var item in tuntapDecenter.Infos.Values)
             {
-                List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapDecenter.Infos.Values.ToList());
-                TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
-                routeItems = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.PrefixLength }).ToArray();
-
-
-                tuntapTransfer.AddRoute(routeItems, tuntapConfigTransfer.Info.IP);
-
-                tuntapProxy.SetIPs(ips);
-                foreach (var item in tuntapDecenter.Infos.Values)
-                {
-                    tuntapProxy.SetIP(item.MachineId, NetworkHelper.IP2Value(item.IP));
-                }
-                foreach (var item in tuntapDecenter.Infos.Values.Where(c => c.IP.Equals(IPAddress.Any)))
-                {
-                    tuntapProxy.RemoveIP(item.MachineId);
-                }
+                tuntapProxy.SetIP(item.MachineId, NetworkHelper.IP2Value(item.IP));
             }
+            foreach (var item in tuntapDecenter.Infos.Values.Where(c => c.IP.Equals(IPAddress.Any)))
+            {
+                tuntapProxy.RemoveIP(item.MachineId);
+            }
+
+            routeItems = _routeItems;
         }
 
         private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)
@@ -262,6 +262,16 @@ namespace linker.messenger.tuntap
                 return (int)(NetworkHelper.IP2Value(x) - NetworkHelper.IP2Value(y));
             }
         }
-
+        public sealed class LinkerTunDeviceRouteItemComparer : IEqualityComparer<LinkerTunDeviceRouteItem>
+        {
+            public bool Equals(LinkerTunDeviceRouteItem x, LinkerTunDeviceRouteItem y)
+            {
+                return x.Address.Equals(y.Address) && x.PrefixLength == y.PrefixLength;
+            }
+            public int GetHashCode(LinkerTunDeviceRouteItem obj)
+            {
+                return obj.Address.GetHashCode() ^ obj.PrefixLength;
+            }
+        }
     }
 }
