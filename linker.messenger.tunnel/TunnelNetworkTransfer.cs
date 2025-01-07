@@ -11,7 +11,7 @@ namespace linker.messenger.tunnel
         private readonly ISignInClientStore signInClientStore;
         public TunnelNetworkInfo Info { get; private set; } = new TunnelNetworkInfo();
 
-        public TunnelNetworkTransfer(ISignInClientStore signInClientStore, SignInClientState signInClientState,TunnelTransfer tunnelTransfer)
+        public TunnelNetworkTransfer(ISignInClientStore signInClientStore, SignInClientState signInClientState, TunnelTransfer tunnelTransfer)
         {
             this.signInClientStore = signInClientStore;
 
@@ -27,9 +27,13 @@ namespace linker.messenger.tunnel
         /// </summary>
         private void RefreshRouteLevel()
         {
+            LoggerHelper.Instance.Info($"tunnel route level getting.");
             Info.RouteLevel = NetworkHelper.GetRouteLevel(signInClientStore.Server.Host, out List<IPAddress> ips);
             Info.RouteIPs = ips.ToArray();
             Info.LocalIPs = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
+            LoggerHelper.Instance.Warning($"route ips:{string.Join(",", ips.Select(c => c.ToString()))}");
+            LoggerHelper.Instance.Warning($"tunnel local ips :{string.Join(",", Info.LocalIPs.Select(c => c.ToString()))}");
+            LoggerHelper.Instance.Warning($"tunnel route level:{Info.RouteLevel}");
         }
 
         private void TestQuic()

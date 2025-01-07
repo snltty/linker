@@ -36,7 +36,8 @@ namespace linker.libs
             string cpu = CommandHelper.Linux(string.Empty, ["cat /etc/machine-id"]).TrimNewLineAndWhiteSapce();
             if (string.IsNullOrWhiteSpace(cpu) || cpu.Contains("No such file or directory"))
             {
-                cpu = string.Empty;
+                cpu = Guid.NewGuid().ToString();
+                CommandHelper.Linux(string.Empty, [$"echo \"{cpu}\" > /etc/machine-id"]);
             }
 
             string username = CommandHelper.Linux(string.Empty, ["whoami"]).TrimNewLineAndWhiteSapce();
