@@ -23,7 +23,7 @@ namespace linker.messenger.forward
             this.serializer = serializer;
 
             forwardTransfer.OnReset += CountDic.Clear;
-            forwardTransfer.OnChanged += SyncVersion.Add;
+            forwardTransfer.OnChanged += Refresh;
           
         }
 

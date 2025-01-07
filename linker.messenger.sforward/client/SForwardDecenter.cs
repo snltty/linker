@@ -15,11 +15,12 @@ namespace linker.messenger.sforward.client
         private readonly ISignInClientStore signInClientStore;
         private readonly ISForwardClientStore sForwardClientStore;
         private readonly ISerializer serializer;
-        public SForwardDecenter(ISignInClientStore signInClientStore, ISForwardClientStore sForwardClientStore, ISerializer serializer)
+        public SForwardDecenter(ISignInClientStore signInClientStore, ISForwardClientStore sForwardClientStore, ISerializer serializer, SForwardClientTransfer sForwardClientTransfer)
         {
             this.signInClientStore = signInClientStore;
             this.sForwardClientStore = sForwardClientStore;
             this.serializer = serializer;
+            sForwardClientTransfer.OnChanged += Refresh;
         }
 
         public void Refresh()

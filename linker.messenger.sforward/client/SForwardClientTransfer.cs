@@ -1,10 +1,8 @@
 ﻿using linker.libs;
 using linker.plugins.sforward.messenger;
 using System.Net.Sockets;
-using System.Net;
 using linker.libs.extends;
 using linker.messenger.signin;
-using System.Collections.Generic;
 
 namespace linker.messenger.sforward.client
 {

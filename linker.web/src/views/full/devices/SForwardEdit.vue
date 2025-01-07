@@ -97,7 +97,9 @@ export default {
             bufferSize:globalData.value.bufferSize,
             show: true,
             data: [],
-            timerTestLocal:0
+            timer:0,
+            timer1:0,
+            editing:false,
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -107,22 +109,30 @@ export default {
             }
         });
         const _testLocalSForwardInfo = ()=>{
+            clearTimeout(state.timer);
             testLocalSForwardInfo(sforward.value.machineid).then((res)=>{
-               state.timerTestLocal = setTimeout(_testLocalSForwardInfo,1000);
+                state.timer = setTimeout(_testLocalSForwardInfo,1000);
             }).catch(()=>{
-                state.timerTestLocal = setTimeout(_testLocalSForwardInfo,1000);
+                state.timer = setTimeout(_testLocalSForwardInfo,1000);
             });
         }
         const _getSForwardInfo = () => {
-            getSForwardInfo(sforward.value.machineid).then((res) => {
-                res.forEach(c=>{
-                    c.Temp = (c.Domain || c.RemotePort).toString();
-                    c.RemotePort = 0;
-                    c.Domain = '';
+            clearTimeout(state.timer1);
+            if(state.editing==false){
+                getSForwardInfo(sforward.value.machineid).then((res) => {
+                    res.forEach(c=>{
+                        c.Temp = (c.Domain || c.RemotePort).toString();
+                        c.RemotePort = 0;
+                        c.Domain = '';
+                    });
+                    state.data = res;
+                    state.timer1 = setTimeout(_getSForwardInfo,1000);
+                }).catch(() => {
+                    state.timer1 = setTimeout(_getSForwardInfo,1000);
                 });
-                state.data = res;
-            }).catch(() => {
-            });
+            }else{
+                state.timer1 = setTimeout(_getSForwardInfo,1000);
+            }
         }
         const handleOnShowList = () => {
             _getSForwardInfo();
@@ -159,6 +169,7 @@ export default {
                 c[`TempEditing`] = false;
             })
             row[`${p}Editing`] = true;
+            state.editing = true;
         }
         const handleEditBlur = (row, p) => {
             if(row.Started){
@@ -166,6 +177,7 @@ export default {
                 return;
             }
             row[`${p}Editing`] = false;
+            state.editing = false;
             saveRow(row);
         }
         const handleDel = (id) => {
@@ -188,9 +200,7 @@ export default {
                 if(res == false){
                     ElMessage.error('操作失败，可能存在相同值');
                 }
-                setTimeout(()=>{
-                    _getSForwardInfo();
-                },100)
+                _getSForwardInfo();
             }).catch((err) => {
                 ElMessage.error(err);
             });
@@ -200,7 +210,8 @@ export default {
             _testLocalSForwardInfo();
         });
         onUnmounted(()=>{
-            clearTimeout(state.timerTestLocal);
+            clearTimeout(state.timer);
+            clearTimeout(state.timer1);
         })
 
         return {

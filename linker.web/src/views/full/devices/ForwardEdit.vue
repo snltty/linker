@@ -3,7 +3,6 @@
         <div>
             <div class="t-c head">
                 <el-button type="success" size="small" @click="handleAdd">添加</el-button>
-                <el-button size="small" @click="handleRefresh">刷新</el-button>
             </div>
             <el-table :data="state.data" size="small" border height="500" @cell-dblclick="handleCellClick">
                 <el-table-column property="Name" label="名称" width="100">
@@ -156,6 +155,9 @@ export default {
                 Count: 0,
                 List: []
             },
+            timer:0,
+            timer1:0,
+            editing:false
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -166,6 +168,7 @@ export default {
         });
 
         const _testTargetForwardInfo = ()=>{
+            clearTimeout(state.timer);
             testTargetForwardInfo(forward.value.machineId).then((res)=>{
                state.timer = setTimeout(_testTargetForwardInfo,1000);
             }).catch(()=>{
@@ -181,10 +184,17 @@ export default {
             }).catch(()=>{});
         }
         const _getForwardInfo = () => {
-            getForwardInfo(state.machineId).then((res) => {
-                state.data = res;
-            }).catch(() => {
-            });
+            clearTimeout(state.timer1);
+            if(state.editing==false){
+                getForwardInfo(state.machineId).then((res) => {
+                    state.data = res;
+                    state.timer1 = setTimeout(_getForwardInfo,1000);
+                }).catch(() => {
+                    state.timer1 = setTimeout(_getForwardInfo,1000);
+                });
+            }else{
+                state.timer1 = setTimeout(_getForwardInfo,1000);
+            }
         }
 
         const handleSearch = (name)=>{
@@ -208,17 +218,11 @@ export default {
         }
 
         const handleOnShowList = () => {
-            _getForwardInfo();
             _getMachineIds();
         }
 
         const handleCellClick = (row, column) => {
             handleEdit(row, column.property);
-        }
-
-        const handleRefresh = () => {
-            _getForwardInfo();
-            ElMessage.success('已刷新')
         }
         const handleAdd = () => {
             saveRow({ ID: 0, Name: '', Port: 0, TargetEP: '127.0.0.1:80', machineId: '' });
@@ -238,6 +242,7 @@ export default {
                 
             })
             row[`${p}Editing`] = true;
+            state.editing = true;
         }
         const handleEditBlur = (row, p) => {
             if(row.Started){
@@ -245,6 +250,7 @@ export default {
                 return;
             }
             row[`${p}Editing`] = false;
+            state.editing = false;
 
             const machine = state.machineIds.List.find(c=>c.MachineId == row.MachineId);
             if(machine){
@@ -277,10 +283,11 @@ export default {
         });
         onUnmounted(()=>{
             clearTimeout(state.timer);
+            clearTimeout(state.timer1);
         });
 
         return {
-            state, handleOnShowList, handleCellClick, handleRefresh, handleAdd, handleEdit, handleEditBlur, handleDel, handleStartChange,
+            state, handleOnShowList, handleCellClick, handleAdd, handleEdit, handleEditBlur, handleDel, handleStartChange,
             handleSearch,handlePageChange
         }
     }
