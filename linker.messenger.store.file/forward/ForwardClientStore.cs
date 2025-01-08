@@ -15,7 +15,7 @@ namespace linker.messenger.store.file.forward
         }
         public int Count()
         {
-            return runningConfig.Data.SForwards.Count();
+            return runningConfig.Data.Forwards.Count();
         }
 
         public List<ForwardInfo> Get()

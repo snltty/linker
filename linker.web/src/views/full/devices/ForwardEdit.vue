@@ -265,6 +265,7 @@ export default {
             })
         }
         const handleStartChange = (row) => {
+            
             saveRow(row);
         }
         const saveRow = (row) => {

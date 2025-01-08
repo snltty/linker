@@ -49,6 +49,7 @@ namespace linker.messenger.socks5
 
                 socks5Store.SetPort(info.Port);
                 socks5Store.SetLans(info.Lans);
+                socks5Store.Confirm();
 
                 if ((port != socks5Store.Port && socks5Store.Running) || (socks5Store.Running && tunnelProxy.Running == false))
                 {

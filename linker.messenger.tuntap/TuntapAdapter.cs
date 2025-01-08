@@ -255,14 +255,14 @@ namespace linker.messenger.tuntap
         }
 
 
-        class IPAddressComparer : IComparer<IPAddress>
+        sealed class IPAddressComparer : IComparer<IPAddress>
         {
             public int Compare(IPAddress x, IPAddress y)
             {
                 return (int)(NetworkHelper.IP2Value(x) - NetworkHelper.IP2Value(y));
             }
         }
-        public sealed class LinkerTunDeviceRouteItemComparer : IEqualityComparer<LinkerTunDeviceRouteItem>
+        sealed class LinkerTunDeviceRouteItemComparer : IEqualityComparer<LinkerTunDeviceRouteItem>
         {
             public bool Equals(LinkerTunDeviceRouteItem x, LinkerTunDeviceRouteItem y)
             {
