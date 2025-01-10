@@ -80,7 +80,6 @@ export default {
         const hasTuntapStatusOther = computed(()=>globalData.value.hasAccess('TuntapStatusOther')); 
         const connections = useTuntapConnections();
 
-        console.log(connections);
 
         const showDelay = computed(()=>((globalData.value.config.Running.Tuntap || {Switch:0}).Switch & 2) == 2);
         const handleTuntap = (tuntap) => {

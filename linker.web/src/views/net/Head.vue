@@ -1,9 +1,8 @@
 <template>
     <div class="head-wrap">
         <div class="tools flex">
-            <span class="label">服务器 </span><el-select v-model="state.server" placeholder="服务器" style="width:16rem" size="small">
-                <el-option v-for="item in state.servers":key="item.Host" :label="item.Name":value="item.Host" ></el-option>
-            </el-select>
+            
+            <span class="label">服务器 </span><el-input v-model="state.server" readonly style="width: 14rem;" size="small"></el-input>
             <span class="flex-1"></span>
             <el-button size="small" @click="handleRefresh">
                 刷新(F5)<el-icon><Refresh /></el-icon>
@@ -17,7 +16,7 @@
 
 <script>
 import { injectGlobalData } from '@/provide';
-import { reactive, watch } from 'vue';
+import { computed, reactive, watch } from 'vue';
 import { Edit,Refresh } from '@element-plus/icons-vue';
 import Background from '../full/Background.vue';
 export default {
@@ -25,12 +24,7 @@ export default {
     setup () {
         const globalData = injectGlobalData();
         const state = reactive({
-            server:"linker.snltty.com:1802",
-            servers:[]
-        });
-        watch(()=>globalData.value.config.Client.Servers,()=>{
-            state.servers = (globalData.value.config.Client.Servers || []).slice(0,1);
-            state.server = globalData.value.config.Client.Server.Host;
+            server:computed(()=>globalData.value.config.Client.Server.Host),
         });
         const handleRefresh = ()=>{
             window.location.reload();
