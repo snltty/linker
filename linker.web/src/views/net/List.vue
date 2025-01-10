@@ -41,6 +41,7 @@ import { StarFilled} from '@element-plus/icons-vue'
 import UpdaterBtn from '../full/devices/UpdaterBtn.vue'
 import DeviceName from '../full/devices/DeviceName.vue'
 import TuntapShow from '../full/devices/TuntapShow.vue';
+import { provideConnections } from '../full/devices/connections'
 export default {
     components: {StarFilled,UpdaterBtn,DeviceName,TuntapShow},
     setup(props) {
@@ -53,6 +54,13 @@ export default {
             handlePageChange, handlePageSizeChange, handleDel,clearDevicesTimeout} = provideDevices();
         const {tuntap,_getTuntapInfo,handleTuntapRefresh,clearTuntapTimeout,handleTuntapEdit,sortTuntapIP}  = provideTuntap();
         const {_getUpdater,_subscribeUpdater,clearUpdaterTimeout} = provideUpdater();
+
+        const {connections,
+            forwardConnections,_getForwardConnections,
+            tuntapConnections,_getTuntapConnections,
+            socks5Connections,_getSocks5Connections,
+            handleTunnelConnections,clearConnectionsTimeout
+        } = provideConnections();
 
         onMounted(() => {
             handlePageChange();
