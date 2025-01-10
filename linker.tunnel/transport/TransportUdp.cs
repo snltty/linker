@@ -52,7 +52,7 @@ namespace linker.tunnel.transport
         {
             this.tunnelMessengerAdapter = tunnelMessengerAdapter;
         }
-        public void SetSSL(X509Certificate2 certificate)
+        public void SetSSL(X509Certificate certificate)
         {
         }
 

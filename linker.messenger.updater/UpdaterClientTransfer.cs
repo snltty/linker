@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using System.Collections.Concurrent;
 using linker.messenger.signin;
+using linker.libs.extends;
 
 namespace linker.messenger.updater
 {

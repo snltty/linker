@@ -263,7 +263,7 @@ namespace linker.tun
         }
 
 
-        private byte[] buffer = new byte[2 * 1024];
+        private byte[] buffer = new byte[8 * 1024];
         public unsafe ReadOnlyMemory<byte> Read()
         {
             for (; tokenSource.IsCancellationRequested == false;)

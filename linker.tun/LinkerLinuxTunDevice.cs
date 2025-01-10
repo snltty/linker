@@ -46,7 +46,7 @@ namespace linker.tun
                 return false;
             }
 
-            fs = new FileStream(safeFileHandle, FileAccess.ReadWrite, 1500);
+            fs = new FileStream(safeFileHandle, FileAccess.ReadWrite, 4 * 1024);
             interfaceLinux = GetLinuxInterfaceNum();
             return true;
         }
@@ -270,7 +270,7 @@ namespace linker.tun
         }
 
 
-        private byte[] buffer = new byte[2 * 1024];
+        private byte[] buffer = new byte[8 * 1024];
         private object writeLockObj = new object();
         public ReadOnlyMemory<byte> Read()
         {

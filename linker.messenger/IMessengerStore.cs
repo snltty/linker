@@ -6,12 +6,12 @@ namespace linker.messenger
     {
         public ServerCertificateInfo() { }
         public string File { get; set; } = "./snltty.pfx";
-        public string Password { get; set; } = "oeq9tw1o";
+        public string Password { get; set; } = "snltty";
     }
     public interface IMessengerStore
     {
         public ServerCertificateInfo SSL { get; }
 
-        public X509Certificate2 Certificate { get; }
+        public X509Certificate Certificate { get; }
     }
 }

@@ -26,7 +26,7 @@ namespace linker.messenger.tuntap
         }
 
         bool inited = false;
-        public void Init(string name,ILinkerTunDeviceCallback linkerTunDeviceCallback)
+        public void Init(string name, ILinkerTunDeviceCallback linkerTunDeviceCallback)
         {
             if (inited) return;
             inited = true;

@@ -131,7 +131,7 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackConstructor]
         SerializableUpdateClientInfo(string[] toMachines, UpdaterInfo info)
         {
-            this.info = new UpdaterClientInfo { ToMachines = ToMachines, Info = info };
+            this.info = new UpdaterClientInfo { ToMachines = toMachines, Info = info };
         }
 
         public SerializableUpdateClientInfo(UpdaterClientInfo info)

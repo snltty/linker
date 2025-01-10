@@ -99,6 +99,7 @@ namespace linker.tun
                 {
                     return false;
                 }
+                //mtu = 4 * 1024 - 4;
                 linkerTunDevice.SetMtu(mtu);
                 Read();
                 return true;
@@ -214,7 +215,6 @@ namespace linker.tun
                             Shutdown();
                             break;
                         }
-
 
                         LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
                         packet.Unpacket(buffer);

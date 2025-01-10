@@ -63,7 +63,7 @@ namespace linker.plugins.tunnel
         public string MachineId => signInClientState.Connection?.Id ?? string.Empty;
         public int RouteLevelPlus => tunnelClientStore.RouteLevelPlus;
         public IPEndPoint ServerHost => signInClientState.Connection?.Address ?? null;
-        public X509Certificate2 Certificate => messengerStore.Certificate;
+        public X509Certificate Certificate => messengerStore.Certificate;
         public int PortMapPrivate => tunnelClientStore.PortMapPrivate;
         public int PortMapPublic => tunnelClientStore.PortMapPublic;
 

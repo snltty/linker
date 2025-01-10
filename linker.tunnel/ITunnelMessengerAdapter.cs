@@ -21,7 +21,7 @@ namespace linker.tunnel
         /// <summary>
         /// 加密密钥
         /// </summary>
-        public X509Certificate2 Certificate { get; }
+        public X509Certificate Certificate { get; }
 
         /// <summary>
         /// 端口映射内外端口

@@ -50,8 +50,8 @@ namespace linker.tunnel.transport
             this.tunnelMessengerAdapter = tunnelMessengerAdapter;
             CleanTask();
         }
-        private X509Certificate2 certificate;
-        public void SetSSL(X509Certificate2 certificate)
+        private X509Certificate certificate;
+        public void SetSSL(X509Certificate certificate)
         {
             this.certificate = certificate;
         }

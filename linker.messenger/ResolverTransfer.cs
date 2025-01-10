@@ -44,7 +44,7 @@ namespace linker.messenger
                     return;
                 }
 
-                socket.KeepAlive();
+                //socket.KeepAlive();
 
                 int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).ConfigureAwait(false);
                 byte type = buffer[0];

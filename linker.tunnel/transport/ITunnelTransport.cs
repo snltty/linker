@@ -50,7 +50,7 @@ namespace linker.tunnel.transport
         /// </summary>
         public Action<ITunnelConnection> OnConnected { get; set; }
 
-        public void SetSSL(X509Certificate2 certificate);
+        public void SetSSL(X509Certificate certificate);
 
         /// <summary>
         /// 连接对方

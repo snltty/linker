@@ -227,8 +227,8 @@ namespace linker.tunnel.connection
         }
 
 
-        private byte[] encodeBuffer = new byte[2 * 1024];
-        private byte[] decodeBuffer = new byte[2 * 2014];
+        private byte[] encodeBuffer = new byte[8 * 1024];
+        private byte[] decodeBuffer = new byte[8 * 2014];
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             try

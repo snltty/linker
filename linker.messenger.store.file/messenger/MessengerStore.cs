@@ -6,11 +6,11 @@ namespace linker.messenger.store.file.messenger
     public class MessengerStore : IMessengerStore
     {
         public ServerCertificateInfo SSL => fileConfig.Data.Common.SSL;
-        public X509Certificate2 Certificate => certificate;
+        public X509Certificate Certificate => certificate;
 
         private readonly FileConfig fileConfig;
 
-        private X509Certificate2 certificate;
+        private X509Certificate certificate;
         public MessengerStore(FileConfig fileConfig)
         {
             this.fileConfig = fileConfig;
@@ -18,7 +18,9 @@ namespace linker.messenger.store.file.messenger
             string path = Path.GetFullPath(SSL.File);
             if (File.Exists(path))
             {
-                certificate = new X509Certificate2(path, SSL.Password, X509KeyStorageFlags.Exportable);
+                if (SSL.Password == "oeq9tw1o") SSL.Password = "snltty";
+
+                certificate = new X509Certificate(path, SSL.Password, X509KeyStorageFlags.Exportable);
             }
             else
             {

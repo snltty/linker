@@ -79,7 +79,7 @@ namespace linker.tunnel.connection
 
         private async Task ProcessWrite()
         {
-            byte[] buffer = new byte[(1 << BufferSize) * 1024];
+            byte[] buffer = new byte[32 * 1024];
             try
             {
                 int length = 0;
@@ -101,7 +101,7 @@ namespace linker.tunnel.connection
 
                         while (Socket.Available > 0)
                         {
-                            length = Socket.Receive(buffer);
+                            length = Socket.Receive(buffer, SocketFlags.None);
                             if (length == 0) break;
                             await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
                         }
@@ -267,6 +267,7 @@ namespace linker.tunnel.connection
                 if (Stream != null)
                 {
                     await Stream.WriteAsync(data).ConfigureAwait(false);
+                    //await Stream.FlushAsync();
                 }
                 else
                 {
