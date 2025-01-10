@@ -63,6 +63,7 @@ namespace linker.messenger.flow
                 serviceProvider.GetService<RelayReportFlow>(),
                 serviceProvider.GetService<ExternalFlow>(),
                 serviceProvider.GetService<SForwardFlow>(),
+                serviceProvider.GetService<FlowResolver>(),
             });
 
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();

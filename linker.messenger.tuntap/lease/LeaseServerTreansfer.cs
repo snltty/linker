@@ -13,9 +13,15 @@ namespace linker.messenger.tuntap.lease
         public LeaseServerTreansfer(ILeaseServerStore leaseServerStore)
         {
             this.leaseServerStore = leaseServerStore;
-            foreach (var item in leaseServerStore.Get())
+            try
             {
-                caches.TryAdd(item.Key, item);
+                foreach (var item in leaseServerStore.Get())
+                {
+                    caches.TryAdd(item.Key, item);
+                }
+            }
+            catch (Exception)
+            {
             }
             ClearTask();
         }

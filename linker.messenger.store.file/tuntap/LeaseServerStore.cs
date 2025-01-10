@@ -27,7 +27,14 @@ namespace linker.messenger.store.file.tuntap
 
         public List<LeaseCacheInfo> Get()
         {
-            return liteCollection.FindAll().ToList();
+            try
+            {
+                return liteCollection.FindAll().ToList();
+            }
+            catch (Exception)
+            {
+            }
+            return new List<LeaseCacheInfo>();
         }
 
         public bool Remove(string id)

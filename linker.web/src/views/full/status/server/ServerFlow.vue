@@ -90,7 +90,6 @@ export default {
         const _getFlows = ()=>{
             getFlows().then(res => {
                 const old = state.old || res;
-
                 if(res.Items['_']){
                     state.overallOnline = `${res.Items['_'].SendtBytes}/${res.Items['_'].ReceiveBytes}`;
                     delete res.Items['_'];

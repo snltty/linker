@@ -37,7 +37,7 @@ jobs:
           release_name: v1.6.4.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 优化代码，解耦，简单几步将打洞和中继集成到你自己的项目中\r\n2. 端口转发检测目标服务连通性\r\n3. 虚拟网卡端口转发检测目标服务连通性\r\n4. 增加《分组配置》权限项\r\n5. 定时网卡检测，异常关闭自动重启\r\n6. 基本没啥问题，可以更新试试了"
+          body: "1. 优化代码，解耦，简单几步将打洞和中继集成到你自己的项目中\r\n2. 端口转发检测目标服务连通性\r\n3. 虚拟网卡端口转发检测目标服务连通性\r\n4. 增加《分组配置》权限项\r\n5. 定时网卡检测，异常关闭自动重启\r\n6. 更新服务端后，虚拟网卡的网络配置丢失，需要重新设置"
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
         uses: tvrcgo/oss-action@v0.1.1

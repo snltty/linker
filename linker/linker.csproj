@@ -25,7 +25,7 @@
 3. 虚拟网卡端口转发检测目标服务连通性
 4. 增加《分组配置》权限项
 5. 定时网卡检测，异常关闭自动重启
-6. 基本没啥问题，可以更新试试了</Description>
+6. 更新服务端后，虚拟网卡的网络配置丢失，需要重新设置</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
