@@ -71,10 +71,10 @@ namespace linker.messenger.serializer.memorypack
         public readonly UpdaterConfirmServerInfo info;
 
         [MemoryPackInclude]
-        string Version => info.Version;
+        string SecretKey => info.SecretKey;
 
         [MemoryPackInclude]
-        string SecretKey => info.SecretKey;
+        string Version => info.Version;
 
         [MemoryPackConstructor]
         SerializableUpdaterConfirmServerInfo(string version, string secretKey)
