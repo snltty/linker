@@ -152,7 +152,7 @@ namespace linker.messenger.relay.server
                     int bytesRead = await source.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
                     if (bytesRead == 0) break;
 
-                    bool controll = true;// await Controll(cache, limit, bytesRead).ConfigureAwait(false);
+                    bool controll =  await Controll(cache, limit, bytesRead).ConfigureAwait(false);
                     if (controll == false)
                     {
                         source.SafeClose();
@@ -160,7 +160,7 @@ namespace linker.messenger.relay.server
                     }
 
                     await destination.SendAsync(buffer.AsMemory(0, bytesRead)).ConfigureAwait(false);
-
+                    /*
                     while (source.Available > 0)
                     {
                         bytesRead = source.Receive(buffer, buffer.Length, SocketFlags.None);
@@ -175,6 +175,7 @@ namespace linker.messenger.relay.server
 
                         await destination.SendAsync(buffer.AsMemory(0, bytesRead)).ConfigureAwait(false);
                     }
+                    */
                 }
             }
             catch (Exception)
@@ -185,7 +186,7 @@ namespace linker.messenger.relay.server
                 relayServerNodeTransfer.DecrementConnectionNum();
             }
         }
-        private async ValueTask<bool> Controll(RelayCacheInfo cache, RelaySpeedLimit limit, int bytesRead)
+        private async Task<bool> Controll(RelayCacheInfo cache, RelaySpeedLimit limit, int bytesRead)
         {
             //流量限制
             if (relayServerNodeTransfer.AddBytes((ulong)bytesRead) == false)
