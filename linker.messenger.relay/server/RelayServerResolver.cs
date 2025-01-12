@@ -152,7 +152,7 @@ namespace linker.messenger.relay.server
                     int bytesRead = await source.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
                     if (bytesRead == 0) break;
 
-                    bool controll = await Controll(cache, limit, bytesRead).ConfigureAwait(false);
+                    bool controll = true;// await Controll(cache, limit, bytesRead).ConfigureAwait(false);
                     if (controll == false)
                     {
                         source.SafeClose();
@@ -166,7 +166,7 @@ namespace linker.messenger.relay.server
                         bytesRead = source.Receive(buffer, buffer.Length, SocketFlags.None);
                         if (bytesRead == 0) break;
 
-                        controll = await Controll(cache, limit, bytesRead).ConfigureAwait(false);
+                        controll = true;// await Controll(cache, limit, bytesRead).ConfigureAwait(false);
                         if (controll == false)
                         {
                             source.SafeClose();

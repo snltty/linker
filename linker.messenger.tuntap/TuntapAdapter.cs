@@ -38,21 +38,13 @@ namespace linker.messenger.tuntap
             //网卡状态发生变化，同步一下信息
             tuntapTransfer.OnSetupBefore += () => { tuntapDecenter.Refresh(); };
             tuntapTransfer.OnSetupAfter += () => { tuntapDecenter.Refresh(); };
-            tuntapTransfer.OnSetupSuccess += () =>
-            {
-                AddForward();
-                tuntapConfigTransfer.SetRunning(true);
-            };
+            tuntapTransfer.OnSetupSuccess += () =>{ AddForward(); tuntapConfigTransfer.SetRunning(true); };
             tuntapTransfer.OnShutdownBefore += () => { tuntapDecenter.Refresh(); };
             tuntapTransfer.OnShutdownAfter += () => { tuntapDecenter.Refresh(); };
             tuntapTransfer.OnShutdownSuccess += () => { DeleteForward(); tuntapConfigTransfer.SetRunning(false); };
 
             //配置有更新，去同步一下
-            tuntapConfigTransfer.OnUpdate += () =>
-            {
-                _ = CheckDevice();
-                tuntapDecenter.Refresh();
-            };
+            tuntapConfigTransfer.OnUpdate += () => { _ = CheckDevice();  tuntapDecenter.Refresh(); };
 
             //收到新的信息，添加一下路由
             tuntapDecenter.OnChangeAfter += AddRoute;
