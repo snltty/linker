@@ -205,14 +205,27 @@ namespace linker.messenger.forward
         private readonly OperatingManager testing = new OperatingManager();
         public void SubscribeTest()
         {
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            {
+                LoggerHelper.Instance.Debug($"forward test client");
+            }
             if (testing.StartOperation() == false)
             {
                 return;
             }
 
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            {
+                LoggerHelper.Instance.Debug($"forward test client start");
+            }
+
             IEnumerable<Task<bool>> tasks = Get().Select(Connect);
             Task.WhenAll(tasks).ContinueWith((result) =>
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Debug($"forward test client finsh");
+                }
                 testing.StopOperation();
                 OnChanged();
             });

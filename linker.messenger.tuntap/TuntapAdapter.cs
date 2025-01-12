@@ -85,9 +85,15 @@ namespace linker.messenger.tuntap
         }
         private async Task CheckDevice()
         {
-            bool restart =
-               (tuntapConfigTransfer.Version.Eq(configVersion, out ulong _version) == false || await tuntapTransfer.CheckAvailable() == false)
-               && tuntapConfigTransfer.Running && tuntapTransfer.Status != TuntapStatus.Operating;
+           
+            bool version = tuntapConfigTransfer.Version.Eq(configVersion, out ulong _version);
+            bool available = await tuntapTransfer.CheckAvailable();
+
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            {
+                LoggerHelper.Instance.Debug($"tuntap device check, version eq:{version},available:{available},running:{tuntapConfigTransfer.Running},status:{tuntapTransfer.Status}");
+            }
+            bool restart =  (version == false || available == false) && tuntapConfigTransfer.Running && tuntapTransfer.Status != TuntapStatus.Operating;
             if (restart)
             {
                 LoggerHelper.Instance.Warning($"tuntap config version changed, restarting device");
