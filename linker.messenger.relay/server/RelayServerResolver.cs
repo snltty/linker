@@ -197,6 +197,7 @@ namespace linker.messenger.relay.server
             //总速度
             if (relayServerNodeTransfer.NeedLimit())
             {
+                LoggerHelper.Instance.Warning($"total limit");
                 int length = bytesRead;
                 relayServerNodeTransfer.TryLimit(ref length);
                 while (length > 0)
@@ -208,6 +209,7 @@ namespace linker.messenger.relay.server
             //单个速度
             if (limit.NeedLimit())
             {
+                LoggerHelper.Instance.Warning($"limit");
                 int length = bytesRead;
                 limit.TryLimit(ref length);
                 while (length > 0)
