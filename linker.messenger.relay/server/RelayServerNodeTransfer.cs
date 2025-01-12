@@ -181,6 +181,10 @@ namespace linker.messenger.relay.server
         {
             TimerHelper.SetInterval(async () =>
             {
+                if(LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Debug($"relay report : {relayServerNodeStore.Node.ToJson()}");
+                }
                 ResetBytes();
                 IEnumerable<RelayServerNodeInfo> nodes = new List<RelayServerNodeInfo>
                 {
@@ -238,10 +242,15 @@ namespace linker.messenger.relay.server
 
                         using UdpClient udpClient = new UdpClient(AddressFamily.InterNetwork);
                         udpClient.Client.WindowsUdpBug();
+
                         await udpClient.SendAsync(data, ep);
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        {
+                            LoggerHelper.Instance.Debug($"relay report : {ex}");
+                        }
                     }
                 }
                 return true;

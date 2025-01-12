@@ -202,7 +202,7 @@ namespace linker.tun
 
         private void Read()
         {
-            TimerHelper.Async(async () =>
+            TimerHelper.AsyncLong(async () =>
             {
                 cancellationTokenSource = new CancellationTokenSource();
                 while (cancellationTokenSource.IsCancellationRequested == false)

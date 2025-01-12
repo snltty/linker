@@ -97,7 +97,7 @@ namespace linker.messenger.forward
                 await sender.SendOnly(new MessageRequestWrap
                 {
                     Connection = cacheTo.Connection,
-                    MessengerId = (ushort)ForwardMessengerIds.TestClientForward
+                    MessengerId = (ushort)ForwardMessengerIds.TestClient
                 });
             }
         }

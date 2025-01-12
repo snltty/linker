@@ -11,13 +11,16 @@ using linker.messenger.pcp;
 
 namespace linker.messenger.tuntap
 {
+    public interface ITuntapProxyCallback
+    {
+        public ValueTask Close(ITunnelConnection connection);
+        public ValueTask Receive(ITunnelConnection connection,ReadOnlyMemory<byte> packet);
+        public ValueTask NotFound(uint ip);
+    }
+
     public sealed class TuntapProxy : linker.messenger.channel.Channel, ITunnelConnectionReceiveCallback
     {
-
-        public Func<ITunnelConnection, Task> OnTunnelClose { get; set; } = async (connection) => { await Task.CompletedTask; };
-        public Func<ITunnelConnection, ReadOnlyMemory<byte>, Task> OnReceivePacket { get; set; } = async (connection, packet) => { await Task.CompletedTask; };
-        public Action<uint> OnIPNotFound { get; set; } = (ip) => { };
-
+        public ITuntapProxyCallback Callback { get; set; }
 
         private uint[] maskValues = Array.Empty<uint>();
         private readonly ConcurrentDictionary<uint, string> ip2MachineDic = new ConcurrentDictionary<uint, string>();
@@ -54,16 +57,7 @@ namespace linker.messenger.tuntap
         /// <returns></returns>
         public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer, object state)
         {
-            /*
-            var bytes = new byte[buffer.Length + 4];
-            buffer.CopyTo(bytes.AsMemory(4));
-
-            LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
-            packet.Unpacket(bytes);
-
-            Console.WriteLine($"Receive {packet.Dist}");
-            */
-            await OnReceivePacket(connection, buffer).ConfigureAwait(false);
+            await Callback.Receive(connection, buffer).ConfigureAwait(false);
         }
         /// <summary>
         /// 隧道关闭
@@ -73,7 +67,7 @@ namespace linker.messenger.tuntap
         /// <returns></returns>
         public async Task Closed(ITunnelConnection connection, object state)
         {
-            await OnTunnelClose(connection).ConfigureAwait(false);
+            await Callback.Close(connection).ConfigureAwait(false);
             Version.Add();
         }
 
@@ -150,7 +144,7 @@ namespace linker.messenger.tuntap
             if (ipRefreshCache.Contains(ip) == false)
             {
                 ipRefreshCache.Add(ip);
-                OnIPNotFound(ip);
+                await Callback.NotFound(ip).ConfigureAwait(false);
             }
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {

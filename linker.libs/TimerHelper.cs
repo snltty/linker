@@ -64,5 +64,9 @@ namespace linker.libs
         {
             Task.Run(action);
         }
+        public static void AsyncLong(Func<Task> action)
+        {
+            Task.Factory.StartNew(action,TaskCreationOptions.LongRunning);
+        }
     }
 }
