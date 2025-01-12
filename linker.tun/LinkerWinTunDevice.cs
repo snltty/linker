@@ -42,7 +42,6 @@ namespace linker.tun
                 error = ($"Adapter already exists");
                 return false;
             }
-
             adapter = WinTun.WintunCreateAdapter(name, name, ref guid);
             if (adapter == 0)
             {
@@ -58,7 +57,6 @@ namespace linker.tun
                 Shutdown();
                 return false;
             }
-
             waitHandle = WinTun.WintunGetReadWaitEvent(session);
 
             for (int i = 0; i < 5; i++)
@@ -77,7 +75,6 @@ namespace linker.tun
                     Thread.Sleep(1000);
                 }
             }
-
             error = ($"Failed to set adapter ip {Marshal.GetLastWin32Error()}");
             Shutdown();
             return false;
@@ -213,7 +210,8 @@ namespace linker.tun
             {
                 return $"netsh interface portproxy add v4tov4 listenaddress={c.ListenAddr} listenport={c.ListenPort} connectaddress={c.ConnectAddr} connectport={c.ConnectPort}";
             }).ToArray();
-            CommandHelper.Windows(string.Empty, commands);
+            if (commands.Length > 0)
+                CommandHelper.Windows(string.Empty, commands);
         }
         public void RemoveForward(List<LinkerTunDeviceForwardItem> forwards)
         {
@@ -221,7 +219,8 @@ namespace linker.tun
             {
                 return $"netsh interface portproxy delete v4tov4 listenport={c.ListenPort} listenaddress={c.ListenAddr}";
             }).ToArray();
-            CommandHelper.Windows(string.Empty, commands);
+            if (commands.Length > 0)
+                CommandHelper.Windows(string.Empty, commands);
         }
 
 
@@ -416,7 +415,11 @@ namespace linker.tun
                 commands.AddRange(NetworkInterface.GetAllNetworkInterfaces()
                     .Where(c => c.Name != Name)
                     .Select(c => $"netsh interface ipv6 set interface \"{c.Name}\" metric={++metricv6}"));
-                CommandHelper.Windows(string.Empty, commands.ToArray());
+                commands.Add(string.Empty);
+                foreach (var command in commands)
+                {
+                    CommandHelper.Windows(string.Empty, [command]);
+                }
             }
         }
     }

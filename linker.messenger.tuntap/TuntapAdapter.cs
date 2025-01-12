@@ -8,7 +8,7 @@ using System.Net;
 
 namespace linker.messenger.tuntap
 {
-    public sealed class TuntapAdapter : ILinkerTunDeviceCallback,ITuntapProxyCallback
+    public sealed class TuntapAdapter : ILinkerTunDeviceCallback, ITuntapProxyCallback
     {
         private List<LinkerTunDeviceForwardItem> forwardItems = new List<LinkerTunDeviceForwardItem>();
         private LinkerTunDeviceRouteItem[] routeItems = new LinkerTunDeviceRouteItem[0];
@@ -38,13 +38,21 @@ namespace linker.messenger.tuntap
             //网卡状态发生变化，同步一下信息
             tuntapTransfer.OnSetupBefore += () => { tuntapDecenter.Refresh(); };
             tuntapTransfer.OnSetupAfter += () => { tuntapDecenter.Refresh(); };
-            tuntapTransfer.OnSetupSuccess += () => { AddForward(); tuntapConfigTransfer.SetRunning(true); };
+            tuntapTransfer.OnSetupSuccess += () =>
+            {
+                AddForward();
+                tuntapConfigTransfer.SetRunning(true);
+            };
             tuntapTransfer.OnShutdownBefore += () => { tuntapDecenter.Refresh(); };
             tuntapTransfer.OnShutdownAfter += () => { tuntapDecenter.Refresh(); };
             tuntapTransfer.OnShutdownSuccess += () => { DeleteForward(); tuntapConfigTransfer.SetRunning(false); };
 
             //配置有更新，去同步一下
-            tuntapConfigTransfer.OnUpdate += () => { _ = CheckDevice(); tuntapDecenter.Refresh(); };
+            tuntapConfigTransfer.OnUpdate += () =>
+            {
+                _ = CheckDevice();
+                tuntapDecenter.Refresh();
+            };
 
             //收到新的信息，添加一下路由
             tuntapDecenter.OnChangeAfter += AddRoute;
@@ -75,6 +83,7 @@ namespace linker.messenger.tuntap
         }
 
         private ulong configVersion = 0;
+        private OperatingManager checking = new OperatingManager();
         private void CheckDeviceTask()
         {
             TimerHelper.SetInterval(async () =>
@@ -85,21 +94,22 @@ namespace linker.messenger.tuntap
         }
         private async Task CheckDevice()
         {
-           
+            if (checking.StartOperation() == false) return;
+
             bool version = tuntapConfigTransfer.Version.Eq(configVersion, out ulong _version);
             bool available = await tuntapTransfer.CheckAvailable();
-
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
-                LoggerHelper.Instance.Debug($"tuntap device check, version eq:{version},available:{available},running:{tuntapConfigTransfer.Running},status:{tuntapTransfer.Status}");
+                LoggerHelper.Instance.Warning($"tuntap device check, version eq:{version},available:{available},running:{tuntapConfigTransfer.Running},status:{tuntapTransfer.Status}");
             }
-            bool restart =  (version == false || available == false) && tuntapConfigTransfer.Running && tuntapTransfer.Status != TuntapStatus.Operating;
+            bool restart = (version == false || available == false) && tuntapConfigTransfer.Running && tuntapTransfer.Status != TuntapStatus.Operating;
             if (restart)
             {
                 LoggerHelper.Instance.Warning($"tuntap config version changed, restarting device");
                 configVersion = _version;
                 await RetstartDevice();
             }
+            checking.StopOperation();
         }
 
         public async Task Callback(LinkerTunDevicPacket packet)
@@ -119,7 +129,7 @@ namespace linker.messenger.tuntap
             tuntapDecenter.Refresh();
             await ValueTask.CompletedTask;
         }
-        public async ValueTask Receive(ITunnelConnection connection,ReadOnlyMemory<byte> buffer)
+        public async ValueTask Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
         {
             tuntapTransfer.Write(buffer);
             await ValueTask.CompletedTask;

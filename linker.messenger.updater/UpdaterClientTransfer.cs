@@ -91,7 +91,8 @@ namespace linker.messenger.updater
 
         public void Check()
         {
-            LoggerHelper.Instance.Info($"check update");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Info($"check update");
             _ = updaterHelper.GetUpdateInfo(updateInfo);
         }
 

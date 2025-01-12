@@ -100,7 +100,7 @@ namespace linker.messenger.tuntap
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    LoggerHelper.Instance.Debug($"tuntap {NetworkHelper.Value2IP(ip)} connection not found");
+                    //LoggerHelper.Instance.Debug($"tuntap {NetworkHelper.Value2IP(ip)} connection not found");
                 }
 
                 _ = ConnectTunnel(ip).ContinueWith((result, state) =>
@@ -148,7 +148,7 @@ namespace linker.messenger.tuntap
             }
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
-                LoggerHelper.Instance.Debug($"tuntap {NetworkHelper.Value2IP(ip)} to machine not found");
+                //LoggerHelper.Instance.Debug($"tuntap {NetworkHelper.Value2IP(ip)} to machine not found");
             }
 
             return null;

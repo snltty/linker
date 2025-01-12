@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 namespace linker.libs
 {
@@ -9,6 +10,10 @@ namespace linker.libs
         public static string Windows(string arg, string[] commands)
         {
             return Execute("cmd.exe", arg, commands,out string error);
+        }
+        public static string Windows(string arg, string[] commands,out string error)
+        {
+            return Execute("cmd.exe", arg, commands, out error);
         }
         public static string PowerShell(string arg, string[] commands, out string error)
         {
@@ -70,6 +75,7 @@ namespace linker.libs
             proc.StandardInput.AutoFlush = true;
             proc.StandardInput.WriteLine("exit");
             proc.StandardInput.Close();
+
             error = proc.StandardError.ReadToEnd();
             string output = string.Empty;
             if (string.IsNullOrWhiteSpace(error))

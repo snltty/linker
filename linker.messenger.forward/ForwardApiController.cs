@@ -156,6 +156,7 @@ namespace linker.messenger.forward
         /// <returns></returns>
         public async Task<bool> Test(ApiControllerParamsInfo param)
         {
+            return true;
             if (param.Content == signInClientStore.Id)
             {
                 forwardTransfer.SubscribeTest();
