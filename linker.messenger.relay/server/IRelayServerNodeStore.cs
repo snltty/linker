@@ -64,8 +64,8 @@ namespace linker.messenger.relay.server
         }
         public string Host { get; set; } = string.Empty;
 
-        public int MaxConnection { get; set; } = 100;
-        public double MaxBandwidth { get; set; } = 1;
+        public int MaxConnection { get; set; }
+        public double MaxBandwidth { get; set; }
         public double MaxBandwidthTotal { get; set; }
         public double MaxGbTotal { get; set; }
         public ulong MaxGbTotalLastBytes { get; set; }

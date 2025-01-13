@@ -379,8 +379,14 @@ namespace linker.tun
         public async Task<bool> CheckAvailable()
         {
             InterfaceOrder();
-            NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == Name);
-            return networkInterface != null && networkInterface.OperationalStatus == OperationalStatus.Up && await InterfacePing();
+            NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == Name || c.Description == $"{Name} Tunnel" || c.Name.Contains(Name));
+
+            if (networkInterface == null)
+            {
+                return false;
+            }
+
+            return await InterfacePing();
 
             async Task<bool> InterfacePing()
             {
@@ -398,11 +404,18 @@ namespace linker.tun
         }
         private void InterfaceOrder()
         {
-            NetworkInterface linker = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == Name);
+            NetworkInterface linker = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == Name || c.Description == $"{Name} Tunnel" || c.Name.Contains(Name));
             NetworkInterface first = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault();
 
             if (linker != null && linker.Name != first.Name)
             {
+                UnicastIPAddressInformation firstIpv4 = linker.GetIPProperties().UnicastAddresses.FirstOrDefault(c => c.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
+                if (firstIpv4 == null || firstIpv4.Address == null || firstIpv4.Address.Equals(address) == false)
+                {
+                    return;
+                }
+
+
                 int metricv4 = 0;
                 int metricv6 = 0;
                 List<string> commands = new List<string> {

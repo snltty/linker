@@ -36,15 +36,49 @@ namespace linker.messenger.tuntap
             //初始化网卡
             tuntapTransfer.Init(tuntapConfigTransfer.DeviceName, this);
             //网卡状态发生变化，同步一下信息
-            tuntapTransfer.OnSetupBefore += () => { tuntapDecenter.Refresh(); };
-            tuntapTransfer.OnSetupAfter += () => { tuntapDecenter.Refresh(); };
-            tuntapTransfer.OnSetupSuccess += () =>{ AddForward(); tuntapConfigTransfer.SetRunning(true); };
-            tuntapTransfer.OnShutdownBefore += () => { tuntapDecenter.Refresh(); };
-            tuntapTransfer.OnShutdownAfter += () => { tuntapDecenter.Refresh(); };
-            tuntapTransfer.OnShutdownSuccess += () => { DeleteForward(); tuntapConfigTransfer.SetRunning(false); };
+            tuntapTransfer.OnSetupBefore += () =>
+            {
+                // LoggerHelper.Instance.Warning("tuntap setup before");
+                tuntapDecenter.Refresh();
+                //LoggerHelper.Instance.Warning("tuntap setup before 1");
+            };
+            tuntapTransfer.OnSetupAfter += () =>
+            {
+                // LoggerHelper.Instance.Warning("tuntap setup after");
+                tuntapDecenter.Refresh();
+                //LoggerHelper.Instance.Warning("tuntap setup after 1");
+            };
+            tuntapTransfer.OnSetupSuccess += () =>
+            {
+                // LoggerHelper.Instance.Warning("tuntap setup success");
+                AddForward();
+                // LoggerHelper.Instance.Warning("tuntap setup success 1");
+                tuntapConfigTransfer.SetRunning(true);
+                //LoggerHelper.Instance.Warning("tuntap setup success 2");
+            };
+            tuntapTransfer.OnShutdownBefore += () =>
+            {
+                //LoggerHelper.Instance.Warning("tuntap shutdown before");
+                tuntapDecenter.Refresh();
+                //LoggerHelper.Instance.Warning("tuntap shutdown before 1");
+            };
+            tuntapTransfer.OnShutdownAfter += () =>
+            {
+                // LoggerHelper.Instance.Warning("tuntap shutdown after");
+                tuntapDecenter.Refresh();
+                //LoggerHelper.Instance.Warning("tuntap shutdown after 1");
+            };
+            tuntapTransfer.OnShutdownSuccess += () =>
+            {
+                //LoggerHelper.Instance.Warning("tuntap shutdown success");
+                DeleteForward();
+                //LoggerHelper.Instance.Warning("tuntap shutdown success 1");
+                tuntapConfigTransfer.SetRunning(false);
+                //LoggerHelper.Instance.Warning("tuntap shutdown success 2");
+            };
 
             //配置有更新，去同步一下
-            tuntapConfigTransfer.OnUpdate += () => { _ = CheckDevice();  tuntapDecenter.Refresh(); };
+            tuntapConfigTransfer.OnUpdate += () => { _ = CheckDevice(); tuntapDecenter.Refresh(); };
 
             //收到新的信息，添加一下路由
             tuntapDecenter.OnChangeAfter += AddRoute;

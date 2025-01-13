@@ -149,39 +149,41 @@ namespace linker.messenger.relay.server
                 int bytesRead;
                 while ((bytesRead = await source.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false)) != 0)
                 {
-                    //流量限制
-                    if (relayServerNodeTransfer.AddBytes((ulong)bytesRead) == false)
+                    if (needLimit)
                     {
-                        source.SafeClose();
-                        break;
-                    }
-
-                    //总速度
-                    if (needLimit && relayServerNodeTransfer.NeedLimit())
-                    {
-                        int length = bytesRead;
-                        relayServerNodeTransfer.TryLimit(ref length);
-                        while (length > 0)
+                        //流量限制
+                        if (relayServerNodeTransfer.AddBytes((ulong)bytesRead) == false)
                         {
-                            await Task.Delay(30).ConfigureAwait(false);
+                            source.SafeClose();
+                            break;
+                        }
+
+                        //总速度
+                        if (relayServerNodeTransfer.NeedLimit())
+                        {
+                            int length = bytesRead;
                             relayServerNodeTransfer.TryLimit(ref length);
+                            while (length > 0)
+                            {
+                                await Task.Delay(30).ConfigureAwait(false);
+                                relayServerNodeTransfer.TryLimit(ref length);
+                            }
                         }
-                    }
-                    //单个速度
-                    if (needLimit && limit.NeedLimit())
-                    {
-                        int length = bytesRead;
-                        limit.TryLimit(ref length);
-                        while (length > 0)
+                        //单个速度
+                        if (limit.NeedLimit())
                         {
-                            await Task.Delay(30).ConfigureAwait(false);
+                            int length = bytesRead;
                             limit.TryLimit(ref length);
+                            while (length > 0)
+                            {
+                                await Task.Delay(30).ConfigureAwait(false);
+                                limit.TryLimit(ref length);
+                            }
                         }
                     }
-
                     AddReceive(cache.FromId, cache.FromName, cache.ToName, cache.GroupId, (ulong)bytesRead);
                     AddSendt(cache.FromId, cache.FromName, cache.ToName, cache.GroupId, (ulong)bytesRead);
-                    await destination.SendAsync(buffer.AsMemory(0, bytesRead),SocketFlags.None).ConfigureAwait(false);
+                    await destination.SendAsync(buffer.AsMemory(0, bytesRead), SocketFlags.None).ConfigureAwait(false);
                 }
             }
             catch (Exception)
