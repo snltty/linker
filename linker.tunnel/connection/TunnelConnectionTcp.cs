@@ -101,7 +101,7 @@ namespace linker.tunnel.connection
 
                         while (Socket.Available > 0)
                         {
-                            length = Socket.Receive(buffer, SocketFlags.None);
+                            length = Socket.Receive(buffer);
                             if (length == 0) break;
                             await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
                         }

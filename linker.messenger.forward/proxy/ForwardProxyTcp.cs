@@ -23,7 +23,7 @@ namespace linker.messenger.forward.proxy
         {
             IPEndPoint _localEndPoint = ep;
             socket = new Socket(_localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            //socket.IPv6Only(_localEndPoint.AddressFamily, false);
+            socket.IPv6Only(_localEndPoint.AddressFamily, false);
             socket.Bind(_localEndPoint);
             socket.Listen(int.MaxValue);
 

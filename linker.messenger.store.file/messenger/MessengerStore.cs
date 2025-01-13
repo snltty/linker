@@ -10,7 +10,7 @@ namespace linker.messenger.store.file.messenger
 
         private readonly FileConfig fileConfig;
 
-        private X509Certificate certificate;
+        private X509Certificate2 certificate;
         public MessengerStore(FileConfig fileConfig)
         {
             this.fileConfig = fileConfig;
@@ -20,7 +20,7 @@ namespace linker.messenger.store.file.messenger
             {
                 if (SSL.Password == "oeq9tw1o") SSL.Password = "snltty";
 
-                certificate = new X509Certificate(path, SSL.Password, X509KeyStorageFlags.Exportable);
+                certificate = new X509Certificate2(path, SSL.Password, X509KeyStorageFlags.Exportable);
             }
             else
             {

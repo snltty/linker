@@ -83,16 +83,14 @@ namespace linker.messenger.relay.server
                         case RelayMessengerType.Ask:
                             {
                                 //添加本地缓存
-                                RelayWrapInfo relayWrap = new RelayWrapInfo { Socket = socket, Tcs = new TaskCompletionSource<Socket>() };
+                                RelayWrapInfo relayWrap = new RelayWrapInfo { Socket = socket, Tcs = new TaskCompletionSource() };
                                 relayWrap.Limit.SetLimit(relayServerNodeTransfer.GetBandwidthLimit());
 
                                 relayDic.TryAdd(relayCache.FlowId, relayWrap);
 
                                 await socket.SendAsync(new byte[] { 0 });
-
                                 //等待对方连接
-                                Socket targetSocket = await relayWrap.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(15000));
-                                _ = CopyToAsync(relayCache, relayWrap.Limit, socket, targetSocket, relayMessage.NodeId != RelayServerNodeInfo.MASTER_NODE_ID);
+                                await relayWrap.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(15000));
                             }
                             break;
                         case RelayMessengerType.Answer:
@@ -105,9 +103,12 @@ namespace linker.messenger.relay.server
                                     socket.SafeClose();
                                     return;
                                 }
-                                //告诉发起端我的socket
-                                relayWrap.Tcs.SetResult(socket);
-                                _ = CopyToAsync(relayCache, relayWrap.Limit, socket, relayWrap.Socket, relayMessage.NodeId != RelayServerNodeInfo.MASTER_NODE_ID);
+                                relayWrap.Tcs.SetResult();
+
+                                await Task.WhenAll([
+                                     CopyToAsync(relayCache, relayWrap.Limit, socket, relayWrap.Socket, relayMessage.NodeId != RelayServerNodeInfo.MASTER_NODE_ID),
+                                     CopyToAsync(relayCache, relayWrap.Limit,relayWrap.Socket, socket,  relayMessage.NodeId != RelayServerNodeInfo.MASTER_NODE_ID),
+                                ]);
                             }
                             break;
                         default:
@@ -140,42 +141,49 @@ namespace linker.messenger.relay.server
                 ArrayPool<byte>.Shared.Return(buffer);
             }
         }
-        private async Task CopyToAsync(RelayCacheInfo cache, RelaySpeedLimit limit, Socket source, Socket destination,bool needLimit)
+        private async Task CopyToAsync(RelayCacheInfo cache, RelaySpeedLimit limit, Socket source, Socket destination, bool needLimit)
         {
             byte[] buffer = new byte[8 * 1024];
             try
             {
                 relayServerNodeTransfer.IncrementConnectionNum();
 
-                while (true)
+                int bytesRead;
+                while ((bytesRead = await source.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false)) != 0)
                 {
-                    int bytesRead = await source.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
-                    if (bytesRead == 0) break;
-
-                    bool controll =  await Controll(cache, limit, bytesRead, needLimit).ConfigureAwait(false);
-                    if (controll == false)
+                    //流量限制
+                    if (relayServerNodeTransfer.AddBytes((ulong)bytesRead) == false)
                     {
                         source.SafeClose();
                         break;
                     }
 
-                    await destination.SendAsync(buffer.AsMemory(0, bytesRead)).ConfigureAwait(false);
-                    
-                    while (source.Available > 0)
+                    //总速度
+                    if (needLimit && relayServerNodeTransfer.NeedLimit())
                     {
-                        bytesRead = source.Receive(buffer, buffer.Length, SocketFlags.None);
-                        if (bytesRead == 0) break;
-
-                        controll =  await Controll(cache, limit, bytesRead, needLimit).ConfigureAwait(false);
-                        if (controll == false)
+                        int length = bytesRead;
+                        relayServerNodeTransfer.TryLimit(ref length);
+                        while (length > 0)
                         {
-                            source.SafeClose();
-                            break;
+                            await Task.Delay(30).ConfigureAwait(false);
+                            relayServerNodeTransfer.TryLimit(ref length);
                         }
-
-                        await destination.SendAsync(buffer.AsMemory(0, bytesRead)).ConfigureAwait(false);
                     }
-                    
+                    //单个速度
+                    if (needLimit && limit.NeedLimit())
+                    {
+                        int length = bytesRead;
+                        limit.TryLimit(ref length);
+                        while (length > 0)
+                        {
+                            await Task.Delay(30).ConfigureAwait(false);
+                            limit.TryLimit(ref length);
+                        }
+                    }
+
+                    AddReceive(cache.FromId, cache.FromName, cache.ToName, cache.GroupId, (ulong)bytesRead);
+                    AddSendt(cache.FromId, cache.FromName, cache.ToName, cache.GroupId, (ulong)bytesRead);
+                    await destination.SendAsync(buffer.AsMemory(0, bytesRead),SocketFlags.None).ConfigureAwait(false);
                 }
             }
             catch (Exception)
@@ -184,45 +192,10 @@ namespace linker.messenger.relay.server
             finally
             {
                 relayServerNodeTransfer.DecrementConnectionNum();
+                source.SafeClose();
+                destination.SafeClose();
             }
         }
-        private async Task<bool> Controll(RelayCacheInfo cache, RelaySpeedLimit limit, int bytesRead, bool needLimit)
-        {
-            //流量限制
-            if (relayServerNodeTransfer.AddBytes((ulong)bytesRead) == false)
-            {
-                return false;
-            }
-
-            //总速度
-            if (needLimit && relayServerNodeTransfer.NeedLimit())
-            {
-                int length = bytesRead;
-                relayServerNodeTransfer.TryLimit(ref length);
-                while (length > 0)
-                {
-                    await Task.Delay(30).ConfigureAwait(false);
-                    relayServerNodeTransfer.TryLimit(ref length);
-                }
-            }
-            //单个速度
-            if (needLimit && limit.NeedLimit())
-            {
-                int length = bytesRead;
-                limit.TryLimit(ref length);
-                while (length > 0)
-                {
-                    await Task.Delay(30).ConfigureAwait(false);
-                    limit.TryLimit(ref length);
-                }
-            }
-
-            AddReceive(cache.FromId, cache.FromName, cache.ToName, cache.GroupId, (ulong)bytesRead);
-            AddSendt(cache.FromId, cache.FromName, cache.ToName, cache.GroupId, (ulong)bytesRead);
-
-            return true;
-        }
-
     }
 
 
@@ -287,7 +260,7 @@ namespace linker.messenger.relay.server
 
     public sealed class RelayWrapInfo
     {
-        public TaskCompletionSource<Socket> Tcs { get; set; }
+        public TaskCompletionSource Tcs { get; set; }
         public Socket Socket { get; set; }
         public RelaySpeedLimit Limit { get; set; } = new RelaySpeedLimit();
     }
