@@ -105,10 +105,8 @@ namespace linker.messenger.relay.server
                                 }
                                 relayWrap.Tcs.SetResult();
 
-                                await Task.WhenAll([
-                                     CopyToAsync(relayCache, relayWrap.Limit, socket, relayWrap.Socket, relayMessage.NodeId != RelayServerNodeInfo.MASTER_NODE_ID),
-                                     CopyToAsync(relayCache, relayWrap.Limit,relayWrap.Socket, socket,  relayMessage.NodeId != RelayServerNodeInfo.MASTER_NODE_ID),
-                                ]);
+                                _ = CopyToAsync(relayCache, relayWrap.Limit, socket, relayWrap.Socket, relayMessage.NodeId != RelayServerNodeInfo.MASTER_NODE_ID);
+                                _ = CopyToAsync(relayCache, relayWrap.Limit, relayWrap.Socket, socket, relayMessage.NodeId != RelayServerNodeInfo.MASTER_NODE_ID);
                             }
                             break;
                         default:
