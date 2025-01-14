@@ -296,7 +296,7 @@ jobs:
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
-          asset-path: ./linker/linker.service
+          asset-path: ./src/linker/linker.service
           target-path: /downloads/linker/linker.service
       - name: upload-install-oss
         id: upload-install-oss
@@ -306,5 +306,5 @@ jobs:
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
-          asset-path: ./linker/linker-install.sh
+          asset-path: ./src/linker/linker-install.sh
           target-path: /downloads/linker/linker-install.sh

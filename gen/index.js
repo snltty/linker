@@ -7,7 +7,7 @@ const parser = new xml2js.Parser();
 
 function readVersionDesc() {
     return new Promise((resolve, reject) => {
-        const fileContents = fs.readFileSync('../linker/linker.csproj', 'utf8');
+        const fileContents = fs.readFileSync('../src/linker/linker.csproj', 'utf8');
         parser.parseString(fileContents, (error, result) => {
             resolve(
                 { desc: result.Project.PropertyGroup[0].Description[0], version: result.Project.PropertyGroup[0].FileVersion[0] }
@@ -139,7 +139,7 @@ function writeUpload(data) {
             'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
             'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
             'bucket': 'ide-qbcode',
-            'asset-path': `./linker/linker.service`,
+            'asset-path': `./src/linker/linker.service`,
             'target-path': `/downloads/linker/linker.service`
         }
     });
@@ -152,7 +152,7 @@ function writeUpload(data) {
             'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
             'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
             'bucket': 'ide-qbcode',
-            'asset-path': `./linker/linker-install.sh`,
+            'asset-path': `./src/linker/linker-install.sh`,
             'target-path': `/downloads/linker/linker-install.sh`
         }
     });

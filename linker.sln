@@ -3,59 +3,59 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33110.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker", "linker\linker.csproj", "{267DE8BE-F91C-4CCB-9D58-D33FDA661126}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker", "src\linker\linker.csproj", "{267DE8BE-F91C-4CCB-9D58-D33FDA661126}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.libs", "linker.libs\linker.libs.csproj", "{00EECF97-99EB-4B12-AAEF-ED2363914275}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.libs", "src\linker.libs\linker.libs.csproj", "{00EECF97-99EB-4B12-AAEF-ED2363914275}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.tunnel", "linker.tunnel\linker.tunnel.csproj", "{AFADE8D6-AB00-456B-9F43-53BC95B7B608}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.tunnel", "src\linker.tunnel\linker.tunnel.csproj", "{AFADE8D6-AB00-456B-9F43-53BC95B7B608}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.tun", "linker.tun\linker.tun.csproj", "{0DE134E0-7CD8-4DCF-8D2A-325CEBE5895F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.tun", "src\linker.tun\linker.tun.csproj", "{0DE134E0-7CD8-4DCF-8D2A-325CEBE5895F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger", "linker.messenger\linker.messenger.csproj", "{2B0BFDBB-8C5F-4E47-8309-2A764C2567C2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger", "src\linker.messenger\linker.messenger.csproj", "{2B0BFDBB-8C5F-4E47-8309-2A764C2567C2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.signin", "linker.messenger.signin\linker.messenger.signin.csproj", "{5B1F4754-D1B6-426B-B310-8C21F26879D2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.signin", "src\linker.messenger.signin\linker.messenger.signin.csproj", "{5B1F4754-D1B6-426B-B310-8C21F26879D2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.tunnel", "linker.messenger.tunnel\linker.messenger.tunnel.csproj", "{92582A55-8BBF-4B82-892D-75CEC8969EAF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.tunnel", "src\linker.messenger.tunnel\linker.messenger.tunnel.csproj", "{92582A55-8BBF-4B82-892D-75CEC8969EAF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.relay", "linker.messenger.relay\linker.messenger.relay.csproj", "{90E99334-FBF6-423F-A636-89B1E71D8FEE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.relay", "src\linker.messenger.relay\linker.messenger.relay.csproj", "{90E99334-FBF6-423F-A636-89B1E71D8FEE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.decenter", "linker.messenger.decenter\linker.messenger.decenter.csproj", "{5FDD5CF7-6B10-4F3C-A2E2-D9E8F2A4E271}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.decenter", "src\linker.messenger.decenter\linker.messenger.decenter.csproj", "{5FDD5CF7-6B10-4F3C-A2E2-D9E8F2A4E271}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.entry", "linker.messenger.entry\linker.messenger.entry.csproj", "{AE6579B4-886A-4460-B058-516E67D84FBB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.entry", "src\linker.messenger.entry\linker.messenger.entry.csproj", "{AE6579B4-886A-4460-B058-516E67D84FBB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.api", "linker.messenger.api\linker.messenger.api.csproj", "{2678852B-FBAD-4D4F-941E-D90458D9398C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.api", "src\linker.messenger.api\linker.messenger.api.csproj", "{2678852B-FBAD-4D4F-941E-D90458D9398C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.sync", "linker.messenger.sync\linker.messenger.sync.csproj", "{4881D7B1-06A5-4845-8395-BC5530ABD7C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.sync", "src\linker.messenger.sync\linker.messenger.sync.csproj", "{4881D7B1-06A5-4845-8395-BC5530ABD7C3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.serializer.memorypack", "linker.messenger.serializer.memorypack\linker.messenger.serializer.memorypack.csproj", "{E99412D2-71DF-4A95-9CA1-EE1F0F26EBE0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.serializer.memorypack", "src\linker.messenger.serializer.memorypack\linker.messenger.serializer.memorypack.csproj", "{E99412D2-71DF-4A95-9CA1-EE1F0F26EBE0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.updater", "linker.messenger.updater\linker.messenger.updater.csproj", "{6DE82860-4C90-488F-9721-FB6CA3E5176B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.updater", "src\linker.messenger.updater\linker.messenger.updater.csproj", "{6DE82860-4C90-488F-9721-FB6CA3E5176B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.socks5", "linker.messenger.socks5\linker.messenger.socks5.csproj", "{668C9465-CAF9-4B4A-91C2-C221B5B04AD2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.socks5", "src\linker.messenger.socks5\linker.messenger.socks5.csproj", "{668C9465-CAF9-4B4A-91C2-C221B5B04AD2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.access", "linker.messenger.access\linker.messenger.access.csproj", "{2C076344-B58C-474C-96BF-2ECA63EB90FC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.access", "src\linker.messenger.access\linker.messenger.access.csproj", "{2C076344-B58C-474C-96BF-2ECA63EB90FC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.store.file", "linker.messenger.store.file\linker.messenger.store.file.csproj", "{B314CF79-2DFF-4A7F-AE86-326ECFD02BB6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.store.file", "src\linker.messenger.store.file\linker.messenger.store.file.csproj", "{B314CF79-2DFF-4A7F-AE86-326ECFD02BB6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.exroute", "linker.messenger.exroute\linker.messenger.exroute.csproj", "{091C723F-47AD-49AB-9373-9E49E1DD46C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.exroute", "src\linker.messenger.exroute\linker.messenger.exroute.csproj", "{091C723F-47AD-49AB-9373-9E49E1DD46C3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.channel", "linker.messenger.channel\linker.messenger.channel.csproj", "{9F0DC900-7B27-4C33-8B58-C09DDAF67802}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.channel", "src\linker.messenger.channel\linker.messenger.channel.csproj", "{9F0DC900-7B27-4C33-8B58-C09DDAF67802}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.action", "linker.messenger.action\linker.messenger.action.csproj", "{8B16725E-645D-41C8-BD04-C3D9F453BEF6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.action", "src\linker.messenger.action\linker.messenger.action.csproj", "{8B16725E-645D-41C8-BD04-C3D9F453BEF6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.listen", "linker.messenger.listen\linker.messenger.listen.csproj", "{4BD30072-9DFC-4D65-B6FB-DB9DDE3EFB30}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.listen", "src\linker.messenger.listen\linker.messenger.listen.csproj", "{4BD30072-9DFC-4D65-B6FB-DB9DDE3EFB30}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.pcp", "linker.messenger.pcp\linker.messenger.pcp.csproj", "{A73BB5AD-C3CA-41A2-B5F9-C06DE6F5CD5C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.pcp", "src\linker.messenger.pcp\linker.messenger.pcp.csproj", "{A73BB5AD-C3CA-41A2-B5F9-C06DE6F5CD5C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.sforward", "linker.messenger.sforward\linker.messenger.sforward.csproj", "{A108DE37-47F2-4BF6-AAA4-ADC014214943}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.sforward", "src\linker.messenger.sforward\linker.messenger.sforward.csproj", "{A108DE37-47F2-4BF6-AAA4-ADC014214943}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.logger", "linker.messenger.logger\linker.messenger.logger.csproj", "{765B5313-FFDB-41FF-A6B1-500C4017FD05}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.logger", "src\linker.messenger.logger\linker.messenger.logger.csproj", "{765B5313-FFDB-41FF-A6B1-500C4017FD05}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.forward", "linker.messenger.forward\linker.messenger.forward.csproj", "{87417384-655C-400F-895A-CD5BF6B866FD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.forward", "src\linker.messenger.forward\linker.messenger.forward.csproj", "{87417384-655C-400F-895A-CD5BF6B866FD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.flow", "linker.messenger.flow\linker.messenger.flow.csproj", "{9F40C7A2-15AC-4A2F-B2CD-15737BF9DB8C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.flow", "src\linker.messenger.flow\linker.messenger.flow.csproj", "{9F40C7A2-15AC-4A2F-B2CD-15737BF9DB8C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.tuntap", "linker.messenger.tuntap\linker.messenger.tuntap.csproj", "{172C6E79-B47C-49E0-9731-6C12CCA071F7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.tuntap", "src\linker.messenger.tuntap\linker.messenger.tuntap.csproj", "{172C6E79-B47C-49E0-9731-6C12CCA071F7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

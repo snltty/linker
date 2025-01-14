@@ -6,10 +6,10 @@ fs=('linker')
 ps=('musl' 'debian')
 rs=('x64' 'arm64' 'arm')
 
-cd linker.web 
+cd src/linker.web 
 npm install &&
 npm run build &&
-cd ../
+cd ../../
 
 for f in ${fs[@]} 
 do
@@ -22,14 +22,14 @@ do
             then
                 rr=linux-${r}
             fi
-			dotnet publish ./${f} -c release -f net8.0 -o ./public/publish/docker/linux-${p}-${r}/${f} -r ${rr}  -p:PublishSingleFile=true  --self-contained true  -p:TrimMode=partial -p:TieredPGO=true  -p:DebugType=none -p:EventSourceSupport=false -p:DebugSymbols=false -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true -p:MetricsSupport=false -p:StackTraceSupport=false -p:XmlResolverIsNetworkingEnabledByDefault=false
-			cp -rf linker/Dockerfile-${p} public/publish/docker/linux-${p}-${r}/${f}/Dockerfile-${p}
+			dotnet publish ./src/${f} -c release -f net8.0 -o ./public/publish/docker/linux-${p}-${r}/${f} -r ${rr}  -p:PublishSingleFile=true  --self-contained true  -p:TrimMode=partial -p:TieredPGO=true  -p:DebugType=none -p:EventSourceSupport=false -p:DebugSymbols=false -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true -p:MetricsSupport=false -p:StackTraceSupport=false -p:XmlResolverIsNetworkingEnabledByDefault=false
+			cp -rf src/linker/Dockerfile-${p} public/publish/docker/linux-${p}-${r}/${f}/Dockerfile-${p}
 			cp -rf public/extends/any/web public/publish/docker/linux-${p}-${r}/${f}/web
             mkdir -p public/publish/docker/linux-${p}-${r}/${f}/configs
             mkdir -p public/publish/docker/linux-${p}-${r}/${f}/logs
             if [ $p = "musl" ]
             then
-                cp -rf linker/libmsquic-musl-${r}.so public/publish/docker/linux-${p}-${r}/${f}/libmsquic.so
+                cp -rf src/linker/libmsquic-musl-${r}.so public/publish/docker/linux-${p}-${r}/${f}/libmsquic.so
             fi
 		done
 		cd public/publish/docker/linux-${p}-x64/${f}

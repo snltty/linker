@@ -2,7 +2,7 @@
 
 SET comment=%1
 
-cd linker.updater.gen
+cd gen
 node index.js
 cd ../
 
