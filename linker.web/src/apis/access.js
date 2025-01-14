@@ -9,3 +9,6 @@ export const setAccess = (data) => {
 export const refreshAccess = () => {
     return sendWebsocketMsg('access/refresh');
 }
+export const setApiPassword = (data) => {
+    return sendWebsocketMsg('access/SetApiPassword', data);
+}

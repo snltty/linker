@@ -10,6 +10,9 @@
         AccessUpdate = 3005,
         AccessUpdateForward = 3006,
 
+        SetApiPassword = 3007,
+        SetApiPasswordForward = 3008,
+
         Max = 3099
     }
 }

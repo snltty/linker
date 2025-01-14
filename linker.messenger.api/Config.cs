@@ -131,6 +131,11 @@
         [AccessDisplay("配置分组")]
         Group = (ulong)1 << 40,
 
+        [AccessDisplay("重置本机接口密码")]
+        SetApiPassword = (ulong)1 << 41,
+        [AccessDisplay("重置所有接口密码")]
+        SetApiPasswordOther = (ulong)1 << 42,
+
         Full = ulong.MaxValue >> 64 - 52,
     }
 
@@ -166,5 +171,18 @@
         /// 权限
         /// </summary>
         public AccessValue Access { get; set; }
+    }
+
+
+    public sealed partial class ApiPasswordUpdateInfo
+    {
+        /// <summary>
+        /// 设备
+        /// </summary>
+        public string MachineId { get; set; }
+        /// <summary>
+        /// 密码
+        /// </summary>
+        public string Password { get; set; }
     }
 }

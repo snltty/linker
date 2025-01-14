@@ -121,7 +121,7 @@ namespace linker.messenger.forward
             return await messengerSender.SendOnly(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
-                MessengerId = (ushort)ForwardMessengerIds.AddClientForward,
+                MessengerId = (ushort)ForwardMessengerIds.AddForward,
                 Payload = serializer.Serialize(info)
             });
         }
@@ -144,7 +144,7 @@ namespace linker.messenger.forward
             return await messengerSender.SendOnly(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
-                MessengerId = (ushort)ForwardMessengerIds.RemoveClientForward,
+                MessengerId = (ushort)ForwardMessengerIds.RemoveForward,
                 Payload = serializer.Serialize(info)
             });
         }
@@ -156,7 +156,6 @@ namespace linker.messenger.forward
         /// <returns></returns>
         public async Task<bool> Test(ApiControllerParamsInfo param)
         {
-            return true;
             if (param.Content == signInClientStore.Id)
             {
                 forwardTransfer.SubscribeTest();
@@ -165,7 +164,7 @@ namespace linker.messenger.forward
             await messengerSender.SendOnly(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
-                MessengerId = (ushort)ForwardMessengerIds.TestClientForward,
+                MessengerId = (ushort)ForwardMessengerIds.SubTestForward,
                 Payload = serializer.Serialize(param.Content)
             });
             return true;

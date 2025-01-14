@@ -13,6 +13,8 @@
                     <el-dropdown-item v-if="scope.row.showReboot && hasReboot" @click="handleExit(scope.row.MachineId,scope.row.MachineName)"><el-icon><SwitchButton /></el-icon> 重启</el-dropdown-item>
                     <el-dropdown-item v-if="scope.row.showDel && hasRemove" @click="handleDel(scope.row.MachineId,scope.row.MachineName)"><el-icon><Delete /></el-icon> 删除</el-dropdown-item>
                     <el-dropdown-item v-if="handleShowAccess(scope.row,accessList[scope.row.MachineId] || 0)" @click="handleAccess(scope.row)"><el-icon><Flag /></el-icon> 权限</el-dropdown-item>
+                    <el-dropdown-item v-if="scope.row.isSelf && hasApiPassword" @click="handleApiPassword(scope.row)"><el-icon><HelpFilled /></el-icon> 管理接口</el-dropdown-item>
+                    <el-dropdown-item v-else-if="hasApiPasswordOther" @click="handleApiPassword(scope.row)"><el-icon><HelpFilled /></el-icon> 管理接口</el-dropdown-item>
                 </el-dropdown-menu>
                 </template>
             </el-dropdown>
@@ -25,14 +27,15 @@
 import { signInDel } from '@/apis/signin';
 import { exit } from '@/apis/updater';
 import { injectGlobalData } from '@/provide';
-import { Delete,SwitchButton,ArrowDown, Flag } from '@element-plus/icons-vue'
-import { ElMessageBox } from 'element-plus';
+import { Delete,SwitchButton,ArrowDown, Flag,HelpFilled } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed } from 'vue';
 import { useAccess } from './access';
+import { setApiPassword } from '@/apis/access';
 
 export default {
     emits:['refresh','access'],
-    components:{Delete,SwitchButton,ArrowDown,Flag},
+    components:{Delete,SwitchButton,ArrowDown,Flag,HelpFilled},
     setup (props,{emit}) {
         
         const globalData = injectGlobalData();
@@ -44,6 +47,9 @@ export default {
         
         const hasReboot = computed(()=>globalData.value.hasAccess('Reboot')); 
         const hasRemove = computed(()=>globalData.value.hasAccess('Remove')); 
+
+        const hasApiPassword = computed(()=>globalData.value.hasAccess('SetApiPassword')); 
+        const hasApiPasswordOther = computed(()=>globalData.value.hasAccess('SetApiPasswordOther')); 
         
         
 
@@ -82,7 +88,25 @@ export default {
             emit('access',row);
         }
 
-        return {accessList,handleDel,handleExit,hasReboot,hasRemove,hasAccess,handleShowAccess,handleAccess}
+        const handleApiPassword = (row)=>{
+            ElMessageBox.prompt('输入新的管理接口密码', `重置【${row.MachineName}】的接口密码`, {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                inputPattern:/^[0-9a-zA-Z]{1,32}$/,
+                inputErrorMessage: '数字字母1-32位',
+            }).then(({ value }) => {
+                setApiPassword({machineId:row.MachineId,password:value}).then(()=>{
+                    ElMessage.success('操作成功，重启后生效~');
+                }).catch(()=>{
+                    ElMessage.error('操作失败~');
+                })
+            }).catch(() => {
+            })
+        }
+
+        return {accessList,handleDel,handleExit,hasReboot,hasRemove,hasAccess,handleShowAccess,handleAccess,
+            hasApiPassword,hasApiPasswordOther,handleApiPassword
+        }
     }
 }
 </script>

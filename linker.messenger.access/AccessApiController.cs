@@ -13,14 +13,18 @@ namespace linker.messenger.access
         private readonly AccessDecenter accessDecenter;
         private readonly ISignInClientStore signInClientStore;
         private readonly ISerializer serializer;
+        private readonly IAccessStore accessStore;
+        private readonly IApiStore apiStore;
 
-        public AccessApiController(IMessengerSender sender, SignInClientState signInClientState, AccessDecenter accessDecenter, ISignInClientStore signInClientStore, ISerializer serializer)
+        public AccessApiController(IMessengerSender sender, SignInClientState signInClientState, AccessDecenter accessDecenter, ISignInClientStore signInClientStore, ISerializer serializer, IAccessStore accessStore, IApiStore apiStore)
         {
             this.sender = sender;
             this.signInClientState = signInClientState;
             this.accessDecenter = accessDecenter;
             this.signInClientStore = signInClientStore;
             this.serializer = serializer;
+            this.accessStore = accessStore;
+            this.apiStore = apiStore;
         }
 
         public void Refresh(ApiControllerParamsInfo param)
@@ -60,6 +64,24 @@ namespace linker.messenger.access
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
 
+        public async Task<bool> SetApiPassword(ApiControllerParamsInfo param)
+        {
+            ApiPasswordUpdateInfo info = param.Content.DeJson<ApiPasswordUpdateInfo>();
+            if (info.MachineId == signInClientStore.Id)
+            {
+                if (accessStore.HasAccess(AccessValue.SetApiPassword) == false) return false;
+                apiStore.SetApiPassword(info.Password);
+                return true;
+            }
+            if (accessStore.HasAccess(AccessValue.SetApiPasswordOther) == false) return false;
+            MessageResponeInfo resp = await sender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)AccessMessengerIds.SetApiPasswordForward,
+                Payload = serializer.Serialize(info)
+            });
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
 
     }
 

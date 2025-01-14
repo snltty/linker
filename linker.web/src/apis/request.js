@@ -131,6 +131,9 @@ export const initWebsocket = (url = wsUrl, password = apiPassword) => {
     ws.onopen = onWebsocketOpen;
     ws.onclose = onWebsocketClose
     ws.onmessage = onWebsocketMsg;
+    ws.onerror = (err) => {
+        ElMessage.error({ message: 'api接口连接失败，请检查接口地址或密码', grouping: true });
+    };
 }
 export const closeWebsocket = () => {
     if (ws) {

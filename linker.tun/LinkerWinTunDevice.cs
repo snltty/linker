@@ -4,7 +4,6 @@ using Microsoft.Win32;
 using System.Buffers.Binary;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text.RegularExpressions;

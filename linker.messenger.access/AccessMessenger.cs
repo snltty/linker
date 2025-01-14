@@ -43,22 +43,49 @@ namespace linker.messenger.access
             }
         }
 
+        [MessengerId((ushort)AccessMessengerIds.SetApiPasswordForward)]
+        public void SetApiPasswordForward(IConnection connection)
+        {
+            ApiPasswordUpdateInfo info = serializer.Deserialize<ApiPasswordUpdateInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) && signCaching.TryGet(info.MachineId, out SignCacheInfo cache1) && cache1.GroupId == cache.GroupId)
+            {
+                sender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cache1.Connection,
+                    MessengerId = (ushort)AccessMessengerIds.SetApiPassword,
+                    Payload = serializer.Serialize(info.Password)
+                });
+                connection.Write(Helper.TrueArray);
+                return;
+            }
+            connection.Write(Helper.FalseArray);
+        }
+
     }
 
     public sealed class AccessClientMessenger : IMessenger
     {
         private readonly IAccessStore accessStore;
         private readonly ISerializer serializer;
-        public AccessClientMessenger(IAccessStore accessStore, ISerializer serializer)
+        private readonly IApiStore apiStore;
+        public AccessClientMessenger(IAccessStore accessStore, ISerializer serializer, IApiStore apiStore)
         {
             this.accessStore = accessStore;
             this.serializer = serializer;
+            this.apiStore = apiStore;
         }
         [MessengerId((ushort)AccessMessengerIds.AccessUpdate)]
         public void AccessUpdate(IConnection connection)
         {
             AccessUpdateInfo info = serializer.Deserialize<AccessUpdateInfo>(connection.ReceiveRequestWrap.Payload.Span);
             accessStore.SetAccess(info);
+            connection.Write(Helper.TrueArray);
+        }
+        [MessengerId((ushort)AccessMessengerIds.SetApiPassword)]
+        public void SetApiPassword(IConnection connection)
+        {
+            string password = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            apiStore.SetApiPassword(password);
             connection.Write(Helper.TrueArray);
         }
     }

@@ -266,4 +266,62 @@ namespace linker.messenger.serializer.memorypack
             value = wrapped.info;
         }
     }
+
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableForwardTestInfo
+    {
+        [MemoryPackIgnore]
+        public readonly ForwardTestInfo info;
+
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        IPEndPoint Target => info.Target;
+
+        [MemoryPackInclude]
+        string Msg => info.Msg;
+
+        [MemoryPackConstructor]
+        SerializableForwardTestInfo(IPEndPoint target, string msg)
+        {
+            this.info = new ForwardTestInfo
+            {
+                Target = target,
+                Msg = msg
+            };
+        }
+
+        public SerializableForwardTestInfo(ForwardTestInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class ForwardTestInfoFormatter : MemoryPackFormatter<ForwardTestInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ForwardTestInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableForwardTestInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref ForwardTestInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableForwardTestInfo>();
+            value = wrapped.info;
+        }
+    }
+
+
 }

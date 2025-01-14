@@ -38,44 +38,29 @@ namespace linker.messenger.tuntap
             //网卡状态发生变化，同步一下信息
             tuntapTransfer.OnSetupBefore += () =>
             {
-                // LoggerHelper.Instance.Warning("tuntap setup before");
                 tuntapDecenter.Refresh();
-                //LoggerHelper.Instance.Warning("tuntap setup before 1");
             };
             tuntapTransfer.OnSetupAfter += () =>
             {
-                // LoggerHelper.Instance.Warning("tuntap setup after");
                 tuntapDecenter.Refresh();
-                //LoggerHelper.Instance.Warning("tuntap setup after 1");
             };
             tuntapTransfer.OnSetupSuccess += () =>
             {
-                // LoggerHelper.Instance.Warning("tuntap setup success");
                 AddForward();
-                // LoggerHelper.Instance.Warning("tuntap setup success 1");
                 tuntapConfigTransfer.SetRunning(true);
-                //LoggerHelper.Instance.Warning("tuntap setup success 2");
-
             };
             tuntapTransfer.OnShutdownBefore += () =>
             {
-                //LoggerHelper.Instance.Warning("tuntap shutdown before");
                 tuntapDecenter.Refresh();
-                //LoggerHelper.Instance.Warning("tuntap shutdown before 1");
             };
             tuntapTransfer.OnShutdownAfter += () =>
             {
-                // LoggerHelper.Instance.Warning("tuntap shutdown after");
                 tuntapDecenter.Refresh();
-                //LoggerHelper.Instance.Warning("tuntap shutdown after 1");
+                tuntapConfigTransfer.SetRunning(false);
             };
             tuntapTransfer.OnShutdownSuccess += () =>
             {
-                //LoggerHelper.Instance.Warning("tuntap shutdown success");
                 DeleteForward();
-                //LoggerHelper.Instance.Warning("tuntap shutdown success 1");
-                tuntapConfigTransfer.SetRunning(false);
-                //LoggerHelper.Instance.Warning("tuntap shutdown success 2");
             };
 
             //配置有更新，去同步一下
@@ -122,12 +107,18 @@ namespace linker.messenger.tuntap
         private async Task CheckDevice()
         {
             //开始操作失败，或者网卡正在操作中，或者不需要运行
-            if (checking.StartOperation() == false || tuntapTransfer.Status == TuntapStatus.Operating || tuntapConfigTransfer.Running == false) return;
+            if (checking.StartOperation() == false || tuntapTransfer.Status == TuntapStatus.Operating || tuntapConfigTransfer.Running == false)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Warning($"tuntap check device continue :start:{checking.StartOperation()},status:{tuntapTransfer.Status},running:{tuntapConfigTransfer.Running}");
+                return;
+            }
 
             //配置发生变化，或者网卡不可用
             if (tuntapConfigTransfer.Version.Eq(configVersion, out ulong version) == false || await tuntapTransfer.CheckAvailable() == false)
             {
-                LoggerHelper.Instance.Warning($"tuntap config version changed, restarting device");
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Warning($"tuntap config version changed, restarting device");
                 configVersion = version;
                 await RetstartDevice();
             }

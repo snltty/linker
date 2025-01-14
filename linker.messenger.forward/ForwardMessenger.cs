@@ -51,8 +51,8 @@ namespace linker.messenger.forward
         /// 添加对端的记录
         /// </summary>
         /// <param name="connection"></param>
-        [MessengerId((ushort)ForwardMessengerIds.AddClientForward)]
-        public async Task AddClientForward(IConnection connection)
+        [MessengerId((ushort)ForwardMessengerIds.AddForward)]
+        public async Task AddForward(IConnection connection)
         {
             ForwardAddForwardInfo info = serializer.Deserialize<ForwardAddForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
@@ -61,7 +61,7 @@ namespace linker.messenger.forward
                 await sender.SendOnly(new MessageRequestWrap
                 {
                     Connection = cacheTo.Connection,
-                    MessengerId = (ushort)ForwardMessengerIds.AddClient,
+                    MessengerId = (ushort)ForwardMessengerIds.Add,
                     Payload = serializer.Serialize(info.Data)
                 });
             }
@@ -70,8 +70,8 @@ namespace linker.messenger.forward
         /// 删除对端的记录
         /// </summary>
         /// <param name="connection"></param>
-        [MessengerId((ushort)ForwardMessengerIds.RemoveClientForward)]
-        public async Task RemoveClientForward(IConnection connection)
+        [MessengerId((ushort)ForwardMessengerIds.RemoveForward)]
+        public async Task RemoveForward(IConnection connection)
         {
             ForwardRemoveForwardInfo info = serializer.Deserialize<ForwardRemoveForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
@@ -80,26 +80,71 @@ namespace linker.messenger.forward
                 await sender.SendOnly(new MessageRequestWrap
                 {
                     Connection = cacheTo.Connection,
-                    MessengerId = (ushort)ForwardMessengerIds.RemoveClient,
+                    MessengerId = (ushort)ForwardMessengerIds.Remove,
                     Payload = serializer.Serialize(info.Id)
                 });
             }
         }
 
 
-        [MessengerId((ushort)ForwardMessengerIds.TestClientForward)]
-        public async Task TestClientForward(IConnection connection)
+        [MessengerId((ushort)ForwardMessengerIds.SubTestForward)]
+        public async Task SubTestForward(IConnection connection)
         {
             string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(machineid, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
             {
-                uint requestid = connection.ReceiveRequestWrap.RequestId;
                 await sender.SendOnly(new MessageRequestWrap
                 {
                     Connection = cacheTo.Connection,
-                    MessengerId = (ushort)ForwardMessengerIds.TestClient
+                    MessengerId = (ushort)ForwardMessengerIds.SubTest
                 });
             }
+        }
+
+        [MessengerId((ushort)ForwardMessengerIds.TestForward)]
+        public void TestForward(IConnection connection)
+        {
+            Dictionary<string, List<ForwardTestInfo>> tests = serializer.Deserialize<Dictionary<string, List<ForwardTestInfo>>>(connection.ReceiveRequestWrap.Payload.Span);
+
+            var from = signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom);
+            uint requiestid = connection.ReceiveRequestWrap.RequestId;
+
+            var tasks = new List<TaskInfo>();
+            foreach (var item in tests)
+            {
+                if (signCaching.TryGet(item.Key, out SignCacheInfo cacheTo) && cacheFrom.GroupId == cacheTo.GroupId)
+                {
+                    tasks.Add(new TaskInfo
+                    {
+                        MachineId = item.Key,
+                        Task = sender.SendReply(new MessageRequestWrap
+                        {
+                            Connection = cacheTo.Connection,
+                            MessengerId = (ushort)ForwardMessengerIds.Test,
+                            Payload = serializer.Serialize(item.Value),
+                            Timeout = 3000
+                        })
+                    });
+                }
+            }
+            Task.WhenAll(tasks.Select(c => c.Task)).ContinueWith(async (result) =>
+            {
+                var dic = tasks.Where(c => c.Task.Result.Code == MessageResponeCodes.OK && c.Task.Result.Data.Length > 0)
+                 .ToDictionary(c => c.MachineId, d => serializer.Deserialize<List<ForwardTestInfo>>(d.Task.Result.Data.Span));
+
+                await sender.ReplyOnly(new MessageResponseWrap
+                {
+                    RequestId = requiestid,
+                    Connection = connection,
+                    Payload = serializer.Serialize(dic)
+                }, (ushort)ForwardMessengerIds.TestForward).ConfigureAwait(false);
+            });
+        }
+
+        sealed class TaskInfo
+        {
+            public string MachineId { get; set; }
+            public Task<MessageResponeInfo> Task { get; set; }
         }
 
     }
@@ -125,8 +170,8 @@ namespace linker.messenger.forward
         /// 添加
         /// </summary>
         /// <param name="connection"></param>
-        [MessengerId((ushort)ForwardMessengerIds.AddClient)]
-        public void AddClient(IConnection connection)
+        [MessengerId((ushort)ForwardMessengerIds.Add)]
+        public void Add(IConnection connection)
         {
             ForwardInfo info = serializer.Deserialize<ForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
             forwardTransfer.Add(info);
@@ -135,18 +180,47 @@ namespace linker.messenger.forward
         /// 删除
         /// </summary>
         /// <param name="connection"></param>
-        [MessengerId((ushort)ForwardMessengerIds.RemoveClient)]
-        public void RemoveClient(IConnection connection)
+        [MessengerId((ushort)ForwardMessengerIds.Remove)]
+        public void Remove(IConnection connection)
         {
             uint id = serializer.Deserialize<uint>(connection.ReceiveRequestWrap.Payload.Span);
             forwardTransfer.Remove(id);
         }
 
 
-        [MessengerId((ushort)ForwardMessengerIds.TestClient)]
-        public void TestClient(IConnection connection)
+        [MessengerId((ushort)ForwardMessengerIds.SubTest)]
+        public void SubTest(IConnection connection)
         {
             forwardTransfer.SubscribeTest();
+        }
+
+        [MessengerId((ushort)ForwardMessengerIds.Test)]
+        public void Test(IConnection connection)
+        {
+            var list = serializer.Deserialize<List<ForwardTestInfo>>(connection.ReceiveRequestWrap.Payload.Span);
+            uint requiestid = connection.ReceiveRequestWrap.RequestId;
+            forwardTransfer.Test(list).ContinueWith(async (result) =>
+            {
+                if (result.Result)
+                {
+                    await sender.ReplyOnly(new MessageResponseWrap
+                    {
+                        RequestId = requiestid,
+                        Connection = connection,
+                        Payload = serializer.Serialize(list)
+                    }, (ushort)ForwardMessengerIds.Test).ConfigureAwait(false);
+                }
+                else
+                {
+                    await sender.ReplyOnly(new MessageResponseWrap
+                    {
+                        RequestId = requiestid,
+                        Connection = connection,
+                        Payload = Helper.EmptyArray
+                    }, (ushort)ForwardMessengerIds.Test).ConfigureAwait(false);
+                }
+
+            });
         }
     }
 

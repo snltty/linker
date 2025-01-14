@@ -74,7 +74,7 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackConstructor]
         SerializableAccessInfo(string machineId, AccessValue access)
         {
-            var info = new AccessInfo {  MachineId= machineId, Access = access };
+            var info = new AccessInfo { MachineId = machineId, Access = access };
             this.info = info;
         }
 
@@ -109,4 +109,57 @@ namespace linker.messenger.serializer.memorypack
             value = wrapped.info;
         }
     }
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableApiPasswordUpdateInfo
+    {
+        [MemoryPackIgnore]
+        public readonly ApiPasswordUpdateInfo info;
+
+        [MemoryPackInclude]
+        string MachineId => info.MachineId;
+
+        [MemoryPackInclude]
+        string Password => info.Password;
+
+        [MemoryPackConstructor]
+        SerializableApiPasswordUpdateInfo(string machineid, string password)
+        {
+            var info = new ApiPasswordUpdateInfo { MachineId = machineid, Password = password };
+            this.info = info;
+        }
+
+        public SerializableApiPasswordUpdateInfo(ApiPasswordUpdateInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class ApiPasswordUpdateInfoFormatter : MemoryPackFormatter<ApiPasswordUpdateInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ApiPasswordUpdateInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableApiPasswordUpdateInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref ApiPasswordUpdateInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableApiPasswordUpdateInfo>();
+            value = wrapped.info;
+        }
+    }
+
 }

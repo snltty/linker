@@ -67,4 +67,9 @@ namespace linker.messenger.forward
         public string MachineId { get; set; }
         public int Count { get; set; }
     }
+    public sealed partial class ForwardTestInfo
+    {
+        public IPEndPoint Target { get; set; }
+        public string Msg { get; set; } = string.Empty;
+    }
 }

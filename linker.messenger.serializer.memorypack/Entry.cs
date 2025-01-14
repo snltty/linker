@@ -55,6 +55,8 @@ namespace linker.messenger.serializer.memorypack
 
             MemoryPackFormatterProvider.Register(new AccessUpdateInfoFormatter());
             MemoryPackFormatterProvider.Register(new AccessInfoFormatter());
+            MemoryPackFormatterProvider.Register(new ApiPasswordUpdateInfoFormatter());
+            
 
             MemoryPackFormatterProvider.Register(new Socks5LanInfoFormatter());
             MemoryPackFormatterProvider.Register(new Socks5InfoFormatter());
@@ -73,6 +75,8 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new ForwardAddForwardInfoFormatter());
             MemoryPackFormatterProvider.Register(new ForwardRemoveForwardInfoFormatter());
             MemoryPackFormatterProvider.Register(new ForwardCountInfoFormatter());
+            MemoryPackFormatterProvider.Register(new ForwardTestInfoFormatter());
+
 
             MemoryPackFormatterProvider.Register(new FlowItemInfoFormatter());
             MemoryPackFormatterProvider.Register(new FlowInfoFormatter());

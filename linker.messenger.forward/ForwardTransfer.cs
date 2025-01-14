@@ -17,16 +17,18 @@ namespace linker.messenger.forward
         private readonly SignInClientState signInClientState;
         private readonly IMessengerSender messengerSender;
         private readonly ISignInClientStore signInClientStore;
+        private readonly ISerializer serializer;
 
         private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
 
-        public ForwardTransfer(IForwardClientStore forwardClientStore, ForwardProxy forwardProxy, SignInClientState signInClientState, IMessengerSender messengerSender, ISignInClientStore signInClientStore)
+        public ForwardTransfer(IForwardClientStore forwardClientStore, ForwardProxy forwardProxy, SignInClientState signInClientState, IMessengerSender messengerSender, ISignInClientStore signInClientStore, ISerializer serializer)
         {
             this.forwardClientStore = forwardClientStore;
             this.forwardProxy = forwardProxy;
             this.signInClientState = signInClientState;
             this.messengerSender = messengerSender;
             this.signInClientStore = signInClientStore;
+            this.serializer = serializer;
 
             signInClientState.NetworkEnabledHandle += Reset;
         }
@@ -203,53 +205,75 @@ namespace linker.messenger.forward
         }
 
         private readonly OperatingManager testing = new OperatingManager();
-        public void SubscribeTest()
+        private readonly OperatingManager subing = new OperatingManager();
+        public async Task<bool> Test(List<ForwardTestInfo> list)
         {
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            {
-                LoggerHelper.Instance.Debug($"forward test client");
-            }
             if (testing.StartOperation() == false)
             {
-                return;
+                return false;
             }
 
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            {
-                LoggerHelper.Instance.Debug($"forward test client start");
-            }
+            await Task.WhenAll(list.Select(Connect));
+            testing.StopOperation();
+            return true;
 
-            IEnumerable<Task<bool>> tasks = Get().Select(Connect);
-            Task.WhenAll(tasks).ContinueWith((result) =>
+            async Task Connect(ForwardTestInfo info)
             {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Debug($"forward test client finsh");
-                }
-                testing.StopOperation();
-                OnChanged();
-            });
-
-            async Task<bool> Connect(ForwardInfo info)
-            {
-                Socket socket = new Socket(info.TargetEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                Socket socket = new Socket(info.Target.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 try
                 {
-                    await socket.ConnectAsync(info.TargetEP).WaitAsync(TimeSpan.FromMilliseconds(500));
-                    info.TargetMsg = string.Empty;
-                    return true;
+                    await socket.ConnectAsync(info.Target).WaitAsync(TimeSpan.FromMilliseconds(100));
+                    info.Msg = string.Empty;
                 }
                 catch (Exception ex)
                 {
-                    info.TargetMsg = ex.Message;
+                    info.Msg = ex.Message;
                 }
                 finally
                 {
                     socket.SafeClose();
                 }
-                return false;
             }
 
+        }
+        public void SubscribeTest()
+        {
+            if (subing.StartOperation() == false)
+            {
+                return;
+            }
+
+            var forwards = Get().GroupBy(c => c.MachineId).ToDictionary(c => c.Key, d => d.Select(d => new ForwardTestInfo { Target = d.TargetEP }).ToList());
+
+            messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)ForwardMessengerIds.TestForward,
+                Timeout = 5000,
+                Payload = serializer.Serialize(forwards)
+            }).ContinueWith((result) =>
+            {
+                subing.StopOperation();
+                if (result.Result.Code == MessageResponeCodes.OK)
+                {
+                    Dictionary<string, List<ForwardTestInfo>> tests = serializer.Deserialize<Dictionary<string, List<ForwardTestInfo>>>(result.Result.Data.Span);
+
+                    var list = Get();
+                    foreach (var item in tests)
+                    {
+                        foreach (var value in item.Value)
+                        {
+                            var forward = list.FirstOrDefault(c => c.MachineId == item.Key && c.TargetEP.Equals(value.Target));
+                            if (forward != null)
+                            {
+                                forward.TargetMsg = value.Msg;
+                            }
+                        }
+                    }
+
+                    OnChanged();
+                }
+            });
         }
 
     }
