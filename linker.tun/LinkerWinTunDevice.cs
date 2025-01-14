@@ -4,6 +4,7 @@ using Microsoft.Win32;
 using System.Buffers.Binary;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
@@ -68,6 +69,7 @@ namespace linker.tun
 
                     GetWindowsInterfaceNum();
                     tokenSource = new CancellationTokenSource();
+
                     return true;
                 }
                 catch (Exception)
@@ -386,20 +388,35 @@ namespace linker.tun
                 return false;
             }
 
+            UnicastIPAddressInformation firstIpv4 = networkInterface.GetIPProperties().UnicastAddresses.FirstOrDefault(c => c.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
+            if (firstIpv4 == null || firstIpv4.Address == null || firstIpv4.Address.Equals(address) == false)
+            {
+                return true;
+            }
+
             return await InterfacePing();
 
             async Task<bool> InterfacePing()
             {
-                try
+                for (int i = 0; i < 10; i++)
                 {
-                    using Ping ping = new Ping();
-                    PingReply pingReply = await ping.SendPingAsync(address, 100);
-                    return pingReply.Status == IPStatus.Success;
+                    try
+                    {
+                        using Ping ping = new Ping();
+                        PingReply pingReply = await ping.SendPingAsync(address, 30);
+                        if (pingReply.Status != IPStatus.TimedOut)
+                        {
+                            return pingReply.Status == IPStatus.Success;
+                        }
+                        LoggerHelper.Instance.Error($"ping {address} at {i}->TimedOut");
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerHelper.Instance.Error($"ping {address} at {i}->{ex}");
+                    }
+                    await Task.Delay(2000);
                 }
-                catch (Exception)
-                {
-                    return false;
-                }
+                return false;
             }
         }
         private void InterfaceOrder()

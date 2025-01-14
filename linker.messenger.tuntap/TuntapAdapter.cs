@@ -55,6 +55,7 @@ namespace linker.messenger.tuntap
                 // LoggerHelper.Instance.Warning("tuntap setup success 1");
                 tuntapConfigTransfer.SetRunning(true);
                 //LoggerHelper.Instance.Warning("tuntap setup success 2");
+
             };
             tuntapTransfer.OnShutdownBefore += () =>
             {
@@ -120,19 +121,14 @@ namespace linker.messenger.tuntap
         }
         private async Task CheckDevice()
         {
-            if (checking.StartOperation() == false) return;
+            //开始操作失败，或者网卡正在操作中，或者不需要运行
+            if (checking.StartOperation() == false || tuntapTransfer.Status == TuntapStatus.Operating || tuntapConfigTransfer.Running == false) return;
 
-            bool version = tuntapConfigTransfer.Version.Eq(configVersion, out ulong _version);
-            bool available = await tuntapTransfer.CheckAvailable();
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            {
-                LoggerHelper.Instance.Warning($"tuntap device check, version eq:{version},available:{available},running:{tuntapConfigTransfer.Running},status:{tuntapTransfer.Status}");
-            }
-            bool restart = (version == false || available == false) && tuntapConfigTransfer.Running && tuntapTransfer.Status != TuntapStatus.Operating;
-            if (restart)
+            //配置发生变化，或者网卡不可用
+            if (tuntapConfigTransfer.Version.Eq(configVersion, out ulong version) == false || await tuntapTransfer.CheckAvailable() == false)
             {
                 LoggerHelper.Instance.Warning($"tuntap config version changed, restarting device");
-                configVersion = _version;
+                configVersion = version;
                 await RetstartDevice();
             }
             checking.StopOperation();

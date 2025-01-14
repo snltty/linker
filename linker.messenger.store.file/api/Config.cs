@@ -1,6 +1,4 @@
-﻿using linker.libs;
-using linker.messenger.access;
-using linker.messenger.api;
+﻿using linker.messenger.api;
 using System.Reflection;
 
 namespace linker.messenger.store.file
