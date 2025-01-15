@@ -194,7 +194,7 @@ namespace linker.messenger.tuntap
 
             return infos
                 .Where(c => c.MachineId != signInClientStore.Id)
-                /*
+                
                 .Where(c =>
                 {
                     if (wan.Equals(c.Wan))
@@ -207,7 +207,7 @@ namespace linker.messenger.tuntap
                     }
                     return true;
                 })
-                */
+                
                 .OrderBy(c => c.IP, new IPAddressComparer()).OrderByDescending(c => c.Status)
                 .Select(c =>
                 {

@@ -1,7 +1,6 @@
 ﻿using linker.messenger.exroute;
 using linker.messenger.tunnel;
 using linker.tunnel.transport;
-using System.Linq;
 using System.Net;
 
 namespace linker.messenger.tuntap
@@ -32,7 +31,7 @@ namespace linker.messenger.tuntap
         public List<IPAddress> Get()
         {
             return new List<IPAddress> { tuntapConfigTransfer.IP }
-            .Concat(tuntapConfigTransfer.Info.Lans.Select(c=>c.IP)).ToList();
+            .Concat(tuntapConfigTransfer.Info.Lans.Where(c => c.Disabled == false).Select(c => c.IP)).ToList();
         }
     }
 }
