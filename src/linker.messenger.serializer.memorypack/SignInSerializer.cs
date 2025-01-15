@@ -454,14 +454,17 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string MachineId => info.MachineId;
 
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        IPEndPoint IP => info.IP;
+
         [MemoryPackInclude]
         string Msg => info.Msg;
 
 
         [MemoryPackConstructor]
-        SerializableSignInResponseInfo(bool status, string machineId, string msg)
+        SerializableSignInResponseInfo(bool status, string machineId, IPEndPoint ip, string msg)
         {
-            var info = new SignInResponseInfo { Status = status, MachineId = machineId, Msg = msg };
+            var info = new SignInResponseInfo { Status = status, IP = ip, MachineId = machineId, Msg = msg };
             this.info = info;
         }
 

@@ -18,7 +18,7 @@ namespace linker.messenger.signin
         private readonly ISignInClientStore signInClientStore;
         private readonly ISerializer serializer;
 
-        public SignInClientTransfer(SignInClientState clientSignInState, IMessengerSender messengerSender, IMessengerResolver messengerResolver, 
+        public SignInClientTransfer(SignInClientState clientSignInState, IMessengerSender messengerSender, IMessengerResolver messengerResolver,
             SignInArgsTransfer signInArgsTransfer, ISignInClientStore signInClientStore, ISerializer serializer)
         {
             this.clientSignInState = clientSignInState;
@@ -171,6 +171,7 @@ namespace linker.messenger.signin
             }
             clientSignInState.Connection.Id = signResp.MachineId;
             clientSignInState.Connection.Name = signInClientStore.Name;
+            clientSignInState.WanAddress = signResp.IP;
             signInClientStore.SetId(signResp.MachineId);
             return true;
         }

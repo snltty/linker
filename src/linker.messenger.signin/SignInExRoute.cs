@@ -12,7 +12,7 @@ namespace linker.messenger.signin
         }
         public List<IPAddress> Get()
         {
-            return new List<IPAddress> { signInClientState.Connection?.Address.Address ?? IPAddress.Any };
+            return new List<IPAddress> { signInClientState.Connection?.Address.Address ?? IPAddress.Any, signInClientState.WanAddress.Address };
         }
     }
 }

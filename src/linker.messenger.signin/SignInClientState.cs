@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Net;
+using System.Text.Json.Serialization;
 namespace linker.messenger.signin
 {
     /// <summary>
@@ -25,6 +26,8 @@ namespace linker.messenger.signin
         public bool Connected => Connection != null && Connection.Connected;
 
         public string Version { get; set; }
+
+        public IPEndPoint WanAddress { get; set; } = new IPEndPoint(IPAddress.Any, 0);
 
         private int networdkEnabledTimes = 0;
         [JsonIgnore]

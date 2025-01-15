@@ -12,6 +12,34 @@ using System.Threading.Tasks;
 
 namespace linker.libs
 {
+
+    public struct IPNetwork
+    {
+        public uint ip;
+        public uint prefix;
+
+        public IPNetwork(IPAddress ip, byte prefixLength)
+        {
+            this.ip = NetworkHelper.ToValue(ip);
+            this.prefix = NetworkHelper.ToPrefixValue(prefixLength);
+        }
+        public IPNetwork(uint ip, uint prefix)
+        {
+            this.ip = ip;
+            this.prefix = prefix;
+        }
+
+        public uint ToValue()
+        {
+            return NetworkHelper.ToNetworkValue(ip, prefix);
+        }
+
+        public bool Equals(IPNetwork other)
+        {
+            return  ToValue() == other.ToValue();
+        }
+    }
+
     public static class NetworkHelper
     {
 

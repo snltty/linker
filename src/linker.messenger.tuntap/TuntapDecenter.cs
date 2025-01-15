@@ -140,7 +140,7 @@ namespace linker.messenger.tuntap
                 IP = tuntapConfigTransfer.Info.IP,
                 Lans = tuntapConfigTransfer.Info.Lans.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false)
                 .Select(c => { c.Exists = false; return c; }).ToList(),
-                Wan = signInClientState.Connection?.Address.Address ?? IPAddress.Any,
+                Wan = signInClientState.WanAddress.Address,
                 PrefixLength = tuntapConfigTransfer.Info.PrefixLength,
                 MachineId = signInClientStore.Id,
                 Status = tuntapTransfer.Status,
@@ -190,7 +190,7 @@ namespace linker.messenger.tuntap
 
             HashSet<uint> hashSet = new HashSet<uint>();
 
-            IPAddress wan = signInClientState.Connection?.Address.Address ?? IPAddress.Any;
+            IPAddress wan = signInClientState.WanAddress.Address;
 
             return infos
                 .Where(c => c.MachineId != signInClientStore.Id)
