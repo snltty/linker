@@ -1,4 +1,4 @@
-﻿using System.Net;
+﻿using linker.tunnel.transport;
 
 namespace linker.messenger.tunnel
 {
@@ -7,6 +7,6 @@ namespace linker.messenger.tunnel
     /// </summary>
     public interface ITunnelClientExcludeIP
     {
-        public List<IPAddress> Get();
+        public List<TunnelExIPInfo> Get();
     }
 }

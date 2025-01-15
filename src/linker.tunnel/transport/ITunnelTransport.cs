@@ -162,7 +162,7 @@ namespace linker.tunnel.transport
         /// </summary>
         public byte Order { get; set; }
     }
-    
+
     public sealed partial class TunnelTransportInfo
     {
         /// <summary>
@@ -215,6 +215,12 @@ namespace linker.tunnel.transport
         public List<IPEndPoint> RemoteEndPoints { get; set; }
     }
 
+
+    public sealed class TunnelExIPInfo
+    {
+        public IPAddress IP { get; set; }
+        public byte PrefixLength { get; set; }
+    }
 
 
     public sealed class NetworkInfo

@@ -192,7 +192,7 @@ namespace linker.libs
             return Array.Empty<IPAddress>();
         }
 
-        public static byte PrefixValue2Length(uint ip)
+        public static byte ToPrefixLength(uint ip)
         {
             int maskLength = 32, i;
             for (i = 0; i < sizeof(uint) * 8; i++)
@@ -204,57 +204,57 @@ namespace linker.libs
             }
             return (byte)(maskLength - i);
         }
-        public static uint PrefixLength2Value(byte prefixLength)
+        public static uint ToPrefixValue(byte prefixLength)
         {
             //最多<<31 所以0需要单独计算
             if (prefixLength < 1) return 0;
             return 0xffffffff << (32 - prefixLength);
         }
-        public static IPAddress PrefixValue2IP(uint prefixIP)
-        {
-            return new IPAddress(BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(prefixIP)));
-        }
 
-        public static uint IP2Value(IPAddress ip)
+        public static uint ToValue(IPAddress ip)
         {
             return BinaryPrimitives.ReadUInt32BigEndian(ip.GetAddressBytes());
         }
-        public static IPAddress Value2IP(uint value)
+        public static IPAddress ToIP(uint value)
         {
             return new IPAddress(BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(value)));
         }
 
-        public static IPAddress NetworkIP2IP(IPAddress ip, uint prefixIP)
+        public static IPAddress ToNetworkIP(IPAddress ip, uint prefixIP)
         {
-            return NetworkValue2Ip(BinaryPrimitives.ReadUInt32BigEndian(ip.GetAddressBytes()), prefixIP);
+            return ToNetworkIP(BinaryPrimitives.ReadUInt32BigEndian(ip.GetAddressBytes()), prefixIP);
         }
-        public static uint NetworkIP2Value(IPAddress ip, uint prefixIP)
+        public static IPAddress ToNetworkIP(uint ip, uint prefixIP)
         {
-            return NetworkValue2Value(BinaryPrimitives.ReadUInt32BigEndian(ip.GetAddressBytes()), prefixIP);
+            return new IPAddress(BinaryPrimitives.ReverseEndianness(ToNetworkValue(ip, prefixIP)).ToBytes());
         }
-        public static IPAddress NetworkValue2Ip(uint ip, uint prefixIP)
+
+        public static uint ToNetworkValue(IPAddress ip, byte prefixLength)
         {
-            return new IPAddress(BinaryPrimitives.ReverseEndianness(ip & prefixIP).ToBytes());
+            return ToNetworkValue(ToValue(ip), ToPrefixValue(prefixLength));
         }
-        public static uint NetworkValue2Value(uint ip, uint prefixIP)
+        public static uint ToNetworkValue(uint ip, uint prefixIP)
         {
             return ip & prefixIP;
         }
-
-        public static uint BroadcastValue2Value(uint ip, uint prefixIP)
+        public static uint ToNetworkValue(uint ip, byte prefixLength)
+        {
+            return ToNetworkValue(ip, ToPrefixValue(prefixLength));
+        }
+        public static uint ToBroadcastValue(uint ip, uint prefixIP)
         {
             return ip | ~prefixIP;
         }
 
         public static IPAddress ToGatewayIP(IPAddress ip, byte prefixLength)
         {
-            uint network = BinaryPrimitives.ReadUInt32BigEndian(NetworkIP2IP(ip, NetworkHelper.PrefixLength2Value(prefixLength)).GetAddressBytes());
+            uint network = BinaryPrimitives.ReadUInt32BigEndian(ToNetworkIP(ip, NetworkHelper.ToPrefixValue(prefixLength)).GetAddressBytes());
             IPAddress gateway = new IPAddress(BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(network + 1)));
             return gateway;
         }
         public static IPAddress ToGatewayIP(uint ip, uint prefixIP)
         {
-            uint network = BinaryPrimitives.ReadUInt32BigEndian(NetworkValue2Ip(ip, prefixIP).GetAddressBytes());
+            uint network = BinaryPrimitives.ReadUInt32BigEndian(ToNetworkIP(ip, prefixIP).GetAddressBytes());
             IPAddress gateway = new IPAddress(BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(network + 1)));
             return gateway;
         }

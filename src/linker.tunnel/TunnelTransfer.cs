@@ -213,7 +213,7 @@ namespace linker.tunnel
                 foreach (TunnelTransportItemInfo transportItem in _transports.OrderBy(c => c.Order).Where(c => c.Disabled == false))
                 {
                     ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == transportItem.Name);
-                    
+
                     //找不到这个打洞协议，或者是不支持的协议
                     if (transport == null || (transport.ProtocolType & denyProtocols) == transport.ProtocolType)
                     {
@@ -392,10 +392,9 @@ namespace linker.tunnel
         {
             if (tunnelMessengerAdapter.ServerHost == null || string.IsNullOrWhiteSpace(tunnelMessengerAdapter.MachineId)) return null;
 
-            var excludeips = await tunnelMessengerAdapter.GetExcludeIps();
             NetworkInfo network = new NetworkInfo
             {
-                LocalIps = networkInfo.LocalIps.Where(c => excludeips.Contains(c) == false).ToArray(),
+                LocalIps = networkInfo.LocalIps,
                 RouteLevel = networkInfo.RouteLevel + tunnelMessengerAdapter.RouteLevelPlus,
                 MachineId = tunnelMessengerAdapter.MachineId
             };
@@ -468,6 +467,7 @@ namespace linker.tunnel
         {
             //要连接哪些IP
             List<IPEndPoint> eps = new List<IPEndPoint>();
+            var excludeips = tunnelMessengerAdapter.GetExcludeIps();
 
             //先尝试内网ipv4
             if (tunnelTransportInfo.Local.Remote.Address.Equals(tunnelTransportInfo.Remote.Remote.Address))
@@ -496,6 +496,11 @@ namespace linker.tunnel
             //本机的局域网ip和外网ip
             List<IPAddress> localLocalIps = tunnelTransportInfo.Local.LocalIps.Concat(new List<IPAddress> { tunnelTransportInfo.Local.Remote.Address }).ToList();
             eps = eps
+                .Where(c =>
+                {
+                    if (c.AddressFamily == AddressFamily.InterNetworkV6) return true;
+                    return excludeips.Any(d => NetworkHelper.ToNetworkValue(d.IP, d.PrefixLength) == NetworkHelper.ToNetworkValue(c.Address, d.PrefixLength)) == false;
+                })
                 //对方是V6，本机也得有V6
                 .Where(c => (c.AddressFamily == AddressFamily.InterNetworkV6 && hasV6) || c.AddressFamily == AddressFamily.InterNetwork)
                 //端口和本机端口一样，那不应该是换回地址

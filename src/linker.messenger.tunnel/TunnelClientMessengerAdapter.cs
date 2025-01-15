@@ -87,9 +87,9 @@ namespace linker.plugins.tunnel
             this.messengerStore = messengerStore;
         }
 
-        public async Task<List<IPAddress>> GetExcludeIps()
+        public List<TunnelExIPInfo> GetExcludeIps()
         {
-            return await Task.FromResult(excludeIPTransfer.Get());
+            return excludeIPTransfer.Get();
         }
 
         public async Task<List<TunnelTransportItemInfo>> GetTunnelTransports()

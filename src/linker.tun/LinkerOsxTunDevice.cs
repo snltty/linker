@@ -35,7 +35,7 @@ namespace linker.tun
             safeFileHandle = File.OpenHandle($"/dev/{Name}", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite, FileOptions.Asynchronous);
             fs = new FileStream(safeFileHandle, FileAccess.ReadWrite, 1500);
 
-            IPAddress network = NetworkHelper.NetworkIP2IP(address, NetworkHelper.PrefixLength2Value(prefixLength));
+            IPAddress network = NetworkHelper.ToNetworkIP(address, NetworkHelper.ToPrefixValue(prefixLength));
             CommandHelper.Osx(string.Empty, new string[] {
                 $"route delete -net {network}/{prefixLength} {address}",
                 $"ifconfig {Name} {address} {address} up",
@@ -55,7 +55,7 @@ namespace linker.tun
                 fs.Dispose();
                 fs = null;
             }
-            IPAddress network = NetworkHelper.NetworkIP2IP(address, NetworkHelper.PrefixLength2Value(this.prefixLength));
+            IPAddress network = NetworkHelper.ToNetworkIP(address, NetworkHelper.ToPrefixValue(this.prefixLength));
             CommandHelper.Osx(string.Empty, new string[] { $"route delete -net {network}/{prefixLength} {address}" });
         }
 
@@ -63,7 +63,7 @@ namespace linker.tun
         {
             string[] commands = ips.Select(item =>
             {
-                IPAddress _ip = NetworkHelper.NetworkIP2IP(item.Address, item.PrefixLength);
+                IPAddress _ip = NetworkHelper.ToNetworkIP(item.Address, item.PrefixLength);
                 return $"route add -net {_ip}/{item.PrefixLength} {ip}";
             }).ToArray();
             if (commands.Length > 0)
@@ -75,7 +75,7 @@ namespace linker.tun
         {
             string[] commands = ip.Select(item =>
             {
-                IPAddress _ip = NetworkHelper.NetworkIP2IP(item.Address, item.PrefixLength);
+                IPAddress _ip = NetworkHelper.ToNetworkIP(item.Address, item.PrefixLength);
                 return $"route delete -net {_ip}/{item.PrefixLength}";
             }).ToArray();
             if (commands.Length > 0)

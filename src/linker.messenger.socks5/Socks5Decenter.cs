@@ -140,7 +140,7 @@ namespace linker.messenger.socks5
         {
             //排除的IP，
             uint[] excludeIps = exRouteTransfer.Get().Concat(socks5Store.Lans.Select(c => c.IP))
-                .Select(NetworkHelper.IP2Value)
+                .Select(NetworkHelper.ToValue)
                 .ToArray();
 
             HashSet<uint> hashSet = new HashSet<uint>();
@@ -154,8 +154,8 @@ namespace linker.messenger.socks5
                 {
                     var lans = c.Lans.Where(c => c.Disabled == false && c.IP.Equals(IPAddress.Any) == false).Where(c =>
                     {
-                        uint ipInt = NetworkHelper.IP2Value(c.IP);
-                        uint maskValue = NetworkHelper.PrefixLength2Value(c.PrefixLength);
+                        uint ipInt = NetworkHelper.ToValue(c.IP);
+                        uint maskValue = NetworkHelper.ToPrefixValue(c.PrefixLength);
                         uint network = ipInt & maskValue;
                         c.Exists = excludeIps.Any(d => (d & maskValue) == network) || hashSet.Contains(network);
                         hashSet.Add(network);
@@ -180,9 +180,9 @@ namespace linker.messenger.socks5
         }
         private Socks5LanIPAddress ParseIPAddress(IPAddress ip, byte prefixLength, string machineid)
         {
-            uint ipInt = NetworkHelper.IP2Value(ip);
+            uint ipInt = NetworkHelper.ToValue(ip);
             //掩码十进制
-            uint maskValue = NetworkHelper.PrefixLength2Value(prefixLength);
+            uint maskValue = NetworkHelper.ToPrefixValue(prefixLength);
             return new Socks5LanIPAddress
             {
                 IPAddress = ipInt,

@@ -96,6 +96,7 @@ namespace linker.messenger.tuntap
         /// 局域网IP列表
         /// </summary>
         public List<TuntapLanInfo> Lans { get; set; } = new List<TuntapLanInfo>();
+        public IPAddress Wan { get; set; } = IPAddress.Any;
 
         /// <summary>
         /// 网卡安装错误

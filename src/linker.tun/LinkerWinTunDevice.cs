@@ -152,7 +152,7 @@ namespace linker.tun
             try
             {
                 CommandHelper.PowerShell($"start-service WinNat", [], out error);
-                IPAddress network = NetworkHelper.NetworkIP2IP(this.address, NetworkHelper.PrefixLength2Value(prefixLength));
+                IPAddress network = NetworkHelper.ToNetworkIP(this.address, NetworkHelper.ToPrefixValue(prefixLength));
                 CommandHelper.PowerShell($"New-NetNat -Name {Name} -InternalIPInterfaceAddressPrefix {network}/{prefixLength}", [], out error);
 
                 if (string.IsNullOrWhiteSpace(error) == false)
@@ -231,9 +231,9 @@ namespace linker.tun
             {
                 string[] commands = ips.Select(item =>
                 {
-                    uint maskValue = NetworkHelper.PrefixLength2Value(item.PrefixLength);
-                    IPAddress mask = NetworkHelper.PrefixValue2IP(maskValue);
-                    IPAddress _ip = NetworkHelper.NetworkIP2IP(item.Address, maskValue);
+                    uint maskValue = NetworkHelper.ToPrefixValue(item.PrefixLength);
+                    IPAddress mask = NetworkHelper.ToIP(maskValue);
+                    IPAddress _ip = NetworkHelper.ToNetworkIP(item.Address, maskValue);
 
                     return $"route add {_ip} mask {mask} {ip} metric 5 if {interfaceNumber}";
                 }).ToArray();
@@ -249,9 +249,9 @@ namespace linker.tun
         {
             string[] commands = ip.Select(item =>
             {
-                uint maskValue = NetworkHelper.PrefixLength2Value(item.PrefixLength);
-                IPAddress mask = NetworkHelper.PrefixValue2IP(maskValue);
-                IPAddress _ip = NetworkHelper.NetworkIP2IP(item.Address, maskValue);
+                uint maskValue = NetworkHelper.ToPrefixValue(item.PrefixLength);
+                IPAddress mask = NetworkHelper.ToIP(maskValue);
+                IPAddress _ip = NetworkHelper.ToNetworkIP(item.Address, maskValue);
                 return $"route delete {_ip}";
             }).ToArray();
             if (commands.Length > 0)

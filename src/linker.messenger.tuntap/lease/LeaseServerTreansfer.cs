@@ -57,8 +57,8 @@ namespace linker.messenger.tuntap.lease
                 uint oldIP = cache.IP;
                 uint oldPrefix = cache.PrefixValue;
 
-                cache.IP = NetworkHelper.IP2Value(info.IP);
-                cache.PrefixValue = NetworkHelper.PrefixLength2Value(info.PrefixLength);
+                cache.IP = NetworkHelper.ToValue(info.IP);
+                cache.PrefixValue = NetworkHelper.ToPrefixValue(info.PrefixLength);
 
                 //网络配置有变化，清理分配，让他们重新申请
                 if (oldIP != cache.IP || oldPrefix != cache.PrefixValue)
@@ -78,7 +78,7 @@ namespace linker.messenger.tuntap.lease
         {
             if (caches.TryGetValue(key, out LeaseCacheInfo cache))
             {
-                return new LeaseInfo { IP = NetworkHelper.Value2IP(cache.IP), PrefixLength = NetworkHelper.PrefixValue2Length(cache.PrefixValue) };
+                return new LeaseInfo { IP = NetworkHelper.ToIP(cache.IP), PrefixLength = NetworkHelper.ToPrefixLength(cache.PrefixValue) };
             }
             return new LeaseInfo { IP = IPAddress.Any, PrefixLength = 24 };
         }
@@ -99,15 +99,15 @@ namespace linker.messenger.tuntap.lease
                 return info;
             }
             cache.LastTime = DateTime.Now;
-            info.PrefixLength = NetworkHelper.PrefixValue2Length(cache.PrefixValue);
+            info.PrefixLength = NetworkHelper.ToPrefixLength(cache.PrefixValue);
 
 
             LeaseCacheUserInfo self = cache.Users.FirstOrDefault(c => c.Id == userId);
             //已有的
-            if (self != null && (info.IP.Equals(NetworkHelper.Value2IP(self.IP)) || info.IP.Equals(IPAddress.Any)))
+            if (self != null && (info.IP.Equals(NetworkHelper.ToIP(self.IP)) || info.IP.Equals(IPAddress.Any)))
             {
                 self.LastTime = DateTime.Now;
-                info.IP = NetworkHelper.Value2IP(self.IP);
+                info.IP = NetworkHelper.ToIP(self.IP);
                 return info;
             }
 
@@ -124,7 +124,7 @@ namespace linker.messenger.tuntap.lease
                 leaseServerStore.Update(cache);
                 leaseServerStore.Confirm();
 
-                info.IP = NetworkHelper.Value2IP(newIPValue);
+                info.IP = NetworkHelper.ToIP(newIPValue);
                 return info;
             }
         }
@@ -137,9 +137,9 @@ namespace linker.messenger.tuntap.lease
         /// <returns></returns>
         private uint StaticIP(string userId, IPAddress ip, LeaseCacheInfo cache)
         {
-            uint value = NetworkHelper.IP2Value(ip);
+            uint value = NetworkHelper.ToValue(ip);
             //网络号
-            uint networkValue = NetworkHelper.NetworkValue2Value(cache.IP, cache.PrefixValue);
+            uint networkValue = NetworkHelper.ToNetworkValue(cache.IP, cache.PrefixValue);
             //新的IP
             uint newIPValue = value & ~cache.PrefixValue | networkValue;
 
@@ -169,9 +169,9 @@ namespace linker.messenger.tuntap.lease
         private uint DynamicIP(string userId, LeaseCacheInfo cache)
         {
             //网络号
-            uint networkValue = NetworkHelper.NetworkValue2Value(cache.IP, cache.PrefixValue);
+            uint networkValue = NetworkHelper.ToNetworkValue(cache.IP, cache.PrefixValue);
             //广播
-            uint broadcastValue = NetworkHelper.BroadcastValue2Value(cache.IP, cache.PrefixValue);
+            uint broadcastValue = NetworkHelper.ToBroadcastValue(cache.IP, cache.PrefixValue);
             //第一个可用IP，一般第一个可用IP作为网关，所以+2
             uint firstIPValue = networkValue + 1 + 1;
             //最后一个可用IP，最后一个IP是广播地址，所以-1

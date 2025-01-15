@@ -54,7 +54,7 @@ namespace linker.tunnel
         /// 获取打洞排除IP
         /// </summary>
         /// <returns></returns>
-        public Task<List<IPAddress>> GetExcludeIps();
+        public List<TunnelExIPInfo> GetExcludeIps();
 
         /// <summary>
         /// 获取打洞协议列表

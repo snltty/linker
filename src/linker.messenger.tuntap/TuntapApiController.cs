@@ -183,17 +183,17 @@ namespace linker.messenger.tuntap
         {
             NetworkParamInfo info = param.Content.DeJson<NetworkParamInfo>();
 
-            uint ip = NetworkHelper.IP2Value(info.IP);
-            uint prefixValue = NetworkHelper.PrefixLength2Value(info.PrefixLength);
-            uint network = NetworkHelper.NetworkValue2Value(ip, prefixValue);
-            uint broadcast = NetworkHelper.BroadcastValue2Value(ip, prefixValue);
+            uint ip = NetworkHelper.ToValue(info.IP);
+            uint prefixValue = NetworkHelper.ToPrefixValue(info.PrefixLength);
+            uint network = NetworkHelper.ToNetworkValue(ip, prefixValue);
+            uint broadcast = NetworkHelper.ToBroadcastValue(ip, prefixValue);
             return new NetworkInfo
             {
-                Network = NetworkHelper.Value2IP(network),
-                Broadcast = NetworkHelper.Value2IP(broadcast),
+                Network = NetworkHelper.ToIP(network),
+                Broadcast = NetworkHelper.ToIP(broadcast),
                 Gateway = NetworkHelper.ToGatewayIP(ip, prefixValue),
-                Start = NetworkHelper.Value2IP(network + 2),
-                End = NetworkHelper.Value2IP(broadcast - 1),
+                Start = NetworkHelper.ToIP(network + 2),
+                End = NetworkHelper.ToIP(broadcast - 1),
                 Count = (int)(broadcast - network - 2),
             };
         }
