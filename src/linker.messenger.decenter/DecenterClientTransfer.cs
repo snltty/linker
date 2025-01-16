@@ -72,19 +72,22 @@ namespace linker.messenger.decenter
                             })
                         };
                     }).ToList();
-                    await Task.WhenAll(tasks.Select(c => c.Task));
-                    foreach (var task in tasks)
+                    if (tasks.Count > 0)
                     {
-                        if (task.Task.Result.Code == MessageResponeCodes.OK)
+                        await Task.WhenAll(tasks.Select(c => c.Task));
+                        foreach (var task in tasks)
                         {
-                            List<ReadOnlyMemory<byte>> list = serializer.Deserialize<List<ReadOnlyMemory<byte>>>(task.Task.Result.Data.Span);
-                            task.Decenter.SetData(list);
-                        }
-                        else
-                        {
-                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            if (task.Task.Result.Code == MessageResponeCodes.OK)
                             {
-                                LoggerHelper.Instance.Error($"decenter {task.Decenter.Name}->{task.Task.Result.Code}");
+                                List<ReadOnlyMemory<byte>> list = serializer.Deserialize<List<ReadOnlyMemory<byte>>>(task.Task.Result.Data.Span);
+                                task.Decenter.SetData(list);
+                            }
+                            else
+                            {
+                                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                {
+                                    LoggerHelper.Instance.Error($"decenter {task.Decenter.Name}->{task.Task.Result.Code}");
+                                }
                             }
                         }
                     }
@@ -97,7 +100,7 @@ namespace linker.messenger.decenter
                     }
                 }
                 return true;
-            }, () => 3000);
+            }, () => 300);
         }
 
         class DecenterSyncTaskInfo
