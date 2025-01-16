@@ -21,7 +21,7 @@ namespace linker.libs
             {
                 File.WriteAllText(localAppDataPath, Guid.NewGuid().ToString());
             }
-            string username = CommandHelper.Execute("whoami", string.Empty, [], out string error).TrimNewLineAndWhiteSapce().Trim();
+            string username = CommandHelper.Execute("whoami", string.Empty, [], out string error).TrimNewLineAndWhiteSapce();
             return $"{File.ReadAllText(localAppDataPath)}↓{username}↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
         }
         private static string GetSystemIdLinux()

@@ -63,23 +63,34 @@ namespace linker.messenger.tuntap
         }
         private async Task CheckDevice()
         {
-            //开始操作失败，或者网卡正在操作中，或者不需要运行
-            if (checking.StartOperation() == false || tuntapTransfer.Status == TuntapStatus.Operating || tuntapConfigTransfer.Running == false)
+            try
             {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Warning($"tuntap check device continue :start:{checking.StartOperation()},status:{tuntapTransfer.Status},running:{tuntapConfigTransfer.Running}");
-                return;
-            }
+                bool start = checking.StartOperation();
 
-            //配置发生变化，或者网卡不可用
-            if (tuntapConfigTransfer.Version.Eq(configVersion, out ulong version) == false || await tuntapTransfer.CheckAvailable() == false)
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Warning($"tuntap config version changed, restarting device");
-                configVersion = version;
-                await RetstartDevice();
+                //开始操作失败，或者网卡正在操作中，或者不需要运行
+                if (start == false || tuntapTransfer.Status == TuntapStatus.Operating || tuntapConfigTransfer.Running == false)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        LoggerHelper.Instance.Warning($"tuntap check device continue :start:{start},status:{tuntapTransfer.Status},running:{tuntapConfigTransfer.Running}");
+                    return;
+                }
+
+                //配置发生变化，或者网卡不可用
+                if (tuntapConfigTransfer.Version.Eq(configVersion, out ulong version) == false || await tuntapTransfer.CheckAvailable() == false)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        LoggerHelper.Instance.Warning($"tuntap config version changed, restarting device");
+                    configVersion = version;
+                    await RetstartDevice();
+                }
             }
-            checking.StopOperation();
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                checking.StopOperation();
+            }
         }
 
         public async Task Callback(LinkerTunDevicPacket packet)
