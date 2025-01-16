@@ -59,15 +59,13 @@ namespace linker.messenger.tuntap
                         return;
                     }
                     linkerTunDeviceAdapter.Setup(ip, prefixLength, 1400);
-                    if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.SetupError))
-                    {
-                        linkerTunDeviceAdapter.SetNat();
-                        OnSetupSuccess();
-                    }
-                    else
+                    if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.SetupError) == false)
                     {
                         LoggerHelper.Instance.Error(linkerTunDeviceAdapter.SetupError);
+                        return;
                     }
+                    linkerTunDeviceAdapter.SetNat();
+                    OnSetupSuccess();
                 }
                 catch (Exception ex)
                 {

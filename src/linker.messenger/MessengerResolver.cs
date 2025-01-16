@@ -74,7 +74,7 @@ namespace linker.messenger
             {
                 NetworkStream networkStream = new NetworkStream(socket, false);
                 SslStream sslStream = new SslStream(networkStream, true);
-                await sslStream.AuthenticateAsServerAsync(messengerStore.Certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false).ConfigureAwait(false);
+                await sslStream.AuthenticateAsServerAsync(messengerStore.Certificate, false, SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).ConfigureAwait(false);
                 IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
 
                 connection.BeginReceive(this, null, true);
@@ -131,7 +131,7 @@ namespace linker.messenger
                 await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
                 {
                     AllowRenegotiation = true,
-                    EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13
+                    EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls
                 }).ConfigureAwait(false);
                 IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
 

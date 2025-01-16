@@ -34,6 +34,7 @@
 	  <PackageReference Include="LiteDB" Version="5.0.17" />
 	</ItemGroup>
 	<ItemGroup>
+	  <ProjectReference Include="..\..\linker.messenger.serializer.aot\linker.messenger.serializer.aot.csproj" />
 	  <ProjectReference Include="..\linker.libs\linker.libs.csproj" />
 	  <ProjectReference Include="..\linker.messenger.access\linker.messenger.access.csproj" />
 	  <ProjectReference Include="..\linker.messenger.action\linker.messenger.action.csproj" />

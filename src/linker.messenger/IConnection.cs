@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace linker.messenger
 {
@@ -43,26 +44,32 @@ namespace linker.messenger
         /// <summary>
         /// 你的ssl流
         /// </summary>
+        [JsonIgnore]
         public SslStream SourceStream { get; }
         /// <summary>
         /// 你的socket
         /// </summary>
+        [JsonIgnore]
         public Socket SourceSocket { get; }
         /// <summary>
         /// 你的网络流
         /// </summary>
+        [JsonIgnore]
         public NetworkStream SourceNetworkStream { get; }
         /// <summary>
         /// 对方的网络流
         /// </summary>
+        [JsonIgnore]
         public SslStream TargetStream { get; set; }
         /// <summary>
         /// 对方的socket
         /// </summary>
+        [JsonIgnore]
         public Socket TargetSocket { get; set; }
         /// <summary>
         /// 对方的网络流
         /// </summary>
+        [JsonIgnore]
         public NetworkStream TargetNetworkStream { get; set; }
 
         /// <summary>
@@ -79,8 +86,11 @@ namespace linker.messenger
         public long ReceiveBytes { get; }
 
         #region 接收数据
+        [JsonIgnore]
         public MessageRequestWrap ReceiveRequestWrap { get; }
+        [JsonIgnore]
         public MessageResponseWrap ReceiveResponseWrap { get; }
+        [JsonIgnore]
         public ReadOnlyMemory<byte> ReceiveData { get; set; }
         #endregion
 
@@ -110,6 +120,7 @@ namespace linker.messenger
 
         #region 回复消息相关
 
+        [JsonIgnore]
         public Memory<byte> ResponseData { get; }
         public void Write(Memory<byte> data);
         public void Write(ulong num);

@@ -261,7 +261,7 @@ namespace linker.tunnel.transport
                     }
 
                     sslStream = new SslStream(new NetworkStream(socket, false), false);
-                    await sslStream.AuthenticateAsServerAsync(certificate, false, SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13, false).ConfigureAwait(false);
+                    await sslStream.AuthenticateAsServerAsync(certificate, false, SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).ConfigureAwait(false);
                 }
 
                 TunnelConnectionTcp result = new TunnelConnectionTcp
@@ -330,7 +330,7 @@ namespace linker.tunnel.transport
                     if (tunnelTransportInfo.SSL)
                     {
                         sslStream = new SslStream(new NetworkStream(targetSocket, false), false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
-                        await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 }).ConfigureAwait(false);
+                        await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls }).ConfigureAwait(false);
                     }
 
                     return new TunnelConnectionTcp

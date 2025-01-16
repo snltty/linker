@@ -73,14 +73,14 @@ namespace linker.messenger.tuntap
             });
         }
         /// <summary>
-        /// 刷新IP，会触发OnChanged事件
+        /// 刷新IP
         /// </summary>
         public void RefreshIP()
         {
             _ = RefreshIPASync();
         }
         /// <summary>
-        /// 刷新IP，不会触发OnChanged
+        /// 刷新IP
         /// </summary>
         /// <returns></returns>
         public async Task RefreshIPASync()

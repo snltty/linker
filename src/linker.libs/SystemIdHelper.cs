@@ -1,5 +1,6 @@
 ﻿using linker.libs.extends;
 using System;
+using System.IO;
 namespace linker.libs
 {
     public static class SystemIdHelper
@@ -11,25 +12,17 @@ namespace linker.libs
 
         private static string GetSystemIdWindows()
         {
-            try
+            string localAppDataPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "linker", "machine-id.txt");
+            if (Directory.Exists(Path.GetDirectoryName(localAppDataPath)) == false)
             {
-                string cpu = CommandHelper.Execute("wmic", "csproduct get UUID", [], out string error).TrimNewLineAndWhiteSapce().Split(Environment.NewLine)[1];
-                string username = CommandHelper.Execute("whoami", string.Empty, [], out error).TrimNewLineAndWhiteSapce().Trim();
-                return $"{cpu}↓{username}↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
+                Directory.CreateDirectory(Path.GetDirectoryName(localAppDataPath));
             }
-            catch (Exception)
+            if (File.Exists(localAppDataPath) == false)
             {
+                File.WriteAllText(localAppDataPath, Guid.NewGuid().ToString());
             }
-            try
-            {
-                string cpu = CommandHelper.Execute("powershell", "Get-WmiObject -Class Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID", [], out string error).TrimNewLineAndWhiteSapce().Split(Environment.NewLine)[0];
-                string username = CommandHelper.Execute("whoami", string.Empty, [], out error).TrimNewLineAndWhiteSapce().Trim();
-                return $"{cpu}↓{username}↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
-            }
-            catch (Exception)
-            {
-            }
-            return string.Empty;
+            string username = CommandHelper.Execute("whoami", string.Empty, [], out string error).TrimNewLineAndWhiteSapce().Trim();
+            return $"{File.ReadAllText(localAppDataPath)}↓{username}↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
         }
         private static string GetSystemIdLinux()
         {

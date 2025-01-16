@@ -32,12 +32,12 @@
                 </el-table-column>
                 <el-table-column property="BandwidthRatio" label="带宽速率" width="66">
                     <template #default="scope">
-                        <span>{{ scope.row.BandwidthRatio*100 }}%</span>
+                        <span>{{ (scope.row.BandwidthRatio*100).toFixed(2) }}%</span>
                     </template>
                 </el-table-column>
                 <el-table-column property="ConnectionRatio" label="连接数" width="60">
                     <template #default="scope">
-                        <span>{{ scope.row.ConnectionRatio*100 }}%</span>
+                        <span>{{ (scope.row.ConnectionRatio*100).toFixed(2) }}%</span>
                     </template>
                 </el-table-column>
                 <el-table-column property="Delay" label="延迟" width="60">

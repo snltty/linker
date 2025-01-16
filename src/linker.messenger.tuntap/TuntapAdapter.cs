@@ -35,32 +35,11 @@ namespace linker.messenger.tuntap
             //初始化网卡
             tuntapTransfer.Init(tuntapConfigTransfer.DeviceName, this);
             //网卡状态发生变化，同步一下信息
-            tuntapTransfer.OnSetupBefore += () =>
-            {
-                tuntapDecenter.Refresh();
-            };
-            tuntapTransfer.OnSetupAfter += () =>
-            {
-                tuntapDecenter.Refresh();
-            };
-            tuntapTransfer.OnSetupSuccess += () =>
-            {
-                AddForward();
-                tuntapConfigTransfer.SetRunning(true);
-            };
-            tuntapTransfer.OnShutdownBefore += () =>
-            {
-                tuntapDecenter.Refresh();
-            };
-            tuntapTransfer.OnShutdownAfter += () =>
-            {
-                tuntapDecenter.Refresh();
-                tuntapConfigTransfer.SetRunning(false);
-            };
-            tuntapTransfer.OnShutdownSuccess += () =>
-            {
-                DeleteForward();
-            };
+            tuntapTransfer.OnSetupBefore += tuntapDecenter.Refresh;
+            tuntapTransfer.OnSetupAfter += tuntapDecenter.Refresh;
+            tuntapTransfer.OnSetupSuccess += () => {  AddForward(); tuntapConfigTransfer.SetRunning(true);};
+            tuntapTransfer.OnShutdownBefore += tuntapDecenter.Refresh;
+            tuntapTransfer.OnShutdownAfter += () => {  tuntapDecenter.Refresh();  DeleteForward(); tuntapConfigTransfer.SetRunning(false);};
 
             //配置有更新，去同步一下
             tuntapConfigTransfer.OnUpdate += () => { _ = CheckDevice(); tuntapDecenter.Refresh(); };
