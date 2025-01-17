@@ -1,13 +1,13 @@
 <template>
     <div class="action-wrap">
         <el-card shadow="never">
-            <template #header>设置定义验证的静态Json参数</template>
+            <template #header>{{$t('action.text')}}</template>
             <div>
                 <el-input v-model="state.list" :rows="10" type="textarea" resize="none" @change="handleSave" />
             </div>
             <template #footer>
                 <div class="t-c">
-                    <el-button type="success" @click="handleSave">确定更改</el-button>
+                    <el-button type="success" @click="handleSave">{{$t('common.confirm')}}</el-button>
                 </div>
             </template>
         </el-card>
@@ -18,8 +18,10 @@ import { setArgs } from '@/apis/action';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { reactive } from 'vue'
+import { useI18n } from 'vue-i18n'
 export default {
     setup(props) {
+        const { t } = useI18n();
         const globalData = injectGlobalData();
         const state = reactive({
             list: globalData.value.config.Client.Action.Args[globalData.value.config.Client.Server.Host] || ''
@@ -27,20 +29,20 @@ export default {
         const handleSave = () => {
             try {
                 if (state.list && typeof (JSON.parse(state.list)) != 'object') {
-                    ElMessage.error('Json格式错误');
+                    ElMessage.error(t('action.jsonError'));
                     return;
                 }
             } catch (e) {
-                ElMessage.error('Json格式错误');
+                ElMessage.error(t('action.jsonError'));
                 return;
             }
             const json = JSON.parse(JSON.stringify(globalData.value.config.Client.Action.Args));
             json[globalData.value.config.Client.Server.Host] = state.list;
             setArgs(json).then(() => {
-                ElMessage.success('已操作');
+                ElMessage.success(t('common.oper'));
             }).catch((err) => {
                 console.log(err);
-                ElMessage.error('操作失败');
+                ElMessage.error(t('common.operFail'));
             });;
         }
 

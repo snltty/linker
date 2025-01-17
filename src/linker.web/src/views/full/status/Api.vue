@@ -1,10 +1,13 @@
 <template>
     <div v-if="config" class="status-api-wrap" :class="{connected:connected}">
-        <el-popconfirm confirm-button-text="清除" cancel-button-text="更改" title="确定你的操作？" @cancel="handleShow" @confirm="handleResetConnect" >
+        <el-popconfirm 
+        :confirm-button-text="$t('status.apiClear')" 
+        :cancel-button-text="$t('status.apiAlter')" 
+        :title="$t('status.apiAlterConfirm')" @cancel="handleShow" @confirm="handleResetConnect" >
             <template #reference>
-                <a href="javascript:;" title="此设备的管理接口">
+                <a href="javascript:;">
                     <el-icon size="16"><Tools /></el-icon>
-                    管理接口
+                    {{$t('status.api')}}
                 </a>
             </template>
         </el-popconfirm>

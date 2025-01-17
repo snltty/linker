@@ -32,6 +32,7 @@
 		<Version>1.6.5</Version>
 		<AssemblyVersion>1.6.5</AssemblyVersion>
 		<FileVersion>1.6.5</FileVersion>
+		<DelaySign>False</DelaySign>
 	</PropertyGroup>
 
 

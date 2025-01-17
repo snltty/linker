@@ -1,27 +1,27 @@
 <template>
     <div v-if="config && hasExport" class="status-export-wrap">
-        <a href="javascript:;" title="此设备的管理接口" @click="state.show = true">
+        <a href="javascript:;" :title="$t('status.export')" @click="state.show = true">
             <el-icon size="16"><Share /></el-icon>
-            导出配置
+            {{$t('status.export')}}
         </a>
-        <el-dialog class="options-center" title="导出配置" destroy-on-close v-model="state.show" center  width="580" top="1vh">
+        <el-dialog class="options-center" :title="$t('status.export')" destroy-on-close v-model="state.show" center  width="580" top="1vh">
             <div class="port-wrap">
                 <div class="text">
-                    导出配置，作为子设备运行，如果使用docker，容器映射configs文件夹即可
+                    {{$t('status.exportText')}}
                 </div>
                 <div class="body">
                     <el-card shadow="never">
                         <template #header>
                             <div class="card-header">
                                 <div class="flex">
-                                    <div title="这将生成唯一ID，多台设备使用产生冲突，挤压下线">
-                                        <el-checkbox :disabled="onlyNode" v-model="state.single" label="单设备" />
+                                    <div>
+                                        <el-checkbox :disabled="onlyNode" v-model="state.single" :label="$t('status.exportSingle')" />
                                     </div>
                                     <div style="margin-left: 2rem;">
-                                        <span>设备名 : </span><el-input :disabled="!state.single" v-model="state.name" maxlength="32" show-word-limit style="width:15rem"></el-input>
+                                        <span>{{$t('status.exportName')}} : </span><el-input :disabled="!state.single" v-model="state.name" maxlength="32" show-word-limit style="width:15rem"></el-input>
                                     </div>
                                     <div>
-                                        <span>管理密码 : </span><el-input type="password" show-password :disabled="onlyNode" v-model="state.apipassword" maxlength="36" show-word-limit style="width:15rem"></el-input>
+                                        <span>{{$t('status.exportApiPassword')}} : </span><el-input type="password" show-password :disabled="onlyNode" v-model="state.apipassword" maxlength="36" show-word-limit style="width:15rem"></el-input>
                                     </div>
                                 </div>
                             </div>
@@ -32,8 +32,8 @@
                 </div>
             </div>
             <template #footer>
-                <el-button plain @click="state.show = false" :loading="state.loading">取消</el-button>
-                <el-button type="success" plain @click="handleExport" :loading="state.loading">确定导出</el-button>
+                <el-button plain @click="state.show = false" :loading="state.loading">{{$t('common.cancel') }}</el-button>
+                <el-button type="success" plain @click="handleExport" :loading="state.loading">{{$t('common.confirm') }}</el-button>
             </template>
         </el-dialog>
     </div>
@@ -45,11 +45,13 @@ import { exportConfig } from '@/apis/config';
 import { ElMessage } from 'element-plus';
 import { injectGlobalData } from '@/provide';
 import Access from '@/views/full/devices/Access.vue'
+import { useI18n } from 'vue-i18n'
 export default {
     components:{Share,Access},
     props:['config'],
     setup(props) {
 
+        const { t } = useI18n();
         const globalData = injectGlobalData();
         const hasExport = computed(()=>globalData.value.hasAccess('Export')); 
         const onlyNode = computed(()=>globalData.value.config.Client.OnlyNode);
@@ -77,14 +79,14 @@ export default {
             
             if(json.single){
                 if(!json.name){
-                    ElMessage.error('请输入设备名');
+                    ElMessage.error(t('status.exportNamePlease'));
                     return;
                 }
             }else{
                 json.name = "";
             }
             if(json.single && !state.name){
-                ElMessage.error('请输入管理密码');
+                ElMessage.error(t('status.exportApiPasswordPlease'));
                 return;
             }
             return json;
@@ -113,10 +115,11 @@ export default {
             exportConfig(json).then(()=>{
                 state.loading = false;
                 state.show = false;
-                ElMessage.success('导出成功');
+                ElMessage.success(t('common.oper'));
 
                 download();
             }).catch(()=>{
+                ElMessage.error(t('common.operFail'));
                 state.loading = false;
             });
         }

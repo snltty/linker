@@ -3,13 +3,13 @@
         <p>
             <img src="@/assets/no-permission.svg" alt="">
         </p>
-        <h3>此地禁止通行</h3>
+        <h3>{{$t('permission.closed')}}</h3>
         <p class="flex" style="margin-top:1rem;font-size:1.4rem;">
-            <router-link :to="{name:'Network'}">简单管理</router-link>
+            <router-link :to="{name:'Network'}">{{$t('permission.simple')}}</router-link>
             <span style="padding:0 1rem"></span>
-            <router-link :to="{name:'Full'}">专业管理</router-link>
+            <router-link :to="{name:'Full'}">{{$t('permission.full')}}</router-link>
             <span style="padding:0 1rem"></span>
-            <a href="javascript:;" @click="handleResetConnect">清除连接</a>
+            <a href="javascript:;" @click="handleResetConnect">{{$t('permission.clear')}}</a>
         </p>
     </div>
 </template>

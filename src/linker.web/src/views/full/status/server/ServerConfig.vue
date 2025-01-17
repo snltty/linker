@@ -1,14 +1,14 @@
 <template>
-    <a href="javascript:;" :class="{connected:state.connected}" title="更改你的连接设置" @click="handleConfig">
-        <el-icon size="16"><Promotion /></el-icon> <span>信标服务器</span>
+    <a href="javascript:;" :class="{connected:state.connected}" :title="$t('status.messengerChange')" @click="handleConfig">
+        <el-icon size="16"><Promotion /></el-icon> <span>{{$t('status.messenger')}}</span>
     </a>
-    <el-dialog v-model="state.show" title="连接设置" width="300" append-to-body>
+    <el-dialog v-model="state.show" :title="$t('common.setting')" width="300" append-to-body>
         <div>
             <el-form :model="state.form" :rules="state.rules" label-width="6rem">
-                <el-form-item label="机器名" prop="name" v-if="hasRenameSelf">
+                <el-form-item :label="$t('status.messengerName')" prop="name" v-if="hasRenameSelf">
                     <el-input v-model="state.form.name" maxlength="32" show-word-limit />
                 </el-form-item>
-                <el-form-item label="分组名" prop="groupid" v-if="hasGroup">
+                <el-form-item :label="$t('status.messengerGroup')" prop="groupid" v-if="hasGroup">
                     <el-select v-model="state.groupid" @change="handleGroupChange">
                         <el-option v-for="item in state.form.groups" :key="item.Id" :label="item.Name" :value="item.Id"/>
                     </el-select>
@@ -17,8 +17,8 @@
         </div>
         <template #footer>
             <div class="dialog-footer t-c">
-                <el-button @click="state.show = false" :loading="state.loading">取消</el-button>
-                <el-button type="primary" @click="handleSave" :loading="state.loading">确定保存</el-button>
+                <el-button @click="state.show = false" :loading="state.loading">{{$t('common.cancel')}}</el-button>
+                <el-button type="primary" @click="handleSave" :loading="state.loading">{{$t('common.confirm')}}</el-button>
             </div>
         </template>
     </el-dialog>
@@ -29,11 +29,12 @@ import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { computed, reactive, ref } from 'vue';
 import {Promotion,CirclePlus} from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n';
 export default {
     components:{Promotion,CirclePlus},
     props:['config'],
     setup(props) {
-
+        const { t } = useI18n();
         const globalData = injectGlobalData();
         const hasRenameSelf = computed(()=>globalData.value.hasAccess('RenameSelf')); 
         const hasGroup = computed(()=>globalData.value.hasAccess('Group')); 
@@ -74,14 +75,14 @@ export default {
             setSignIn(state.form).then(() => {
                 state.loading = false;
                 state.show = false;
-                ElMessage.success('已操作');
+                ElMessage.success(t('common.oper'));
                 setTimeout(()=>{
                     window.location.reload();
                 },1000);
             }).catch((err) => {
                 console.log(err);
                 state.loading = false;
-                ElMessage.error('操作失败!');
+                ElMessage.error(t('common.operFail'));
             });
         }
         return {

@@ -1,19 +1,18 @@
 <template>
     <div class="status-wrap flex">
         <div class="copy">
-            <a href="javascript:;" class="memory" title="赞助一笔，让作者饱餐一顿" @click="state.showPay = true">
+            <a href="javascript:;" class="memory" :title="$t('status.support')" @click="state.showPay = true">
                 <img src="@/assets/coin.svg" alt="memory" />
-                <span>赞助</span>
+                <span>{{$t('status.support')}}</span>
             </a>
             <a href="https://github.com/snltty/linker" target="_blank">©linker {{ self.Version }}</a>
         </div>
-        
         <div class="flex-1"></div>
         <div class="export"><Export :config="config"></Export></div>
         <div class="api"><Api :config="config"></Api></div>
         <div class="server"><Server :config="config"></Server></div>
 
-        <el-dialog v-model="state.showPay" title="赞助linker" width="400">
+        <el-dialog v-model="state.showPay" :title="$t('status.support')" width="400">
             <div class="pay">
                 <img src="@/assets/qr.jpg" alt=""/>
             </div>
@@ -21,7 +20,7 @@
     </div>
 </template>
 <script>
-import { computed, reactive } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import Api from './Api.vue'
 import Server from './server/Index.vue'
 import Export from './Export.vue'
@@ -31,7 +30,6 @@ export default {
     components:{Api,Server,Export,UpdaterBtn},
     props:['config'],
     setup(props) {
-
         const globalData = injectGlobalData();
         const self = computed(()=>globalData.value.self); 
 

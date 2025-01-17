@@ -3,12 +3,12 @@
         <el-form-item label="" label-width="0">
             <el-row>
                 <el-col :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
-                    <el-form-item label="显示数量" prop="Size">
+                    <el-form-item :label="$t('logger.count')" prop="Size">
                         <el-input size="default" v-model="state.form.Size"></el-input>
                     </el-form-item>
                 </el-col>
                 <el-col :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
-                    <el-form-item label="日志等级" prop="LoggerType">
+                    <el-form-item :label="$t('logger.level')" prop="LoggerType">
                         <el-select v-model="state.form.LoggerType">
                             <el-option :value="0" label="debug"></el-option>
                             <el-option :value="1" label="info"></el-option>
@@ -22,7 +22,7 @@
         </el-form-item>
         <el-form-item label-width="0">
             <div class="t-c w-100">
-                <el-button type="primary" :loading="state.loading" @click="submit">确 定</el-button>
+                <el-button type="primary" :loading="state.loading" @click="submit">{{$t('common.confirm')}}</el-button>
             </div>
         </el-form-item>
     </el-form>

@@ -1,7 +1,7 @@
 <template>
     <div class="logger-setting-wrap flex flex-column h-100" ref="wrap">
         <el-tabs type="border-card">
-            <el-tab-pane label="主页" v-if="hasLogger">
+            <el-tab-pane :label="$t('logger.list')" v-if="hasLogger">
                 <div class="inner">
                     <div class="head flex">
                         <div>
@@ -14,20 +14,20 @@
                                 <el-option :value="4" label="fatal"></el-option>
                             </el-select>
                         </div>
-                        <el-button type="warning" size="small" :loading="state.loading" @click="clearData">清空</el-button>
-                        <el-button size="small" :loading="state.loading" @click="loadData">刷新列表</el-button>
+                        <el-button type="warning" size="small" :loading="state.loading" @click="clearData">{{$t('logger.clear')}}</el-button>
+                        <el-button size="small" :loading="state.loading" @click="loadData">{{$t('logger.refresh')}}</el-button>
                         <span class="flex-1"></span>
                     </div>
                     <div class="body flex-1 relative">
                         <el-table stripe border :data="state.page.List" size="small" :height="`${state.height}px`" @row-click="handleRowClick" :row-class-name="tableRowClassName">
                             <el-table-column type="index" width="50" />
-                            <el-table-column prop="Type" label="类别" width="80">
+                            <el-table-column prop="Type" :label="$t('logger.level')" width="80">
                                 <template #default="scope">
                                     <span>{{state.types[scope.row.Type]}} </span>
                                 </template>
                             </el-table-column>
-                            <el-table-column prop="Time" label="时间" width="160"></el-table-column>
-                            <el-table-column prop="content" label="内容"></el-table-column>
+                            <el-table-column prop="Time" :label="$t('logger.time')" width="160"></el-table-column>
+                            <el-table-column prop="content" :label="$t('logger.content')"></el-table-column>
                         </el-table>
                     </div>
                     <div class="pages t-c">
@@ -38,7 +38,7 @@
                     </div>
                 </div>
             </el-tab-pane>
-            <el-tab-pane label="配置" v-if="hasLoggerLevel">
+            <el-tab-pane :label="$t('common.setting')" v-if="hasLoggerLevel">
                 <Setting></Setting>
             </el-tab-pane>
         </el-tabs>
@@ -107,7 +107,7 @@ export default {
         const handleRowClick = (row, column, event) => {
             let css = `padding:1rem;border:1px solid #ddd; resize:none;width:39rem;box-sizing: border-box;white-space: nowrap; height:30rem;`;
             
-            ElMessageBox.alert(`<textarea class="scrollbar-4" style="${css}">${row.Content}</textarea>`, '内容', {
+            ElMessageBox.alert(`<textarea class="scrollbar-4" style="${css}">${row.Content}</textarea>`, '', {
                 dangerouslyUseHTMLString: true,
             }).catch(()=>{});
         }

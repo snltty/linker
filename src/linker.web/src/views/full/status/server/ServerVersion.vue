@@ -1,5 +1,5 @@
 <template>
-   <a href="javascript:;" title="服务端的程序版本" @click="handleUpdate" class="download" :title="updateText()" :class="updateColor()">
+   <a href="javascript:;"  @click="handleUpdate" class="download" :title="updateText()" :class="updateColor()">
         <span>{{state.version}}</span>
         <template v-if="updaterCurrent.Version">
             <template v-if="updaterCurrent.Status == 1">
@@ -29,11 +29,13 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import {Promotion,Download,Loading,CircleCheck} from '@element-plus/icons-vue'
 import { confirmServer, exitServer, getUpdaterCurrent, getUpdaterServer } from '@/apis/updater';
 import ServerFlow from './ServerFlow.vue';
+import { useI18n } from 'vue-i18n';
 export default {
     components:{Promotion,Download,Loading,CircleCheck,ServerFlow},
     props:['config'],
     setup(props) {
 
+        const { t } = useI18n();
         const globalData = injectGlobalData();
         const hasUpdateServer = computed(()=>globalData.value.hasAccess('UpdateServer')); 
         const updaterCurrent = ref({Version: '', Msg: [], DateTime: '', Status: 0, Length: 0, Current: 0});
@@ -86,18 +88,18 @@ export default {
         }
         const updateText = ()=>{
             if(!updaterCurrent.value.Version){
-                return '未检测到更新';
+                return t('status.serverNoUpdate');
             }
             if(updaterServer.value.Status <= 2) {
                 return state.version != updaterCurrent.value.Version  
-                ? `不是最新版本(${updaterCurrent.value.Version})，建议更新\n${updaterMsg.value}` 
-                : `是最新版本，但我无法阻止你喜欢更新\n${updaterMsg.value}`
+                ? `${t('status.serverNotNew')}(${updaterCurrent.value.Version})\n${updaterMsg.value}` 
+                : `${t('status.serverNew')}\n${updaterMsg.value}`
             }
             return {
-                3:'正在下载',
-                4:'已下载',
-                5:'正在解压',
-                6:'已解压，请重启',
+                3:t('status.serverDownloading'),
+                4:t('status.serverDownloaded'),
+                5:t('status.serverUnZipIng'),
+                6:t('status.serverUnZip'),
             }[updaterServer.value.Status];
         }
         const updateColor = ()=>{
@@ -108,19 +110,19 @@ export default {
                 return;
             }
             if(!updaterCurrent.value.Version){
-                ElMessage.error('未检测到更新');
+                ElMessage.error(t('status.serverNoUpdate'));
                 return;
             }
             //未检测，检测中，下载中，解压中
             if([0,1,3,5].indexOf(updaterServer.value.Status)>=0){
-                ElMessage.error('操作中，请稍后!');
+                ElMessage.error(t('common.operating'));
                 return;
             }
             //已解压
             if(updaterServer.value.Status == 6){
-                ElMessageBox.confirm('确定关闭服务端吗？', '提示', {
-                    confirmButtonText: '确定',
-                    cancelButtonText: '取消',
+                ElMessageBox.confirm(t('status.serverCloseConfirm'), t('common.tips'), {
+                    confirmButtonText: t('common.confirm'),
+                    cancelButtonText:t('common.cancel'),
                     type: 'warning'
                 }).then(() => {
                     exitServer();
@@ -130,9 +132,9 @@ export default {
 
             //已检测
             if(updaterCurrent.value.Status == 2){
-                ElMessageBox.confirm('确定更新服务端吗？', '提示', {
-                    confirmButtonText: '确定',
-                    cancelButtonText: '取消',
+                ElMessageBox.confirm(t('status.serverConfirm'), t('common.tips'), {
+                    confirmButtonText:  t('common.confirm'),
+                    cancelButtonText: t('common.cancel'),
                     type: 'warning'
                 }).then(() => {
                     confirmServer(updaterCurrent.value.Version).then(()=>{

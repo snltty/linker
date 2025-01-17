@@ -9,21 +9,36 @@
             <div class="menu flex-1">
                 <ul class="flex">
                     <li>
-                        <router-link :to="{name:'FullIndex'}"><img src="@/assets/shouye.svg"/> 首页</router-link>
+                        <router-link :to="{name:'FullIndex'}"><img src="@/assets/shouye.svg"/> {{$t('head.home')}}</router-link>
                     </li>
                     <li v-if="hasConfig">
-                        <router-link :to="{name:'FullServers'}"><img src="@/assets/fuwuqi.svg"/> 服务器</router-link>
+                        <router-link :to="{name:'FullServers'}"><img src="@/assets/fuwuqi.svg"/> {{$t('head.server')}}</router-link>
                     </li>
                     <li v-if="hasTransport">
-                        <router-link :to="{name:'FullTransport'}"><img src="@/assets/dadong.svg"/> 打洞协议</router-link>
+                        <router-link :to="{name:'FullTransport'}"><img src="@/assets/dadong.svg"/> {{$t('head.protocol')}}</router-link>
                     </li>
                     <li v-if="hasAction">
-                        <router-link :to="{name:'FullAction'}"><img src="@/assets/anquan.svg"/> 自定义验证</router-link>
+                        <router-link :to="{name:'FullAction'}"><img src="@/assets/anquan.svg"/> {{$t('head.action')}}</router-link>
                     </li>
                     <li v-if="hasLogger">
-                        <router-link :to="{name:'FullLogger'}"><img src="@/assets/rizhi.svg"/> 日志</router-link>
+                        <router-link :to="{name:'FullLogger'}"><img src="@/assets/rizhi.svg"/> {{$t('head.logger')}}</router-link>
                     </li>
                 </ul>
+            </div>
+            <div class="locale">
+                <el-dropdown>
+                    <span class="el-dropdown-link">
+                    {{localeOptions[locale]}}
+                    <el-icon class="el-icon--right">
+                        <arrow-down />
+                    </el-icon>
+                    </span>
+                    <template #dropdown>
+                    <el-dropdown-menu>
+                        <el-dropdown-item v-for="(item,index) in localeOptions" @click="handleLocale(index)">{{item}}</el-dropdown-item>
+                    </el-dropdown-menu>
+                    </template>
+                </el-dropdown>
             </div>
             <div class="image">
                 <Background name="full"></Background>
@@ -33,12 +48,14 @@
 </template>
 
 <script>
-import {Promotion,StarFilled,WarnTriangleFilled,PhoneFilled,HelpFilled} from '@element-plus/icons-vue'
+import {Promotion,StarFilled,WarnTriangleFilled,PhoneFilled,HelpFilled,ArrowDown} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
-import { computed} from 'vue';
+import { computed, ref} from 'vue';
 import Background from './Background.vue';
+import { LOCALE_OPTIONS } from '@/lang'
+import useLocale from '@/lang/provide'
 export default {
-    components:{Promotion,StarFilled,WarnTriangleFilled,PhoneFilled,HelpFilled,Background},
+    components:{Promotion,StarFilled,WarnTriangleFilled,PhoneFilled,HelpFilled,Background,ArrowDown},
     setup() {
 
         const globalData = injectGlobalData();
@@ -47,9 +64,23 @@ export default {
         const hasTransport = computed(()=>globalData.value.hasAccess('Transport')); 
         const hasAction = computed(()=>globalData.value.hasAccess('Action')); 
 
+        const localeOptions = ref(LOCALE_OPTIONS);
+        const { changeLocale, currentLocale } = useLocale()
+        const locale = computed({
+            get() {
+                return currentLocale.value
+            },
+            set(value) {
+                changeLocale(value)
+            }
+        });
+        const handleLocale = (index) => {
+            locale.value =index;
+        }
+        
         return {
             hasConfig,
-            hasLogger,hasTransport,hasAction
+            hasLogger,hasTransport,hasAction,localeOptions,locale,handleLocale
         }
     }
 }
@@ -88,6 +119,15 @@ export default {
         }
     }
 
+    .locale{
+        padding-right:1rem;
+        .el-dropdown{
+            vertical-align:middle;
+            .el-icon{
+                vertical-align:bottom;
+            }
+        }
+    }
     .image{
         padding-right:1rem;
     }
