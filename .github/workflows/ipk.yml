@@ -19,7 +19,7 @@ jobs:
         with:
           dotnet-version: 8.0.x
       - name: setup ipk
-        run: apt install binutils tar gzip
+        run: sudo apt-get install binutils tar gzip
       - name: publish projects
         run: ./publish-ipk.sh
       - name: upload-x64-oss
