@@ -22,5 +22,7 @@ jobs:
       - name: setup ipk
         run: sudo apt-get install binutils tar gzip
 
+      - name: chmod shell
+        run: chmod +x publish-ipk.sh
       - name: publish projects
         run: ./publish-ipk.sh
