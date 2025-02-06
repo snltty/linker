@@ -22,7 +22,7 @@ jobs:
       - name: Get Release Info
         id: get_release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         run: |
           # 获取已存在的 Release 信息
           RELEASE_INFO=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
