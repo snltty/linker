@@ -29,9 +29,9 @@ jobs:
       - name: publish projects
         run: ./publish-ipk.sh
     
-      - name: Get release
+      - name: get release
         id: get_release
-        uses: bruceadams/get-release@v1.3.2
+        uses: jossef/action-latest-release-info@v1.2.2
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
     

@@ -26,9 +26,9 @@ jobs:
         run: chmod +x publish-ipk.sh
       - name: publish projects
         run: ./publish-ipk.sh
-      - name: Get release
+      - name: get release
         id: get_release
-        uses: bruceadams/get-release@v1.3.2
+        uses: jossef/action-latest-release-info@v1.2.2
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
       - name: upload-x64-oss
@@ -47,7 +47,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          upload_url: ${{ steps.latest_release_info.outputs.upload_url }}
           asset_path: ./public/publish-ipk/x64/linker-x64.ipk
           asset_name: linker-x64.ipk
           asset_content_type: application/ipk
@@ -67,7 +67,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          upload_url: ${{ steps.latest_release_info.outputs.upload_url }}
           asset_path: ./public/publish-ipk/arm/linker-arm.ipk
           asset_name: linker-arm.ipk
           asset_content_type: application/ipk
@@ -87,7 +87,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          upload_url: ${{ steps.latest_release_info.outputs.upload_url }}
           asset_path: ./public/publish-ipk/arm64/linker-arm64.ipk
           asset_name: linker-arm64.ipk
           asset_content_type: application/ipk
