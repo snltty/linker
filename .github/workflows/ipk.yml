@@ -18,6 +18,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           dotnet-version: 8.0.x
+      - name: setup ipk
+        run: sudo apt-get install binutils tar gzip
+      - name: chmod shell
+        run: sed -i 's/\r$//' publish-ipk.sh
+      - name: chmod shell
+        run: chmod +x publish-ipk.sh
+      - name: publish projects
+        run: ./publish-ipk.sh
       - name: Get Release Info
         id: get_release
         env:
@@ -37,14 +45,6 @@ jobs:
           # 设置输出变量
 
           echo "upload_url=$UPLOAD_URL" >> $GITHUB_OUTPUT
-      - name: setup ipk
-        run: sudo apt-get install binutils tar gzip
-      - name: chmod shell
-        run: sed -i 's/\r$//' publish-ipk.sh
-      - name: chmod shell
-        run: chmod +x publish-ipk.sh
-      - name: publish projects
-        run: ./publish-ipk.sh
       - name: upload-x64-oss
         id: upload-x64-oss
         uses: tvrcgo/oss-action@v0.1.1
