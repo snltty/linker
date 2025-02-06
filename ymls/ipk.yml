@@ -18,6 +18,21 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           dotnet-version: 8.0.x
+      
+      - name: Get Release Info
+        id: get_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 获取已存在的 Release 信息
+          RELEASE_INFO=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.ref_name }}")
+          
+          # 提取 upload_url
+          UPLOAD_URL=$(echo "$RELEASE_INFO" | jq -r '.upload_url' | sed 's/{?name,label}//')
+          
+          # 设置输出变量
+          echo "upload_url=$UPLOAD_URL" >> $GITHUB_OUTPUT
     
       - name: setup ipk
         run: sudo apt-get install binutils tar gzip

@@ -183,7 +183,7 @@ function writeUploadIpk(data, tagName) {
                 'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
             },
             with: {
-                'upload_url': '${{ steps.create_release.outputs.upload_url }}',
+                'upload_url': '${{ steps.get_release.outputs.upload_url }}',
                 'asset_path': `./public/publish-ipk/${arch}/linker-${arch}.ipk`,
                 'asset_name': `linker-${arch}.ipk`,
                 'asset_content_type': 'application/ipk'
