@@ -171,7 +171,7 @@ function writeUploadIpk(data, tagName) {
                 'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
                 'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
                 'bucket': 'ide-qbcode',
-                'asset-path': `./public/publish/ipk/linker-musl-${arch}-ipk/linker-${arch}.ipk`,
+                'asset-path': `./public/publish-ipk/${arch}/linker-${arch}.ipk`,
                 'target-path': `/downloads/linker/${tagName}/linker-${arch}.ipk`
             }
         });
@@ -184,7 +184,7 @@ function writeUploadIpk(data, tagName) {
             },
             with: {
                 'upload_url': '${{ steps.create_release.outputs.upload_url }}',
-                'asset_path': `./public/publish/ipk/linker-musl-${arch}-ipk/linker-${arch}.ipk`,
+                'asset_path': `./public/publish-ipk/${arch}/linker-${arch}.ipk`,
                 'asset_name': `linker-${arch}.ipk`,
                 'asset_content_type': 'application/ipk'
             }

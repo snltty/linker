@@ -34,7 +34,7 @@ jobs:
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
-          asset-path: ./public/publish/ipk/linker-musl-x64-ipk/linker-x64.ipk
+          asset-path: ./public/publish-ipk/x64/linker-x64.ipk
           target-path: /downloads/linker/v1.6.6/linker-x64.ipk
       - name: upload-x64
         id: upload-x64
@@ -43,7 +43,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./public/publish/ipk/linker-musl-x64-ipk/linker-x64.ipk
+          asset_path: ./public/publish-ipk/x64/linker-x64.ipk
           asset_name: linker-x64.ipk
           asset_content_type: application/ipk
       - name: upload-arm-oss
@@ -54,7 +54,7 @@ jobs:
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
-          asset-path: ./public/publish/ipk/linker-musl-arm-ipk/linker-arm.ipk
+          asset-path: ./public/publish-ipk/arm/linker-arm.ipk
           target-path: /downloads/linker/v1.6.6/linker-arm.ipk
       - name: upload-arm
         id: upload-arm
@@ -63,7 +63,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./public/publish/ipk/linker-musl-arm-ipk/linker-arm.ipk
+          asset_path: ./public/publish-ipk/arm/linker-arm.ipk
           asset_name: linker-arm.ipk
           asset_content_type: application/ipk
       - name: upload-arm64-oss
@@ -74,7 +74,7 @@ jobs:
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
-          asset-path: ./public/publish/ipk/linker-musl-arm64-ipk/linker-arm64.ipk
+          asset-path: ./public/publish-ipk/arm64/linker-arm64.ipk
           target-path: /downloads/linker/v1.6.6/linker-arm64.ipk
       - name: upload-arm64
         id: upload-arm64
@@ -83,6 +83,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./public/publish/ipk/linker-musl-arm64-ipk/linker-arm64.ipk
+          asset_path: ./public/publish-ipk/arm64/linker-arm64.ipk
           asset_name: linker-arm64.ipk
           asset_content_type: application/ipk
