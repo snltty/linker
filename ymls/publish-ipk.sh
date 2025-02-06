@@ -16,6 +16,7 @@ do
     cp -rf src/linker/libmsquic-musl-${r}.so public/publish/ipk/linux-musl-${r}/linker/libmsquic.so
 
     cp -rf ipk public/publish/ipk/linux-musl-${r}-ipk
+    mkdir -p public/publish/ipk/linux-musl-${r}-ipk/data/usr/bin/linker
     cp -rf public/publish/ipk/linux-musl-${r} public/publish/ipk/linux-musl-${r}-ipk/data/usr/bin/linker
     sed -i "s|{version}|{{version}}|g" public/publish/ipk/linux-musl-${r}-ipk/control/control
     chmod +x public/publish/ipk/linux-musl-${r}-ipk/data/etc/init.d/linker
