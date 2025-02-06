@@ -5,7 +5,7 @@ name: Ipk
       - master
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: debian-latest
     steps:
       - uses: actions/checkout@v3
       - name: setup node.js
@@ -20,6 +20,8 @@ jobs:
           dotnet-version: 8.0.x
       - name: setup ipk
         run: sudo apt-get install binutils tar gzip
+      - name: chmod shell
+        run: sed -i 's/\r$//' publish-ipk.sh
       - name: chmod shell
         run: chmod +x publish-ipk.sh
       - name: publish projects
