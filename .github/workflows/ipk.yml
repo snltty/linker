@@ -26,11 +26,15 @@ jobs:
         run: chmod +x publish-ipk.sh
       - name: publish projects
         run: ./publish-ipk.sh
-      - name: get release
+      - name: Get latest release
         id: get_release
-        uses: bruceadams/get-release@v1.2.3
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        run: |
+          response=$(curl -s \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.ACTIONS_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/latest")
+          upload_url=$(echo "$response" | jq -r '.upload_url')
+          echo "upload_url=$upload_url" >> $GITHUB_OUTPUT
       - name: upload-x64-oss
         id: upload-x64-oss
         uses: tvrcgo/oss-action@v0.1.1
