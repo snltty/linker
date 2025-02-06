@@ -1,0 +1,6 @@
+#!/bin/sh
+# 安装后执行的脚本
+/etc/init.d/linker enable
+/etc/init.d/linker start
+echo "linker installed successfully!"
+exit 0

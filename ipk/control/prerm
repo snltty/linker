@@ -1,0 +1,6 @@
+#!/bin/sh
+# 卸载前执行的脚本
+echo "removing linker..."
+/etc/init.d/linker stop
+/etc/init.d/linker disable
+exit 0

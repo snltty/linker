@@ -1,24 +1,24 @@
 <template>
-    <el-dialog title="信标流量" class="options-center" top="1vh" destroy-on-close v-model="state.show" width="680">
+    <el-dialog :title="$t('status.flowMessenger')" class="options-center" top="1vh" destroy-on-close v-model="state.show" width="680">
         <div>
             <el-table :data="state.list" stripe border size="small" width="100%" height="60vh">
-                <el-table-column prop="id" label="信标id" width="200"></el-table-column>
-                <el-table-column prop="sendtBytes" label="已上传" sortable>
+                <el-table-column prop="id" label="id" width="200"></el-table-column>
+                <el-table-column prop="sendtBytes" :label="$t('status.flowUpload')" sortable>
                     <template #default="scope">
                         <span>{{ scope.row.sendtBytesText }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="sendtSpeed" label="上传速度" sortable>
+                <el-table-column prop="sendtSpeed" :label="$t('status.flowUpload')" sortable>
                     <template #default="scope">
                         <span>{{ scope.row.sendtSpeedText }}/s</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="receiveBytes" label="已下载" sortable>
+                <el-table-column prop="receiveBytes"  :label="$t('status.flowDownload')" sortable>
                     <template #default="scope">
                         <span>{{ scope.row.receiveBytesText }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="receiveSpeed" label="下载速度" sortable>
+                <el-table-column prop="receiveSpeed" :label="$t('status.flowDownload')" sortable>
                     <template #default="scope">
                         <span>{{ scope.row.receiveSpeedText }}/s</span>
                     </template>

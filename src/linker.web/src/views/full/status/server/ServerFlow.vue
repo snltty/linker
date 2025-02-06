@@ -1,36 +1,36 @@
 <template>
     <div class="flow-wrap" v-if="config">
-        <p>在线 <a href="javascript:;" :title="`本服务器\r\n在线数/7天内上线数`">{{state.overallOnline}}</a><a href="javascript:;" :title="`所有服务器\r\n在线数/7天内上线数/服务端数`">{{ state.serverOnline }}</a></p>
-        <p>上传 <a href="javascript:;" :title="`本服务器\r\n发送速率`" @click="handleShow">{{state.overallSendtSpeed}}/s</a></p>
-        <p>下载 <a href="javascript:;" :title="`本服务器\r\n接收速率`" @click="handleShow">{{state.overallReceiveSpeed}}/s</a></p>
+        <p>{{$t('status.flowOnline')}} <a href="javascript:;" :title="`${$t('status.flowThisServer')}\r\n${$t('status.flowOnline')}/${$t('status.flowOnline7Day')}`">{{state.overallOnline}}</a><a href="javascript:;" :title="`${$t('status.flowAllServer')}\r\n${$t('status.flowOnline')}/${$t('status.flowOnline7Day')}/${$t('status.flowServer')}`">{{ state.serverOnline }}</a></p>
+        <p>{{$t('status.flowUpload')}} <a href="javascript:;" :title="`${$t('status.flowThisServer')}\r\n${$t('status.flowAllSend')}`" @click="handleShow">{{state.overallSendtSpeed}}/s</a></p>
+        <p>{{$t('status.flowDownload')}} <a href="javascript:;" :title="`${$t('status.flowThisServer')}\r\n${$t('status.flowAllReceive')}`" @click="handleShow">{{state.overallReceiveSpeed}}/s</a></p>
     </div>
-    <el-dialog :title="state.time" destroy-on-close v-model="state.show" width="540">
+    <el-dialog :title="state.time" destroy-on-close v-model="state.show" width="640">
         <div>
             <el-table :data="state.list" border size="small" width="100%">
-                <el-table-column prop="text" label="类别" width="80"></el-table-column>
-                <el-table-column prop="sendtBytes" label="已上传" sortable>
+                <el-table-column prop="text" :label="$t('status.flowType')"></el-table-column>
+                <el-table-column prop="sendtBytes" :label="$t('status.flowUpload')" sortable>
                     <template #default="scope">
                         <span>{{ scope.row.sendtBytesText }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="sendtSpeed" label="上传速度" sortable>
+                <el-table-column prop="sendtSpeed" :label="$t('status.flowUpload')" sortable>
                     <template #default="scope">
                         <span>{{ scope.row.sendtSpeedText }}/s</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="receiveBytes" label="已下载" sortable>
+                <el-table-column prop="receiveBytes" :label="$t('status.flowDownload')" sortable>
                     <template #default="scope">
                         <span>{{ scope.row.receiveBytesText }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="receiveSpeed" label="下载速度" sortable>
+                <el-table-column prop="receiveSpeed" :label="$t('status.flowDownload')" sortable>
                     <template #default="scope">
                         <span>{{ scope.row.receiveSpeedText }}/s</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="oper" label="操作" width="64">
+                <el-table-column prop="oper" :label="$t('status.flowOper')" width="70">
                     <template #default="scope">
-                        <el-button v-if="scope.row.detail" size="small" @click="handleShowDetail(scope.row.id)">详情</el-button>
+                        <el-button v-if="scope.row.detail" size="small" @click="handleShowDetail(scope.row.id)">{{$t('status.flowDetail')}}</el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -48,11 +48,12 @@ import ServerFlowMessenger from './ServerFlowMessenger.vue';
 import ServerFlowSForward from './ServerFlowSForward.vue';
 import ServerFlowRelay from './ServerFlowRelay.vue';
 import { injectGlobalData } from '@/provide';
+import { useI18n } from 'vue-i18n';
 export default {
     props:['config'],
     components:{ServerFlowMessenger,ServerFlowSForward,ServerFlowRelay},
     setup (props) {
-        
+        const {t} = useI18n();
         const globalData = injectGlobalData();
         const hasSForwardFlow = computed(()=>globalData.value.hasAccess('SForwardFlow')); 
         const hasRelayFlow = computed(()=>globalData.value.hasAccess('RelayFlow')); 
@@ -80,12 +81,12 @@ export default {
             state.details[id] = true;
         }
         const id2text = {
-            'External':{text:'外网端口',detail:false},
-            'RelayReport':{text:'中继节点',detail:false},
-            'Relay':{text:'中继',detail:hasRelayFlow.value},
-            'Messenger':{text:'信标',detail:hasSigninFlow.value},
-            'SForward':{text:'内网穿透',detail:hasSForwardFlow.value},
-            'flow':{text:'在线报告',detail:false},
+            'External':{text:t('status.flowWanPort'),detail:false},
+            'RelayReport':{text:t('status.flowRelayNode'),detail:false},
+            'Relay':{text:t('status.flowRelay'),detail:hasRelayFlow.value},
+            'Messenger':{text:t('status.flowMessenger'),detail:hasSigninFlow.value},
+            'SForward':{text:t('status.flowServerForward'),detail:hasSForwardFlow.value},
+            'flow':{text:'',detail:false},
         };
         const _getFlows = ()=>{
             getFlows().then(res => {
@@ -114,12 +115,12 @@ export default {
                 state.overallSendtSpeed = parseSpeed(sendtBytes-_sendtBytes);
                 state.overallReceiveSpeed = parseSpeed(receiveBytes-_receiveBytes);
 
-                state.time = `从 ${res.Start}启动 至今`;
+                state.time = `${res.Start}`;
                 const list = [];
                 for(let j in res.Items){
                     const item = res.Items[j];
                     const itemOld = old.Items[j];
-                    const text = id2text[`${j}`] || {text:`未知${j}`,detail:false};
+                    const text = id2text[`${j}`] || {text:`Unknow${j}`,detail:false};
                     list.push({
                         id:j,
                         text:text.text,

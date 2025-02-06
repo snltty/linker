@@ -2,7 +2,6 @@
 using System.ServiceProcess;
 using System.Diagnostics;
 using linker.messenger.entry;
-using linker.messenger;
 
 namespace linker
 {
@@ -25,13 +24,16 @@ namespace linker
             //ThreadPool.SetMinThreads(1024, 1024);
             //ThreadPool.SetMaxThreads(65535, 65535);
 
+            //LoggerHelper.Instance.Warning(Process.GetCurrentProcess().MainModule.FileName);
+            //LoggerHelper.Instance.Warning(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName));
+            //LoggerHelper.Instance.Warning(Directory.GetCurrentDirectory());
+
+            string serviceDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+            Directory.SetCurrentDirectory(serviceDirectory);
+
             //windows服务运行
             if (Environment.UserInteractive == false && OperatingSystem.IsWindows())
             {
-                //根目录
-                string serviceDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
-                Directory.SetCurrentDirectory(serviceDirectory);
-
                 ServiceBase[] ServicesToRun;
                 ServicesToRun = new ServiceBase[]
                 {

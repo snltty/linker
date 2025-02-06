@@ -76,11 +76,12 @@ namespace linker.messenger.entry
                 .AddTuntapClient().AddTuntapServer()
                 //更新
                 .AddUpdaterClient().AddUpdaterServer()
+               
+                //信标
+                .AddMessenger()
                 //流量统计
                 .AddFlowClient().AddFlowServer()
 
-                //信标
-                .AddMessenger()
                 //持久化，文件
                 .AddStoreFile()
                 //序列化 MemoryPack

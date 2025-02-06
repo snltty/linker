@@ -1,0 +1,37 @@
+#!/bin/sh /etc/rc.common
+
+START=99 #服务启动优先级（数字越大，启动越晚）
+STOP=10 #服务停止优先级（数字越小，停止越早）
+
+USE_PROCD=1
+PROG=/usr/bin/linker/linker #linker程序
+WORKDIR=/usr/bin/linker  # 指定工作目录
+
+start_service() {
+    procd_open_instance
+    procd_set_param command "$PROG"
+    procd_set_param respawn  # 自动重启
+    procd_set_param stdout 0 # 重定向标准输出到日志
+    procd_set_param stderr 1 # 重定向标准错误到日志
+    procd_set_param cwd "$WORKDIR"  # 设置工作目录
+    procd_close_instance
+}
+
+stop_service() {
+    killall linker
+}
+
+restart() {
+    stop
+    start
+}
+
+status() {
+    if pgrep -f "$PROG" > /dev/null; then
+        echo "linker is running."
+        return 0
+    else
+        echo "linker is not running."
+        return 1
+    fi
+}

@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using System.Diagnostics;
 using System.Security.Cryptography.X509Certificates;
 
 namespace linker.messenger.store.file.messenger
@@ -25,6 +26,7 @@ namespace linker.messenger.store.file.messenger
             else
             {
                 LoggerHelper.Instance.Error($"file {path} not found");
+               
                 Environment.Exit(0);
             }
         }

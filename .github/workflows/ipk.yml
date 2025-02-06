@@ -1,0 +1,88 @@
+name: Ipk
+'on':
+  push:
+    branches:
+      - master
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: setup node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+      - name: setup dotnet8
+        uses: actions/setup-dotnet@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        with:
+          dotnet-version: 8.0.x
+      - name: setup msbuild
+        uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
+      - name: setup ipk
+        run: apt install binutils tar gzip
+      - name: publish projects
+        run: ./publish-ipk.sh
+      - name: upload-x64-oss
+        id: upload-x64-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/publish/ipk/linker-musl-x64-ipk/linker-x64.apk
+          target-path: /downloads/linker/v1.6.6/linker-x64.apk
+      - name: upload-x64
+        id: upload-x64
+        uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./public/publish/ipk/linker-musl-x64-ipk/linker-x64.apk
+          asset_name: linker-x64.ipk
+          asset_content_type: application/ipk
+      - name: upload-arm-oss
+        id: upload-arm-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/publish/ipk/linker-musl-arm-ipk/linker-arm.apk
+          target-path: /downloads/linker/v1.6.6/linker-arm.apk
+      - name: upload-arm
+        id: upload-arm
+        uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./public/publish/ipk/linker-musl-arm-ipk/linker-arm.apk
+          asset_name: linker-arm.ipk
+          asset_content_type: application/ipk
+      - name: upload-arm64-oss
+        id: upload-arm64-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/publish/ipk/linker-musl-arm64-ipk/linker-arm64.apk
+          target-path: /downloads/linker/v1.6.6/linker-arm64.apk
+      - name: upload-arm64
+        id: upload-arm64
+        uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./public/publish/ipk/linker-musl-arm64-ipk/linker-arm64.apk
+          asset_name: linker-arm64.ipk
+          asset_content_type: application/ipk

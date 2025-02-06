@@ -1,13 +1,13 @@
 <template>
     <div class="servers-wrap" >
         <el-tabs type="border-card" style="width:100%" v-model="state.tab">
-            <el-tab-pane label="信标服务器" name="signin" v-if="hasConfig">
+            <el-tab-pane :label="$t('server.messenger')" name="signin" v-if="hasConfig">
                 <SignInServers></SignInServers>
             </el-tab-pane>
-            <el-tab-pane label="分组设置" name="groups" v-if="hasGroup">
+            <el-tab-pane :label="$t('server.group')" name="groups" v-if="hasGroup">
                 <Groups></Groups>
             </el-tab-pane>
-            <el-tab-pane label="配置同步" name="async" v-if="hasSync">
+            <el-tab-pane :label="$t('server.sync')" name="async" v-if="hasSync">
                 <Async></Async>
             </el-tab-pane>
         </el-tabs>

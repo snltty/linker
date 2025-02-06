@@ -1,0 +1,7 @@
+Package: linker
+Version: {version}
+Architecture: {arch}
+Maintainer: snltty <1069410172@qq.com>
+Section: utils
+Description: linker
+Depends: libc

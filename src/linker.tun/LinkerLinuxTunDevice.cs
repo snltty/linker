@@ -141,17 +141,26 @@ namespace linker.tun
             try
             {
                 IPAddress network = NetworkHelper.ToNetworkIP(address, NetworkHelper.ToPrefixValue(prefixLength));
-                CommandHelper.Linux(string.Empty, new string[] {
+
+                string support = CommandHelper.Linux(string.Empty, new string[] { "iptables -m state -h" }, out string supportError);
+                bool isSupport = string.IsNullOrWhiteSpace(supportError) && support.Contains("No such file or directory") == false;
+
+                string str = CommandHelper.Linux(string.Empty, new string[] {
                     $"sysctl -w net.ipv4.ip_forward=1",
 
                     $"iptables -t nat -A POSTROUTING -o {Name} -j MASQUERADE",
                     $"iptables -A FORWARD -i {interfaceLinux} -o {Name} -j ACCEPT",
-                    $"iptables -A FORWARD -i {Name} -o {interfaceLinux} -m state --state ESTABLISHED,RELATED -j ACCEPT",
+                    isSupport ? $"iptables -A FORWARD -i {Name} -o {interfaceLinux} -m state --state ESTABLISHED,RELATED -j ACCEPT"
+                        :  $"iptables -A FORWARD -i {Name} -o {interfaceLinux} -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT",
 
                     $"iptables -A FORWARD -i {Name} -j ACCEPT",
-                    $"iptables -A FORWARD -o {Name} -m state --state ESTABLISHED,RELATED -j ACCEPT",
+                    isSupport ? $"iptables -A FORWARD -o {Name} -m state --state ESTABLISHED,RELATED -j ACCEPT"
+                    : $"iptables -A FORWARD -o {Name} -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT",
+                    $"iptables -t nat -A POSTROUTING ! -o {Name} -s {network}/{prefixLength} -j MASQUERADE",
+
                     $"iptables -t nat -A POSTROUTING ! -o {Name} -s {network}/{prefixLength} -j MASQUERADE",
                 });
+                RestartFirewall();
             }
             catch (Exception ex)
             {
@@ -164,14 +173,20 @@ namespace linker.tun
             if (address == null || address.Equals(IPAddress.Any)) return;
             try
             {
+                string support = CommandHelper.Linux(string.Empty, new string[] { "iptables -m state -h" }, out string supportError);
+                bool isSupport = string.IsNullOrWhiteSpace(supportError) && support.Contains("No such file or directory") == false;
+
                 CommandHelper.Linux(string.Empty, new string[] {
                     $"iptables -t nat -D POSTROUTING -o {Name} -j MASQUERADE",
                     $"iptables -D FORWARD -i {interfaceLinux} -o {Name} -j ACCEPT",
-                    $"iptables -D FORWARD -i {Name} -o {interfaceLinux} -m state --state ESTABLISHED,RELATED -j ACCEPT",
+                    isSupport ? $"iptables -D FORWARD -i {Name} -o {interfaceLinux} -m state --state ESTABLISHED,RELATED -j ACCEPT"
+                    : $"iptables -D FORWARD -i {Name} -o {interfaceLinux} -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT",
 
                     $"iptables -D FORWARD -i {Name} -j ACCEPT",
-                    $"iptables -D FORWARD -o {Name} -m state --state ESTABLISHED,RELATED -j ACCEPT"
+                    isSupport ? $"iptables -D FORWARD -o {Name} -m state --state ESTABLISHED,RELATED -j ACCEPT"
+                    : $"iptables -D FORWARD -o {Name} -m conntrack  --ctstate ESTABLISHED,RELATED -j ACCEPT"
                 });
+
 
                 IPAddress network = NetworkHelper.ToNetworkIP(address, NetworkHelper.ToPrefixValue(prefixLength));
                 string iptableLineNumbers = CommandHelper.Linux(string.Empty, new string[] { $"iptables -t nat -L --line-numbers | grep {network}/{prefixLength} | cut -d' ' -f1" });
@@ -182,10 +197,18 @@ namespace linker.tun
                         .Select(c => $"iptables -t nat -D POSTROUTING {c}").ToArray();
                     CommandHelper.Linux(string.Empty, commands);
                 }
+                RestartFirewall();
             }
             catch (Exception ex)
             {
                 error = ex.Message;
+            }
+        }
+        private void RestartFirewall()
+        {
+            if (RuntimeInformation.OSDescription.Contains("OpenWrt"))
+            {
+                CommandHelper.Linux(string.Empty, new string[] { "/etc/init.d/firewall restart" });
             }
         }
 
@@ -293,22 +316,8 @@ namespace linker.tun
 
         private string GetLinuxInterfaceNum()
         {
-            string output = CommandHelper.Linux(string.Empty, new string[] { "ip route show default" });
-            foreach (var item in output.Split(Environment.NewLine))
-            {
-                if (item.StartsWith("default via"))
-                {
-                    var strs = item.Split(' ');
-                    for (int i = 0; i < strs.Length; i++)
-                    {
-                        if (strs[i] == "dev")
-                        {
-                            return strs[i + 1].Trim();
-                        }
-                    }
-                }
-            }
-            return string.Empty;
+            string output = CommandHelper.Linux(string.Empty, new string[] { "ip route show default | awk '{print $5}'" }).TrimNewLineAndWhiteSapce();
+            return output;
         }
 
         public void Clear()

@@ -65,6 +65,10 @@ namespace linker.messenger.tuntap
                         return;
                     }
                     linkerTunDeviceAdapter.SetNat();
+                    if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.NatError) == false)
+                    {
+                        LoggerHelper.Instance.Error(linkerTunDeviceAdapter.NatError);
+                    }
                     OnSetupSuccess();
                 }
                 catch (Exception ex)

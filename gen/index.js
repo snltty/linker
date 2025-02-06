@@ -46,8 +46,7 @@ function writeText(path, data) {
         console.log(e);
     }
 }
-function writeUpload(data) {
-    const tagName = data.jobs.build.steps.filter(c => c.id == 'create_release')[0].with.tag_name;
+function writeUpload(data, tagName) {
     const platforms = {
         'win': ['x86', 'x64', 'arm64'],
         'linux': ['x64', 'arm', 'arm64'],
@@ -158,6 +157,40 @@ function writeUpload(data) {
     });
 
 }
+function writeUploadIpk(data, tagName) {
+    const platforms = ['x64', 'arm', 'arm64'];
+    for (let i = 0; i < platforms.length; i++) {
+        let arch = platforms[i];
+
+        data.jobs.build.steps.push({
+            name: `upload-${arch}-oss`,
+            id: `upload-${arch}-oss`,
+            uses: 'tvrcgo/oss-action@v0.1.1',
+            with: {
+                'region': 'oss-cn-shenzhen',
+                'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
+                'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
+                'bucket': 'ide-qbcode',
+                'asset-path': `./public/publish/ipk/linker-musl-${arch}-ipk/linker-${arch}.apk`,
+                'target-path': `/downloads/linker/${tagName}/linker-${arch}.apk`
+            }
+        });
+        data.jobs.build.steps.push({
+            name: `upload-${arch}`,
+            id: `upload-${arch}`,
+            uses: 'actions/upload-release-asset@master',
+            env: {
+                'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
+            },
+            with: {
+                'upload_url': '${{ steps.create_release.outputs.upload_url }}',
+                'asset_path': `./public/publish/ipk/linker-musl-${arch}-ipk/linker-${arch}.apk`,
+                'asset_name': `linker-${arch}.ipk`,
+                'asset_content_type': 'application/ipk'
+            }
+        });
+    };
+}
 
 readVersionDesc().then((desc) => {
 
@@ -170,7 +203,7 @@ readVersionDesc().then((desc) => {
 
     fs.writeFileSync('../version.txt', `v${desc.version}\n${moment().format('YYYY-MM-DD HH:mm:ss')}\n${desc.desc}`, 'utf8');
 
-    writeUpload(data);
+    writeUpload(data, `v${desc.version}`);
     writeYaml('../.github/workflows/dotnet.yml', data);
 
     let publishText = readText('../ymls/publish-docker.sh');
@@ -178,6 +211,12 @@ readVersionDesc().then((desc) => {
         publishText = publishText.replace('{{version}}', desc.version);
     }
     writeText('../publish-docker.sh', publishText);
+
+    let publishIpkText = readText('../ymls/publish-ipk.sh');
+    while (publishIpkText.indexOf('{{version}}') >= 0) {
+        publishIpkText = publishIpkText.replace('{{version}}', desc.version);
+    }
+    writeText('../publish-ipk.sh', publishIpkText);
 
 
     let dockerText = readText('../ymls/docker.yml');
@@ -192,4 +231,9 @@ readVersionDesc().then((desc) => {
         nugetText = nugetText.replace('{{version}}', desc.version);
     }
     writeText('../.github/workflows/nuget.yml', nugetText);
+
+
+    const ipkData = readYaml('../ymls/ipk.yml');
+    writeUploadIpk(ipkData, `v${desc.version}`);
+    writeYaml('../.github/workflows/ipk.yml', ipkData);
 });

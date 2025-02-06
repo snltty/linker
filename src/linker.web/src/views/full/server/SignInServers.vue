@@ -1,19 +1,19 @@
 <template>
     <div class="signin-wrap" :style="{height:`${state.height}px`}">
         <el-card shadow="never">
-            <template #header>服务器相关设置</template>
+            <template #header>{{$t('server.messenger')}}</template>
             <div>
                 <el-form label-width="auto">
-                    <el-form-item label="服务器地址">
+                    <el-form-item :label="$t('server.messengerAddr')">
                         <div class="flex">
                             <el-input class="flex-1" v-model="state.list.Host" @change="handleSave" />
-                            <span>服务器地址。ip:端口 或者 域名:端口</span>
+                            <span>{{$t('server.messengerText')}}</span>
                         </div>
                     </el-form-item>
-                    <el-form-item label="信标密钥">
+                    <el-form-item :label="$t('server.messengerSecretKey')">
                         <div class="flex">
                             <el-input class="flex-1" type="password" show-password maxlength="36" v-model="state.list.SecretKey" @change="handleSave" />
-                            <span>密钥正确时可连接服务器</span>
+                            <span>{{$t('server.messengerSecretKeyText')}}</span>
                         </div>
                     </el-form-item>
                     <RelayServers></RelayServers>

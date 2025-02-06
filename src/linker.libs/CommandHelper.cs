@@ -30,6 +30,10 @@ namespace linker.libs
         {
             return Execute("/bin/bash", arg, commands, out string error);
         }
+        public static string Linux(string arg, string[] commands,out string error)
+        {
+            return Execute("/bin/bash", arg, commands, out error);
+        }
         public static string Osx(string arg, string[] commands)
         {
             return Execute("/bin/bash", arg, commands, out string error);
