@@ -38,20 +38,6 @@ jobs:
           body: "1. 适配OpenWrt的NAT\r\n2. 测试打包ipk\r\n3. 不要更新，不要更新，不要更新，请使用v1.6.5"
       - name: publish projects
         run: ./publish.bat
-      - name: get current date
-        id: date
-        run: echo "::set-output name=today::$(date +'%Y-%m-%d')"
-      - name: create release
-        id: create_release
-        uses: GongT/actions-recreate-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
-        with:
-          tag_name: v1.0.0
-          release_name: v1.0.0.${{ steps.date.outputs.today }}
-          draft: false
-          prerelease: false
-          body: ''
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
         uses: tvrcgo/oss-action@v0.1.1
