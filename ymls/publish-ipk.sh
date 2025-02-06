@@ -37,5 +37,6 @@ do
     echo "2.0" > debian-binary
     ar r linker-${r}.ipk debian-binary data.tar.gz control.tar.gz
     ls 
+    pwd
     cd ../../../../
 done
