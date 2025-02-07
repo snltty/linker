@@ -1,7 +1,6 @@
 target=$(cd $(dirname $0); pwd)
 
 rs=('x64' 'arm64' 'arm')
-rs1=("x86_64" "arm64" "arm")
 index=0
 
 cd src/linker.web 
@@ -21,8 +20,12 @@ do
     cp -rf ipk/* public/publish-ipk/${r}/
     mkdir -p public/publish-ipk/${r}/data/usr/bin/linker
     cp -rf public/publish/${r}/* public/publish-ipk/${r}/data/usr/bin/linker/
+
     sed -i "s|{version}|{{version}}|g" public/publish-ipk/${r}/control/control
-    sed -i "s|{arch}|${rs1[index]}|g" public/publish-ipk/${r}/control/control
+    sed -i 's/\r$//' public/publish-ipk/${r}/data/etc/init.d/linker
+    sed -i 's/\r$//' public/publish-ipk/${r}/control/control
+    sed -i 's/\r$//' public/publish-ipk/${r}/control/postinst
+    sed -i 's/\r$//' public/publish-ipk/${r}/control/prerm
 
     chmod +x public/publish-ipk/${r}/data/etc/init.d/linker
     chmod +x public/publish-ipk/${r}/control/control

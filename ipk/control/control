@@ -1,6 +1,6 @@
 Package: linker
 Version: {version}
-Architecture: {arch}
+Architecture: all
 Maintainer: snltty <1069410172@qq.com>
 Section: utils
 Description: linker
