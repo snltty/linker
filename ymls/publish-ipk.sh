@@ -1,6 +1,8 @@
 target=$(cd $(dirname $0); pwd)
 
 rs=('x64' 'arm64' 'arm')
+rs1=("x86_64" "arm64" "arm")
+index=0
 
 cd src/linker.web 
 npm install &&
@@ -20,22 +22,19 @@ do
     mkdir -p public/publish-ipk/${r}/data/usr/bin/linker
     cp -rf public/publish/${r}/* public/publish-ipk/${r}/data/usr/bin/linker/
     sed -i "s|{version}|{{version}}|g" public/publish-ipk/${r}/control/control
+    sed -i "s|{arch}|${rs1[index]}|g" public/publish-ipk/${r}/control/control
+
     chmod +x public/publish-ipk/${r}/data/etc/init.d/linker
     chmod +x public/publish-ipk/${r}/control/control
     chmod +x public/publish-ipk/${r}/control/postinst
     chmod +x public/publish-ipk/${r}/control/prerm
-done
 
-sed -i "s|{arch}|amd64|g" public/publish-ipk/x64/data/etc/init.d/linker
-sed -i "s|{arch}|aarch64|g" public/publish/arm64-ipk/data/etc/init.d/linker
-sed -i "s|{arch}|arm|g" public/publish-ipk/arm/data/etc/init.d/linker
-
-for r in ${rs[@]} 
-do
     cd public/publish-ipk/${r}
-    tar -czvf data.tar.gz -C data .
-    tar -czvf control.tar.gz -C control .
+    tar -czf data.tar.gz -C data/ .
+    tar -czf control.tar.gz -C control/ .
     echo "2.0" > debian-binary
-    ar r linker-${r}.ipk debian-binary data.tar.gz control.tar.gz
+    tar -czf linker-${r}.ipk debian-binary data.tar.gz control.tar.gz
     cd ../../../
+
+    ((index++))
 done
