@@ -10,7 +10,7 @@ namespace linker.messenger.tuntap
     public sealed class TuntapAdapter : ILinkerTunDeviceCallback, ITuntapProxyCallback
     {
         private List<LinkerTunDeviceForwardItem> forwardItems = new List<LinkerTunDeviceForwardItem>();
-       
+
 
         private readonly TuntapTransfer tuntapTransfer;
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
@@ -37,9 +37,9 @@ namespace linker.messenger.tuntap
             //网卡状态发生变化，同步一下信息
             tuntapTransfer.OnSetupBefore += tuntapDecenter.Refresh;
             tuntapTransfer.OnSetupAfter += tuntapDecenter.Refresh;
-            tuntapTransfer.OnSetupSuccess += () => {  AddForward(); tuntapConfigTransfer.SetRunning(true);};
+            tuntapTransfer.OnSetupSuccess += () => { AddForward(); tuntapConfigTransfer.SetRunning(true); };
             tuntapTransfer.OnShutdownBefore += tuntapDecenter.Refresh;
-            tuntapTransfer.OnShutdownAfter += () => {  tuntapDecenter.Refresh();  DeleteForward(); tuntapConfigTransfer.SetRunning(false);};
+            tuntapTransfer.OnShutdownAfter += () => { tuntapDecenter.Refresh(); DeleteForward(); tuntapConfigTransfer.SetRunning(false); };
 
             //配置有更新，去同步一下
             tuntapConfigTransfer.OnUpdate += () => { _ = CheckDevice(); tuntapDecenter.Refresh(); };
@@ -48,10 +48,9 @@ namespace linker.messenger.tuntap
             tuntapProxy.Callback = this;
             CheckDeviceTask();
         }
-       
+
 
         private ulong configVersion = 0;
-        private ulong firstTimes = 0;
         private OperatingManager checking = new OperatingManager();
         private void CheckDeviceTask()
         {
@@ -76,9 +75,8 @@ namespace linker.messenger.tuntap
                 }
 
                 //配置发生变化，或者网卡不可用
-                if (tuntapConfigTransfer.Version.Eq(configVersion, out ulong version) == false || firstTimes == 0  || await tuntapTransfer.CheckAvailable() == false)
+                if (tuntapConfigTransfer.Version.Eq(configVersion, out ulong version) == false || tuntapTransfer.Status != TuntapStatus.Running || await tuntapTransfer.CheckAvailable() == false)
                 {
-                    firstTimes++;
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         LoggerHelper.Instance.Warning($"tuntap config version changed, restarting device");
                     configVersion = version;
@@ -168,6 +166,6 @@ namespace linker.messenger.tuntap
             return tuntapConfigTransfer.Info.Forwards.Select(c => new LinkerTunDeviceForwardItem { ListenAddr = c.ListenAddr, ListenPort = c.ListenPort, ConnectAddr = c.ConnectAddr, ConnectPort = c.ConnectPort }).ToList();
         }
 
-        
+
     }
 }
