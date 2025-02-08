@@ -22,7 +22,8 @@
 		<Company>snltty</Company>
 		<Description>1. 适配OpenWrt的NAT
 2. 打包ipk
-3. 修复首次启动网卡未启动bug</Description>
+3. 修复首次启动网卡未启动bug
+4. 设置工作目录</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
