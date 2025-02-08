@@ -46,12 +46,12 @@ namespace linker.messenger.tuntap
 
             //隧道回调
             tuntapProxy.Callback = this;
-
             CheckDeviceTask();
         }
        
 
         private ulong configVersion = 0;
+        private ulong firstTimes = 0;
         private OperatingManager checking = new OperatingManager();
         private void CheckDeviceTask()
         {
@@ -76,8 +76,9 @@ namespace linker.messenger.tuntap
                 }
 
                 //配置发生变化，或者网卡不可用
-                if (tuntapConfigTransfer.Version.Eq(configVersion, out ulong version) == false || await tuntapTransfer.CheckAvailable() == false)
+                if (tuntapConfigTransfer.Version.Eq(configVersion, out ulong version) == false || firstTimes == 0  || await tuntapTransfer.CheckAvailable() == false)
                 {
+                    firstTimes++;
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         LoggerHelper.Instance.Warning($"tuntap config version changed, restarting device");
                     configVersion = version;

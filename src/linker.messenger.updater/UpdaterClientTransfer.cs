@@ -125,7 +125,8 @@ namespace linker.messenger.updater
             {
                 if (updaterCommonTransfer.CheckUpdate)
                 {
-                    LoggerHelper.Instance.Info($"auto check update");
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        LoggerHelper.Instance.Info($"auto check update");
                     await updaterHelper.GetUpdateInfo(updateInfo);
                 }
                 return true;

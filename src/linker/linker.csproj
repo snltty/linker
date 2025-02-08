@@ -21,8 +21,8 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 适配OpenWrt的NAT
-2. 测试打包ipk
-3. 不要更新，不要更新，不要更新，请使用v1.6.5</Description>
+2. 打包ipk
+3. 修复首次启动网卡未启动bug</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
@@ -39,9 +39,15 @@
 		<DebugSymbols>true</DebugSymbols>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<DebugType>none</DebugType>
-		<DebugSymbols>false</DebugSymbols>
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
 		<Optimize>True</Optimize>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
+		<DebugType>embedded</DebugType>
 	</PropertyGroup>
 
 	<ItemGroup>
