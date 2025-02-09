@@ -17,7 +17,8 @@ do
     cp -rf src/linker/libmsquic-musl-${r}.so public/publish/${r}/libmsquic.so
 
     mkdir -p public/publish-ipk/${r}
-    cp -rf ipk/* public/publish-ipk/${r}/
+    cp -rf ipk/package/* public/publish-ipk/${r}/
+    cp -rf ipk/libs/${r}/* public/publish-ipk/${r}/data/   
     mkdir -p public/publish-ipk/${r}/data/usr/bin/linker
     cp -rf public/publish/${r}/* public/publish-ipk/${r}/data/usr/bin/linker/
 
