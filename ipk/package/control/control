@@ -4,4 +4,4 @@ Architecture: all
 Maintainer: snltty <1069410172@qq.com>
 Section: utils
 Description: linker
-Depends: libc, libstdcpp, zlib, bash, libopenssl, libopenssl-legacy, iptables
+Depends: libc, libstdcpp, zlib, bash, iptables, libopenssl, libopenssl-legacy
