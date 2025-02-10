@@ -2,6 +2,10 @@ Package: linker
 Version: {version}
 Architecture: all
 Maintainer: snltty <1069410172@qq.com>
-Section: utils
-Description: linker
-Depends: libc, libstdcpp, zlib, bash, iptables, libopenssl, libopenssl-legacy
+Section: net
+Source: https://github.com/snltty/linker
+License: GPL-2.0
+Priority: optional
+Depends: libc
+Recommends: libstdcpp, zlib, bash, iptables, kmod-tun, ip-full, libopenssl, libopenssl-legacy
+Description: A NAT transfer, Virtual Private Network, P2P Tunnel
