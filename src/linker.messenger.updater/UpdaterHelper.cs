@@ -86,10 +86,10 @@ namespace linker.messenger.updater
 
                 StringBuilder sb = new StringBuilder("linker-");
                 sb.Append($"{(OperatingSystem.IsWindows() ? "win" : OperatingSystem.IsLinux() ? "linux" : "osx")}-");
-                if (RuntimeInformation.OSDescription.Contains("Alpine") || RuntimeInformation.OSDescription.Contains("OpenWrt"))
+                if(OperatingSystem.IsLinux() && Directory.GetFiles("/lib", "*musl*").Length > 0)
                 {
                     sb.Append($"musl-");
-                }
+                } 
                 sb.Append(RuntimeInformation.ProcessArchitecture.ToString().ToLower());
 
                 string url = $"{updaterCommonTransfer.UpdateUrl}/{version}/{sb.ToString()}.zip";
