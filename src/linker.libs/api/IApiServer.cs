@@ -12,6 +12,7 @@ namespace linker.libs.api
         /// websocket
         /// </summary>
         public void Websocket(int port,string password);
+        public void SetPassword(string password);
         public void Notify(string path, object content);
         public void Notify(string path,string name, ReadOnlyMemory<byte> content);
         public void Notify(string path, object content,WebsocketConnection connection);

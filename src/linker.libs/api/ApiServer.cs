@@ -46,7 +46,7 @@ namespace linker.libs.api
             }
             server.OnConnecting = (connection, header) =>
             {
-                bool res = string.IsNullOrWhiteSpace(this.password) || (header.TryGetHeaderValue(WebsocketHeaderKey.SecWebSocketProtocol, out string _password) && _password.Contains(this.password));
+                bool res = string.IsNullOrWhiteSpace(this.password) || (header.TryGetHeaderValue(WebsocketHeaderKey.SecWebSocketProtocol, out string _password) && string.Equals(_password, this.password));
                 if (res)
                 {
                     header.SetHeaderValue(WebsocketHeaderKey.SecWebSocketExtensions, string.Empty);
@@ -78,6 +78,10 @@ namespace linker.libs.api
                     connection.SendFrameText(resp);
                 });
             };
+        }
+        public void SetPassword(string password)
+        {
+            this.password = password;
         }
 
         /// <summary>

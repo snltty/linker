@@ -26,6 +26,7 @@ export default {
         const connected = computed(()=>globalData.value.api.connected);
         const handleResetConnect = () => {
             localStorage.setItem('api-cache', '');
+            sessionStorage.setItem('api-cache', '');
             window.location.reload();
         }
         const handleShow = ()=>{

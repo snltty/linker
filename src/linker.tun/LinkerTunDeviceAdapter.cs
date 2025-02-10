@@ -50,7 +50,9 @@ namespace linker.tun
             {
                 if (OperatingSystem.IsWindows())
                 {
-                    linkerTunDevice = new LinkerWinTunDevice(deviceName, Guid.NewGuid());
+                    Guid id = Guid.NewGuid();
+                    LoggerHelper.Instance.Warning($"tun id {id.ToString().ToUpper()}");
+                    linkerTunDevice = new LinkerWinTunDevice(deviceName, id);
                 }
                 else if (OperatingSystem.IsLinux())
                 {

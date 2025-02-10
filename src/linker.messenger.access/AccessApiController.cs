@@ -3,6 +3,7 @@ using linker.libs.extends;
 using linker.libs;
 using linker.messenger.signin;
 using linker.messenger.api;
+using IApiServer = linker.messenger.api.IApiServer;
 
 namespace linker.messenger.access
 {
@@ -15,8 +16,9 @@ namespace linker.messenger.access
         private readonly ISerializer serializer;
         private readonly IAccessStore accessStore;
         private readonly IApiStore apiStore;
+        private readonly IApiServer apiServer;
 
-        public AccessApiController(IMessengerSender sender, SignInClientState signInClientState, AccessDecenter accessDecenter, ISignInClientStore signInClientStore, ISerializer serializer, IAccessStore accessStore, IApiStore apiStore)
+        public AccessApiController(IMessengerSender sender, SignInClientState signInClientState, AccessDecenter accessDecenter, ISignInClientStore signInClientStore, ISerializer serializer, IAccessStore accessStore, IApiStore apiStore, IApiServer apiServer)
         {
             this.sender = sender;
             this.signInClientState = signInClientState;
@@ -25,6 +27,7 @@ namespace linker.messenger.access
             this.serializer = serializer;
             this.accessStore = accessStore;
             this.apiStore = apiStore;
+            this.apiServer = apiServer;
         }
 
         public void Refresh(ApiControllerParamsInfo param)
@@ -71,6 +74,8 @@ namespace linker.messenger.access
             {
                 if (accessStore.HasAccess(AccessValue.SetApiPassword) == false) return false;
                 apiStore.SetApiPassword(info.Password);
+                apiStore.Confirm();
+                apiServer.SetPassword(info.Password);
                 return true;
             }
             if (accessStore.HasAccess(AccessValue.SetApiPasswordOther) == false) return false;

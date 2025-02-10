@@ -13,14 +13,16 @@ namespace linker.messenger.store.file
         private readonly SignInClientTransfer signInClientTransfer;
         private readonly IMessengerSender sender;
         private readonly SignInClientState signInClientState;
+        private readonly IApiStore apiStore;
 
-        public ConfigApiController(RunningConfig runningConfig, FileConfig config, SignInClientTransfer signInClientTransfer, IMessengerSender sender, SignInClientState signInClientState)
+        public ConfigApiController(RunningConfig runningConfig, FileConfig config, SignInClientTransfer signInClientTransfer, IMessengerSender sender, SignInClientState signInClientState, IApiStore apiStore)
         {
             this.runningConfig = runningConfig;
             this.config = config;
             this.signInClientTransfer = signInClientTransfer;
             this.sender = sender;
             this.signInClientState = signInClientState;
+            this.apiStore = apiStore;
         }
 
         public object Get(ApiControllerParamsInfo param)

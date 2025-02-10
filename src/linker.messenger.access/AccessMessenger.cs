@@ -1,6 +1,8 @@
 ﻿using linker.libs;
+using linker.libs.api;
 using linker.messenger.api;
 using linker.messenger.signin;
+using IApiServer = linker.messenger.api.IApiServer;
 
 namespace linker.messenger.access
 {
@@ -68,11 +70,13 @@ namespace linker.messenger.access
         private readonly IAccessStore accessStore;
         private readonly ISerializer serializer;
         private readonly IApiStore apiStore;
-        public AccessClientMessenger(IAccessStore accessStore, ISerializer serializer, IApiStore apiStore)
+        private readonly IApiServer apiServer;
+        public AccessClientMessenger(IAccessStore accessStore, ISerializer serializer, IApiStore apiStore, IApiServer apiServer)
         {
             this.accessStore = accessStore;
             this.serializer = serializer;
             this.apiStore = apiStore;
+            this.apiServer = apiServer;
         }
         [MessengerId((ushort)AccessMessengerIds.AccessUpdate)]
         public void AccessUpdate(IConnection connection)
@@ -86,6 +90,8 @@ namespace linker.messenger.access
         {
             string password = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
             apiStore.SetApiPassword(password);
+            apiStore.Confirm();
+            apiServer.SetPassword(password);
             connection.Write(Helper.TrueArray);
         }
     }

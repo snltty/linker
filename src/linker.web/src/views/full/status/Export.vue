@@ -61,7 +61,7 @@ export default {
             loading:false,
             single:true,
             name:'',
-            apipassword: globalData.value.config.Client.CApi.ApiPassword,
+            apipassword:'',
         });
         const accessDom = ref(null); 
       
@@ -85,7 +85,7 @@ export default {
             }else{
                 json.name = "";
             }
-            if(json.single && !state.name){
+            if(!state.apipassword){
                 ElMessage.error(t('status.exportApiPasswordPlease'));
                 return;
             }

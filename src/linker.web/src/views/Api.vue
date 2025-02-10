@@ -8,6 +8,9 @@
             <div class="pdt-10">
                 秘钥 : <el-input type="password" v-model="state.psd" style="width:70%"></el-input>
             </div>
+            <div class="pdt-10">
+                <el-checkbox v-model="state.save" >保存密码</el-checkbox>
+            </div>
         </div>
         <template #footer>
             <el-button type="success" @click="handleConnect1" plain>确 定</el-button>
@@ -31,18 +34,25 @@ export default {
         const route = useRoute();
 
         const defaultInfo = {api:`${window.location.hostname}:1803`,psd:'snltty'};
-        const queryCache = JSON.parse(localStorage.getItem('api-cache') || JSON.stringify(defaultInfo));
+        const queryCache = JSON.parse(sessionStorage.getItem('api-cache') || localStorage.getItem('api-cache') || JSON.stringify(defaultInfo));
         const state = reactive({
             api:queryCache.api,
             psd:queryCache.psd,
-            showPort: false
+            showPort: false,
+            save: queryCache.save || false,
         });
         const showPort = computed(() => globalData.value.api.connected == false && state.showPort);
 
         const handleConnect = () => {
             queryCache.api = state.api;
             queryCache.psd = state.psd;
-            localStorage.setItem('api-cache',JSON.stringify(queryCache));
+            queryCache.save = state.save;
+            if(state.save){
+                localStorage.setItem('api-cache',JSON.stringify(queryCache));
+            }else{
+                localStorage.setItem('api-cache', '');
+            }
+            sessionStorage.setItem('api-cache',JSON.stringify(queryCache));
             closeWebsocket();
             const url = `ws${window.location.protocol === "https:" ? "s" : ""}://${state.api}`
             initWebsocket(url,state.psd);
