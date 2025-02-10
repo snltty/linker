@@ -16,7 +16,8 @@ export const provideTuntap = () => {
     provide(tuntapSymbol, tuntap);
 
     const systems = {
-        linux: ['debian', 'ubuntu', 'alpine', 'rocky', 'centos', 'fedora', 'openwrt'],
+        linux: ['debian', 'ubuntu', 'alpine', 'rocky', 'centos', 'fedora'],
+        openwrt: ['openwrt'],
         ubuntu: ['ubuntu'],
         windows: ['windows'],
         android: ['android'],

@@ -93,6 +93,7 @@ namespace linker.messenger.updater
                 sb.Append(RuntimeInformation.ProcessArchitecture.ToString().ToLower());
 
                 string url = $"{updaterCommonTransfer.UpdateUrl}/{version}/{sb.ToString()}.zip";
+                LoggerHelper.Instance.Warning($"updater {url}");
 
                 using HttpClient httpClient = new HttpClient();
                 using HttpResponseMessage response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
