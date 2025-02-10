@@ -86,7 +86,7 @@ namespace linker.messenger.updater
 
                 StringBuilder sb = new StringBuilder("linker-");
                 sb.Append($"{(OperatingSystem.IsWindows() ? "win" : OperatingSystem.IsLinux() ? "linux" : "osx")}-");
-                if (RuntimeInformation.OSDescription.Contains("Alpine"))
+                if (RuntimeInformation.OSDescription.Contains("Alpine") || RuntimeInformation.OSDescription.Contains("OpenWrt"))
                 {
                     sb.Append($"musl-");
                 }
