@@ -6,15 +6,12 @@ name: LoongArch64
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: loongarch64/debian
-      options: --privileged
     defaults:
       run:
         shell: bash
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 

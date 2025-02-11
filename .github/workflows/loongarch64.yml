@@ -6,9 +6,6 @@ name: LoongArch64
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: loongarch64/debian
-      options: '--privileged'
     defaults:
       run:
         shell: bash
