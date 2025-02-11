@@ -5,7 +5,10 @@ name: LoongArch64
       - master
 jobs:
   build:
-    runs-on: opencv-cn-loongnix-loongarch64
+    runs-on: ubuntu-latest
+    container:
+      image: loongarch64/debian
+      options: '--privileged'
     defaults:
       run:
         shell: bash
