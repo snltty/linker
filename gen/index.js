@@ -266,7 +266,9 @@ readVersionDesc().then((desc) => {
     writeUploadIpk(ipkData, `v${desc.version}`);
     writeYaml('../.github/workflows/ipk.yml', ipkData);
 
+    /*
     const loongarch64Data = readYaml('../ymls/loongarch64.yml');
     writeUploadLoongArch64(loongarch64Data, `v${desc.version}`);
     writeYaml('../.github/workflows/loongarch64.yml', loongarch64Data);
+    */
 });
