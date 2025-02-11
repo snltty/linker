@@ -20,7 +20,7 @@ jobs:
 
       - name: Run LoongArch64 container
         run: |
-          docker run --privileged --platform linux/loongarch64 loongarch64/debian tail -f /dev/null
+          docker run --privileged --platform linux/loong64 loongarch64/debian tail -f /dev/null
       - name: setup
         run: |
           apt update
