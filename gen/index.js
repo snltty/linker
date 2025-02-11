@@ -191,6 +191,35 @@ function writeUploadIpk(data, tagName) {
         });
     };
 }
+function writeUploadLoongArch64(data, tagName) {
+    data.jobs.build.steps.push({
+        name: `upload-loongarch64-oss`,
+        id: `upload-loongarch64-oss`,
+        uses: 'tvrcgo/oss-action@v0.1.1',
+        with: {
+            'region': 'oss-cn-shenzhen',
+            'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
+            'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
+            'bucket': 'ide-qbcode',
+            'asset-path': `./linker-loongarch64.zip`,
+            'target-path': `/downloads/linker/${tagName}/linker-loongarch64.zip`
+        }
+    });
+    data.jobs.build.steps.push({
+        name: `upload-loongarch64`,
+        id: `upload-loongarch64`,
+        uses: 'actions/upload-release-asset@master',
+        env: {
+            'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
+        },
+        with: {
+            'upload_url': '${{ steps.get_release.outputs.upload_url }}',
+            'asset_path': `./linker-loongarch64.zip`,
+            'asset_name': `linker-loongarch64.zip`,
+            'asset_content_type': 'application/zip'
+        }
+    });
+}
 
 readVersionDesc().then((desc) => {
 
@@ -236,4 +265,8 @@ readVersionDesc().then((desc) => {
     const ipkData = readYaml('../ymls/ipk.yml');
     writeUploadIpk(ipkData, `v${desc.version}`);
     writeYaml('../.github/workflows/ipk.yml', ipkData);
+
+    const loongarch64Data = readYaml('../ymls/loongarch64.yml');
+    writeUploadLoongArch64(loongarch64Data, `v${desc.version}`);
+    writeYaml('../.github/workflows/loongarch64.yml', loongarch64Data);
 });

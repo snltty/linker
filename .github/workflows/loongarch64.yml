@@ -1,0 +1,48 @@
+name: LoongArch64
+'on':
+  push:
+    branches:
+      - master
+jobs:
+  build:
+    runs-on: opencv-cn-loongnix-loongarch64
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v3
+      - name: setup
+        run: |
+          apt update
+          apt install nodejs dotnet-sdk-8.0 zip
+      - name: publish
+        run: ./publish-loongarch64.sh
+      - name: Get latest release
+        id: get_release
+        run: |
+          response=$(curl -s \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.ACTIONS_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/latest")
+          upload_url=$(echo "$response" | jq -r '.upload_url')
+          echo "upload_url=$upload_url" >> $GITHUB_OUTPUT
+      - name: upload-loongarch64-oss
+        id: upload-loongarch64-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./linker-loongarch64.zip
+          target-path: /downloads/linker/v1.6.6/linker-loongarch64.zip
+      - name: upload-loongarch64
+        id: upload-loongarch64
+        uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ./linker-loongarch64.zip
+          asset_name: linker-loongarch64.zip
+          asset_content_type: application/zip
