@@ -19,13 +19,14 @@ namespace linker.tun
 
         private string interfaceOsx = string.Empty;
 
-        public LinkerOsxTunDevice(string name)
+        public LinkerOsxTunDevice()
         {
-            this.name = name;
+           
         }
 
-        public bool Setup(IPAddress address, IPAddress gateway, byte prefixLength, out string error)
+        public bool Setup(string name,IPAddress address, IPAddress gateway, byte prefixLength, out string error)
         {
+            this.name = name;
             error = string.Empty;
 
             interfaceOsx = GetOsxInterfaceNum();

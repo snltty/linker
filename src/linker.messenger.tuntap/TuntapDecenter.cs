@@ -58,6 +58,26 @@ namespace linker.messenger.tuntap
             SyncVersion.Add();
         }
 
+        private TuntapInfo GetCurrentInfo()
+        {
+            return new TuntapInfo
+            {
+                IP = tuntapConfigTransfer.Info.IP,
+                Lans = tuntapConfigTransfer.Info.Lans.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false)
+                .Select(c => { c.Exists = false; return c; }).ToList(),
+                Wan = signInClientState.WanAddress.Address,
+                PrefixLength = tuntapConfigTransfer.Info.PrefixLength,
+                Name = tuntapConfigTransfer.Info.Name,
+                MachineId = signInClientStore.Id,
+                Status = tuntapTransfer.Status,
+                SetupError = tuntapTransfer.SetupError,
+                NatError = tuntapTransfer.NatError,
+                SystemInfo = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} {(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")) == false ? "Docker" : "")}",
+
+                Forwards = tuntapConfigTransfer.Info.Forwards,
+                Switch = tuntapConfigTransfer.Info.Switch
+            };
+        }
         public Memory<byte> GetData()
         {
             TuntapInfo info = GetCurrentInfo();
@@ -133,28 +153,6 @@ namespace linker.messenger.tuntap
             });
         }
 
-        private TuntapInfo GetCurrentInfo()
-        {
-            return new TuntapInfo
-            {
-                IP = tuntapConfigTransfer.Info.IP,
-                Lans = tuntapConfigTransfer.Info.Lans.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false)
-                .Select(c => { c.Exists = false; return c; }).ToList(),
-                Wan = signInClientState.WanAddress.Address,
-                PrefixLength = tuntapConfigTransfer.Info.PrefixLength,
-                MachineId = signInClientStore.Id,
-                Status = tuntapTransfer.Status,
-                SetupError = tuntapTransfer.SetupError,
-                NatError = tuntapTransfer.NatError,
-                SystemInfo = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} {(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")) == false ? "Docker" : "")}",
-
-                Forwards = tuntapConfigTransfer.Info.Forwards,
-                Switch = tuntapConfigTransfer.Info.Switch
-            };
-        }
-        /// <summary>
-        /// 添加路由
-        /// </summary>
         private void AddRoute()
         {
             List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(Infos.Values.ToList());
@@ -179,7 +177,6 @@ namespace linker.messenger.tuntap
 
             routeItems = _routeItems;
         }
-
         private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)
         {
             //排除的IP，
@@ -194,7 +191,7 @@ namespace linker.messenger.tuntap
 
             return infos
                 .Where(c => c.MachineId != signInClientStore.Id)
-                
+
                 .Where(c =>
                 {
                     if (wan.Equals(c.Wan))
@@ -207,7 +204,7 @@ namespace linker.messenger.tuntap
                     }
                     return true;
                 })
-                
+
                 .OrderBy(c => c.IP, new IPAddressComparer()).OrderByDescending(c => c.Status)
                 .Select(c =>
                 {
@@ -250,7 +247,6 @@ namespace linker.messenger.tuntap
                 MachineId = machineid
             };
         }
-
 
         sealed class IPAddressComparer : IComparer<IPAddress>
         {

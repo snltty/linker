@@ -13,9 +13,10 @@ namespace linker.messenger.tuntap
         public bool Running => Info.Running;
         public TuntapSwitch Switch => Info.Switch;
 
-        public VersionManager Version { get; } = new VersionManager();
+        private string name = string.Empty;
+        public string Name => string.IsNullOrWhiteSpace(Info.Name) ? (string.IsNullOrWhiteSpace(name) ? "linker" : name) : Info.Name;
 
-        public string DeviceName => "linker";
+        public VersionManager Version { get; } = new VersionManager();
 
         private readonly ITuntapClientStore tuntapStore;
         private readonly LeaseClientTreansfer leaseClientTreansfer;
@@ -54,10 +55,12 @@ namespace linker.messenger.tuntap
             {
                 IPAddress ip = Info.IP;
                 byte prefixLength = Info.PrefixLength;
+                string name = Info.Name;
 
                 Info.IP = info.IP ?? IPAddress.Any;
                 Info.Lans = info.Lans;
                 Info.PrefixLength = info.PrefixLength;
+                Info.Name = info.Name;
                 Info.Switch = info.Switch;
                 Info.Forwards = info.Forwards;
                 tuntapStore.Confirm();
@@ -65,7 +68,7 @@ namespace linker.messenger.tuntap
                 await LeaseIP();
                 SetGroupIP();
 
-                if ((ip.Equals(Info.IP) == false || prefixLength != Info.PrefixLength))
+                if (ip.Equals(Info.IP) == false || prefixLength != Info.PrefixLength || string.Equals(name, Info.Name) == false)
                 {
                     Version.Add();
                 }
@@ -105,6 +108,7 @@ namespace linker.messenger.tuntap
             LeaseInfo leaseInfo = await leaseClientTreansfer.LeaseIp(Info.IP, Info.PrefixLength);
             Info.IP = leaseInfo.IP;
             Info.PrefixLength = leaseInfo.PrefixLength;
+            name = leaseInfo.Name;
             tuntapStore.Confirm();
         }
 

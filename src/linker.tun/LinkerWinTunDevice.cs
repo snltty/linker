@@ -25,14 +25,15 @@ namespace linker.tun
 
         private CancellationTokenSource tokenSource;
 
-        public LinkerWinTunDevice(string name, Guid guid)
+        public LinkerWinTunDevice( Guid guid)
         {
-            this.name = name;
+           
             this.guid = guid;
         }
 
-        public bool Setup(IPAddress address, IPAddress gateway, byte prefixLength, out string error)
+        public bool Setup(string name, IPAddress address, IPAddress gateway, byte prefixLength, out string error)
         {
+            this.name = name;
             this.address = address;
             this.prefixLength = prefixLength;
 

@@ -59,6 +59,7 @@ namespace linker.messenger.tuntap.lease
 
                 cache.IP = NetworkHelper.ToValue(info.IP);
                 cache.PrefixValue = NetworkHelper.ToPrefixValue(info.PrefixLength);
+                cache.Name = info.Name;
 
                 //网络配置有变化，清理分配，让他们重新申请
                 if (oldIP != cache.IP || oldPrefix != cache.PrefixValue)
@@ -78,7 +79,7 @@ namespace linker.messenger.tuntap.lease
         {
             if (caches.TryGetValue(key, out LeaseCacheInfo cache))
             {
-                return new LeaseInfo { IP = NetworkHelper.ToIP(cache.IP), PrefixLength = NetworkHelper.ToPrefixLength(cache.PrefixValue) };
+                return new LeaseInfo { IP = NetworkHelper.ToIP(cache.IP), PrefixLength = NetworkHelper.ToPrefixLength(cache.PrefixValue), Name = cache.Name };
             }
             return new LeaseInfo { IP = IPAddress.Any, PrefixLength = 24 };
         }
@@ -100,6 +101,7 @@ namespace linker.messenger.tuntap.lease
             }
             cache.LastTime = DateTime.Now;
             info.PrefixLength = NetworkHelper.ToPrefixLength(cache.PrefixValue);
+            info.Name = cache.Name;
 
 
             LeaseCacheUserInfo self = cache.Users.FirstOrDefault(c => c.Id == userId);
@@ -259,6 +261,10 @@ namespace linker.messenger.tuntap.lease
         /// 前缀，掩码长度
         /// </summary>
         public byte PrefixLength { get; set; } = 32;
+        /// <summary>
+        /// 网卡名
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
     }
 
     public sealed class LeaseCacheInfo
@@ -266,6 +272,7 @@ namespace linker.messenger.tuntap.lease
         public string Id { get; set; }
 
         public string Key { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// 网络号

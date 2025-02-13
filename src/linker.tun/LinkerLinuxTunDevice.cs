@@ -20,13 +20,14 @@ namespace linker.tun
         private IPAddress address;
         private byte prefixLength = 24;
 
-        public LinkerLinuxTunDevice(string name)
+        public LinkerLinuxTunDevice()
         {
-            this.name = name;
+           
         }
 
-        public bool Setup(IPAddress address, IPAddress gateway, byte prefixLength, out string error)
+        public bool Setup(string name,IPAddress address, IPAddress gateway, byte prefixLength, out string error)
         {
+            this.name = name;
             error = string.Empty;
             this.address = address;
             this.prefixLength = prefixLength;

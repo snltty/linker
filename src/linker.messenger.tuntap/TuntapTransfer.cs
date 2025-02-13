@@ -26,12 +26,12 @@ namespace linker.messenger.tuntap
         }
 
         bool inited = false;
-        public void Init(string name, ILinkerTunDeviceCallback linkerTunDeviceCallback)
+        public void Init(ILinkerTunDeviceCallback linkerTunDeviceCallback)
         {
             if (inited) return;
             inited = true;
 
-            linkerTunDeviceAdapter.Initialize(name, linkerTunDeviceCallback);
+            linkerTunDeviceAdapter.Initialize(linkerTunDeviceCallback);
             AppDomain.CurrentDomain.ProcessExit += (s, e) => linkerTunDeviceAdapter.Shutdown();
             Console.CancelKeyPress += (s, e) => linkerTunDeviceAdapter.Shutdown();
         }
@@ -43,7 +43,7 @@ namespace linker.messenger.tuntap
         /// <summary>
         /// 运行网卡
         /// </summary>
-        public void Setup(IPAddress ip, byte prefixLength)
+        public void Setup(string name, IPAddress ip, byte prefixLength)
         {
             if (operatingManager.StartOperation() == false)
             {
@@ -58,7 +58,7 @@ namespace linker.messenger.tuntap
                     {
                         return;
                     }
-                    linkerTunDeviceAdapter.Setup(ip, prefixLength, 1400);
+                    linkerTunDeviceAdapter.Setup(name, ip, prefixLength, 1400);
                     if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.SetupError) == false)
                     {
                         LoggerHelper.Instance.Error(linkerTunDeviceAdapter.SetupError);

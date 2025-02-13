@@ -22,6 +22,8 @@ namespace linker.messenger.tuntap
         public List<TuntapLanInfo> Lans { get; set; } = new List<TuntapLanInfo>();
 
 
+        public string Name { get; set; }
+
         /// <summary>
         /// 是否在运行中
         /// </summary>
@@ -85,12 +87,15 @@ namespace linker.messenger.tuntap
         /// <summary>
         /// 虚拟网卡IP
         /// </summary>
-
-        public IPAddress IP { get; set; }
+        public IPAddress IP { get; set; } = IPAddress.Any;
         /// <summary>
         /// 前缀长度
         /// </summary>
         public byte PrefixLength { get; set; } = 24;
+        /// <summary>
+        /// 网卡名
+        /// </summary>
+        public string Name { get; set; }
 
         /// <summary>
         /// 局域网IP列表
@@ -249,7 +254,7 @@ namespace linker.messenger.tuntap
 
         public string Error { get; set; } = string.Empty;
     }
- 
+
     public sealed partial class TuntapForwardTestWrapInfo
     {
         public string MachineId { get; set; }

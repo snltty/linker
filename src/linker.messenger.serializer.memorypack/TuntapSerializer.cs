@@ -148,6 +148,8 @@ namespace linker.messenger.serializer.memorypack
 
         [MemoryPackInclude]
         byte PrefixLength => info.PrefixLength;
+        [MemoryPackInclude]
+        string Name => info.Name;
 
         [MemoryPackInclude]
         List<TuntapLanInfo> Lans => info.Lans;
@@ -170,7 +172,7 @@ namespace linker.messenger.serializer.memorypack
         TuntapSwitch Switch => info.Switch;
 
         [MemoryPackConstructor]
-        SerializableTuntapInfo(string machineId, TuntapStatus status, IPAddress ip, byte prefixLength,
+        SerializableTuntapInfo(string machineId, TuntapStatus status, IPAddress ip, byte prefixLength, string name,
             List<TuntapLanInfo> lans, IPAddress wan, string setupError, string natError, string systemInfo, List<TuntapForwardInfo> forwards, TuntapSwitch Switch)
         {
             var info = new TuntapInfo
@@ -184,6 +186,7 @@ namespace linker.messenger.serializer.memorypack
                 SystemInfo = systemInfo,
                 SetupError = setupError,
                 PrefixLength = prefixLength,
+                Name = name,
                 Status = status,
                 Switch = Switch,
             };
@@ -493,13 +496,17 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude, MemoryPackAllowSerialize]
         byte PrefixLength => info.PrefixLength;
 
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        string Name => info.Name;
+
         [MemoryPackConstructor]
-        SerializableLeaseInfo(IPAddress ip, byte prefixLength)
+        SerializableLeaseInfo(IPAddress ip, byte prefixLength, string name)
         {
             var info = new LeaseInfo
             {
                 IP = ip,
-                PrefixLength = prefixLength
+                PrefixLength = prefixLength,
+                Name = name
             };
             this.info = info;
         }

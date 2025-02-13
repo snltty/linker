@@ -3,8 +3,10 @@
         :title="`设置[${state.machineName}]组网`" top="1vh" width="760">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="8rem">
-                <el-form-item prop="gateway" class="m-b-0">赐予此设备IP，其它设备可通过此IP访问</el-form-item>
-                <el-form-item label="虚拟网卡IP" prop="IP">
+                <el-form-item label="网卡名" prop="Name">
+                    <el-input v-model="state.ruleForm.Name" style="width:14rem" /> <span>留空则使用【本组网络】的设置</span>
+                </el-form-item>
+                <el-form-item label="网卡IP" prop="IP">
                     <el-input v-model="state.ruleForm.IP" style="width:14rem" />
                     <span>/</span>
                     <el-input @change="handlePrefixLengthChange" v-model="state.ruleForm.PrefixLength" style="width:4rem" />
@@ -64,9 +66,19 @@ export default {
                 AutoConnect: tuntap.value.current.AutoConnect,
                 Upgrade: tuntap.value.current.Upgrade,
                 Multicast: tuntap.value.current.Multicast,
-                Forwards: tuntap.value.current.Forwards
+                Forwards: tuntap.value.current.Forwards,
+                Name: tuntap.value.current.Name,
             },
-            rules: {}
+            rules: {
+                Name: {
+                    type: 'string',
+                    pattern: /^$|^[A-Za-z][A-Za-z0-9]{0,31}$/,
+                    message:'请输入正确的网卡名',
+                    transform(value) {
+                        return value.trim();
+                    },
+                }
+            }
         });
         
         watch(() => state.show, (val) => {
@@ -98,7 +110,7 @@ export default {
             json.Upgrade = state.ruleForm.Upgrade;
             json.Multicast = state.ruleForm.Multicast;
             json.Forwards = forwardDom.value ?  forwardDom.value.getData() : tuntap.value.current.Forwards;
-            
+            json.Name = state.ruleForm.Name;
             updateTuntap(json).then(() => {
                 state.show = false;
                 ElMessage.success('已操作！');

@@ -12,7 +12,7 @@ namespace linker.libs
 
         private static string GetSystemIdWindows()
         {
-            string localAppDataPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "linker", "machine-id.txt");
+            string localAppDataPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Helper.GlobalString, "machine-id.txt");
             if (Directory.Exists(Path.GetDirectoryName(localAppDataPath)) == false)
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(localAppDataPath));

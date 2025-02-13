@@ -5,12 +5,15 @@
                 <el-form-item prop="gateway">
                     <p>网络租期30天、IP租期7天</p>
                 </el-form-item>
-                <el-form-item label="网络和掩码" prop="IP">
+                <el-form-item label="网卡名" prop="Name">
+                    <el-input v-model="state.ruleForm.Name" style="width:14rem"/>
+                </el-form-item>
+                <el-form-item label="网络前缀" prop="IP">
                     <el-input v-model="state.ruleForm.IP" style="width:14rem" @change="handlePrefixLengthChange" />
                     <span>/</span>
                     <el-input @change="handlePrefixLengthChange" v-model="state.ruleForm.PrefixLength" style="width:4rem" />
                     <span style="width: 1rem;"></span>
-                    <el-button @click="handleClear">清除</el-button>
+                    <el-button @click="handleClear">重置</el-button>
                 </el-form-item>
                 <el-form-item label="" prop="IP1">
                     <div class="calc">
@@ -51,10 +54,20 @@ export default {
         const state = reactive({
             show: true,
             ruleForm: {
+                Name:'',
                 IP:'0.0.0.0',
                 PrefixLength:24
             },
-            rules: {},
+            rules: {
+                Name: {
+                    type: 'string',
+                    pattern: /^$|^[A-Za-z][A-Za-z0-9]{0,31}$/,
+                    message:'请输入正确的网卡名',
+                    transform(value) {
+                        return value.trim();
+                    },
+                }
+            },
             values:{}
         });
         watch(() => state.show, (val) => {
@@ -72,6 +85,7 @@ export default {
         }
         const _getNetwork = ()=>{
             getNetwork().then((res)=>{
+                state.ruleForm.Name = res.Name;
                 state.ruleForm.IP = res.IP;
                 state.ruleForm.PrefixLength = res.PrefixLength;
                 _calcNetwork();
@@ -95,7 +109,7 @@ export default {
             })
         }
         const handleClear = ()=>{
-            addNetwork({IP:'0.0.0.0',PrefixLength:24}).then(()=>{
+            addNetwork({Name:'',IP:'0.0.0.0',PrefixLength:24}).then(()=>{
                 ElMessage.success('已操作');
                 _getNetwork();
             }).catch((err)=>{

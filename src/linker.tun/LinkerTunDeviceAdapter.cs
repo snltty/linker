@@ -41,9 +41,8 @@ namespace linker.tun
         /// <summary>
         /// 初始化
         /// </summary>
-        /// <param name="deviceName">设备名</param>
         /// <param name="linkerTunDeviceCallback">读取数据回调</param>
-        public void Initialize(string deviceName, ILinkerTunDeviceCallback linkerTunDeviceCallback)
+        public void Initialize( ILinkerTunDeviceCallback linkerTunDeviceCallback)
         {
             this.linkerTunDeviceCallback = linkerTunDeviceCallback;
             if (linkerTunDevice == null)
@@ -52,11 +51,11 @@ namespace linker.tun
                 {
                     Guid id = Guid.NewGuid();
                     LoggerHelper.Instance.Warning($"tun id {id.ToString().ToUpper()}");
-                    linkerTunDevice = new LinkerWinTunDevice(deviceName, id);
+                    linkerTunDevice = new LinkerWinTunDevice(id);
                 }
                 else if (OperatingSystem.IsLinux())
                 {
-                    linkerTunDevice = new LinkerLinuxTunDevice(deviceName);
+                    linkerTunDevice = new LinkerLinuxTunDevice();
                 }
                 /*
                 else if (OperatingSystem.IsMacOS())
@@ -79,10 +78,11 @@ namespace linker.tun
         /// <summary>
         /// 开启网卡
         /// </summary>
+        /// <param name="deviceName">网卡IP</param>
         /// <param name="address">网卡IP</param>
         /// <param name="prefixLength">掩码。一般24即可</param>
         /// <param name="mtu">mtu</param>
-        public bool Setup(IPAddress address, byte prefixLength, int mtu)
+        public bool Setup(string deviceName, IPAddress address, byte prefixLength, int mtu)
         {
             if (Interlocked.CompareExchange(ref operating, 1, 0) == 1)
             {
@@ -96,7 +96,7 @@ namespace linker.tun
                     setupError = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} not support";
                     return false;
                 }
-                linkerTunDevice.Setup(address, NetworkHelper.ToGatewayIP(address, prefixLength), prefixLength, out setupError);
+                linkerTunDevice.Setup(deviceName,address, NetworkHelper.ToGatewayIP(address, prefixLength), prefixLength, out setupError);
                 if (string.IsNullOrWhiteSpace(setupError) == false)
                 {
                     return false;
@@ -214,6 +214,8 @@ namespace linker.tun
                         ReadOnlyMemory<byte> buffer = linkerTunDevice.Read();
                         if (buffer.Length == 0)
                         {
+                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                LoggerHelper.Instance.Warning($"read buffer 0, stop device");
                             Shutdown();
                             break;
                         }
@@ -232,6 +234,8 @@ namespace linker.tun
                     }
                     catch (Exception ex)
                     {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            LoggerHelper.Instance.Warning($"read buffer Exception, stop device");
                         setupError = ex.Message;
                         Shutdown();
                         break;

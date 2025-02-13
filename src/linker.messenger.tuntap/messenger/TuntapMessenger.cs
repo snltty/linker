@@ -34,6 +34,8 @@ namespace linker.messenger.tuntap.messenger
         [MessengerId((ushort)TuntapMessengerIds.Run)]
         public void Run(IConnection connection)
         {
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Warning($"messenger restarting device");
             _ = tuntapAdapter.RetstartDevice();
         }
 
@@ -44,6 +46,8 @@ namespace linker.messenger.tuntap.messenger
         [MessengerId((ushort)TuntapMessengerIds.Stop)]
         public void Stop(IConnection connection)
         {
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Warning($"messenger stop device");
             tuntapAdapter.StopDevice();
         }
 
@@ -179,7 +183,7 @@ namespace linker.messenger.tuntap.messenger
             }
         }
         /// <summary>
-        /// 添加网络配置
+        /// 获取网络配置
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>

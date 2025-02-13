@@ -102,6 +102,8 @@ namespace linker.messenger.tuntap
             {
                 if (accessStore.HasAccess(AccessValue.TuntapStatusSelf) == false) return false;
 
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Warning($"api restarting device");
                 await tuntapAdapter.RetstartDevice();
             }
             else
@@ -128,6 +130,8 @@ namespace linker.messenger.tuntap
             if (param.Content == signInClientStore.Id)
             {
                 if (accessStore.HasAccess(AccessValue.TuntapStatusSelf) == false) return false;
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Warning($"api stop device");
                 tuntapAdapter.StopDevice();
             }
             else

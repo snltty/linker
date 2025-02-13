@@ -33,13 +33,33 @@ namespace linker.messenger.tuntap
             signInClientState.NetworkEnabledHandle += (times) => tuntapConfigTransfer.RefreshIP();
 
             //初始化网卡
-            tuntapTransfer.Init(tuntapConfigTransfer.DeviceName, this);
+            tuntapTransfer.Init(this);
             //网卡状态发生变化，同步一下信息
-            tuntapTransfer.OnSetupBefore += tuntapDecenter.Refresh;
-            tuntapTransfer.OnSetupAfter += tuntapDecenter.Refresh;
+            tuntapTransfer.OnSetupBefore += () =>
+            {
+                tuntapDecenter.Refresh();
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Warning("tuntap setup before");
+            };
+            tuntapTransfer.OnSetupAfter += () =>
+            {
+                tuntapDecenter.Refresh();
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Warning("tuntap setup after");
+            };
             tuntapTransfer.OnSetupSuccess += () => { AddForward(); tuntapConfigTransfer.SetRunning(true); };
-            tuntapTransfer.OnShutdownBefore += tuntapDecenter.Refresh;
-            tuntapTransfer.OnShutdownAfter += () => { tuntapDecenter.Refresh(); DeleteForward(); tuntapConfigTransfer.SetRunning(false); };
+            tuntapTransfer.OnShutdownBefore += () =>
+            {
+                tuntapDecenter.Refresh();
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Warning("tuntap shutdown before");
+            };
+            tuntapTransfer.OnShutdownAfter += () =>
+            {
+                tuntapDecenter.Refresh(); DeleteForward(); tuntapConfigTransfer.SetRunning(false);
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Warning("tuntap shutdown after");
+            };
 
             //配置有更新，去同步一下
             tuntapConfigTransfer.OnUpdate += () => { _ = CheckDevice(); tuntapDecenter.Refresh(); };
@@ -126,15 +146,19 @@ namespace linker.messenger.tuntap
         /// <returns></returns>
         public async Task RetstartDevice()
         {
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Warning($"restart, stop device");
             tuntapTransfer.Shutdown();
             await tuntapConfigTransfer.RefreshIPASync();
-            tuntapTransfer.Setup(tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.Info.PrefixLength);
+            tuntapTransfer.Setup(tuntapConfigTransfer.Name, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.Info.PrefixLength);
         }
         /// <summary>
         /// 关闭网卡
         /// </summary>
         public void StopDevice()
         {
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Warning($"stop device");
             tuntapTransfer.Shutdown();
         }
 

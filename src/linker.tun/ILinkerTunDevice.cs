@@ -28,12 +28,13 @@ namespace linker.tun
         /// <summary>
         /// 启动
         /// </summary>
+        /// <param name="name"></param>
         /// <param name="address"></param>
         /// <param name="gateway"></param>
         /// <param name="prefixLength"></param>
         /// <param name="error"></param>
         /// <returns></returns>
-        public bool Setup(IPAddress address, IPAddress gateway, byte prefixLength, out string error);
+        public bool Setup(string name,IPAddress address, IPAddress gateway, byte prefixLength, out string error);
         /// <summary>
         /// 关闭
         /// </summary>
