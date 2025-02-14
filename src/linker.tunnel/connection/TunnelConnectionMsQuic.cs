@@ -167,7 +167,7 @@ namespace linker.tunnel.connection
             {
                 try
                 {
-                    await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
+                    callback.Receive(this, packet, this.userToken);
                 }
                 catch (Exception)
                 {

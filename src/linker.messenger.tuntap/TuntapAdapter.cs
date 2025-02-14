@@ -47,7 +47,11 @@ namespace linker.messenger.tuntap
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Warning("tuntap setup after");
             };
-            tuntapTransfer.OnSetupSuccess += () => { AddForward(); tuntapConfigTransfer.SetRunning(true); };
+            tuntapTransfer.OnSetupSuccess += () =>
+            {
+                AddForward();
+                tuntapConfigTransfer.SetRunning(true);
+            };
             tuntapTransfer.OnShutdownBefore += () =>
             {
                 tuntapDecenter.Refresh();
@@ -62,7 +66,7 @@ namespace linker.messenger.tuntap
             };
 
             //配置有更新，去同步一下
-            tuntapConfigTransfer.OnUpdate += () => { _ = CheckDevice(); tuntapDecenter.Refresh(); };
+            tuntapConfigTransfer.OnUpdate += () => { AddForward(); _ = CheckDevice(); tuntapDecenter.Refresh(); };
 
             //隧道回调
             tuntapProxy.Callback = this;
@@ -129,10 +133,9 @@ namespace linker.messenger.tuntap
             tuntapDecenter.Refresh();
             await ValueTask.CompletedTask;
         }
-        public async ValueTask Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
+        public void Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
         {
             tuntapTransfer.Write(buffer);
-            await ValueTask.CompletedTask;
         }
         public async ValueTask NotFound(uint ip)
         {
@@ -150,7 +153,7 @@ namespace linker.messenger.tuntap
                 LoggerHelper.Instance.Warning($"restart, stop device");
             tuntapTransfer.Shutdown();
             await tuntapConfigTransfer.RefreshIPASync();
-            tuntapTransfer.Setup(tuntapConfigTransfer.Name, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.Info.PrefixLength);
+            tuntapTransfer.Setup(tuntapConfigTransfer.Name, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.Info.PrefixLength, tuntapConfigTransfer.Info.DisableNat == false);
         }
         /// <summary>
         /// 关闭网卡

@@ -14,7 +14,7 @@ namespace linker.messenger.tuntap
     public interface ITuntapProxyCallback
     {
         public ValueTask Close(ITunnelConnection connection);
-        public ValueTask Receive(ITunnelConnection connection,ReadOnlyMemory<byte> packet);
+        public void Receive(ITunnelConnection connection, ReadOnlyMemory<byte> packet);
         public ValueTask NotFound(uint ip);
     }
 
@@ -55,9 +55,11 @@ namespace linker.messenger.tuntap
         /// <param name="buffer"></param>
         /// <param name="state"></param>
         /// <returns></returns>
+#pragma warning disable CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
         public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer, object state)
+#pragma warning restore CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
         {
-            await Callback.Receive(connection, buffer).ConfigureAwait(false);
+            Callback.Receive(connection, buffer);
         }
         /// <summary>
         /// 隧道关闭
@@ -98,11 +100,6 @@ namespace linker.messenger.tuntap
                     return;
                 }
 
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    //LoggerHelper.Instance.Debug($"tuntap {NetworkHelper.Value2IP(ip)} connection not found");
-                }
-
                 _ = ConnectTunnel(ip).ContinueWith((result, state) =>
                 {
                     //结束操作
@@ -115,7 +112,6 @@ namespace linker.messenger.tuntap
                 }, ip);
                 return;
             }
-            //Console.WriteLine($"InputPacket {packet.Dist}");
             await connection.SendAsync(packet.Packet);
         }
 
@@ -145,10 +141,6 @@ namespace linker.messenger.tuntap
             {
                 ipRefreshCache.Add(ip);
                 await Callback.NotFound(ip).ConfigureAwait(false);
-            }
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            {
-                //LoggerHelper.Instance.Debug($"tuntap {NetworkHelper.Value2IP(ip)} to machine not found");
             }
 
             return null;

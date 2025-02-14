@@ -176,10 +176,6 @@ namespace linker.tun
             return string.Empty;
         }
 
-        public void Clear()
-        {
-
-        }
 
         public async Task<bool> CheckAvailable()
         {

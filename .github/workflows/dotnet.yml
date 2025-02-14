@@ -35,7 +35,7 @@ jobs:
           release_name: v1.6.6.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 适配OpenWrt的NAT\r\n2. 打包ipk\r\n3. 修复首次启动网卡未启动bug\r\n4. 设置工作目录\r\n5. 接口密码BUG"
+          body: "1. 适配OpenWrt的NAT\r\n2. 打包ipk\r\n3. 修复首次启动网卡未启动bug\r\n4. 设置工作目录\r\n5. 接口密码BUG\r\n6. 自定义网卡名\r\n7. 可禁用NAT\r\n8. 修复网卡端口转发BUG"
       - name: publish projects
         run: ./publish.bat
       - name: upload-win-x86-oss

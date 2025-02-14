@@ -49,9 +49,7 @@ namespace linker.tun
             {
                 if (OperatingSystem.IsWindows())
                 {
-                    Guid id = Guid.NewGuid();
-                    LoggerHelper.Instance.Warning($"tun id {id.ToString().ToUpper()}");
-                    linkerTunDevice = new LinkerWinTunDevice(id);
+                    linkerTunDevice = new LinkerWinTunDevice();
                 }
                 else if (OperatingSystem.IsLinux())
                 {
@@ -65,15 +63,6 @@ namespace linker.tun
                 */
             }
         }
-
-        /// <summary>
-        /// 清理额外的数据，具体看不同平台的实现
-        /// </summary>
-        public void Clear()
-        {
-            linkerTunDevice?.Clear();
-        }
-
 
         /// <summary>
         /// 开启网卡

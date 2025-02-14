@@ -43,7 +43,7 @@ namespace linker.messenger.tuntap
         /// <summary>
         /// 运行网卡
         /// </summary>
-        public void Setup(string name, IPAddress ip, byte prefixLength)
+        public void Setup(string name, IPAddress ip, byte prefixLength, bool nat = true)
         {
             if (operatingManager.StartOperation() == false)
             {
@@ -64,7 +64,8 @@ namespace linker.messenger.tuntap
                         LoggerHelper.Instance.Error(linkerTunDeviceAdapter.SetupError);
                         return;
                     }
-                    linkerTunDeviceAdapter.SetNat();
+                    if (nat)
+                        linkerTunDeviceAdapter.SetNat();
                     if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.NatError) == false)
                     {
                         LoggerHelper.Instance.Error(linkerTunDeviceAdapter.NatError);
@@ -100,7 +101,6 @@ namespace linker.messenger.tuntap
                 OnShutdownBefore();
                 linkerTunDeviceAdapter.Shutdown();
                 linkerTunDeviceAdapter.RemoveNat();
-                linkerTunDeviceAdapter.Clear();
                 OnShutdownSuccess();
             }
             catch (Exception ex)

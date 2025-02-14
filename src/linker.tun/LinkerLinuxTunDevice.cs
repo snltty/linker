@@ -321,10 +321,6 @@ namespace linker.tun
             return output;
         }
 
-        public void Clear()
-        {
-        }
-
         public async Task<bool> CheckAvailable()
         {
             string output = CommandHelper.Linux(string.Empty, new string[] { $"ip link show {Name}" });

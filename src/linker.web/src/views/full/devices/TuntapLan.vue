@@ -48,7 +48,7 @@ export default {
 
         const handleMaskChange = (index) => {
             var value = +state.lans[index].PrefixLength;
-            if (value > 32 || value < 16 || isNaN(value)) {
+            if (value > 32 || value < 0 || isNaN(value)) {
                 value = 24;
             }
             state.lans[index].PrefixLength = value;

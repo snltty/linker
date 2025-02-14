@@ -40,6 +40,8 @@ namespace linker.messenger.tuntap
         public List<TuntapForwardInfo> Forwards { get; set; } = new List<TuntapForwardInfo>();
 
         public ConcurrentDictionary<string, TuntapGroup2IPInfo> Group2IP { get; set; } = new ConcurrentDictionary<string, TuntapGroup2IPInfo>();
+
+        public bool DisableNat => (Switch & TuntapSwitch.DisableNat) == TuntapSwitch.DisableNat;
     }
 
     public sealed class TuntapGroup2IPInfo
@@ -239,7 +241,27 @@ namespace linker.messenger.tuntap
                 }
             }
         }
-
+        /// <summary>
+        /// 禁用Nat
+        /// </summary>
+        public bool DisableNat
+        {
+            get
+            {
+                return (Switch & TuntapSwitch.DisableNat) == TuntapSwitch.DisableNat;
+            }
+            set
+            {
+                if (value)
+                {
+                    Switch |= TuntapSwitch.DisableNat;
+                }
+                else
+                {
+                    Switch &= ~TuntapSwitch.DisableNat;
+                }
+            }
+        }
     }
 
     public sealed partial class TuntapForwardInfo
@@ -313,6 +335,10 @@ namespace linker.messenger.tuntap
         /// 禁用广播
         /// </summary>
         Multicast = 16,
+        /// <summary>
+        /// 禁用Nat
+        /// </summary>
+        DisableNat = 32,
     }
 }
 

@@ -21,11 +21,6 @@ namespace linker.tun
         public bool Running { get; }
 
         /// <summary>
-        /// 清理额外的数据
-        /// </summary>
-        public void Clear();
-
-        /// <summary>
         /// 启动
         /// </summary>
         /// <param name="name"></param>

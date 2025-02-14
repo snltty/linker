@@ -2,7 +2,7 @@
     <div>
         <div class="flex">
             <div class="flex-1">
-                <ConnectionShow :data="connections.list[item.MachineId]"></ConnectionShow>
+                <ConnectionShow :data="connections.list[item.MachineId]"></ConnectionShow>         
                 <a href="javascript:;" class="a-line" @click="handleTuntapIP(tuntap.list[item.MachineId])" title="此设备的虚拟网卡IP">
                     <template v-if="tuntap.list[item.MachineId].SetupError">
                         <strong class="red" :title="tuntap.list[item.MachineId].SetupError">{{ tuntap.list[item.MachineId].IP }}</strong>
@@ -44,6 +44,9 @@
                     </template>
                 </template>
             </div>
+            <template v-if="tuntap.list[item.MachineId].Any">
+                <div class="any green"><el-icon><Share /></el-icon></div>
+            </template>
             <template v-if="showDelay">
                 <template v-if="tuntap.list[item.MachineId].Delay>=0 && tuntap.list[item.MachineId].Delay<=100">
                     <div class="delay green">{{ tuntap.list[item.MachineId].Delay }}ms</div>
@@ -60,7 +63,7 @@
 import { stopTuntap, runTuntap } from '@/apis/tuntap';
 import { ElMessage } from 'element-plus';
 import { useTuntap } from './tuntap';
-import {Loading} from '@element-plus/icons-vue'
+import {Loading,Share} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
 import { computed } from 'vue';
 import { useTuntapConnections } from './connections';
@@ -68,7 +71,7 @@ import ConnectionShow from './ConnectionShow.vue';
 export default {
     props:['item','config'],
     emits: ['edit','refresh'],
-    components:{Loading,ConnectionShow},
+    components:{Loading,Share,ConnectionShow},
     setup (props,{emit}) {
         
         const tuntap = useTuntap();
@@ -149,9 +152,18 @@ export default {
 }
 
 .delay{position: absolute;right:0;bottom:0;line-height:normal}
-
 .switch-btn{
     font-size:1.5rem;
 }
 
+.any {
+    position: absolute;left:-7px;top:-2px;line-height:normal
+    &.green {
+        background: linear-gradient(270deg, #caff00, green, #0d6d23, #e38a00, green);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: hsla(0, 0%, 100%, 0);
+    }
+
+}
 </style>

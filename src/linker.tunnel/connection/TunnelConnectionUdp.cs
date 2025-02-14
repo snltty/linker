@@ -162,7 +162,7 @@ namespace linker.tunnel.connection
                         packet = Crypto.Decode(decodeBuffer, 0, packet.Length);
                     }
 
-                    await callback.Receive(this, packet.Slice(4), this.userToken).ConfigureAwait(false);
+                    callback.Receive(this, packet.Slice(4), this.userToken);
                 }
                 catch (Exception)
                 {

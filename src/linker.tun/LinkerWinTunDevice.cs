@@ -18,17 +18,14 @@ namespace linker.tun
         public bool Running => session != 0;
 
         private IntPtr waitHandle = IntPtr.Zero, adapter = IntPtr.Zero, session = IntPtr.Zero;
-        private Guid guid;
         private int interfaceNumber = 0;
         private IPAddress address;
         private byte prefixLength = 24;
 
         private CancellationTokenSource tokenSource;
 
-        public LinkerWinTunDevice( Guid guid)
+        public LinkerWinTunDevice()
         {
-           
-            this.guid = guid;
         }
 
         public bool Setup(string name, IPAddress address, IPAddress gateway, byte prefixLength, out string error)
@@ -43,6 +40,8 @@ namespace linker.tun
                 error = ($"Adapter already exists");
                 return false;
             }
+            ClearRegistry();
+            Guid guid = Guid.NewGuid();
             adapter = WinTun.WintunCreateAdapter(name, name, ref guid);
             if (adapter == 0)
             {
@@ -329,10 +328,6 @@ namespace linker.tun
 
         }
 
-        public void Clear()
-        {
-            ClearRegistry();
-        }
         private void ClearRegistry()
         {
             string[] delValues = [Name];
@@ -344,7 +339,7 @@ namespace linker.tun
                     RegistryKey itemKey = key.OpenSubKey(item);
                     string value = itemKey.GetValue("Description", string.Empty).ToString();
                     itemKey.Close();
-                    if (delValues.Contains(value))
+                    if (delValues.Any(c => value.StartsWith($"{c}") || value == c))
                     {
                         try
                         {
@@ -363,7 +358,7 @@ namespace linker.tun
                     RegistryKey itemKey = key.OpenSubKey(item);
                     string value = itemKey.GetValue("Description", string.Empty).ToString();
                     itemKey.Close();
-                    if (delValues.Any(c => value.Contains($"{c} ") || value == c))
+                    if (delValues.Any(c => value.StartsWith($"{c}") || value == c))
                     {
                         try
                         {

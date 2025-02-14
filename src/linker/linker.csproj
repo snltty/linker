@@ -24,7 +24,10 @@
 2. 打包ipk
 3. 修复首次启动网卡未启动bug
 4. 设置工作目录
-5. 接口密码BUG</Description>
+5. 接口密码BUG
+6. 自定义网卡名
+7. 可禁用NAT
+8. 修复网卡端口转发BUG</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
@@ -67,6 +70,6 @@
 		<PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.1" />
 	</ItemGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\linker.messenger.entry\linker.messenger.entry.csproj" />
+		<ProjectReference Include="..\linker.messenger.entry\linker.messenger.entry.csproj" />
 	</ItemGroup>
 </Project>
