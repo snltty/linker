@@ -154,19 +154,13 @@ namespace linker.tunnel.connection
             }
             else
             {
-                try
+                if (SSL)
                 {
-                    if (SSL)
-                    {
-                        packet.CopyTo(decodeBuffer);
-                        packet = Crypto.Decode(decodeBuffer, 0, packet.Length);
-                    }
+                    packet.CopyTo(decodeBuffer);
+                    packet = Crypto.Decode(decodeBuffer, 0, packet.Length);
+                }
 
-                    callback.Receive(this, packet.Slice(4), this.userToken);
-                }
-                catch (Exception)
-                {
-                }
+                await callback.Receive(this, packet.Slice(4), this.userToken);
             }
         }
 

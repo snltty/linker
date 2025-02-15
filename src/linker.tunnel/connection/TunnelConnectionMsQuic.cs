@@ -165,13 +165,7 @@ namespace linker.tunnel.connection
             }
             else
             {
-                try
-                {
-                    callback.Receive(this, packet, this.userToken);
-                }
-                catch (Exception)
-                {
-                }
+                await callback.Receive(this, packet, this.userToken);
             }
         }
 

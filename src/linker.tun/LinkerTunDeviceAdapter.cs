@@ -19,14 +19,14 @@ namespace linker.tun
         public string NatError => natError;
 
 
-        private uint operating = 0;
+        private OperatingManager operatingManager = new OperatingManager();
         public LinkerTunDeviceStatus Status
         {
             get
             {
                 if (linkerTunDevice == null) return LinkerTunDeviceStatus.Normal;
 
-                return operating == 1
+                return operatingManager.Operating
                     ? LinkerTunDeviceStatus.Operating
                     : linkerTunDevice.Running
                         ? LinkerTunDeviceStatus.Running
@@ -42,7 +42,7 @@ namespace linker.tun
         /// 初始化
         /// </summary>
         /// <param name="linkerTunDeviceCallback">读取数据回调</param>
-        public void Initialize( ILinkerTunDeviceCallback linkerTunDeviceCallback)
+        public void Initialize(ILinkerTunDeviceCallback linkerTunDeviceCallback)
         {
             this.linkerTunDeviceCallback = linkerTunDeviceCallback;
             if (linkerTunDevice == null)
@@ -73,7 +73,7 @@ namespace linker.tun
         /// <param name="mtu">mtu</param>
         public bool Setup(string deviceName, IPAddress address, byte prefixLength, int mtu)
         {
-            if (Interlocked.CompareExchange(ref operating, 1, 0) == 1)
+            if (operatingManager.StartOperation() == false)
             {
                 setupError = $"setup are operating";
                 return false;
@@ -85,23 +85,22 @@ namespace linker.tun
                     setupError = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} not support";
                     return false;
                 }
-                linkerTunDevice.Setup(deviceName,address, NetworkHelper.ToGatewayIP(address, prefixLength), prefixLength, out setupError);
+                linkerTunDevice.Setup(deviceName, address, NetworkHelper.ToGatewayIP(address, prefixLength), prefixLength, out setupError);
                 if (string.IsNullOrWhiteSpace(setupError) == false)
                 {
                     return false;
                 }
-                //mtu = 4 * 1024 - 4;
                 linkerTunDevice.SetMtu(mtu);
                 Read();
                 return true;
             }
             catch (Exception ex)
             {
-                setupError = ex + "";
+                setupError = ex.Message;
             }
             finally
             {
-                Interlocked.Exchange(ref operating, 0);
+                operatingManager.StopOperation();
             }
             return false;
         }
@@ -111,7 +110,7 @@ namespace linker.tun
         /// </summary>
         public bool Shutdown()
         {
-            if (Interlocked.CompareExchange(ref operating, 1, 0) == 1)
+            if (operatingManager.StartOperation() == false)
             {
                 setupError = $"shutdown are operating";
                 return false;
@@ -124,10 +123,11 @@ namespace linker.tun
             catch (Exception)
             {
             }
-
+            finally
+            {
+                operatingManager.StopOperation();
+            }
             setupError = string.Empty;
-            Interlocked.Exchange(ref operating, 0);
-
             return true;
         }
 

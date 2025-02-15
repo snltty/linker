@@ -51,13 +51,13 @@ namespace linker.messenger.tuntap
             }
             TimerHelper.Async(() =>
             {
-                OnSetupBefore();
                 try
                 {
                     if (ip.Equals(IPAddress.Any))
                     {
                         return;
                     }
+                    OnSetupBefore();
                     linkerTunDeviceAdapter.Setup(name, ip, prefixLength, 1400);
                     if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.SetupError) == false)
                     {
@@ -81,8 +81,9 @@ namespace linker.messenger.tuntap
                 }
                 finally
                 {
-                    operatingManager.StopOperation();
+
                     OnSetupAfter();
+                    operatingManager.StopOperation();
                 }
             });
         }
@@ -112,8 +113,8 @@ namespace linker.messenger.tuntap
             }
             finally
             {
-                operatingManager.StopOperation();
                 OnShutdownAfter();
+                operatingManager.StopOperation();
             }
         }
 

@@ -178,13 +178,7 @@ namespace linker.tunnel.connection
                     return;
                 }
             }
-            try
-            {
-                callback.Receive(this, packet, this.userToken);
-            }
-            catch (Exception)
-            {
-            }
+            await callback.Receive(this, packet, this.userToken);
         }
 
         private async Task ProcessHeart()

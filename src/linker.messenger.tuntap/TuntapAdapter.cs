@@ -37,6 +37,7 @@ namespace linker.messenger.tuntap
             //网卡状态发生变化，同步一下信息
             tuntapTransfer.OnSetupBefore += () =>
             {
+                tuntapConfigTransfer.SetRunning(true);
                 tuntapDecenter.Refresh();
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Warning("tuntap setup before");
@@ -50,7 +51,6 @@ namespace linker.messenger.tuntap
             tuntapTransfer.OnSetupSuccess += () =>
             {
                 AddForward();
-                tuntapConfigTransfer.SetRunning(true);
             };
             tuntapTransfer.OnShutdownBefore += () =>
             {
@@ -60,9 +60,10 @@ namespace linker.messenger.tuntap
             };
             tuntapTransfer.OnShutdownAfter += () =>
             {
-                tuntapDecenter.Refresh(); DeleteForward(); tuntapConfigTransfer.SetRunning(false);
+                tuntapDecenter.Refresh(); DeleteForward(); 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Warning("tuntap shutdown after");
+                tuntapConfigTransfer.SetRunning(false);
             };
 
             //配置有更新，去同步一下
@@ -177,9 +178,12 @@ namespace linker.messenger.tuntap
                 tuntapTransfer.RemoveForward(removes.ToList());
             }
             forwardItems = temp;
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                LoggerHelper.Instance.Debug($"add tuntap forward {forwardItems.ToJson()}");
-            tuntapTransfer.AddForward(forwardItems);
+            if (tuntapTransfer.Status != TuntapStatus.Normal)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Debug($"add tuntap forward {forwardItems.ToJson()}");
+                tuntapTransfer.AddForward(forwardItems);
+            }
         }
         /// <summary>
         /// 删除端口转发
