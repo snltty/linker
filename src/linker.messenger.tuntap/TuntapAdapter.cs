@@ -4,6 +4,7 @@ using linker.messenger.exroute;
 using linker.messenger.signin;
 using linker.tun;
 using linker.tunnel.connection;
+using System.Diagnostics;
 
 namespace linker.messenger.tuntap
 {
