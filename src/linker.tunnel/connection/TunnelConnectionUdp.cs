@@ -154,13 +154,22 @@ namespace linker.tunnel.connection
             }
             else
             {
-                if (SSL)
+                try
                 {
-                    packet.CopyTo(decodeBuffer);
-                    packet = Crypto.Decode(decodeBuffer, 0, packet.Length);
-                }
+                    if (SSL)
+                    {
+                        packet.CopyTo(decodeBuffer);
+                        packet = Crypto.Decode(decodeBuffer, 0, packet.Length);
+                    }
 
-                await callback.Receive(this, packet.Slice(4), this.userToken);
+                    await callback.Receive(this, packet.Slice(4), this.userToken);
+                }
+                catch (Exception ex)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                    LoggerHelper.Instance.Error($"udp connection error :{packet.Length}");
+                    LoggerHelper.Instance.Error($"udp connection error :{Encoding.UTF8.GetString(packet.Span)}");
+                }
             }
         }
 

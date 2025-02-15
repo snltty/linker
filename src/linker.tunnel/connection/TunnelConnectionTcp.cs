@@ -178,7 +178,14 @@ namespace linker.tunnel.connection
                     return;
                 }
             }
-            await callback.Receive(this, packet, this.userToken);
+            try
+            {
+                await callback.Receive(this, packet, this.userToken);
+            }
+            catch (Exception ex)
+            {
+                LoggerHelper.Instance.Error(ex);
+            }
         }
 
         private async Task ProcessHeart()
