@@ -28,6 +28,8 @@ namespace linker.messenger.signin
         public string Version { get; set; }
 
         public IPEndPoint WanAddress { get; set; } = new IPEndPoint(IPAddress.Any, 0);
+        public IPEndPoint LanAddress => Connection?.LocalAddress ?? new IPEndPoint(IPAddress.Any, 0);
+
 
         private int networdkEnabledTimes = 0;
         [JsonIgnore]

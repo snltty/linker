@@ -35,7 +35,7 @@ jobs:
           release_name: v1.6.7.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 修复首次启动网卡未启动bug\r\n2. 自定义网卡名\r\n3. 可禁用NAT\r\n4. 修复网卡端口转发BUG"
+          body: "1. 修复首次启动网卡未启动bug\r\n2. 自定义网卡名\r\n3. 可禁用NAT\r\n4. 修复网卡端口转发BUG\r\n5. 显示局域网IP"
       - name: publish projects
         run: ./publish.bat
       - name: upload-win-x86-oss

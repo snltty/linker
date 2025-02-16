@@ -100,12 +100,6 @@ namespace linker.messenger.tuntap
         public string Name { get; set; }
 
         /// <summary>
-        /// 局域网IP列表
-        /// </summary>
-        public List<TuntapLanInfo> Lans { get; set; } = new List<TuntapLanInfo>();
-        public IPAddress Wan { get; set; } = IPAddress.Any;
-
-        /// <summary>
         /// 网卡安装错误
         /// </summary>
         public string SetupError { get; set; }
@@ -119,16 +113,19 @@ namespace linker.messenger.tuntap
         public string SystemInfo { get; set; }
 
         /// <summary>
+        /// 局域网IP列表
+        /// </summary>
+        public List<TuntapLanInfo> Lans { get; set; } = new List<TuntapLanInfo>();
+        public IPAddress Wan { get; set; } = IPAddress.Any;
+        public IPAddress Lan { get; set; } = IPAddress.Any;
+        /// <summary>
         /// 端口转发列表
         /// </summary>
         public List<TuntapForwardInfo> Forwards { get; set; } = new List<TuntapForwardInfo>();
-
         /// <summary>
         /// 开关，多个bool集合
         /// </summary>
         public TuntapSwitch Switch { get; set; }
-
-        public LastTicksManager LastTicks { get; set; } = new LastTicksManager();
 
         /// <summary>
         /// 延迟ms

@@ -66,6 +66,7 @@ namespace linker.messenger.tuntap
                 Lans = tuntapConfigTransfer.Info.Lans.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false)
                 .Select(c => { c.Exists = false; return c; }).ToList(),
                 Wan = signInClientState.WanAddress.Address,
+                Lan = signInClientState.LanAddress.Address,
                 PrefixLength = tuntapConfigTransfer.Info.PrefixLength,
                 Name = tuntapConfigTransfer.Info.Name,
                 MachineId = signInClientStore.Id,
@@ -124,7 +125,6 @@ namespace linker.messenger.tuntap
                     foreach (var item in list)
                     {
                         tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
-                        item.LastTicks.Update();
                     }
                     var removes = tuntapInfos.Keys.Except(list.Select(c => c.MachineId)).Where(c => c != signInClientStore.Id).ToList();
                     foreach (var item in removes)
@@ -132,7 +132,6 @@ namespace linker.messenger.tuntap
                         if (tuntapInfos.TryGetValue(item, out TuntapInfo tuntapInfo))
                         {
                             tuntapInfo.Status = TuntapStatus.Normal;
-                            tuntapInfo.LastTicks.Clear();
                         }
                     }
                     DataVersion.Add();
