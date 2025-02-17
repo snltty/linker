@@ -4,7 +4,7 @@
             <div v-if="tunnel.list[scope.row.MachineId]">
                 <a href="javascript:;" class="a-line" 
                 :class="{yellow:tunnel.list[scope.row.MachineId].NeedReboot}" 
-                :title="tunnel.list[scope.row.MachineId].NeedReboot?'需要重启':'调整网关层级有助于打洞成功'"
+                :title="title(tunnel.list[scope.row.MachineId])"
                 @click="handleTunnel(tunnel.list[scope.row.MachineId],scope.row)">
                     <span>网关:{{tunnel.list[scope.row.MachineId].RouteLevel}}+{{tunnel.list[scope.row.MachineId].RouteLevelPlus}}</span>
                 </a>
@@ -38,6 +38,19 @@ export default {
         const tuntapConnections = useTuntapConnections();
         const socks5Connections = useSocks5Connections();
 
+        const title = (item)=>{
+
+            let texts = [
+                '调整网关层级有助于打洞成功',
+                `${item.HostName}`,
+                item.Lans.map(c=>`\t【${c.Mac}】${c.Desc}\r\n\t\t${c.Ips.join('\r\n\t\t')}`).join('\r\n'),
+                `跳跃点\r\n\t${item.Routes.join('\r\n\t')}`
+            ]
+
+            return item.NeedReboot
+            ?'需要重启'
+            :texts.join('\r\n');
+        }
         const connectionCount = (machineId)=>{
                 const length = [
                     forwardConnections.value.list[machineId],
@@ -69,7 +82,7 @@ export default {
        
         return {
             tunnel, handleTunnel,handleTunnelRefresh,
-            connectionCount,handleConnections
+            connectionCount,handleConnections,title
         }
     }
 }

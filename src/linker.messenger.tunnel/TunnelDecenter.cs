@@ -3,6 +3,10 @@ using linker.messenger.decenter;
 using linker.messenger.signin;
 using linker.plugins.tunnel;
 using System.Collections.Concurrent;
+using System.Net;
+using System.Net.Mail;
+using System.Net.NetworkInformation;
+using System.Text.RegularExpressions;
 namespace linker.messenger.tunnel
 {
     public sealed class TunnelDecenter : IDecenter
@@ -63,8 +67,23 @@ namespace linker.messenger.tunnel
                 NeedReboot = false,
                 PortMapLan = tunnelClientMessengerAdapterStore.PortMapPrivate,
                 PortMapWan = tunnelClientMessengerAdapterStore.PortMapPublic,
-                RouteLevelPlus = tunnelClientMessengerAdapterStore.RouteLevelPlus
+                RouteLevelPlus = tunnelClientMessengerAdapterStore.RouteLevelPlus,
+                HostName = Dns.GetHostName(),
+                Lans = GetInterfaces(),
+                Routes = tunnelNetworkTransfer.Info.RouteIPs,
             };
+        }
+
+        private static byte[] ipv6LocalBytes = new byte[] { 254, 128, 0, 0, 0, 0, 0, 0 };
+        private TunnelInterfaceInfo[] GetInterfaces()
+        {
+            return NetworkInterface.GetAllNetworkInterfaces().Select(c => new TunnelInterfaceInfo
+            {
+                Name = c.Name,
+                Desc = c.Description,
+                Mac = Regex.Replace(c.GetPhysicalAddress().ToString(), @"(.{2})", $"$1-").Trim('-'),
+                Ips = c.GetIPProperties().UnicastAddresses.Select(c => c.Address).Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork || (c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 && c.GetAddressBytes().AsSpan(0, 8).SequenceEqual(ipv6LocalBytes) == false)).ToArray()
+            }).Where(c => c.Ips.Any(d => d.Equals(IPAddress.Loopback)) == false).ToArray();
         }
     }
 }

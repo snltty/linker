@@ -35,7 +35,8 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new TunnelWanPortProtocolInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelRouteLevelInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelSetRouteLevelInfoFormatter());
-
+            MemoryPackFormatterProvider.Register(new TunnelInterfaceInfoFormatter());
+            
 
             MemoryPackFormatterProvider.Register(new DecenterSyncInfoFormatter());
 

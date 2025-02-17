@@ -1,8 +1,8 @@
 <template>
-    <el-form-item label="服务器穿透密钥">
+    <el-form-item :label="$t('server.sforwardSecretKey')">
         <div class="flex">
             <el-input class="flex-1" type="password" show-password v-model="state.SForwardSecretKey" maxlength="36" @blur="handleChange" />
-            <span>密钥正确时可使用内网穿透</span>
+            <span>{{$t('server.sforwardText')}}</span>
         </div>
     </el-form-item>
 </template>
@@ -10,8 +10,10 @@
 import { getSForwardSecretKey,setSForwardSecretKey } from '@/apis/sforward';
 import { ElMessage } from 'element-plus';
 import {onMounted, reactive } from 'vue'
+import { useI18n } from 'vue-i18n';
 export default {
     setup(props) {
+        const {t} = useI18n();
         const state = reactive({
             SForwardSecretKey:''
         });
@@ -25,10 +27,10 @@ export default {
         const _setSForwardSecretKey = ()=>{
             if(!state.SForwardSecretKey) return;
             setSForwardSecretKey(state.SForwardSecretKey).then(()=>{
-                ElMessage.success('已操作');
+                ElMessage.success(t('common.oper'));
             }).catch((err)=>{
                 console.log(err);
-                ElMessage.error('操作失败');
+                ElMessage.error(t('common.operFail'));
             });
         }
         const handleChange = ()=>{

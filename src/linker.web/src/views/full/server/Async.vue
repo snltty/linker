@@ -1,9 +1,9 @@
 <template>
     <div :style="{height:`${state.height}px`}">
         <el-card shadow="never">
-            <template #header>选择你需要同步的项，将这些配置同步到本组所有客户端</template>
+            <template #header>{{$t('server.asyncText')}}</template>
             <div>
-                <el-checkbox v-model="state.checkAll" :indeterminate="state.isIndeterminate" @change="handleCheckAllChange">全选</el-checkbox>
+                <el-checkbox v-model="state.checkAll" :indeterminate="state.isIndeterminate" @change="handleCheckAllChange">{{$t('server.asyncCheckAll')}}</el-checkbox>
                 <el-checkbox-group v-model="state.checkeds" @change="handleCheckedsChange">
                     <el-row>
                         <template v-for="name in state.names">
@@ -16,7 +16,7 @@
             </div>
             <template #footer>
                 <div class="t-c">
-                    <el-button type="success" @click="handleSync">确定同步</el-button>
+                    <el-button type="success" @click="handleSync">{{$t('common.confirm')}}</el-button>
                 </div>
             </template>
         </el-card>
@@ -27,11 +27,10 @@ import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { computed, onMounted, reactive } from 'vue'
 import { getSyncNames, setSync } from '@/apis/sync';
+import { useI18n } from 'vue-i18n';
 export default {
-    label:'同步配置',
-    name:'async',
-    order:7,
     setup(props) {
+        const {t} = useI18n();
         const globalData = injectGlobalData();
         const state = reactive({
             names:[],
@@ -52,12 +51,12 @@ export default {
         }
 
         const labels = {
-            'SignInSecretKey':'当前信标密钥',
-            'GroupSecretKey':'当前分组密码',
-            'RelaySecretKey':'当前中继密钥',
-            'SForwardSecretKey':'当前服务器穿透密钥',
-            'UpdaterSecretKey':'服务器更新密钥',
-            'TunnelTransports':'打洞协议列表'
+            'SignInSecretKey':t('server.asyncSignInSecretKey'),
+            'GroupSecretKey':t('server.asyncGroupSecretKey'),
+            'RelaySecretKey':t('server.asyncRelaySecretKey'),
+            'SForwardSecretKey':t('server.asyncSForwardSecretKey'),
+            'UpdaterSecretKey':t('server.asyncUpdaterSecretKey'),
+            'TunnelTransports':t('server.asyncTunnelTransports')
         }
         onMounted(()=>{
             getSyncNames().then(res=>{
@@ -68,11 +67,11 @@ export default {
         });
         const handleSync = ()=>{
             if(state.checkeds.length == 0) {
-                ElMessage.error('至少选择一个');
+                ElMessage.error(t('server.asyncSelect'));
                 return;
             }
             setSync(state.checkeds).then(res=>{
-                ElMessage.success('已操作');
+                ElMessage.success(t('common.oper'));
             });
         }
 

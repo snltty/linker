@@ -155,8 +155,6 @@ namespace linker.messenger.serializer.memorypack
         List<TuntapLanInfo> Lans => info.Lans;
         [MemoryPackInclude, MemoryPackAllowSerialize]
         IPAddress Wan => info.Wan;
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPAddress Lan => info.Lan;
 
         [MemoryPackInclude]
         string SetupError => info.SetupError;
@@ -175,14 +173,13 @@ namespace linker.messenger.serializer.memorypack
 
         [MemoryPackConstructor]
         SerializableTuntapInfo(string machineId, TuntapStatus status, IPAddress ip, byte prefixLength, string name,
-            List<TuntapLanInfo> lans, IPAddress wan, IPAddress lan, string setupError, string natError, string systemInfo, List<TuntapForwardInfo> forwards, TuntapSwitch Switch)
+            List<TuntapLanInfo> lans, IPAddress wan,  string setupError, string natError, string systemInfo, List<TuntapForwardInfo> forwards, TuntapSwitch Switch)
         {
             var info = new TuntapInfo
             {
                 MachineId = machineId,
                 Lans = lans,
                 Wan = wan,
-                Lan = lan,
                 Forwards = forwards,
                 IP = ip,
                 NatError = natError,

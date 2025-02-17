@@ -58,53 +58,53 @@
             </el-table>
         </div>
     </el-dialog>
-    <el-dialog v-model="state.showNodes" title="中继节点" width="760" top="2vh">
+    <el-dialog v-model="state.showNodes" :title="$t('server.relayTitle')" width="760" top="2vh">
         <div>
             <el-table :data="state.nodes" size="small" border height="600">
-                <el-table-column property="Name" label="名称"></el-table-column>
-                <el-table-column property="MaxGbTotal" label="月流量" width="160">
+                <el-table-column property="Name" :label="$t('server.relayName')"></el-table-column>
+                <el-table-column property="MaxGbTotal" :label="$t('server.relayFlow')" width="160">
                     <template #default="scope">
-                        <span v-if="scope.row.MaxGbTotal == 0">无限制</span>
+                        <span v-if="scope.row.MaxGbTotal == 0">--</span>
                         <span v-else>
                             {{ (scope.row.MaxGbTotalLastBytes/1024/1024/1024).toFixed(2) }}GB / {{ scope.row.MaxGbTotal }}GB
                         </span>
                     </template>
                 </el-table-column>
-                <el-table-column property="MaxBandwidth" label="连接带宽" width="80">
+                <el-table-column property="MaxBandwidth" :label="$t('server.relaySpeed')" width="80">
                     <template #default="scope">
-                        <span v-if="scope.row.MaxBandwidth == 0">无限制</span>
+                        <span v-if="scope.row.MaxBandwidth == 0">--</span>
                         <span v-else>{{ scope.row.MaxBandwidth }}Mbps</span>
                     </template>
                 </el-table-column>
-                <el-table-column property="MaxBandwidthTotal" label="总带宽" width="80">
+                <el-table-column property="MaxBandwidthTotal" :label="$t('server.relaySpeed1')" width="80">
                     <template #default="scope">
                         <span v-if="scope.row.MaxBandwidthTotal == 0">无限制</span>
                         <span v-else>{{ scope.row.MaxBandwidthTotal }}Mbps</span>
                     </template>
                 </el-table-column>
-                <el-table-column property="BandwidthRatio" label="带宽速率" width="66">
+                <el-table-column property="BandwidthRatio" :label="$t('server.relaySpeed2')" width="66">
                     <template #default="scope">
                         <span>{{ (scope.row.BandwidthRatio*100).toFixed(2) }}%</span>
                     </template>
                 </el-table-column>
-                <el-table-column property="ConnectionRatio" label="连接数" width="60">
+                <el-table-column property="ConnectionRatio" :label="$t('server.relayConnection')" width="60">
                     <template #default="scope">
                         <span>{{ (scope.row.ConnectionRatio*100).toFixed(2) }}%</span>
                     </template>
                 </el-table-column>
-                <el-table-column property="Delay" label="延迟" width="60">
+                <el-table-column property="Delay" :label="$t('server.relayDelay')" width="60">
                     <template #default="scope">
                         <span>{{ scope.row.Delay }}ms</span>
                     </template>
                 </el-table-column>
-                <el-table-column property="Public" label="公开" width="60">
+                <el-table-column property="Public" :label="$t('server.relayPublic')" width="60">
                     <template #default="scope">
                         <el-switch disabled v-model="scope.row.Public " size="small" />
                     </template>
                 </el-table-column>
-                <el-table-column property="Oper" label="操作" width="65">
+                <el-table-column property="Oper" :label="$t('server.relayOper')" width="65">
                     <template #default="scope">
-                        <el-button type="success" size="small" @click="handleConnect(scope.row.Id)">使用</el-button>
+                        <el-button type="success" size="small" @click="handleConnect(scope.row.Id)">{{$t('server.relayUse')}}</el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -118,12 +118,14 @@ import { useConnections, useForwardConnections, useSocks5Connections, useTuntapC
 import { Delete } from '@element-plus/icons-vue';
 import { injectGlobalData } from '@/provide';
 import { relayConnect, setRelaySubscribe } from '@/apis/relay';
+import { useI18n } from 'vue-i18n';
 export default {
     props: ['modelValue'],
     emits: ['change','update:modelValue'],
     components: {Delete},
     setup(props, { emit }) {
 
+        const {t} = useI18n();
         const globalData = injectGlobalData();
         const hasTunnelRemove = computed(()=>globalData.value.hasAccess('TunnelRemove')); 
 
@@ -161,7 +163,7 @@ export default {
         const handleDel = (row)=>{
             if(!hasTunnelRemove.value) return;
             row.removeFunc(row.RemoteMachineId).then(()=>{
-                ElMessage.success('删除成功');
+                ElMessage.success(t('common.oper'));
             }).catch(()=>{});
         }
 

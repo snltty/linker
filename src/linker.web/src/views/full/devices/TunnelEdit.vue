@@ -1,5 +1,5 @@
 <template>
-     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" :title="`设置[${state.machineName}]网关`" width="400">
+     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" :title="`设置[${state.machineName}]网关`" width="500" top="1vh">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="auto">
                 <el-form-item label="" prop="alert">
@@ -9,18 +9,15 @@
                     <el-row>
                         <el-col :span="12">
                             <el-form-item label="网关层级" prop="RouteLevel">
-                                <el-input readonly v-model="state.ruleForm.RouteLevel" />
+                                <el-input readonly v-model="state.ruleForm.RouteLevel" style="width:6rem" /> + 
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">
-                            <el-form-item label="调整层级" prop="RouteLevelPlus">
+                            <el-form-item label="" prop="RouteLevelPlus">
                                 <el-input-number v-model="state.ruleForm.RouteLevelPlus" />
                             </el-form-item>
                         </el-col>
                     </el-row>
-                </el-form-item>
-                <el-form-item label="" prop="alert">
-                    <div>光猫映射了端口后，可以直接连接，把TcpPortMap调到第一</div>
                 </el-form-item>
                 <el-form-item label="">
                     <el-row>
@@ -35,6 +32,33 @@
                             </el-form-item>
                         </el-col>
                     </el-row>
+                </el-form-item>
+                <el-form-item label="" prop="alert">
+                    <div>
+                        <h3>{{ tunnel.current.HostName }}</h3>
+                        <ul>
+                            <template v-for="(item,index) in tunnel.current.Lans">
+                                <li>
+                                    <div>【{{ item.Mac }}】{{ item.Desc }}</div>
+                                    <div>
+                                        <ul>
+                                            <template v-for="(item2,index2) in item.Ips">
+                                                <li>{{ item2 }}</li>
+                                            </template>
+                                        </ul>
+                                    </div>
+                                </li>
+                            </template>
+                        </ul>
+                        <h3>跳跃点</h3>
+                        <ul>
+                            <template v-for="(item,index) in tunnel.current.Routes">
+                                <li>
+                                    {{ item }}
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
                 </el-form-item>
                 <el-form-item label="" prop="Btns">
                     <div class="t-c w-100">
@@ -95,11 +119,16 @@ export default {
         }
 
         return {
-           state, ruleFormRef,  handleSave
+           state, ruleFormRef,  handleSave,tunnel
         }
     }
 }
 </script>
 <style lang="stylus" scoped>
 .el-switch.is-disabled{opacity :1;}
+ul{
+    li{
+        padding-left:2rem
+    }
+}
 </style>

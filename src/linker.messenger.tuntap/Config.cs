@@ -117,7 +117,6 @@ namespace linker.messenger.tuntap
         /// </summary>
         public List<TuntapLanInfo> Lans { get; set; } = new List<TuntapLanInfo>();
         public IPAddress Wan { get; set; } = IPAddress.Any;
-        public IPAddress Lan { get; set; } = IPAddress.Any;
         /// <summary>
         /// 端口转发列表
         /// </summary>

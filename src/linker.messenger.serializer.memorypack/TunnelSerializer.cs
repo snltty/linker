@@ -361,6 +361,63 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
+
+    [MemoryPackable]
+    public readonly partial struct SerializableTunnelInterfaceInfo
+    {
+        [MemoryPackIgnore]
+        public readonly TunnelInterfaceInfo info;
+
+        [MemoryPackInclude]
+        string Name => info.Name;
+
+        [MemoryPackInclude]
+        string Desc => info.Desc;
+        [MemoryPackInclude]
+        string Mac => info.Mac;
+
+        [MemoryPackInclude]
+        IPAddress[] Ips => info.Ips;
+
+        [MemoryPackConstructor]
+        SerializableTunnelInterfaceInfo(string name, string desc, string mac, IPAddress[] ips)
+        {
+            var info = new TunnelInterfaceInfo { Name = name, Desc = desc, Mac = mac, Ips = ips };
+            this.info = info;
+        }
+
+        public SerializableTunnelInterfaceInfo(TunnelInterfaceInfo tunnelCompactInfo)
+        {
+            this.info = tunnelCompactInfo;
+        }
+    }
+    public class TunnelInterfaceInfoFormatter : MemoryPackFormatter<TunnelInterfaceInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelInterfaceInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableTunnelInterfaceInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelInterfaceInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableTunnelInterfaceInfo>();
+            value = wrapped.info;
+        }
+    }
+
     [MemoryPackable]
     public readonly partial struct SerializableTunnelSetRouteLevelInfo
     {

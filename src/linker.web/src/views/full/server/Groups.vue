@@ -1,6 +1,6 @@
 <template>
     <el-table stripe  :data="state.list" border size="small" width="100%" :height="`${state.height}px`" @cell-dblclick="handleCellClick">
-        <el-table-column prop="Name" label="名称" width="100">
+        <el-table-column prop="Name" :label="$t('server.groupName')" width="100">
             <template #default="scope">
                 <template v-if="scope.row.NameEditing">
                     <el-input autofocus size="small" v-model="scope.row.Name"
@@ -22,7 +22,7 @@
                 </template>
             </template>
         </el-table-column>
-        <el-table-column prop="Password" label="密码" >
+        <el-table-column prop="Password" :label="$t('server.groupPassword')" >
             <template #default="scope">
                 <template v-if="scope.row.PasswordEditing">
                     <el-input type="password" show-password size="small" v-model="scope.row.Password" @blur="handleEditBlur(scope.row, 'Password')"></el-input>
@@ -30,10 +30,10 @@
                 <template v-else>{{ scope.row.Password.replace(/.{1}/g,'*') }}</template>
             </template>
         </el-table-column>
-        <el-table-column prop="Oper" label="操作" width="110">
+        <el-table-column prop="Oper" :label="$t('server.groupOper')" width="110">
             <template #default="scope">
                 <div>
-                    <el-popconfirm title="删除不可逆，是否确认?" @confirm="handleDel(scope.$index)">
+                    <el-popconfirm :title="$t('server.groupDelConfirm')" @confirm="handleDel(scope.$index)">
                         <template #reference>
                             <el-button type="danger" size="small">
                                 <el-icon><Delete /></el-icon>
@@ -54,9 +54,11 @@ import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { computed, reactive, watch } from 'vue'
 import { Delete,Plus,Select } from '@element-plus/icons-vue';
+import { useI18n } from 'vue-i18n';
 export default {
     components:{Delete,Plus,Select },
     setup(props) {
+        const {t} = useI18n();
         const globalData = injectGlobalData();
         const state = reactive({
             list:globalData.value.config.Client.Groups || [],
@@ -100,10 +102,10 @@ export default {
 
         const handleSave = ()=>{
             setSignInGroups(state.list).then(()=>{
-                ElMessage.success('已操作，请在右下角【信标服务器】重连');
+                ElMessage.success(t('common.oper'));
             }).catch((err)=>{
                 console.log(err);
-                ElMessage.error('操作失败');
+                ElMessage.error(t('common.operFail'));
             });
         }
 

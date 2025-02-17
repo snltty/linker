@@ -174,7 +174,4 @@ body.sunny .el-pagination__sizes, .el-pagination__total{
 body.sunny .status-wrap .copy a{
     color:#000;
 }
-body.sunny a{
-    color:#576acf;
-}
 </style>

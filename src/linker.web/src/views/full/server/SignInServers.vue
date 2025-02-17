@@ -23,7 +23,7 @@
             </div>
             <template #footer>
                 <div class="t-c">
-                    <el-button type="success" @click="handleSave">确定更改</el-button>
+                    <el-button type="success" @click="handleSave">{{$t('common.confirm')}}</el-button>
                 </div>
             </template>
         </el-card>
@@ -37,9 +37,11 @@ import { computed, reactive } from 'vue'
 import SForward from './SForward.vue';
 import Updater from './Updater.vue';
 import RelayServers from './RelayServers.vue';
+import { useI18n } from 'vue-i18n';
 export default {
     components:{SForward,Updater,RelayServers},
     setup(props) {
+        const {t} = useI18n();
         const globalData = injectGlobalData();
         const state = reactive({
             list:globalData.value.config.Client.Server,
@@ -48,10 +50,10 @@ export default {
 
         const handleSave = ()=>{
             setSignInServers(state.list).then(()=>{
-                ElMessage.success('已操作，请在右下角【信标服务器】重连');
+                ElMessage.success(t('common.oper'));
             }).catch((err)=>{
                 console.log(err);
-                ElMessage.error('操作失败');
+                ElMessage.error(t('common.operFail'));
             });
         }
 

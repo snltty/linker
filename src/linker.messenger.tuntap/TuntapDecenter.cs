@@ -66,7 +66,6 @@ namespace linker.messenger.tuntap
                 Lans = tuntapConfigTransfer.Info.Lans.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false)
                 .Select(c => { c.Exists = false; return c; }).ToList(),
                 Wan = signInClientState.WanAddress.Address,
-                Lan = signInClientState.LanAddress.Address,
                 PrefixLength = tuntapConfigTransfer.Info.PrefixLength,
                 Name = tuntapConfigTransfer.Info.Name,
                 MachineId = signInClientStore.Id,
