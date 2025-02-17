@@ -322,10 +322,28 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         int PortMapLan => info.PortMapLan;
 
+        [MemoryPackInclude]
+        string HostName => info.HostName;
+        [MemoryPackInclude]
+        TunnelInterfaceInfo[] Lans => info.Lans;
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        IPAddress[] Routes => info.Routes;
+
         [MemoryPackConstructor]
-        SerializableTunnelRouteLevelInfo(string machineId, int routeLevel, int routeLevelPlus, bool needReboot, int portMapWan, int portMapLan)
+        SerializableTunnelRouteLevelInfo(string machineId, int routeLevel, int routeLevelPlus, bool needReboot, int portMapWan, int portMapLan, string hostname, TunnelInterfaceInfo[] lans, IPAddress[] routes)
         {
-            var info = new TunnelRouteLevelInfo { MachineId = machineId, NeedReboot = needReboot, PortMapWan = portMapWan, PortMapLan = portMapLan, RouteLevel = routeLevel, RouteLevelPlus = routeLevelPlus };
+            var info = new TunnelRouteLevelInfo
+            {
+                MachineId = machineId,
+                NeedReboot = needReboot,
+                PortMapWan = portMapWan,
+                PortMapLan = portMapLan,
+                RouteLevel = routeLevel,
+                RouteLevelPlus = routeLevelPlus,
+                HostName = hostname,
+                Lans = lans,
+                Routes = routes
+            };
             this.info = info;
         }
 
