@@ -25,6 +25,7 @@
         <TuntapLease v-if="tuntap.showLease" v-model="tuntap.showLease"  @change="handleTuntapRefresh"></TuntapLease>
         <ForwardEdit v-if="forward.showEdit" v-model="forward.showEdit" ></ForwardEdit>
         <SForwardEdit v-if="sforward.showEdit" v-model="sforward.showEdit" ></SForwardEdit>
+        <UpdaterConfirm v-if="updater.show" v-model="updater.show" ></UpdaterConfirm>
     </div>
 </template>
 <script>
@@ -65,7 +66,8 @@ import { provideSforward } from './sforward'
 import ConnectionsEdit from './ConnectionsEdit.vue'
 import { provideConnections } from './connections'
 
-import { provideUpdater } from './updater'
+import { provideUpdater, useUpdater } from './updater'
+import UpdaterConfirm from './UpdaterConfirm.vue'
 
 export default {
     components: {Sort,Oper,
@@ -76,7 +78,7 @@ export default {
         Tuntap,TuntapEdit,TuntapLease, 
         Socks5, Socks5Edit,
         Forward,ForwardEdit,
-        SForwardEdit 
+        SForwardEdit ,UpdaterConfirm
     },
     setup(props) {
 
@@ -100,7 +102,7 @@ export default {
             handleTunnelConnections,clearConnectionsTimeout
         } = provideConnections();
 
-        const {_getUpdater,_subscribeUpdater,clearUpdaterTimeout} = provideUpdater();
+        const {updater,_getUpdater,_subscribeUpdater,clearUpdaterTimeout} = provideUpdater();
 
         const {_getAccessInfo,clearAccessTimeout,handleAccesssRefresh} = provideAccess();
 
@@ -212,7 +214,8 @@ export default {
             socks5, handleSocks5Edit, handleSocks5Refresh,
             tunnel,connections, handleTunnelEdit, handleTunnelRefresh,handleTunnelConnections,
             forward,handleForwardEdit,
-            sforward,handleSForwardEdit
+            sforward,handleSForwardEdit,
+            updater
         }
     }
 }

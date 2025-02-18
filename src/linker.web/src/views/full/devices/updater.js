@@ -11,7 +11,10 @@ export const provideUpdater = () => {
         hashcode: 0,
         current: { Version: '', Msg: [], DateTime: '', Status: 0, Length: 0, Current: 0 },
 
-        subscribeTimer: 0
+        subscribeTimer: 0,
+
+        device: {},
+        show: false,
     });
     provide(updaterSymbol, updater);
     const _getUpdater = () => {
@@ -45,7 +48,6 @@ export const provideUpdater = () => {
             updater.value.subscribeTimer = setTimeout(_subscribeUpdater, 5000);
         });
     }
-
 
     const clearUpdaterTimeout = () => {
         clearTimeout(updater.value.timer);

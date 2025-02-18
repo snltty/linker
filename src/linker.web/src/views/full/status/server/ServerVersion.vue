@@ -109,10 +109,6 @@ export default {
             if(!props.config || !hasUpdateServer.value){
                 return;
             }
-            if(!updaterCurrent.value.Version){
-                ElMessage.error(t('status.serverNoUpdate'));
-                return;
-            }
             //未检测，检测中，下载中，解压中
             if([0,1,3,5].indexOf(updaterServer.value.Status)>=0){
                 ElMessage.error(t('common.operating'));
@@ -137,7 +133,7 @@ export default {
                     cancelButtonText: t('common.cancel'),
                     type: 'warning'
                 }).then(() => {
-                    confirmServer(updaterCurrent.value.Version).then(()=>{
+                    confirmServer(updaterCurrent.value.Version || globalData.value.signin.Version).then(()=>{
                         setTimeout(()=>{
                             _getUpdaterServer();
                         },1000);

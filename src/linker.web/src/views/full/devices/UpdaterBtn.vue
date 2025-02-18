@@ -30,7 +30,7 @@
 import { injectGlobalData } from '@/provide';
 import { computed, h, ref } from 'vue';
 import { ElMessage, ElMessageBox, ElOption, ElSelect } from 'element-plus';
-import { checkUpdater, confirm } from '@/apis/updater';
+import { checkUpdater } from '@/apis/updater';
 import {Download,Loading,CircleCheck,Refresh} from '@element-plus/icons-vue'
 import { useUpdater } from './updater';
 
@@ -74,6 +74,7 @@ export default {
                 ? 'yellow' :'green'
         })
         const handleUpdate = ()=>{
+            updater.value.device = props.item;
             if(!props.config){
                 return;
             }
@@ -102,51 +103,7 @@ export default {
                 }).catch(() => {});
                 return;
             }
-
-            //已检测
-            if(updateInfo.Status == 2){
-
-                const selectedValue = ref(updaterVersion.value);
-                const selectOptions = [
-                    h(ElOption, { label: `仅[${props.item.MachineName}] -> ${updaterVersion.value}(最新)`, value: updaterVersion.value }),
-                ];
-                if(props.config && hasUpdateOther.value){
-                    selectOptions.push(h(ElOption, { label: `[本组所有] -> ${updaterVersion.value}(最新)`, value: `allg->${updaterVersion.value}` }));
-                    selectOptions.push(h(ElOption, { label: `[本服务器所有] -> ${updaterVersion.value}(最新)(需要密钥)`, value: `all->${updaterVersion.value}` }));
-                }
-                if(props.item.Version != serverVersion.value && updaterVersion.value != serverVersion.value){
-                    selectOptions.push(h(ElOption, { label: `仅[${props.item.MachineName}] -> ${serverVersion.value}(服务器版本)`, value: serverVersion.value }));
-                    if(props.config && hasUpdateOther.value){
-                        selectOptions.push(h(ElOption, { label: `[本组所有] -> ${serverVersion.value}(服务器版本)`, value: `allg->${serverVersion.value}` }));
-                        selectOptions.push(h(ElOption, { label: `[本服务器所有] -> ${serverVersion.value}(服务器版本)(需要密钥)`, value: `all->${serverVersion.value}` }));
-                    }
-                }
-
-                ElMessageBox({
-                    title: '选择版本',
-                    message: () => h(ElSelect, {
-                        modelValue: selectedValue.value,
-                        placeholder: '请选择',
-                        style:'width:20rem;',
-                        'onUpdate:modelValue': (val) => {
-                            selectedValue.value = val
-                        }
-                    }, selectOptions),
-                    confirmButtonText: '确定',
-                    cancelButtonText: '取消'
-                }).then(() => {
-                    const data = {
-                        MachineId:props.item.MachineId,
-                        Version:selectedValue.value.replace('all->','').replace('allg->',''),
-                        GroupAll:selectedValue.value.indexOf('allg->') >= 0,
-                        All:selectedValue.value.indexOf('all->') >= 0,
-                    };
-                    if(data.All || data.GroupAll){
-                        data.MachineId = '';
-                    }
-                    confirm(data);
-                }).catch(() => {});
-            }
+            updater.value.show = updateInfo.Status == 2;
         }
         const handleCheck = ()=>{
             const selectedValue = ref(props.item.MachineId);
