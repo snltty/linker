@@ -33,8 +33,9 @@ namespace linker.messenger.updater
             try
             {
                 updateInfo.Status = UpdaterStatus.Checking;
-
-                using HttpClient httpClient = new HttpClient();
+                using HttpClientHandler handler = new HttpClientHandler();
+                handler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
+                using HttpClient httpClient = new HttpClient(handler);
                 string str = await httpClient.GetStringAsync($"{updaterCommonTransfer.UpdateUrl}/version.txt").WaitAsync(TimeSpan.FromSeconds(15));
 
                 string[] arr = str.Split(Environment.NewLine).Select(c => c.Trim('\r').Trim('\n')).ToArray();

@@ -31,12 +31,10 @@ namespace linker.messenger.updater
         {
             return updaterClientStore.SecretKey;
         }
-
         public void SetSecretKey(ApiControllerParamsInfo param)
         {
             updaterClientStore.SetSecretKey(param.Content);
         }
-
         public void SetInterval(ApiControllerParamsInfo param)
         {
             updaterCommonTransfer.SetInterval(int.Parse(param.Content));
@@ -56,7 +54,6 @@ namespace linker.messenger.updater
             }
             return new UpdaterInfo();
         }
-
         public async Task ConfirmServer(ApiControllerParamsInfo param)
         {
             await messengerSender.SendOnly(new MessageRequestWrap
@@ -66,7 +63,6 @@ namespace linker.messenger.updater
                 Payload = serializer.Serialize(new UpdaterConfirmServerInfo { SecretKey = updaterClientStore.SecretKey, Version = param.Content })
             });
         }
-
         public async Task ExitServer(ApiControllerParamsInfo param)
         {
             await messengerSender.SendOnly(new MessageRequestWrap
@@ -141,7 +137,6 @@ namespace linker.messenger.updater
             }
             return true;
         }
-
 
         public async Task Subscribe(ApiControllerParamsInfo param)
         {

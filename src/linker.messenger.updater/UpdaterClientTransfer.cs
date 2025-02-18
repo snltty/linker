@@ -1,7 +1,6 @@
 ﻿using linker.libs;
 using System.Collections.Concurrent;
 using linker.messenger.signin;
-using linker.libs.extends;
 
 namespace linker.messenger.updater
 {
@@ -34,7 +33,7 @@ namespace linker.messenger.updater
         }
         private void Init()
         {
-            LoadTask();
+            CheckTask();
             UpdateTask();
             updateInfo.Update();
         }
@@ -88,14 +87,6 @@ namespace linker.messenger.updater
                 updateInfo.Update();
             }
         }
-
-        public void Check()
-        {
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                LoggerHelper.Instance.Info($"check update");
-            _ = updaterHelper.GetUpdateInfo(updateInfo);
-        }
-
         private void UpdateTask()
         {
             TimerHelper.SetInterval(async () =>
@@ -119,19 +110,44 @@ namespace linker.messenger.updater
             }, () => lastTicksManager.DiffLessEqual(5000) ? 1000 : 15000);
 
         }
-        private void LoadTask()
+
+        public void Check()
+        {
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Info($"check update");
+            _ = GetUpdateInfo();
+        }
+        private void CheckTask()
         {
             TimerHelper.SetInterval(async () =>
             {
                 if (updaterCommonTransfer.CheckUpdate)
                 {
-                    await updaterHelper.GetUpdateInfo(updateInfo);
+                    await GetUpdateInfo();
                 }
                 return true;
             }, () => updaterCommonTransfer.UpdateIntervalSeconds * 1000);
         }
+        private async Task GetUpdateInfo()
+        {
+            if (updateInfo.Status > UpdaterStatus.Checked) return;
+
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)UpdaterMessengerIds.UpdateServer,
+            });
+            if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
+            {
+                UpdaterInfo info = serializer.Deserialize<UpdaterInfo>(resp.Data.Span);
+                if (info.Status <= UpdaterStatus.Checked && updateInfo.Status <= UpdaterStatus.Checked)
+                {
+                    updateInfo.Status = info.Status;
+                    updateInfo.Version = info.Version;
+                    updateInfo.DateTime = info.DateTime;
+                    updateInfo.Msg = info.Msg;
+                }
+            }
+        }
     }
-
-
-
 }
