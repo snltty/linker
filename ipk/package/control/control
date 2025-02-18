@@ -7,6 +7,5 @@ Source: https://github.com/snltty/linker
 License: GPL-2.0
 Priority: optional
 Depends: libc
-Recommends: zlib, bash, iptables, kmod-tun, ip-full, libopenssl, libopenssl-legacy
-Suggests: libstdcpp
+Recommends: zlib, bash, iptables, kmod-tun, ip-full, kmod-ipt-nat, libstdcpp, libopenssl, libopenssl-legacy
 Description: A NAT transfer, Virtual Private Network, P2P Tunnel

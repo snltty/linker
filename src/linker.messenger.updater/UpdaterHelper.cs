@@ -29,7 +29,6 @@ namespace linker.messenger.updater
             {
                 return;
             }
-
             UpdaterStatus status = updateInfo.Status;
             try
             {
@@ -86,10 +85,10 @@ namespace linker.messenger.updater
 
                 StringBuilder sb = new StringBuilder("linker-");
                 sb.Append($"{(OperatingSystem.IsWindows() ? "win" : OperatingSystem.IsLinux() ? "linux" : "osx")}-");
-                if(OperatingSystem.IsLinux() && Directory.GetFiles("/lib", "*musl*").Length > 0)
+                if (OperatingSystem.IsLinux() && Directory.GetFiles("/lib", "*musl*").Length > 0)
                 {
                     sb.Append($"musl-");
-                } 
+                }
                 sb.Append(RuntimeInformation.ProcessArchitecture.ToString().ToLower());
 
                 string url = $"{updaterCommonTransfer.UpdateUrl}/{version}/{sb.ToString()}.zip";
@@ -266,5 +265,5 @@ namespace linker.messenger.updater
         }
     }
 
-   
+
 }

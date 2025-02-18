@@ -43,7 +43,7 @@ export default {
             let texts = [
                 '调整网关层级有助于打洞成功',
                 `${item.HostName}`,
-                item.Lans.map(c=>`\t【${c.Mac}】${c.Desc}\r\n\t\t${c.Ips.join('\r\n\t\t')}`).join('\r\n'),
+                item.Lans.filter(c=>c.Ips.length > 0).map(c=>`\t【${c.Mac||'00-00-00-00-00-00'}】${c.Name}\r\n\t\t${c.Ips.join('\r\n\t\t')}`).join('\r\n'),
                 `跳跃点\r\n\t${item.Routes.join('\r\n\t')}`
             ]
 

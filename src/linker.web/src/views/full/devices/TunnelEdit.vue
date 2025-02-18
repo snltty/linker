@@ -37,9 +37,9 @@
                     <div>
                         <h3>{{ tunnel.current.HostName }}</h3>
                         <ul>
-                            <template v-for="(item,index) in tunnel.current.Lans">
+                            <template v-for="(item,index) in tunnel.current.Lans.filter(c=>c.Ips.length > 0)">
                                 <li>
-                                    <div>【{{ item.Mac }}】{{ item.Desc }}</div>
+                                    <div>【{{ item.Mac||'00-00-00-00-00-00' }}】{{ item.Desc }}</div>
                                     <div>
                                         <ul>
                                             <template v-for="(item2,index2) in item.Ips">
