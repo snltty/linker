@@ -118,6 +118,14 @@ namespace linker.messenger.updater
             UpdaterConfirmServerInfo confirm = serializer.Deserialize<UpdaterConfirmServerInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (updaterServerStore.SecretKey == confirm.SecretKey)
             {
+                if (string.IsNullOrWhiteSpace(confirm.Version))
+                {
+                    confirm.Version = updaterServerTransfer.Get().Version;
+                }
+                if (string.IsNullOrWhiteSpace(confirm.Version))
+                {
+                    return;
+                }
                 updaterServerTransfer.Confirm(confirm.Version);
             }
         }
@@ -166,6 +174,14 @@ namespace linker.messenger.updater
             else machines = signCaching.Get(cache.GroupId).Where(c => c.MachineId == confirm.MachineId && c.GroupId == cache.GroupId);
 
             confirm.SecretKey = string.Empty;
+            if (string.IsNullOrWhiteSpace(confirm.Version))
+            {
+                confirm.Version = updaterServerTransfer.Get().Version;
+            }
+            if (string.IsNullOrWhiteSpace(confirm.Version))
+            {
+                return;
+            }
             var tasks = machines.Select(c =>
             {
                 return messengerSender.SendOnly(new MessageRequestWrap

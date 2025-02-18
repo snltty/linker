@@ -212,6 +212,8 @@ namespace linker.messenger.updater
         /// <param name="version"></param>
         public void Confirm(UpdaterInfo updateInfo, string version)
         {
+            if (string.IsNullOrWhiteSpace(version)) return;
+
             TimerHelper.Async(async () =>
             {
                 await DownloadUpdate(updateInfo, version);

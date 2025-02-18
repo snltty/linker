@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using System.Collections.Concurrent;
 using linker.messenger.signin;
+using linker.libs.extends;
 
 namespace linker.messenger.updater
 {
@@ -33,7 +34,6 @@ namespace linker.messenger.updater
         }
         private void Init()
         {
-            CheckTask();
             UpdateTask();
             updateInfo.Update();
         }
@@ -93,6 +93,7 @@ namespace linker.messenger.updater
             {
                 if (updateInfo.Updated)
                 {
+                    await GetUpdateInfo();
                     updateInfo.MachineId = signInClientStore.Id;
                     string[] machines = subscribes.Where(c => c.Value.DiffLessEqual(15000)).Select(c => c.Key).ToArray();
                     if (machines.Length > 0)
@@ -101,7 +102,17 @@ namespace linker.messenger.updater
                         {
                             Connection = signInClientState.Connection,
                             MessengerId = (ushort)UpdaterMessengerIds.UpdateForward,
-                            Payload = serializer.Serialize(new UpdaterClientInfo { ToMachines = machines, Info = updateInfo }),
+                            Payload = serializer.Serialize(new UpdaterClientInfo
+                            {
+                                ToMachines = machines,
+                                Info = new UpdaterInfo
+                                {
+                                    Current = updateInfo.Current,
+                                    Length = updateInfo.Length,
+                                    Status = updateInfo.Status,
+                                    MachineId = updateInfo.MachineId
+                                }
+                            }),
                         });
                     }
                     Update(updateInfo);
@@ -116,17 +127,6 @@ namespace linker.messenger.updater
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Info($"check update");
             _ = GetUpdateInfo();
-        }
-        private void CheckTask()
-        {
-            TimerHelper.SetInterval(async () =>
-            {
-                if (updaterCommonTransfer.CheckUpdate)
-                {
-                    await GetUpdateInfo();
-                }
-                return true;
-            }, () => updaterCommonTransfer.UpdateIntervalSeconds * 1000);
         }
         private async Task GetUpdateInfo()
         {

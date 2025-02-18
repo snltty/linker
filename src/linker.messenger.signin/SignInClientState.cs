@@ -47,10 +47,6 @@ namespace linker.messenger.signin
 
         public void PushNetworkEnabledBefore()
         {
-            if (networdkEnabledTimes == 0)
-            {
-                NetworkFirstEnabledHandle?.Invoke();
-            }
             NetworkEnabledHandleBefore?.Invoke();
         }
         /// <summary>

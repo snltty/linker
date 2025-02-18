@@ -175,6 +175,13 @@ namespace linker.messenger.serializer.memorypack
         public readonly UpdaterInfo info;
 
         [MemoryPackInclude]
+        string Version => info.Version;
+        [MemoryPackInclude]
+        string[] Msg => info.Msg;
+        [MemoryPackInclude]
+        string DateTime => info.DateTime;
+
+        [MemoryPackInclude]
         string MachineId => info.MachineId;
 
         [MemoryPackInclude]
@@ -187,9 +194,9 @@ namespace linker.messenger.serializer.memorypack
         long Current => info.Current;
 
         [MemoryPackConstructor]
-        SerializableUpdateInfo(string machineId, UpdaterStatus status, long length, long current)
+        SerializableUpdateInfo(string version, string[] msg,string datetime,string machineId, UpdaterStatus status, long length, long current)
         {
-            this.info = new UpdaterInfo { MachineId = machineId, Status = status, Length = length, Current = current };
+            this.info = new UpdaterInfo { Version=version, Msg=msg, DateTime=datetime, MachineId = machineId, Status = status, Length = length, Current = current };
         }
 
         public SerializableUpdateInfo(UpdaterInfo info)
