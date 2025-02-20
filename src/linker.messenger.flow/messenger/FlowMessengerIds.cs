@@ -9,6 +9,8 @@
         Relay = 2703,
         SForward = 2704,
 
+        Citys = 2705,
+
         Max = 2799
     }
 }

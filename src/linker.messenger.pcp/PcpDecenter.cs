@@ -23,7 +23,7 @@ namespace linker.messenger.pcp
             this.pcpStore = pcpStore;
             this.serializer = serializer;
 
-            signInClientState.NetworkEnabledHandle += (times) => SyncVersion.Add();
+            signInClientState.OnSignInSuccess += (times) => SyncVersion.Add();
         }
 
         public List<string> GetNodes(string fromMachineId, string toMachineId)

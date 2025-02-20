@@ -1,6 +1,9 @@
 <template>
     <div class="flow-wrap" v-if="config">
-        <p>{{$t('status.flowOnline')}} <a href="javascript:;" :title="`${$t('status.flowThisServer')}\r\n${$t('status.flowOnline')}/${$t('status.flowOnline7Day')}`">{{state.overallOnline}}</a><a href="javascript:;" :title="`${$t('status.flowAllServer')}\r\n${$t('status.flowOnline')}/${$t('status.flowOnline7Day')}/${$t('status.flowServer')}`">{{ state.serverOnline }}</a></p>
+        <p>{{$t('status.flowOnline')}} 
+            <a href="javascript:;" @click="state.showMap=true" :title="`${$t('status.flowThisServer')}\r\n${$t('status.flowOnline')}/${$t('status.flowOnline7Day')}`">{{state.overallOnline}}</a>
+            <a href="javascript:;" @click="state.showAllMap=true" :title="`${$t('status.flowAllServer')}\r\n${$t('status.flowOnline')}/${$t('status.flowOnline7Day')}/${$t('status.flowServer')}`">{{ state.serverOnline }}</a>
+        </p>
         <p>{{$t('status.flowUpload')}} <a href="javascript:;" :title="`${$t('status.flowThisServer')}\r\n${$t('status.flowAllSend')}`" @click="handleShow">{{state.overallSendtSpeed}}/s</a></p>
         <p>{{$t('status.flowDownload')}} <a href="javascript:;" :title="`${$t('status.flowThisServer')}\r\n${$t('status.flowAllReceive')}`" @click="handleShow">{{state.overallReceiveSpeed}}/s</a></p>
     </div>
@@ -39,6 +42,8 @@
     <ServerFlowMessenger :config="config" v-if="state.details.Messenger" v-model="state.details.Messenger"></ServerFlowMessenger>
     <ServerFlowSForward :config="config" v-if="state.details.SForward" v-model="state.details.SForward"></ServerFlowSForward>
     <ServerFlowRelay :config="config" v-if="state.details.Relay" v-model="state.details.Relay"></ServerFlowRelay>
+    <OnlineMap :config="config" v-if="state.showMap" v-model="state.showMap"></OnlineMap>
+    <OnlineAllMap :config="config" v-if="state.showAllMap" v-model="state.showAllMap"></OnlineAllMap>
 </template>
 
 <script>
@@ -49,9 +54,11 @@ import ServerFlowSForward from './ServerFlowSForward.vue';
 import ServerFlowRelay from './ServerFlowRelay.vue';
 import { injectGlobalData } from '@/provide';
 import { useI18n } from 'vue-i18n';
+import OnlineMap from './OnlineMap.vue';
+import OnlineAllMap from './OnlineAllMap.vue';
 export default {
     props:['config'],
-    components:{ServerFlowMessenger,ServerFlowSForward,ServerFlowRelay},
+    components:{ServerFlowMessenger,ServerFlowSForward,ServerFlowRelay,OnlineMap,OnlineAllMap},
     setup (props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();
@@ -72,7 +79,9 @@ export default {
                 Messenger:false,
                 SForward:false,
                 Relay:false,
-            }
+            },
+            showMap:false,
+            showAllMap:false,
         });
         const handleShow = ()=>{
             state.show = true;

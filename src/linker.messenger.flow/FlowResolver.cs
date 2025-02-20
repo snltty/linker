@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using linker.messenger.signin;
+using linker.messenger.tunnel;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
@@ -25,9 +26,11 @@ namespace linker.messenger.flow
 
         private ConcurrentDictionary<IPAddress, OnlineFlowInfo> servers = new ConcurrentDictionary<IPAddress, OnlineFlowInfo>(new IPAddressComparer());
         private readonly SignInServerCaching signCaching;
-        public FlowResolver(SignInServerCaching signCaching)
+        private readonly ISerializer serializer;
+        public FlowResolver(SignInServerCaching signCaching, ISerializer serializer)
         {
             this.signCaching = signCaching;
+            this.serializer = serializer;
             OnlineTask();
         }
 
@@ -49,12 +52,28 @@ namespace linker.messenger.flow
                 onlineFlowInfo.Time = time;
                 onlineFlowInfo.Online = memory.Slice(0, 4).ToInt32();
                 onlineFlowInfo.Total = memory.Slice(4, 4).ToInt32();
+
+                if (memory.Length > 8)
+                {
+                    onlineFlowInfo.Nets = serializer.Deserialize<List<FlowReportNetInfo>>(memory.Slice(8).Span);
+                }
             }
             catch (Exception)
             {
             }
 
             await Task.CompletedTask;
+        }
+
+        public List<FlowReportNetInfo> GetCitys()
+        {
+            return servers.Values.SelectMany(c => c.Nets).GroupBy(c => c.City).Select(c => new FlowReportNetInfo
+            {
+                City = c.Key,
+                Count = c.Count(),
+                Lat = c.Count() == 1 ? c.First().Lat : c.Average(c => c.Lat),
+                Lon = c.Count() == 1 ? c.First().Lon : c.Average(c => c.Lon)
+            }).ToList();
         }
 
         private void OnlineTask()
@@ -91,7 +110,17 @@ namespace linker.messenger.flow
         }
         private void Report()
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(9);
+            List<FlowReportNetInfo> nets = signCaching.Get().Where(c => c.Args.ContainsKey("tunnelNet")).Select(c => c.Args["tunnelNet"].DeJson<SignInArgsNetInfo>()).GroupBy(c => c.City).Select(c => new FlowReportNetInfo
+            {
+                City = c.Key,
+                Count = c.Count(),
+                Lat = c.Count() == 1 ? c.First().Lat : c.Average(c => c.Lat),
+                Lon = c.Count() == 1 ? c.First().Lon : c.Average(c => c.Lon)
+            }).ToList();
+            byte[] netBytes = serializer.Serialize(nets);
+
+
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(9 + netBytes.Length);
 
             try
             {
@@ -100,10 +129,17 @@ namespace linker.messenger.flow
                 onlone.ToBytes(buffer.AsMemory(1));
                 total.ToBytes(buffer.AsMemory(5));
 
+                netBytes.CopyTo(buffer.AsMemory(9));
+
+
                 using UdpClient udpClient = new UdpClient(AddressFamily.InterNetwork);
                 udpClient.Client.WindowsUdpBug();
 
-                udpClient.Send(buffer.AsSpan(0, 9), "linker.snltty.com", 1802);
+                string domain = "linker.snltty.com";
+#if DEBUG
+                domain = "127.0.0.1";
+#endif
+                udpClient.Send(buffer.AsSpan(0, 9 + netBytes.Length), domain, 1802);
             }
             catch (Exception)
             {
@@ -117,6 +153,8 @@ namespace linker.messenger.flow
         public long Time { get; set; }
         public int Online { get; set; }
         public int Total { get; set; }
+
+        public List<FlowReportNetInfo> Nets { get; set; } = new List<FlowReportNetInfo>();
     }
 
     public sealed class IPAddressComparer : IEqualityComparer<IPAddress>

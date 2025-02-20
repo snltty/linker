@@ -1,19 +1,33 @@
 <template>
-    <el-table-column prop="tunnel" label="隧道" width="76">
+    <el-table-column prop="tunnel" label="网络" width="76">
         <template #default="scope">
-            <div v-if="tunnel.list[scope.row.MachineId]">
-                <a href="javascript:;" class="a-line" 
-                :class="{yellow:tunnel.list[scope.row.MachineId].NeedReboot}" 
-                :title="title(tunnel.list[scope.row.MachineId])"
-                @click="handleTunnel(tunnel.list[scope.row.MachineId],scope.row)">
-                    <span>网关:{{tunnel.list[scope.row.MachineId].RouteLevel}}+{{tunnel.list[scope.row.MachineId].RouteLevelPlus}}</span>
-                </a>
-            </div> 
-            <div>
-                <a href="javascript:;" title="与此设备的隧道连接" class="a-line" :class="{green:connectionCount(scope.row.MachineId)>0}" @click="handleConnections(scope.row)">
-                    <span :class="{gateway:connectionCount(scope.row.MachineId)>0}">连接:<span>{{connectionCount(scope.row.MachineId)}}</span></span>
-                </a>
-            </div>
+            <template v-if="tunnel.list[scope.row.MachineId]">
+                <div>
+                    <template v-if="tunnel.list[scope.row.MachineId].Net.CountryCode">
+                        <img 
+                        :title="`${tunnel.list[scope.row.MachineId].Net.Country}(${tunnel.list[scope.row.MachineId].Net.CountryCode})、${tunnel.list[scope.row.MachineId].Net.RegionName}(${tunnel.list[scope.row.MachineId].Net.Region})、${tunnel.list[scope.row.MachineId].Net.City}`" 
+                        class="system" 
+                        :src="`https://unpkg.com/flag-icons@7.2.3/flags/4x3/${tunnel.list[scope.row.MachineId].Net.CountryCode.toLowerCase()}.svg`" />
+                    </template>
+                    <template v-if="tunnel.list[scope.row.MachineId].Net.Isp">
+                        <img 
+                        :title="`${tunnel.list[scope.row.MachineId].Net.Isp}、${tunnel.list[scope.row.MachineId].Net.Org}、${tunnel.list[scope.row.MachineId].Net.As}`" 
+                        class="system" :src="netImg(tunnel.list[scope.row.MachineId].Net)" />
+                    </template>
+                </div> 
+                <div class="flex">
+                    <a href="javascript:;" class="a-line" 
+                    :class="{yellow:tunnel.list[scope.row.MachineId].NeedReboot}" 
+                    :title="title(tunnel.list[scope.row.MachineId])"
+                    @click="handleTunnel(tunnel.list[scope.row.MachineId],scope.row)">
+                        <span>{{tunnel.list[scope.row.MachineId].RouteLevel}}+{{tunnel.list[scope.row.MachineId].RouteLevelPlus}}</span>
+                    </a>
+                    <span class="flex-1"></span>
+                    <a href="javascript:;" title="与此设备的隧道连接" class="a-line" :class="{green:connectionCount(scope.row.MachineId)>0}" @click="handleConnections(scope.row)">
+                        <span :class="{gateway:connectionCount(scope.row.MachineId)>0}"><span>{{connectionCount(scope.row.MachineId)}}</span></span>
+                    </a>
+                </div>
+            </template>
         </template>
     </el-table-column>
 </template>
@@ -51,6 +65,21 @@ export default {
             ?'需要重启'
             :texts.join('\r\n');
         }
+
+        const imgMap = {
+            'chinanet':'chinanet.svg',
+            'china unicom':'chinaunicom.svg',
+            'china mobile':'chinamobile.svg',
+        }
+        const netImg = (item)=>{
+            const isp = item.Isp.toLowerCase();
+            for(let j in imgMap){
+                if(isp.indexOf(j) > -1){
+                    return `/${imgMap[j]}`;
+                }
+            }
+            return `/system.svg`;
+        }
         const connectionCount = (machineId)=>{
                 const length = [
                     forwardConnections.value.list[machineId],
@@ -82,7 +111,7 @@ export default {
        
         return {
             tunnel, handleTunnel,handleTunnelRefresh,
-            connectionCount,handleConnections,title
+            connectionCount,handleConnections,title,netImg
         }
     }
 }
@@ -92,4 +121,10 @@ export default {
 .el-switch.is-disabled{opacity :1;}
 
 .green{font-weight:bold;}
+
+img.system{
+    height:1.4rem;
+    vertical-align:middle;
+    margin-right:.4rem
+}
 </style>

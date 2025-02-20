@@ -89,8 +89,9 @@ export default {
     'status.flowSearchName': 'Name',
     'status.flowRelaySource': 'Source',
     'status.flowRelayTarget': 'Target',
-    'status.flowSearchDomainPort': 'Target',
     'status.flowSearchDomainPort': 'Domain/Port',
+    'status.flowArea': 'Area',
+    'status.flowNet': 'Network',
 
     'status.tunnelName': 'Name',
     'status.tunnelLabel': 'Label',

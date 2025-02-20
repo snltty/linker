@@ -31,7 +31,7 @@ namespace linker.messenger.tuntap
             this.exRouteTransfer = exRouteTransfer;
 
             //与服务器连接，刷新一下IP
-            signInClientState.NetworkEnabledHandle += (times) => tuntapConfigTransfer.RefreshIP();
+            signInClientState.OnSignInSuccess += (times) => tuntapConfigTransfer.RefreshIP();
 
             //初始化网卡
             tuntapTransfer.Init(this);

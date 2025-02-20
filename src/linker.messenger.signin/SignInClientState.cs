@@ -31,35 +31,52 @@ namespace linker.messenger.signin
         public IPEndPoint LanAddress => Connection?.LocalAddress ?? new IPEndPoint(IPAddress.Any, 0);
 
 
-        private int networdkEnabledTimes = 0;
+
+
+
+        /// <summary>
+        /// 登录之前
+        /// </summary>
         [JsonIgnore]
-        public Action NetworkEnabledHandleBefore { get; set; }
+        public Func<Task> OnSignInBrfore { get; set; }
+        public async Task PushSignInBefore()
+        {
+            await OnSignInBrfore?.Invoke();
+        }
+
+
+        private int signInTimes = 0;
+        [JsonIgnore]
+        public Action OnSignInSuccessBefore { get; set; }
         /// <summary>
         /// 上线事件
         /// </summary>
         [JsonIgnore]
-        public Action<int> NetworkEnabledHandle { get; set; }
+        public Action<int> OnSignInSuccess { get; set; }
         /// <summary>
         /// 第一次上线
         /// </summary>
         [JsonIgnore]
         public Action NetworkFirstEnabledHandle { get; set; }
 
-        public void PushNetworkEnabledBefore()
+        /// <summary>
+        /// 发布上线事件
+        /// </summary>
+        public void PushSignInSuccessBefore()
         {
-            NetworkEnabledHandleBefore?.Invoke();
+            OnSignInSuccessBefore?.Invoke();
         }
         /// <summary>
         /// 发布上线事件
         /// </summary>
-        public void PushNetworkEnabled()
+        public void PushSignInSuccess()
         {
-            if (networdkEnabledTimes == 0)
+            if (signInTimes == 0)
             {
                 NetworkFirstEnabledHandle?.Invoke();
             }
-            NetworkEnabledHandle?.Invoke(networdkEnabledTimes);
-            networdkEnabledTimes++;
+            OnSignInSuccess?.Invoke(signInTimes);
+            signInTimes++;
         }
 
         public void Disponse()

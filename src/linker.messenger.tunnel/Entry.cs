@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 using linker.tunnel.connection;
+using linker.messenger.signin.args;
 namespace linker.messenger.tunnel
 {
     public static class Entry
@@ -29,14 +30,19 @@ namespace linker.messenger.tunnel
 
             serviceCollection.AddSingleton<TunnelExRoute>();
 
+            serviceCollection.AddSingleton<SignInArgsNet>();
+
             return serviceCollection;
         }
         public static ServiceProvider UseTunnelClient(this ServiceProvider serviceProvider)
         {
+            SignInArgsTransfer signInArgsTransfer = serviceProvider.GetService<SignInArgsTransfer>();
+            signInArgsTransfer.AddArgs(new List<ISignInArgs> { serviceProvider.GetService<SignInArgsNet>() });
+
             TunnelNetworkTransfer tunnelNetworkTransfer = serviceProvider.GetService<TunnelNetworkTransfer>();
 
             TunnelTransfer tunnelTransfer = serviceProvider.GetService<TunnelTransfer>();
-            TunnelClientExcludeIPTransfer signInArgsTransfer = serviceProvider.GetService<TunnelClientExcludeIPTransfer>();
+            TunnelClientExcludeIPTransfer tunnelClientExcludeIPTransfer = serviceProvider.GetService<TunnelClientExcludeIPTransfer>();
 
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<TunnelClientMessenger>() });
@@ -49,7 +55,7 @@ namespace linker.messenger.tunnel
             apiServer.AddPlugins(new List<libs.api.IApiController> { serviceProvider.GetService<TunnelApiController>() });
 
 
-            ExRouteTransfer exRouteTransfer= serviceProvider.GetService<ExRouteTransfer>();
+            ExRouteTransfer exRouteTransfer = serviceProvider.GetService<ExRouteTransfer>();
             exRouteTransfer.AddExRoutes(new List<IExRoute> { serviceProvider.GetService<TunnelExRoute>() });
 
             return serviceProvider;

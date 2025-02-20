@@ -38,6 +38,20 @@ namespace linker.messenger.flow
             }
             return new FlowInfo();
         }
+        public async Task<List<FlowReportNetInfo>> GetCitys(ApiControllerParamsInfo param)
+        {
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)FlowMessengerIds.Citys,
+            });
+            if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
+            {
+                return serializer.Deserialize<List<FlowReportNetInfo>>(resp.Data.Span);
+            }
+            return new List<FlowReportNetInfo>();
+        }
+
         public async Task<Dictionary<ushort, FlowItemInfo>> GetMessengerFlows(ApiControllerParamsInfo param)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap

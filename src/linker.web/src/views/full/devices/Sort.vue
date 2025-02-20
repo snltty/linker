@@ -2,7 +2,7 @@
    <el-table border style="width: 100%" height="32px" size="small" @sort-change="handleSortChange" class="table-sort">
         <el-table-column prop="MachineId" label="设备名" width="110" sortable="custom" ></el-table-column>
         <el-table-column prop="Version" label="版本" width="110" sortable="custom"></el-table-column>
-        <el-table-column prop="tunnel" label="网关" width="76" sortable="custom"></el-table-column>
+        <el-table-column prop="tunnel" label="网络" width="76" sortable="custom"></el-table-column>
         <el-table-column v-if="tuntap.show" prop="tuntap" label="网卡IP" width="160" sortable="custom"></el-table-column>
         <el-table-column v-if="socks5.show" prop="socks5" label="代理转发" width="160" sortable="custom"></el-table-column>
         <el-table-column label="columns" fixed="right">

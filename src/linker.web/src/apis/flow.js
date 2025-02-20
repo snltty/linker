@@ -12,3 +12,6 @@ export const getSForwardFlows = (data) => {
 export const getRelayFlows = (data) => {
     return sendWebsocketMsg('flow/GetRelayFlows', data);
 }
+export const getCitys = () => {
+    return sendWebsocketMsg('flow/GetCitys');
+}

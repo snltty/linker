@@ -4,7 +4,6 @@ using linker.messenger.signin;
 using linker.plugins.tunnel;
 using System.Collections.Concurrent;
 using System.Net;
-using System.Net.Mail;
 using System.Net.NetworkInformation;
 using System.Text.RegularExpressions;
 namespace linker.messenger.tunnel
@@ -28,6 +27,7 @@ namespace linker.messenger.tunnel
             this.tunnelNetworkTransfer = tunnelNetworkTransfer;
             this.serializer = serializer;
             this.signInClientState = signInClientState;
+
         }
         public void Refresh()
         {
@@ -71,6 +71,7 @@ namespace linker.messenger.tunnel
                 HostName = Dns.GetHostName(),
                 Lans = GetInterfaces(),
                 Routes = tunnelNetworkTransfer.Info.RouteIPs,
+                Net = tunnelNetworkTransfer.Info.Net
             };
         }
 
@@ -85,5 +86,7 @@ namespace linker.messenger.tunnel
                 Ips = c.GetIPProperties().UnicastAddresses.Select(c => c.Address).Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork || (c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 && c.GetAddressBytes().AsSpan(0, 8).SequenceEqual(ipv6LocalBytes) == false)).ToArray()
             }).Where(c => c.Ips.Length > 0 && c.Ips.Any(d => d.Equals(IPAddress.Loopback)) == false).ToArray();
         }
+
+
     }
 }

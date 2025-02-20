@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using linker.messenger.signin;
 using linker.tunnel;
 using linker.tunnel.connection;
 
@@ -11,20 +12,33 @@ namespace linker.messenger.pcp
 
         private readonly IPcpStore pcpStore;
         private readonly TunnelTransfer tunnelTransfer;
-        public PcpTransfer(IPcpStore pcpStore, TunnelTransfer tunnelTransfer)
+        private readonly ISignInClientStore signInClientStore;
+        public PcpTransfer(IPcpStore pcpStore, TunnelTransfer tunnelTransfer, ISignInClientStore signInClientStore)
         {
             this.pcpStore = pcpStore;
             this.tunnelTransfer = tunnelTransfer;
+            this.signInClientStore = signInClientStore;
 
             tunnelTransfer.SetConnectedCallback(transactionId, OnConnected);
         }
 
+
+        /// <summary>
+        /// a<->b<->c  在ac通知，b交换数据，不通知
+        /// </summary>
+        /// <param name="connection"></param>
         private void OnConnected(ITunnelConnection connection)
         {
             TunnelTagInfo tag = connection.TransactionTag.DeJson<TunnelTagInfo>();
 
-            //connection.TransactionId = tag.OriginTransactionId;
-            // connection.Type = TunnelType.Node;
+            //我是节点
+            if (tag.NodeId == signInClientStore.Id)
+            {
+
+                return;
+            }
+
+            //connection.RemoteMachineName
             if (OnConnectedCallbacks.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))
             {
                 foreach (var item in callbacks)
@@ -32,7 +46,7 @@ namespace linker.messenger.pcp
                     item(connection);
                 }
             }
-            if (OnConnectedCallbacks.TryGetValue(connection.TransactionId, out callbacks))
+            if (OnConnectedCallbacks.TryGetValue(tag.TransactionId, out callbacks))
             {
                 foreach (var item in callbacks)
                 {
@@ -49,6 +63,8 @@ namespace linker.messenger.pcp
         /// <returns></returns>
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols)
         {
+            //TunnelTagInfo tag = new TunnelTagInfo { FromMachineId = signInClientStore.Id, ToMachineId = remoteMachineId, TransactionId = transactionId, NodeId = string.Empty, NodeIds = pcpStore.PcpHistory.History };
+
             await Task.CompletedTask;
             return null;
         }
@@ -90,17 +106,26 @@ namespace linker.messenger.pcp
         sealed class TunnelTagInfo
         {
             /// <summary>
+            /// 谁来的
+            /// </summary>
+            public string FromMachineId { get; set; }
+            /// <summary>
             /// 节点id
             /// </summary>
             public string NodeId { get; set; }
             /// <summary>
+            /// 到谁
+            /// </summary>
+            public string ToMachineId { get; set; }
+            /// <summary>
             /// 原本的事务id
             /// </summary>
             public string TransactionId { get; set; }
+
             /// <summary>
-            /// 是哪边的，l 和 r
+            /// 所有尝试的节点id
             /// </summary>
-            public char Side { get; set; } = 'l';
+            public List<string> NodeIds { get; set; }
         }
     }
 }

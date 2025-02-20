@@ -76,6 +76,8 @@ namespace linker.messenger.signin
 
             try
             {
+                await clientSignInState.PushSignInBefore();
+
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Info($"connect to signin server:{signInClientStore.Server.Host}");
 
@@ -98,8 +100,8 @@ namespace linker.messenger.signin
 
                 await GetServerVersion().ConfigureAwait(false);
 
-                clientSignInState.PushNetworkEnabledBefore();
-                clientSignInState.PushNetworkEnabled();
+                clientSignInState.PushSignInSuccessBefore();
+                clientSignInState.PushSignInSuccess();
 
                 GCHelper.FlushMemory();
             }

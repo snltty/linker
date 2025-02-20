@@ -25,7 +25,7 @@ namespace linker.messenger.access
             this.accessStore = accessStore;
             this.serializer = serializer;
 
-            signInClientState.NetworkEnabledHandle += (times) => SyncVersion.Add();
+            signInClientState.OnSignInSuccess += (times) => SyncVersion.Add();
             accessStore.OnChanged += SyncVersion.Add;
            
         }

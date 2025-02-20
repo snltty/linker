@@ -14,7 +14,7 @@ namespace linker.messenger.signin
         private readonly ISerializer serializer;
         private readonly IAccessStore accessStore;
 
-        public SignInApiController( SignInClientState signInClientState, ISignInClientStore signInClientStore, IMessengerSender messengerSender,SignInClientTransfer signInClientTransfer, ISerializer serializer, IAccessStore accessStore)
+        public SignInApiController(SignInClientState signInClientState, ISignInClientStore signInClientStore, IMessengerSender messengerSender, SignInClientTransfer signInClientTransfer, ISerializer serializer, IAccessStore accessStore)
         {
             this.signInClientState = signInClientState;
             this.signInClientStore = signInClientStore;
@@ -35,7 +35,7 @@ namespace linker.messenger.signin
             {
                 signInClientStore.SetGroups(info.Groups);
             }
-           
+
             signInClientTransfer.ReSignIn();
         }
 
@@ -61,6 +61,7 @@ namespace linker.messenger.signin
             }
             return true;
         }
+
         [Access(AccessValue.Group)]
         public void SetGroups(ApiControllerParamsInfo param)
         {
@@ -132,7 +133,19 @@ namespace linker.messenger.signin
             }
             return new SignInIdsResponseInfo { };
         }
-
+        public async Task<List<SignInNamesResponseItemInfo>> Names(ApiControllerParamsInfo param)
+        {
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)SignInMessengerIds.Names
+            }).ConfigureAwait(false);
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                return serializer.Deserialize<List<SignInNamesResponseItemInfo>>(resp.Data.Span);
+            }
+            return new List<SignInNamesResponseItemInfo>();
+        }
     }
 
     public sealed class ConfigSetInfo

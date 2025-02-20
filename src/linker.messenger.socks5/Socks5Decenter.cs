@@ -34,7 +34,7 @@ namespace linker.messenger.socks5
             this.serializer = serializer;
             this.socks5Store = socks5Store;
 
-            signInClientState.NetworkEnabledHandle += (times) => Refresh();
+            signInClientState.OnSignInSuccess += (times) => Refresh();
             tunnelProxy.RefreshConfig += Refresh;
             socks5Transfer.OnChanged += Refresh;
 

@@ -1,5 +1,6 @@
 ﻿using MemoryPack;
 using linker.messenger.flow;
+using linker.messenger.tunnel;
 
 namespace linker.messenger.serializer.memorypack
 {
@@ -54,6 +55,67 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
+
+    [MemoryPackable]
+    public readonly partial struct SerializableFlowReportNetInfo
+    {
+        [MemoryPackIgnore]
+        public readonly FlowReportNetInfo info;
+
+        [MemoryPackInclude]
+        string City => info.City;
+        [MemoryPackInclude]
+        double Lat => info.Lat;
+        [MemoryPackInclude]
+        double Lon => info.Lon;
+
+        [MemoryPackInclude]
+        int Count => info.Count;
+
+        [MemoryPackConstructor]
+        SerializableFlowReportNetInfo(string city, double lat, double lon, int count)
+        {
+            var info = new FlowReportNetInfo
+            {
+                City = city,
+                Lat = lat,
+                Lon = lon,
+                Count = count
+            };
+            this.info = info;
+        }
+
+        public SerializableFlowReportNetInfo(FlowReportNetInfo tunnelCompactInfo)
+        {
+            this.info = tunnelCompactInfo;
+        }
+    }
+    public class FlowReportNetInfoFormatter : MemoryPackFormatter<FlowReportNetInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref FlowReportNetInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableFlowReportNetInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref FlowReportNetInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableFlowReportNetInfo>();
+            value = wrapped.info;
+        }
+    }
 
 
     [MemoryPackable]

@@ -24,7 +24,8 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new SignInIdsResponseItemInfoFormatter());
             MemoryPackFormatterProvider.Register(new SignInResponseInfoFormatter());
             MemoryPackFormatterProvider.Register(new SignInConfigSetNameInfoFormatter());
-
+            MemoryPackFormatterProvider.Register(new SignInNamesResponseItemInfoFormatter());
+            
 
             MemoryPackFormatterProvider.Register(new SyncInfoFormatter());
 
@@ -36,7 +37,8 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new TunnelRouteLevelInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelSetRouteLevelInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelInterfaceInfoFormatter());
-            
+            MemoryPackFormatterProvider.Register(new TunnelNetInfoFormatter());
+
 
             MemoryPackFormatterProvider.Register(new DecenterSyncInfoFormatter());
 
@@ -57,7 +59,7 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new AccessUpdateInfoFormatter());
             MemoryPackFormatterProvider.Register(new AccessInfoFormatter());
             MemoryPackFormatterProvider.Register(new ApiPasswordUpdateInfoFormatter());
-            
+
 
             MemoryPackFormatterProvider.Register(new Socks5LanInfoFormatter());
             MemoryPackFormatterProvider.Register(new Socks5InfoFormatter());
@@ -80,6 +82,8 @@ namespace linker.messenger.serializer.memorypack
 
 
             MemoryPackFormatterProvider.Register(new FlowItemInfoFormatter());
+            MemoryPackFormatterProvider.Register(new FlowReportNetInfoFormatter());
+            
             MemoryPackFormatterProvider.Register(new FlowInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayFlowItemInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayFlowRequestInfoFormatter());

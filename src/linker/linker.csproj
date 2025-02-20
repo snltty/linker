@@ -20,18 +20,15 @@
 		<Title>linker</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 修复首次启动网卡未启动bug
-2. 自定义网卡名
-3. 可禁用NAT
-4. 修复网卡端口转发BUG
-5. 显示局域网IP</Description>
+		<Description>1. 显示局域网IP
+2. 展示在线地图</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.6.7</Version>
-		<AssemblyVersion>1.6.7</AssemblyVersion>
-		<FileVersion>1.6.7</FileVersion>
+		<Version>1.6.8</Version>
+		<AssemblyVersion>1.6.8</AssemblyVersion>
+		<FileVersion>1.6.8</FileVersion>
 		<DelaySign>False</DelaySign>
 	</PropertyGroup>
 

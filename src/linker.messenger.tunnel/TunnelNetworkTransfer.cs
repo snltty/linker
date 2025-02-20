@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.messenger.signin;
 using linker.tunnel;
 using System.Net;
@@ -15,11 +16,13 @@ namespace linker.messenger.tunnel
         {
             this.signInClientStore = signInClientStore;
 
-            signInClientState.NetworkEnabledHandleBefore += () =>
+            signInClientState.OnSignInBrfore += GetNet;
+            signInClientState.OnSignInSuccessBefore += () =>
             {
                 RefreshRouteLevel();
                 tunnelTransfer.Refresh();
             };
+
             TestQuic();
 
             RefreshRouteLevel();
@@ -37,6 +40,26 @@ namespace linker.messenger.tunnel
             LoggerHelper.Instance.Warning($"route ips:{string.Join(",", ips.Select(c => c.ToString()))}");
             LoggerHelper.Instance.Warning($"tunnel local ips :{string.Join(",", Info.LocalIPs.Select(c => c.ToString()))}");
             LoggerHelper.Instance.Warning($"tunnel route level:{Info.RouteLevel}");
+        }
+
+        private async Task GetNet()
+        {
+            if (string.IsNullOrWhiteSpace(Info.Net.City))
+            {
+                try
+                {
+                    using HttpClient httpClient = new HttpClient();
+                    string str = await httpClient.GetStringAsync($"http://ip-api.com/json").WaitAsync(TimeSpan.FromMilliseconds(30000));
+
+                    if (string.IsNullOrWhiteSpace(str) == false)
+                    {
+                        Info.Net = str.DeJson<TunnelNetInfo>();
+                    }
+                }
+                catch (Exception)
+                {
+                }
+            }
         }
 
         private void TestQuic()
@@ -94,6 +117,10 @@ namespace linker.messenger.tunnel
             /// 路由上的IP
             /// </summary>
             public IPAddress[] RouteIPs { get; set; } = Array.Empty<IPAddress>();
+
+            public TunnelNetInfo Net { get; set; } = new TunnelNetInfo();
+
+
         }
     }
 }

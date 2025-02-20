@@ -15,10 +15,11 @@ namespace linker.messenger.flow.messenger
         private readonly IRelayServerStore relayServerStore;
         private readonly ISForwardServerStore sForwardServerStore;
         private readonly ISerializer serializer;
+        private readonly FlowResolver flowResolver;
 
         private DateTime start = DateTime.Now;
 
-        public FlowMessenger(FlowTransfer flowTransfer, MessengerFlow messengerFlow, SForwardFlow sForwardFlow, RelayFlow relayFlow, SignInServerCaching signCaching, IRelayServerStore relayServerStore, ISForwardServerStore sForwardServerStore, ISerializer serializer)
+        public FlowMessenger(FlowTransfer flowTransfer, MessengerFlow messengerFlow, SForwardFlow sForwardFlow, RelayFlow relayFlow, SignInServerCaching signCaching, IRelayServerStore relayServerStore, ISForwardServerStore sForwardServerStore, ISerializer serializer, FlowResolver flowResolver)
         {
             this.flowTransfer = flowTransfer;
             this.messengerFlow = messengerFlow;
@@ -28,6 +29,7 @@ namespace linker.messenger.flow.messenger
             this.relayServerStore = relayServerStore;
             this.sForwardServerStore = sForwardServerStore;
             this.serializer = serializer;
+            this.flowResolver = flowResolver;
         }
 
         [MessengerId((ushort)FlowMessengerIds.List)]
@@ -45,6 +47,11 @@ namespace linker.messenger.flow.messenger
                 Now = DateTime.Now,
             };
             connection.Write(serializer.Serialize(serverFlowInfo));
+        }
+        [MessengerId((ushort)FlowMessengerIds.Citys)]
+        public void Citys(IConnection connection)
+        {
+            connection.Write(serializer.Serialize(flowResolver.GetCitys()));
         }
 
         [MessengerId((ushort)FlowMessengerIds.Messenger)]

@@ -39,7 +39,7 @@ namespace linker.messenger.tuntap
             this.exRouteTransfer = exRouteTransfer;
             this.signInClientState = signInClientState;
 
-            signInClientState.NetworkEnabledHandle += NetworkEnable;
+            signInClientState.OnSignInSuccess += NetworkEnable;
 
         }
         string groupid = string.Empty;

@@ -2,7 +2,6 @@
     <div>
         <template v-if="tuntap.list[item.MachineId] && tuntap.list[item.MachineId].system">
             <span :title="tuntap.list[item.MachineId].SystemInfo">
-                <img v-if="item.countryFlag" class="system" :src="item.countryFlag" />
                 <img class="system":src="`/${tuntap.list[item.MachineId].system}.svg`" />
                 <img v-if="tuntap.list[item.MachineId].systemDocker" class="system" src="/docker.svg" />
             </span>

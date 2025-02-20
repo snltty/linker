@@ -193,6 +193,18 @@ namespace linker.messenger.signin
             }
         }
 
+        [MessengerId((ushort)SignInMessengerIds.Names)]
+        public void Names(IConnection connection)
+        {
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            {
+                List<SignInNamesResponseItemInfo> list = signCaching.Get(cache.GroupId).Select(c => new SignInNamesResponseItemInfo { MachineId = c.MachineId, MachineName = c.MachineName, Online = c.Connected }).ToList();
+
+                connection.Write(serializer.Serialize(list));
+            }
+        }
+
+
         [MessengerId((ushort)SignInMessengerIds.Exists)]
         public void Exists(IConnection connection)
         {
@@ -316,6 +328,13 @@ namespace linker.messenger.signin
     {
         public string MachineId { get; set; }
         public string MachineName { get; set; }
+    }
+
+    public sealed class SignInNamesResponseItemInfo
+    {
+        public string MachineId { get; set; }
+        public string MachineName { get; set; }
+        public bool Online { get; set; }
     }
 
     /// <summary>

@@ -1,9 +1,10 @@
 import { getSignInList, signInDel, setSignInOrder } from "@/apis/signin";
 import { injectGlobalData } from "@/provide";
-import { computed, reactive } from "vue";
+import { computed, inject, provide, reactive, ref } from "vue";
 
 const queue = [];
 
+const deviceSymbol = Symbol();
 export const provideDevices = () => {
     //https://api.ipbase.com/v1/json/8.8.8.8
     const globalData = injectGlobalData();
@@ -22,6 +23,7 @@ export const provideDevices = () => {
         showAccessEdit: false,
         deviceInfo: null
     });
+    provide(deviceSymbol, devices);
     const _getSignList = () => {
         getSignInList(devices.page.Request).then((res) => {
             devices.page.Request = res.Request;
@@ -69,29 +71,6 @@ export const provideDevices = () => {
             devices.timer = setTimeout(_getSignList1, 5000);
         });
     }
-
-    const getCountryFlag = () => {
-        try {
-            if (queue.length == 0) {
-                setTimeout(getCountryFlag, 1000);
-                return;
-            }
-            const device = queue.shift();
-            fetch(`http://ip-api.com/json/${device.IP.split(':')[0]}`).then(async (response) => {
-                try {
-                    const json = await response.json();
-                    device.countryFlag = `https://unpkg.com/flag-icons@7.2.3/flags/4x3/${json.countryCode.toLowerCase()}.svg`;
-                } catch (e) { }
-                setTimeout(getCountryFlag, 1000);
-            }).catch(() => {
-                setTimeout(getCountryFlag, 1000);
-            });
-        } catch (e) {
-            setTimeout(getCountryFlag, 1000);
-        }
-    }
-    getCountryFlag();
-
     const handleDeviceEdit = (row) => {
         devices.deviceInfo = row;
         devices.showDeviceEdit = true;
@@ -131,4 +110,7 @@ export const provideDevices = () => {
         devices, machineId, _getSignList, _getSignList1, handleDeviceEdit, handleAccessEdit, handlePageChange, handlePageSizeChange, handleDel, clearDevicesTimeout,
         setSort
     }
+}
+export const useDevice = () => {
+    return inject(deviceSymbol);
 }

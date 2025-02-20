@@ -24,6 +24,14 @@ namespace linker.messenger.flow
         public DateTime Start { get; set; }
         public DateTime Now { get; set; }
     }
+    public sealed partial class FlowReportNetInfo
+    {
+        public string City { get; set; }
+
+        public double Lat { get; set; }
+        public double Lon { get; set; }
+        public int Count { get; set; }
+    }
 
 }
 

@@ -92,6 +92,8 @@ export default {
     'status.flowRelaySource': '发起端',
     'status.flowRelayTarget': '目标端',
     'status.flowSearchDomainPort': '域名/端口',
+    'status.flowArea': '地区',
+    'status.flowNet': '网络',
 
     'status.tunnelName': '名称',
     'status.tunnelLabel': '说明',

@@ -12,6 +12,7 @@ export const provideTunnel = () => {
         current: null,
         list: {},
         hashcode: 0,
+        showMap: false
     });
     provide(tunnelSymbol, tunnel);
     const _getTunnelInfo = () => {

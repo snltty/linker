@@ -31,3 +31,7 @@ export const setSignInName = (data) => {
 export const setSignInGroups = (data) => {
     return sendWebsocketMsg('signIn/SetGroups', data);
 }
+
+export const getSignInNames = () => {
+    return sendWebsocketMsg('signIn/names');
+}

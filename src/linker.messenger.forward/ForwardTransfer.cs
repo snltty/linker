@@ -30,7 +30,7 @@ namespace linker.messenger.forward
             this.signInClientStore = signInClientStore;
             this.serializer = serializer;
 
-            signInClientState.NetworkEnabledHandle += Reset;
+            signInClientState.OnSignInSuccess += Reset;
         }
 
         string groupid = string.Empty;

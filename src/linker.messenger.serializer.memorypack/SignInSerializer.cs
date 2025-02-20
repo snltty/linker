@@ -440,6 +440,60 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
+    [MemoryPackable]
+    public readonly partial struct SerializableSignInNamesResponseItemInfo
+    {
+        [MemoryPackIgnore]
+        public readonly SignInNamesResponseItemInfo info;
+
+        [MemoryPackInclude]
+        string MachineId => info.MachineId;
+
+        [MemoryPackInclude]
+        string MachineName => info.MachineName;
+
+        [MemoryPackInclude]
+        bool Online => info.Online;
+
+        [MemoryPackConstructor]
+        SerializableSignInNamesResponseItemInfo(string machineId, string machineName, bool online)
+        {
+            var info = new SignInNamesResponseItemInfo { MachineId = machineId, MachineName = machineName, Online = online };
+            this.info = info;
+        }
+
+        public SerializableSignInNamesResponseItemInfo(SignInNamesResponseItemInfo signInfo)
+        {
+            this.info = signInfo;
+        }
+    }
+    public class SignInNamesResponseItemInfoFormatter : MemoryPackFormatter<SignInNamesResponseItemInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SignInNamesResponseItemInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableSignInNamesResponseItemInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref SignInNamesResponseItemInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableSignInNamesResponseItemInfo>();
+            value = wrapped.info;
+        }
+    }
+
 
 
     [MemoryPackable]
