@@ -68,13 +68,14 @@ export default {
 
         const imgMap = {
             'chinanet':'chinanet.svg',
+            'china telecom':'chinanet.svg',
             'china unicom':'chinaunicom.svg',
             'china mobile':'chinamobile.svg',
         }
         const netImg = (item)=>{
-            const isp = item.Isp.toLowerCase();
+            const as = item.As.toLowerCase();
             for(let j in imgMap){
-                if(isp.indexOf(j) > -1){
+                if(as.indexOf(j) > -1){
                     return `/${imgMap[j]}`;
                 }
             }
