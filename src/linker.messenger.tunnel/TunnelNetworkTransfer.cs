@@ -49,7 +49,7 @@ namespace linker.messenger.tunnel
                 try
                 {
                     using HttpClient httpClient = new HttpClient();
-                    string str = await httpClient.GetStringAsync($"http://ip-api.com/json").WaitAsync(TimeSpan.FromMilliseconds(30000));
+                    string str = await httpClient.GetStringAsync($"http://ip-api.com/json").WaitAsync(TimeSpan.FromMilliseconds(3000));
 
                     if (string.IsNullOrWhiteSpace(str) == false)
                     {
