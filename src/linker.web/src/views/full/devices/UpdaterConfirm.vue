@@ -46,7 +46,7 @@ export default {
             ].filter(c=>c.value);
         const versions = [
                 {label:`${updaterVersion.value}【最新版本】`,value:updaterVersion.value},
-                {label:`${serverVersion.value}【服务器版本】`,value:updaterVersion.value},
+                {label:`${serverVersion.value}【服务器版本】`,value:serverVersion.value},
             ].filter(c=>c.value);
         const state = reactive({
             show: true,
