@@ -56,8 +56,6 @@ namespace linker.messenger.flow
                 if (memory.Length > 8)
                 {
                     onlineFlowInfo.Nets = serializer.Deserialize<List<FlowReportNetInfo>>(memory.Slice(8).Span);
-
-                    LoggerHelper.Instance.Warning($"flow report net receive:{onlineFlowInfo.Nets.ToJson()}");
                 }
             }
             catch (Exception)
@@ -72,7 +70,7 @@ namespace linker.messenger.flow
             return servers.Values.SelectMany(c => c.Nets).GroupBy(c => c.City).Select(c => new FlowReportNetInfo
             {
                 City = c.Key,
-                Count = c.Count(),
+                Count = c.Sum(d=>d.Count),
                 Lat = c.Count() == 1 ? c.First().Lat : c.Average(c => c.Lat),
                 Lon = c.Count() == 1 ? c.First().Lon : c.Average(c => c.Lon)
             }).ToList();
@@ -120,9 +118,6 @@ namespace linker.messenger.flow
                 Lon = c.Count() == 1 ? c.First().Lon : c.Average(c => c.Lon)
             }).ToList();
             byte[] netBytes = serializer.Serialize(nets);
-
-            LoggerHelper.Instance.Warning($"flow report net:{nets.ToJson()}");
-
             byte[] buffer = ArrayPool<byte>.Shared.Rent(9 + netBytes.Length);
 
             try
