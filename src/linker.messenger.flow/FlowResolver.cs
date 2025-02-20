@@ -56,6 +56,8 @@ namespace linker.messenger.flow
                 if (memory.Length > 8)
                 {
                     onlineFlowInfo.Nets = serializer.Deserialize<List<FlowReportNetInfo>>(memory.Slice(8).Span);
+
+                    LoggerHelper.Instance.Warning($"flow report net receive:{onlineFlowInfo.Nets.ToJson()}");
                 }
             }
             catch (Exception)
@@ -119,6 +121,7 @@ namespace linker.messenger.flow
             }).ToList();
             byte[] netBytes = serializer.Serialize(nets);
 
+            LoggerHelper.Instance.Warning($"flow report net:{nets.ToJson()}");
 
             byte[] buffer = ArrayPool<byte>.Shared.Rent(9 + netBytes.Length);
 
