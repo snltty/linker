@@ -64,19 +64,6 @@ namespace linker.messenger.updater
         /// <returns></returns>
         public async Task DownloadUpdate(UpdaterInfo updateInfo, string version)
         {
-            for (int i = 0; i <= 5; i++)
-            {
-                if (updateInfo.Status != UpdaterStatus.Checking)
-                {
-                    break;
-                }
-                await Task.Delay(1000);
-            }
-
-            if (updateInfo.Status != UpdaterStatus.Checked)
-            {
-                return;
-            }
             UpdaterStatus status = updateInfo.Status;
             try
             {
