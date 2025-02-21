@@ -29,10 +29,10 @@ export default {
         const drawMap = (citys)=>{
 
             const map = L.map('map').setView([38,105], 4);
-            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            L.tileLayer('https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',
             {
                 attribution: 'linker',
-                maxZoom: 17
+                maxZoom: 10
             }).addTo(map);
             for(let i = 0; i < citys.length; i++){
                 const item = citys[i];
@@ -43,7 +43,7 @@ export default {
                     popupAnchor:  [0, -27],
                     shadowSize:   [0,0],
                     iconUrl:  '/marker-green.png',
-                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    shadowUrl: '/marker-shadow.png',
                 });
                 const html = `
                     <div class="marker-content" >
