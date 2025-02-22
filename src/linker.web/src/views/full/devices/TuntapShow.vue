@@ -2,7 +2,7 @@
     <div>
         <div class="flex">
             <div class="flex-1">
-                <ConnectionShow :data="connections.list[item.MachineId]"></ConnectionShow>         
+                <ConnectionShow :data="connections.list[item.MachineId]" :row="item"></ConnectionShow>         
                 <a href="javascript:;" class="a-line" @click="handleTuntapIP(tuntap.list[item.MachineId])" title="虚拟网卡IP">
                     <template v-if="tuntap.list[item.MachineId].SetupError">
                         <strong class="red" :title="tuntap.list[item.MachineId].SetupError">{{ tuntap.list[item.MachineId].IP }}</strong>

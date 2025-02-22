@@ -1,8 +1,8 @@
 <template>
    <a href="javascript:;"  @click="handleUpdate" class="download" :title="updateText()" :class="updateColor()">
         <span>{{state.version}}</span>
-        <template v-if="updaterCurrent.Version">
-            <template v-if="updaterCurrent.Status == 1">
+        <template v-if="updaterServer.Version">
+            <template v-if="updaterServer.Status == 1">
                 <el-icon size="14" class="loading"><Loading /></el-icon>
             </template>
             <template v-else-if="updaterServer.Status == 2">
@@ -27,7 +27,7 @@ import { injectGlobalData } from '@/provide';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed, onMounted, reactive, ref } from 'vue';
 import {Promotion,Download,Loading,CircleCheck} from '@element-plus/icons-vue'
-import { confirmServer, exitServer, getUpdaterCurrent, getUpdaterServer } from '@/apis/updater';
+import { confirmServer, exitServer,  getUpdaterServer } from '@/apis/updater';
 import ServerFlow from './ServerFlow.vue';
 import { useI18n } from 'vue-i18n';
 export default {
@@ -38,10 +38,9 @@ export default {
         const { t } = useI18n();
         const globalData = injectGlobalData();
         const hasUpdateServer = computed(()=>globalData.value.hasAccess('UpdateServer')); 
-        const updaterCurrent = ref({Version: '', Msg: [], DateTime: '', Status: 0, Length: 0, Current: 0});
-        const updaterServer = ref({Version: '', Status: 0, Length: 0, Current: 0});
+        const updaterServer = ref({Version: '', Status: 0, Length: 0, Current: 0,Msg:[],DateTime:''});
         const updaterMsg = computed(()=>{
-            return `${updaterCurrent.value.Version}->${updaterCurrent.value.DateTime}\n${updaterCurrent.value.Msg.map((value,index)=>`${index+1}、${value}`).join('\n')}`;
+            return `${updaterServer.value.Version}->${updaterServer.value.DateTime}\n${updaterServer.value.Msg.map((value,index)=>`${index+1}、${value}`).join('\n')}`;
         });
 
         const state = reactive({
@@ -52,29 +51,14 @@ export default {
             version: computed(() => globalData.value.signin.Version),
         });
 
-        const _getUpdaterCurrent = ()=>{
-            getUpdaterCurrent().then((res)=>{
-                updaterCurrent.value.DateTime = res.DateTime;
-                updaterCurrent.value.Version = res.Version;
-                updaterCurrent.value.Status = res.Status;
-                updaterCurrent.value.Length = res.Length;
-                updaterCurrent.value.Current = res.Current;
-                updaterCurrent.value.Msg = res.Msg;
-                setTimeout(()=>{
-                    _getUpdaterCurrent();
-                },1000);
-            }).catch(()=>{
-                setTimeout(()=>{
-                    _getUpdaterCurrent();
-                },1000);
-            })
-        }
         const _getUpdaterServer = ()=>{
             getUpdaterServer().then((res)=>{
                 updaterServer.value.Version = res.Version;
                 updaterServer.value.Status = res.Status;
                 updaterServer.value.Length = res.Length;
                 updaterServer.value.Current = res.Current;
+                updaterServer.value.Msg = res.Msg;
+                updaterServer.value.DateTime = res.DateTime;
                 if(updaterServer.value.Status > 2 && updaterServer.value.Status < 6){
                     setTimeout(()=>{
                         _getUpdaterServer();
@@ -87,12 +71,12 @@ export default {
             });
         }
         const updateText = ()=>{
-            if(!updaterCurrent.value.Version){
+            if(!updaterServer.value.Version){
                 return t('status.serverNoUpdate');
             }
             if(updaterServer.value.Status <= 2) {
-                return state.version != updaterCurrent.value.Version  
-                ? `${t('status.serverNotNew')}(${updaterCurrent.value.Version})\n${updaterMsg.value}` 
+                return state.version != updaterServer.value.Version  
+                ? `${t('status.serverNotNew')}(${updaterServer.value.Version})\n${updaterMsg.value}` 
                 : `${t('status.serverNew')}\n${updaterMsg.value}`
             }
             return {
@@ -103,7 +87,7 @@ export default {
             }[updaterServer.value.Status];
         }
         const updateColor = ()=>{
-            return state.version != updaterCurrent.value.Version  ? 'yellow' :'green'
+            return state.version != updaterServer.value.Version  ? 'yellow' :'green'
         }
         const handleUpdate = ()=>{
             if(!props.config || !hasUpdateServer.value){
@@ -127,13 +111,13 @@ export default {
             }
 
             //已检测
-            if(updaterCurrent.value.Status == 2){
+            if(updaterServer.value.Status == 2){
                 ElMessageBox.confirm(t('status.serverConfirm'), t('common.tips'), {
                     confirmButtonText:  t('common.confirm'),
                     cancelButtonText: t('common.cancel'),
                     type: 'warning'
                 }).then(() => {
-                    confirmServer(updaterCurrent.value.Version || globalData.value.signin.Version).then(()=>{
+                    confirmServer(updaterServer.value.Version || globalData.value.signin.Version).then(()=>{
                         setTimeout(()=>{
                             _getUpdaterServer();
                         },1000);
@@ -143,12 +127,11 @@ export default {
         }
 
         onMounted(() => {
-            _getUpdaterCurrent();
             _getUpdaterServer();
         });
 
         return {
-         config:props.config,  state, updaterCurrent,updaterServer,handleUpdate,updateText,updateColor
+         config:props.config,  state,updaterServer,handleUpdate,updateText,updateColor
         }
     }
 }

@@ -2,7 +2,7 @@
     <div>
         <div class="flex">
             <div class="flex-1">
-                <ConnectionShow :data="connections.list[item.MachineId]"></ConnectionShow>
+                <ConnectionShow :data="connections.list[item.MachineId]" :row="item"></ConnectionShow>
                 <a href="javascript:;" class="a-line" @click="handleSocks5Port(socks5.list[item.MachineId])" title="此设备的socks5代理">
                     <template v-if="socks5.list[item.MachineId].SetupError">
                         <strong class="red" :title="socks5.list[item.MachineId].SetupError">

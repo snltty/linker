@@ -1,5 +1,5 @@
 <template>
-     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" :title="`设置[${state.machineName}]网关`" width="500" top="1vh">
+     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" :title="`设置[${state.machineName}]网关`" width="760" top="2vh">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="auto">
                 <el-form-item label="" prop="alert">
@@ -7,26 +7,22 @@
                 </el-form-item>
                 <el-form-item label="">
                     <el-row>
-                        <el-col :span="12">
+                        <el-col :span="5">
                             <el-form-item label="网关层级" prop="RouteLevel">
                                 <el-input readonly v-model="state.ruleForm.RouteLevel" style="width:6rem" /> + 
                             </el-form-item>
                         </el-col>
-                        <el-col :span="12">
+                        <el-col :span="5">
                             <el-form-item label="" prop="RouteLevelPlus">
                                 <el-input-number v-model="state.ruleForm.RouteLevelPlus" />
                             </el-form-item>
                         </el-col>
-                    </el-row>
-                </el-form-item>
-                <el-form-item label="">
-                    <el-row>
-                        <el-col :span="12">
+                        <el-col :span="7">
                             <el-form-item label="外网端口" prop="PortMapWan">
                                 <el-input-number v-model="state.ruleForm.PortMapWan" />
                             </el-form-item>
                         </el-col>
-                        <el-col :span="12">
+                        <el-col :span="7">
                             <el-form-item label="内网端口" prop="PortMapLan">
                                 <el-input-number v-model="state.ruleForm.PortMapLan" />
                             </el-form-item>
@@ -40,24 +36,12 @@
                             <template v-for="(item,index) in tunnel.current.Lans.filter(c=>c.Ips.length > 0)">
                                 <li>
                                     <div>【{{ item.Mac||'00-00-00-00-00-00' }}】{{ item.Desc }}</div>
-                                    <div>
-                                        <ul>
-                                            <template v-for="(item2,index2) in item.Ips">
-                                                <li>{{ item2 }}</li>
-                                            </template>
-                                        </ul>
-                                    </div>
+                                    <div class="pdl-20">{{ item.Ips.join('、') }}</div>
                                 </li>
                             </template>
                         </ul>
                         <h3>跳跃点</h3>
-                        <ul>
-                            <template v-for="(item,index) in tunnel.current.Routes">
-                                <li>
-                                    {{ item }}
-                                </li>
-                            </template>
-                        </ul>
+                        <div class="pdl-20">{{ tunnel.current.Routes.join('、') }}</div>
                     </div>
                 </el-form-item>
                 <el-form-item label="" prop="Btns">

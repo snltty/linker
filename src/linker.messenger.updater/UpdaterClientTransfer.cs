@@ -91,9 +91,9 @@ namespace linker.messenger.updater
         {
             TimerHelper.SetInterval(async () =>
             {
+                await GetUpdateInfo();
                 if (updateInfo.Updated)
                 {
-                    await GetUpdateInfo();
                     updateInfo.MachineId = signInClientStore.Id;
                     string[] machines = subscribes.Where(c => c.Value.DiffLessEqual(15000)).Select(c => c.Key).ToArray();
                     if (machines.Length > 0)

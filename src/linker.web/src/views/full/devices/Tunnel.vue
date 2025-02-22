@@ -20,11 +20,7 @@
                     :class="{yellow:tunnel.list[scope.row.MachineId].NeedReboot}" 
                     :title="title(tunnel.list[scope.row.MachineId])"
                     @click="handleTunnel(tunnel.list[scope.row.MachineId],scope.row)">
-                        <span>{{tunnel.list[scope.row.MachineId].RouteLevel}}+{{tunnel.list[scope.row.MachineId].RouteLevelPlus}}</span>
-                    </a>
-                    <span class="flex-1"></span>
-                    <a href="javascript:;" title="与此设备的隧道连接" class="a-line" :class="{green:connectionCount(scope.row.MachineId)>0}" @click="handleConnections(scope.row)">
-                        <span :class="{gateway:connectionCount(scope.row.MachineId)>0}"><span>{{connectionCount(scope.row.MachineId)}}</span></span>
+                        <span>跳点 : {{tunnel.list[scope.row.MachineId].RouteLevel}}+{{tunnel.list[scope.row.MachineId].RouteLevelPlus}}</span>
                     </a>
                 </div>
             </template>

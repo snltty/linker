@@ -4,7 +4,7 @@
             <template v-if="scope.row.Connected">
                 <template v-if="scope.row.isSelf && (hasForwardShowSelf || hasForwardSelf)">
                     <div>
-                        <ConnectionShow :data="connections.list[scope.row.MachineId]"></ConnectionShow>
+                        <ConnectionShow :data="connections.list[scope.row.MachineId]" :row="scope.row"></ConnectionShow>
                         <a href="javascript:;" title="管理自己的端口转发" :class="{green:forward.list[scope.row.MachineId]>0 }" @click="handleEdit(scope.row.MachineId,scope.row.MachineName)">
                             <span :class="{gateway:forward.list[scope.row.MachineId]>0}">端口转发({{forward.list[scope.row.MachineId]>99 ? '99+' : forward.list[scope.row.MachineId]}})</span>
                         </a>
@@ -17,7 +17,7 @@
                 </template>
                 <template v-else-if="hasForwardShowOther || hasForwardOther">
                     <div>
-                        <ConnectionShow :data="connections.list[scope.row.MachineId]"></ConnectionShow>
+                        <ConnectionShow :data="connections.list[scope.row.MachineId]" :row="scope.row"></ConnectionShow>
                         <a href="javascript:;" title="管理自己的端口转发" :class="{green:forward.list[scope.row.MachineId]>0}" @click="handleEdit(scope.row.MachineId,scope.row.MachineName)">
                             <span :class="{gateway:forward.list[scope.row.MachineId]>0}">端口转发({{forward.list[scope.row.MachineId]>99 ? '99+' : forward.list[scope.row.MachineId]}})</span>
                         </a>

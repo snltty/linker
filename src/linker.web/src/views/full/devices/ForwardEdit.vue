@@ -50,7 +50,6 @@
                             <template v-if="scope.row.Msg">
                                 <div class="error red" :title="scope.row.Msg">
                                     <span>{{ scope.row.Port }}</span>
-                                    <el-icon size="20"><WarnTriangleFilled /></el-icon>
                                 </div>
                             </template>
                             <template v-else>
@@ -62,7 +61,6 @@
                 <el-table-column property="MachineId" label="目标">
                     <template #default="scope">
                         <template v-if="scope.row.MachineIdEditing && scope.row.Started==false">
-
                             <el-select v-model="scope.row.MachineId" @change="handleEditBlur(scope.row, 'MachineId')" 
                             filterable remote :loading="state.loading" :remote-method="handleSearch">
                                 <template #header>
@@ -81,7 +79,12 @@
                             </el-select>
                         </template>
                         <template v-else>
-                            {{ scope.row.MachineName}}
+                            <template v-if="state.names[scope.row.MachineId]">
+                                <span>{{ scope.row.MachineName}}</span>
+                            </template>
+                            <template v-else>
+                                <span class="error red" title="off line">{{ scope.row.MachineName}}</span>
+                            </template>
                         </template>
                     </template>
                 </el-table-column>
@@ -95,7 +98,6 @@
                             <template v-if="scope.row.TargetMsg">
                                 <div class="error red" :title="scope.row.TargetMsg">
                                     <span>{{ scope.row.TargetEP }}</span>
-                                    <el-icon size="20"><WarnTriangleFilled /></el-icon>
                                 </div>
                             </template>
                             <template v-else>
@@ -128,14 +130,14 @@
 import {  onMounted,onUnmounted,reactive, watch } from 'vue';
 import { getForwardInfo, removeForwardInfo, addForwardInfo ,getForwardIpv4,testTargetForwardInfo } from '@/apis/forward'
 import { ElMessage } from 'element-plus';
-import {WarnTriangleFilled,Delete} from '@element-plus/icons-vue'
+import {Delete} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
 import { useForward } from './forward';
-import { getSignInIds } from '@/apis/signin';
+import { getSignInIds,getSignInNames } from '@/apis/signin';
 export default {
     props: ['data','modelValue'],
     emits: ['update:modelValue'],
-    components:{WarnTriangleFilled,Delete},
+    components:{Delete},
     setup(props, { emit }) {
 
         const globalData = injectGlobalData();
@@ -157,7 +159,8 @@ export default {
             },
             timer:0,
             timer1:0,
-            editing:false
+            editing:false,
+            names:{}
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -195,6 +198,12 @@ export default {
             }else{
                 state.timer1 = setTimeout(_getForwardInfo,1000);
             }
+        }
+
+        const _getSignInNames = ()=>{
+            getSignInNames().then((res)=>{
+                state.names = res.filter(c=>c.Online).reduce((json,value)=>{ json[value.MachineId]=true; return json; },{});
+            }).catch(()=>{});
         }
 
         const handleSearch = (name)=>{
@@ -281,6 +290,7 @@ export default {
             _getForwardInfo();
             _getForwardIpv4();
             _testTargetForwardInfo();
+            _getSignInNames();
         });
         onUnmounted(()=>{
             clearTimeout(state.timer);
