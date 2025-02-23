@@ -56,12 +56,13 @@ export default {
         const hasExport = computed(()=>globalData.value.hasAccess('Export')); 
         const onlyNode = computed(()=>globalData.value.config.Client.OnlyNode);
         const machineId = computed(()=>globalData.value.config.Client.Id);
+        console.log(globalData.value.config.Client);
         const state = reactive({
             show: false,
             loading:false,
             single:true,
             name:'',
-            apipassword:'',
+            apipassword:onlyNode.value?  globalData.value.config.Client.CApi.ApiPassword :'',
         });
         const accessDom = ref(null); 
       
