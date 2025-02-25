@@ -1,10 +1,13 @@
-﻿namespace linker.messenger.flow
+﻿using linker.libs;
+using linker.libs.extends;
+
+namespace linker.messenger.flow
 {
 
     public sealed class MessengerResolverFlow : MessengerResolver
     {
         private readonly MessengerFlow messengerFlow;
-        public MessengerResolverFlow(IMessengerSender sender, MessengerFlow messengerFlow,IMessengerStore messengerStore) : base(sender, messengerStore)
+        public MessengerResolverFlow(IMessengerSender sender, MessengerFlow messengerFlow, IMessengerStore messengerStore) : base(sender, messengerStore)
         {
             this.messengerFlow = messengerFlow;
         }
@@ -43,12 +46,18 @@
         public ulong ReceiveBytes { get; private set; }
         public ulong SendtBytes { get; private set; }
         public string FlowName => "Messenger";
+        public VersionManager Version { get; } = new VersionManager();
 
-        private Dictionary<ushort, FlowItemInfo> flows { get; } = new Dictionary<ushort, FlowItemInfo>();
+        private Dictionary<ushort, FlowItemInfo> flows = new Dictionary<ushort, FlowItemInfo>();
 
         public MessengerFlow()
         {
         }
+
+        public string GetItems() => flows.ToJson();
+        public void SetItems(string json) { flows = json.DeJson<Dictionary<ushort, FlowItemInfo>>(); }
+        public void SetBytes(ulong receiveBytes, ulong sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
+        public void Clear() { ReceiveBytes = 0; SendtBytes = 0;flows.Clear(); }
 
         public void AddReceive(ushort id, ulong bytes)
         {
@@ -59,6 +68,7 @@
             }
             ReceiveBytes += bytes;
             messengerFlowItemInfo.ReceiveBytes += bytes;
+            Version.Add();
         }
         public void AddSendt(ushort id, ulong bytes)
         {
@@ -69,6 +79,7 @@
             }
             SendtBytes += bytes;
             messengerFlowItemInfo.SendtBytes += bytes;
+            Version.Add();
         }
 
         public Dictionary<ushort, FlowItemInfo> GetFlows()

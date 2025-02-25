@@ -13,6 +13,7 @@ namespace linker.messenger.flow
     {
         public byte Type => (byte)ResolverType.FlowReport;
         public string FlowName => "flow";
+        public VersionManager Version { get; } = new VersionManager();
 
         /// <summary>
         /// 在线 | 总数
@@ -65,12 +66,19 @@ namespace linker.messenger.flow
             await Task.CompletedTask;
         }
 
+
+        public string GetItems() => string.Empty;
+        public void SetItems(string json) { }
+        public void SetBytes(ulong receiveBytes, ulong sendtBytes) { }
+        public void Clear() {  }
+
+
         public List<FlowReportNetInfo> GetCitys()
         {
             return servers.Values.SelectMany(c => c.Nets).GroupBy(c => c.City).Select(c => new FlowReportNetInfo
             {
                 City = c.Key,
-                Count = c.Sum(d=>d.Count),
+                Count = c.Sum(d => d.Count),
                 Lat = c.Count() == 1 ? c.First().Lat : c.Average(c => c.Lat),
                 Lon = c.Count() == 1 ? c.First().Lon : c.Average(c => c.Lon)
             }).ToList();
@@ -107,6 +115,7 @@ namespace linker.messenger.flow
 
             ReceiveBytes = online | total;
             SendtBytes = (ulong)servers.Count;
+            Version.Add();
         }
         private void Report()
         {

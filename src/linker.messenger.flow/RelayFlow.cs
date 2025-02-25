@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.messenger.relay.server;
 using System.Text.Json.Serialization;
 
@@ -9,12 +10,17 @@ namespace linker.messenger.flow
         public ulong ReceiveBytes { get; private set; }
         public ulong SendtBytes { get; private set; }
         public string FlowName => "RelayReport";
+        public VersionManager Version { get; } = new VersionManager();
         public RelayReportFlow()
         {
         }
+        public string GetItems() => string.Empty;
+        public void SetItems(string json) { }
+        public void SetBytes(ulong receiveBytes, ulong sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
+        public void Clear() { ReceiveBytes = 0; SendtBytes = 0; }
 
-        public void AddReceive(ulong bytes) { ReceiveBytes += bytes; }
-        public void AddSendt(ulong bytes) { SendtBytes += bytes; }
+        public void AddReceive(ulong bytes) { ReceiveBytes += bytes; Version.Add(); }
+        public void AddSendt(ulong bytes) { SendtBytes += bytes; Version.Add(); }
 
     }
 
@@ -65,10 +71,11 @@ namespace linker.messenger.flow
         public ulong ReceiveBytes { get; private set; }
         public ulong SendtBytes { get; private set; }
         public string FlowName => "Relay";
+        public VersionManager Version { get; } = new VersionManager();
 
         private readonly LastTicksManager lastTicksManager = new LastTicksManager();
 
-        private Dictionary<string, RelayFlowItemInfo> flows { get; } = new Dictionary<string, RelayFlowItemInfo>();
+        private Dictionary<string, RelayFlowItemInfo> flows = new Dictionary<string, RelayFlowItemInfo>();
 
         public RelayFlow()
         {
@@ -94,6 +101,11 @@ namespace linker.messenger.flow
             lastTicksManager.Update();
         }
 
+        public string GetItems() => flows.ToJson();
+        public void SetItems(string json) { flows = json.DeJson<Dictionary<string, RelayFlowItemInfo>>(); }
+        public void SetBytes(ulong receiveBytes, ulong sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
+        public void Clear() { ReceiveBytes = 0; SendtBytes = 0;flows.Clear(); }
+
         public void AddReceive(string key, string from, string to, string groupid, ulong bytes)
         {
             if (flows.TryGetValue(key, out RelayFlowItemInfo messengerFlowItemInfo) == false)
@@ -103,6 +115,7 @@ namespace linker.messenger.flow
             }
             ReceiveBytes += bytes;
             messengerFlowItemInfo.ReceiveBytes += bytes;
+            Version.Add();
         }
         public void AddSendt(string key, string from, string to, string groupid, ulong bytes)
         {
@@ -113,6 +126,7 @@ namespace linker.messenger.flow
             }
             SendtBytes += bytes;
             messengerFlowItemInfo.SendtBytes += bytes;
+            Version.Add();
         }
 
         public void AddReceive(string key, ulong bytes)
@@ -121,6 +135,7 @@ namespace linker.messenger.flow
             {
                 ReceiveBytes += bytes;
                 messengerFlowItemInfo.ReceiveBytes += bytes;
+                Version.Add();
             }
 
         }
@@ -130,6 +145,7 @@ namespace linker.messenger.flow
             {
                 SendtBytes += bytes;
                 messengerFlowItemInfo.SendtBytes += bytes;
+                Version.Add();
             }
 
         }

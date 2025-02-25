@@ -19,6 +19,9 @@ namespace linker.messenger.flow
         {
             return flows.Select(c => new FlowItemInfo { ReceiveBytes = c.ReceiveBytes, SendtBytes = c.SendtBytes, FlowName = c.FlowName }).ToDictionary(c => c.FlowName);
         }
+
+       // Dictionary<byte,Dictionary<string,>>
+
     }
 
 }

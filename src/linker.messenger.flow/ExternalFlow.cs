@@ -1,4 +1,5 @@
-﻿using linker.messenger.tunnel;
+﻿using linker.libs;
+using linker.messenger.tunnel;
 namespace linker.messenger.flow
 {
     public sealed class ExternalFlow : IFlow
@@ -6,12 +7,20 @@ namespace linker.messenger.flow
         public ulong ReceiveBytes { get; private set; }
         public ulong SendtBytes { get; private set; }
         public string FlowName => "External";
+        public VersionManager Version { get; } = new VersionManager();
+
         public ExternalFlow()
         {
         }
 
-        public void AddReceive(ulong bytes) { ReceiveBytes += bytes; }
-        public void AddSendt(ulong bytes) { SendtBytes += bytes; }
+
+        public string GetItems() => string.Empty;
+        public void SetItems(string json) { }
+        public void SetBytes(ulong receiveBytes, ulong sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
+        public void Clear() { ReceiveBytes = 0; SendtBytes = 0;}
+
+        public void AddReceive(ulong bytes) { ReceiveBytes += bytes; Version.Add(); }
+        public void AddSendt(ulong bytes) { SendtBytes += bytes; Version.Add(); }
 
     }
 

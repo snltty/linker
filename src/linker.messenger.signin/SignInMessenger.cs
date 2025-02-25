@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using System.Diagnostics;
 using System.Net;
 
 namespace linker.messenger.signin
@@ -54,11 +55,17 @@ namespace linker.messenger.signin
         [MessengerId((ushort)SignInMessengerIds.SignIn_V_1_3_1)]
         public async Task SignIn_V_1_3_1(IConnection connection)
         {
+            var sw = new Stopwatch();
+            sw.Start();
+
             SignInfo info = serializer.Deserialize<SignInfo>(connection.ReceiveRequestWrap.Payload.Span);
 
-            LoggerHelper.Instance.Info($"sign in from >=v131 {connection.Address}->{info.ToJson()}");
+            //LoggerHelper.Instance.Info($"sign in from >=v131 {connection.Address}->{info.ToJson()}");
+            LoggerHelper.Instance.Debug($"sign in from >=v131 {connection.Address}->{info.MachineName}->1");
+
             info.Connection = connection;
             string msg = await signCaching.Sign(info);
+            LoggerHelper.Instance.Debug($"sign in from >=v131 {connection.Address}->{info.MachineName}->2");
 
             SignInResponseInfo resp = new SignInResponseInfo
             {
@@ -67,6 +74,11 @@ namespace linker.messenger.signin
                 Msg = msg,
                 IP = connection.Address
             };
+
+            sw.Stop();
+
+            LoggerHelper.Instance.Debug($"sign in from >=v131 {connection.Address}->{info.MachineName}->{sw.ElapsedMilliseconds}ms");
+
             connection.Write(serializer.Serialize(resp.ToJson()));
         }
 

@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using linker.libs;
+using System.Text.Json.Serialization;
 
 namespace linker.messenger.flow
 {
@@ -7,6 +8,12 @@ namespace linker.messenger.flow
         public ulong ReceiveBytes { get; }
         public ulong SendtBytes { get; }
         public string FlowName { get; }
+
+        public VersionManager Version { get; }
+        public string GetItems();
+        public void SetItems(string json);
+        public void SetBytes(ulong receiveBytes,ulong sendtBytes);
+        public void Clear();
     }
 
     public partial class FlowItemInfo
