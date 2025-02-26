@@ -239,7 +239,7 @@ namespace linker.tun
         /// <returns></returns>
         public bool Write(ReadOnlyMemory<byte> buffer)
         {
-            if (linkerTunDevice != null)
+            if (linkerTunDevice != null && Status == LinkerTunDeviceStatus.Running)
             {
                 return linkerTunDevice.Write(buffer);
             }

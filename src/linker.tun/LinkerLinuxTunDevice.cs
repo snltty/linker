@@ -307,6 +307,8 @@ namespace linker.tun
         }
         public bool Write(ReadOnlyMemory<byte> buffer)
         {
+            if (fs == null) return true;
+
             lock (writeLockObj)
             {
                 fs.Write(buffer.Span);
