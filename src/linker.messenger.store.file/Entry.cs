@@ -66,6 +66,8 @@ namespace linker.messenger.store.file
             serviceCollection.AddSingleton<ISignInClientStore, SignInClientStore>();
             serviceCollection.AddSingleton<ISignInServerStore, SignInServerStore>();
             serviceCollection.AddSingleton<SignInSyncSecretKey>();
+            serviceCollection.AddSingleton<SignInSyncServer>();
+            
             serviceCollection.AddSingleton<SignInSyncGroupSecretKey>();
 
 
@@ -106,6 +108,8 @@ namespace linker.messenger.store.file
             syncTreansfer.AddSyncs(new List<ISync> {
                 serviceProvider.GetService<SignInSyncSecretKey>(),
                 serviceProvider.GetService<SignInSyncGroupSecretKey>(),
+                serviceProvider.GetService<SignInSyncServer>(),
+                
             });
 
             return serviceProvider;

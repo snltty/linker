@@ -142,6 +142,7 @@ export default {
     'server.asyncSelect': 'Please select',
     'server.asyncCheckAll': 'Check all',
     'server.asyncSignInSecretKey': 'Signin secretKey',
+    'server.asyncSignInServer': 'Signin server',
     'server.asyncGroupSecretKey': 'Group secretKey',
     'server.asyncRelaySecretKey': 'Relay secretKey',
     'server.asyncSForwardSecretKey': 'Server forward secretKey',

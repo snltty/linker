@@ -144,6 +144,7 @@ export default {
     'server.asyncSelect': '请选择',
     'server.asyncCheckAll': '全选',
     'server.asyncSignInSecretKey': '信标密钥',
+    'server.asyncSignInServer': '信标服务器',
     'server.asyncGroupSecretKey': '分组密钥',
     'server.asyncRelaySecretKey': '中继密钥',
     'server.asyncSForwardSecretKey': '服务器穿透密钥',
