@@ -63,7 +63,6 @@ namespace linker.messenger.signin
                 signInStore.Confirm();
                 Clients.TryAdd(signInfo.MachineId, cache);
             }
-
             signInfo.Connection.Id = signInfo.MachineId;
             signInfo.Connection.Name = signInfo.MachineName;
             cache.MachineName = signInfo.MachineName;
@@ -73,7 +72,6 @@ namespace linker.messenger.signin
             cache.GroupId = signInfo.GroupId;
             signInStore.Update(cache);
             signInStore.Confirm();
-
             return string.Empty;
         }
 

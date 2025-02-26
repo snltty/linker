@@ -23,7 +23,6 @@ namespace linker.messenger.store.file.signIn
 
         public void Confirm()
         {
-            dBfactory.Confirm();
             fileConfig.Data.Update();
         }
 

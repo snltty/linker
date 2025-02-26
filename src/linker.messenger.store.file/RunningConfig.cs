@@ -80,7 +80,6 @@ namespace linker.messenger.store.file
                     };
                     liteCollection.Update(old.Id, old);
                 }
-                dBfactory.Confirm();
             }
             catch (Exception ex)
             {

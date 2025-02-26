@@ -60,12 +60,10 @@ namespace linker.messenger.signin
 
             SignInfo info = serializer.Deserialize<SignInfo>(connection.ReceiveRequestWrap.Payload.Span);
 
-            //LoggerHelper.Instance.Info($"sign in from >=v131 {connection.Address}->{info.ToJson()}");
-            LoggerHelper.Instance.Debug($"sign in from >=v131 {connection.Address}->{info.MachineName}->1");
+            LoggerHelper.Instance.Info($"sign in from >=v131 {connection.Address}->{info.ToJson()}");
 
             info.Connection = connection;
             string msg = await signCaching.Sign(info);
-            LoggerHelper.Instance.Debug($"sign in from >=v131 {connection.Address}->{info.MachineName}->2");
 
             SignInResponseInfo resp = new SignInResponseInfo
             {
@@ -76,8 +74,6 @@ namespace linker.messenger.signin
             };
 
             sw.Stop();
-
-            LoggerHelper.Instance.Debug($"sign in from >=v131 {connection.Address}->{info.MachineName}->{sw.ElapsedMilliseconds}ms");
 
             connection.Write(serializer.Serialize(resp.ToJson()));
         }

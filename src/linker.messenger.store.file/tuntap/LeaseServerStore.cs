@@ -21,7 +21,6 @@ namespace linker.messenger.store.file.tuntap
 
         public bool Confirm()
         {
-            dBfactory.Confirm();
             return true;
         }
 
