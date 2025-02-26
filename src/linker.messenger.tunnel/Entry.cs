@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 using linker.tunnel.connection;
 using linker.messenger.signin.args;
+using linker.messenger.sync;
 namespace linker.messenger.tunnel
 {
     public static class Entry
@@ -31,6 +32,10 @@ namespace linker.messenger.tunnel
             serviceCollection.AddSingleton<TunnelExRoute>();
 
             serviceCollection.AddSingleton<SignInArgsNet>();
+
+            serviceCollection.AddSingleton<TunnelSyncTransports>();
+
+            
 
             return serviceCollection;
         }
@@ -57,6 +62,12 @@ namespace linker.messenger.tunnel
 
             ExRouteTransfer exRouteTransfer = serviceProvider.GetService<ExRouteTransfer>();
             exRouteTransfer.AddExRoutes(new List<IExRoute> { serviceProvider.GetService<TunnelExRoute>() });
+
+
+            SyncTreansfer syncTreansfer = serviceProvider.GetService<SyncTreansfer>();
+            syncTreansfer.AddSyncs(new List<ISync> {
+                serviceProvider.GetService<TunnelSyncTransports>(),
+            });
 
             return serviceProvider;
         }
