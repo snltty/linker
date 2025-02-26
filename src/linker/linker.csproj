@@ -20,15 +20,16 @@
 		<Title>linker</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 显示局域网IP
-2. 展示在线地图</Description>
+		<Description>1. 修复litedb抢锁超时导致客户端登录失败问题
+2. 同步信标服务器
+3. 其它一些修复优化</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.6.8</Version>
-		<AssemblyVersion>1.6.8</AssemblyVersion>
-		<FileVersion>1.6.8</FileVersion>
+		<Version>1.6.9</Version>
+		<AssemblyVersion>1.6.9</AssemblyVersion>
+		<FileVersion>1.6.9</FileVersion>
 		<DelaySign>False</DelaySign>
 	</PropertyGroup>
 
