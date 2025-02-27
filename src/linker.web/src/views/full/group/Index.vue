@@ -44,7 +44,7 @@
                     <el-button size="small" @click="handleAdd(scope.$index)">
                         <el-icon><Plus /></el-icon>
                     </el-button>
-                    <el-button type="primary" size="small" @click="handleUse(scope.$index)">
+                    <el-button v-if="scope.$index > 0" type="primary" size="small" @click="handleUse(scope.$index)">
                         <el-icon><Select /></el-icon>
                     </el-button>
                 </div>

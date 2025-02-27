@@ -72,10 +72,10 @@ export default {
             const as = item.As.toLowerCase();
             for(let j in imgMap){
                 if(as.indexOf(j) > -1){
-                    return `/${imgMap[j]}`;
+                    return `./${imgMap[j]}`;
                 }
             }
-            return `/system.svg`;
+            return `./system.svg`;
         }
         const connectionCount = (machineId)=>{
                 const length = [

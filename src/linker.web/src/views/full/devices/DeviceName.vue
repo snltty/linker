@@ -2,8 +2,8 @@
     <div>
         <template v-if="tuntap.list[item.MachineId] && tuntap.list[item.MachineId].system">
             <span :title="tuntap.list[item.MachineId].SystemInfo">
-                <img class="system":src="`/${tuntap.list[item.MachineId].system}.svg`" />
-                <img v-if="tuntap.list[item.MachineId].systemDocker" class="system" src="/docker.svg" />
+                <img class="system":src="`./${tuntap.list[item.MachineId].system}.svg`" />
+                <img v-if="tuntap.list[item.MachineId].systemDocker" class="system" :src="`./docker.svg`" />
             </span>
         </template>
         <a href="javascript:;" @click="handleEdit" title="此客户端的设备名" class="a-line">
