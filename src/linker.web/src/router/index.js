@@ -17,6 +17,11 @@ const routes = [
                 component: () => import('@/views/full/server/Index.vue')
             },
             {
+                path: '/full/group.html',
+                name: 'FullGroup',
+                component: () => import('@/views/full/group/Index.vue')
+            },
+            {
                 path: '/full/transport.html',
                 name: 'FullTransport',
                 component: () => import('@/views/full/transport/Index.vue')

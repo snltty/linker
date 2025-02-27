@@ -10,6 +10,7 @@ export default {
 
     'head.home': 'Home',
     'head.server': 'Server',
+    'head.group': 'Group',
     'head.protocol': 'P2P Protocol',
     'head.action': 'Action',
     'head.logger': 'Logs',

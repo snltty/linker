@@ -14,6 +14,9 @@
                     <li v-if="hasConfig">
                         <router-link :to="{name:'FullServers'}"><img src="@/assets/fuwuqi.svg"/> {{$t('head.server')}}</router-link>
                     </li>
+                    <li v-if="hasGroup">
+                        <router-link :to="{name:'FullGroup'}"><img src="@/assets/group.svg"/> {{$t('head.group')}}</router-link>
+                    </li>
                     <li v-if="hasTransport">
                         <router-link :to="{name:'FullTransport'}"><img src="@/assets/dadong.svg"/> {{$t('head.protocol')}}</router-link>
                     </li>
@@ -63,6 +66,7 @@ export default {
         const hasLogger = computed(()=>globalData.value.hasAccess('LoggerShow')); 
         const hasTransport = computed(()=>globalData.value.hasAccess('Transport')); 
         const hasAction = computed(()=>globalData.value.hasAccess('Action')); 
+        const hasGroup = computed(()=>globalData.value.hasAccess('Group'));
 
         const localeOptions = ref(LOCALE_OPTIONS);
         const { changeLocale, currentLocale } = useLocale()
@@ -79,7 +83,7 @@ export default {
         }
         
         return {
-            hasConfig,
+            hasConfig,hasGroup,
             hasLogger,hasTransport,hasAction,localeOptions,locale,handleLocale
         }
     }

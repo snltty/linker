@@ -10,6 +10,7 @@ export default {
 
     'head.home': '首页',
     'head.server': '服务器',
+    'head.group': '分组',
     'head.protocol': '打洞协议',
     'head.action': '自定义验证',
     'head.logger': '日志',

@@ -4,9 +4,6 @@
             <el-tab-pane :label="$t('server.messenger')" name="signin" v-if="hasConfig">
                 <SignInServers></SignInServers>
             </el-tab-pane>
-            <el-tab-pane :label="$t('server.group')" name="groups" v-if="hasGroup">
-                <Groups></Groups>
-            </el-tab-pane>
             <el-tab-pane :label="$t('server.sync')" name="async" v-if="hasSync">
                 <Async></Async>
             </el-tab-pane>
@@ -14,29 +11,22 @@
     </div>
 </template>
 <script>
-import { computed, onMounted, reactive } from 'vue';
+import { computed,  reactive } from 'vue';
 import { injectGlobalData } from '@/provide';
 import SignInServers from './SignInServers.vue';
-import Groups from './Groups.vue';
 import Async from './Async.vue';
 export default {
-    components:{SignInServers,Groups,Async},
+    components:{SignInServers,Async},
     setup(props) {
 
         const globalData = injectGlobalData();
         const hasConfig = computed(()=>globalData.value.hasAccess('Config'))
         const hasSync = computed(()=>globalData.value.hasAccess('Sync'));
-        const hasGroup = computed(()=>globalData.value.hasAccess('Group'));
-
         const state = reactive({
             tab:'signin'
         });
-        onMounted(()=>{
-            state.tab =hasConfig.value ? 'signin' : hasGroup.value ? 'groups' : 'async';
-        });
-
         return {
-            state,hasConfig,hasSync,hasGroup
+            state,hasConfig,hasSync
         }
     }
 }

@@ -31,7 +31,7 @@ namespace linker.messenger.signin
             {
                 signInClientStore.SetName(info.Name);
             }
-            if (accessStore.HasAccess(AccessValue.RenameSelf))
+            if (accessStore.HasAccess(AccessValue.Group))
             {
                 signInClientStore.SetGroups(info.Groups);
             }
