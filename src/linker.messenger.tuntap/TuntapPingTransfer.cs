@@ -37,7 +37,7 @@ namespace linker.messenger.tuntap
         {
             TimerHelper.SetInterval(async () =>
             {
-                if (tuntapTransfer.Status == TuntapStatus.Running && lastTicksManager.DiffLessEqual(5000))
+                if (tuntapTransfer.Status == TuntapStatus.Running)
                 {
                     await Ping();
                 }

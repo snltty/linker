@@ -59,7 +59,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.tuntap", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.serializer.aot", "src\linker.messenger.serializer.aot\linker.messenger.serializer.aot.csproj", "{0538DDF8-346F-48DE-84DF-AEF3EEBE03EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "linker.app", "linker.app\linker.app.csproj", "{60FFFE21-C8F2-4B3A-BB49-7FA2AE31C2B0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "linker.app", "src\linker.app\linker.app.csproj", "{60FFFE21-C8F2-4B3A-BB49-7FA2AE31C2B0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
