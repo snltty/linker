@@ -12,7 +12,6 @@ call npm run build
 cd ../../
 
 
-
 echo F|xcopy "version.txt" "public\\version.txt" /f /h /y
 
 for %%r in (win-x86,win-x64,win-arm64) do (
@@ -23,7 +22,6 @@ for %%r in (win-x86,win-x64,win-arm64) do (
 	echo F|xcopy "src\\linker\\msquic-openssl3-%%r.dll" "public\\extends\\%%r\\linker-%%r\\msquic-openssl.dll"  /s /f /h /y
 	echo F|xcopy "src\\linker\\wintun-%%r.dll" "public\\extends\\%%r\\linker-%%r\\wintun.dll"  /s /f /h /y
 )
-7z a -tzip ./public/publish-zip/linker-windows-route.zip ./src/linker.route.win/dist/*
 
 msbuild "src\\linker.ics\\linker.ics.csproj" -p:Configuration=Release -p:OutputPath=../../public/extends/win-x64/linker-win-x64
 del /f .\public\extends\win-x64\linker-win-x64\linker.ics.pdb
