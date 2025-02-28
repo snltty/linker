@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <!-- give project-specific settings reasonable defaults -->
+    <ILMergePackagesPath Condition=" $(ILMergePackagePath) == '' ">$(SolutionDir)packages</ILMergePackagesPath>
+    <ILMergeOrderFile Condition=" $(ILMergeOrderFile) == '' ">$(MSBuildProjectDirectory)\ILMergeOrder.txt</ILMergeOrderFile>
+    <ILMergeKeyFile Condition=" $(ILMergeKeyFile) == '' ">$(AssemblyOriginatorKeyFile)</ILMergeKeyFile>
+    <ILMergeAssemblyVersion Condition=" $(ILMergeAssemblyVersion) == '' "></ILMergeAssemblyVersion>
+
+    <ILMergeAllowDuplicateType Condition=" $(ILMergeAllowDuplicateType) == '' "></ILMergeAllowDuplicateType>
+    <ILMergeAllowMultipleAssemblyLevelAttributes Condition=" $(ILMergeAllowMultipleAssemblyLevelAttributes) == '' ">false</ILMergeAllowMultipleAssemblyLevelAttributes>
+    <ILMergeAllowZeroPeKind Condition=" $(ILMergeAllowZeroPeKind) == '' ">false</ILMergeAllowZeroPeKind>
+    <ILMergeCopyAttributes Condition=" $(ILMergeCopyAttributes) == '' ">false</ILMergeCopyAttributes>
+    <ILMergeDebugInfo Condition=" $(ILMergeDebugInfo) == '' ">true</ILMergeDebugInfo>
+    <ILMergeDelaySign Condition=" $(ILMergeDelaySign) == '' ">false</ILMergeDelaySign>
+    <ILMergeFileAlignment Condition=" $(ILMergeFileAlignment) == '' ">512</ILMergeFileAlignment>
+    <ILMergeInternalize Condition=" $(ILMergeInternalize) == '' ">false</ILMergeInternalize>
+    <ILMergeInternalizeExcludeFile Condition=" $(ILMergeInternalizeExcludeFile) == '' "></ILMergeInternalizeExcludeFile>
+    <ILMergeXmlDocumentation Condition=" $(ILMergeXmlDocumentation) == '' ">false</ILMergeXmlDocumentation>
+    <ILMergePublicKeyTokens Condition=" $(ILMergePublicKeyTokens) == '' ">true</ILMergePublicKeyTokens>
+    <ILMergeShouldLog Condition=" $(ILMergeShouldLog) == '' ">true</ILMergeShouldLog>
+    <!--<ILMergeTargetKind Condition=" $(ILMergeTargetKind) == '' "></ILMergeTargetKind>-->
+    <ILMergeUnionMerge Condition=" $(ILMergeUnionMerge) == '' ">false</ILMergeUnionMerge>
+    <ILTargetPlatform Condition=" $(ILTargetPlatform) == '' ">40</ILTargetPlatform>
+    <!--<ILMergeVersion Condition=" $(ILMergeVersion) == '' "></ILMergeVersion>-->
+    
+    <ILMergeToolsPath Condition=" $(ILMergeToolsPath) == '' ">$(MSBuildThisFileDirectory)..\tools\</ILMergeToolsPath>
+  </PropertyGroup>
+
+  <!-- decide what goes into output after compile-->
+  <Target Name="SaveILMergeData" AfterTargets="CoreCompile">
+    <Message Text="Transitive merge" Importance="high" Condition="$(ILMergeTransitive) == 'true'" />
+
+    <!-- all copy local assemblies referenced from this project that go to the executable except the main one-->
+    <CreateItem Include="@(ReferencePath)" Condition=" '%(CopyLocal)' == 'true' ">
+      <Output TaskParameter="Include"  ItemName="MergedAssemblies"/>
+    </CreateItem>
+
+    <!-- all copy local dependency assemblies-->
+    <CreateItem Include="@(ReferenceDependencyPaths)" Condition=" '%(CopyLocal)' == 'true' ">
+      <Output TaskParameter="Include" ItemName="MergedDependencies"/>
+    </CreateItem>
+    
+    <!-- all assemblies that doesn't so we use their directories as library path -->
+    <CreateItem Include="@(ReferencePath)" Condition=" '%(CopyLocal)' == 'false' ">
+      <Output TaskParameter="Include" ItemName="UnmergedAssemblies"/>
+    </CreateItem>
+
+    <!-- all content items marked as copy always or newest -->
+    <CreateItem Include="@(Content)" Condition=" '%(Content.CopyToOutputDirectory)' == 'Always' OR '%(Content.CopyToOutputDirectory)' == 'PreserveNewest' ">
+      <Output TaskParameter="Include"  ItemName="LocalContentFiles"/>
+    </CreateItem>
+
+    <!-- add the main assembly as the first one -->
+    <PropertyGroup Condition=" $(ILMergeTransitive) == 'true' ">
+      <MergedAssemblies>@(IntermediateAssembly->'%(FullPath)');@(MergedAssemblies->'%(FullPath)');@(MergedDependencies->'%(FullPath)')</MergedAssemblies>
+    </PropertyGroup>
+    <PropertyGroup Condition=" $(ILMergeTransitive) == 'false' OR $(ILMergeTransitive) == '' ">
+      <MergedAssemblies>@(IntermediateAssembly->'%(FullPath)');@(MergedAssemblies->'%(FullPath)')</MergedAssemblies>
+    </PropertyGroup>
+    
+    <PropertyGroup>
+      <!-- Ideally we should copy all not-copy-local assemblies that are not in the ILMergeLibraryPath to -->
+      <!-- a temp directory and add it to the start search path, but we keep it simple here -->
+      <UnmergedAssemblies>@(UnmergedAssemblies->'%(FullPath)')</UnmergedAssemblies>
+      <MergeOutputFile>$(TargetPath)</MergeOutputFile>
+    </PropertyGroup>
+  </Target>
+
+  <!-- do not copy copy-local assemblies, they will be merged -->
+  <Target Name="_CopyFilesMarkedCopyLocal" />
+
+  <!-- override standard target our own merge-and-copy-content -->
+  <Target Name="CopyFilesToOutputDirectory">
+    <Message Text="Merge PDBs: $(ILMergeDebugInfo)" Importance="high" />
+    <Message Text="Merged assemblies: $(MergedAssemblies)" Importance="high" />
+    <Message Text="Not merged assemblies: $(UnmergedAssemblies)" Importance="normal" />
+    <Message Text="Merged Output in: $(MergeOutputFile)" Importance="normal" />
+    <Message Text="Key file: $(ILMergeKeyFile)" Importance="normal" />
+    <Message Text="Libraries in: $(ILMergeLibraryPath)" Importance="normal" />
+    <Message Text="Packages in: $(ILMergePackagesPath)" Importance="normal" />
+    <Message Text="Merge order file: $(ILMergeOrderFile)" Importance="normal" />
+    <Message Text="Internalization enabled: $(ILMergeInternalize)" Importance="normal" />
+    <Message Text="Local content: @(LocalContentFiles)" Importance="low" />
+
+    <!-- run ILMerge  -->
+    <!-- not supported: AllowWildCards, Closed (use $Transitive instead), TargetKind (default), -->
+    <MSBuild.ILMerge.Task 
+        KeyFile="$(ILMergeKeyFile)"
+        OutputFile="$(MergeOutputFile)"
+        LibraryPath="$(ILMergeLibraryPath)"
+        InputAssemblies="$(MergedAssemblies)"
+        LibraryAssemblies="$(UnmergedAssemblies)"
+        PackagesDir="$(ILMergePackagesPath)"
+        MergeOrderFile="$(ILMergeOrderFile)"
+        AllowDuplicateType="$(ILMergeAllowDuplicateType)"
+        AllowMultipleAssemblyLevelAttributes="$(ILMergeAllowMultipleAssemblyLevelAttributes)"
+        AllowZeroPeKind="$(ILMergeAllowZeroPeKind)"
+        CopyAttributes="$(ILMergeCopyAttributes)"
+        DebugInfo="$(ILMergeDebugInfo)"
+        DelaySign="$(ILMergeDelaySign)"
+        FileAlignment="$(ILMergeFileAlignment)"
+        Internalize="$(ILMergeInternalize)"
+        InternalizeExcludeFile ="$(ILMergeInternalizeExcludeFile)"
+        XmlDocumentation="$(ILMergeXmlDocumentation)"
+        PublicKeyTokens="$(ILMergePublicKeyTokens)"               
+        ShouldLog="$(ILMergeShouldLog)"
+        TargetPlatform="$(ILTargetPlatform)"
+        UnionMerge="$(ILUnionMerge)" />
+    <!-- copy content files marked as copy always or newest -->
+    <Copy SourceFiles="@(LocalContentFiles)" DestinationFolder="$(OutputPath)" />
+    <!-- copy config file (???) -->
+    <CallTarget Targets="_CopyAppConfigFile" Condition="'%(IntermediateAssembly.Extension)' == '.exe'"/>
+  </Target>
+  <UsingTask AssemblyFile="$(ILMergeToolsPath)MSBuild.ILMerge.Task.dll" TaskName="MSBuild.ILMerge.Task" />
+</Project>

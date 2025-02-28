@@ -17,12 +17,10 @@ namespace linker.ics
             if (publicCon == null)
             {
                 sb.Append($"{pulicName} public device not found!");
-                return;
             }
             else if (privateCon == null)
             {
                 sb.Append($"{privateName} private device not found!");
-                return;
             }
             else if (type == "enable")
             {

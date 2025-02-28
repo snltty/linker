@@ -11,6 +11,8 @@ call npm install
 call npm run build 
 cd ../../
 
+
+
 echo F|xcopy "version.txt" "public\\version.txt" /f /h /y
 
 for %%r in (win-x86,win-x64,win-arm64) do (
@@ -22,6 +24,13 @@ for %%r in (win-x86,win-x64,win-arm64) do (
 	echo F|xcopy "src\\linker\\wintun-%%r.dll" "public\\extends\\%%r\\linker-%%r\\wintun.dll"  /s /f /h /y
 )
 7z a -tzip ./public/publish-zip/linker-windows-route.zip ./src/linker.route.win/dist/*
+
+msbuild "src\\linker.ics\\linker.ics.csproj" -p:Configuration=Release -p:OutputPath=../../public/extends/win-x64/linker-win-x64
+del /f .\public\extends\win-x64\linker-win-x64\linker.ics.pdb
+msbuild "src\\linker.ics\\linker.ics.csproj" -p:Configuration=Release -p:OutputPath=../../public/extends/win-arm64/linker-win-arm64
+del /f .\public\extends\win-arm64\linker-win-arm64\linker.ics.pdb
+msbuild "src\\linker.ics\\linker.ics.csproj" -p:Configuration=Release -p:OutputPath=../../public/extends/win-x86/linker-win-x86
+del /f .\public\extends\win-x86\linker-win-x86\linker.ics.pdb
 
 for %%r in (win-x86,win-x64,win-arm64,linux-x64,linux-arm,linux-arm64,linux-musl-x64,linux-musl-arm,linux-musl-arm64,osx-x64,osx-arm64) do (
 	
