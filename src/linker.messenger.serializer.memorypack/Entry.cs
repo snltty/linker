@@ -25,7 +25,7 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new SignInResponseInfoFormatter());
             MemoryPackFormatterProvider.Register(new SignInConfigSetNameInfoFormatter());
             MemoryPackFormatterProvider.Register(new SignInNamesResponseItemInfoFormatter());
-            
+
 
             MemoryPackFormatterProvider.Register(new SyncInfoFormatter());
 
@@ -55,6 +55,12 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new RelayAskResultInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayCacheInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayMessageInfoFormatter());
+            MemoryPackFormatterProvider.Register(new RelayServerCdkeyInfoFormatter());
+            MemoryPackFormatterProvider.Register(new RelayServerCdkeyPageRequestInfoFormatter());
+            MemoryPackFormatterProvider.Register(new RelayServerCdkeyPageResultInfoFormatter());
+            MemoryPackFormatterProvider.Register(new RelayServerCdkeyAddInfoFormatter());
+            MemoryPackFormatterProvider.Register(new RelayServerCdkeyDelInfoFormatter());
+            
 
             MemoryPackFormatterProvider.Register(new AccessUpdateInfoFormatter());
             MemoryPackFormatterProvider.Register(new AccessInfoFormatter());
@@ -83,7 +89,7 @@ namespace linker.messenger.serializer.memorypack
 
             MemoryPackFormatterProvider.Register(new FlowItemInfoFormatter());
             MemoryPackFormatterProvider.Register(new FlowReportNetInfoFormatter());
-            
+
             MemoryPackFormatterProvider.Register(new FlowInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayFlowItemInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayFlowRequestInfoFormatter());

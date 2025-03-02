@@ -256,6 +256,8 @@ namespace linker.messenger.relay.server
         public string ToId { get; set; }
         public string ToName { get; set; }
         public string GroupId { get; set; }
+
+        public List<RelayServerCdkeyInfo> Cdkey { get; set; }
     }
 
     public sealed class RelayWrapInfo

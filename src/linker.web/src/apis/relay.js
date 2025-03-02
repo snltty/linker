@@ -9,3 +9,6 @@ export const setRelaySubscribe = () => {
 export const relayConnect = (data) => {
     return sendWebsocketMsg('relay/Connect', data);
 }
+export const relayCdkeyAccess = () => {
+    return sendWebsocketMsg('relay/AccessCdkey');
+}

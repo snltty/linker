@@ -26,7 +26,7 @@ namespace linker.messenger.relay.server
         }
 
 
-        public ulong AddRelay(string fromid, string fromName, string toid, string toName, string groupid)
+        public ulong AddRelay(string fromid, string fromName, string toid, string toName, string groupid, List<RelayServerCdkeyInfo> cdkeys)
         {
             ulong flowingId = Interlocked.Increment(ref relayFlowingId);
 
@@ -37,7 +37,8 @@ namespace linker.messenger.relay.server
                 FromName = fromName,
                 ToId = toid,
                 ToName = toName,
-                GroupId = groupid
+                GroupId = groupid,
+                Cdkey = cdkeys
             };
             bool added = relayCaching.TryAdd($"{fromid}->{toid}->{flowingId}", cache, 15000);
             if (added == false) return 0;
@@ -81,7 +82,7 @@ namespace linker.messenger.relay.server
             }
             catch (Exception ex)
             {
-                if(LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     LoggerHelper.Instance.Error(ex);
                 }

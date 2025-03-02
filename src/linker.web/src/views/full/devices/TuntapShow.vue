@@ -34,13 +34,13 @@
             <div>
                 <template v-for="(item1,index) in  tuntap.list[item.MachineId].Lans" :key="index">
                     <template v-if="item1.Disabled">
-                        <div class="flex yellow" title="已禁用">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
+                        <div class="flex disable" title="已禁用">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
                     </template>
                     <template v-else-if="item1.Exists">
                         <div class="flex yellow" title="与其它设备填写IP、或本机局域网IP有冲突">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
                     </template>
                     <template v-else>
-                        <div class="flex" title="正常使用" :class="{green:tuntap.list[item.MachineId].running}">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
+                        <div class="flex green" title="正常使用">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
                     </template>
                 </template>
             </div>

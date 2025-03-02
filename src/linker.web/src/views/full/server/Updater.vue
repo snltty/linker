@@ -2,10 +2,11 @@
     <el-form-item :label="$t('server.updaterSecretKey')">
         <div class="flex">
             <el-input class="flex-1" type="password" show-password v-model="state.secretKey" maxlength="36" @blur="handleChange"/>
-            <span>{{$t('server.updaterText')}}</span>
+            <Sync class="mgl-1" name="UpdaterSecretKey"></Sync>
+            <span class="mgl-1">{{$t('server.updaterText')}}</span>
         </div>
     </el-form-item>
-    <el-form-item :label="$t('server.updaterRate')">
+    <!-- <el-form-item :label="$t('server.updaterRate')">
         <div>
            <div>
                 <el-input-number v-model="state.year" :min="0" :max="99" style="width:12rem" @change="handleSecChange" /> {{$t('server.updaterY')  }}
@@ -18,7 +19,7 @@
                 <el-input-number v-model="state.sec" :min="0" :max="99" style="width:12rem" @change="handleSecChange"/> {{$t('server.updaterS')  }}
             </div>
         </div>
-    </el-form-item>
+    </el-form-item> -->
 </template>
 <script>
 import { getSecretKey,setSecretKey, setUpdateInterval } from '@/apis/updater';
@@ -26,7 +27,9 @@ import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { onMounted, reactive } from 'vue'
 import { useI18n } from 'vue-i18n';
+import Sync from '../sync/Index.vue'
 export default {
+    components:{Sync},
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();

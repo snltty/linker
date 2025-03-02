@@ -9,9 +9,9 @@ namespace linker.libs
     {
         public static string Windows(string arg, string[] commands)
         {
-            return Execute("cmd.exe", arg, commands,out string error);
+            return Execute("cmd.exe", arg, commands, out string error);
         }
-        public static string Windows(string arg, string[] commands,out string error)
+        public static string Windows(string arg, string[] commands, out string error)
         {
             return Execute("cmd.exe", arg, commands, out error);
         }
@@ -23,14 +23,14 @@ namespace linker.libs
                 error = "PowerShell is not installed";
                 return string.Empty;
             }
-            return Execute("powershell.exe", arg, commands,out error);
+            return Execute("powershell.exe", arg, commands, out error);
         }
 
         public static string Linux(string arg, string[] commands)
         {
             return Execute("/bin/bash", arg, commands, out string error);
         }
-        public static string Linux(string arg, string[] commands,out string error)
+        public static string Linux(string arg, string[] commands, out string error)
         {
             return Execute("/bin/bash", arg, commands, out error);
         }
@@ -56,7 +56,7 @@ namespace linker.libs
             return proc;
         }
 
-        public static string Execute(string fileName, string arg, string[] commands,out string error)
+        public static string Execute(string fileName, string arg, string[] commands, out string error)
         {
             using Process proc = new Process();
             proc.StartInfo.WorkingDirectory = Path.GetFullPath(Path.Join("./"));
@@ -80,12 +80,9 @@ namespace linker.libs
             proc.StandardInput.WriteLine("exit");
             proc.StandardInput.Close();
 
+            string output = proc.StandardOutput.ReadToEnd();
             error = proc.StandardError.ReadToEnd();
-            string output = string.Empty;
-            if (string.IsNullOrWhiteSpace(error))
-            {
-                output = proc.StandardOutput.ReadToEnd();
-            }
+
             proc.WaitForExit();
             proc.Close();
             proc.Dispose();

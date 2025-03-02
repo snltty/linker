@@ -7,6 +7,7 @@ export default {
     'common.operating': '正在操作',
     'common.tips': '提示',
     'common.option': '选项',
+    'common.access': '无权限',
 
     'head.home': '首页',
     'head.server': '服务器',
@@ -35,6 +36,8 @@ export default {
     'server.messengerText': 'ip:端口 或者 域名:端口',
     'server.messengerSecretKey': '信标密钥',
     'server.messengerSecretKeyText': '密钥正确时可连接服务器',
+    'server.messengerUserId': '用户id',
+    'server.messengerUserIdText': '你的唯一标识，用于流量卡密CDKEY',
 
     'permission.closed': '禁止通行',
     'permission.simple': '简单管理',
@@ -122,6 +125,8 @@ export default {
     'server.relayPublic': '公开',
     'server.relayOper': '操作',
     'server.relayUse': '使用',
+    'server.relayMyCdkey': '我的CDKEY',
+    'server.relayCdkey': '管理CDKEY',
 
     'server.sforwardSecretKey': '服务器穿透密钥',
     'server.sforwardText': '当密钥正确是可用',
@@ -150,5 +155,6 @@ export default {
     'server.asyncRelaySecretKey': '中继密钥',
     'server.asyncSForwardSecretKey': '服务器穿透密钥',
     'server.asyncUpdaterSecretKey': '更新密钥',
-    'server.asyncTunnelTransports': '打洞协议'
+    'server.asyncTunnelTransports': '打洞协议',
+    'server.asyncSignInUserId': '用户唯一标识',
 }

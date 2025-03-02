@@ -27,6 +27,11 @@
                 </template>
             </el-table-column>
             <el-table-column prop="Order" :label="$t('status.tunnelSort')" width="104" fixed="right">
+                <template #header>
+                    <div class="flex">
+                       <strong>{{ $t('status.tunnelSort') }}</strong><span class="flex-1"></span><Sync name="TunnelTransports"></Sync>
+                    </div>
+                </template>
                 <template #default="scope">
                     <div>
                         <el-input-number v-model="scope.row.Order" :min="1" :max="255" @change="handleOrderChange" size="small" />
@@ -43,11 +48,12 @@ import { ElMessage } from 'element-plus';
 import { computed,reactive, watch } from 'vue'
 import { Delete,Plus,Top,Bottom } from '@element-plus/icons-vue';
 import { useI18n } from 'vue-i18n';
+import Sync from '../sync/Index.vue'
 export default {
     label:'打洞协议',
     name:'transports',
     order:2,
-    components:{Delete,Plus,Top,Bottom},
+    components:{Delete,Plus,Top,Bottom,Sync},
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();

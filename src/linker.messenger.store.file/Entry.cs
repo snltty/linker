@@ -59,6 +59,7 @@ namespace linker.messenger.store.file
             serviceCollection.AddSingleton<IRelayServerStore, RelayServerStore>();
             serviceCollection.AddSingleton<IRelayServerNodeStore, RelayServerNodeStore>();
             serviceCollection.AddSingleton<IRelayServerMasterStore, RelayServerMasterStore>();
+            serviceCollection.AddSingleton<IRelayServerCdkeyStore, RelayServerCdkeyStore>();
 
 
             serviceCollection.AddSingleton<ITunnelClientStore, TunnelClientStore>();
@@ -66,6 +67,7 @@ namespace linker.messenger.store.file
             serviceCollection.AddSingleton<ISignInClientStore, SignInClientStore>();
             serviceCollection.AddSingleton<ISignInServerStore, SignInServerStore>();
             serviceCollection.AddSingleton<SignInSyncSecretKey>();
+            serviceCollection.AddSingleton<SignInSyncUserId>();
             serviceCollection.AddSingleton<SignInSyncServer>();
             
             serviceCollection.AddSingleton<SignInSyncGroupSecretKey>();
@@ -107,6 +109,7 @@ namespace linker.messenger.store.file
             SyncTreansfer syncTreansfer = serviceProvider.GetService<SyncTreansfer>();
             syncTreansfer.AddSyncs(new List<ISync> {
                 serviceProvider.GetService<SignInSyncSecretKey>(),
+                serviceProvider.GetService<SignInSyncUserId>(),
                 serviceProvider.GetService<SignInSyncGroupSecretKey>(),
                 serviceProvider.GetService<SignInSyncServer>(),
                 

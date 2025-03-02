@@ -15,6 +15,11 @@
         NodeDelay = 2106,
         NodeDelayForward = 2107,
 
+        AddCdkey = 2108,
+        PageCdkey = 2109,
+        DelCdkey = 2110,
+        AccessCdkey = 2111,
+
         Max = 2199
     }
 }

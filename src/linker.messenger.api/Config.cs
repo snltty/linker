@@ -136,6 +136,9 @@
         [AccessDisplay("重置所有接口密码")]
         SetApiPasswordOther = (ulong)1 << 42,
 
+        [AccessDisplay("管理中继CDKEY")]
+        RelayCdkey = (ulong)1 << 43,
+
         Full = ulong.MaxValue >> 64 - 52,
     }
 

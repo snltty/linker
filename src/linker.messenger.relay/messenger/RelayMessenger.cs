@@ -45,14 +45,18 @@ namespace linker.messenger.relay.messenger
         private readonly RelayServerMasterTransfer relayServerTransfer;
         private readonly RelayServerValidatorTransfer relayValidatorTransfer;
         private readonly ISerializer serializer;
+        private readonly IRelayServerCdkeyStore relayServerCdkeyStore;
+        private readonly IRelayServerStore relayServerStore;
 
-        public RelayServerMessenger(IMessengerSender messengerSender, SignInServerCaching signCaching, ISerializer serializer, RelayServerMasterTransfer relayServerTransfer, RelayServerValidatorTransfer relayValidatorTransfer)
+        public RelayServerMessenger(IMessengerSender messengerSender, SignInServerCaching signCaching, ISerializer serializer, RelayServerMasterTransfer relayServerTransfer, RelayServerValidatorTransfer relayValidatorTransfer, IRelayServerCdkeyStore relayServerCdkeyStore, IRelayServerStore relayServerStore)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
             this.relayServerTransfer = relayServerTransfer;
             this.relayValidatorTransfer = relayValidatorTransfer;
             this.serializer = serializer;
+            this.relayServerCdkeyStore = relayServerCdkeyStore;
+            this.relayServerStore = relayServerStore;
         }
 
         /// <summary>
@@ -89,7 +93,7 @@ namespace linker.messenger.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.RelayAsk)]
         public async Task RelayAsk(IConnection connection)
         {
-            client.transport.RelayInfo info = serializer.Deserialize<client.transport.RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            RelayInfo info = serializer.Deserialize<RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) == false || signCaching.TryGet(info.RemoteMachineId, out SignCacheInfo cacheTo) == false || cacheFrom.GroupId != cacheTo.GroupId)
             {
                 connection.Write(serializer.Serialize(new RelayAskResultInfo { }));
@@ -105,9 +109,11 @@ namespace linker.messenger.relay.messenger
             string error = await relayValidatorTransfer.Validate(info, cacheFrom, cacheTo);
             result.Nodes = relayServerTransfer.GetNodes(string.IsNullOrWhiteSpace(error));
 
+            List<RelayServerCdkeyInfo> cdkeys = await relayServerCdkeyStore.Get(info.UserId);
+
             if (result.Nodes.Count > 0)
             {
-                result.FlowingId = relayServerTransfer.AddRelay(cacheFrom.MachineId, cacheFrom.MachineName, cacheTo.MachineId, cacheTo.MachineName, cacheFrom.GroupId);
+                result.FlowingId = relayServerTransfer.AddRelay(cacheFrom.MachineId, cacheFrom.MachineName, cacheTo.MachineId, cacheTo.MachineName, cacheFrom.GroupId, cdkeys);
             }
 
             connection.Write(serializer.Serialize(result));
@@ -166,6 +172,90 @@ namespace linker.messenger.relay.messenger
             {
                 connection.Write(Helper.FalseArray);
             }
+        }
+
+
+        /// <summary>
+        /// 检查权限
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        [MessengerId((ushort)RelayMessengerIds.AccessCdkey)]
+        public void AccessCdkey(IConnection connection)
+        {
+            string secretKey = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            connection.Write(relayServerStore.SecretKey == secretKey ? Helper.TrueArray : Helper.FalseArray);
+        }
+        /// <summary>
+        /// 添加CDKEY
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)RelayMessengerIds.AddCdkey)]
+        public async Task AddCdkey(IConnection connection)
+        {
+            RelayServerCdkeyAddInfo info = serializer.Deserialize<RelayServerCdkeyAddInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
+            {
+                connection.Write(Helper.FalseArray);
+                return;
+            }
+            if (relayServerStore.SecretKey != info.SecretKey)
+            {
+                connection.Write(Helper.FalseArray);
+                return;
+            }
+
+            await relayServerCdkeyStore.Add(info.Data);
+            connection.Write(Helper.TrueArray);
+        }
+
+        /// <summary>
+        /// 删除Cdkey
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        [MessengerId((ushort)RelayMessengerIds.DelCdkey)]
+        public async Task DelCdkey(IConnection connection)
+        {
+            RelayServerCdkeyDelInfo info = serializer.Deserialize<RelayServerCdkeyDelInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
+            {
+                connection.Write(Helper.FalseArray);
+                return;
+            }
+            if (relayServerStore.SecretKey != info.SecretKey)
+            {
+                connection.Write(Helper.FalseArray);
+                return;
+            }
+
+            await relayServerCdkeyStore.Del(info.Id);
+            connection.Write(Helper.TrueArray);
+        }
+
+        /// <summary>
+        /// 查询CDKEY
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        [MessengerId((ushort)RelayMessengerIds.PageCdkey)]
+        public async Task PageCdkey(IConnection connection)
+        {
+            RelayServerCdkeyPageRequestInfo info = serializer.Deserialize<RelayServerCdkeyPageRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
+            {
+                connection.Write(serializer.Serialize(new RelayServerCdkeyPageResultInfo { }));
+                return;
+            }
+            if (relayServerStore.SecretKey != info.SecretKey && string.IsNullOrWhiteSpace(info.UserId))
+            {
+                connection.Write(serializer.Serialize(new RelayServerCdkeyPageResultInfo { }));
+                return;
+            }
+
+            var page = await relayServerCdkeyStore.Get(info);
+
+            connection.Write(serializer.Serialize(page));
         }
     }
 }

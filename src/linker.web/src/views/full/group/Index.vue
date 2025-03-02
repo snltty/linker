@@ -32,6 +32,11 @@
             </template>
         </el-table-column>
         <el-table-column prop="Oper" :label="$t('server.groupOper')" width="160">
+            <template #header>
+                <div class="flex">
+                    <strong>{{ $t('server.groupOper') }}</strong><span class="flex-1"></span><Sync name="GroupSecretKey"></Sync>
+                </div>
+            </template>
             <template #default="scope">
                 <div>
                     <el-popconfirm :title="$t('server.groupDelConfirm')" @confirm="handleDel(scope.$index)">
@@ -60,8 +65,9 @@ import { ElMessage } from 'element-plus';
 import { computed, reactive, watch } from 'vue'
 import { Delete,Plus,Select } from '@element-plus/icons-vue';
 import { useI18n } from 'vue-i18n';
+import Sync from '../sync/Index.vue'
 export default {
-    components:{Delete,Plus,Select },
+    components:{Delete,Plus,Select,Sync },
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();

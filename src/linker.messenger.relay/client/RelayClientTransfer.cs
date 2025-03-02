@@ -18,10 +18,12 @@ namespace linker.messenger.relay.client
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
         private readonly IRelayClientStore relayClientStore;
-        public RelayClientTransfer(IMessengerSender messengerSender,ISerializer serializer,IRelayClientStore relayClientStore,SignInClientState signInClientState,IMessengerStore messengerStore)
+        private readonly ISignInClientStore signInClientStore;
+        public RelayClientTransfer(IMessengerSender messengerSender, ISerializer serializer, IRelayClientStore relayClientStore, SignInClientState signInClientState, IMessengerStore messengerStore, ISignInClientStore signInClientStore)
         {
             this.relayClientStore = relayClientStore;
-            Transports = new List<IRelayClientTransport> { 
+            this.signInClientStore = signInClientStore;
+            Transports = new List<IRelayClientTransport> {
                 new RelayClientTransportSelfHost(messengerSender,serializer,relayClientStore,signInClientState,messengerStore),
             };
             LoggerHelper.Instance.Info($"load relay transport:{string.Join(",", Transports.Select(c => c.GetType().Name))}");
@@ -87,7 +89,8 @@ namespace linker.messenger.relay.client
                     TransactionId = transactionId,
                     TransportName = transport.Name,
                     SSL = relayClientStore.Server.SSL,
-                    NodeId = nodeId
+                    NodeId = nodeId,
+                    UserId = signInClientStore.Server.UserId,
                 };
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)

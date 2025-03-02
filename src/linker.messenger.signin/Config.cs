@@ -42,7 +42,8 @@ namespace linker.messenger.signin
         public string Name { get; set; } = string.Empty;
         public string Host { get; set; } = string.Empty;
         public string SecretKey { get; set; } = string.Empty;
-
+        public string UserId { get; set; } = Guid.NewGuid().ToString();
+        
     }
 
     public sealed class SignInConfigServerInfo

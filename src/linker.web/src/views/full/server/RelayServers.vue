@@ -1,11 +1,18 @@
 <template>
     <el-form-item :label="$t('server.relaySecretKey')">
-        <el-input type="password" show-password v-model="state.list.SecretKey" maxlength="36" @change="handleSave" />
-        <el-checkbox v-model="state.list.SSL" :label="$t('server.relaySSL')" size="large" @change="handleSave" />
-        <el-checkbox v-model="state.list.Disabled" :label="$t('server.relayDisable')" size="large" @change="handleSave" />
-        <a href="javascript:;" @click="state.show=true" class="delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
-            {{$t('server.relayNodes')}} : {{state.nodes.length}}
-        </a>
+        <div class="flex">
+            <el-input class="flex-1" type="password" show-password v-model="state.list.SecretKey" maxlength="36" @change="handleSave" />
+            <Sync class="mgl-1" name="RelaySecretKey"></Sync>
+            <div class="mgl-1">
+                <el-checkbox class="mgr-1" v-model="state.list.SSL" :label="$t('server.relaySSL')" @change="handleSave" />
+                <el-checkbox v-model="state.list.Disabled" :label="$t('server.relayDisable')" @change="handleSave" />
+            </div>
+            <a href="javascript:;" @click="state.show=true" class="mgl-1 delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
+                {{$t('server.relayNodes')}} : {{state.nodes.length}}
+            </a>
+            <Relay></Relay>
+        </div>
+       
     </el-form-item>
     
     <el-dialog v-model="state.show" :title="$t('server.relayTitle')" width="760" top="2vh">
@@ -60,7 +67,10 @@ import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { onMounted, onUnmounted, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
+import Sync from '../sync/Index.vue'
+import Relay from './relay/Index.vue'
 export default {
+    components:{Sync,Relay},
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();
@@ -103,5 +113,4 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
-.delay{margin-left:3rem;}
 </style>

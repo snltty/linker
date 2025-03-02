@@ -7,16 +7,25 @@
                     <el-form-item :label="$t('server.messengerAddr')">
                         <div class="flex">
                             <el-input class="flex-1" v-model="state.list.Host" @change="handleSave" />
-                            <span>{{$t('server.messengerText')}}</span>
+                            <Sync class="mgl-1" name="SignInServer"></Sync>
+                            <span class="mgl-1">{{$t('server.messengerText')}}</span>
                         </div>
                     </el-form-item>
                     <el-form-item :label="$t('server.messengerSecretKey')">
                         <div class="flex">
                             <el-input class="flex-1" type="password" show-password maxlength="36" v-model="state.list.SecretKey" @change="handleSave" />
-                            <span>{{$t('server.messengerSecretKeyText')}}</span>
+                            <Sync class="mgl-1" name="SignInSecretKey"></Sync>
+                            <span class="mgl-1">{{$t('server.messengerSecretKeyText')}}</span>
                         </div>
                     </el-form-item>
-                    <RelayServers></RelayServers>
+                    <el-form-item :label="$t('server.messengerUserId')">
+                        <div class="flex">
+                            <el-input class="flex-1" type="password" show-password maxlength="36" v-model="state.list.UserId" @change="handleSave" />
+                            <Sync class="mgl-1" name="SignInUserId"></Sync>
+                            <span class="mgl-1">{{$t('server.messengerUserIdText')}}</span>
+                        </div>
+                    </el-form-item>
+                    <RelayServers class="mgt-2"></RelayServers>
                     <SForward></SForward>
                     <Updater></Updater>
                 </el-form>
@@ -38,8 +47,9 @@ import SForward from './SForward.vue';
 import Updater from './Updater.vue';
 import RelayServers from './RelayServers.vue';
 import { useI18n } from 'vue-i18n';
+import Sync from '../sync/Index.vue'
 export default {
-    components:{SForward,Updater,RelayServers},
+    components:{SForward,Updater,RelayServers,Sync},
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();

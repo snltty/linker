@@ -5,7 +5,7 @@
                 <div class="inner">
                     <div class="head flex">
                         <div>
-                            <el-select v-model="state.type" @change="loadData" size="small" class="m-r-1" style="width: 6rem;">
+                            <el-select v-model="state.type" @change="loadData" size="small" class="mgr-1" style="width: 6rem;">
                                 <el-option :value="-1" label="all"></el-option>
                                 <el-option :value="0" label="debug"></el-option>
                                 <el-option :value="1" label="info"></el-option>

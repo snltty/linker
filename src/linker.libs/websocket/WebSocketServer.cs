@@ -313,6 +313,8 @@ namespace linker.libs.websocket
             {
                 token.Connectrion.SendFrameClose(WebSocketFrameInfo.EnumCloseStatus.ExtendsError);
                 token.Connectrion.Close();
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error($"websocket opcode error:{token.FrameInfo.Opcode}");
                 return;
             }
         }
@@ -356,6 +358,8 @@ namespace linker.libs.websocket
                 header.StatusCode = HttpStatusCode.MethodNotAllowed;
                 token.Connectrion.ConnectResponse(header);
                 token.Connectrion.Close();
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error("websocket SecWebSocketKey error");
                 return;
             }
 
@@ -370,6 +374,8 @@ namespace linker.libs.websocket
                 header.StatusCode = HttpStatusCode.Unauthorized;
                 token.Connectrion.ConnectResponse(header);
                 token.Connectrion.Close();
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error("websocket OnConnecting false");
             }
         }
 
@@ -479,6 +485,9 @@ namespace linker.libs.websocket
         {
             Disposabled = true;
             Connectrion.Close();
+
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Error($"websocket connection clear");
         }
     }
 

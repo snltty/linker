@@ -16,7 +16,7 @@
                     <el-checkbox v-model="state.ruleForm.Multicast" label="禁用广播" size="large" />
                     <el-checkbox v-model="state.ruleForm.Nat" label="禁用NAT" size="large" />
                 </el-form-item>
-                <el-form-item prop="upgrade" class="m-b-0">
+                <el-form-item prop="upgrade" class="mgb-0">
                     <el-checkbox v-model="state.ruleForm.Upgrade" label="我很懂，我要使用高级功能(点对网和网对网)" size="large" />
                 </el-form-item>
                 <div class="upgrade-wrap" v-if="state.ruleForm.Upgrade">

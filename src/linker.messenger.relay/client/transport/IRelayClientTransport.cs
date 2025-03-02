@@ -112,6 +112,11 @@ namespace linker.messenger.relay.client.transport
         /// 是否ssl
         /// </summary>
         public bool SSL { get; set; } = true;
+
+        /// <summary>
+        /// UserId
+        /// </summary>
+        public string UserId { get; set; }
     }
 
 

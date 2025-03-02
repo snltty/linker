@@ -6,7 +6,7 @@
                 接口 : <el-input v-model="state.api" style="width:70%"></el-input>
             </div>
             <div class="pdt-10">
-                秘钥 : <el-input type="password" v-model="state.psd" style="width:70%"></el-input>
+                秘钥 : <el-input show-password type="password" v-model="state.psd" style="width:70%"></el-input>
             </div>
             <div class="pdt-10">
                 <el-checkbox v-model="state.save" >保存密码</el-checkbox>

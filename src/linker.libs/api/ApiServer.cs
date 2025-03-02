@@ -38,7 +38,7 @@ namespace linker.libs.api
             server = new WebSocketServer();
             try
             {
-                server.Start( port);
+                server.Start(port);
             }
             catch (Exception ex)
             {
@@ -51,6 +51,13 @@ namespace linker.libs.api
                 {
                     header.SetHeaderValue(WebsocketHeaderKey.SecWebSocketExtensions, string.Empty);
                 }
+
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    header.TryGetHeaderValue(WebsocketHeaderKey.SecWebSocketProtocol, out string _password1);
+                    LoggerHelper.Instance.Info($"websocket client password {_password1} eq {password}");
+                }
+
                 return res;
             };
             server.OnOpen = (connection) =>

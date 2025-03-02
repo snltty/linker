@@ -43,6 +43,11 @@ namespace linker.messenger.store.file.signIn
             Server.SecretKey = secretKey;
             config.Data.Update();
         }
+        public void SetUserId(string userid)
+        {
+            Server.UserId = userid;
+            config.Data.Update();
+        }
         public void SetHost(string host)
         {
             Server.Host = host;

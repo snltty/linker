@@ -22,6 +22,8 @@ namespace linker.tun
         private IPAddress address;
         private byte prefixLength = 24;
 
+        private string defaultInterfaceName = string.Empty;
+
         private CancellationTokenSource tokenSource;
 
         public LinkerWinTunDevice()
@@ -67,6 +69,7 @@ namespace linker.tun
                     AddIPV6();
 
                     GetWindowsInterfaceNum();
+                    GetDefaultInterface();
                     tokenSource = new CancellationTokenSource();
 
                     return true;
@@ -115,7 +118,6 @@ namespace linker.tun
             }
         }
 
-
         public void Shutdown()
         {
             tokenSource?.Cancel();
@@ -137,7 +139,6 @@ namespace linker.tun
             interfaceNumber = 0;
         }
 
-
         public void SetMtu(int value)
         {
             CommandHelper.Windows(string.Empty, new string[] {
@@ -157,20 +158,18 @@ namespace linker.tun
 
                 IPAddress network = NetworkHelper.ToNetworkIP(this.address, NetworkHelper.ToPrefixValue(prefixLength));
                 CommandHelper.PowerShell($"New-NetNat -Name {Name} -InternalIPInterfaceAddressPrefix {network}/{prefixLength}", [], out error);
-
-                if (string.IsNullOrWhiteSpace(error) == false)
+                if (string.IsNullOrWhiteSpace(error))
                 {
-                    error = "NetNat Not Supported";
-                    string result = CommandHelper.Windows(string.Empty, ["netsh routing"]);
-                    if (result.Contains("netsh routing ip"))
-                    {
-                        error = string.Empty;
-                    }
-                    else
-                    {
-                        error += "，RRAS Not Supported";
-                    }
+                    return;
                 }
+
+                CommandHelper.Windows(string.Empty, [$"net start SharedAccess"]);
+                string result = CommandHelper.Windows(string.Empty, [$"linker.ics.exe {defaultInterfaceName} {Name} enable"]);
+                if (result.Contains($"enable success"))
+                {
+                    return;
+                }
+                error = "NetNat and ICS not supported";
             }
             catch (Exception ex)
             {
@@ -186,6 +185,7 @@ namespace linker.tun
             {
                 CommandHelper.PowerShell($"start-service WinNat", [], out error);
                 CommandHelper.PowerShell($"Remove-NetNat -Name {Name} -Confirm:$false", [], out error);
+                CommandHelper.Windows(string.Empty, [$"linker.ics.exe {Name} disable"]);
             }
             catch (Exception ex)
             {
@@ -326,6 +326,33 @@ namespace linker.tun
                 interfaceNumber = adapter.GetIPProperties().GetIPv4Properties().Index;
             }
 
+        }
+        private void GetDefaultInterface()
+        {
+            string[] lines = CommandHelper.Windows(string.Empty, new string[] { $"route print" }).Split(Environment.NewLine);
+            foreach (var item in lines)
+            {
+                if (item.Trim().StartsWith("0.0.0.0"))
+                {
+                    string[] arr = Regex.Replace(item.Trim(), @"\s+", " ").Split(' ');
+                    IPAddress ip = IPAddress.Parse(arr[arr.Length - 2]);
+
+                    foreach (var inter in NetworkInterface.GetAllNetworkInterfaces())
+                    {
+                        try
+                        {
+                            if (ip.Equals(inter.GetIPProperties().UnicastAddresses.FirstOrDefault(c => c.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).Address))
+                            {
+                                defaultInterfaceName = inter.Name;
+                                return;
+                            }
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                }
+            }
         }
 
         private void ClearRegistry()

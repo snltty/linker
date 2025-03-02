@@ -45,6 +45,11 @@
         /// <param name="secretKey"></param>
         public void SetSecretKey(string secretKey);
         /// <summary>
+        /// 设置用户id
+        /// </summary>
+        /// <param name="userid"></param>
+        public void SetUserId(string userid);
+        /// <summary>
         /// 信标服务器
         /// </summary>
         /// <param name="host"></param>

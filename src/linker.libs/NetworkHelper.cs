@@ -36,7 +36,7 @@ namespace linker.libs
 
         public bool Equals(IPNetwork other)
         {
-            return  ToValue() == other.ToValue();
+            return ToValue() == other.ToValue();
         }
     }
 
@@ -142,7 +142,7 @@ namespace linker.libs
         {
             result = new List<IPAddress>();
 
-            string str = CommandHelper.Linux(string.Empty, new string[] { $"traceroute {server} -4 -m 5" });
+            string str = CommandHelper.Linux(string.Empty, new string[] { $"traceroute {server} -4 -m 5 -w 1" });
             string[] lines = str.Split(Environment.NewLine);
 
             Regex regex = new Regex(@"(\d+\.\d+\.\d+\.\d+)");
@@ -191,33 +191,41 @@ namespace linker.libs
 
 
         private static byte[] ipv6LocalBytes = new byte[] { 254, 128, 0, 0, 0, 0, 0, 0 };
-        public static IPAddress[] GetIPV6()
+
+        private static IPAddress[] GetIP()
         {
             try
             {
-                return Dns.GetHostAddresses(Dns.GetHostName())
-                 .Where(c => c.AddressFamily == AddressFamily.InterNetworkV6)
-                 .Where(c => c.GetAddressBytes().AsSpan(0, 8).SequenceEqual(ipv6LocalBytes) == false).Distinct().ToArray();
+                return Dns.GetHostEntry(Dns.GetHostName()).AddressList;
             }
             catch (Exception)
             {
+                try
+                {
+                    return NetworkInterface.GetAllNetworkInterfaces()
+                        .SelectMany(c => c.GetIPProperties().UnicastAddresses)
+                        .Select(c => c.Address)
+                        .ToArray();
+                }
+                catch (Exception)
+                {
+                }
             }
             return Array.Empty<IPAddress>();
         }
+        public static IPAddress[] GetIPV6()
+        {
+            return GetIP()
+                 .Where(c => c.AddressFamily == AddressFamily.InterNetworkV6)
+                 .Where(c => c.GetAddressBytes().AsSpan(0, 8).SequenceEqual(ipv6LocalBytes) == false).Distinct().ToArray(); ;
+        }
         public static IPAddress[] GetIPV4()
         {
-            try
-            {
-                return Dns.GetHostEntry(Dns.GetHostName()).AddressList
-                .Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+            return GetIP()
+                .Where(c => c.AddressFamily == AddressFamily.InterNetwork)
                 .Where(c => c.IsIPv4MappedToIPv6 == false)
                 .Where(c => c.Equals(IPAddress.Loopback) == false)
                 .Distinct().ToArray();
-            }
-            catch (Exception)
-            {
-            }
-            return Array.Empty<IPAddress>();
         }
 
         public static byte ToPrefixLength(uint ip)

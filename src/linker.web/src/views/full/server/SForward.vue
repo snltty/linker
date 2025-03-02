@@ -2,7 +2,8 @@
     <el-form-item :label="$t('server.sforwardSecretKey')">
         <div class="flex">
             <el-input class="flex-1" type="password" show-password v-model="state.SForwardSecretKey" maxlength="36" @blur="handleChange" />
-            <span>{{$t('server.sforwardText')}}</span>
+            <Sync class="mgl-1" name="SForwardSecretKey"></Sync>
+            <span class="mgl-1">{{$t('server.sforwardText')}}</span>
         </div>
     </el-form-item>
 </template>
@@ -11,7 +12,9 @@ import { getSForwardSecretKey,setSForwardSecretKey } from '@/apis/sforward';
 import { ElMessage } from 'element-plus';
 import {onMounted, reactive } from 'vue'
 import { useI18n } from 'vue-i18n';
+import Sync from '../sync/Index.vue'
 export default {
+    components:{Sync},
     setup(props) {
         const {t} = useI18n();
         const state = reactive({

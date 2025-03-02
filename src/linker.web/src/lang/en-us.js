@@ -7,6 +7,7 @@ export default {
     'common.operating': 'In operation',
     'common.tips': 'Tips',
     'common.option': 'Option',
+    'common.access': 'No access',
 
     'head.home': 'Home',
     'head.server': 'Server',
@@ -36,6 +37,8 @@ export default {
     'server.messengerText': 'ip:port or domain:port',
     'server.messengerSecretKey': 'Messenger SecretKey',
     'server.messengerSecretKeyText': 'Messenger SecretKey',
+    'server.messengerUserId': 'User Id',
+    'server.messengerUserIdText': 'Your unique identifier,for card key (CDKEY).',
 
     'permission.closed': 'Closed',
     'permission.simple': 'Simple',
@@ -120,6 +123,8 @@ export default {
     'server.relayPublic': 'Public',
     'server.relayOper': 'Oper',
     'server.relayUse': 'Use',
+    'server.relayMyCdkey': 'My CDKEY',
+    'server.relayCdkey': 'Manager CDKEY',
 
     'server.sforwardSecretKey': 'Server forward secretKey',
     'server.sforwardText': 'The server forward can be used when the key is correct',
@@ -148,5 +153,7 @@ export default {
     'server.asyncRelaySecretKey': 'Relay secretKey',
     'server.asyncSForwardSecretKey': 'Server forward secretKey',
     'server.asyncUpdaterSecretKey': 'Update secretKey',
-    'server.asyncTunnelTransports': 'Tunnel transports'
+    'server.asyncTunnelTransports': 'Tunnel transports',
+    'server.asyncSignInUserId': 'User Id',
+
 }

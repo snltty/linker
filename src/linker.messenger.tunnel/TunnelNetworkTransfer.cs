@@ -35,10 +35,13 @@ namespace linker.messenger.tunnel
         {
             LoggerHelper.Instance.Info($"tunnel route level getting.");
             Info.RouteLevel = NetworkHelper.GetRouteLevel(signInClientStore.Server.Host, out List<IPAddress> ips);
-            Info.RouteIPs = ips.ToArray();
-            Info.LocalIPs = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
             LoggerHelper.Instance.Warning($"route ips:{string.Join(",", ips.Select(c => c.ToString()))}");
-            LoggerHelper.Instance.Warning($"tunnel local ips :{string.Join(",", Info.LocalIPs.Select(c => c.ToString()))}");
+            Info.RouteIPs = ips.ToArray();
+            var ipv6 = NetworkHelper.GetIPV6();
+            LoggerHelper.Instance.Warning($"tunnel local ip6 :{string.Join(",", ipv6.Select(c => c.ToString()))}");
+            var ipv4 = NetworkHelper.GetIPV4();
+            LoggerHelper.Instance.Warning($"tunnel local ip4 :{string.Join(",", ipv4.Select(c => c.ToString()))}");
+            Info.LocalIPs = ipv6.Concat(ipv4).ToArray();
             LoggerHelper.Instance.Warning($"tunnel route level:{Info.RouteLevel}");
         }
 
