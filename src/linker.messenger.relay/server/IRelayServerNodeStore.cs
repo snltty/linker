@@ -79,6 +79,8 @@ namespace linker.messenger.relay.server
 #else
         public string MasterSecretKey { get; set; } = string.Empty;
 #endif
+
+        public List<string> UserIds { get; set; } = new List<string>();
     }
 
     public sealed partial class RelayServerNodeReportInfo
@@ -102,6 +104,8 @@ namespace linker.messenger.relay.server
         public IPEndPoint EndPoint { get; set; }
 
         public long LastTicks { get; set; }
+
+        public List<string> UserIds { get; set; } = new List<string>();
     }
 
 

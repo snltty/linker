@@ -125,7 +125,7 @@ namespace linker.messenger.signin
             Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.KeepAlive();
             await socket.ConnectAsync(remote).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
-            clientSignInState.Connection = await messengerResolver.BeginReceiveClient(socket, true, (byte)ResolverType.Messenger).ConfigureAwait(false);
+            clientSignInState.Connection = await messengerResolver.BeginReceiveClient(socket, true, (byte)ResolverType.Messenger, Helper.EmptyArray).ConfigureAwait(false);
 
             return true;
         }

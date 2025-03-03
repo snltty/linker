@@ -26,7 +26,7 @@ namespace linker.messenger.sforward.client
             this.signInClientStore = signInClientStore;
             this.sForwardClientStore = sForwardClientStore;
 
-            signInClientState.NetworkFirstEnabledHandle += () => Start();
+            signInClientState.OnSignInSuccess += (i) => Start();
             this.serializer = serializer;
         }
 

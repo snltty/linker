@@ -15,7 +15,7 @@ namespace linker.messenger
     public interface IMessengerResolver
     {
         public Task<IConnection> BeginReceiveClient(Socket socket);
-        public Task<IConnection> BeginReceiveClient(Socket socket, bool sendFlag, byte flag);
+        public Task<IConnection> BeginReceiveClient(Socket socket, bool sendFlag, byte flag, byte[] data);
         public void AddMessenger(List<IMessenger> list);
         public Task BeginReceiveServer(Socket socket, Memory<byte> memory);
         public Task BeginReceiveServer(Socket socket, IPEndPoint ep, Memory<byte> memory);
@@ -104,7 +104,7 @@ namespace linker.messenger
         /// <returns></returns>
         public async Task<IConnection> BeginReceiveClient(Socket socket)
         {
-            return await BeginReceiveClient(socket, false, 0);
+            return await BeginReceiveClient(socket, false, 0, Helper.EmptyArray);
         }
         /// <summary>
         /// 以客户端模式接收数据
@@ -113,7 +113,7 @@ namespace linker.messenger
         /// <param name="sendFlag"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
-        public async Task<IConnection> BeginReceiveClient(Socket socket, bool sendFlag, byte flag)
+        public async Task<IConnection> BeginReceiveClient(Socket socket, bool sendFlag, byte flag, byte[] data)
         {
             try
             {
@@ -126,6 +126,11 @@ namespace linker.messenger
                 {
                     await socket.SendAsync(new byte[] { flag }).ConfigureAwait(false);
                 }
+                if (data.Length > 0)
+                {
+                    await socket.SendAsync(data).ConfigureAwait(false);
+                }
+
                 NetworkStream networkStream = new NetworkStream(socket, false);
                 SslStream sslStream = new SslStream(networkStream, true, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                 await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
@@ -167,7 +172,7 @@ namespace linker.messenger
             Type voidType = typeof(void);
             Type midType = typeof(MessengerIdAttribute);
 
-            LoggerHelper.Instance.Info($"add messenger {string.Join(",",list.Select(c=>c.GetType().Name))}");
+            LoggerHelper.Instance.Info($"add messenger {string.Join(",", list.Select(c => c.GetType().Name))}");
 
             foreach (IMessenger messenger in list.Distinct())
             {

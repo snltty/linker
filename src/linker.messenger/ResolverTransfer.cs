@@ -36,15 +36,13 @@ namespace linker.messenger
         /// <returns></returns>
         public async Task BeginReceive(Socket socket)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(32);
             try
             {
                 if (socket == null || socket.RemoteEndPoint == null)
                 {
                     return;
                 }
-
-                //socket.KeepAlive();
 
                 int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).ConfigureAwait(false);
                 byte type = buffer[0];

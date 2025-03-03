@@ -58,6 +58,7 @@ namespace linker.messenger.relay.client.transport
         public string MachineId { get; set; }
         public string SecretKey { get; set; }
         public IPEndPoint Server { get; set; }
+        public string UserId { get; set; }
     }
 
     /// <summary>

@@ -12,7 +12,6 @@ namespace linker.messenger.relay.server
     {
 
         private ulong relayFlowingId = 0;
-        private readonly ICrypto crypto;
         private readonly ConcurrentDictionary<string, RelayServerNodeReportInfo> reports = new ConcurrentDictionary<string, RelayServerNodeReportInfo>();
 
 
@@ -22,11 +21,10 @@ namespace linker.messenger.relay.server
         {
             this.relayCaching = relayCaching;
             this.serializer = serializer;
-            crypto = CryptoFactory.CreateSymmetric(relayServerMasterStore.Master.SecretKey);
         }
 
 
-        public ulong AddRelay(string fromid, string fromName, string toid, string toName, string groupid, List<RelayServerCdkeyInfo> cdkeys)
+        public ulong AddRelay(string fromid, string fromName, string toid, string toName, string groupid, bool validated, List<RelayServerCdkeyInfo> cdkeys)
         {
             ulong flowingId = Interlocked.Increment(ref relayFlowingId);
 
@@ -38,6 +36,7 @@ namespace linker.messenger.relay.server
                 ToId = toid,
                 ToName = toName,
                 GroupId = groupid,
+                Validated = validated,
                 Cdkey = cdkeys
             };
             bool added = relayCaching.TryAdd($"{fromid}->{toid}->{flowingId}", cache, 15000);
@@ -46,39 +45,29 @@ namespace linker.messenger.relay.server
             return flowingId;
         }
 
-        public Memory<byte> TryGetRelayCache(string key)
+        public bool TryGetRelayCache(string key, out RelayCacheInfo value)
         {
-            if (relayCaching.TryGetValue(key, out RelayCacheInfo value))
-            {
-                byte[] bytes = crypto.Encode(serializer.Serialize(value));
-                return bytes;
-            }
-            return Helper.EmptyArray;
+            return relayCaching.TryGetValue(key, out value);
         }
-
         /// <summary>
         /// 设置节点
         /// </summary>
         /// <param name="ep"></param>
         /// <param name="data"></param>
-        public void SetNodeReport(IPEndPoint ep, Memory<byte> data)
+        public void SetNodeReport(IConnection connection, RelayServerNodeReportInfo info)
         {
             try
             {
-                if (crypto == null) return;
-                data = crypto.Decode(data.ToArray());
-                RelayServerNodeReportInfo relayNodeReportInfo = serializer.Deserialize<RelayServerNodeReportInfo>(data.Span);
-
-                if (relayNodeReportInfo.Id == RelayServerNodeInfo.MASTER_NODE_ID)
+                if (info.Id == RelayServerNodeInfo.MASTER_NODE_ID)
                 {
-                    relayNodeReportInfo.EndPoint = new IPEndPoint(IPAddress.Any, 0);
+                    info.EndPoint = new IPEndPoint(IPAddress.Any, 0);
                 }
-                else if (relayNodeReportInfo.EndPoint.Address.Equals(IPAddress.Any))
+                else if (info.EndPoint.Address.Equals(IPAddress.Any))
                 {
-                    relayNodeReportInfo.EndPoint.Address = ep.Address;
+                    info.EndPoint.Address = connection.Address.Address;
                 }
-                relayNodeReportInfo.LastTicks = Environment.TickCount64;
-                reports.AddOrUpdate(relayNodeReportInfo.Id, relayNodeReportInfo, (a, b) => relayNodeReportInfo);
+                info.LastTicks = Environment.TickCount64;
+                reports.AddOrUpdate(info.Id, info, (a, b) => info);
             }
             catch (Exception ex)
             {
@@ -93,10 +82,10 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="validated">是否已认证</param>
         /// <returns></returns>
-        public List<RelayServerNodeReportInfo> GetNodes(bool validated)
+        public List<RelayServerNodeReportInfo> GetNodes(bool validated, string userid)
         {
             var result = reports.Values
-                .Where(c => c.Public || (c.Public == false && validated))
+                .Where(c => c.Public || (c.Public == false && validated) || c.UserIds.Contains(userid))
                 .Where(c => Environment.TickCount64 - c.LastTicks < 15000)
                 .Where(c => c.ConnectionRatio < 100 && (c.MaxGbTotal == 0 || (c.MaxGbTotal > 0 && c.MaxGbTotalLastBytes > 0)))
                 .OrderByDescending(c => c.LastTicks);

@@ -1,4 +1,5 @@
-﻿using linker.libs.extends;
+﻿using linker.libs;
+using linker.libs.extends;
 using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
@@ -8,14 +9,19 @@ namespace linker.messenger.relay.server
     /// <summary>
     /// 中继节点报告处理器
     /// </summary>
-    public class RelayServerReportResolver: IResolver
+    public class RelayServerReportResolver : IResolver
     {
         public byte Type => (byte)ResolverType.RelayReport;
 
         private readonly RelayServerMasterTransfer relayServerTransfer;
-        public RelayServerReportResolver(RelayServerMasterTransfer relayServerTransfer)
+        private readonly IRelayServerMasterStore relayServerMasterStore;
+        private readonly IMessengerResolver messengerResolver;
+
+        public RelayServerReportResolver(RelayServerMasterTransfer relayServerTransfer, IRelayServerMasterStore relayServerMasterStore, IMessengerResolver messengerResolver)
         {
             this.relayServerTransfer = relayServerTransfer;
+            this.relayServerMasterStore = relayServerMasterStore;
+            this.messengerResolver = messengerResolver;
         }
 
         public virtual void AddReceive(ulong bytes)
@@ -31,15 +37,14 @@ namespace linker.messenger.relay.server
             try
             {
                 AddReceive((ulong)memory.Length);
-                int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
+                int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).ConfigureAwait(false);
                 AddReceive((ulong)length);
+                await socket.ReceiveAsync(buffer.AsMemory(0, length), SocketFlags.None).ConfigureAwait(false);
 
-                string key = buffer.AsMemory(0,length).GetString();
-                Memory<byte> bytes = relayServerTransfer.TryGetRelayCache(key);
-                if (bytes.Length > 0)
+                string key = buffer.AsMemory(0, length).GetString();
+                if (relayServerMasterStore.Master.SecretKey.Md5() == key)
                 {
-                    AddSendt((ulong)bytes.Length);
-                    await socket.SendAsync(bytes);
+                    await messengerResolver.BeginReceiveServer(socket, Helper.EmptyArray);
                 }
             }
             catch (Exception)
@@ -49,13 +54,10 @@ namespace linker.messenger.relay.server
             {
                 ArrayPool<byte>.Shared.Return(buffer);
             }
-           
         }
 
         public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
-            AddReceive((ulong)memory.Length);
-            relayServerTransfer.SetNodeReport(ep, memory);
             await Task.CompletedTask;
         }
     }

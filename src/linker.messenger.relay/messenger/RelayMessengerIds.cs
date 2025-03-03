@@ -20,6 +20,11 @@
         DelCdkey = 2110,
         AccessCdkey = 2111,
 
+
+        NodeGetCache = 2112,
+        NodeReport = 2113,
+        TrafficReport = 2114,
+
         Max = 2199
     }
 }

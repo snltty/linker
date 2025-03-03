@@ -46,7 +46,8 @@ namespace linker.messenger.relay
                     Nodes = await transport.RelayTestAsync(new RelayTestInfo
                     {
                         MachineId = signInClientStore.Id,
-                        SecretKey = relayClientStore.Server.SecretKey
+                        SecretKey = relayClientStore.Server.SecretKey,
+                        UserId = signInClientStore.Server.UserId
                     });
                     var tasks = Nodes.Select(async (c) =>
                     {

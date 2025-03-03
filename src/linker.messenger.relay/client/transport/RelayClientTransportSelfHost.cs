@@ -28,6 +28,7 @@ namespace linker.messenger.relay.client.transport
         private readonly IRelayClientStore relayClientStore;
         private readonly SignInClientState signInClientState;
         private readonly IMessengerStore messengerStore;
+      
         public RelayClientTransportSelfHost(IMessengerSender messengerSender, ISerializer serializer, IRelayClientStore relayClientStore, SignInClientState signInClientState, IMessengerStore messengerStore)
         {
             this.messengerSender = messengerSender;
