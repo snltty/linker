@@ -2,16 +2,39 @@
 {
     public interface IRelayServerCdkeyStore
     {
-        public Task<bool> Add(RelayServerCdkeyInfo info);
-        public Task<bool> Del(string id);
+        public Task<bool> Add(RelayServerCdkeyStoreInfo info);
+        public Task<bool> Del(long id);
 
         /// <summary>
         /// 获取有效的CDKEY
         /// </summary>
         /// <param name="userid"></param>
         /// <returns></returns>
-        public Task<List<RelayServerCdkeyInfo>> Get(string userid);
+        public Task<List<RelayServerCdkeyStoreInfo>> GetAvailable(string userid);
+        public Task<List<RelayServerCdkeyStoreInfo>> Get(List<long> ids);
+
+        public Task<bool> Traffic(Dictionary<long, long> dic);
         public Task<RelayServerCdkeyPageResultInfo> Get(RelayServerCdkeyPageRequestInfo relayServerCdkeyPageRequestInfo);
+    }
+
+    public sealed class RelayServerCdkeyConfigInfo
+    {
+        /// <summary>
+        /// 获取可用的CDKEY
+        /// </summary>
+        public string CdkeyAvailablePostUrl { get; set; } = string.Empty;
+        /// <summary>
+        /// 分页获取CDKEY
+        /// </summary>
+        public string CdkeyPagePostUrl { get; set; } = string.Empty;
+        /// <summary>
+        /// id列表获取CDKEY
+        /// </summary>
+        public string CdkeyListPostUrl { get; set; } = string.Empty;
+        /// <summary>
+        /// 报告流量websocket
+        /// </summary>
+        public string CdkeyTrafficWsUrl { get; set; } = string.Empty;
     }
 
     public sealed partial class RelayServerCdkeyPageRequestInfo
@@ -29,24 +52,24 @@
         public int Page { get; set; }
         public int Size { get; set; }
         public int Count { get; set; }
-        public List<RelayServerCdkeyInfo> List { get; set; }
+        public List<RelayServerCdkeyStoreInfo> List { get; set; }
     }
 
     public sealed partial class RelayServerCdkeyAddInfo
     {
         public string SecretKey { get; set; }
-        public RelayServerCdkeyInfo Data { get; set; }
+        public RelayServerCdkeyStoreInfo Data { get; set; }
     }
     public sealed partial class RelayServerCdkeyDelInfo
     {
         public string SecretKey { get; set; }
-        public string Id { get; set; }
+        public long CdkeyId { get; set; }
     }
 
     /// <summary>
-    /// 中继CDKEY
+    /// 中继CDKEY存储
     /// </summary>
-    public sealed partial class RelayServerCdkeyInfo
+    public sealed partial class RelayServerCdkeyStoreInfo : RelayServerCdkeyInfo
     {
         public string Id { get; set; }
 
@@ -72,21 +95,17 @@
         /// </summary>
         public DateTime EndTime { get; set; }
         /// <summary>
+        /// 最后使用时间
+        /// </summary>
+        public DateTime UseTime { get; set; }
+        /// <summary>
         /// 允许节点
         /// </summary>
         public List<string> Nodes { get; set; }
         /// <summary>
-        /// 带宽Mbps
-        /// </summary>
-        public double Bandwidth { get; set; }
-        /// <summary>
         /// 流量
         /// </summary>
-        public ulong MaxBytes { get; set; }
-        /// <summary>
-        /// 剩余流量
-        /// </summary>
-        public ulong LastBytes { get; set; }
+        public long MaxBytes { get; set; }
 
         /// <summary>
         /// 原价

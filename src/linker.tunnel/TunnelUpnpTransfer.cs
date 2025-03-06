@@ -34,7 +34,7 @@ namespace linker.tunnel
 
         private void LoopDiscovery()
         {
-            TimerHelper.SetInterval(() =>
+            TimerHelper.SetIntervalLong(() =>
             {
                 NatUtility.StopDiscovery();
                 NatUtility.StartDiscovery();

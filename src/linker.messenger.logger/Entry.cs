@@ -69,7 +69,7 @@ namespace linker.messenger.logger
                 {
                 }
             };
-            TimerHelper.SetInterval(() =>
+            TimerHelper.SetIntervalLong(() =>
             {
                 string[] files = Directory.GetFiles("logs").OrderBy(c => c).ToArray();
                 for (int i = 0; i < files.Length - 180; i++)

@@ -80,11 +80,11 @@ namespace linker.messenger.tuntap
         private OperatingManager checking = new OperatingManager();
         private void CheckDeviceTask()
         {
-            TimerHelper.SetInterval(async () =>
+            TimerHelper.SetIntervalLong(async () =>
             {
                 await CheckDevice();
                 return true;
-            }, () => 30000);
+            }, 30000);
         }
         private async Task CheckDevice()
         {

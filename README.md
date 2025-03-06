@@ -58,6 +58,7 @@ For user convenience, this project provides **public messenger servers** and **p
 - [x] Distributed architecture: Multiple relay nodes for massive scalability
 - [x] SOCKS5 proxy: Dynamic port forwarding without specifying ports
 - [x] Easy integration: Use `linker.messenger.entry` to embed into your projects
+- [x] CDKEY，It can temporarily lift certain restrictions
 
 ## Quick Integration
 In a .NET 8+ project, install the NuGet package `linker.messenger.entry`

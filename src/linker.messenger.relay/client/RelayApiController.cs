@@ -72,7 +72,7 @@ namespace linker.messenger.relay
         [Access(AccessValue.RelayCdkey)]
         public async Task<bool> AddCdkey(ApiControllerParamsInfo param)
         {
-            RelayServerCdkeyInfo info = param.Content.DeJson<RelayServerCdkeyInfo>();
+            RelayServerCdkeyStoreInfo info = param.Content.DeJson<RelayServerCdkeyStoreInfo>();
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
@@ -96,7 +96,7 @@ namespace linker.messenger.relay
                 MessengerId = (ushort)RelayMessengerIds.DelCdkey,
                 Payload = serializer.Serialize(new RelayServerCdkeyDelInfo
                 {
-                    Id = param.Content,
+                    CdkeyId = long.Parse(param.Content),
                     SecretKey = relayClientStore.Server.SecretKey
                 })
             });

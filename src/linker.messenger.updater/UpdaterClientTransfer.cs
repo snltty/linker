@@ -89,7 +89,7 @@ namespace linker.messenger.updater
         }
         private void UpdateTask()
         {
-            TimerHelper.SetInterval(async () =>
+            TimerHelper.SetIntervalLong(async () =>
             {
                 await GetUpdateInfo();
                 if (updateInfo.Updated)

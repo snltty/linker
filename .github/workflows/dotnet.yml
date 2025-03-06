@@ -35,7 +35,7 @@ jobs:
           release_name: v1.6.9.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 优化linux下路由跟踪问题\r\n2. 优化linux下获取本机IP问题\r\n3. 增加ICS，让win7+、win server2008+支持NAT\r\n4. 增加中继卡密\r\n5. 增加内外穿透定时开关功能\r\n6. 优化管理页面连接接口的体验\r\n7. 优化一些UI体验，去除同步页面，将同步功能放置各个实际的位置\r\n8. 其它一些修复优化"
+          body: "1. 优化linux下路由跟踪问题\r\n2. 优化linux下获取本机IP问题\r\n3. 增加ICS，让win7+、win server2008+支持NAT\r\n4. 增加中继cdkey，使用cdkey解锁公开中继节点的带宽、流量、连接数限制\r\n5. 增加内外穿透定时开关功能\r\n6. 优化管理页面连接接口的体验\r\n7. 优化一些UI体验，去除同步页面，将同步功能放至各个实际的位置\r\n8. 优化端口转发，让不同分组间可以使用相同端口\r\n9. 其它一些修复优化"
       - name: publish projects
         run: ./publish.bat
       - name: upload-win-x86-oss

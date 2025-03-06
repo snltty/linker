@@ -12,11 +12,11 @@ namespace linker.messenger.flow
             this.messengerFlow = messengerFlow;
         }
 
-        public override void AddReceive(ushort id, ulong bytes)
+        public override void AddReceive(ushort id, long bytes)
         {
             messengerFlow.AddReceive(id, bytes);
         }
-        public override void AddSendt(ushort id, ulong bytes)
+        public override void AddSendt(ushort id, long bytes)
         {
             messengerFlow.AddSendt(id, bytes);
         }
@@ -29,11 +29,11 @@ namespace linker.messenger.flow
             this.messengerFlow = messengerFlow;
         }
 
-        public override void AddReceive(ushort id, ulong bytes)
+        public override void AddReceive(ushort id, long bytes)
         {
             messengerFlow.AddReceive(id, bytes);
         }
-        public override void AddSendt(ushort id, ulong bytes)
+        public override void AddSendt(ushort id, long bytes)
         {
             messengerFlow.AddSendt(id, bytes);
         }
@@ -43,8 +43,8 @@ namespace linker.messenger.flow
 
     public sealed class MessengerFlow : IFlow
     {
-        public ulong ReceiveBytes { get; private set; }
-        public ulong SendtBytes { get; private set; }
+        public long ReceiveBytes { get; private set; }
+        public long SendtBytes { get; private set; }
         public string FlowName => "Messenger";
         public VersionManager Version { get; } = new VersionManager();
 
@@ -56,10 +56,10 @@ namespace linker.messenger.flow
 
         public string GetItems() => flows.ToJson();
         public void SetItems(string json) { flows = json.DeJson<Dictionary<ushort, FlowItemInfo>>(); }
-        public void SetBytes(ulong receiveBytes, ulong sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
+        public void SetBytes(long receiveBytes, long sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
         public void Clear() { ReceiveBytes = 0; SendtBytes = 0;flows.Clear(); }
 
-        public void AddReceive(ushort id, ulong bytes)
+        public void AddReceive(ushort id, long bytes)
         {
             if (flows.TryGetValue(id, out FlowItemInfo messengerFlowItemInfo) == false)
             {
@@ -70,7 +70,7 @@ namespace linker.messenger.flow
             messengerFlowItemInfo.ReceiveBytes += bytes;
             Version.Add();
         }
-        public void AddSendt(ushort id, ulong bytes)
+        public void AddSendt(ushort id, long bytes)
         {
             if (flows.TryGetValue(id, out FlowItemInfo messengerFlowItemInfo) == false)
             {

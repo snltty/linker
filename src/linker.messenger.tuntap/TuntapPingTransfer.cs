@@ -35,7 +35,7 @@ namespace linker.messenger.tuntap
         }
         private void PingTask()
         {
-            TimerHelper.SetInterval(async () =>
+            TimerHelper.SetIntervalLong(async () =>
             {
                 if (tuntapTransfer.Status == TuntapStatus.Running)
                 {

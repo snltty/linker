@@ -270,7 +270,7 @@ namespace linker.messenger.forward.proxy
         /// </summary>
         private void TaskUdp()
         {
-            TimerHelper.SetInterval(() =>
+            TimerHelper.SetIntervalLong(() =>
             {
                 if(udpConnections.Count > 0)
                 {

@@ -281,13 +281,13 @@ namespace linker.plugins.sforward.proxy
                 {
                     if (isDomain)
                     {
-                        AddReceive(domain, groupid, (ulong)bytesRead);
-                        AddSendt(domain, groupid, (ulong)bytesRead);
+                        AddReceive(domain, groupid, bytesRead);
+                        AddSendt(domain, groupid, bytesRead);
                     }
                     else
                     {
-                        AddReceive(portStr, groupid, (ulong)bytesRead);
-                        AddSendt(portStr, groupid, (ulong)bytesRead);
+                        AddReceive(portStr, groupid, bytesRead);
+                        AddSendt(portStr, groupid, bytesRead);
                     }
                     await target.SendAsync(buffer.Slice(0, bytesRead), SocketFlags.None).ConfigureAwait(false);
                 }

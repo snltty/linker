@@ -47,8 +47,8 @@ namespace linker.messenger
         {
         }
 
-        public virtual void AddReceive(ushort id, ulong bytes) { }
-        public virtual void AddSendt(ushort id, ulong bytes) { }
+        public virtual void AddReceive(ushort id, long bytes) { }
+        public virtual void AddSendt(ushort id, long bytes) { }
         public async Task<MessageResponeInfo> SendReply(MessageRequestWrap msg)
         {
             if (msg.Connection == null || msg.Connection.Connected == false)
@@ -105,7 +105,7 @@ namespace linker.messenger
 
                 byte[] bytes = msg.ToArray(out int length);
 
-                AddSendt(msg.MessengerId, (ulong)bytes.Length);
+                AddSendt(msg.MessengerId, bytes.Length);
 
                 bool res = await msg.Connection.SendAsync(bytes.AsMemory(0, length)).ConfigureAwait(false);
                 msg.Return(bytes);
@@ -130,7 +130,7 @@ namespace linker.messenger
 
                 byte[] bytes = msg.ToArray(out int length);
 
-                AddSendt(messengerId, (ulong)length);
+                AddSendt(messengerId, length);
 
                 bool res = await msg.Connection.SendAsync(bytes.AsMemory(0, length)).ConfigureAwait(false);
                 msg.Return(bytes);
@@ -151,7 +151,7 @@ namespace linker.messenger
                 byte[] bytes = new byte[wrap.Payload.Length];
                 wrap.Payload.CopyTo(bytes);
 
-                AddReceive(info.MessengerId, (ulong)bytes.Length);
+                AddReceive(info.MessengerId, bytes.Length);
                 info.Tcs.SetResult(new MessageResponeInfo { Code = wrap.Code, Data = bytes, Connection = wrap.Connection });
             }
         }

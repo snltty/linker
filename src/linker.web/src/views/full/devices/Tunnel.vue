@@ -9,10 +9,16 @@
                         class="system" 
                         :src="`https://unpkg.com/flag-icons@7.2.3/flags/4x3/${tunnel.list[scope.row.MachineId].Net.CountryCode.toLowerCase()}.svg`" />
                     </template>
+                    <template v-else>
+                        <img title="?" class="system" src="/system.svg" />
+                    </template>
                     <template v-if="tunnel.list[scope.row.MachineId].Net.Isp">
                         <img 
                         :title="`${tunnel.list[scope.row.MachineId].Net.Isp}、${tunnel.list[scope.row.MachineId].Net.Org}、${tunnel.list[scope.row.MachineId].Net.As}`" 
                         class="system" :src="netImg(tunnel.list[scope.row.MachineId].Net)" />
+                    </template>
+                    <template v-else>
+                        <img title="?" class="system" src="/system.svg" />
                     </template>
                 </div> 
                 <div class="flex">
@@ -67,11 +73,16 @@ export default {
             'china telecom':'chinanet.svg',
             'china unicom':'chinaunicom.svg',
             'china mobile':'chinamobile.svg',
+            'huawei':'huawei.svg',
+            'amazon':'amazon.svg',
+            'aliyun':'aliyun.svg',
         }
         const netImg = (item)=>{
+            const isp = item.Isp.toLowerCase();
+            const org = item.Org.toLowerCase();
             const as = item.As.toLowerCase();
             for(let j in imgMap){
-                if(as.indexOf(j) > -1){
+                if(isp.indexOf(j) > -1 || org.indexOf(j) > -1 || as.indexOf(j) > -1){
                     return `./${imgMap[j]}`;
                 }
             }
@@ -121,7 +132,7 @@ export default {
 
 img.system{
     height:1.4rem;
-    vertical-align:middle;
     margin-right:.4rem
+    border: 1px solid #eee;
 }
 </style>

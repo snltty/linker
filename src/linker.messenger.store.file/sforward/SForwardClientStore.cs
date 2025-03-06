@@ -1,5 +1,6 @@
 ﻿using linker.messenger.sforward;
 using linker.messenger.sforward.client;
+using Yitter.IdGenerator;
 
 namespace linker.messenger.store.file.sforward
 {
@@ -36,7 +37,7 @@ namespace linker.messenger.store.file.sforward
             return runningConfig.Data.SForwards;
         }
 
-        public SForwardInfo Get(uint id)
+        public SForwardInfo Get(long id)
         {
             return runningConfig.Data.SForwards.FirstOrDefault(x => x.Id == id);
         }
@@ -53,6 +54,10 @@ namespace linker.messenger.store.file.sforward
 
         public bool Add(SForwardInfo info)
         {
+            if (info.Id == 0)
+            {
+                info.Id = YitIdHelper.NextId();
+            }
             runningConfig.Data.SForwards.Add(info);
             return true;
         }
@@ -60,7 +65,7 @@ namespace linker.messenger.store.file.sforward
         {
             return true;
         }
-        public bool Remove(uint id)
+        public bool Remove(long id)
         {
             runningConfig.Data.SForwards.Remove(Get(id));
             return true;

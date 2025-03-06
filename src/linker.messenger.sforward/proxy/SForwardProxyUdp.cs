@@ -59,13 +59,13 @@ namespace linker.plugins.sforward.proxy
 
                     Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
 
-                    AddReceive(portStr, token.GroupId, (ulong)memory.Length);
+                    AddReceive(portStr, token.GroupId, memory.Length);
 
                     IPEndPoint source = result.RemoteEndPoint as IPEndPoint;
                     //已经连接
                     if (udpConnections.TryGetValue(source, out UdpTargetCache cache) && cache != null)
                     {
-                        AddSendt(portStr, token.GroupId, (ulong)memory.Length);
+                        AddSendt(portStr, token.GroupId, memory.Length);
                         cache.LastTicks.Update();
                         await token.SourceSocket.SendToAsync(memory, cache.IPEndPoint).ConfigureAwait(false);
                     }
@@ -197,8 +197,8 @@ namespace linker.plugins.sforward.proxy
                     cache.LastTicks.Update();
 
                     Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
-                    AddReceive(portStr, string.Empty, (ulong)memory.Length);
-                    AddSendt(portStr, string.Empty, (ulong)memory.Length);
+                    AddReceive(portStr, string.Empty, memory.Length);
+                    AddSendt(portStr, string.Empty, memory.Length);
                     //未连接本地服务的，去连接一下
                     if (serviceUdp == null)
                     {
@@ -239,8 +239,8 @@ namespace linker.plugins.sforward.proxy
                                 break;
                             }
                             Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
-                            AddReceive(portStr, string.Empty, (ulong)memory.Length);
-                            AddSendt(portStr, string.Empty, (ulong)memory.Length);
+                            AddReceive(portStr, string.Empty, memory.Length);
+                            AddSendt(portStr, string.Empty, memory.Length);
 
                             await serverUdp.SendToAsync(memory, server).ConfigureAwait(false);
                             cache.LastTicks.Update();
@@ -261,7 +261,7 @@ namespace linker.plugins.sforward.proxy
 
         private void UdpTask()
         {
-            TimerHelper.SetInterval(() =>
+            TimerHelper.SetIntervalLong(() =>
             {
                 var connections = udpConnections.Where(c => c.Value.Timeout).Select(c => c.Key);
                 foreach (var item in connections)

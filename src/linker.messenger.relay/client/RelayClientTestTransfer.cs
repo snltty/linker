@@ -66,14 +66,14 @@ namespace linker.messenger.relay
         }
         private void TestTask()
         {
-            TimerHelper.SetInterval(async () =>
+            TimerHelper.SetIntervalLong(async () =>
             {
                 if (lastTicksManager.DiffLessEqual(3000))
                 {
                     await TaskRelay();
                 }
                 return true;
-            }, () => 3000);
+            }, 3000);
         }
 
     }

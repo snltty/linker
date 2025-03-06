@@ -121,7 +121,7 @@ namespace linker.messenger.signin
 
         private void ClearTask()
         {
-            TimerHelper.SetInterval(() =>
+            TimerHelper.SetIntervalLong(() =>
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {

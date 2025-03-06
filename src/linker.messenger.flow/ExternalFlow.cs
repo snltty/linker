@@ -4,8 +4,8 @@ namespace linker.messenger.flow
 {
     public sealed class ExternalFlow : IFlow
     {
-        public ulong ReceiveBytes { get; private set; }
-        public ulong SendtBytes { get; private set; }
+        public long ReceiveBytes { get; private set; }
+        public long SendtBytes { get; private set; }
         public string FlowName => "External";
         public VersionManager Version { get; } = new VersionManager();
 
@@ -16,11 +16,11 @@ namespace linker.messenger.flow
 
         public string GetItems() => string.Empty;
         public void SetItems(string json) { }
-        public void SetBytes(ulong receiveBytes, ulong sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
+        public void SetBytes(long receiveBytes, long sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
         public void Clear() { ReceiveBytes = 0; SendtBytes = 0;}
 
-        public void AddReceive(ulong bytes) { ReceiveBytes += bytes; Version.Add(); }
-        public void AddSendt(ulong bytes) { SendtBytes += bytes; Version.Add(); }
+        public void AddReceive(long bytes) { ReceiveBytes += bytes; Version.Add(); }
+        public void AddSendt(long bytes) { SendtBytes += bytes; Version.Add(); }
 
     }
 
@@ -35,8 +35,8 @@ namespace linker.messenger.flow
             this.externalFlow = externalFlow;
         }
 
-        public override void AddReceive(ulong bytes) { externalFlow.AddReceive(bytes); }
-        public override void AddSendt(ulong bytes) { externalFlow.AddSendt(bytes); }
+        public override void AddReceive(long bytes) { externalFlow.AddReceive(bytes); }
+        public override void AddSendt(long bytes) { externalFlow.AddSendt(bytes); }
 
     }
 

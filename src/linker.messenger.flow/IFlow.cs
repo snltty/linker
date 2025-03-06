@@ -5,21 +5,21 @@ namespace linker.messenger.flow
 {
     public interface IFlow
     {
-        public ulong ReceiveBytes { get; }
-        public ulong SendtBytes { get; }
+        public long ReceiveBytes { get; }
+        public long SendtBytes { get; }
         public string FlowName { get; }
 
         public VersionManager Version { get; }
         public string GetItems();
         public void SetItems(string json);
-        public void SetBytes(ulong receiveBytes,ulong sendtBytes);
+        public void SetBytes(long receiveBytes,long sendtBytes);
         public void Clear();
     }
 
     public partial class FlowItemInfo
     {
-        public ulong ReceiveBytes { get; set; }
-        public ulong SendtBytes { get; set; }
+        public long ReceiveBytes { get; set; }
+        public long SendtBytes { get; set; }
 
         [JsonIgnore]
         public string FlowName { get; set; }

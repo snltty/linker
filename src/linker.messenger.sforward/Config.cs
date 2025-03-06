@@ -10,7 +10,7 @@ namespace linker.messenger.sforward
         /// <summary>
         /// 穿透id
         /// </summary>
-        public uint Id { get; set; }
+        public long Id { get; set; }
         /// <summary>
         /// 名称
         /// </summary>
@@ -125,7 +125,7 @@ namespace linker.messenger.sforward
     public sealed partial class SForwardRemoveForwardInfo
     {
         public string MachineId { get; set; }
-        public uint Id { get; set; }
+        public long Id { get; set; }
     }
 
     /// <summary>

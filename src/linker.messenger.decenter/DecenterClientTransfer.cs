@@ -53,7 +53,7 @@ namespace linker.messenger.decenter
 
         private void SyncTask()
         {
-            TimerHelper.SetInterval(async () =>
+            TimerHelper.SetIntervalLong(async () =>
             {
                 try
                 {
@@ -100,7 +100,7 @@ namespace linker.messenger.decenter
                     }
                 }
                 return true;
-            }, () => 300);
+            }, 300);
         }
 
         class DecenterSyncTaskInfo

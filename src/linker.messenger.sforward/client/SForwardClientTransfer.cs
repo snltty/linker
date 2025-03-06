@@ -16,9 +16,6 @@ namespace linker.messenger.sforward.client
         private readonly ISForwardClientStore sForwardClientStore;
         private readonly ISerializer serializer;
 
-        private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
-
-
         public SForwardClientTransfer(SignInClientState signInClientState, IMessengerSender messengerSender, ISignInClientStore signInClientStore, ISForwardClientStore sForwardClientStore, ISerializer serializer)
         {
             this.signInClientState = signInClientState;
@@ -33,8 +30,6 @@ namespace linker.messenger.sforward.client
         private void Start()
         {
             var list = sForwardClientStore.Get();
-            uint maxid = list.Count > 0 ? list.Max(c => c.Id) : 1;
-            ns.Reset(maxid);
 
             foreach (var item in list)
             {
@@ -167,7 +162,6 @@ namespace linker.messenger.sforward.client
             }
             else
             {
-                forwardInfo.Id = ns.Increment();
                 if (PortRange(forwardInfo.Domain, out int min, out int max))
                 {
                     forwardInfo.RemotePortMin = min;
@@ -183,7 +177,7 @@ namespace linker.messenger.sforward.client
 
             return true;
         }
-        public bool Remove(uint id)
+        public bool Remove(long id)
         {
             //同名或者同端口，但是ID不一样
             SForwardInfo old = sForwardClientStore.Get(id);

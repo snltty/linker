@@ -73,7 +73,7 @@ namespace linker.messenger.tuntap.lease
 
         private void LeaseExpTask()
         {
-            TimerHelper.SetInterval(async () =>
+            TimerHelper.SetIntervalLong(async () =>
             {
                 await messengerSender.SendReply(new MessageRequestWrap
                 {
@@ -82,7 +82,7 @@ namespace linker.messenger.tuntap.lease
                 });
 
                 return true;
-            }, () => 60000);
+            },  60000);
         }
     }
 }

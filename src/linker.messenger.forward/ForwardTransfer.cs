@@ -18,9 +18,6 @@ namespace linker.messenger.forward
         private readonly IMessengerSender messengerSender;
         private readonly ISignInClientStore signInClientStore;
         private readonly ISerializer serializer;
-
-        private readonly NumberSpaceUInt32 ns = new NumberSpaceUInt32();
-
         public ForwardTransfer(IForwardClientStore forwardClientStore, ForwardProxy forwardProxy, SignInClientState signInClientState, IMessengerSender messengerSender, ISignInClientStore signInClientStore, ISerializer serializer)
         {
             this.forwardClientStore = forwardClientStore;
@@ -54,9 +51,6 @@ namespace linker.messenger.forward
         {
             lock (this)
             {
-                uint maxid = forwardClientStore.Count() > 0 ? forwardClientStore.Get().Max(c => c.Id) : 1;
-                ns.Reset(maxid);
-
                 foreach (var item in forwardClientStore.Get(signInClientStore.Group.Id))
                 {
                     if (item.Started)
@@ -149,7 +143,7 @@ namespace linker.messenger.forward
         public bool Add(ForwardInfo forwardInfo)
         {
             //同名或者同端口，但是ID不一样
-            ForwardInfo old = forwardClientStore.Get().FirstOrDefault(c => (c.Port == forwardInfo.Port && c.Port != 0) && c.MachineId == forwardInfo.MachineId);
+            ForwardInfo old = forwardClientStore.Get().FirstOrDefault(c => (c.Port == forwardInfo.Port && c.Port != 0) && c.GroupId == signInClientStore.Group.Id && c.MachineId == forwardInfo.MachineId);
             if (old != null && old.Id != forwardInfo.Id) return false;
 
             if (forwardInfo.Id != 0)
@@ -169,10 +163,10 @@ namespace linker.messenger.forward
                 old.Started = forwardInfo.Started;
                 old.BufferSize = forwardInfo.BufferSize;
                 old.GroupId = signInClientStore.Group.Id;
+                forwardClientStore.Update(forwardInfo);
             }
             else
             {
-                forwardInfo.Id = ns.Increment();
                 forwardInfo.GroupId = signInClientStore.Group.Id;
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -186,7 +180,7 @@ namespace linker.messenger.forward
 
             return true;
         }
-        public bool Remove(uint id)
+        public bool Remove(long id)
         {
             //同名或者同端口，但是ID不一样
             ForwardInfo old = forwardClientStore.Get(id);

@@ -314,7 +314,8 @@ namespace linker.tunnel.transport
                 try
                 {
                     targetSocket.WindowsUdpBug();
-                    targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? tunnelTransportInfo.Local.Local.Address : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
+                    targetSocket.IPv6Only(ep.AddressFamily, false);
+                    targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
 
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
@@ -322,7 +323,7 @@ namespace linker.tunnel.transport
                     }
 
                     await targetSocket.SendToAsync($"{flagTexts}-{tunnelTransportInfo.Local.MachineId}-{tunnelTransportInfo.FlowId}".ToBytes(), ep).ConfigureAwait(false);
-                    await targetSocket.ReceiveFromAsync(new byte[1024], new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any: IPAddress.IPv6Any, 0)).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                    await targetSocket.ReceiveFromAsync(new byte[1024], new IPEndPoint(IPAddress.IPv6Any, 0)).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
 
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         LoggerHelper.Instance.Debug($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep} success");
@@ -365,7 +366,7 @@ namespace linker.tunnel.transport
 
         private void CleanTask()
         {
-            TimerHelper.SetInterval(() =>
+            TimerHelper.SetIntervalLong(() =>
             {
                 var keys = connectionsDic.Where(c => (c.Value.Connection == null && c.Value.LastTicks.DiffGreater(5000)) || (c.Value.Connection != null && c.Value.Connection.Connected == false)).Select(c => c.Key).ToList();
                 foreach (var item in keys)

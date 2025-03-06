@@ -10,7 +10,7 @@
             <a href="javascript:;" @click="state.show=true" class="mgl-1 delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
                 {{$t('server.relayNodes')}} : {{state.nodes.length}}
             </a>
-            <Relay></Relay>
+            <RelayCdkey></RelayCdkey>
         </div>
        
     </el-form-item>
@@ -68,9 +68,9 @@ import { ElMessage } from 'element-plus';
 import { onMounted, onUnmounted, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
 import Sync from '../sync/Index.vue'
-import Relay from './relay/Index.vue'
+import RelayCdkey from './relayCdkey/Index.vue'
 export default {
-    components:{Sync,Relay},
+    components:{Sync,RelayCdkey},
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();

@@ -14,10 +14,10 @@ namespace linker.plugins.sforward.proxy
 
         }
 
-        public virtual void AddReceive(string key,string groupid, ulong bytes)
+        public virtual void AddReceive(string key,string groupid, long bytes)
         {
         }
-        public virtual void AddSendt(string key,string groupid, ulong bytes)
+        public virtual void AddSendt(string key,string groupid, long bytes)
         {
         }
 

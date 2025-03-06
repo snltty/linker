@@ -73,7 +73,7 @@ namespace linker.messenger.socks5
             }
             CloseClientSocket(token);
         }
-      
+
         private async Task SendToConnection(AsyncUserUdpToken token)
         {
             if (token.Connection == null) return;
@@ -96,7 +96,7 @@ namespace linker.messenger.socks5
                 token.Proxy.Return(connectData);
             }
         }
-     
+
         private async Task SendToConnections(AsyncUserUdpToken token)
         {
             byte[] connectData = token.Proxy.ToBytes(out int length);
@@ -242,7 +242,7 @@ namespace linker.messenger.socks5
 
         private void TaskUdp()
         {
-            TimerHelper.SetInterval(() =>
+            TimerHelper.SetIntervalLong(() =>
             {
                 var connections = udpConnections.Where(c => c.Value.Timeout).Select(c => c.Key).ToList();
                 foreach (var item in connections)
@@ -259,7 +259,7 @@ namespace linker.messenger.socks5
                     }
                 }
                 return true;
-            }, () => 3 * 60 * 1000);
+            }, 3 * 60 * 1000);
         }
 
         private void CloseClientSocketUdp(ITunnelConnection connection)

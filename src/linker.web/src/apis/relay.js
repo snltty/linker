@@ -12,3 +12,12 @@ export const relayConnect = (data) => {
 export const relayCdkeyAccess = () => {
     return sendWebsocketMsg('relay/AccessCdkey');
 }
+export const relayCdkeyPage = (data) => {
+    return sendWebsocketMsg('relay/PageCdkey', data);
+}
+export const relayCdkeyAdd = (data) => {
+    return sendWebsocketMsg('relay/AddCdkey', data);
+}
+export const relayCdkeyDel = (data) => {
+    return sendWebsocketMsg('relay/DelCdkey', data);
+}

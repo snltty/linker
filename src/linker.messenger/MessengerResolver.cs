@@ -15,7 +15,7 @@ namespace linker.messenger
     public interface IMessengerResolver
     {
         public Task<IConnection> BeginReceiveClient(Socket socket);
-        public Task<IConnection> BeginReceiveClient(Socket socket, bool sendFlag, byte flag, byte[] data);
+        public Task<IConnection> BeginReceiveClient(Socket socket, bool sendFlag, byte flag, Memory<byte> data);
         public void AddMessenger(List<IMessenger> list);
         public Task BeginReceiveServer(Socket socket, Memory<byte> memory);
         public Task BeginReceiveServer(Socket socket, IPEndPoint ep, Memory<byte> memory);
@@ -59,8 +59,8 @@ namespace linker.messenger
         }
 
 
-        public virtual void AddReceive(ushort id, ulong bytes) { }
-        public virtual void AddSendt(ushort id, ulong bytes) { }
+        public virtual void AddReceive(ushort id, long bytes) { }
+        public virtual void AddSendt(ushort id, long bytes) { }
 
         /// <summary>
         /// 以服务器模式接收数据 TCP
@@ -113,7 +113,7 @@ namespace linker.messenger
         /// <param name="sendFlag"></param>
         /// <param name="flag"></param>
         /// <returns></returns>
-        public async Task<IConnection> BeginReceiveClient(Socket socket, bool sendFlag, byte flag, byte[] data)
+        public async Task<IConnection> BeginReceiveClient(Socket socket, bool sendFlag, byte flag, Memory<byte> data)
         {
             try
             {
@@ -230,7 +230,7 @@ namespace linker.messenger
 
                 //新的请求
                 requestWrap.FromArray(data);
-                AddReceive(requestWrap.MessengerId, (ulong)data.Length);
+                AddReceive(requestWrap.MessengerId, data.Length);
                 //404,没这个插件
                 if (messengers.TryGetValue(requestWrap.MessengerId, out MessengerCacheInfo plugin) == false)
                 {

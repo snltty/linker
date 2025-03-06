@@ -7,8 +7,8 @@ namespace linker.messenger.flow
 {
     public sealed class RelayReportFlow : IFlow
     {
-        public ulong ReceiveBytes { get; private set; }
-        public ulong SendtBytes { get; private set; }
+        public long ReceiveBytes { get; private set; }
+        public long SendtBytes { get; private set; }
         public string FlowName => "RelayReport";
         public VersionManager Version { get; } = new VersionManager();
         public RelayReportFlow()
@@ -16,11 +16,11 @@ namespace linker.messenger.flow
         }
         public string GetItems() => string.Empty;
         public void SetItems(string json) { }
-        public void SetBytes(ulong receiveBytes, ulong sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
+        public void SetBytes(long receiveBytes, long sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
         public void Clear() { ReceiveBytes = 0; SendtBytes = 0; }
 
-        public void AddReceive(ulong bytes) { ReceiveBytes += bytes; Version.Add(); }
-        public void AddSendt(ulong bytes) { SendtBytes += bytes; Version.Add(); }
+        public void AddReceive(long bytes) { ReceiveBytes += bytes; Version.Add(); }
+        public void AddSendt(long bytes) { SendtBytes += bytes; Version.Add(); }
 
     }
 
@@ -32,8 +32,8 @@ namespace linker.messenger.flow
             this.relayReportFlow = relayReportFlow;
         }
 
-        public override void AddReceive(ulong bytes) { relayReportFlow.AddReceive(bytes); }
-        public override void AddSendt(ulong bytes) { relayReportFlow.AddSendt(bytes); }
+        public override void AddReceive(long bytes) { relayReportFlow.AddReceive(bytes); }
+        public override void AddSendt(long bytes) { relayReportFlow.AddSendt(bytes); }
 
     }
 
@@ -47,19 +47,19 @@ namespace linker.messenger.flow
             this.relayFlow = relayFlow;
         }
 
-        public override void AddReceive(string key, string from, string to, string groupid, ulong bytes)
+        public override void AddReceive(string key, string from, string to, string groupid, long bytes)
         {
             relayFlow.AddReceive(key, from, to, groupid, bytes);
         }
-        public override void AddSendt(string key, string from, string to, string groupid, ulong bytes)
+        public override void AddSendt(string key, string from, string to, string groupid, long bytes)
         {
             relayFlow.AddSendt(key, from, to, groupid, bytes);
         }
-        public override void AddReceive(string key, ulong bytes)
+        public override void AddReceive(string key, long bytes)
         {
             relayFlow.AddReceive(key, bytes);
         }
-        public override void AddSendt(string key, ulong bytes)
+        public override void AddSendt(string key, long bytes)
         {
             relayFlow.AddSendt(key, bytes);
         }
@@ -68,8 +68,8 @@ namespace linker.messenger.flow
 
     public sealed class RelayFlow : IFlow
     {
-        public ulong ReceiveBytes { get; private set; }
-        public ulong SendtBytes { get; private set; }
+        public long ReceiveBytes { get; private set; }
+        public long SendtBytes { get; private set; }
         public string FlowName => "Relay";
         public VersionManager Version { get; } = new VersionManager();
 
@@ -79,7 +79,7 @@ namespace linker.messenger.flow
 
         public RelayFlow()
         {
-            TimerHelper.SetInterval(() =>
+            TimerHelper.SetIntervalLong(() =>
             {
                 if (lastTicksManager.DiffLessEqual(5000))
                 {
@@ -103,10 +103,10 @@ namespace linker.messenger.flow
 
         public string GetItems() => flows.ToJson();
         public void SetItems(string json) { flows = json.DeJson<Dictionary<string, RelayFlowItemInfo>>(); }
-        public void SetBytes(ulong receiveBytes, ulong sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
+        public void SetBytes(long receiveBytes, long sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
         public void Clear() { ReceiveBytes = 0; SendtBytes = 0;flows.Clear(); }
 
-        public void AddReceive(string key, string from, string to, string groupid, ulong bytes)
+        public void AddReceive(string key, string from, string to, string groupid, long bytes)
         {
             if (flows.TryGetValue(key, out RelayFlowItemInfo messengerFlowItemInfo) == false)
             {
@@ -117,7 +117,7 @@ namespace linker.messenger.flow
             messengerFlowItemInfo.ReceiveBytes += bytes;
             Version.Add();
         }
-        public void AddSendt(string key, string from, string to, string groupid, ulong bytes)
+        public void AddSendt(string key, string from, string to, string groupid, long bytes)
         {
             if (flows.TryGetValue(key, out RelayFlowItemInfo messengerFlowItemInfo) == false)
             {
@@ -129,7 +129,7 @@ namespace linker.messenger.flow
             Version.Add();
         }
 
-        public void AddReceive(string key, ulong bytes)
+        public void AddReceive(string key, long bytes)
         {
             if (flows.TryGetValue(key, out RelayFlowItemInfo messengerFlowItemInfo))
             {
@@ -139,7 +139,7 @@ namespace linker.messenger.flow
             }
 
         }
-        public void AddSendt(string key, ulong bytes)
+        public void AddSendt(string key, long bytes)
         {
             if (flows.TryGetValue(key, out RelayFlowItemInfo messengerFlowItemInfo))
             {
@@ -201,17 +201,17 @@ namespace linker.messenger.flow
 
     public sealed partial class RelayFlowItemInfo : FlowItemInfo
     {
-        public ulong DiffReceiveBytes { get; set; }
-        public ulong DiffSendtBytes { get; set; }
+        public long DiffReceiveBytes { get; set; }
+        public long DiffSendtBytes { get; set; }
         public string FromName { get; set; }
         public string ToName { get; set; }
 
         public string GroupId { get; set; }
 
         [JsonIgnore]
-        public ulong OldReceiveBytes { get; set; }
+        public long OldReceiveBytes { get; set; }
         [JsonIgnore]
-        public ulong OldSendtBytes { get; set; }
+        public long OldSendtBytes { get; set; }
     }
 
     public sealed partial class RelayFlowRequestInfo

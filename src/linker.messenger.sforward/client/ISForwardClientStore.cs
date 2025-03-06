@@ -30,7 +30,7 @@
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public SForwardInfo Get(uint id);
+        public SForwardInfo Get(long id);
         /// <summary>
         /// 获取穿透
         /// </summary>
@@ -60,7 +60,7 @@
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public bool Remove(uint id);
+        public bool Remove(long id);
         /// <summary>
         /// 提交保存
         /// </summary>

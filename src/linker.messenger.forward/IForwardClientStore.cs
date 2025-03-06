@@ -18,7 +18,7 @@
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public ForwardInfo Get(uint id);
+        public ForwardInfo Get(long id);
         /// <summary>
         /// 根据分组获取
         /// </summary>
@@ -42,7 +42,7 @@
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public bool Remove(uint id);
+        public bool Remove(long id);
 
         /// <summary>
         /// 提交更新

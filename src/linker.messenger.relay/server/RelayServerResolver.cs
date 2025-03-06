@@ -26,16 +26,16 @@ namespace linker.messenger.relay.server
 
 
 
-        public virtual void AddReceive(string key, string from, string to, string groupid, ulong bytes)
+        public virtual void AddReceive(string key, string from, string to, string groupid, long bytes)
         {
         }
-        public virtual void AddSendt(string key, string from, string to, string groupid, ulong bytes)
+        public virtual void AddSendt(string key, string from, string to, string groupid, long bytes)
         {
         }
-        public virtual void AddReceive(string key, ulong bytes)
+        public virtual void AddReceive(string key, long bytes)
         {
         }
-        public virtual void AddSendt(string key, ulong bytes)
+        public virtual void AddSendt(string key, long bytes)
         {
         }
 
@@ -75,7 +75,7 @@ namespace linker.messenger.relay.server
                 }
 
                 //流量统计
-                AddReceive(relayCache.FromId, relayCache.FromName, relayCache.ToName, relayCache.GroupId, (ulong)length);
+                AddReceive(relayCache.FromId, relayCache.FromName, relayCache.ToName, relayCache.GroupId, length);
                 try
                 {
                     switch (relayMessage.Type)
@@ -152,7 +152,7 @@ namespace linker.messenger.relay.server
                 while ((bytesRead = await source.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false)) != 0)
                 {
                     //流量限制
-                    if (relayServerNodeTransfer.AddBytes(trafficCacheInfo, (ulong)bytesRead) == false)
+                    if (relayServerNodeTransfer.AddBytes(trafficCacheInfo, bytesRead) == false)
                     {
                         source.SafeClose();
                         break;
@@ -181,8 +181,8 @@ namespace linker.messenger.relay.server
                         }
                     }
 
-                    AddReceive(cache.FromId, cache.FromName, cache.ToName, cache.GroupId, (ulong)bytesRead);
-                    AddSendt(cache.FromId, cache.FromName, cache.ToName, cache.GroupId, (ulong)bytesRead);
+                    AddReceive(cache.FromId, cache.FromName, cache.ToName, cache.GroupId, bytesRead);
+                    AddSendt(cache.FromId, cache.FromName, cache.ToName, cache.GroupId, bytesRead);
                     await destination.SendAsync(buffer.AsMemory(0, bytesRead), SocketFlags.None).ConfigureAwait(false);
                 }
             }
@@ -263,11 +263,24 @@ namespace linker.messenger.relay.server
     }
     public sealed class RelayTrafficCacheInfo
     {
-        public ulong Sendt;
+        public long Sendt;
         public RelaySpeedLimit Limit { get; set; }
         public RelayCacheInfo Cache { get; set; }
         public RelayServerCdkeyInfo CurrentCdkey { get; set; }
     }
+    public partial class RelayServerCdkeyInfo
+    {
+        public long CdkeyId { get; set; }
+        /// <summary>
+        /// 带宽Mbps
+        /// </summary>
+        public double Bandwidth { get; set; }
+        /// <summary>
+        /// 剩余流量
+        /// </summary>
+        public long LastBytes { get; set; }
+    }
+
 
     public sealed class RelayWrapInfo
     {

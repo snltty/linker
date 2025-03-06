@@ -11,7 +11,7 @@ namespace linker.messenger.serializer.memorypack
         public readonly ForwardInfo info;
 
         [MemoryPackInclude]
-        uint Id => info.Id;
+        long Id => info.Id;
 
         [MemoryPackInclude]
         string Name => info.Name;
@@ -47,7 +47,7 @@ namespace linker.messenger.serializer.memorypack
         string TargetMsg => info.TargetMsg;
 
         [MemoryPackConstructor]
-        SerializableForwardInfo(uint id, string name, string machineId, string groupId, string machineName, IPAddress bindIPAddress, int port, IPEndPoint targetEP, bool started, byte bufferSize, string msg, string targetMsg)
+        SerializableForwardInfo(long id, string name, string machineId, string groupId, string machineName, IPAddress bindIPAddress, int port, IPEndPoint targetEP, bool started, byte bufferSize, string msg, string targetMsg)
         {
             this.info = new ForwardInfo
             {
@@ -167,10 +167,10 @@ namespace linker.messenger.serializer.memorypack
         string MachineId => info.MachineId;
 
         [MemoryPackInclude, MemoryPackAllowSerialize]
-        uint Id => info.Id;
+        long Id => info.Id;
 
         [MemoryPackConstructor]
-        SerializableForwardRemoveForwardInfo(string machineId, uint id)
+        SerializableForwardRemoveForwardInfo(string machineId, long id)
         {
             this.info = new ForwardRemoveForwardInfo
             {

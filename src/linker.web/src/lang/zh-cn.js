@@ -37,12 +37,18 @@ export default {
     'server.messengerSecretKey': '信标密钥',
     'server.messengerSecretKeyText': '密钥正确时可连接服务器',
     'server.messengerUserId': '用户id',
-    'server.messengerUserIdText': '你的唯一标识，用于流量卡密CDKEY',
+    'server.messengerUserIdText': '你的唯一标识，用于解锁一些限制',
 
     'permission.closed': '禁止通行',
     'permission.simple': '简单管理',
     'permission.full': '专业管理',
     'permission.clear': '清除连接',
+
+    'status.group': '管理分组',
+    'status.groupName': '名称',
+    'status.groupPassword': '密码',
+    'status.groupOper': '操作',
+    'status.groupDelConfirm': '确认删除吗?',
 
     'status.support': '赞助',
 
@@ -128,6 +134,23 @@ export default {
     'server.relayMyCdkey': '我的CDKEY',
     'server.relayCdkey': '管理CDKEY',
 
+    'server.relayCdkeyUserId': '用户标识',
+    'server.relayCdkeyBandwidth': '最大带宽',
+    'server.relayCdkeyMaxBytes': '总流量',
+    'server.relayCdkeyLastBytes': '剩余流量',
+    'server.relayCdkeyMemory': '原价',
+    'server.relayCdkeyPayMemory': '支付',
+    'server.relayCdkeyAddTime': '添加',
+    'server.relayCdkeyStartTime': '开始',
+    'server.relayCdkeyDuration': '持续时间',
+    'server.relayCdkeyStartTimeY': '年',
+    'server.relayCdkeyStartTimeM': '月',
+    'server.relayCdkeyEndTime': '结束',
+    'server.relayCdkeyUseTime': '使用',
+    'server.relayCdkeyRemark': '备注',
+    'server.relayCdkeyOper': '操作',
+    'server.relayCdkeyDelConfirm': '确认删除吗？',
+
     'server.sforwardSecretKey': '服务器穿透密钥',
     'server.sforwardText': '当密钥正确是可用',
 
@@ -141,10 +164,7 @@ export default {
     'server.updaterMM': '分',
     'server.updaterS': '秒',
 
-    'server.groupName': '名称',
-    'server.groupPassword': '密码',
-    'server.groupOper': '操作',
-    'server.groupDelConfirm': '确认删除吗?',
+
 
     'server.asyncText': '同步到所有客户端',
     'server.asyncSelect': '请选择',

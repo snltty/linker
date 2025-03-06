@@ -11,7 +11,6 @@ export default {
 
     'head.home': 'Home',
     'head.server': 'Server',
-    'head.group': 'Group',
     'head.protocol': 'P2P Protocol',
     'head.action': 'Action',
     'head.logger': 'Logs',
@@ -38,12 +37,18 @@ export default {
     'server.messengerSecretKey': 'Messenger SecretKey',
     'server.messengerSecretKeyText': 'Messenger SecretKey',
     'server.messengerUserId': 'User Id',
-    'server.messengerUserIdText': 'Your unique identifier,for card key (CDKEY).',
+    'server.messengerUserIdText': 'Your unique identifier,used to unlock something.',
 
     'permission.closed': 'Closed',
     'permission.simple': 'Simple',
     'permission.full': 'Full',
     'permission.clear': 'Clear connection',
+
+    'status.group': 'Group manager',
+    'status.groupName': 'Name',
+    'status.groupPassword': 'Password',
+    'status.groupOper': 'Oper',
+    'status.groupDelConfirm': 'Are you sure to delete?',
 
     'status.support': 'Support',
     'status.export': 'Export',
@@ -126,6 +131,24 @@ export default {
     'server.relayMyCdkey': 'My CDKEY',
     'server.relayCdkey': 'Manager CDKEY',
 
+    'server.relayCdkeyUserId': 'UserId',
+    'server.relayCdkeyBandwidth': 'Bandwidth',
+    'server.relayCdkeyMaxBytes': 'Total',
+    'server.relayCdkeyLastBytes': 'Surplus',
+    'server.relayCdkeyMemory': 'Price',
+    'server.relayCdkeyPayMemory': 'Pay',
+    'server.relayCdkeyAddTime': 'Add',
+    'server.relayCdkeyStartTime': 'Start',
+    'server.relayCdkeyDuration': 'Duration',
+    'server.relayCdkeyStartTimeY': 'Year',
+    'server.relayCdkeyStartTimeM': 'Month',
+    'server.relayCdkeyEndTime': 'End',
+    'server.relayCdkeyUseTime': 'Use',
+    'server.relayCdkeyRemark': 'Remark',
+    'server.relayCdkeyOper': 'Oper',
+    'server.relayCdkeyDelConfirm': 'Are you sure to delete？',
+
+
     'server.sforwardSecretKey': 'Server forward secretKey',
     'server.sforwardText': 'The server forward can be used when the key is correct',
 
@@ -138,11 +161,6 @@ export default {
     'server.updaterH': 'Hour',
     'server.updaterMM': 'Minute',
     'server.updaterS': 'Second',
-
-    'server.groupName': 'Name',
-    'server.groupPassword': 'Password',
-    'server.groupOper': 'Oper',
-    'server.groupDelConfirm': 'Are you sure to delete?',
 
     'server.asyncText': 'Synchronize to all clients',
     'server.asyncSelect': 'Please select',

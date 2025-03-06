@@ -22,7 +22,7 @@ namespace linker.messenger.store.file.relay
         {
             config.Data.Server.Relay.Distributed.Node = node;
         }
-        public void SetMaxGbTotalLastBytes(ulong value)
+        public void SetMaxGbTotalLastBytes(long value)
         {
             config.Data.Server.Relay.Distributed.Node.MaxGbTotalLastBytes=value;
         }

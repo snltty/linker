@@ -5,6 +5,7 @@ using linker.messenger.relay.client;
 using linker.messenger.relay.server;
 using linker.messenger.signin;
 using linker.messenger.relay.server.validator;
+using linker.libs.extends;
 
 namespace linker.messenger.relay.messenger
 {
@@ -81,7 +82,7 @@ namespace linker.messenger.relay.messenger
                 TransportName = "test",
             }, cache, null);
 
-            var nodes = relayServerTransfer.GetNodes(string.IsNullOrWhiteSpace(result), info.UserId);
+            var nodes = relayServerTransfer.GetNodes(string.IsNullOrWhiteSpace(result));
             connection.Write(serializer.Serialize(nodes));
         }
 
@@ -110,11 +111,11 @@ namespace linker.messenger.relay.messenger
             bool validated = string.IsNullOrWhiteSpace(error);
             result.Nodes = relayServerTransfer.GetNodes(validated);
 
-            List<RelayServerCdkeyInfo> cdkeys = await relayServerCdkeyStore.Get(info.UserId);
+            List<RelayServerCdkeyStoreInfo> cdkeys = await relayServerCdkeyStore.GetAvailable(info.UserId);
 
             if (result.Nodes.Count > 0)
             {
-                result.FlowingId = relayServerTransfer.AddRelay(cacheFrom.MachineId, cacheFrom.MachineName, cacheTo.MachineId, cacheTo.MachineName, cacheFrom.GroupId, validated, cdkeys);
+                result.FlowingId = relayServerTransfer.AddRelay(cacheFrom.MachineId, cacheFrom.MachineName, cacheTo.MachineId, cacheTo.MachineName, cacheFrom.GroupId, validated, cdkeys.Select(c => new RelayServerCdkeyInfo { Bandwidth = c.Bandwidth, CdkeyId = c.CdkeyId, LastBytes = c.LastBytes }).ToList());
             }
 
             connection.Write(serializer.Serialize(result));
@@ -230,7 +231,7 @@ namespace linker.messenger.relay.messenger
                 return;
             }
 
-            await relayServerCdkeyStore.Del(info.Id);
+            await relayServerCdkeyStore.Del(info.CdkeyId);
             connection.Write(Helper.TrueArray);
         }
 
@@ -266,9 +267,17 @@ namespace linker.messenger.relay.messenger
         /// <param name="connection"></param>
         /// <returns></returns>
         [MessengerId((ushort)RelayMessengerIds.NodeGetCache)]
-        public async Task NodeGetCache(IConnection connection)
+        public void NodeGetCache(IConnection connection)
         {
-            
+            string key = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (relayServerTransfer.TryGetRelayCache(key, out RelayCacheInfo cache))
+            {
+                connection.Write(serializer.Serialize(cache));
+            }
+            else
+            {
+                connection.Write(Helper.EmptyArray);
+            }
         }
         /// <summary>
         /// 获取缓存
@@ -276,9 +285,14 @@ namespace linker.messenger.relay.messenger
         /// <param name="connection"></param>
         /// <returns></returns>
         [MessengerId((ushort)RelayMessengerIds.NodeReport)]
-        public async Task NodeReport(IConnection connection)
+        public void NodeReport(IConnection connection)
         {
-
+            RelayServerNodeReportInfo info = serializer.Deserialize<RelayServerNodeReportInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            {
+                LoggerHelper.Instance.Debug($"relay node report : {info.ToJson()}");
+            }
+            relayServerTransfer.SetNodeReport(connection, info);
         }
         /// <summary>
         /// 消耗流量报告
@@ -288,12 +302,14 @@ namespace linker.messenger.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.TrafficReport)]
         public async Task TrafficReport(IConnection connection)
         {
-            RelayTrafficReportInfo info = serializer.Deserialize<RelayTrafficReportInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (relayServerStore.SecretKey != info.SecretKey )
+            RelayTrafficUpdateInfo info = serializer.Deserialize<RelayTrafficUpdateInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (relayServerStore.SecretKey != info.SecretKey)
             {
-                connection.Write(serializer.Serialize(new Dictionary<string,ulong>()));
+                connection.Write(serializer.Serialize(new Dictionary<string, long>()));
                 return;
             }
+            Dictionary<long, long> result = await relayServerTransfer.AddTraffic(info);
+            connection.Write(serializer.Serialize(result));
         }
     }
 }

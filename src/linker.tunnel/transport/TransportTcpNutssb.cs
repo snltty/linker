@@ -164,7 +164,8 @@ namespace linker.tunnel.transport
                 {
 
                     targetSocket.KeepAlive();
-                    targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
+                    targetSocket.IPv6Only(ep.AddressFamily, false);
+                    targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any  : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
 
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
@@ -218,7 +219,8 @@ namespace linker.tunnel.transport
                 try
                 {
                     targetSocket.Ttl = ip.Address.AddressFamily == AddressFamily.InterNetworkV6 ? (short)2 : (short)(tunnelTransportInfo.Local.RouteLevel);
-                    targetSocket.ReuseBind(new IPEndPoint(ip.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
+                    targetSocket.IPv6Only(IPAddress.IPv6Any.AddressFamily, false);
+                    targetSocket.ReuseBind(new IPEndPoint(IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
                     _ = targetSocket.ConnectAsync(ip);
                     return targetSocket;
                 }
@@ -315,15 +317,10 @@ namespace linker.tunnel.transport
 
         private async Task StartListen(IPEndPoint local, TunnelTransportInfo tunnelTransportInfo)
         {
-            IPAddress localIP = tunnelTransportInfo.Local.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6)
-                && tunnelTransportInfo.Remote.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6)
-                ? IPAddress.IPv6Any : IPAddress.Any;
-
+            IPAddress localIP = IPAddress.IPv6Any;
             Socket socket = new Socket(localIP.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
-            //socket.ReceiveBufferSize = 5 * 1024 * 1024;
-
-            //socket.IPv6Only(localIP.AddressFamily, false);
-            socket.Bind(new IPEndPoint(localIP, local.Port));
+            socket.IPv6Only(localIP.AddressFamily, false);
+            socket.ReuseBind(new IPEndPoint(localIP, local.Port));
             socket.Listen(int.MaxValue);
 
             try

@@ -34,7 +34,7 @@ namespace linker.messenger.signin
         /// </summary>
         public void SignInTask()
         {
-            TimerHelper.SetInterval(async () =>
+            TimerHelper.SetIntervalLong(async () =>
             {
                 if (clientSignInState.Connected == false)
                 {
@@ -49,7 +49,7 @@ namespace linker.messenger.signin
                     }
                 }
                 return true;
-            }, () => 10000);
+            }, 10000);
         }
 
         public void ReSignIn()

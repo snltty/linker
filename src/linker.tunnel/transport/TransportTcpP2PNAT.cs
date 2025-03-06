@@ -119,15 +119,16 @@ namespace linker.tunnel.transport
                 LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", tunnelTransportInfo.RemoteEndPoints.Select(c => c.ToString()))}");
             }
 
-            IPEndPoint ep = tunnelTransportInfo.Remote.LocalIps.Any(c=>c.AddressFamily == AddressFamily.InterNetworkV6) 
+            IPEndPoint ep = tunnelTransportInfo.Remote.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6)
                 && tunnelTransportInfo.Local.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6)
-                ? new IPEndPoint(tunnelTransportInfo.Remote.LocalIps.FirstOrDefault(c=>c.AddressFamily == AddressFamily.InterNetworkV6), tunnelTransportInfo.Remote.Remote.Port)  
-                :   tunnelTransportInfo.Remote.Remote;
+                ? new IPEndPoint(tunnelTransportInfo.Remote.LocalIps.FirstOrDefault(c => c.AddressFamily == AddressFamily.InterNetworkV6), tunnelTransportInfo.Remote.Remote.Port)
+                : tunnelTransportInfo.Remote.Remote;
             Socket targetSocket = new(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
             try
             {
                 targetSocket.KeepAlive();
-                targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? tunnelTransportInfo.Local.Local.Address : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
+                targetSocket.IPv6Only(ep.AddressFamily, false);
+                targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {

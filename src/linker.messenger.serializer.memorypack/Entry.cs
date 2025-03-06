@@ -56,6 +56,7 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new RelayCacheInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayMessageInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayServerCdkeyInfoFormatter());
+            MemoryPackFormatterProvider.Register(new RelayServerCdkeyStoreInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayServerCdkeyPageRequestInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayServerCdkeyPageResultInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayServerCdkeyAddInfoFormatter());

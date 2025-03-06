@@ -18,11 +18,11 @@ namespace linker.messenger.flow
         /// <summary>
         /// 在线 | 总数
         /// </summary>
-        public ulong ReceiveBytes { get; private set; }
+        public long ReceiveBytes { get; private set; }
         /// <summary>
         /// 服务器数
         /// </summary>
-        public ulong SendtBytes { get; private set; }
+        public long SendtBytes { get; private set; }
 
 
         private ConcurrentDictionary<IPAddress, OnlineFlowInfo> servers = new ConcurrentDictionary<IPAddress, OnlineFlowInfo>(new IPAddressComparer());
@@ -69,7 +69,7 @@ namespace linker.messenger.flow
 
         public string GetItems() => string.Empty;
         public void SetItems(string json) { }
-        public void SetBytes(ulong receiveBytes, ulong sendtBytes) { }
+        public void SetBytes(long receiveBytes, long sendtBytes) { }
         public void Clear() {  }
 
 
@@ -86,7 +86,7 @@ namespace linker.messenger.flow
 
         private void OnlineTask()
         {
-            TimerHelper.SetInterval(() =>
+            TimerHelper.SetIntervalLong(() =>
             {
                 try
                 {
@@ -110,11 +110,11 @@ namespace linker.messenger.flow
                 servers.TryRemove(key, out _);
             }
 
-            ulong online = (ulong)servers.Sum(c => c.Value.Online) << 32;
-            ulong total = (ulong)servers.Sum(c => c.Value.Total);
+            long online = servers.Sum(c => c.Value.Online) << 32;
+            long total = servers.Sum(c => c.Value.Total);
 
             ReceiveBytes = online | total;
-            SendtBytes = (ulong)servers.Count;
+            SendtBytes = servers.Count;
             Version.Add();
         }
         private void Report()

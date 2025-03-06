@@ -147,10 +147,9 @@ namespace linker.tunnel.transport
                 LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", tunnelTransportInfo.RemoteEndPoints.Select(c => c.ToString()))}");
             }
 
-            IPEndPoint local = new IPEndPoint(tunnelTransportInfo.Local.Local.Address, tunnelTransportInfo.Local.Local.Port);
             TaskCompletionSource<IPEndPoint> taskCompletionSource = new TaskCompletionSource<IPEndPoint>(TaskCreationOptions.RunContinuationsAsynchronously);
             //监听连接
-            Socket remoteUdp = BindListen(local, taskCompletionSource);
+            Socket remoteUdp = BindListen(tunnelTransportInfo.Local.Local, taskCompletionSource);
 
             //给对方发送简单消息
             foreach (IPEndPoint ep in tunnelTransportInfo.RemoteEndPoints)
@@ -216,7 +215,9 @@ namespace linker.tunnel.transport
         /// <returns></returns>
         private Socket BindListen(IPEndPoint local, TaskCompletionSource<IPEndPoint> tcs)
         {
+            local = new IPEndPoint(IPAddress.IPv6Any, local.Port);
             Socket socket = new Socket(local.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
+            socket.IPv6Only(local.AddressFamily, false);
             socket.WindowsUdpBug();
             socket.ReuseBind(local);
 
@@ -238,9 +239,11 @@ namespace linker.tunnel.transport
         /// <returns></returns>
         private async Task BindListen(IPEndPoint local, TunnelTransportInfo state)
         {
+            local = new IPEndPoint(IPAddress.IPv6Any,local.Port);
             Socket socket = new Socket(local.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
             try
             {
+                socket.IPv6Only(local.AddressFamily,false);
                 socket.ReuseBind(local);
                 socket.WindowsUdpBug();
                 ListenAsyncToken token = new ListenAsyncToken
@@ -267,7 +270,7 @@ namespace linker.tunnel.transport
             try
             {
                 byte[] buffer = new byte[8 * 1024];
-                IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
+                IPEndPoint ep = new IPEndPoint(IPAddress.IPv6Any, 0);
                 while (true)
                 {
                     SocketReceiveFromResult result = await token.LocalUdp.ReceiveFromAsync(buffer, ep).ConfigureAwait(false);
@@ -306,7 +309,7 @@ namespace linker.tunnel.transport
         /// <param name="tunnelTransportInfo"></param>
         private void BindAndTTL(TunnelTransportInfo tunnelTransportInfo)
         {
-            IPEndPoint local = new IPEndPoint(tunnelTransportInfo.Local.Local.Address, tunnelTransportInfo.Local.Local.Port);
+            IPEndPoint local = new IPEndPoint(IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port);
             foreach (var ip in tunnelTransportInfo.RemoteEndPoints)
             {
                 try
@@ -316,15 +319,13 @@ namespace linker.tunnel.transport
                         LoggerHelper.Instance.Warning($"{Name} ttl to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ip}");
                     }
 
-                    if (ip.AddressFamily == AddressFamily.InterNetwork)
-                    {
-                        Socket socket = new Socket(local.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
-                        socket.WindowsUdpBug();
-                        socket.ReuseBind(local);
-                        socket.Ttl = (short)(tunnelTransportInfo.Local.RouteLevel);
-                        _ = socket.SendToAsync(new byte[0], SocketFlags.None, ip);
-                        socket.SafeClose();
-                    }
+                    Socket socket = new Socket(local.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
+                    socket.IPv6Only(local.AddressFamily, false);
+                    socket.WindowsUdpBug();
+                    socket.ReuseBind(local);
+                    socket.Ttl = (short)(tunnelTransportInfo.Local.RouteLevel);
+                    _ = socket.SendToAsync(new byte[0], SocketFlags.None, ip);
+                    socket.SafeClose();
                 }
                 catch (Exception ex)
                 {

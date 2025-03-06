@@ -13,14 +13,17 @@ namespace linker.messenger.relay.server
 
         private ulong relayFlowingId = 0;
         private readonly ConcurrentDictionary<string, RelayServerNodeReportInfo> reports = new ConcurrentDictionary<string, RelayServerNodeReportInfo>();
-
+        private readonly ConcurrentQueue<Dictionary<long, long>> trafficQueue = new ConcurrentQueue<Dictionary<long, long>>();
 
         private readonly IRelayServerCaching relayCaching;
         private readonly ISerializer serializer;
-        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, ISerializer serializer, IRelayServerMasterStore relayServerMasterStore)
+        private readonly IRelayServerCdkeyStore relayServerCdkeyStore;
+        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, ISerializer serializer, IRelayServerMasterStore relayServerMasterStore, IRelayServerCdkeyStore relayServerCdkeyStore)
         {
             this.relayCaching = relayCaching;
             this.serializer = serializer;
+            this.relayServerCdkeyStore = relayServerCdkeyStore;
+            TrafficTask();
         }
 
 
@@ -82,10 +85,10 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="validated">是否已认证</param>
         /// <returns></returns>
-        public List<RelayServerNodeReportInfo> GetNodes(bool validated, string userid)
+        public List<RelayServerNodeReportInfo> GetNodes(bool validated)
         {
             var result = reports.Values
-                .Where(c => c.Public || (c.Public == false && validated) || c.UserIds.Contains(userid))
+                .Where(c => c.Public || validated)
                 .Where(c => Environment.TickCount64 - c.LastTicks < 15000)
                 .Where(c => c.ConnectionRatio < 100 && (c.MaxGbTotal == 0 || (c.MaxGbTotal > 0 && c.MaxGbTotalLastBytes > 0)))
                 .OrderByDescending(c => c.LastTicks);
@@ -96,7 +99,7 @@ namespace linker.messenger.relay.server
                      .ThenByDescending(x => x.MaxBandwidth == 0 ? double.MaxValue : x.MaxBandwidth)
                      .ThenByDescending(x => x.MaxBandwidthTotal == 0 ? double.MaxValue : x.MaxBandwidthTotal)
                      .ThenByDescending(x => x.MaxGbTotal == 0 ? double.MaxValue : x.MaxGbTotal)
-                     .ThenByDescending(x => x.MaxGbTotalLastBytes == 0 ? ulong.MaxValue : x.MaxGbTotalLastBytes)
+                     .ThenByDescending(x => x.MaxGbTotalLastBytes == 0 ? long.MaxValue : x.MaxGbTotalLastBytes)
                      .ToList();
         }
 
@@ -109,7 +112,29 @@ namespace linker.messenger.relay.server
         {
             return reports.TryGetValue(nodeId, out RelayServerNodeReportInfo relayNodeReportInfo) && relayNodeReportInfo.Public == false;
         }
+
+
+        public async Task<Dictionary<long, long>> AddTraffic(RelayTrafficUpdateInfo relayTrafficUpdateInfo)
+        {
+            if (relayTrafficUpdateInfo.Dic.Count > 0)
+                trafficQueue.Enqueue(relayTrafficUpdateInfo.Dic);
+
+            if (relayTrafficUpdateInfo.Ids == null || relayTrafficUpdateInfo.Ids.Count == 0)
+            {
+                return new Dictionary<long, long>();
+            }
+            return (await relayServerCdkeyStore.Get(relayTrafficUpdateInfo.Ids)).ToDictionary(c => c.CdkeyId, c => c.LastBytes);
+        }
+        private void TrafficTask()
+        {
+            TimerHelper.SetIntervalLong(async () =>
+            {
+                while (trafficQueue.TryDequeue(out Dictionary<long, long> dic))
+                {
+                    await relayServerCdkeyStore.Traffic(dic).ConfigureAwait(false);
+                }
+                return true;
+            },3000);
+        }
     }
-
-
 }

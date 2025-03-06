@@ -11,13 +11,13 @@ namespace linker.messenger.serializer.memorypack
         public readonly FlowItemInfo info;
 
         [MemoryPackInclude]
-        ulong ReceiveBytes => info.ReceiveBytes;
+        long ReceiveBytes => info.ReceiveBytes;
 
         [MemoryPackInclude]
-        ulong SendtBytes => info.SendtBytes;
+        long SendtBytes => info.SendtBytes;
 
         [MemoryPackConstructor]
-        SerializableFlowItemInfo(ulong receiveBytes, ulong sendtBytes)
+        SerializableFlowItemInfo(long receiveBytes, long sendtBytes)
         {
             var info = new FlowItemInfo { ReceiveBytes = receiveBytes, SendtBytes = sendtBytes };
             this.info = info;
@@ -181,16 +181,16 @@ namespace linker.messenger.serializer.memorypack
         public readonly RelayFlowItemInfo info;
 
         [MemoryPackInclude]
-        ulong ReceiveBytes => info.ReceiveBytes;
+        long ReceiveBytes => info.ReceiveBytes;
 
         [MemoryPackInclude]
-        ulong SendtBytes => info.SendtBytes;
+        long SendtBytes => info.SendtBytes;
 
         [MemoryPackInclude]
-        ulong DiffReceiveBytes => info.DiffReceiveBytes;
+        long DiffReceiveBytes => info.DiffReceiveBytes;
 
         [MemoryPackInclude]
-        ulong DiffSendtBytes => info.DiffSendtBytes;
+        long DiffSendtBytes => info.DiffSendtBytes;
 
         [MemoryPackInclude]
         string FromName => info.FromName;
@@ -199,7 +199,7 @@ namespace linker.messenger.serializer.memorypack
         string ToName => info.ToName;
 
         [MemoryPackConstructor]
-        SerializableRelayFlowItemInfo(ulong receiveBytes, ulong sendtBytes, ulong diffReceiveBytes, ulong diffSendtBytes, string fromName, string toName)
+        SerializableRelayFlowItemInfo(long receiveBytes, long sendtBytes, long diffReceiveBytes, long diffSendtBytes, string fromName, string toName)
         {
             var info = new RelayFlowItemInfo
             {
@@ -393,22 +393,22 @@ namespace linker.messenger.serializer.memorypack
         public readonly SForwardFlowItemInfo info;
 
         [MemoryPackInclude]
-        ulong ReceiveBytes => info.ReceiveBytes;
+        long ReceiveBytes => info.ReceiveBytes;
 
         [MemoryPackInclude]
-        ulong SendtBytes => info.SendtBytes;
+        long SendtBytes => info.SendtBytes;
 
         [MemoryPackInclude]
-        ulong DiffReceiveBytes => info.DiffReceiveBytes;
+        long DiffReceiveBytes => info.DiffReceiveBytes;
 
         [MemoryPackInclude]
-        ulong DiffSendtBytes => info.DiffSendtBytes;
+        long DiffSendtBytes => info.DiffSendtBytes;
 
         [MemoryPackInclude]
         string Key => info.Key;
 
         [MemoryPackConstructor]
-        SerializableSForwardFlowItemInfo(ulong receiveBytes, ulong sendtBytes, ulong diffReceiveBytes, ulong diffSendtBytes, string key)
+        SerializableSForwardFlowItemInfo(long receiveBytes, long sendtBytes, long diffReceiveBytes, long diffSendtBytes, string key)
         {
             var info = new SForwardFlowItemInfo
             {

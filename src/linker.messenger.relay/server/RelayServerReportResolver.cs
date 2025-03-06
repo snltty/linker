@@ -24,10 +24,10 @@ namespace linker.messenger.relay.server
             this.messengerResolver = messengerResolver;
         }
 
-        public virtual void AddReceive(ulong bytes)
+        public virtual void AddReceive(long bytes)
         {
         }
-        public virtual void AddSendt(ulong bytes)
+        public virtual void AddSendt(long bytes)
         {
         }
 
@@ -36,19 +36,32 @@ namespace linker.messenger.relay.server
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
             try
             {
-                AddReceive((ulong)memory.Length);
-                int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).ConfigureAwait(false);
-                AddReceive((ulong)length);
+               
+
+                AddReceive(memory.Length);
+                await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).ConfigureAwait(false);
+                int length = buffer[0];
+                AddReceive(length);
                 await socket.ReceiveAsync(buffer.AsMemory(0, length), SocketFlags.None).ConfigureAwait(false);
 
                 string key = buffer.AsMemory(0, length).GetString();
+
                 if (relayServerMasterStore.Master.SecretKey.Md5() == key)
                 {
                     await messengerResolver.BeginReceiveServer(socket, Helper.EmptyArray);
                 }
+                else
+                {
+                    socket.SafeClose();
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
+                socket.SafeClose();
             }
             finally
             {

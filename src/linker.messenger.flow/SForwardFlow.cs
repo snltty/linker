@@ -12,11 +12,11 @@ namespace linker.messenger.flow
         {
             this.sForwardFlow = sForwardFlow;
         }
-        public override void AddReceive(string key, string groupid, ulong bytes)
+        public override void AddReceive(string key, string groupid, long bytes)
         {
             sForwardFlow.AddReceive(key, groupid, bytes);
         }
-        public override void AddSendt(string key, string groupid, ulong bytes)
+        public override void AddSendt(string key, string groupid, long bytes)
         {
             sForwardFlow.AddSendt(key, groupid, bytes);
         }
@@ -24,8 +24,8 @@ namespace linker.messenger.flow
 
     public sealed class SForwardFlow : IFlow
     {
-        public ulong ReceiveBytes { get; private set; }
-        public ulong SendtBytes { get; private set; }
+        public long ReceiveBytes { get; private set; }
+        public long SendtBytes { get; private set; }
         public string FlowName => "SForward";
         public VersionManager Version { get; } = new VersionManager();
 
@@ -35,7 +35,7 @@ namespace linker.messenger.flow
 
         public SForwardFlow()
         {
-            TimerHelper.SetInterval(() =>
+            TimerHelper.SetIntervalLong(() =>
             {
                 if (lastTicksManager.DiffLessEqual(5000))
                 {
@@ -54,7 +54,7 @@ namespace linker.messenger.flow
 
         public string GetItems() => flows.ToJson();
         public void SetItems(string json) { flows = json.DeJson<Dictionary<string, SForwardFlowItemInfo>>(); }
-        public void SetBytes(ulong receiveBytes, ulong sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
+        public void SetBytes(long receiveBytes, long sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
         public void Clear() { ReceiveBytes = 0; SendtBytes = 0;flows.Clear(); }
 
         public void Update()
@@ -62,7 +62,7 @@ namespace linker.messenger.flow
             lastTicksManager.Update();
         }
 
-        public void AddReceive(string key, string groupid, ulong bytes)
+        public void AddReceive(string key, string groupid, long bytes)
         {
             if (flows.TryGetValue(key, out SForwardFlowItemInfo messengerFlowItemInfo) == false)
             {
@@ -73,7 +73,7 @@ namespace linker.messenger.flow
             messengerFlowItemInfo.ReceiveBytes += bytes;
             Version.Add();
         }
-        public void AddSendt(string key, string groupid, ulong bytes)
+        public void AddSendt(string key, string groupid, long bytes)
         {
             if (flows.TryGetValue(key, out SForwardFlowItemInfo messengerFlowItemInfo) == false)
             {
@@ -134,16 +134,16 @@ namespace linker.messenger.flow
 
     public sealed partial class SForwardFlowItemInfo : FlowItemInfo
     {
-        public ulong DiffReceiveBytes { get; set; }
-        public ulong DiffSendtBytes { get; set; }
+        public long DiffReceiveBytes { get; set; }
+        public long DiffSendtBytes { get; set; }
         public string Key { get; set; }
 
         public string GroupId { get; set; }
 
         [JsonIgnore]
-        public ulong OldReceiveBytes { get; set; }
+        public long OldReceiveBytes { get; set; }
         [JsonIgnore]
-        public ulong OldSendtBytes { get; set; }
+        public long OldSendtBytes { get; set; }
     }
 
     public sealed partial class SForwardFlowRequestInfo

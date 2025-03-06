@@ -219,7 +219,7 @@ namespace linker.messenger.tuntap.lease
 
         private void ClearTask()
         {
-            TimerHelper.SetInterval(() =>
+            TimerHelper.SetIntervalLong(() =>
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {

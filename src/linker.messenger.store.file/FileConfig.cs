@@ -127,7 +127,7 @@ namespace linker.messenger.store.file
         }
         private void SaveTask()
         {
-            TimerHelper.SetInterval(() =>
+            TimerHelper.SetIntervalLong(() =>
             {
                 while (Data.Updated > 0)
                 {

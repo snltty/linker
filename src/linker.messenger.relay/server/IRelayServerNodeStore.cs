@@ -33,7 +33,7 @@ namespace linker.messenger.relay.server
         /// 设置剩余流量
         /// </summary>
         /// <param name="value"></param>
-        public void SetMaxGbTotalLastBytes(ulong value);
+        public void SetMaxGbTotalLastBytes(long value);
         /// <summary>
         /// 提交保存
         /// </summary>
@@ -68,7 +68,7 @@ namespace linker.messenger.relay.server
         public double MaxBandwidth { get; set; }
         public double MaxBandwidthTotal { get; set; }
         public double MaxGbTotal { get; set; }
-        public ulong MaxGbTotalLastBytes { get; set; }
+        public long MaxGbTotalLastBytes { get; set; }
         public int MaxGbTotalMonth { get; set; }
 
         public bool Public { get; set; }
@@ -79,8 +79,6 @@ namespace linker.messenger.relay.server
 #else
         public string MasterSecretKey { get; set; } = string.Empty;
 #endif
-
-        public List<string> UserIds { get; set; } = new List<string>();
     }
 
     public sealed partial class RelayServerNodeReportInfo
@@ -92,7 +90,7 @@ namespace linker.messenger.relay.server
         public double MaxBandwidth { get; set; }
         public double MaxBandwidthTotal { get; set; }
         public double MaxGbTotal { get; set; }
-        public ulong MaxGbTotalLastBytes { get; set; }
+        public long MaxGbTotalLastBytes { get; set; }
 
         public double ConnectionRatio { get; set; }
         public double BandwidthRatio { get; set; }
@@ -104,8 +102,6 @@ namespace linker.messenger.relay.server
         public IPEndPoint EndPoint { get; set; }
 
         public long LastTicks { get; set; }
-
-        public List<string> UserIds { get; set; } = new List<string>();
     }
 
 

@@ -314,7 +314,8 @@ namespace linker.tunnel.transport
                 try
                 {
                     targetSocket.KeepAlive();
-                    targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? tunnelTransportInfo.Local.Local.Address : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
+                    targetSocket.IPv6Only(ep.AddressFamily, false);
+                    targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
 
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {

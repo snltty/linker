@@ -38,7 +38,7 @@ namespace linker.messenger.flow.messenger
             Dictionary<string, FlowItemInfo> dic = flowTransfer.GetFlows();
 
             signCaching.GetOnline(out int all, out int online);
-            dic.TryAdd("_", new FlowItemInfo { FlowName = "_", ReceiveBytes = (ulong)all, SendtBytes = (ulong)online });
+            dic.TryAdd("_", new FlowItemInfo { FlowName = "_", ReceiveBytes = all, SendtBytes = online });
 
             FlowInfo serverFlowInfo = new FlowInfo
             {
