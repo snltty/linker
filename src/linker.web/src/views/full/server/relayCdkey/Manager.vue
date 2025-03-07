@@ -2,8 +2,10 @@
     <el-dialog class="options-center" :title="$t('server.relayCdkey')" destroy-on-close v-model="state.show" width="77rem" top="2vh">
     <div class="group-wrap">
         <div class="head flex">
-            <div><span>用户id</span> <el-input v-model="state.page.UserId" style="width:10rem" size="small" clearable @change="handleSearch" /></div>
-            <div><span>备注</span> <el-input v-model="state.page.Remark" style="width:10rem" size="small" clearable @change="handleSearch" /></div>
+            <div><span>{{$t('server.relayCdkeyUserId')}}</span> <el-input v-model="state.page.UserId" style="width:10rem" size="small" clearable @change="handleSearch" /></div>
+            <div><span>{{$t('server.relayCdkeyOrderId')}}</span> <el-input v-model="state.page.OrderId" style="width:10rem" size="small" clearable @change="handleSearch" /></div>
+            <div><span>{{$t('server.relayCdkeyContact')}}</span> <el-input v-model="state.page.Contact" style="width:10rem" size="small" clearable @change="handleSearch" /></div>
+            <div><span>{{$t('server.relayCdkeyRemark')}}</span> <el-input v-model="state.page.Remark" style="width:10rem" size="small" clearable @change="handleSearch" /></div>
             <div>
                 <el-button size="small" @click="handleSearch()">
                     <el-icon><Search /></el-icon>
@@ -15,15 +17,27 @@
                 </el-button>
             </div>
         </div>
-        <el-table stripe  :data="state.list.List" border size="small" width="100%" @cell-dblclick="handleCellClick">
+        <el-table stripe  :data="state.list.List" border size="small" width="100%" @sort-change="handleSort">
             <el-table-column prop="Bandwidth" :label="$t('server.relayCdkeyBandwidth')" width="110" sortable="custom">
                 <template #default="scope">{{ scope.row.Bandwidth }}Mbps</template>
             </el-table-column>
-            <el-table-column prop="LastBytes" :label="`${$t('server.relayCdkeyLastBytes')}/${$t('server.relayCdkeyMaxBytes')}`" width="160" sortable="custom">
-                <template #default="scope">{{ parseSpeed(scope.row.LastBytes) }}/{{ parseSpeed(scope.row.MaxBytes) }}</template>
+            <el-table-column prop="LastBytes" :label="`${$t('server.relayCdkeyBytes')}`" width="80" sortable="custom">
+                <template #default="scope">
+                    <p><strong>{{ parseSpeed(scope.row.LastBytes) }}</strong></p>
+                    <p>{{ parseSpeed(scope.row.MaxBytes) }}</p>
+                </template>
             </el-table-column>
-            <el-table-column prop="PayMemory" :label="`${$t('server.relayCdkeyPayMemory')}/${$t('server.relayCdkeyMemory')}`" width="120" sortable="custom">
-                <template #default="scope">{{ scope.row.PayMemory }}/{{ scope.row.Memory }}</template>
+            <el-table-column prop="PayPrice" :label="`${$t('server.relayCdkeyPay')}`" width="120" sortable="custom">
+                <template #default="scope">
+                    <p><strong>{{$t('server.relayCdkeyPayPrice')}}.{{ scope.row.PayPrice }}</strong>/{{$t('server.relayCdkeyPrice')}}.{{ scope.row.Price }}</p>
+                    <p>{{$t('server.relayCdkeyUserPrice')}}.{{ scope.row.UserPrice }}/{{$t('server.relayCdkeyCostPrice')}}.{{ scope.row.CostPrice }}</p>
+                </template>
+            </el-table-column>
+            <el-table-column prop="OrderId" :label="`${$t('server.relayCdkeyOrder')}`" width="180">
+                <template #default="scope">
+                    <p>{{ scope.row.OrderId }}</p>
+                    <p>{{ scope.row.Contact }}</p>
+                </template>
             </el-table-column>
             <el-table-column prop="Remark" :label="$t('server.relayCdkeyRemark')">
             </el-table-column>
@@ -31,13 +45,11 @@
             </el-table-column>
             <el-table-column prop="UseTime" :label="`${$t('server.relayCdkeyUseTime')}`" width="140" sortable="custom">
             </el-table-column>
-            <el-table-column prop="StartTime" :label="`${$t('server.relayCdkeyStartTime')}`" width="140" sortable="custom">
-            </el-table-column>
             <el-table-column prop="AddTime" :label="`${$t('server.relayCdkeyAddTime')}`" width="140" sortable="custom">
             </el-table-column>
             <el-table-column fixed="right" prop="Oper" :label="$t('server.relayCdkeyOper')" width="60">
                 <template #default="scope">
-                    <div>
+                    <div v-if="scope.row.Deleted == false">
                         <el-popconfirm :title="$t('server.relayCdkeyDelConfirm')" @confirm="handleDel(scope.row)">
                             <template #reference>
                                 <el-button type="danger" size="small">
@@ -60,7 +72,7 @@
         </div>
     </div>
     </el-dialog>
-    <el-dialog class="options-center" :title="$t('server.relayCdkey')" destroy-on-close v-model="state.showAdd" width="42rem" top="2vh">
+    <el-dialog class="options-center" :title="$t('server.relayAddCdkey')" destroy-on-close v-model="state.showAdd" width="60rem" top="2vh">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="auto">
                 <el-form-item :label="$t('server.relayCdkeyUserId')" prop="UserId">
@@ -69,27 +81,48 @@
                 <el-form-item :label="$t('server.relayCdkeyBandwidth')" prop="Bandwidth">
                     <el-input-number size="small" v-model="state.ruleForm.Bandwidth" :min="1" :max="102400" />Mbps
                 </el-form-item>
-                <el-form-item :label="$t('server.relayCdkeyMaxBytes')" prop="MaxBytes">
+                <el-form-item :label="$t('server.relayCdkeyBytes')" prop="MaxBytes">
                     <el-input-number size="small" v-model="state.ruleForm.G" :min="0" :max="102400" />GB
                     <el-input-number size="small" v-model="state.ruleForm.M" :min="0" :max="1024" />MB
                     <el-input-number size="small" v-model="state.ruleForm.K" :min="0" :max="1024" />KB
                     <el-input-number size="small" v-model="state.ruleForm.B" :min="0" :max="1024" />B
                 </el-form-item>
                 <el-form-item></el-form-item>
-                <el-form-item :label="$t('server.relayCdkeyStartTime')" prop="StartTime">
-                    <el-date-picker v-model="state.ruleForm.StartTime" type="datetime" placeholder="Select date and time"/>
-                </el-form-item>
-                <el-form-item :label="$t('server.relayCdkeyEndTime')" prop="EndTime">
-                    <el-date-picker v-model="state.ruleForm.EndTime" type="datetime" placeholder="Select date and time"/>
+                <el-form-item :label="$t('server.relayCdkeyDuration')" prop="EndTime">
+                    <p>
+                        <el-input-number size="small" v-model="state.ruleForm.Year" :min="0" />{{$t('server.relayCdkeyYear')}}
+                        <el-input-number size="small" v-model="state.ruleForm.Month" :min="0" />{{$t('server.relayCdkeyMonth')}}
+                        <el-input-number size="small" v-model="state.ruleForm.Day" :min="0" />{{$t('server.relayCdkeyDay')}}
+                    </p>
+                    <p>
+                        <el-input-number size="small" v-model="state.ruleForm.Hour" :min="0" />{{$t('server.relayCdkeyHour')}}
+                        <el-input-number size="small" v-model="state.ruleForm.Min" :min="0" />{{$t('server.relayCdkeyMin')}}
+                        <el-input-number size="small" v-model="state.ruleForm.Sec" :min="0" />{{$t('server.relayCdkeySec')}}
+                    </p>
                 </el-form-item>
                 <el-form-item></el-form-item>
-                <el-form-item :label="$t('server.relayCdkeyMemory')" prop="Memory">
-                    <el-input-number size="small" v-model="state.ruleForm.Memory" :min="0" />
-                    {{ $t('server.relayCdkeyPayMemory') }}
-                    <el-input-number size="small" v-model="state.ruleForm.PayMemory" :min="0" />
+                <el-form-item :label="$t('server.relayCdkeyCostPrice')" prop="CostPrice">
+                    <el-input-number size="small" v-model="state.ruleForm.CostPrice" :min="0" />
+                    {{ $t('server.relayCdkeyPrice') }}
+                    <el-input-number size="small" v-model="state.ruleForm.Price" :min="0" />
+                    {{ $t('server.relayCdkeyUserPrice') }}
+                    <el-input-number size="small" v-model="state.ruleForm.UserPrice" :min="0" />
+                    {{ $t('server.relayCdkeyPayPrice') }}
+                    <el-input-number size="small" v-model="state.ruleForm.PayPrice" :min="0" />
                 </el-form-item>
-                <el-form-item :label="$t('server.relayCdkeyRemark')" prop="Remark">
-                    <el-input v-model="state.ruleForm.Remark" />
+                <el-form-item label="">
+                    <el-row>
+                        <el-col :span="12">
+                            <el-form-item :label="$t('server.relayCdkeyRemark')" prop="Remark">
+                                <el-input v-model="state.ruleForm.Remark" />
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="12">
+                            <el-form-item :label="$t('server.relayCdkeyContact')" prop="Contact">
+                                <el-input v-model="state.ruleForm.Contact" />
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
                 </el-form-item>
                 <el-form-item></el-form-item>
                 <el-form-item label="" prop="Btns">
@@ -125,19 +158,28 @@ export default {
                 M:0,
                 K:0,
                 B:0,
-                StartTime:new Date(),
-                EndTime:new Date(new Date().getFullYear() + 1,new Date().getMonth(),new Date().getDay(),new Date().getHours(),new Date().getMinutes(),new Date().getSeconds()),
-                Memory:0,
-                PayMemory:0,
-                Remark:'',
+                Year:1,
+                Month:0,
+                Day:0,
+                Hour:0,
+                Min:0,
+                Sec:0,
+                CostPrice:0,
+                Price:0,
+                UserPrice:0,
+                PayPrice:0,
+                Remark:'hand',
+                Contact:'',
             };
         const state = reactive({
             page:{
                 Page:1,
-                Size:15,
+                Size:10,
                 Order:'',
                 Sort:'',
-                Userid:'',
+                UserId:'',
+                OrderId:'',
+                Contact:'',
                 Remark:'',
             },
             list:{
@@ -179,6 +221,11 @@ export default {
             state.page.Page = p;
             handleSearch();
         }
+        const handleSort = (a)=>{
+            state.page.Order = a.prop;
+            state.page.Sort = {'ascending':'asc','descending':'desc'}[a.order];
+            handleSearch();
+        }
 
         const handleAdd = (row)=>{
             state.ruleForm = JSON.parse(JSON.stringify(defaultJson));
@@ -190,13 +237,15 @@ export default {
             }).catch(()=>{})
         }
         const ruleFormRef = ref(null);
-        const handleSave = ()=>{
-            
+        const handleSave = ()=>{       
             ruleFormRef.value.validate((valid) => {
                 if (!valid) return;
 
                 const json = JSON.parse(JSON.stringify(state.ruleForm));
-                json.StartTime = moment(json.StartTime).format("YYYY-MM-DD HH:mm:ss");
+
+                const date = new Date();
+                const end = new Date(date.getFullYear()+json.Year,date.getMonth()+json.Month,date.getDate()+json.Day,date.getHours()+json.Hour,date.getMinutes()+json.Min,date.getSeconds()+json.Sec);
+                json.EndTime = moment(end).format("YYYY-MM-DD HH:mm:ss");
                 json.MaxBytes = json.G*1024*1024*1024 + json.M*1024*1024 + json.K*1024 + json.B;
 
                 relayCdkeyAdd(json).then(()=>{
@@ -214,7 +263,7 @@ export default {
             handleSearch();
         })
 
-        return {state,ruleFormRef,parseSpeed,handleSearch,handlePageChange,handleAdd,handleDel,handleSave}
+        return {state,ruleFormRef,parseSpeed,handleSort,handleSearch,handlePageChange,handleAdd,handleDel,handleSave}
     }
 }
 </script>

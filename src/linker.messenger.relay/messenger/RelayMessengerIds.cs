@@ -25,6 +25,9 @@
         NodeReport = 2113,
         TrafficReport = 2114,
 
+        TestCdkey = 2115,
+        ImportCdkey = 2116,
+
         Max = 2199
     }
 }

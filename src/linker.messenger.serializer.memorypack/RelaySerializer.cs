@@ -511,13 +511,15 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         long CdkeyId => info.CdkeyId;
         [MemoryPackInclude]
+        double Bandwidth => info.Bandwidth;
+        [MemoryPackInclude]
+        long LastBytes => info.LastBytes;
+
+        [MemoryPackInclude]
         string Id => info.Id;
         [MemoryPackInclude]
         string UserId => info.UserId;
 
-
-        [MemoryPackInclude]
-        string CdKey => info.CdKey;
         [MemoryPackInclude]
         DateTime AddTime => info.AddTime;
         [MemoryPackInclude]
@@ -526,42 +528,50 @@ namespace linker.messenger.serializer.memorypack
         DateTime EndTime => info.EndTime;
         [MemoryPackInclude]
         DateTime UseTime => info.UseTime;
-        [MemoryPackInclude]
-        List<string> Nodes => info.Nodes;
-        [MemoryPackInclude]
-        double Bandwidth => info.Bandwidth;
+
         [MemoryPackInclude]
         long MaxBytes => info.MaxBytes;
+
         [MemoryPackInclude]
-        long LastBytes => info.LastBytes;
+        double CostPrice => info.CostPrice;
         [MemoryPackInclude]
-        double Memory => info.Memory;
+        double Price => info.Price;
         [MemoryPackInclude]
-        double PayMemory => info.PayMemory;
+        double UserPrice => info.UserPrice;
+        [MemoryPackInclude]
+        double PayPrice => info.PayPrice;
         [MemoryPackInclude]
         string Remark => info.Remark;
+        [MemoryPackInclude]
+        string OrderId => info.OrderId;
+        [MemoryPackInclude]
+        string Contact => info.Contact;
+        [MemoryPackInclude]
+        bool Deleted => info.Deleted;
 
         [MemoryPackConstructor]
-        SerializableRelayServerCdkeyStoreInfo(long cdkeyid, string id, string userid, string cdKey, DateTime addTime, DateTime startTime, DateTime endTime, DateTime useTime,
-            List<string> nodes, double bandwidth, long maxBytes, long lastBytes, double memory, double payMemory, string remark)
+        SerializableRelayServerCdkeyStoreInfo(long cdkeyid, double bandwidth, long lastBytes, string id, string userid, DateTime addTime, DateTime startTime, DateTime endTime, DateTime useTime, long maxBytes, double costPrice, double price, double userPrice, double payPrice, string remark, string orderId, string contact, bool deleted)
         {
             var info = new RelayServerCdkeyStoreInfo
             {
                 CdkeyId = cdkeyid,
+                Bandwidth = bandwidth,
+                LastBytes = lastBytes,
                 Id = id,
                 UserId = userid,
-                CdKey = cdKey,
                 AddTime = addTime,
                 StartTime = startTime,
                 EndTime = endTime,
                 UseTime = useTime,
-                Nodes = nodes,
-                Bandwidth = bandwidth,
                 MaxBytes = maxBytes,
-                LastBytes = lastBytes,
-                Memory = memory,
-                PayMemory = payMemory,
-                Remark = remark
+                CostPrice = costPrice,
+                Price = price,
+                UserPrice = userPrice,
+                PayPrice = payPrice,
+                Remark = remark,
+                OrderId = orderId,
+                Contact = contact,
+                Deleted = deleted
             };
             this.info = info;
         }
@@ -664,14 +674,17 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string SecretKey => info.SecretKey;
         [MemoryPackInclude]
+        string UserId => info.UserId;
+        [MemoryPackInclude]
         long CdkeyId => info.CdkeyId;
 
         [MemoryPackConstructor]
-        SerializableRelayServerCdkeyDelInfo(string secretKey, long cdkeyid)
+        SerializableRelayServerCdkeyDelInfo(string secretKey, string userid, long cdkeyid)
         {
             var info = new RelayServerCdkeyDelInfo
             {
                 SecretKey = secretKey,
+                UserId = userid,
                 CdkeyId = cdkeyid
             };
             this.info = info;
@@ -730,10 +743,16 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string Remark => info.Remark;
         [MemoryPackInclude]
+        string OrderId => info.OrderId;
+        [MemoryPackInclude]
+        string Contact => info.Contact;
+        [MemoryPackInclude]
         string SecretKey => info.SecretKey;
+        [MemoryPackInclude]
+        RelayServerCdkeyPageRequestFlag Flag => info.Flag;
 
         [MemoryPackConstructor]
-        SerializableRelayServerCdkeyPageRequestInfo(int page, int size, string order, string sort, string userid, string remark, string secretKey)
+        SerializableRelayServerCdkeyPageRequestInfo(int page, int size, string order, string sort, string userid, string remark, string orderid, string contact, string secretKey,RelayServerCdkeyPageRequestFlag flag)
         {
             var info = new RelayServerCdkeyPageRequestInfo
             {
@@ -743,7 +762,10 @@ namespace linker.messenger.serializer.memorypack
                 Page = page,
                 UserId = userid,
                 Remark = remark,
-                SecretKey = secretKey
+                OrderId = orderid,
+                Contact = contact,
+                SecretKey = secretKey,
+                Flag = flag
             };
             this.info = info;
         }
@@ -845,7 +867,7 @@ namespace linker.messenger.serializer.memorypack
 
 
     [MemoryPackable]
-    public readonly partial struct SerializableRelayTrafficReportInfo
+    public readonly partial struct SerializableRelayTrafficUpdateInfo
     {
         [MemoryPackIgnore]
         public readonly RelayTrafficUpdateInfo info;
@@ -858,7 +880,7 @@ namespace linker.messenger.serializer.memorypack
         string SecretKey => info.SecretKey;
 
         [MemoryPackConstructor]
-        SerializableRelayTrafficReportInfo(Dictionary<long, long> dic, List<long> ids, string secretKey)
+        SerializableRelayTrafficUpdateInfo(Dictionary<long, long> dic, List<long> ids, string secretKey)
         {
             var info = new RelayTrafficUpdateInfo
             {
@@ -869,12 +891,12 @@ namespace linker.messenger.serializer.memorypack
             this.info = info;
         }
 
-        public SerializableRelayTrafficReportInfo(RelayTrafficUpdateInfo info)
+        public SerializableRelayTrafficUpdateInfo(RelayTrafficUpdateInfo info)
         {
             this.info = info;
         }
     }
-    public class RelayTrafficReportInfoFormatter : MemoryPackFormatter<RelayTrafficUpdateInfo>
+    public class RelayTrafficUpdateInfoFormatter : MemoryPackFormatter<RelayTrafficUpdateInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayTrafficUpdateInfo value)
         {
@@ -884,7 +906,7 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableRelayTrafficReportInfo(value));
+            writer.WritePackable(new SerializableRelayTrafficUpdateInfo(value));
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayTrafficUpdateInfo value)
@@ -896,10 +918,208 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableRelayTrafficReportInfo>();
+            var wrapped = reader.ReadPackable<SerializableRelayTrafficUpdateInfo>();
             value = wrapped.info;
         }
     }
 
 
+
+    [MemoryPackable]
+    public readonly partial struct SerializableRelayServerCdkeyImportInfo
+    {
+        [MemoryPackIgnore]
+        public readonly RelayServerCdkeyImportInfo info;
+
+        [MemoryPackInclude]
+        string SecretKey => info.SecretKey;
+        [MemoryPackInclude]
+        string UserId => info.UserId;
+        [MemoryPackInclude]
+        string Base64 => info.Base64;
+
+        [MemoryPackConstructor]
+        SerializableRelayServerCdkeyImportInfo(string secretKey, string userid, string base64)
+        {
+            var info = new RelayServerCdkeyImportInfo
+            {
+                SecretKey = secretKey,
+                UserId = userid,
+                Base64 = base64
+            };
+            this.info = info;
+        }
+
+        public SerializableRelayServerCdkeyImportInfo(RelayServerCdkeyImportInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class RelayServerCdkeyImportInfoFormatter : MemoryPackFormatter<RelayServerCdkeyImportInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayServerCdkeyImportInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableRelayServerCdkeyImportInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayServerCdkeyImportInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableRelayServerCdkeyImportInfo>();
+            value = wrapped.info;
+        }
+    }
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableRelayServerCdkeyTestResultInfo
+    {
+        [MemoryPackIgnore]
+        public readonly RelayServerCdkeyTestResultInfo info;
+
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        RelayServerCdkeyOrderInfo Order => info.Order;
+        [MemoryPackInclude]
+        string Cdkey => info.Cdkey;
+        [MemoryPackInclude]
+        List<string> Field => info.Field;
+
+        [MemoryPackConstructor]
+        SerializableRelayServerCdkeyTestResultInfo(RelayServerCdkeyOrderInfo order, string cdkey, List<string> field)
+        {
+            var info = new RelayServerCdkeyTestResultInfo
+            {
+                Order = order,
+                Cdkey = cdkey,
+                Field = field
+            };
+            this.info = info;
+        }
+
+        public SerializableRelayServerCdkeyTestResultInfo(RelayServerCdkeyTestResultInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class RelayServerCdkeyTestResultInfoFormatter : MemoryPackFormatter<RelayServerCdkeyTestResultInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayServerCdkeyTestResultInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableRelayServerCdkeyTestResultInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayServerCdkeyTestResultInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableRelayServerCdkeyTestResultInfo>();
+            value = wrapped.info;
+        }
+    }
+
+    [MemoryPackable]
+    public readonly partial struct SerializableRelayServerCdkeyOrderInfo
+    {
+        [MemoryPackIgnore]
+        public readonly RelayServerCdkeyOrderInfo info;
+
+        [MemoryPackInclude]
+        int GB => info.GB;
+        [MemoryPackInclude]
+        int Speed => info.Speed;
+        [MemoryPackInclude]
+        string Time => info.Time;
+        [MemoryPackInclude]
+        string WidgetUserId => info.WidgetUserId;
+        [MemoryPackInclude]
+        string OrderId => info.OrderId;
+        [MemoryPackInclude]
+        string Contact => info.Contact;
+
+        [MemoryPackInclude]
+        double CostPrice => info.CostPrice;
+        [MemoryPackInclude]
+        double Price => info.Price;
+        [MemoryPackInclude]
+        double UserPrice => info.UserPrice;
+        [MemoryPackInclude]
+        double PayPrice => info.PayPrice;
+        [MemoryPackInclude]
+        int Count => info.Count;
+
+
+        [MemoryPackConstructor]
+        SerializableRelayServerCdkeyOrderInfo(int gb, int speed, string time, string widgetUserId, string orderId, string contact, double costPrice, double price, double userPrice, double payPrice, int count)
+        {
+            var info = new RelayServerCdkeyOrderInfo
+            {
+                GB = gb,
+                Speed = speed,
+                Time = time,
+                WidgetUserId = widgetUserId,
+                OrderId = orderId,
+                Contact = contact,
+                CostPrice = costPrice,
+                Price = price,
+                UserPrice = userPrice,
+                PayPrice = payPrice,
+                Count = count
+            };
+            this.info = info;
+        }
+
+        public SerializableRelayServerCdkeyOrderInfo(RelayServerCdkeyOrderInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class RelayServerCdkeyOrderInfoFormatter : MemoryPackFormatter<RelayServerCdkeyOrderInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayServerCdkeyOrderInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableRelayServerCdkeyOrderInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayServerCdkeyOrderInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableRelayServerCdkeyOrderInfo>();
+            value = wrapped.info;
+        }
+    }
 }

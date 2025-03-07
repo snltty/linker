@@ -68,7 +68,7 @@ namespace linker.messenger.relay
             });
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
-        
+
         [Access(AccessValue.RelayCdkey)]
         public async Task<bool> AddCdkey(ApiControllerParamsInfo param)
         {
@@ -97,6 +97,7 @@ namespace linker.messenger.relay
                 Payload = serializer.Serialize(new RelayServerCdkeyDelInfo
                 {
                     CdkeyId = long.Parse(param.Content),
+                    UserId = signInClientStore.Server.UserId,
                     SecretKey = relayClientStore.Server.SecretKey
                 })
             });
@@ -140,6 +141,39 @@ namespace linker.messenger.relay
             }
 
             return new RelayServerCdkeyPageResultInfo();
+        }
+
+        public async Task<RelayServerCdkeyTestResultInfo> TestCdkey(ApiControllerParamsInfo param)
+        {
+            RelayServerCdkeyImportInfo info = param.Content.DeJson<RelayServerCdkeyImportInfo>();
+            info.SecretKey = relayClientStore.Server.SecretKey;
+            info.UserId = signInClientStore.Server.UserId;
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)RelayMessengerIds.TestCdkey,
+                Payload = serializer.Serialize(info)
+            });
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                return serializer.Deserialize<RelayServerCdkeyTestResultInfo>(resp.Data.Span);
+            }
+
+            return new RelayServerCdkeyTestResultInfo();
+        }
+
+        public async Task<bool> ImportCdkey(ApiControllerParamsInfo param)
+        {
+            RelayServerCdkeyImportInfo info = param.Content.DeJson<RelayServerCdkeyImportInfo>();
+            info.SecretKey = relayClientStore.Server.SecretKey;
+            info.UserId = signInClientStore.Server.UserId;
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)RelayMessengerIds.ImportCdkey,
+                Payload = serializer.Serialize(info)
+            });
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
     }
 

@@ -183,7 +183,8 @@ namespace linker.messenger.relay.server
 
             Interlocked.Add(ref cache.Sendt, length);
 
-            if (cache.CurrentCdkey != null) return cache.CurrentCdkey.LastBytes > 0;
+            var current = cache.CurrentCdkey;
+            if (current != null) return current.LastBytes > 0;
 
             return relayServerNodeStore.Node.MaxGbTotalLastBytes > 0;
         }
@@ -210,6 +211,7 @@ namespace linker.messenger.relay.server
                 return;
             }
 
+            relayCache.CurrentCdkey = null;
             relayCache.Limit.SetLimit((uint)Math.Ceiling((relayServerNodeStore.Node.MaxBandwidth * 1024 * 1024) / 8.0));
         }
 

@@ -11,9 +11,9 @@ namespace linker.libs
         /// </summary>
         /// <param name="password"></param>
         /// <returns></returns>
-        public static ISymmetricCrypto CreateSymmetric(string password)
+        public static ISymmetricCrypto CreateSymmetric(string password, PaddingMode mode = PaddingMode.ANSIX923)
         {
-            return new AesCrypto(password);
+            return new AesCrypto(password, mode);
         }
     }
 
@@ -38,11 +38,11 @@ namespace linker.libs
 
         public string Password { get; set; }
 
-        public AesCrypto(string password)
+        public AesCrypto(string password, PaddingMode mode = PaddingMode.ANSIX923)
         {
             Password = password;
             using Aes aes = Aes.Create();
-            aes.Padding = PaddingMode.ANSIX923;
+            aes.Padding = mode;
             (aes.Key, aes.IV) = GenerateKeyAndIV(password);
 
             encryptoTransform = aes.CreateEncryptor(aes.Key, aes.IV);
