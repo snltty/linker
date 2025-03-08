@@ -141,7 +141,7 @@ export default {
     'server.relayCdkeyPayPrice': 'Pay price',
     'server.relayCdkeyCostPrice': 'Cost price',
     'server.relayCdkeyUserPrice': 'User price',
-    'server.relayCdkeyOrderId': 'Order No',
+    'server.relayCdkeyOrderId': 'OrderNo',
     'server.relayCdkeyContact': 'Email',
     'server.relayCdkeyRemark': 'Remark',
 
@@ -160,6 +160,14 @@ export default {
 
     'server.relayCdkeyOper': 'Oper',
     'server.relayCdkeyDelConfirm': 'Are you sure to delete？',
+
+    'server.relayCdkeyFlagAll': 'All',
+    'server.relayCdkeyFlagTimein': 'In end time',
+    'server.relayCdkeyFlagTimeout': 'Out end time',
+    'server.relayCdkeyFlagBytesin': 'Has bytes',
+    'server.relayCdkeyFlagBytesout': 'Not have bytes',
+    'server.relayCdkeyFlagDeleted': 'Deleted',
+    'server.relayCdkeyFlagUnDeleted': 'Not deleted',
 
 
     'server.sforwardSecretKey': 'Server forward secretKey',

@@ -150,6 +150,78 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
+    [MemoryPackable]
+    public readonly partial struct SerializableRelayServerNodeUpdateInfo
+    {
+        [MemoryPackIgnore]
+        public readonly RelayServerNodeUpdateInfo info;
+
+        [MemoryPackInclude]
+        string Name => info.Name;
+        [MemoryPackInclude]
+        int MaxConnection => info.MaxConnection;
+        [MemoryPackInclude]
+        double MaxBandwidth => info.MaxBandwidth;
+        [MemoryPackInclude]
+        double MaxBandwidthTotal => info.MaxBandwidthTotal;
+        [MemoryPackInclude]
+        double MaxGbTotal => info.MaxGbTotal;
+        [MemoryPackInclude]
+        long MaxGbTotalLastBytes => info.MaxGbTotalLastBytes;
+        [MemoryPackInclude]
+        bool Public => info.Public;
+
+        [MemoryPackConstructor]
+        SerializableRelayServerNodeUpdateInfo(
+           string name,
+            int maxConnection, double maxBandwidth, double maxBandwidthTotal,
+            double maxGbTotal, long maxGbTotalLastBytes,
+            bool Public)
+        {
+            var info = new RelayServerNodeUpdateInfo
+            {
+                MaxBandwidth = maxBandwidth,
+                MaxBandwidthTotal = maxBandwidthTotal,
+                MaxConnection = maxConnection,
+                MaxGbTotal = maxGbTotal,
+                MaxGbTotalLastBytes = maxGbTotalLastBytes,
+                Name = name,
+                Public = Public
+            };
+            this.info = info;
+        }
+
+        public SerializableRelayServerNodeUpdateInfo(RelayServerNodeUpdateInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class RelayServerNodeUpdateInfoFormatter : MemoryPackFormatter<RelayServerNodeUpdateInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayServerNodeUpdateInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableRelayServerNodeUpdateInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayServerNodeUpdateInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableRelayServerNodeUpdateInfo>();
+            value = wrapped.info;
+        }
+    }
 
 
     [MemoryPackable]

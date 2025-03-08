@@ -23,6 +23,7 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="node"></param>
         public void SetInfo(RelayServerNodeInfo node);
+        public void UpdateInfo(RelayServerNodeUpdateInfo update);
 
         /// <summary>
         /// 设置月份
@@ -81,6 +82,17 @@ namespace linker.messenger.relay.server
 #endif
     }
 
+    public sealed partial class RelayServerNodeUpdateInfo
+    {
+        public string Name { get; set; } = string.Empty;
+
+        public int MaxConnection { get; set; }
+        public double MaxBandwidth { get; set; }
+        public double MaxBandwidthTotal { get; set; }
+        public double MaxGbTotal { get; set; }
+        public long MaxGbTotalLastBytes { get; set; }
+        public bool Public { get; set; }
+    }
     public sealed partial class RelayServerNodeReportInfo
     {
         public string Id { get; set; } = string.Empty;
@@ -103,7 +115,6 @@ namespace linker.messenger.relay.server
 
         public long LastTicks { get; set; }
     }
-
 
     public sealed partial class RelayAskResultInfo
     {

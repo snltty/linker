@@ -1,15 +1,18 @@
 <template>
     <el-dialog class="options-center" :title="$t('server.relayMyCdkey')" destroy-on-close v-model="state.show" width="77rem" top="2vh">
     <div class="group-wrap">
-        <div class="head flex">
-            <div><span>{{$t('server.relayCdkeyOrderId')}}</span> <el-input v-model="state.page.OrderId" style="width:10rem" size="small" clearable @change="handleSearch" /></div>
-            <div><span>{{$t('server.relayCdkeyContact')}}</span> <el-input v-model="state.page.Contact" style="width:10rem" size="small" clearable @change="handleSearch" /></div>
-            <div><span>{{$t('server.relayCdkeyRemark')}}</span> <el-input v-model="state.page.Remark" style="width:10rem" size="small" clearable @change="handleSearch" /></div>
-            <div>
-                <el-button size="small" @click="handleSearch()">
-                    <el-icon><Search /></el-icon>
-                </el-button>
+        <div class="head">
+            <div class="search flex">
+                <div><span>{{$t('server.relayCdkeyOrderId')}}</span> <el-input v-model="state.page.OrderId" style="width:10rem" size="small" clearable @change="handleSearch" /></div>
+                <div><span>{{$t('server.relayCdkeyContact')}}</span> <el-input v-model="state.page.Contact" style="width:10rem" size="small" clearable @change="handleSearch" /></div>
+                <div><span>{{$t('server.relayCdkeyRemark')}}</span> <el-input v-model="state.page.Remark" style="width:10rem" size="small" clearable @change="handleSearch" /></div>
+                <div>
+                    <el-button size="small" @click="handleSearch()">
+                        <el-icon><Search /></el-icon>
+                    </el-button>
+                </div>
             </div>
+            <Flags @change="handleFlagsChange"></Flags>
         </div>
         <el-table stripe  :data="state.list.List" border size="small" width="100%" @sort-change="handleSort">
             <el-table-column prop="Bandwidth" :label="$t('server.relayCdkeyBandwidth')" width="110" sortable="custom">
@@ -75,10 +78,11 @@ import { onMounted, reactive,  watch } from 'vue'
 import { Delete,Plus,Search } from '@element-plus/icons-vue';
 import { useI18n } from 'vue-i18n';
 import {relayCdkeyMy,relayCdkeyDel } from '@/apis/relay';
+import Flags from './Flags.vue';
 export default {
     props: ['modelValue'],
     emits: ['update:modelValue'],
-    components:{Delete,Plus,Search },
+    components:{Delete,Plus,Search,Flags },
     setup(props,{emit}) {
         const {t} = useI18n();
         const globalData = injectGlobalData();
@@ -91,6 +95,7 @@ export default {
                 OrderId:'',
                 Contact:'',
                 Remark:'',
+                Flag:0
             },
             list:{
                 Page:1,
@@ -116,6 +121,10 @@ export default {
             return `${(num*1.0).toFixed(2)}${['B', 'KB', 'MB', 'GB', 'TB'][index]}`;
         }
 
+        const handleFlagsChange = (flag)=>{
+            state.page.Flag = flag;
+            handleSearch();
+        }
         const handleSearch = ()=>{
             relayCdkeyMy(state.page).then((res)=>{
                 state.list = res;
@@ -139,14 +148,16 @@ export default {
             handleSearch();
         })
 
-        return {state,parseSpeed,handleSort,handleSearch,handlePageChange,handleDel}
+        return {state,parseSpeed,handleSort,handleFlagsChange,handleSearch,handlePageChange,handleDel}
     }
 }
 </script>
 <style lang="stylus" scoped>
 .head{
-    &>div{
-        margin-right:1rem;
+    .search{
+        &>div{
+            margin-right:1rem;
+        }
     }
 }
 .page{

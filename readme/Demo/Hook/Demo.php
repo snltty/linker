@@ -14,7 +14,10 @@ class Demo extends ManagePlugin
     #[Hook(point: \App\Consts\Hook::USER_API_ORDER_PAY_AFTER)]
     public function tradeAfter($commodity, $order, $pay)
     {
-        $secret = json_decode($order->secret,true);
+        $lines = array_map(function($line) {
+            return rtrim($line, "\r");
+        }, explode("\n", $order->secret));
+        $secret = json_decode($lines[0],true);
 
         try{
             $widget = json_decode($order->widget,true);
@@ -32,13 +35,12 @@ class Demo extends ManagePlugin
         $secret["PayPrice"] = $order["amount"];
         $secret["Count"] = $order["card_num"];
         $order->secret = json_encode($secret,JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-
+        //file_put_contents("secret.txt",$order->secret);
         $config = Plugin::getConfig("Demo");
         $aesCrypto = new AesCrypto($config["KeyId"]);
         $order->secret = base64_encode($aesCrypto->encode($order->secret));
         $order->save();
     }
-
 }
 class AesCrypto
 {

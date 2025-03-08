@@ -2,6 +2,8 @@
 using System.ServiceProcess;
 using System.Diagnostics;
 using linker.messenger.entry;
+using linker.tunnel;
+using linker.messenger.relay.client;
 
 namespace linker
 {
@@ -55,6 +57,7 @@ namespace linker
             LinkerMessengerEntry.Initialize();
             LinkerMessengerEntry.Build();
             LinkerMessengerEntry.Setup(ExcludeModule.None);
+
 
             LoggerHelper.Instance.Warning($"current version : {VersionHelper.version}");
             LoggerHelper.Instance.Warning($"linker env is docker : {Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")}");

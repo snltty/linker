@@ -29,6 +29,7 @@ namespace linker.messenger.store.file.relay
                 info.Id = ObjectId.NewObjectId().ToString();
                 info.AddTime = DateTime.Now;
                 info.UseTime = DateTime.Now;
+                info.StartTime = DateTime.Now;
                 info.LastBytes = info.MaxBytes;
                 info.CdkeyId = YitIdHelper.NextId();
                 info.OrderId = $"Linker{YitIdHelper.NextId()}";
@@ -60,7 +61,7 @@ namespace linker.messenger.store.file.relay
                 RelayServerCdkeyOrderInfo order = result.Cdkey.DeJson<RelayServerCdkeyOrderInfo>();
                 result.Order = order;
 
-                if (order.WidgetUserId != info.UserId)
+                if (order.WidgetUserId != info.UserId || string.IsNullOrWhiteSpace(order.WidgetUserId))
                 {
                     error.Add("UserId");
                 }
@@ -106,36 +107,33 @@ namespace linker.messenger.store.file.relay
             }
             RelayServerCdkeyOrderInfo order = test.Order;
             var time = Regex.Match(order.Time, regex).Groups;
-            for (int i = 0; i < order.Count; i++)
+            RelayServerCdkeyStoreInfo store = new RelayServerCdkeyStoreInfo
             {
-                RelayServerCdkeyStoreInfo store = new RelayServerCdkeyStoreInfo
-                {
-                    UseTime = DateTime.Now,
-                    AddTime = DateTime.Now,
-                    Bandwidth = order.Speed,
-                    CostPrice = order.CostPrice,
-                    EndTime = DateTime.Now
-                    .AddYears(int.Parse(time[1].Value))
-                    .AddMonths(int.Parse(time[2].Value))
-                    .AddDays(int.Parse(time[3].Value))
-                    .AddHours(int.Parse(time[4].Value))
-                    .AddMinutes(int.Parse(time[5].Value))
-                    .AddSeconds(int.Parse(time[6].Value)),
-                    LastBytes = order.Speed * 1024 * 1024 * 1024,
-                    MaxBytes = order.Speed * 1024 * 1024 * 1024,
-                    Price = order.Price,
-                    Remark = "order",
-                    StartTime = DateTime.Now,
-                    UserId = order.WidgetUserId,
-                    CdkeyId = YitIdHelper.NextId(),
-                    Contact = order.Contact,
-                    OrderId = order.OrderId,
-                    PayPrice = order.PayPrice,
-                    UserPrice = order.UserPrice,
-                    Id = ObjectId.NewObjectId().ToString()
-                };
-                liteCollection.Insert(store);
-            }
+                UseTime = DateTime.Now,
+                AddTime = DateTime.Now,
+                Bandwidth = order.Speed,
+                CostPrice = order.CostPrice,
+                EndTime = DateTime.Now
+                   .AddYears(int.Parse(time[1].Value))
+                   .AddMonths(int.Parse(time[2].Value))
+                   .AddDays(int.Parse(time[3].Value))
+                   .AddHours(int.Parse(time[4].Value))
+                   .AddMinutes(int.Parse(time[5].Value))
+                   .AddSeconds(int.Parse(time[6].Value)),
+                LastBytes = order.Speed * 1024 * 1024 * 1024 * order.Count,
+                MaxBytes = order.Speed * 1024 * 1024 * 1024 * order.Count,
+                Price = order.Price,
+                Remark = "order",
+                StartTime = DateTime.Now,
+                UserId = order.WidgetUserId,
+                CdkeyId = YitIdHelper.NextId(),
+                Contact = order.Contact,
+                OrderId = order.OrderId,
+                PayPrice = order.PayPrice,
+                UserPrice = order.UserPrice,
+                Id = ObjectId.NewObjectId().ToString()
+            };
+            liteCollection.Insert(store);
             return await Task.FromResult(true);
         }
 

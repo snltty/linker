@@ -20,7 +20,7 @@ export default {
         const state = reactive({
             hasRelayCdkey:false,
             showManager:false,
-            showMy:false
+            showMy:true
         });
 
         onMounted(()=>{

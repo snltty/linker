@@ -22,6 +22,17 @@ namespace linker.messenger.store.file.relay
         {
             config.Data.Server.Relay.Distributed.Node = node;
         }
+        public void UpdateInfo(RelayServerNodeUpdateInfo update)
+        {
+            config.Data.Server.Relay.Distributed.Node.Name = update.Name;
+            config.Data.Server.Relay.Distributed.Node.MaxConnection = update.MaxConnection;
+            config.Data.Server.Relay.Distributed.Node.MaxBandwidth = update.MaxBandwidth;
+            config.Data.Server.Relay.Distributed.Node.MaxBandwidthTotal = update.MaxBandwidthTotal;
+            config.Data.Server.Relay.Distributed.Node.MaxGbTotal = update.MaxGbTotal;
+            config.Data.Server.Relay.Distributed.Node.MaxGbTotalLastBytes = update.MaxGbTotalLastBytes;
+            config.Data.Server.Relay.Distributed.Node.Public = update.Public;
+
+        }
         public void SetMaxGbTotalLastBytes(long value)
         {
             config.Data.Server.Relay.Distributed.Node.MaxGbTotalLastBytes=value;

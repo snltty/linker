@@ -82,6 +82,7 @@
         public string SecretKey { get; set; }
         public RelayServerCdkeyPageRequestFlag Flag { get; set; }
     }
+    [Flags]
     public enum RelayServerCdkeyPageRequestFlag
     {
         All = 0,

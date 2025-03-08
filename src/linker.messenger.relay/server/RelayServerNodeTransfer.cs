@@ -376,12 +376,12 @@ namespace linker.messenger.relay.server
                             Name = node.Name,
                             Public = node.Public,
                             MaxBandwidth = node.MaxBandwidth,
-                            BandwidthRatio = Math.Round(node.MaxBandwidthTotal == 0 ? 0 : diff / 5 / node.MaxBandwidthTotal, 2),
+                            BandwidthRatio = Math.Round(diff / 5, 2),
                             MaxBandwidthTotal = node.MaxBandwidthTotal,
                             MaxGbTotal = node.MaxGbTotal,
                             MaxGbTotalLastBytes = node.MaxGbTotalLastBytes,
                             MaxConnection = node.MaxConnection,
-                            ConnectionRatio = Math.Round(node.MaxConnection == 0 ? 0 : connectionNum / 2.0 / node.MaxConnection, 2),
+                            ConnectionRatio = Math.Round(connectionNum / 2.0),
                             EndPoint = endPoint
                         };
 
