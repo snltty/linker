@@ -61,6 +61,11 @@ namespace linker.messenger.store.file.relay
                 RelayServerCdkeyOrderInfo order = result.Cdkey.DeJson<RelayServerCdkeyOrderInfo>();
                 result.Order = order;
 
+                if(order.Type != "Relay" || string.IsNullOrWhiteSpace(order.Type))
+                {
+                    error.Add("Relay");
+                }
+
                 if (order.WidgetUserId != info.UserId || string.IsNullOrWhiteSpace(order.WidgetUserId))
                 {
                     error.Add("UserId");
@@ -98,13 +103,26 @@ namespace linker.messenger.store.file.relay
 
             return await Task.FromResult(result);
         }
-        public async Task<bool> Import(RelayServerCdkeyImportInfo info)
+        public async Task<string> Import(RelayServerCdkeyImportInfo info)
         {
             RelayServerCdkeyTestResultInfo test = await Test(info);
+
             if (test.Field.Count > 0)
             {
-                return false;
+                if (test.Field.Contains("Parse"))
+                {
+                    return "Parse";
+                }
+                else
+                {
+                    return "Field";
+                }
             }
+            if (liteCollection.Count(c => c.OrderId == test.Order.OrderId) > 0)
+            {
+                return "OrderId";
+            }
+
             RelayServerCdkeyOrderInfo order = test.Order;
             var time = Regex.Match(order.Time, regex).Groups;
             RelayServerCdkeyStoreInfo store = new RelayServerCdkeyStoreInfo
@@ -120,8 +138,8 @@ namespace linker.messenger.store.file.relay
                    .AddHours(int.Parse(time[4].Value))
                    .AddMinutes(int.Parse(time[5].Value))
                    .AddSeconds(int.Parse(time[6].Value)),
-                LastBytes = order.Speed * 1024 * 1024 * 1024 * order.Count,
-                MaxBytes = order.Speed * 1024 * 1024 * 1024 * order.Count,
+                LastBytes = (long)order.GB * 1024 * 1024 * 1024 * order.Count,
+                MaxBytes = (long)order.GB * 1024 * 1024 * 1024 * order.Count,
                 Price = order.Price,
                 Remark = "order",
                 StartTime = DateTime.Now,
@@ -134,7 +152,7 @@ namespace linker.messenger.store.file.relay
                 Id = ObjectId.NewObjectId().ToString()
             };
             liteCollection.Insert(store);
-            return await Task.FromResult(true);
+            return await Task.FromResult(string.Empty);
         }
 
         public async Task<bool> Traffic(Dictionary<long, long> dic)

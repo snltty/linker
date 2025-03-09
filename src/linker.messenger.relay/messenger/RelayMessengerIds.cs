@@ -29,6 +29,11 @@
         ImportCdkey = 2116,
 
         UpdateNode = 2117,
+        UpdateNodeForward = 2118,
+
+        RelayTest170 = 2119,
+        RelayAsk170 = 2120,
+        RelayForward170 = 2121,
 
         Max = 2199
     }

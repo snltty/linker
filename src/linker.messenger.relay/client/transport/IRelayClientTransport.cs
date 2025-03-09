@@ -34,37 +34,51 @@ namespace linker.messenger.relay.client.transport
         /// </summary>
         /// <param name="relayInfo"></param>
         /// <returns></returns>
-        public Task<ITunnelConnection> RelayAsync(RelayInfo relayInfo);
+        public Task<ITunnelConnection> RelayAsync(RelayInfo170 relayInfo);
         /// <summary>
         /// 收到别人的中继请求
         /// </summary>
         /// <param name="relayInfo"></param>
         /// <returns></returns>
-        public Task<bool> OnBeginAsync(RelayInfo relayInfo, Action<ITunnelConnection> callback);
+        public Task<bool> OnBeginAsync(RelayInfo170 relayInfo, Action<ITunnelConnection> callback);
 
         /// <summary>
         /// 测试一下中继通不通
         /// </summary>
         /// <param name="relayTestInfo"></param>
         /// <returns></returns>
-        public Task<List<RelayServerNodeReportInfo>> RelayTestAsync(RelayTestInfo relayTestInfo);
+        public Task<List<RelayServerNodeReportInfo>> RelayTestAsync(RelayTestInfo170 relayTestInfo);
     }
 
     /// <summary>
     /// 中继测试
     /// </summary>
-    public sealed partial class RelayTestInfo
+    public partial class RelayTestInfo
     {
         public string MachineId { get; set; }
         public string SecretKey { get; set; }
         public IPEndPoint Server { get; set; }
+    }
+    public sealed partial class RelayTestInfo170: RelayTestInfo
+    {
+        /// <summary>
+        /// UserId
+        /// </summary>
         public string UserId { get; set; }
     }
 
+
+    public partial class RelayInfo170 : RelayInfo
+    {
+        /// <summary>
+        /// UserId
+        /// </summary>
+        public string UserId { get; set; }
+    }
     /// <summary>
     /// 中继交换数据
     /// </summary>
-    public sealed partial class RelayInfo
+    public  partial class RelayInfo
     {
         /// <summary>
         /// 自己的id
@@ -114,10 +128,7 @@ namespace linker.messenger.relay.client.transport
         /// </summary>
         public bool SSL { get; set; } = true;
 
-        /// <summary>
-        /// UserId
-        /// </summary>
-        public string UserId { get; set; }
+        
     }
 
 

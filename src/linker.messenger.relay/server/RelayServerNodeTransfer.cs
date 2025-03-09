@@ -13,6 +13,8 @@ namespace linker.messenger.relay.server
     /// </summary>
     public class RelayServerNodeTransfer
     {
+        public string Id=>relayServerNodeStore.Node.Id;
+
         private uint connectionNum = 0;
         private IConnection localConnection;
         private IConnection remoteConnection;
@@ -68,6 +70,11 @@ namespace linker.messenger.relay.server
                     LoggerHelper.Instance.Error($"{ex}");
             }
             return null;
+        }
+
+        public void UpdateNode(RelayServerNodeUpdateInfo info)
+        {
+            relayServerNodeStore.UpdateInfo(info);
         }
 
         /// <summary>

@@ -11,122 +11,133 @@
                     </div>
                 </el-form-item>
                 <el-form-item :label="$t('server.relayCdkeyTestGB')" prop="GB">
-                    <el-row>
-                        <el-col :span="18">
+                    <el-row class="w-100">
+                        <el-col :span="15">
                             <el-input v-model="state.ruleForm.Order.GB" />
                         </el-col>
-                        <el-col :span="6">
+                        <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('GB')>=0">{{$t('server.relayCdkeyTestGBError')}}</span>
                             <span v-else class="green">success</span>
                         </el-col>
                     </el-row>
                 </el-form-item>
                 <el-form-item :label="$t('server.relayCdkeyTestSpeed')" prop="Speed">
-                    <el-row>
-                        <el-col :span="18">
+                    <el-row class="w-100">
+                        <el-col :span="15">
                             <el-input v-model="state.ruleForm.Order.Speed" />
                         </el-col>
-                        <el-col :span="6">
+                        <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('Speed')>=0">{{$t('server.relayCdkeyTestSpeedError')}}</span>
                             <span v-else class="green">success</span>
                         </el-col>
                     </el-row>
                 </el-form-item>
                 <el-form-item :label="$t('server.relayCdkeyTestTime')" prop="Time">
-                    <el-row>
-                        <el-col :span="18">
+                    <el-row class="w-100">
+                        <el-col :span="15">
                             <el-input v-model="state.ruleForm.Order.Time" />
                         </el-col>
-                        <el-col :span="6">
+                        <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('Time')>=0">{{$t('server.relayCdkeyTestTimeError')}}</span>
                             <span v-else class="green">success</span>
                         </el-col>
                     </el-row>
                 </el-form-item>
                 <el-form-item :label="$t('server.relayCdkeyTestUserId')" prop="WidgetUserId">
-                    <el-row>
-                        <el-col :span="18">
+                    <el-row class="w-100">
+                        <el-col :span="15">
                             <el-input v-model="state.ruleForm.Order.WidgetUserId" />
                         </el-col>
-                        <el-col :span="6">
+                        <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('UserId')>=0">{{$t('server.relayCdkeyTestUserIdError')}}</span>
                             <span v-else class="green">success</span>
                         </el-col>
                     </el-row>
                 </el-form-item>
                 <el-form-item :label="$t('server.relayCdkeyTestOrderId')" prop="OrderId">
-                    <el-row>
-                        <el-col :span="18">
+                    <el-row class="w-100">
+                        <el-col :span="15">
                             <el-input v-model="state.ruleForm.Order.OrderId" />
                         </el-col>
-                        <el-col :span="6">
+                        <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('OrderId')>=0">{{$t('server.relayCdkeyTestOrderIdError')}}</span>
                             <span v-else class="green">success</span>
                         </el-col>
                     </el-row>
                 </el-form-item>
                 <el-form-item :label="$t('server.relayCdkeyTestContact')" prop="Contact">
-                    <el-row>
-                        <el-col :span="18">
+                    <el-row class="w-100">
+                        <el-col :span="15">
                             <el-input v-model="state.ruleForm.Order.Contact" />
                         </el-col>
-                        <el-col :span="6">
+                        <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('Contact')>=0">{{$t('server.relayCdkeyTestContactError')}}</span>
                             <span v-else class="green">success</span>
                         </el-col>
                     </el-row>
                 </el-form-item>
                 <el-form-item :label="$t('server.relayCdkeyTestCostPrice')" prop="CostPrice">
-                    <el-row>
-                        <el-col :span="18">
+                    <el-row class="w-100">
+                        <el-col :span="15">
                             <el-input v-model="state.ruleForm.Order.CostPrice" />
                         </el-col>
-                        <el-col :span="6">
+                        <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('CostPrice')>=0">{{$t('server.relayCdkeyTestCostPriceError')}}</span>
                             <span v-else class="green">success</span>
                         </el-col>
                     </el-row>
                 </el-form-item>
                 <el-form-item :label="$t('server.relayCdkeyTestPrice')" prop="Price">
-                    <el-row>
-                        <el-col :span="18">
+                    <el-row class="w-100">
+                        <el-col :span="15">
                             <el-input v-model="state.ruleForm.Order.Price" />
                         </el-col>
-                        <el-col :span="6">
+                        <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('Price')>=0">{{$t('server.relayCdkeyTestPriceError')}}</span>
                             <span v-else class="green">success</span>
                         </el-col>
                     </el-row>
                 </el-form-item>
                 <el-form-item :label="$t('server.relayCdkeyTestUserPrice')" prop="UserPrice">
-                    <el-row>
-                        <el-col :span="18">
+                    <el-row class="w-100">
+                        <el-col :span="15">
                             <el-input v-model="state.ruleForm.Order.UserPrice" />
                         </el-col>
-                        <el-col :span="6">
+                        <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('UserPrice')>=0">{{$t('server.relayCdkeyTestUserPriceError')}}</span>
                             <span v-else class="green">success</span>
                         </el-col>
                     </el-row>
                 </el-form-item>
                 <el-form-item :label="$t('server.relayCdkeyTestPayPrice')" prop="PayPrice">
-                    <el-row>
-                        <el-col :span="18">
+                    <el-row class="w-100">
+                        <el-col :span="15">
                             <el-input v-model="state.ruleForm.Order.PayPrice" />
                         </el-col>
-                        <el-col :span="6">
+                        <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('PayPrice')>=0">{{$t('server.relayCdkeyTestPayPriceError')}}</span>
                             <span v-else class="green">success</span>
                         </el-col>
                     </el-row>
                 </el-form-item>
                 <el-form-item :label="$t('server.relayCdkeyTestCount')" prop="Count">
-                    <el-row>
-                        <el-col :span="18">
+                    <el-row class="w-100">
+                        <el-col :span="15">
                             <el-input v-model="state.ruleForm.Order.Count" />
                         </el-col>
-                        <el-col :span="6">
+                        <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('Count')>=0">{{$t('server.relayCdkeyTestCountError')}}</span>
+                            <span v-else class="green">success</span>
+                        </el-col>
+                    </el-row>
+                </el-form-item>
+                <el-form-item :label="$t('server.relayCdkeyTestType')" prop="Type">
+                    <el-row class="w-100">
+                        <el-col :span="15">
+                            <el-input v-model="state.ruleForm.Order.Type" />
+                        </el-col>
+                        <el-col :span="9">
+                            <span class="red" v-if="state.ruleForm.Field.indexOf('Type')>=0 || state.ruleForm.Order.Type !='Relay' ">{{$t('server.relayCdkeyTestTypeError')}}</span>
                             <span v-else class="green">success</span>
                         </el-col>
                     </el-row>
@@ -155,7 +166,7 @@ export default {
         const {t} = useI18n();
         const state = reactive({
             show:true,
-            Base64:'qn1vYOBtu81DkBI10nTTw7h/Vzi1Do3X1HI2+P5fflINL2wNPxrUYQPeOxUqgT+RcZSKLGF3dCMOyYBB+1VKmuI6ZaN86Whr1Xux2dY25tI5/3i/x/K1S78E6+E70ruh61phQZT3QLLVAHnIa2HpFhtPLKZaWc++ReSzixBqkW/sTT/l2iDqG2rl/zKynRM6srXWJkJr+2Msme1u5/Qu/0o6VaJ3ylv71HlB4zubNybQX5WMsOWrjN4/ruRSVF0LcayshqEfwlpeGR44nn5jMxpgQhxxpk/1flVImF00cC4=',
+            Base64:'',
             ruleForm:{
                 Order:{},
                 Cdkey:'',

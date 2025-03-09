@@ -33,7 +33,7 @@
         /// </summary>
         /// <param name="base64"></param>
         /// <returns></returns>
-        public Task<bool> Import(RelayServerCdkeyImportInfo info);
+        public Task<string> Import(RelayServerCdkeyImportInfo info);
 
         /// <summary>
         /// 获取有效的CDKEY
@@ -249,5 +249,6 @@
         /// </summary>
         public int Count { get; set; }
 
+        public string Type { get; set; }
     }
 }

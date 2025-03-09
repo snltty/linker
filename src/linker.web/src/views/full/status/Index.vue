@@ -4,8 +4,12 @@
             <a href="javascript:;" class="memory" :title="$t('status.support')" @click="state.showPay = true">
                 <img src="@/assets/coin.svg" alt="memory" />
                 <span>{{$t('status.support')}}</span>
+                <span>©linker {{ self.Version }}</span>
             </a>
-            <a href="https://github.com/snltty/linker" target="_blank">©linker {{ self.Version }}</a>
+            <a href="https://github.com/snltty/linker" target="_blank">Github</a>
+            <a href="https://linker.snltty.com" target="_blank">{{$t('status.website')}}</a>
+            <a href="https://linker-doc.snltty.com" target="_blank">{{$t('status.doc')}}</a>
+            <a href="https://v.netzo123.com" target="_blank">{{$t('status.cdkey')}}</a>
         </div>
         <div class="flex-1"></div>
         <div class="export"><Export :config="config"></Export></div>
@@ -59,7 +63,7 @@ export default {
 
     .copy{
         padding-left:.5rem;
-        a{color:#555;}
+        a{color:#555;margin-right:1rem}
     }
 
     a.memory{

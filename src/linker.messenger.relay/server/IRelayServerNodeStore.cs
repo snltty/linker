@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using System.Net;
 using linker.libs.extends;
+using System.Text.Json.Serialization;
 
 namespace linker.messenger.relay.server
 {
@@ -80,10 +81,17 @@ namespace linker.messenger.relay.server
 #else
         public string MasterSecretKey { get; set; } = string.Empty;
 #endif
+        public string Url { get; set; } = "https://linker-doc.snltty.com";
     }
 
+    public sealed partial class RelayServerNodeUpdateWrapInfo
+    {
+        public string SecretKey { get; set; }
+        public RelayServerNodeUpdateInfo Info { get; set; }
+    }
     public sealed partial class RelayServerNodeUpdateInfo
     {
+        public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
 
         public int MaxConnection { get; set; }
@@ -92,6 +100,8 @@ namespace linker.messenger.relay.server
         public double MaxGbTotal { get; set; }
         public long MaxGbTotalLastBytes { get; set; }
         public bool Public { get; set; }
+
+        public string Url { get; set; } = "https://linker-doc.snltty.com";
     }
     public sealed partial class RelayServerNodeReportInfo
     {
@@ -114,6 +124,11 @@ namespace linker.messenger.relay.server
         public IPEndPoint EndPoint { get; set; }
 
         public long LastTicks { get; set; }
+
+        public string Url { get; set; } = "https://linker-doc.snltty.com";
+
+        [JsonIgnore]
+        public IConnection Connection { get; set; }
     }
 
     public sealed partial class RelayAskResultInfo

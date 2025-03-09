@@ -61,7 +61,11 @@
     <el-dialog v-model="state.showNodes" :title="$t('server.relayTitle')" width="760" top="2vh">
         <div>
             <el-table :data="state.nodes" size="small" border height="600">
-                <el-table-column property="Name" :label="$t('server.relayName')"></el-table-column>
+                <el-table-column property="Name" :label="$t('server.relayName')">
+                    <template #default="scope">
+                        <a :href="scope.row.Url" class="a-line blue" target="_blank">{{ scope.row.Name }}</a>
+                    </template>
+                </el-table-column>
                 <el-table-column property="MaxGbTotal" :label="$t('server.relayFlow')" width="160">
                     <template #default="scope">
                         <span v-if="scope.row.MaxGbTotal == 0">--</span>
@@ -78,7 +82,7 @@
                 </el-table-column>
                 <el-table-column property="MaxBandwidthTotal" :label="$t('server.relaySpeed1')" width="80">
                     <template #default="scope">
-                        <span v-if="scope.row.MaxBandwidthTotal == 0">无限制</span>
+                        <span v-if="scope.row.MaxBandwidthTotal == 0">--</span>
                         <span v-else>{{ scope.row.MaxBandwidthTotal }}Mbps</span>
                     </template>
                 </el-table-column>
@@ -215,4 +219,7 @@ export default {
 <style lang="stylus" scoped>
 
 .head{padding-bottom:1rem}
+.blue {
+    color: #409EFF;
+}
 </style>

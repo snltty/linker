@@ -162,7 +162,7 @@ namespace linker.messenger.relay
             return new RelayServerCdkeyTestResultInfo();
         }
 
-        public async Task<bool> ImportCdkey(ApiControllerParamsInfo param)
+        public async Task<string> ImportCdkey(ApiControllerParamsInfo param)
         {
             RelayServerCdkeyImportInfo info = param.Content.DeJson<RelayServerCdkeyImportInfo>();
             info.SecretKey = relayClientStore.Server.SecretKey;
@@ -172,6 +172,25 @@ namespace linker.messenger.relay
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)RelayMessengerIds.ImportCdkey,
                 Payload = serializer.Serialize(info)
+            });
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                return serializer.Deserialize<string>(resp.Data.Span);
+            }
+            return "Network";
+        }
+        public async Task<bool> UpdateNode(ApiControllerParamsInfo param)
+        {
+            RelayServerNodeUpdateInfo info = param.Content.DeJson<RelayServerNodeUpdateInfo>();
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)RelayMessengerIds.UpdateNodeForward,
+                Payload = serializer.Serialize(new RelayServerNodeUpdateWrapInfo
+                {
+                    Info = info,
+                    SecretKey = relayClientStore.Server.SecretKey
+                })
             });
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }

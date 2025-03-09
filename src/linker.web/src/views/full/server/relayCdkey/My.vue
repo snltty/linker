@@ -11,6 +11,11 @@
                         <el-icon><Search /></el-icon>
                     </el-button>
                 </div>
+                <div>
+                    <el-button size="small" type="success" @click="handleImport">
+                        <el-icon><Plus /></el-icon>
+                    </el-button>
+                </div>
             </div>
             <Flags @change="handleFlagsChange"></Flags>
         </div>
@@ -77,8 +82,9 @@ import { injectGlobalData } from '@/provide';
 import { onMounted, reactive,  watch } from 'vue'
 import { Delete,Plus,Search } from '@element-plus/icons-vue';
 import { useI18n } from 'vue-i18n';
-import {relayCdkeyMy,relayCdkeyDel } from '@/apis/relay';
+import {relayCdkeyMy,relayCdkeyDel, relayCdkeyImport } from '@/apis/relay';
 import Flags from './Flags.vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
 export default {
     props: ['modelValue'],
     emits: ['update:modelValue'],
@@ -144,11 +150,34 @@ export default {
                 handleSearch();
             }).catch(()=>{})
         }
+
+        const handleImport = ()=>{
+            ElMessageBox.prompt(t('server.relayCdkeyImport'), t('common.tips'), {
+                confirmButtonText: t('common.confirm'),
+                cancelButtonText: t('common.cancel')
+            }).then(({ value }) => {
+                if(!value){
+                    handleImport();
+                    return;
+                }
+
+                relayCdkeyImport({Base64:value}).then((res)=>{
+                    if(res){
+                        ElMessage.error(t(`server.relayCdkeyImport${res}`));
+                        handleImport();
+                    }else{
+                        ElMessage.success(t('common.oper'));
+                        handleSearch();
+                    }
+                }).catch(()=>{})
+            }).catch(() => {
+            })
+        }
         onMounted(()=>{
             handleSearch();
         })
 
-        return {state,parseSpeed,handleSort,handleFlagsChange,handleSearch,handlePageChange,handleDel}
+        return {state,parseSpeed,handleSort,handleFlagsChange,handleSearch,handlePageChange,handleDel,handleImport}
     }
 }
 </script>

@@ -43,7 +43,7 @@ namespace linker.messenger.relay
                 IRelayClientTransport transport = relayTransfer.Transports.FirstOrDefault(d => d.Type == relayClientStore.Server.RelayType);
                 if (transport != null)
                 {
-                    Nodes = await transport.RelayTestAsync(new RelayTestInfo
+                    Nodes = await transport.RelayTestAsync(new RelayTestInfo170
                     {
                         MachineId = signInClientStore.Id,
                         SecretKey = relayClientStore.Server.SecretKey,

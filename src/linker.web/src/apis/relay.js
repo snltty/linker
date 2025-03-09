@@ -27,3 +27,9 @@ export const relayCdkeyMy = (data) => {
 export const relayCdkeyTest = (data) => {
     return sendWebsocketMsg('relay/TestCdkey', data);
 }
+export const relayCdkeyImport = (data) => {
+    return sendWebsocketMsg('relay/ImportCdkey', data);
+}
+export const relayUpdateNode = (data) => {
+    return sendWebsocketMsg('relay/UpdateNode', data);
+}

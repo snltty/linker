@@ -38,7 +38,7 @@ namespace linker.messenger.relay.client.transport
             this.messengerStore = messengerStore;
         }
 
-        public async Task<ITunnelConnection> RelayAsync(RelayInfo relayInfo)
+        public async Task<ITunnelConnection> RelayAsync(RelayInfo170 relayInfo)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
             try
@@ -119,12 +119,12 @@ namespace linker.messenger.relay.client.transport
             return null;
         }
 
-        private async Task<RelayAskResultInfo> RelayAsk(RelayInfo relayInfo)
+        private async Task<RelayAskResultInfo> RelayAsk(RelayInfo170 relayInfo)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
-                MessengerId = (ushort)RelayMessengerIds.RelayAsk,
+                MessengerId = (ushort)RelayMessengerIds.RelayAsk170,
                 Payload = serializer.Serialize(relayInfo),
                 Timeout = 2000
             }).ConfigureAwait(false);
@@ -138,7 +138,7 @@ namespace linker.messenger.relay.client.transport
             return result;
 
         }
-        private async Task<Socket> ConnectNodeServer(RelayInfo relayInfo, List<RelayServerNodeReportInfo> nodes)
+        private async Task<Socket> ConnectNodeServer(RelayInfo170 relayInfo, List<RelayServerNodeReportInfo> nodes)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1 * 1024);
 
@@ -211,13 +211,13 @@ namespace linker.messenger.relay.client.transport
             }
             return null;
         }
-        private async Task<bool> RelayConfirm(RelayInfo relayInfo)
+        private async Task<bool> RelayConfirm(RelayInfo170 relayInfo)
         {
             //通知对方去确认中继
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
-                MessengerId = (ushort)RelayMessengerIds.RelayForward,
+                MessengerId = (ushort)RelayMessengerIds.RelayForward170,
                 Payload = serializer.Serialize(relayInfo),
             });
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
@@ -228,7 +228,7 @@ namespace linker.messenger.relay.client.transport
         {
             return true;
         }
-        public async Task<bool> OnBeginAsync(RelayInfo relayInfo, Action<ITunnelConnection> callback)
+        public async Task<bool> OnBeginAsync(RelayInfo170 relayInfo, Action<ITunnelConnection> callback)
         {
             try
             {
@@ -267,7 +267,7 @@ namespace linker.messenger.relay.client.transport
             return false;
         }
 
-        private async Task<TunnelConnectionTcp> WaitSSL(Socket socket, RelayInfo relayInfo)
+        private async Task<TunnelConnectionTcp> WaitSSL(Socket socket, RelayInfo170 relayInfo)
         {
             try
             {
@@ -306,14 +306,14 @@ namespace linker.messenger.relay.client.transport
             return null;
         }
 
-        public async Task<List<RelayServerNodeReportInfo>> RelayTestAsync(RelayTestInfo relayTestInfo)
+        public async Task<List<RelayServerNodeReportInfo>> RelayTestAsync(RelayTestInfo170 relayTestInfo)
         {
             try
             {
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = signInClientState.Connection,
-                    MessengerId = (ushort)RelayMessengerIds.RelayTest,
+                    MessengerId = (ushort)RelayMessengerIds.RelayTest170,
                     Payload = serializer.Serialize(relayTestInfo),
                     Timeout = 2000
                 }).ConfigureAwait(false);

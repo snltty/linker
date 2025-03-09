@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.messenger.relay.messenger;
 using linker.messenger.relay.server.caching;
 using System.Collections.Concurrent;
 using System.Net;
@@ -18,11 +19,14 @@ namespace linker.messenger.relay.server
         private readonly IRelayServerCaching relayCaching;
         private readonly ISerializer serializer;
         private readonly IRelayServerCdkeyStore relayServerCdkeyStore;
-        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, ISerializer serializer, IRelayServerMasterStore relayServerMasterStore, IRelayServerCdkeyStore relayServerCdkeyStore)
+        private readonly IMessengerSender messengerSender;
+
+        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, ISerializer serializer, IRelayServerMasterStore relayServerMasterStore, IRelayServerCdkeyStore relayServerCdkeyStore, IMessengerSender messengerSender)
         {
             this.relayCaching = relayCaching;
             this.serializer = serializer;
             this.relayServerCdkeyStore = relayServerCdkeyStore;
+            this.messengerSender = messengerSender;
             TrafficTask();
         }
 
@@ -70,6 +74,7 @@ namespace linker.messenger.relay.server
                     info.EndPoint.Address = connection.Address.Address;
                 }
                 info.LastTicks = Environment.TickCount64;
+                info.Connection = connection;
                 reports.AddOrUpdate(info.Id, info, (a, b) => info);
             }
             catch (Exception ex)
@@ -81,6 +86,25 @@ namespace linker.messenger.relay.server
             }
         }
         /// <summary>
+        /// 更新节点
+        /// </summary>
+        /// <param name="info"></param>
+        public async Task UpdateNodeReport(RelayServerNodeUpdateInfo info)
+        {
+            if (RelayServerNodeInfo.MASTER_NODE_ID == info.Id) return;
+
+            if (reports.TryGetValue(info.Id, out RelayServerNodeReportInfo cache))
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cache.Connection,
+                    MessengerId = (ushort)RelayMessengerIds.UpdateNode,
+                    Payload = serializer.Serialize(info)
+                });
+            }
+        }
+
+        /// <summary>
         /// 获取节点列表
         /// </summary>
         /// <param name="validated">是否已认证</param>
@@ -90,7 +114,7 @@ namespace linker.messenger.relay.server
             var result = reports.Values
                 .Where(c => c.Public || validated)
                 .Where(c => Environment.TickCount64 - c.LastTicks < 15000)
-                .Where(c => c.ConnectionRatio < 100 && (c.MaxGbTotal == 0 || (c.MaxGbTotal > 0 && c.MaxGbTotalLastBytes > 0)))
+                .Where(c => validated || (c.ConnectionRatio < 100 && (c.MaxGbTotal == 0 || (c.MaxGbTotal > 0 && c.MaxGbTotalLastBytes > 0))))
                 .OrderByDescending(c => c.LastTicks);
 
             return result.OrderByDescending(x => x.MaxConnection == 0 ? int.MaxValue : x.MaxConnection)
@@ -113,7 +137,11 @@ namespace linker.messenger.relay.server
             return reports.TryGetValue(nodeId, out RelayServerNodeReportInfo relayNodeReportInfo) && relayNodeReportInfo.Public == false;
         }
 
-
+        /// <summary>
+        /// 消耗流量
+        /// </summary>
+        /// <param name="relayTrafficUpdateInfo"></param>
+        /// <returns></returns>
         public async Task<Dictionary<long, long>> AddTraffic(RelayTrafficUpdateInfo relayTrafficUpdateInfo)
         {
             if (relayTrafficUpdateInfo.Dic.Count > 0)
@@ -134,7 +162,7 @@ namespace linker.messenger.relay.server
                     await relayServerCdkeyStore.Traffic(dic).ConfigureAwait(false);
                 }
                 return true;
-            },3000);
+            }, 3000);
         }
     }
 }

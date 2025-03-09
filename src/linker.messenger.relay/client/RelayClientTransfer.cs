@@ -78,7 +78,7 @@ namespace linker.messenger.relay.client
                     return null;
                 }
 
-                transport.RelayInfo relayInfo = new transport.RelayInfo
+                transport.RelayInfo170 relayInfo = new transport.RelayInfo170
                 {
                     FlowingId = 0,
                     FromMachineId = fromMachineId,
@@ -126,7 +126,7 @@ namespace linker.messenger.relay.client
         /// </summary>
         /// <param name="relayInfo"></param>
         /// <returns></returns>
-        public async Task<bool> OnBeginAsync(transport.RelayInfo relayInfo)
+        public async Task<bool> OnBeginAsync(transport.RelayInfo170 relayInfo)
         {
             if (connectingDic.TryAdd(relayInfo.FromMachineId, true) == false)
             {
@@ -173,7 +173,7 @@ namespace linker.messenger.relay.client
         /// </summary>
         /// <param name="relayInfo"></param>
         /// <param name="connection"></param>
-        private void ConnectedCallback(transport.RelayInfo relayInfo, ITunnelConnection connection)
+        private void ConnectedCallback(transport.RelayInfo170 relayInfo, ITunnelConnection connection)
         {
             if (OnConnected.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))
             {

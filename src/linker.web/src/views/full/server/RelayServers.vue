@@ -1,24 +1,32 @@
 <template>
     <el-form-item :label="$t('server.relaySecretKey')">
-        <div class="flex">
-            <el-input class="flex-1" type="password" show-password v-model="state.list.SecretKey" maxlength="36" @change="handleSave" />
-            <Sync class="mgl-1" name="RelaySecretKey"></Sync>
-            <div class="mgl-1">
-                <el-checkbox class="mgr-1" v-model="state.list.SSL" :label="$t('server.relaySSL')" @change="handleSave" />
-                <el-checkbox v-model="state.list.Disabled" :label="$t('server.relayDisable')" @change="handleSave" />
+        <div >
+            <div class="flex">
+                <el-input class="flex-1" type="password" show-password v-model="state.list.SecretKey" maxlength="36" @change="handleSave" />
+                <Sync class="mgl-1" name="RelaySecretKey"></Sync>
             </div>
-            <a href="javascript:;" @click="state.show=true" class="mgl-1 delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
-                {{$t('server.relayNodes')}} : {{state.nodes.length}}
-            </a>
-            <RelayCdkey></RelayCdkey>
+            <div class="flex">
+                <div class="mgr-1">
+                    <el-checkbox class="mgr-1" v-model="state.list.SSL" :label="$t('server.relaySSL')" @change="handleSave" />
+                    <el-checkbox v-model="state.list.Disabled" :label="$t('server.relayDisable')" @change="handleSave" />
+                </div>
+                <a href="javascript:;" @click="state.show=true" class="mgl-1 delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
+                    {{$t('server.relayNodes')}} : {{state.nodes.length}}
+                </a>
+                <RelayCdkey></RelayCdkey>
+            </div>
         </div>
        
-    </el-form-item>
-    
+    </el-form-item>   
     <el-dialog v-model="state.show" :title="$t('server.relayTitle')" width="760" top="2vh">
         <div>
             <el-table :data="state.nodes" size="small" border height="500">
-                <el-table-column property="Name" :label="$t('server.relayName')"></el-table-column>
+                <el-table-column property="Name" :label="$t('server.relayName')">
+                    <template #default="scope">
+                        <a :href="scope.row.Url" class="a-line blue" target="_blank">{{ scope.row.Name }}</a>
+                        <a v-if="state.hasRelayCdkey" href="javascript:;" class="a-line" @click="handleEdit(scope.row)"><el-icon><Edit /></el-icon></a>
+                    </template>
+                </el-table-column>
                 <el-table-column property="MaxGbTotal" :label="$t('server.relayFlow')" width="160">
                     <template #default="scope">
                         <span v-if="scope.row.MaxGbTotal == 0">--</span>
@@ -59,17 +67,20 @@
             </el-table>
         </div>
     </el-dialog>
+    <EditNode v-if="state.showEdit" v-model="state.showEdit" :data="state.current"></EditNode>
 </template>
 <script>
-import { setRelayServers, setRelaySubscribe } from '@/apis/relay';
+import { relayCdkeyAccess, setRelayServers, setRelaySubscribe } from '@/apis/relay';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { onMounted, onUnmounted, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
 import Sync from '../sync/Index.vue'
 import RelayCdkey from './relayCdkey/Index.vue'
+import EditNode from './EditNode.vue';
+import { Edit } from '@element-plus/icons-vue';
 export default {
-    components:{Sync,RelayCdkey},
+    components:{Sync,RelayCdkey,EditNode,Edit},
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();
@@ -77,11 +88,19 @@ export default {
             list:globalData.value.config.Client.Relay.Server,
             show:false,
             nodes:[],
-            timer:0
+            timer:0,
+            showEdit:false,
+            current:{},
+            hasRelayCdkey:false
         });
         watch(()=>globalData.value.config.Client.Relay.Server,()=>{
             state.list.Delay = globalData.value.config.Client.Relay.Server.Delay;
-        })
+        });
+
+        const handleEdit = (row)=>{
+            state.current = row;
+            state.showEdit = true;
+        }
 
         const handleSave = ()=>{
             setRelayServers(state.list).then(()=>{
@@ -91,7 +110,6 @@ export default {
                 ElMessage.error(t('common.operFail'));
             });;
         }
-
         const _setRelaySubscribe = ()=>{
             setRelaySubscribe().then((res)=>{
                 state.nodes = res;
@@ -102,14 +120,20 @@ export default {
         }
         onMounted(()=>{
             _setRelaySubscribe();
+            relayCdkeyAccess().then(res=>{
+                state.hasRelayCdkey = res;
+            }).catch(()=>{})
         });
         onUnmounted(()=>{
             clearTimeout(state.timer);
         })
 
-        return {state,handleSave}
+        return {state,handleSave,handleEdit}
     }
 }
 </script>
 <style lang="stylus" scoped>
+.blue {
+    color: #409EFF;
+}
 </style>
