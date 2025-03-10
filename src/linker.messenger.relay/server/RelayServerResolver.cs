@@ -24,8 +24,6 @@ namespace linker.messenger.relay.server
 
         private readonly ConcurrentDictionary<ulong, RelayWrapInfo> relayDic = new ConcurrentDictionary<ulong, RelayWrapInfo>();
 
-
-
         public virtual void AddReceive(string key, string from, string to, string groupid, long bytes)
         {
         }
