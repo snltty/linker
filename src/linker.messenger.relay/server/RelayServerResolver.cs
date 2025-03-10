@@ -104,9 +104,14 @@ namespace linker.messenger.relay.server
                                 }
                                 relayWrap.Tcs.SetResult();
 
-                                RelaySpeedLimit limit = new RelaySpeedLimit();
-                                _ = CopyToAsync(relayCache, limit, socket, relayWrap.Socket);
-                                _ = CopyToAsync(relayCache, limit, relayWrap.Socket, socket);
+                                RelayTrafficCacheInfo trafficCacheInfo = new RelayTrafficCacheInfo { Cache = relayCache, Sendt = 0, Limit = new RelaySpeedLimit() };
+                                relayServerNodeTransfer.AddTrafficCache(trafficCacheInfo);
+                                relayServerNodeTransfer.IncrementConnectionNum();
+                                _ = Task.WhenAll(CopyToAsync(trafficCacheInfo, socket, relayWrap.Socket), CopyToAsync(trafficCacheInfo, relayWrap.Socket, socket)).ContinueWith((result) =>
+                                {
+                                    relayServerNodeTransfer.DecrementConnectionNum();
+                                    relayServerNodeTransfer.RemoveTrafficCache(trafficCacheInfo);
+                                });
                             }
                             break;
                         default:
@@ -139,15 +144,11 @@ namespace linker.messenger.relay.server
                 ArrayPool<byte>.Shared.Return(buffer);
             }
         }
-        private async Task CopyToAsync(RelayCacheInfo cache, RelaySpeedLimit limit, Socket source, Socket destination)
+        private async Task CopyToAsync(RelayTrafficCacheInfo trafficCacheInfo, Socket source, Socket destination)
         {
-            RelayTrafficCacheInfo trafficCacheInfo = new RelayTrafficCacheInfo { Cache = cache, Sendt = 0, Limit = limit };
             byte[] buffer = new byte[8 * 1024];
             try
             {
-                relayServerNodeTransfer.IncrementConnectionNum();
-                relayServerNodeTransfer.AddTrafficCache(trafficCacheInfo);
-
                 int bytesRead;
                 while ((bytesRead = await source.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false)) != 0)
                 {
@@ -170,19 +171,19 @@ namespace linker.messenger.relay.server
                         }
                     }
                     //单个速度
-                    if (limit.NeedLimit())
+                    if (trafficCacheInfo.Limit.NeedLimit())
                     {
                         int length = bytesRead;
-                        limit.TryLimit(ref length);
+                        trafficCacheInfo.Limit.TryLimit(ref length);
                         while (length > 0)
                         {
                             await Task.Delay(30).ConfigureAwait(false);
-                            limit.TryLimit(ref length);
+                            trafficCacheInfo.Limit.TryLimit(ref length);
                         }
                     }
 
-                    AddReceive(cache.FromId, cache.FromName, cache.ToName, cache.GroupId, bytesRead);
-                    AddSendt(cache.FromId, cache.FromName, cache.ToName, cache.GroupId, bytesRead);
+                    AddReceive(trafficCacheInfo.Cache.FromId, trafficCacheInfo.Cache.FromName, trafficCacheInfo.Cache.ToName, trafficCacheInfo.Cache.GroupId, bytesRead);
+                    AddSendt(trafficCacheInfo.Cache.FromId, trafficCacheInfo.Cache.FromName, trafficCacheInfo.Cache.ToName, trafficCacheInfo.Cache.GroupId, bytesRead);
                     await destination.SendAsync(buffer.AsMemory(0, bytesRead), SocketFlags.None).ConfigureAwait(false);
                 }
             }
@@ -191,8 +192,6 @@ namespace linker.messenger.relay.server
             }
             finally
             {
-                relayServerNodeTransfer.DecrementConnectionNum();
-                relayServerNodeTransfer.RemoveTrafficCache(trafficCacheInfo);
                 source.SafeClose();
                 destination.SafeClose();
             }
@@ -264,6 +263,7 @@ namespace linker.messenger.relay.server
     public sealed class RelayTrafficCacheInfo
     {
         public long Sendt;
+        public long SendtCache;
         public RelaySpeedLimit Limit { get; set; }
         public RelayCacheInfo Cache { get; set; }
         public RelayServerCdkeyInfo CurrentCdkey { get; set; }

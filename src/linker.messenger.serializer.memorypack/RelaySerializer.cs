@@ -456,8 +456,6 @@ namespace linker.messenger.serializer.memorypack
         IPEndPoint EndPoint => info.EndPoint;
         [MemoryPackInclude]
         long LastTicks => info.LastTicks;
-        [MemoryPackInclude]
-        string Url => info.Url;
 
 
         [MemoryPackConstructor]
@@ -467,7 +465,7 @@ namespace linker.messenger.serializer.memorypack
             double maxGbTotal, long maxGbTotalLastBytes,
             double connectionRatio, double bandwidthRatio,
             bool Public, int delay,
-            IPEndPoint endPoint, long lastTicks, string url)
+            IPEndPoint endPoint, long lastTicks)
         {
             var info = new RelayServerNodeReportInfo
             {
@@ -483,8 +481,7 @@ namespace linker.messenger.serializer.memorypack
                 MaxGbTotal = maxGbTotal,
                 MaxGbTotalLastBytes = maxGbTotalLastBytes,
                 Name = name,
-                Public = Public,
-                Url = url
+                Public = Public
             };
             this.info = info;
         }
@@ -521,7 +518,102 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
+    [MemoryPackable]
+    public readonly partial struct SerializableRelayServerNodeReportInfo170
+    {
+        [MemoryPackIgnore]
+        public readonly RelayServerNodeReportInfo170 info;
 
+        [MemoryPackInclude]
+        string Id => info.Id;
+        [MemoryPackInclude]
+        string Name => info.Name;
+        [MemoryPackInclude]
+        int MaxConnection => info.MaxConnection;
+        [MemoryPackInclude]
+        double MaxBandwidth => info.MaxBandwidth;
+        [MemoryPackInclude]
+        double MaxBandwidthTotal => info.MaxBandwidthTotal;
+        [MemoryPackInclude]
+        double MaxGbTotal => info.MaxGbTotal;
+        [MemoryPackInclude]
+        long MaxGbTotalLastBytes => info.MaxGbTotalLastBytes;
+        [MemoryPackInclude]
+        double ConnectionRatio => info.ConnectionRatio;
+        [MemoryPackInclude]
+        double BandwidthRatio => info.BandwidthRatio;
+        [MemoryPackInclude]
+        bool Public => info.Public;
+        [MemoryPackInclude]
+        int Delay => info.Delay;
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        IPEndPoint EndPoint => info.EndPoint;
+        [MemoryPackInclude]
+        long LastTicks => info.LastTicks;
+        [MemoryPackInclude]
+        string Url => info.Url;
+
+
+        [MemoryPackConstructor]
+        SerializableRelayServerNodeReportInfo170(
+            string id, string name,
+            int maxConnection, double maxBandwidth, double maxBandwidthTotal,
+            double maxGbTotal, long maxGbTotalLastBytes,
+            double connectionRatio, double bandwidthRatio,
+            bool Public, int delay,
+            IPEndPoint endPoint, long lastTicks, string url)
+        {
+            var info = new RelayServerNodeReportInfo170
+            {
+                BandwidthRatio = bandwidthRatio,
+                ConnectionRatio = connectionRatio,
+                Delay = delay,
+                EndPoint = endPoint,
+                Id = id,
+                LastTicks = lastTicks,
+                MaxBandwidth = maxBandwidth,
+                MaxBandwidthTotal = maxBandwidthTotal,
+                MaxConnection = maxConnection,
+                MaxGbTotal = maxGbTotal,
+                MaxGbTotalLastBytes = maxGbTotalLastBytes,
+                Name = name,
+                Public = Public,
+                Url = url
+            };
+            this.info = info;
+        }
+
+        public SerializableRelayServerNodeReportInfo170(RelayServerNodeReportInfo170 info)
+        {
+            this.info = info;
+        }
+    }
+    public class RelayServerNodeReportInfo170Formatter : MemoryPackFormatter<RelayServerNodeReportInfo170>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayServerNodeReportInfo170 value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableRelayServerNodeReportInfo170(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayServerNodeReportInfo170 value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableRelayServerNodeReportInfo170>();
+            value = wrapped.info;
+        }
+    }
 
 
     [MemoryPackable]
@@ -574,6 +666,57 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableRelayAskResultInfo170
+    {
+        [MemoryPackIgnore]
+        public readonly RelayAskResultInfo170 info;
+
+        [MemoryPackInclude]
+        ulong FlowingId => info.FlowingId;
+        [MemoryPackInclude]
+        List<RelayServerNodeReportInfo170> Nodes => info.Nodes;
+
+        [MemoryPackConstructor]
+        SerializableRelayAskResultInfo170(ulong flowingId, List<RelayServerNodeReportInfo170> nodes)
+        {
+            var info = new RelayAskResultInfo170 { FlowingId = flowingId, Nodes = nodes };
+            this.info = info;
+        }
+
+        public SerializableRelayAskResultInfo170(RelayAskResultInfo170 info)
+        {
+            this.info = info;
+        }
+    }
+    public class RelayAskResultInfo170Formatter : MemoryPackFormatter<RelayAskResultInfo170>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayAskResultInfo170 value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableRelayAskResultInfo170(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayAskResultInfo170 value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableRelayAskResultInfo170>();
+            value = wrapped.info;
+        }
+    }
 
 
 
@@ -1150,17 +1293,14 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         Dictionary<long, long> Dic => info.Dic;
         [MemoryPackInclude]
-        List<long> Ids => info.Ids;
-        [MemoryPackInclude]
         string SecretKey => info.SecretKey;
 
         [MemoryPackConstructor]
-        SerializableRelayTrafficUpdateInfo(Dictionary<long, long> dic, List<long> ids, string secretKey)
+        SerializableRelayTrafficUpdateInfo(Dictionary<long, long> dic, string secretKey)
         {
             var info = new RelayTrafficUpdateInfo
             {
                 Dic = dic,
-                Ids = ids,
                 SecretKey = secretKey
             };
             this.info = info;

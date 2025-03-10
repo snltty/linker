@@ -103,7 +103,7 @@ namespace linker.messenger.relay.server
 
         public string Url { get; set; } = "https://linker-doc.snltty.com";
     }
-    public sealed partial class RelayServerNodeReportInfo
+    public partial class RelayServerNodeReportInfo
     {
         public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
@@ -124,7 +124,9 @@ namespace linker.messenger.relay.server
         public IPEndPoint EndPoint { get; set; }
 
         public long LastTicks { get; set; }
-
+    }
+    public sealed partial class RelayServerNodeReportInfo170: RelayServerNodeReportInfo
+    {
         public string Url { get; set; } = "https://linker-doc.snltty.com";
 
         [JsonIgnore]
@@ -138,4 +140,10 @@ namespace linker.messenger.relay.server
         public List<RelayServerNodeReportInfo> Nodes { get; set; } = new List<RelayServerNodeReportInfo>();
     }
 
+    public sealed partial class RelayAskResultInfo170
+    {
+        public ulong FlowingId { get; set; }
+
+        public List<RelayServerNodeReportInfo170> Nodes { get; set; } = new List<RelayServerNodeReportInfo170>();
+    }
 }

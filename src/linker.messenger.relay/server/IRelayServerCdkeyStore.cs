@@ -1,4 +1,7 @@
-﻿namespace linker.messenger.relay.server
+﻿using linker.libs;
+using System.Net;
+
+namespace linker.messenger.relay.server
 {
     public interface IRelayServerCdkeyStore
     {
@@ -54,6 +57,12 @@
         /// <returns></returns>
         public Task<bool> Traffic(Dictionary<long, long> dic);
         /// <summary>
+        /// 获取剩余流量
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <returns></returns>
+        public Task<Dictionary<long, long>> GetLastBytes(List<long> ids);
+        /// <summary>
         /// 分页
         /// </summary>
         /// <param name="relayServerCdkeyPageRequestInfo"></param>
@@ -66,7 +75,11 @@
         /// <summary>
         /// 加解密密钥
         /// </summary>
+#if DEBUG
+        public string SecretKey { get; set; } = Helper.GlobalString;
+#else
         public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
+#endif
     }
 
     public sealed partial class RelayServerCdkeyPageRequestInfo

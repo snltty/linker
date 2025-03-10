@@ -35,6 +35,8 @@
         RelayAsk170 = 2120,
         RelayForward170 = 2121,
 
+        SendLastBytes = 2122,
+
         Max = 2199
     }
 }

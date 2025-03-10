@@ -13,8 +13,9 @@ namespace linker.messenger.relay.server
     {
 
         private ulong relayFlowingId = 0;
-        private readonly ConcurrentDictionary<string, RelayServerNodeReportInfo> reports = new ConcurrentDictionary<string, RelayServerNodeReportInfo>();
+        private readonly ConcurrentDictionary<string, RelayServerNodeReportInfo170> reports = new ConcurrentDictionary<string, RelayServerNodeReportInfo170>();
         private readonly ConcurrentQueue<Dictionary<long, long>> trafficQueue = new ConcurrentQueue<Dictionary<long, long>>();
+        private readonly ConcurrentQueue<List<long>> trafficIdsQueue = new ConcurrentQueue<List<long>>();
 
         private readonly IRelayServerCaching relayCaching;
         private readonly ISerializer serializer;
@@ -61,7 +62,7 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="ep"></param>
         /// <param name="data"></param>
-        public void SetNodeReport(IConnection connection, RelayServerNodeReportInfo info)
+        public void SetNodeReport(IConnection connection, RelayServerNodeReportInfo170 info)
         {
             try
             {
@@ -93,7 +94,7 @@ namespace linker.messenger.relay.server
         {
             if (RelayServerNodeInfo.MASTER_NODE_ID == info.Id) return;
 
-            if (reports.TryGetValue(info.Id, out RelayServerNodeReportInfo cache))
+            if (reports.TryGetValue(info.Id, out RelayServerNodeReportInfo170 cache))
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -109,7 +110,7 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="validated">是否已认证</param>
         /// <returns></returns>
-        public List<RelayServerNodeReportInfo> GetNodes(bool validated)
+        public List<RelayServerNodeReportInfo170> GetNodes(bool validated)
         {
             var result = reports.Values
                 .Where(c => c.Public || validated)
@@ -134,7 +135,7 @@ namespace linker.messenger.relay.server
         /// <returns></returns>
         public bool NodeValidate(string nodeId)
         {
-            return reports.TryGetValue(nodeId, out RelayServerNodeReportInfo relayNodeReportInfo) && relayNodeReportInfo.Public == false;
+            return reports.TryGetValue(nodeId, out RelayServerNodeReportInfo170 relayNodeReportInfo) && relayNodeReportInfo.Public == false;
         }
 
         /// <summary>
@@ -142,16 +143,10 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="relayTrafficUpdateInfo"></param>
         /// <returns></returns>
-        public async Task<Dictionary<long, long>> AddTraffic(RelayTrafficUpdateInfo relayTrafficUpdateInfo)
+        public void AddTraffic(Dictionary<long,long> dic)
         {
-            if (relayTrafficUpdateInfo.Dic.Count > 0)
-                trafficQueue.Enqueue(relayTrafficUpdateInfo.Dic);
-
-            if (relayTrafficUpdateInfo.Ids == null || relayTrafficUpdateInfo.Ids.Count == 0)
-            {
-                return new Dictionary<long, long>();
-            }
-            return (await relayServerCdkeyStore.Get(relayTrafficUpdateInfo.Ids)).ToDictionary(c => c.CdkeyId, c => c.LastBytes);
+            if (dic.Count > 0)
+                trafficQueue.Enqueue(dic);
         }
         private void TrafficTask()
         {
@@ -159,10 +154,50 @@ namespace linker.messenger.relay.server
             {
                 while (trafficQueue.TryDequeue(out Dictionary<long, long> dic))
                 {
-                    await relayServerCdkeyStore.Traffic(dic).ConfigureAwait(false);
+                    try
+                    {
+                        await relayServerCdkeyStore.Traffic(dic).ConfigureAwait(false);
+
+                        var ids = dic.Keys.ToList();
+                        while (ids.Count > 0)
+                        {
+                            var id = ids.Take(100).ToList();
+                            trafficIdsQueue.Enqueue(id);
+                            ids.RemoveRange(0, id.Count);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
                 }
                 return true;
-            }, 3000);
+            }, 500);
+            TimerHelper.SetIntervalLong(async () =>
+            {
+                while (trafficIdsQueue.TryDequeue(out List<long> ids))
+                {
+                    try
+                    {
+                        Dictionary<long, long> id2last = await relayServerCdkeyStore.GetLastBytes(ids).ConfigureAwait(false);
+                        if (id2last.Count == 0) continue;
+                        byte[] bytes = serializer.Serialize(id2last);
+
+                        await Task.WhenAll(reports.Values.Select(c => messengerSender.SendOnly(new MessageRequestWrap
+                        {
+                            Connection = c.Connection,
+                            MessengerId = (ushort)RelayMessengerIds.SendLastBytes,
+                            Payload = bytes,
+                        })).ToList());
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
+                }
+                return true;
+            }, 500);
+
         }
     }
 }

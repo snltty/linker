@@ -168,10 +168,14 @@ namespace linker.messenger.store.file.relay
             }
             return await Task.FromResult(true);
         }
+        public async Task<Dictionary<long,long>> GetLastBytes(List<long> ids)
+        {
+            return await Task.FromResult(liteCollection.Find(c => ids.Contains(c.CdkeyId)).ToDictionary(c => c.CdkeyId, c => c.LastBytes));
+        }
 
         public async Task<List<RelayServerCdkeyStoreInfo>> GetAvailable(string userid)
         {
-            return await Task.FromResult(liteCollection.Find(x => x.UserId == userid && x.LastBytes > 0 && x.StartTime <= DateTime.Now && x.EndTime < DateTime.Now && x.Deleted == false).ToList());
+            return await Task.FromResult(liteCollection.Find(x => x.UserId == userid && x.LastBytes > 0 && x.StartTime <= DateTime.Now && x.EndTime >= DateTime.Now && x.Deleted == false).ToList());
         }
         public async Task<List<RelayServerCdkeyStoreInfo>> Get(List<long> ids)
         {
@@ -184,11 +188,11 @@ namespace linker.messenger.store.file.relay
 
             if (info.Flag.HasFlag(RelayServerCdkeyPageRequestFlag.TimeIn))
             {
-                query = query.Where(x => x.EndTime > DateTime.Now);
+                query = query.Where(x => x.StartTime <= DateTime.Now && x.EndTime >= DateTime.Now);
             }
             if (info.Flag.HasFlag(RelayServerCdkeyPageRequestFlag.TimeOut))
             {
-                query = query.Where(x => x.EndTime < DateTime.Now);
+                query = query.Where(x =>x.StartTime > DateTime.Now || x.EndTime < DateTime.Now);
             }
             if (info.Flag.HasFlag(RelayServerCdkeyPageRequestFlag.BytesIn))
             {

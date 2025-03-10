@@ -43,7 +43,7 @@ namespace linker.messenger.relay
             return true;
         }
 
-        public List<RelayServerNodeReportInfo> Subscribe(ApiControllerParamsInfo param)
+        public List<RelayServerNodeReportInfo170> Subscribe(ApiControllerParamsInfo param)
         {
             relayTestTransfer.Subscribe();
             return relayTestTransfer.Nodes;

@@ -18,7 +18,7 @@ namespace linker.messenger.relay
         private readonly ISignInClientStore signInClientStore;
         private readonly IRelayClientStore relayClientStore;
 
-        public List<RelayServerNodeReportInfo> Nodes { get; private set; } = new List<RelayServerNodeReportInfo>();
+        public List<RelayServerNodeReportInfo170> Nodes { get; private set; } = new List<RelayServerNodeReportInfo170>();
 
         public RelayClientTestTransfer(RelayClientTransfer relayTransfer, SignInClientState signInClientState, ISignInClientStore signInClientStore, IRelayClientStore relayClientStore)
         {

@@ -44,7 +44,7 @@ namespace linker.messenger.relay.client.transport
             try
             {
                 //问一下能不能中继
-                RelayAskResultInfo relayAskResultInfo = await RelayAsk(relayInfo);
+                RelayAskResultInfo170 relayAskResultInfo = await RelayAsk(relayInfo);
                 relayInfo.FlowingId = relayAskResultInfo.FlowingId;
                 if (relayInfo.FlowingId == 0 || relayAskResultInfo.Nodes.Count == 0)
                 {
@@ -119,7 +119,7 @@ namespace linker.messenger.relay.client.transport
             return null;
         }
 
-        private async Task<RelayAskResultInfo> RelayAsk(RelayInfo170 relayInfo)
+        private async Task<RelayAskResultInfo170> RelayAsk(RelayInfo170 relayInfo)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
@@ -130,15 +130,15 @@ namespace linker.messenger.relay.client.transport
             }).ConfigureAwait(false);
             if (resp.Code != MessageResponeCodes.OK)
             {
-                return new RelayAskResultInfo();
+                return new RelayAskResultInfo170();
             }
 
-            RelayAskResultInfo result = serializer.Deserialize<RelayAskResultInfo>(resp.Data.Span);
+            RelayAskResultInfo170 result = serializer.Deserialize<RelayAskResultInfo170>(resp.Data.Span);
 
             return result;
 
         }
-        private async Task<Socket> ConnectNodeServer(RelayInfo170 relayInfo, List<RelayServerNodeReportInfo> nodes)
+        private async Task<Socket> ConnectNodeServer(RelayInfo170 relayInfo, List<RelayServerNodeReportInfo170> nodes)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1 * 1024);
 
@@ -306,7 +306,7 @@ namespace linker.messenger.relay.client.transport
             return null;
         }
 
-        public async Task<List<RelayServerNodeReportInfo>> RelayTestAsync(RelayTestInfo170 relayTestInfo)
+        public async Task<List<RelayServerNodeReportInfo170>> RelayTestAsync(RelayTestInfo170 relayTestInfo)
         {
             try
             {
@@ -320,13 +320,13 @@ namespace linker.messenger.relay.client.transport
 
                 if (resp.Code == MessageResponeCodes.OK)
                 {
-                    return serializer.Deserialize<List<RelayServerNodeReportInfo>>(resp.Data.Span);
+                    return serializer.Deserialize<List<RelayServerNodeReportInfo170>>(resp.Data.Span);
                 }
             }
             catch (Exception)
             {
             }
-            return new List<RelayServerNodeReportInfo>();
+            return new List<RelayServerNodeReportInfo170>();
         }
     }
 }

@@ -1,6 +1,5 @@
 import { getTunnelInfo, refreshTunnel } from "@/apis/tunnel";
 import { injectGlobalData } from "@/provide";
-import { ElMessage } from "element-plus";
 import { inject, provide, ref } from "vue";
 
 const tunnelSymbol = Symbol();
