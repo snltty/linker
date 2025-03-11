@@ -73,6 +73,10 @@ namespace linker.libs
             }
             Enqueue(new LoggerModel { Type = LoggerTypes.WARNING, Content = content });
         }
+        public void Warning(Exception ex)
+        {
+            Enqueue(new LoggerModel { Type = LoggerTypes.WARNING, Content = ex + "" });
+        }
         public void Error(string content, params object[] args)
         {
             if (args != null && args.Length > 0)

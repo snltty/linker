@@ -4,6 +4,7 @@ using linker.messenger.signin;
 using linker.tunnel;
 using System.Net;
 using System.Net.Quic;
+using System.Text.Json.Nodes;
 
 namespace linker.messenger.tunnel
 {
@@ -45,23 +46,55 @@ namespace linker.messenger.tunnel
             LoggerHelper.Instance.Warning($"tunnel route level:{Info.RouteLevel}");
         }
 
+        private async Task GetIsp()
+        {
+            try
+            {
+                using HttpClient httpClient = new HttpClient();
+                string str = await httpClient.GetStringAsync($"http://ip-api.com/json").WaitAsync(TimeSpan.FromMilliseconds(3000));
+
+                if (string.IsNullOrWhiteSpace(str) == false)
+                {
+                    TunnelNetInfo net = str.DeJson<TunnelNetInfo>();
+                    Info.Net.Isp = net.Isp;
+                    Info.Net.As = net.As;
+                    Info.Net.Org = net.Org;
+                    Info.Net.Region = net.Region;
+                    Info.Net.RegionName = net.RegionName;
+                    Info.Net.Country = net.Country;
+                    Info.Net.CountryCode = net.CountryCode;
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerHelper.Instance.Warning(ex);
+            }
+        }
+        private async Task GetPosition()
+        {
+            try
+            {
+                using HttpClient httpClient = new HttpClient();
+                string str = await httpClient.GetStringAsync($"https://api.myip.la/en?json").WaitAsync(TimeSpan.FromMilliseconds(5000));
+
+                if (string.IsNullOrWhiteSpace(str) == false)
+                {
+                    JsonNode json = JsonObject.Parse(str);
+                    Info.Net.City = json["location"]["city"].ToString();
+                    Info.Net.Lat = double.Parse(json["location"]["latitude"].ToString());
+                    Info.Net.Lon = double.Parse(json["location"]["longitude"].ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerHelper.Instance.Warning(ex);
+            }
+        }
         private async Task GetNet()
         {
             if (string.IsNullOrWhiteSpace(Info.Net.City))
             {
-                try
-                {
-                    using HttpClient httpClient = new HttpClient();
-                    string str = await httpClient.GetStringAsync($"http://ip-api.com/json").WaitAsync(TimeSpan.FromMilliseconds(3000));
-
-                    if (string.IsNullOrWhiteSpace(str) == false)
-                    {
-                        Info.Net = str.DeJson<TunnelNetInfo>();
-                    }
-                }
-                catch (Exception)
-                {
-                }
+                await Task.WhenAll(GetIsp(), GetPosition());
             }
         }
 

@@ -179,7 +179,7 @@ namespace linker.tunnel.transport
                 return new TunnelConnectionUdp
                 {
                     UdpClient = remoteUdp,
-                    IPEndPoint = remoteEP,
+                    IPEndPoint = NetworkHelper.TransEndpointFamily( remoteEP),
                     TransactionId = tunnelTransportInfo.TransactionId,
                     TransactionTag = tunnelTransportInfo.TransactionTag,
                     RemoteMachineId = tunnelTransportInfo.Remote.MachineId,
@@ -224,7 +224,7 @@ namespace linker.tunnel.transport
             TimerHelper.Async(async () =>
             {
                 byte[] buffer = new byte[1024];
-                SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer, new IPEndPoint(IPAddress.Any, 0)).ConfigureAwait(false);
+                SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer, new IPEndPoint(IPAddress.IPv6Any, 0)).ConfigureAwait(false);
                 await socket.SendToAsync(endBytes, result.RemoteEndPoint);
                 tcs.SetResult(result.RemoteEndPoint as IPEndPoint);
             });
@@ -408,7 +408,7 @@ namespace linker.tunnel.transport
                         TransactionId = state.TransactionId,
                         TransactionTag = state.TransactionTag,
                         TransportName = state.TransportName,
-                        IPEndPoint = remoteEP,
+                        IPEndPoint = NetworkHelper.TransEndpointFamily(remoteEP),
                         Label = string.Empty,
                         Receive = true,
                         SSL = state.SSL,

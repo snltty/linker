@@ -230,7 +230,7 @@ namespace linker.tunnel.transport
                     RemoteUdp = remoteUdp,
                     Stream = quicStream,
                     Connection = connection,
-                    IPEndPoint = remoteEP,
+                    IPEndPoint = NetworkHelper.TransEndpointFamily(remoteEP),
                     TransactionId = tunnelTransportInfo.TransactionId,
                     TransactionTag = tunnelTransportInfo.TransactionTag,
                     RemoteMachineId = tunnelTransportInfo.Remote.MachineId,
@@ -626,7 +626,7 @@ namespace linker.tunnel.transport
                         TransactionId = state.TransactionId,
                         TransactionTag = state.TransactionTag,
                         TransportName = state.TransportName,
-                        IPEndPoint = remoteEP,
+                        IPEndPoint = NetworkHelper.TransEndpointFamily(remoteEP),
                         Label = string.Empty,
                         BufferSize = state.BufferSize,
                     };

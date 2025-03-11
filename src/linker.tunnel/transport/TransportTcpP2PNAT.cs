@@ -178,7 +178,7 @@ namespace linker.tunnel.transport
                 {
                     Stream = sslStream,
                     Socket = socket,
-                    IPEndPoint = socket.RemoteEndPoint as IPEndPoint,
+                    IPEndPoint = NetworkHelper.TransEndpointFamily(socket.RemoteEndPoint as IPEndPoint),
                     TransactionId = state.TransactionId,
                     TransactionTag = state.TransactionTag,
                     RemoteMachineId = state.Remote.MachineId,
@@ -238,7 +238,7 @@ namespace linker.tunnel.transport
                     TransactionId = state.TransactionId,
                     TransactionTag = state.TransactionTag,
                     TransportName = state.TransportName,
-                    IPEndPoint = socket.RemoteEndPoint as IPEndPoint,
+                    IPEndPoint = NetworkHelper.TransEndpointFamily(socket.RemoteEndPoint as IPEndPoint),
                     Label = string.Empty,
                     SSL = state.SSL,
                     BufferSize = state.BufferSize,

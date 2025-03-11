@@ -6,6 +6,7 @@ using linker.messenger.relay.server;
 using linker.messenger.signin;
 using linker.messenger.relay.server.validator;
 using linker.libs.extends;
+using System.Collections.Generic;
 
 namespace linker.messenger.relay.messenger
 {
@@ -73,6 +74,7 @@ namespace linker.messenger.relay.messenger
             await RelayTest(connection, info, (validated) =>
             {
                 List<RelayServerNodeReportInfo> list = relayServerTransfer.GetNodes(validated).Select(c => (RelayServerNodeReportInfo)c).ToList();
+
                 return serializer.Serialize(list);
             });
         }
@@ -264,10 +266,6 @@ namespace linker.messenger.relay.messenger
         public void NodeReport(IConnection connection)
         {
             RelayServerNodeReportInfo170 info = serializer.Deserialize<RelayServerNodeReportInfo170>(connection.ReceiveRequestWrap.Payload.Span);
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            {
-                LoggerHelper.Instance.Debug($"relay node report : {info.ToJson()}");
-            }
             relayServerTransfer.SetNodeReport(connection, info);
         }
         /// <summary>
@@ -279,10 +277,7 @@ namespace linker.messenger.relay.messenger
         public void UpdateNode(IConnection connection)
         {
             RelayServerNodeUpdateInfo info = serializer.Deserialize<RelayServerNodeUpdateInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (relayServerNodeTransfer.Id == info.Id)
-            {
-                relayServerNodeTransfer.UpdateNode(info);
-            }
+            relayServerNodeTransfer.UpdateNode(info);
         }
         /// <summary>
         /// 更新节点转发

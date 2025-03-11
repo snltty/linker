@@ -13,11 +13,13 @@ namespace linker.messenger.relay.server
     /// </summary>
     public class RelayServerNodeTransfer
     {
-        public string Id => relayServerNodeStore.Node.Id;
+        /// <summary>
+        /// 配置了就用配置的，每配置就用一个默认的
+        /// </summary>
+        public RelayServerNodeInfo node = null;
 
         private uint connectionNum = 0;
-        private IConnection localConnection;
-        private IConnection remoteConnection;
+        private IConnection connection;
 
         private long bytes = 0;
         private long lastBytes = 0;
@@ -38,7 +40,23 @@ namespace linker.messenger.relay.server
             this.messengerResolver = messengerResolver;
             this.messengerSender = messengerSender;
 
-            limitTotal.SetLimit((uint)Math.Ceiling((relayServerNodeStore.Node.MaxBandwidthTotal * 1024 * 1024) / 8.0));
+            node = string.IsNullOrWhiteSpace(relayServerNodeStore.Node.MasterHost) ? new RelayServerNodeInfo
+            {
+                Id = "824777CF-2804-83FE-DE71-69B7B7D3BBA7",
+                Host = new IPEndPoint(IPAddress.Any, relayServerNodeStore.ServicePort).ToString(),
+                MasterHost = new IPEndPoint(IPAddress.Loopback, relayServerNodeStore.ServicePort).ToString(),
+                MasterSecretKey = relayServerMasterStore.Master.SecretKey,
+                MaxBandwidth = 0,
+                MaxConnection = 0,
+                MaxBandwidthTotal = 0,
+                MaxGbTotal = 0,
+                MaxGbTotalLastBytes = 0,
+                MaxGbTotalMonth = 0,
+                Name = "default",
+                Public = false,
+            } : relayServerNodeStore.Node;
+
+            limitTotal.SetLimit((uint)Math.Ceiling((node.MaxBandwidthTotal * 1024 * 1024) / 8.0));
 
             TrafficTask();
             ReportTask();
@@ -46,12 +64,10 @@ namespace linker.messenger.relay.server
 
         }
 
-        public async ValueTask<RelayCacheInfo> TryGetRelayCache(string key, string nodeid)
+        public async ValueTask<RelayCacheInfo> TryGetRelayCache(string key)
         {
             try
             {
-                IConnection connection = relayServerNodeStore.Node.Id == RelayServerNodeInfo.MASTER_NODE_ID ? localConnection : remoteConnection;
-
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = connection,
@@ -73,7 +89,8 @@ namespace linker.messenger.relay.server
 
         public void UpdateNode(RelayServerNodeUpdateInfo info)
         {
-            relayServerNodeStore.UpdateInfo(info);
+            if (info.Id == node.Id)
+                relayServerNodeStore.UpdateInfo(info);
         }
 
         /// <summary>
@@ -84,6 +101,7 @@ namespace linker.messenger.relay.server
         {
             //已认证的没有流量限制
             if (relayCache.Validated) return true;
+            if (node.Public == false) return false;
             //流量卡有的，就能继续用
             if (relayCache.Cdkey.Any(c => c.LastBytes > 0)) return true;
 
@@ -95,9 +113,9 @@ namespace linker.messenger.relay.server
         /// <returns></returns>
         private bool ValidateConnection(RelayCacheInfo relayCache)
         {
-            bool res = relayServerNodeStore.Node.MaxConnection == 0 || relayServerNodeStore.Node.MaxConnection * 2 > connectionNum;
+            bool res = node.MaxConnection == 0 || node.MaxConnection * 2 > connectionNum;
             if (res == false && LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                LoggerHelper.Instance.Debug($"relay  ValidateConnection false,{connectionNum}/{relayServerNodeStore.Node.MaxConnection * 2}");
+                LoggerHelper.Instance.Debug($"relay  ValidateConnection false,{connectionNum}/{node.MaxConnection * 2}");
 
             return res;
         }
@@ -107,11 +125,11 @@ namespace linker.messenger.relay.server
         /// <returns></returns>
         private bool ValidateBytes(RelayCacheInfo relayCache)
         {
-            bool res = relayServerNodeStore.Node.MaxGbTotal == 0
-                || (relayServerNodeStore.Node.MaxGbTotal > 0 && relayServerNodeStore.Node.MaxGbTotalLastBytes > 0);
+            bool res = node.MaxGbTotal == 0
+                || (node.MaxGbTotal > 0 && node.MaxGbTotalLastBytes > 0);
 
             if (res == false && LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                LoggerHelper.Instance.Debug($"relay  ValidateBytes false,{relayServerNodeStore.Node.MaxGbTotalLastBytes}bytes/{relayServerNodeStore.Node.MaxGbTotal}gb");
+                LoggerHelper.Instance.Debug($"relay  ValidateBytes false,{node.MaxGbTotalLastBytes}bytes/{node.MaxGbTotal}gb");
 
             return res;
         }
@@ -181,14 +199,14 @@ namespace linker.messenger.relay.server
             //验证过的，不消耗流量
             if (cache.Cache.Validated) return true;
             //节点无流量限制的，不消耗流量
-            if (relayServerNodeStore.Node.MaxGbTotal == 0) return true;
+            if (node.MaxGbTotal == 0) return true;
 
             Interlocked.Add(ref cache.Sendt, length);
 
             var current = cache.CurrentCdkey;
             if (current != null) return current.LastBytes > 0;
 
-            return relayServerNodeStore.Node.MaxGbTotalLastBytes > 0;
+            return node.MaxGbTotalLastBytes > 0;
         }
 
         /// <summary>
@@ -198,7 +216,7 @@ namespace linker.messenger.relay.server
         private void SetLimit(RelayTrafficCacheInfo relayCache)
         {
             //无限制
-            if (relayCache.Cache.Validated || relayServerNodeStore.Node.MaxBandwidth == 0)
+            if (relayCache.Cache.Validated || node.MaxBandwidth == 0)
             {
                 relayCache.Limit.SetLimit(0);
                 return;
@@ -206,14 +224,14 @@ namespace linker.messenger.relay.server
 
             RelayServerCdkeyInfo currentCdkey = relayCache.Cache.Cdkey.Where(c => c.LastBytes > 0).OrderByDescending(c => c.Bandwidth).FirstOrDefault();
             //有cdkey，且带宽大于节点带宽，就用cdkey的带宽
-            if (currentCdkey != null && (currentCdkey.Bandwidth == 0 || currentCdkey.Bandwidth >= relayServerNodeStore.Node.MaxBandwidth || relayServerNodeStore.Node.MaxGbTotalLastBytes == 0))
+            if (currentCdkey != null && (currentCdkey.Bandwidth == 0 || currentCdkey.Bandwidth >= node.MaxBandwidth || node.MaxGbTotalLastBytes == 0))
             {
                 relayCache.CurrentCdkey = currentCdkey;
                 relayCache.Limit.SetLimit((uint)Math.Ceiling((relayCache.CurrentCdkey.Bandwidth * 1024 * 1024) / 8.0));
                 return;
             }
             relayCache.CurrentCdkey = null;
-            relayCache.Limit.SetLimit((uint)Math.Ceiling((relayServerNodeStore.Node.MaxBandwidth * 1024 * 1024) / 8.0));
+            relayCache.Limit.SetLimit((uint)Math.Ceiling((node.MaxBandwidth * 1024 * 1024) / 8.0));
         }
 
         /// <summary>
@@ -236,18 +254,20 @@ namespace linker.messenger.relay.server
         }
         private void ResetNodeBytes()
         {
+            if (node.MaxGbTotal == 0) return;
+
             foreach (var cache in trafficDict.Values.Where(c => c.CurrentCdkey == null))
             {
                 long length = Interlocked.Exchange(ref cache.Sendt, 0);
 
-                if (relayServerNodeStore.Node.MaxGbTotalLastBytes >= length)
-                    relayServerNodeStore.SetMaxGbTotalLastBytes(relayServerNodeStore.Node.MaxGbTotalLastBytes - length);
+                if (node.MaxGbTotalLastBytes >= length)
+                    relayServerNodeStore.SetMaxGbTotalLastBytes(node.MaxGbTotalLastBytes - length);
                 else relayServerNodeStore.SetMaxGbTotalLastBytes(0);
             }
-            if (relayServerNodeStore.Node.MaxGbTotalMonth != DateTime.Now.Month)
+            if (node.MaxGbTotalMonth != DateTime.Now.Month)
             {
                 relayServerNodeStore.SetMaxGbTotalMonth(DateTime.Now.Month);
-                relayServerNodeStore.SetMaxGbTotalLastBytes((long)(relayServerNodeStore.Node.MaxGbTotal * 1024 * 1024 * 1024));
+                relayServerNodeStore.SetMaxGbTotalLastBytes((long)(node.MaxGbTotal * 1024 * 1024 * 1024));
             }
             relayServerNodeStore.Confirm();
         }
@@ -259,14 +279,12 @@ namespace linker.messenger.relay.server
 
             bool result = await messengerSender.SendOnly(new MessageRequestWrap
             {
-                Connection = relayServerNodeStore.Node.Id == RelayServerNodeInfo.MASTER_NODE_ID ? localConnection : remoteConnection,
+                Connection = connection,
                 MessengerId = (ushort)RelayMessengerIds.TrafficReport,
                 Payload = serializer.Serialize(new RelayTrafficUpdateInfo
                 {
                     Dic = id2sent,
-                    SecretKey = relayServerNodeStore.Node.Id == RelayServerNodeInfo.MASTER_NODE_ID
-                             ? relayServerMasterStore.Master.SecretKey
-                             : relayServerNodeStore.Node.MasterSecretKey
+                    SecretKey = relayServerMasterStore.Master.SecretKey
                 }),
                 Timeout = 4000
             });
@@ -307,67 +325,39 @@ namespace linker.messenger.relay.server
         {
             TimerHelper.SetIntervalLong(async () =>
             {
-                IEnumerable<RelayServerNodeInfo> nodes = new List<RelayServerNodeInfo>
-                {
-                    //默认报告给自己，作为本服务器的一个默认中继节点
-                    new RelayServerNodeInfo{
-                        Id = RelayServerNodeInfo.MASTER_NODE_ID,
-                        Host = new IPEndPoint(IPAddress.Any, relayServerNodeStore.ServicePort).ToString(),
-                        MasterHost =  new IPEndPoint(IPAddress.Loopback, relayServerNodeStore.ServicePort).ToString(),
-                        MasterSecretKey = relayServerMasterStore.Master.SecretKey,
-                        MaxBandwidth = 0,
-                        MaxConnection = 0,
-                        MaxBandwidthTotal=0,
-                        MaxGbTotal=0,
-                        MaxGbTotalLastBytes=0,
-                        MaxGbTotalMonth=0,
-                        Name = "default",
-                        Public = false
-                    },
-                    //配置的中继节点
-                    relayServerNodeStore.Node
-                }.Where(c => string.IsNullOrWhiteSpace(c.MasterHost) == false && string.IsNullOrWhiteSpace(c.MasterSecretKey) == false)
-                .Where(c => string.IsNullOrWhiteSpace(c.Name) == false && string.IsNullOrWhiteSpace(c.Id) == false);
-
                 double diff = (bytes - lastBytes) * 8 / 1024.0 / 1024.0;
                 lastBytes = bytes;
 
-                foreach (var node in nodes)
+                try
                 {
-                    try
+                    IPEndPoint endPoint = await NetworkHelper.GetEndPointAsync(node.Host, relayServerNodeStore.ServicePort) ?? new IPEndPoint(IPAddress.Any, relayServerNodeStore.ServicePort);
+                    RelayServerNodeReportInfo170 relayNodeReportInfo = new RelayServerNodeReportInfo170
                     {
-                        IConnection connection = node.Id == RelayServerNodeInfo.MASTER_NODE_ID ? localConnection : remoteConnection;
-                        IPEndPoint endPoint = await NetworkHelper.GetEndPointAsync(node.Host, relayServerNodeStore.ServicePort) ?? new IPEndPoint(IPAddress.Any, relayServerNodeStore.ServicePort);
-
-                        RelayServerNodeReportInfo170 relayNodeReportInfo = new RelayServerNodeReportInfo170
-                        {
-                            Id = node.Id,
-                            Name = node.Name,
-                            Public = node.Public,
-                            MaxBandwidth = node.MaxBandwidth,
-                            BandwidthRatio = Math.Round(diff / 5, 2),
-                            MaxBandwidthTotal = node.MaxBandwidthTotal,
-                            MaxGbTotal = node.MaxGbTotal,
-                            MaxGbTotalLastBytes = node.MaxGbTotalLastBytes,
-                            MaxConnection = node.MaxConnection,
-                            ConnectionRatio = Math.Round(connectionNum / 2.0),
-                            EndPoint = endPoint,
-                            Url = node.Url
-                        };
-
-                        await messengerSender.SendOnly(new MessageRequestWrap
-                        {
-                            Connection = connection,
-                            MessengerId = (ushort)RelayMessengerIds.NodeReport,
-                            Payload = serializer.Serialize(relayNodeReportInfo)
-                        });
-                    }
-                    catch (Exception ex)
+                        Id = node.Id,
+                        Name = node.Name,
+                        Public = node.Public,
+                        MaxBandwidth = node.MaxBandwidth,
+                        BandwidthRatio = Math.Round(diff / 5, 2),
+                        MaxBandwidthTotal = node.MaxBandwidthTotal,
+                        MaxGbTotal = node.MaxGbTotal,
+                        MaxGbTotalLastBytes = node.MaxGbTotalLastBytes,
+                        MaxConnection = node.MaxConnection,
+                        ConnectionRatio = Math.Round(connectionNum / 2.0),
+                        EndPoint = endPoint,
+                        Url = node.Url
+                    };
+                    await messengerSender.SendOnly(new MessageRequestWrap
                     {
-                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        {
-                            LoggerHelper.Instance.Error($"relay report : {ex}");
-                        }
+                        Connection = connection,
+                        MessengerId = (ushort)RelayMessengerIds.NodeReport,
+                        Payload = serializer.Serialize(relayNodeReportInfo)
+                    });
+                }
+                catch (Exception ex)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error($"relay report : {ex}");
                     }
                 }
                 return true;
@@ -378,13 +368,9 @@ namespace linker.messenger.relay.server
         {
             TimerHelper.SetIntervalLong(async () =>
             {
-                if ((remoteConnection == null || remoteConnection.Connected == false) && string.IsNullOrWhiteSpace(relayServerNodeStore.Node.MasterHost) == false)
+                if (connection == null || connection.Connected == false)
                 {
-                    remoteConnection = await SignIn(relayServerNodeStore.Node.MasterHost, relayServerNodeStore.Node.MasterSecretKey).ConfigureAwait(false);
-                }
-                if (localConnection == null || localConnection.Connected == false)
-                {
-                    localConnection = await SignIn(new IPEndPoint(IPAddress.Loopback, relayServerNodeStore.ServicePort).ToString(), relayServerMasterStore.Master.SecretKey).ConfigureAwait(false);
+                    connection = await SignIn(node.MasterHost, node.MasterSecretKey).ConfigureAwait(false);
                 }
                 return true;
             }, 3000);
@@ -401,6 +387,10 @@ namespace linker.messenger.relay.server
 
 
                 IPEndPoint remote = await NetworkHelper.GetEndPointAsync(host, 1802);
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Warning($"relay node sign in to {remote}");
+                }
 
                 Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 socket.KeepAlive();

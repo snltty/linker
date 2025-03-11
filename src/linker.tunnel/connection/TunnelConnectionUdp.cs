@@ -93,7 +93,7 @@ namespace linker.tunnel.connection
         private async Task ProcessWrite()
         {
             byte[] buffer = new byte[65 * 1024];
-            IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
+            IPEndPoint ep = new IPEndPoint(IPEndPoint.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, 0);
             try
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)

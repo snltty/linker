@@ -17,6 +17,7 @@ export const provideTuntap = () => {
 
     const systems = {
         linux: ['debian', 'ubuntu', 'alpine', 'rocky', 'centos', 'fedora', 'archlinux'],
+        armbian: ['armbian'],
         openwrt: ['openwrt'],
         ubuntu: ['ubuntu'],
         windows: ['windows'],

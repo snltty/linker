@@ -4,6 +4,7 @@ using Android.Content;
 using Android.Content.PM;
 using Android.Health.Connect.DataTypes.Units;
 using Android.Net;
+using Android.Nfc;
 using Android.OS;
 using Android.Views;
 using AndroidX.Core.App;
@@ -35,6 +36,8 @@ namespace linker.app
                 StartActivityForResult(intent, 0);
             }
             StartForegroundService(new Intent(this, typeof(VpnServiceLinker)));
+
+           
         }
 
         protected override void OnStart()
@@ -77,6 +80,13 @@ namespace linker.app
                 if (vpnInterface != null)
                 {
                     Android.Util.Log.Error(TAG, "==============================================VPN is connected");
+
+                    /*
+                    Task.Run(async () =>
+                    {
+                    });
+                    */
+
                     /*
                     Task.Run(async () =>
                     {

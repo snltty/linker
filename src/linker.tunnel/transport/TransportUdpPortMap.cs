@@ -270,7 +270,7 @@ namespace linker.tunnel.transport
                     TransactionId = tunnelTransportInfo.TransactionId,
                     TransactionTag = tunnelTransportInfo.TransactionTag,
                     TransportName = tunnelTransportInfo.TransportName,
-                    IPEndPoint = state.RemoteEndPoint,
+                    IPEndPoint = NetworkHelper.TransEndpointFamily(state.RemoteEndPoint),
                     Label = string.Empty,
                     BufferSize = tunnelTransportInfo.BufferSize,
                     Receive = false,
@@ -323,14 +323,14 @@ namespace linker.tunnel.transport
                     }
 
                     await targetSocket.SendToAsync($"{flagTexts}-{tunnelTransportInfo.Local.MachineId}-{tunnelTransportInfo.FlowId}".ToBytes(), ep).ConfigureAwait(false);
-                    await targetSocket.ReceiveFromAsync(new byte[1024], new IPEndPoint(IPAddress.IPv6Any, 0)).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                    await targetSocket.ReceiveFromAsync(new byte[1024], new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, 0)).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
 
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         LoggerHelper.Instance.Debug($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep} success");
 
                     TunnelConnectionUdp result = new TunnelConnectionUdp
                     {
-                        IPEndPoint = ep,
+                        IPEndPoint = NetworkHelper.TransEndpointFamily(ep),
                         TransactionId = tunnelTransportInfo.TransactionId,
                         TransactionTag = tunnelTransportInfo.TransactionTag,
                         RemoteMachineId = tunnelTransportInfo.Remote.MachineId,

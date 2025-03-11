@@ -42,6 +42,15 @@ namespace linker.libs
 
     public static class NetworkHelper
     {
+        public static IPEndPoint TransEndpointFamily(IPEndPoint ep)
+        {
+            if (ep.Address.AddressFamily == AddressFamily.InterNetworkV6 && ep.Address.IsIPv4MappedToIPv6)
+            {
+                return new IPEndPoint(new IPAddress(ep.Address.GetAddressBytes()[^4..]), ep.Port);
+            }
+            return ep;
+        }
+
 
         /// <summary>
         /// 域名解析
@@ -217,7 +226,9 @@ namespace linker.libs
         {
             return GetIP()
                  .Where(c => c.AddressFamily == AddressFamily.InterNetworkV6)
-                 .Where(c => c.GetAddressBytes().AsSpan(0, 8).SequenceEqual(ipv6LocalBytes) == false).Distinct().ToArray(); ;
+                 .Where(c => c.GetAddressBytes().AsSpan(0, 8).SequenceEqual(ipv6LocalBytes) == false)
+                 .Where(c=>c.Equals(IPAddress.IPv6Loopback) == false)
+                 .Distinct().ToArray();
         }
         public static IPAddress[] GetIPV4()
         {

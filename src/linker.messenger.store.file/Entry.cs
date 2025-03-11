@@ -100,11 +100,12 @@ namespace linker.messenger.store.file
 
             return serviceCollection;
         }
-        public static ServiceProvider UseStoreFile(this ServiceProvider serviceProvider)
+        public static ServiceProvider UseStoreFile(this ServiceProvider serviceProvider,Dictionary<string,string> configDic)
         {
             LoggerHelper.Instance.Info("use store file");
 
             FileConfig fileConfig = serviceProvider.GetService<FileConfig>();
+            fileConfig.Initialize(configDic);
             RunningConfig runningConfig = serviceProvider.GetService<RunningConfig>();
 
             IApiServer apiServer = serviceProvider.GetService<IApiServer>();

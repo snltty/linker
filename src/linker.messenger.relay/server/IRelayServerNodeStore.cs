@@ -45,8 +45,6 @@ namespace linker.messenger.relay.server
 
     public sealed class RelayServerNodeInfo
     {
-        public const string MASTER_NODE_ID = "824777CF-2804-83FE-DE71-69B7B7D3BBA7";
-
         private string id = Guid.NewGuid().ToString().ToUpper();
         public string Id
         {

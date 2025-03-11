@@ -19,8 +19,11 @@ namespace linker.messenger.store.file
 
         public FileConfig()
         {
+        }
+        public void Initialize(Dictionary<string, string> dic)
+        {
             Init();
-            Load();
+            Load(dic);
             Save();
             SaveTask();
         }
@@ -47,7 +50,7 @@ namespace linker.messenger.store.file
                 });
             }
         }
-        private void Load()
+        private void Load(Dictionary<string, string> dic)
         {
             slim.Wait();
             try
@@ -61,13 +64,15 @@ namespace linker.messenger.store.file
                             LoggerHelper.Instance.Error($"{item.Value.Property.Name} not found");
                             continue;
                         }
-                        if (File.Exists(item.Value.Path) == false)
+                        string text = string.Empty;
+                        if (File.Exists(item.Value.Path))
                         {
-                            LoggerHelper.Instance.Error($"{item.Value.Path} not exists");
-                            continue;
+                            text = File.ReadAllText(item.Value.Path, encoding: System.Text.Encoding.UTF8);
                         }
-
-                        string text = File.ReadAllText(item.Value.Path, encoding: System.Text.Encoding.UTF8);
+                        else if (dic != null && dic.ContainsKey(item.Value.Property.Name))
+                        {
+                            text = dic[item.Value.Property.Name];
+                        }
                         if (string.IsNullOrWhiteSpace(text))
                         {
                             LoggerHelper.Instance.Error($"{item.Value.Path} empty");
@@ -232,5 +237,5 @@ namespace linker.messenger.store.file
         }
     }
 
-   
+
 }

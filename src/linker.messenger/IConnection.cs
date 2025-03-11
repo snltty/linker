@@ -252,17 +252,8 @@ namespace linker.messenger
             SourceStream = stream;
             SourceNetworkStream = networkStream;
             SourceSocket = socket;
-            if (remote.Address.AddressFamily == AddressFamily.InterNetworkV6 && remote.Address.IsIPv4MappedToIPv6)
-            {
-                remote = new IPEndPoint(new IPAddress(remote.Address.GetAddressBytes()[^4..]), remote.Port);
-            }
-            Address = remote;
-
-            if (local.Address.AddressFamily == AddressFamily.InterNetworkV6 && local.Address.IsIPv4MappedToIPv6)
-            {
-                local = new IPEndPoint(new IPAddress(local.Address.GetAddressBytes()[^4..]), local.Port);
-            }
-            LocalAddress = local;
+            Address = NetworkHelper.TransEndpointFamily(remote) ;
+            LocalAddress = NetworkHelper.TransEndpointFamily(local);
 
         }
 

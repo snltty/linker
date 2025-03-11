@@ -1,4 +1,8 @@
-﻿namespace linker.app
+﻿using Microsoft.Maui.Controls.PlatformConfiguration;
+using System.Diagnostics;
+using System.Net.NetworkInformation;
+
+namespace linker.app
 {
     public partial class MainPage : ContentPage
     {
@@ -19,6 +23,7 @@
                 CounterBtn.Text = $"Clicked {count} times";
 
             SemanticScreenReader.Announce(CounterBtn.Text);
+
         }
     }
 

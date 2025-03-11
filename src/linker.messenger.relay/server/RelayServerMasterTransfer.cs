@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.messenger.relay.messenger;
 using linker.messenger.relay.server.caching;
 using System.Collections.Concurrent;
@@ -66,17 +67,23 @@ namespace linker.messenger.relay.server
         {
             try
             {
-                if (info.Id == RelayServerNodeInfo.MASTER_NODE_ID)
-                {
-                    info.EndPoint = new IPEndPoint(IPAddress.Any, 0);
-                }
-                else if (info.EndPoint.Address.Equals(IPAddress.Any))
+                
+                if (info.EndPoint.Address.Equals(IPAddress.Any))
                 {
                     info.EndPoint.Address = connection.Address.Address;
+                }
+                if (info.EndPoint.Address.Equals(IPAddress.Loopback))
+                {
+                    info.EndPoint = new IPEndPoint(IPAddress.Any, 0);
                 }
                 info.LastTicks = Environment.TickCount64;
                 info.Connection = connection;
                 reports.AddOrUpdate(info.Id, info, (a, b) => info);
+
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Debug($"relay node report : {info.ToJson()}");
+                }
             }
             catch (Exception ex)
             {
@@ -92,8 +99,6 @@ namespace linker.messenger.relay.server
         /// <param name="info"></param>
         public async Task UpdateNodeReport(RelayServerNodeUpdateInfo info)
         {
-            if (RelayServerNodeInfo.MASTER_NODE_ID == info.Id) return;
-
             if (reports.TryGetValue(info.Id, out RelayServerNodeReportInfo170 cache))
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
@@ -143,7 +148,7 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="relayTrafficUpdateInfo"></param>
         /// <returns></returns>
-        public void AddTraffic(Dictionary<long,long> dic)
+        public void AddTraffic(Dictionary<long, long> dic)
         {
             if (dic.Count > 0)
                 trafficQueue.Enqueue(dic);

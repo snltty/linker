@@ -18,6 +18,7 @@ using linker.messenger.updater;
 using linker.messenger.store.file;
 using linker.messenger.serializer.memorypack;
 using linker.libs;
+using linker.libs.extends;
 
 namespace linker.messenger.entry
 {
@@ -29,6 +30,11 @@ namespace linker.messenger.entry
         private static OperatingManager builded = new OperatingManager();
         private static OperatingManager setuped = new OperatingManager();
 
+        public static void InputJsonConfig(string str)
+        {
+
+            Console.WriteLine(str.DeJson<ConfigClientInfo>().ToJsonFormat());
+        }
         /// <summary>
         /// 开始初始化
         /// </summary>
@@ -76,7 +82,7 @@ namespace linker.messenger.entry
                 .AddTuntapClient().AddTuntapServer()
                 //更新
                 .AddUpdaterClient().AddUpdaterServer()
-               
+
                 //信标
                 .AddMessenger()
                 //流量统计
@@ -131,7 +137,7 @@ namespace linker.messenger.entry
         /// 开始运行
         /// </summary>
         /// <param name="modules">排除哪些模块，默认无</param>
-        public static void Setup(ExcludeModule modules = ExcludeModule.None)
+        public static void Setup(ExcludeModule modules = ExcludeModule.None, Dictionary<string, string> configDic = null)
         {
             if (setuped.StartOperation() == false) return;
 
@@ -139,7 +145,7 @@ namespace linker.messenger.entry
 
             serviceProvider.UseMessenger();
             if ((modules & ExcludeModule.StoreFile) != ExcludeModule.StoreFile)
-                serviceProvider.UseStoreFile();
+                serviceProvider.UseStoreFile(configDic);
             if ((modules & ExcludeModule.SerializerMemoryPack) != ExcludeModule.SerializerMemoryPack)
                 serviceProvider.UseSerializerMemoryPack();
 

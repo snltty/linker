@@ -54,9 +54,11 @@ namespace linker
 
         public static void Run(string[] args)
         {
+            Dictionary<string, string> configDic = ParseArgs(args);
+
             LinkerMessengerEntry.Initialize();
             LinkerMessengerEntry.Build();
-            LinkerMessengerEntry.Setup(ExcludeModule.None);
+            LinkerMessengerEntry.Setup(ExcludeModule.None, configDic);
 
 
             LoggerHelper.Instance.Warning($"current version : {VersionHelper.version}");
@@ -65,6 +67,34 @@ namespace linker
             LoggerHelper.Instance.Debug($"linker are running....");
 
             GCHelper.FlushMemory();
+        }
+
+        private static Dictionary<string, string> ParseArgs(string[] args)
+        {
+            Dictionary<string, string> configDic = new Dictionary<string, string>();
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "--config-cient")
+                {
+                    configDic.Add("Client", args[i+1]);
+                    i++;
+                }else if (args[i] == "--config-server")
+                {
+                    configDic.Add("Server", args[i + 1]);
+                    i++;
+                }
+                else if (args[i] == "--config-action")
+                {
+                    configDic.Add("Action", args[i + 1]);
+                    i++;
+                }
+                else if (args[i] == "--config-common")
+                {
+                    configDic.Add("Common", args[i + 1]);
+                    i++;
+                }
+            }
+            return configDic;
         }
     }
 
