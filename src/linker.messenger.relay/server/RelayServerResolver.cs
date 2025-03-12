@@ -268,7 +268,7 @@ namespace linker.messenger.relay.server
     }
     public partial class RelayServerCdkeyInfo
     {
-        public long CdkeyId { get; set; }
+        public int Id { get; set; }
         /// <summary>
         /// 带宽Mbps
         /// </summary>

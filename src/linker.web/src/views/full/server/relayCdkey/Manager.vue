@@ -157,7 +157,7 @@ export default {
         }
 
         const handleDel = (row)=>{
-            relayCdkeyDel(row.CdkeyId).then((res)=>{
+            relayCdkeyDel(row.Id).then((res)=>{
                 handleSearch();
             }).catch(()=>{})
         }

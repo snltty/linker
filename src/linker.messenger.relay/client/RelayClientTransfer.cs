@@ -91,6 +91,7 @@ namespace linker.messenger.relay.client
                     SSL = relayClientStore.Server.SSL,
                     NodeId = nodeId,
                     UserId = signInClientStore.Server.UserId,
+                    UseCdkey = relayClientStore.Server.UseCdkey,
                 };
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)

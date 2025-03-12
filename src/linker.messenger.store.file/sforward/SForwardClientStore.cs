@@ -1,6 +1,9 @@
-﻿using linker.messenger.sforward;
+﻿using linker.libs.extends;
+using linker.libs;
+using linker.messenger.sforward;
 using linker.messenger.sforward.client;
-using Yitter.IdGenerator;
+using LiteDB;
+using linker.messenger.forward;
 
 namespace linker.messenger.store.file.sforward
 {
@@ -10,14 +13,26 @@ namespace linker.messenger.store.file.sforward
 
         private readonly FileConfig fileConfig;
         private readonly RunningConfig runningConfig;
-        public SForwardClientStore(FileConfig fileConfig, RunningConfig runningConfig)
+        private readonly Storefactory dBfactory;
+        private readonly ILiteCollection<SForwardInfo> liteCollection;
+
+        public SForwardClientStore(FileConfig fileConfig, RunningConfig runningConfig, Storefactory dBfactory)
         {
+            this.dBfactory = dBfactory;
+            liteCollection = dBfactory.GetCollection<SForwardInfo>("sforward");
+
             this.fileConfig = fileConfig;
             this.runningConfig = runningConfig;
             foreach (var item in runningConfig.Data.SForwards)
             {
                 item.Proxy = false;
+                item.Id = 0;
+                liteCollection.Insert(item);
             }
+            runningConfig.Data.SForwards = new List<SForwardInfo>();
+            runningConfig.Data.Update();
+
+            liteCollection.UpdateMany(c => new SForwardInfo { Proxy = false }, c => c.Proxy == true);
         }
         public bool SetSecretKey(string key)
         {
@@ -26,57 +41,96 @@ namespace linker.messenger.store.file.sforward
             return true;
         }
 
-
         public int Count()
         {
-            return runningConfig.Data.SForwards.Count();
+            return liteCollection.Count();
         }
 
-        public List<SForwardInfo> Get()
+        public IEnumerable<SForwardInfo> Get()
         {
-            return runningConfig.Data.SForwards;
+            return liteCollection.FindAll();
         }
 
-        public SForwardInfo Get(long id)
+        public SForwardInfo Get(int id)
         {
-            return runningConfig.Data.SForwards.FirstOrDefault(x => x.Id == id);
+            return liteCollection.FindOne(x => x.Id == id);
         }
 
         public SForwardInfo Get(string domain)
         {
-            return runningConfig.Data.SForwards.FirstOrDefault(x => x.Domain == domain);
+            return liteCollection.FindOne(x => x.Domain == domain);
         }
 
-        public SForwardInfo Get(int port)
+        public SForwardInfo GetPort(int port)
         {
-            return runningConfig.Data.SForwards.FirstOrDefault(c => c.RemotePort == port);
+            return liteCollection.FindOne(c => c.RemotePort == port);
         }
-
         public bool Add(SForwardInfo info)
         {
-            if (info.Id == 0)
+            SForwardInfo old = liteCollection.FindOne(c => info.RemotePort > 0 && c.RemotePort == info.RemotePort || string.IsNullOrWhiteSpace(info.Domain) == false && c.Domain == info.Domain);
+            if (old != null && old.Id != info.Id)
             {
-                info.Id = YitIdHelper.NextId();
+                return false;
             }
-            runningConfig.Data.SForwards.Add(info);
+
+            if (PortRange(info.Domain, out int min, out int max))
+            {
+                info.RemotePortMin = min;
+                info.RemotePortMax = max;
+            }
+            if (info.Id != 0)
+            {
+                liteCollection.UpdateMany(c => new SForwardInfo
+                {
+                    RemotePort = info.RemotePort,
+                    Name = info.Name,
+                    LocalEP = info.LocalEP,
+                    Domain = info.Domain,
+                    Started = info.Started,
+                    RemotePortMin = info.RemotePortMin,
+                    RemotePortMax = info.RemotePortMax
+                }, c => c.Id == info.Id);
+            }
+            else
+            {
+
+                liteCollection.Insert(info);
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Info($"add sforward {info.ToJson()}");
+            }
             return true;
         }
-        public bool Update(SForwardInfo info)
+        public bool Update(int id, bool started, string msg)
         {
-            return true;
+            return liteCollection.UpdateMany(c => new SForwardInfo { Started = started, Msg = msg }, c => c.Id == id) > 0;
         }
-        public bool Remove(long id)
+        public bool Update(int id, bool started, bool proxy, string msg)
         {
-            runningConfig.Data.SForwards.Remove(Get(id));
-            return true;
+            return liteCollection.UpdateMany(c => new SForwardInfo { Started = started, Proxy = proxy, Msg = msg }, c => c.Id == id) > 0;
+        }
+        public bool Update(int id, bool started)
+        {
+            return liteCollection.UpdateMany(c => new SForwardInfo { Started = started }, c => c.Id == id) > 0;
+        }
+        public bool Update(int id, string localMsg)
+        {
+            return liteCollection.UpdateMany(c => new SForwardInfo { LocalMsg = localMsg }, c => c.Id == id) > 0;
         }
 
-        public bool Confirm()
+        public bool Remove(int id)
         {
-            runningConfig.Data.Update();
-            return true;
+            return liteCollection.Delete(id);
         }
 
+        private bool PortRange(string str, out int min, out int max)
+        {
+            min = 0; max = 0;
+
+            if (string.IsNullOrWhiteSpace(str)) return false;
+
+            string[] arr = str.Split('/');
+            return arr.Length == 2 && int.TryParse(arr[0], out min) && int.TryParse(arr[1], out max);
+        }
 
     }
 }

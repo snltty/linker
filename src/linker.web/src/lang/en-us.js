@@ -120,6 +120,7 @@ export default {
     'server.relaySecretKey': 'Relay SecretKey',
     'server.relaySSL': 'Use SSL',
     'server.relayDisable': 'Disable',
+    'server.relayUseCdkey': 'Use CDKEY',
     'server.relayNodes': 'Nodes',
     'server.relayTitle': 'Relay Nodes',
     'server.relayName': 'Name',

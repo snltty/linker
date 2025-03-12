@@ -96,7 +96,7 @@ namespace linker.messenger.relay
                 MessengerId = (ushort)RelayMessengerIds.DelCdkey,
                 Payload = serializer.Serialize(new RelayServerCdkeyDelInfo
                 {
-                    CdkeyId = long.Parse(param.Content),
+                    Id = int.Parse(param.Content),
                     UserId = signInClientStore.Server.UserId,
                     SecretKey = relayClientStore.Server.SecretKey
                 })

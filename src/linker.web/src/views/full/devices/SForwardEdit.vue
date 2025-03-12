@@ -17,9 +17,9 @@
                         </template>
                     </template>
                 </el-table-column>
-                <el-table-column prop="BufferSize" label="缓冲区" width="100">
+                <el-table-column prop="Plan" label="计划" width="100">
                     <template #default="scope">
-                        <span>{{ 1<<scope.row.BufferSize }}KB</span>
+                        <span>{{ scope.row.Plan }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column property="Temp" label="远程端口/域名" width="160">

@@ -159,7 +159,9 @@ namespace linker.messenger.relay.messenger
 
             if (result.Nodes.Count > 0)
             {
-                List<RelayServerCdkeyInfo> cdkeys = (await relayServerCdkeyStore.GetAvailable(info.UserId)).Select(c => new RelayServerCdkeyInfo { Bandwidth = c.Bandwidth, CdkeyId = c.CdkeyId, LastBytes = c.LastBytes }).ToList();
+                List<RelayServerCdkeyInfo> cdkeys = info.UseCdkey
+                    ? (await relayServerCdkeyStore.GetAvailable(info.UserId)).Select(c => new RelayServerCdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList()
+                    : new List<RelayServerCdkeyInfo>();
 
                 result.FlowingId = relayServerTransfer.AddRelay(cacheFrom.MachineId, cacheFrom.MachineName, cacheTo.MachineId, cacheTo.MachineName, cacheFrom.GroupId, validated, cdkeys);
             }
@@ -321,7 +323,7 @@ namespace linker.messenger.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.SendLastBytes)]
         public void SendLastBytes(IConnection connection)
         {
-            Dictionary<long, long> info = serializer.Deserialize<Dictionary<long,long>>(connection.ReceiveRequestWrap.Payload.Span);
+            Dictionary<int, long> info = serializer.Deserialize<Dictionary<int, long>>(connection.ReceiveRequestWrap.Payload.Span);
             relayServerNodeTransfer.UpdateLastBytes(info);
         }
 
@@ -377,11 +379,11 @@ namespace linker.messenger.relay.messenger
             }
             if (relayServerStore.SecretKey == info.SecretKey)
             {
-                await relayServerCdkeyStore.Del(info.CdkeyId);
+                await relayServerCdkeyStore.Del(info.Id);
             }
             else
             {
-                await relayServerCdkeyStore.Del(info.CdkeyId, info.UserId);
+                await relayServerCdkeyStore.Del(info.Id, info.UserId);
             }
             connection.Write(Helper.TrueArray);
         }

@@ -4,13 +4,13 @@ using linker.messenger.relay.server;
 using LiteDB;
 using System.Text;
 using System.Text.RegularExpressions;
-using Yitter.IdGenerator;
 
 namespace linker.messenger.store.file.relay
 {
     public sealed class RelayServerCdkeyStore : IRelayServerCdkeyStore
     {
         private string regex = @"([0-9]+)-([0-9]+)-([0-9]+)\s+([0-9]+):([0-9]+):([0-9]+)";
+        private int index = 0;
 
         private readonly Storefactory dBfactory;
         private readonly ILiteCollection<RelayServerCdkeyStoreInfo> liteCollection;
@@ -24,15 +24,16 @@ namespace linker.messenger.store.file.relay
 
         public async Task<bool> Add(RelayServerCdkeyStoreInfo info)
         {
-            if (string.IsNullOrWhiteSpace(info.Id))
+            if (info.Id == 0)
             {
-                info.Id = ObjectId.NewObjectId().ToString();
+                Interlocked.Increment(ref index);
+                Interlocked.CompareExchange(ref index, 0, 65535);
+
                 info.AddTime = DateTime.Now;
                 info.UseTime = DateTime.Now;
                 info.StartTime = DateTime.Now;
                 info.LastBytes = info.MaxBytes;
-                info.CdkeyId = YitIdHelper.NextId();
-                info.OrderId = $"Linker{YitIdHelper.NextId()}";
+                info.OrderId = $"Linker{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}{index}";
                 liteCollection.Insert(info);
             }
             else
@@ -41,13 +42,13 @@ namespace linker.messenger.store.file.relay
             }
             return await Task.FromResult(true);
         }
-        public async Task<bool> Del(long id)
+        public async Task<bool> Del(int id)
         {
-            return await Task.FromResult(liteCollection.UpdateMany(c => new RelayServerCdkeyStoreInfo { Deleted = true }, c => c.CdkeyId == id) > 0);
+            return await Task.FromResult(liteCollection.UpdateMany(c => new RelayServerCdkeyStoreInfo { Deleted = true }, c => c.Id == id) > 0);
         }
-        public async Task<bool> Del(long id, string userid)
+        public async Task<bool> Del(int id, string userid)
         {
-            return await Task.FromResult(liteCollection.UpdateMany(c => new RelayServerCdkeyStoreInfo { Deleted = true }, c => c.CdkeyId == id && c.UserId == userid) > 0);
+            return await Task.FromResult(liteCollection.UpdateMany(c => new RelayServerCdkeyStoreInfo { Deleted = true }, c => c.Id == id && c.UserId == userid) > 0);
         }
 
         public async Task<RelayServerCdkeyTestResultInfo> Test(RelayServerCdkeyImportInfo info)
@@ -144,42 +145,40 @@ namespace linker.messenger.store.file.relay
                 Remark = "order",
                 StartTime = DateTime.Now,
                 UserId = order.WidgetUserId,
-                CdkeyId = YitIdHelper.NextId(),
                 Contact = order.Contact,
                 OrderId = order.OrderId,
                 PayPrice = order.PayPrice,
-                UserPrice = order.UserPrice,
-                Id = ObjectId.NewObjectId().ToString()
+                UserPrice = order.UserPrice
             };
             liteCollection.Insert(store);
             return await Task.FromResult(string.Empty);
         }
 
-        public async Task<bool> Traffic(Dictionary<long, long> dic)
+        public async Task<bool> Traffic(Dictionary<int, long> dic)
         {
             foreach (var item in dic)
             {
-                var info = liteCollection.FindOne(x => x.CdkeyId == item.Key);
+                var info = liteCollection.FindOne(x => x.Id == item.Key);
                 if (info != null)
                 {
                     long bytes = info.LastBytes >= item.Value ? info.LastBytes - item.Value : 0;
-                    liteCollection.UpdateMany(x => new RelayServerCdkeyStoreInfo { LastBytes = bytes, UseTime = DateTime.Now }, c => c.CdkeyId == item.Key);
+                    liteCollection.UpdateMany(x => new RelayServerCdkeyStoreInfo { LastBytes = bytes, UseTime = DateTime.Now }, c => c.Id == item.Key);
                 }
             }
             return await Task.FromResult(true);
         }
-        public async Task<Dictionary<long,long>> GetLastBytes(List<long> ids)
+        public async Task<Dictionary<int, long>> GetLastBytes(List<int> ids)
         {
-            return await Task.FromResult(liteCollection.Find(c => ids.Contains(c.CdkeyId)).ToDictionary(c => c.CdkeyId, c => c.LastBytes));
+            return await Task.FromResult(liteCollection.Find(c => ids.Contains(c.Id)).ToDictionary(c => c.Id, c => c.LastBytes));
         }
 
         public async Task<List<RelayServerCdkeyStoreInfo>> GetAvailable(string userid)
         {
             return await Task.FromResult(liteCollection.Find(x => x.UserId == userid && x.LastBytes > 0 && x.StartTime <= DateTime.Now && x.EndTime >= DateTime.Now && x.Deleted == false).ToList());
         }
-        public async Task<List<RelayServerCdkeyStoreInfo>> Get(List<long> ids)
+        public async Task<List<RelayServerCdkeyStoreInfo>> Get(List<int> ids)
         {
-            return await Task.FromResult(liteCollection.Find(x => ids.Contains(x.CdkeyId)).ToList());
+            return await Task.FromResult(liteCollection.Find(x => ids.Contains(x.Id)).ToList());
         }
 
         public async Task<RelayServerCdkeyPageResultInfo> Page(RelayServerCdkeyPageRequestInfo info)
@@ -233,7 +232,7 @@ namespace linker.messenger.store.file.relay
             }
             else
             {
-                query = query.OrderBy(c => c.CdkeyId, Query.Descending);
+                query = query.OrderBy(c => c.Id, Query.Descending);
             }
 
             return await Task.FromResult(new RelayServerCdkeyPageResultInfo

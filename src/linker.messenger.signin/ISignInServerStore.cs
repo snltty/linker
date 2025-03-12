@@ -11,10 +11,13 @@ namespace linker.messenger.signin
         /// 信标密钥
         /// </summary>
         public string SecretKey { get; }
+
+        public int CleanDays { get; }
         /// <summary>
         /// 设置信标密钥
         /// </summary>
         /// <param name="secretKey"></param>
         public void SetSecretKey(string secretKey);
+        public void SetCleanDays(int days);
     }
 }

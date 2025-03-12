@@ -43,4 +43,7 @@
 		<ProjectReference Include="..\linker.messenger.sync\linker.messenger.sync.csproj" />
 		<ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="client\plan\" />
+	</ItemGroup>
 </Project>

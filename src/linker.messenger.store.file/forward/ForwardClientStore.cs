@@ -1,63 +1,106 @@
 ﻿using linker.messenger.forward;
-using Yitter.IdGenerator;
+using linker.messenger.sforward;
+using linker.messenger.store.file.signIn;
+using linker.tunnel.transport;
+using LiteDB;
+using System.Net;
 
 namespace linker.messenger.store.file.forward
 {
     public sealed class ForwardClientStore : IForwardClientStore
     {
         private readonly RunningConfig runningConfig;
-        public ForwardClientStore(RunningConfig runningConfig)
+        private readonly Storefactory dBfactory;
+        private readonly ILiteCollection<ForwardInfo> liteCollection;
+        public ForwardClientStore(RunningConfig runningConfig, Storefactory dBfactory)
         {
+            this.dBfactory = dBfactory;
+            liteCollection = dBfactory.GetCollection<ForwardInfo>("forward");
             this.runningConfig = runningConfig;
             foreach (var item in runningConfig.Data.Forwards)
             {
                 item.Proxy = false;
+                item.Id = 0;
+                liteCollection.Insert(item);
             }
+            runningConfig.Data.Forwards = new List<ForwardInfo>();
+            runningConfig.Data.Update();
+
+            liteCollection.UpdateMany(c => new ForwardInfo { Proxy = false },c=>c.Proxy==true);
         }
         public int Count()
         {
-            return runningConfig.Data.Forwards.Count();
+            return liteCollection.Count();
         }
 
-        public List<ForwardInfo> Get()
+
+        public IEnumerable<ForwardInfo> Get()
         {
-            return runningConfig.Data.Forwards;
+            return liteCollection.FindAll();
         }
 
-        public ForwardInfo Get(long id)
+        public ForwardInfo Get(int id)
         {
-            return runningConfig.Data.Forwards.FirstOrDefault(x => x.Id == id);
+            return liteCollection.FindOne(x => x.Id == id);
         }
 
-        public List<ForwardInfo> Get(string groupid)
+        public IEnumerable<ForwardInfo> Get(string groupid)
         {
-            return runningConfig.Data.Forwards.Where(x => x.GroupId == groupid).ToList();
+            return liteCollection.Find(x => x.GroupId == groupid);
         }
 
         public bool Add(ForwardInfo info)
         {
-            if(info.Id == 0)
+            //同名或者同端口，但是ID不一样
+            ForwardInfo old = liteCollection.FindOne(c => (c.Port == info.Port && c.Port != 0) && c.GroupId == info.GroupId && c.MachineId == info.MachineId);
+            if (old != null && old.Id != info.Id) return false;
+            if (info.Id != 0)
             {
-                info.Id = YitIdHelper.NextId();
+                liteCollection.UpdateMany(c => new ForwardInfo
+                {
+                    BindIPAddress = info.BindIPAddress,
+                    Port = info.Port,
+                    Name = info.Name,
+                    TargetEP = info.TargetEP,
+                    MachineId = info.MachineId,
+                    MachineName = info.MachineName,
+                    Started = info.Started,
+                    BufferSize = info.BufferSize,
+                    GroupId = info.GroupId,
+                }, c => c.Id == info.Id);
+            }
+            else
+            {
+                liteCollection.Insert(info);
             }
 
-            runningConfig.Data.Forwards.Add(info);
             return true;
         }
-        public bool Update(ForwardInfo info)
+        public bool Update(int id, bool started, bool proxy, string msg)
         {
-            return true;
+            return liteCollection.UpdateMany(c => new ForwardInfo { Started = started, Proxy = proxy, Msg = msg }, c => c.Id == id) > 0;
         }
-        public bool Remove(long id)
+        public bool Update(int id, bool started)
         {
-            runningConfig.Data.Forwards.Remove(Get(id));
-            return true;
+            return liteCollection.UpdateMany(c => new ForwardInfo { Started = started }, c => c.Id == id) > 0;
         }
 
-        public bool Confirm()
+        public bool Update(int id, string msg)
         {
-            runningConfig.Data.Update();
-            return true;
+            return liteCollection.UpdateMany(c => new ForwardInfo { Msg = msg }, c => c.Id == id) > 0;
+        }
+        public bool Update(string machineId, IPEndPoint target, string targetMsg)
+        {
+            return liteCollection.UpdateMany(c => new ForwardInfo { TargetMsg = targetMsg }, c => c.MachineId == machineId && c.TargetEP == target) > 0;
+        }
+
+        public bool Update(int id, int port)
+        {
+            return liteCollection.UpdateMany(c => new ForwardInfo { Port = port }, c => c.Id == id) > 0;
+        }
+        public bool Remove(int id)
+        {
+            return liteCollection.Delete(id);
         }
 
 

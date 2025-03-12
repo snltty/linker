@@ -32,8 +32,6 @@ using linker.messenger.tuntap.lease;
 using linker.messenger.updater;
 using linker.plugins.tunnel;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using Yitter.IdGenerator;
 namespace linker.messenger.store.file
 {
     public static class Entry
@@ -41,8 +39,6 @@ namespace linker.messenger.store.file
         public static ServiceCollection AddStoreFile(this ServiceCollection serviceCollection)
         {
             LoggerHelper.Instance.Info("add store file");
-
-            YitIdHelper.SetIdGenerator(new IdGeneratorOptions(1));
 
             serviceCollection.AddSingleton<Storefactory>();
             serviceCollection.AddSingleton<FileConfig>();

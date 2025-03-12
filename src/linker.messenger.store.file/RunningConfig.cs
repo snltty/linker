@@ -102,8 +102,6 @@ namespace linker.messenger.store.file
         [JsonIgnore, BsonIgnore]
         public uint Updated { get; set; } = 1;
 
-        public bool IsSyncConfig { get; set; }
-
         public void Update()
         {
             Updated++;

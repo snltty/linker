@@ -6,6 +6,7 @@ namespace linker.messenger.store.file.signIn
     public sealed class SignInServerStore : ISignInServerStore
     {
         public string SecretKey => fileConfig.Data.Server.SignIn.SecretKey;
+        public int CleanDays => fileConfig.Data.Server.SignIn.CleanDays;
 
         private readonly Storefactory dBfactory;
         private readonly ILiteCollection<SignCacheInfo> liteCollection;
@@ -19,6 +20,12 @@ namespace linker.messenger.store.file.signIn
         public void SetSecretKey(string secretKey)
         {
             fileConfig.Data.Server.SignIn.SecretKey = secretKey;
+            fileConfig.Data.Update();
+        }
+        public void SetCleanDays(int days)
+        {
+            fileConfig.Data.Server.SignIn.CleanDays = days;
+            fileConfig.Data.Update();
         }
 
         public void Confirm()
@@ -56,6 +63,6 @@ namespace linker.messenger.store.file.signIn
             return liteCollection.Update(value);
         }
 
-      
+
     }
 }

@@ -61,9 +61,7 @@ namespace linker.messenger.forward
                     {
                         Stop(item);
                     }
-                    forwardClientStore.Update(item);
                 }
-                forwardClientStore.Confirm();
                 OnChanged();
             }
         }
@@ -74,22 +72,22 @@ namespace linker.messenger.forward
                 try
                 {
                     forwardProxy.Start(new System.Net.IPEndPoint(forwardInfo.BindIPAddress, forwardInfo.Port), forwardInfo.TargetEP, forwardInfo.MachineId, forwardInfo.BufferSize);
+
                     forwardInfo.Port = forwardProxy.LocalEndpoint.Port;
+                    forwardClientStore.Update(forwardInfo.Id, forwardInfo.Port);
 
                     if (forwardInfo.Port > 0)
                     {
-                        forwardInfo.Started = true;
-                        forwardInfo.Proxy = true;
-                        forwardInfo.Msg = string.Empty;
+                        forwardClientStore.Update(forwardInfo.Id, true, true, string.Empty);
                         LoggerHelper.Instance.Debug($"start forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP}");
                     }
                     else
                     {
                         if (errorStop)
                         {
-                            forwardInfo.Started = false;
+                            forwardClientStore.Update(forwardInfo.Id, false);
                         }
-                        forwardInfo.Msg = $"start forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP} fail";
+                        forwardClientStore.Update(forwardInfo.Id, $"start forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP} fail");
                         LoggerHelper.Instance.Error(forwardInfo.Msg);
                     }
                 }
@@ -97,9 +95,9 @@ namespace linker.messenger.forward
                 {
                     if (errorStop)
                     {
-                        forwardInfo.Started = false;
+                        forwardClientStore.Update(forwardInfo.Id, false);
                     }
-                    forwardInfo.Msg = $"{ex.Message},start forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP} fail";
+                    forwardClientStore.Update(forwardInfo.Id, $"{ex.Message},start forward {forwardInfo.Port}->{forwardInfo.MachineId}->{forwardInfo.TargetEP} fail");
                     LoggerHelper.Instance.Error(ex);
                 }
             }
@@ -127,6 +125,7 @@ namespace linker.messenger.forward
                         LoggerHelper.Instance.Debug($"stop forward {forwardInfo.ToJson()}");
                     forwardProxy.StopPort(forwardInfo.Port);
                     forwardInfo.Proxy = false;
+                    forwardClientStore.Update(forwardInfo.Id, forwardInfo.Started, false, forwardInfo.Msg);
                 }
             }
             catch (Exception ex)
@@ -136,65 +135,23 @@ namespace linker.messenger.forward
             OnChanged();
         }
 
-        public List<ForwardInfo> Get()
+        public IEnumerable<ForwardInfo> Get()
         {
             return forwardClientStore.Get(signInClientStore.Group.Id);
         }
         public bool Add(ForwardInfo forwardInfo)
         {
-            //同名或者同端口，但是ID不一样
-            ForwardInfo old = forwardClientStore.Get().FirstOrDefault(c => (c.Port == forwardInfo.Port && c.Port != 0) && c.GroupId == signInClientStore.Group.Id && c.MachineId == forwardInfo.MachineId);
-            if (old != null && old.Id != forwardInfo.Id) return false;
-
-            if (forwardInfo.Id != 0)
-            {
-                old = forwardClientStore.Get(forwardInfo.Id);
-                if (old == null) return false;
-
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Debug($"update forward {old.ToJson()}->{forwardInfo.ToJson()}");
-
-                old.BindIPAddress = forwardInfo.BindIPAddress;
-                old.Port = forwardInfo.Port;
-                old.Name = forwardInfo.Name;
-                old.TargetEP = forwardInfo.TargetEP;
-                old.MachineId = forwardInfo.MachineId;
-                old.MachineName = forwardInfo.MachineName;
-                old.Started = forwardInfo.Started;
-                old.BufferSize = forwardInfo.BufferSize;
-                old.GroupId = signInClientStore.Group.Id;
-                forwardClientStore.Update(forwardInfo);
-            }
-            else
-            {
-                forwardInfo.GroupId = signInClientStore.Group.Id;
-
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Debug($"add forward {forwardInfo.ToJson()}");
-
-                forwardClientStore.Add(forwardInfo);
-            }
-            forwardClientStore.Confirm();
-
+            forwardInfo.GroupId = signInClientStore.Group.Id;
+            forwardClientStore.Add(forwardInfo);
             Start();
 
             return true;
         }
-        public bool Remove(long id)
+        public bool Remove(int id)
         {
-            //同名或者同端口，但是ID不一样
-            ForwardInfo old = forwardClientStore.Get(id);
-            if (old == null) return false;
-
-            old.Started = false;
-
-            forwardClientStore.Remove(old.Id);
-
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                LoggerHelper.Instance.Debug($"remove forward {old.ToJson()}");
-
+            forwardClientStore.Update(id, false);
             Start();
-            forwardClientStore.Confirm();
+            forwardClientStore.Remove(id);
             return true;
         }
 
@@ -237,7 +194,7 @@ namespace linker.messenger.forward
                 return;
             }
 
-            var forwards = Get().GroupBy(c => c.MachineId).ToDictionary(c => c.Key, d => d.Select(d => new ForwardTestInfo { Target = d.TargetEP }).ToList());
+            var forwards = Get().Where(c => string.IsNullOrWhiteSpace(c.MachineId) == false).GroupBy(c => c.MachineId).ToDictionary(c => c.Key, d => d.Select(d => new ForwardTestInfo { Target = d.TargetEP }).ToList());
 
             messengerSender.SendReply(new MessageRequestWrap
             {
@@ -252,16 +209,11 @@ namespace linker.messenger.forward
                 {
                     Dictionary<string, List<ForwardTestInfo>> tests = serializer.Deserialize<Dictionary<string, List<ForwardTestInfo>>>(result.Result.Data.Span);
 
-                    var list = Get();
                     foreach (var item in tests)
                     {
                         foreach (var value in item.Value)
                         {
-                            var forward = list.FirstOrDefault(c => c.MachineId == item.Key && c.TargetEP.Equals(value.Target));
-                            if (forward != null)
-                            {
-                                forward.TargetMsg = value.Msg;
-                            }
+                            forwardClientStore.Update(item.Key, value.Target, value.Msg);
                         }
                     }
 

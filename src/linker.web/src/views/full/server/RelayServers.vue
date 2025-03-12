@@ -9,10 +9,15 @@
                 <div class="mgr-1">
                     <el-checkbox class="mgr-1" v-model="state.list.SSL" :label="$t('server.relaySSL')" @change="handleSave" />
                     <el-checkbox v-model="state.list.Disabled" :label="$t('server.relayDisable')" @change="handleSave" />
+                    
                 </div>
                 <a href="javascript:;" @click="state.show=true" class="mgl-1 delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
                     {{$t('server.relayNodes')}} : {{state.nodes.length}}
                 </a>
+
+                <div class="mgl-1">
+                    <el-checkbox v-model="state.list.UseCdkey" :label="$t('server.relayUseCdkey')" @change="handleSave" />
+                </div>
                 <RelayCdkey></RelayCdkey>
             </div>
         </div>

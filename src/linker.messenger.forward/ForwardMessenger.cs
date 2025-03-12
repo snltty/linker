@@ -183,7 +183,7 @@ namespace linker.messenger.forward
         [MessengerId((ushort)ForwardMessengerIds.Remove)]
         public void Remove(IConnection connection)
         {
-            uint id = serializer.Deserialize<uint>(connection.ReceiveRequestWrap.Payload.Span);
+            int id = serializer.Deserialize<int>(connection.ReceiveRequestWrap.Payload.Span);
             forwardTransfer.Remove(id);
         }
 

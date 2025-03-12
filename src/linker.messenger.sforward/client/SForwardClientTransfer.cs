@@ -9,6 +9,8 @@ namespace linker.messenger.sforward.client
     public sealed class SForwardClientTransfer
     {
         public Action OnChanged { get; set; } = () => { };
+        public Action<int> OnOpen = (id) => { };
+        public Action<int> OnClose = (id) => { };
 
         private readonly SignInClientState signInClientState;
         private readonly IMessengerSender messengerSender;
@@ -23,15 +25,14 @@ namespace linker.messenger.sforward.client
             this.signInClientStore = signInClientStore;
             this.sForwardClientStore = sForwardClientStore;
 
+            //也有可能是服务端重启导致重新上线，所以不能在首次登录启动，要每次登录都尝试添加一下
             signInClientState.OnSignInSuccess += (i) => Start();
             this.serializer = serializer;
         }
 
         private void Start()
         {
-            var list = sForwardClientStore.Get();
-
-            foreach (var item in list)
+            foreach (var item in sForwardClientStore.Get())
             {
                 if (item.Started)
                 {
@@ -41,18 +42,14 @@ namespace linker.messenger.sforward.client
                 {
                     Stop(item);
                 }
-                sForwardClientStore.Update(item);
-                sForwardClientStore.Confirm();
             }
-            OnChanged();
         }
         private void Start(SForwardInfo forwardInfo)
         {
             if (forwardInfo.Proxy) return;
             if (forwardInfo.RemotePort == 0 && string.IsNullOrWhiteSpace(forwardInfo.Domain))
             {
-                forwardInfo.Msg = $"Please use port or domain";
-                forwardInfo.Started = false;
+                sForwardClientStore.Update(forwardInfo.Id, false, forwardInfo.Proxy, $"Please use port or domain");
                 return;
             }
 
@@ -73,25 +70,26 @@ namespace linker.messenger.sforward.client
                         forwardInfo.BufferSize = sForwardAddResultInfo.BufferSize;
                         if (sForwardAddResultInfo.Success)
                         {
-                            forwardInfo.Proxy = true;
-                            forwardInfo.Msg = string.Empty;
+                            sForwardClientStore.Update(forwardInfo.Id, forwardInfo.Started,true, string.Empty);
                             LoggerHelper.Instance.Debug(sForwardAddResultInfo.Message);
+                            OnOpen(forwardInfo.Id);
                         }
                         else
                         {
-                            forwardInfo.Started = false;
-                            forwardInfo.Msg = sForwardAddResultInfo.Message;
+                            sForwardClientStore.Update(forwardInfo.Id, false, forwardInfo.Proxy, sForwardAddResultInfo.Message);
                             LoggerHelper.Instance.Error(sForwardAddResultInfo.Message);
                         }
                     }
+                    OnChanged();
                 });
             }
             catch (Exception ex)
             {
-                forwardInfo.Started = false;
+                sForwardClientStore.Update(forwardInfo.Id, false, ex.Message);
                 LoggerHelper.Instance.Error(ex);
+                OnChanged();
             }
-            OnChanged();
+           
         }
         private void Stop(SForwardInfo forwardInfo)
         {
@@ -113,16 +111,18 @@ namespace linker.messenger.sforward.client
                             SForwardAddResultInfo sForwardAddResultInfo = serializer.Deserialize<SForwardAddResultInfo>(result.Result.Data.Span);
                             if (sForwardAddResultInfo.Success)
                             {
-                                forwardInfo.Proxy = false;
+                                sForwardClientStore.Update(forwardInfo.Id, forwardInfo.Started, false, string.Empty);
                                 LoggerHelper.Instance.Debug(sForwardAddResultInfo.Message);
+                                OnClose(forwardInfo.Id);
                             }
                             else
                             {
-                                forwardInfo.Started = true;
+                                sForwardClientStore.Update(forwardInfo.Id, true, forwardInfo.Proxy, string.Empty);
                                 LoggerHelper.Instance.Error(sForwardAddResultInfo.Message);
                             }
 
                         }
+                        OnChanged();
                     });
                 }
             }
@@ -130,80 +130,22 @@ namespace linker.messenger.sforward.client
             {
                 LoggerHelper.Instance.Error(ex);
             }
-            OnChanged();
+          
         }
 
         public bool Add(SForwardInfo forwardInfo)
         {
-            //同名或者同端口，但是ID不一样
-            SForwardInfo old = sForwardClientStore.Get().FirstOrDefault(c => forwardInfo.RemotePort > 0 && c.RemotePort == forwardInfo.RemotePort || string.IsNullOrWhiteSpace(forwardInfo.Domain) == false && c.Domain == forwardInfo.Domain);
-            if (old != null && old.Id != forwardInfo.Id) return false;
-
-            if (forwardInfo.Id != 0)
-            {
-                old = sForwardClientStore.Get(forwardInfo.Id);
-                if (old == null) return false;
-
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Info($"update sforward {old.ToJson()}->{forwardInfo.ToJson()}");
-
-                old.RemotePort = forwardInfo.RemotePort;
-                old.Name = forwardInfo.Name;
-                old.LocalEP = forwardInfo.LocalEP;
-                old.Domain = forwardInfo.Domain;
-                old.Started = forwardInfo.Started;
-
-                if (PortRange(forwardInfo.Domain, out int min, out int max))
-                {
-                    old.RemotePortMin = min;
-                    old.RemotePortMax = max;
-                }
-                sForwardClientStore.Update(old);
-            }
-            else
-            {
-                if (PortRange(forwardInfo.Domain, out int min, out int max))
-                {
-                    forwardInfo.RemotePortMin = min;
-                    forwardInfo.RemotePortMax = max;
-                }
-                sForwardClientStore.Add(forwardInfo);
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Info($"add sforward {forwardInfo.ToJson()}");
-            }
-
-            sForwardClientStore.Confirm();
+            sForwardClientStore.Add(forwardInfo);
             Start();
-
             return true;
         }
-        public bool Remove(long id)
+        public bool Remove(int id)
         {
-            //同名或者同端口，但是ID不一样
-            SForwardInfo old = sForwardClientStore.Get(id);
-            if (old == null)
-            {
-                return false;
-            }
-
-            old.Started = false;
+            sForwardClientStore.Update(id, false);
             Start();
-
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                LoggerHelper.Instance.Info($"remove sforward {old.ToJson()}");
 
             sForwardClientStore.Remove(id);
-            sForwardClientStore.Confirm();
             return true;
-        }
-        private bool PortRange(string str, out int min, out int max)
-        {
-            min = 0; max = 0;
-
-            if (string.IsNullOrWhiteSpace(str)) return false;
-
-            string[] arr = str.Split('/');
-            return arr.Length == 2 && int.TryParse(arr[0], out min) && int.TryParse(arr[1], out max);
         }
 
         private readonly OperatingManager testing = new OperatingManager();
@@ -227,12 +169,12 @@ namespace linker.messenger.sforward.client
                 try
                 {
                     await socket.ConnectAsync(info.LocalEP).WaitAsync(TimeSpan.FromMilliseconds(500));
-                    info.LocalMsg = string.Empty;
+                    sForwardClientStore.Update(info.Id, string.Empty);
                     return true;
                 }
                 catch (Exception ex)
                 {
-                    info.LocalMsg = ex.Message;
+                    sForwardClientStore.Update(info.Id, ex.Message);
                 }
                 finally
                 {

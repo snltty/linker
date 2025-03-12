@@ -16,14 +16,14 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public Task<bool> Del(long id);
+        public Task<bool> Del(int id);
         /// <summary>
         /// 删除
         /// </summary>
         /// <param name="id"></param>
         /// <param name="userid"></param>
         /// <returns></returns>
-        public Task<bool> Del(long id, string userid);
+        public Task<bool> Del(int id, string userid);
 
         /// <summary>
         /// 测试卡密是否可用
@@ -49,19 +49,19 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="ids"></param>
         /// <returns></returns>
-        public Task<List<RelayServerCdkeyStoreInfo>> Get(List<long> ids);
+        public Task<List<RelayServerCdkeyStoreInfo>> Get(List<int> ids);
         /// <summary>
         /// 消耗流量
         /// </summary>
         /// <param name="dic"></param>
         /// <returns></returns>
-        public Task<bool> Traffic(Dictionary<long, long> dic);
+        public Task<bool> Traffic(Dictionary<int, long> dic);
         /// <summary>
         /// 获取剩余流量
         /// </summary>
         /// <param name="ids"></param>
         /// <returns></returns>
-        public Task<Dictionary<long, long>> GetLastBytes(List<long> ids);
+        public Task<Dictionary<int, long>> GetLastBytes(List<int> ids);
         /// <summary>
         /// 分页
         /// </summary>
@@ -125,7 +125,7 @@ namespace linker.messenger.relay.server
     {
         public string SecretKey { get; set; }
         public string UserId { get; set; }
-        public long CdkeyId { get; set; }
+        public int Id { get; set; }
     }
 
     /// <summary>
@@ -133,8 +133,6 @@ namespace linker.messenger.relay.server
     /// </summary>
     public sealed partial class RelayServerCdkeyStoreInfo : RelayServerCdkeyInfo
     {
-        public string Id { get; set; }
-
         /// <summary>
         /// 用户标识
         /// </summary>

@@ -84,7 +84,7 @@ namespace linker.messenger.sforward.client
             if (param.Content == signInClientStore.Id)
             {
                 if (accessStore.HasAccess(AccessValue.ForwardShowSelf) == false) return new List<SForwardInfo>();
-                return sForwardClientStore.Get();
+                return sForwardClientStore.Get().ToList();
             }
 
             if (accessStore.HasAccess(AccessValue.ForwardShowOther) == false) return new List<SForwardInfo>();

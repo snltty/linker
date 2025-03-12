@@ -74,6 +74,7 @@ namespace linker.messenger.relay.client.transport
         /// UserId
         /// </summary>
         public string UserId { get; set; }
+        public bool UseCdkey { get; set; }
     }
     /// <summary>
     /// 中继交换数据
@@ -149,5 +150,7 @@ namespace linker.messenger.relay.client.transport
         public bool SSL { get; set; } = true;
 
         public RelayClientType RelayType { get; set; } = RelayClientType.Linker;
+
+        public bool UseCdkey { get; set; } = true;
     }
 }

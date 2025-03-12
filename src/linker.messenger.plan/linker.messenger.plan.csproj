@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>disable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<PublishAot>false</PublishAot>
+		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+		<EnablePreviewFeatures>True</EnablePreviewFeatures>
+		<Title>linker messenger plan</Title>
+		<Authors>snltty</Authors>
+		<Company>snltty</Company>
+		<Description>linker messenger plan</Description>
+		<Copyright>snltty</Copyright>
+		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
+		<PackageReleaseNotes>linker messenger plan</PackageReleaseNotes>
+		<Version>1.7.0</Version>
+		<AssemblyVersion>1.7.0</AssemblyVersion>
+		<FileVersion>1.7.0</FileVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+	<ItemGroup>
+	  <PackageReference Include="Cronos" Version="0.9.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\linker.libs\linker.libs.csproj" />
+		<ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
+	</ItemGroup>
+
+</Project>

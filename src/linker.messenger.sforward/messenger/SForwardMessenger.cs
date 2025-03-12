@@ -392,7 +392,7 @@ namespace linker.plugins.sforward.messenger
         [MessengerId((ushort)SForwardMessengerIds.Get)]
         public void Get(IConnection connection)
         {
-            List<SForwardInfo> result = sForwardClientStore.Get();
+            List<SForwardInfo> result = sForwardClientStore.Get().ToList();
             connection.Write(serializer.Serialize(result));
         }
         /// <summary>
@@ -412,7 +412,7 @@ namespace linker.plugins.sforward.messenger
         [MessengerId((ushort)SForwardMessengerIds.RemoveClient)]
         public void RemoveClient(IConnection connection)
         {
-            uint id = serializer.Deserialize<uint>(connection.ReceiveRequestWrap.Payload.Span);
+            int id = serializer.Deserialize<int>(connection.ReceiveRequestWrap.Payload.Span);
             sForwardTransfer.Remove(id);
         }
         // <summary>

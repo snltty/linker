@@ -238,13 +238,13 @@ namespace linker.messenger.relay.server
         /// 更新剩余流量
         /// </summary>
         /// <param name="dic"></param>
-        public void UpdateLastBytes(Dictionary<long, long> dic)
+        public void UpdateLastBytes(Dictionary<int, long> dic)
         {
             if (dic.Count == 0) return;
 
-            Dictionary<long, RelayServerCdkeyInfo> cdkeys = trafficDict.Values.SelectMany(c => c.Cache.Cdkey).ToDictionary(c => c.CdkeyId, c => c);
+            Dictionary<int, RelayServerCdkeyInfo> cdkeys = trafficDict.Values.SelectMany(c => c.Cache.Cdkey).ToDictionary(c => c.Id, c => c);
             //更新剩余流量
-            foreach (KeyValuePair<long, long> item in dic)
+            foreach (KeyValuePair<int, long> item in dic)
             {
                 if (cdkeys.TryGetValue(item.Key, out RelayServerCdkeyInfo info))
                 {
@@ -274,7 +274,7 @@ namespace linker.messenger.relay.server
         private async Task UploadBytes()
         {
             var cdkeys = trafficDict.Values.Where(c => c.CurrentCdkey != null && c.Sendt > 0).ToList();
-            Dictionary<long, long> id2sent = cdkeys.GroupBy(c => c.CurrentCdkey.CdkeyId).ToDictionary(c => c.Key, d => d.Sum(d => { d.SendtCache = d.Sendt; return d.SendtCache; }));
+            Dictionary<int, long> id2sent = cdkeys.GroupBy(c => c.CurrentCdkey.Id).ToDictionary(c => c.Key, d => d.Sum(d => { d.SendtCache = d.Sendt; return d.SendtCache; }));
             if (id2sent.Count == 0) return;
 
             bool result = await messengerSender.SendOnly(new MessageRequestWrap
@@ -417,7 +417,7 @@ namespace linker.messenger.relay.server
         /// <summary>
         /// cdkey id  和 流量
         /// </summary>
-        public Dictionary<long, long> Dic { get; set; }
+        public Dictionary<int, long> Dic { get; set; }
         public string SecretKey { get; set; }
     }
 

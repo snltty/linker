@@ -125,7 +125,7 @@ namespace linker.messenger.signin
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    LoggerHelper.Instance.Debug($"start cleaning up clients that have exceeded the 7-day timeout period");
+                    LoggerHelper.Instance.Debug($"start cleaning up clients that have exceeded the {signInStore.CleanDays}-day timeout period");
                 }
 
                 try
@@ -133,7 +133,7 @@ namespace linker.messenger.signin
                     DateTime now = DateTime.Now;
 
                     var groups = Clients.Values.GroupBy(c => c.GroupId)
-                     .Where(group => group.All(info => info.Connected == false && (now - info.LastSignIn).TotalDays > 7))
+                     .Where(group => group.All(info => info.Connected == false && (now - info.LastSignIn).TotalDays > signInStore.CleanDays))
                      .Select(group => group.Key).ToList();
 
                     if (groups.Count > 0)
@@ -163,7 +163,6 @@ namespace linker.messenger.signin
     /// </summary>
     public sealed class SignCacheInfo
     {
-
         public string Id { get; set; }
         /// <summary>
         /// 客户端id

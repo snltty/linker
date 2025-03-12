@@ -24,13 +24,13 @@
         /// 获取穿透列表
         /// </summary>
         /// <returns></returns>
-        public List<SForwardInfo> Get();
+        public IEnumerable<SForwardInfo> Get();
         /// <summary>
         /// 获取穿透
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public SForwardInfo Get(long id);
+        public SForwardInfo Get(int id);
         /// <summary>
         /// 获取穿透
         /// </summary>
@@ -42,7 +42,7 @@
         /// </summary>
         /// <param name="port"></param>
         /// <returns></returns>
-        public SForwardInfo Get(int port);
+        public SForwardInfo GetPort(int port);
         /// <summary>
         /// 添加穿透
         /// </summary>
@@ -52,19 +52,39 @@
         /// <summary>
         /// 更新穿透
         /// </summary>
-        /// <param name="info"></param>
+        /// <param name="id"></param>
+        /// <param name="started"></param>
+        /// <param name="msg"></param>
         /// <returns></returns>
-        public bool Update(SForwardInfo info);
+        public bool Update(int id,bool started,string msg);
+        /// <summary>
+        /// 更新
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="started"></param>
+        /// <param name="proxy"></param>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        public bool Update(int id,bool started,bool proxy,string msg);
+        /// <summary>
+        /// 更新
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="started"></param>
+        /// <returns></returns>
+        public bool Update(int id,bool started);
+        /// <summary>
+        /// 更新
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="localMsg"></param>
+        /// <returns></returns>
+        public bool Update(int id,string localMsg);
         /// <summary>
         /// 删除穿透
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public bool Remove(long id);
-        /// <summary>
-        /// 提交保存
-        /// </summary>
-        /// <returns></returns>
-        public bool Confirm();
+        public bool Remove(int id);
     }
 }

@@ -15,8 +15,8 @@ namespace linker.messenger.relay.server
 
         private ulong relayFlowingId = 0;
         private readonly ConcurrentDictionary<string, RelayServerNodeReportInfo170> reports = new ConcurrentDictionary<string, RelayServerNodeReportInfo170>();
-        private readonly ConcurrentQueue<Dictionary<long, long>> trafficQueue = new ConcurrentQueue<Dictionary<long, long>>();
-        private readonly ConcurrentQueue<List<long>> trafficIdsQueue = new ConcurrentQueue<List<long>>();
+        private readonly ConcurrentQueue<Dictionary<int, long>> trafficQueue = new ConcurrentQueue<Dictionary<int, long>>();
+        private readonly ConcurrentQueue<List<int>> trafficIdsQueue = new ConcurrentQueue<List<int>>();
 
         private readonly IRelayServerCaching relayCaching;
         private readonly ISerializer serializer;
@@ -148,7 +148,7 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="relayTrafficUpdateInfo"></param>
         /// <returns></returns>
-        public void AddTraffic(Dictionary<long, long> dic)
+        public void AddTraffic(Dictionary<int, long> dic)
         {
             if (dic.Count > 0)
                 trafficQueue.Enqueue(dic);
@@ -157,7 +157,7 @@ namespace linker.messenger.relay.server
         {
             TimerHelper.SetIntervalLong(async () =>
             {
-                while (trafficQueue.TryDequeue(out Dictionary<long, long> dic))
+                while (trafficQueue.TryDequeue(out Dictionary<int, long> dic))
                 {
                     try
                     {
@@ -180,11 +180,11 @@ namespace linker.messenger.relay.server
             }, 500);
             TimerHelper.SetIntervalLong(async () =>
             {
-                while (trafficIdsQueue.TryDequeue(out List<long> ids))
+                while (trafficIdsQueue.TryDequeue(out List<int> ids))
                 {
                     try
                     {
-                        Dictionary<long, long> id2last = await relayServerCdkeyStore.GetLastBytes(ids).ConfigureAwait(false);
+                        Dictionary<int, long> id2last = await relayServerCdkeyStore.GetLastBytes(ids).ConfigureAwait(false);
                         if (id2last.Count == 0) continue;
                         byte[] bytes = serializer.Serialize(id2last);
 

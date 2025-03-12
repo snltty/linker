@@ -49,6 +49,7 @@ namespace linker.messenger.signin
     public sealed class SignInConfigServerInfo
     {
         public string SecretKey { get; set; } = string.Empty;
+        public int CleanDays { get; set; } = 7;
     }
 
     public sealed partial class SignInConfigSetNameInfo

@@ -235,11 +235,15 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string UserId => info.UserId;
 
+        [MemoryPackInclude]
+        bool UseCdkey => info.UseCdkey;
+
+
         [MemoryPackConstructor]
         SerializableRelayInfo170(string fromMachineId, string fromMachineName,
             string remoteMachineId, string remoteMachineName,
             string transactionId, string secretKey, string transportName, ulong flowingId,
-            string nodeId, IPEndPoint server, bool ssl, string userid)
+            string nodeId, IPEndPoint server, bool ssl, string userid, bool useCdkey)
         {
             var info = new RelayInfo170
             {
@@ -254,7 +258,8 @@ namespace linker.messenger.serializer.memorypack
                 TransportName = transportName,
                 SecretKey = secretKey,
                 Server = server,
-                UserId = userid
+                UserId = userid,
+                UseCdkey = useCdkey
             };
             this.info = info;
         }
@@ -868,7 +873,7 @@ namespace linker.messenger.serializer.memorypack
         public readonly RelayServerCdkeyInfo info;
 
         [MemoryPackInclude]
-        long CdkeyId => info.CdkeyId;
+        int Id => info.Id;
 
         [MemoryPackInclude]
         double Bandwidth => info.Bandwidth;
@@ -876,11 +881,11 @@ namespace linker.messenger.serializer.memorypack
         long LastBytes => info.LastBytes;
 
         [MemoryPackConstructor]
-        SerializableRelayServerCdkeyInfo(long cdkeyid, double bandwidth, long lastBytes)
+        SerializableRelayServerCdkeyInfo(int id, double bandwidth, long lastBytes)
         {
             var info = new RelayServerCdkeyInfo
             {
-                CdkeyId = cdkeyid,
+                Id = id,
                 Bandwidth = bandwidth,
                 LastBytes = lastBytes
             };
@@ -927,14 +932,12 @@ namespace linker.messenger.serializer.memorypack
         public readonly RelayServerCdkeyStoreInfo info;
 
         [MemoryPackInclude]
-        long CdkeyId => info.CdkeyId;
-        [MemoryPackInclude]
         double Bandwidth => info.Bandwidth;
         [MemoryPackInclude]
         long LastBytes => info.LastBytes;
 
         [MemoryPackInclude]
-        string Id => info.Id;
+        int Id => info.Id;
         [MemoryPackInclude]
         string UserId => info.UserId;
 
@@ -968,11 +971,10 @@ namespace linker.messenger.serializer.memorypack
         bool Deleted => info.Deleted;
 
         [MemoryPackConstructor]
-        SerializableRelayServerCdkeyStoreInfo(long cdkeyid, double bandwidth, long lastBytes, string id, string userid, DateTime addTime, DateTime startTime, DateTime endTime, DateTime useTime, long maxBytes, double costPrice, double price, double userPrice, double payPrice, string remark, string orderId, string contact, bool deleted)
+        SerializableRelayServerCdkeyStoreInfo(double bandwidth, long lastBytes, int id, string userid, DateTime addTime, DateTime startTime, DateTime endTime, DateTime useTime, long maxBytes, double costPrice, double price, double userPrice, double payPrice, string remark, string orderId, string contact, bool deleted)
         {
             var info = new RelayServerCdkeyStoreInfo
             {
-                CdkeyId = cdkeyid,
                 Bandwidth = bandwidth,
                 LastBytes = lastBytes,
                 Id = id,
@@ -1094,16 +1096,16 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string UserId => info.UserId;
         [MemoryPackInclude]
-        long CdkeyId => info.CdkeyId;
+        int Id => info.Id;
 
         [MemoryPackConstructor]
-        SerializableRelayServerCdkeyDelInfo(string secretKey, string userid, long cdkeyid)
+        SerializableRelayServerCdkeyDelInfo(string secretKey, string userid, int id)
         {
             var info = new RelayServerCdkeyDelInfo
             {
                 SecretKey = secretKey,
                 UserId = userid,
-                CdkeyId = cdkeyid
+                Id = id
             };
             this.info = info;
         }
@@ -1291,12 +1293,12 @@ namespace linker.messenger.serializer.memorypack
         public readonly RelayTrafficUpdateInfo info;
 
         [MemoryPackInclude]
-        Dictionary<long, long> Dic => info.Dic;
+        Dictionary<int, long> Dic => info.Dic;
         [MemoryPackInclude]
         string SecretKey => info.SecretKey;
 
         [MemoryPackConstructor]
-        SerializableRelayTrafficUpdateInfo(Dictionary<long, long> dic, string secretKey)
+        SerializableRelayTrafficUpdateInfo(Dictionary<int, long> dic, string secretKey)
         {
             var info = new RelayTrafficUpdateInfo
             {

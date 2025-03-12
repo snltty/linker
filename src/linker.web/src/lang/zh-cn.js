@@ -122,6 +122,7 @@ export default {
     'server.relaySecretKey': '中继密钥',
     'server.relaySSL': '使用ssl',
     'server.relayDisable': '禁用',
+    'server.relayUseCdkey': '消耗CDKEY',
     'server.relayNodes': '节点',
     'server.relayTitle': '中继节点',
     'server.relayName': '名称',
