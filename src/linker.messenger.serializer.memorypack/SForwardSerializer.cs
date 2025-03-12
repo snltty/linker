@@ -11,7 +11,7 @@ namespace linker.messenger.serializer.memorypack
         public readonly SForwardInfo info;
 
         [MemoryPackInclude]
-        int Id => info.Id;
+        long Id => info.Id;
 
         [MemoryPackInclude]
         string Name => info.Name;
@@ -44,7 +44,7 @@ namespace linker.messenger.serializer.memorypack
         int RemotePortMax => info.RemotePortMax;
 
         [MemoryPackConstructor]
-        SerializableSForwardInfo(int id, string name, string domain, int remotePort, byte bufferSize, IPEndPoint localEP, bool started, string msg, string localMsg, int remotePortMin, int remotePortMax)
+        SerializableSForwardInfo(long id, string name, string domain, int remotePort, byte bufferSize, IPEndPoint localEP, bool started, string msg, string localMsg, int remotePortMin, int remotePortMax)
         {
             this.info = new SForwardInfo
             {

@@ -7,7 +7,7 @@ namespace linker.messenger.forward
     public sealed partial class ForwardInfo
     {
         public ForwardInfo() { }
-        public int Id { get; set; }
+        public long Id { get; set; }
         /// <summary>
         /// 名称
         /// </summary>

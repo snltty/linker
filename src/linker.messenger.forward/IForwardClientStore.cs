@@ -20,7 +20,7 @@ namespace linker.messenger.forward
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public ForwardInfo Get(int id);
+        public ForwardInfo Get(long id);
         /// <summary>
         /// 根据分组获取
         /// </summary>
@@ -41,34 +41,34 @@ namespace linker.messenger.forward
         /// <param name="proxy"></param>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public bool Update(int id,bool started,bool proxy,string msg);
+        public bool Update(long id,bool started,bool proxy,string msg);
         /// <summary>
         /// 更新
         /// </summary>
         /// <param name="id"></param>
         /// <param name="started"></param>
         /// <returns></returns>
-        public bool Update(int id,bool started);
+        public bool Update(long id,bool started);
         /// <summary>
         /// 更新
         /// </summary>
         /// <param name="id"></param>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public bool Update(int id, string msg);
+        public bool Update(long id, string msg);
         /// <summary>
         /// 更新
         /// </summary>
         /// <param name="id"></param>
         /// <param name="port"></param>
         /// <returns></returns>
-        public bool Update(int id, int port);
+        public bool Update(long id, int port);
         public bool Update(string machineId, IPEndPoint target, string targetMsg);
         /// <summary>
         /// 删除转发
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public bool Remove(int id);
+        public bool Remove(long id);
     }
 }

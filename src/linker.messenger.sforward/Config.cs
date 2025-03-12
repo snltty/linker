@@ -10,7 +10,7 @@ namespace linker.messenger.sforward
         /// <summary>
         /// 穿透id
         /// </summary>
-        public int Id { get; set; }
+        public long Id { get; set; }
         /// <summary>
         /// 名称
         /// </summary>

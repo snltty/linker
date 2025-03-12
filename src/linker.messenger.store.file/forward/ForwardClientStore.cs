@@ -1,7 +1,5 @@
-﻿using linker.messenger.forward;
-using linker.messenger.sforward;
-using linker.messenger.store.file.signIn;
-using linker.tunnel.transport;
+﻿using linker.libs.extends;
+using linker.messenger.forward;
 using LiteDB;
 using System.Net;
 
@@ -17,6 +15,7 @@ namespace linker.messenger.store.file.forward
             this.dBfactory = dBfactory;
             liteCollection = dBfactory.GetCollection<ForwardInfo>("forward");
             this.runningConfig = runningConfig;
+
             foreach (var item in runningConfig.Data.Forwards)
             {
                 item.Proxy = false;
@@ -39,7 +38,7 @@ namespace linker.messenger.store.file.forward
             return liteCollection.FindAll();
         }
 
-        public ForwardInfo Get(int id)
+        public ForwardInfo Get(long id)
         {
             return liteCollection.FindOne(x => x.Id == id);
         }
@@ -76,16 +75,16 @@ namespace linker.messenger.store.file.forward
 
             return true;
         }
-        public bool Update(int id, bool started, bool proxy, string msg)
+        public bool Update(long id, bool started, bool proxy, string msg)
         {
             return liteCollection.UpdateMany(c => new ForwardInfo { Started = started, Proxy = proxy, Msg = msg }, c => c.Id == id) > 0;
         }
-        public bool Update(int id, bool started)
+        public bool Update(long id, bool started)
         {
             return liteCollection.UpdateMany(c => new ForwardInfo { Started = started }, c => c.Id == id) > 0;
         }
 
-        public bool Update(int id, string msg)
+        public bool Update(long id, string msg)
         {
             return liteCollection.UpdateMany(c => new ForwardInfo { Msg = msg }, c => c.Id == id) > 0;
         }
@@ -94,11 +93,11 @@ namespace linker.messenger.store.file.forward
             return liteCollection.UpdateMany(c => new ForwardInfo { TargetMsg = targetMsg }, c => c.MachineId == machineId && c.TargetEP == target) > 0;
         }
 
-        public bool Update(int id, int port)
+        public bool Update(long id, int port)
         {
             return liteCollection.UpdateMany(c => new ForwardInfo { Port = port }, c => c.Id == id) > 0;
         }
-        public bool Remove(int id)
+        public bool Remove(long id)
         {
             return liteCollection.Delete(id);
         }

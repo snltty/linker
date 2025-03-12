@@ -23,6 +23,7 @@ namespace linker.messenger.store.file.sforward
 
             this.fileConfig = fileConfig;
             this.runningConfig = runningConfig;
+
             foreach (var item in runningConfig.Data.SForwards)
             {
                 item.Proxy = false;
@@ -51,7 +52,7 @@ namespace linker.messenger.store.file.sforward
             return liteCollection.FindAll();
         }
 
-        public SForwardInfo Get(int id)
+        public SForwardInfo Get(long id)
         {
             return liteCollection.FindOne(x => x.Id == id);
         }
@@ -100,24 +101,24 @@ namespace linker.messenger.store.file.sforward
             }
             return true;
         }
-        public bool Update(int id, bool started, string msg)
+        public bool Update(long id, bool started, string msg)
         {
             return liteCollection.UpdateMany(c => new SForwardInfo { Started = started, Msg = msg }, c => c.Id == id) > 0;
         }
-        public bool Update(int id, bool started, bool proxy, string msg)
+        public bool Update(long id, bool started, bool proxy, string msg)
         {
             return liteCollection.UpdateMany(c => new SForwardInfo { Started = started, Proxy = proxy, Msg = msg }, c => c.Id == id) > 0;
         }
-        public bool Update(int id, bool started)
+        public bool Update(long id, bool started)
         {
             return liteCollection.UpdateMany(c => new SForwardInfo { Started = started }, c => c.Id == id) > 0;
         }
-        public bool Update(int id, string localMsg)
+        public bool Update(long id, string localMsg)
         {
             return liteCollection.UpdateMany(c => new SForwardInfo { LocalMsg = localMsg }, c => c.Id == id) > 0;
         }
 
-        public bool Remove(int id)
+        public bool Remove(long id)
         {
             return liteCollection.Delete(id);
         }

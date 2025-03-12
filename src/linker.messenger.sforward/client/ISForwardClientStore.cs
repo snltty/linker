@@ -30,7 +30,7 @@
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public SForwardInfo Get(int id);
+        public SForwardInfo Get(long id);
         /// <summary>
         /// 获取穿透
         /// </summary>
@@ -56,7 +56,7 @@
         /// <param name="started"></param>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public bool Update(int id,bool started,string msg);
+        public bool Update(long id,bool started,string msg);
         /// <summary>
         /// 更新
         /// </summary>
@@ -65,26 +65,26 @@
         /// <param name="proxy"></param>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public bool Update(int id,bool started,bool proxy,string msg);
+        public bool Update(long id,bool started,bool proxy,string msg);
         /// <summary>
         /// 更新
         /// </summary>
         /// <param name="id"></param>
         /// <param name="started"></param>
         /// <returns></returns>
-        public bool Update(int id,bool started);
+        public bool Update(long id,bool started);
         /// <summary>
         /// 更新
         /// </summary>
         /// <param name="id"></param>
         /// <param name="localMsg"></param>
         /// <returns></returns>
-        public bool Update(int id,string localMsg);
+        public bool Update(long id,string localMsg);
         /// <summary>
         /// 删除穿透
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public bool Remove(int id);
+        public bool Remove(long id);
     }
 }

@@ -9,8 +9,8 @@ namespace linker.messenger.sforward.client
     public sealed class SForwardClientTransfer
     {
         public Action OnChanged { get; set; } = () => { };
-        public Action<int> OnOpen = (id) => { };
-        public Action<int> OnClose = (id) => { };
+        public Action<long> OnOpen = (id) => { };
+        public Action<long> OnClose = (id) => { };
 
         private readonly SignInClientState signInClientState;
         private readonly IMessengerSender messengerSender;
