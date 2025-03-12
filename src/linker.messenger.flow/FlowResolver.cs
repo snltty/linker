@@ -110,7 +110,7 @@ namespace linker.messenger.flow
                 servers.TryRemove(key, out _);
             }
 
-            long online = servers.Sum(c => c.Value.Online) << 32;
+            long online = (long)servers.Sum(c => c.Value.Online) << 32;
             long total = servers.Sum(c => c.Value.Total);
 
             ReceiveBytes = online | total;
