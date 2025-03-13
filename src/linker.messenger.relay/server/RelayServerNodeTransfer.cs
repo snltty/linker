@@ -284,7 +284,7 @@ namespace linker.messenger.relay.server
                 Payload = serializer.Serialize(new RelayTrafficUpdateInfo
                 {
                     Dic = id2sent,
-                    SecretKey = relayServerMasterStore.Master.SecretKey
+                    SecretKey = node.MasterSecretKey
                 }),
                 Timeout = 4000
             });
