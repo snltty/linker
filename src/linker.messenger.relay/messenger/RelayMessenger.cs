@@ -310,11 +310,8 @@ namespace linker.messenger.relay.messenger
         public void TrafficReport(IConnection connection)
         {
             RelayTrafficUpdateInfo info = serializer.Deserialize<RelayTrafficUpdateInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (relayServerStore.SecretKey != info.SecretKey)
-            {
-                return;
-            }
-            relayServerTransfer.AddTraffic(info.Dic);
+          
+            relayServerTransfer.AddTraffic(info);
         }
         /// <summary>
         /// 下发剩余流量

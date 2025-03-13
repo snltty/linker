@@ -20,13 +20,16 @@ namespace linker.messenger.relay.server
 
         private readonly IRelayServerCaching relayCaching;
         private readonly ISerializer serializer;
+        private readonly IRelayServerMasterStore relayServerMasterStore;
         private readonly IRelayServerCdkeyStore relayServerCdkeyStore;
         private readonly IMessengerSender messengerSender;
+
 
         public RelayServerMasterTransfer(IRelayServerCaching relayCaching, ISerializer serializer, IRelayServerMasterStore relayServerMasterStore, IRelayServerCdkeyStore relayServerCdkeyStore, IMessengerSender messengerSender)
         {
             this.relayCaching = relayCaching;
             this.serializer = serializer;
+            this.relayServerMasterStore = relayServerMasterStore;
             this.relayServerCdkeyStore = relayServerCdkeyStore;
             this.messengerSender = messengerSender;
             TrafficTask();
@@ -67,7 +70,7 @@ namespace linker.messenger.relay.server
         {
             try
             {
-                
+
                 if (info.EndPoint.Address.Equals(IPAddress.Any))
                 {
                     info.EndPoint.Address = connection.Address.Address;
@@ -148,10 +151,12 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="relayTrafficUpdateInfo"></param>
         /// <returns></returns>
-        public void AddTraffic(Dictionary<int, long> dic)
+        public void AddTraffic(RelayTrafficUpdateInfo info)
         {
-            if (dic.Count > 0)
-                trafficQueue.Enqueue(dic);
+            if (info.SecretKey != relayServerMasterStore.Master.SecretKey) return;
+            if (info.Dic.Count == 0) return;
+
+            trafficQueue.Enqueue(info.Dic);
         }
         private void TrafficTask()
         {
