@@ -80,20 +80,19 @@
                         <span v-else>{{ scope.row.MaxBandwidth }}Mbps</span>
                     </template>
                 </el-table-column>
-                <el-table-column property="MaxBandwidthTotal" :label="$t('server.relaySpeed1')" width="80">
+                <el-table-column property="MaxBandwidthTotal" :label="`${$t('server.relaySpeed2')}/${$t('server.relaySpeed1')}`" width="120">
                     <template #default="scope">
-                        <span v-if="scope.row.MaxBandwidthTotal == 0">--</span>
-                        <span v-else>{{ scope.row.MaxBandwidthTotal }}Mbps</span>
+                        <span>
+                            <span>{{scope.row.BandwidthRatio}}Mbps</span>
+                            <span>/</span>
+                            <span v-if="scope.row.MaxBandwidthTotal == 0">--</span>
+                            <span v-else>{{ scope.row.MaxBandwidthTotal }}Mbps</span>
+                        </span>
                     </template>
                 </el-table-column>
-                <el-table-column property="BandwidthRatio" :label="$t('server.relaySpeed2')" width="66">
+                <el-table-column property="ConnectionRatio" :label="$t('server.relayConnection')" width="80">
                     <template #default="scope">
-                        <span>{{ (scope.row.BandwidthRatio*100).toFixed(2) }}%</span>
-                    </template>
-                </el-table-column>
-                <el-table-column property="ConnectionRatio" :label="$t('server.relayConnection')" width="60">
-                    <template #default="scope">
-                        <span>{{ (scope.row.ConnectionRatio*100).toFixed(2) }}%</span>
+                        <span><strong>{{scope.row.ConnectionRatio}}</strong>/{{scope.row.MaxConnection}}</span>
                     </template>
                 </el-table-column>
                 <el-table-column property="Delay" :label="$t('server.relayDelay')" width="60">
@@ -101,7 +100,7 @@
                         <span>{{ scope.row.Delay }}ms</span>
                     </template>
                 </el-table-column>
-                <el-table-column property="Public" :label="$t('server.relayPublic')" width="60">
+                <el-table-column property="Public" :label="$t('server.relayPublic')" width="50">
                     <template #default="scope">
                         <el-switch disabled v-model="scope.row.Public " size="small" />
                     </template>

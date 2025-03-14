@@ -186,7 +186,7 @@ namespace linker.tun
             {
                 CommandHelper.PowerShell($"start-service WinNat", [], out error);
                 CommandHelper.PowerShell($"Remove-NetNat -Name {Name} -Confirm:$false", [], out error);
-                //CommandHelper.Windows(string.Empty, [$"linker.ics.exe {Name} disable"]);
+                CommandHelper.Windows(string.Empty, [$"linker.ics.exe {Name} disable"]);
             }
             catch (Exception ex)
             {
