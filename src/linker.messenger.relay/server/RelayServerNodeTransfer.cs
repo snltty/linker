@@ -168,6 +168,15 @@ namespace linker.messenger.relay.server
         {
             return limitTotal.TryLimit(ref length);
         }
+        /// <summary>
+        /// 总限速
+        /// </summary>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        public bool TryLimitPacket(int length)
+        {
+            return limitTotal.TryLimitPacket(length);
+        }
 
 
         /// <summary>
@@ -342,7 +351,7 @@ namespace linker.messenger.relay.server
                         MaxGbTotal = node.MaxGbTotal,
                         MaxGbTotalLastBytes = node.MaxGbTotalLastBytes,
                         MaxConnection = node.MaxConnection,
-                        ConnectionRatio = Math.Round(connectionNum / 2.0),
+                        ConnectionRatio = connectionNum,
                         EndPoint = endPoint,
                         Url = node.Url
                     };

@@ -18,7 +18,6 @@ using linker.messenger.updater;
 using linker.messenger.store.file;
 using linker.messenger.serializer.memorypack;
 using linker.libs;
-using linker.libs.extends;
 
 namespace linker.messenger.entry
 {
@@ -30,11 +29,6 @@ namespace linker.messenger.entry
         private static OperatingManager builded = new OperatingManager();
         private static OperatingManager setuped = new OperatingManager();
 
-        public static void InputJsonConfig(string str)
-        {
-
-            Console.WriteLine(str.DeJson<ConfigClientInfo>().ToJsonFormat());
-        }
         /// <summary>
         /// 开始初始化
         /// </summary>

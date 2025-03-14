@@ -74,7 +74,7 @@ namespace linker
             Dictionary<string, string> configDic = new Dictionary<string, string>();
             for (int i = 0; i < args.Length; i++)
             {
-                if (args[i] == "--config-cient")
+                if (args[i] == "--config-client")
                 {
                     configDic.Add("Client", args[i+1]);
                     i++;

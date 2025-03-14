@@ -69,9 +69,9 @@ namespace linker.messenger.store.file
                         {
                             text = File.ReadAllText(item.Value.Path, encoding: System.Text.Encoding.UTF8);
                         }
-                        else if (dic != null && dic.ContainsKey(item.Value.Property.Name))
+                        else if (dic != null && dic.TryGetValue(item.Value.Property.Name, out string base64))
                         {
-                            text = dic[item.Value.Property.Name];
+                            text = Encoding.UTF8.GetString(Convert.FromBase64String(base64));
                         }
                         if (string.IsNullOrWhiteSpace(text))
                         {
