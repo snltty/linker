@@ -31,9 +31,9 @@ class InstallerApp:
         # 设置背景色
         self.root.config(bg="#f4f4f4")
 
-        # 加载并调整 logo 大小
-        self.logo = Image.open("logo.png")  # 将 logo 图像
-        self.logo = self.logo.resize((100, 100), Image.Resampling.LANCZOS)  # 调整 logo 的大小，100x100 你可以根据需要调整
+        # 加载并调整大小
+        self.logo = Image.open("logo.png")
+        self.logo = self.logo.resize((100, 100), Image.Resampling.LANCZOS) #调整大小100x100
         self.logo = ImageTk.PhotoImage(self.logo)
 
         self.logo_label = tk.Label(self.root, image=self.logo, bg="#f4f4f4")
@@ -82,7 +82,7 @@ class InstallerApp:
 
     def open_terms(self, event):
         # 打开用户许可协议的网页
-        webbrowser.open("https://www.example.com/terms")  # 替换为实际的协议链接
+        webbrowser.open("https://linker-doc.snltty.com/docs/1%E3%80%81%E9%A6%96%E9%A1%B5")  #的协议
 
     def start_installation(self):
         if not self.agree_var.get():
@@ -92,7 +92,7 @@ class InstallerApp:
         self.progress["value"] = 0
         self.btn_install.config(state=tk.DISABLED)  # 禁用按钮，防止重复点击
 
-        # 启动安装线程
+        # 启动安装
         threading.Thread(target=self.install_process, daemon=True).start()
 
     def install_process(self):
@@ -103,26 +103,26 @@ class InstallerApp:
         if not os.path.exists(self.install_dir):
             os.makedirs(self.install_dir)
 
-        # 下载 ZIP 文件
+        # 下载文件
         self.update_status("正在下载 ZIP 文件...")
         self.download_zip("https://static.qbcode.cn/downloads/linker/v1.6.9/linker-win-x64.zip", zip_path)
         self.progress["value"] = 30
 
-        # 解压 ZIP 文件
+        # 解压文件
         self.update_status("正在解压文件...")
         extract_folder = self.extract_zip(zip_path, self.install_dir)
         self.progress["value"] = 70
 
-        # 删除 ZIP 文件
+        # 删除文件
         os.remove(zip_path)
 
-        # 进入解压后的文件夹，检查 linker.tray.win.exe
+        # 进入解压后的文件夹，检查linker.tray.win.exe
         linker_exe = self.find_linker_exe(extract_folder)
         if linker_exe:
             self.update_status("创建快捷方式...")
-            # 确保在子线程中正确调用 COM 库初始化
-            pythoncom.CoInitialize()  # 初始化 COM 库
-            self.create_shortcut(linker_exe, "linker")  # 快捷方式名称改为 linker
+
+            pythoncom.CoInitialize()
+            self.create_shortcut(linker_exe, "linker")  #快捷方式名称改为linker
             self.progress["value"] = 100
             messagebox.showinfo("完成", "安装完成！")
         else:
@@ -166,15 +166,15 @@ class InstallerApp:
 
     def update_status(self, message):
         self.label_status.config(text=message)  # 更新状态标签文本
-        self.root.update_idletasks()  # 更新 GUI
+        self.root.update_idletasks()
 
     def open_install_page(self):
-        # 创建一个新的安装页面
+        # 创建一个安装页面
         install_window = tk.Toplevel(self.root)
         install_window.title("安装中")
         install_window.geometry("600x400")
 
-        # 使用 PanedWindow 控件分割页面
+        # 使用PanedWindow控件分割页面
         paned_window = ttk.Panedwindow(install_window, orient="vertical")
         paned_window.pack(fill=tk.BOTH, expand=True)
 
@@ -198,7 +198,7 @@ class InstallerApp:
     def simulate_install(self, install_window, progress):
         # 模拟安装进度
         import time
-        time.sleep(100)  # 假设安装过程需要 5 秒
+        time.sleep(5)  # 假设安装过程需要 5 秒
         progress.stop()
         messagebox.showinfo("完成", "安装完成！")
         install_window.destroy()
