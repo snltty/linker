@@ -250,23 +250,17 @@ namespace linker.tunnel.connection
             {
                 data = data.Slice(4);
 
-                int skip = 0;
-                if (Type == TunnelType.Relay)
-                {
-                    skip = 2;
-                    encodeBuffer[0] = 2; //relay
-                    encodeBuffer[1] = 1; //forward 
-                }
                 if (SSL)
                 {
                     data.CopyTo(encodeTempBuffer);
-                    int length = Crypto.Encode(encodeTempBuffer, 0, data.Length, encodeBuffer, skip);
-                    data = encodeBuffer.AsMemory(0, length + skip);
+                    data = Crypto.Encode(encodeTempBuffer, 0, data.Length);
                 }
-                else if (skip > 0)
+                if (Type == TunnelType.Relay)
                 {
-                    data.CopyTo(encodeBuffer.AsMemory(skip));
-                    data = encodeBuffer.AsMemory(0, data.Length + skip);
+                    encodeBuffer[0] = 2; //relay
+                    encodeBuffer[1] = 1; //forward 
+                    data.CopyTo(encodeBuffer.AsMemory(2));
+                    data = encodeBuffer.AsMemory(0, data.Length + 2);
                 }
 
                 await UdpClient.SendToAsync(data, IPEndPoint, cancellationTokenSource.Token).ConfigureAwait(false);
