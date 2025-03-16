@@ -12,7 +12,6 @@ using System.Buffers;
 using linker.messenger.relay.server;
 using linker.messenger.signin;
 using System.Text;
-using System;
 
 namespace linker.messenger.relay.client.transport
 {
@@ -179,7 +178,7 @@ namespace linker.messenger.relay.client.transport
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"relay  connected {ep}");
 
                         //是否允许连接
-                        int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1)).ConfigureAwait(false);
+                        int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1)).AsTask().WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
 
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                             LoggerHelper.Instance.Debug($"relay  connected {ep}->{buffer[0]}");
@@ -332,7 +331,6 @@ namespace linker.messenger.relay.client.transport
         }
     }
 
-
     public class RelayClientTransportSelfHostUdp : IRelayClientTransport
     {
         public string Name => "LinkerUdp";
@@ -478,10 +476,10 @@ namespace linker.messenger.relay.client.transport
                             NodeId = node.Id,
                         };
                         await socket.SendToAsync(BuildPacket(buffer, relayMessage), ep).ConfigureAwait(false);
-                        
+
                         //是否允许连接
                         IPEndPoint temp = new IPEndPoint(IPAddress.Any, 0);
-                        SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer, temp).ConfigureAwait(false);
+                        SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer, temp).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                             LoggerHelper.Instance.Debug($"relay  connected {ep}->{buffer[0]}");
                         if (buffer[0] == 0)
@@ -514,7 +512,7 @@ namespace linker.messenger.relay.client.transport
             }
             return (null, null);
         }
-        private Memory<byte> BuildPacket(byte[] buffer,RelayMessageInfo relayMessage)
+        private Memory<byte> BuildPacket(byte[] buffer, RelayMessageInfo relayMessage)
         {
             int index = 0;
             buffer[0] = (byte)ResolverType.Relay;

@@ -19,7 +19,7 @@ namespace linker.messenger.relay.server
         private readonly RelayServerNodeTransfer relayServerNodeTransfer;
         private readonly ISerializer serializer;
 
-        private string relayFlag = $"{Helper.GlobalString}.relay.flag";
+        private byte[] relayFlag = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.relay.flag");
 
         public RelayServerResolver(RelayServerNodeTransfer relayServerNodeTransfer, ISerializer serializer)
         {
@@ -67,7 +67,7 @@ namespace linker.messenger.relay.server
             }
 
             byte flagLength = memory.Span[0];
-            if(Encoding.UTF8.GetString(memory.Slice(1, flagLength).Span) != relayFlag)
+            if (memory.Length < flagLength + 1 || memory.Slice(1, flagLength).Span.SequenceEqual(relayFlag) == false)
             {
                 await socket.SendToAsync(new byte[] { 1 }, ep).ConfigureAwait(false);
                 return;
