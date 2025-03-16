@@ -57,8 +57,6 @@ namespace linker.messenger.relay
             {
                 relayConnectInfo.Protocol = TunnelProtocolType.Tcp;
             }
-            relayConnectInfo.ToMachineId = "67d67cb942b4da0c16b5f5ec";
-            relayConnectInfo.TransactionId = "tuntap";
             _ = relayTransfer.ConnectAsync(relayConnectInfo.FromMachineId, relayConnectInfo.ToMachineId, relayConnectInfo.TransactionId, relayConnectInfo.NodeId, relayConnectInfo.Protocol);
             relayClientStore.SetDefaultNodeId(relayConnectInfo.NodeId);
             return true;

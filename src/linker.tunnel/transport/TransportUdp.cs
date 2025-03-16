@@ -225,6 +225,9 @@ namespace linker.tunnel.transport
             {
                 byte[] buffer = new byte[1024];
                 SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer, new IPEndPoint(IPAddress.IPv6Any, 0)).ConfigureAwait(false);
+
+                Console.WriteLine(Encoding.UTF8.GetString(buffer.AsMemory(0, result.ReceivedBytes).Span));
+
                 await socket.SendToAsync(endBytes, result.RemoteEndPoint).ConfigureAwait(false);
                 tcs.SetResult(result.RemoteEndPoint as IPEndPoint);
             });
@@ -275,7 +278,6 @@ namespace linker.tunnel.transport
                 {
                     SocketReceiveFromResult result = await token.LocalUdp.ReceiveFromAsync(buffer, ep).ConfigureAwait(false);
                     if (result.ReceivedBytes == 0) break;
-
                     if (result.ReceivedBytes == endBytes.Length && buffer.AsSpan(0, result.ReceivedBytes).SequenceEqual(endBytes))
                     {
                         if (token.Tcs != null && token.Tcs.Task.IsCompleted == false)

@@ -70,13 +70,14 @@ namespace linker.libs
             int blocks = length / blockSize;
             int remainingBytes = length % blockSize;
 
-            int written = encryptoTransform.TransformBlock(buffer, offset, blockSize * blocks, outputBuffer, outputOffset);
-            if (remainingBytes > 0)
+            int written = 0;
+            for (int i = 0; i < blocks; i++)
             {
-                byte[] finalBlock = encryptoTransform.TransformFinalBlock(buffer, offset + blocks * blockSize, remainingBytes);
-                finalBlock.CopyTo(outputBuffer, outputOffset + written);
-                written += finalBlock.Length;
+                written += encryptoTransform.TransformBlock(buffer, offset+ written, blockSize, outputBuffer, outputOffset + written);
             }
+            byte[] finalBlock = encryptoTransform.TransformFinalBlock(buffer, offset + written, remainingBytes);
+            finalBlock.CopyTo(outputBuffer, outputOffset + written);
+            written += finalBlock.Length;
             return written;
         }
 
@@ -98,13 +99,14 @@ namespace linker.libs
             int blocks = length / blockSize;
             int remainingBytes = length % blockSize;
 
-            int written = decryptoTransform.TransformBlock(buffer, offset, blockSize * blocks, outputBuffer, outputOffset);
-            if (remainingBytes > 0)
+            int written = 0;
+            for (int i = 0; i < blocks; i++)
             {
-                byte[] finalBlock = decryptoTransform.TransformFinalBlock(buffer, offset + blocks * blockSize, remainingBytes);
-                finalBlock.CopyTo(outputBuffer, outputOffset + written);
-                written += finalBlock.Length;
+                written += decryptoTransform.TransformBlock(buffer, offset + written, blockSize, outputBuffer, outputOffset + written);
             }
+            byte[] finalBlock = decryptoTransform.TransformFinalBlock(buffer, offset + written, remainingBytes);
+            finalBlock.CopyTo(outputBuffer, outputOffset + written);
+            written += finalBlock.Length;
             return written;
         }
 

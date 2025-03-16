@@ -158,8 +158,7 @@ namespace linker.tunnel.connection
                 {
                     if (SSL)
                     {
-                        int writen = Crypto.Decode(buffer, offset, length, decodeBuffer, 0);
-                        memory = decodeBuffer.AsMemory(0, writen);
+                        memory = Crypto.Decode(buffer, offset, length);
                     }
                     await callback.Receive(this, memory, this.userToken).ConfigureAwait(false);
                 }
@@ -243,13 +242,10 @@ namespace linker.tunnel.connection
 
         private byte[] encodeTempBuffer = new byte[8 * 1014];
         private byte[] encodeBuffer = new byte[8 * 1024];
-        private byte[] decodeBuffer = new byte[8 * 1014];
-
 
         private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
-            await semaphoreSlim.WaitAsync();
             try
             {
                 data = data.Slice(4);
@@ -267,7 +263,7 @@ namespace linker.tunnel.connection
                     int length = Crypto.Encode(encodeTempBuffer, 0, data.Length, encodeBuffer, skip);
                     data = encodeBuffer.AsMemory(0, length + skip);
                 }
-                else
+                else if (skip > 0)
                 {
                     data.CopyTo(encodeBuffer.AsMemory(skip));
                     data = encodeBuffer.AsMemory(0, data.Length + skip);
@@ -287,7 +283,6 @@ namespace linker.tunnel.connection
             }
             finally
             {
-                semaphoreSlim.Release();
             }
             return false;
         }
