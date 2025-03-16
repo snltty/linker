@@ -240,7 +240,6 @@ namespace linker.tunnel.connection
         }
 
 
-        private byte[] encodeTempBuffer = new byte[8 * 1014];
         private byte[] encodeBuffer = new byte[8 * 1024];
 
         private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
@@ -252,8 +251,8 @@ namespace linker.tunnel.connection
 
                 if (SSL)
                 {
-                    data.CopyTo(encodeTempBuffer);
-                    data = Crypto.Encode(encodeTempBuffer, 0, data.Length);
+                    data.CopyTo(encodeBuffer);
+                    data = Crypto.Encode(encodeBuffer, 0, data.Length);
                 }
                 if (Type == TunnelType.Relay)
                 {
