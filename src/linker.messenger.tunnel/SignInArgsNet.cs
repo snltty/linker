@@ -16,14 +16,14 @@ namespace linker.messenger.tunnel
         {
             args.TryAdd("tunnelNet", new SignInArgsNetInfo { Lat = tunnelNetworkTransfer.Info.Net.Lat, Lon = tunnelNetworkTransfer.Info.Net.Lon, City = tunnelNetworkTransfer.Info.Net.City }.ToJson());
 
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
 
             return string.Empty;
         }
 
         public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
         {
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
             return string.Empty;
         }
     }

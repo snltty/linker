@@ -2,6 +2,7 @@
 using linker.libs.extends;
 using Microsoft.Win32.SafeHandles;
 using System.Net;
+using System.Threading;
 
 namespace linker.tun
 {
@@ -58,6 +59,10 @@ namespace linker.tun
             }
             IPAddress network = NetworkHelper.ToNetworkIP(address, NetworkHelper.ToPrefixValue(this.prefixLength));
             CommandHelper.Osx(string.Empty, new string[] { $"route delete -net {network}/{prefixLength} {address}" });
+        }
+        public void Refresh()
+        {
+            
         }
 
         public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
@@ -179,7 +184,7 @@ namespace linker.tun
 
         public async Task<bool> CheckAvailable()
         {
-            return await Task.FromResult(true);
+            return await Task.FromResult(true).ConfigureAwait(false);
         }
     }
 }

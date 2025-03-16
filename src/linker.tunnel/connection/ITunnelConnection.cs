@@ -13,6 +13,7 @@ namespace linker.tunnel.connection
         Tcp = 1,
         Udp = 2,
         Quic = 4,
+        All = 255
     }
     /// <summary>
     /// 隧道模式
@@ -106,7 +107,7 @@ namespace linker.tunnel.connection
         /// <summary>
         /// 中继节点ID
         /// </summary>
-        public string NodeId {  get; }
+        public string NodeId { get; }
 
         /// <summary>
         /// 协议

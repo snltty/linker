@@ -91,7 +91,7 @@ namespace linker.messenger.updater
         {
             TimerHelper.SetIntervalLong(async () =>
             {
-                await GetUpdateInfo();
+                await GetUpdateInfo().ConfigureAwait(false);
                 if (updateInfo.Updated)
                 {
                     updateInfo.MachineId = signInClientStore.Id;
@@ -113,7 +113,7 @@ namespace linker.messenger.updater
                                     MachineId = updateInfo.MachineId
                                 }
                             }),
-                        });
+                        }).ConfigureAwait(false);
                     }
                     Update(updateInfo);
                 }
@@ -136,7 +136,7 @@ namespace linker.messenger.updater
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)UpdaterMessengerIds.UpdateServer,
-            });
+            }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
                 UpdaterInfo info = serializer.Deserialize<UpdaterInfo>(resp.Data.Span);

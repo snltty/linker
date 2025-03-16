@@ -5,8 +5,6 @@ using linker.messenger.relay.client;
 using linker.messenger.relay.server;
 using linker.messenger.signin;
 using linker.messenger.relay.server.validator;
-using linker.libs.extends;
-using System.Collections.Generic;
 
 namespace linker.messenger.relay.messenger
 {
@@ -76,7 +74,7 @@ namespace linker.messenger.relay.messenger
                 List<RelayServerNodeReportInfo> list = relayServerTransfer.GetNodes(validated).Select(c => (RelayServerNodeReportInfo)c).ToList();
 
                 return serializer.Serialize(list);
-            });
+            }).ConfigureAwait(false);
         }
         [MessengerId((ushort)RelayMessengerIds.RelayTest170)]
         public async Task RelayTest170(IConnection connection)
@@ -85,7 +83,7 @@ namespace linker.messenger.relay.messenger
             await RelayTest(connection, info, (validated) =>
             {
                 return serializer.Serialize(relayServerTransfer.GetNodes(validated));
-            });
+            }).ConfigureAwait(false);
         }
         private async Task RelayTest(IConnection connection, RelayTestInfo info, Func<bool, byte[]> data)
         {
@@ -101,7 +99,7 @@ namespace linker.messenger.relay.messenger
                 FromMachineName = cache.MachineName,
                 TransactionId = "test",
                 TransportName = "test",
-            }, cache, null);
+            }, cache, null).ConfigureAwait(false);
 
             connection.Write(data(string.IsNullOrWhiteSpace(result)));
         }
@@ -126,7 +124,7 @@ namespace linker.messenger.relay.messenger
             info.FromMachineName = cacheFrom.MachineName;
 
             RelayAskResultInfo result = new RelayAskResultInfo();
-            string error = await relayValidatorTransfer.Validate(info, cacheFrom, cacheTo);
+            string error = await relayValidatorTransfer.Validate(info, cacheFrom, cacheTo).ConfigureAwait(false);
             bool validated = string.IsNullOrWhiteSpace(error);
             result.Nodes = relayServerTransfer.GetNodes(validated).Select(c => (RelayServerNodeReportInfo)c).ToList();
 
@@ -153,14 +151,14 @@ namespace linker.messenger.relay.messenger
             info.FromMachineName = cacheFrom.MachineName;
 
             RelayAskResultInfo170 result = new RelayAskResultInfo170();
-            string error = await relayValidatorTransfer.Validate(info, cacheFrom, cacheTo);
+            string error = await relayValidatorTransfer.Validate(info, cacheFrom, cacheTo).ConfigureAwait(false);
             bool validated = string.IsNullOrWhiteSpace(error);
             result.Nodes = relayServerTransfer.GetNodes(validated);
 
             if (result.Nodes.Count > 0)
             {
                 List<RelayServerCdkeyInfo> cdkeys = info.UseCdkey
-                    ? (await relayServerCdkeyStore.GetAvailable(info.UserId)).Select(c => new RelayServerCdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList()
+                    ? (await relayServerCdkeyStore.GetAvailable(info.UserId).ConfigureAwait(false)).Select(c => new RelayServerCdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList()
                     : new List<RelayServerCdkeyInfo>();
 
                 result.FlowingId = relayServerTransfer.AddRelay(cacheFrom.MachineId, cacheFrom.MachineName, cacheTo.MachineId, cacheTo.MachineName, cacheFrom.GroupId, validated, cdkeys);
@@ -181,7 +179,7 @@ namespace linker.messenger.relay.messenger
             await RelayForward(connection, info, () =>
             {
                 return serializer.Serialize(info);
-            });
+            }).ConfigureAwait(false);
         }
         [MessengerId((ushort)RelayMessengerIds.RelayForward170)]
         public async Task RelayForward170(IConnection connection)
@@ -190,7 +188,7 @@ namespace linker.messenger.relay.messenger
             await RelayForward(connection, info, () =>
             {
                 return serializer.Serialize(info);
-            });
+            }).ConfigureAwait(false);
         }
         public async Task RelayForward(IConnection connection, RelayInfo info, Func<byte[]> data)
         {
@@ -207,7 +205,7 @@ namespace linker.messenger.relay.messenger
                 info.FromMachineId = cacheFrom.MachineId;
                 info.RemoteMachineName = cacheTo.MachineName;
                 info.FromMachineName = cacheFrom.MachineName;
-                string result = await relayValidatorTransfer.Validate(info, cacheFrom, cacheTo);
+                string result = await relayValidatorTransfer.Validate(info, cacheFrom, cacheTo).ConfigureAwait(false);
                 if (string.IsNullOrWhiteSpace(result) == false)
                 {
                     connection.Write(Helper.FalseArray);
@@ -292,7 +290,7 @@ namespace linker.messenger.relay.messenger
             RelayServerNodeUpdateWrapInfo info = serializer.Deserialize<RelayServerNodeUpdateWrapInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (info.SecretKey == relayServerStore.SecretKey)
             {
-                await relayServerTransfer.UpdateNodeReport(info.Info);
+                await relayServerTransfer.UpdateNodeReport(info.Info).ConfigureAwait(false);
                 connection.Write(Helper.TrueArray);
             }
             else
@@ -356,7 +354,7 @@ namespace linker.messenger.relay.messenger
                 return;
             }
 
-            await relayServerCdkeyStore.Add(info.Data);
+            await relayServerCdkeyStore.Add(info.Data).ConfigureAwait(false);
             connection.Write(Helper.TrueArray);
         }
 
@@ -376,11 +374,11 @@ namespace linker.messenger.relay.messenger
             }
             if (relayServerStore.SecretKey == info.SecretKey)
             {
-                await relayServerCdkeyStore.Del(info.Id);
+                await relayServerCdkeyStore.Del(info.Id).ConfigureAwait(false);
             }
             else
             {
-                await relayServerCdkeyStore.Del(info.Id, info.UserId);
+                await relayServerCdkeyStore.Del(info.Id, info.UserId).ConfigureAwait(false);
             }
             connection.Write(Helper.TrueArray);
         }
@@ -405,7 +403,7 @@ namespace linker.messenger.relay.messenger
                 return;
             }
 
-            var page = await relayServerCdkeyStore.Page(info);
+            var page = await relayServerCdkeyStore.Page(info).ConfigureAwait(false);
 
             connection.Write(serializer.Serialize(page));
         }
@@ -430,7 +428,7 @@ namespace linker.messenger.relay.messenger
                 connection.Write(serializer.Serialize(new RelayServerCdkeyTestResultInfo { }));
                 return;
             }
-            RelayServerCdkeyTestResultInfo test = await relayServerCdkeyStore.Test(info);
+            RelayServerCdkeyTestResultInfo test = await relayServerCdkeyStore.Test(info).ConfigureAwait(false);
             connection.Write(serializer.Serialize(test));
         }
 
@@ -448,7 +446,7 @@ namespace linker.messenger.relay.messenger
                 connection.Write(Helper.FalseArray);
                 return;
             }
-            string result = await relayServerCdkeyStore.Import(info);
+            string result = await relayServerCdkeyStore.Import(info).ConfigureAwait(false);
             connection.Write(serializer.Serialize(result));
         }
     }

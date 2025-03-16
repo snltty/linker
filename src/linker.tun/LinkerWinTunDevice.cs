@@ -42,14 +42,17 @@ namespace linker.tun
                 error = ($"Adapter already exists");
                 return false;
             }
-            ClearRegistry();
-            Guid guid = Guid.NewGuid();
+            Guid guid = Guid.Parse("771EF382-8718-5BC5-EBF0-A28B86142278");
             adapter = WinTun.WintunCreateAdapter(name, name, ref guid);
             if (adapter == 0)
             {
-                error = ($"Failed to create adapter {Marshal.GetLastWin32Error()}");
-                Shutdown();
-                return false;
+                adapter = WinTun.WintunOpenAdapter(name);
+                if(adapter == 0)
+                {
+                    error = ($"Failed to create adapter {Marshal.GetLastWin32Error()}");
+                    Shutdown();
+                    return false;
+                }
             }
             uint version = WinTun.WintunGetRunningDriverVersion();
             session = WinTun.WintunStartSession(adapter, 0x400000);
@@ -87,17 +90,25 @@ namespace linker.tun
 
         private void AddIPV4()
         {
-            WinTun.WintunGetAdapterLUID(adapter, out ulong luid);
+            try
             {
-                WinTun.MIB_UNICASTIPADDRESS_ROW AddressRow = default;
-                WinTun.InitializeUnicastIpAddressEntry(ref AddressRow);
-                AddressRow.sin_family = 2;
-                AddressRow.sin_addr = BinaryPrimitives.ReadUInt32LittleEndian(address.GetAddressBytes());
-                AddressRow.OnLinkPrefixLength = prefixLength;
-                AddressRow.DadState = 4;
-                AddressRow.InterfaceLuid = luid;
-                uint LastError = WinTun.CreateUnicastIpAddressEntry(ref AddressRow);
-                if (LastError != 0) throw new InvalidOperationException();
+                if (session == 0) return;
+
+                WinTun.WintunGetAdapterLUID(adapter, out ulong luid);
+                {
+                    WinTun.MIB_UNICASTIPADDRESS_ROW AddressRow = default;
+                    WinTun.InitializeUnicastIpAddressEntry(ref AddressRow);
+                    AddressRow.sin_family = 2;
+                    AddressRow.sin_addr = BinaryPrimitives.ReadUInt32LittleEndian(address.GetAddressBytes());
+                    AddressRow.OnLinkPrefixLength = prefixLength;
+                    AddressRow.DadState = 4;
+                    AddressRow.InterfaceLuid = luid;
+                    uint LastError = WinTun.CreateUnicastIpAddressEntry(ref AddressRow);
+                    if (LastError != 0) throw new InvalidOperationException();
+                }
+            }
+            catch (Exception)
+            {
             }
         }
         private void AddIPV6()
@@ -137,6 +148,25 @@ namespace linker.tun
             session = 0;
             adapter = 0;
             interfaceNumber = 0;
+        }
+
+        public void Refresh()
+        {
+            if (session == 0) return;
+            try
+            {
+                WinTun.SetEvent(waitHandle);
+                WinTun.WintunEndSession(session);
+
+                CommandHelper.Windows(string.Empty, new string[] { $"netsh interface set interface {Name} enable" });
+                session = WinTun.WintunStartSession(adapter, 0x400000);
+                waitHandle = WinTun.WintunGetReadWaitEvent(session);
+                AddIPV4();
+                AddIPV6();
+            }
+            catch (Exception)
+            {
+            }
         }
 
         public void SetMtu(int value)
@@ -270,6 +300,7 @@ namespace linker.tun
         private byte[] buffer = new byte[8 * 1024];
         public unsafe ReadOnlyMemory<byte> Read()
         {
+            if (session == 0) return Helper.EmptyArray;
             for (; tokenSource.IsCancellationRequested == false;)
             {
                 IntPtr packet = WinTun.WintunReceivePacket(session, out var packetSize);
@@ -355,95 +386,21 @@ namespace linker.tun
                 }
             }
         }
-
-        private void ClearRegistry()
-        {
-            string[] delValues = [Name];
-            try
-            {
-                RegistryKey key = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\NetworkList\\Profiles");
-                foreach (var item in key.GetSubKeyNames())
-                {
-                    RegistryKey itemKey = key.OpenSubKey(item);
-                    string value = itemKey.GetValue("Description", string.Empty).ToString();
-                    itemKey.Close();
-                    if (delValues.Any(c => value.StartsWith($"{c}") || value == c))
-                    {
-                        try
-                        {
-                            Registry.LocalMachine.DeleteSubKey($"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\NetworkList\\Profiles\\{item}");
-                        }
-                        catch (Exception)
-                        {
-                        }
-                    }
-                }
-                key.Close();
-
-                key = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\NetworkList\\Signatures\\Unmanaged");
-                foreach (var item in key.GetSubKeyNames())
-                {
-                    RegistryKey itemKey = key.OpenSubKey(item);
-                    string value = itemKey.GetValue("Description", string.Empty).ToString();
-                    itemKey.Close();
-                    if (delValues.Any(c => value.StartsWith($"{c}") || value == c))
-                    {
-                        try
-                        {
-                            Registry.LocalMachine.DeleteSubKey($"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\NetworkList\\Signatures\\Unmanaged\\{item}");
-                        }
-                        catch (Exception)
-                        {
-                        }
-                    }
-                }
-                key.Close();
-            }
-            catch (Exception)
-            {
-            }
-        }
-
+       
         public async Task<bool> CheckAvailable()
         {
             InterfaceOrder();
-            NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == Name || c.Description == $"{Name} Tunnel" || c.Name.Contains(Name));
+            NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces()
+                .FirstOrDefault(c => c.Name == Name || c.Description == $"{Name} Tunnel" || c.Name.Contains(Name));
 
-            if (networkInterface == null)
+            UnicastIPAddressInformation firstIpv4 = networkInterface?.GetIPProperties()
+                .UnicastAddresses.FirstOrDefault(c => c.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
+
+            if (networkInterface == null || firstIpv4 == null || firstIpv4.Address == null || firstIpv4.Address.Equals(address) == false)
             {
                 return false;
             }
-
-            UnicastIPAddressInformation firstIpv4 = networkInterface.GetIPProperties().UnicastAddresses.FirstOrDefault(c => c.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
-            if (firstIpv4 == null || firstIpv4.Address == null || firstIpv4.Address.Equals(address) == false)
-            {
-                return true;
-            }
-
-            return await InterfacePing();
-
-            async Task<bool> InterfacePing()
-            {
-                for (int i = 0; i < 10; i++)
-                {
-                    try
-                    {
-                        using Ping ping = new Ping();
-                        PingReply pingReply = await ping.SendPingAsync(address, 30);
-                        if (pingReply.Status != IPStatus.TimedOut)
-                        {
-                            return pingReply.Status == IPStatus.Success;
-                        }
-                        LoggerHelper.Instance.Error($"ping {address} at {i}->TimedOut");
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerHelper.Instance.Error($"ping {address} at {i}->{ex}");
-                    }
-                    await Task.Delay(2000);
-                }
-                return false;
-            }
+            return await Task.FromResult(true);
         }
         private void InterfaceOrder()
         {
@@ -478,6 +435,7 @@ namespace linker.tun
                 }
             }
         }
+
     }
 }
 

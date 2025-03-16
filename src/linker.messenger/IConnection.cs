@@ -447,7 +447,7 @@ namespace linker.messenger
             if (pong == false) return;
             pong = false;
             pingTicks.Update();
-            await SendPingPong(pingBytes);
+            await SendPingPong(pingBytes).ConfigureAwait(false);
         }
         public override async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {

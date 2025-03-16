@@ -31,7 +31,7 @@ namespace linker.messenger.flow
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)FlowMessengerIds.List,
-            });
+            }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
                 return serializer.Deserialize<FlowInfo>(resp.Data.Span);
@@ -44,7 +44,7 @@ namespace linker.messenger.flow
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)FlowMessengerIds.Citys,
-            });
+            }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
                 return serializer.Deserialize<List<FlowReportNetInfo>>(resp.Data.Span);
@@ -58,7 +58,7 @@ namespace linker.messenger.flow
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)FlowMessengerIds.Messenger,
-            });
+            }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
                 return serializer.Deserialize<Dictionary<ushort, FlowItemInfo>>(resp.Data.Span);
@@ -77,7 +77,7 @@ namespace linker.messenger.flow
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)FlowMessengerIds.SForward,
                 Payload = serializer.Serialize(info)
-            });
+            }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
                 return serializer.Deserialize<SForwardFlowResponseInfo>(resp.Data.Span);
@@ -96,7 +96,7 @@ namespace linker.messenger.flow
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)FlowMessengerIds.Relay,
                 Payload = serializer.Serialize(info)
-            });
+            }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
                 return serializer.Deserialize<RelayFlowResponseInfo>(resp.Data.Span);

@@ -134,6 +134,7 @@ export default {
     'server.relayConnection': '连接数',
     'server.relayDelay': '延迟',
     'server.relayPublic': '公开',
+    'server.relayAllow': '支持协议',
     'server.relayUrl': 'Url',
     'server.relayOper': '操作',
     'server.relayUse': '使用',

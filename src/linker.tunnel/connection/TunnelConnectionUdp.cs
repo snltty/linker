@@ -103,7 +103,7 @@ namespace linker.tunnel.connection
                     {
                         break;
                     }
-                    await CallbackPacket(buffer.AsMemory(0, result.ReceivedBytes)).ConfigureAwait(false);
+                    await CallbackPacket(buffer, 0, result.ReceivedBytes).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -121,21 +121,21 @@ namespace linker.tunnel.connection
             }
         }
 
-        public async Task<bool> ProcessWrite(Memory<byte> packet)
+        public async Task<bool> ProcessWrite(byte[] buffer, int offset, int length)
         {
             if (callback == null)
             {
                 return false;
             }
-            await CallbackPacket(packet).ConfigureAwait(false);
+            await CallbackPacket(buffer, offset, length).ConfigureAwait(false);
             return true;
         }
-        private async Task CallbackPacket(Memory<byte> packet)
+        private async Task CallbackPacket(byte[] buffer, int offset, int length)
         {
-            ReceiveBytes += packet.Length;
+            ReceiveBytes += length;
             LastTicks.Update();
 
-            Memory<byte> memory = packet.Slice(4);
+            Memory<byte> memory = buffer.AsMemory(offset, length);
             if (memory.Length == pingBytes.Length && memory.Span.Slice(0, pingBytes.Length - 4).SequenceEqual(pingBytes.AsSpan(0, pingBytes.Length - 4)))
             {
                 if (memory.Span.SequenceEqual(pingBytes))
@@ -158,17 +158,16 @@ namespace linker.tunnel.connection
                 {
                     if (SSL)
                     {
-                        packet.CopyTo(decodeBuffer);
-                        packet = Crypto.Decode(decodeBuffer, 0, packet.Length);
+                        int writen = Crypto.Decode(buffer, offset, length, decodeBuffer, 0);
+                        memory = decodeBuffer.AsMemory(0, writen);
                     }
-
-                    await callback.Receive(this, packet.Slice(4), this.userToken);
+                    await callback.Receive(this, memory, this.userToken).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
                     LoggerHelper.Instance.Error(ex);
-                    LoggerHelper.Instance.Error($"udp connection error :{packet.Length}");
-                    LoggerHelper.Instance.Error($"udp connection error :{Encoding.UTF8.GetString(packet.Span)}");
+                    LoggerHelper.Instance.Error($"udp connection error :{length}");
+                    LoggerHelper.Instance.Error($"udp connection error buffer:{Encoding.UTF8.GetString(buffer, offset, length)}");
                 }
             }
         }
@@ -199,12 +198,24 @@ namespace linker.tunnel.connection
         }
         private async Task SendPingPong(byte[] data)
         {
-            int length = 4 + data.Length;
+            int length = 0;
 
-            byte[] heartData = ArrayPool<byte>.Shared.Rent(length);
-            data.Length.ToBytes(heartData);
-            data.AsMemory().CopyTo(heartData.AsMemory(4));
-            SendBytes += data.Length;
+            byte[] heartData = ArrayPool<byte>.Shared.Rent(1024);
+            Memory<byte> memory = heartData.AsMemory();
+
+            //中继包头
+            if (Type == TunnelType.Relay)
+            {
+                length += 2;
+                heartData[0] = 2; //relay
+                heartData[1] = 1; //forward
+                memory = memory.Slice(2);
+            }
+            //真的数据
+            data.AsMemory().CopyTo(memory);
+            length += data.Length;
+
+            SendBytes += length;
             try
             {
                 await UdpClient.SendToAsync(heartData.AsMemory(0, length), IPEndPoint, cancellationTokenSource.Token).ConfigureAwait(false);
@@ -230,17 +241,35 @@ namespace linker.tunnel.connection
         }
 
 
+        private byte[] encodeTempBuffer = new byte[8 * 1014];
         private byte[] encodeBuffer = new byte[8 * 1024];
-        private byte[] decodeBuffer = new byte[8 * 2014];
+        private byte[] decodeBuffer = new byte[8 * 1014];
+
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             try
             {
+                data = data.Slice(4);
+
+                int skip = 0;
+                if (Type == TunnelType.Relay)
+                {
+                    skip = 2;
+                    encodeBuffer[0] = 2; //relay
+                    encodeBuffer[1] = 1; //forward
+                }
                 if (SSL)
                 {
-                    data.CopyTo(encodeBuffer);
-                    data = Crypto.Encode(encodeBuffer, 0, data.Length);
+                    data.CopyTo(encodeTempBuffer);
+                    int length = Crypto.Encode(encodeTempBuffer, 0, data.Length, encodeBuffer, skip);
+                    data = encodeBuffer.AsMemory(0, length + skip);
                 }
+                else
+                {
+                    data.CopyTo(encodeBuffer.AsMemory(skip));
+                    data = encodeBuffer.AsMemory(0, data.Length + skip);
+                }
+
                 await UdpClient.SendToAsync(data, IPEndPoint, cancellationTokenSource.Token).ConfigureAwait(false);
                 SendBytes += data.Length;
                 return true;

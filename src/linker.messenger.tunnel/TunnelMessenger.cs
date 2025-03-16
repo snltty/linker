@@ -52,7 +52,7 @@ namespace linker.messenger.tunnel
                         Code = MessageResponeCodes.ERROR,
                         Payload = Helper.EmptyArray,
                         RequestId = requestid
-                    }, (ushort)TunnelMessengerIds.Info);
+                    }, (ushort)TunnelMessengerIds.Info).ConfigureAwait(false);
                 }
                 else
                 {
@@ -62,7 +62,7 @@ namespace linker.messenger.tunnel
                         Code = MessageResponeCodes.OK,
                         Payload = serializer.Serialize(result.Result),
                         RequestId = requestid
-                    }, (ushort)TunnelMessengerIds.Info);
+                    }, (ushort)TunnelMessengerIds.Info).ConfigureAwait(false);
                 }
             });
         }
@@ -94,8 +94,8 @@ namespace linker.messenger.tunnel
         public async Task RouteLevel(IConnection connection)
         {
             TunnelSetRouteLevelInfo tunnelTransportFileConfigInfo = serializer.Deserialize<TunnelSetRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            await tunnelClientStore.SetRouteLevelPlus(tunnelTransportFileConfigInfo.RouteLevelPlus);
-            await tunnelClientStore.SetPortMap(tunnelTransportFileConfigInfo.PortMapLan, tunnelTransportFileConfigInfo.PortMapWan);
+            await tunnelClientStore.SetRouteLevelPlus(tunnelTransportFileConfigInfo.RouteLevelPlus).ConfigureAwait(false);
+            await tunnelClientStore.SetPortMap(tunnelTransportFileConfigInfo.PortMapLan, tunnelTransportFileConfigInfo.PortMapWan).ConfigureAwait(false);
         }
     }
 

@@ -14,7 +14,8 @@ namespace linker.messenger.relay.client
     {
         public List<IRelayClientTransport> Transports { get; private set; }
 
-        private ConcurrentDictionary<string, bool> connectingDic = new ConcurrentDictionary<string, bool>();
+        private OperatingMultipleManager operating = new OperatingMultipleManager();
+
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
         private readonly IRelayClientStore relayClientStore;
@@ -25,6 +26,7 @@ namespace linker.messenger.relay.client
             this.signInClientStore = signInClientStore;
             Transports = new List<IRelayClientTransport> {
                 new RelayClientTransportSelfHost(messengerSender,serializer,relayClientStore,signInClientState,messengerStore),
+                new RelayClientTransportSelfHostUdp(messengerSender,serializer,relayClientStore,signInClientState,messengerStore),
             };
             LoggerHelper.Instance.Info($"load relay transport:{string.Join(",", Transports.Select(c => c.GetType().Name))}");
         }
@@ -55,6 +57,11 @@ namespace linker.messenger.relay.client
                 callbacks.Remove(callback);
             }
         }
+
+        public async Task<ITunnelConnection> ConnectAsync(string fromMachineId, string remoteMachineId, string transactionId, string nodeId, TunnelProtocolType protocol)
+        {
+            return await ConnectAsync(fromMachineId, remoteMachineId, transactionId, TunnelProtocolType.All & (~protocol), nodeId).ConfigureAwait(false);
+        }
         /// <summary>
         /// 中继连接对方
         /// </summary>
@@ -62,64 +69,68 @@ namespace linker.messenger.relay.client
         /// <param name="remoteMachineId">对方id</param>
         /// <param name="transactionId">事务</param>
         /// <returns></returns>
-        public async Task<ITunnelConnection> ConnectAsync(string fromMachineId, string remoteMachineId, string transactionId, string nodeId = "")
+        public async Task<ITunnelConnection> ConnectAsync(string fromMachineId, string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols, string nodeId = "")
         {
-            if (connectingDic.TryAdd(remoteMachineId, true) == false)
+           
+            if (operating.StartOperation(remoteMachineId) == false)
             {
                 return null;
             }
-            try
+            if (relayClientStore.Server.Disabled)
             {
-                IRelayClientTransport transport = Transports.FirstOrDefault(c => c.Type == relayClientStore.Server.RelayType && relayClientStore.Server.Disabled == false);
+                return null;
+            }
+
+            foreach (IRelayClientTransport transport in Transports.Where(c => denyProtocols.HasFlag(c.ProtocolType) == false))
+            {
                 if (transport == null)
                 {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Error($"relay to {remoteMachineId} fail,transport not found {relayClientStore.Server.RelayType},{relayClientStore.Server.Disabled}");
-                    return null;
+                    continue;
                 }
-
-                transport.RelayInfo170 relayInfo = new transport.RelayInfo170
+                try
                 {
-                    FlowingId = 0,
-                    FromMachineId = fromMachineId,
-                    FromMachineName = string.Empty,
-                    RemoteMachineId = remoteMachineId,
-                    RemoteMachineName = string.Empty,
-                    SecretKey = relayClientStore.Server.SecretKey,
-                    TransactionId = transactionId,
-                    TransportName = transport.Name,
-                    SSL = relayClientStore.Server.SSL,
-                    NodeId = nodeId,
-                    UserId = signInClientStore.Server.UserId,
-                    UseCdkey = relayClientStore.Server.UseCdkey,
-                };
+                    transport.RelayInfo170 relayInfo = new transport.RelayInfo170
+                    {
+                        FlowingId = 0,
+                        FromMachineId = fromMachineId,
+                        FromMachineName = string.Empty,
+                        RemoteMachineId = remoteMachineId,
+                        RemoteMachineName = string.Empty,
+                        SecretKey = relayClientStore.Server.SecretKey,
+                        TransactionId = transactionId,
+                        TransportName = transport.Name,
+                        SSL = relayClientStore.Server.SSL,
+                        NodeId = nodeId,
+                        UserId = signInClientStore.Server.UserId,
+                        UseCdkey = relayClientStore.Server.UseCdkey,
+                    };
 
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Info($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} {relayInfo.ToJson()}");
-                ITunnelConnection connection = await transport.RelayAsync(relayInfo).ConfigureAwait(false);
-                if (connection != null)
-                {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Debug($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
-                    ConnectedCallback(relayInfo, connection);
-                    return connection;
+                        LoggerHelper.Instance.Info($"relay {transport.Name} to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} {relayInfo.ToJson()}");
+                    ITunnelConnection connection = await transport.RelayAsync(relayInfo).ConfigureAwait(false);
+                    if (connection != null)
+                    {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            LoggerHelper.Instance.Debug($"relay {transport.Name} to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} success,{relayInfo.ToJson()}");
+                        ConnectedCallback(relayInfo, connection);
+                        return connection;
+                    }
+                    else
+                    {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            LoggerHelper.Instance.Error($"relay {transport.Name} to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} fail,{relayInfo.ToJson()}");
+                    }
+
                 }
-                else
+                catch (Exception ex)
                 {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Error($"relay to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} fail,{relayInfo.ToJson()}");
+                    LoggerHelper.Instance.Error(ex);
                 }
-
+                finally
+                {
+                    operating.StopOperation(remoteMachineId);
+                }
             }
-            catch (Exception ex)
-            {
-                LoggerHelper.Instance.Error(ex);
-            }
-            finally
-            {
-                connectingDic.TryRemove(remoteMachineId, out _);
-            }
-
             return null;
         }
         /// <summary>
@@ -129,7 +140,7 @@ namespace linker.messenger.relay.client
         /// <returns></returns>
         public async Task<bool> OnBeginAsync(transport.RelayInfo170 relayInfo)
         {
-            if (connectingDic.TryAdd(relayInfo.FromMachineId, true) == false)
+            if (operating.StartOperation(relayInfo.FromMachineId) == false)
             {
                 return false;
             }
@@ -164,7 +175,7 @@ namespace linker.messenger.relay.client
             }
             finally
             {
-                connectingDic.TryRemove(relayInfo.FromMachineId, out _);
+                operating.StopOperation(relayInfo.FromMachineId);
             }
             return false;
         }

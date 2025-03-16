@@ -57,7 +57,7 @@ namespace linker.plugins.sforward.messenger
 
             try
             {
-                string error = await validator.Validate(cache, sForwardAddInfo);
+                string error = await validator.Validate(cache, sForwardAddInfo).ConfigureAwait(false);
                 if (string.IsNullOrWhiteSpace(error) == false)
                 {
                     result.Success = false;
@@ -160,7 +160,7 @@ namespace linker.plugins.sforward.messenger
             }
             try
             {
-                string error = await validator.Validate(cache, sForwardAddInfo);
+                string error = await validator.Validate(cache, sForwardAddInfo).ConfigureAwait(false);
                 if (string.IsNullOrWhiteSpace(error) == false)
                 {
                     result.Success = false;
@@ -256,7 +256,7 @@ namespace linker.plugins.sforward.messenger
                     Connection = cacheTo.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.AddClient,
                     Payload = serializer.Serialize(info.Data)
-                });
+                }).ConfigureAwait(false);
             }
         }
         /// <summary>
@@ -275,7 +275,7 @@ namespace linker.plugins.sforward.messenger
                     Connection = cacheTo.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.RemoveClient,
                     Payload = serializer.Serialize(info.Id)
-                });
+                }).ConfigureAwait(false);
             }
         }
 
@@ -294,7 +294,7 @@ namespace linker.plugins.sforward.messenger
                 {
                     Connection = cacheTo.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.TestClientForward
-                });
+                }).ConfigureAwait(false);
             }
         }
 

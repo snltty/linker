@@ -88,7 +88,7 @@ namespace linker.libs
                 {
                     return ip;
                 }
-                return (await Dns.GetHostEntryAsync(domain, AddressFamily.InterNetwork)).AddressList.FirstOrDefault();
+                return (await Dns.GetHostEntryAsync(domain, AddressFamily.InterNetwork).ConfigureAwait(false)).AddressList.FirstOrDefault();
             }
             catch (Exception)
             {
@@ -123,7 +123,7 @@ namespace linker.libs
                 {
                     port = int.Parse(hostArr[1]);
                 }
-                IPAddress ip = await GetDomainIpAsync(hostArr[0]);
+                IPAddress ip = await GetDomainIpAsync(hostArr[0]).ConfigureAwait(false);
                 return new IPEndPoint(ip, port);
             }
             catch (Exception)
@@ -227,7 +227,12 @@ namespace linker.libs
             return GetIP()
                  .Where(c => c.AddressFamily == AddressFamily.InterNetworkV6)
                  .Where(c => c.GetAddressBytes().AsSpan(0, 8).SequenceEqual(ipv6LocalBytes) == false)
-                 .Where(c=>c.Equals(IPAddress.IPv6Loopback) == false)
+                 .Where(c => c.Equals(IPAddress.IPv6Loopback) == false)
+                 .Where(c =>
+                 {
+                     byte[] addressBytes = c.GetAddressBytes();
+                     return (addressBytes[0] == 0xFD || (addressBytes[0] == 0xFE && (addressBytes[1] & 0xC0) == 0x80)) == false;
+                 })
                  .Distinct().ToArray();
         }
         public static IPAddress[] GetIPV4()

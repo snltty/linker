@@ -7,6 +7,7 @@ using linker.messenger.relay.client.transport;
 using linker.messenger.relay.messenger;
 using linker.messenger.relay.server;
 using linker.messenger.signin;
+using linker.tunnel.connection;
 
 namespace linker.messenger.relay
 {
@@ -52,7 +53,13 @@ namespace linker.messenger.relay
         public bool Connect(ApiControllerParamsInfo param)
         {
             RelayConnectInfo relayConnectInfo = param.Content.DeJson<RelayConnectInfo>();
-            _ = relayTransfer.ConnectAsync(relayConnectInfo.FromMachineId, relayConnectInfo.ToMachineId, relayConnectInfo.TransactionId, relayConnectInfo.NodeId);
+            if(relayConnectInfo.Protocol == TunnelProtocolType.None)
+            {
+                relayConnectInfo.Protocol = TunnelProtocolType.Tcp;
+            }
+            relayConnectInfo.ToMachineId = "67d67cb942b4da0c16b5f5ec";
+            relayConnectInfo.TransactionId = "tuntap";
+            _ = relayTransfer.ConnectAsync(relayConnectInfo.FromMachineId, relayConnectInfo.ToMachineId, relayConnectInfo.TransactionId, relayConnectInfo.NodeId, relayConnectInfo.Protocol);
             relayClientStore.SetDefaultNodeId(relayConnectInfo.NodeId);
             return true;
         }
@@ -65,7 +72,7 @@ namespace linker.messenger.relay
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)RelayMessengerIds.AccessCdkey,
                 Payload = serializer.Serialize(relayClientStore.Server.SecretKey)
-            });
+            }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
 
@@ -82,7 +89,7 @@ namespace linker.messenger.relay
                     Data = info,
                     SecretKey = relayClientStore.Server.SecretKey
                 })
-            });
+            }).ConfigureAwait(false);
 
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
@@ -100,7 +107,7 @@ namespace linker.messenger.relay
                     UserId = signInClientStore.Server.UserId,
                     SecretKey = relayClientStore.Server.SecretKey
                 })
-            });
+            }).ConfigureAwait(false);
 
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
@@ -115,7 +122,7 @@ namespace linker.messenger.relay
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)RelayMessengerIds.PageCdkey,
                 Payload = serializer.Serialize(info)
-            });
+            }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK)
             {
                 return serializer.Deserialize<RelayServerCdkeyPageResultInfo>(resp.Data.Span);
@@ -134,7 +141,7 @@ namespace linker.messenger.relay
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)RelayMessengerIds.PageCdkey,
                 Payload = serializer.Serialize(info)
-            });
+            }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK)
             {
                 return serializer.Deserialize<RelayServerCdkeyPageResultInfo>(resp.Data.Span);
@@ -153,7 +160,7 @@ namespace linker.messenger.relay
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)RelayMessengerIds.TestCdkey,
                 Payload = serializer.Serialize(info)
-            });
+            }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK)
             {
                 return serializer.Deserialize<RelayServerCdkeyTestResultInfo>(resp.Data.Span);
@@ -172,7 +179,7 @@ namespace linker.messenger.relay
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)RelayMessengerIds.ImportCdkey,
                 Payload = serializer.Serialize(info)
-            });
+            }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK)
             {
                 return serializer.Deserialize<string>(resp.Data.Span);
@@ -191,7 +198,7 @@ namespace linker.messenger.relay
                     Info = info,
                     SecretKey = relayClientStore.Server.SecretKey
                 })
-            });
+            }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
     }
@@ -202,6 +209,9 @@ namespace linker.messenger.relay
         public string ToMachineId { get; set; }
         public string TransactionId { get; set; }
         public string NodeId { get; set; }
+        public TunnelProtocolType Protocol { get; set; }
+
+
     }
 
 }

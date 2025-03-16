@@ -29,7 +29,7 @@ namespace linker.messenger.sforward.server.validator
                     return $"sforward tunnel port range {string.Join("-", sForwardServerStore.TunnelPortRange)}";
                 }
             }
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
             return string.Empty;
         }
     }

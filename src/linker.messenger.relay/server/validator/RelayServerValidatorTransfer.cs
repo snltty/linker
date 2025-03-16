@@ -51,7 +51,7 @@ namespace linker.messenger.relay.server.validator
         {
             foreach (var item in validators)
             {
-                string result = await item.Validate(relayInfo, cache, cache1);
+                string result = await item.Validate(relayInfo, cache, cache1).ConfigureAwait(false);
                 if (string.IsNullOrWhiteSpace(result) == false)
                 {
                     return result;

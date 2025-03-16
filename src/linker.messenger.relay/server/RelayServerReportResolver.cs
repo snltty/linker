@@ -48,7 +48,7 @@ namespace linker.messenger.relay.server
 
                 if (relayServerMasterStore.Master.SecretKey.Md5() == key)
                 {
-                    await messengerResolver.BeginReceiveServer(socket, Helper.EmptyArray);
+                    await messengerResolver.BeginReceiveServer(socket, Helper.EmptyArray).ConfigureAwait(false);
                 }
                 else
                 {
@@ -71,7 +71,7 @@ namespace linker.messenger.relay.server
 
         public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
         }
     }
 }

@@ -29,7 +29,7 @@ namespace linker.tun
         public async Task Callback(LinkerTunDevicPacket packet)
         {
             TCPUDPRead(packet);
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
         }
         private unsafe void TCPUDPRead(LinkerTunDevicPacket packet)
         {
@@ -60,7 +60,7 @@ namespace linker.tun
         public async Task Callback(LinkerTunDevicPacket packet)
         {
             ICMPAnswer(packet);
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
         }
         private unsafe void ICMPAnswer(LinkerTunDevicPacket packet)
         {

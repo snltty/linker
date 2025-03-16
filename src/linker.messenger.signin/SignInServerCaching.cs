@@ -47,7 +47,7 @@ namespace linker.messenger.signin
             }
 
             //参数验证失败
-            string verifyResult = await signInArgsTransfer.Validate(signInfo, cache);
+            string verifyResult = await signInArgsTransfer.Validate(signInfo, cache).ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(verifyResult) == false)
             {
                 cache.Connected = false;

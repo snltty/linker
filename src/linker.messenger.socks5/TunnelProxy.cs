@@ -54,7 +54,7 @@ namespace linker.messenger.socks5
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error(ex);
             }
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
         }
         /// <summary>
         /// 根据不同的消息类型做不同的事情

@@ -74,7 +74,7 @@ namespace linker.messenger.decenter
                     }).ToList();
                     if (tasks.Count > 0)
                     {
-                        await Task.WhenAll(tasks.Select(c => c.Task));
+                        await Task.WhenAll(tasks.Select(c => c.Task)).ConfigureAwait(false);
                         foreach (var task in tasks)
                         {
                             if (task.Task.Result.Code == MessageResponeCodes.OK)

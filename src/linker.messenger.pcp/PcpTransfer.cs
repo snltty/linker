@@ -65,7 +65,7 @@ namespace linker.messenger.pcp
         {
             //TunnelTagInfo tag = new TunnelTagInfo { FromMachineId = signInClientStore.Id, ToMachineId = remoteMachineId, TransactionId = transactionId, NodeId = string.Empty, NodeIds = pcpStore.PcpHistory.History };
 
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
             return null;
         }
 

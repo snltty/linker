@@ -48,7 +48,7 @@ namespace linker.messenger.relay
                         MachineId = signInClientStore.Id,
                         SecretKey = relayClientStore.Server.SecretKey,
                         UserId = signInClientStore.Server.UserId
-                    });
+                    }).ConfigureAwait(false);
                     var tasks = Nodes.Select(async (c) =>
                     {
                         IPEndPoint ep = c.EndPoint == null || c.EndPoint.Address.Equals(IPAddress.Any) ? signInClientState.Connection.Address : c.EndPoint;
@@ -57,7 +57,7 @@ namespace linker.messenger.relay
                         var resp = await ping.SendPingAsync(ep.Address, 1000);
                         c.Delay = resp.Status == IPStatus.Success ? (int)resp.RoundtripTime : -1;
                     });
-                    await Task.WhenAll(tasks);
+                    await Task.WhenAll(tasks).ConfigureAwait(false);
                 }
             }
             catch (Exception)
@@ -70,7 +70,7 @@ namespace linker.messenger.relay
             {
                 if (lastTicksManager.DiffLessEqual(3000))
                 {
-                    await TaskRelay();
+                    await TaskRelay().ConfigureAwait(false);
                 }
                 return true;
             }, 3000);

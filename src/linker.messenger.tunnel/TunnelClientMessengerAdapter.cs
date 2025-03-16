@@ -94,12 +94,12 @@ namespace linker.plugins.tunnel
 
         public async Task<List<TunnelTransportItemInfo>> GetTunnelTransports()
         {
-            return await tunnelClientStore.GetTunnelTransports();
+            return await tunnelClientStore.GetTunnelTransports().ConfigureAwait(false);
         }
 
         public async Task<bool> SetTunnelTransports(List<TunnelTransportItemInfo> list)
         {
-            return await tunnelClientStore.SetTunnelTransports(list);
+            return await tunnelClientStore.SetTunnelTransports(list).ConfigureAwait(false);
         }
 
         public async Task<TunnelTransportWanPortInfo> GetRemoteWanPort(TunnelWanPortProtocolInfo info)

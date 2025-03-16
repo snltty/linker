@@ -164,7 +164,7 @@ namespace linker.messenger.forward
                 return false;
             }
 
-            await Task.WhenAll(list.Select(Connect));
+            await Task.WhenAll(list.Select(Connect)).ConfigureAwait(false);
             testing.StopOperation();
             return true;
 
@@ -173,7 +173,7 @@ namespace linker.messenger.forward
                 Socket socket = new Socket(info.Target.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 try
                 {
-                    await socket.ConnectAsync(info.Target).WaitAsync(TimeSpan.FromMilliseconds(100));
+                    await socket.ConnectAsync(info.Target).WaitAsync(TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
                     info.Msg = string.Empty;
                 }
                 catch (Exception ex)

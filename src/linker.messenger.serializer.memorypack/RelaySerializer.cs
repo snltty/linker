@@ -1,5 +1,6 @@
 ﻿using linker.messenger.relay.client.transport;
 using linker.messenger.relay.server;
+using linker.tunnel.connection;
 using MemoryPack;
 using System.Net;
 using System.Xml.Linq;
@@ -321,12 +322,17 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string Url => info.Url;
 
+        [MemoryPackInclude]
+        bool AllowTcp => info.AllowTcp;
+        [MemoryPackInclude]
+        bool AllowUdp => info.AllowUdp;
+
         [MemoryPackConstructor]
         SerializableRelayServerNodeUpdateInfo(
             string id, string name,
             int maxConnection, double maxBandwidth, double maxBandwidthTotal,
             double maxGbTotal, long maxGbTotalLastBytes,
-            bool Public, string url)
+            bool Public, string url, bool allowTcp, bool allowUdp)
         {
             var info = new RelayServerNodeUpdateInfo
             {
@@ -338,7 +344,9 @@ namespace linker.messenger.serializer.memorypack
                 MaxGbTotalLastBytes = maxGbTotalLastBytes,
                 Name = name,
                 Public = Public,
-                Url = url
+                Url = url,
+                AllowTcp = allowTcp,
+                AllowUdp = allowUdp,
             };
             this.info = info;
         }
@@ -558,6 +566,9 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string Url => info.Url;
 
+        [MemoryPackInclude]
+        TunnelProtocolType AllowProtocol => info.AllowProtocol;
+
 
         [MemoryPackConstructor]
         SerializableRelayServerNodeReportInfo170(
@@ -566,7 +577,7 @@ namespace linker.messenger.serializer.memorypack
             double maxGbTotal, long maxGbTotalLastBytes,
             double connectionRatio, double bandwidthRatio,
             bool Public, int delay,
-            IPEndPoint endPoint, long lastTicks, string url)
+            IPEndPoint endPoint, long lastTicks, string url, TunnelProtocolType allowProtocol)
         {
             var info = new RelayServerNodeReportInfo170
             {
@@ -583,7 +594,8 @@ namespace linker.messenger.serializer.memorypack
                 MaxGbTotalLastBytes = maxGbTotalLastBytes,
                 Name = name,
                 Public = Public,
-                Url = url
+                Url = url,
+                AllowProtocol = allowProtocol
             };
             this.info = info;
         }

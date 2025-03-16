@@ -4,7 +4,6 @@ using linker.messenger.exroute;
 using linker.messenger.signin;
 using linker.tun;
 using linker.tunnel.connection;
-using System.Diagnostics;
 
 namespace linker.messenger.tuntap
 {
@@ -12,6 +11,8 @@ namespace linker.messenger.tuntap
     {
         private List<LinkerTunDeviceForwardItem> forwardItems = new List<LinkerTunDeviceForwardItem>();
 
+        private bool skipCheck => tuntapTransfer.Status == TuntapStatus.Operating || tuntapConfigTransfer.Running == false;
+        private bool needRestart => tuntapTransfer.Status != TuntapStatus.Running || tuntapConfigTransfer.Changed;
 
         private readonly TuntapTransfer tuntapTransfer;
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
@@ -61,7 +62,7 @@ namespace linker.messenger.tuntap
             };
             tuntapTransfer.OnShutdownAfter += () =>
             {
-                tuntapDecenter.Refresh(); DeleteForward(); 
+                tuntapDecenter.Refresh(); DeleteForward();
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Warning("tuntap shutdown after");
                 tuntapConfigTransfer.SetRunning(false);
@@ -76,37 +77,31 @@ namespace linker.messenger.tuntap
         }
 
 
-        private ulong configVersion = 0;
         private OperatingManager checking = new OperatingManager();
         private void CheckDeviceTask()
         {
             TimerHelper.SetIntervalLong(async () =>
             {
-                await CheckDevice();
+                await CheckDevice().ConfigureAwait(false);
                 return true;
-            }, 30000);
+            }, 5000);
         }
         private async Task CheckDevice()
         {
             try
             {
-                bool start = checking.StartOperation();
-
-                //开始操作失败，或者网卡正在操作中，或者不需要运行
-                if (start == false || tuntapTransfer.Status == TuntapStatus.Operating || tuntapConfigTransfer.Running == false)
+                if (checking.StartOperation() == false || skipCheck)
                 {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Warning($"tuntap check device continue :start:{start},status:{tuntapTransfer.Status},running:{tuntapConfigTransfer.Running}");
                     return;
                 }
-
-                //配置发生变化，或者网卡不可用
-                if (tuntapConfigTransfer.Version.Eq(configVersion, out ulong version) == false || tuntapTransfer.Status != TuntapStatus.Running || await tuntapTransfer.CheckAvailable() == false)
+                if (needRestart)
                 {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Warning($"tuntap config version changed, restarting device");
-                    configVersion = version;
-                    await RetstartDevice();
+                    await RetstartDevice().ConfigureAwait(false);
+                    return;
+                }
+                if (await tuntapTransfer.CheckAvailable().ConfigureAwait(false) == false)
+                {
+                    tuntapTransfer.Refresh();
                 }
             }
             catch (Exception)
@@ -127,13 +122,13 @@ namespace linker.messenger.tuntap
                     return;
                 }
             }
-            await tuntapProxy.InputPacket(packet);
+            await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
         }
 
         public async ValueTask Close(ITunnelConnection connection)
         {
             tuntapDecenter.Refresh();
-            await ValueTask.CompletedTask;
+            await ValueTask.CompletedTask.ConfigureAwait(false);
         }
         public void Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
         {
@@ -142,7 +137,7 @@ namespace linker.messenger.tuntap
         public async ValueTask NotFound(uint ip)
         {
             tuntapDecenter.Refresh();
-            await ValueTask.CompletedTask;
+            await ValueTask.CompletedTask.ConfigureAwait(false);
         }
 
         /// <summary>
@@ -154,7 +149,7 @@ namespace linker.messenger.tuntap
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Warning($"restart, stop device");
             tuntapTransfer.Shutdown();
-            await tuntapConfigTransfer.RefreshIPASync();
+            await tuntapConfigTransfer.RefreshIPASync().ConfigureAwait(false);
             tuntapTransfer.Setup(tuntapConfigTransfer.Name, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.Info.PrefixLength, tuntapConfigTransfer.Info.DisableNat == false);
         }
         /// <summary>

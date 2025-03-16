@@ -33,7 +33,7 @@ namespace linker.messenger.sync
         {
             TimerHelper.Async(async () =>
             {
-                await slim.WaitAsync();
+                await slim.WaitAsync().ConfigureAwait(false);
                 try
                 {
                     var tasks = syncs.Where(c => names.Contains(c.Name)).Select(c =>
@@ -46,7 +46,7 @@ namespace linker.messenger.sync
 
                          });
                      }).ToList();
-                    await Task.WhenAll(tasks);
+                    await Task.WhenAll(tasks).ConfigureAwait(false);
                 }
                 catch (Exception)
                 {
@@ -64,7 +64,7 @@ namespace linker.messenger.sync
                     Connection = signInClientState.Connection,
                     MessengerId = (ushort)ConfigMessengerIds.SyncForward,
                     Payload = serializer.Serialize(new SyncInfo { Name = sync.Name, Data = sync.GetData() }),
-                });
+                }).ConfigureAwait(false);
             }
         }
         public void Sync(SyncInfo info)

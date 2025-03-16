@@ -109,7 +109,7 @@ namespace linker.messenger.relay.server
                     Connection = cache.Connection,
                     MessengerId = (ushort)RelayMessengerIds.UpdateNode,
                     Payload = serializer.Serialize(info)
-                });
+                }).ConfigureAwait(false);
             }
         }
 
@@ -198,7 +198,7 @@ namespace linker.messenger.relay.server
                             Connection = c.Connection,
                             MessengerId = (ushort)RelayMessengerIds.SendLastBytes,
                             Payload = bytes,
-                        })).ToList());
+                        })).ToList()).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {

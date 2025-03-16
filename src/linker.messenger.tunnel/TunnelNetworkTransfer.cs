@@ -51,7 +51,7 @@ namespace linker.messenger.tunnel
             try
             {
                 using HttpClient httpClient = new HttpClient();
-                string str = await httpClient.GetStringAsync($"http://ip-api.com/json").WaitAsync(TimeSpan.FromMilliseconds(3000));
+                string str = await httpClient.GetStringAsync($"http://ip-api.com/json").WaitAsync(TimeSpan.FromMilliseconds(3000)).ConfigureAwait(false);
 
                 if (string.IsNullOrWhiteSpace(str) == false)
                 {
@@ -75,7 +75,7 @@ namespace linker.messenger.tunnel
             try
             {
                 using HttpClient httpClient = new HttpClient();
-                string str = await httpClient.GetStringAsync($"https://api.myip.la/en?json").WaitAsync(TimeSpan.FromMilliseconds(5000));
+                string str = await httpClient.GetStringAsync($"https://api.myip.la/en?json").WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
 
                 if (string.IsNullOrWhiteSpace(str) == false)
                 {
@@ -94,7 +94,7 @@ namespace linker.messenger.tunnel
         {
             if (string.IsNullOrWhiteSpace(Info.Net.City))
             {
-                await Task.WhenAll(GetIsp(), GetPosition());
+                await Task.WhenAll(GetIsp(), GetPosition()).ConfigureAwait(false);
             }
         }
 

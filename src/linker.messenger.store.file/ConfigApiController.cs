@@ -110,7 +110,7 @@ namespace linker.messenger.store.file
                 client.Name = string.Empty;
                 if (configExportInfo.Single || client.OnlyNode)
                 {
-                    client.Id = await signInClientTransfer.GetNewId();
+                    client.Id = await signInClientTransfer.GetNewId().ConfigureAwait(false);
                     client.Name = configExportInfo.Name;
                 }
                 if (client.OnlyNode == false)

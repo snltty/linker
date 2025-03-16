@@ -63,7 +63,7 @@ namespace linker.messenger.access
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)AccessMessengerIds.AccessUpdateForward,
                 Payload = serializer.Serialize(configUpdateAccessInfo)
-            });
+            }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
 
@@ -84,7 +84,7 @@ namespace linker.messenger.access
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)AccessMessengerIds.SetApiPasswordForward,
                 Payload = serializer.Serialize(info)
-            });
+            }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
 

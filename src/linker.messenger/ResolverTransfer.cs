@@ -49,7 +49,7 @@ namespace linker.messenger
 
                 if (resolvers.TryGetValue(type, out IResolver resolver))
                 {
-                    await resolver.Resolve(socket, buffer.AsMemory(1, length));
+                    await resolver.Resolve(socket, buffer.AsMemory(1, length)).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -73,7 +73,7 @@ namespace linker.messenger
         {
             if (resolvers.TryGetValue(memory.Span[0], out IResolver resolver))
             {
-                await resolver.Resolve(socket, ep, memory.Slice(1));
+                await resolver.Resolve(socket, ep, memory.Slice(1)).ConfigureAwait(false);
             }
         }
     }

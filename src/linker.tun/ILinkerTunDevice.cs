@@ -35,6 +35,8 @@ namespace linker.tun
         /// </summary>
         public void Shutdown();
 
+        public void Refresh();
+
         /// <summary>
         /// 设置MTU
         /// </summary>

@@ -44,7 +44,7 @@
         {
             foreach (var item in startups)
             {
-                string result = await item.Invoke(host, args);
+                string result = await item.Invoke(host, args).ConfigureAwait(false);
                 if (string.IsNullOrWhiteSpace(result) == false)
                 {
                     return result;
@@ -62,7 +62,7 @@
         {
             foreach (var item in startups)
             {
-                string result = await item.Validate(signInfo, cache);
+                string result = await item.Validate(signInfo, cache).ConfigureAwait(false);
                 if (string.IsNullOrWhiteSpace(result) == false)
                 {
                     return result;

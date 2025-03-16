@@ -18,13 +18,13 @@
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             args.TryAdd("signin-gpwd", signInClientStore.Group.Password);
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
             return string.Empty;
         }
 
         public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
         {
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
             return string.Empty;
         }
     }
@@ -40,7 +40,7 @@
         }
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
             return string.Empty;
         }
 
@@ -56,7 +56,7 @@
             {
                 signInfo.GroupId = $"{signInfo.GroupId}->{gpwd}";
             }
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
             return string.Empty;
         }
 

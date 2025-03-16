@@ -225,7 +225,7 @@ namespace linker.tunnel.transport
             {
                 byte[] buffer = new byte[1024];
                 SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer, new IPEndPoint(IPAddress.IPv6Any, 0)).ConfigureAwait(false);
-                await socket.SendToAsync(endBytes, result.RemoteEndPoint);
+                await socket.SendToAsync(endBytes, result.RemoteEndPoint).ConfigureAwait(false);
                 tcs.SetResult(result.RemoteEndPoint as IPEndPoint);
             });
             return socket;
@@ -287,7 +287,7 @@ namespace linker.tunnel.transport
                     }
                     else
                     {
-                        await token.LocalUdp.SendToAsync(buffer.AsMemory(0, result.ReceivedBytes), result.RemoteEndPoint);
+                        await token.LocalUdp.SendToAsync(buffer.AsMemory(0, result.ReceivedBytes), result.RemoteEndPoint).ConfigureAwait(false);
                     }
                 }
             }
@@ -429,7 +429,7 @@ namespace linker.tunnel.transport
                     }
                 }
             }
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
         }
 
         sealed class ListenAsyncToken

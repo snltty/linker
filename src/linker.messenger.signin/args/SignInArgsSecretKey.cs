@@ -15,13 +15,13 @@
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             args.TryAdd("signin-secretkey", signInClientStore.Server.SecretKey);
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
             return string.Empty;
         }
 
         public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
         {
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
             return string.Empty;
         }
     }
@@ -39,7 +39,7 @@
         }
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
             return string.Empty;
         }
 
@@ -58,7 +58,7 @@
                     return $"server secretkey validate fail";
                 }
             }
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
             return string.Empty;
         }
 

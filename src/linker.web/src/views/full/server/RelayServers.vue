@@ -28,8 +28,14 @@
             <el-table :data="state.nodes" size="small" border height="500">
                 <el-table-column property="Name" :label="$t('server.relayName')">
                     <template #default="scope">
-                        <a :href="scope.row.Url" class="a-line blue" target="_blank">{{ scope.row.Name }}</a>
-                        <a v-if="state.hasRelayCdkey" href="javascript:;" class="a-line" @click="handleEdit(scope.row)"><el-icon><Edit /></el-icon></a>
+                        <div>
+                            <a :href="scope.row.Url" class="a-line blue" target="_blank">{{ scope.row.Name }}</a>
+                            <a v-if="state.hasRelayCdkey" href="javascript:;" class="a-line a-edit" @click="handleEdit(scope.row)">
+                                <span><el-icon><Edit /></el-icon></span>
+                                <span v-if="(scope.row.AllowProtocol & 1) == 1">,tcp</span>
+                                <span v-if="(scope.row.AllowProtocol & 2) == 2">,udp</span>
+                            </a>
+                        </div>
                     </template>
                 </el-table-column>
                 <el-table-column property="MaxGbTotal" :label="$t('server.relayFlow')" width="160">
@@ -140,5 +146,11 @@ export default {
 <style lang="stylus" scoped>
 .blue {
     color: #409EFF;
+}
+a.a-edit{
+    margin-left:1rem;
+    .el-icon {
+        vertical-align middle
+    }
 }
 </style>

@@ -25,7 +25,7 @@ namespace linker.messenger.tuntap.lease
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)TuntapMessengerIds.LeaseAddNetwork,
                 Payload = serializer.Serialize(info)
-            });
+            }).ConfigureAwait(false);
         }
         public async Task<LeaseInfo> GetNetwork()
         {
@@ -34,7 +34,7 @@ namespace linker.messenger.tuntap.lease
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)TuntapMessengerIds.LeaseGetNetwork
 
-            });
+            }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK)
             {
                 LeaseInfo info = serializer.Deserialize<LeaseInfo>(resp.Data.Span);
@@ -48,7 +48,7 @@ namespace linker.messenger.tuntap.lease
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)TuntapMessengerIds.LeaseChangeForward
-            });
+            }).ConfigureAwait(false);
         }
 
         public async Task<LeaseInfo> LeaseIp(IPAddress ip, byte prefixLength)
@@ -59,7 +59,7 @@ namespace linker.messenger.tuntap.lease
                 MessengerId = (ushort)TuntapMessengerIds.LeaseIP,
                 Payload = serializer.Serialize(new LeaseInfo { IP = ip, PrefixLength = prefixLength })
 
-            });
+            }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK)
             {
                 LeaseInfo newip = serializer.Deserialize<LeaseInfo>(resp.Data.Span);
@@ -79,7 +79,7 @@ namespace linker.messenger.tuntap.lease
                 {
                     Connection = signInClientState.Connection,
                     MessengerId = (ushort)TuntapMessengerIds.LeaseExp,
-                });
+                }).ConfigureAwait(false);
 
                 return true;
             },  60000);

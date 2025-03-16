@@ -85,7 +85,7 @@ namespace linker.messenger.channel
             try
             {
                 //锁
-                if (await WaitAsync(machineId) == false)
+                if (await WaitAsync(machineId).ConfigureAwait(false) == false)
                 {
                     return null;
                 }
@@ -96,12 +96,12 @@ namespace linker.messenger.channel
                     return connection;
                 }
                 //不在线就不必连了
-                if (await signInClientTransfer.GetOnline(machineId) == false)
+                if (await signInClientTransfer.GetOnline(machineId).ConfigureAwait(false) == false)
                 {
                     return null;
                 }
 
-                connection = await RelayAndP2P(machineId, denyProtocols);
+                connection = await RelayAndP2P(machineId, denyProtocols).ConfigureAwait(false);
 
                 if (connection != null)
                 {
@@ -123,7 +123,7 @@ namespace linker.messenger.channel
         {
             //中继
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} relay to {machineId}");
-            ITunnelConnection connection = await relayTransfer.ConnectAsync(signInClientStore.Id, machineId, TransactionId, relayClientStore.DefaultNodeId).ConfigureAwait(false);
+            ITunnelConnection connection = await relayTransfer.ConnectAsync(signInClientStore.Id, machineId, TransactionId, denyProtocols, relayClientStore.DefaultNodeId).ConfigureAwait(false);
             if (connection != null)
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} relay success,{connection.ToString()}");

@@ -16,6 +16,18 @@ namespace linker.messenger.tuntap
         private string name = string.Empty;
         public string Name => string.IsNullOrWhiteSpace(Info.Name) ? (string.IsNullOrWhiteSpace(name) ? "linker" : name) : Info.Name;
 
+
+        private ulong configVersion = 0;
+        public bool Changed
+        {
+            get
+            {
+                bool result = Version.Eq(configVersion, out ulong version);
+                configVersion = version;
+                return result == false;
+            }
+        }
+
         public VersionManager Version { get; } = new VersionManager();
 
         private readonly ITuntapClientStore tuntapStore;
@@ -65,7 +77,7 @@ namespace linker.messenger.tuntap
                 Info.Forwards = info.Forwards;
                 tuntapStore.Confirm();
 
-                await LeaseIP();
+                await LeaseIP().ConfigureAwait(false);
                 SetGroupIP();
 
                 if (ip.Equals(Info.IP) == false || prefixLength != Info.PrefixLength || string.Equals(name, Info.Name) == false)
@@ -93,7 +105,7 @@ namespace linker.messenger.tuntap
             byte prefixLength = Info.PrefixLength;
 
             LoadGroupIP();
-            await LeaseIP();
+            await LeaseIP().ConfigureAwait(false);
             SetGroupIP();
 
             if ((oldIP.Equals(Info.IP) == false || prefixLength != Info.PrefixLength) && Info.Running)
@@ -105,7 +117,7 @@ namespace linker.messenger.tuntap
         }
         private async Task LeaseIP()
         {
-            LeaseInfo leaseInfo = await leaseClientTreansfer.LeaseIp(Info.IP, Info.PrefixLength);
+            LeaseInfo leaseInfo = await leaseClientTreansfer.LeaseIp(Info.IP, Info.PrefixLength).ConfigureAwait(false);
             Info.IP = leaseInfo.IP;
             Info.PrefixLength = leaseInfo.PrefixLength;
             name = leaseInfo.Name;

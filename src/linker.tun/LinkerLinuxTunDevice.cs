@@ -1,4 +1,5 @@
-﻿using linker.libs;
+﻿
+using linker.libs;
 using linker.libs.extends;
 using Microsoft.Win32.SafeHandles;
 using System.Net;
@@ -22,10 +23,10 @@ namespace linker.tun
 
         public LinkerLinuxTunDevice()
         {
-           
+
         }
 
-        public bool Setup(string name,IPAddress address, IPAddress gateway, byte prefixLength, out string error)
+        public bool Setup(string name, IPAddress address, IPAddress gateway, byte prefixLength, out string error)
         {
             this.name = name;
             error = string.Empty;
@@ -124,6 +125,20 @@ namespace linker.tun
             fs = null;
             interfaceLinux = string.Empty;
             CommandHelper.Linux(string.Empty, new string[] { $"ip link del {Name}", $"ip tuntap del mode tun dev {Name}" });
+        }
+
+        public void Refresh()
+        {
+            if (fs == null) return;
+            try
+            {
+                CommandHelper.Linux(string.Empty, new string[] {
+                    $"ip link set dev {Name} up"
+                });
+            }
+            catch (Exception)
+            {
+            }
         }
 
         public void SetMtu(int value)
@@ -300,6 +315,8 @@ namespace linker.tun
         private object writeLockObj = new object();
         public ReadOnlyMemory<byte> Read()
         {
+            if (fs == null) return Helper.EmptyArray;
+
             int length = fs.Read(buffer.AsSpan(4));
             length.ToBytes(buffer);
             return buffer.AsMemory(0, length + 4);
@@ -326,7 +343,7 @@ namespace linker.tun
         public async Task<bool> CheckAvailable()
         {
             string output = CommandHelper.Linux(string.Empty, new string[] { $"ip link show {Name}" });
-            return await Task.FromResult(output.Contains("state UP"));
+            return await Task.FromResult(output.Contains("state UP")).ConfigureAwait(false);
         }
     }
 

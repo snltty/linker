@@ -35,6 +35,7 @@ namespace linker.messenger.tuntap
             AppDomain.CurrentDomain.ProcessExit += (s, e) => linkerTunDeviceAdapter.Shutdown();
             Console.CancelKeyPress += (s, e) => linkerTunDeviceAdapter.Shutdown();
         }
+
         public bool Write(ReadOnlyMemory<byte> buffer)
         {
             return linkerTunDeviceAdapter.Write(buffer);
@@ -89,6 +90,35 @@ namespace linker.messenger.tuntap
         }
 
         /// <summary>
+        /// 刷新网卡
+        /// </summary>
+        public void Refresh()
+        {
+            if (operatingManager.StartOperation() == false)
+            {
+                return;
+            }
+            TimerHelper.Async(() =>
+            {
+                try
+                {
+                    linkerTunDeviceAdapter.Refresh();
+                }
+                catch (Exception ex)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
+                }
+                finally
+                {
+                    operatingManager.StopOperation();
+                }
+            });
+        }
+
+        /// <summary>
         /// 停止网卡
         /// </summary>
         public void Shutdown()
@@ -137,7 +167,7 @@ namespace linker.messenger.tuntap
         }
         public async Task<bool> CheckAvailable()
         {
-            return await linkerTunDeviceAdapter.CheckAvailable();
+            return await linkerTunDeviceAdapter.CheckAvailable().ConfigureAwait(false);
         }
     }
 }

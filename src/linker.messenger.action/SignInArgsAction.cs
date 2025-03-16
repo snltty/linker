@@ -141,7 +141,7 @@ namespace linker.messenger.action
                         IPAddress = signInfo.Connection.Address.Address
                     }
                 };
-                return await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.SignInActionUrl);
+                return await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.SignInActionUrl).ConfigureAwait(false);
             }
 
             return string.Empty;
@@ -192,7 +192,7 @@ namespace linker.messenger.action
                         IPAddress = fromMachine.Connection.Address.Address,
                     }
                 };
-                return await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.RelayActionUrl);
+                return await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.RelayActionUrl).ConfigureAwait(false);
             }
             return string.Empty;
         }
@@ -234,7 +234,7 @@ namespace linker.messenger.action
                         IPAddress = cache.Connection.Address.Address
                     }
                 };
-                return await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.SForwardActionUrl);
+                return await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.SForwardActionUrl).ConfigureAwait(false);
             }
             return string.Empty;
         }

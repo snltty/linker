@@ -168,7 +168,7 @@ namespace linker.messenger.sforward.client
                 Socket socket = new Socket(info.LocalEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 try
                 {
-                    await socket.ConnectAsync(info.LocalEP).WaitAsync(TimeSpan.FromMilliseconds(500));
+                    await socket.ConnectAsync(info.LocalEP).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
                     sForwardClientStore.Update(info.Id, string.Empty);
                     return true;
                 }

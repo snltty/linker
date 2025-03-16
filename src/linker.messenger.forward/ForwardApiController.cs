@@ -95,7 +95,7 @@ namespace linker.messenger.forward
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)ForwardMessengerIds.GetForward,
                 Payload = serializer.Serialize(param.Content)
-            });
+            }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK)
             {
                 return serializer.Deserialize<List<ForwardInfo>>(resp.Data.Span);
@@ -123,7 +123,7 @@ namespace linker.messenger.forward
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)ForwardMessengerIds.AddForward,
                 Payload = serializer.Serialize(info)
-            });
+            }).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -146,7 +146,7 @@ namespace linker.messenger.forward
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)ForwardMessengerIds.RemoveForward,
                 Payload = serializer.Serialize(info)
-            });
+            }).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -166,7 +166,7 @@ namespace linker.messenger.forward
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)ForwardMessengerIds.SubTestForward,
                 Payload = serializer.Serialize(param.Content)
-            });
+            }).ConfigureAwait(false);
             return true;
         }
     }

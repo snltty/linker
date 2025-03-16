@@ -40,15 +40,15 @@ namespace linker.messenger.store.file.relay
             {
                 liteCollection.Update(info);
             }
-            return await Task.FromResult(true);
+            return await Task.FromResult(true).ConfigureAwait(false);
         }
         public async Task<bool> Del(int id)
         {
-            return await Task.FromResult(liteCollection.UpdateMany(c => new RelayServerCdkeyStoreInfo { Deleted = true }, c => c.Id == id) > 0);
+            return await Task.FromResult(liteCollection.UpdateMany(c => new RelayServerCdkeyStoreInfo { Deleted = true }, c => c.Id == id) > 0).ConfigureAwait(false);
         }
         public async Task<bool> Del(int id, string userid)
         {
-            return await Task.FromResult(liteCollection.UpdateMany(c => new RelayServerCdkeyStoreInfo { Deleted = true }, c => c.Id == id && c.UserId == userid) > 0);
+            return await Task.FromResult(liteCollection.UpdateMany(c => new RelayServerCdkeyStoreInfo { Deleted = true }, c => c.Id == id && c.UserId == userid) > 0).ConfigureAwait(false);
         }
 
         public async Task<RelayServerCdkeyTestResultInfo> Test(RelayServerCdkeyImportInfo info)
@@ -102,11 +102,11 @@ namespace linker.messenger.store.file.relay
             }
             result.Field = error;
 
-            return await Task.FromResult(result);
+            return await Task.FromResult(result).ConfigureAwait(false);
         }
         public async Task<string> Import(RelayServerCdkeyImportInfo info)
         {
-            RelayServerCdkeyTestResultInfo test = await Test(info);
+            RelayServerCdkeyTestResultInfo test = await Test(info).ConfigureAwait(false);
 
             if (test.Field.Count > 0)
             {
@@ -151,7 +151,7 @@ namespace linker.messenger.store.file.relay
                 UserPrice = order.UserPrice
             };
             liteCollection.Insert(store);
-            return await Task.FromResult(string.Empty);
+            return await Task.FromResult(string.Empty).ConfigureAwait(false);
         }
 
         public async Task<bool> Traffic(Dictionary<int, long> dic)
@@ -165,20 +165,20 @@ namespace linker.messenger.store.file.relay
                     liteCollection.UpdateMany(x => new RelayServerCdkeyStoreInfo { LastBytes = bytes, UseTime = DateTime.Now }, c => c.Id == item.Key);
                 }
             }
-            return await Task.FromResult(true);
+            return await Task.FromResult(true).ConfigureAwait(false);
         }
         public async Task<Dictionary<int, long>> GetLastBytes(List<int> ids)
         {
-            return await Task.FromResult(liteCollection.Find(c => ids.Contains(c.Id)).ToDictionary(c => c.Id, c => c.LastBytes));
+            return await Task.FromResult(liteCollection.Find(c => ids.Contains(c.Id)).ToDictionary(c => c.Id, c => c.LastBytes)).ConfigureAwait(false);
         }
 
         public async Task<List<RelayServerCdkeyStoreInfo>> GetAvailable(string userid)
         {
-            return await Task.FromResult(liteCollection.Find(x => x.UserId == userid && x.LastBytes > 0 && x.StartTime <= DateTime.Now && x.EndTime >= DateTime.Now && x.Deleted == false).ToList());
+            return await Task.FromResult(liteCollection.Find(x => x.UserId == userid && x.LastBytes > 0 && x.StartTime <= DateTime.Now && x.EndTime >= DateTime.Now && x.Deleted == false).ToList()).ConfigureAwait(false);
         }
         public async Task<List<RelayServerCdkeyStoreInfo>> Get(List<int> ids)
         {
-            return await Task.FromResult(liteCollection.Find(x => ids.Contains(x.Id)).ToList());
+            return await Task.FromResult(liteCollection.Find(x => ids.Contains(x.Id)).ToList()).ConfigureAwait(false);
         }
 
         public async Task<RelayServerCdkeyPageResultInfo> Page(RelayServerCdkeyPageRequestInfo info)
@@ -241,7 +241,7 @@ namespace linker.messenger.store.file.relay
                 Size = info.Size,
                 Count = query.Count(),
                 List = query.Skip((info.Page - 1) * info.Size).Limit(info.Size).ToList()
-            });
+            }).ConfigureAwait(false);
         }
 
 

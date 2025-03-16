@@ -32,6 +32,8 @@ namespace linker.messenger.store.file.relay
             config.Data.Server.Relay.Distributed.Node.MaxGbTotalLastBytes = update.MaxGbTotalLastBytes;
             config.Data.Server.Relay.Distributed.Node.Public = update.Public;
             config.Data.Server.Relay.Distributed.Node.Url = update.Url;
+            config.Data.Server.Relay.Distributed.Node.AllowTcp = update.AllowTcp;
+            config.Data.Server.Relay.Distributed.Node.AllowUdp = update.AllowUdp;
 
         }
         public void SetMaxGbTotalLastBytes(long value)

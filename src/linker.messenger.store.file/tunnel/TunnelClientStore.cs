@@ -32,12 +32,12 @@ namespace linker.messenger.store.file.tunnel
 
             OnChanged();
 
-            return await Task.FromResult(true);
+            return await Task.FromResult(true).ConfigureAwait(false);
         }
 
         public async Task<List<TunnelTransportItemInfo>> GetTunnelTransports()
         {
-            return await Task.FromResult(config.Data.Client.Tunnel.Transports);
+            return await Task.FromResult(config.Data.Client.Tunnel.Transports).ConfigureAwait(false);
         }
 
         public async Task<bool> SetRouteLevelPlus(int level)
@@ -45,7 +45,7 @@ namespace linker.messenger.store.file.tunnel
             runningConfig.Data.Tunnel.RouteLevelPlus = level;
             runningConfig.Data.Update();
             OnChanged();
-            return await Task.FromResult(true);
+            return await Task.FromResult(true).ConfigureAwait(false);
         }
 
         public async Task<bool> SetPortMap(int privatePort, int publicPort)
@@ -54,7 +54,7 @@ namespace linker.messenger.store.file.tunnel
             runningConfig.Data.Tunnel.PortMapWan = publicPort;
             runningConfig.Data.Update();
             OnChanged();
-            return await Task.FromResult(true);
+            return await Task.FromResult(true).ConfigureAwait(false);
         }
     }
 }

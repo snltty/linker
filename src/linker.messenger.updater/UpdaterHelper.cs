@@ -36,7 +36,7 @@ namespace linker.messenger.updater
                 using HttpClientHandler handler = new HttpClientHandler();
                 handler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
                 using HttpClient httpClient = new HttpClient(handler);
-                string str = await httpClient.GetStringAsync($"{updaterCommonTransfer.UpdateUrl}/version.txt").WaitAsync(TimeSpan.FromSeconds(15));
+                string str = await httpClient.GetStringAsync($"{updaterCommonTransfer.UpdateUrl}/version.txt").WaitAsync(TimeSpan.FromSeconds(15)).ConfigureAwait(false);
 
                 string[] arr = str.Split(Environment.NewLine).Select(c => c.Trim('\r').Trim('\n')).ToArray();
 
@@ -83,18 +83,18 @@ namespace linker.messenger.updater
                 LoggerHelper.Instance.Warning($"updater {url}");
 
                 using HttpClient httpClient = new HttpClient();
-                using HttpResponseMessage response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+                using HttpResponseMessage response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
                 updateInfo.Length = response.Content.Headers.ContentLength ?? 0;
-                using Stream contentStream = await response.Content.ReadAsStreamAsync();
+                using Stream contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 
 
                 using FileStream fileStream = new FileStream("updater.zip", FileMode.OpenOrCreate, FileAccess.ReadWrite);
                 byte[] buffer = new byte[4096];
                 int readBytes = 0;
-                while ((readBytes = await contentStream.ReadAsync(buffer)) != 0)
+                while ((readBytes = await contentStream.ReadAsync(buffer).ConfigureAwait(false)) != 0)
                 {
-                    await fileStream.WriteAsync(buffer.AsMemory(0, readBytes));
+                    await fileStream.WriteAsync(buffer.AsMemory(0, readBytes)).ConfigureAwait(false);
                     updateInfo.Current += readBytes;
                 }
 
@@ -169,7 +169,7 @@ namespace linker.messenger.updater
                     using FileStream fileStream = File.Create(entryPath);
                     byte[] buffer = new byte[4096];
                     int bytesRead;
-                    while ((bytesRead = await entryStream.ReadAsync(buffer)) != 0)
+                    while ((bytesRead = await entryStream.ReadAsync(buffer).ConfigureAwait(false)) != 0)
                     {
                         await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead));
                         updateInfo.Current += bytesRead;
@@ -203,8 +203,8 @@ namespace linker.messenger.updater
 
             TimerHelper.Async(async () =>
             {
-                await DownloadUpdate(updateInfo, version);
-                await ExtractUpdate(updateInfo);
+                await DownloadUpdate(updateInfo, version).ConfigureAwait(false);
+                await ExtractUpdate(updateInfo).ConfigureAwait(false);
 
                 if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
                 {

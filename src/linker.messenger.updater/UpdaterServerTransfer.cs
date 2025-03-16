@@ -28,11 +28,11 @@ namespace linker.messenger.updater
 
         private void CheckTask()
         {
-            TimerHelper.SetInterval(async () =>
+            TimerHelper.SetIntervalLong(async () =>
             {
                 if (updaterCommonTransfer.CheckUpdate)
                 {
-                    await updaterHelper.GetUpdateInfo(updateInfo);
+                    await updaterHelper.GetUpdateInfo(updateInfo).ConfigureAwait(false);
                 }
                 return true;
             }, () => updaterCommonTransfer.UpdateIntervalSeconds * 1000);

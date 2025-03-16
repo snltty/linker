@@ -26,6 +26,10 @@
                 <el-form-item :label="$t('server.relayPublic')" prop="Public">
                     <el-switch v-model="state.ruleForm.Public " size="small" />
                 </el-form-item>
+                <el-form-item :label="$t('server.relayAllow')" prop="Allow">
+                    <el-checkbox v-model="state.ruleForm.AllowTcp">TCP</el-checkbox>
+                    <el-checkbox v-model="state.ruleForm.AllowUdp">UDP</el-checkbox>
+                </el-form-item>
                 <el-form-item></el-form-item>
                 <el-form-item label="" prop="Btns">
                     <div class="t-c w-100">
@@ -62,6 +66,8 @@ export default {
                 MaxGbTotalLastBytes:props.data.MaxGbTotalLastBytes,
                 Public:props.data.Public,
                 Url:props.data.Url,
+                AllowTcp:(props.data.AllowProtocol & 1) == 1,
+                AllowUdp:(props.data.AllowProtocol & 2) == 2,
             },
             rules:{
             }
@@ -83,6 +89,8 @@ export default {
                 if (!valid) return;
 
                 const json = JSON.parse(JSON.stringify(state.ruleForm));
+                json.AllowProtocol = (json.AllowTcp ? 1 : 0) | (json.AllowUdp ? 2 : 0);
+
                 relayUpdateNode(json).then((res)=>{
                     if(res){
                         ElMessage.success(t('common.oper'));

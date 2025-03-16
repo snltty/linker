@@ -79,7 +79,7 @@ namespace linker.messenger.forward.proxy
         public async Task Closed(ITunnelConnection connection, object userToken)
         {
             Version.Add();
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
         }
 
         /// <summary>

@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using linker.messenger.relay.messenger;
+using linker.tunnel.connection;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
@@ -16,7 +17,7 @@ namespace linker.messenger.relay.server
         /// <summary>
         /// 配置了就用配置的，每配置就用一个默认的
         /// </summary>
-        public RelayServerNodeInfo node = null;
+        public RelayServerNodeInfo node => relayServerNodeStore.Node;
 
         private uint connectionNum = 0;
         private IConnection connection;
@@ -40,21 +41,14 @@ namespace linker.messenger.relay.server
             this.messengerResolver = messengerResolver;
             this.messengerSender = messengerSender;
 
-            node = string.IsNullOrWhiteSpace(relayServerNodeStore.Node.MasterHost) ? new RelayServerNodeInfo
+            if (string.IsNullOrWhiteSpace(relayServerNodeStore.Node.MasterHost))
             {
-                Id = "824777CF-2804-83FE-DE71-69B7B7D3BBA7",
-                Host = new IPEndPoint(IPAddress.Any, relayServerNodeStore.ServicePort).ToString(),
-                MasterHost = new IPEndPoint(IPAddress.Loopback, relayServerNodeStore.ServicePort).ToString(),
-                MasterSecretKey = relayServerMasterStore.Master.SecretKey,
-                MaxBandwidth = 0,
-                MaxConnection = 0,
-                MaxBandwidthTotal = 0,
-                MaxGbTotal = 0,
-                MaxGbTotalLastBytes = 0,
-                MaxGbTotalMonth = 0,
-                Name = "default",
-                Public = false,
-            } : relayServerNodeStore.Node;
+                relayServerNodeStore.Node.Host = new IPEndPoint(IPAddress.Any, relayServerNodeStore.ServicePort).ToString();
+                relayServerNodeStore.Node.MasterHost = new IPEndPoint(IPAddress.Loopback, relayServerNodeStore.ServicePort).ToString();
+                relayServerNodeStore.Node.MasterSecretKey = relayServerMasterStore.Master.SecretKey;
+                relayServerNodeStore.Node.Name = "default";
+                relayServerNodeStore.Node.Public = false;
+            }
 
             limitTotal.SetLimit((uint)Math.Ceiling((node.MaxBandwidthTotal * 1024 * 1024) / 8.0));
 
@@ -63,6 +57,8 @@ namespace linker.messenger.relay.server
             SignInTask();
 
         }
+
+
 
         public async ValueTask<RelayCacheInfo> TryGetRelayCache(string key)
         {
@@ -73,7 +69,7 @@ namespace linker.messenger.relay.server
                     Connection = connection,
                     MessengerId = (ushort)RelayMessengerIds.NodeGetCache,
                     Payload = serializer.Serialize(key)
-                });
+                }).ConfigureAwait(false);
                 if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
                 {
                     return serializer.Deserialize<RelayCacheInfo>(resp.Data.Span);
@@ -90,9 +86,20 @@ namespace linker.messenger.relay.server
         public void UpdateNode(RelayServerNodeUpdateInfo info)
         {
             if (info.Id == node.Id)
+            {
                 relayServerNodeStore.UpdateInfo(info);
+                relayServerNodeStore.Confirm();
+            }
         }
 
+
+        public bool Validate(TunnelProtocolType tunnelProtocolType)
+        {
+            if (tunnelProtocolType == TunnelProtocolType.Udp && node.AllowUdp == false) return false;
+            if (tunnelProtocolType == TunnelProtocolType.Tcp && node.AllowTcp == false) return false;
+
+            return true;
+        }
         /// <summary>
         /// 无效请求
         /// </summary>
@@ -296,7 +303,7 @@ namespace linker.messenger.relay.server
                     SecretKey = node.MasterSecretKey
                 }),
                 Timeout = 4000
-            });
+            }).ConfigureAwait(false);
 
             if (result)
             {
@@ -320,7 +327,7 @@ namespace linker.messenger.relay.server
                 try
                 {
                     ResetNodeBytes();
-                    await UploadBytes();
+                    await UploadBytes().ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -339,7 +346,7 @@ namespace linker.messenger.relay.server
 
                 try
                 {
-                    IPEndPoint endPoint = await NetworkHelper.GetEndPointAsync(node.Host, relayServerNodeStore.ServicePort) ?? new IPEndPoint(IPAddress.Any, relayServerNodeStore.ServicePort);
+                    IPEndPoint endPoint = await NetworkHelper.GetEndPointAsync(node.Host, relayServerNodeStore.ServicePort).ConfigureAwait(false) ?? new IPEndPoint(IPAddress.Any, relayServerNodeStore.ServicePort);
                     RelayServerNodeReportInfo170 relayNodeReportInfo = new RelayServerNodeReportInfo170
                     {
                         Id = node.Id,
@@ -353,14 +360,16 @@ namespace linker.messenger.relay.server
                         MaxConnection = node.MaxConnection,
                         ConnectionRatio = connectionNum,
                         EndPoint = endPoint,
-                        Url = node.Url
+                        Url = node.Url,
+                        AllowProtocol = (node.AllowTcp ? TunnelProtocolType.Tcp :TunnelProtocolType.None)
+                         | (node.AllowUdp ? TunnelProtocolType.Udp : TunnelProtocolType.None)
                     };
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
                         Connection = connection,
                         MessengerId = (ushort)RelayMessengerIds.NodeReport,
                         Payload = serializer.Serialize(relayNodeReportInfo)
-                    });
+                    }).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -395,7 +404,7 @@ namespace linker.messenger.relay.server
                 secretKeyBytes.AsSpan().CopyTo(bytes.AsSpan(1));
 
 
-                IPEndPoint remote = await NetworkHelper.GetEndPointAsync(host, 1802);
+                IPEndPoint remote = await NetworkHelper.GetEndPointAsync(host, 1802).ConfigureAwait(false);
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     LoggerHelper.Instance.Warning($"relay node sign in to {remote}");

@@ -112,7 +112,7 @@ namespace linker.messenger.tuntap
                 }, ip);
                 return;
             }
-            await connection.SendAsync(packet.Packet);
+            await connection.SendAsync(packet.Packet).ConfigureAwait(false);
         }
 
         /// <summary>

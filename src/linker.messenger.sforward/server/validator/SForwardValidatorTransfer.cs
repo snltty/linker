@@ -48,7 +48,7 @@ namespace linker.messenger.sforward.server.validator
         {
             foreach (var item in validators)
             {
-                string result = await item.Validate(signCacheInfo, sForwardAddInfo);
+                string result = await item.Validate(signCacheInfo, sForwardAddInfo).ConfigureAwait(false);
                 if (string.IsNullOrWhiteSpace(result) == false)
                 {
                     return result;

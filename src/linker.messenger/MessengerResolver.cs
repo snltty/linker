@@ -32,11 +32,11 @@ namespace linker.messenger
         }
         public async Task Resolve(Socket socket, Memory<byte> memory)
         {
-            await messengerResolver.BeginReceiveServer(socket, memory);
+            await messengerResolver.BeginReceiveServer(socket, memory).ConfigureAwait(false);
         }
         public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
-            await messengerResolver.BeginReceiveServer(socket, ep, memory);
+            await messengerResolver.BeginReceiveServer(socket, ep, memory).ConfigureAwait(false);
         }
     }
 
@@ -94,7 +94,7 @@ namespace linker.messenger
         /// <returns></returns>
         public async Task BeginReceiveServer(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
         }
 
         /// <summary>
@@ -104,7 +104,7 @@ namespace linker.messenger
         /// <returns></returns>
         public async Task<IConnection> BeginReceiveClient(Socket socket)
         {
-            return await BeginReceiveClient(socket, false, 0, Helper.EmptyArray);
+            return await BeginReceiveClient(socket, false, 0, Helper.EmptyArray).ConfigureAwait(false);
         }
         /// <summary>
         /// 以客户端模式接收数据

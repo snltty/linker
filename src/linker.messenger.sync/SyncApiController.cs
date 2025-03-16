@@ -23,7 +23,7 @@ namespace linker.messenger.sync
             string[] names = param.Content.DeJson<string[]>();
             if (names.Length == 1)
             {
-                await syncTreansfer.Sync(names[0]);
+                await syncTreansfer.Sync(names[0]).ConfigureAwait(false);
             }
             else
             {

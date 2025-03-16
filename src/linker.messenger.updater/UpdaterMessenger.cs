@@ -235,7 +235,7 @@ namespace linker.messenger.updater
                 {
                     Connection = cache1.Connection,
                     MessengerId = (ushort)UpdaterMessengerIds.Exit
-                });
+                }).ConfigureAwait(false);
             }
         }
 

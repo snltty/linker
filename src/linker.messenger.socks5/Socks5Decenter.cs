@@ -67,7 +67,7 @@ namespace linker.messenger.socks5
             Socks5Info info = serializer.Deserialize<Socks5Info>(data.Span);
             TimerHelper.Async(async () =>
             {
-                await slim.WaitAsync();
+                await slim.WaitAsync().ConfigureAwait(false);
                 try
                 {
                     socks5Infos.AddOrUpdate(info.MachineId, info, (a, b) => info);
@@ -89,7 +89,7 @@ namespace linker.messenger.socks5
             List<Socks5Info> list = data.Select(c => serializer.Deserialize<Socks5Info>(c.Span)).ToList();
             TimerHelper.Async(async () =>
             {
-                await slim.WaitAsync();
+                await slim.WaitAsync().ConfigureAwait(false);
 
                 try
                 {

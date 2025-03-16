@@ -47,7 +47,7 @@ namespace linker.messenger.updater
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)UpdaterMessengerIds.UpdateServer,
-            });
+            }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
                 return serializer.Deserialize<UpdaterInfo>(resp.Data.Span);
@@ -61,7 +61,7 @@ namespace linker.messenger.updater
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)UpdaterMessengerIds.ConfirmServer,
                 Payload = serializer.Serialize(new UpdaterConfirmServerInfo { SecretKey = updaterClientStore.SecretKey, Version = param.Content })
-            });
+            }).ConfigureAwait(false);
         }
         public async Task ExitServer(ApiControllerParamsInfo param)
         {
@@ -70,7 +70,7 @@ namespace linker.messenger.updater
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)UpdaterMessengerIds.ExitServer,
                 Payload = serializer.Serialize(new UpdaterConfirmServerInfo { SecretKey = updaterClientStore.SecretKey, Version = string.Empty })
-            });
+            }).ConfigureAwait(false);
         }
 
         public UpdaterInfo GetCurrent(ApiControllerParamsInfo param)
@@ -108,7 +108,7 @@ namespace linker.messenger.updater
                     Connection = signInClientState.Connection,
                     MessengerId = (ushort)UpdaterMessengerIds.ConfirmForward,
                     Payload = serializer.Serialize(confirm)
-                });
+                }).ConfigureAwait(false);
                 if (resp.Code != MessageResponeCodes.OK || resp.Data.Span.SequenceEqual(Helper.TrueArray) == false)
                 {
                     return false;
@@ -133,7 +133,7 @@ namespace linker.messenger.updater
                     Connection = signInClientState.Connection,
                     MessengerId = (ushort)UpdaterMessengerIds.ExitForward,
                     Payload = serializer.Serialize(param.Content)
-                });
+                }).ConfigureAwait(false);
             }
             return true;
         }
@@ -144,7 +144,7 @@ namespace linker.messenger.updater
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)UpdaterMessengerIds.SubscribeForward
-            });
+            }).ConfigureAwait(false);
         }
         public async Task Check(ApiControllerParamsInfo param)
         {
@@ -155,7 +155,7 @@ namespace linker.messenger.updater
                     Connection = signInClientState.Connection,
                     MessengerId = (ushort)UpdaterMessengerIds.CheckForward,
                     Payload = string.IsNullOrWhiteSpace(param.Content) ? Helper.EmptyArray : serializer.Serialize(param.Content)
-                });
+                }).ConfigureAwait(false);
             }
             
             if (string.IsNullOrWhiteSpace(param.Content) || param.Content == signInClientStore.Id)

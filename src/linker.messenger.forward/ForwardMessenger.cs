@@ -63,7 +63,7 @@ namespace linker.messenger.forward
                     Connection = cacheTo.Connection,
                     MessengerId = (ushort)ForwardMessengerIds.Add,
                     Payload = serializer.Serialize(info.Data)
-                });
+                }).ConfigureAwait(false);
             }
         }
         /// <summary>
@@ -82,7 +82,7 @@ namespace linker.messenger.forward
                     Connection = cacheTo.Connection,
                     MessengerId = (ushort)ForwardMessengerIds.Remove,
                     Payload = serializer.Serialize(info.Id)
-                });
+                }).ConfigureAwait(false);
             }
         }
 
@@ -97,7 +97,7 @@ namespace linker.messenger.forward
                 {
                     Connection = cacheTo.Connection,
                     MessengerId = (ushort)ForwardMessengerIds.SubTest
-                });
+                }).ConfigureAwait(false);
             }
         }
 

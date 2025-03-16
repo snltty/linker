@@ -56,17 +56,17 @@ namespace linker.tunnel
 
             TimerHelper.Async(async () =>
             {
-                await locker.WaitAsync();
+                await locker.WaitAsync().ConfigureAwait(false);
 
                 foreach (var device in natDevices.Values)
                 {
                     try
                     {
-                        if (await HasMap(device, Protocol.Tcp, MapInfo.PublicPort) == false)
+                        if (await HasMap(device, Protocol.Tcp, MapInfo.PublicPort).ConfigureAwait(false) == false)
                         {
                             Mapping mapping = new Mapping(Protocol.Tcp, MapInfo.PrivatePort, MapInfo.PublicPort, 720, $"linker-tcp-{MapInfo.PublicPort}-{MapInfo.PrivatePort}");
-                            await device.CreatePortMapAsync(mapping);
-                            Mapping m = await device.GetSpecificMappingAsync(Protocol.Tcp, mapping.PublicPort);
+                            await device.CreatePortMapAsync(mapping).ConfigureAwait(false);
+                            Mapping m = await device.GetSpecificMappingAsync(Protocol.Tcp, mapping.PublicPort).ConfigureAwait(false);
                         }
                     }
                     catch
@@ -75,11 +75,11 @@ namespace linker.tunnel
 
                     try
                     {
-                        if (await HasMap(device, Protocol.Udp, MapInfo.PublicPort) == false)
+                        if (await HasMap(device, Protocol.Udp, MapInfo.PublicPort).ConfigureAwait(false) == false)
                         {
                             Mapping mapping = new Mapping(Protocol.Udp, MapInfo.PrivatePort, MapInfo.PublicPort, 720, $"linker-udp-{MapInfo.PublicPort}-{MapInfo.PrivatePort}");
-                            await device.CreatePortMapAsync(mapping);
-                            Mapping m = await device.GetSpecificMappingAsync(Protocol.Udp, mapping.PublicPort);
+                            await device.CreatePortMapAsync(mapping).ConfigureAwait(false);
+                            Mapping m = await device.GetSpecificMappingAsync(Protocol.Udp, mapping.PublicPort).ConfigureAwait(false);
                         }
                     }
                     catch
@@ -93,7 +93,7 @@ namespace linker.tunnel
         {
             try
             {
-                Mapping m = await device.GetSpecificMappingAsync(protocol, publicPort);
+                Mapping m = await device.GetSpecificMappingAsync(protocol, publicPort).ConfigureAwait(false);
                 return true;
             }
             catch (Exception)

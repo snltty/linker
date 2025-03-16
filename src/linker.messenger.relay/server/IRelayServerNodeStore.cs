@@ -2,6 +2,7 @@
 using System.Net;
 using linker.libs.extends;
 using System.Text.Json.Serialization;
+using linker.tunnel.connection;
 
 namespace linker.messenger.relay.server
 {
@@ -80,6 +81,9 @@ namespace linker.messenger.relay.server
         public string MasterSecretKey { get; set; } = string.Empty;
 #endif
         public string Url { get; set; } = "https://linker-doc.snltty.com";
+
+        public bool AllowTcp { get; set; } = true;
+        public bool AllowUdp { get; set; } = false;
     }
 
     public sealed partial class RelayServerNodeUpdateWrapInfo
@@ -100,6 +104,9 @@ namespace linker.messenger.relay.server
         public bool Public { get; set; }
 
         public string Url { get; set; } = "https://linker-doc.snltty.com";
+
+        public bool AllowTcp { get; set; } = true;
+        public bool AllowUdp { get; set; } = false;
     }
     public partial class RelayServerNodeReportInfo
     {
@@ -123,9 +130,10 @@ namespace linker.messenger.relay.server
 
         public long LastTicks { get; set; }
     }
-    public sealed partial class RelayServerNodeReportInfo170: RelayServerNodeReportInfo
+    public sealed partial class RelayServerNodeReportInfo170 : RelayServerNodeReportInfo
     {
         public string Url { get; set; } = "https://linker-doc.snltty.com";
+        public TunnelProtocolType AllowProtocol { get; set; } = TunnelProtocolType.Tcp;
 
         [JsonIgnore]
         public IConnection Connection { get; set; }

@@ -12,7 +12,6 @@ namespace linker.messenger.tuntap
     {
         public string Name => "tuntap";
         public VersionManager SyncVersion { get; } = new VersionManager();
-
         public VersionManager DataVersion { get; } = new VersionManager();
         public ConcurrentDictionary<string, TuntapInfo> Infos => tuntapInfos;
         public LinkerTunDeviceRouteItem[] Routes => routeItems;
@@ -95,7 +94,7 @@ namespace linker.messenger.tuntap
 
             TimerHelper.Async(async () =>
             {
-                await slim.WaitAsync();
+                await slim.WaitAsync().ConfigureAwait(false);
                 try
                 {
                     tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
@@ -117,7 +116,7 @@ namespace linker.messenger.tuntap
             List<TuntapInfo> list = data.Select(c => serializer.Deserialize<TuntapInfo>(c.Span)).ToList();
             TimerHelper.Async(async () =>
             {
-                await slim.WaitAsync();
+                await slim.WaitAsync().ConfigureAwait(false);
 
                 try
                 {

@@ -131,6 +131,7 @@ export default {
     'server.relayConnection': 'Conn',
     'server.relayDelay': 'Delay',
     'server.relayPublic': 'Public',
+    'server.relayAllow': 'Allow',
     'server.relayUrl': 'Url',
     'server.relayOper': 'Oper',
     'server.relayUse': 'Use',

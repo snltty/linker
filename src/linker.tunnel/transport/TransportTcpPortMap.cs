@@ -57,7 +57,7 @@ namespace linker.tunnel.transport
         SemaphoreSlim slim = new SemaphoreSlim(1);
         public async Task Listen(int localPort)
         {
-            await slim.WaitAsync();
+            await slim.WaitAsync().ConfigureAwait(false);
             try
             {
                 if (localPort == 0) return;
@@ -90,20 +90,20 @@ namespace linker.tunnel.transport
                 {
                     try
                     {
-                        Socket client = await socket.AcceptAsync();
+                        Socket client = await socket.AcceptAsync().ConfigureAwait(false);
 
                         TimerHelper.Async(async () =>
                         {
                             try
                             {
                                 byte[] bytes = new byte[1024];
-                                int length = await client.ReceiveAsync(bytes.AsMemory()).AsTask().WaitAsync(TimeSpan.FromMilliseconds(3000));
+                                int length = await client.ReceiveAsync(bytes.AsMemory()).AsTask().WaitAsync(TimeSpan.FromMilliseconds(3000)).ConfigureAwait(false);
                                 if (length > 0)
                                 {
                                     string key = bytes.AsMemory(0, length).GetString();
                                     if (distDic.TryRemove(key, out TaskCompletionSource<Socket> tcs))
                                     {
-                                        await client.SendAsync(bytes.AsMemory(0, length));
+                                        await client.SendAsync(bytes.AsMemory(0, length)).ConfigureAwait(false);
                                         tcs.SetResult(client);
                                         return;
                                     }
@@ -247,7 +247,7 @@ namespace linker.tunnel.transport
             distDic.TryAdd(key, tcs);
             try
             {
-                Socket socket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000));
+                Socket socket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
 
                 socket.KeepAlive();
                 SslStream sslStream = null;
@@ -323,8 +323,8 @@ namespace linker.tunnel.transport
                     }
                     await targetSocket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
 
-                    await targetSocket.SendAsync($"{tunnelTransportInfo.Local.MachineId}-{tunnelTransportInfo.FlowId}".ToBytes());
-                    await targetSocket.ReceiveAsync(new byte[1024]).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false); ;
+                    await targetSocket.SendAsync($"{tunnelTransportInfo.Local.MachineId}-{tunnelTransportInfo.FlowId}".ToBytes()).ConfigureAwait(false);
+                    await targetSocket.ReceiveAsync(new byte[1024]).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
 
                     //需要ssl
                     SslStream sslStream = null;

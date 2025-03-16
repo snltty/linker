@@ -25,7 +25,6 @@ namespace linker.messenger.tuntap
             this.tuntapDecenter = tuntapDecenter;
 
             PingTask();
-           
         }
 
         private readonly LastTicksManager lastTicksManager = new LastTicksManager();
@@ -39,14 +38,14 @@ namespace linker.messenger.tuntap
             {
                 if (tuntapTransfer.Status == TuntapStatus.Running)
                 {
-                    await Ping();
+                    await Ping().ConfigureAwait(false);
                 }
                 return true;
             }, () => tuntapTransfer.Status == TuntapStatus.Running && lastTicksManager.DiffLessEqual(5000) ? 3000 : 30000);
         }
         private async Task Ping()
         {
-            if (tuntapTransfer.Status == TuntapStatus.Running && (tuntapConfigTransfer.Switch & TuntapSwitch.ShowDelay) == TuntapSwitch.ShowDelay)
+            if (tuntapTransfer.Status == TuntapStatus.Running && tuntapConfigTransfer.Switch.HasFlag(TuntapSwitch.ShowDelay))
             {
                 var items = tuntapDecenter.Infos.Values.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false && (c.Status & TuntapStatus.Running) == TuntapStatus.Running);
                 if ((tuntapConfigTransfer.Switch & TuntapSwitch.AutoConnect) != TuntapSwitch.AutoConnect)
@@ -58,10 +57,10 @@ namespace linker.messenger.tuntap
                 await Task.WhenAll(items.Select(async c =>
                 {
                     using Ping ping = new Ping();
-                    PingReply pingReply = await ping.SendPingAsync(c.IP, 500);
+                    PingReply pingReply = await ping.SendPingAsync(c.IP, 500).ConfigureAwait(false);
                     c.Delay = pingReply.Status == IPStatus.Success ? (int)pingReply.RoundtripTime : -1;
                     tuntapDecenter.DataVersion.Add();
-                }));
+                })).ConfigureAwait(false);
             }
         }
 
@@ -72,7 +71,7 @@ namespace linker.messenger.tuntap
                 try
                 {
                     var socket = new Socket(c.ConnectAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                    await socket.ConnectAsync(new IPEndPoint(c.ConnectAddr, c.ConnectPort)).WaitAsync(TimeSpan.FromMilliseconds(500));
+                    await socket.ConnectAsync(new IPEndPoint(c.ConnectAddr, c.ConnectPort)).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
                     socket.SafeClose();
                     c.Error = string.Empty;
                 }
@@ -80,7 +79,7 @@ namespace linker.messenger.tuntap
                 {
                     c.Error = ex.Message;
                 }
-            }));
+            })).ConfigureAwait(false);
         }
     }
 }

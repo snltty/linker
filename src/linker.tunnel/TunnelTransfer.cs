@@ -17,7 +17,7 @@ namespace linker.tunnel
         private TunnelWanPortTransfer tunnelWanPortTransfer;
         private TunnelUpnpTransfer tunnelUpnpTransfer;
 
-        private ConcurrentDictionary<string, bool> connectingDic = new ConcurrentDictionary<string, bool>();
+        private OperatingMultipleManager operating = new OperatingMultipleManager();
         private uint flowid = 1;
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
@@ -48,7 +48,7 @@ namespace linker.tunnel
         }
         private async Task RebuildTransports()
         {
-            var transportItems = (await tunnelMessengerAdapter.GetTunnelTransports()).ToList();
+            var transportItems = (await tunnelMessengerAdapter.GetTunnelTransports().ConfigureAwait(false)).ToList();
             //有新的协议
             var newTransportNames = transports.Select(c => c.Name).Except(transportItems.Select(c => c.Name));
             if (newTransportNames.Any())
@@ -99,7 +99,7 @@ namespace linker.tunnel
                 }
             }
 
-            await tunnelMessengerAdapter.SetTunnelTransports(transportItems);
+            await tunnelMessengerAdapter.SetTunnelTransports(transportItems).ConfigureAwait(false);
             LoggerHelper.Instance.Info($"load tunnel transport:{string.Join(",", transports.Select(c => c.GetType().Name))}");
         }
 
@@ -139,8 +139,8 @@ namespace linker.tunnel
                     var socket = new Socket(server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                     try
                     {
-                        await socket.ConnectAsync(server);
-                        await socket.SendAsync(new byte[] { 255 });
+                        await socket.ConnectAsync(server).ConfigureAwait(false);
+                        await socket.SendAsync(new byte[] { 255 }).ConfigureAwait(false);
                         return (socket.LocalEndPoint as IPEndPoint).Address;
                     }
                     catch (Exception)
@@ -193,7 +193,7 @@ namespace linker.tunnel
         /// <returns></returns>
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols)
         {
-            return await ConnectAsync(remoteMachineId, transactionId, transactionId, denyProtocols);
+            return await ConnectAsync(remoteMachineId, transactionId, transactionId, denyProtocols).ConfigureAwait(false);
         }
         /// <summary>
         /// 开始连接对方
@@ -205,11 +205,11 @@ namespace linker.tunnel
         /// <returns></returns>
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId, string transactionTag, TunnelProtocolType denyProtocols)
         {
-            if (connectingDic.TryAdd(remoteMachineId, true) == false) return null;
+            if (operating.StartOperation(remoteMachineId) == false) return null;
 
             try
             {
-                var _transports = await tunnelMessengerAdapter.GetTunnelTransports();
+                var _transports = await tunnelMessengerAdapter.GetTunnelTransports().ConfigureAwait(false);
                 foreach (TunnelTransportItemInfo transportItem in _transports.OrderBy(c => c.Order).Where(c => c.Disabled == false))
                 {
                     ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == transportItem.Name);
@@ -311,7 +311,7 @@ namespace linker.tunnel
             }
             finally
             {
-                connectingDic.TryRemove(remoteMachineId, out _);
+                operating.StopOperation(remoteMachineId);
             }
             return null;
         }
@@ -321,13 +321,13 @@ namespace linker.tunnel
         /// <param name="tunnelTransportInfo"></param>
         public async Task OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
-            if (connectingDic.TryAdd(tunnelTransportInfo.Remote.MachineId, true) == false)
+            if (operating.StartOperation(tunnelTransportInfo.Remote.MachineId) == false)
             {
                 return;
             }
             try
             {
-                var _transports = await tunnelMessengerAdapter.GetTunnelTransports();
+                var _transports = await tunnelMessengerAdapter.GetTunnelTransports().ConfigureAwait(false);
                 ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
                 TunnelTransportItemInfo item = _transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.Disabled == false);
                 if (transport != null && item != null)
@@ -337,18 +337,18 @@ namespace linker.tunnel
                     ParseRemoteEndPoint(tunnelTransportInfo);
                     _ = transport.OnBegin(tunnelTransportInfo).ContinueWith((result) =>
                     {
-                        connectingDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out _);
+                        operating.StopOperation(tunnelTransportInfo.Remote.MachineId);
                     });
                 }
                 else
                 {
-                    connectingDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out _);
+                    operating.StopOperation(tunnelTransportInfo.Remote.MachineId);
                     _ = tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo);
                 }
             }
             catch (Exception ex)
             {
-                connectingDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out _);
+                operating.StopOperation(tunnelTransportInfo.Remote.MachineId);
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     LoggerHelper.Instance.Error(ex);
@@ -534,20 +534,20 @@ namespace linker.tunnel
                 {
                     ITunnelConnection connection = null;
 
-                    await Task.Delay(delay);
+                    await Task.Delay(delay).ConfigureAwait(false);
                     for (int i = 1; i <= times; i++)
                     {
                         if (stopCallback()) break;
 
-                        connection = await ConnectAsync(remoteMachineId, transactionId, denyProtocols);
+                        connection = await ConnectAsync(remoteMachineId, transactionId, denyProtocols).ConfigureAwait(false);
                         if (connection != null)
                         {
                             break;
                         }
-                        await Task.Delay(i * 3000);
+                        await Task.Delay(i * 3000).ConfigureAwait(false);
                     }
 
-                    await resultCallback(connection);
+                    await resultCallback(connection).ConfigureAwait(false);
                 }
                 catch (Exception)
                 {

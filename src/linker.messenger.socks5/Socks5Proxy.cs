@@ -91,7 +91,7 @@ namespace linker.messenger.socks5
         /// <returns></returns>
         private async ValueTask<bool> ConnectTunnelConnection(AsyncUserToken token)
         {
-            int length = await token.Socket.ReceiveAsync(token.Buffer.AsMemory(), SocketFlags.None);
+            int length = await token.Socket.ReceiveAsync(token.Buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
             if (length == 0)
             {
                 return true;
@@ -102,7 +102,7 @@ namespace linker.messenger.socks5
 
             //步骤，request
             token.Proxy.Rsv = (byte)Socks5EnumStep.Request;
-            if (await ReceiveCommandData(token) == false)
+            if (await ReceiveCommandData(token).ConfigureAwait(false) == false)
             {
                 return true;
             }

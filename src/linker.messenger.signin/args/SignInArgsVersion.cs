@@ -12,14 +12,14 @@ namespace linker.messenger.signin.args
         {
             args.TryAdd("version", VersionHelper.version);
 
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
 
             return string.Empty;
         }
 
         public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
         {
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
             return string.Empty;
         }
     }
@@ -38,7 +38,7 @@ namespace linker.messenger.signin.args
         /// <returns></returns>
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
             return string.Empty;
         }
 
@@ -55,7 +55,7 @@ namespace linker.messenger.signin.args
                 return "need v1.5.0+";
             }
 
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
             return string.Empty;
         }
 

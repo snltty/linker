@@ -69,8 +69,8 @@ namespace linker.messenger.tunnel
 
             if (tunnelSetRouteLevelInfo.MachineId == signInClientStore.Id)
             {
-                await tunnelClientStore.SetRouteLevelPlus(tunnelSetRouteLevelInfo.RouteLevelPlus);
-                await tunnelClientStore.SetPortMap(tunnelSetRouteLevelInfo.PortMapLan, tunnelSetRouteLevelInfo.PortMapWan);
+                await tunnelClientStore.SetRouteLevelPlus(tunnelSetRouteLevelInfo.RouteLevelPlus).ConfigureAwait(false);
+                await tunnelClientStore.SetPortMap(tunnelSetRouteLevelInfo.PortMapLan, tunnelSetRouteLevelInfo.PortMapWan).ConfigureAwait(false);
             }
             else
             {
@@ -91,7 +91,7 @@ namespace linker.messenger.tunnel
         /// <returns></returns>
         public async Task<List<TunnelTransportItemInfo>> GetTransports(ApiControllerParamsInfo param)
         {
-            return await tunnelClientStore.GetTunnelTransports();
+            return await tunnelClientStore.GetTunnelTransports().ConfigureAwait(false);
         }
         /// <summary>
         /// 设置打洞协议
@@ -102,7 +102,7 @@ namespace linker.messenger.tunnel
         public async Task<bool> SetTransports(ApiControllerParamsInfo param)
         {
             List<TunnelTransportItemInfo> info = param.Content.DeJson<List<TunnelTransportItemInfo>>();
-            await tunnelClientStore.SetTunnelTransports(info);
+            await tunnelClientStore.SetTunnelTransports(info).ConfigureAwait(false);
             return true;
         }
 

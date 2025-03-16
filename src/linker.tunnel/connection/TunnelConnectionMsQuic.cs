@@ -167,7 +167,7 @@ namespace linker.tunnel.connection
             {
                 try
                 {
-                    await callback.Receive(this, packet, this.userToken);
+                    await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -233,6 +233,7 @@ namespace linker.tunnel.connection
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             await semaphoreSlim.WaitAsync().ConfigureAwait(false);
+
             try
             {
                 await Stream.WriteAsync(data, cancellationTokenSource.Token).ConfigureAwait(false);

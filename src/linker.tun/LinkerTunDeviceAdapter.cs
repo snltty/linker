@@ -131,6 +131,15 @@ namespace linker.tun
             return true;
         }
 
+
+        /// <summary>
+        /// 刷新网卡
+        /// </summary>
+        public void Refresh()
+        {
+            linkerTunDevice?.Refresh();
+        }
+
         /// <summary>
         /// 添加NAT转发,这会将来到本网卡且目标IP不是本网卡IP的包转发到其它网卡
         /// </summary>
@@ -193,7 +202,7 @@ namespace linker.tun
 
         private void Read()
         {
-            TimerHelper.AsyncLong(async () =>
+            TimerHelper.Async(async () =>
             {
                 cancellationTokenSource = new CancellationTokenSource();
                 while (cancellationTokenSource.IsCancellationRequested == false)
@@ -203,9 +212,7 @@ namespace linker.tun
                         ReadOnlyMemory<byte> buffer = linkerTunDevice.Read();
                         if (buffer.Length == 0)
                         {
-                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                LoggerHelper.Instance.Warning($"read buffer 0, stop device");
-                            Shutdown();
+                            await Task.Delay(1000);
                             break;
                         }
 
@@ -226,8 +233,7 @@ namespace linker.tun
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                             LoggerHelper.Instance.Warning($"read buffer Exception, stop device");
                         setupError = ex.Message;
-                        Shutdown();
-                        break;
+                        await Task.Delay(1000);
                     }
                 }
             });

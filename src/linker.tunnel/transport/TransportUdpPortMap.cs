@@ -91,7 +91,7 @@ namespace linker.tunnel.transport
                 {
                     try
                     {
-                        SocketReceiveFromResult result = await socket.ReceiveFromAsync(bytes.AsMemory(), ep);
+                        SocketReceiveFromResult result = await socket.ReceiveFromAsync(bytes.AsMemory(), ep).ConfigureAwait(false);
                         if (result.ReceivedBytes == 0)
                         {
                             break;
@@ -108,7 +108,7 @@ namespace linker.tunnel.transport
                                 string key = memory.GetString();
                                 if (distDic.TryRemove(key, out TaskCompletionSource<State> tcs))
                                 {
-                                    await socket.SendToAsync(memory, result.RemoteEndPoint);
+                                    await socket.SendToAsync(memory, result.RemoteEndPoint).ConfigureAwait(false);
                                     try
                                     {
                                         State state = new State { Socket = socket, RemoteEndPoint = remoteEP };
@@ -122,7 +122,7 @@ namespace linker.tunnel.transport
                         }
                         else if (cache.Connection != null)
                         {
-                            bool success = await cache.Connection.ProcessWrite(memory);
+                            bool success = await cache.Connection.ProcessWrite(bytes,0, result.ReceivedBytes).ConfigureAwait(false);
                             if (success == false)
                             {
                                 connectionsDic.TryRemove(remoteEP, out _);

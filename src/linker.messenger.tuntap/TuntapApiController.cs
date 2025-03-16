@@ -104,7 +104,7 @@ namespace linker.messenger.tuntap
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Warning($"api restarting device");
-                await tuntapAdapter.RetstartDevice();
+                await tuntapAdapter.RetstartDevice().ConfigureAwait(false);
             }
             else
             {
@@ -209,8 +209,8 @@ namespace linker.messenger.tuntap
         [Access(AccessValue.Lease)]
         public async Task AddNetwork(ApiControllerParamsInfo param)
         {
-            await leaseClientTreansfer.AddNetwork(param.Content.DeJson<LeaseInfo>());
-            await leaseClientTreansfer.LeaseChange();
+            await leaseClientTreansfer.AddNetwork(param.Content.DeJson<LeaseInfo>()).ConfigureAwait(false);
+            await leaseClientTreansfer.LeaseChange().ConfigureAwait(false);
             tuntapConfigTransfer.RefreshIP();
         }
         /// <summary>
@@ -220,7 +220,7 @@ namespace linker.messenger.tuntap
         /// <returns></returns>
         public async Task<LeaseInfo> GetNetwork(ApiControllerParamsInfo param)
         {
-            return await leaseClientTreansfer.GetNetwork();
+            return await leaseClientTreansfer.GetNetwork().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -242,7 +242,7 @@ namespace linker.messenger.tuntap
 
             if (tuntapForwardTestWrapInfo.MachineId == signInClientStore.Id)
             {
-                await pingTransfer.SubscribeForwardTest(tuntapForwardTestWrapInfo.List);
+                await pingTransfer.SubscribeForwardTest(tuntapForwardTestWrapInfo.List).ConfigureAwait(false);
             }
             else
             {

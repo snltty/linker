@@ -36,7 +36,7 @@ namespace linker.messenger.sync
                     }));
                 }
 
-                await Task.WhenAll(tasks);
+                await Task.WhenAll(tasks).ConfigureAwait(false);
             }
         }
     }

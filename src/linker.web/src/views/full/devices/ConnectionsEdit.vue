@@ -4,9 +4,9 @@
             <el-table :data="state.data" size="small" border height="500">
                 <el-table-column property="RemoteMachineId" label="目标/服务器">
                     <template #default="scope">
-                        <div :class="{green:scope.row.Connected}">
-                            <p>{{scope.row.IPEndPoint}}</p>
-                            <p>ssl : {{scope.row.SSL}}</p>
+                        <div :class="{ green: scope.row.Connected }">
+                            <p>{{ scope.row.IPEndPoint }}</p>
+                            <p>ssl : {{ scope.row.SSL }}</p>
                         </div>
                     </template>
                 </el-table-column>
@@ -18,38 +18,41 @@
                 <el-table-column property="TransportName" label="协议">
                     <template #default="scope">
                         <div>
-                            <p>{{scope.row.TransportName}}({{ state.protocolTypes[scope.row.ProtocolType] }})</p>
-                            <p>{{ state.types[scope.row.Type] }} - {{1<<scope.row.BufferSize}}KB</p>
+                            <p>{{ scope.row.TransportName }}({{ state.protocolTypes[scope.row.ProtocolType] }})</p>
+                            <p>{{ state.types[scope.row.Type] }} - {{ 1 << scope.row.BufferSize }}KB</p>
                         </div>
                     </template>
                 </el-table-column>
                 <el-table-column property="Delay" label="延迟" width="60">
                     <template #default="scope">
-                        <span>{{scope.row.Delay}}ms</span>
+                        <span>{{ scope.row.Delay }}ms</span>
                     </template>
                 </el-table-column>
                 <el-table-column property="Bytes" label="通信">
                     <template #default="scope">
                         <div>
-                            <p>up : {{scope.row.SendBytesText}}</p>
-                            <p>down : {{scope.row.ReceiveBytesText}}</p>
+                            <p>up : {{ scope.row.SendBytesText }}</p>
+                            <p>down : {{ scope.row.ReceiveBytesText }}</p>
                         </div>
                     </template>
                 </el-table-column>
                 <el-table-column property="relay" label="中继节点">
                     <template #default="scope">
                         <div>
-                            <a href="javascript:;" class="a-line" @click="handleNode(scope.row)">{{ state.nodesDic[scope.row.NodeId] || '选择节点' }}</a>
+                            <a href="javascript:;" class="a-line" @click="handleNode(scope.row)">{{
+                                state.nodesDic[scope.row.NodeId] || '选择节点' }}</a>
                         </div>
                     </template>
                 </el-table-column>
                 <el-table-column label="操作" width="54">
                     <template #default="scope">
                         <div>
-                            <el-popconfirm v-if="hasTunnelRemove" confirm-button-text="确认" cancel-button-text="取消" title="确定关闭此连接?"
-                                @confirm="handleDel(scope.row)">
+                            <el-popconfirm v-if="hasTunnelRemove" confirm-button-text="确认" cancel-button-text="取消"
+                                title="确定关闭此连接?" @confirm="handleDel(scope.row)">
                                 <template #reference>
-                                    <el-button type="danger" size="small"><el-icon><Delete /></el-icon></el-button>
+                                    <el-button type="danger" size="small"><el-icon>
+                                            <Delete />
+                                        </el-icon></el-button>
                                 </template>
                             </el-popconfirm>
                         </div>
@@ -63,14 +66,22 @@
             <el-table :data="state.nodes" size="small" border height="600">
                 <el-table-column property="Name" :label="$t('server.relayName')">
                     <template #default="scope">
-                        <a :href="scope.row.Url" class="a-line blue" target="_blank">{{ scope.row.Name }}</a>
+                        <div>
+                            <a :href="scope.row.Url" class="a-line blue" target="_blank">{{ scope.row.Name }}</a>
+                            <a href="javascript:;" class="a-line">
+                                <span v-if="(scope.row.AllowProtocol & 1) == 1">,tcp</span>
+                                <span v-if="(scope.row.AllowProtocol & 2) == 2">,udp</span>
+                            </a>
+                        </div>
                     </template>
                 </el-table-column>
-                <el-table-column property="MaxGbTotal" :label="$t('server.relayFlow')" width="160">
+                <el-table-column property="MaxGbTotal" :label="$t('server.relayFlow')" width="140">
                     <template #default="scope">
                         <span v-if="scope.row.MaxGbTotal == 0">--</span>
                         <span v-else>
-                            {{ (scope.row.MaxGbTotalLastBytes/1024/1024/1024).toFixed(2) }}GB / {{ scope.row.MaxGbTotal }}GB
+                            {{ (scope.row.MaxGbTotalLastBytes / 1024 / 1024 / 1024).toFixed(2) }}GB / {{
+                                scope.row.MaxGbTotal
+                            }}GB
                         </span>
                     </template>
                 </el-table-column>
@@ -80,10 +91,11 @@
                         <span v-else>{{ scope.row.MaxBandwidth }}Mbps</span>
                     </template>
                 </el-table-column>
-                <el-table-column property="MaxBandwidthTotal" :label="`${$t('server.relaySpeed2')}/${$t('server.relaySpeed1')}`" width="120">
+                <el-table-column property="MaxBandwidthTotal"
+                    :label="`${$t('server.relaySpeed2')}/${$t('server.relaySpeed1')}`" width="120">
                     <template #default="scope">
                         <span>
-                            <span>{{scope.row.BandwidthRatio}}Mbps</span>
+                            <span>{{ scope.row.BandwidthRatio }}Mbps</span>
                             <span>/</span>
                             <span v-if="scope.row.MaxBandwidthTotal == 0">--</span>
                             <span v-else>{{ scope.row.MaxBandwidthTotal }}Mbps</span>
@@ -92,7 +104,7 @@
                 </el-table-column>
                 <el-table-column property="ConnectionRatio" :label="$t('server.relayConnection')" width="80">
                     <template #default="scope">
-                        <span><strong>{{scope.row.ConnectionRatio}}</strong>/{{scope.row.MaxConnection}}</span>
+                        <span><strong>{{ scope.row.ConnectionRatio }}</strong>/{{ scope.row.MaxConnection }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column property="Delay" :label="$t('server.relayDelay')" width="60">
@@ -102,12 +114,25 @@
                 </el-table-column>
                 <el-table-column property="Public" :label="$t('server.relayPublic')" width="50">
                     <template #default="scope">
-                        <el-switch disabled v-model="scope.row.Public " size="small" />
+                        <el-switch disabled v-model="scope.row.Public" size="small" />
                     </template>
                 </el-table-column>
-                <el-table-column property="Oper" :label="$t('server.relayOper')" width="65">
+                <el-table-column property="Oper" :label="$t('server.relayOper')" width="75">
                     <template #default="scope">
-                        <el-button type="success" size="small" @click="handleConnect(scope.row.Id)">{{$t('server.relayUse')}}</el-button>
+                        <el-dropdown size="small">
+                            <div class="dropdown">
+                                <span>{{ $t('server.relayUse') }}</span>
+                                <el-icon class="el-icon--right">
+                                    <ArrowDown />
+                                </el-icon>
+                            </div>
+                            <template #dropdown>
+                                <el-dropdown-menu>
+                                    <el-dropdown-item v-if="(scope.row.AllowProtocol & 1) == 1" @click="handleConnect(scope.row.Id, 1)">TCP</el-dropdown-item>
+                                    <el-dropdown-item v-if="(scope.row.AllowProtocol & 2) == 2" @click="handleConnect(scope.row.Id, 2)">UDP</el-dropdown-item>
+                                </el-dropdown-menu>
+                            </template>
+                        </el-dropdown>
                     </template>
                 </el-table-column>
             </el-table>
@@ -115,22 +140,22 @@
     </el-dialog>
 </template>
 <script>
-import { reactive, watch,computed,  onMounted, onUnmounted } from 'vue';
+import { reactive, watch, computed, onMounted, onUnmounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useConnections, useForwardConnections, useSocks5Connections, useTuntapConnections } from './connections';
-import { Delete } from '@element-plus/icons-vue';
+import { Delete, Select, ArrowDown } from '@element-plus/icons-vue';
 import { injectGlobalData } from '@/provide';
 import { relayConnect, setRelaySubscribe } from '@/apis/relay';
 import { useI18n } from 'vue-i18n';
 export default {
     props: ['modelValue'],
-    emits: ['change','update:modelValue'],
-    components: {Delete},
+    emits: ['change', 'update:modelValue'],
+    components: { Delete, Select, ArrowDown },
     setup(props, { emit }) {
 
-        const {t} = useI18n();
+        const { t } = useI18n();
         const globalData = injectGlobalData();
-        const hasTunnelRemove = computed(()=>globalData.value.hasAccess('TunnelRemove')); 
+        const hasTunnelRemove = computed(() => globalData.value.hasAccess('TunnelRemove'));
 
         const connections = useConnections();
         const forwardConnections = useForwardConnections();
@@ -138,22 +163,22 @@ export default {
         const socks5Connections = useSocks5Connections();
         const state = reactive({
             show: true,
-            protocolTypes:{1:'tcp',2:'udp',4:'msquic'},
-            types:{0:'打洞',1:'中继',2:'节点'},
-            transactions:{'forward':'端口转发','tuntap':'虚拟网卡','socks5':'代理转发'},
-            machineName:connections.value.currentName,
-            currentRow:{},
-            data: computed(()=>{
+            protocolTypes: { 1: 'tcp', 2: 'udp', 4: 'msquic' },
+            types: { 0: '打洞', 1: '中继', 2: '节点' },
+            transactions: { 'forward': '端口转发', 'tuntap': '虚拟网卡', 'socks5': '代理转发' },
+            machineName: connections.value.currentName,
+            currentRow: {},
+            data: computed(() => {
                 return [
                     forwardConnections.value.list[connections.value.current],
                     tuntapConnections.value.list[connections.value.current],
                     socks5Connections.value.list[connections.value.current],
-                ].filter(c=>!!c);
+                ].filter(c => !!c);
             }),
-            showNodes:false,
-            nodes:[],
-            nodesDic:{},
-            timer:0
+            showNodes: true,
+            nodes: [],
+            nodesDic: {},
+            timer: 0
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -163,54 +188,55 @@ export default {
                 }, 300);
             }
         });
-        const handleDel = (row)=>{
-            if(!hasTunnelRemove.value) return;
-            row.removeFunc(row.RemoteMachineId).then(()=>{
+        const handleDel = (row) => {
+            if (!hasTunnelRemove.value) return;
+            row.removeFunc(row.RemoteMachineId).then(() => {
                 ElMessage.success(t('common.oper'));
-            }).catch(()=>{});
+            }).catch(() => { });
         }
 
-        const _setRelaySubscribe = ()=>{
-            setRelaySubscribe().then((res)=>{
+        const _setRelaySubscribe = () => {
+            setRelaySubscribe().then((res) => {
                 state.nodes = res;
-                state.nodesDic = res.reduce((a,b)=>{
+                state.nodesDic = res.reduce((a, b) => {
                     a[b.Id] = b.Name;
                     return a;
-                },{});
-                state.timer = setTimeout(_setRelaySubscribe,1000);
-            }).catch(()=>{
-                state.timer = setTimeout(_setRelaySubscribe,1000);
+                }, {});
+                state.timer = setTimeout(_setRelaySubscribe, 1000);
+            }).catch(() => {
+                state.timer = setTimeout(_setRelaySubscribe, 1000);
             });
         }
-        const handleNode = (row)=>{
+        const handleNode = (row) => {
             state.currentRow = row;
             state.showNodes = true;
         }
-        const handleConnect = (id)=>{
+        const handleConnect = (id, protocol) => {
             const json = {
-                FromMachineId:globalData.value.config.Client.Id,
+                FromMachineId: globalData.value.config.Client.Id,
                 TransactionId: state.currentRow.TransactionId,
                 ToMachineId: state.currentRow.RemoteMachineId,
-                NodeId:id,
+                NodeId: id,
+                Protocol: protocol
             };
-            if(json.NodeId == state.currentRow.NodeId){
+            if (json.NodeId == state.currentRow.NodeId) {
                 return;
             }
-            relayConnect(json).then(()=>{}).catch(()=>{});
+            relayConnect(json).then(() => {ElMessage.success(t('common.oper')); }).catch(() => {ElMessage.success(t('common.operFail')); });
             state.showNodes = false;
         }
 
-        onMounted(()=>{
+        onMounted(() => {
             connections.value.updateRealTime(true);
             _setRelaySubscribe();
         });
-        onUnmounted(()=>{
+        onUnmounted(() => {
             connections.value.updateRealTime(false);
             clearTimeout(state.timer);
         })
 
         return {
-            state,handleDel,hasTunnelRemove,handleNode,handleConnect
+            state, handleDel, hasTunnelRemove, handleNode, handleConnect
         }
     }
 }
@@ -220,5 +246,27 @@ export default {
 .head{padding-bottom:1rem}
 .blue {
     color: #409EFF;
+}
+.dropdown{
+    border:1px solid #ddd;
+    padding:.4rem;
+    font-size:1.3rem;
+    border-radius:.4rem;
+    position:relative;
+    .el-icon{
+        vertical-align:middle;
+    }
+
+    .badge{
+        position:absolute;
+        right:-1rem;
+        top:-50%;
+        border-radius:10px;
+        background-color:#f1ae05;
+        color:#fff;
+        padding:.2rem .6rem;
+        font-size:1.2rem;
+        
+    }
 }
 </style>

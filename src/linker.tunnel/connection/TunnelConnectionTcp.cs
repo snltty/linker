@@ -180,7 +180,7 @@ namespace linker.tunnel.connection
             }
             try
             {
-                await callback.Receive(this, packet, this.userToken);
+                await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -262,7 +262,9 @@ namespace linker.tunnel.connection
             if (callback == null) return false;
 
             if (Stream != null)
+            {
                 await semaphoreSlim.WaitAsync().ConfigureAwait(false);
+            }
             try
             {
                 if (Stream != null)

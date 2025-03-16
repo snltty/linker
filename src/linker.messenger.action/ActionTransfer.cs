@@ -11,10 +11,10 @@ namespace linker.messenger.action
             {
                 using HttpClient client = new HttpClient();
                 JsonContent json = JsonContent.Create(JsonObject.Parse(actionJson));
-                HttpResponseMessage resp = await client.PostAsync(url, json);
+                HttpResponseMessage resp = await client.PostAsync(url, json).ConfigureAwait(false);
                 if (resp.IsSuccessStatusCode)
                 {
-                    string result = await resp.Content.ReadAsStringAsync();
+                    string result = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
                     if (result.Equals("ok", StringComparison.CurrentCultureIgnoreCase) == false)
                     {
                         return $"post {url} fail->{result}";

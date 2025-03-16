@@ -76,12 +76,12 @@ namespace linker.messenger.signin
 
             try
             {
-                await clientSignInState.PushSignInBefore();
+                await clientSignInState.PushSignInBefore().ConfigureAwait(false);
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Info($"connect to signin server:{signInClientStore.Server.Host}");
 
-                IPEndPoint ip = await NetworkHelper.GetEndPointAsync(signInClientStore.Server.Host, 1802);
+                IPEndPoint ip = await NetworkHelper.GetEndPointAsync(signInClientStore.Server.Host, 1802).ConfigureAwait(false);
                 if (ip == null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -136,7 +136,7 @@ namespace linker.messenger.signin
         private async Task<bool> SignIn2Server()
         {
             Dictionary<string, string> args = [];
-            string argResult = await signInArgsTransfer.Invoke(signInClientStore.Server.Host, args);
+            string argResult = await signInArgsTransfer.Invoke(signInClientStore.Server.Host, args).ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(argResult) == false)
             {
                 LoggerHelper.Instance.Error(argResult);
@@ -226,7 +226,7 @@ namespace linker.messenger.signin
                 MessengerId = (ushort)SignInMessengerIds.Online,
                 Payload = serializer.Serialize(machineId),
                 Timeout = 3000
-            });
+            }).ConfigureAwait(false);
 
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
@@ -241,7 +241,7 @@ namespace linker.messenger.signin
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)SignInMessengerIds.NewId,
                 Timeout = 3000
-            });
+            }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK)
             {
                 return serializer.Deserialize<string>(resp.Data.Span);

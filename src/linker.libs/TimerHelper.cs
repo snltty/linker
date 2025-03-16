@@ -9,86 +9,46 @@ namespace linker.libs
         {
             Task.Run(async () =>
             {
-                await Task.Delay(delayMs);
+                await Task.Delay(delayMs).ConfigureAwait(false);
                 action();
             });
         }
 
-        public static void SetInterval(Func<bool> action, int delayMs)
-        {
-            Task.Run(async () =>
-            {
-                while (action())
-                {
-                    await Task.Delay(delayMs).ConfigureAwait(false);
-                }
-            });
-        }
         public static void SetIntervalLong(Func<bool> action, int delayMs)
         {
-            Task.Factory.StartNew(async () =>
+            Task.Factory.StartNew(() =>
             {
                 while (action())
                 {
-                    await Task.Delay(delayMs).ConfigureAwait(false);
+                    Task.Delay(delayMs).Wait();
                 }
             }, TaskCreationOptions.LongRunning);
-        }
-        public static void SetInterval(Func<Task<bool>> action, int delayMs)
-        {
-            Task.Run(async () =>
-            {
-                while (await action())
-                {
-                    await Task.Delay(delayMs).ConfigureAwait(false);
-                }
-            });
         }
         public static void SetIntervalLong(Func<Task<bool>> action, int delay)
         {
             Task.Factory.StartNew(async () =>
             {
-                while (await action())
+                while (await action().ConfigureAwait(false))
                 {
                     await Task.Delay(delay).ConfigureAwait(false);
                 }
             }, TaskCreationOptions.LongRunning);
         }
-        public static void SetInterval(Func<bool> action, Func<int> delay)
-        {
-            Task.Run(async () =>
-            {
-                while (action())
-                {
-                    await Task.Delay(delay()).ConfigureAwait(false);
-                }
-            });
-        }
         public static void SetIntervalLong(Func<bool> action, Func<int> delay)
         {
-            Task.Factory.StartNew(async () =>
+            Task.Factory.StartNew(() =>
             {
                 while (action())
                 {
-                    await Task.Delay(delay()).ConfigureAwait(false);
+                    Task.Delay(delay()).Wait();
                 }
             }, TaskCreationOptions.LongRunning);
-        }
-        public static void SetInterval(Func<Task<bool>> action, Func<int> delay)
-        {
-            Task.Run(async () =>
-            {
-                while (await action())
-                {
-                    await Task.Delay(delay()).ConfigureAwait(false);
-                }
-            });
         }
         public static void SetIntervalLong(Func<Task<bool>> action, Func<int> delay)
         {
             Task.Factory.StartNew(async () =>
             {
-                while (await action())
+                while (await action().ConfigureAwait(false))
                 {
                     await Task.Delay(delay()).ConfigureAwait(false);
                 }
@@ -103,10 +63,7 @@ namespace linker.libs
         {
             Task.Run(action);
         }
-        public static void AsyncLong(Func<Task> action)
-        {
-            Task.Factory.StartNew(action,TaskCreationOptions.LongRunning);
-        }
-        
+
+
     }
 }

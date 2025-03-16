@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using linker.libs;
 using System;
+using System.Text;
 
 namespace linker.messenger.relay.server
 {
@@ -17,6 +18,9 @@ namespace linker.messenger.relay.server
 
         private readonly RelayServerNodeTransfer relayServerNodeTransfer;
         private readonly ISerializer serializer;
+
+        private string relayFlag = $"{Helper.GlobalString}.relay.flag";
+
         public RelayServerResolver(RelayServerNodeTransfer relayServerNodeTransfer, ISerializer serializer)
         {
             this.relayServerNodeTransfer = relayServerNodeTransfer;
@@ -44,6 +48,11 @@ namespace linker.messenger.relay.server
 
         public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
+            if (relayServerNodeTransfer.Validate(tunnel.connection.TunnelProtocolType.Udp) == false)
+            {
+                return;
+            }
+
             RelayUdpStep step = (RelayUdpStep)memory.Span[0];
             memory = memory.Slice(1);
 
@@ -52,22 +61,30 @@ namespace linker.messenger.relay.server
                 if (udpNat.TryGetValue(ep, out RelayUdpNatInfo natTarget) && natTarget.Target != null)
                 {
                     natTarget.LastTicks = Environment.TickCount64;
-                    await CopyToAsync(natTarget, socket,ep,memory);
+                    await CopyToAsync(natTarget, socket, ep, memory).ConfigureAwait(false);
                 }
                 return;
             }
+
+            byte flagLength = memory.Span[0];
+            if(Encoding.UTF8.GetString(memory.Slice(1, flagLength).Span) != relayFlag)
+            {
+                await socket.SendToAsync(new byte[] { 1 }, ep).ConfigureAwait(false);
+                return;
+            }
+            memory = memory.Slice(1 + flagLength);
 
             RelayMessageInfo relayMessage = serializer.Deserialize<RelayMessageInfo>(memory.Span);
 
             //ask 是发起端来的，那key就是 发起端->目标端， answer的，目标和来源会交换，所以转换一下
             string key = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}->{relayMessage.FlowId}" : $"{relayMessage.ToId}->{relayMessage.FromId}->{relayMessage.FlowId}";
             //获取缓存
-            RelayCacheInfo relayCache = await relayServerNodeTransfer.TryGetRelayCache(key);
+            RelayCacheInfo relayCache = await relayServerNodeTransfer.TryGetRelayCache(key).ConfigureAwait(false);
             if (relayCache == null)
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error($"relay {relayMessage.Type} get cache fail,flowid:{relayMessage.FlowId}");
-                await socket.SendToAsync(new byte[] { 1 }, ep);
+                await socket.SendToAsync(new byte[] { 1 }, ep).ConfigureAwait(false);
                 return;
             }
 
@@ -75,13 +92,12 @@ namespace linker.messenger.relay.server
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error($"relay {relayMessage.Type} Validate false,flowid:{relayMessage.FlowId}");
-                await socket.SendToAsync(new byte[] { 1 }, ep);
+                await socket.SendToAsync(new byte[] { 1 }, ep).ConfigureAwait(false);
                 return;
             }
 
             //流量统计
             AddReceive(relayCache.FromId, relayCache.FromName, relayCache.ToName, relayCache.GroupId, memory.Length);
-
             //回应
             if (relayMessage.Type == RelayMessengerType.Answer)
             {
@@ -103,6 +119,8 @@ namespace linker.messenger.relay.server
 
             relayServerNodeTransfer.AddTrafficCache(trafficCacheInfo);
             relayServerNodeTransfer.IncrementConnectionNum();
+
+            await socket.SendToAsync(new byte[] { 0 }, ep).ConfigureAwait(false);
 
         }
         private async Task CopyToAsync(RelayUdpNatInfo nat, Socket socket, IPEndPoint ep, Memory<byte> memory)
@@ -133,6 +151,12 @@ namespace linker.messenger.relay.server
 
         public async Task Resolve(Socket socket, Memory<byte> memory)
         {
+            if (relayServerNodeTransfer.Validate(tunnel.connection.TunnelProtocolType.Tcp) == false)
+            {
+                socket.SafeClose();
+                return;
+            }
+
             byte[] buffer1 = new byte[8 * 1024];
             try
             {
@@ -142,12 +166,12 @@ namespace linker.messenger.relay.server
                 //ask 是发起端来的，那key就是 发起端->目标端， answer的，目标和来源会交换，所以转换一下
                 string key = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}->{relayMessage.FlowId}" : $"{relayMessage.ToId}->{relayMessage.FromId}->{relayMessage.FlowId}";
                 //获取缓存
-                RelayCacheInfo relayCache = await relayServerNodeTransfer.TryGetRelayCache(key);
+                RelayCacheInfo relayCache = await relayServerNodeTransfer.TryGetRelayCache(key).ConfigureAwait(false);
                 if (relayCache == null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         LoggerHelper.Instance.Error($"relay {relayMessage.Type} get cache fail,flowid:{relayMessage.FlowId}");
-                    await socket.SendAsync(new byte[] { 1 });
+                    await socket.SendAsync(new byte[] { 1 }).ConfigureAwait(false);
                     socket.SafeClose();
                     return;
                 }
@@ -156,7 +180,7 @@ namespace linker.messenger.relay.server
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         LoggerHelper.Instance.Error($"relay {relayMessage.Type} validate false,flowid:{relayMessage.FlowId}");
-                    await socket.SendAsync(new byte[] { 1 });
+                    await socket.SendAsync(new byte[] { 1 }).ConfigureAwait(false);
                     socket.SafeClose();
                     return;
                 }
@@ -179,11 +203,11 @@ namespace linker.messenger.relay.server
 
                 try
                 {
-                    await socket.SendAsync(new byte[] { 0 });
+                    await socket.SendAsync(new byte[] { 0 }).ConfigureAwait(false);
 
                     TaskCompletionSource<Socket> tcs = new TaskCompletionSource<Socket>();
                     relayDic.TryAdd(relayCache.FlowId, tcs);
-                    Socket answerSocket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(15000));
+                    Socket answerSocket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(15000)).ConfigureAwait(false);
 
                     byte[] buffer2 = new byte[8 * 1024];
                     RelayTrafficCacheInfo trafficCacheInfo = new RelayTrafficCacheInfo { Cache = relayCache, Sendt = 0, Limit = new RelaySpeedLimit() };

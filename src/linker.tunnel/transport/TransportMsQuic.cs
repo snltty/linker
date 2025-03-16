@@ -87,7 +87,7 @@ namespace linker.tunnel.transport
                 {
                     return null;
                 }
-                await Task.Delay(100);
+                await Task.Delay(100).ConfigureAwait(false);
                 ITunnelConnection connection = await ConnectForward(tunnelTransportInfo).ConfigureAwait(false);
                 if (connection != null)
                 {
@@ -645,7 +645,7 @@ namespace linker.tunnel.transport
                     }
                 }
             }
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
         }
 
         /// <summary>

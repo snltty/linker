@@ -63,7 +63,7 @@ namespace linker.messenger.signin
             LoggerHelper.Instance.Info($"sign in from >=v131 {connection.Address}->{info.ToJson()}");
 
             info.Connection = connection;
-            string msg = await signCaching.Sign(info);
+            string msg = await signCaching.Sign(info).ConfigureAwait(false);
 
             SignInResponseInfo resp = new SignInResponseInfo
             {

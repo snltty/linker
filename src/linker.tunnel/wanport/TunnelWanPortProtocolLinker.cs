@@ -35,7 +35,7 @@ namespace linker.tunnel.wanport
                 {
                     for (byte i = 1; i < 10; i++)
                     {
-                        await Task.Delay(15);
+                        await Task.Delay(15).ConfigureAwait(false);
                         await udpClient.SendAsync(BuildSendData(buffer, i), server).ConfigureAwait(false);
                     }
                 });
@@ -106,7 +106,7 @@ namespace linker.tunnel.wanport
                 socket.ReuseBind(new IPEndPoint(IPAddress.Any, 0));
                 await socket.ConnectAsync(server).ConfigureAwait(false);
 
-                await socket.SendAsync(BuildSendData(buffer, (byte)new Random().Next(0, 255)));
+                await socket.SendAsync(BuildSendData(buffer, (byte)new Random().Next(0, 255))).ConfigureAwait(false);
 
                 int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
                 for (int j = 0; j < length; j++)
