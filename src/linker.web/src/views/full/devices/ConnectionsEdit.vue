@@ -175,7 +175,7 @@ export default {
                     socks5Connections.value.list[connections.value.current],
                 ].filter(c => !!c);
             }),
-            showNodes: true,
+            showNodes: false,
             nodes: [],
             nodesDic: {},
             timer: 0

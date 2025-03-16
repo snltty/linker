@@ -245,8 +245,11 @@ namespace linker.tunnel.connection
         private byte[] encodeBuffer = new byte[8 * 1024];
         private byte[] decodeBuffer = new byte[8 * 1014];
 
+
+        private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
+            await semaphoreSlim.WaitAsync();
             try
             {
                 data = data.Slice(4);
@@ -256,7 +259,7 @@ namespace linker.tunnel.connection
                 {
                     skip = 2;
                     encodeBuffer[0] = 2; //relay
-                    encodeBuffer[1] = 1; //forward
+                    encodeBuffer[1] = 1; //forward 
                 }
                 if (SSL)
                 {
@@ -284,6 +287,7 @@ namespace linker.tunnel.connection
             }
             finally
             {
+                semaphoreSlim.Release();
             }
             return false;
         }
