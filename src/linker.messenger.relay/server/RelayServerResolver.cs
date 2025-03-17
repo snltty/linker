@@ -291,11 +291,18 @@ namespace linker.messenger.relay.server
                 try
                 {
                     long ticks = Environment.TickCount64;
-                    foreach (var item in udpNat.Values.Where(c => ticks - c.LastTicks > 30000).ToList())
+                    foreach (var item in udpNat.Values.Where(c => c.Ask && ticks - c.LastTicks > 30000).ToList())
                     {
-                        if (item.Ask)
-                            relayServerNodeTransfer.DecrementConnectionNum();
+                        relayServerNodeTransfer.DecrementConnectionNum();
                         relayServerNodeTransfer.RemoveTrafficCache(item.Traffic);
+
+                        relayUdpDic.TryRemove(item.Traffic.Cache.FlowId, out _);
+
+                        udpNat.TryRemove(item.Source, out _);
+                        if (item.Target != null)
+                        {
+                            udpNat.TryRemove(item.Target, out _);
+                        }
                     }
                 }
                 catch (Exception)
