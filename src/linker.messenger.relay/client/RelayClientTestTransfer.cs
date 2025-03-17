@@ -73,7 +73,6 @@ namespace linker.messenger.relay
                 {
                     await TaskRelay().ConfigureAwait(false);
                 }
-                return true;
             }, 3000);
         }
 

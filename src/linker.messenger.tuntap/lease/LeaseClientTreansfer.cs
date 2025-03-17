@@ -81,8 +81,6 @@ namespace linker.messenger.tuntap.lease
                     Connection = signInClientState.Connection,
                     MessengerId = (ushort)TuntapMessengerIds.LeaseExp,
                 }).ConfigureAwait(false);
-
-                return true;
             },  60000);
         }
     }

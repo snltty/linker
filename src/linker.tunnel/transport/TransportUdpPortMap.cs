@@ -374,7 +374,6 @@ namespace linker.tunnel.transport
                 {
                     connectionsDic.TryRemove(item, out _);
                 }
-                return true;
             }, 30000);
         }
     }

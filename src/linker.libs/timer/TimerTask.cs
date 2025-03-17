@@ -1,4 +1,6 @@
 ﻿
+using System.Threading.Tasks;
+
 namespace linker.libs.timer
 {
     /// <summary>
@@ -11,5 +13,6 @@ namespace linker.libs.timer
         /// </summary>
         /// <param name="timeout">timeout a handle which is associated with this task</param>
         void Run(Timeout timeout);
+        Task RunAsync(Timeout timeout);
     }
 }

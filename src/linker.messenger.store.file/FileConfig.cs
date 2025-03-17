@@ -140,7 +140,6 @@ namespace linker.messenger.store.file
                     Save();
                     Data.Updated--;
                 }
-                return true;
             }, 3000);
         }
     }

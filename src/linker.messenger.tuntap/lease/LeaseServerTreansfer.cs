@@ -247,7 +247,6 @@ namespace linker.messenger.tuntap.lease
                     LoggerHelper.Instance.Debug($"cleaning up dhcp error {ex}");
                 }
 
-                return true;
             }, 5 * 60 * 1000);
         }
     }

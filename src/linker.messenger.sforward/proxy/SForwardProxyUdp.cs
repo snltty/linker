@@ -278,7 +278,6 @@ namespace linker.plugins.sforward.proxy
                         cache.Clear();
                     }
                 }
-                return true;
             }, 60000);
         }
     }

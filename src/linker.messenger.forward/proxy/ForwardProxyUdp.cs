@@ -290,8 +290,6 @@ namespace linker.messenger.forward.proxy
                         }
                     }
                 }
-                
-                return true;
             }, 30000);
         }
 

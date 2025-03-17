@@ -259,7 +259,6 @@ namespace linker.messenger.socks5
                         }
                     }
                 }
-                return true;
             }, 3 * 60 * 1000);
         }
 

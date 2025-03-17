@@ -5,7 +5,6 @@ using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Net.Sockets;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.tunnel.connection
 {
@@ -260,7 +259,7 @@ namespace linker.tunnel.connection
                     data.CopyTo(encodeBuffer.AsMemory(2));
                     encodeBuffer[0] = 2; //relay
                     encodeBuffer[1] = 1; //forward 
-                    data = encodeBuffer.AsMemory(0, data.Length+2);
+                    data = encodeBuffer.AsMemory(0, data.Length + 2);
                 }
                 await UdpClient.SendToAsync(data, IPEndPoint, cancellationTokenSource.Token).ConfigureAwait(false);
                 SendBytes += data.Length;
@@ -275,19 +274,19 @@ namespace linker.tunnel.connection
                 Dispose();
             }
             finally
-            { 
+            {
             }
             return false;
         }
-        public async Task<bool> SendAsync(byte[] buffer,int offset,int length)
+        public async Task<bool> SendAsync(byte[] buffer, int offset, int length)
         {
             try
             {
-                Memory<byte> data = buffer.AsMemory(offset+4,length);
+                Memory<byte> data = buffer.AsMemory(offset + 4, length - 4);
 
                 if (SSL)
                 {
-                    data = Crypto.Encode(buffer, offset+4, length);
+                    data = Crypto.Encode(buffer, offset + 4, length - 4);
                 }
                 if (Type == TunnelType.Relay)
                 {

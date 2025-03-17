@@ -35,7 +35,6 @@ namespace linker.messenger.updater
                 {
                     await updaterHelper.GetUpdateInfo(updateInfo).ConfigureAwait(false);
                 }
-                return true;
             }, () => updaterCommonTransfer.UpdateIntervalSeconds * 1000);
         }
     }

@@ -93,7 +93,6 @@ namespace linker.messenger.flow
                         item.OldReceiveBytes = item.ReceiveBytes;
                     }
                 }
-                return true;
             }, () => lastTicksManager.DiffLessEqual(5000) ? 1000 : 30000);
         }
 

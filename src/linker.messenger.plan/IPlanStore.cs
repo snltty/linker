@@ -19,7 +19,7 @@
         /// </summary>
         /// <param name="handle">操作名</param>
         /// <param name="value">值</param>
-        public void Handle(string handle,string value);
+        public Task HandleAsync(string handle,string value);
     }
 
     public sealed class PlanStoreInfo

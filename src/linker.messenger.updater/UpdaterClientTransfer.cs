@@ -118,7 +118,6 @@ namespace linker.messenger.updater
                     }
                     Update(updateInfo);
                 }
-                return true;
             }, () => lastTicksManager.DiffLessEqual(5000) ? 1000 : 15000);
 
         }

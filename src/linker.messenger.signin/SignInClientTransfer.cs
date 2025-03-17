@@ -49,7 +49,6 @@ namespace linker.messenger.signin
                             LoggerHelper.Instance.Error(ex);
                     }
                 }
-                return true;
             }, 10000);
         }
 

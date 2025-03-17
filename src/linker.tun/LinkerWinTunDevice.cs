@@ -47,7 +47,7 @@ namespace linker.tun
             if (adapter == 0)
             {
                 adapter = WinTun.WintunOpenAdapter(name);
-                if(adapter == 0)
+                if (adapter == 0)
                 {
                     error = ($"Failed to create adapter {Marshal.GetLastWin32Error()}");
                     Shutdown();
@@ -189,7 +189,7 @@ namespace linker.tun
                 IPAddress network = NetworkHelper.ToNetworkIP(this.address, NetworkHelper.ToPrefixValue(prefixLength));
                 CommandHelper.PowerShell($"Remove-NetNat -Name {Name} -Confirm:$false", [], out error);
                 CommandHelper.PowerShell($"New-NetNat -Name {Name} -InternalIPInterfaceAddressPrefix {network}/{prefixLength}", [], out error);
-                
+
                 if (string.IsNullOrWhiteSpace(error))
                 {
                     return;
@@ -391,12 +391,13 @@ namespace linker.tun
                 }
             }
         }
-       
+
         public async Task<bool> CheckAvailable()
         {
-            InterfaceOrder();
-            NetworkInterface networkInterface = NetworkInterface.GetAllNetworkInterfaces()
-                .FirstOrDefault(c => c.Name == Name || c.Description == $"{Name} Tunnel" || c.Name.Contains(Name));
+            NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
+
+            InterfaceOrder(interfaces);
+            NetworkInterface networkInterface = interfaces.FirstOrDefault(c => c.Name == Name || c.Description == $"{Name} Tunnel" || c.Name.Contains(Name));
 
             UnicastIPAddressInformation firstIpv4 = networkInterface?.GetIPProperties()
                 .UnicastAddresses.FirstOrDefault(c => c.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
@@ -407,10 +408,10 @@ namespace linker.tun
             }
             return await Task.FromResult(true);
         }
-        private void InterfaceOrder()
+        private void InterfaceOrder(NetworkInterface[] interfaces)
         {
-            NetworkInterface linker = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(c => c.Name == Name || c.Description == $"{Name} Tunnel" || c.Name.Contains(Name));
-            NetworkInterface first = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault();
+            NetworkInterface linker = interfaces.FirstOrDefault(c => c.Name == Name || c.Description == $"{Name} Tunnel" || c.Name.Contains(Name));
+            NetworkInterface first = interfaces.FirstOrDefault();
 
             if (linker != null && linker.Name != first.Name)
             {
@@ -427,10 +428,10 @@ namespace linker.tun
                     $"netsh interface ipv4 set interface \"{Name}\" metric={++metricv4}",
                     $"netsh interface ipv6 set interface \"{Name}\" metric={++metricv6}"
                 };
-                commands.AddRange(NetworkInterface.GetAllNetworkInterfaces()
+                commands.AddRange(interfaces
                     .Where(c => c.Name != Name)
                     .Select(c => $"netsh interface ipv4 set interface \"{c.Name}\" metric={++metricv4}"));
-                commands.AddRange(NetworkInterface.GetAllNetworkInterfaces()
+                commands.AddRange(interfaces
                     .Where(c => c.Name != Name)
                     .Select(c => $"netsh interface ipv6 set interface \"{c.Name}\" metric={++metricv6}"));
                 commands.Add(string.Empty);

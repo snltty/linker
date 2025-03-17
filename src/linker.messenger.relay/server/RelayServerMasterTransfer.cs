@@ -182,7 +182,6 @@ namespace linker.messenger.relay.server
                         LoggerHelper.Instance.Error(ex);
                     }
                 }
-                return true;
             }, 500);
             TimerHelper.SetIntervalLong(async () =>
             {
@@ -206,7 +205,6 @@ namespace linker.messenger.relay.server
                         LoggerHelper.Instance.Error(ex);
                     }
                 }
-                return true;
             }, 500);
 
         }

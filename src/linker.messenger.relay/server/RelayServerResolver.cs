@@ -309,8 +309,6 @@ namespace linker.messenger.relay.server
                 catch (Exception)
                 {
                 }
-
-                return true;
             }, 5000);
         }
     }

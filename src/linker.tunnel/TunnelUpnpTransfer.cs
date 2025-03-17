@@ -39,8 +39,6 @@ namespace linker.tunnel
             {
                 NatUtility.StopDiscovery();
                 NatUtility.StartDiscovery();
-
-                return true;
             }, 60 * 1000);
         }
         private void DeviceFound(object sender, DeviceEventArgs args)

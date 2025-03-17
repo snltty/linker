@@ -84,8 +84,10 @@ namespace linker.libs.timer
                 return;
             }
 
-            Task.Run(() => {
+            Task.Run(async () =>
+            {
                 _task.Run(this);
+                await _task.RunAsync(this);
             });
         }
     }

@@ -154,7 +154,6 @@ namespace linker.messenger.signin
                     LoggerHelper.Instance.Debug($"cleaning up clients error {ex}");
                 }
 
-                return true;
             }, 5 * 60 * 1000);
         }
     }

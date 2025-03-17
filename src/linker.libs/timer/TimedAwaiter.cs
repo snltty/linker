@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace linker.libs.timer
 {
@@ -22,6 +23,10 @@ namespace linker.libs.timer
         {
             IsCompleted = true;
             Interlocked.Exchange(ref _continuation, null)?.Invoke();
+        }
+        public async Task RunAsync(Timeout timeout)
+        {
+            await Task.CompletedTask;
         }
 
         public TimedAwaiter GetAwaiter()

@@ -334,7 +334,6 @@ namespace linker.messenger.relay.server
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
-                return true;
             }, 3000);
         }
 
@@ -379,7 +378,6 @@ namespace linker.messenger.relay.server
                         LoggerHelper.Instance.Error($"relay report : {ex}");
                     }
                 }
-                return true;
             }, 5000);
         }
 
@@ -391,7 +389,6 @@ namespace linker.messenger.relay.server
                 {
                     connection = await SignIn(node.MasterHost, node.MasterSecretKey).ConfigureAwait(false);
                 }
-                return true;
             }, 3000);
         }
         private async Task<IConnection> SignIn(string host, string secretKey)

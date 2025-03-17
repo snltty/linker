@@ -1,4 +1,5 @@
 ﻿using Cronos;
+using linker.libs.timer;
 using System.Collections.Concurrent;
 
 namespace linker.messenger.plan
@@ -50,6 +51,26 @@ namespace linker.messenger.plan
                 UpdateNextTime(cache);
                 caches.TryAdd(info.Id, cache);
             }
+            TimerHelper.SetIntervalLong(() =>
+            {
+                DateTime now = DateTime.Now;
+                foreach (var item in caches.Values.Where(c => c.NextTime < now))
+                {
+                    if (item.Running == false)
+                    {
+                        if (handles.TryGetValue(item.Store.Category, out IPlanHandle handle))
+                        {
+                            item.Running = true;
+                            handle.HandleAsync(item.Store.Handle, item.Store.Value).ContinueWith((result) =>
+                            {
+                                item.Running = false;
+                            });
+                        }
+                    }
+                    UpdateNextTime(item);
+                }
+
+            }, 500);
         }
         private void UpdateNextTime(PlanExecCacheInfo cache)
         {

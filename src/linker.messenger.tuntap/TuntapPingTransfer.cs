@@ -41,7 +41,6 @@ namespace linker.messenger.tuntap
                 {
                     await Ping().ConfigureAwait(false);
                 }
-                return true;
             }, () => tuntapTransfer.Status == TuntapStatus.Running && lastTicksManager.DiffLessEqual(5000) ? 3000 : 30000);
         }
         private async Task Ping()

@@ -97,8 +97,6 @@ namespace linker.messenger.flow
                 catch (Exception)
                 {
                 }
-
-                return true;
             }, 5000);
         }
         private void Counter()

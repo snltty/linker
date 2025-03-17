@@ -83,7 +83,6 @@ namespace linker.messenger.logger
                     {
                     }
                 }
-                return true;
             }, 60 * 1000);
         }
 

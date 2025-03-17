@@ -100,7 +100,6 @@ namespace linker.messenger.decenter
                         LoggerHelper.Instance.Error(ex);
                     }
                 }
-                return true;
             }, 300);
         }
 

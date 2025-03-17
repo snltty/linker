@@ -22,7 +22,7 @@ namespace linker.libs
 
         private LoggerHelper()
         {
-            Task.Factory.StartNew(async () =>
+            Task.Factory.StartNew(() =>
             {
                 while (true)
                 {
@@ -33,9 +33,9 @@ namespace linker.libs
                             OnLogger?.Invoke(model);
                         }
                     }
-                    await Task.Delay(15).ConfigureAwait(false);
+                    Thread.Sleep(15);
                 }
-            });
+            }, TaskCreationOptions.LongRunning);
         }
 
 

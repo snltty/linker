@@ -35,11 +35,7 @@ namespace linker.messenger.store.file
 
         private void CheckpointTask()
         {
-            TimerHelper.SetIntervalLong(() =>
-            {
-                database.Checkpoint();
-                return true;
-            }, 3000);
+            TimerHelper.SetIntervalLong(database.Checkpoint, 3000);
         }
     }
 
