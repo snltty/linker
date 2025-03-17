@@ -2,7 +2,6 @@
 using linker.tunnel.connection;
 using linker.libs;
 using linker.libs.extends;
-using System.Collections.Concurrent;
 using linker.messenger.signin;
 
 namespace linker.messenger.relay.client
@@ -71,7 +70,9 @@ namespace linker.messenger.relay.client
         /// <returns></returns>
         public async Task<ITunnelConnection> ConnectAsync(string fromMachineId, string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols, string nodeId = "")
         {
-           
+            if (string.IsNullOrWhiteSpace(nodeId)) nodeId = relayClientStore.DefaultNodeId;
+
+
             if (operating.StartOperation(remoteMachineId) == false)
             {
                 return null;
@@ -81,7 +82,15 @@ namespace linker.messenger.relay.client
                 return null;
             }
 
-            foreach (IRelayClientTransport transport in Transports.Where(c => denyProtocols.HasFlag(c.ProtocolType) == false))
+            IEnumerable<IRelayClientTransport> transports = Transports
+                //优先的
+                .Where(c => c.ProtocolType == relayClientStore.DefaultProtocol)
+                //其次的
+                .Concat(Transports.Where(c => c.ProtocolType != relayClientStore.DefaultProtocol))
+                //不包含在禁用列表里的
+                .Where(c => denyProtocols.HasFlag(c.ProtocolType) == false);
+
+            foreach (IRelayClientTransport transport in transports)
             {
                 if (transport == null)
                 {

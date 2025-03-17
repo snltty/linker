@@ -1,13 +1,17 @@
 ﻿using linker.messenger.relay.client;
 using linker.messenger.relay.client.transport;
 using linker.messenger.signin;
+using linker.tunnel.connection;
 
 namespace linker.messenger.store.file.relay
 {
     public sealed class RelayClientStore : IRelayClientStore
     {
         public string DefaultNodeId => runningConfig.Data.Relay.DefaultNodeId;
+        public TunnelProtocolType DefaultProtocol => runningConfig.Data.Relay.DefaultProtocol;
         public RelayServerInfo Server => config.Data.Client.Relay.Server;
+
+        
 
         private readonly SignInClientState signInClientState;
         private readonly ISignInClientStore signInClientStore;
@@ -24,9 +28,14 @@ namespace linker.messenger.store.file.relay
             this.runningConfig = runningConfig;
         }
 
-        public void SetDefaultNodeId(string defaultNodeId)
+        public void SetDefaultNodeId(string nodeId)
         {
-            runningConfig.Data.Relay.DefaultNodeId = defaultNodeId;
+            runningConfig.Data.Relay.DefaultNodeId = nodeId;
+            runningConfig.Data.Update();
+        }
+        public void SetDefaultProtocol(TunnelProtocolType protocol)
+        {
+            runningConfig.Data.Relay.DefaultProtocol = protocol;
             runningConfig.Data.Update();
         }
 
@@ -49,5 +58,7 @@ namespace linker.messenger.store.file.relay
             config.Data.Update();
             return true;
         }
+
+     
     }
 }

@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.messenger.relay.client.transport;
 using linker.messenger.relay.server;
+using linker.tunnel.connection;
 
 
 namespace linker.messenger.store.file
@@ -14,6 +15,7 @@ namespace linker.messenger.store.file
     public sealed class RelayInfo
     {
         public string DefaultNodeId { get; set; }
+        public TunnelProtocolType DefaultProtocol { get; set; } = TunnelProtocolType.None;
     }
 
     public sealed partial class ConfigClientInfo

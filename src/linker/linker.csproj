@@ -22,17 +22,15 @@
 		<Company>snltty</Company>
 		<Description>1. 优化linux下路由跟踪问题，提高启动速度
 2. 优化linux下获取本机IP问题，提升虚拟网卡稳定性
-3. 增加ICS，让win7+、win server2008+支持NAT
-4. 增加中继cdkey，使用cdkey解锁公开中继节点的带宽、流量、连接数限制
-5. 优化管理页面连接接口的体验
-6. 优化一些UI体验，去除同步页面，将同步功能放至各个实际的位置
-7. 优化端口转发，让不同分组间可以使用相同端口
-8. 从命令行参数初始化配置
-9. 优化打洞，IPV6支持的更多了
-10. 优化定位，地图显示更准确了
-12. UDP中继，请更新中继节点
-13. 优化windows下网卡的自动启用
-14. 测试发布，测试中，测试中，请勿更新，请勿更新，请勿更新</Description>
+3. 增加中继cdkey，使用cdkey解锁公开中继节点的带宽、流量、连接数限制
+4. 优化管理页面连接接口的体验
+5. 优化一些UI体验，去除同步页面，将同步功能放至各个实际的位置
+6. 优化端口转发，让不同分组间可以使用相同端口
+7. 从命令行参数初始化配置
+8. 优化打洞，IPV6支持的更多了
+9. 优化定位，地图显示更准确了
+10. 支持UDP中继，请更新中继节点
+11. 优化windows下网卡的自动启用</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

@@ -1,4 +1,5 @@
 ﻿using linker.messenger.relay.client.transport;
+using linker.tunnel.connection;
 
 namespace linker.messenger.relay.client
 {
@@ -11,6 +12,10 @@ namespace linker.messenger.relay.client
         /// 默认中继节点
         /// </summary>
         public string DefaultNodeId { get; }
+        /// <summary>
+        /// 默认中继协议
+        /// </summary>
+        public TunnelProtocolType DefaultProtocol { get; }
 
         /// <summary>
         /// 服务器配置
@@ -20,8 +25,13 @@ namespace linker.messenger.relay.client
         /// <summary>
         /// 设置默认节点id
         /// </summary>
-        /// <param name="defaultNodeId"></param>
-        public void SetDefaultNodeId(string defaultNodeId);
+        /// <param name="nodeId"></param>
+        public void SetDefaultNodeId(string nodeId);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="protocol"></param>
+        public void SetDefaultProtocol(TunnelProtocolType protocol);
         /// <summary>
         /// 设置中继服务器
         /// </summary>

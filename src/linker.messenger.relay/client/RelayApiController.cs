@@ -59,6 +59,7 @@ namespace linker.messenger.relay
             }
             _ = relayTransfer.ConnectAsync(relayConnectInfo.FromMachineId, relayConnectInfo.ToMachineId, relayConnectInfo.TransactionId, relayConnectInfo.NodeId, relayConnectInfo.Protocol);
             relayClientStore.SetDefaultNodeId(relayConnectInfo.NodeId);
+            relayClientStore.SetDefaultProtocol(relayConnectInfo.Protocol);
             return true;
         }
 
