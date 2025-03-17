@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace linker.libs
+namespace linker.libs.timer
 {
     public static class TimerHelper
     {
+        static HashedWheelTimer timer = new HashedWheelTimer(tickDuration: TimeSpan.FromMilliseconds(30), ticksPerWheel: 100000, maxPendingTimeouts: 0);
         public static void SetTimeout(Action action, int delayMs)
         {
-            Task.Run(async () =>
-            {
-                await Task.Delay(delayMs).ConfigureAwait(false);
-                action();
-            });
+            timer.NewTimeout(new SetTimeout(action),TimeSpan.FromMilliseconds(delayMs));
         }
 
         public static void SetIntervalLong(Func<bool> action, int delayMs)
@@ -63,6 +60,19 @@ namespace linker.libs
         {
             Task.Run(action);
         }
+    }
 
+    public sealed class SetTimeout : TimerTask
+    {
+        private Action action;
+        public SetTimeout(Action action)
+        {
+            this.action = action;
+        }
+
+        public void Run(Timeout timeout)
+        {
+            action.Invoke();
+        }
     }
 }

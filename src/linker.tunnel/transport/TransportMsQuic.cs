@@ -11,6 +11,7 @@ using System.Security.Authentication;
 using System.Text;
 using linker.tunnel.wanport;
 using System.Security.Cryptography.X509Certificates;
+using linker.libs.timer;
 
 namespace linker.tunnel.transport
 {
