@@ -86,7 +86,7 @@ namespace linker.tun
         /// 读取数据包
         /// </summary>
         /// <returns></returns>
-        public ReadOnlyMemory<byte> Read();
+        public byte[] Read(out int length);
         /// <summary>
         /// 写入数据包
         /// </summary>
@@ -146,14 +146,9 @@ namespace linker.tun
     /// </summary>
     public struct LinkerTunDevicPacket
     {
-        /// <summary>
-        /// 带4字节头的包
-        /// </summary>
-        public ReadOnlyMemory<byte> Packet;
-        /// <summary>
-        /// 原始IP包
-        /// </summary>
-        public ReadOnlyMemory<byte> IPPacket;
+        public byte[] Buffer;
+        public int Offset;
+        public int Length;
 
         /// <summary>
         /// 协议版本，4或者6
@@ -193,36 +188,40 @@ namespace linker.tun
         public readonly bool IPV4Broadcast => Version == 4 && DistIPAddress.GetIsBroadcastAddress();
         public readonly bool IPV6Multicast => Version == 6 && (DistIPAddress.Span[0] & 0xFF) == 0xFF;
 
-        public void Unpacket(ReadOnlyMemory<byte> buffer)
+        public void Unpacket(byte[] buffer,int offset,int length)
         {
-            Packet = buffer;
-            IPPacket = buffer.Slice(4);
-            Version = (byte)(IPPacket.Span[0] >> 4 & 0b1111);
+            Buffer = buffer;
+            Offset = offset;
+            Length = length;
+
+            ReadOnlyMemory<byte> packet = buffer;
+            ReadOnlyMemory<byte> ipPacket = packet.Slice(4);
+            Version = (byte)(ipPacket.Span[0] >> 4 & 0b1111);
 
 
             if (Version == 4)
             {
-                SourceIPAddress = IPPacket.Slice(12, 4);
-                DistIPAddress = IPPacket.Slice(16, 4);
+                SourceIPAddress = ipPacket.Slice(12, 4);
+                DistIPAddress = ipPacket.Slice(16, 4);
 
-                ProtocolType = (ProtocolType)IPPacket.Span[9];
+                ProtocolType = (ProtocolType)ipPacket.Span[9];
                 if (ProtocolType == ProtocolType.Tcp || ProtocolType == ProtocolType.Udp)
                 {
-                    SourcePort = BinaryPrimitives.ReverseEndianness(IPPacket.Slice(20, 2).ToUInt16());
-                    DistPort = BinaryPrimitives.ReverseEndianness(IPPacket.Slice(22, 2).ToUInt16());
+                    SourcePort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(20, 2).ToUInt16());
+                    DistPort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(22, 2).ToUInt16());
                 }
             }
             else if (Version == 6)
             {
-                SourceIPAddress = IPPacket.Slice(8, 16);
-                DistIPAddress = IPPacket.Slice(24, 16);
+                SourceIPAddress = ipPacket.Slice(8, 16);
+                DistIPAddress = ipPacket.Slice(24, 16);
 
-                ProtocolType = (ProtocolType)IPPacket.Span[6];
+                ProtocolType = (ProtocolType)ipPacket.Span[6];
 
                 if (ProtocolType == ProtocolType.Tcp || ProtocolType == ProtocolType.Udp)
                 {
-                    SourcePort = BinaryPrimitives.ReverseEndianness(IPPacket.Slice(42, 2).ToUInt16());
-                    DistPort = BinaryPrimitives.ReverseEndianness(IPPacket.Slice(24, 2).ToUInt16());
+                    SourcePort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(42, 2).ToUInt16());
+                    DistPort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(24, 2).ToUInt16());
                 }
             }
         }

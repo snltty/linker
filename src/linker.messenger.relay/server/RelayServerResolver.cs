@@ -113,7 +113,7 @@ namespace linker.messenger.relay.server
 
             //请求
             RelayTrafficCacheInfo trafficCacheInfo = new RelayTrafficCacheInfo { Cache = relayCache, Sendt = 0, Limit = new RelaySpeedLimit() };
-            RelayUdpNatInfo nat = new RelayUdpNatInfo { IsAsk = true, Source = ep, Traffic = trafficCacheInfo };
+            RelayUdpNatInfo nat = new RelayUdpNatInfo { Ask = true, Source = ep, Traffic = trafficCacheInfo };
             udpNat.AddOrUpdate(ep, nat, (a, b) => nat);
             relayUdpDic.TryAdd(relayCache.FlowId, nat);
 
@@ -291,16 +291,11 @@ namespace linker.messenger.relay.server
                 try
                 {
                     long ticks = Environment.TickCount64;
-                    foreach (var item in udpNat.Values.Where(c => c.IsAsk && ticks - c.LastTicks > 30000).ToList())
+                    foreach (var item in udpNat.Values.Where(c => ticks - c.LastTicks > 30000).ToList())
                     {
-                        relayServerNodeTransfer.DecrementConnectionNum();
+                        if (item.Ask)
+                            relayServerNodeTransfer.DecrementConnectionNum();
                         relayServerNodeTransfer.RemoveTrafficCache(item.Traffic);
-
-                        relayUdpDic.TryRemove(item.Traffic.Cache.FlowId, out _);
-                        if (item.Target != null)
-                        {
-                            udpNat.TryRemove(item.Target, out _);
-                        }
                     }
                 }
                 catch (Exception)
@@ -319,7 +314,7 @@ namespace linker.messenger.relay.server
     }
     public sealed class RelayUdpNatInfo
     {
-        public bool IsAsk { get; set; }
+        public bool Ask { get; set; }
         public IPEndPoint Source { get; set; }
         public IPEndPoint Target { get; set; }
         public long LastTicks { get; set; } = Environment.TickCount64;

@@ -85,7 +85,7 @@ namespace linker.messenger.tuntap
             {
                 if (connections.IsEmpty == false)
                 {
-                    await Task.WhenAll(connections.Values.Where(c => c != null && c.Connected).Select(c => c.SendAsync(packet.Packet)));
+                    await Task.WhenAll(connections.Values.Where(c => c != null && c.Connected).Select(c => c.SendAsync(packet.Buffer, packet.Offset, packet.Length)));
                 }
                 return;
             }
@@ -112,7 +112,7 @@ namespace linker.messenger.tuntap
                 }, ip);
                 return;
             }
-            await connection.SendAsync(packet.Packet).ConfigureAwait(false);
+            await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
         }
 
         /// <summary>

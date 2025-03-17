@@ -13,7 +13,7 @@ namespace linker.tun
         static void Main(string[] args)
         {
             linkerTunDeviceAdapter = new LinkerTunDeviceAdapter();
-            linkerTunDeviceAdapter.Initialize( new LinkerTunDeviceCallbackICMP());
+            linkerTunDeviceAdapter.Initialize(new LinkerTunDeviceCallbackICMP());
             linkerTunDeviceAdapter.Setup("linker0", IPAddress.Parse("192.168.55.2"), 24, 1416);
 
             if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.SetupError))
@@ -35,7 +35,7 @@ namespace linker.tun
         {
             if (packet.Version != 4) return;
 
-            Memory<byte> writableMemory = MemoryMarshal.AsMemory(packet.IPPacket);
+            Memory<byte> writableMemory = packet.Buffer.AsMemory(packet.Offset + 4, packet.Length);
             fixed (byte* ptr = writableMemory.Span)
             {
                 Console.WriteLine($"IPv{packet.Version} {ptr[9]}");
@@ -64,7 +64,7 @@ namespace linker.tun
         }
         private unsafe void ICMPAnswer(LinkerTunDevicPacket packet)
         {
-            Memory<byte> writableMemory = MemoryMarshal.AsMemory(packet.IPPacket);
+            Memory<byte> writableMemory = packet.Buffer.AsMemory(packet.Offset + 4, packet.Length);
             fixed (byte* ptr = writableMemory.Span)
             {
 

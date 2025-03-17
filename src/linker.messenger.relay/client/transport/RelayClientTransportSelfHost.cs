@@ -576,7 +576,7 @@ namespace linker.messenger.relay.client.transport
                     Label = string.Empty,
                     Receive = true,
                     SSL = relayInfo.SSL,
-                    Crypto = CryptoFactory.CreateSymmetric(relayInfo.RemoteMachineId)
+                    Crypto = CryptoFactory.CreateSymmetric(relayInfo.FromMachineId)
                 });
                 return true;
             }

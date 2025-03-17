@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Net.Sockets;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.tunnel.connection
 {
@@ -165,8 +166,10 @@ namespace linker.tunnel.connection
                 catch (Exception ex)
                 {
                     LoggerHelper.Instance.Error(ex);
-                    LoggerHelper.Instance.Error($"udp connection error :{length}");
-                    LoggerHelper.Instance.Error($"udp connection error buffer:{Encoding.UTF8.GetString(buffer, offset, length)}");
+                    //LoggerHelper.Instance.Error($"udp connection error :{length}");
+                    //LoggerHelper.Instance.Error($"udp connection error buffer:{Encoding.UTF8.GetString(buffer, offset, length)}");
+                    //Console.WriteLine($"receive error {length}:{string.Join(",", memory.ToArray())}");
+                    Dispose();
                 }
             }
         }
@@ -241,8 +244,6 @@ namespace linker.tunnel.connection
 
 
         private byte[] encodeBuffer = new byte[8 * 1024];
-
-        private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             try
@@ -256,12 +257,45 @@ namespace linker.tunnel.connection
                 }
                 if (Type == TunnelType.Relay)
                 {
+                    data.CopyTo(encodeBuffer.AsMemory(2));
                     encodeBuffer[0] = 2; //relay
                     encodeBuffer[1] = 1; //forward 
+                    data = encodeBuffer.AsMemory(0, data.Length+2);
+                }
+                await UdpClient.SendToAsync(data, IPEndPoint, cancellationTokenSource.Token).ConfigureAwait(false);
+                SendBytes += data.Length;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
+                Dispose();
+            }
+            finally
+            { 
+            }
+            return false;
+        }
+        public async Task<bool> SendAsync(byte[] buffer,int offset,int length)
+        {
+            try
+            {
+                Memory<byte> data = buffer.AsMemory(offset+4,length);
+
+                if (SSL)
+                {
+                    data = Crypto.Encode(buffer, offset+4, length);
+                }
+                if (Type == TunnelType.Relay)
+                {
                     data.CopyTo(encodeBuffer.AsMemory(2));
+                    encodeBuffer[0] = 2; //relay
+                    encodeBuffer[1] = 1; //forward 
                     data = encodeBuffer.AsMemory(0, data.Length + 2);
                 }
-
                 await UdpClient.SendToAsync(data, IPEndPoint, cancellationTokenSource.Token).ConfigureAwait(false);
                 SendBytes += data.Length;
                 return true;

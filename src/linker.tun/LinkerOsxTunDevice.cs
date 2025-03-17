@@ -22,10 +22,10 @@ namespace linker.tun
 
         public LinkerOsxTunDevice()
         {
-           
+
         }
 
-        public bool Setup(string name,IPAddress address, IPAddress gateway, byte prefixLength, out string error)
+        public bool Setup(string name, IPAddress address, IPAddress gateway, byte prefixLength, out string error)
         {
             this.name = name;
             error = string.Empty;
@@ -62,7 +62,7 @@ namespace linker.tun
         }
         public void Refresh()
         {
-            
+
         }
 
         public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
@@ -131,13 +131,15 @@ namespace linker.tun
 
 
         private byte[] buffer = new byte[2 * 1024];
-        public ReadOnlyMemory<byte> Read()
+        public byte[] Read(out int length)
         {
+            length = 0;
             try
             {
-                int length = fs.Read(buffer.AsSpan(4));
+                length = fs.Read(buffer.AsSpan(4));
                 length.ToBytes(buffer);
-                return buffer.AsMemory(0, length + 4);
+                length += 4;
+                return buffer;
             }
             catch (Exception)
             {

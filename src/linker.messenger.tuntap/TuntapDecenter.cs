@@ -130,6 +130,7 @@ namespace linker.messenger.tuntap
                         if (tuntapInfos.TryGetValue(item, out TuntapInfo tuntapInfo))
                         {
                             tuntapInfo.Status = TuntapStatus.Normal;
+                            LoggerHelper.Instance.Warning($"tuntap {tuntapInfo.IP} not found");
                         }
                     }
                     DataVersion.Add();

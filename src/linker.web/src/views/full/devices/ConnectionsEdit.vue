@@ -219,9 +219,6 @@ export default {
                 NodeId: id,
                 Protocol: protocol
             };
-            if (json.NodeId == state.currentRow.NodeId) {
-                return;
-            }
             relayConnect(json).then(() => {ElMessage.success(t('common.oper')); }).catch(() => {ElMessage.success(t('common.operFail')); });
             state.showNodes = false;
         }

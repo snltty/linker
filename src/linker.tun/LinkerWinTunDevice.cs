@@ -300,19 +300,22 @@ namespace linker.tun
 
 
         private byte[] buffer = new byte[8 * 1024];
-        public unsafe ReadOnlyMemory<byte> Read()
+        public unsafe byte[] Read(out int length)
         {
+            length = 0;
             if (session == 0) return Helper.EmptyArray;
             for (; tokenSource.IsCancellationRequested == false;)
             {
-                IntPtr packet = WinTun.WintunReceivePacket(session, out var packetSize);
+                IntPtr packet = WinTun.WintunReceivePacket(session, out uint size);
+                length = (int)size;
 
                 if (packet != 0)
                 {
-                    new Span<byte>((byte*)packet, (int)packetSize).CopyTo(buffer.AsSpan(4, (int)packetSize));
-                    ((int)packetSize).ToBytes(buffer);
+                    new Span<byte>((byte*)packet, length).CopyTo(buffer.AsSpan(4, length));
+                    (length).ToBytes(buffer);
                     WinTun.WintunReleaseReceivePacket(session, packet);
-                    return buffer.AsMemory(0, (int)packetSize + 4);
+                    length += 4;
+                    return buffer;
                 }
                 else
                 {

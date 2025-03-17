@@ -209,15 +209,15 @@ namespace linker.tun
                 {
                     try
                     {
-                        ReadOnlyMemory<byte> buffer = linkerTunDevice.Read();
-                        if (buffer.Length == 0)
+                        byte[] buffer = linkerTunDevice.Read(out int length);
+                        if (length == 0)
                         {
                             await Task.Delay(1000);
                             break;
                         }
 
                         LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
-                        packet.Unpacket(buffer);
+                        packet.Unpacket(buffer,0,length);
 
                         try
                         {

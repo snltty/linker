@@ -313,13 +313,15 @@ namespace linker.tun
 
         private byte[] buffer = new byte[8 * 1024];
         private object writeLockObj = new object();
-        public ReadOnlyMemory<byte> Read()
+        public byte[] Read(out int length)
         {
+            length = 0;
             if (fs == null) return Helper.EmptyArray;
 
-            int length = fs.Read(buffer.AsSpan(4));
+            length = fs.Read(buffer.AsSpan(4));
             length.ToBytes(buffer);
-            return buffer.AsMemory(0, length + 4);
+            length += 4;
+            return buffer;
 
         }
         public bool Write(ReadOnlyMemory<byte> buffer)

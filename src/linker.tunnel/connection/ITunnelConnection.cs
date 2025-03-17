@@ -166,6 +166,14 @@ namespace linker.tunnel.connection
         /// <returns></returns>
         public Task<bool> SendAsync(ReadOnlyMemory<byte> data);
         /// <summary>
+        /// 发送数据
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        public Task<bool> SendAsync(byte[] buffer,int offset,int length);
+        /// <summary>
         /// 开始接收数据
         /// </summary>
         /// <param name="callback">收到数据的回调</param>

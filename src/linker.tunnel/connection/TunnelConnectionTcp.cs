@@ -294,6 +294,43 @@ namespace linker.tunnel.connection
             }
             return false;
         }
+        public async Task<bool> SendAsync(byte[] buffer,int offset,int length)
+        {
+            if (callback == null) return false;
+
+            if (Stream != null)
+            {
+                await semaphoreSlim.WaitAsync().ConfigureAwait(false);
+            }
+            try
+            {
+                if (Stream != null)
+                {
+                    await Stream.WriteAsync(buffer.AsMemory(offset,length)).ConfigureAwait(false);
+                    //await Stream.FlushAsync();
+                }
+                else
+                {
+                    await Socket.SendAsync(buffer.AsMemory(offset, length), SocketFlags.None).ConfigureAwait(false);
+                }
+                SendBytes += length;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
+                Dispose();
+            }
+            finally
+            {
+                if (Stream != null)
+                    semaphoreSlim.Release();
+            }
+            return false;
+        }
 
         public void Dispose()
         {

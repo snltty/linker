@@ -20,7 +20,7 @@ namespace linker.libs
     public interface ICrypto
     {
         public byte[] Encode(byte[] buffer);
-        public byte[] Encode(byte[] buffer, int offset, int lengtht);
+        public byte[] Encode(byte[] buffer, int offset, int length);
         public int Encode(byte[] buffer, byte[] outputBuffer, int outputOffset);
         public int Encode(byte[] buffer, int offset, int length, byte[] outputBuffer, int outputOffset);
         public Memory<byte> Decode(byte[] buffer);

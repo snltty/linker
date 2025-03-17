@@ -254,7 +254,10 @@ namespace linker.tunnel.connection
             }
             return false;
         }
-
+        public async Task<bool> SendAsync(byte[] buffer, int offset, int length)
+        {
+            return await SendAsync(buffer.AsMemory(offset, length)).ConfigureAwait(false);
+        }
 
         public void Dispose()
         {
