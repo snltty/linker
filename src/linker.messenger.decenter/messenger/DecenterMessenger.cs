@@ -70,20 +70,22 @@ namespace linker.messenger.decenter
         /// </summary>
         /// <param name="connection"></param>
         [MessengerId((ushort)DecenterMessengerIds.SyncForward170)]
-        public async void SyncForward170(IConnection connection)
+        public async Task SyncForward170(IConnection connection)
         {
             try
             {
                 DecenterSyncInfo170 info = serializer.Deserialize<DecenterSyncInfo170>(connection.ReceiveRequestWrap.Payload.Span);
+                info.FromMachineId = connection.Id;
+                Memory<byte> payload = serializer.Serialize(info);
 
                 if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
                 {
                     //没有目标，就是通知的情况，发给所有在线客户端
                     if (string.IsNullOrWhiteSpace(info.ToMachineId))
                     {
+                        List<SignCacheInfo> onlineMachines = signCaching.Get(cache.GroupId).Where(c => c.MachineId != connection.Id && c.Connected).ToList();
                         TimerHelper.Async(async () =>
                         {
-                            List<SignCacheInfo> onlineMachines = signCaching.Get(cache.GroupId).Where(c => c.MachineId != connection.Id && c.Connected).ToList();
                             //可能很多客户端，稍微休息休息，不要一次发太多
                             while (onlineMachines.Count > 0)
                             {
@@ -94,7 +96,7 @@ namespace linker.messenger.decenter
                                 {
                                     Connection = c.Connection,
                                     MessengerId = (ushort)DecenterMessengerIds.Sync170,
-                                    Payload = connection.ReceiveRequestWrap.Payload
+                                    Payload = payload
                                 })).ToList();
 
                                 await Task.WhenAll(tasks);
@@ -108,10 +110,9 @@ namespace linker.messenger.decenter
                         {
                             Connection = cacheTo.Connection,
                             MessengerId = (ushort)DecenterMessengerIds.Sync170,
-                            Payload = connection.ReceiveRequestWrap.Payload
+                            Payload = payload
                         });
                     }
-
                 }
             }
             catch (Exception ex)
@@ -144,7 +145,7 @@ namespace linker.messenger.decenter
         }
 
         [MessengerId((ushort)DecenterMessengerIds.Sync170)]
-        public void Sync170(IConnection connection) 
+        public void Sync170(IConnection connection)
         {
             try
             {
@@ -154,7 +155,7 @@ namespace linker.messenger.decenter
                 //群发来的，我就回复
                 if (string.IsNullOrWhiteSpace(info.ToMachineId))
                 {
-                    _= sender.SendOnly(new MessageRequestWrap
+                    _ = sender.SendOnly(new MessageRequestWrap
                     {
                         Connection = signInClientState.Connection,
                         MessengerId = (ushort)DecenterMessengerIds.SyncForward170,
