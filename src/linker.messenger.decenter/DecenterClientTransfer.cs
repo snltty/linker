@@ -4,13 +4,18 @@ using linker.messenger.signin;
 
 namespace linker.messenger.decenter
 {
-    public sealed partial class DecenterSyncInfo
+    public partial class DecenterSyncInfo
     {
         public DecenterSyncInfo() { }
         public string Name { get; set; }
+        public Memory<byte> Data { get; set; }
+    }
+
+    public sealed partial class DecenterSyncInfo170: DecenterSyncInfo
+    {
+        public DecenterSyncInfo170() { }
         public string FromMachineId { get; set; }
         public string ToMachineId { get; set; }
-        public Memory<byte> Data { get; set; }
     }
 
     public sealed class DecenterClientTransfer
@@ -53,6 +58,16 @@ namespace linker.messenger.decenter
             }
             return Helper.EmptyArray;
         }
+        public Memory<byte> Sync(DecenterSyncInfo170 decenterSyncInfo)
+        {
+            IDecenter sync = syncs.FirstOrDefault(c => c.Name == decenterSyncInfo.Name);
+            if (sync != null)
+            {
+                sync.SetData(decenterSyncInfo.Data);
+                return sync.GetData();
+            }
+            return Helper.EmptyArray;
+        }
 
         private void SyncTask()
         {
@@ -71,8 +86,8 @@ namespace linker.messenger.decenter
                                 Task = messengerSender.SendOnly(new MessageRequestWrap
                                 {
                                     Connection = signInClientState.Connection,
-                                    MessengerId = (ushort)DecenterMessengerIds.SyncForward,
-                                    Payload = serializer.Serialize(new DecenterSyncInfo { FromMachineId = signInClientState.Connection.Id, Name = c.Name, Data = c.GetData() })
+                                    MessengerId = (ushort)DecenterMessengerIds.SyncForward170,
+                                    Payload = serializer.Serialize(new DecenterSyncInfo170 { FromMachineId = signInClientState.Connection.Id, Name = c.Name, Data = c.GetData() })
                                 })
                             };
                         }).ToList();

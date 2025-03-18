@@ -7,6 +7,9 @@
         Sync = 2807,
         SyncForward = 2808,
 
+        Sync170 = 2809,
+        SyncForward170 = 2810,
+
         Max = 2899
     }
 }

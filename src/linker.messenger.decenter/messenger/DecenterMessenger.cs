@@ -17,15 +17,55 @@ namespace linker.messenger.decenter
             this.serializer = serializer;
         }
 
+        [MessengerId((ushort)DecenterMessengerIds.SyncForward)]
+        public void SyncForward(IConnection connection)
+        {
+            DecenterSyncInfo info = serializer.Deserialize<DecenterSyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            {
+                uint requiestid = connection.ReceiveRequestWrap.RequestId;
 
+                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
+                List<Task<MessageResponeInfo>> tasks = new List<Task<MessageResponeInfo>>();
+                foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected))
+                {
+                    tasks.Add(sender.SendReply(new MessageRequestWrap
+                    {
+                        Connection = item.Connection,
+                        MessengerId = (ushort)DecenterMessengerIds.Sync,
+                        Payload = connection.ReceiveRequestWrap.Payload,
+                        Timeout = 5000,
+                    }));
+                }
+
+                Task.WhenAll(tasks).ContinueWith(async (result) =>
+                {
+                    try
+                    {
+                        List<ReadOnlyMemory<byte>> results = tasks.Where(c => c.Result.Code == MessageResponeCodes.OK).Select(c => c.Result.Data).ToList();
+                        await sender.ReplyOnly(new MessageResponseWrap
+                        {
+                            RequestId = requiestid,
+                            Connection = connection,
+                            Payload = serializer.Serialize(results)
+                        }, (ushort)DecenterMessengerIds.SyncForward).ConfigureAwait(false);
+
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
+                });
+            }
+        }
         /// <summary>
         /// 服务端的数据同步中转
         /// </summary>
         /// <param name="connection"></param>
-        [MessengerId((ushort)DecenterMessengerIds.SyncForward)]
-        public async void SyncForward(IConnection connection)
+        [MessengerId((ushort)DecenterMessengerIds.SyncForward170)]
+        public async void SyncForward170(IConnection connection)
         {
-            DecenterSyncInfo info = serializer.Deserialize<DecenterSyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            DecenterSyncInfo170 info = serializer.Deserialize<DecenterSyncInfo170>(connection.ReceiveRequestWrap.Payload.Span);
 
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
@@ -44,7 +84,7 @@ namespace linker.messenger.decenter
                             List<Task<bool>> tasks = onlineRange.Select(c => sender.SendOnly(new MessageRequestWrap
                             {
                                 Connection = c.Connection,
-                                MessengerId = (ushort)DecenterMessengerIds.Sync,
+                                MessengerId = (ushort)DecenterMessengerIds.Sync170,
                                 Payload = connection.ReceiveRequestWrap.Payload
                             })).ToList();
 
@@ -58,7 +98,7 @@ namespace linker.messenger.decenter
                     await sender.SendOnly(new MessageRequestWrap
                     {
                         Connection = cacheTo.Connection,
-                        MessengerId = (ushort)DecenterMessengerIds.Sync,
+                        MessengerId = (ushort)DecenterMessengerIds.Sync170,
                         Payload = connection.ReceiveRequestWrap.Payload
                     });
                 }
@@ -83,9 +123,16 @@ namespace linker.messenger.decenter
         }
 
         [MessengerId((ushort)DecenterMessengerIds.Sync)]
-        public async void Sync(IConnection connection)
+        public void Sync(IConnection connection)
         {
             DecenterSyncInfo info = serializer.Deserialize<DecenterSyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            connection.Write(syncTreansfer.Sync(info));
+        }
+
+        [MessengerId((ushort)DecenterMessengerIds.Sync170)]
+        public async void Sync170(IConnection connection)
+        {
+            DecenterSyncInfo170 info = serializer.Deserialize<DecenterSyncInfo170>(connection.ReceiveRequestWrap.Payload.Span);
             Memory<byte> memory = syncTreansfer.Sync(info);
 
             //群发来的，我就回复
@@ -94,8 +141,8 @@ namespace linker.messenger.decenter
                 await sender.SendOnly(new MessageRequestWrap
                 {
                     Connection = signInClientState.Connection,
-                    MessengerId = (ushort)DecenterMessengerIds.SyncForward,
-                    Payload = serializer.Serialize(new DecenterSyncInfo
+                    MessengerId = (ushort)DecenterMessengerIds.SyncForward170,
+                    Payload = serializer.Serialize(new DecenterSyncInfo170
                     {
                         Data = memory,
                         FromMachineId = signInClientState.Connection.Id,

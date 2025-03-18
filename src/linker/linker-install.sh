@@ -124,7 +124,8 @@ install_systemd() {
 
     echo -e "${yellow}===================================================\n1、已安装linker"
     echo -e "2、如果你希望运行为客户端，请使用浏览器打开0.0.0.0:1804，进行初始化，或者systemctl stop linker，然后从别处导出配置将configs文件夹覆盖替换"
-    echo -e "3、如果你希望运行为服务端，可以systemctl stop linker，修改configs/server.json配置，然后systemctl start linker再次运行${plain}"
+    echo -e "3、如果你希望运行为服务端，可以systemctl stop linker，修改configs/server.json配置，然后systemctl start linker再次运行"
+    echo -e "4、如果服务启动失败，可以尝试手动运行./linkerk看报错信息，缺什么就装什么${plain}"
 }
 install_docker() {
     LINKER_FILE_NAME="linker"
