@@ -25,6 +25,7 @@ namespace linker.messenger.decenter
         [MessengerId((ushort)DecenterMessengerIds.SyncForward)]
         public async void SyncForward(IConnection connection)
         {
+            try{
             DecenterSyncInfo info = serializer.Deserialize<DecenterSyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
 
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
@@ -64,6 +65,7 @@ namespace linker.messenger.decenter
                 }
 
             }
+            }catch(Exception){}
         }
     }
 
