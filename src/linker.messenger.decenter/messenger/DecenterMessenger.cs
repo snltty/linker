@@ -162,7 +162,7 @@ namespace linker.messenger.decenter
                         Payload = serializer.Serialize(new DecenterSyncInfo170
                         {
                             Data = memory,
-                            FromMachineId = signInClientState.Connection.Id,
+                            FromMachineId = connection.Id,
                             ToMachineId = info.FromMachineId,
                             Name = info.Name
                         })

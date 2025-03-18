@@ -115,6 +115,7 @@ namespace linker.messenger.tuntap
                 if (DataVersion.Eq(version, out ulong _version) == false)
                 {
                     AddRoute();
+                    LoggerHelper.Instance.Warning($"tuntap data version changed,AddRoute() again");
                 }
                 version = _version;
             }, 3000);
