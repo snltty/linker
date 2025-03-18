@@ -8,6 +8,8 @@ namespace linker.messenger.decenter
     {
         public DecenterSyncInfo() { }
         public string Name { get; set; }
+        public string FromMachineId { get; set; }
+        public string ToMachineId { get; set; }
         public Memory<byte> Data { get; set; }
     }
 
@@ -56,48 +58,35 @@ namespace linker.messenger.decenter
         {
             TimerHelper.SetIntervalLong(async () =>
             {
-                try
+                if (signInClientState.Connected)
                 {
-                    var tasks = syncs.Where(c => c.SyncVersion.Reset()).Select(c =>
+                    try
                     {
-                        return new DecenterSyncTaskInfo
+                        IEnumerable<DecenterSyncTaskInfo> tasks = syncs.Where(c => c.SyncVersion.Reset()).Select(c =>
                         {
-                            Decenter = c,
-                            Time = Environment.TickCount64,
-                            Task = messengerSender.SendReply(new MessageRequestWrap
+                            return new DecenterSyncTaskInfo
                             {
-                                Connection = signInClientState.Connection,
-                                MessengerId = (ushort)DecenterMessengerIds.SyncForward,
-                                Payload = serializer.Serialize(new DecenterSyncInfo { Name = c.Name, Data = c.GetData() }),
-                                Timeout = 15000
-                            })
-                        };
-                    }).ToList();
-                    if (tasks.Count > 0)
-                    {
-                        await Task.WhenAll(tasks.Select(c => c.Task)).ConfigureAwait(false);
-                        foreach (var task in tasks)
-                        {
-                            if (task.Task.Result.Code == MessageResponeCodes.OK)
-                            {
-                                List<ReadOnlyMemory<byte>> list = serializer.Deserialize<List<ReadOnlyMemory<byte>>>(task.Task.Result.Data.Span);
-                                task.Decenter.SetData(list);
-                            }
-                            else
-                            {
-                                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                Decenter = c,
+                                Time = Environment.TickCount64,
+                                Task = messengerSender.SendOnly(new MessageRequestWrap
                                 {
-                                    LoggerHelper.Instance.Error($"decenter {task.Decenter.Name}->{task.Task.Result.Code}");
-                                }
-                            }
+                                    Connection = signInClientState.Connection,
+                                    MessengerId = (ushort)DecenterMessengerIds.SyncForward,
+                                    Payload = serializer.Serialize(new DecenterSyncInfo { FromMachineId = signInClientState.Connection.Id, Name = c.Name, Data = c.GetData() })
+                                })
+                            };
+                        }).ToList();
+                        if (tasks.Any())
+                        {
+                            await Task.WhenAll(tasks.Select(c => c.Task).ToList()).ConfigureAwait(false);
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    catch (Exception ex)
                     {
-                        LoggerHelper.Instance.Error(ex);
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        {
+                            LoggerHelper.Instance.Error(ex);
+                        }
                     }
                 }
             }, 300);
@@ -106,7 +95,7 @@ namespace linker.messenger.decenter
         class DecenterSyncTaskInfo
         {
             public IDecenter Decenter { get; set; }
-            public Task<MessageResponeInfo> Task { get; set; }
+            public Task<bool> Task { get; set; }
 
             public long Time { get; set; }
         }

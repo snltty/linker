@@ -84,6 +84,7 @@ namespace linker.messenger
             }
             catch (Exception)
             {
+                sends.TryRemove(msg.RequestId, out _);
                 return new MessageResponeInfo { Code = MessageResponeCodes.TIMEOUT };
             }
         }

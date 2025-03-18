@@ -13,12 +13,17 @@ namespace linker.messenger.serializer.memorypack
         string Name => info.Name;
 
         [MemoryPackInclude]
+        string FromMachineId => info.FromMachineId;
+        [MemoryPackInclude]
+        string ToMachineId => info.ToMachineId;
+
+        [MemoryPackInclude]
         Memory<byte> Data => info.Data;
 
         [MemoryPackConstructor]
-        SerializableDecenterSyncInfo(string name, Memory<byte> data)
+        SerializableDecenterSyncInfo(string name, string fromMachineId, string toMachineId, Memory<byte> data)
         {
-            var info = new DecenterSyncInfo { Name = name, Data = data };
+            var info = new DecenterSyncInfo { Name = name, FromMachineId = fromMachineId, ToMachineId = toMachineId, Data = data };
             this.info = info;
         }
 

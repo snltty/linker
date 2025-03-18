@@ -6,10 +6,15 @@ namespace linker.libs.timer
     public static class TimerHelper
     {
         private static HashedWheelTimer timer = new HashedWheelTimer(tickDuration: TimeSpan.FromMilliseconds(30), ticksPerWheel: 512, maxPendingTimeouts: 0);
-        public static void SetTimeout(Action action, int delayMs)
+        public static Timeout SetTimeout(Action action, int delayMs)
         {
-            timer.NewTimeout(new SetTimeout(action), TimeSpan.FromMilliseconds(delayMs));
+            return timer.NewTimeout(new SetTimeout(action), TimeSpan.FromMilliseconds(delayMs));
         }
+        public static Timeout SetTimeoutAsync(Func<Task> action, int delayMs)
+        {
+            return timer.NewTimeout(new SetTimeoutAsync(action), TimeSpan.FromMilliseconds(delayMs));
+        }
+
 
         public static void SetIntervalLong(Action action, int delayMs)
         {
@@ -100,12 +105,30 @@ namespace linker.libs.timer
 
         public void Run(Timeout timeout)
         {
-            action.Invoke();
+            action();
         }
 
         public async Task RunAsync(Timeout timeout)
         {
             await Task.CompletedTask;
+        }
+    }
+    public sealed class SetTimeoutAsync : TimerTask
+    {
+        private Func<Task> action;
+        public SetTimeoutAsync(Func<Task> action)
+        {
+            this.action = action;
+        }
+
+        public void Run(Timeout timeout)
+        {
+
+        }
+
+        public async Task RunAsync(Timeout timeout)
+        {
+            await action();
         }
     }
 }

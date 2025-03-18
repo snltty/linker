@@ -5,6 +5,7 @@ using System.Net;
 using linker.messenger.signin;
 using linker.messenger.exroute;
 using linker.libs.timer;
+using System.Threading;
 
 namespace linker.messenger.socks5
 {
@@ -25,6 +26,8 @@ namespace linker.messenger.socks5
         private readonly ISocks5Store socks5Store;
 
         private readonly SemaphoreSlim slim = new SemaphoreSlim(1);
+        linker.libs.timer.Timeout timeout;
+
         public Socks5Decenter(SignInClientState signInClientState, TunnelProxy tunnelProxy, ISignInClientStore signInClientStore, Socks5Transfer socks5Transfer, ExRouteTransfer exRouteTransfer, ISerializer serializer, ISocks5Store socks5Store)
         {
             this.signInClientState = signInClientState;
@@ -66,49 +69,35 @@ namespace linker.messenger.socks5
         public void SetData(Memory<byte> data)
         {
             Socks5Info info = serializer.Deserialize<Socks5Info>(data.Span);
-            TimerHelper.Async(async () =>
-            {
-                await slim.WaitAsync().ConfigureAwait(false);
-                try
-                {
-                    socks5Infos.AddOrUpdate(info.MachineId, info, (a, b) => info);
-                    DataVersion.Add();
-                    AddRoute();
-                }
-                catch (Exception ex)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        LoggerHelper.Instance.Error(ex);
-                    }
-                }
-                slim.Release();
-            });
+            socks5Infos.AddOrUpdate(info.MachineId, info, (a, b) => info);
+            DataVersion.Add();
+            Timeout();
         }
         public void SetData(List<ReadOnlyMemory<byte>> data)
         {
             List<Socks5Info> list = data.Select(c => serializer.Deserialize<Socks5Info>(c.Span)).ToList();
-            TimerHelper.Async(async () =>
+            foreach (var item in list)
+            {
+                socks5Infos.AddOrUpdate(item.MachineId, item, (a, b) => item);
+                item.LastTicks.Update();
+            }
+            DataVersion.Add();
+
+            Timeout();
+        }
+        private void Timeout()
+        {
+            if (timeout != null && timeout.Cancelled == false)
+            {
+                timeout.Cancel();
+                timeout = null;
+            }
+            timeout = TimerHelper.SetTimeoutAsync(async () =>
             {
                 await slim.WaitAsync().ConfigureAwait(false);
-
                 try
                 {
-                    foreach (var item in list)
-                    {
-                        socks5Infos.AddOrUpdate(item.MachineId, item, (a, b) => item);
-                        item.LastTicks.Update();
-                    }
-                    var removes = socks5Infos.Keys.Except(list.Select(c => c.MachineId)).Where(c => c != signInClientStore.Id).ToList();
-                    foreach (var item in removes)
-                    {
-                        if (socks5Infos.TryGetValue(item, out Socks5Info socks5Info))
-                        {
-                            socks5Info.Status = Socks5Status.Normal;
-                            socks5Info.LastTicks.Clear();
-                        }
-                    }
-                    DataVersion.Add();
+
                     AddRoute();
                 }
                 catch (Exception ex)
@@ -123,7 +112,7 @@ namespace linker.messenger.socks5
                     slim.Release();
                 }
 
-            });
+            }, 1000);
         }
 
         /// <summary>

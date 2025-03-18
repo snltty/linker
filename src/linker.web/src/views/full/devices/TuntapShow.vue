@@ -11,7 +11,7 @@
                         <strong class="yellow" :title="tuntap.list[item.MachineId].NatError">{{ tuntap.list[item.MachineId].IP }}</strong>
                     </template>
                     <template v-else>
-                        <template v-if="tuntap.list[item.MachineId].running">
+                        <template v-if=" item.Connected && tuntap.list[item.MachineId].running">
                             <strong class="green gateway">{{ tuntap.list[item.MachineId].IP }}</strong>
                         </template>
                         <template v-else>
@@ -26,7 +26,7 @@
                 </div>
             </template>
             <template v-else>
-                <el-switch v-model="tuntap.list[item.MachineId].running" :loading="tuntap.list[item.MachineId].loading" disabled @click="handleTuntap(tuntap.list[item.MachineId])"  size="small" inline-prompt active-text="😀" inactive-text="😣" > 
+                <el-switch :model-value="item.Connected && tuntap.list[item.MachineId].running" :loading="tuntap.list[item.MachineId].loading" disabled @click="handleTuntap(tuntap.list[item.MachineId])"  size="small" inline-prompt active-text="😀" inactive-text="😣" > 
                 </el-switch>
             </template>
         </div>
@@ -99,7 +99,7 @@ export default {
                 }
             }
 
-            const fn = tuntap.running ? stopTuntap (tuntap.MachineId) : runTuntap(tuntap.MachineId);
+            const fn = props.item.Connected && tuntap.running ? stopTuntap (tuntap.MachineId) : runTuntap(tuntap.MachineId);
             tuntap.loading = true;
             fn.then(() => {
                 ElMessage.success('操作成功！');

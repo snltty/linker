@@ -10,7 +10,7 @@
                         </strong>
                     </template>
                     <template v-else>
-                        <template v-if="socks5.list[item.MachineId].running">
+                        <template v-if="item.Connected &&socks5.list[item.MachineId].running">
                             <strong class="green gateway">socks5://*:{{ socks5.list[item.MachineId].Port }}</strong>
                         </template>
                         <template v-else>
@@ -25,7 +25,7 @@
                 </div>
             </template>
             <template v-else>
-                <el-switch v-model="socks5.list[item.MachineId].running" :loading="socks5.list[item.MachineId].loading" disabled @click="handleSocks5(socks5.list[item.MachineId])"  size="small" inline-prompt active-text="😀" inactive-text="😣" > 
+                <el-switch :model-value="item.Connected && socks5.list[item.MachineId].running" :loading="socks5.list[item.MachineId].loading" disabled @click="handleSocks5(socks5.list[item.MachineId])"  size="small" inline-prompt active-text="😀" inactive-text="😣" > 
                 </el-switch>
             </template>
         </div>
@@ -39,7 +39,7 @@
                         <div class="flex red" title="与其它设备填写IP、或本机局域网IP有冲突">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
                     </template>
                     <template v-else>
-                        <div class="flex" title="正常使用" :class="{green:socks5.list[item.MachineId].running}">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
+                        <div class="flex" title="正常使用" :class="{green:item.Connected &&socks5.list[item.MachineId].running}">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
                     </template>
                 </template>
             </div>
@@ -84,7 +84,7 @@ export default {
                     return;
                 }
             }
-            const fn = socks5.running ? stopSocks5 (socks5.MachineId) : runSocks5(socks5.MachineId);
+            const fn = props.item.Connected && socks5.running ? stopSocks5 (socks5.MachineId) : runSocks5(socks5.MachineId);
             socks5.loading = true;
             fn.then(() => {
                 ElMessage.success('操作成功！');

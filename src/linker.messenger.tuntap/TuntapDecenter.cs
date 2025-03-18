@@ -6,6 +6,7 @@ using linker.messenger.exroute;
 using linker.tun;
 using System.Net;
 using linker.libs.timer;
+using System.Threading;
 
 namespace linker.messenger.tuntap
 {
@@ -28,6 +29,8 @@ namespace linker.messenger.tuntap
         private readonly TuntapTransfer tuntapTransfer;
         private readonly ExRouteTransfer exRouteTransfer;
         private readonly SignInClientState signInClientState;
+
+        linker.libs.timer.Timeout timeout;
 
         public TuntapDecenter(ISignInClientStore signInClientStore, SignInClientState signInClientState, ISerializer serializer, TuntapProxy tuntapProxy, TuntapConfigTransfer tuntapConfigTransfer, TuntapTransfer tuntapTransfer, ExRouteTransfer exRouteTransfer)
         {
@@ -88,53 +91,38 @@ namespace linker.messenger.tuntap
         public void SetData(Memory<byte> data)
         {
             TuntapInfo info = serializer.Deserialize<TuntapInfo>(data.Span);
+            tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
+            DataVersion.Add();
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
                 LoggerHelper.Instance.Debug($"tuntap got {info.IP}");
             }
-
-            TimerHelper.Async(async () =>
-            {
-                await slim.WaitAsync().ConfigureAwait(false);
-                try
-                {
-                    tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
-                    DataVersion.Add();
-                    AddRoute();
-                }
-                catch (Exception ex)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        LoggerHelper.Instance.Error(ex);
-                    }
-                }
-                slim.Release();
-            });
+            Timeout();
         }
         public void SetData(List<ReadOnlyMemory<byte>> data)
         {
             List<TuntapInfo> list = data.Select(c => serializer.Deserialize<TuntapInfo>(c.Span)).ToList();
-            TimerHelper.Async(async () =>
+            foreach (var item in list)
+            {
+                tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
+            }
+            DataVersion.Add();
+            Timeout();
+        }
+
+        private void Timeout()
+        {
+            if (timeout != null && timeout.Cancelled == false)
+            {
+                timeout.Cancel();
+                timeout = null;
+            }
+            timeout = TimerHelper.SetTimeoutAsync(async () =>
             {
                 await slim.WaitAsync().ConfigureAwait(false);
-
                 try
                 {
-                    foreach (var item in list)
-                    {
-                        tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
-                    }
-                    var removes = tuntapInfos.Keys.Except(list.Select(c => c.MachineId)).Where(c => c != signInClientStore.Id).ToList();
-                    foreach (var item in removes)
-                    {
-                        if (tuntapInfos.TryGetValue(item, out TuntapInfo tuntapInfo))
-                        {
-                            tuntapInfo.Status = TuntapStatus.Normal;
-                            LoggerHelper.Instance.Warning($"tuntap {tuntapInfo.IP} not found");
-                        }
-                    }
-                    DataVersion.Add();
+
                     AddRoute();
                 }
                 catch (Exception ex)
@@ -149,7 +137,7 @@ namespace linker.messenger.tuntap
                     slim.Release();
                 }
 
-            });
+            }, 1000);
         }
 
         private void AddRoute()
