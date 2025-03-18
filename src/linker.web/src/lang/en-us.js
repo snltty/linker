@@ -121,6 +121,7 @@ export default {
     'server.relaySSL': 'Use SSL',
     'server.relayDisable': 'Disable',
     'server.relayUseCdkey': 'Use CDKEY',
+    'server.relayUseCdkeyTitle': 'If you have a relay SecretKey, ignore it\r\n Without a relay SecretKey, you can choose to use a cdkey or default relay node config',
     'server.relayNodes': 'Nodes',
     'server.relayTitle': 'Relay Nodes',
     'server.relayName': 'Name',

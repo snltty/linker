@@ -123,6 +123,7 @@ export default {
     'server.relaySSL': '使用ssl',
     'server.relayDisable': '禁用',
     'server.relayUseCdkey': '消耗CDKEY',
+    'server.relayUseCdkeyTitle': '如果你有中继密钥，你没有任何限制，也不会消耗CDKEY，可以不管这个\r\n没有中继密钥，有CDKEY，但是不想使用CDKEY，只想使用中继节点默认的限制，就去掉勾选',
     'server.relayNodes': '节点',
     'server.relayTitle': '中继节点',
     'server.relayName': '名称',

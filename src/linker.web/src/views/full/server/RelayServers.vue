@@ -15,7 +15,7 @@
                     {{$t('server.relayNodes')}} : {{state.nodes.length}}
                 </a>
 
-                <div class="mgl-1">
+                <div class="mgl-1" :title="$t('server.relayUseCdkeyTitle')">
                     <el-checkbox v-model="state.list.UseCdkey" :label="$t('server.relayUseCdkey')" @change="handleSave" />
                 </div>
                 <RelayCdkey></RelayCdkey>

@@ -124,7 +124,7 @@ namespace linker.messenger.relay.server
             var result = reports.Values
                 .Where(c => c.Public || validated)
                 .Where(c => Environment.TickCount64 - c.LastTicks < 15000)
-                .Where(c => validated || (c.ConnectionRatio < 100 && (c.MaxGbTotal == 0 || (c.MaxGbTotal > 0 && c.MaxGbTotalLastBytes > 0))))
+                .Where(c => validated || (c.ConnectionRatio < c.MaxConnection && (c.MaxGbTotal == 0 || (c.MaxGbTotal > 0 && c.MaxGbTotalLastBytes > 0))))
                 .OrderByDescending(c => c.LastTicks);
 
             return result.OrderByDescending(x => x.MaxConnection == 0 ? int.MaxValue : x.MaxConnection)
