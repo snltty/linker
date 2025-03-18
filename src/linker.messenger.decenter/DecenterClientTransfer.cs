@@ -58,7 +58,7 @@ namespace linker.messenger.decenter
             }
             return Helper.EmptyArray;
         }
-        public Memory<byte> Sync(DecenterSyncInfo170 decenterSyncInfo)
+        public Memory<byte> Sync170(DecenterSyncInfo170 decenterSyncInfo)
         {
             IDecenter sync = syncs.FirstOrDefault(c => c.Name == decenterSyncInfo.Name);
             if (sync != null)

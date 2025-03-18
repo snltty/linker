@@ -141,27 +141,41 @@ namespace linker.messenger.decenter
             connection.Write(syncTreansfer.Sync(info));
         }
 
-        [MessengerId((ushort)DecenterMessengerIds.Sync170)]
+        [MessengerId((ushort)DecenterMessengerIds.Sync170)] 
         public async void Sync170(IConnection connection)
         {
-            DecenterSyncInfo170 info = serializer.Deserialize<DecenterSyncInfo170>(connection.ReceiveRequestWrap.Payload.Span);
-            Memory<byte> memory = syncTreansfer.Sync(info);
-
-            //群发来的，我就回复
-            if (string.IsNullOrWhiteSpace(info.ToMachineId))
+            try
             {
-                await sender.SendOnly(new MessageRequestWrap
+                DecenterSyncInfo170 info = serializer.Deserialize<DecenterSyncInfo170>(connection.ReceiveRequestWrap.Payload.Span);
+                Memory<byte> memory = syncTreansfer.Sync170(info);
+
+                //群发来的，我就回复
+                if (string.IsNullOrWhiteSpace(info.ToMachineId))
                 {
-                    Connection = signInClientState.Connection,
-                    MessengerId = (ushort)DecenterMessengerIds.SyncForward170,
-                    Payload = serializer.Serialize(new DecenterSyncInfo170
+                    await sender.SendOnly(new MessageRequestWrap
                     {
-                        Data = memory,
-                        FromMachineId = signInClientState.Connection.Id,
-                        ToMachineId = info.FromMachineId,
-                        Name = info.Name
-                    })
-                });
+                        Connection = signInClientState.Connection,
+                        MessengerId = (ushort)DecenterMessengerIds.SyncForward170,
+                        Payload = serializer.Serialize(new DecenterSyncInfo170
+                        {
+                            Data = memory,
+                            FromMachineId = signInClientState.Connection.Id,
+                            ToMachineId = info.FromMachineId,
+                            Name = info.Name
+                        })
+                    });
+                }
+            }
+            catch (Exception)
+            {
+                try
+                {
+                    DecenterSyncInfo info = serializer.Deserialize<DecenterSyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
+                    LoggerHelper.Instance.Warning(info.Name);
+                }
+                catch (Exception)
+                {
+                }
             }
         }
     }
