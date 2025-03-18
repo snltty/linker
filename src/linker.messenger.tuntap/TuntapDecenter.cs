@@ -41,6 +41,7 @@ namespace linker.messenger.tuntap
             this.signInClientState = signInClientState;
 
             signInClientState.OnSignInSuccess += NetworkEnable;
+            AddRouteTask();
 
         }
         string groupid = string.Empty;
@@ -95,7 +96,6 @@ namespace linker.messenger.tuntap
             {
                 LoggerHelper.Instance.Debug($"tuntap got {info.IP}");
             }
-            Timeout();
         }
         public void SetData(List<ReadOnlyMemory<byte>> data)
         {
@@ -105,45 +105,20 @@ namespace linker.messenger.tuntap
                 tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
             }
             DataVersion.Add();
-            Timeout();
         }
 
-        private CancellationTokenSource cts;
-        private void Timeout()
+        private void AddRouteTask()
         {
-            if (cts != null && cts.IsCancellationRequested == false)
+            ulong version = 0;
+            TimerHelper.SetIntervalLong(() =>
             {
-                cts.Cancel();
-            }
-            cts = new CancellationTokenSource();
-            CancellationToken ct = cts.Token;
-            TimerHelper.Async(async () =>
-            {
-                await Task.Delay(1000);
-
-                if(ct.IsCancellationRequested == false)
+                if (DataVersion.Eq(version, out ulong _version) == false)
                 {
-                    await slim.WaitAsync().ConfigureAwait(false);
-                    try
-                    {
-
-                        AddRoute();
-                    }
-                    catch (Exception ex)
-                    {
-                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        {
-                            LoggerHelper.Instance.Error(ex);
-                        }
-                    }
-                    finally
-                    {
-                        slim.Release();
-                    }
+                    AddRoute();
                 }
-            });
+                version = _version;
+            }, 3000);
         }
-
         private void AddRoute()
         {
             List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(Infos.Values.ToList());

@@ -41,7 +41,7 @@ namespace linker.messenger.socks5
             tunnelProxy.RefreshConfig += Refresh;
             socks5Transfer.OnChanged += Refresh;
 
-
+            AddRouteTask();
         }
 
         /// <summary>
@@ -70,7 +70,6 @@ namespace linker.messenger.socks5
             Socks5Info info = serializer.Deserialize<Socks5Info>(data.Span);
             socks5Infos.AddOrUpdate(info.MachineId, info, (a, b) => info);
             DataVersion.Add();
-            Timeout();
         }
         public void SetData(List<ReadOnlyMemory<byte>> data)
         {
@@ -81,46 +80,20 @@ namespace linker.messenger.socks5
                 item.LastTicks.Update();
             }
             DataVersion.Add();
-
-            Timeout();
         }
 
-        private CancellationTokenSource cts;
-        private void Timeout()
+        private void AddRouteTask()
         {
-            if (cts != null && cts.IsCancellationRequested == false)
+            ulong version = 0;
+            TimerHelper.SetIntervalLong(() =>
             {
-                cts.Cancel();
-            }
-            cts = new CancellationTokenSource();
-            CancellationToken ct = cts.Token;
-            TimerHelper.Async(async () =>
-            {
-                await Task.Delay(1000);
-
-                if (ct.IsCancellationRequested == false)
+                if(DataVersion.Eq(version,out ulong _version) == false)
                 {
-                    await slim.WaitAsync().ConfigureAwait(false);
-                    try
-                    {
-
-                        AddRoute();
-                    }
-                    catch (Exception ex)
-                    {
-                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        {
-                            LoggerHelper.Instance.Error(ex);
-                        }
-                    }
-                    finally
-                    {
-                        slim.Release();
-                    }
+                    AddRoute();
                 }
-            });
+                version = _version;
+            }, 3000);
         }
-
         /// <summary>
         /// 添加路由
         /// </summary>
