@@ -94,7 +94,6 @@ namespace linker.libs.timer
             await Task.CompletedTask;
         }
     }
-
     public sealed class SetTimeout : TimerTask
     {
         private Action action;
