@@ -20,42 +20,48 @@ namespace linker.messenger.decenter
         [MessengerId((ushort)DecenterMessengerIds.SyncForward)]
         public void SyncForward(IConnection connection)
         {
-            DecenterSyncInfo info = serializer.Deserialize<DecenterSyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            try
             {
-                uint requiestid = connection.ReceiveRequestWrap.RequestId;
-
-                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
-                List<Task<MessageResponeInfo>> tasks = new List<Task<MessageResponeInfo>>();
-                foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected))
+                DecenterSyncInfo info = serializer.Deserialize<DecenterSyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
+                if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
                 {
-                    tasks.Add(sender.SendReply(new MessageRequestWrap
-                    {
-                        Connection = item.Connection,
-                        MessengerId = (ushort)DecenterMessengerIds.Sync,
-                        Payload = connection.ReceiveRequestWrap.Payload,
-                        Timeout = 5000,
-                    }));
-                }
+                    uint requiestid = connection.ReceiveRequestWrap.RequestId;
 
-                Task.WhenAll(tasks).ContinueWith(async (result) =>
-                {
-                    try
+                    List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
+                    List<Task<MessageResponeInfo>> tasks = new List<Task<MessageResponeInfo>>();
+                    foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected))
                     {
-                        List<ReadOnlyMemory<byte>> results = tasks.Where(c => c.Result.Code == MessageResponeCodes.OK).Select(c => c.Result.Data).ToList();
-                        await sender.ReplyOnly(new MessageResponseWrap
+                        tasks.Add(sender.SendReply(new MessageRequestWrap
                         {
-                            RequestId = requiestid,
-                            Connection = connection,
-                            Payload = serializer.Serialize(results)
-                        }, (ushort)DecenterMessengerIds.SyncForward).ConfigureAwait(false);
+                            Connection = item.Connection,
+                            MessengerId = (ushort)DecenterMessengerIds.Sync,
+                            Payload = connection.ReceiveRequestWrap.Payload,
+                            Timeout = 5000,
+                        }));
+                    }
 
-                    }
-                    catch (Exception ex)
+                    Task.WhenAll(tasks).ContinueWith(async (result) =>
                     {
-                        LoggerHelper.Instance.Error(ex);
-                    }
-                });
+                        try
+                        {
+                            List<ReadOnlyMemory<byte>> results = tasks.Where(c => c.Result.Code == MessageResponeCodes.OK).Select(c => c.Result.Data).ToList();
+                            await sender.ReplyOnly(new MessageResponseWrap
+                            {
+                                RequestId = requiestid,
+                                Connection = connection,
+                                Payload = serializer.Serialize(results)
+                            }, (ushort)DecenterMessengerIds.SyncForward).ConfigureAwait(false);
+
+                        }
+                        catch (Exception ex)
+                        {
+                            LoggerHelper.Instance.Error(ex);
+                        }
+                    });
+                }
+            }
+            catch (Exception)
+            {
             }
         }
         /// <summary>
@@ -65,44 +71,50 @@ namespace linker.messenger.decenter
         [MessengerId((ushort)DecenterMessengerIds.SyncForward170)]
         public async void SyncForward170(IConnection connection)
         {
-            DecenterSyncInfo170 info = serializer.Deserialize<DecenterSyncInfo170>(connection.ReceiveRequestWrap.Payload.Span);
-
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            try
             {
-                //没有目标，就是通知的情况，发给所有在线客户端
-                if (string.IsNullOrWhiteSpace(info.ToMachineId))
+                DecenterSyncInfo170 info = serializer.Deserialize<DecenterSyncInfo170>(connection.ReceiveRequestWrap.Payload.Span);
+
+                if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
                 {
-                    TimerHelper.Async(async () =>
+                    //没有目标，就是通知的情况，发给所有在线客户端
+                    if (string.IsNullOrWhiteSpace(info.ToMachineId))
                     {
-                        List<SignCacheInfo> onlineMachines = signCaching.Get(cache.GroupId).Where(c => c.MachineId != connection.Id && c.Connected).ToList();
-                        //可能很多客户端，稍微休息休息，不要一次发太多
-                        while (onlineMachines.Count > 0)
+                        TimerHelper.Async(async () =>
                         {
-                            List<SignCacheInfo> onlineRange = onlineMachines.Take(10).ToList();
-                            onlineMachines.RemoveRange(0, onlineRange.Count);
-
-                            List<Task<bool>> tasks = onlineRange.Select(c => sender.SendOnly(new MessageRequestWrap
+                            List<SignCacheInfo> onlineMachines = signCaching.Get(cache.GroupId).Where(c => c.MachineId != connection.Id && c.Connected).ToList();
+                            //可能很多客户端，稍微休息休息，不要一次发太多
+                            while (onlineMachines.Count > 0)
                             {
-                                Connection = c.Connection,
-                                MessengerId = (ushort)DecenterMessengerIds.Sync170,
-                                Payload = connection.ReceiveRequestWrap.Payload
-                            })).ToList();
+                                List<SignCacheInfo> onlineRange = onlineMachines.Take(10).ToList();
+                                onlineMachines.RemoveRange(0, onlineRange.Count);
 
-                            await Task.WhenAll(tasks);
-                        }
-                    });
-                }
-                //有目标，就是回复的情况，比如之前A通知了B，B回复一条自己的给A，设置了目标为A，就只需要发给A就行
-                else if (signCaching.TryGet(info.ToMachineId, out SignCacheInfo cacheTo))
-                {
-                    await sender.SendOnly(new MessageRequestWrap
+                                List<Task<bool>> tasks = onlineRange.Select(c => sender.SendOnly(new MessageRequestWrap
+                                {
+                                    Connection = c.Connection,
+                                    MessengerId = (ushort)DecenterMessengerIds.Sync170,
+                                    Payload = connection.ReceiveRequestWrap.Payload
+                                })).ToList();
+
+                                await Task.WhenAll(tasks);
+                            }
+                        });
+                    }
+                    //有目标，就是回复的情况，比如之前A通知了B，B回复一条自己的给A，设置了目标为A，就只需要发给A就行
+                    else if (signCaching.TryGet(info.ToMachineId, out SignCacheInfo cacheTo))
                     {
-                        Connection = cacheTo.Connection,
-                        MessengerId = (ushort)DecenterMessengerIds.Sync170,
-                        Payload = connection.ReceiveRequestWrap.Payload
-                    });
-                }
+                        await sender.SendOnly(new MessageRequestWrap
+                        {
+                            Connection = cacheTo.Connection,
+                            MessengerId = (ushort)DecenterMessengerIds.Sync170,
+                            Payload = connection.ReceiveRequestWrap.Payload
+                        });
+                    }
 
+                }
+            }
+            catch (Exception)
+            {
             }
         }
     }
