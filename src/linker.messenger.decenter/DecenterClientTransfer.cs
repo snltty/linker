@@ -4,18 +4,11 @@ using linker.messenger.signin;
 
 namespace linker.messenger.decenter
 {
-    public partial class DecenterSyncInfo
+    public sealed partial class DecenterSyncInfo
     {
         public DecenterSyncInfo() { }
         public string Name { get; set; }
         public Memory<byte> Data { get; set; }
-    }
-
-    public sealed partial class DecenterSyncInfo170: DecenterSyncInfo
-    {
-        public DecenterSyncInfo170() { }
-        public string FromMachineId { get; set; }
-        public string ToMachineId { get; set; }
     }
 
     public sealed class DecenterClientTransfer
@@ -58,16 +51,6 @@ namespace linker.messenger.decenter
             }
             return Helper.EmptyArray;
         }
-        public Memory<byte> Sync170(DecenterSyncInfo170 decenterSyncInfo)
-        {
-            IDecenter sync = syncs.FirstOrDefault(c => c.Name == decenterSyncInfo.Name);
-            if (sync != null)
-            {
-                sync.SetData(decenterSyncInfo.Data);
-                return sync.GetData();
-            }
-            return Helper.EmptyArray;
-        }
 
         private void SyncTask()
         {
@@ -86,13 +69,13 @@ namespace linker.messenger.decenter
                                 Connection = signInClientState.Connection,
                                 MessengerId = (ushort)DecenterMessengerIds.SyncForward,
                                 Payload = serializer.Serialize(new DecenterSyncInfo { Name = c.Name, Data = c.GetData() }),
-                                Timeout = 15000
+                                Timeout = 60000
                             })
                         };
                     }).ToList();
                     if (tasks.Count > 0)
                     {
-                        await Task.WhenAll(tasks.Select(c => c.Task));
+                        await Task.WhenAll(tasks.Select(c => c.Task)).ConfigureAwait(false);
                         foreach (var task in tasks)
                         {
                             if (task.Task.Result.Code == MessageResponeCodes.OK)
@@ -117,47 +100,8 @@ namespace linker.messenger.decenter
                         LoggerHelper.Instance.Error(ex);
                     }
                 }
-            }, () => 300);
-        }
-        /*
-        private void SyncTask()
-        {
-            TimerHelper.SetIntervalLong(async () =>
-            {
-                if (signInClientState.Connected)
-                {
-                    try
-                    {
-                        IEnumerable<DecenterSyncTaskInfo> tasks = syncs.Where(c => c.SyncVersion.Reset()).Select(c =>
-                        {
-                            return new DecenterSyncTaskInfo
-                            {
-                                Decenter = c,
-                                Time = Environment.TickCount64,
-                                Task = messengerSender.SendOnly(new MessageRequestWrap
-                                {
-                                    Connection = signInClientState.Connection,
-                                    MessengerId = (ushort)DecenterMessengerIds.SyncForward170,
-                                    Payload = serializer.Serialize(new DecenterSyncInfo170 { FromMachineId = signInClientState.Connection.Id, Name = c.Name, Data = c.GetData() })
-                                })
-                            };
-                        }).ToList();
-                        if (tasks.Any())
-                        {
-                            await Task.WhenAll(tasks.Select(c => c.Task).ToList()).ConfigureAwait(false);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        {
-                            LoggerHelper.Instance.Error(ex);
-                        }
-                    }
-                }
             }, 300);
         }
-        */
 
         class DecenterSyncTaskInfo
         {

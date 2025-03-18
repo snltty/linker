@@ -41,7 +41,6 @@ namespace linker.messenger.serializer.memorypack
 
 
             MemoryPackFormatterProvider.Register(new DecenterSyncInfoFormatter());
-            MemoryPackFormatterProvider.Register(new DecenterSyncInfo170Formatter());
 
 
             MemoryPackFormatterProvider.Register(new UpdaterConfirmInfoFormatter());

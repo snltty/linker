@@ -21,7 +21,6 @@ namespace linker.messenger.decenter
             return serviceProvider;
         }
 
-
         public static ServiceCollection AddDecenterServer(this ServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<DecenterServerMessenger>();

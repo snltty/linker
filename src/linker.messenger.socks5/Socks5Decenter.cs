@@ -40,8 +40,6 @@ namespace linker.messenger.socks5
             signInClientState.OnSignInSuccess += (times) => Refresh();
             tunnelProxy.RefreshConfig += Refresh;
             socks5Transfer.OnChanged += Refresh;
-
-            AddRouteTask();
         }
 
         /// <summary>
@@ -68,32 +66,57 @@ namespace linker.messenger.socks5
         public void SetData(Memory<byte> data)
         {
             Socks5Info info = serializer.Deserialize<Socks5Info>(data.Span);
-            socks5Infos.AddOrUpdate(info.MachineId, info, (a, b) => info);
-            DataVersion.Add();
+            TimerHelper.Async(async () =>
+            {
+                await slim.WaitAsync().ConfigureAwait(false);
+                try
+                {
+                    socks5Infos.AddOrUpdate(info.MachineId, info, (a, b) => info);
+                    DataVersion.Add();
+                    AddRoute();
+                }
+                catch (Exception ex)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
+                }
+                slim.Release();
+            });
         }
         public void SetData(List<ReadOnlyMemory<byte>> data)
         {
             List<Socks5Info> list = data.Select(c => serializer.Deserialize<Socks5Info>(c.Span)).ToList();
-            foreach (var item in list)
+            TimerHelper.Async(async () =>
             {
-                socks5Infos.AddOrUpdate(item.MachineId, item, (a, b) => item);
-                item.LastTicks.Update();
-            }
-            DataVersion.Add();
-        }
+                await slim.WaitAsync().ConfigureAwait(false);
 
-        private void AddRouteTask()
-        {
-            ulong version = 0;
-            TimerHelper.SetIntervalLong(() =>
-            {
-                if(DataVersion.Eq(version,out ulong _version) == false)
+                try
                 {
+                    foreach (var item in list)
+                    {
+                        socks5Infos.AddOrUpdate(item.MachineId, item, (a, b) => item);
+                        item.LastTicks.Update();
+                    }
+                    DataVersion.Add();
                     AddRoute();
                 }
-                version = _version;
-            }, 3000);
+                catch (Exception ex)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
+                }
+                finally
+                {
+                    slim.Release();
+                }
+
+            });
         }
+
         /// <summary>
         /// 添加路由
         /// </summary>
