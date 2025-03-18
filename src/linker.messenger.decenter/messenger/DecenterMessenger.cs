@@ -60,8 +60,9 @@ namespace linker.messenger.decenter
                     });
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                LoggerHelper.Instance.Error(ex);
             }
         }
         /// <summary>
@@ -113,8 +114,9 @@ namespace linker.messenger.decenter
 
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                LoggerHelper.Instance.Error(ex);
             }
         }
     }
@@ -141,7 +143,7 @@ namespace linker.messenger.decenter
             connection.Write(syncTreansfer.Sync(info));
         }
 
-        [MessengerId((ushort)DecenterMessengerIds.Sync170)] 
+        [MessengerId((ushort)DecenterMessengerIds.Sync170)]
         public async void Sync170(IConnection connection)
         {
             try
@@ -166,15 +168,17 @@ namespace linker.messenger.decenter
                     });
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                LoggerHelper.Instance.Error(ex);
                 try
                 {
                     DecenterSyncInfo info = serializer.Deserialize<DecenterSyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
                     LoggerHelper.Instance.Warning(info.Name);
                 }
-                catch (Exception)
+                catch (Exception ex1)
                 {
+                    LoggerHelper.Instance.Error(ex1);
                 }
             }
         }
