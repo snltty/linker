@@ -26,7 +26,6 @@ namespace linker.messenger.socks5
         private readonly ISocks5Store socks5Store;
 
         private readonly SemaphoreSlim slim = new SemaphoreSlim(1);
-        linker.libs.timer.Timeout timeout;
 
         public Socks5Decenter(SignInClientState signInClientState, TunnelProxy tunnelProxy, ISignInClientStore signInClientStore, Socks5Transfer socks5Transfer, ExRouteTransfer exRouteTransfer, ISerializer serializer, ISocks5Store socks5Store)
         {
@@ -85,34 +84,41 @@ namespace linker.messenger.socks5
 
             Timeout();
         }
+
+        private CancellationTokenSource cts;
         private void Timeout()
         {
-            if (timeout != null && timeout.Cancelled == false)
+            if (cts != null && cts.IsCancellationRequested == false)
             {
-                timeout.Cancel();
-                timeout = null;
+                cts.Cancel();
             }
-            timeout = TimerHelper.SetTimeoutAsync(async () =>
+            cts = new CancellationTokenSource();
+            CancellationToken ct = cts.Token;
+            TimerHelper.Async(async () =>
             {
-                await slim.WaitAsync().ConfigureAwait(false);
-                try
-                {
+                await Task.Delay(1000);
 
-                    AddRoute();
-                }
-                catch (Exception ex)
+                if (ct.IsCancellationRequested == false)
                 {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    await slim.WaitAsync().ConfigureAwait(false);
+                    try
                     {
-                        LoggerHelper.Instance.Error(ex);
+
+                        AddRoute();
+                    }
+                    catch (Exception ex)
+                    {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        {
+                            LoggerHelper.Instance.Error(ex);
+                        }
+                    }
+                    finally
+                    {
+                        slim.Release();
                     }
                 }
-                finally
-                {
-                    slim.Release();
-                }
-
-            }, 1000);
+            });
         }
 
         /// <summary>

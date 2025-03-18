@@ -30,8 +30,6 @@ namespace linker.messenger.tuntap
         private readonly ExRouteTransfer exRouteTransfer;
         private readonly SignInClientState signInClientState;
 
-        linker.libs.timer.Timeout timeout;
-
         public TuntapDecenter(ISignInClientStore signInClientStore, SignInClientState signInClientState, ISerializer serializer, TuntapProxy tuntapProxy, TuntapConfigTransfer tuntapConfigTransfer, TuntapTransfer tuntapTransfer, ExRouteTransfer exRouteTransfer)
         {
             this.signInClientStore = signInClientStore;
@@ -110,34 +108,40 @@ namespace linker.messenger.tuntap
             Timeout();
         }
 
+        private CancellationTokenSource cts;
         private void Timeout()
         {
-            if (timeout != null && timeout.Cancelled == false)
+            if (cts != null && cts.IsCancellationRequested == false)
             {
-                timeout.Cancel();
-                timeout = null;
+                cts.Cancel();
             }
-            timeout = TimerHelper.SetTimeoutAsync(async () =>
+            cts = new CancellationTokenSource();
+            CancellationToken ct = cts.Token;
+            TimerHelper.Async(async () =>
             {
-                await slim.WaitAsync().ConfigureAwait(false);
-                try
-                {
+                await Task.Delay(1000);
 
-                    AddRoute();
-                }
-                catch (Exception ex)
+                if(ct.IsCancellationRequested == false)
                 {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    await slim.WaitAsync().ConfigureAwait(false);
+                    try
                     {
-                        LoggerHelper.Instance.Error(ex);
+
+                        AddRoute();
+                    }
+                    catch (Exception ex)
+                    {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        {
+                            LoggerHelper.Instance.Error(ex);
+                        }
+                    }
+                    finally
+                    {
+                        slim.Release();
                     }
                 }
-                finally
-                {
-                    slim.Release();
-                }
-
-            }, 1000);
+            });
         }
 
         private void AddRoute()
