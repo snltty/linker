@@ -144,7 +144,7 @@ namespace linker.messenger.decenter
         }
 
         [MessengerId((ushort)DecenterMessengerIds.Sync170)]
-        public async void Sync170(IConnection connection)
+        public void Sync170(IConnection connection) 
         {
             try
             {
@@ -154,7 +154,7 @@ namespace linker.messenger.decenter
                 //群发来的，我就回复
                 if (string.IsNullOrWhiteSpace(info.ToMachineId))
                 {
-                    await sender.SendOnly(new MessageRequestWrap
+                    _= sender.SendOnly(new MessageRequestWrap
                     {
                         Connection = signInClientState.Connection,
                         MessengerId = (ushort)DecenterMessengerIds.SyncForward170,
