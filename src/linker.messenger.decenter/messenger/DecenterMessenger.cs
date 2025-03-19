@@ -73,6 +73,28 @@ namespace linker.messenger.decenter
             connection.Write(serializer.Serialize(data));
         }
 
+        [MessengerId((ushort)DecenterMessengerIds.PullPage)]
+        public void PullPage(IConnection connection)
+        {
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo signin) == false) return;
+
+            DecenterPullPageInfo page = serializer.Deserialize<DecenterPullPageInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (decenters.TryGetValue(page.Name, out ConcurrentDictionary<string, DecenterCacheInfo> dic) == false)
+            {
+                connection.Write(serializer.Serialize(new DecenterPullPageResultInfo { }));
+                return;
+            }
+
+            IEnumerable<Memory<byte>> data = dic.Where(c => c.Key != connection.Id && c.Value.SignIn.GroupId == signin.GroupId).Select(c => c.Value.Data);
+            connection.Write(serializer.Serialize(new DecenterPullPageResultInfo
+            {
+                Count = data.Count(),
+                List = data.Skip((page.Page - 1) * page.Size).Take(page.Size).ToList(),
+                Page = page.Page,
+                Size = page.Size
+            }));
+        }
+
         private void ClearTask()
         {
             TimerHelper.SetIntervalLong(() =>

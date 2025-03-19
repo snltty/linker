@@ -10,6 +10,7 @@
         Push = 2812,
         Pull = 2813,
         Notify = 2814,
+        PullPage = 2815,
 
         Max = 2899
     }

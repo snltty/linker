@@ -40,10 +40,19 @@ namespace linker.messenger.decenter
         public Memory<byte> Data { get; set; }
     }
 
-    public sealed partial class DecenterPullInfo
+    public sealed partial class DecenterPullPageInfo
     {
-        public DecenterPullInfo() { }
+        public DecenterPullPageInfo() { }
         public string Name { get; set; }
-        public bool Full { get; set; }
+        public int Page { get; set; }
+        public int Size { get; set; }
+    }
+    public sealed partial class DecenterPullPageResultInfo
+    {
+        public DecenterPullPageResultInfo() { }
+        public int Page { get; set; }
+        public int Size { get; set; }
+        public int Count { get; set; }
+        public List<Memory<byte>> List { get; set; }
     }
 }

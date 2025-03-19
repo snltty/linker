@@ -56,32 +56,35 @@ namespace linker.messenger.serializer.memorypack
 
 
     [MemoryPackable]
-    public readonly partial struct SerializableDecenterPullInfo
+    public readonly partial struct SerializableDecenterPullPageInfo
     {
         [MemoryPackIgnore]
-        public readonly DecenterPullInfo info;
+        public readonly DecenterPullPageInfo info;
 
         [MemoryPackInclude]
         string Name => info.Name;
 
         [MemoryPackInclude]
-        bool Full => info.Full;
+        int Page => info.Page;
+
+        [MemoryPackInclude]
+        int Size => info.Size;
 
         [MemoryPackConstructor]
-        SerializableDecenterPullInfo(string name, bool full)
+        SerializableDecenterPullPageInfo(string name, int page, int size)
         {
-            var info = new DecenterPullInfo { Name = name, Full = full };
+            var info = new DecenterPullPageInfo { Name = name, Page = page, Size = size };
             this.info = info;
         }
 
-        public SerializableDecenterPullInfo(DecenterPullInfo tunnelCompactInfo)
+        public SerializableDecenterPullPageInfo(DecenterPullPageInfo tunnelCompactInfo)
         {
             this.info = tunnelCompactInfo;
         }
     }
-    public class DecenterPullInfoFormatter : MemoryPackFormatter<DecenterPullInfo>
+    public class DecenterPullPageInfoFormatter : MemoryPackFormatter<DecenterPullPageInfo>
     {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref DecenterPullInfo value)
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref DecenterPullPageInfo value)
         {
             if (value == null)
             {
@@ -89,10 +92,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableDecenterPullInfo(value));
+            writer.WritePackable(new SerializableDecenterPullPageInfo(value));
         }
 
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref DecenterPullInfo value)
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref DecenterPullPageInfo value)
         {
             if (reader.PeekIsNull())
             {
@@ -101,9 +104,65 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableDecenterPullInfo>();
+            var wrapped = reader.ReadPackable<SerializableDecenterPullPageInfo>();
             value = wrapped.info;
         }
     }
 
+
+    [MemoryPackable]
+    public readonly partial struct SerializableDecenterPullPageResultInfo
+    {
+        [MemoryPackIgnore]
+        public readonly DecenterPullPageResultInfo info;
+
+        [MemoryPackInclude]
+        int Page => info.Page;
+
+        [MemoryPackInclude]
+        int Size => info.Size;
+
+        [MemoryPackInclude]
+        int Count => info.Count;
+        [MemoryPackInclude]
+        List<Memory<byte>> List => info.List;
+
+        [MemoryPackConstructor]
+        SerializableDecenterPullPageResultInfo(int page, int size, int count, List<Memory<byte>> list)
+        {
+            var info = new DecenterPullPageResultInfo { Page = page, Size = size, Count = count, List = list };
+            this.info = info;
+        }
+
+        public SerializableDecenterPullPageResultInfo(DecenterPullPageResultInfo tunnelCompactInfo)
+        {
+            this.info = tunnelCompactInfo;
+        }
+    }
+    public class DecenterPullPageResultInfoFormatter : MemoryPackFormatter<DecenterPullPageResultInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref DecenterPullPageResultInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableDecenterPullPageResultInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref DecenterPullPageResultInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableDecenterPullPageResultInfo>();
+            value = wrapped.info;
+        }
+    }
 }
