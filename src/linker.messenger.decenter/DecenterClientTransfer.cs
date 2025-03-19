@@ -108,6 +108,10 @@ namespace linker.messenger.decenter
                             List<ReadOnlyMemory<byte>> list = serializer.Deserialize<List<ReadOnlyMemory<byte>>>(task.Task.Result.Data.Span);
                             task.Decenter.SetData(list);
                         }
+                        foreach (var task in pullTasks.Where(c => c.Task.Result.Code == MessageResponeCodes.TIMEOUT))
+                        {
+                            task.Decenter.PushVersion.Increment();
+                        }
                     }
                 }
                 catch (Exception ex)
