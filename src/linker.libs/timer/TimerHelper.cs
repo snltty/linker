@@ -51,6 +51,16 @@ namespace linker.libs.timer
                 }
             });
         }
+        public static void SetIntervalLong(Func<bool> action, int delayMs)
+        {
+            Task.Run(async () =>
+            {
+                while (action())
+                {
+                    await Task.Delay(delayMs).ConfigureAwait(false);
+                }
+            });
+        }
         public static void SetIntervalLong(Func<Task> action, int delayMs)
         {
             Task.Run(async () =>

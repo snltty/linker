@@ -35,10 +35,18 @@ namespace linker.tunnel
 
         private void LoopDiscovery()
         {
+            int times = 0;
             TimerHelper.SetIntervalLong(() =>
             {
+                times++;
                 NatUtility.StopDiscovery();
-                NatUtility.StartDiscovery();
+
+                if(times < 3)
+                {
+                    NatUtility.StartDiscovery();
+                    return true;
+                }
+                return false;
             }, 60 * 1000);
         }
         private void DeviceFound(object sender, DeviceEventArgs args)
