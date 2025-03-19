@@ -28,22 +28,24 @@ namespace linker.messenger.decenter
         public void Push(IConnection connection)
         {
             if (signCaching.TryGet(connection.Id, out SignCacheInfo signin) == false) return;
-
             DecenterSyncInfo info = serializer.Deserialize<DecenterSyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (decenters.TryGetValue(info.Name, out ConcurrentDictionary<string, DecenterCacheInfo> dic) == false)
-            {
-                dic = new ConcurrentDictionary<string, DecenterCacheInfo>();
-                decenters.TryAdd(info.Name, dic);
-            }
-            if (dic.TryGetValue(connection.Id, out DecenterCacheInfo cache) == false)
-            {
-                cache = new DecenterCacheInfo();
-                dic.TryAdd(connection.Id,cache);
-            }
-            cache.Data = info.Data;
-            cache.SignIn = signin;
-            cache.Version.Add();
 
+            lock (decenters)
+            {
+                if (decenters.TryGetValue(info.Name, out ConcurrentDictionary<string, DecenterCacheInfo> dic) == false)
+                {
+                    dic = new ConcurrentDictionary<string, DecenterCacheInfo>();
+                    decenters.TryAdd(info.Name, dic);
+                }
+                if (dic.TryGetValue(connection.Id, out DecenterCacheInfo cache) == false)
+                {
+                    cache = new DecenterCacheInfo();
+                    dic.TryAdd(connection.Id, cache);
+                }
+                cache.Data = info.Data;
+                cache.SignIn = signin;
+                cache.Version.Add();
+            }
 
             Memory<byte> memory = serializer.Serialize(info);
             List<SignCacheInfo> caches = signCaching.Get(signin.GroupId).Where(c => c.MachineId != connection.Id && c.Connected).ToList();
