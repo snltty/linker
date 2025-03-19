@@ -139,6 +139,11 @@ namespace linker.messenger.updater
             }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
+                if(LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Debug($"get version info length:{resp.Data.Length}");
+                }
+
                 UpdaterInfo info = serializer.Deserialize<UpdaterInfo>(resp.Data.Span);
                 if (info.Status <= UpdaterStatus.Checked && updateInfo.Status <= UpdaterStatus.Checked)
                 {

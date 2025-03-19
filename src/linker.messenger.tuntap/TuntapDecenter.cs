@@ -41,6 +41,7 @@ namespace linker.messenger.tuntap
             this.signInClientState = signInClientState;
 
             signInClientState.OnSignInSuccess += NetworkEnable;
+            AddRouteTask();
 
         }
         string groupid = string.Empty;
@@ -93,55 +94,30 @@ namespace linker.messenger.tuntap
             {
                 LoggerHelper.Instance.Debug($"tuntap got {info.IP}");
             }
-
-            TimerHelper.Async(async () =>
-            {
-                await slim.WaitAsync().ConfigureAwait(false);
-                try
-                {
-                    tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
-                    DataVersion.Add();
-                    AddRoute();
-                }
-                catch (Exception ex)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        LoggerHelper.Instance.Error(ex);
-                    }
-                }
-                slim.Release();
-            });
+            tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
+            DataVersion.Add();
         }
         public void SetData(List<ReadOnlyMemory<byte>> data)
         {
             List<TuntapInfo> list = data.Select(c => serializer.Deserialize<TuntapInfo>(c.Span)).ToList();
-            TimerHelper.Async(async () =>
+            foreach (var item in list)
             {
-                await slim.WaitAsync().ConfigureAwait(false);
+                tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
+            }
+            DataVersion.Add();
+        }
 
-                try
+        private void AddRouteTask()
+        {
+            ulong version = 0;
+            TimerHelper.SetIntervalLong(() =>
+            {
+                if (DataVersion.Eq(version, out ulong _version) == false)
                 {
-                    foreach (var item in list)
-                    {
-                        tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
-                    }
-                    DataVersion.Add();
                     AddRoute();
                 }
-                catch (Exception ex)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        LoggerHelper.Instance.Error(ex);
-                    }
-                }
-                finally
-                {
-                    slim.Release();
-                }
-
-            });
+                version = _version;
+            }, 3000);
         }
         private void AddRoute()
         {

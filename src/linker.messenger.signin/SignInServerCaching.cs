@@ -3,6 +3,7 @@ using linker.libs.timer;
 using linker.messenger.signin.args;
 using System.Collections.Concurrent;
 using System.Net;
+using System.Text.RegularExpressions;
 
 namespace linker.messenger.signin
 {
@@ -93,6 +94,10 @@ namespace linker.messenger.signin
         public List<SignCacheInfo> Get(string groupId)
         {
             return Clients.Values.Where(c => c.GroupId == groupId).ToList();
+        }
+        public IEnumerable<string> GetOnlines()
+        {
+            return Clients.Values.Where(c => c.Connected == true).Select(c => c.Id);
         }
 
         public bool GetOnline(string machineId)

@@ -7,10 +7,17 @@ namespace linker.libs
     {
         private ulong version = 0;
 
+        public ulong Value => version;
+
         public bool Eq(ulong outsideVersion, out ulong insideVersion)
         {
             insideVersion = version;
             return outsideVersion == version;
+        }
+        public bool LessThan(ulong outsideVersion, out ulong insideVersion)
+        {
+            insideVersion = version;
+            return outsideVersion < version;
         }
 
         public void Add()

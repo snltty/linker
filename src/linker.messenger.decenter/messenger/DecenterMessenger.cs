@@ -1,5 +1,7 @@
 ﻿using linker.libs;
+using linker.libs.timer;
 using linker.messenger.signin;
+using System.Collections.Concurrent;
 
 namespace linker.messenger.decenter
 {
@@ -9,13 +11,80 @@ namespace linker.messenger.decenter
         private readonly SignInServerCaching signCaching;
         private readonly ISerializer serializer;
 
+        /// <summary>
+        /// name machineid data
+        /// </summary>
+        private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, DecenterCacheInfo>> decenters = new ConcurrentDictionary<string, ConcurrentDictionary<string, DecenterCacheInfo>>();
+
         public DecenterServerMessenger(IMessengerSender sender, SignInServerCaching signCaching, ISerializer serializer)
         {
             this.sender = sender;
             this.signCaching = signCaching;
             this.serializer = serializer;
+            ClearTask();
         }
 
+        [MessengerId((ushort)DecenterMessengerIds.Push)]
+        public void Push(IConnection connection)
+        {
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo signin) == false) return;
+
+            DecenterSyncInfo info = serializer.Deserialize<DecenterSyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (decenters.TryGetValue(info.Name, out ConcurrentDictionary<string, DecenterCacheInfo> dic) == false)
+            {
+                dic = new ConcurrentDictionary<string, DecenterCacheInfo>();
+                decenters.TryAdd(info.Name, dic);
+            }
+            if (dic.TryGetValue(connection.Id, out DecenterCacheInfo cache) == false)
+            {
+                cache = new DecenterCacheInfo();
+                dic.TryAdd(connection.Id,cache);
+            }
+            cache.Data = info.Data;
+            cache.SignIn = signin;
+            cache.Version.Add();
+
+
+            Memory<byte> memory = serializer.Serialize(info);
+            List<SignCacheInfo> caches = signCaching.Get(signin.GroupId).Where(c => c.MachineId != connection.Id && c.Connected).ToList();
+            List<Task<bool>> tasks = caches.Select(c => sender.SendOnly(new MessageRequestWrap
+            {
+                Connection = c.Connection,
+                MessengerId = (ushort)DecenterMessengerIds.Notify,
+                Payload = memory
+            })).ToList();
+        }
+
+        [MessengerId((ushort)DecenterMessengerIds.Pull)]
+        public void Pull(IConnection connection)
+        {
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo signin) == false) return;
+
+            string name = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (decenters.TryGetValue(name, out ConcurrentDictionary<string, DecenterCacheInfo> dic) == false)
+            {
+                connection.Write(Helper.FalseArray);
+                return;
+            }
+
+            IEnumerable<Memory<byte>> data = dic.Where(c => c.Key != connection.Id && c.Value.SignIn.GroupId == signin.GroupId).Select(c => c.Value.Data);
+            connection.Write(serializer.Serialize(data));
+        }
+
+        private void ClearTask()
+        {
+            TimerHelper.SetIntervalLong(() =>
+            {
+                List<string> removes = decenters.Values.SelectMany(c => c.Values).Where(c => c.SignIn.Connected == false).Select(c => c.SignIn.Id).ToList();
+                foreach (ConcurrentDictionary<string, DecenterCacheInfo> dic in decenters.Values)
+                {
+                    foreach (string id in removes)
+                    {
+                        dic.TryRemove(id, out _);
+                    }
+                }
+            }, 30000);
+        }
 
         [MessengerId((ushort)DecenterMessengerIds.SyncForward)]
         public void SyncForward(IConnection connection)
@@ -58,48 +127,8 @@ namespace linker.messenger.decenter
                 });
             }
         }
-        /*
-        [MessengerId((ushort)DecenterMessengerIds.SyncForward)]
-        public void SyncForward(IConnection connection)
-        {
-            DecenterSyncInfo info = serializer.Deserialize<DecenterSyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
-            {
-                uint requiestid = connection.ReceiveRequestWrap.RequestId;
-                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId).Where(c => c.MachineId != connection.Id && c.Connected).ToList();
-                Memory<byte> memory = serializer.Serialize(info);
 
-                TimerHelper.Async(async () =>
-                {
-                    List<ReadOnlyMemory<byte>> results = new List<ReadOnlyMemory<byte>>();
-                    while (caches.Count > 0)
-                    {
-                        List<SignCacheInfo> temp = caches.Take(10).ToList();
-                        caches.RemoveRange(0,temp.Count);
-                        List<Task<MessageResponeInfo>> tasks = temp.Select(c => sender.SendReply(new MessageRequestWrap
-                        {
-                            Connection = c.Connection,
-                            MessengerId = (ushort)DecenterMessengerIds.Sync,
-                            Payload = memory,
-                            Timeout = 3000,
-                        })).ToList();
 
-                        var result = await Task.WhenAll(tasks);
-                        results.AddRange(tasks.Where(c => c.Result.Code == MessageResponeCodes.OK).Select(c => c.Result.Data).ToList());
-                    }
-                    if(results.Count > 0)
-                    {
-                        await sender.ReplyOnly(new MessageResponseWrap
-                        {
-                            RequestId = requiestid,
-                            Connection = connection,
-                            Payload = serializer.Serialize(results)
-                        }, (ushort)DecenterMessengerIds.SyncForward).ConfigureAwait(false);
-                    }
-                });
-            }
-        }
-        */
     }
 
     public sealed class DecenterClientMessenger : IMessenger
@@ -113,6 +142,13 @@ namespace linker.messenger.decenter
             this.serializer = serializer;
         }
 
+        [MessengerId((ushort)DecenterMessengerIds.Notify)]
+        public void Notify(IConnection connection)
+        {
+            DecenterSyncInfo info = serializer.Deserialize<DecenterSyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            syncTreansfer.Notify(info);
+        }
+
         [MessengerId((ushort)DecenterMessengerIds.Sync)]
         public void Sync(IConnection connection)
         {
@@ -120,5 +156,12 @@ namespace linker.messenger.decenter
             connection.Write(syncTreansfer.Sync(info));
         }
 
+    }
+
+    public sealed class DecenterCacheInfo
+    {
+        public SignCacheInfo SignIn { get; set; }
+        public VersionManager Version { get; set; } = new VersionManager();
+        public Memory<byte> Data { get; set; }
     }
 }

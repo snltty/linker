@@ -32,4 +32,18 @@ namespace linker.messenger.decenter
         /// <param name="data"></param>
         public void SetData(List<ReadOnlyMemory<byte>> data);
     }
+
+    public sealed partial class DecenterSyncInfo
+    {
+        public DecenterSyncInfo() { }
+        public string Name { get; set; }
+        public Memory<byte> Data { get; set; }
+    }
+
+    public sealed partial class DecenterPullInfo
+    {
+        public DecenterPullInfo() { }
+        public string Name { get; set; }
+        public bool Full { get; set; }
+    }
 }

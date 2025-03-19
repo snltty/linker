@@ -15,15 +15,15 @@ namespace linker.messenger.tunnel
         public VersionManager DataVersion { get; } = new VersionManager();
         public ConcurrentDictionary<string, TunnelRouteLevelInfo> Config { get; } = new ConcurrentDictionary<string, TunnelRouteLevelInfo>();
 
-        private readonly ITunnelClientStore tunnelClientMessengerAdapterStore;
+        private readonly ITunnelClientStore  tunnelClientStore;
         private readonly TunnelNetworkTransfer tunnelNetworkTransfer;
         private readonly ISerializer serializer;
         private readonly SignInClientState signInClientState;
 
-        public TunnelDecenter(ITunnelClientStore tunnelClientMessengerAdapterStore, TunnelNetworkTransfer tunnelNetworkTransfer, ISerializer serializer, SignInClientState signInClientState)
+        public TunnelDecenter(ITunnelClientStore tunnelClientStore, TunnelNetworkTransfer tunnelNetworkTransfer, ISerializer serializer, SignInClientState signInClientState)
         {
-            this.tunnelClientMessengerAdapterStore = tunnelClientMessengerAdapterStore;
-            tunnelClientMessengerAdapterStore.OnChanged += Refresh;
+            this.tunnelClientStore = tunnelClientStore;
+            tunnelClientStore.OnChanged += Refresh;
             this.tunnelNetworkTransfer = tunnelNetworkTransfer;
             this.serializer = serializer;
             this.signInClientState = signInClientState;
@@ -65,9 +65,9 @@ namespace linker.messenger.tunnel
                 MachineId = signInClientState.Connection?.Id ?? string.Empty,
                 RouteLevel = tunnelNetworkTransfer.Info.RouteLevel,
                 NeedReboot = false,
-                PortMapLan = tunnelClientMessengerAdapterStore.PortMapPrivate,
-                PortMapWan = tunnelClientMessengerAdapterStore.PortMapPublic,
-                RouteLevelPlus = tunnelClientMessengerAdapterStore.RouteLevelPlus,
+                PortMapLan = tunnelClientStore.PortMapPrivate,
+                PortMapWan = tunnelClientStore.PortMapPublic,
+                RouteLevelPlus = tunnelClientStore.RouteLevelPlus,
                 HostName = Dns.GetHostName(),
                 Lans = GetInterfaces(),
                 Routes = tunnelNetworkTransfer.Info.RouteIPs,

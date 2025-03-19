@@ -16,7 +16,7 @@ namespace linker.messenger.serializer.memorypack
         Memory<byte> Data => info.Data;
 
         [MemoryPackConstructor]
-        SerializableDecenterSyncInfo(string name,Memory<byte> data)
+        SerializableDecenterSyncInfo(string name, Memory<byte> data)
         {
             var info = new DecenterSyncInfo { Name = name, Data = data };
             this.info = info;
@@ -50,6 +50,58 @@ namespace linker.messenger.serializer.memorypack
             }
 
             var wrapped = reader.ReadPackable<SerializableDecenterSyncInfo>();
+            value = wrapped.info;
+        }
+    }
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableDecenterPullInfo
+    {
+        [MemoryPackIgnore]
+        public readonly DecenterPullInfo info;
+
+        [MemoryPackInclude]
+        string Name => info.Name;
+
+        [MemoryPackInclude]
+        bool Full => info.Full;
+
+        [MemoryPackConstructor]
+        SerializableDecenterPullInfo(string name, bool full)
+        {
+            var info = new DecenterPullInfo { Name = name, Full = full };
+            this.info = info;
+        }
+
+        public SerializableDecenterPullInfo(DecenterPullInfo tunnelCompactInfo)
+        {
+            this.info = tunnelCompactInfo;
+        }
+    }
+    public class DecenterPullInfoFormatter : MemoryPackFormatter<DecenterPullInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref DecenterPullInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableDecenterPullInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref DecenterPullInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableDecenterPullInfo>();
             value = wrapped.info;
         }
     }
