@@ -3,10 +3,10 @@
             :close-on-click-modal="false" align-center width="200">
         <div class="port-wrap t-c">
             <div>
-                接口 : <el-input v-model="state.api" style="width:70%"></el-input>
+                接口 : <el-input v-model="state.api" style="width:70%" @keyup.enter="handleConnect1"></el-input>
             </div>
             <div class="pdt-10">
-                秘钥 : <el-input show-password type="password" v-model="state.psd" style="width:70%"></el-input>
+                秘钥 : <el-input show-password type="password" v-model="state.psd" style="width:70%" @keyup.enter="handleConnect1"></el-input>
             </div>
             <div class="pdt-10">
                 <el-checkbox v-model="state.save" >保存密码</el-checkbox>
