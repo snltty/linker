@@ -78,6 +78,9 @@ namespace linker.messenger.decenter
                     {
                         await Task.WhenAll(updates.Select(c =>
                         {
+                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                LoggerHelper.Instance.Debug($"decenter push {c.Name}");
+
                             return messengerSender.SendOnly(new MessageRequestWrap
                             {
                                 Connection = signInClientState.Connection,
@@ -104,6 +107,8 @@ namespace linker.messenger.decenter
                         MessageResponeInfo[] pulls = await Task.WhenAll(pullTasks.Select(c => c.Task)).ConfigureAwait(false);
                         foreach (var task in pullTasks.Where(c => c.Task.Result.Code == MessageResponeCodes.OK && c.Task.Result.Data.Span.SequenceEqual(Helper.FalseArray) == false))
                         {
+                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                LoggerHelper.Instance.Debug($"decenter pull {task.Decenter.Name}");
                             List<ReadOnlyMemory<byte>> list = serializer.Deserialize<List<ReadOnlyMemory<byte>>>(task.Task.Result.Data.Span);
                             task.Decenter.SetData(list);
                         }

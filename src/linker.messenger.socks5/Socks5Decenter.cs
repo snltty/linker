@@ -17,6 +17,8 @@ namespace linker.messenger.socks5
         private readonly ConcurrentDictionary<string, Socks5Info> socks5Infos = new ConcurrentDictionary<string, Socks5Info>();
         public ConcurrentDictionary<string, Socks5Info> Infos => socks5Infos;
 
+        private VersionManager listVersion = new VersionManager();
+
         private readonly SignInClientState signInClientState;
         private readonly TunnelProxy tunnelProxy;
         private readonly ISignInClientStore signInClientStore;
@@ -69,6 +71,7 @@ namespace linker.messenger.socks5
             Socks5Info info = serializer.Deserialize<Socks5Info>(data.Span);
             socks5Infos.AddOrUpdate(info.MachineId, info, (a, b) => info);
             DataVersion.Add();
+            listVersion.Add();
         }
         public void SetData(List<ReadOnlyMemory<byte>> data)
         {
@@ -79,6 +82,7 @@ namespace linker.messenger.socks5
                 item.LastTicks.Update();
             }
             DataVersion.Add();
+            listVersion.Add();
         }
 
 
@@ -87,7 +91,7 @@ namespace linker.messenger.socks5
             ulong version = 0;
             TimerHelper.SetIntervalLong(() =>
             {
-                if (DataVersion.Eq(version, out ulong _version) == false)
+                if (listVersion.Eq(version, out ulong _version) == false)
                 {
                     AddRoute();
                 }

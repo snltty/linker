@@ -69,7 +69,7 @@ namespace linker.tunnel.connection
     /// <summary>
     /// 隧道连接对象
     /// </summary>
-    public interface ITunnelConnection
+    public interface ITunnelConnection:IDisposable
     {
         /// <summary>
         /// 对方id

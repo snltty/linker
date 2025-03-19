@@ -18,6 +18,8 @@ namespace linker.messenger.tuntap
         public ConcurrentDictionary<string, TuntapInfo> Infos => tuntapInfos;
         public LinkerTunDeviceRouteItem[] Routes => routeItems;
 
+        private VersionManager listVersion = new VersionManager();
+
         private readonly SemaphoreSlim slim = new SemaphoreSlim(1);
         private readonly ConcurrentDictionary<string, TuntapInfo> tuntapInfos = new ConcurrentDictionary<string, TuntapInfo>();
         private LinkerTunDeviceRouteItem[] routeItems = new LinkerTunDeviceRouteItem[0];
@@ -84,18 +86,19 @@ namespace linker.messenger.tuntap
         {
             TuntapInfo info = GetCurrentInfo();
             tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            {
+                LoggerHelper.Instance.Debug($"tuntap decenter getdata");
+            }
             DataVersion.Add();
             return serializer.Serialize(info);
         }
         public void SetData(Memory<byte> data)
         {
             TuntapInfo info = serializer.Deserialize<TuntapInfo>(data.Span);
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            {
-                LoggerHelper.Instance.Debug($"tuntap got {info.IP}");
-            }
             tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
             DataVersion.Add();
+            listVersion.Add();
         }
         public void SetData(List<ReadOnlyMemory<byte>> data)
         {
@@ -105,6 +108,7 @@ namespace linker.messenger.tuntap
                 tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
             }
             DataVersion.Add();
+            listVersion.Add();
         }
 
         private void AddRouteTask()
@@ -112,7 +116,7 @@ namespace linker.messenger.tuntap
             ulong version = 0;
             TimerHelper.SetIntervalLong(() =>
             {
-                if (DataVersion.Eq(version, out ulong _version) == false)
+                if (listVersion.Eq(version, out ulong _version) == false)
                 {
                     AddRoute();
                 }

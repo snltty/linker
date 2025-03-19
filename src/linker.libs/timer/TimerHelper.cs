@@ -5,7 +5,31 @@ namespace linker.libs.timer
 {
     public static class TimerHelper
     {
-        private static HashedWheelTimer timer = new HashedWheelTimer(tickDuration: TimeSpan.FromMilliseconds(30), ticksPerWheel: 512, maxPendingTimeouts: 0);
+        /*
+       private static HashedWheelTimer timer = new HashedWheelTimer(tickDuration: TimeSpan.FromMilliseconds(30), ticksPerWheel: 512, maxPendingTimeouts: 0);
+       public static Timeout SetTimeout(Action action, int delayMs)
+       {
+           return timer.NewTimeout(new SetTimeout(action), TimeSpan.FromMilliseconds(delayMs));
+       }
+
+       public static void SetIntervalLong(Action action, int delayMs)
+       {
+           timer.NewTimeout(new SetInterval(action, delayMs), TimeSpan.FromMilliseconds(30));
+       }
+       public static void SetIntervalLong(Func<Task> action, int delayMs)
+       {
+           timer.NewTimeout(new SetIntervalAsync(action, delayMs), TimeSpan.FromMilliseconds(30));
+       }
+       public static void SetIntervalLong(Action action, Func<int> delay)
+       {
+           timer.NewTimeout(new SetInterval(action, delay), TimeSpan.FromMilliseconds(30));
+       }
+       public static void SetIntervalLong(Func<Task> action, Func<int> delay)
+       {
+           timer.NewTimeout(new SetIntervalAsync(action, delay), TimeSpan.FromMilliseconds(30));
+       }
+       */
+
 
         public static void SetTimeout(Action action, int delayMs)
         {
@@ -60,30 +84,7 @@ namespace linker.libs.timer
                 }
             });
         }
-        /*
-        public static Timeout SetTimeout(Action action, int delayMs)
-        {
-            return timer.NewTimeout(new SetTimeout(action), TimeSpan.FromMilliseconds(delayMs));
-        }
-
-        public static void SetIntervalLong(Action action, int delayMs)
-        {
-            timer.NewTimeout(new SetInterval(action, delayMs), TimeSpan.FromMilliseconds(30));
-        }
-        public static void SetIntervalLong(Func<Task> action, int delayMs)
-        {
-            timer.NewTimeout(new SetIntervalAsync(action, delayMs), TimeSpan.FromMilliseconds(30));
-        }
-        public static void SetIntervalLong(Action action, Func<int> delay)
-        {
-            timer.NewTimeout(new SetInterval(action, delay), TimeSpan.FromMilliseconds(30));
-        }
-        public static void SetIntervalLong(Func<Task> action, Func<int> delay)
-        {
-            timer.NewTimeout(new SetIntervalAsync(action, delay), TimeSpan.FromMilliseconds(30));
-        }
-        */
-
+       
         public static void Async(Action action)
         {
             Task.Run(action);
