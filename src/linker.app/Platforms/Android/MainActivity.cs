@@ -10,6 +10,10 @@ using AndroidX.Core.Content;
 using Java.IO;
 using Java.Nio;
 using Java.Nio.Channels;
+using linker.libs;
+using linker.messenger.entry;
+using System.Text;
+using System.Text.Json;
 
 namespace linker.app
 {
@@ -26,20 +30,8 @@ namespace linker.app
 
             base.OnCreate(savedInstanceState);
 
-            if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.BindVpnService) != Permission.Granted)
-            {
-                ActivityCompat.RequestPermissions(this, new string[] { Manifest.Permission.BindVpnService }, 0);
-            }
-
-            var intent = VpnService.Prepare(this);
-            if (intent != null)
-            {
-                StartActivityForResult(intent, VPN_RESULT_CODE);
-            }
-            else
-            {
-                OnActivityResult(VPN_RESULT_CODE, Result.Ok, null);
-            }
+            RunVpn();
+            RunLinker();
         }
 
         protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
@@ -57,6 +49,49 @@ namespace linker.app
         protected override void OnDestroy()
         {
             base.OnDestroy();
+        }
+
+        private void RunVpn()
+        {
+            if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.BindVpnService) != Permission.Granted)
+            {
+                ActivityCompat.RequestPermissions(this, new string[] { Manifest.Permission.BindVpnService }, 0);
+            }
+            var intent = VpnService.Prepare(this);
+            if (intent != null)
+            {
+                StartActivityForResult(intent, VPN_RESULT_CODE);
+            }
+            else
+            {
+                OnActivityResult(VPN_RESULT_CODE, Result.Ok, null);
+            }
+        }
+        private void RunLinker()
+        {
+            using var stream = FileSystem.OpenAppPackageFileAsync("snltty.pfx").Result;
+            using var fileStream = System.IO.File.Create(System.IO.Path.Join(FileSystem.Current.AppDataDirectory, "snltty.pfx"));
+            stream.CopyTo(fileStream);
+            stream.Close();
+            fileStream.Close();
+
+            LoggerHelper.Instance.OnLogger += (model) =>
+            {
+                string line = $"[{model.Type,-7}][{model.Time:yyyy-MM-dd HH:mm:ss}]:{model.Content}";
+                Android.Util.Log.Debug("linker", line);
+            };
+            Helper.currentDirectory = FileSystem.Current.AppDataDirectory;
+            Dictionary<string, string> dic = new Dictionary<string, string>();
+            dic["Client"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
+            {
+                CApi = new { ApiPort = 0, WebPort = 0 },
+                Servers = new object[] { new { Name = "linker", Host = "linker.snltty.com:1802", UserId = Guid.NewGuid().ToString() } },
+                Groups = new object[] { new { Name = "Linker", Id = "Linker", Password = "EFFBF3B7-05F5-DBB3-751E-E68F2849AA08" } }
+            }))); ;
+            dic["Common"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { Modes = new string[] { "client" }, LoggerType = 0 })));
+            LinkerMessengerEntry.Initialize();
+            LinkerMessengerEntry.Build();
+            LinkerMessengerEntry.Setup(ExcludeModule.None, dic);
         }
     }
 

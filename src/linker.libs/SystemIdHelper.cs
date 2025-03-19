@@ -7,9 +7,28 @@ namespace linker.libs
     {
         public static string GetSystemId()
         {
-            return OperatingSystem.IsWindows() ? GetSystemIdWindows() : OperatingSystem.IsLinux() ? GetSystemIdLinux() : GetSystemIdOSX();
+            if (OperatingSystem.IsWindows()) return GetSystemIdWindows();
+            if (OperatingSystem.IsLinux()) return GetSystemIdLinux();
+            if (OperatingSystem.IsAndroid()) return GetSystemIdAndroid();
+            if (OperatingSystem.IsMacOS()) return GetSystemIdOSX();
+
+            return string.Empty;
         }
 
+        private static string GetSystemIdAndroid()
+        {
+            string localAppDataPath = Path.Join(Helper.currentDirectory, "machine-id.txt");
+            if (Directory.Exists(Path.GetDirectoryName(localAppDataPath)) == false)
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(localAppDataPath));
+            }
+            if (File.Exists(localAppDataPath) == false)
+            {
+                File.WriteAllText(localAppDataPath, Guid.NewGuid().ToString());
+            }
+            string username = CommandHelper.Execute("whoami", string.Empty, [], out string error).TrimNewLineAndWhiteSapce();
+            return $"{File.ReadAllText(localAppDataPath)}↓{username}↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
+        }
         private static string GetSystemIdWindows()
         {
             string localAppDataPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Helper.GlobalString, "machine-id.txt");

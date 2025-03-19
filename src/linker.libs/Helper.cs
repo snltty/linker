@@ -13,6 +13,8 @@ namespace linker.libs
 
         public const string GlobalString = "snltty";
 
+        public static string currentDirectory = "./";
+
         public static async Task Await()
         {
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();

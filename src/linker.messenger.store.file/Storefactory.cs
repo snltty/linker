@@ -23,7 +23,9 @@ namespace linker.messenger.store.file
             bsonMapper.RegisterType<ITunnelConnection>(serialize: (a) => string.Empty, deserialize: (a) => null);
             bsonMapper.RegisterType<IConnection>(serialize: (a) => string.Empty, deserialize: (a) => null);
 
-            database = new LiteDatabase(new ConnectionString($"Filename=./configs/db.db; Password={Helper.GlobalString}; journal=false"), bsonMapper);
+            string db = Path.Join(Helper.currentDirectory, "./configs/db.db");
+
+            database = new LiteDatabase(new ConnectionString($"Filename={db}; Password={Helper.GlobalString}; journal=false"), bsonMapper);
 
             CheckpointTask();
         }

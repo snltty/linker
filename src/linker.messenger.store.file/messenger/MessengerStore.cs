@@ -1,5 +1,5 @@
 ﻿using linker.libs;
-using System.Diagnostics;
+using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 
 namespace linker.messenger.store.file.messenger
@@ -15,20 +15,24 @@ namespace linker.messenger.store.file.messenger
         public MessengerStore(FileConfig fileConfig)
         {
             this.fileConfig = fileConfig;
-
-            string path = Path.GetFullPath(SSL.File);
+            string path = Path.GetFullPath(Path.Join(Helper.currentDirectory, SSL.File));
+            if (SSL.Password == "oeq9tw1o")
+            {
+                SSL.Password = Helper.GlobalString;
+                fileConfig.Data.Update();
+            }
             if (File.Exists(path))
             {
-                if (SSL.Password == "oeq9tw1o") SSL.Password = "snltty";
-
                 certificate = new X509Certificate2(path, SSL.Password, X509KeyStorageFlags.Exportable);
             }
             else
             {
-                LoggerHelper.Instance.Error($"file {path} not found");
-               
-                Environment.Exit(0);
+                using Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"linker.messenger.store.file.{Helper.GlobalString}.pfx");
+                using MemoryStream memoryStream = new MemoryStream();
+                stream.CopyTo(memoryStream);
+                certificate = new X509Certificate2(memoryStream.ToArray(), Helper.GlobalString, X509KeyStorageFlags.Exportable);
             }
+
         }
     }
 }

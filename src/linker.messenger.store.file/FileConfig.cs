@@ -31,20 +31,19 @@ namespace linker.messenger.store.file
 
         private void Init()
         {
-            if (Directory.Exists(configPath) == false)
+            if (Directory.Exists(Path.Join(Helper.currentDirectory, configPath)) == false)
             {
-                Directory.CreateDirectory(configPath);
+                Directory.CreateDirectory(Path.Join(Helper.currentDirectory, configPath));
             }
 
             Type type = Data.GetType();
             Type typeAttr = typeof(JsonIgnoreAttribute);
             foreach (var item in type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(c => c.GetCustomAttribute(typeAttr) == null))
             {
-
                 object property = item.GetValue(Data);
                 fsDic.Add(item.Name.ToLower(), new FileReadWrite
                 {
-                    Path = Path.Join(configPath, $"{item.Name.ToLower()}.json"),
+                    Path = Path.Join(Helper.currentDirectory,configPath, $"{item.Name.ToLower()}.json"),
                     Property = item,
                     PropertyObject = property,
                     PropertyMethod = (IConfig)property,

@@ -37,6 +37,12 @@
 		<DebugType>embedded</DebugType>
 	</PropertyGroup>
 	<ItemGroup>
+	  <None Remove="snltty.pfx" />
+	</ItemGroup>
+	<ItemGroup>
+	  <EmbeddedResource Include="snltty.pfx" />
+	</ItemGroup>
+	<ItemGroup>
 	  <PackageReference Include="LiteDB" Version="5.0.17" />
 	</ItemGroup>
 	<ItemGroup>

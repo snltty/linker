@@ -6,9 +6,19 @@ namespace linker.messenger.logger
 {
     public static class Entry
     {
-        public static ServiceCollection AddLoggerClient(this ServiceCollection serviceCollection)
+        public static ServiceCollection AddLogger(this ServiceCollection serviceCollection)
+        {
+            return serviceCollection;
+        }
+        public static ServiceProvider UseLogger(this ServiceProvider serviceProvider)
         {
             LoggerConsole();
+            return serviceProvider;
+        }
+
+        public static ServiceCollection AddLoggerClient(this ServiceCollection serviceCollection)
+        {
+            
             serviceCollection.AddSingleton<LoggerApiController>();
             return serviceCollection;
         }
@@ -31,9 +41,9 @@ namespace linker.messenger.logger
 
         private static void LoggerConsole()
         {
-            if (Directory.Exists("logs") == false)
+            if (Directory.Exists(Path.Join(Helper.currentDirectory, "logs")) == false)
             {
-                Directory.CreateDirectory("logs");
+                Directory.CreateDirectory(Path.Join(Helper.currentDirectory, "logs"));
             }
             LoggerHelper.Instance.OnLogger += (model) =>
             {
@@ -60,7 +70,7 @@ namespace linker.messenger.logger
                 Console.ForegroundColor = currentForeColor;
                 try
                 {
-                    using StreamWriter sw = File.AppendText(Path.Combine("logs", $"{DateTime.Now:yyyy-MM-dd}.log"));
+                    using StreamWriter sw = File.AppendText(Path.Join(Helper.currentDirectory, "logs", $"{DateTime.Now:yyyy-MM-dd}.log"));
                     sw.WriteLine(line);
                     sw.Flush();
                     sw.Close();
@@ -72,7 +82,7 @@ namespace linker.messenger.logger
             };
             TimerHelper.SetIntervalLong(() =>
             {
-                string[] files = Directory.GetFiles("logs").OrderBy(c => c).ToArray();
+                string[] files = Directory.GetFiles(Path.Combine(Helper.currentDirectory, "logs")).OrderBy(c => c).ToArray();
                 for (int i = 0; i < files.Length - 180; i++)
                 {
                     try

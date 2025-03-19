@@ -10,8 +10,11 @@ namespace linker.messenger.signin
 
         public SignInClientState()
         {
-            AppDomain.CurrentDomain.ProcessExit += (s, e) => Disponse();
-            Console.CancelKeyPress += (s, e) => Disponse();
+            if(OperatingSystem.IsAndroid() == false)
+            {
+                AppDomain.CurrentDomain.ProcessExit += (s, e) => Disponse();
+                Console.CancelKeyPress += (s, e) => Disponse();
+            }
         }
 
         /// <summary>

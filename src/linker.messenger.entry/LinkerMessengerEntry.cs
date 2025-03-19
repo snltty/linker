@@ -18,6 +18,7 @@ using linker.messenger.updater;
 using linker.messenger.store.file;
 using linker.messenger.serializer.memorypack;
 using linker.libs;
+using System;
 
 namespace linker.messenger.entry
 {
@@ -40,6 +41,7 @@ namespace linker.messenger.entry
             serviceCollection = new ServiceCollection();
 
             serviceCollection
+                .AddLogger()
                 //日志
                 .AddLoggerClient()
                 //api接口和web
@@ -136,6 +138,8 @@ namespace linker.messenger.entry
             if (setuped.StartOperation() == false) return;
 
             ICommonStore commonStore = serviceProvider.GetService<ICommonStore>();
+
+            serviceProvider.UseLogger();
 
             serviceProvider.UseMessenger();
             if ((modules & ExcludeModule.StoreFile) != ExcludeModule.StoreFile)

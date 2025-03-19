@@ -136,6 +136,7 @@ namespace linker.libs
         static List<string> starts = new() { "10.", "100.", "192.168.", "172." };
         public static ushort GetRouteLevel(string server, out List<IPAddress> result)
         {
+            result = new List<IPAddress>();
             if (string.IsNullOrWhiteSpace(server) == false)
             {
                 server = server.Split(':')[0];
@@ -145,7 +146,11 @@ namespace linker.libs
             {
                 return GetRouteLevelWindows(server, out result);
             }
-            return GetRouteLevelLinux(server, out result);
+            else if (OperatingSystem.IsLinux())
+            {
+                return GetRouteLevelLinux(server, out result);
+            }
+            return 3;
         }
         private static ushort GetRouteLevelLinux(string server, out List<IPAddress> result)
         {

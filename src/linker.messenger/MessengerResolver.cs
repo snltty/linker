@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using linker.libs.extends;
+using System.Diagnostics;
 
 namespace linker.messenger
 {
@@ -218,6 +219,7 @@ namespace linker.messenger
         {
             MessageResponseWrap responseWrap = connection.ReceiveResponseWrap;
             MessageRequestWrap requestWrap = connection.ReceiveRequestWrap;
+            long start = Environment.TickCount64;
             try
             {
                 //回复的消息
@@ -225,6 +227,13 @@ namespace linker.messenger
                 {
                     responseWrap.FromArray(data);
                     messengerSender.Response(responseWrap);
+                    if (Environment.TickCount64 - start > 1000)
+                    {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        {
+                            LoggerHelper.Instance.Warning($"messenger response {responseWrap.RequestId} time {Environment.TickCount64 - start}ms");
+                        }
+                    }
                     return;
                 }
 
@@ -246,6 +255,7 @@ namespace linker.messenger
                     return;
                 }
 
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Warning($"messenger begin request {requestWrap.RequestId}");
                 if (plugin.VoidMethod != null)
                 {
                     plugin.VoidMethod(connection);
@@ -263,6 +273,13 @@ namespace linker.messenger
                         Payload = connection.ResponseData,
                         RequestId = requestWrap.RequestId
                     }, requestWrap.MessengerId).ConfigureAwait(false);
+                }
+                if (Environment.TickCount64 - start > 1000)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Warning($"messenger request {responseWrap.RequestId} time {Environment.TickCount64 - start}ms");
+                    }
                 }
             }
             catch (Exception ex)
