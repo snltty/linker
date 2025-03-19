@@ -11,7 +11,7 @@ namespace linker.messenger.decenter
         /// <summary>
         /// 同步版本，版本变化则同步
         /// </summary>
-        public VersionManager SyncVersion { get; }
+        public VersionManager PushVersion { get; }
         /// <summary>
         /// 数据版本，从收到数据则更新
         /// </summary>

@@ -8,7 +8,7 @@ namespace linker.messenger.pcp
     public sealed class PcpDecenter : IDecenter
     {
         public string Name => "pcp";
-        public VersionManager SyncVersion { get; } = new VersionManager();
+        public VersionManager PushVersion { get; } = new VersionManager();
         public VersionManager DataVersion { get; } = new VersionManager();
 
         private ConcurrentDictionary<string, List<string>> history = new ConcurrentDictionary<string, List<string>>();
@@ -23,7 +23,7 @@ namespace linker.messenger.pcp
             this.pcpStore = pcpStore;
             this.serializer = serializer;
 
-            signInClientState.OnSignInSuccess += (times) => SyncVersion.Add();
+            signInClientState.OnSignInSuccess += (times) => PushVersion.Increment();
         }
 
         public List<string> GetNodes(string fromMachineId, string toMachineId)

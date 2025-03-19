@@ -68,7 +68,7 @@ namespace linker.messenger.flow
             }
             ReceiveBytes += bytes;
             messengerFlowItemInfo.ReceiveBytes += bytes;
-            Version.Add();
+            Version.Increment();
         }
         public void AddSendt(ushort id, long bytes)
         {
@@ -79,7 +79,7 @@ namespace linker.messenger.flow
             }
             SendtBytes += bytes;
             messengerFlowItemInfo.SendtBytes += bytes;
-            Version.Add();
+            Version.Increment();
         }
 
         public Dictionary<ushort, FlowItemInfo> GetFlows()

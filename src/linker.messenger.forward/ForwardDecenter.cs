@@ -8,7 +8,7 @@ namespace linker.messenger.forward
     public sealed class ForwardDecenter : IDecenter
     {
         public string Name => "forward";
-        public VersionManager SyncVersion { get; } = new VersionManager();
+        public VersionManager PushVersion { get; } = new VersionManager();
         public VersionManager DataVersion { get; } = new VersionManager();
         public ConcurrentDictionary<string, int> CountDic { get; } = new ConcurrentDictionary<string, int>();
 
@@ -31,14 +31,14 @@ namespace linker.messenger.forward
         {
             ForwardCountInfo info = new ForwardCountInfo { MachineId = signInClientStore.Id, Count = forwardTransfer.Count };
             CountDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
-            DataVersion.Add();
+            DataVersion.Increment();
             return serializer.Serialize(info);
         }
         public void SetData(Memory<byte> data)
         {
             ForwardCountInfo info = serializer.Deserialize<ForwardCountInfo>(data.Span);
             CountDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
-            DataVersion.Add();
+            DataVersion.Increment();
         }
         public void SetData(List<ReadOnlyMemory<byte>> data)
         {
@@ -47,11 +47,11 @@ namespace linker.messenger.forward
             {
                 CountDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
             }
-            DataVersion.Add();
+            DataVersion.Increment();
         }
         public void Refresh()
         {
-            SyncVersion.Add();
+            PushVersion.Increment();
         }
     }
 }

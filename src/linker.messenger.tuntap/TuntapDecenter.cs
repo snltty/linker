@@ -13,7 +13,7 @@ namespace linker.messenger.tuntap
     public sealed class TuntapDecenter : IDecenter
     {
         public string Name => "tuntap";
-        public VersionManager SyncVersion { get; } = new VersionManager();
+        public VersionManager PushVersion { get; } = new VersionManager();
         public VersionManager DataVersion { get; } = new VersionManager();
         public ConcurrentDictionary<string, TuntapInfo> Infos => tuntapInfos;
         public LinkerTunDeviceRouteItem[] Routes => routeItems;
@@ -59,7 +59,7 @@ namespace linker.messenger.tuntap
 
         public void Refresh()
         {
-            SyncVersion.Add();
+            PushVersion.Increment();
         }
 
         private TuntapInfo GetCurrentInfo()
@@ -90,15 +90,15 @@ namespace linker.messenger.tuntap
             {
                 LoggerHelper.Instance.Debug($"tuntap decenter getdata");
             }
-            DataVersion.Add();
+            DataVersion.Increment();
             return serializer.Serialize(info);
         }
         public void SetData(Memory<byte> data)
         {
             TuntapInfo info = serializer.Deserialize<TuntapInfo>(data.Span);
             tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
-            DataVersion.Add();
-            listVersion.Add();
+            DataVersion.Increment();
+            listVersion.Increment();
         }
         public void SetData(List<ReadOnlyMemory<byte>> data)
         {
@@ -107,8 +107,8 @@ namespace linker.messenger.tuntap
             {
                 tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
             }
-            DataVersion.Add();
-            listVersion.Add();
+            DataVersion.Increment();
+            listVersion.Increment();
         }
 
         private void AddRouteTask()

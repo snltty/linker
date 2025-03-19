@@ -12,7 +12,7 @@ namespace linker.messenger.socks5
     public sealed class Socks5Decenter : IDecenter
     {
         public string Name => "socks5";
-        public VersionManager SyncVersion { get; } = new VersionManager();
+        public VersionManager PushVersion { get; } = new VersionManager();
         public VersionManager DataVersion { get; } = new VersionManager();
         private readonly ConcurrentDictionary<string, Socks5Info> socks5Infos = new ConcurrentDictionary<string, Socks5Info>();
         public ConcurrentDictionary<string, Socks5Info> Infos => socks5Infos;
@@ -50,7 +50,7 @@ namespace linker.messenger.socks5
         /// </summary>
         public void Refresh()
         {
-            SyncVersion.Add();
+            PushVersion.Increment();
         }
         public Memory<byte> GetData()
         {
@@ -63,15 +63,15 @@ namespace linker.messenger.socks5
                 SetupError = tunnelProxy.Error
             };
             socks5Infos.AddOrUpdate(info.MachineId, info, (a, b) => info);
-            DataVersion.Add();
+            DataVersion.Increment();
             return serializer.Serialize(info);
         }
         public void SetData(Memory<byte> data)
         {
             Socks5Info info = serializer.Deserialize<Socks5Info>(data.Span);
             socks5Infos.AddOrUpdate(info.MachineId, info, (a, b) => info);
-            DataVersion.Add();
-            listVersion.Add();
+            DataVersion.Increment();
+            listVersion.Increment();
         }
         public void SetData(List<ReadOnlyMemory<byte>> data)
         {
@@ -81,8 +81,8 @@ namespace linker.messenger.socks5
                 socks5Infos.AddOrUpdate(item.MachineId, item, (a, b) => item);
                 item.LastTicks.Update();
             }
-            DataVersion.Add();
-            listVersion.Add();
+            DataVersion.Increment();
+            listVersion.Increment();
         }
 
 

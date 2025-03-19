@@ -57,7 +57,7 @@ namespace linker.messenger.channel
             {
                 connections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
             }
-            Version.Add();
+            Version.Increment();
             Connected(connection);
 
             pcpTransfer.AddConnection(connection);
@@ -197,7 +197,7 @@ namespace linker.messenger.channel
                 catch (Exception)
                 {
                 }
-                Version.Add();
+                Version.Increment();
             }
         }
     }

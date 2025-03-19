@@ -6,7 +6,7 @@ namespace linker.messenger.decenter
 {
     public sealed class DecenterClientTransfer
     {
-        private List<IDecenter> syncs = new List<IDecenter>();
+        private List<IDecenter> decenters = new List<IDecenter>();
 
         private readonly IMessengerSender messengerSender;
         private readonly SignInClientState signInClientState;
@@ -17,8 +17,7 @@ namespace linker.messenger.decenter
             this.signInClientState = signInClientState;
             this.serializer = serializer;
 
-
-            SyncTask();
+            signInClientState.NetworkFirstEnabledHandle += SyncTask;
         }
 
         /// <summary>
@@ -28,7 +27,7 @@ namespace linker.messenger.decenter
         public void AddDecenters(List<IDecenter> list)
         {
             LoggerHelper.Instance.Info($"add decenter {string.Join(",", list.Select(c => c.GetType().Name))}");
-            syncs = syncs.Concat(list).Distinct().ToList();
+            decenters = decenters.Concat(list).Distinct().ToList();
         }
 
         /// <summary>
@@ -38,7 +37,7 @@ namespace linker.messenger.decenter
         /// <returns></returns>
         public Memory<byte> Sync(DecenterSyncInfo decenterSyncInfo)
         {
-            IDecenter sync = syncs.FirstOrDefault(c => c.Name == decenterSyncInfo.Name);
+            IDecenter sync = decenters.FirstOrDefault(c => c.Name == decenterSyncInfo.Name);
             if (sync != null)
             {
                 sync.SetData(decenterSyncInfo.Data);
@@ -52,7 +51,7 @@ namespace linker.messenger.decenter
         /// <param name="decenterSyncInfo"></param>
         public void Notify(DecenterSyncInfo decenterSyncInfo)
         {
-            IDecenter sync = syncs.FirstOrDefault(c => c.Name == decenterSyncInfo.Name);
+            IDecenter sync = decenters.FirstOrDefault(c => c.Name == decenterSyncInfo.Name);
             if (sync != null)
             {
                 sync.SetData(decenterSyncInfo.Data);
@@ -61,19 +60,16 @@ namespace linker.messenger.decenter
 
         private void SyncTask()
         {
-            signInClientState.NetworkFirstEnabledHandle += () =>
+            foreach (IDecenter item in decenters)
             {
-                foreach (IDecenter item in syncs)
-                {
-                    item.SyncVersion.Add();
-                }
-            };
+                item.PushVersion.Increment();
+            }
             TimerHelper.SetIntervalLong(async () =>
             {
                 if (signInClientState.Connected == false) return;
                 try
                 {
-                    List<IDecenter> updates = syncs.Where(c => c.SyncVersion.Reset()).ToList();
+                    List<IDecenter> updates = decenters.Where(c => c.PushVersion.Restore()).ToList();
                     if (updates.Any())
                     {
                         await Task.WhenAll(updates.Select(c =>
@@ -100,7 +96,7 @@ namespace linker.messenger.decenter
                                     Connection = signInClientState.Connection,
                                     MessengerId = (ushort)DecenterMessengerIds.Pull,
                                     Payload = serializer.Serialize(c.Name),
-                                    Timeout = 60000
+                                    Timeout = 3000
                                 })
                             };
                         }).ToList();

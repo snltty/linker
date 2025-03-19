@@ -63,7 +63,7 @@ namespace linker.messenger.updater
             if (string.IsNullOrWhiteSpace(info.MachineId) == false)
             {
                 updateInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
-                Version.Add();
+                Version.Increment();
             }
         }
 

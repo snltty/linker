@@ -83,7 +83,7 @@ namespace linker.messenger.tuntap
 
                 if (ip.Equals(Info.IP) == false || prefixLength != Info.PrefixLength || string.Equals(name, Info.Name) == false)
                 {
-                    Version.Add();
+                    Version.Increment();
                 }
 
                 OnUpdate();
@@ -111,7 +111,7 @@ namespace linker.messenger.tuntap
 
             if ((oldIP.Equals(Info.IP) == false || prefixLength != Info.PrefixLength) && Info.Running)
             {
-                Version.Add();
+                Version.Increment();
             }
 
             OnUpdate();

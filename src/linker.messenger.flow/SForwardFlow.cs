@@ -71,7 +71,7 @@ namespace linker.messenger.flow
             }
             ReceiveBytes += bytes;
             messengerFlowItemInfo.ReceiveBytes += bytes;
-            Version.Add();
+            Version.Increment();
         }
         public void AddSendt(string key, string groupid, long bytes)
         {
@@ -82,7 +82,7 @@ namespace linker.messenger.flow
             }
             SendtBytes += bytes;
             messengerFlowItemInfo.SendtBytes += bytes;
-            Version.Add();
+            Version.Increment();
         }
         public SForwardFlowResponseInfo GetFlows(SForwardFlowRequestInfo info)
         {

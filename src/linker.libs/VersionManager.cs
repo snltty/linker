@@ -20,7 +20,7 @@ namespace linker.libs
             return outsideVersion < version;
         }
 
-        public void Add()
+        public void Increment()
         {
             if (Interlocked.Increment(ref version) > ulong.MaxValue - ushort.MaxValue)
             {
@@ -28,7 +28,7 @@ namespace linker.libs
             }
         }
 
-        public bool Reset()
+        public bool Restore()
         {
             return Interlocked.Exchange(ref version, 0) > 0;
         }

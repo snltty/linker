@@ -70,7 +70,7 @@ namespace linker.messenger.tuntap
         public async Task Closed(ITunnelConnection connection, object state)
         {
             await Callback.Close(connection).ConfigureAwait(false);
-            Version.Add();
+            Version.Increment();
         }
 
         /// <summary>

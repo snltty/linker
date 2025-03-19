@@ -11,7 +11,7 @@ namespace linker.messenger.tunnel
     public sealed class TunnelDecenter : IDecenter
     {
         public string Name => "tunnel";
-        public VersionManager SyncVersion { get; } = new VersionManager();
+        public VersionManager PushVersion { get; } = new VersionManager();
         public VersionManager DataVersion { get; } = new VersionManager();
         public ConcurrentDictionary<string, TunnelRouteLevelInfo> Config { get; } = new ConcurrentDictionary<string, TunnelRouteLevelInfo>();
 
@@ -31,20 +31,20 @@ namespace linker.messenger.tunnel
         }
         public void Refresh()
         {
-            SyncVersion.Add();
+            PushVersion.Increment();
         }
         public Memory<byte> GetData()
         {
             TunnelRouteLevelInfo tunnelTransportRouteLevelInfo = GetLocalRouteLevel();
             Config.AddOrUpdate(tunnelTransportRouteLevelInfo.MachineId, tunnelTransportRouteLevelInfo, (a, b) => tunnelTransportRouteLevelInfo);
-            DataVersion.Add();
+            DataVersion.Increment();
             return serializer.Serialize(tunnelTransportRouteLevelInfo);
         }
         public void SetData(Memory<byte> data)
         {
             TunnelRouteLevelInfo tunnelTransportRouteLevelInfo = serializer.Deserialize<TunnelRouteLevelInfo>(data.Span);
             Config.AddOrUpdate(tunnelTransportRouteLevelInfo.MachineId, tunnelTransportRouteLevelInfo, (a, b) => tunnelTransportRouteLevelInfo);
-            DataVersion.Add();
+            DataVersion.Increment();
         }
         public void SetData(List<ReadOnlyMemory<byte>> data)
         {
@@ -55,7 +55,7 @@ namespace linker.messenger.tunnel
             }
             TunnelRouteLevelInfo config = GetLocalRouteLevel();
             Config.AddOrUpdate(config.MachineId, config, (a, b) => config);
-            DataVersion.Add();
+            DataVersion.Increment();
         }
 
         private TunnelRouteLevelInfo GetLocalRouteLevel()

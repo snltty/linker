@@ -8,7 +8,7 @@ namespace linker.messenger.access
     public sealed class AccessDecenter : IDecenter
     {
         public string Name => "access";
-        public VersionManager SyncVersion { get; } = new VersionManager();
+        public VersionManager PushVersion { get; } = new VersionManager();
         public VersionManager DataVersion { get; } = new VersionManager();
 
         /// <summary>
@@ -25,8 +25,8 @@ namespace linker.messenger.access
             this.accessStore = accessStore;
             this.serializer = serializer;
 
-            signInClientState.OnSignInSuccess += (times) => SyncVersion.Add();
-            accessStore.OnChanged += SyncVersion.Add;
+            signInClientState.OnSignInSuccess += (times) => PushVersion.Increment();
+            accessStore.OnChanged += PushVersion.Increment;
            
         }
         /// <summary>
@@ -34,20 +34,20 @@ namespace linker.messenger.access
         /// </summary>
         public void Refresh()
         {
-            SyncVersion.Add();
+            PushVersion.Increment();
         }
         public Memory<byte> GetData()
         {
             AccessInfo info = new AccessInfo { MachineId = signInClientStore.Id, Access = accessStore.Access };
             Accesss[info.MachineId] = info.Access;
-            DataVersion.Add();
+            DataVersion.Increment();
             return serializer.Serialize(info);
         }
         public void SetData(Memory<byte> data)
         {
             AccessInfo access = serializer.Deserialize<AccessInfo>(data.Span);
             Accesss[access.MachineId] = access.Access;
-            DataVersion.Add();
+            DataVersion.Increment();
         }
         public void SetData(List<ReadOnlyMemory<byte>> data)
         {
@@ -56,7 +56,7 @@ namespace linker.messenger.access
             {
                 Accesss[item.MachineId] = item.Access;
             }
-            DataVersion.Add();
+            DataVersion.Increment();
         }
     }
 }

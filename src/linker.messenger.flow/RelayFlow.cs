@@ -20,8 +20,8 @@ namespace linker.messenger.flow
         public void SetBytes(long receiveBytes, long sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
         public void Clear() { ReceiveBytes = 0; SendtBytes = 0; }
 
-        public void AddReceive(long bytes) { ReceiveBytes += bytes; Version.Add(); }
-        public void AddSendt(long bytes) { SendtBytes += bytes; Version.Add(); }
+        public void AddReceive(long bytes) { ReceiveBytes += bytes; Version.Increment(); }
+        public void AddSendt(long bytes) { SendtBytes += bytes; Version.Increment(); }
 
     }
 
@@ -115,7 +115,7 @@ namespace linker.messenger.flow
             }
             ReceiveBytes += bytes;
             messengerFlowItemInfo.ReceiveBytes += bytes;
-            Version.Add();
+            Version.Increment();
         }
         public void AddSendt(string key, string from, string to, string groupid, long bytes)
         {
@@ -126,7 +126,7 @@ namespace linker.messenger.flow
             }
             SendtBytes += bytes;
             messengerFlowItemInfo.SendtBytes += bytes;
-            Version.Add();
+            Version.Increment();
         }
 
         public void AddReceive(string key, long bytes)
@@ -135,7 +135,7 @@ namespace linker.messenger.flow
             {
                 ReceiveBytes += bytes;
                 messengerFlowItemInfo.ReceiveBytes += bytes;
-                Version.Add();
+                Version.Increment();
             }
 
         }
@@ -145,7 +145,7 @@ namespace linker.messenger.flow
             {
                 SendtBytes += bytes;
                 messengerFlowItemInfo.SendtBytes += bytes;
-                Version.Add();
+                Version.Increment();
             }
 
         }

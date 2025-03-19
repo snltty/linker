@@ -78,7 +78,7 @@ namespace linker.messenger.forward.proxy
         /// <returns></returns>
         public async Task Closed(ITunnelConnection connection, object userToken)
         {
-            Version.Add();
+            Version.Increment();
             await Task.CompletedTask.ConfigureAwait(false);
         }
 
@@ -140,7 +140,7 @@ namespace linker.messenger.forward.proxy
             StopPort(ep.Port);
             Start(ep, bufferSize);
             caches.TryAdd(LocalEndpoint.Port, new ForwardProxyCacheInfo { Port = LocalEndpoint.Port, TargetEP = targetEP, MachineId = machineId });
-            Version.Add();
+            Version.Increment();
         }
         /// <summary>
         /// 关闭转发
@@ -150,7 +150,7 @@ namespace linker.messenger.forward.proxy
         {
             caches.TryRemove(port, out ForwardProxyCacheInfo cache);
             Stop(port);
-            Version.Add();
+            Version.Increment();
         }
 
         public sealed class ForwardProxyCacheInfo

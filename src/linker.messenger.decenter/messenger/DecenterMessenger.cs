@@ -44,7 +44,7 @@ namespace linker.messenger.decenter
                 }
                 cache.Data = info.Data;
                 cache.SignIn = signin;
-                cache.Version.Add();
+                cache.Version.Increment();
             }
 
             Memory<byte> memory = serializer.Serialize(info);

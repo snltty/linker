@@ -8,7 +8,7 @@ namespace linker.messenger.sforward.client
     public sealed class SForwardDecenter : IDecenter
     {
         public string Name => "sforward";
-        public VersionManager SyncVersion { get; } = new VersionManager();
+        public VersionManager PushVersion { get; } = new VersionManager();
         public VersionManager DataVersion { get; } = new VersionManager();
         public ConcurrentDictionary<string, int> CountDic { get; } = new ConcurrentDictionary<string, int>();
 
@@ -25,21 +25,21 @@ namespace linker.messenger.sforward.client
 
         public void Refresh()
         {
-            SyncVersion.Add();
+            PushVersion.Increment();
         }
 
         public Memory<byte> GetData()
         {
             SForwardCountInfo info = new SForwardCountInfo { MachineId = signInClientStore.Id, Count = sForwardClientStore.Count() };
             CountDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
-            DataVersion.Add();
+            DataVersion.Increment();
             return serializer.Serialize(info);
         }
         public void SetData(Memory<byte> data)
         {
             SForwardCountInfo info = serializer.Deserialize<SForwardCountInfo>(data.Span);
             CountDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
-            DataVersion.Add();
+            DataVersion.Increment();
         }
         public void SetData(List<ReadOnlyMemory<byte>> data)
         {
@@ -48,7 +48,7 @@ namespace linker.messenger.sforward.client
             {
                 CountDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
             }
-            DataVersion.Add();
+            DataVersion.Increment();
         }
     }
 

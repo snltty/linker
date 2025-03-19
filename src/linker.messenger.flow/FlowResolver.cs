@@ -114,7 +114,7 @@ namespace linker.messenger.flow
 
             ReceiveBytes = online | total;
             SendtBytes = servers.Count;
-            Version.Add();
+            Version.Increment();
         }
         private void Report()
         {

@@ -59,7 +59,7 @@ namespace linker.messenger.tuntap
                     using Ping ping = new Ping();
                     PingReply pingReply = await ping.SendPingAsync(c.IP, 500).ConfigureAwait(false);
                     c.Delay = pingReply.Status == IPStatus.Success ? (int)pingReply.RoundtripTime : -1;
-                    tuntapDecenter.DataVersion.Add();
+                    tuntapDecenter.DataVersion.Increment();
                 })).ConfigureAwait(false);
             }
         }
