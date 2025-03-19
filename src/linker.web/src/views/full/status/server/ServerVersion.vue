@@ -39,9 +39,6 @@ export default {
         const globalData = injectGlobalData();
         const hasUpdateServer = computed(()=>globalData.value.hasAccess('UpdateServer')); 
         const updaterServer = ref({Version: '', Status: 0, Length: 0, Current: 0,Msg:[],DateTime:''});
-        const updaterMsg = computed(()=>{
-            return `${updaterServer.value.Version}->${updaterServer.value.DateTime}\n${updaterServer.value.Msg.map((value,index)=>`${index+1}、${value}`).join('\n')}`;
-        });
 
         const state = reactive({
             show: false,
@@ -76,8 +73,8 @@ export default {
             }
             if(updaterServer.value.Status <= 2) {
                 return state.version != updaterServer.value.Version  
-                ? `${t('status.serverNotNew')}(${updaterServer.value.Version})\n${updaterMsg.value}` 
-                : `${t('status.serverNew')}\n${updaterMsg.value}`
+                ? `${t('status.serverNotNew')}(${updaterServer.value.Version})` 
+                : `${t('status.serverNew')}`
             }
             return {
                 3:t('status.serverDownloading'),

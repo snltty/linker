@@ -57,8 +57,8 @@ export default {
                 return props.item.Version != serverVersion.value 
                 ? `与服务器版本(${serverVersion.value})不一致，建议更新` 
                 : updaterVersion.value != props.item.Version 
-                    ? `不是最新版本(${updaterVersion.value})，建议更新\n${updaterMsg.value}` 
-                    : `是最新版本，但我无法阻止你喜欢更新\n${updaterMsg.value}`
+                    ? `不是最新版本(${updaterVersion.value})，建议更新` 
+                    : `是最新版本，但我无法阻止你喜欢更新`
             }
             return {
                 3:'正在下载',

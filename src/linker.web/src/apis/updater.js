@@ -27,6 +27,9 @@ export const getUpdaterCurrent = () => {
 export const getUpdaterServer = () => {
     return sendWebsocketMsg('updater/getserver');
 }
+export const getUpdaterMsg = () => {
+    return sendWebsocketMsg('updater/getmsg');
+}
 export const confirmServer = (version) => {
     return sendWebsocketMsg('updater/confirmserver', version);
 }

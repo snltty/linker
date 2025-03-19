@@ -1,30 +1,40 @@
 <template>
-    <el-dialog class="options-center" title="更新" destroy-on-close v-model="state.show" width="24rem" top="2vh">
+    <el-dialog class="options-center" title="更新" destroy-on-close v-model="state.show" width="40rem" top="2vh">
         <div class="updater-wrap t-c">
-            <div>
-                <el-select v-model="state.type" size="large">
-                    <el-option v-for="item in state.types" :key="item.value" :label="item.label" :value="item.value" />
-                </el-select>
+            <div class="t-l">
+                <ul>
+                    <li v-for="item in state.msg">{{ item }}</li>
+                </ul>
             </div>
-            <div style="margin-top:1rem">
-                <el-select v-model="state.version" size="large" filterable allow-create default-first-option>
-                    <el-option v-for="item in state.versions" :key="item.value" :label="item.label" :value="item.value" />
-                </el-select>
+            <div class="flex mgt-1">
+                <el-row class="w-100">
+                    <el-col :span="10">
+                        <el-select v-model="state.type" size="large">
+                            <el-option v-for="item in state.types" :key="item.value" :label="item.label" :value="item.value" />
+                        </el-select>
+                    </el-col>
+                    <el-col :span="4">
+                        ->
+                    </el-col>
+                    <el-col :span="10">
+                        <el-select v-model="state.version" size="large" filterable allow-create default-first-option>
+                            <el-option v-for="item in state.versions" :key="item.value" :label="item.label" :value="item.value" />
+                        </el-select>
+                    </el-col>
+                </el-row>
             </div>
-        </div>
-        <template #footer>
-            <div class="t-c">
+            <div class="mgt-1 t-c">
                 <el-button type="success" @click="handleUpdate" plain>确 定</el-button>
             </div>
-        </template>
+            
+        </div>
     </el-dialog>
 </template>
 
 <script>
 import { injectGlobalData } from '@/provide';
-import { computed, reactive, watch } from 'vue';
-import {  ElSelect } from 'element-plus';
-import { confirm } from '@/apis/updater';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { confirm, getUpdaterMsg } from '@/apis/updater';
 import { useUpdater } from './updater';
 
 export default {
@@ -38,7 +48,7 @@ export default {
         const updater = useUpdater();
         const serverVersion = computed(()=>globalData.value.signin.Version);
         const updaterVersion = computed(()=>updater.value.current.Version);
-        
+
         const types = [
                 {label:`仅【${updater.value.device.MachineName}】`,value:updater.value.device.MachineId},
                 hasUpdateOther.value ? {label:`本组所有`,value:'g-all'} : {},
@@ -53,7 +63,8 @@ export default {
             type:types[0] || '',
             version:versions[0] || '',
             types:types,
-            versions:versions
+            versions:versions,
+            msg:[]
         });
         
         watch(() => state.show, (val) => {
@@ -78,6 +89,13 @@ export default {
             });
             state.show = false;
         }
+
+        onMounted(()=>{
+            getUpdaterMsg().then((res)=>{
+                state.msg = res.Msg;
+            });
+        });
+
         return {
             state,updater,handleUpdate
         }

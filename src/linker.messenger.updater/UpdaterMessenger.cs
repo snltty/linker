@@ -106,6 +106,21 @@ namespace linker.messenger.updater
         [MessengerId((ushort)UpdaterMessengerIds.UpdateServer)]
         public void UpdateServer(IConnection connection)
         {
+            var info = updaterServerTransfer.Get();
+            UpdaterInfo result = new UpdaterInfo
+            {
+                Current = info.Current,
+                DateTime = info.DateTime,
+                Length = info.Length,
+                MachineId = info.MachineId,
+                Status = info.Status,
+                Version = info.Version
+            };
+            connection.Write(serializer.Serialize(result));
+        }
+        [MessengerId((ushort)UpdaterMessengerIds.Msg)]
+        public void Msg(IConnection connection)
+        {
             connection.Write(serializer.Serialize(updaterServerTransfer.Get()));
         }
         /// <summary>

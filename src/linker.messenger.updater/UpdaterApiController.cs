@@ -5,7 +5,7 @@ using linker.messenger.signin;
 
 namespace linker.messenger.updater
 {
-    public sealed class UpdaterApiController :IApiController
+    public sealed class UpdaterApiController : IApiController
     {
         private readonly IMessengerSender messengerSender;
         private readonly UpdaterClientTransfer updaterTransfer;
@@ -15,7 +15,7 @@ namespace linker.messenger.updater
         private readonly ISerializer serializer;
         private readonly IUpdaterClientStore updaterClientStore;
 
-        public UpdaterApiController(IMessengerSender messengerSender, UpdaterClientTransfer updaterTransfer, SignInClientState signInClientState, ISignInClientStore signInClientStore, 
+        public UpdaterApiController(IMessengerSender messengerSender, UpdaterClientTransfer updaterTransfer, SignInClientState signInClientState, ISignInClientStore signInClientStore,
             IUpdaterCommonStore updaterCommonTransfer, ISerializer serializer, IUpdaterClientStore updaterClientStore)
         {
             this.messengerSender = messengerSender;
@@ -47,6 +47,19 @@ namespace linker.messenger.updater
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)UpdaterMessengerIds.UpdateServer,
+            }).ConfigureAwait(false);
+            if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
+            {
+                return serializer.Deserialize<UpdaterInfo>(resp.Data.Span);
+            }
+            return new UpdaterInfo();
+        }
+        public async Task<UpdaterInfo> GetMsg(ApiControllerParamsInfo param)
+        {
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)UpdaterMessengerIds.Msg,
             }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
@@ -148,7 +161,7 @@ namespace linker.messenger.updater
         }
         public async Task Check(ApiControllerParamsInfo param)
         {
-            if(param.Content != signInClientStore.Id)
+            if (param.Content != signInClientStore.Id)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -157,7 +170,7 @@ namespace linker.messenger.updater
                     Payload = string.IsNullOrWhiteSpace(param.Content) ? Helper.EmptyArray : serializer.Serialize(param.Content)
                 }).ConfigureAwait(false);
             }
-            
+
             if (string.IsNullOrWhiteSpace(param.Content) || param.Content == signInClientStore.Id)
             {
                 updaterTransfer.Check();
@@ -165,5 +178,5 @@ namespace linker.messenger.updater
         }
     }
 
-  
+
 }

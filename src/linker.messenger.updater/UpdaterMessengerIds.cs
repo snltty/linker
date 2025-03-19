@@ -23,6 +23,8 @@
         Check = 2612,
         CheckForward = 2613,
 
+        Msg = 2614,
+
         Max = 2299
     }
 }
