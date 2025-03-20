@@ -23,7 +23,7 @@ namespace linker.messenger.store.file.messenger
             }
             if (File.Exists(path))
             {
-                certificate = new X509Certificate2(path, SSL.Password, X509KeyStorageFlags.Exportable);
+                certificate = new X509Certificate2(path, SSL.Password, X509KeyStorageFlags.Exportable | X509KeyStorageFlags.DefaultKeySet);
             }
             else
             {

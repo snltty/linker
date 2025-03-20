@@ -133,10 +133,4 @@
 	  <ProjectReference Include="..\linker.messenger.entry\linker.messenger.entry.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <MauiAsset Update="Resources\Raw\snltty.pfx">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </MauiAsset>
-	</ItemGroup>
-
 </Project>

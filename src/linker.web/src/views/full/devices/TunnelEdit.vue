@@ -1,5 +1,5 @@
 <template>
-     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" :title="`设置[${state.machineName}]网关`" width="760" top="2vh">
+     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" :title="`设置[${state.machineName}]网关`" width="560" top="2vh">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="auto">
                 <el-form-item label="" prop="alert">
@@ -7,22 +7,26 @@
                 </el-form-item>
                 <el-form-item label="">
                     <el-row>
-                        <el-col :span="5">
+                        <el-col :span="12">
                             <el-form-item label="网关层级" prop="RouteLevel">
-                                <el-input readonly v-model="state.ruleForm.RouteLevel" style="width:6rem" /> + 
+                                <el-input readonly v-model="state.ruleForm.RouteLevel" style="width:15rem" />
                             </el-form-item>
                         </el-col>
-                        <el-col :span="5">
-                            <el-form-item label="" prop="RouteLevelPlus">
+                        <el-col :span="12">
+                            <el-form-item label="加上" prop="RouteLevelPlus">
                                 <el-input-number v-model="state.ruleForm.RouteLevelPlus" />
                             </el-form-item>
                         </el-col>
-                        <el-col :span="7">
+                    </el-row>
+                </el-form-item>
+                <el-form-item label="">
+                    <el-row>
+                        <el-col :span="12">
                             <el-form-item label="外网端口" prop="PortMapWan">
                                 <el-input-number v-model="state.ruleForm.PortMapWan" />
                             </el-form-item>
                         </el-col>
-                        <el-col :span="7">
+                        <el-col :span="12">
                             <el-form-item label="内网端口" prop="PortMapLan">
                                 <el-input-number v-model="state.ruleForm.PortMapLan" />
                             </el-form-item>

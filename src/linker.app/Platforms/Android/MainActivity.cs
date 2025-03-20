@@ -3,15 +3,22 @@ using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.Net;
+using Android.Nfc;
 using Android.OS;
 using Android.Views;
 using AndroidX.Core.App;
 using AndroidX.Core.Content;
 using Java.IO;
+using Java.Net;
 using Java.Nio;
 using Java.Nio.Channels;
 using linker.libs;
 using linker.messenger.entry;
+using linker.messenger.tuntap;
+using linker.tun;
+using linker.tunnel.connection;
+using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 
@@ -30,8 +37,7 @@ namespace linker.app
 
             base.OnCreate(savedInstanceState);
 
-            RunVpn();
-            RunLinker();
+            ConfigureVpn();
         }
 
         protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
@@ -39,8 +45,19 @@ namespace linker.app
             base.OnActivityResult(requestCode, resultCode, data);
             if (requestCode == VPN_RESULT_CODE && resultCode == Result.Ok)
             {
-                StartService(new Intent(this, typeof(VpnServiceLinker)));
+                //StartService(new Intent(this, typeof(VpnServiceLinker)));
             }
+            /*
+            intent = new Intent(Android.App.Application.Context,typeof(VpnServiceLinker));
+            if (OperatingSystem.IsAndroidVersionAtLeast(26))
+            {
+                Android.App.Application.Context.StartForegroundService(intent);
+            }
+            else
+            {
+                Android.App.Application.Context.StartService(intent);
+            }
+            */
         }
         protected override void OnStart()
         {
@@ -50,8 +67,7 @@ namespace linker.app
         {
             base.OnDestroy();
         }
-
-        private void RunVpn()
+        private void ConfigureVpn()
         {
             if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.BindVpnService) != Permission.Granted)
             {
@@ -97,21 +113,30 @@ namespace linker.app
 
 
     [Service(Label = "VpnServiceLinker", Name = "com.snltty.linker.app.VpnServiceLinker", Enabled = true, Permission = "android.permission.BIND_VPN_SERVICE")]
-    public class VpnServiceLinker : VpnService
+    public class VpnServiceLinker : VpnService, ILinkerTunDeviceCallback, ITuntapProxyCallback
     {
-        private static readonly string TAG = "VpnServiceLinker";
-        private CancellationTokenSource cts = new CancellationTokenSource();
-        private ParcelFileDescriptor vpnInterface;
+        LinkerVpnDevice linkerVpnDevice;
+        TuntapConfigTransfer tuntapConfigTransfer;
+        TuntapProxy tuntapProxy;
+        TuntapDecenter  tuntapDecenter;
+        public VpnServiceLinker()
+        {
+            LinkerTunDeviceAdapter adapter = LinkerMessengerEntry.GetService<LinkerTunDeviceAdapter>();
 
-        private string ip = "10.18.18.2";
-        private int prefixLength = 24;
-
-        private string dns = "8.8.8.8";
-
+            linkerVpnDevice = new LinkerVpnDevice(this);
+            tuntapConfigTransfer = LinkerMessengerEntry.GetService<TuntapConfigTransfer>();
+            tuntapProxy = LinkerMessengerEntry.GetService<TuntapProxy>();
+            tuntapProxy.Callback = this;
+            tuntapDecenter = LinkerMessengerEntry.GetService<TuntapDecenter>();
+           
+            adapter.Initialize(linkerVpnDevice,this);
+        }
         public override void OnCreate()
         {
             base.OnCreate();
-            ConfigureVpn();
+
+            string name = string.IsNullOrWhiteSpace(tuntapConfigTransfer.Info.Name) ? "linker" : tuntapConfigTransfer.Info.Name;
+            linkerVpnDevice.Setup(name, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.Info.PrefixLength, out string error);
         }
         public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
         {
@@ -119,60 +144,201 @@ namespace linker.app
         }
         public override void OnDestroy()
         {
-            cts.Cancel();
             base.OnDestroy();
+            linkerVpnDevice.Shutdown();
         }
 
-        private void ConfigureVpn()
+        public async Task Callback(LinkerTunDevicPacket packet)
+        {
+            if (packet.IPV4Broadcast || packet.IPV6Multicast)
+            {
+                if ((tuntapConfigTransfer.Switch & TuntapSwitch.Multicast) == TuntapSwitch.Multicast)
+                {
+                    return;
+                }
+            }
+            await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
+        }
+        public async ValueTask Close(ITunnelConnection connection)
+        {
+            tuntapDecenter.Refresh();
+            await ValueTask.CompletedTask.ConfigureAwait(false);
+        }
+        public void Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
+        {
+            linkerVpnDevice.Write(buffer);
+        }
+        public async ValueTask NotFound(uint ip)
+        {
+            tuntapDecenter.Refresh();
+            await ValueTask.CompletedTask.ConfigureAwait(false);
+        }
+    }
+
+
+    public sealed class LinkerVpnDevice : ILinkerTunDevice
+    {
+        private string name = string.Empty;
+        public string Name => name;
+        public bool Running => fd != 0;
+
+        private IPAddress address;
+        private byte prefixLength = 24;
+
+        private ParcelFileDescriptor vpnInterface;
+        int fd = 0;
+        Intent intent;
+        VpnService vpnService;
+        VpnService.Builder builder;
+        FileInputStream vpnInput;
+        FileOutputStream vpnOutput;
+
+        public LinkerVpnDevice(VpnService vpnService)
+        {
+            this.vpnService = vpnService;
+        }
+
+        public bool Setup(string name, IPAddress address, IPAddress gateway, byte prefixLength, out string error)
+        {
+            error = string.Empty;
+            this.name = name;
+            this.address = address;
+            this.prefixLength = prefixLength;
+
+            builder = new VpnService.Builder(vpnService);
+            builder.SetMtu(1420).AddAddress(address.ToString(), prefixLength).AddDnsServer("8.8.8.8").SetBlocking(false);
+            if (OperatingSystem.IsAndroidVersionAtLeast(29))
+                builder.SetMetered(false);
+            vpnInterface = builder.SetSession(name).Establish();
+
+            vpnInput = new FileInputStream(vpnInterface.FileDescriptor);
+            vpnOutput = new FileOutputStream(vpnInterface.FileDescriptor);
+            fd = vpnInterface.Fd;
+
+            return true;
+        }
+
+        byte[] buffer = new byte[8 * 1024];
+        byte[] bufferWrite = new byte[8 * 1024];
+        public byte[] Read(out int length)
+        {
+            length = 0;
+            try
+            {
+                while (fd > 0)
+                {
+                    length = vpnInput.Read(buffer);
+                    if (length > 0)
+                    {
+                        return buffer;
+                    }
+                    WaitForTunRead();
+                }
+            }
+            catch (Exception)
+            {
+            }
+            return buffer;
+        }
+        public bool Write(ReadOnlyMemory<byte> buffer)
         {
             try
             {
-                Builder builder = new Builder(this);
-                builder.SetMtu(1420).AddAddress(ip, prefixLength).AddDnsServer(dns);
-                vpnInterface = builder.SetSession(TAG).Establish();
-                if (vpnInterface != null)
-                {
-                    Android.Util.Log.Error(TAG, "==============================================VPN is connected");
-                    Read();
-                }
-                else
-                {
-                    Android.Util.Log.Error(TAG, "==============================================Failed to establish VPN");
-                }
+                buffer.CopyTo(bufferWrite);
+                vpnOutput.Write(bufferWrite,0, buffer.Length);
+                return true;
             }
-            catch (System.Exception ex)
+            catch (Exception)
             {
-                Android.Util.Log.Error(TAG, $"==============================================VPN Exception{ex}");
             }
+            return false;
         }
-        private void Read()
+
+        public void Shutdown()
         {
-            Task.Run(async () =>
+            builder.Dispose();
+            fd = 0;
+            vpnInterface = null;
+        }
+        public void Refresh()
+        {
+        }
+
+        public void SetMtu(int value)
+        {
+        }
+        public void SetNat(out string error)
+        {
+            error = string.Empty;
+        }
+        public void RemoveNat(out string error)
+        {
+            error = string.Empty;
+        }
+
+        public void AddForward(List<LinkerTunDeviceForwardItem> forwards)
+        {
+        }
+        public void RemoveForward(List<LinkerTunDeviceForwardItem> forwards)
+        {
+        }
+
+        public List<LinkerTunDeviceForwardItem> GetForward()
+        {
+            return new List<LinkerTunDeviceForwardItem>();
+        }
+
+        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
+        {
+            /*
+            foreach (var item in ips)
             {
-                FileChannel vpnInput = new FileInputStream(vpnInterface.FileDescriptor).Channel;
-                FileChannel vpnOutput = new FileOutputStream(vpnInterface.FileDescriptor).Channel;
+                builder.AddRoute(item.Address.ToString(), item.PrefixLength);
+            }
+           */
+        }
+        public void DelRoute(LinkerTunDeviceRouteItem[] ips)
+        {
+            /*
+            foreach (var item in ips)
+            {
+                builder.ExcludeRoute(new IpPrefix(InetAddress.GetByName(item.Address.ToString()), item.PrefixLength));
+            }
+            */
+        }
+        public async Task<bool> CheckAvailable()
+        {
+            return await Task.FromResult(fd > 0);
+        }
 
-                ByteBuffer bufferToNetwork = ByteBuffer.Allocate(2048);
-                byte[] buffer = new byte[2048];
 
-                while (cts.IsCancellationRequested == false)
-                {
-                    int length = await vpnInput.ReadAsync(bufferToNetwork).ConfigureAwait(false);
+        private void WaitForTunRead()
+        {
+            WaitForTun(PollEvent.In);
+        }
+        private void WaitForTunWrite()
+        {
+            WaitForTun(PollEvent.Out);
+        }
+        private void WaitForTun(PollEvent pollEvent)
+        {
+            var pollFd = new PollFD
+            {
+                fd = fd,
+                events = (short)pollEvent
+            };
 
-                    if (length > 0)
-                    {
-                        bufferToNetwork.Flip();
-                        bufferToNetwork.Get(buffer, 0, length);
-                        bufferToNetwork.Clear();
+            while (true)
+            {
+                var result = LinuxAPI.poll([pollFd], 1, -1);
+                if (result >= 0)
+                    break;
+                var errorCode = Marshal.GetLastWin32Error();
+                if (errorCode == LinuxAPI.EINTR)
+                    continue;
 
-                        Android.Util.Log.Error("VPN READ", $">>>>>>>>>>>>>>>>>>>>>>{length}");
-                    }
-                    else
-                    {
-                        await Task.Delay(0).ConfigureAwait(false);
-                    }
-                }
-            });
+                throw new Exception("fail");
+            }
         }
     }
 }

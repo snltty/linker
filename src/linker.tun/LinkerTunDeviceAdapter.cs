@@ -64,6 +64,11 @@ namespace linker.tun
                 */
             }
         }
+        public void Initialize(ILinkerTunDevice linkerTunDevice,ILinkerTunDeviceCallback linkerTunDeviceCallback)
+        {
+            this.linkerTunDevice = linkerTunDevice;
+            this.linkerTunDeviceCallback = linkerTunDeviceCallback;
+        }
 
         /// <summary>
         /// 开启网卡

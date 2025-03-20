@@ -1,6 +1,5 @@
 ﻿using linker.libs;
 using linker.libs.extends;
-using Microsoft.Win32;
 using System.Buffers.Binary;
 using System.Net;
 using System.Net.NetworkInformation;
