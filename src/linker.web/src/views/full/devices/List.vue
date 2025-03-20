@@ -26,6 +26,7 @@
         <ForwardEdit v-if="forward.showEdit" v-model="forward.showEdit" ></ForwardEdit>
         <SForwardEdit v-if="sforward.showEdit" v-model="sforward.showEdit" ></SForwardEdit>
         <UpdaterConfirm v-if="updater.show" v-model="updater.show" ></UpdaterConfirm>
+        <Stopwatch v-if="flow.show" v-model="flow.show" ></Stopwatch>
     </div>
 </template>
 <script>
@@ -69,6 +70,9 @@ import { provideConnections } from './connections'
 import { provideUpdater, useUpdater } from './updater'
 import UpdaterConfirm from './UpdaterConfirm.vue'
 
+import { provideFlow } from './flow'
+import Stopwatch from './Stopwatch.vue'
+
 export default {
     components: {Sort,Oper,
         Device,DeviceEdit,
@@ -78,7 +82,8 @@ export default {
         Tuntap,TuntapEdit,TuntapLease, 
         Socks5, Socks5Edit,
         Forward,ForwardEdit,
-        SForwardEdit ,UpdaterConfirm
+        SForwardEdit ,UpdaterConfirm,
+        Stopwatch
     },
     setup(props) {
 
@@ -103,6 +108,7 @@ export default {
         } = provideConnections();
 
         const {updater,_getUpdater,_subscribeUpdater,clearUpdaterTimeout} = provideUpdater();
+        const {flow} = provideFlow();
 
         const {_getAccessInfo,clearAccessTimeout,handleAccesssRefresh} = provideAccess();
 
@@ -215,7 +221,7 @@ export default {
             tunnel,connections, handleTunnelEdit, handleTunnelRefresh,handleTunnelConnections,
             forward,handleForwardEdit,
             sforward,handleSForwardEdit,
-            updater
+            updater,flow
         }
     }
 }

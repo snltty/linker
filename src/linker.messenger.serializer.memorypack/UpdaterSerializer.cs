@@ -165,6 +165,55 @@ namespace linker.messenger.serializer.memorypack
             value = wrapped.info;
         }
     }
+    [MemoryPackable]
+    public readonly partial struct SerializableUpdaterClientInfo170
+    {
+        [MemoryPackIgnore]
+        public readonly UpdaterClientInfo170 info;
+
+        [MemoryPackInclude]
+        string[] ToMachines => info.ToMachines;
+
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        UpdaterInfo170 Info => info.Info;
+
+        [MemoryPackConstructor]
+        SerializableUpdaterClientInfo170(string[] toMachines, UpdaterInfo170 info)
+        {
+            this.info = new UpdaterClientInfo170 { ToMachines = toMachines, Info = info };
+        }
+
+        public SerializableUpdaterClientInfo170(UpdaterClientInfo170 info)
+        {
+            this.info = info;
+        }
+    }
+    public class UpdaterClientInfo170Formatter : MemoryPackFormatter<UpdaterClientInfo170>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref UpdaterClientInfo170 value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableUpdaterClientInfo170(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref UpdaterClientInfo170 value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableUpdaterClientInfo170>();
+            value = wrapped.info;
+        }
+    }
 
 
 
@@ -194,9 +243,9 @@ namespace linker.messenger.serializer.memorypack
         long Current => info.Current;
 
         [MemoryPackConstructor]
-        SerializableUpdateInfo(string version, string[] msg,string datetime,string machineId, UpdaterStatus status, long length, long current)
+        SerializableUpdateInfo(string version, string[] msg, string datetime, string machineId, UpdaterStatus status, long length, long current)
         {
-            this.info = new UpdaterInfo { Version=version, Msg=msg, DateTime=datetime, MachineId = machineId, Status = status, Length = length, Current = current };
+            this.info = new UpdaterInfo { Version = version, Msg = msg, DateTime = datetime, MachineId = machineId, Status = status, Length = length, Current = current };
         }
 
         public SerializableUpdateInfo(UpdaterInfo info)
@@ -227,6 +276,66 @@ namespace linker.messenger.serializer.memorypack
             }
 
             var wrapped = reader.ReadPackable<SerializableUpdateInfo>();
+            value = wrapped.info;
+        }
+    }
+
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableUpdaterInfo170
+    {
+        [MemoryPackIgnore]
+        public readonly UpdaterInfo170 info;
+
+        [MemoryPackInclude]
+        string MachineId => info.MachineId;
+        [MemoryPackInclude]
+        string Version => info.Version;
+
+        [MemoryPackInclude]
+        UpdaterStatus Status => info.Status;
+
+        [MemoryPackInclude]
+        long Length => info.Length;
+
+        [MemoryPackInclude]
+        long Current => info.Current;
+
+        [MemoryPackConstructor]
+        SerializableUpdaterInfo170(string machineId, string version, UpdaterStatus status, long length, long current)
+        {
+            this.info = new UpdaterInfo170 { MachineId = machineId, Version = version, Status = status, Length = length, Current = current };
+        }
+
+        public SerializableUpdaterInfo170(UpdaterInfo170 info)
+        {
+            this.info = info;
+        }
+    }
+    public class UpdaterInfo170Formatter : MemoryPackFormatter<UpdaterInfo170>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref UpdaterInfo170 value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableUpdaterInfo170(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref UpdaterInfo170 value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableUpdaterInfo170>();
             value = wrapped.info;
         }
     }

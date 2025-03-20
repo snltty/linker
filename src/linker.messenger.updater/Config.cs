@@ -39,7 +39,7 @@ namespace linker.messenger.updater
 
     public sealed class UpdaterListInfo
     {
-        public ConcurrentDictionary<string, UpdaterInfo> List { get; set; }
+        public ConcurrentDictionary<string, UpdaterInfo170> List { get; set; }
         public ulong HashCode { get; set; }
     }
 
@@ -47,6 +47,11 @@ namespace linker.messenger.updater
     {
         public string[] ToMachines { get; set; }
         public UpdaterInfo Info { get; set; }
+    }
+    public sealed partial class UpdaterClientInfo170
+    {
+        public string[] ToMachines { get; set; }
+        public UpdaterInfo170 Info { get; set; }
     }
 
     public sealed partial class UpdaterInfo
@@ -74,6 +79,14 @@ namespace linker.messenger.updater
         {
             Interlocked.Increment(ref counter);
         }
+    }
+    public sealed partial class UpdaterInfo170
+    {
+        public string MachineId { get; set; }
+        public string Version { get; set; }
+        public UpdaterStatus Status { get; set; }
+        public long Length { get; set; }
+        public long Current { get; set; }
     }
 
     public enum UpdaterStatus : byte

@@ -15,13 +15,15 @@ namespace linker.messenger.tunnel
         private readonly IMessengerSender messengerSender;
         private readonly ISerializer serializer;
         private readonly ITunnelClientStore tunnelClientStore;
+        private readonly TunnelNetworkTransfer tunnelNetworkTransfer;
 
-        public TunnelClientMessenger(TunnelTransfer tunnel, IMessengerSender messengerSender, ISerializer serializer, ITunnelClientStore tunnelClientStore)
+        public TunnelClientMessenger(TunnelTransfer tunnel, IMessengerSender messengerSender, ISerializer serializer, ITunnelClientStore tunnelClientStore, TunnelNetworkTransfer tunnelNetworkTransfer)
         {
             this.tunnel = tunnel;
             this.messengerSender = messengerSender;
             this.serializer = serializer;
             this.tunnelClientStore = tunnelClientStore;
+            this.tunnelNetworkTransfer = tunnelNetworkTransfer;
         }
 
         [MessengerId((ushort)TunnelMessengerIds.Begin)]
@@ -96,6 +98,12 @@ namespace linker.messenger.tunnel
             TunnelSetRouteLevelInfo tunnelTransportFileConfigInfo = serializer.Deserialize<TunnelSetRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
             await tunnelClientStore.SetRouteLevelPlus(tunnelTransportFileConfigInfo.RouteLevelPlus).ConfigureAwait(false);
             await tunnelClientStore.SetPortMap(tunnelTransportFileConfigInfo.PortMapLan, tunnelTransportFileConfigInfo.PortMapWan).ConfigureAwait(false);
+        }
+
+        [MessengerId((ushort)TunnelMessengerIds.Network)]
+        public void Network(IConnection connection)
+        {
+            connection.Write(serializer.Serialize(tunnelNetworkTransfer.GetLocalNetwork()));
         }
     }
 
@@ -203,7 +211,7 @@ namespace linker.messenger.tunnel
         [MessengerId((ushort)TunnelMessengerIds.RouteLevelForward)]
         public async Task RouteLevelForward(IConnection connection)
         {
-            TunnelRouteLevelInfo tunnelTransportInfo = serializer.Deserialize<TunnelRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            TunnelSetRouteLevelInfo tunnelTransportInfo = serializer.Deserialize<TunnelSetRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(tunnelTransportInfo.MachineId, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
@@ -212,6 +220,32 @@ namespace linker.messenger.tunnel
                     MessengerId = (ushort)TunnelMessengerIds.RouteLevel,
                     Payload = connection.ReceiveRequestWrap.Payload
                 }).ConfigureAwait(false);
+            }
+        }
+
+        [MessengerId((ushort)TunnelMessengerIds.NetworkForward)]
+        public void NetworkForward(IConnection connection)
+        {
+            string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(machineid, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheTo.GroupId == cacheFrom.GroupId)
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                _ = messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = cacheTo.Connection,
+                    MessengerId = (ushort)TunnelMessengerIds.Network
+                }).ContinueWith(async (result) =>
+                {
+                    if (result.Result.Code == MessageResponeCodes.OK && result.Result.Data.Length > 0)
+                    {
+                        await messengerSender.ReplyOnly(new MessageResponseWrap
+                        {
+                            Connection = connection,
+                            Payload = serializer.Serialize(serializer.Deserialize<TunnelLocalNetworkInfo>(result.Result.Data.Span)),
+                            RequestId = requestid,
+                        }, (ushort)TunnelMessengerIds.NetworkForward).ConfigureAwait(false);
+                    }
+                });
             }
         }
     }

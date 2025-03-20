@@ -16,13 +16,18 @@ namespace linker.messenger.flow
         private readonly IRelayClientStore relayClientStore;
         private readonly ISForwardClientStore sForwardClientStore;
         private readonly ISerializer serializer;
-        public FlowApiController(IMessengerSender messengerSender, SignInClientState signInClientState, IRelayClientStore relayClientStore, ISForwardClientStore sForwardClientStore, ISerializer serializer)
+        private readonly ISignInClientStore signInClientStore;
+        private readonly MessengerFlow messengerFlow;
+
+        public FlowApiController(IMessengerSender messengerSender, SignInClientState signInClientState, IRelayClientStore relayClientStore, ISForwardClientStore sForwardClientStore, ISerializer serializer, ISignInClientStore signInClientStore, MessengerFlow messengerFlow)
         {
             this.messengerSender = messengerSender;
             this.signInClientState = signInClientState;
             this.relayClientStore = relayClientStore;
             this.sForwardClientStore = sForwardClientStore;
             this.serializer = serializer;
+            this.signInClientStore = signInClientStore;
+            this.messengerFlow = messengerFlow;
         }
 
         public async Task<FlowInfo> GetFlows(ApiControllerParamsInfo param)
@@ -62,6 +67,40 @@ namespace linker.messenger.flow
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
                 return serializer.Deserialize<Dictionary<ushort, FlowItemInfo>>(resp.Data.Span);
+            }
+            return new Dictionary<ushort, FlowItemInfo>();
+        }
+        public async Task<Dictionary<ushort, FlowItemInfo>> GetStopwatch(ApiControllerParamsInfo param)
+        {
+            if (string.IsNullOrWhiteSpace(param.Content))
+            {
+                MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = signInClientState.Connection,
+                    MessengerId = (ushort)FlowMessengerIds.StopwatchServer,
+                    Payload = serializer.Serialize(param.Content)
+                }).ConfigureAwait(false);
+                if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
+                {
+                    return serializer.Deserialize<Dictionary<ushort, FlowItemInfo>>(resp.Data.Span);
+                }
+            }
+            else if (param.Content == signInClientStore.Id)
+            {
+                return messengerFlow.GetStopwatch();
+            }
+            else
+            {
+                MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = signInClientState.Connection,
+                    MessengerId = (ushort)FlowMessengerIds.StopwatchForward,
+                    Payload = serializer.Serialize(param.Content)
+                }).ConfigureAwait(false);
+                if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
+                {
+                    return serializer.Deserialize<Dictionary<ushort, FlowItemInfo>>(resp.Data.Span);
+                }
             }
             return new Dictionary<ushort, FlowItemInfo>();
         }

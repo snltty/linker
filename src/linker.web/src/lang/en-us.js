@@ -67,8 +67,8 @@ export default {
     'status.apiAlter': 'Alter',
     'status.apiAlterConfirm': 'Are you sure?',
     'status.messenger': 'Messenger server',
+    'status.messengerName': 'Messenger',
     'status.messengerChange': 'change your messenger',
-    'status.messengerName': 'Decice',
     'status.messengerGroup': 'Group',
 
     'status.serverVersion': 'Server version',

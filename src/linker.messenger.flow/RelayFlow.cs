@@ -2,6 +2,7 @@
 using linker.libs.extends;
 using linker.libs.timer;
 using linker.messenger.relay.server;
+using System.Collections.Concurrent;
 using System.Text.Json.Serialization;
 
 namespace linker.messenger.flow
@@ -76,7 +77,7 @@ namespace linker.messenger.flow
 
         private readonly LastTicksManager lastTicksManager = new LastTicksManager();
 
-        private Dictionary<string, RelayFlowItemInfo> flows = new Dictionary<string, RelayFlowItemInfo>();
+        private ConcurrentDictionary<string, RelayFlowItemInfo> flows = new ConcurrentDictionary<string, RelayFlowItemInfo>();
 
         public RelayFlow()
         {
@@ -102,7 +103,7 @@ namespace linker.messenger.flow
         }
 
         public string GetItems() => flows.ToJson();
-        public void SetItems(string json) { flows = json.DeJson<Dictionary<string, RelayFlowItemInfo>>(); }
+        public void SetItems(string json) { flows = json.DeJson<ConcurrentDictionary<string, RelayFlowItemInfo>>(); }
         public void SetBytes(long receiveBytes, long sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
         public void Clear() { ReceiveBytes = 0; SendtBytes = 0;flows.Clear(); }
 

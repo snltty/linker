@@ -69,6 +69,7 @@ export default {
         });
 
         const _getRelayFlows = ()=>{
+            clearTimeout(state.timer);
             getRelayFlows({
                 Key: state.page.Key,
                 Page:state.page.Page,

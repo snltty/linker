@@ -18,6 +18,7 @@ export const provideUpdater = () => {
     });
     provide(updaterSymbol, updater);
     const _getUpdater = () => {
+        clearTimeout(updater.value.timer);
         getUpdater(updater.value.hashcode.toString()).then((res) => {
             updater.value.hashcode = res.HashCode;
             if (res.List) {

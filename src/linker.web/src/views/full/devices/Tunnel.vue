@@ -5,7 +5,7 @@
                 <div>
                     <template v-if="tunnel.list[scope.row.MachineId].Net.CountryCode">
                         <img 
-                        :title="`${tunnel.list[scope.row.MachineId].Net.Country}(${tunnel.list[scope.row.MachineId].Net.CountryCode})、${tunnel.list[scope.row.MachineId].Net.RegionName}(${tunnel.list[scope.row.MachineId].Net.Region})、${tunnel.list[scope.row.MachineId].Net.City}`" 
+                        :title="`${tunnel.list[scope.row.MachineId].Net.CountryCode}、${tunnel.list[scope.row.MachineId].Net.City}`" 
                         class="system" 
                         :src="`https://unpkg.com/flag-icons@7.2.3/flags/4x3/${tunnel.list[scope.row.MachineId].Net.CountryCode.toLowerCase()}.svg`" />
                     </template>
@@ -14,7 +14,7 @@
                     </template>
                     <template v-if="tunnel.list[scope.row.MachineId].Net.Isp">
                         <img 
-                        :title="`${tunnel.list[scope.row.MachineId].Net.Isp}、${tunnel.list[scope.row.MachineId].Net.Org}、${tunnel.list[scope.row.MachineId].Net.As}`" 
+                        :title="`${tunnel.list[scope.row.MachineId].Net.Isp}`" 
                         class="system" :src="netImg(tunnel.list[scope.row.MachineId].Net)" />
                     </template>
                     <template v-else>
@@ -55,14 +55,9 @@ export default {
         const socks5Connections = useSocks5Connections();
 
         const title = (item)=>{
-
             let texts = [
-                '调整网关层级有助于打洞成功',
-                `${item.HostName}`,
-                item.Lans.filter(c=>c.Ips.length > 0).map(c=>`\t【${c.Mac||'00-00-00-00-00-00'}】${c.Name}\r\n\t\t${c.Ips.join('\r\n\t\t')}`).join('\r\n'),
-                `跳跃点\r\n\t${item.Routes.join('\r\n\t')}`
+                '调整网关层级有助于打洞成功'
             ]
-
             return item.NeedReboot
             ?'需要重启'
             :texts.join('\r\n');
@@ -76,13 +71,12 @@ export default {
             'huawei':'huawei.svg',
             'amazon':'amazon.svg',
             'aliyun':'aliyun.svg',
+            'alibaba':'aliyun.svg',
         }
         const netImg = (item)=>{
             const isp = item.Isp.toLowerCase();
-            const org = item.Org.toLowerCase();
-            const as = item.As.toLowerCase();
             for(let j in imgMap){
-                if(isp.indexOf(j) > -1 || org.indexOf(j) > -1 || as.indexOf(j) > -1){
+                if(isp.indexOf(j) > -1){
                     return `./${imgMap[j]}`;
                 }
             }

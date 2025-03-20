@@ -15,3 +15,6 @@ export const getRelayFlows = (data) => {
 export const getCitys = () => {
     return sendWebsocketMsg('flow/GetCitys');
 }
+export const getStopwatch = (id) => {
+    return sendWebsocketMsg('flow/GetStopwatch',id);
+}

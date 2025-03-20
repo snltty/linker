@@ -23,6 +23,7 @@ export const provideSforward = () => {
         refreshSForward();
     }
     const _getSForwardCountInfo = () => {
+        clearTimeout(sforward.value.timer);
         getSForwardCountInfo(sforward.value.hashcode.toString()).then((res) => {
             sforward.value.hashcode = res.HashCode;
             if (res.List) {

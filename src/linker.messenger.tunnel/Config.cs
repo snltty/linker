@@ -18,13 +18,15 @@ namespace linker.messenger.tunnel
 
         public int PortMapWan { get; set; }
         public int PortMapLan { get; set; }
+        public TunnelNetInfo Net { get; set; } = new TunnelNetInfo();
+    }
 
+    public sealed partial class TunnelLocalNetworkInfo
+    {
+        public string MachineId { get; set; }
         public string HostName { get; set; }
         public TunnelInterfaceInfo[] Lans { get; set; } = Array.Empty<TunnelInterfaceInfo>();
         public IPAddress[] Routes { get; set; } = Array.Empty<IPAddress>();
-
-
-        public TunnelNetInfo Net { get; set; } = new TunnelNetInfo();
     }
 
     public sealed partial class TunnelInterfaceInfo
@@ -37,16 +39,11 @@ namespace linker.messenger.tunnel
 
     public sealed partial class TunnelNetInfo
     {
-        public string Country { get; set; } = string.Empty;
-        public string CountryCode { get; set; } = string.Empty;
-        public string Region { get; set; } = string.Empty;
-        public string RegionName { get; set; } = string.Empty;
         public string City { get; set; } = string.Empty;
+        public string CountryCode { get; set; } = string.Empty;
         public double Lat { get; set; }
         public double Lon { get; set; }
         public string Isp { get; set; } = string.Empty;
-        public string Org { get; set; } = string.Empty;
-        public string As { get; set; } = string.Empty;
     }
 
     public sealed partial class TunnelSetRouteLevelInfo
@@ -55,5 +52,23 @@ namespace linker.messenger.tunnel
         public int RouteLevelPlus { get; set; }
         public int PortMapWan { get; set; }
         public int PortMapLan { get; set; }
+    }
+
+    public sealed class TunnelPublicNetworkInfo
+    {
+        /// <summary>
+        /// 网关层级
+        /// </summary>
+        public int RouteLevel { get; set; }
+        /// <summary>
+        /// 本地IP
+        /// </summary>
+        public IPAddress[] LocalIPs { get; set; } = Array.Empty<IPAddress>();
+        /// <summary>
+        /// 路由上的IP
+        /// </summary>
+        public IPAddress[] RouteIPs { get; set; } = Array.Empty<IPAddress>();
+
+        public TunnelNetInfo Net { get; set; } = new TunnelNetInfo();
     }
 }

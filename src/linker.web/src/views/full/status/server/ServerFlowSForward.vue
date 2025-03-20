@@ -68,6 +68,7 @@ export default {
         });
 
         const _getSForwardFlows = ()=>{
+            clearTimeout(state.timer);
             getSForwardFlows({
                 Key: state.page.Key,
                 Page:state.page.Page,

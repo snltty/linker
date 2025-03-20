@@ -15,6 +15,7 @@ export const provideTunnel = () => {
     });
     provide(tunnelSymbol, tunnel);
     const _getTunnelInfo = () => {
+        clearTimeout(tunnel.value.timer);
         getTunnelInfo(tunnel.value.hashcode.toString()).then((res) => {
             tunnel.value.hashcode = res.HashCode;
             if (res.List) {

@@ -3,19 +3,24 @@ using linker.libs.extends;
 using linker.messenger.signin;
 using linker.tunnel;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Quic;
+using System.Net.Sockets;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 
 namespace linker.messenger.tunnel
 {
     public sealed class TunnelNetworkTransfer
     {
         private readonly ISignInClientStore signInClientStore;
-        public TunnelNetworkInfo Info { get; private set; } = new TunnelNetworkInfo();
+        private readonly SignInClientState signInClientState;
+        public TunnelPublicNetworkInfo Info { get; private set; } = new TunnelPublicNetworkInfo();
 
         public TunnelNetworkTransfer(ISignInClientStore signInClientStore, SignInClientState signInClientState, TunnelTransfer tunnelTransfer)
         {
             this.signInClientStore = signInClientStore;
+            this.signInClientState = signInClientState;
 
             signInClientState.OnSignInBrfore += GetNet;
             signInClientState.OnSignInSuccessBefore += () =>
@@ -57,11 +62,6 @@ namespace linker.messenger.tunnel
                 {
                     TunnelNetInfo net = str.DeJson<TunnelNetInfo>();
                     Info.Net.Isp = net.Isp;
-                    Info.Net.As = net.As;
-                    Info.Net.Org = net.Org;
-                    Info.Net.Region = net.Region;
-                    Info.Net.RegionName = net.RegionName;
-                    Info.Net.Country = net.Country;
                     Info.Net.CountryCode = net.CountryCode;
                 }
             }
@@ -139,24 +139,29 @@ namespace linker.messenger.tunnel
             }
         }
 
-        public sealed class TunnelNetworkInfo
+
+        public TunnelLocalNetworkInfo GetLocalNetwork()
         {
-            /// <summary>
-            /// 网关层级
-            /// </summary>
-            public int RouteLevel { get; set; }
-            /// <summary>
-            /// 本地IP
-            /// </summary>
-            public IPAddress[] LocalIPs { get; set; } = Array.Empty<IPAddress>();
-            /// <summary>
-            /// 路由上的IP
-            /// </summary>
-            public IPAddress[] RouteIPs { get; set; } = Array.Empty<IPAddress>();
-
-            public TunnelNetInfo Net { get; set; } = new TunnelNetInfo();
-
-
+            return new TunnelLocalNetworkInfo
+            {
+                MachineId = signInClientState.Connection?.Id ?? string.Empty,
+                HostName = Dns.GetHostName(),
+                Lans = GetInterfaces(),
+                Routes = Info.RouteIPs,
+            };
         }
+        private static byte[] ipv6LocalBytes = new byte[] { 254, 128, 0, 0, 0, 0, 0, 0 };
+        private TunnelInterfaceInfo[] GetInterfaces()
+        {
+            return NetworkInterface.GetAllNetworkInterfaces().Select(c => new TunnelInterfaceInfo
+            {
+                Name = c.Name,
+                Desc = c.Description,
+                Mac = Regex.Replace(c.GetPhysicalAddress().ToString(), @"(.{2})", $"$1-").Trim('-'),
+                Ips = c.GetIPProperties().UnicastAddresses.Select(c => c.Address).Where(c => c.AddressFamily == AddressFamily.InterNetwork || (c.AddressFamily == AddressFamily.InterNetworkV6 && c.GetAddressBytes().AsSpan(0, 8).SequenceEqual(ipv6LocalBytes) == false)).ToArray()
+            }).Where(c => c.Ips.Length > 0 && c.Ips.Any(d => d.Equals(IPAddress.Loopback)) == false).ToArray();
+        }
+
+
     }
 }

@@ -2,6 +2,7 @@
 using linker.libs.extends;
 using linker.libs.timer;
 using linker.plugins.sforward.proxy;
+using System.Collections.Concurrent;
 using System.Text.Json.Serialization;
 
 namespace linker.messenger.flow
@@ -32,7 +33,7 @@ namespace linker.messenger.flow
 
         private readonly LastTicksManager lastTicksManager = new LastTicksManager();
 
-        private Dictionary<string, SForwardFlowItemInfo> flows = new Dictionary<string, SForwardFlowItemInfo>();
+        private ConcurrentDictionary<string, SForwardFlowItemInfo> flows = new ConcurrentDictionary<string, SForwardFlowItemInfo>();
 
         public SForwardFlow()
         {
@@ -53,7 +54,7 @@ namespace linker.messenger.flow
         }
 
         public string GetItems() => flows.ToJson();
-        public void SetItems(string json) { flows = json.DeJson<Dictionary<string, SForwardFlowItemInfo>>(); }
+        public void SetItems(string json) { flows = json.DeJson<ConcurrentDictionary<string, SForwardFlowItemInfo>>(); }
         public void SetBytes(long receiveBytes, long sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
         public void Clear() { ReceiveBytes = 0; SendtBytes = 0;flows.Clear(); }
 

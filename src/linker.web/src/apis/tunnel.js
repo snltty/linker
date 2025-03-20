@@ -21,3 +21,6 @@ export const setTunnelTransports = (data) => {
 export const getTunnelRecords = () => {
     return sendWebsocketMsg('tunnel/Records');
 }
+export const getTunnelNetwork = (data) => {
+    return sendWebsocketMsg('tunnel/GetNetwork',data);
+}

@@ -11,6 +11,10 @@
 
         Citys = 2705,
 
+        StopwatchServer = 2706,
+        Stopwatch = 2707,
+        StopwatchForward = 2708,
+
         Max = 2799
     }
 }

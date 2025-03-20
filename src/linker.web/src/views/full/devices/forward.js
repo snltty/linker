@@ -19,6 +19,7 @@ export const provideForward = () => {
         refreshForward();
     }
     const _getForwardCountInfo = () => {
+        clearTimeout(forward.value.timer);
         getForwardCountInfo(forward.value.hashcode.toString()).then((res) => {
             forward.value.hashcode = res.HashCode;
             if (res.List) {

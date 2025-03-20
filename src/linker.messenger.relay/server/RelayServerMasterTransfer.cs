@@ -71,7 +71,6 @@ namespace linker.messenger.relay.server
         {
             try
             {
-
                 if (info.EndPoint.Address.Equals(IPAddress.Any))
                 {
                     info.EndPoint.Address = connection.Address.Address;
@@ -83,11 +82,6 @@ namespace linker.messenger.relay.server
                 info.LastTicks = Environment.TickCount64;
                 info.Connection = connection;
                 reports.AddOrUpdate(info.Id, info, (a, b) => info);
-
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Debug($"relay node report : {info.ToJson()}");
-                }
             }
             catch (Exception ex)
             {

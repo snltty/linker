@@ -1,7 +1,6 @@
 ﻿using linker.libs;
 using System.Collections.Concurrent;
 using linker.messenger.signin;
-using linker.libs.extends;
 using linker.libs.timer;
 
 namespace linker.messenger.updater
@@ -9,7 +8,7 @@ namespace linker.messenger.updater
     public sealed class UpdaterClientTransfer
     {
         private UpdaterInfo updateInfo = new UpdaterInfo();
-        private ConcurrentDictionary<string, UpdaterInfo> updateInfos = new ConcurrentDictionary<string, UpdaterInfo>();
+        private ConcurrentDictionary<string, UpdaterInfo170> updateInfos = new ConcurrentDictionary<string, UpdaterInfo170>();
         private ConcurrentDictionary<string, LastTicksManager> subscribes = new ConcurrentDictionary<string, LastTicksManager>();
 
         private readonly IMessengerSender messengerSender;
@@ -43,7 +42,7 @@ namespace linker.messenger.updater
         /// 所有客户端的更新信息
         /// </summary>
         /// <returns></returns>
-        public ConcurrentDictionary<string, UpdaterInfo> Get()
+        public ConcurrentDictionary<string, UpdaterInfo170> Get()
         {
             return updateInfos;
         }
@@ -58,11 +57,27 @@ namespace linker.messenger.updater
         /// 来自别的客户端的更新信息
         /// </summary>
         /// <param name="info"></param>
-        public void Update(UpdaterInfo info)
+        public void Update(UpdaterInfo170 info)
         {
             if (string.IsNullOrWhiteSpace(info.MachineId) == false)
             {
                 updateInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
+                Version.Increment();
+            }
+        }
+        public void Update(UpdaterInfo info)
+        {
+            UpdaterInfo170 _info = new UpdaterInfo170
+            {
+                Version = info.Version,
+                Status = info.Status,
+                Length = info.Length,
+                Current = info.Current,
+                MachineId = info.MachineId
+            };
+            if (string.IsNullOrWhiteSpace(_info.MachineId) == false)
+            {
+                updateInfos.AddOrUpdate(_info.MachineId, _info, (a, b) => _info);
                 Version.Increment();
             }
         }
@@ -102,11 +117,11 @@ namespace linker.messenger.updater
                         await messengerSender.SendOnly(new MessageRequestWrap
                         {
                             Connection = signInClientState.Connection,
-                            MessengerId = (ushort)UpdaterMessengerIds.UpdateForward,
-                            Payload = serializer.Serialize(new UpdaterClientInfo
+                            MessengerId = (ushort)UpdaterMessengerIds.UpdateForward170,
+                            Payload = serializer.Serialize(new UpdaterClientInfo170
                             {
                                 ToMachines = machines,
-                                Info = new UpdaterInfo
+                                Info = new UpdaterInfo170
                                 {
                                     Current = updateInfo.Current,
                                     Length = updateInfo.Length,
@@ -135,22 +150,15 @@ namespace linker.messenger.updater
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
-                MessengerId = (ushort)UpdaterMessengerIds.UpdateServer,
+                MessengerId = (ushort)UpdaterMessengerIds.UpdateServer170,
             }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
-                if(LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Debug($"get version info length:{resp.Data.Length}");
-                }
-
-                UpdaterInfo info = serializer.Deserialize<UpdaterInfo>(resp.Data.Span);
+                UpdaterInfo170 info = serializer.Deserialize<UpdaterInfo170>(resp.Data.Span);
                 if (info.Status <= UpdaterStatus.Checked && updateInfo.Status <= UpdaterStatus.Checked)
                 {
                     updateInfo.Status = info.Status;
                     updateInfo.Version = info.Version;
-                    updateInfo.DateTime = info.DateTime;
-                    updateInfo.Msg = info.Msg;
                 }
             }
         }

@@ -62,6 +62,7 @@ namespace linker.messenger
 
         public virtual void AddReceive(ushort id, long bytes) { }
         public virtual void AddSendt(ushort id, long bytes) { }
+        public virtual void AddStopwatch(ushort id, long time, MessageTypes type) { }
 
         /// <summary>
         /// 以服务器模式接收数据 TCP
@@ -226,14 +227,8 @@ namespace linker.messenger
                 if ((MessageTypes)(data.Span[0] & 0b0000_1111) == MessageTypes.RESPONSE)
                 {
                     responseWrap.FromArray(data);
-                    messengerSender.Response(responseWrap);
-                    if (Environment.TickCount64 - start > 1000)
-                    {
-                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        {
-                            LoggerHelper.Instance.Warning($"messenger response {responseWrap.RequestId} time {Environment.TickCount64 - start}ms");
-                        }
-                    }
+                    ushort messengerId = messengerSender.Response(responseWrap);
+                    AddStopwatch(messengerId, Environment.TickCount64-start, MessageTypes.RESPONSE);
                     return;
                 }
 
@@ -255,7 +250,6 @@ namespace linker.messenger
                     return;
                 }
 
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Warning($"messenger begin request {requestWrap.RequestId}");
                 if (plugin.VoidMethod != null)
                 {
                     plugin.VoidMethod(connection);
@@ -274,13 +268,7 @@ namespace linker.messenger
                         RequestId = requestWrap.RequestId
                     }, requestWrap.MessengerId).ConfigureAwait(false);
                 }
-                if (Environment.TickCount64 - start > 1000)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        LoggerHelper.Instance.Warning($"messenger request {responseWrap.RequestId} time {Environment.TickCount64 - start}ms");
-                    }
-                }
+                AddStopwatch(requestWrap.MessengerId, Environment.TickCount64 - start, MessageTypes.REQUEST);
             }
             catch (Exception ex)
             {

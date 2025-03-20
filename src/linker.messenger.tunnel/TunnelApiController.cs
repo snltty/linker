@@ -20,8 +20,9 @@ namespace linker.messenger.tunnel
         private readonly TunnelDecenter tunnelDecenter;
         private readonly ITunnelClientStore tunnelClientStore;
         private readonly ISerializer serializer;
+        private readonly TunnelNetworkTransfer tunnelNetworkTransfer;
 
-        public TunnelApiController(SignInClientState signInClientState, IMessengerSender messengerSender, ISignInClientStore signInClientStore, TunnelDecenter tunnelDecenter, ITunnelClientStore tunnelClientStore, ISerializer serializer)
+        public TunnelApiController(SignInClientState signInClientState, IMessengerSender messengerSender, ISignInClientStore signInClientStore, TunnelDecenter tunnelDecenter, ITunnelClientStore tunnelClientStore, ISerializer serializer, TunnelNetworkTransfer tunnelNetworkTransfer)
         {
             this.signInClientState = signInClientState;
             this.messengerSender = messengerSender;
@@ -29,6 +30,7 @@ namespace linker.messenger.tunnel
             this.tunnelDecenter = tunnelDecenter;
             this.tunnelClientStore = tunnelClientStore;
             this.serializer = serializer;
+            this.tunnelNetworkTransfer = tunnelNetworkTransfer;
         }
 
         /// <summary>
@@ -104,6 +106,29 @@ namespace linker.messenger.tunnel
             List<TunnelTransportItemInfo> info = param.Content.DeJson<List<TunnelTransportItemInfo>>();
             await tunnelClientStore.SetTunnelTransports(info).ConfigureAwait(false);
             return true;
+        }
+
+
+        public async Task<TunnelLocalNetworkInfo> GetNetwork(ApiControllerParamsInfo param)
+        {
+            if (param.Content == signInClientStore.Id)
+            {
+                return tunnelNetworkTransfer.GetLocalNetwork();
+            }
+            else
+            {
+                MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = signInClientState.Connection,
+                    MessengerId = (ushort)TunnelMessengerIds.NetworkForward,
+                    Payload = serializer.Serialize(param.Content)
+                }).ConfigureAwait(false);
+                if(resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
+                {
+                    return serializer.Deserialize<TunnelLocalNetworkInfo>(resp.Data.Span);
+                }
+            }
+            return new TunnelLocalNetworkInfo();
         }
 
         public sealed class TunnelListInfo

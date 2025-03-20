@@ -14,6 +14,7 @@ export const provideAccess = () => {
         refreshAccess();
     }
     const _getAccessInfo = () => {
+        clearTimeout(access.value.timer);
         getAccesss(access.value.hashcode.toString()).then((res) => {
             access.value.hashcode = res.HashCode;
             if (res.List) {

@@ -25,6 +25,11 @@
 
         Msg = 2614,
 
+
+        UpdateForward170 = 2615,
+        Update170 = 2616,
+        UpdateServer170 = 2617,
+
         Max = 2299
     }
 }

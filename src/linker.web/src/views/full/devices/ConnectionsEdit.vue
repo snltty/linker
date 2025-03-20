@@ -196,6 +196,7 @@ export default {
         }
 
         const _setRelaySubscribe = () => {
+            clearTimeout(state.timer);
             setRelaySubscribe().then((res) => {
                 state.nodes = res;
                 state.nodesDic = res.reduce((a, b) => {

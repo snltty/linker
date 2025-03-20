@@ -29,11 +29,11 @@
                         </el-col>
                     </el-row>
                 </el-form-item>
-                <el-form-item label="" prop="alert">
+                <el-form-item label="" prop="alert" v-if="state.net.HostName">
                     <div>
-                        <h3>{{ tunnel.current.HostName }}</h3>
+                        <h3>{{ state.net.HostName }}</h3>
                         <ul>
-                            <template v-for="(item,index) in tunnel.current.Lans.filter(c=>c.Ips.length > 0)">
+                            <template v-for="(item,index) in state.net.Lans.filter(c=>c.Ips.length > 0)">
                                 <li>
                                     <div>【{{ item.Mac||'00-00-00-00-00-00' }}】{{ item.Desc }}</div>
                                     <div class="pdl-20">{{ item.Ips.join('、') }}</div>
@@ -41,7 +41,7 @@
                             </template>
                         </ul>
                         <h3>跳跃点</h3>
-                        <div class="pdl-20">{{ tunnel.current.Routes.join('、') }}</div>
+                        <div class="pdl-20">{{ state.net.Routes.join('、') }}</div>
                     </div>
                 </el-form-item>
                 <el-form-item label="" prop="Btns">
@@ -55,9 +55,9 @@
     </el-dialog>
 </template>
 <script>
-import {setTunnelRouteLevel } from '@/apis/tunnel';
+import {getTunnelNetwork, setTunnelRouteLevel } from '@/apis/tunnel';
 import { ElMessage } from 'element-plus';
-import { reactive, ref, watch } from 'vue';
+import { onMounted, reactive, ref, watch } from 'vue';
 import { useTunnel } from './tunnel';
 
 export default {
@@ -76,7 +76,8 @@ export default {
                 PortMapWan: tunnel.value.current.PortMapWan,
                 PortMapLan: tunnel.value.current.PortMapLan,
             },
-            rules: {}
+            rules: {},
+            net:{}
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -101,6 +102,13 @@ export default {
                 ElMessage.error('操作失败！');
             });
         }
+
+
+        onMounted(()=>{
+            getTunnelNetwork(tunnel.value.current.MachineId).then((res)=>{
+                state.net = res;
+            }).catch(()=>{})
+        })
 
         return {
            state, ruleFormRef,  handleSave,tunnel

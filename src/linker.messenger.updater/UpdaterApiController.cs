@@ -41,18 +41,18 @@ namespace linker.messenger.updater
         }
 
 
-        public async Task<UpdaterInfo> GetServer(ApiControllerParamsInfo param)
+        public async Task<UpdaterInfo170> GetServer(ApiControllerParamsInfo param)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
-                MessengerId = (ushort)UpdaterMessengerIds.UpdateServer,
+                MessengerId = (ushort)UpdaterMessengerIds.UpdateServer170,
             }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
-                return serializer.Deserialize<UpdaterInfo>(resp.Data.Span);
+                return serializer.Deserialize<UpdaterInfo170>(resp.Data.Span);
             }
-            return new UpdaterInfo();
+            return new UpdaterInfo170();
         }
         public async Task<UpdaterInfo> GetMsg(ApiControllerParamsInfo param)
         {
@@ -86,14 +86,14 @@ namespace linker.messenger.updater
             }).ConfigureAwait(false);
         }
 
-        public UpdaterInfo GetCurrent(ApiControllerParamsInfo param)
+        public UpdaterInfo170 GetCurrent(ApiControllerParamsInfo param)
         {
             var updaters = updaterTransfer.Get();
-            if (updaters.TryGetValue(signInClientStore.Id, out UpdaterInfo info))
+            if (updaters.TryGetValue(signInClientStore.Id, out UpdaterInfo170 info))
             {
                 return info;
             }
-            return new UpdaterInfo { };
+            return new UpdaterInfo170 { };
         }
         public UpdaterListInfo Get(ApiControllerParamsInfo param)
         {

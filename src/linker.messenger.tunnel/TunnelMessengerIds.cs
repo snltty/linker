@@ -19,6 +19,9 @@
         RouteLevel = 2011,
         RouteLevelForward = 2012,
 
+        Network = 2013,
+        NetworkForward = 2014,
+
         None = 2099
     }
 }

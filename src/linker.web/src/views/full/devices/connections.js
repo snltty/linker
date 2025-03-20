@@ -31,6 +31,7 @@ export const provideConnections = () => {
     });
     provide(forwardConnectionsSymbol, forwardConnections);
     const _getForwardConnections = () => {
+        clearTimeout(forwardConnections.value.timer)
         getForwardConnections(connections.value.hashcode.toString()).then((res) => {
             if (connections.value._updateRealTime == false)
                 connections.value.hashcode = res.HashCode;
@@ -52,6 +53,7 @@ export const provideConnections = () => {
     });
     provide(tuntapConnectionsSymbol, tuntapConnections);
     const _getTuntapConnections = () => {
+        clearTimeout(tuntapConnections.value.timer)
         getTuntapConnections(connections.value.hashcode1.toString()).then((res) => {
             if (connections.value._updateRealTime == false)
                 connections.value.hashcode1 = res.HashCode;
@@ -72,6 +74,7 @@ export const provideConnections = () => {
     });
     provide(socks5ConnectionsSymbol, socks5Connections);
     const _getSocks5Connections = () => {
+        clearTimeout(socks5Connections.value.timer)
         getSocks5Connections(connections.value.hashcode1.toString()).then((res) => {
             if (connections.value._updateRealTime == false)
                 connections.value.hashcode1 = res.HashCode;

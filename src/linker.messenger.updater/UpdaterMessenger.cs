@@ -49,6 +49,12 @@ namespace linker.messenger.updater
             UpdaterInfo info = serializer.Deserialize<UpdaterInfo>(connection.ReceiveRequestWrap.Payload.Span);
             updaterTransfer.Update(info);
         }
+        [MessengerId((ushort)UpdaterMessengerIds.Update170)]
+        public void Update170(IConnection connection)
+        {
+            UpdaterInfo170 info = serializer.Deserialize<UpdaterInfo170>(connection.ReceiveRequestWrap.Payload.Span);
+            updaterTransfer.Update(info);
+        }
         /// <summary>
         /// 关闭信息
         /// </summary>
@@ -109,15 +115,29 @@ namespace linker.messenger.updater
             var info = updaterServerTransfer.Get();
             UpdaterInfo result = new UpdaterInfo
             {
+                MachineId = string.Empty,
                 Current = info.Current,
-                DateTime = info.DateTime,
                 Length = info.Length,
-                MachineId = info.MachineId,
                 Status = info.Status,
                 Version = info.Version
             };
             connection.Write(serializer.Serialize(result));
         }
+        [MessengerId((ushort)UpdaterMessengerIds.UpdateServer170)]
+        public void UpdateServer170(IConnection connection)
+        {
+            var info = updaterServerTransfer.Get();
+            UpdaterInfo170 result = new UpdaterInfo170
+            {
+                MachineId = string.Empty,
+                Current = info.Current,
+                Length = info.Length,
+                Status = info.Status,
+                Version = info.Version
+            };
+            connection.Write(serializer.Serialize(result));
+        }
+
         [MessengerId((ushort)UpdaterMessengerIds.Msg)]
         public void Msg(IConnection connection)
         {
@@ -220,6 +240,25 @@ namespace linker.messenger.updater
         public void UpdateForward(IConnection connection)
         {
             UpdaterClientInfo info = serializer.Deserialize<UpdaterClientInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            {
+                byte[] payload = serializer.Serialize(info.Info);
+                foreach (var item in signCaching.Get(cache.GroupId).Where(c => info.ToMachines.Contains(c.MachineId)).Where(c => c.Connected && c.MachineId != connection.Id))
+                {
+                    _ = messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = item.Connection,
+                        MessengerId = (ushort)UpdaterMessengerIds.Update,
+                        Payload = payload
+                    });
+                }
+
+            }
+        }
+        [MessengerId((ushort)UpdaterMessengerIds.UpdateForward170)]
+        public void UpdateForward170(IConnection connection)
+        {
+            UpdaterClientInfo170 info = serializer.Deserialize<UpdaterClientInfo170>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
                 byte[] payload = serializer.Serialize(info.Info);

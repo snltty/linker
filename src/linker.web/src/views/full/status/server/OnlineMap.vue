@@ -52,8 +52,8 @@ export default {
                     const html = `
                         <div class="marker-content" >
                             <h3 class="marker-title" style="font-size:1.6rem">${item.MachineName}</h3>
-                            <div class="marker-text" style="font-size:1.3rem">${t('status.flowArea')} : ${net.Country}(${net.CountryCode})、${net.RegionName}(${net.Region})、${net.City}</div>
-                            <div class="marker-text" style="font-size:1.3rem">${t('status.flowNet')} : ${net.Isp}、${net.Org}、${net.As}</div>
+                            <div class="marker-text" style="font-size:1.3rem">${t('status.flowArea')} : ${net.CountryCode}、${net.City}</div>
+                            <div class="marker-text" style="font-size:1.3rem">${t('status.flowNet')} : ${net.Isp}</div>
                         </div>
                     `;
                     

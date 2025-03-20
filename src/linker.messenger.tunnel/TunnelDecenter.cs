@@ -15,7 +15,7 @@ namespace linker.messenger.tunnel
         public VersionManager DataVersion { get; } = new VersionManager();
         public ConcurrentDictionary<string, TunnelRouteLevelInfo> Config { get; } = new ConcurrentDictionary<string, TunnelRouteLevelInfo>();
 
-        private readonly ITunnelClientStore  tunnelClientStore;
+        private readonly ITunnelClientStore tunnelClientStore;
         private readonly TunnelNetworkTransfer tunnelNetworkTransfer;
         private readonly ISerializer serializer;
         private readonly SignInClientState signInClientState;
@@ -68,25 +68,11 @@ namespace linker.messenger.tunnel
                 PortMapLan = tunnelClientStore.PortMapPrivate,
                 PortMapWan = tunnelClientStore.PortMapPublic,
                 RouteLevelPlus = tunnelClientStore.RouteLevelPlus,
-                HostName = Dns.GetHostName(),
-                Lans = GetInterfaces(),
-                Routes = tunnelNetworkTransfer.Info.RouteIPs,
                 Net = tunnelNetworkTransfer.Info.Net
             };
         }
+       
 
-        private static byte[] ipv6LocalBytes = new byte[] { 254, 128, 0, 0, 0, 0, 0, 0 };
-        private TunnelInterfaceInfo[] GetInterfaces()
-        {
-            return NetworkInterface.GetAllNetworkInterfaces().Select(c => new TunnelInterfaceInfo
-            {
-                Name = c.Name,
-                Desc = c.Description,
-                Mac = Regex.Replace(c.GetPhysicalAddress().ToString(), @"(.{2})", $"$1-").Trim('-'),
-                Ips = c.GetIPProperties().UnicastAddresses.Select(c => c.Address).Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork || (c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 && c.GetAddressBytes().AsSpan(0, 8).SequenceEqual(ipv6LocalBytes) == false)).ToArray()
-            }).Where(c => c.Ips.Length > 0 && c.Ips.Any(d => d.Equals(IPAddress.Loopback)) == false).ToArray();
-        }
-
-
+       
     }
 }

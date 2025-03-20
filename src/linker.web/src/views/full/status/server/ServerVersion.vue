@@ -46,9 +46,11 @@ export default {
 
             connected: computed(() => globalData.value.signin.Connected),
             version: computed(() => globalData.value.signin.Version),
+            timer:0
         });
 
         const _getUpdaterServer = ()=>{
+            clearTimeout(state.timer);
             getUpdaterServer().then((res)=>{
                 updaterServer.value.Version = res.Version;
                 updaterServer.value.Status = res.Status;
@@ -57,12 +59,12 @@ export default {
                 updaterServer.value.Msg = res.Msg;
                 updaterServer.value.DateTime = res.DateTime;
                 if(updaterServer.value.Status > 2 && updaterServer.value.Status < 6){
-                    setTimeout(()=>{
+                    state.timer =  setTimeout(()=>{
                         _getUpdaterServer();
                     },1000);
                 }
             }).catch(()=>{
-                setTimeout(()=>{
+                state.timer =  setTimeout(()=>{
                     _getUpdaterServer();
                 },1000);
             });

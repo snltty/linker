@@ -47,6 +47,7 @@ export const provideDevices = () => {
         }).catch((err) => { });
     }
     const _getSignList1 = () => {
+        clearTimeout(devices.timer);
         getSignInList(devices.page.Request).then((res) => {
             for (let j in res.List) {
                 const item = devices.page.List.filter(c => c.MachineId == res.List[j].MachineId)[0];

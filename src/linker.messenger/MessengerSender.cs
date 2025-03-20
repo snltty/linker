@@ -32,7 +32,7 @@ namespace linker.messenger
         /// 回复
         /// </summary>
         /// <param name="wrap"></param>
-        public void Response(MessageResponseWrap wrap);
+        public ushort Response(MessageResponseWrap wrap);
     }
 
     /// <summary>
@@ -145,7 +145,7 @@ namespace linker.messenger
             return false;
         }
 
-        public void Response(MessageResponseWrap wrap)
+        public ushort Response(MessageResponseWrap wrap)
         {
             if (sends.TryRemove(wrap.RequestId, out ReplyWrapInfo info))
             {
@@ -154,7 +154,9 @@ namespace linker.messenger
 
                 AddReceive(info.MessengerId, bytes.Length);
                 info.Tcs.SetResult(new MessageResponeInfo { Code = wrap.Code, Data = bytes, Connection = wrap.Connection });
+                return info.MessengerId;
             }
+            return 0;
         }
     }
 

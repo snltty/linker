@@ -10,6 +10,7 @@ namespace linker.messenger.flow
     {
         public static ServiceCollection AddFlowClient(this ServiceCollection serviceCollection)
         {
+            serviceCollection.AddSingleton<FlowClientMessenger>();
             serviceCollection.AddSingleton<FlowApiController>();
             serviceCollection.AddSingleton<FlowTransfer>();
 
@@ -26,6 +27,9 @@ namespace linker.messenger.flow
 
             FlowTransfer flowTransfer = serviceProvider.GetService<FlowTransfer>();
             flowTransfer.AddFlows(new List<IFlow> { serviceProvider.GetService<MessengerFlow>() });
+
+            IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
+            messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<FlowClientMessenger>() });
 
             return serviceProvider;
         }

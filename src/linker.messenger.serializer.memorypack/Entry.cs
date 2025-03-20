@@ -35,6 +35,7 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new TunnelTransportInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelWanPortProtocolInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelRouteLevelInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TunnelNetworkInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelSetRouteLevelInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelInterfaceInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelNetInfoFormatter());
@@ -48,7 +49,10 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new UpdaterConfirmInfoFormatter());
             MemoryPackFormatterProvider.Register(new UpdaterConfirmServerInfoFormatter());
             MemoryPackFormatterProvider.Register(new UpdaterClientInfoFormatter());
+            MemoryPackFormatterProvider.Register(new UpdaterClientInfo170Formatter());
+            
             MemoryPackFormatterProvider.Register(new UpdaterInfoFormatter());
+            MemoryPackFormatterProvider.Register(new UpdaterInfo170Formatter());
 
 
             MemoryPackFormatterProvider.Register(new RelayTestInfoFormatter());

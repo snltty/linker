@@ -15,6 +15,8 @@
                         <el-dropdown-item v-if="handleShowAccess(scope.row,accessList[scope.row.MachineId] || 0)" @click="handleAccess(scope.row)"><el-icon><Flag /></el-icon> 权限</el-dropdown-item>
                         <el-dropdown-item v-if="scope.row.isSelf && hasApiPassword" @click="handleApiPassword(scope.row)"><el-icon><HelpFilled /></el-icon> 管理接口</el-dropdown-item>
                         <el-dropdown-item v-else-if="hasApiPasswordOther" @click="handleApiPassword(scope.row)"><el-icon><HelpFilled /></el-icon> 管理接口</el-dropdown-item>
+                        <el-dropdown-item @click="handleStopwatch(scope.row.MachineId,scope.row.MachineName)"><el-icon><Platform /></el-icon>它的信标</el-dropdown-item>
+                        <el-dropdown-item @click="handleStopwatch('',$t('status.messenger'))"><el-icon><Platform /></el-icon>服务器信标</el-dropdown-item>
                     </el-dropdown-menu>
                 </template>
             </el-dropdown>
@@ -27,15 +29,16 @@
 import { signInDel } from '@/apis/signin';
 import { exit } from '@/apis/updater';
 import { injectGlobalData } from '@/provide';
-import { Delete,SwitchButton,ArrowDown, Flag,HelpFilled } from '@element-plus/icons-vue'
+import { Delete,SwitchButton,ArrowDown, Flag,HelpFilled,Platform } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed } from 'vue';
 import { useAccess } from './access';
 import { setApiPassword } from '@/apis/access';
+import { useFlow } from './flow';
 
 export default {
     emits:['refresh','access'],
-    components:{Delete,SwitchButton,ArrowDown,Flag,HelpFilled},
+    components:{Delete,SwitchButton,ArrowDown,Flag,HelpFilled,Platform},
     setup (props,{emit}) {
         
         const globalData = injectGlobalData();
@@ -51,6 +54,7 @@ export default {
         const hasApiPassword = computed(()=>globalData.value.hasAccess('SetApiPassword')); 
         const hasApiPasswordOther = computed(()=>globalData.value.hasAccess('SetApiPasswordOther')); 
         
+        const flow = useFlow();
         
 
         const handleDel = (machineId,machineName)=>{
@@ -104,8 +108,14 @@ export default {
             })
         }
 
+        const handleStopwatch = (id,name)=>{
+            flow.value.device.id = id;
+            flow.value.device.name = name;
+            flow.value.show = true;
+        }
+
         return {accessList,handleDel,handleExit,hasReboot,hasRemove,hasAccess,handleShowAccess,handleAccess,
-            hasApiPassword,hasApiPasswordOther,handleApiPassword
+            hasApiPassword,hasApiPasswordOther,handleApiPassword,handleStopwatch
         }
     }
 }

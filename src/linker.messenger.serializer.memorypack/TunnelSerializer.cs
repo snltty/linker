@@ -322,18 +322,12 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         int PortMapLan => info.PortMapLan;
 
-        [MemoryPackInclude]
-        string HostName => info.HostName;
-        [MemoryPackInclude]
-        TunnelInterfaceInfo[] Lans => info.Lans;
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPAddress[] Routes => info.Routes;
 
         [MemoryPackInclude, MemoryPackAllowSerialize]
         TunnelNetInfo Net => info.Net;
 
         [MemoryPackConstructor]
-        SerializableTunnelRouteLevelInfo(string machineId, int routeLevel, int routeLevelPlus, bool needReboot, int portMapWan, int portMapLan, string hostname, TunnelInterfaceInfo[] lans, IPAddress[] routes, TunnelNetInfo net)
+        SerializableTunnelRouteLevelInfo(string machineId, int routeLevel, int routeLevelPlus, bool needReboot, int portMapWan, int portMapLan, TunnelNetInfo net)
         {
             var info = new TunnelRouteLevelInfo
             {
@@ -343,9 +337,6 @@ namespace linker.messenger.serializer.memorypack
                 PortMapLan = portMapLan,
                 RouteLevel = routeLevel,
                 RouteLevelPlus = routeLevelPlus,
-                HostName = hostname,
-                Lans = lans,
-                Routes = routes,
                 Net = net
             };
             this.info = info;
@@ -379,6 +370,68 @@ namespace linker.messenger.serializer.memorypack
             }
 
             var wrapped = reader.ReadPackable<SerializableTunnelRouteLevelInfo>();
+            value = wrapped.info;
+        }
+    }
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableTunnelNetworkInfo
+    {
+        [MemoryPackIgnore]
+        public readonly TunnelLocalNetworkInfo info;
+
+        [MemoryPackInclude]
+        string MachineId => info.MachineId;
+
+        [MemoryPackInclude]
+        string HostName => info.HostName;
+        [MemoryPackInclude]
+        TunnelInterfaceInfo[] Lans => info.Lans;
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        IPAddress[] Routes => info.Routes;
+
+        [MemoryPackConstructor]
+        SerializableTunnelNetworkInfo(string machineId, string hostname, TunnelInterfaceInfo[] lans, IPAddress[] routes)
+        {
+            var info = new TunnelLocalNetworkInfo
+            {
+                MachineId = machineId,
+                HostName = hostname,
+                Lans = lans,
+                Routes = routes,
+            };
+            this.info = info;
+        }
+
+        public SerializableTunnelNetworkInfo(TunnelLocalNetworkInfo tunnelCompactInfo)
+        {
+            this.info = tunnelCompactInfo;
+        }
+    }
+    public class TunnelNetworkInfoFormatter : MemoryPackFormatter<TunnelLocalNetworkInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelLocalNetworkInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableTunnelNetworkInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelLocalNetworkInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableTunnelNetworkInfo>();
             value = wrapped.info;
         }
     }
@@ -446,15 +499,8 @@ namespace linker.messenger.serializer.memorypack
     {
         [MemoryPackIgnore]
         public readonly TunnelNetInfo info;
-
-        [MemoryPackInclude]
-        string Country => info.Country;
         [MemoryPackInclude]
         string CountryCode => info.CountryCode;
-        [MemoryPackInclude]
-        string Region => info.Region;
-        [MemoryPackInclude]
-        string RegionName => info.RegionName;
         [MemoryPackInclude]
         string City => info.City;
         [MemoryPackInclude]
@@ -463,26 +509,17 @@ namespace linker.messenger.serializer.memorypack
         double Lon => info.Lon;
         [MemoryPackInclude]
         string Isp => info.Isp;
-        [MemoryPackInclude]
-        string Org => info.Org;
-        [MemoryPackInclude]
-        string As => info.As;
 
         [MemoryPackConstructor]
-        SerializableTunnelNetInfo(string country, string countryCode, string region, string regionName, string city, double lat, double lon, string isp, string org, string As)
+        SerializableTunnelNetInfo(string countryCode, string city, double lat, double lon, string isp)
         {
             var info = new TunnelNetInfo
             {
-                As = As,
                 City = city,
-                Country = country,
                 CountryCode = countryCode,
                 Isp = isp,
                 Lat = lat,
-                Lon = lon,
-                Org = org,
-                Region = region,
-                RegionName = regionName
+                Lon = lon
             };
             this.info = info;
         }

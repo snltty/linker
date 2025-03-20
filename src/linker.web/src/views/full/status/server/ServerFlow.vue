@@ -98,6 +98,7 @@ export default {
             'flow':{text:'',detail:false},
         };
         const _getFlows = ()=>{
+            clearTimeout(state.timer);
             getFlows().then(res => {
                 const old = state.old || res;
                 if(res.Items['_']){
