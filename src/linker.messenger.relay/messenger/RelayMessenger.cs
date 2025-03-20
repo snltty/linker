@@ -5,6 +5,7 @@ using linker.messenger.relay.client;
 using linker.messenger.relay.server;
 using linker.messenger.signin;
 using linker.messenger.relay.server.validator;
+using System.Reflection;
 
 namespace linker.messenger.relay.messenger
 {
@@ -176,7 +177,7 @@ namespace linker.messenger.relay.messenger
         public async Task RelayForward(IConnection connection)
         {
             RelayInfo info = serializer.Deserialize<RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            await RelayForward(connection, info, () =>
+            await RelayForward(connection, info, (ushort)RelayMessengerIds.RelayForward, () =>
             {
                 return serializer.Serialize(info);
             }).ConfigureAwait(false);
@@ -185,12 +186,12 @@ namespace linker.messenger.relay.messenger
         public async Task RelayForward170(IConnection connection)
         {
             RelayInfo170 info = serializer.Deserialize<RelayInfo170>(connection.ReceiveRequestWrap.Payload.Span);
-            await RelayForward(connection, info, () =>
+            await RelayForward(connection, info, (ushort)RelayMessengerIds.RelayForward170, () =>
             {
                 return serializer.Serialize(info);
             }).ConfigureAwait(false);
         }
-        public async Task RelayForward(IConnection connection, RelayInfo info, Func<byte[]> data)
+        public async Task RelayForward(IConnection connection, RelayInfo info, ushort id, Func<byte[]> data)
         {
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) == false || signCaching.TryGet(info.RemoteMachineId, out SignCacheInfo cacheTo) == false || cacheFrom.GroupId != cacheTo.GroupId)
             {
@@ -219,18 +220,21 @@ namespace linker.messenger.relay.messenger
             info.FromMachineName = cacheTo.MachineName;
             try
             {
-                MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+                uint requiestid = connection.ReceiveRequestWrap.RequestId;
+                _ = messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = cacheTo.Connection,
                     MessengerId = (ushort)RelayMessengerIds.Relay,
                     Payload = data()
-                }).ConfigureAwait(false);
-                if (resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray))
+                }).ContinueWith(async (result) =>
                 {
-                    connection.Write(Helper.TrueArray);
-                    return;
-                }
-                connection.Write(Helper.FalseArray);
+                    await messengerSender.ReplyOnly(new MessageResponseWrap
+                    {
+                        RequestId = requiestid,
+                        Connection = connection,
+                        Payload = result.Result.Data
+                    }, id).ConfigureAwait(false);
+                }).ConfigureAwait(false);
             }
             catch (Exception)
             {
@@ -308,7 +312,7 @@ namespace linker.messenger.relay.messenger
         public void TrafficReport(IConnection connection)
         {
             RelayTrafficUpdateInfo info = serializer.Deserialize<RelayTrafficUpdateInfo>(connection.ReceiveRequestWrap.Payload.Span);
-          
+
             relayServerTransfer.AddTraffic(info);
         }
         /// <summary>
