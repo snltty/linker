@@ -65,6 +65,7 @@ namespace linker.tunnel.connection
         private byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.ping");
         private byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.pong");
         private byte[] finBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.fing");
+        private byte[] ttlBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.ttl");
         private bool pong = true;
 
 
@@ -136,6 +137,8 @@ namespace linker.tunnel.connection
             LastTicks.Update();
 
             Memory<byte> memory = buffer.AsMemory(offset, length);
+            if (memory.Length == ttlBytes.Length && memory.Span.SequenceEqual(ttlBytes)) return;
+
             if (memory.Length == pingBytes.Length && memory.Span.Slice(0, pingBytes.Length - 4).SequenceEqual(pingBytes.AsSpan(0, pingBytes.Length - 4)))
             {
                 if (memory.Span.SequenceEqual(pingBytes))
