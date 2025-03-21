@@ -97,6 +97,7 @@ export default {
     line-height:5rem;
     .logo{
         padding:.5rem 0 0 1rem;
+        height:4.5rem
         img{vertical-align:top;height:4rem;}
     }
     .menu{

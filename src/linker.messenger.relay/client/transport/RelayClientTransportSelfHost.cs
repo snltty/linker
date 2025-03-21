@@ -278,7 +278,7 @@ namespace linker.messenger.relay.client.transport
                 if (relayInfo.SSL)
                 {
                     sslStream = new SslStream(new NetworkStream(socket, false), false);
-                    await sslStream.AuthenticateAsServerAsync(messengerStore.Certificate, false, SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).ConfigureAwait(false);
+                    await sslStream.AuthenticateAsServerAsync(messengerStore.Certificate,OperatingSystem.IsAndroid(), SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).ConfigureAwait(false);
                 }
                 return new TunnelConnectionTcp
                 {

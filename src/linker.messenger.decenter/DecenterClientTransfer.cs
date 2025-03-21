@@ -17,7 +17,14 @@ namespace linker.messenger.decenter
             this.signInClientState = signInClientState;
             this.serializer = serializer;
 
-            signInClientState.NetworkFirstEnabledHandle += SyncTask;
+            SyncTask();
+            signInClientState.OnSignInSuccess += (times) =>
+            {
+                foreach (IDecenter item in decenters)
+                {
+                    item.PushVersion.Increment();
+                }
+            };
         }
 
         /// <summary>
@@ -58,12 +65,9 @@ namespace linker.messenger.decenter
             }
         }
 
+
         private void SyncTask()
         {
-            foreach (IDecenter item in decenters)
-            {
-                item.PushVersion.Increment();
-            }
             TimerHelper.SetIntervalLong(async () =>
             {
                 if (signInClientState.Connected == false) return;

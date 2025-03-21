@@ -12,7 +12,7 @@
                 HeightRequest="100"
                 Aspect="AspectFit"
                 SemanticProperties.Description="dot net bot in a race car number eight" />
-            
+            <Entry x:Name="IPEntry" Placeholder="ip" HorizontalOptions="Fill" />
             <Button
                 x:Name="CounterBtn"
                 Text="启动服务" 

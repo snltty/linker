@@ -76,7 +76,7 @@ namespace linker.messenger
             {
                 NetworkStream networkStream = new NetworkStream(socket, false);
                 SslStream sslStream = new SslStream(networkStream, true);
-                await sslStream.AuthenticateAsServerAsync(messengerStore.Certificate, false, SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).ConfigureAwait(false);
+                await sslStream.AuthenticateAsServerAsync(messengerStore.Certificate, OperatingSystem.IsAndroid(), SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).ConfigureAwait(false);
                 IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
 
                 connection.BeginReceive(this, null, true);

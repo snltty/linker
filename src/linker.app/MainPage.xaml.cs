@@ -1,4 +1,7 @@
-﻿namespace linker.app
+﻿using linker.messenger.entry;
+using linker.messenger.tuntap;
+
+namespace linker.app
 {
 
     public partial class MainPage : ContentPage
@@ -8,6 +11,7 @@
         public MainPage()
         {
             InitializeComponent();
+
         }
 
         private void OnCounterClicked(object sender, EventArgs e)
@@ -21,7 +25,9 @@
 
             SemanticScreenReader.Announce(CounterBtn.Text);
 
-
+            ITuntapClientStore tuntapClientStore = LinkerMessengerEntry.GetService<ITuntapClientStore>();
+            tuntapClientStore.Info.IP = System.Net.IPAddress.Parse(IPEntry.Text);
+            tuntapClientStore.Confirm();
 
 #if ANDROID
 

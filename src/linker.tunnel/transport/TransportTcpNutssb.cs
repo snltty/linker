@@ -279,7 +279,7 @@ namespace linker.tunnel.transport
                         }
 
                         sslStream = new SslStream(new NetworkStream(socket, false), false);
-                        await sslStream.AuthenticateAsServerAsync(certificate, false, SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).ConfigureAwait(false);
+                        await sslStream.AuthenticateAsServerAsync(certificate, OperatingSystem.IsAndroid(), SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).ConfigureAwait(false);
                     }
 
                     TunnelConnectionTcp result = new TunnelConnectionTcp
