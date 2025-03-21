@@ -84,7 +84,9 @@ namespace linker.messenger.relay.client.transport
                     sslStream = new SslStream(new NetworkStream(socket, false), false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                     await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
                     {
-                        EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls
+                        EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls,
+                        CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                        ClientCertificates = new X509CertificateCollection { messengerStore.Certificate }
                     }).ConfigureAwait(false);
                 }
 

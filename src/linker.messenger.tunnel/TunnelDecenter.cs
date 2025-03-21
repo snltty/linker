@@ -3,9 +3,6 @@ using linker.messenger.decenter;
 using linker.messenger.signin;
 using linker.plugins.tunnel;
 using System.Collections.Concurrent;
-using System.Net;
-using System.Net.NetworkInformation;
-using System.Text.RegularExpressions;
 namespace linker.messenger.tunnel
 {
     public sealed class TunnelDecenter : IDecenter

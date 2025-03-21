@@ -6,7 +6,7 @@ namespace linker.libs
 {
     public static class VersionHelper
     {
-        public static string version  = $"v{string.Join(".", Assembly.GetEntryAssembly().GetName().Version.ToString().Split('.').Take(3))}";
+        public static string version  = $"v{string.Join(".", Assembly.GetExecutingAssembly().GetName().Version.ToString().Split('.').Take(3))}";
 
         /// <summary>
         /// 比较版本，相差多少

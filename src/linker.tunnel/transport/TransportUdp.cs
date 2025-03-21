@@ -227,8 +227,6 @@ namespace linker.tunnel.transport
                 byte[] buffer = new byte[1024];
                 SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer, new IPEndPoint(IPAddress.IPv6Any, 0)).ConfigureAwait(false);
 
-                Console.WriteLine(Encoding.UTF8.GetString(buffer.AsMemory(0, result.ReceivedBytes).Span));
-
                 await socket.SendToAsync(endBytes, result.RemoteEndPoint).ConfigureAwait(false);
                 tcs.SetResult(result.RemoteEndPoint as IPEndPoint);
             });

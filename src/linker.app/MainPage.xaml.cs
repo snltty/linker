@@ -1,9 +1,6 @@
-﻿using Microsoft.Maui.Controls.PlatformConfiguration;
-using System.Diagnostics;
-using System.Net.NetworkInformation;
-
-namespace linker.app
+﻿namespace linker.app
 {
+
     public partial class MainPage : ContentPage
     {
         int count = 0;
@@ -23,6 +20,14 @@ namespace linker.app
                 CounterBtn.Text = $"Clicked {count} times";
 
             SemanticScreenReader.Announce(CounterBtn.Text);
+
+
+
+#if ANDROID
+
+             AndroidLinkerVpnService androidLinkerVpnService = new AndroidLinkerVpnService();
+            androidLinkerVpnService.StartVpnService();
+#endif
 
         }
     }

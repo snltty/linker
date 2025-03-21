@@ -3,6 +3,6 @@ namespace linker.messenger.store.file
 {
     public sealed partial class ConfigCommonInfo
     {
-        public ServerCertificateInfo SSL { get; set; } = new ServerCertificateInfo();
+        public string SslBase64 { get; set; } = string.Empty;
     }
 }

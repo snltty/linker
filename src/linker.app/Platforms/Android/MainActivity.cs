@@ -3,21 +3,23 @@ using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.Net;
-using Android.Nfc;
 using Android.OS;
 using Android.Views;
 using AndroidX.Core.App;
 using AndroidX.Core.Content;
 using Java.IO;
-using Java.Net;
-using Java.Nio;
-using Java.Nio.Channels;
+using linker.app;
 using linker.libs;
+using linker.libs.extends;
 using linker.messenger.entry;
+using linker.messenger.store.file;
 using linker.messenger.tuntap;
 using linker.tun;
 using linker.tunnel.connection;
+using Microsoft.Maui.Controls.Shapes;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
@@ -45,19 +47,8 @@ namespace linker.app
             base.OnActivityResult(requestCode, resultCode, data);
             if (requestCode == VPN_RESULT_CODE && resultCode == Result.Ok)
             {
-                //StartService(new Intent(this, typeof(VpnServiceLinker)));
+                RunLinker();
             }
-            /*
-            intent = new Intent(Android.App.Application.Context,typeof(VpnServiceLinker));
-            if (OperatingSystem.IsAndroidVersionAtLeast(26))
-            {
-                Android.App.Application.Context.StartForegroundService(intent);
-            }
-            else
-            {
-                Android.App.Application.Context.StartService(intent);
-            }
-            */
         }
         protected override void OnStart()
         {
@@ -82,14 +73,21 @@ namespace linker.app
             {
                 OnActivityResult(VPN_RESULT_CODE, Result.Ok, null);
             }
+
         }
         private void RunLinker()
         {
-            using var stream = FileSystem.OpenAppPackageFileAsync("snltty.pfx").Result;
-            using var fileStream = System.IO.File.Create(System.IO.Path.Join(FileSystem.Current.AppDataDirectory, "snltty.pfx"));
-            stream.CopyTo(fileStream);
-            stream.Close();
-            fileStream.Close();
+            
+            try
+            {
+                System.IO.File.Delete(System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "./configs/", "client.json"));
+                System.IO.File.Delete(System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "./configs/", "server.json"));
+                System.IO.File.Delete(System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "./configs/", "common.json"));
+            }
+            catch (Exception)
+            {
+            }
+            
 
             LoggerHelper.Instance.OnLogger += (model) =>
             {
@@ -100,14 +98,15 @@ namespace linker.app
             Dictionary<string, string> dic = new Dictionary<string, string>();
             dic["Client"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
             {
-                CApi = new { ApiPort = 0, WebPort = 0 },
-                Servers = new object[] { new { Name = "linker", Host = "linker.snltty.com:1802", UserId = Guid.NewGuid().ToString() } },
-                Groups = new object[] { new { Name = "Linker", Id = "Linker", Password = "EFFBF3B7-05F5-DBB3-751E-E68F2849AA08" } }
-            }))); ;
+                CApi = new { ApiPort = 0, WebPort = 0, ApiPassword = "" },
+                Servers = new object[] { new { Name = "linker", Host = "192.168.56.2:1802", UserId = Guid.NewGuid().ToString() } },
+                Groups = new object[] { new { Name = "Linker", Id = "snltty", Password = "snltty" } }
+            })));
+
             dic["Common"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { Modes = new string[] { "client" }, LoggerType = 0 })));
             LinkerMessengerEntry.Initialize();
             LinkerMessengerEntry.Build();
-            LinkerMessengerEntry.Setup(ExcludeModule.None, dic);
+            LinkerMessengerEntry.Setup(ExcludeModule.Logger, dic);
         }
     }
 
@@ -115,10 +114,14 @@ namespace linker.app
     [Service(Label = "VpnServiceLinker", Name = "com.snltty.linker.app.VpnServiceLinker", Enabled = true, Permission = "android.permission.BIND_VPN_SERVICE")]
     public class VpnServiceLinker : VpnService, ILinkerTunDeviceCallback, ITuntapProxyCallback
     {
+        private const int ServiceNotificationId = 1001;
+        private const string NotificationChannelId = "linker_service_channel";
+        private const string NotificationChannelText = "linker service channel";
+
         LinkerVpnDevice linkerVpnDevice;
         TuntapConfigTransfer tuntapConfigTransfer;
         TuntapProxy tuntapProxy;
-        TuntapDecenter  tuntapDecenter;
+        TuntapDecenter tuntapDecenter;
         public VpnServiceLinker()
         {
             LinkerTunDeviceAdapter adapter = LinkerMessengerEntry.GetService<LinkerTunDeviceAdapter>();
@@ -128,20 +131,22 @@ namespace linker.app
             tuntapProxy = LinkerMessengerEntry.GetService<TuntapProxy>();
             tuntapProxy.Callback = this;
             tuntapDecenter = LinkerMessengerEntry.GetService<TuntapDecenter>();
-           
-            adapter.Initialize(linkerVpnDevice,this);
+
+            adapter.Initialize(linkerVpnDevice, this);
         }
         public override void OnCreate()
         {
             base.OnCreate();
 
             string name = string.IsNullOrWhiteSpace(tuntapConfigTransfer.Info.Name) ? "linker" : tuntapConfigTransfer.Info.Name;
+
             linkerVpnDevice.Setup(name, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.Info.PrefixLength, out string error);
         }
         public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
         {
             return StartCommandResult.Sticky;
         }
+
         public override void OnDestroy()
         {
             base.OnDestroy();
@@ -176,6 +181,57 @@ namespace linker.app
     }
 
 
+    [Service(Label = "ForegroundService", Name = "com.snltty.linker.app.ForegroundService", Exported = true)]
+    [IntentFilter(new string[] { "com.snltty.linker.app.ForegroundService" })]
+    public sealed class ForegroundService : Service
+    {
+        private static readonly int SERVICE_ID = 10000;
+        private static readonly string CHANNEL_ID = "linker";
+        private static readonly string CHANNEL_NAME = "linker";
+
+        Intent intent;
+        public override IBinder OnBind(Intent intent)
+        {
+            intent.SetFlags(ActivityFlags.NewTask);
+            this.intent = intent;
+            return null;
+        }
+
+        public override void OnCreate()
+        {
+            base.OnCreate();
+
+            NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationImportance.High);
+            notificationChannel.EnableLights(true);
+            notificationChannel.SetShowBadge(true);
+            notificationChannel.LockscreenVisibility = NotificationVisibility.Public;
+            NotificationManager manager = (NotificationManager)GetSystemService(NotificationService);
+            manager.CreateNotificationChannel(notificationChannel);
+
+            StartForeground(SERVICE_ID, CreateNotification("linker"));
+        }
+
+        private Notification CreateNotification(string content)
+        {
+            PendingIntent pendingIntent = PendingIntent.GetActivity(Android.App.Application.Context, 0, intent, PendingIntentFlags.Mutable);
+            Notification notification = new NotificationCompat.Builder(Android.App.Application.Context, CHANNEL_ID)
+                .SetSmallIcon(Resource.Drawable.logo)
+                .SetChannelId(CHANNEL_ID)
+                .SetContentIntent(pendingIntent)
+                .SetContentTitle(content)
+                .SetContentText(content)
+                .SetOngoing(true).SetPriority(0)
+                .Build();
+            notification.Flags |= NotificationFlags.NoClear;
+            return notification;
+        }
+
+        public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
+        {
+            return StartCommandResult.Sticky;
+        }
+    }
+
     public sealed class LinkerVpnDevice : ILinkerTunDevice
     {
         private string name = string.Empty;
@@ -187,7 +243,6 @@ namespace linker.app
 
         private ParcelFileDescriptor vpnInterface;
         int fd = 0;
-        Intent intent;
         VpnService vpnService;
         VpnService.Builder builder;
         FileInputStream vpnInput;
@@ -201,12 +256,17 @@ namespace linker.app
         public bool Setup(string name, IPAddress address, IPAddress gateway, byte prefixLength, out string error)
         {
             error = string.Empty;
+            if (address.Equals(IPAddress.Any)) return false;
+
+
             this.name = name;
             this.address = address;
             this.prefixLength = prefixLength;
 
             builder = new VpnService.Builder(vpnService);
-            builder.SetMtu(1420).AddAddress(address.ToString(), prefixLength).AddDnsServer("8.8.8.8").SetBlocking(false);
+            builder.SetMtu(1420)
+                .AddAddress(address.ToString(), prefixLength)
+                .AddDnsServer("8.8.8.8").SetBlocking(false);
             if (OperatingSystem.IsAndroidVersionAtLeast(29))
                 builder.SetMetered(false);
             vpnInterface = builder.SetSession(name).Establish();
@@ -227,9 +287,10 @@ namespace linker.app
             {
                 while (fd > 0)
                 {
-                    length = vpnInput.Read(buffer);
+                    length = vpnInput.Read(buffer,4,2048);
                     if (length > 0)
                     {
+                        length.ToBytes(buffer);
                         return buffer;
                     }
                     WaitForTunRead();
@@ -245,7 +306,7 @@ namespace linker.app
             try
             {
                 buffer.CopyTo(bufferWrite);
-                vpnOutput.Write(bufferWrite,0, buffer.Length);
+                vpnOutput.Write(bufferWrite, 0, buffer.Length);
                 return true;
             }
             catch (Exception)
@@ -257,8 +318,11 @@ namespace linker.app
         public void Shutdown()
         {
             builder.Dispose();
-            fd = 0;
+            vpnInterface.FileDescriptor.Dispose();
+            vpnInterface.Close();
             vpnInterface = null;
+
+            fd = 0;
         }
         public void Refresh()
         {
@@ -340,5 +404,47 @@ namespace linker.app
                 throw new Exception("fail");
             }
         }
+
+        public static class LinuxAPI
+        {
+            public const int EINTR = 4;
+            public const int EAGAIN = 11;
+
+            [DllImport("libc", SetLastError = true)]
+            public static extern int poll([In, Out] PollFD[] fds, int nfds, int timeout);
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct PollFD
+        {
+            public int fd;
+            public short events;
+            public short revents;
+        }
+
+        public enum PollEvent : short
+        {
+            In = 0x001,
+            Out = 0x004
+        }
+    }
+
+    public sealed class AndroidLinkerVpnService
+    {
+        public bool Running => intent != null;
+
+        private Intent intent;
+        public void StartVpnService()
+        {
+            intent = new Intent(Android.App.Application.Context, typeof(VpnServiceLinker));
+            Android.App.Application.Context.StartForegroundService(intent);
+        }
+
+        public void StopVpnService()
+        {
+            Android.App.Application.Context.StopService(intent);
+            intent = null;
+        }
     }
 }
+

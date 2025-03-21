@@ -21,7 +21,8 @@ namespace linker.messenger.api
                 IApiServer server = serviceProvider.GetService<IApiServer>();
                 server.Websocket(apiStore.Info.ApiPort, apiStore.Info.ApiPassword);
                 LoggerHelper.Instance.Warning($"client api listen:{apiStore.Info.ApiPort}");
-                LoggerHelper.Instance.Warning($"client api password:{apiStore.Info.ApiPassword}");
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Warning($"client api password:{apiStore.Info.ApiPassword}");
             }
 
             if (apiStore.Info.WebPort > 0 && accessStore.HasAccess(AccessValue.Web))

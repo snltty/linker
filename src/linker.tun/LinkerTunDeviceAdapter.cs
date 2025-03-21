@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.timer;
+using System.Buffers.Binary;
 using System.Net;
 
 namespace linker.tun
@@ -225,6 +226,7 @@ namespace linker.tun
                         LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
                         packet.Unpacket(buffer,0,length);
 
+                        Console.WriteLine($"tuntap read {length}");
                         try
                         {
                             await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
@@ -253,6 +255,7 @@ namespace linker.tun
         {
             if (linkerTunDevice != null && Status == LinkerTunDeviceStatus.Running)
             {
+                Console.WriteLine($"tuntap write {buffer.Length}");
                 return linkerTunDevice.Write(buffer);
             }
             return false;

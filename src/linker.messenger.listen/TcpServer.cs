@@ -39,11 +39,11 @@ namespace linker.messenger.listen
                 try
                 {
                     SocketReceiveFromResult result = await socketUdp.ReceiveFromAsync(buffer, SocketFlags.None, endPoint).ConfigureAwait(false);
+                    if (result.ReceivedBytes == 0) break;
                     IPEndPoint ep = result.RemoteEndPoint as IPEndPoint;
                     try
                     {
                         await resolverTransfer.BeginReceive(socketUdp, ep, buffer.AsMemory(0, result.ReceivedBytes)).ConfigureAwait(false);
-
                     }
                     catch (Exception)
                     {

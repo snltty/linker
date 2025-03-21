@@ -178,7 +178,11 @@ namespace linker.tunnel.transport
                     if (tunnelTransportInfo.SSL)
                     {
                         sslStream = new SslStream(new NetworkStream(targetSocket, false), false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
-                        await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls }).ConfigureAwait(false);
+                        await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { 
+                            EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls,
+                            CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                            ClientCertificates = new X509CertificateCollection { certificate }
+                        }).ConfigureAwait(false);
                     }
 
                     return new TunnelConnectionTcp

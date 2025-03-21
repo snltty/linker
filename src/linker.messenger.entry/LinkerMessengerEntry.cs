@@ -139,9 +139,11 @@ namespace linker.messenger.entry
 
             ICommonStore commonStore = serviceProvider.GetService<ICommonStore>();
 
-            serviceProvider.UseLogger();
+            if (modules.HasFlag(ExcludeModule.Logger) == false)
+                serviceProvider.UseLogger();
 
             serviceProvider.UseMessenger();
+
             if ((modules & ExcludeModule.StoreFile) != ExcludeModule.StoreFile)
                 serviceProvider.UseStoreFile(configDic);
             if ((modules & ExcludeModule.SerializerMemoryPack) != ExcludeModule.SerializerMemoryPack)
@@ -239,5 +241,6 @@ namespace linker.messenger.entry
         /// 自定义认证
         /// </summary>
         Action = 256,
+        Logger = 512,
     }
 }

@@ -138,7 +138,9 @@ namespace linker.messenger
                 await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
                 {
                     AllowRenegotiation = true,
-                    EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls
+                    EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls,
+                    CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                    ClientCertificates = new X509CertificateCollection { messengerStore.Certificate }
                 }).ConfigureAwait(false);
                 IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
 

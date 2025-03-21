@@ -31,9 +31,9 @@ namespace linker.messenger.store.file
 
         private void Init()
         {
-            if (Directory.Exists(Path.Join(Helper.currentDirectory, configPath)) == false)
+            if (Directory.Exists(Path.Combine(Helper.currentDirectory, configPath)) == false)
             {
-                Directory.CreateDirectory(Path.Join(Helper.currentDirectory, configPath));
+                Directory.CreateDirectory(Path.Combine(Helper.currentDirectory, configPath));
             }
 
             Type type = Data.GetType();
@@ -43,7 +43,7 @@ namespace linker.messenger.store.file
                 object property = item.GetValue(Data);
                 fsDic.Add(item.Name.ToLower(), new FileReadWrite
                 {
-                    Path = Path.Join(Helper.currentDirectory,configPath, $"{item.Name.ToLower()}.json"),
+                    Path = Path.Combine(Helper.currentDirectory,configPath, $"{item.Name.ToLower()}.json"),
                     Property = item,
                     PropertyObject = property,
                     PropertyMethod = (IConfig)property,
