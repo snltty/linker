@@ -32,7 +32,7 @@ namespace linker.messenger.signin
         /// 登录之前
         /// </summary>
         [JsonIgnore]
-        public Func<Task> OnSignInBrfore { get; set; }
+        public Func<Task> OnSignInBrfore { get; set; } = async () => { await Task.CompletedTask; };
         public async Task PushSignInBefore()
         {
             await OnSignInBrfore?.Invoke();
@@ -41,17 +41,17 @@ namespace linker.messenger.signin
 
         private int signInTimes = 0;
         [JsonIgnore]
-        public Action OnSignInSuccessBefore { get; set; }
+        public Action OnSignInSuccessBefore { get; set; } = () => { };
         /// <summary>
         /// 上线事件
         /// </summary>
         [JsonIgnore]
-        public Action<int> OnSignInSuccess { get; set; }
+        public Action<int> OnSignInSuccess { get; set; } = (i) => { };
         /// <summary>
         /// 第一次上线
         /// </summary>
         [JsonIgnore]
-        public Action OnSignInSuccessFirstTime { get; set; }
+        public Action OnSignInSuccessFirstTime { get; set; } = () => { };
 
         /// <summary>
         /// 发布上线事件
