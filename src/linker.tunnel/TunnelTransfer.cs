@@ -117,6 +117,7 @@ namespace linker.tunnel
             {
                 if (tunnelMessengerAdapter.ServerHost == null) return;
 
+                Console.WriteLine(tunnelMessengerAdapter.ServerHost);
                 GetLocalIP(tunnelMessengerAdapter.ServerHost).ContinueWith((result) =>
                 {
                     if (tunnelMessengerAdapter.PortMapPrivate > 0)

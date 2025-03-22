@@ -77,27 +77,28 @@ namespace linker.messenger.relay.client
             {
                 return null;
             }
-            if (relayClientStore.Server.Disabled)
+            try
             {
-                return null;
-            }
-
-            IEnumerable<IRelayClientTransport> transports = Transports
-                //优先的
-                .Where(c => c.ProtocolType == relayClientStore.DefaultProtocol)
-                //其次的
-                .Concat(Transports.Where(c => c.ProtocolType != relayClientStore.DefaultProtocol))
-                //不包含在禁用列表里的
-                .Where(c => denyProtocols.HasFlag(c.ProtocolType) == false);
-
-            foreach (IRelayClientTransport transport in transports)
-            {
-                if (transport == null)
+                if (relayClientStore.Server.Disabled)
                 {
-                    continue;
+                    return null;
                 }
-                try
+
+                IEnumerable<IRelayClientTransport> transports = Transports
+                    //优先的
+                    .Where(c => c.ProtocolType == relayClientStore.DefaultProtocol)
+                    //其次的
+                    .Concat(Transports.Where(c => c.ProtocolType != relayClientStore.DefaultProtocol))
+                    //不包含在禁用列表里的
+                    .Where(c => denyProtocols.HasFlag(c.ProtocolType) == false);
+
+                foreach (IRelayClientTransport transport in transports)
                 {
+                    if (transport == null)
+                    {
+                        continue;
+                    }
+
                     transport.RelayInfo170 relayInfo = new transport.RelayInfo170
                     {
                         FlowingId = 0,
@@ -129,16 +130,15 @@ namespace linker.messenger.relay.client
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                             LoggerHelper.Instance.Error($"relay {transport.Name} to {relayInfo.RemoteMachineId}->{relayInfo.RemoteMachineName} fail,{relayInfo.ToJson()}");
                     }
-
                 }
-                catch (Exception ex)
-                {
-                    LoggerHelper.Instance.Error(ex);
-                }
-                finally
-                {
-                    operating.StopOperation(remoteMachineId);
-                }
+            }
+            catch (Exception ex)
+            {
+                LoggerHelper.Instance.Error(ex);
+            }
+            finally
+            {
+                operating.StopOperation(remoteMachineId);
             }
             return null;
         }

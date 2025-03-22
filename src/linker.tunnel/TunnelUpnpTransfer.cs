@@ -1,5 +1,4 @@
-﻿using linker.libs;
-using linker.libs.timer;
+﻿using linker.libs.timer;
 using linker.tunnel.transport;
 using Mono.Nat;
 using System.Collections.Concurrent;
@@ -35,18 +34,10 @@ namespace linker.tunnel
 
         private void LoopDiscovery()
         {
-            int times = 0;
             TimerHelper.SetIntervalLong(() =>
             {
-                times++;
                 NatUtility.StopDiscovery();
-
-                if(times < 3)
-                {
-                    NatUtility.StartDiscovery();
-                    return true;
-                }
-                return false;
+                NatUtility.StartDiscovery();
             }, 60 * 1000);
         }
         private void DeviceFound(object sender, DeviceEventArgs args)
