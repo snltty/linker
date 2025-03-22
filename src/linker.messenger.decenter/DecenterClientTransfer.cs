@@ -98,9 +98,16 @@ namespace linker.messenger.decenter
         {
             foreach (IDecenter item in decenters)
             {
-                if (operatingMultipleManager.StartOperation(item.Name) && versionMultipleManager.HasValueChange(item.Name))
+                if (operatingMultipleManager.StartOperation(item.Name))
                 {
-                    Task.Run(item.ProcData).ContinueWith((result) => { operatingMultipleManager.StopOperation(item.Name); });
+                    if (versionMultipleManager.HasValueChange(item.Name))
+                    {
+                        Task.Run(item.ProcData).ContinueWith((result) => {  operatingMultipleManager.StopOperation(item.Name); });
+                    }
+                    else
+                    {
+                        operatingMultipleManager.StopOperation(item.Name);
+                    }
                 }
             }
         }
