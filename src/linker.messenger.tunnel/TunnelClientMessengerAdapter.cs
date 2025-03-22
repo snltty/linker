@@ -87,7 +87,7 @@ namespace linker.messenger.tunnel
         private readonly IMessengerStore messengerStore;
 
         public TunnelMessengerAdapter(IMessengerSender messengerSender, TunnelClientExcludeIPTransfer excludeIPTransfer,
-            ISerializer serializer, ITunnelClientStore tunnelClientStore, SignInClientState signInClientState, IMessengerStore messengerStore, TunnelTransfer tunnelTransfer)
+            ISerializer serializer, ITunnelClientStore tunnelClientStore, SignInClientState signInClientState, IMessengerStore messengerStore)
         {
             this.messengerSender = messengerSender;
             this.excludeIPTransfer = excludeIPTransfer;
@@ -96,8 +96,7 @@ namespace linker.messenger.tunnel
             this.signInClientState = signInClientState;
             this.messengerStore = messengerStore;
 
-            signInClientState.OnSignInBrfore = async () => { tunnelTransfer.Refresh(); await Task.CompletedTask; };
-            tunnelTransfer.Refresh();
+            
         }
 
         public List<TunnelExIPInfo> GetExcludeIps()

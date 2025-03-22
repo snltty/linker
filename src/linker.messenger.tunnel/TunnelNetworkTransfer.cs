@@ -2,6 +2,7 @@
 using linker.libs.extends;
 using linker.libs.timer;
 using linker.messenger.signin;
+using linker.tunnel;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Quic;
@@ -19,7 +20,7 @@ namespace linker.messenger.tunnel
         private readonly IMessengerSender messengerSender;
         private readonly ISerializer serializer;
 
-        public TunnelNetworkTransfer(ISignInClientStore signInClientStore, SignInClientState signInClientState, ITunnelClientStore tunnelClientStore, IMessengerSender messengerSender, ISerializer serializer)
+        public TunnelNetworkTransfer(ISignInClientStore signInClientStore, SignInClientState signInClientState, ITunnelClientStore tunnelClientStore, IMessengerSender messengerSender, ISerializer serializer, TunnelTransfer tunnelTransfer)
         {
             this.signInClientStore = signInClientStore;
             this.signInClientState = signInClientState;
@@ -27,7 +28,8 @@ namespace linker.messenger.tunnel
             this.messengerSender = messengerSender;
             this.serializer = serializer;
 
-            signInClientState.OnSignInBrfore += async () => { RefreshRouteLevel(); await Task.CompletedTask; };
+            signInClientState.OnSignInBrfore += async () => { RefreshRouteLevel(); tunnelTransfer.Refresh(); await Task.CompletedTask; };
+            tunnelTransfer.Refresh();
 
             TestQuic();
 
