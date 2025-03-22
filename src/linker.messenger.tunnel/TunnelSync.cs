@@ -1,6 +1,5 @@
 ﻿using linker.libs;
 using linker.messenger.sync;
-using linker.plugins.tunnel;
 using linker.tunnel.transport;
 
 namespace linker.messenger.tunnel

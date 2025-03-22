@@ -77,22 +77,20 @@ namespace linker.app
     [Service(Label = "VpnServiceLinker", Name = "com.snltty.linker.app.VpnServiceLinker", Enabled = true, Permission = "android.permission.BIND_VPN_SERVICE")]
     public class VpnServiceLinker : VpnService, ILinkerTunDeviceCallback, ITuntapProxyCallback
     {
-        LinkerVpnDevice linkerVpnDevice;
         TuntapConfigTransfer tuntapConfigTransfer;
         TuntapProxy tuntapProxy;
         TuntapDecenter tuntapDecenter;
-        LinkerTunDeviceAdapter adapter;
+        TuntapTransfer  tuntapTransfer;
         public VpnServiceLinker()
         {
-            adapter = LinkerMessengerEntry.GetService<LinkerTunDeviceAdapter>();
+            tuntapTransfer = LinkerMessengerEntry.GetService<TuntapTransfer>();
 
-            linkerVpnDevice = new LinkerVpnDevice(this);
             tuntapConfigTransfer = LinkerMessengerEntry.GetService<TuntapConfigTransfer>();
             tuntapProxy = LinkerMessengerEntry.GetService<TuntapProxy>();
             tuntapProxy.Callback = this;
             tuntapDecenter = LinkerMessengerEntry.GetService<TuntapDecenter>();
 
-            adapter.Initialize(linkerVpnDevice, this);
+            tuntapTransfer.Init(new LinkerVpnDevice(this), this);
         }
         public override void OnCreate()
         {
@@ -108,7 +106,7 @@ namespace linker.app
         public override void OnDestroy()
         {
             base.OnDestroy();
-            linkerVpnDevice.Shutdown();
+            tuntapTransfer.Shutdown();
             Android.App.Application.Context.StopService(new Intent(Android.App.Application.Context, typeof(ForegroundService)));
         }
 
@@ -130,13 +128,9 @@ namespace linker.app
         }
         public void Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
         {
-            linkerVpnDevice.Write(buffer);
+            tuntapTransfer.Write(buffer);
         }
-        public async ValueTask NotFound(uint ip)
-        {
-            tuntapDecenter.Refresh();
-            await ValueTask.CompletedTask.ConfigureAwait(false);
-        }
+       
     }
 
 

@@ -37,16 +37,14 @@ namespace linker.messenger.pcp
 
         public Memory<byte> GetData()
         {
-            HistoryDecenterInfo historyDecenterInfo = new HistoryDecenterInfo { MachineId = signInClientStore.Id, List = pcpStore.PcpHistory.History };
-            history.AddOrUpdate(historyDecenterInfo.MachineId, historyDecenterInfo.List, (a, b) => historyDecenterInfo.List);
-            return serializer.Serialize(historyDecenterInfo);
+            return serializer.Serialize(new HistoryDecenterInfo { MachineId = signInClientStore.Id, List = pcpStore.PcpHistory.History });
         }
-        public void SetData(Memory<byte> data)
+        public void AddData(Memory<byte> data)
         {
             HistoryDecenterInfo historyDecenterInfo = serializer.Deserialize<HistoryDecenterInfo>(data.Span);
             history.AddOrUpdate(historyDecenterInfo.MachineId, historyDecenterInfo.List, (a, b) => historyDecenterInfo.List);
         }
-        public void SetData(List<ReadOnlyMemory<byte>> data)
+        public void AddData(List<ReadOnlyMemory<byte>> data)
         {
             List<HistoryDecenterInfo> list = data.Select(c => serializer.Deserialize<HistoryDecenterInfo>(c.Span)).ToList();
             foreach (var historyDecenterInfo in list)
@@ -54,7 +52,13 @@ namespace linker.messenger.pcp
                 history.AddOrUpdate(historyDecenterInfo.MachineId, historyDecenterInfo.List, (a, b) => historyDecenterInfo.List);
             }
         }
-
+        public void ClearData()
+        {
+            history.Clear();
+        }
+        public void ProcData()
+        {
+        }
     }
 
     public sealed partial class HistoryDecenterInfo

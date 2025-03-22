@@ -12,6 +12,8 @@ namespace linker.messenger.signin
     /// </summary>
     public sealed class SignInClientTransfer
     {
+        private readonly OperatingManager operatingManager = new OperatingManager();
+
         private readonly SignInClientState clientSignInState;
         private readonly IMessengerSender messengerSender;
         private readonly IMessengerResolver messengerResolver;
@@ -52,6 +54,9 @@ namespace linker.messenger.signin
             }, 10000);
         }
 
+        /// <summary>
+        /// 重新登录
+        /// </summary>
         public void ReSignIn()
         {
             SignOut();
@@ -69,7 +74,7 @@ namespace linker.messenger.signin
                 LoggerHelper.Instance.Error($"please configure group id");
                 return;
             }
-            if (BooleanHelper.CompareExchange(ref clientSignInState.connecting, true, false))
+            if (operatingManager.StartOperation() == false)
             {
                 return;
             }
@@ -112,7 +117,7 @@ namespace linker.messenger.signin
             }
             finally
             {
-                BooleanHelper.CompareExchange(ref clientSignInState.connecting, false, true);
+                operatingManager.StopOperation();
             }
         }
         /// <summary>

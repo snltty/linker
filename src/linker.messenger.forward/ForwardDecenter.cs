@@ -26,32 +26,34 @@ namespace linker.messenger.forward
             forwardTransfer.OnChanged += Refresh;
           
         }
+        public void Refresh()
+        {
+            PushVersion.Increment();
+        }
 
         public Memory<byte> GetData()
         {
-            ForwardCountInfo info = new ForwardCountInfo { MachineId = signInClientStore.Id, Count = forwardTransfer.Count };
-            CountDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
-            DataVersion.Increment();
-            return serializer.Serialize(info);
+            return serializer.Serialize(new ForwardCountInfo { MachineId = signInClientStore.Id, Count = forwardTransfer.Count });
         }
-        public void SetData(Memory<byte> data)
+        public void AddData(Memory<byte> data)
         {
             ForwardCountInfo info = serializer.Deserialize<ForwardCountInfo>(data.Span);
             CountDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
-            DataVersion.Increment();
         }
-        public void SetData(List<ReadOnlyMemory<byte>> data)
+        public void AddData(List<ReadOnlyMemory<byte>> data)
         {
             List<ForwardCountInfo> list = data.Select(c => serializer.Deserialize<ForwardCountInfo>(c.Span)).ToList();
             foreach (var info in list)
             {
                 CountDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
-            }
-            DataVersion.Increment();
+            };
         }
-        public void Refresh()
+        public void ClearData()
         {
-            PushVersion.Increment();
+            CountDic.Clear();
+        }
+        public void ProcData()
+        {
         }
     }
 }

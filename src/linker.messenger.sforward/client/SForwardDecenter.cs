@@ -30,27 +30,29 @@ namespace linker.messenger.sforward.client
 
         public Memory<byte> GetData()
         {
-            SForwardCountInfo info = new SForwardCountInfo { MachineId = signInClientStore.Id, Count = sForwardClientStore.Count() };
-            CountDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
-            DataVersion.Increment();
-            return serializer.Serialize(info);
+            return serializer.Serialize(new SForwardCountInfo { MachineId = signInClientStore.Id, Count = sForwardClientStore.Count() });
         }
-        public void SetData(Memory<byte> data)
+        public void AddData(Memory<byte> data)
         {
             SForwardCountInfo info = serializer.Deserialize<SForwardCountInfo>(data.Span);
             CountDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
-            DataVersion.Increment();
         }
-        public void SetData(List<ReadOnlyMemory<byte>> data)
+        public void AddData(List<ReadOnlyMemory<byte>> data)
         {
             List<SForwardCountInfo> list = data.Select(c => serializer.Deserialize<SForwardCountInfo>(c.Span)).ToList();
             foreach (var info in list)
             {
                 CountDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
             }
-            DataVersion.Increment();
+        }
+        public void ClearData()
+        {
+            CountDic.Clear();
+        }
+        public void ProcData()
+        {
         }
     }
 
-  
+
 }

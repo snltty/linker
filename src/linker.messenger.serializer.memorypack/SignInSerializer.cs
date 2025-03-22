@@ -607,4 +607,59 @@ namespace linker.messenger.serializer.memorypack
             value = wrapped.info;
         }
     }
+
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableSignInPushArgInfo
+    {
+        [MemoryPackIgnore]
+        public readonly SignInPushArgInfo info;
+
+        [MemoryPackInclude]
+        string Key => info.Key;
+
+        [MemoryPackInclude]
+        string Value => info.Value;
+
+
+        [MemoryPackConstructor]
+        SerializableSignInPushArgInfo(string key, string value)
+        {
+            var info = new SignInPushArgInfo { Key = key, Value = value };
+            this.info = info;
+        }
+
+        public SerializableSignInPushArgInfo(SignInPushArgInfo signInfo)
+        {
+            this.info = signInfo;
+        }
+    }
+    public class SignInPushArgInfoFormatter : MemoryPackFormatter<SignInPushArgInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SignInPushArgInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableSignInPushArgInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref SignInPushArgInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableSignInPushArgInfo>();
+            value = wrapped.info;
+        }
+    }
+
 }

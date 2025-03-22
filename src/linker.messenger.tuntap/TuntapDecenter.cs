@@ -5,8 +5,6 @@ using linker.messenger.signin;
 using linker.messenger.exroute;
 using linker.tun;
 using System.Net;
-using linker.libs.timer;
-using System.Threading;
 
 namespace linker.messenger.tuntap
 {
@@ -42,19 +40,6 @@ namespace linker.messenger.tuntap
             this.exRouteTransfer = exRouteTransfer;
             this.signInClientState = signInClientState;
 
-            signInClientState.OnSignInSuccess += NetworkEnable;
-            AddRouteTask();
-
-        }
-        string groupid = string.Empty;
-        private void NetworkEnable(int times)
-        {
-            if (groupid != signInClientStore.Group.Id)
-            {
-                tuntapInfos.Clear();
-                tuntapProxy.ClearIPs();
-            }
-            groupid = signInClientStore.Group.Id;
         }
 
         public void Refresh()
@@ -62,9 +47,9 @@ namespace linker.messenger.tuntap
             PushVersion.Increment();
         }
 
-        private TuntapInfo GetCurrentInfo()
+        public Memory<byte> GetData()
         {
-            return new TuntapInfo
+            return serializer.Serialize(new TuntapInfo
             {
                 IP = tuntapConfigTransfer.Info.IP,
                 Lans = tuntapConfigTransfer.Info.Lans.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false)
@@ -80,27 +65,15 @@ namespace linker.messenger.tuntap
 
                 Forwards = tuntapConfigTransfer.Info.Forwards,
                 Switch = tuntapConfigTransfer.Info.Switch
-            };
+            });
         }
-        public Memory<byte> GetData()
-        {
-            TuntapInfo info = GetCurrentInfo();
-            tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            {
-                LoggerHelper.Instance.Debug($"tuntap decenter getdata");
-            }
-            DataVersion.Increment();
-            return serializer.Serialize(info);
-        }
-        public void SetData(Memory<byte> data)
+        public void AddData(Memory<byte> data)
         {
             TuntapInfo info = serializer.Deserialize<TuntapInfo>(data.Span);
             tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
-            DataVersion.Increment();
             listVersion.Increment();
         }
-        public void SetData(List<ReadOnlyMemory<byte>> data)
+        public void AddData(List<ReadOnlyMemory<byte>> data)
         {
             List<TuntapInfo> list = data.Select(c => serializer.Deserialize<TuntapInfo>(c.Span)).ToList();
             foreach (var item in list)
@@ -110,19 +83,16 @@ namespace linker.messenger.tuntap
             DataVersion.Increment();
             listVersion.Increment();
         }
-
-        private void AddRouteTask()
+        public void ClearData()
         {
-            ulong version = 0;
-            TimerHelper.SetIntervalLong(() =>
-            {
-                if (listVersion.Eq(version, out ulong _version) == false)
-                {
-                    AddRoute();
-                }
-                version = _version;
-            }, 3000);
+            tuntapInfos.Clear();
+            tuntapProxy.ClearIPs();
         }
+        public void ProcData()
+        {
+            AddRoute();
+        }
+
         private void AddRoute()
         {
             List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(Infos.Values.ToList());

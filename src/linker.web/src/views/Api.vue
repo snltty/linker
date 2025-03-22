@@ -81,9 +81,7 @@ export default {
         const _getSignInfoInfo = ()=>{
             getSignInfo().then((res)=>{
                 globalData.value.signin.Connected = res.Connected;
-                globalData.value.signin.Connecting = res.Connecting;
                 globalData.value.signin.Version = res.Version;
-                globalData.value.signin.LanAddress = res.LanAddress;
                 setTimeout(()=>{
                     _getSignInfoInfo();
                 },1000);

@@ -1,6 +1,6 @@
 ﻿using linker.tunnel.transport;
 using linker.messenger.signin;
-using linker.plugins.tunnel;
+using linker.messenger.tunnel;
 
 namespace linker.messenger.store.file.tunnel
 {
@@ -10,6 +10,7 @@ namespace linker.messenger.store.file.tunnel
 
         public int PortMapPrivate => runningConfig.Data.Tunnel.PortMapLan;
         public int PortMapPublic => runningConfig.Data.Tunnel.PortMapWan;
+        public TunnelPublicNetworkInfo Network => runningConfig.Data.Tunnel.Network;
 
         public Action OnChanged { get; set; } = () => { };
 
@@ -52,6 +53,13 @@ namespace linker.messenger.store.file.tunnel
         {
             runningConfig.Data.Tunnel.PortMapLan = privatePort;
             runningConfig.Data.Tunnel.PortMapWan = publicPort;
+            runningConfig.Data.Update();
+            OnChanged();
+            return await Task.FromResult(true).ConfigureAwait(false);
+        }
+
+        public async Task<bool> SetNetwork(TunnelPublicNetworkInfo network)
+        {
             runningConfig.Data.Update();
             OnChanged();
             return await Task.FromResult(true).ConfigureAwait(false);

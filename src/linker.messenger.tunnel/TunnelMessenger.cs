@@ -2,7 +2,6 @@
 using linker.tunnel.transport;
 using linker.libs;
 using linker.messenger.signin;
-using linker.plugins.tunnel;
 
 namespace linker.messenger.tunnel
 {

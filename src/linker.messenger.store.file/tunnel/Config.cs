@@ -1,4 +1,5 @@
-﻿using linker.tunnel.transport;
+﻿using linker.messenger.tunnel;
+using linker.tunnel.transport;
 using LiteDB;
 namespace linker.messenger.store.file
 {
@@ -21,6 +22,8 @@ namespace linker.messenger.store.file
 
         public int PortMapWan { get; set; }
         public int PortMapLan { get; set; }
+
+        public TunnelPublicNetworkInfo Network { get; set; } = new TunnelPublicNetworkInfo();
     }
 
     public partial class ConfigClientInfo

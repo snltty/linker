@@ -4,6 +4,7 @@ using linker.libs;
 using linker.messenger.signin;
 using linker.messenger.api;
 using IApiServer = linker.messenger.api.IApiServer;
+using System.Collections.Concurrent;
 
 namespace linker.messenger.access
 {
@@ -92,7 +93,7 @@ namespace linker.messenger.access
 
     public sealed class AccessListInfo
     {
-        public Dictionary<string, AccessValue> List { get; set; }
+        public ConcurrentDictionary<string, AccessValue> List { get; set; }
         public ulong HashCode { get; set; }
     }
 }

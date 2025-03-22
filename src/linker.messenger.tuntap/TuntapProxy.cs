@@ -15,18 +15,16 @@ namespace linker.messenger.tuntap
     {
         public ValueTask Close(ITunnelConnection connection);
         public void Receive(ITunnelConnection connection, ReadOnlyMemory<byte> packet);
-        public ValueTask NotFound(uint ip);
     }
 
-    public sealed class TuntapProxy : linker.messenger.channel.Channel, ITunnelConnectionReceiveCallback
+    public sealed class TuntapProxy : channel.Channel, ITunnelConnectionReceiveCallback
     {
         public ITuntapProxyCallback Callback { get; set; }
 
-        private uint[] maskValues = Array.Empty<uint>();
-        private readonly ConcurrentDictionary<uint, string> ip2MachineDic = new ConcurrentDictionary<uint, string>();
+        private readonly IPAddessCidrManager<string> cidrManager = new IPAddessCidrManager<string>();
+
         private readonly ConcurrentDictionary<uint, ITunnelConnection> ipConnections = new ConcurrentDictionary<uint, ITunnelConnection>();
         private readonly OperatingMultipleManager operatingMultipleManager = new OperatingMultipleManager();
-        private HashSet<uint> ipRefreshCache = new HashSet<uint>();
         protected override string TransactionId => "tuntap";
 
         public TuntapProxy(ISignInClientStore signInClientStore,
@@ -39,7 +37,6 @@ namespace linker.messenger.tuntap
         protected override void Connected(ITunnelConnection connection)
         {
             connection.BeginReceive(this, null);
-
             //有哪些目标IP用了相同目标隧道，更新一下
             List<uint> keys = ipConnections.Where(c => c.Value.RemoteMachineId == connection.RemoteMachineId).Select(c => c.Key).ToList();
             foreach (uint ip in keys)
@@ -122,27 +119,10 @@ namespace linker.messenger.tuntap
         /// <returns></returns>
         private async Task<ITunnelConnection> ConnectTunnel(uint ip)
         {
-            //直接按IP查找
-            if (ip2MachineDic.TryGetValue(ip, out string machineId))
+            if (cidrManager.FindValue(ip, out string machineId))
             {
                 return await ConnectTunnel(machineId, TunnelProtocolType.Quic).ConfigureAwait(false);
             }
-
-            //匹配掩码查找
-            for (int i = 0; i < maskValues.Length; i++)
-            {
-                uint network = ip & maskValues[i];
-                if (ip2MachineDic.TryGetValue(network, out machineId))
-                {
-                    return await ConnectTunnel(machineId, TunnelProtocolType.Quic).ConfigureAwait(false);
-                }
-            }
-            if (ipRefreshCache.Contains(ip) == false)
-            {
-                ipRefreshCache.Add(ip);
-                await Callback.NotFound(ip).ConfigureAwait(false);
-            }
-
             return null;
 
         }
@@ -152,9 +132,8 @@ namespace linker.messenger.tuntap
         /// </summary>
         public void ClearIPs()
         {
-            ip2MachineDic.Clear();
+            cidrManager.Clear();
             ipConnections.Clear();
-            ipRefreshCache.Clear();
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
                 LoggerHelper.Instance.Debug($"tuntap cache clear");
@@ -167,13 +146,6 @@ namespace linker.messenger.tuntap
         /// <param name="ips"></param>
         public void SetIPs(TuntapVeaLanIPAddress[] ips)
         {
-            var dic = ips.GroupBy(c => c.NetWork).ToDictionary(c => c.Key, d => d.Select(e => e.MachineId).ToList());
-            foreach (var item in dic.Where(c => c.Value.Count > 0))
-            {
-                string machineId = item.Value[0];
-                ip2MachineDic.AddOrUpdate(item.Key, machineId, (a, b) => machineId);
-            }
-
             foreach (var ip in ips)
             {
                 foreach (var item in ipConnections.Where(c => (c.Key & ip.MaskValue) == ip.NetWork && c.Value.Connected && c.Value.RemoteMachineId != ip.MachineId).ToList())
@@ -185,8 +157,7 @@ namespace linker.messenger.tuntap
                     ipConnections.TryRemove(item.Key, out _);
                 }
             }
-
-            maskValues = ips.Select(c => c.MaskValue).Distinct().OrderBy(c => c).ToArray();
+            cidrManager.Add(ips.Select(c=>new CidrAddInfo<string> {  IPAddress=c.IPAddress, PrefixLength=c.PrefixLength, Value=c.MachineId}).ToArray());
 
         }
         /// <summary>
@@ -196,7 +167,7 @@ namespace linker.messenger.tuntap
         /// <param name="ip"></param>
         public void SetIP(string machineId, uint ip)
         {
-            ip2MachineDic.AddOrUpdate(ip, machineId, (a, b) => machineId);
+            cidrManager.Add(new CidrAddInfo<string> { IPAddress = ip, PrefixLength = 32, Value = machineId });
             if (ipConnections.TryGetValue(ip, out ITunnelConnection connection) && machineId != connection.RemoteMachineId)
             {
                 ipConnections.TryRemove(ip, out _);
@@ -208,10 +179,10 @@ namespace linker.messenger.tuntap
         /// <param name="machineId"></param>
         public void RemoveIP(string machineId)
         {
-            foreach (var item in ip2MachineDic.Where(c => c.Value == machineId).ToList())
+            cidrManager.Delete(machineId, (a, b) => a == b);
+            foreach (var item in ipConnections.Where(c => c.Value.RemoteMachineId == machineId).ToList())
             {
                 ipConnections.TryRemove(item.Key, out _);
-                ip2MachineDic.TryRemove(item.Key, out _);
             }
         }
 

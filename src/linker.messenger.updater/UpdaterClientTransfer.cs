@@ -29,7 +29,7 @@ namespace linker.messenger.updater
             this.updaterCommonTransfer = updaterCommonTransfer;
             this.serializer = serializer;
 
-            signInClientState.NetworkFirstEnabledHandle += Init;
+            signInClientState.OnSignInSuccessFirstTime += Init;
 
         }
         private void Init()

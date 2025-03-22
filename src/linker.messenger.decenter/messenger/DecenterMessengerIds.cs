@@ -4,8 +4,8 @@
     {
         Min = 2800,
 
-        Sync = 2807,
-        SyncForward = 2808,
+        Add = 2807,
+        AddForward = 2808,
 
         Push = 2812,
         Pull = 2813,

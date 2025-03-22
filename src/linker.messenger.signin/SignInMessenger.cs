@@ -244,9 +244,8 @@ namespace linker.messenger.signin
             connection.Write(serializer.Serialize(signCaching.NewId()));
         }
 
-
         [MessengerId((ushort)SignInMessengerIds.SetNameForward)]
-        public async Task NameForward(IConnection connection)
+        public async Task SetNameForward(IConnection connection)
         {
             SignInConfigSetNameInfo info = serializer.Deserialize<SignInConfigSetNameInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(info.Id, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
@@ -260,6 +259,16 @@ namespace linker.messenger.signin
                         Payload = connection.ReceiveRequestWrap.Payload,
                     }).ConfigureAwait(false);
                 }
+            }
+        }
+
+        [MessengerId((ushort)SignInMessengerIds.PushArg)]
+        public void PushArg(IConnection connection)
+        {
+            SignInPushArgInfo info = serializer.Deserialize<SignInPushArgInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            {
+                cache.Args.TryAdd(info.Key, info.Value);
             }
         }
     }
@@ -354,5 +363,12 @@ namespace linker.messenger.signin
         public string MachineId { get; set; }
         public IPEndPoint IP { get; set; }
         public string Msg { get; set; }
+    }
+
+
+    public sealed class SignInPushArgInfo
+    {
+        public string Key { get; set; }
+        public string Value { get; set; }
     }
 }

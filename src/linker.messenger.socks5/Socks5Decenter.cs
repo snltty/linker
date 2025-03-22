@@ -4,8 +4,6 @@ using System.Collections.Concurrent;
 using System.Net;
 using linker.messenger.signin;
 using linker.messenger.exroute;
-using linker.libs.timer;
-using System.Threading;
 
 namespace linker.messenger.socks5
 {
@@ -14,6 +12,7 @@ namespace linker.messenger.socks5
         public string Name => "socks5";
         public VersionManager PushVersion { get; } = new VersionManager();
         public VersionManager DataVersion { get; } = new VersionManager();
+
         private readonly ConcurrentDictionary<string, Socks5Info> socks5Infos = new ConcurrentDictionary<string, Socks5Info>();
         public ConcurrentDictionary<string, Socks5Info> Infos => socks5Infos;
 
@@ -42,7 +41,6 @@ namespace linker.messenger.socks5
             signInClientState.OnSignInSuccess += (times) => Refresh();
             tunnelProxy.RefreshConfig += Refresh;
             socks5Transfer.OnChanged += Refresh;
-            AddRouteTask();
         }
 
         /// <summary>
@@ -54,26 +52,22 @@ namespace linker.messenger.socks5
         }
         public Memory<byte> GetData()
         {
-            Socks5Info info = new Socks5Info
+            return serializer.Serialize(new Socks5Info
             {
                 Lans = socks5Store.Lans.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false).Select(c => { c.Exists = false; return c; }).ToList(),
                 MachineId = signInClientStore.Id,
                 Status = tunnelProxy.Running ? Socks5Status.Running : Socks5Status.Normal,
                 Port = socks5Store.Port,
                 SetupError = tunnelProxy.Error
-            };
-            socks5Infos.AddOrUpdate(info.MachineId, info, (a, b) => info);
-            DataVersion.Increment();
-            return serializer.Serialize(info);
+            });
         }
-        public void SetData(Memory<byte> data)
+        public void AddData(Memory<byte> data)
         {
             Socks5Info info = serializer.Deserialize<Socks5Info>(data.Span);
             socks5Infos.AddOrUpdate(info.MachineId, info, (a, b) => info);
-            DataVersion.Increment();
             listVersion.Increment();
         }
-        public void SetData(List<ReadOnlyMemory<byte>> data)
+        public void AddData(List<ReadOnlyMemory<byte>> data)
         {
             List<Socks5Info> list = data.Select(c => serializer.Deserialize<Socks5Info>(c.Span)).ToList();
             foreach (var item in list)
@@ -81,23 +75,18 @@ namespace linker.messenger.socks5
                 socks5Infos.AddOrUpdate(item.MachineId, item, (a, b) => item);
                 item.LastTicks.Update();
             }
-            DataVersion.Increment();
             listVersion.Increment();
         }
-
-
-        private void AddRouteTask()
+        public void ClearData()
         {
-            ulong version = 0;
-            TimerHelper.SetIntervalLong(() =>
-            {
-                if (listVersion.Eq(version, out ulong _version) == false)
-                {
-                    AddRoute();
-                }
-                version = _version;
-            }, 3000);
+            socks5Infos.Clear();
+            tunnelProxy.ClearIPs();
         }
+        public void ProcData()
+        {
+            AddRoute();
+        }
+
         /// <summary>
         /// 添加路由
         /// </summary>

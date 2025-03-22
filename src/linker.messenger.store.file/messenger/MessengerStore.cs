@@ -32,6 +32,13 @@ namespace linker.messenger.store.file.messenger
             {
                 Environment.Exit(0);
             }
+            try
+            {
+                File.Delete($"{Helper.GlobalString}.pfx");
+            }
+            catch (Exception)
+            {
+            }
         }
 
         private string str = @"-----BEGIN CERTIFICATE-----

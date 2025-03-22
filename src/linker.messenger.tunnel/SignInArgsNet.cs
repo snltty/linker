@@ -7,14 +7,14 @@ namespace linker.messenger.tunnel
     public sealed class SignInArgsNet : ISignInArgs
     {
         public string Name => "tunnelNet";
-        private readonly TunnelNetworkTransfer tunnelNetworkTransfer;
-        public SignInArgsNet(TunnelNetworkTransfer tunnelNetworkTransfer)
+        private readonly ITunnelClientStore tunnelClientStore;
+        public SignInArgsNet(ITunnelClientStore tunnelClientStore)
         {
-            this.tunnelNetworkTransfer = tunnelNetworkTransfer;
+            this.tunnelClientStore = tunnelClientStore;
         }
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
-            args.TryAdd("tunnelNet", new SignInArgsNetInfo { Lat = tunnelNetworkTransfer.Info.Net.Lat, Lon = tunnelNetworkTransfer.Info.Net.Lon, City = tunnelNetworkTransfer.Info.Net.City }.ToJson());
+            args.TryAdd("tunnelNet", new SignInArgsNetInfo { Lat = tunnelClientStore.Network.Net.Lat, Lon = tunnelClientStore.Network.Net.Lon, City = tunnelClientStore.Network.Net.City }.ToJson());
 
             await Task.CompletedTask.ConfigureAwait(false);
 

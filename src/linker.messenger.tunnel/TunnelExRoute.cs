@@ -6,16 +6,16 @@ namespace linker.messenger.tunnel
 {
     public sealed class TunnelExRoute : IExRoute
     {
-        private readonly TunnelNetworkTransfer tunnelNetworkTransfer;
-        public TunnelExRoute(TunnelNetworkTransfer tunnelNetworkTransfer)
+        private readonly ITunnelClientStore tunnelClientStore;
+        public TunnelExRoute(ITunnelClientStore tunnelClientStor)
         {
-            this.tunnelNetworkTransfer = tunnelNetworkTransfer;
+            this.tunnelClientStore = tunnelClientStor;
         }
         public List<IPAddress> Get()
         {
-            return tunnelNetworkTransfer.Info.LocalIPs.Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+            return tunnelClientStore.Network.LocalIPs.Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                 //路由上的IP
-                .Concat(tunnelNetworkTransfer.Info.RouteIPs).ToList();
+                .Concat(tunnelClientStore.Network.RouteIPs).ToList();
         }
     }
 }

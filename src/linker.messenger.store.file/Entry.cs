@@ -27,10 +27,10 @@ using linker.messenger.store.file.tunnel;
 using linker.messenger.store.file.tuntap;
 using linker.messenger.store.file.updater;
 using linker.messenger.sync;
+using linker.messenger.tunnel;
 using linker.messenger.tuntap;
 using linker.messenger.tuntap.lease;
 using linker.messenger.updater;
-using linker.plugins.tunnel;
 using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.store.file
 {

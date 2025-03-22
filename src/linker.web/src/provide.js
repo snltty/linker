@@ -22,7 +22,7 @@ export const provideGlobalData = () => {
             configed: false
         },
         //登录信息
-        signin: { Connected: false, Connecting: false, Version: 'v1.0.0.0', LanAddress: '0.0.0.0' },
+        signin: { Connected: false, Version: 'v1.0.0.0' },
         bufferSize: ['1KB', '2KB', '4KB', '8KB', '16KB', '32KB', '64KB', '128KB', '256KB', '512KB', '1024KB'],
         self: {}, //本机
         hasAccess(name) {

@@ -110,8 +110,8 @@ namespace linker.messenger.decenter
             }, 30000);
         }
 
-        [MessengerId((ushort)DecenterMessengerIds.SyncForward)]
-        public void SyncForward(IConnection connection)
+        [MessengerId((ushort)DecenterMessengerIds.AddForward)]
+        public void AddForward(IConnection connection)
         {
             DecenterSyncInfo info = serializer.Deserialize<DecenterSyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
@@ -125,7 +125,7 @@ namespace linker.messenger.decenter
                     tasks.Add(sender.SendReply(new MessageRequestWrap
                     {
                         Connection = item.Connection,
-                        MessengerId = (ushort)DecenterMessengerIds.Sync,
+                        MessengerId = (ushort)DecenterMessengerIds.Add,
                         Payload = connection.ReceiveRequestWrap.Payload,
                         Timeout = 30000,
                     }));
@@ -141,7 +141,7 @@ namespace linker.messenger.decenter
                             RequestId = requiestid,
                             Connection = connection,
                             Payload = serializer.Serialize(results)
-                        }, (ushort)DecenterMessengerIds.SyncForward).ConfigureAwait(false);
+                        }, (ushort)DecenterMessengerIds.AddForward).ConfigureAwait(false);
 
                     }
                     catch (Exception ex)
@@ -173,11 +173,11 @@ namespace linker.messenger.decenter
             syncTreansfer.Notify(info);
         }
 
-        [MessengerId((ushort)DecenterMessengerIds.Sync)]
-        public void Sync(IConnection connection)
+        [MessengerId((ushort)DecenterMessengerIds.Add)]
+        public void Add(IConnection connection)
         {
             DecenterSyncInfo info = serializer.Deserialize<DecenterSyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            connection.Write(syncTreansfer.Sync(info));
+            connection.Write(syncTreansfer.Add(info));
         }
 
     }

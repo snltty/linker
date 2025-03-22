@@ -3,7 +3,6 @@ using linker.tunnel.connection;
 using linker.libs;
 using linker.libs.socks5;
 using System.Buffers.Binary;
-using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -18,9 +17,7 @@ namespace linker.messenger.socks5
     {
         private IPEndPoint proxyEP;
 
-        private uint[] maskValues = Array.Empty<uint>();
-        private readonly ConcurrentDictionary<uint, string> ip2MachineDic = new ConcurrentDictionary<uint, string>();
-
+        private readonly IPAddessCidrManager<string> cidrManager = new IPAddessCidrManager<string>();
         private readonly SignInClientTransfer signInClientTransfer;
 
         protected override string TransactionId => "socks5";
@@ -38,13 +35,7 @@ namespace linker.messenger.socks5
         /// <param name="ips"></param>
         public void SetIPs(Socks5LanIPAddress[] ips)
         {
-            var dic = ips.GroupBy(c => c.NetWork).ToDictionary(c => c.Key, d => d.Select(e => e.MachineId).ToList());
-            foreach (var item in dic.Where(c => c.Value.Count > 0))
-            {
-                string machineId = item.Value[0];
-                ip2MachineDic.AddOrUpdate(item.Key, machineId, (a, b) => machineId);
-            }
-            maskValues = ips.Select(c => c.MaskValue).Distinct().OrderBy(c => c).ToArray();
+            cidrManager.Add(ips.Select(c => new CidrAddInfo<string> { IPAddress = c.IPAddress, PrefixLength = c.PrefixLength, Value = c.MachineId }).ToArray());
         }
         /// <summary>
         /// 设置IP，等下有连接进来，用IP匹配，才能知道这个连接是要连谁
@@ -53,7 +44,11 @@ namespace linker.messenger.socks5
         /// <param name="ip"></param>
         public void SetIP(string machineId, uint ip)
         {
-            ip2MachineDic.AddOrUpdate(ip, machineId, (a, b) => machineId);
+            cidrManager.Add(new CidrAddInfo<string> { IPAddress = ip, PrefixLength = 32, Value = machineId });
+        }
+        public void ClearIPs()
+        {
+            cidrManager.Clear();
         }
 
 
@@ -218,16 +213,10 @@ namespace linker.messenger.socks5
         /// <returns></returns>
         private async ValueTask<ITunnelConnection> ConnectTunnel(uint ip)
         {
-            //匹配掩码查找
-            for (int i = 0; i < maskValues.Length; i++)
+            if (cidrManager.FindValue(ip, out string machineId))
             {
-                uint network = ip & maskValues[i];
-                if (ip2MachineDic.TryGetValue(network, out string machineId))
-                {
-                    return await ConnectTunnel(machineId, TunnelProtocolType.Udp).ConfigureAwait(false);
-                }
+                return await ConnectTunnel(machineId, TunnelProtocolType.Udp).ConfigureAwait(false);
             }
-
             return null;
 
         }

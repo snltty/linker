@@ -32,7 +32,14 @@ namespace linker.app
 #if ANDROID
 
              AndroidLinkerVpnService androidLinkerVpnService = new AndroidLinkerVpnService();
-            androidLinkerVpnService.StartVpnService();
+             if(androidLinkerVpnService.Running)
+             {
+                androidLinkerVpnService.StopVpnService();
+             }
+             else
+             {
+                androidLinkerVpnService.StartVpnService();
+             }
 #endif
 
         }

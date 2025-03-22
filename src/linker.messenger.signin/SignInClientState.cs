@@ -10,7 +10,7 @@ namespace linker.messenger.signin
 
         public SignInClientState()
         {
-            if(OperatingSystem.IsAndroid() == false)
+            if (OperatingSystem.IsAndroid() == false)
             {
                 AppDomain.CurrentDomain.ProcessExit += (s, e) => Disponse();
                 Console.CancelKeyPress += (s, e) => Disponse();
@@ -22,19 +22,10 @@ namespace linker.messenger.signin
         /// </summary>
         [JsonIgnore]
         public IConnection Connection { get; set; }
-
-        [JsonIgnore]
-        public bool connecting = false;
-        public bool Connecting => connecting;
         public bool Connected => Connection != null && Connection.Connected;
 
         public string Version { get; set; }
-
         public IPEndPoint WanAddress { get; set; } = new IPEndPoint(IPAddress.Any, 0);
-        public IPEndPoint LanAddress => Connection?.LocalAddress ?? new IPEndPoint(IPAddress.Any, 0);
-
-
-
 
 
         /// <summary>
@@ -60,7 +51,7 @@ namespace linker.messenger.signin
         /// 第一次上线
         /// </summary>
         [JsonIgnore]
-        public Action NetworkFirstEnabledHandle { get; set; }
+        public Action OnSignInSuccessFirstTime { get; set; }
 
         /// <summary>
         /// 发布上线事件
@@ -76,7 +67,7 @@ namespace linker.messenger.signin
         {
             if (signInTimes == 0)
             {
-                NetworkFirstEnabledHandle?.Invoke();
+                OnSignInSuccessFirstTime?.Invoke();
             }
             OnSignInSuccess?.Invoke(signInTimes);
             signInTimes++;

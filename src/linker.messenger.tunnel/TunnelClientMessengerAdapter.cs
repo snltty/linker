@@ -2,12 +2,10 @@
 using linker.libs;
 using System.Net;
 using linker.tunnel;
-using linker.messenger;
-using linker.messenger.tunnel;
 using System.Security.Cryptography.X509Certificates;
 using linker.messenger.signin;
 
-namespace linker.plugins.tunnel
+namespace linker.messenger.tunnel
 {
     /// <summary>
     /// 打洞信标适配存储
@@ -54,6 +52,19 @@ namespace linker.plugins.tunnel
 
 
         public Action OnChanged { get; set; }
+
+
+
+        /// <summary>
+        /// 配置的额外网络层级
+        /// </summary>
+        public TunnelPublicNetworkInfo Network { get; }
+        /// <summary>
+        /// 设置额外的网关层级
+        /// </summary>
+        /// <param name="level"></param>
+        /// <returns></returns>
+        public Task<bool> SetNetwork(TunnelPublicNetworkInfo network);
     }
     /// <summary>
     /// 打洞信标适配
@@ -75,9 +86,8 @@ namespace linker.plugins.tunnel
         private readonly SignInClientState signInClientState;
         private readonly IMessengerStore messengerStore;
 
-
         public TunnelMessengerAdapter(IMessengerSender messengerSender, TunnelClientExcludeIPTransfer excludeIPTransfer,
-            ISerializer serializer, ITunnelClientStore tunnelClientStore, SignInClientState signInClientState, IMessengerStore messengerStore)
+            ISerializer serializer, ITunnelClientStore tunnelClientStore, SignInClientState signInClientState, IMessengerStore messengerStore, TunnelTransfer tunnelTransfer)
         {
             this.messengerSender = messengerSender;
             this.excludeIPTransfer = excludeIPTransfer;
@@ -85,6 +95,9 @@ namespace linker.plugins.tunnel
             this.tunnelClientStore = tunnelClientStore;
             this.signInClientState = signInClientState;
             this.messengerStore = messengerStore;
+
+            signInClientState.OnSignInBrfore = async () => { tunnelTransfer.Refresh(); await Task.CompletedTask; };
+            tunnelTransfer.Refresh();
         }
 
         public List<TunnelExIPInfo> GetExcludeIps()

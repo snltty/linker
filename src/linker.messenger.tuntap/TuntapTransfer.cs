@@ -39,6 +39,18 @@ namespace linker.messenger.tuntap
                 Console.CancelKeyPress += (s, e) => linkerTunDeviceAdapter.Shutdown();
             }
         }
+        public void Init(ILinkerTunDevice linkerTunDevice,ILinkerTunDeviceCallback linkerTunDeviceCallback)
+        {
+            if (inited) return;
+            inited = true;
+
+            linkerTunDeviceAdapter.Initialize(linkerTunDevice,linkerTunDeviceCallback);
+            if (OperatingSystem.IsAndroid() == false)
+            {
+                AppDomain.CurrentDomain.ProcessExit += (s, e) => linkerTunDeviceAdapter.Shutdown();
+                Console.CancelKeyPress += (s, e) => linkerTunDeviceAdapter.Shutdown();
+            }
+        }
 
         public bool Write(ReadOnlyMemory<byte> buffer)
         {

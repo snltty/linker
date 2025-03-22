@@ -2,6 +2,7 @@
 using linker.messenger.api;
 using linker.messenger.decenter;
 using linker.messenger.signin;
+using System.Collections.Concurrent;
 
 namespace linker.messenger.access
 {
@@ -14,7 +15,7 @@ namespace linker.messenger.access
         /// <summary>
         /// 各个设备的权限列表
         /// </summary>
-        public Dictionary<string, AccessValue> Accesss { get; } = new Dictionary<string, AccessValue>();
+        public ConcurrentDictionary<string, AccessValue> Accesss { get; } = new ConcurrentDictionary<string, AccessValue>();
 
         private readonly ISignInClientStore signInClientStore;
         private readonly IAccessStore accessStore;
@@ -38,25 +39,27 @@ namespace linker.messenger.access
         }
         public Memory<byte> GetData()
         {
-            AccessInfo info = new AccessInfo { MachineId = signInClientStore.Id, Access = accessStore.Access };
-            Accesss[info.MachineId] = info.Access;
-            DataVersion.Increment();
-            return serializer.Serialize(info);
+            return serializer.Serialize(new AccessInfo { MachineId = signInClientStore.Id, Access = accessStore.Access });
         }
-        public void SetData(Memory<byte> data)
+        public void AddData(Memory<byte> data)
         {
             AccessInfo access = serializer.Deserialize<AccessInfo>(data.Span);
-            Accesss[access.MachineId] = access.Access;
-            DataVersion.Increment();
+            Accesss.AddOrUpdate(access.MachineId, access.Access, (a, b) => access.Access);
         }
-        public void SetData(List<ReadOnlyMemory<byte>> data)
+        public void AddData(List<ReadOnlyMemory<byte>> data)
         {
             List<AccessInfo> list = data.Select(c => serializer.Deserialize<AccessInfo>(c.Span)).ToList();
             foreach (var item in list)
             {
-                Accesss[item.MachineId] = item.Access;
+                Accesss.AddOrUpdate(item.MachineId, item.Access, (a, b) => item.Access);
             }
-            DataVersion.Increment();
+        }
+        public void ClearData()
+        {
+            Accesss.Clear();
+        }
+        public void ProcData()
+        {
         }
     }
 }

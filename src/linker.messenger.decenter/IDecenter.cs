@@ -13,7 +13,7 @@ namespace linker.messenger.decenter
         /// </summary>
         public VersionManager PushVersion { get; }
         /// <summary>
-        /// 数据版本，从收到数据则更新
+        /// 数据版本，收到新数据则版本变化
         /// </summary>
         public VersionManager DataVersion { get; }
         /// <summary>
@@ -25,12 +25,21 @@ namespace linker.messenger.decenter
         /// 收到远端数据
         /// </summary>
         /// <param name="data"></param>
-        public void SetData(Memory<byte> data);
+        public void AddData(Memory<byte> data);
         /// <summary>
         /// 收到远端数据
         /// </summary>
         /// <param name="data"></param>
-        public void SetData(List<ReadOnlyMemory<byte>> data);
+        public void AddData(List<ReadOnlyMemory<byte>> data);
+
+        /// <summary>
+        /// 需要清理数据
+        /// </summary>
+        public void ClearData();
+        /// <summary>
+        /// 需要处理数据
+        /// </summary>
+        public void ProcData();
     }
 
     public sealed partial class DecenterSyncInfo

@@ -131,11 +131,7 @@ namespace linker.messenger.tuntap
         {
             tuntapTransfer.Write(buffer);
         }
-        public async ValueTask NotFound(uint ip)
-        {
-            tuntapDecenter.Refresh();
-            await ValueTask.CompletedTask.ConfigureAwait(false);
-        }
+       
 
         /// <summary>
         /// 重启网卡
