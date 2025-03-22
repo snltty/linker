@@ -28,8 +28,8 @@ namespace linker.messenger.tunnel
             this.messengerSender = messengerSender;
             this.serializer = serializer;
 
-            signInClientState.OnSignInBrfore += async () => { RefreshRouteLevel(); tunnelTransfer.Refresh(); await Task.CompletedTask; };
-            tunnelTransfer.Refresh();
+           
+            signInClientState.OnSignInSuccessBefore += async () => { RefreshRouteLevel(); tunnelTransfer.Refresh(); await Task.CompletedTask; };
 
             TestQuic();
 

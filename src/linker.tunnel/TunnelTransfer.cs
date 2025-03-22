@@ -115,9 +115,7 @@ namespace linker.tunnel
         {
             TimerHelper.Async(() =>
             {
-                networkInfo.RouteLevel = NetworkHelper.GetRouteLevel(tunnelMessengerAdapter.ServerHost.ToString(), out List<IPAddress> ips);
-                networkInfo.LocalIps = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
-                networkInfo.MachineId = tunnelMessengerAdapter.MachineId;
+                if (tunnelMessengerAdapter.ServerHost == null) return;
 
                 GetLocalIP(tunnelMessengerAdapter.ServerHost).ContinueWith((result) =>
                 {
@@ -134,6 +132,10 @@ namespace linker.tunnel
                         }
                     }
                 });
+
+                networkInfo.RouteLevel = NetworkHelper.GetRouteLevel(tunnelMessengerAdapter.ServerHost.ToString(), out List<IPAddress> ips);
+                networkInfo.LocalIps = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
+                networkInfo.MachineId = tunnelMessengerAdapter.MachineId;
 
                 async Task<IPAddress> GetLocalIP(IPEndPoint server)
                 {
