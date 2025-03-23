@@ -20,24 +20,16 @@
 		<Title>linker</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 优化linux下路由跟踪问题，提高启动速度
-2. 优化linux下获取本机IP问题，提升虚拟网卡稳定性
-3. 增加中继cdkey，使用cdkey解锁公开中继节点的带宽、流量、连接数限制
-4. 优化管理页面连接接口的体验
-5. 优化一些UI体验，去除同步页面，将同步功能放至各个实际的位置
-6. 优化端口转发，让不同分组间可以使用相同端口
-7. 从命令行参数初始化配置
-8. 优化打洞，IPV6支持的更多了
-9. 优化定位，地图显示更准确了
-10. 支持UDP中继，请更新中继节点
-11. 优化windows下网卡的自动启用</Description>
+		<Description>1. 优化数据同步
+2. 优化linux网卡，我感觉网卡速度比较正常了
+3. 建议更新</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.7.0</Version>
-		<AssemblyVersion>1.7.0</AssemblyVersion>
-		<FileVersion>1.7.0</FileVersion>
+		<Version>1.7.1</Version>
+		<AssemblyVersion>1.7.1</AssemblyVersion>
+		<FileVersion>1.7.1</FileVersion>
 		<DelaySign>False</DelaySign>
 	</PropertyGroup>
 

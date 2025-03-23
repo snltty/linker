@@ -4,7 +4,6 @@ using LiteDB;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
-using linker.messenger.serializer.aot;
 using linker.libs.timer;
 
 namespace linker.messenger.store.file
@@ -173,7 +172,6 @@ namespace linker.messenger.store.file
         }
     }
 
-    [JsonAot]
     public sealed partial class ConfigClientInfo : IConfig
     {
         private ICrypto crypto;
@@ -199,8 +197,6 @@ namespace linker.messenger.store.file
             return Encoding.UTF8.GetString(crypto.Decode(Convert.FromBase64String(text)).ToArray()).DeJson<ConfigClientInfo>();
         }
     }
-
-    [JsonAot]
     public sealed partial class ConfigServerInfo : IConfig
     {
         public ConfigServerInfo() { }
@@ -214,7 +210,6 @@ namespace linker.messenger.store.file
         }
     }
 
-    [JsonAot]
     public sealed partial class ConfigCommonInfo : IConfig
     {
         public ConfigCommonInfo() { }

@@ -16,9 +16,9 @@
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker tunnel</PackageReleaseNotes>
-		<Version>1.7.0</Version>
-		<AssemblyVersion>1.7.0</AssemblyVersion>
-		<FileVersion>1.7.0</FileVersion>
+		<Version>1.7.1</Version>
+		<AssemblyVersion>1.7.1</AssemblyVersion>
+		<FileVersion>1.7.1</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -38,7 +38,6 @@
 	</PropertyGroup>
 	<ItemGroup>
 	  <PackageReference Include="Mono.Nat" Version="3.0.4" />
-	  <PackageReference Include="System.IO.Pipelines" Version="9.0.3" />
 	</ItemGroup>
 
 	<ItemGroup>

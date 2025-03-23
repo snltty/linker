@@ -16,9 +16,9 @@
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker messenger store file</PackageReleaseNotes>
-		<Version>1.7.0</Version>
-		<AssemblyVersion>1.7.0</AssemblyVersion>
-		<FileVersion>1.7.0</FileVersion>
+		<Version>1.7.1</Version>
+		<AssemblyVersion>1.7.1</AssemblyVersion>
+		<FileVersion>1.7.1</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -55,7 +55,6 @@
 	  <ProjectReference Include="..\linker.messenger.logger\linker.messenger.logger.csproj" />
 	  <ProjectReference Include="..\linker.messenger.pcp\linker.messenger.pcp.csproj" />
 	  <ProjectReference Include="..\linker.messenger.relay\linker.messenger.relay.csproj" />
-	  <ProjectReference Include="..\linker.messenger.serializer.aot\linker.messenger.serializer.aot.csproj" />
 	  <ProjectReference Include="..\linker.messenger.sforward\linker.messenger.sforward.csproj" />
 	  <ProjectReference Include="..\linker.messenger.signin\linker.messenger.signin.csproj" />
 	  <ProjectReference Include="..\linker.messenger.socks5\linker.messenger.socks5.csproj" />
