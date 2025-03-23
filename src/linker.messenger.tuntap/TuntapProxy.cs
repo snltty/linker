@@ -36,7 +36,7 @@ namespace linker.messenger.tuntap
 
         protected override void Connected(ITunnelConnection connection)
         {
-            connection.PipeLines();
+            //connection.PipeLines();
             connection.BeginReceive(this, null);
             //有哪些目标IP用了相同目标隧道，更新一下
             List<uint> keys = ipConnections.Where(c => c.Value.RemoteMachineId == connection.RemoteMachineId).Select(c => c.Key).ToList();
@@ -83,7 +83,7 @@ namespace linker.messenger.tuntap
             {
                 if (connections.IsEmpty == false)
                 {
-                    await Task.WhenAll(connections.Values.Where(c => c != null && c.Connected).Select(c => c.WriteAsync(packet.Buffer, packet.Offset, packet.Length)));
+                    await Task.WhenAll(connections.Values.Where(c => c != null && c.Connected).Select(c => c.SendAsync(packet.Buffer, packet.Offset, packet.Length)));
                 }
                 return;
             }
@@ -110,7 +110,7 @@ namespace linker.messenger.tuntap
                 }, ip);
                 return;
             }
-            await connection.WriteAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
+            await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
         }
 
         /// <summary>
