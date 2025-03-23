@@ -21,12 +21,8 @@ namespace linker.libs
     {
         public byte[] Encode(byte[] buffer);
         public byte[] Encode(byte[] buffer, int offset, int length);
-        public int Encode(byte[] buffer, byte[] outputBuffer, int outputOffset);
-        public int Encode(byte[] buffer, int offset, int length, byte[] outputBuffer, int outputOffset);
         public Memory<byte> Decode(byte[] buffer);
         public Memory<byte> Decode(byte[] buffer, int offset, int length);
-        public int Decode(byte[] buffer, byte[] outputBuffer, int outputOffset);
-        public int Decode(byte[] buffer, int offset, int length, byte[] outputBuffer, int outputOffset);
 
         public void Dispose();
     }
@@ -60,27 +56,6 @@ namespace linker.libs
         {
             return encryptoTransform.TransformFinalBlock(buffer, offset, length);
         }
-        public int Encode(byte[] buffer, byte[] outputBuffer, int outputOffset)
-        {
-            return Encode(buffer, 0, buffer.Length, outputBuffer, outputOffset);
-        }
-        public int Encode(byte[] buffer, int offset, int length, byte[] outputBuffer, int outputOffset)
-        {
-            int blockSize = encryptoTransform.InputBlockSize;
-            int blocks = length / blockSize;
-            int remainingBytes = length % blockSize;
-
-            int written = 0;
-            for (int i = 0; i < blocks; i++)
-            {
-                written += encryptoTransform.TransformBlock(buffer, offset+ written, blockSize, outputBuffer, outputOffset + written);
-            }
-            byte[] finalBlock = encryptoTransform.TransformFinalBlock(buffer, offset + written, remainingBytes);
-            finalBlock.CopyTo(outputBuffer, outputOffset + written);
-            written += finalBlock.Length;
-            return written;
-        }
-
         public Memory<byte> Decode(byte[] buffer)
         {
             return Decode(buffer, 0, buffer.Length);
@@ -89,27 +64,6 @@ namespace linker.libs
         {
             return decryptoTransform.TransformFinalBlock(buffer, offset, length);
         }
-        public int Decode(byte[] buffer, byte[] outputBuffer, int outputOffset)
-        {
-            return Decode(buffer, 0, buffer.Length, outputBuffer, outputOffset);
-        }
-        public int Decode(byte[] buffer, int offset, int length, byte[] outputBuffer, int outputOffset)
-        {
-            int blockSize = decryptoTransform.InputBlockSize;
-            int blocks = length / blockSize;
-            int remainingBytes = length % blockSize;
-
-            int written = 0;
-            for (int i = 0; i < blocks; i++)
-            {
-                written += decryptoTransform.TransformBlock(buffer, offset + written, blockSize, outputBuffer, outputOffset + written);
-            }
-            byte[] finalBlock = decryptoTransform.TransformFinalBlock(buffer, offset + written, remainingBytes);
-            finalBlock.CopyTo(outputBuffer, outputOffset + written);
-            written += finalBlock.Length;
-            return written;
-        }
-
 
         public void Dispose()
         {

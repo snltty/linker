@@ -224,14 +224,6 @@ namespace linker.tunnel.connection
             ArrayPool<byte>.Shared.Return(heartData);
         }
 
-
-        public async Task SendPing()
-        {
-            if (pong == false) return;
-            pong = false;
-            pingTicks.Update();
-            await SendPingPong(pingBytes).ConfigureAwait(false);
-        }
         private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
@@ -263,6 +255,13 @@ namespace linker.tunnel.connection
         {
             return await SendAsync(buffer.AsMemory(offset, length)).ConfigureAwait(false);
         }
+
+
+
+        public void PipeLines() { }
+        public async Task<bool> WriteAsync(ReadOnlyMemory<byte> data) { return await Task.FromResult(true); }
+        public async Task<bool> WriteAsync(byte[] buffer, int offset, int length) { return await Task.FromResult(true); }
+
 
         public void Dispose()
         {

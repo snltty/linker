@@ -6,7 +6,10 @@ using System.Net;
 using System.Text.Json.Serialization;
 using System.Text;
 using System.Net.Sockets;
+using System.IO.Pipelines;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using System;
+using System.Reflection.PortableExecutable;
 
 namespace linker.tunnel.connection
 {
@@ -75,13 +78,12 @@ namespace linker.tunnel.connection
             cancellationTokenSource = new CancellationTokenSource();
             _ = ProcessWrite();
 
-            if (framing)
-                _ = ProcessHeart();
+            _ = ProcessHeart();
         }
 
         private async Task ProcessWrite()
         {
-            byte[] buffer = new byte[32 * 1024];
+            byte[] buffer = new byte[16 * 1024];
             try
             {
                 int length = 0;
@@ -119,19 +121,11 @@ namespace linker.tunnel.connection
             }
             finally
             {
-                //ArrayPool<byte>.Shared.Return(buffer);
                 Dispose();
             }
         }
         private async Task ReadPacket(Memory<byte> buffer)
         {
-            //不分包
-            if (framing == false)
-            {
-                await CallbackPacket(buffer).ConfigureAwait(false);
-                return;
-            }
-
             //没有缓存，可能是一个完整的包
             if (bufferCache.Size == 0 && buffer.Length > 4)
             {
@@ -166,24 +160,20 @@ namespace linker.tunnel.connection
         {
             ReceiveBytes += packet.Length;
             LastTicks.Update();
-            if (framing)
+            if (packet.Length == pingBytes.Length && packet.Span.Slice(0, pingBytes.Length - 4).SequenceEqual(pingBytes.AsSpan(0, pingBytes.Length - 4)))
             {
-                if (packet.Length == pingBytes.Length && packet.Span.Slice(0, pingBytes.Length - 4).SequenceEqual(pingBytes.AsSpan(0, pingBytes.Length - 4)))
+                if (packet.Span.SequenceEqual(pingBytes))
                 {
-                    if (packet.Span.SequenceEqual(pingBytes))
-                    {
-                        await SendPingPong(pongBytes).ConfigureAwait(false);
-                        return;
-                    }
-                    else if (packet.Span.SequenceEqual(pongBytes))
-                    {
-                        Delay = (int)pingTicks.Diff();
-                        pong = true;
-                        return;
-                    }
+                    await SendPingPong(pongBytes).ConfigureAwait(false);
+                    return;
+                }
+                else if (packet.Span.SequenceEqual(pongBytes))
+                {
+                    Delay = (int)pingTicks.Diff();
+                    pong = true;
+                    return;
                 }
             }
-
             try
             {
                 await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
@@ -253,24 +243,12 @@ namespace linker.tunnel.connection
 
             ArrayPool<byte>.Shared.Return(heartData);
         }
-
-
         private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
-        public async Task SendPing()
-        {
-            if (pong == false) return;
-            pong = false;
-            pingTicks.Update();
-            await SendPingPong(pingBytes).ConfigureAwait(false);
-        }
+
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             if (callback == null) return false;
 
-            if (framing == false)
-            {
-                data = data.Slice(4);
-            }
             if (Stream != null)
             {
                 await semaphoreSlim.WaitAsync().ConfigureAwait(false);
@@ -308,12 +286,6 @@ namespace linker.tunnel.connection
         {
             if (callback == null) return false;
 
-            if (framing == false)
-            {
-                offset += 4;
-                length -= 4;
-            }
-
             if (Stream != null)
             {
                 await semaphoreSlim.WaitAsync().ConfigureAwait(false);
@@ -323,7 +295,6 @@ namespace linker.tunnel.connection
                 if (Stream != null)
                 {
                     await Stream.WriteAsync(buffer.AsMemory(offset, length)).ConfigureAwait(false);
-                    //await Stream.FlushAsync();
                 }
                 else
                 {
@@ -348,6 +319,90 @@ namespace linker.tunnel.connection
             return false;
         }
 
+
+        private Pipe pipe;
+        public void PipeLines()
+        {
+            pipe = new Pipe(new PipeOptions { });
+            _ = Reader();
+        }
+        private async Task Reader()
+        {
+            byte[] pipeBuffer = new byte[10 * 1024];
+            while (cancellationTokenSource.IsCancellationRequested == false)
+            {
+                ReadResult result = await pipe.Reader.ReadAsync();
+                if (result.IsCompleted && result.Buffer.IsEmpty)
+                {
+                    break;
+                }
+                ReadOnlySequence<byte> buffer = result.Buffer;
+                while (buffer.Length > 0)
+                {
+                    int chunkSize = (int)Math.Min(buffer.Length, 8192);
+                    ReadOnlySequence<byte> chunk = buffer.Slice(0, chunkSize);
+
+
+                    if (Stream != null)
+                    {
+                        await semaphoreSlim.WaitAsync().ConfigureAwait(false);
+                    }
+                    try
+                    {
+                        chunk.CopyTo(pipeBuffer.AsSpan(4));
+                        chunk.Length.ToBytes(pipeBuffer);
+                        if (Stream != null)
+                        {
+                            await Stream.WriteAsync(pipeBuffer.AsMemory(0, (int)chunk.Length + 4)).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            await Socket.SendAsync(pipeBuffer.AsMemory(0, (int)chunk.Length + 4), SocketFlags.None).ConfigureAwait(false);
+                        }
+                        SendBytes += chunk.Length;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        {
+                            LoggerHelper.Instance.Error(ex);
+                        }
+                        Dispose();
+                    }
+                    finally
+                    {
+                        if (Stream != null)
+                            semaphoreSlim.Release();
+                    }
+
+                    buffer = buffer.Slice(chunkSize);
+
+                }
+                pipe.Reader.AdvanceTo(result.Buffer.Start, result.Buffer.End);
+
+            }
+        }
+        public async Task<bool> WriteAsync(ReadOnlyMemory<byte> data)
+        {
+            data = data.Slice(4);
+            Memory<byte> memory = pipe.Writer.GetMemory(data.Length);
+            data.CopyTo(memory);
+            pipe.Writer.Advance(data.Length);
+            await pipe.Writer.FlushAsync();
+            return true;
+        }
+        public async Task<bool> WriteAsync(byte[] buffer, int offset, int length)
+        {
+            ReadOnlyMemory<byte> data = buffer.AsMemory(offset, length);
+            data = data.Slice(4);
+
+            Memory<byte> memory = pipe.Writer.GetMemory(data.Length);
+            data.CopyTo(memory);
+            pipe.Writer.Advance(data.Length);
+            await pipe.Writer.FlushAsync();
+            return true;
+        }
+
         public void Dispose()
         {
             LastTicks.Clear();
@@ -365,8 +420,17 @@ namespace linker.tunnel.connection
             Stream?.Dispose();
 
             Socket?.SafeClose();
-        }
 
+            try
+            {
+                pipe?.Writer.Complete();
+                pipe?.Reader.Complete();
+            }
+            catch (Exception)
+            {
+            }
+
+        }
         public override string ToString()
         {
             return this.ToJsonFormat();

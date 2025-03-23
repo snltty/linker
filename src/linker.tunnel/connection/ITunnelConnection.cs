@@ -155,11 +155,6 @@ namespace linker.tunnel.connection
         public LastTicksManager LastTicks { get; }
 
         /// <summary>
-        /// 发送ping
-        /// </summary>
-        /// <returns></returns>
-        public Task SendPing();
-        /// <summary>
         /// 发送数据
         /// </summary>
         /// <param name="data"></param>
@@ -182,8 +177,11 @@ namespace linker.tunnel.connection
         public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken, bool framing = true);
 
 
-        public string ToString();
+        public void PipeLines();
+        public Task<bool> WriteAsync(ReadOnlyMemory<byte> data);
+        public Task<bool> WriteAsync(byte[] buffer, int offset, int length);
 
+        public string ToString();
         public bool Equals(ITunnelConnection connection);
     }
 

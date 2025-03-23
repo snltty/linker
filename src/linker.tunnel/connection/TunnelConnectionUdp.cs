@@ -121,7 +121,6 @@ namespace linker.tunnel.connection
                     LoggerHelper.Instance.Error($"tunnel connection writer offline {ToString()}");
             }
         }
-
         public async Task<bool> ProcessWrite(byte[] buffer, int offset, int length)
         {
             if (callback == null)
@@ -236,14 +235,6 @@ namespace linker.tunnel.connection
             ArrayPool<byte>.Shared.Return(heartData);
         }
 
-        public async Task SendPing()
-        {
-            if (pong == false) return;
-            pong = false;
-            pingTicks.Update();
-            await SendPingPong(pingBytes).ConfigureAwait(false);
-        }
-
 
         private byte[] encodeBuffer = new byte[8 * 1024];
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
@@ -316,6 +307,13 @@ namespace linker.tunnel.connection
             return false;
         }
 
+
+
+        public void PipeLines() { }
+        public async Task<bool> WriteAsync(ReadOnlyMemory<byte> data) { return await Task.FromResult(true); }
+        public async Task<bool> WriteAsync(byte[] buffer, int offset, int length) { return await Task.FromResult(true); }
+
+
         public void Dispose()
         {
             if (uUdpClient == null) return;
@@ -335,7 +333,6 @@ namespace linker.tunnel.connection
                 Crypto?.Dispose();
             });
         }
-
         public override string ToString()
         {
             return this.ToJsonFormat();

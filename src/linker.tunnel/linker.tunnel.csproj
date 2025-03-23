@@ -38,6 +38,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 	  <PackageReference Include="Mono.Nat" Version="3.0.4" />
+	  <PackageReference Include="System.IO.Pipelines" Version="9.0.3" />
 	</ItemGroup>
 
 	<ItemGroup>
