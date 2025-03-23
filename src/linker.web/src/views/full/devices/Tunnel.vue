@@ -74,11 +74,13 @@ export default {
             'aliyun':'aliyun.svg',
             'alibaba':'aliyun.svg',
         }
+        const regex = new RegExp(Object.keys(imgMap).map(item => `\\b${item}\\b`).join("|"));
         const netImg = (item)=>{
             const isp = item.Isp.toLowerCase();
-            for(let j in imgMap){
-                if(isp.indexOf(j) > -1){
-                    return `./${imgMap[j]}`;
+            if(isp){
+                const macth = isp.match(regex);
+                if(macth){
+                    return `./${imgMap[macth[0]]}`;
                 }
             }
             return `./system.svg`;

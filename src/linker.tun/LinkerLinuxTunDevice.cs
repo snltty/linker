@@ -13,17 +13,17 @@ namespace linker.tun
 
         private string name = string.Empty;
         public string Name => name;
-        public bool Running => fs != null;
+        public bool Running => safeFileHandle != null;
 
         private string interfaceLinux = string.Empty;
-        private FileStream fs = null;
+        private FileStream fsRead = null;
+        private FileStream fsWrite = null;
         private SafeFileHandle safeFileHandle;
         private IPAddress address;
         private byte prefixLength = 24;
 
         public LinkerLinuxTunDevice()
         {
-
         }
 
         public bool Setup(string name, IPAddress address, IPAddress gateway, byte prefixLength, out string error)
@@ -47,8 +47,9 @@ namespace linker.tun
                 Shutdown();
                 return false;
             }
+            fsRead = new FileStream(safeFileHandle, FileAccess.Read, 32 * 1024, true);
+            fsWrite = new FileStream(safeFileHandle, FileAccess.Write, 32 * 1024, true);
 
-            fs = new FileStream(safeFileHandle, FileAccess.ReadWrite, 4 * 1024);
             interfaceLinux = GetLinuxInterfaceNum();
             return true;
         }
@@ -108,28 +109,25 @@ namespace linker.tun
                 safeFileHandle?.Dispose();
                 safeFileHandle = null;
 
-                try
-                {
-                    fs?.Flush();
-                }
-                catch (Exception)
-                {
-                }
-                fs?.Close();
-                fs?.Dispose();
+                try { fsRead?.Flush(); } catch (Exception) { }
+                try { fsRead?.Close(); fsRead?.Dispose(); } catch (Exception) { }
+                fsRead = null;
+
+                try { fsWrite?.Flush(); } catch (Exception) { }
+                try { fsWrite?.Close(); fsWrite?.Dispose(); } catch (Exception) { }
+                fsWrite = null;
             }
             catch (Exception)
             {
             }
 
-            fs = null;
             interfaceLinux = string.Empty;
             CommandHelper.Linux(string.Empty, new string[] { $"ip link del {Name}", $"ip tuntap del mode tun dev {Name}" });
         }
 
         public void Refresh()
         {
-            if (fs == null) return;
+            if (safeFileHandle == null) return;
             try
             {
                 CommandHelper.Linux(string.Empty, new string[] {
@@ -311,14 +309,14 @@ namespace linker.tun
         }
 
 
-        private byte[] buffer = new byte[8 * 1024];
-        private object writeLockObj = new object();
+        private readonly byte[] buffer = new byte[8 * 1024];
+        private readonly object writeLockObj = new object();
         public byte[] Read(out int length)
         {
             length = 0;
-            if (fs == null) return Helper.EmptyArray;
+            if (safeFileHandle == null) return Helper.EmptyArray;
 
-            length = fs.Read(buffer.AsSpan(4));
+            length = fsRead.Read(buffer.AsSpan(4));
             length.ToBytes(buffer);
             length += 4;
             return buffer;
@@ -326,12 +324,12 @@ namespace linker.tun
         }
         public bool Write(ReadOnlyMemory<byte> buffer)
         {
-            if (fs == null) return true;
+            if (safeFileHandle == null) return true;
 
             lock (writeLockObj)
             {
-                fs.Write(buffer.Span);
-                fs.Flush();
+                fsWrite.Write(buffer.Span);
+                fsWrite.Flush();
                 return true;
             }
         }

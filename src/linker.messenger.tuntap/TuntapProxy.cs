@@ -37,7 +37,6 @@ namespace linker.messenger.tuntap
         protected override void Connected(ITunnelConnection connection)
         {
             connection.BeginReceive(this, null);
-            //connection.PipeLines();
             //有哪些目标IP用了相同目标隧道，更新一下
             List<uint> keys = ipConnections.Where(c => c.Value.RemoteMachineId == connection.RemoteMachineId).Select(c => c.Key).ToList();
             foreach (uint ip in keys)

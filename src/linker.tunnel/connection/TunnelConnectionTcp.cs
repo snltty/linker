@@ -50,7 +50,6 @@ namespace linker.tunnel.connection
         private ITunnelConnectionReceiveCallback callback;
         private CancellationTokenSource cancellationTokenSource;
         private object userToken;
-        private bool framing;
         private ReceiveDataBuffer bufferCache = new ReceiveDataBuffer();
 
         private LastTicksManager pingTicks = new LastTicksManager();
@@ -64,17 +63,15 @@ namespace linker.tunnel.connection
         /// <param name="callback">数据回调</param>
         /// <param name="userToken">自定义数据</param>
         /// <param name="byFrame">是否处理粘包，true时，请在首部4字节标注数据长度</param>
-        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken, bool framing = true)
+        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken)
         {
             if (this.callback != null) return;
 
             this.callback = callback;
             this.userToken = userToken;
-            this.framing = framing;
 
             cancellationTokenSource = new CancellationTokenSource();
             _ = ProcessWrite();
-
             _ = ProcessHeart();
         }
 
@@ -255,7 +252,6 @@ namespace linker.tunnel.connection
                 if (Stream != null)
                 {
                     await Stream.WriteAsync(data).ConfigureAwait(false);
-                    //await Stream.FlushAsync();
                 }
                 else
                 {
@@ -316,7 +312,7 @@ namespace linker.tunnel.connection
             return false;
         }
 
-
+        /*
         private Pipe pipe;
         public void PipeLines()
         {
@@ -333,9 +329,6 @@ namespace linker.tunnel.connection
                 {
                     break;
                 }
-                SequencePosition consumed = result.Buffer.Start;
-                SequencePosition examined = result.Buffer.End;
-                Console.WriteLine($"read:{result.Buffer.Length}");
                 ReadOnlySequence<byte> buffer = result.Buffer;
                 while (buffer.Length > 0)
                 {
@@ -343,21 +336,17 @@ namespace linker.tunnel.connection
                     ReadOnlySequence<byte> chunk = buffer.Slice(0, chunkSize);
 
 
-                    if (Stream != null)
-                    {
-                        await semaphoreSlim.WaitAsync().ConfigureAwait(false);
-                    }
+                    if (Stream != null) await semaphoreSlim.WaitAsync().ConfigureAwait(false);
                     try
                     {
-                        chunk.CopyTo(pipeBuffer.AsSpan(4));
-                        chunk.Length.ToBytes(pipeBuffer);
+                        chunk.CopyTo(pipeBuffer);
                         if (Stream != null)
                         {
-                            await Stream.WriteAsync(pipeBuffer.AsMemory(0, (int)chunk.Length + 4)).ConfigureAwait(false);
+                            await Stream.WriteAsync(pipeBuffer.AsMemory(0, chunkSize)).ConfigureAwait(false);
                         }
                         else
                         {
-                            await Socket.SendAsync(pipeBuffer.AsMemory(0, (int)chunk.Length + 4), SocketFlags.None).ConfigureAwait(false);
+                            await Socket.SendAsync(pipeBuffer.AsMemory(0, chunkSize), SocketFlags.None).ConfigureAwait(false);
                         }
                         SendBytes += chunk.Length;
                     }
@@ -371,40 +360,35 @@ namespace linker.tunnel.connection
                     }
                     finally
                     {
-                        if (Stream != null)
-                            semaphoreSlim.Release();
+                        if (Stream != null) semaphoreSlim.Release();
                     }
 
                     buffer = buffer.Slice(chunkSize);
 
                 }
-                pipe.Reader.AdvanceTo(consumed, examined);
+                pipe.Reader.AdvanceTo(result.Buffer.End);
 
 
             }
         }
         public async Task<bool> WriteAsync(ReadOnlyMemory<byte> data)
         {
-            data = data.Slice(4);
             Memory<byte> memory = pipe.Writer.GetMemory(data.Length);
             data.CopyTo(memory);
             pipe.Writer.Advance(data.Length);
             await pipe.Writer.FlushAsync();
-            Console.WriteLine($"write:{data.Length}");
             return true;
         }
         public async Task<bool> WriteAsync(byte[] buffer, int offset, int length)
         {
             ReadOnlyMemory<byte> data = buffer.AsMemory(offset, length);
-            data = data.Slice(4);
-
             Memory<byte> memory = pipe.Writer.GetMemory(data.Length);
             data.CopyTo(memory);
             pipe.Writer.Advance(data.Length);
             await pipe.Writer.FlushAsync();
-            Console.WriteLine($"write:{data.Length}");
             return true;
         }
+        */
 
         public void Dispose()
         {
@@ -423,15 +407,6 @@ namespace linker.tunnel.connection
             Stream?.Dispose();
 
             Socket?.SafeClose();
-
-            try
-            {
-                pipe?.Writer.Complete();
-                pipe?.Reader.Complete();
-            }
-            catch (Exception)
-            {
-            }
 
         }
         public override string ToString()

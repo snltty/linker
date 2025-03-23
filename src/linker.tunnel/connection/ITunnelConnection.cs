@@ -173,13 +173,7 @@ namespace linker.tunnel.connection
         /// </summary>
         /// <param name="callback">收到数据的回调</param>
         /// <param name="userToken">自定义数据，回调带上</param>
-        /// <param name="framing">是否分包</param>
-        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken, bool framing = true);
-
-
-        public void PipeLines();
-        public Task<bool> WriteAsync(ReadOnlyMemory<byte> data);
-        public Task<bool> WriteAsync(byte[] buffer, int offset, int length);
+        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken);
 
         public string ToString();
         public bool Equals(ITunnelConnection connection);

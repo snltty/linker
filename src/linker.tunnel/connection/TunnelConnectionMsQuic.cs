@@ -55,7 +55,6 @@ namespace linker.tunnel.connection
         private ITunnelConnectionReceiveCallback callback;
         private CancellationTokenSource cancellationTokenSource;
         private object userToken;
-        private bool framing;
         private ReceiveDataBuffer bufferCache = new ReceiveDataBuffer();
 
         private LastTicksManager pingTicks = new();
@@ -70,19 +69,17 @@ namespace linker.tunnel.connection
         /// <param name="callback">数据回调</param>
         /// <param name="userToken">自定义数据</param>
         /// <param name="framing">是否处理粘包，true时，请在首部4字节标注数据长度</param>
-        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken, bool framing = true)
+        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken)
         {
             if (this.callback != null) return;
 
             this.callback = callback;
             this.userToken = userToken;
-            this.framing = framing;
 
             cancellationTokenSource = new CancellationTokenSource();
             _ = ProcessWrite();
 
-            if (framing)
-                _ = ProcessHeart();
+            _ = ProcessHeart();
 
         }
         private async Task ProcessWrite()
@@ -116,12 +113,6 @@ namespace linker.tunnel.connection
         }
         private async Task ReadPacket(Memory<byte> buffer)
         {
-            if (framing == false)
-            {
-                await CallbackPacket(buffer).ConfigureAwait(false);
-                return;
-            }
-
             //是一个完整的包
             if (bufferCache.Size == 0 && buffer.Length > 4)
             {
@@ -153,19 +144,16 @@ namespace linker.tunnel.connection
         {
             ReceiveBytes += packet.Length;
             LastTicks.Update();
-            if (framing)
+            if (packet.Length == pingBytes.Length && packet.Span.Slice(0, pingBytes.Length - 4).SequenceEqual(pingBytes.AsSpan(0, pingBytes.Length - 4)))
             {
-                if (packet.Length == pingBytes.Length && packet.Span.Slice(0, pingBytes.Length - 4).SequenceEqual(pingBytes.AsSpan(0, pingBytes.Length - 4)))
+                if (packet.Span.SequenceEqual(pingBytes))
                 {
-                    if (packet.Span.SequenceEqual(pingBytes))
-                    {
-                        await SendPingPong(pongBytes).ConfigureAwait(false);
-                    }
-                    else if (packet.Span.SequenceEqual(pongBytes))
-                    {
-                        Delay = (int)pingTicks.Diff();
-                        pong = true;
-                    }
+                    await SendPingPong(pongBytes).ConfigureAwait(false);
+                }
+                else if (packet.Span.SequenceEqual(pongBytes))
+                {
+                    Delay = (int)pingTicks.Diff();
+                    pong = true;
                 }
             }
 
@@ -229,8 +217,6 @@ namespace linker.tunnel.connection
         {
             await semaphoreSlim.WaitAsync().ConfigureAwait(false);
 
-            if (framing == false) data = data.Slice(4);
-
             try
             {
                 await Stream.WriteAsync(data, cancellationTokenSource.Token).ConfigureAwait(false);
@@ -255,10 +241,6 @@ namespace linker.tunnel.connection
         {
             return await SendAsync(buffer.AsMemory(offset, length)).ConfigureAwait(false);
         }
-
-        public void PipeLines() { }
-        public async Task<bool> WriteAsync(ReadOnlyMemory<byte> data) { return await SendAsync(data).ConfigureAwait(false); }
-        public async Task<bool> WriteAsync(byte[] buffer, int offset, int length) { return await SendAsync(buffer, offset, length).ConfigureAwait(false); }
 
         public void Dispose()
         {

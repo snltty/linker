@@ -121,7 +121,6 @@ namespace linker.messenger.tuntap
             }
             await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
         }
-
         public async ValueTask Close(ITunnelConnection connection)
         {
             tuntapDecenter.Refresh();

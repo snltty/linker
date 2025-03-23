@@ -76,7 +76,7 @@ namespace linker.tunnel.connection
         /// <param name="callback">数据回调</param>
         /// <param name="userToken">自定义数据</param>
         /// <param name="framing">是否处理粘包，true时，请在首部4字节标注数据长度</param>
-        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken, bool framing = true)
+        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken)
         {
             if (this.callback != null) return;
 
@@ -307,12 +307,6 @@ namespace linker.tunnel.connection
             }
             return false;
         }
-
-
-
-        public void PipeLines() { }
-        public async Task<bool> WriteAsync(ReadOnlyMemory<byte> data) { return await SendAsync(data).ConfigureAwait(false); }
-        public async Task<bool> WriteAsync(byte[] buffer, int offset, int length) { return await SendAsync(buffer,offset,length).ConfigureAwait(false); }
 
 
         public void Dispose()
