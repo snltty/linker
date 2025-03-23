@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Net.Sockets;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.tunnel.connection
 {
@@ -310,8 +311,8 @@ namespace linker.tunnel.connection
 
 
         public void PipeLines() { }
-        public async Task<bool> WriteAsync(ReadOnlyMemory<byte> data) { return await Task.FromResult(true); }
-        public async Task<bool> WriteAsync(byte[] buffer, int offset, int length) { return await Task.FromResult(true); }
+        public async Task<bool> WriteAsync(ReadOnlyMemory<byte> data) { return await SendAsync(data).ConfigureAwait(false); }
+        public async Task<bool> WriteAsync(byte[] buffer, int offset, int length) { return await SendAsync(buffer,offset,length).ConfigureAwait(false); }
 
 
         public void Dispose()

@@ -65,6 +65,7 @@ export default {
 
         const imgMap = {
             'chinanet':'chinanet.svg',
+            'china169':'chinanet.svg',
             'china telecom':'chinanet.svg',
             'china unicom':'chinaunicom.svg',
             'china mobile':'chinamobile.svg',

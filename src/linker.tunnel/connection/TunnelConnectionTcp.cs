@@ -7,9 +7,6 @@ using System.Text.Json.Serialization;
 using System.Text;
 using System.Net.Sockets;
 using System.IO.Pipelines;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System;
-using System.Reflection.PortableExecutable;
 
 namespace linker.tunnel.connection
 {
@@ -336,6 +333,9 @@ namespace linker.tunnel.connection
                 {
                     break;
                 }
+                SequencePosition consumed = result.Buffer.Start;
+                SequencePosition examined = result.Buffer.End;
+                Console.WriteLine($"read:{result.Buffer.Length}");
                 ReadOnlySequence<byte> buffer = result.Buffer;
                 while (buffer.Length > 0)
                 {
@@ -378,7 +378,8 @@ namespace linker.tunnel.connection
                     buffer = buffer.Slice(chunkSize);
 
                 }
-                pipe.Reader.AdvanceTo(result.Buffer.Start, result.Buffer.End);
+                pipe.Reader.AdvanceTo(consumed, examined);
+
 
             }
         }
@@ -389,6 +390,7 @@ namespace linker.tunnel.connection
             data.CopyTo(memory);
             pipe.Writer.Advance(data.Length);
             await pipe.Writer.FlushAsync();
+            Console.WriteLine($"write:{data.Length}");
             return true;
         }
         public async Task<bool> WriteAsync(byte[] buffer, int offset, int length)
@@ -400,6 +402,7 @@ namespace linker.tunnel.connection
             data.CopyTo(memory);
             pipe.Writer.Advance(data.Length);
             await pipe.Writer.FlushAsync();
+            Console.WriteLine($"write:{data.Length}");
             return true;
         }
 

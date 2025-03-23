@@ -256,12 +256,9 @@ namespace linker.tunnel.connection
             return await SendAsync(buffer.AsMemory(offset, length)).ConfigureAwait(false);
         }
 
-
-
         public void PipeLines() { }
-        public async Task<bool> WriteAsync(ReadOnlyMemory<byte> data) { return await Task.FromResult(true); }
-        public async Task<bool> WriteAsync(byte[] buffer, int offset, int length) { return await Task.FromResult(true); }
-
+        public async Task<bool> WriteAsync(ReadOnlyMemory<byte> data) { return await SendAsync(data).ConfigureAwait(false); }
+        public async Task<bool> WriteAsync(byte[] buffer, int offset, int length) { return await SendAsync(buffer, offset, length).ConfigureAwait(false); }
 
         public void Dispose()
         {
