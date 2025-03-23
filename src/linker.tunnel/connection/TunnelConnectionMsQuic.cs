@@ -80,7 +80,9 @@ namespace linker.tunnel.connection
 
             cancellationTokenSource = new CancellationTokenSource();
             _ = ProcessWrite();
-            _ = ProcessHeart();
+
+            if (framing)
+                _ = ProcessHeart();
 
         }
         private async Task ProcessWrite()
@@ -151,28 +153,29 @@ namespace linker.tunnel.connection
         {
             ReceiveBytes += packet.Length;
             LastTicks.Update();
-            if (packet.Length == pingBytes.Length && packet.Span.Slice(0, pingBytes.Length - 4).SequenceEqual(pingBytes.AsSpan(0, pingBytes.Length - 4)))
+            if (framing)
             {
-                if (packet.Span.SequenceEqual(pingBytes))
+                if (packet.Length == pingBytes.Length && packet.Span.Slice(0, pingBytes.Length - 4).SequenceEqual(pingBytes.AsSpan(0, pingBytes.Length - 4)))
                 {
-                    await SendPingPong(pongBytes).ConfigureAwait(false);
-                }
-                else if (packet.Span.SequenceEqual(pongBytes))
-                {
-                    Delay = (int)pingTicks.Diff();
-                    pong = true;
+                    if (packet.Span.SequenceEqual(pingBytes))
+                    {
+                        await SendPingPong(pongBytes).ConfigureAwait(false);
+                    }
+                    else if (packet.Span.SequenceEqual(pongBytes))
+                    {
+                        Delay = (int)pingTicks.Diff();
+                        pong = true;
+                    }
                 }
             }
-            else
+
+            try
             {
-                try
-                {
-                    await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    LoggerHelper.Instance.Error(ex);
-                }
+                await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                LoggerHelper.Instance.Error(ex);
             }
         }
 
@@ -233,6 +236,8 @@ namespace linker.tunnel.connection
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             await semaphoreSlim.WaitAsync().ConfigureAwait(false);
+
+            if (framing == false) data = data.Slice(4);
 
             try
             {

@@ -74,7 +74,9 @@ namespace linker.tunnel.connection
 
             cancellationTokenSource = new CancellationTokenSource();
             _ = ProcessWrite();
-            _ = ProcessHeart();
+
+            if (framing)
+                _ = ProcessHeart();
         }
 
         private async Task ProcessWrite()
@@ -164,20 +166,24 @@ namespace linker.tunnel.connection
         {
             ReceiveBytes += packet.Length;
             LastTicks.Update();
-            if (packet.Length == pingBytes.Length && packet.Span.Slice(0, pingBytes.Length - 4).SequenceEqual(pingBytes.AsSpan(0, pingBytes.Length - 4)))
+            if (framing)
             {
-                if (packet.Span.SequenceEqual(pingBytes))
+                if (packet.Length == pingBytes.Length && packet.Span.Slice(0, pingBytes.Length - 4).SequenceEqual(pingBytes.AsSpan(0, pingBytes.Length - 4)))
                 {
-                    await SendPingPong(pongBytes).ConfigureAwait(false);
-                    return;
-                }
-                else if (packet.Span.SequenceEqual(pongBytes))
-                {
-                    Delay = (int)pingTicks.Diff();
-                    pong = true;
-                    return;
+                    if (packet.Span.SequenceEqual(pingBytes))
+                    {
+                        await SendPingPong(pongBytes).ConfigureAwait(false);
+                        return;
+                    }
+                    else if (packet.Span.SequenceEqual(pongBytes))
+                    {
+                        Delay = (int)pingTicks.Diff();
+                        pong = true;
+                        return;
+                    }
                 }
             }
+
             try
             {
                 await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
@@ -261,6 +267,10 @@ namespace linker.tunnel.connection
         {
             if (callback == null) return false;
 
+            if (framing == false)
+            {
+                data = data.Slice(4);
+            }
             if (Stream != null)
             {
                 await semaphoreSlim.WaitAsync().ConfigureAwait(false);
@@ -294,9 +304,15 @@ namespace linker.tunnel.connection
             }
             return false;
         }
-        public async Task<bool> SendAsync(byte[] buffer,int offset,int length)
+        public async Task<bool> SendAsync(byte[] buffer, int offset, int length)
         {
             if (callback == null) return false;
+
+            if (framing == false)
+            {
+                offset += 4;
+                length -= 4;
+            }
 
             if (Stream != null)
             {
@@ -306,7 +322,7 @@ namespace linker.tunnel.connection
             {
                 if (Stream != null)
                 {
-                    await Stream.WriteAsync(buffer.AsMemory(offset,length)).ConfigureAwait(false);
+                    await Stream.WriteAsync(buffer.AsMemory(offset, length)).ConfigureAwait(false);
                     //await Stream.FlushAsync();
                 }
                 else

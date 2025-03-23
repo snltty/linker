@@ -25,12 +25,10 @@ export const provideUpdater = () => {
                 const self = Object.values(res.List).filter(c => !!c.Version)[0];
                 if (self) {
                     Object.assign(updater.value.current, {
-                        DateTime: self.DateTime,
                         Version: self.Version,
                         Status: self.Status,
                         Length: self.Length,
-                        Current: self.Current,
-                        Msg: self.Msg,
+                        Current: self.Current
                     });
                     globalData.value.updater = updater.value.current;
                 }

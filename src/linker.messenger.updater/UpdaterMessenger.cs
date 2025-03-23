@@ -267,7 +267,7 @@ namespace linker.messenger.updater
                     _ = messengerSender.SendOnly(new MessageRequestWrap
                     {
                         Connection = item.Connection,
-                        MessengerId = (ushort)UpdaterMessengerIds.Update,
+                        MessengerId = (ushort)UpdaterMessengerIds.Update170,
                         Payload = payload
                     });
                 }

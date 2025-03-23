@@ -56,8 +56,6 @@ export default {
                 updaterServer.value.Status = res.Status;
                 updaterServer.value.Length = res.Length;
                 updaterServer.value.Current = res.Current;
-                updaterServer.value.Msg = res.Msg;
-                updaterServer.value.DateTime = res.DateTime;
                 if(updaterServer.value.Status > 2 && updaterServer.value.Status < 6){
                     state.timer =  setTimeout(()=>{
                         _getUpdaterServer();

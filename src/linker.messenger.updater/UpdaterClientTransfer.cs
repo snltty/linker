@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using linker.messenger.signin;
 using linker.libs.timer;
+using linker.libs.extends;
 
 namespace linker.messenger.updater
 {
@@ -155,10 +156,12 @@ namespace linker.messenger.updater
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
                 UpdaterInfo170 info = serializer.Deserialize<UpdaterInfo170>(resp.Data.Span);
+               
                 if (info.Status <= UpdaterStatus.Checked && updateInfo.Status <= UpdaterStatus.Checked)
                 {
                     updateInfo.Status = info.Status;
                     updateInfo.Version = info.Version;
+                    updateInfo.Update();
                 }
             }
         }

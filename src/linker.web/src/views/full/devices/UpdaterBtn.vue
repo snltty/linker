@@ -45,9 +45,6 @@ export default {
         const updater = useUpdater();
         const serverVersion = computed(()=>globalData.value.signin.Version);
         const updaterVersion = computed(()=>updater.value.current.Version);
-        const updaterMsg = computed(()=>{
-            return `${updaterVersion.value}->${updater.value.current.DateTime}\n${updater.value.current.Msg.map((value,index)=>`${index+1}、${value}`).join('\n')}`;
-        });
         const updaterText = computed(()=>{
             if(!updater.value.list[props.item.MachineId]){
                 return '未检测到更新';

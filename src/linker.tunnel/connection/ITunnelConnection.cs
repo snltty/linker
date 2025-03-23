@@ -181,10 +181,6 @@ namespace linker.tunnel.connection
         /// <param name="framing">是否分包</param>
         public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken, bool framing = true);
 
-        /// <summary>
-        /// 关闭隧道
-        /// </summary>
-        public void Dispose();
 
         public string ToString();
 
