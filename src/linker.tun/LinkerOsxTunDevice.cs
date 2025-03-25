@@ -184,7 +184,7 @@ namespace linker.tun
         }
 
 
-        public async Task<bool> CheckAvailable()
+        public async Task<bool> CheckAvailable(bool order = false)
         {
             return await Task.FromResult(true).ConfigureAwait(false);
         }

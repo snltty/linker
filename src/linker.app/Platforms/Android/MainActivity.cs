@@ -96,7 +96,7 @@ namespace linker.app
         {
             base.OnCreate();
             string name = string.IsNullOrWhiteSpace(tuntapConfigTransfer.Info.Name) ? "linker" : tuntapConfigTransfer.Info.Name;
-            adapter.Setup(name, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.Info.PrefixLength, 1420);
+            tuntapTransfer.Setup(name, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.Info.PrefixLength);
         }
         public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
         {
@@ -112,13 +112,6 @@ namespace linker.app
 
         public async Task Callback(LinkerTunDevicPacket packet)
         {
-            if (packet.IPV4Broadcast || packet.IPV6Multicast)
-            {
-                if ((tuntapConfigTransfer.Switch & TuntapSwitch.Multicast) == TuntapSwitch.Multicast)
-                {
-                    return;
-                }
-            }
             await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
         }
         public async ValueTask Close(ITunnelConnection connection)
@@ -366,7 +359,7 @@ namespace linker.app
             }
             */
         }
-        public async Task<bool> CheckAvailable()
+        public async Task<bool> CheckAvailable(bool order = false)
         {
             return await Task.FromResult(fd > 0);
         }

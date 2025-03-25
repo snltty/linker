@@ -5,7 +5,6 @@ using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Net.Sockets;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.tunnel.connection
 {
@@ -62,12 +61,11 @@ namespace linker.tunnel.connection
         private CancellationTokenSource cancellationTokenSource;
         private object userToken;
 
-        private LastTicksManager pingTicks = new LastTicksManager();
-        private byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.ping");
-        private byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.pong");
-        private byte[] finBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.fing");
-        private byte[] ttlBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.ttl");
-        private bool pong = true;
+        private readonly LastTicksManager pingTicks = new LastTicksManager();
+        private readonly byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.ping");
+        private readonly byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.pong");
+        private readonly byte[] finBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.fing");
+        private readonly byte[] ttlBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.ttl");
 
 
         /// <summary>
@@ -148,7 +146,6 @@ namespace linker.tunnel.connection
                 else if (memory.Span.SequenceEqual(pongBytes))
                 {
                     Delay = (int)pingTicks.Diff();
-                    pong = true;
                 }
                 else if (memory.Span.SequenceEqual(finBytes))
                 {
@@ -226,7 +223,6 @@ namespace linker.tunnel.connection
             }
             catch (Exception)
             {
-                pong = true;
                 Dispose();
             }
             finally
@@ -235,7 +231,6 @@ namespace linker.tunnel.connection
 
             ArrayPool<byte>.Shared.Return(heartData);
         }
-
 
         private byte[] encodeBuffer = new byte[8 * 1024];
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
@@ -308,6 +303,7 @@ namespace linker.tunnel.connection
             return false;
         }
 
+       
 
         public void Dispose()
         {

@@ -154,6 +154,7 @@ namespace linker.tunnel.connection
         /// </summary>
         public LastTicksManager LastTicks { get; }
 
+
         /// <summary>
         /// 发送数据
         /// </summary>
@@ -174,6 +175,10 @@ namespace linker.tunnel.connection
         /// <param name="callback">收到数据的回调</param>
         /// <param name="userToken">自定义数据，回调带上</param>
         public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken);
+
+        public void StartPacketMerge()
+        {
+        }
 
         public string ToString();
         public bool Equals(ITunnelConnection connection);

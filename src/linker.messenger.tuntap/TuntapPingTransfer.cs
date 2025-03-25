@@ -48,7 +48,7 @@ namespace linker.messenger.tuntap
             if (tuntapTransfer.Status == TuntapStatus.Running && tuntapConfigTransfer.Switch.HasFlag(TuntapSwitch.ShowDelay))
             {
                 var items = tuntapDecenter.Infos.Values.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false && (c.Status & TuntapStatus.Running) == TuntapStatus.Running);
-                if ((tuntapConfigTransfer.Switch & TuntapSwitch.AutoConnect) != TuntapSwitch.AutoConnect)
+                if (tuntapConfigTransfer.Switch.HasFlag(TuntapSwitch.AutoConnect) == false)
                 {
                     var connections = tuntapProxy.GetConnections();
                     items = items.Where(c => connections.TryGetValue(c.MachineId, out ITunnelConnection connection) && connection.Connected || c.MachineId == signInClientStore.Id);

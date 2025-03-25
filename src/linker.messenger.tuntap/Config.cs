@@ -1,5 +1,4 @@
-﻿using linker.libs;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Net;
 
 namespace linker.messenger.tuntap
@@ -41,7 +40,18 @@ namespace linker.messenger.tuntap
 
         public ConcurrentDictionary<string, TuntapGroup2IPInfo> Group2IP { get; set; } = new ConcurrentDictionary<string, TuntapGroup2IPInfo>();
 
-        public bool DisableNat => (Switch & TuntapSwitch.DisableNat) == TuntapSwitch.DisableNat;
+        /// <summary>
+        /// 禁用nat
+        /// </summary>
+        public bool DisableNat => Switch.HasFlag(TuntapSwitch.DisableNat);
+        /// <summary>
+        /// tcp包合并
+        /// </summary>
+        public bool TcpMerge => Switch.HasFlag(TuntapSwitch.TcpMerge);
+        /// <summary>
+        /// 调整网卡顺序
+        /// </summary>
+        public bool InterfaceOrder => Switch.HasFlag(TuntapSwitch.InterfaceOrder);
     }
 
     public sealed class TuntapGroup2IPInfo
@@ -258,6 +268,48 @@ namespace linker.messenger.tuntap
                 }
             }
         }
+        /// <summary>
+        /// tcp包合并
+        /// </summary>
+        public bool TcpMerge
+        {
+            get
+            {
+                return (Switch & TuntapSwitch.TcpMerge) == TuntapSwitch.TcpMerge;
+            }
+            set
+            {
+                if (value)
+                {
+                    Switch |= TuntapSwitch.TcpMerge;
+                }
+                else
+                {
+                    Switch &= ~TuntapSwitch.TcpMerge;
+                }
+            }
+        }
+        /// <summary>
+        /// 调整网卡顺序
+        /// </summary>
+        public bool InterfaceOrder
+        {
+            get
+            {
+                return (Switch & TuntapSwitch.InterfaceOrder) == TuntapSwitch.InterfaceOrder;
+            }
+            set
+            {
+                if (value)
+                {
+                    Switch |= TuntapSwitch.InterfaceOrder;
+                }
+                else
+                {
+                    Switch &= ~TuntapSwitch.InterfaceOrder;
+                }
+            }
+        }
     }
 
     public sealed partial class TuntapForwardInfo
@@ -335,6 +387,14 @@ namespace linker.messenger.tuntap
         /// 禁用Nat
         /// </summary>
         DisableNat = 32,
+        /// <summary>
+        /// 启用小包合并
+        /// </summary>
+        TcpMerge = 64,
+        /// <summary>
+        /// 调整网卡顺序
+        /// </summary>
+        InterfaceOrder = 128,
     }
 }
 

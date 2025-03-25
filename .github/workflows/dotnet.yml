@@ -35,7 +35,7 @@ jobs:
           release_name: v1.7.1.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 优化数据同步\r\n2. 优化linux网卡，我感觉网卡速度比较正常了\r\n3. 建议更新"
+          body: "1. 优化数据同步\r\n2. 优化linux的tun网卡网卡，读写分离，提高性能\r\n3. 优化windows网卡的禁用自动启用\r\n4. 增加TCP包合并。网卡IP包多个合并一起发送\r\n5. 建议更新"
       - name: publish projects
         run: ./publish.bat
       - name: upload-win-x86-oss

@@ -11,16 +11,23 @@ namespace linker.messenger.tuntap.lease
         private readonly IMessengerSender messengerSender;
         private readonly SignInClientState signInClientState;
         private readonly ISerializer serializer;
-        public LeaseClientTreansfer(IMessengerSender messengerSender, SignInClientState signInClientState, ISerializer serializer)
+        private readonly ILeaseClientStore leaseClientStore;
+        private readonly ISignInClientStore signInClientStore;
+        public LeaseClientTreansfer(IMessengerSender messengerSender, SignInClientState signInClientState, ISerializer serializer, ILeaseClientStore leaseClientStore, ISignInClientStore signInClientStore)
         {
             this.messengerSender = messengerSender;
             this.signInClientState = signInClientState;
             this.serializer = serializer;
+            this.leaseClientStore = leaseClientStore;
+            this.signInClientStore = signInClientStore;
             LeaseExpTask();
+
         }
 
         public async Task AddNetwork(LeaseInfo info)
         {
+            leaseClientStore.Set(signInClientStore.Group.Id, info);
+            leaseClientStore.Confirm();
             await messengerSender.SendOnly(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
@@ -39,6 +46,8 @@ namespace linker.messenger.tuntap.lease
             if (resp.Code == MessageResponeCodes.OK)
             {
                 LeaseInfo info = serializer.Deserialize<LeaseInfo>(resp.Data.Span);
+                leaseClientStore.Set(signInClientStore.Group.Id, info);
+                leaseClientStore.Confirm();
                 return info;
             }
             return new LeaseInfo { IP = IPAddress.Any, PrefixLength = 24 };
@@ -74,6 +83,25 @@ namespace linker.messenger.tuntap.lease
 
         private void LeaseExpTask()
         {
+            signInClientState.OnSignInSuccess += async (times) =>
+            {
+                try
+                {
+                    await GetNetwork().ConfigureAwait(false);
+                    LeaseInfo info = leaseClientStore.Get(signInClientStore.Group.Id);
+                    if (info != null && info.IP.Equals(IPAddress.Any) == false)
+                    {
+                        await AddNetwork(info);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if(LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
+                }
+            };
             TimerHelper.SetIntervalLong(async () =>
             {
                 await messengerSender.SendReply(new MessageRequestWrap
@@ -81,7 +109,7 @@ namespace linker.messenger.tuntap.lease
                     Connection = signInClientState.Connection,
                     MessengerId = (ushort)TuntapMessengerIds.LeaseExp,
                 }).ConfigureAwait(false);
-            },  60000);
+            }, 60000);
         }
     }
 }

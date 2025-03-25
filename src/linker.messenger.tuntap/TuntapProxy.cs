@@ -27,16 +27,21 @@ namespace linker.messenger.tuntap
         private readonly OperatingMultipleManager operatingMultipleManager = new OperatingMultipleManager();
         protected override string TransactionId => "tuntap";
 
+
+        private readonly TuntapConfigTransfer tuntapConfigTransfer;
         public TuntapProxy(ISignInClientStore signInClientStore,
             TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
-            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore)
+            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, TuntapConfigTransfer tuntapConfigTransfer)
             : base(tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, signInClientStore, relayClientStore)
         {
+            this.tuntapConfigTransfer = tuntapConfigTransfer;
         }
 
         protected override void Connected(ITunnelConnection connection)
         {
             connection.BeginReceive(this, null);
+            if (tuntapConfigTransfer.Info.TcpMerge)
+                connection.StartPacketMerge();
             //有哪些目标IP用了相同目标隧道，更新一下
             List<uint> keys = ipConnections.Where(c => c.Value.RemoteMachineId == connection.RemoteMachineId).Select(c => c.Key).ToList();
             foreach (uint ip in keys)
@@ -80,7 +85,7 @@ namespace linker.messenger.tuntap
             //IPV4广播组播、IPV6 多播
             if (packet.IPV4Broadcast || packet.IPV6Multicast)
             {
-                if (connections.IsEmpty == false)
+                if (tuntapConfigTransfer.Switch.HasFlag(TuntapSwitch.Multicast) == false && connections.IsEmpty == false)
                 {
                     await Task.WhenAll(connections.Values.Where(c => c != null && c.Connected).Select(c => c.SendAsync(packet.Buffer, packet.Offset, packet.Length)));
                 }
@@ -119,6 +124,12 @@ namespace linker.messenger.tuntap
         /// <returns></returns>
         private async Task<ITunnelConnection> ConnectTunnel(uint ip)
         {
+            /*
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            {
+                Console.WriteLine($"tuntap connect to {NetworkHelper.ToIP(ip)}");
+            }
+            */
             if (cidrManager.FindValue(ip, out string machineId))
             {
                 return await ConnectTunnel(machineId, TunnelProtocolType.Quic).ConfigureAwait(false);

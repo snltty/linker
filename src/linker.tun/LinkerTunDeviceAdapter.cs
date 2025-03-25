@@ -1,6 +1,5 @@
 ﻿using linker.libs;
 using linker.libs.timer;
-using System.Buffers.Binary;
 using System.Net;
 
 namespace linker.tun
@@ -285,9 +284,9 @@ namespace linker.tun
         }
 
 
-        public async Task<bool> CheckAvailable()
+        public async Task<bool> CheckAvailable(bool order = false)
         {
-            return await linkerTunDevice.CheckAvailable();
+            return await linkerTunDevice.CheckAvailable(order);
         }
     }
 }

@@ -21,8 +21,10 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 优化数据同步
-2. 优化linux网卡，我感觉网卡速度比较正常了
-3. 建议更新</Description>
+2. 优化linux的tun网卡网卡，读写分离，提高性能
+3. 优化windows网卡的禁用自动启用
+4. 增加TCP包合并。网卡IP包多个合并一起发送
+5. 建议更新</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

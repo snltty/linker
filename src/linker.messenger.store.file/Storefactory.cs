@@ -27,17 +27,17 @@ namespace linker.messenger.store.file
 
             database = new LiteDatabase(new ConnectionString($"Filename={db}; Password={Helper.GlobalString}; journal=false"), bsonMapper);
 
-            CheckpointTask();
+            if (OperatingSystem.IsAndroid() == false)
+            {
+                AppDomain.CurrentDomain.ProcessExit += (s, e) => { database.Checkpoint(); database.Dispose(); };
+                Console.CancelKeyPress += (s, e) => { database.Checkpoint(); database.Dispose(); };
+            }
+            TimerHelper.SetIntervalLong(database.Checkpoint, 3000);
         }
 
         public ILiteCollection<T> GetCollection<T>(string name)
         {
             return database.GetCollection<T>(name);
-        }
-
-        private void CheckpointTask()
-        {
-            TimerHelper.SetIntervalLong(database.Checkpoint, 3000);
         }
     }
 

@@ -93,6 +93,7 @@ namespace linker.messenger.store.file
 
             serviceCollection.AddSingleton<ITuntapClientStore, TuntapClientStore>();
             serviceCollection.AddSingleton<ILeaseServerStore, LeaseServerStore>();
+            serviceCollection.AddSingleton<ILeaseClientStore, LeaseClientStore>();
 
             return serviceCollection;
         }

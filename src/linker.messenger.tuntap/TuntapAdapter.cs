@@ -96,7 +96,7 @@ namespace linker.messenger.tuntap
                     await RetstartDevice().ConfigureAwait(false);
                     return;
                 }
-                if (await tuntapTransfer.CheckAvailable().ConfigureAwait(false) == false)
+                if (await tuntapTransfer.CheckAvailable(tuntapConfigTransfer.Info.InterfaceOrder).ConfigureAwait(false) == false)
                 {
                     tuntapTransfer.Refresh();
                 }
@@ -112,13 +112,6 @@ namespace linker.messenger.tuntap
 
         public async Task Callback(LinkerTunDevicPacket packet)
         {
-            if (packet.IPV4Broadcast || packet.IPV6Multicast)
-            {
-                if ((tuntapConfigTransfer.Switch & TuntapSwitch.Multicast) == TuntapSwitch.Multicast)
-                {
-                    return;
-                }
-            }
             await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
         }
         public async ValueTask Close(ITunnelConnection connection)

@@ -181,9 +181,9 @@ namespace linker.messenger.tuntap
         {
             linkerTunDeviceAdapter.DelRoute(ips);
         }
-        public async Task<bool> CheckAvailable()
+        public async Task<bool> CheckAvailable(bool order = false)
         {
-            return await linkerTunDeviceAdapter.CheckAvailable().ConfigureAwait(false);
+            return await linkerTunDeviceAdapter.CheckAvailable(order).ConfigureAwait(false);
         }
     }
 }

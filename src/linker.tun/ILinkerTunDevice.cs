@@ -98,7 +98,7 @@ namespace linker.tun
         /// 检查网卡是否可用
         /// </summary>
         /// <returns></returns>
-        public Task<bool> CheckAvailable();
+        public Task<bool> CheckAvailable(bool order = false);
     }
 
     /// <summary>

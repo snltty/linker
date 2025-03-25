@@ -154,14 +154,17 @@ namespace linker.tun
             if (session == 0) return;
             try
             {
-                WinTun.SetEvent(waitHandle);
-                WinTun.WintunEndSession(session);
+                IntPtr oldSession = session;
+                IntPtr oldWaitHandle = waitHandle;
 
                 CommandHelper.Windows(string.Empty, new string[] { $"netsh interface set interface {Name} enable" });
                 session = WinTun.WintunStartSession(adapter, 0x400000);
                 waitHandle = WinTun.WintunGetReadWaitEvent(session);
                 AddIPV4();
                 AddIPV6();
+
+                WinTun.SetEvent(oldWaitHandle);
+                WinTun.WintunEndSession(oldSession);
             }
             catch (Exception)
             {
@@ -391,11 +394,12 @@ namespace linker.tun
             }
         }
 
-        public async Task<bool> CheckAvailable()
+        public async Task<bool> CheckAvailable(bool order = false)
         {
             NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
 
-            InterfaceOrder(interfaces);
+            if (order)
+                InterfaceOrder(interfaces);
             NetworkInterface networkInterface = interfaces.FirstOrDefault(c => c.Name == Name || c.Description == $"{Name} Tunnel" || c.Name.Contains(Name));
 
             UnicastIPAddressInformation firstIpv4 = networkInterface?.GetIPProperties()

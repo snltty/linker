@@ -41,6 +41,7 @@ namespace linker.tunnel.connection
 
         public LastTicksManager LastTicks { get; private set; } = new LastTicksManager();
 
+
         [JsonIgnore]
         public QuicStream Stream { get; init; }
         [JsonIgnore]
@@ -55,12 +56,11 @@ namespace linker.tunnel.connection
         private ITunnelConnectionReceiveCallback callback;
         private CancellationTokenSource cancellationTokenSource;
         private object userToken;
-        private ReceiveDataBuffer bufferCache = new ReceiveDataBuffer();
+        private readonly ReceiveDataBuffer bufferCache = new ReceiveDataBuffer();
 
-        private LastTicksManager pingTicks = new();
-        private byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ping");
-        private byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.pong");
-        private bool pong = true;
+        private readonly LastTicksManager pingTicks = new();
+        private readonly byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ping");
+        private readonly byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.pong");
 
 
         /// <summary>
@@ -153,7 +153,6 @@ namespace linker.tunnel.connection
                 else if (packet.Span.SequenceEqual(pongBytes))
                 {
                     Delay = (int)pingTicks.Diff();
-                    pong = true;
                 }
             }
 
@@ -201,7 +200,6 @@ namespace linker.tunnel.connection
             }
             catch (Exception)
             {
-                pong = true;
                 Dispose();
             }
             finally
