@@ -18,6 +18,7 @@ using linker.messenger.updater;
 using linker.messenger.store.file;
 using linker.messenger.serializer.memorypack;
 using linker.libs;
+using linker.messenger.plan;
 
 namespace linker.messenger.entry
 {
@@ -86,7 +87,10 @@ namespace linker.messenger.entry
                 //持久化，文件
                 .AddStoreFile()
                 //序列化 MemoryPack
-                .AddSerializerMemoryPack();
+                .AddSerializerMemoryPack()
+                
+                //计划任务
+                .AddPlan();
         }
         /// <summary>
         /// 注入
@@ -141,7 +145,7 @@ namespace linker.messenger.entry
             if (modules.HasFlag(ExcludeModule.Logger) == false)
                 serviceProvider.UseLogger();
 
-            serviceProvider.UseMessenger();
+            serviceProvider.UseMessenger().UsePlan();
 
             if ((modules & ExcludeModule.StoreFile) != ExcludeModule.StoreFile)
                 serviceProvider.UseStoreFile(configDic);

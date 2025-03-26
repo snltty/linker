@@ -5,6 +5,7 @@ using linker.messenger.forward;
 using linker.messenger.listen;
 using linker.messenger.logger;
 using linker.messenger.pcp;
+using linker.messenger.plan;
 using linker.messenger.relay.client;
 using linker.messenger.relay.server;
 using linker.messenger.sforward.client;
@@ -18,6 +19,7 @@ using linker.messenger.store.file.forward;
 using linker.messenger.store.file.logger;
 using linker.messenger.store.file.messenger;
 using linker.messenger.store.file.pcp;
+using linker.messenger.store.file.plan;
 using linker.messenger.store.file.relay;
 using linker.messenger.store.file.server;
 using linker.messenger.store.file.sforward;
@@ -94,6 +96,8 @@ namespace linker.messenger.store.file
             serviceCollection.AddSingleton<ITuntapClientStore, TuntapClientStore>();
             serviceCollection.AddSingleton<ILeaseServerStore, LeaseServerStore>();
             serviceCollection.AddSingleton<ILeaseClientStore, LeaseClientStore>();
+
+            serviceCollection.AddSingleton<IPlanStore, PlanStore>();
 
             return serviceCollection;
         }

@@ -1,18 +1,25 @@
 ﻿using Cronos;
+using linker.libs.extends;
 using linker.libs.timer;
+using linker.messenger.signin;
 using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
 
 namespace linker.messenger.plan
 {
     public sealed class PlanTransfer
     {
+        private string regex = @"([0-9]+|\?)-([0-9]+|\?)-([0-9]+|\?)\s+([0-9]+|\?):([0-9]+|\?):([0-9]+|\?)";
+
         private readonly ConcurrentDictionary<string, IPlanHandle> handles = new ConcurrentDictionary<string, IPlanHandle>();
         private readonly ConcurrentDictionary<int, PlanExecCacheInfo> caches = new ConcurrentDictionary<int, PlanExecCacheInfo>();
 
         private readonly IPlanStore planStore;
-        public PlanTransfer(IPlanStore planStore)
+        private readonly SignInClientState signInClientState;
+        public PlanTransfer(IPlanStore planStore, SignInClientState signInClientState)
         {
             this.planStore = planStore;
+            this.signInClientState = signInClientState;
             PlanTask();
         }
 
@@ -31,9 +38,8 @@ namespace linker.messenger.plan
 
             caches.TryRemove(info.Id, out _);
             PlanExecCacheInfo cache = new PlanExecCacheInfo { Store = info };
-            UpdateNextTime(cache);
+            cache.Active = UpdateNextTime(cache) && string.IsNullOrWhiteSpace(info.TriggerHandle);
             caches.TryAdd(info.Id, cache);
-
             return result;
         }
         public bool Remove(int id)
@@ -45,96 +51,157 @@ namespace linker.messenger.plan
 
         private void PlanTask()
         {
+            Load();
+            signInClientState.OnSignInSuccess += (times) => RunSetup();
+            TimerHelper.SetIntervalLong(RunPlan, 500);
+        }
+        private void Load()
+        {
             foreach (PlanStoreInfo info in planStore.Get())
             {
-                PlanExecCacheInfo cache = new PlanExecCacheInfo { Store = info };
-                UpdateNextTime(cache);
-                caches.TryAdd(info.Id, cache);
-            }
-            TimerHelper.SetIntervalLong(() =>
-            {
-                DateTime now = DateTime.Now;
-                foreach (var item in caches.Values.Where(c => c.NextTime < now))
+                try
                 {
-                    if (item.Running == false)
-                    {
-                        if (handles.TryGetValue(item.Store.Category, out IPlanHandle handle))
-                        {
-                            item.Running = true;
-                            handle.HandleAsync(item.Store.Handle, item.Store.Value).ContinueWith((result) =>
-                            {
-                                item.Running = false;
-                            });
-                        }
-                    }
-                    UpdateNextTime(item);
+                    PlanExecCacheInfo cache = new PlanExecCacheInfo { Store = info };
+                    cache.Active = UpdateNextTime(cache) && string.IsNullOrWhiteSpace(info.TriggerHandle);
+                    caches.TryAdd(info.Id, cache);
                 }
+                catch (Exception)
+                {
+                }
+            }
+        }
+        private void RunSetup()
+        {
+            foreach (PlanExecCacheInfo item in caches.Values.Where(c => c.Store.Method == PlanMethod.Setup && c.Store.Disabled == false && c.Running == false))
+            {
+                if (handles.TryGetValue(item.Store.Category, out IPlanHandle handle))
+                {
+                    item.LastTime = DateTime.Now;
+                    handle.HandleAsync(item.Store.Handle, item.Store.Key, item.Store.Value).ContinueWith((result) =>
+                    {
+                        PlanExecCacheInfo trigger = caches.Values.FirstOrDefault(c => c.Store.Category == item.Store.Category && c.Store.Key == item.Store.Key && c.Store.TriggerHandle == item.Store.Handle && c.Store.TriggerHandle != c.Store.Handle);
+                        if (trigger != null)
+                        {
+                            trigger.Active = UpdateNextTime(trigger);
+                        }
+                    });
+                    return;
+                }
+            }
+        }
+        private void RunPlan()
+        {
+            foreach (var item in caches.Values.Where(c => c.NextTime <= DateTime.Now && (c.Store.Method == PlanMethod.Timer || c.Store.Method == PlanMethod.Cron || c.Store.Method == PlanMethod.Trigger) && c.Store.Disabled == false && c.Active && c.Running == false))
+            {
+                if (handles.TryGetValue(item.Store.Category, out IPlanHandle handle))
+                {
+                    item.Running = true;
+                    item.Active = UpdateNextTime(item) && string.IsNullOrWhiteSpace(item.Store.TriggerHandle);
+                    item.LastTime = DateTime.Now;
+                    handle.HandleAsync(item.Store.Handle, item.Store.Key, item.Store.Value).ContinueWith((result) =>
+                    {
+                        item.Running = false;
+                        PlanExecCacheInfo trigger = caches.Values.FirstOrDefault(c => c.Store.Category == item.Store.Category && c.Store.Key == item.Store.Key && c.Store.TriggerHandle == item.Store.Handle && c.Store.TriggerHandle != c.Store.Handle);
+                        if (trigger != null)
+                        {
+                            trigger.Active = UpdateNextTime(trigger);
+                        }
+                    });
+                    return;
+                }
+            }
+        }
 
-            }, 500);
-        }
-        private void UpdateNextTime(PlanExecCacheInfo cache)
+        private bool UpdateNextTime(PlanExecCacheInfo cache)
         {
-            cache.LastTime = DateTime.Now;
-            if (cache.Store.Method == PlanMethod.Timer)
+            try
             {
-                NextTimeTimer(cache);
+                if (cache.Store.Method == PlanMethod.Timer)
+                {
+                    return NextTimeTimer(cache);
+                }
+                else if (cache.Store.Method == PlanMethod.Cron)
+                {
+                    return NextTimeCorn(cache);
+                }
+                else if (cache.Store.Method == PlanMethod.Trigger)
+                {
+                    return NextTimeAfter(cache);
+                }
             }
-            else if (cache.Store.Method == PlanMethod.Corn)
+            catch (Exception ex)
             {
-                NextTimeCorn(cache);
+                cache.Error = ex.Message;
             }
+            return false;
         }
-        private void NextTimeCorn(PlanExecCacheInfo cache)
+        private bool NextTimeCorn(PlanExecCacheInfo cache)
         {
-            CronExpression cron = CronExpression.Parse(cache.Store.Corn);
-            DateTimeOffset? nextOccurrence = cron.GetNextOccurrence(DateTimeOffset.Now, TimeZoneInfo.Local);
-            if (nextOccurrence.HasValue)
+            try
             {
-                cache.NextTime = nextOccurrence.Value.LocalDateTime;
+                CronExpression cron = CronExpression.Parse(cache.Store.Rule, CronFormat.IncludeSeconds);
+                DateTimeOffset? nextOccurrence = cron.GetNextOccurrence(DateTimeOffset.Now, TimeZoneInfo.Local);
+                if (nextOccurrence.HasValue)
+                {
+                    cache.NextTime = nextOccurrence.Value.LocalDateTime;
+
+                }
+                return true;
             }
+            catch (Exception ex)
+            {
+                cache.Error = ex.Message;
+            }
+            return false;
         }
-        private void NextTimeTimer(PlanExecCacheInfo cache)
+        private bool NextTimeTimer(PlanExecCacheInfo cache)
         {
+            if (Regex.IsMatch(cache.Store.Rule, regex) == false)
+            {
+                cache.Error = $"{cache.Store.Rule} format error";
+                return false;
+            }
+
             DateTime from = DateTime.Now;
-            int month = cache.Store.Month;
-            int day = cache.Store.Day;
-            int hour = cache.Store.Hour;
-            int minute = cache.Store.Min;
-            int second = cache.Store.Sec;
 
-            DateTime next = cache.Store.Period switch
-            {
-                PlanPeriod.Year => new DateTime(from.Year, month, day, hour, minute, second),
-                PlanPeriod.Month => new DateTime(from.Year, from.Month, day, hour, minute, second),
-                PlanPeriod.Day => new DateTime(from.Year, from.Month, from.Day, hour, minute, second),
-                PlanPeriod.Hour => new DateTime(from.Year, from.Month, from.Day, from.Hour, minute, second),
-                PlanPeriod.Min => new DateTime(from.Year, from.Month, from.Day, from.Hour, from.Minute, second),
-                _ => new DateTime(from.Year, from.Month, from.Day, from.Hour, from.Minute, from.Second),
-            };
+            GroupCollection groups = Regex.Match(cache.Store.Rule, regex).Groups;
+            int year = groups[1].Value == "?" ? from.Year : int.Parse(groups[1].Value);
+            int month = groups[2].Value == "?" ? from.Month : int.Parse(groups[2].Value);
+            int day = groups[3].Value == "?" ? from.Day : int.Parse(groups[3].Value);
+            int hour = groups[4].Value == "?" ? from.Hour : int.Parse(groups[4].Value);
+            int minute = groups[5].Value == "?" ? from.Minute : int.Parse(groups[5].Value);
+            int second = groups[6].Value == "?" ? from.Second : int.Parse(groups[6].Value);
+
+            DateTime next = new DateTime(year, month, day, hour, minute, second);
             if (next <= from)
             {
-                switch (cache.Store.Period)
-                {
-                    case PlanPeriod.Year:
-                        next = next.AddYears(1);
-                        break;
-                    case PlanPeriod.Month:
-                        next = next.AddMonths(1);
-                        break;
-                    case PlanPeriod.Day:
-                        next = next.AddDays(1);
-                        break;
-                    case PlanPeriod.Hour:
-                        next = next.AddHours(1);
-                        break;
-                    case PlanPeriod.Min:
-                        next = next.AddSeconds(1);
-                        break;
-                    default:
-                        break;
-                }
+                if (groups[5].Value == "?") next = next.AddMinutes(1);
+                else if (groups[4].Value == "?") next = next.AddHours(1);
+                else if (groups[3].Value == "?") next = next.AddDays(1);
+                else if (groups[2].Value == "?") next = next.AddMonths(1);
+                else if (groups[1].Value == "?") next = next.AddYears(1);
             }
             cache.NextTime = next;
+            return true;
+        }
+        private bool NextTimeAfter(PlanExecCacheInfo cache)
+        {
+            if (Regex.IsMatch(cache.Store.Rule, regex) == false)
+            {
+                cache.Error = $"{cache.Store.Rule} format error";
+                return false;
+            }
+
+            GroupCollection groups = Regex.Match(cache.Store.Rule, regex).Groups;
+            int year = groups[1].Value == "?" ? 0 : int.Parse(groups[1].Value);
+            int month = groups[2].Value == "?" ? 0 : int.Parse(groups[2].Value);
+            int day = groups[3].Value == "?" ? 0 : int.Parse(groups[3].Value);
+            int hour = groups[4].Value == "?" ? 0 : int.Parse(groups[4].Value);
+            int minute = groups[5].Value == "?" ? 0 : int.Parse(groups[5].Value);
+            int second = groups[6].Value == "?" ? 0 : int.Parse(groups[6].Value);
+
+            cache.NextTime = DateTime.Now.AddYears(year).AddMonths(month).AddDays(day).AddHours(hour).AddMinutes(minute).AddSeconds(second);
+            return true;
         }
     }
 
@@ -145,6 +212,9 @@ namespace linker.messenger.plan
         public DateTime NextTime { get; set; }
 
         public bool Running { get; set; }
+        public bool Active { get; set; }
+
+        public string Error { get; set; }
     }
 
 }

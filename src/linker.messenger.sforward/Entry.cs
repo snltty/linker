@@ -1,5 +1,6 @@
 ﻿using linker.messenger.api;
 using linker.messenger.decenter;
+using linker.messenger.plan;
 using linker.messenger.sforward.client;
 using linker.messenger.sforward.server;
 using linker.messenger.sforward.server.validator;
@@ -26,6 +27,8 @@ namespace linker.messenger.sforward
 
             serviceCollection.AddSingleton<SForwardProxy>();
 
+            serviceCollection.AddSingleton<SForwardPlanHandle>();
+
             return serviceCollection;
         }
         public static ServiceProvider UseSForwardClient(this ServiceProvider serviceProvider)
@@ -44,6 +47,9 @@ namespace linker.messenger.sforward
             DecenterClientTransfer decenterClientTransfer = serviceProvider.GetService<DecenterClientTransfer>();
             decenterClientTransfer.AddDecenters(new List<IDecenter> { serviceProvider.GetService<SForwardDecenter>() });
 
+
+            PlanTransfer planTransfer = serviceProvider.GetService<PlanTransfer>();
+            planTransfer.AddHandle(serviceProvider.GetService<SForwardPlanHandle>());
             return serviceProvider;
         }
 

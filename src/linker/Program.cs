@@ -4,6 +4,7 @@ using System.Diagnostics;
 using linker.messenger.entry;
 using linker.tunnel;
 using linker.messenger.relay.client;
+using linker.messenger.signin;
 
 namespace linker
 {
@@ -60,7 +61,6 @@ namespace linker
             LinkerMessengerEntry.Build();
             LinkerMessengerEntry.Setup(ExcludeModule.None, configDic);
 
-
             LoggerHelper.Instance.Warning($"current version : {VersionHelper.version}");
             LoggerHelper.Instance.Warning($"linker env is docker : {Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")}");
             LoggerHelper.Instance.Warning($"linker env os : {System.Runtime.InteropServices.RuntimeInformation.OSDescription}");
@@ -76,9 +76,10 @@ namespace linker
             {
                 if (args[i] == "--config-client")
                 {
-                    configDic.Add("Client", args[i+1]);
+                    configDic.Add("Client", args[i + 1]);
                     i++;
-                }else if (args[i] == "--config-server")
+                }
+                else if (args[i] == "--config-server")
                 {
                     configDic.Add("Server", args[i + 1]);
                     i++;

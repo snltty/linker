@@ -5,6 +5,7 @@
         public bool Add(PlanStoreInfo info);
         public IEnumerable<PlanStoreInfo> Get();
         public IEnumerable<PlanStoreInfo> Get(string category);
+        public PlanStoreInfo Get(string category,string key);
         public bool Remove(int id);
     }
 
@@ -18,27 +19,25 @@
         /// 操作
         /// </summary>
         /// <param name="handle">操作名</param>
+        /// <param name="key">key</param>
         /// <param name="value">值</param>
-        public Task HandleAsync(string handle,string value);
+        public Task HandleAsync(string handle,string key,string value);
     }
 
     public sealed class PlanStoreInfo
     {
         public int Id { get; set; }
+       
+        public string Category { get; set; }
+        public string Key { get; set; }
+        public string Handle { get; set; }
         public string Value { get; set; }
 
-        public string Category { get; set; }
-        public string Handle { get; set; }
+        public bool Disabled { get; set; }
+        public string TriggerHandle { get; set; }
 
         public PlanMethod Method { get; set; }
-        public PlanPeriod Period { get; set; }
-
-        public string Corn { get; set; }
-        public int Month { get; set; }
-        public int Day { get; set; }
-        public int Hour { get; set; }
-        public int Min { get; set; }
-        public int Sec { get; set; }
+        public string Rule { get; set; }
     }
 
     /// <summary>
@@ -57,21 +56,15 @@
         /// <summary>
         /// 表达式
         /// </summary>
-        Corn = 2,
+        Cron = 2,
         /// <summary>
         /// 启动后
         /// </summary>
         Setup = 4,
+        /// <summary>
+        /// 触发
+        /// </summary>
+        Trigger = 8,
     }
-    /// <summary>
-    /// 计划任务周期
-    /// </summary>
-    public enum PlanPeriod : byte
-    {
-        Year = 0,
-        Month = 1,
-        Day = 2,
-        Hour = 4,
-        Min = 8
-    }
+    
 }

@@ -106,17 +106,7 @@ namespace linker.messenger.signin
         public async Task<SignInListResponseInfo> List(ApiControllerParamsInfo param)
         {
             SignInListRequestInfo request = param.Content.DeJson<SignInListRequestInfo>();
-            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
-            {
-                Connection = signInClientState.Connection,
-                MessengerId = (ushort)SignInMessengerIds.List,
-                Payload = serializer.Serialize(request)
-            }).ConfigureAwait(false);
-            if (resp.Code == MessageResponeCodes.OK)
-            {
-                return serializer.Deserialize<SignInListResponseInfo>(resp.Data.Span);
-            }
-            return new SignInListResponseInfo { };
+            return await signInClientTransfer.List(request);
         }
         public async Task<SignInIdsResponseInfo> Ids(ApiControllerParamsInfo param)
         {

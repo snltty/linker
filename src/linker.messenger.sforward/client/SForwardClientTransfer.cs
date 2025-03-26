@@ -120,7 +120,6 @@ namespace linker.messenger.sforward.client
                                 sForwardClientStore.Update(forwardInfo.Id, true, forwardInfo.Proxy, string.Empty);
                                 LoggerHelper.Instance.Error(sForwardAddResultInfo.Message);
                             }
-
                         }
                         OnChanged();
                     });

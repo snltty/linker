@@ -24,6 +24,10 @@ namespace linker.messenger.store.file
             bsonMapper.RegisterType<IConnection>(serialize: (a) => string.Empty, deserialize: (a) => null);
 
             string db = Path.Join(Helper.currentDirectory, "./configs/db.db");
+            if(Directory.Exists(Path.GetDirectoryName(db)) == false)
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(db));
+            }
 
             database = new LiteDatabase(new ConnectionString($"Filename={db}; Password={Helper.GlobalString}; journal=false"), bsonMapper);
 

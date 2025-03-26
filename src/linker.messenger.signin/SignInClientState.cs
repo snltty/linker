@@ -22,9 +22,17 @@ namespace linker.messenger.signin
         /// </summary>
         [JsonIgnore]
         public IConnection Connection { get; set; }
+        /// <summary>
+        /// 是否已连接
+        /// </summary>
         public bool Connected => Connection != null && Connection.Connected;
-
+        /// <summary>
+        /// 服务器版本
+        /// </summary>
         public string Version { get; set; }
+        /// <summary>
+        /// 外网IP端口
+        /// </summary>
         public IPEndPoint WanAddress { get; set; } = new IPEndPoint(IPAddress.Any, 0);
 
 

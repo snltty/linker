@@ -255,5 +255,24 @@ namespace linker.messenger.signin
             return string.Empty;
         }
 
+        /// <summary>
+        /// 客户端列表
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<SignInListResponseInfo> List(SignInListRequestInfo request)
+        {
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)SignInMessengerIds.List,
+                Payload = serializer.Serialize(request)
+            }).ConfigureAwait(false);
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                return serializer.Deserialize<SignInListResponseInfo>(resp.Data.Span);
+            }
+            return new SignInListResponseInfo { };
+        }
     }
 }

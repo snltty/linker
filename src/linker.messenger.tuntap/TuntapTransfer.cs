@@ -75,7 +75,7 @@ namespace linker.messenger.tuntap
                         return;
                     }
                     OnSetupBefore();
-                    linkerTunDeviceAdapter.Setup(name, ip, prefixLength, 1400);
+                    linkerTunDeviceAdapter.Setup(name, ip, prefixLength, 1420);
                     if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.SetupError) == false)
                     {
                         LoggerHelper.Instance.Error(linkerTunDeviceAdapter.SetupError);
