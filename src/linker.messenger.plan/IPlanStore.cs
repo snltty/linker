@@ -5,7 +5,7 @@
         public bool Add(PlanStoreInfo info);
         public IEnumerable<PlanStoreInfo> Get();
         public IEnumerable<PlanStoreInfo> Get(string category);
-        public PlanStoreInfo Get(string category,string key);
+        public PlanStoreInfo Get(string category, string key);
         public bool Remove(int id);
     }
 
@@ -21,13 +21,13 @@
         /// <param name="handle">操作名</param>
         /// <param name="key">key</param>
         /// <param name="value">值</param>
-        public Task HandleAsync(string handle,string key,string value);
+        public Task HandleAsync(string handle, string key, string value);
     }
 
     public sealed class PlanStoreInfo
     {
         public int Id { get; set; }
-       
+
         public string Category { get; set; }
         public string Key { get; set; }
         public string Handle { get; set; }
@@ -50,21 +50,26 @@
         /// </summary>
         Hand = 0,
         /// <summary>
+        /// 启动后
+        /// </summary>
+        Setup = 1,
+
+        /// <summary>
+        /// 到点
+        /// </summary>
+        At = 100,
+        /// <summary>
         /// 定时
         /// </summary>
-        Timer = 1,
+        Timer = 101,
         /// <summary>
         /// 表达式
         /// </summary>
-        Cron = 2,
-        /// <summary>
-        /// 启动后
-        /// </summary>
-        Setup = 4,
+        Cron = 102,
         /// <summary>
         /// 触发
         /// </summary>
-        Trigger = 8,
+        Trigger = 103,
     }
-    
+
 }

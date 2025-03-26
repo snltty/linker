@@ -1,5 +1,4 @@
 ﻿using Cronos;
-using linker.libs.extends;
 using linker.libs.timer;
 using linker.messenger.signin;
 using System.Collections.Concurrent;
@@ -53,7 +52,7 @@ namespace linker.messenger.plan
         {
             Load();
             signInClientState.OnSignInSuccess += (times) => RunSetup();
-            TimerHelper.SetIntervalLong(RunPlan, 500);
+            TimerHelper.SetIntervalLong(RunLoop, 500);
         }
         private void Load()
         {
@@ -62,7 +61,7 @@ namespace linker.messenger.plan
                 try
                 {
                     PlanExecCacheInfo cache = new PlanExecCacheInfo { Store = info };
-                    cache.Active = UpdateNextTime(cache) && string.IsNullOrWhiteSpace(info.TriggerHandle);
+                    cache.Active = (cache.Store.Method < PlanMethod.At) || (UpdateNextTime(cache) && cache.Store.Method != PlanMethod.Trigger);
                     caches.TryAdd(info.Id, cache);
                 }
                 catch (Exception)
@@ -74,49 +73,47 @@ namespace linker.messenger.plan
         {
             foreach (PlanExecCacheInfo item in caches.Values.Where(c => c.Store.Method == PlanMethod.Setup && c.Store.Disabled == false && c.Running == false))
             {
-                if (handles.TryGetValue(item.Store.Category, out IPlanHandle handle))
-                {
-                    item.LastTime = DateTime.Now;
-                    handle.HandleAsync(item.Store.Handle, item.Store.Key, item.Store.Value).ContinueWith((result) =>
-                    {
-                        PlanExecCacheInfo trigger = caches.Values.FirstOrDefault(c => c.Store.Category == item.Store.Category && c.Store.Key == item.Store.Key && c.Store.TriggerHandle == item.Store.Handle && c.Store.TriggerHandle != c.Store.Handle);
-                        if (trigger != null)
-                        {
-                            trigger.Active = UpdateNextTime(trigger);
-                        }
-                    });
-                    return;
-                }
+                Run(item);
             }
         }
-        private void RunPlan()
+        private void RunLoop()
         {
-            foreach (var item in caches.Values.Where(c => c.NextTime <= DateTime.Now && (c.Store.Method == PlanMethod.Timer || c.Store.Method == PlanMethod.Cron || c.Store.Method == PlanMethod.Trigger) && c.Store.Disabled == false && c.Active && c.Running == false))
+            foreach (PlanExecCacheInfo item in caches.Values.Where(c => c.NextTime <= DateTime.Now && c.Store.Method >= PlanMethod.At))
             {
-                if (handles.TryGetValue(item.Store.Category, out IPlanHandle handle))
-                {
-                    item.Running = true;
-                    item.Active = UpdateNextTime(item) && string.IsNullOrWhiteSpace(item.Store.TriggerHandle);
-                    item.LastTime = DateTime.Now;
-                    handle.HandleAsync(item.Store.Handle, item.Store.Key, item.Store.Value).ContinueWith((result) =>
-                    {
-                        item.Running = false;
-                        PlanExecCacheInfo trigger = caches.Values.FirstOrDefault(c => c.Store.Category == item.Store.Category && c.Store.Key == item.Store.Key && c.Store.TriggerHandle == item.Store.Handle && c.Store.TriggerHandle != c.Store.Handle);
-                        if (trigger != null)
-                        {
-                            trigger.Active = UpdateNextTime(trigger);
-                        }
-                    });
-                    return;
-                }
+                Run(item);
             }
+        }
+        private void Run(PlanExecCacheInfo item)
+        {
+            if(item.Store.Disabled || item.Active == false || item.Running || handles.TryGetValue(item.Store.Category, out IPlanHandle handle) == false)
+            {
+                return;
+            }
+
+            item.Running = true;
+            item.Active = (item.Store.Method < PlanMethod.At) || (UpdateNextTime(item) && item.Store.Method != PlanMethod.Trigger);
+            item.LastTime = DateTime.Now;
+
+            handle.HandleAsync(item.Store.Handle, item.Store.Key, item.Store.Value).ContinueWith((result) =>
+            {
+                item.Running = false;
+                PlanExecCacheInfo trigger = caches.Values.FirstOrDefault(c => c.Store.Category == item.Store.Category && c.Store.Key == item.Store.Key && c.Store.TriggerHandle == item.Store.Handle && c.Store.TriggerHandle != c.Store.Handle && c.Store.Method == PlanMethod.Trigger);
+                if (trigger != null)
+                {
+                    trigger.Active = UpdateNextTime(trigger);
+                }
+            });
         }
 
         private bool UpdateNextTime(PlanExecCacheInfo cache)
         {
             try
             {
-                if (cache.Store.Method == PlanMethod.Timer)
+                if (cache.Store.Method == PlanMethod.At)
+                {
+                    return NextTimeAt(cache);
+                }
+                else if (cache.Store.Method == PlanMethod.Timer)
                 {
                     return NextTimeTimer(cache);
                 }
@@ -154,7 +151,7 @@ namespace linker.messenger.plan
             }
             return false;
         }
-        private bool NextTimeTimer(PlanExecCacheInfo cache)
+        private bool NextTimeAt(PlanExecCacheInfo cache)
         {
             if (Regex.IsMatch(cache.Store.Rule, regex) == false)
             {
@@ -184,6 +181,25 @@ namespace linker.messenger.plan
             cache.NextTime = next;
             return true;
         }
+        private bool NextTimeTimer(PlanExecCacheInfo cache)
+        {
+            if (Regex.IsMatch(cache.Store.Rule, regex) == false)
+            {
+                cache.Error = $"{cache.Store.Rule} format error";
+                return false;
+            }
+
+            GroupCollection groups = Regex.Match(cache.Store.Rule, regex).Groups;
+            int year = groups[1].Value == "?" ? 0 : int.Parse(groups[1].Value);
+            int month = groups[2].Value == "?" ? 0 : int.Parse(groups[2].Value);
+            int day = groups[3].Value == "?" ? 0 : int.Parse(groups[3].Value);
+            int hour = groups[4].Value == "?" ? 0 : int.Parse(groups[4].Value);
+            int minute = groups[5].Value == "?" ? 0 : int.Parse(groups[5].Value);
+            int second = groups[6].Value == "?" ? 0 : int.Parse(groups[6].Value);
+
+            cache.NextTime = DateTime.Now.AddYears(year).AddMonths(month).AddDays(day).AddHours(hour).AddMinutes(minute).AddSeconds(second);
+            return true;
+        }
         private bool NextTimeAfter(PlanExecCacheInfo cache)
         {
             if (Regex.IsMatch(cache.Store.Rule, regex) == false)
@@ -203,6 +219,7 @@ namespace linker.messenger.plan
             cache.NextTime = DateTime.Now.AddYears(year).AddMonths(month).AddDays(day).AddHours(hour).AddMinutes(minute).AddSeconds(second);
             return true;
         }
+
     }
 
     public sealed class PlanExecCacheInfo
