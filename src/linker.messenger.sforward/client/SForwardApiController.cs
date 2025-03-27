@@ -115,12 +115,13 @@ namespace linker.messenger.sforward.client
                 return forwardTransfer.Add(info.Data);
             }
             if (accessStore.HasAccess(AccessValue.ForwardOther) == false) return false;
-            return await messengerSender.SendOnly(new MessageRequestWrap
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)SForwardMessengerIds.AddClientForward,
                 Payload = serializer.Serialize(info)
             }).ConfigureAwait(false);
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
 
         /// <summary>
@@ -137,12 +138,13 @@ namespace linker.messenger.sforward.client
                 return forwardTransfer.Remove(info.Id);
             }
             if (accessStore.HasAccess(AccessValue.ForwardOther) == false) return false;
-            return await messengerSender.SendOnly(new MessageRequestWrap
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)SForwardMessengerIds.RemoveClientForward,
                 Payload = serializer.Serialize(info)
             }).ConfigureAwait(false);
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
 
         /// <summary>

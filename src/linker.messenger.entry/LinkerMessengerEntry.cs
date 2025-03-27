@@ -26,9 +26,9 @@ namespace linker.messenger.entry
     {
         private static ServiceCollection serviceCollection;
         private static ServiceProvider serviceProvider;
-        private static OperatingManager inited = new OperatingManager();
-        private static OperatingManager builded = new OperatingManager();
-        private static OperatingManager setuped = new OperatingManager();
+        private static readonly OperatingManager inited = new OperatingManager();
+        private static readonly OperatingManager builded = new OperatingManager();
+        private static readonly OperatingManager setuped = new OperatingManager();
 
         /// <summary>
         /// 开始初始化
@@ -90,7 +90,7 @@ namespace linker.messenger.entry
                 .AddSerializerMemoryPack()
                 
                 //计划任务
-                .AddPlan();
+                .AddPlanClient().AddPlanServer();
         }
         /// <summary>
         /// 注入
@@ -145,7 +145,7 @@ namespace linker.messenger.entry
             if (modules.HasFlag(ExcludeModule.Logger) == false)
                 serviceProvider.UseLogger();
 
-            serviceProvider.UseMessenger().UsePlan();
+            serviceProvider.UseMessenger();
 
             if ((modules & ExcludeModule.StoreFile) != ExcludeModule.StoreFile)
                 serviceProvider.UseStoreFile(configDic);
@@ -171,6 +171,8 @@ namespace linker.messenger.entry
                  .UseSignInServer().UseSyncServer().UseTunnelServer().UseFlowServer();
 
                 serviceProvider.UseListen();
+
+                serviceProvider.UsePlanServer();
             }
 
             if ((commonStore.Modes & CommonModes.Client) == CommonModes.Client)
@@ -193,6 +195,8 @@ namespace linker.messenger.entry
                 serviceProvider.UseExRoute().UseAccessClient().UseDecenterClient().UsePcpClient().UseRelayClient().UseSyncClient().UseTunnelClient().UseFlowClient();
 
                 serviceProvider.UseSignInClient();
+
+                serviceProvider.UsePlanClient();
             }
         }
 

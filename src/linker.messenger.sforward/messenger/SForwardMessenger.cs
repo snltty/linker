@@ -237,7 +237,7 @@ namespace linker.plugins.sforward.messenger
                             RequestId = requestid
                         }, (ushort)SForwardMessengerIds.GetForward).ConfigureAwait(false);
                     }
-                });
+                }).ConfigureAwait(false);
             }
         }
         /// <summary>
@@ -251,11 +251,23 @@ namespace linker.plugins.sforward.messenger
             if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
-                await sender.SendOnly(new MessageRequestWrap
+                await sender.SendReply(new MessageRequestWrap
                 {
                     Connection = cacheTo.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.AddClient,
                     Payload = serializer.Serialize(info.Data)
+                }).ContinueWith(async (result) =>
+                {
+                    if (result.Result.Code == MessageResponeCodes.OK)
+                    {
+                        await sender.ReplyOnly(new MessageResponseWrap
+                        {
+                            Connection = connection,
+                            Code = MessageResponeCodes.OK,
+                            Payload = result.Result.Data,
+                            RequestId = requestid
+                        }, (ushort)SForwardMessengerIds.AddClientForward).ConfigureAwait(false);
+                    }
                 }).ConfigureAwait(false);
             }
         }
@@ -270,11 +282,23 @@ namespace linker.plugins.sforward.messenger
             if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
-                await sender.SendOnly(new MessageRequestWrap
+                await sender.SendReply(new MessageRequestWrap
                 {
                     Connection = cacheTo.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.RemoveClient,
                     Payload = serializer.Serialize(info.Id)
+                }).ContinueWith(async (result) =>
+                {
+                    if (result.Result.Code == MessageResponeCodes.OK)
+                    {
+                        await sender.ReplyOnly(new MessageResponseWrap
+                        {
+                            Connection = connection,
+                            Code = MessageResponeCodes.OK,
+                            Payload = result.Result.Data,
+                            RequestId = requestid
+                        }, (ushort)SForwardMessengerIds.RemoveClientForward).ConfigureAwait(false);
+                    }
                 }).ConfigureAwait(false);
             }
         }
@@ -404,6 +428,7 @@ namespace linker.plugins.sforward.messenger
         {
             SForwardInfo sForwardInfo = serializer.Deserialize<SForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
             sForwardTransfer.Add(sForwardInfo);
+            connection.Write(Helper.TrueArray);
         }
         // <summary>
         /// 删除
@@ -414,6 +439,7 @@ namespace linker.plugins.sforward.messenger
         {
             int id = serializer.Deserialize<int>(connection.ReceiveRequestWrap.Payload.Span);
             sForwardTransfer.Remove(id);
+            connection.Write(Helper.TrueArray);
         }
         // <summary>
         /// 测试

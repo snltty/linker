@@ -26,7 +26,7 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new SignInConfigSetNameInfoFormatter());
             MemoryPackFormatterProvider.Register(new SignInNamesResponseItemInfoFormatter());
             MemoryPackFormatterProvider.Register(new SignInPushArgInfoFormatter());
-            
+
 
             MemoryPackFormatterProvider.Register(new SyncInfoFormatter());
 
@@ -51,7 +51,7 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new UpdaterConfirmServerInfoFormatter());
             MemoryPackFormatterProvider.Register(new UpdaterClientInfoFormatter());
             MemoryPackFormatterProvider.Register(new UpdaterClientInfo170Formatter());
-            
+
             MemoryPackFormatterProvider.Register(new UpdaterInfoFormatter());
             MemoryPackFormatterProvider.Register(new UpdaterInfo170Formatter());
 
@@ -126,6 +126,12 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new TuntapForwardTestInfoFormatter());
             MemoryPackFormatterProvider.Register(new TuntapLanInfoFormatter());
             MemoryPackFormatterProvider.Register(new LeaseInfoFormatter());
+
+
+            MemoryPackFormatterProvider.Register(new PlanInfoFormatter());
+            MemoryPackFormatterProvider.Register(new PlanGetInfoFormatter());
+            MemoryPackFormatterProvider.Register(new PlanAddInfoFormatter());
+            MemoryPackFormatterProvider.Register(new PlanRemoveInfoFormatter());
 
             return serviceCollection;
         }

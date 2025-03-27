@@ -7,12 +7,27 @@ namespace linker.messenger.sforward.client
         public string CategoryName => "sforward";
 
 
-        public SForwardPlanHandle()
+        private readonly SForwardClientTransfer sForwardClientTransfer;
+        public SForwardPlanHandle(SForwardClientTransfer sForwardClientTransfer)
         {
+            this.sForwardClientTransfer = sForwardClientTransfer;
         }
         public async Task HandleAsync(string handle, string key, string value)
         {
-            Console.WriteLine($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] exec plan {CategoryName} {handle} {key}->{value}");
+            if (int.TryParse(key, out int id) == false) return;
+
+            switch (handle)
+            {
+                case "start":
+                    sForwardClientTransfer.Start(id);
+                    break;
+                case "stop":
+                    sForwardClientTransfer.Stop(id);
+                    break;
+                default:
+                    break;
+            }
+
             await Task.CompletedTask;
         }
     }

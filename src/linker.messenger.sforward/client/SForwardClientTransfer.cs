@@ -30,6 +30,22 @@ namespace linker.messenger.sforward.client
             this.serializer = serializer;
         }
 
+        public void Start(int id)
+        {
+            SForwardInfo forwardInfo = sForwardClientStore.Get(id);
+            if(forwardInfo != null)
+            {
+                Start(forwardInfo);
+            }
+        }
+        public void Stop(int id)
+        {
+            SForwardInfo forwardInfo = sForwardClientStore.Get(id);
+            if (forwardInfo != null)
+            {
+                Stop(forwardInfo);
+            }
+        }
         private void Start()
         {
             foreach (var item in sForwardClientStore.Get())
@@ -70,7 +86,7 @@ namespace linker.messenger.sforward.client
                         forwardInfo.BufferSize = sForwardAddResultInfo.BufferSize;
                         if (sForwardAddResultInfo.Success)
                         {
-                            sForwardClientStore.Update(forwardInfo.Id, forwardInfo.Started,true, string.Empty);
+                            sForwardClientStore.Update(forwardInfo.Id, forwardInfo.Started, true, string.Empty);
                             LoggerHelper.Instance.Debug(sForwardAddResultInfo.Message);
                             OnOpen(forwardInfo.Id);
                         }
@@ -89,7 +105,7 @@ namespace linker.messenger.sforward.client
                 LoggerHelper.Instance.Error(ex);
                 OnChanged();
             }
-           
+
         }
         private void Stop(SForwardInfo forwardInfo)
         {
@@ -117,7 +133,7 @@ namespace linker.messenger.sforward.client
                             }
                             else
                             {
-                                sForwardClientStore.Update(forwardInfo.Id, true, forwardInfo.Proxy, string.Empty);
+                                sForwardClientStore.Update(forwardInfo.Id, forwardInfo.Started, forwardInfo.Proxy, string.Empty);
                                 LoggerHelper.Instance.Error(sForwardAddResultInfo.Message);
                             }
                         }
@@ -129,7 +145,7 @@ namespace linker.messenger.sforward.client
             {
                 LoggerHelper.Instance.Error(ex);
             }
-          
+
         }
 
         public bool Add(SForwardInfo forwardInfo)

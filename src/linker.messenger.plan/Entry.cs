@@ -1,19 +1,41 @@
 ﻿
+using linker.messenger.api;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace linker.messenger.plan
 {
     public static class Entry
     {
-        public static ServiceCollection AddPlan(this ServiceCollection serviceCollection)
+        public static ServiceCollection AddPlanClient(this ServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<PlanTransfer>();
+            serviceCollection.AddSingleton<PlanApiController>();
+            serviceCollection.AddSingleton<PlanClientMessenger>();
 
             return serviceCollection;
         }
-        public static ServiceProvider UsePlan(this ServiceProvider serviceProvider)
+        public static ServiceProvider UsePlanClient(this ServiceProvider serviceProvider)
         {
             PlanTransfer planTransfer = serviceProvider.GetService<PlanTransfer>();
+
+            MessengerResolver messengerResolver = serviceProvider.GetService<MessengerResolver>();
+            messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<PlanClientMessenger>() });
+
+            IApiServer apiServer = serviceProvider.GetService<IApiServer>();
+            apiServer.AddPlugins(new List<libs.api.IApiController> { serviceProvider.GetService<PlanApiController>() });
+
+            return serviceProvider;
+        }
+        public static ServiceCollection AddPlanServer(this ServiceCollection serviceCollection)
+        {
+            serviceCollection.AddSingleton<PlanServerMessenger>();
+
+            return serviceCollection;
+        }
+        public static ServiceProvider UsePlanServer(this ServiceProvider serviceProvider)
+        {
+            MessengerResolver messengerResolver = serviceProvider.GetService<MessengerResolver>();
+            messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<PlanClientMessenger>() });
             return serviceProvider;
         }
 

@@ -6,13 +6,13 @@ namespace linker.messenger.store.file.plan
     public sealed class PlanStore : IPlanStore
     {
         private readonly Storefactory dBfactory;
-        private readonly ILiteCollection<PlanStoreInfo> liteCollection;
+        private readonly ILiteCollection<PlanInfo> liteCollection;
         public PlanStore(Storefactory dBfactory)
         {
             this.dBfactory = dBfactory;
-            liteCollection = dBfactory.GetCollection<PlanStoreInfo>("plan");
+            liteCollection = dBfactory.GetCollection<PlanInfo>("plan");
         }
-        public bool Add(PlanStoreInfo info)
+        public bool Add(PlanInfo info)
         {
             if (info.Id == 0)
             {
@@ -27,16 +27,16 @@ namespace linker.messenger.store.file.plan
             return liteCollection.Update(info);
         }
 
-        public IEnumerable<PlanStoreInfo> Get()
+        public IEnumerable<PlanInfo> Get()
         {
             return liteCollection.FindAll();
         }
 
-        public IEnumerable<PlanStoreInfo> Get(string category)
+        public IEnumerable<PlanInfo> Get(string category)
         {
             return liteCollection.Find(c => c.Category == category);
         }
-        public PlanStoreInfo Get(string category, string key)
+        public PlanInfo Get(string category, string key)
         {
             return liteCollection.FindOne(c => c.Category == category && c.Key == key);
         }

@@ -2,7 +2,7 @@
   <el-dialog v-model="state.show" @open="handleOnShowList" append-to=".app-wrap" :title="`【${machineName}】的内网穿透`" top="1vh" width="700">
         <div>
             <div class="t-c head">
-                <el-button type="success" size="small" @click="handleAdd">添加</el-button>
+                <el-button type="success" size="small" @click="handleAdd" :loading="state.loading">添加</el-button>
                 <el-button size="small" @click="handleRefresh">刷新</el-button>
             </div>
             <el-table :data="state.data" size="small" border height="500" @cell-dblclick="handleCellClick">
@@ -100,6 +100,7 @@ export default {
             timer:0,
             timer1:0,
             editing:false,
+            loading:false,
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -147,12 +148,15 @@ export default {
             ElMessage.success('已刷新')
         }
         const handleAdd = () => {
+            state.loading = true;
             const row = { Id: 0, Name: '', RemotePort: 0, LocalEP: '127.0.0.1:80',Domain:'',Temp:'' };
             addSForwardInfo({machineid:sforward.value.machineid,data:row}).then(() => {
+                state.loading = false;
                 setTimeout(()=>{
                     _getSForwardInfo();
                 },100)
             }).catch((err) => {
+                state.loading = false;
                 ElMessage.error(err);
             });
         }
@@ -181,9 +185,15 @@ export default {
             saveRow(row);
         }
         const handleDel = (id) => {
-            removeSForwardInfo({machineid:sforward.value.machineid,id:id}).then(() => {
+            state.loading = true;
+            removeSForwardInfo({machineid:sforward.value.machineid,id:id})
+            .then(() => {
+                state.loading = false;
                 _getSForwardInfo();
-            })
+            }).catch((err) => {
+                state.loading = false;
+                ElMessage.error(err);
+            });
         }
         const handleStartChange = (row) => {
             saveRow(row);
@@ -195,13 +205,15 @@ export default {
             }else{
                 row.Domain = row.Temp;
             }
-
+            state.loading = true;
             addSForwardInfo({machineid:sforward.value.machineid,data:row}).then((res) => {
+                state.loading = false;
                 if(res == false){
                     ElMessage.error('操作失败，可能存在相同值');
                 }
                 _getSForwardInfo();
             }).catch((err) => {
+                state.loading = false;
                 ElMessage.error(err);
             });
         }

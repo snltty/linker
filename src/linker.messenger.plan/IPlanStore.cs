@@ -2,10 +2,10 @@
 {
     public interface IPlanStore
     {
-        public bool Add(PlanStoreInfo info);
-        public IEnumerable<PlanStoreInfo> Get();
-        public IEnumerable<PlanStoreInfo> Get(string category);
-        public PlanStoreInfo Get(string category, string key);
+        public bool Add(PlanInfo info);
+        public IEnumerable<PlanInfo> Get();
+        public IEnumerable<PlanInfo> Get(string category);
+        public PlanInfo Get(string category, string key);
         public bool Remove(int id);
     }
 
@@ -24,7 +24,7 @@
         public Task HandleAsync(string handle, string key, string value);
     }
 
-    public sealed class PlanStoreInfo
+    public sealed class PlanInfo
     {
         public int Id { get; set; }
 
@@ -38,6 +38,22 @@
 
         public PlanMethod Method { get; set; }
         public string Rule { get; set; }
+    }
+    public sealed class PlanGetInfo
+    {
+        public string MachineId { get; set; }
+        public string Category { get; set; }
+        public string Key { get; set; }
+    }
+    public sealed class PlanAddInfo
+    {
+        public string  MachineId { get; set; }
+        public PlanInfo Plan { get; set; }
+    }
+    public sealed class PlanRemoveInfo
+    {
+        public string MachineId { get; set; }
+        public int PlanId { get; set; }
     }
 
     /// <summary>

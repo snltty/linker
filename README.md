@@ -24,6 +24,16 @@
 
 </div>
 
+## Platforms
+
+|  | amd64 | x86 | arm64 | arm | 
+|-------|-------|-------|-------|-------|
+| Windows | ✔ | ✔ |✔ |✔ |
+| Linux | ✔ |  |✔ |✔ |
+| Linux Musl | ✔ |  |✔ |✔ |
+| Openwrt | ✔ |  |✔ |✔ |
+| Android(soon) | ✔ |  |  | |
+
 ## Overview
 
 Using P2P or server relay, connect multiple LANs to enable communication between any networked devices across these LANs.
