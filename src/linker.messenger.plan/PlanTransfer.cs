@@ -8,7 +8,8 @@ namespace linker.messenger.plan
 {
     public sealed class PlanTransfer
     {
-        private string regex = @"([0-9]+|\?)-([0-9]+|\?)-([0-9]+|\?)\s+([0-9]+|\?):([0-9]+|\?):([0-9]+|\?)";
+        private string regex = @"([0-9]+|\*)-([0-9]+|\*)-([0-9]+|\*)\s+([0-9]+|\*):([0-9]+|\*):([0-9]+|\*)";
+        private string regexNumver = @"([0-9]+)-([0-9]+)-([0-9]+)\s+([0-9]+):([0-9]+):([0-9]+)";
 
         private readonly ConcurrentDictionary<string, IPlanHandle> handles = new ConcurrentDictionary<string, IPlanHandle>();
         private readonly ConcurrentDictionary<int, PlanExecCacheInfo> caches = new ConcurrentDictionary<int, PlanExecCacheInfo>();
@@ -85,7 +86,7 @@ namespace linker.messenger.plan
         }
         private void Run(PlanExecCacheInfo item)
         {
-            if(item.Plan.Disabled || item.Active == false || item.Running || handles.TryGetValue(item.Plan.Category, out IPlanHandle handle) == false)
+            if (item.Plan.Disabled || item.Active == false || item.Running || handles.TryGetValue(item.Plan.Category, out IPlanHandle handle) == false)
             {
                 return;
             }
@@ -123,7 +124,7 @@ namespace linker.messenger.plan
                 }
                 else if (cache.Plan.Method == PlanMethod.Trigger)
                 {
-                    return NextTimeAfter(cache);
+                    return NextTimeTrigger(cache);
                 }
             }
             catch (Exception ex)
@@ -162,59 +163,60 @@ namespace linker.messenger.plan
             DateTime from = DateTime.Now;
 
             GroupCollection groups = Regex.Match(cache.Plan.Rule, regex).Groups;
-            int year = groups[1].Value == "?" ? from.Year : int.Parse(groups[1].Value);
-            int month = groups[2].Value == "?" ? from.Month : int.Parse(groups[2].Value);
-            int day = groups[3].Value == "?" ? from.Day : int.Parse(groups[3].Value);
-            int hour = groups[4].Value == "?" ? from.Hour : int.Parse(groups[4].Value);
-            int minute = groups[5].Value == "?" ? from.Minute : int.Parse(groups[5].Value);
-            int second = groups[6].Value == "?" ? from.Second : int.Parse(groups[6].Value);
+            int year = groups[1].Value == "*" ? from.Year : int.Parse(groups[1].Value);
+            int month = groups[2].Value == "*" ? from.Month : int.Parse(groups[2].Value);
+            int day = groups[3].Value == "*" ? from.Day : int.Parse(groups[3].Value);
+            int hour = groups[4].Value == "*" ? from.Hour : int.Parse(groups[4].Value);
+            int minute = groups[5].Value == "*" ? from.Minute : int.Parse(groups[5].Value);
+            int second = groups[6].Value == "*" ? from.Second : int.Parse(groups[6].Value);
 
             DateTime next = new DateTime(year, month, day, hour, minute, second);
             if (next <= from)
             {
-                if (groups[5].Value == "?") next = next.AddMinutes(1);
-                else if (groups[4].Value == "?") next = next.AddHours(1);
-                else if (groups[3].Value == "?") next = next.AddDays(1);
-                else if (groups[2].Value == "?") next = next.AddMonths(1);
-                else if (groups[1].Value == "?") next = next.AddYears(1);
+                if (groups[6].Value == "*") next = next.AddSeconds(1);
+                else if (groups[5].Value == "*") next = next.AddMinutes(1);
+                else if (groups[4].Value == "*") next = next.AddHours(1);
+                else if (groups[3].Value == "*") next = next.AddDays(1);
+                else if (groups[2].Value == "*") next = next.AddMonths(1);
+                else if (groups[1].Value == "*") next = next.AddYears(1);
             }
             cache.NextTime = next;
             return true;
         }
         private bool NextTimeTimer(PlanExecCacheInfo cache)
         {
-            if (Regex.IsMatch(cache.Plan.Rule, regex) == false)
+            if (Regex.IsMatch(cache.Plan.Rule, regexNumver) == false)
             {
                 cache.Error = $"{cache.Plan.Rule} format error";
                 return false;
             }
 
-            GroupCollection groups = Regex.Match(cache.Plan.Rule, regex).Groups;
-            int year = groups[1].Value == "?" ? 0 : int.Parse(groups[1].Value);
-            int month = groups[2].Value == "?" ? 0 : int.Parse(groups[2].Value);
-            int day = groups[3].Value == "?" ? 0 : int.Parse(groups[3].Value);
-            int hour = groups[4].Value == "?" ? 0 : int.Parse(groups[4].Value);
-            int minute = groups[5].Value == "?" ? 0 : int.Parse(groups[5].Value);
-            int second = groups[6].Value == "?" ? 0 : int.Parse(groups[6].Value);
+            GroupCollection groups = Regex.Match(cache.Plan.Rule, regexNumver).Groups;
+            int year = int.Parse(groups[1].Value);
+            int month = int.Parse(groups[2].Value);
+            int day = int.Parse(groups[3].Value);
+            int hour = int.Parse(groups[4].Value);
+            int minute = int.Parse(groups[5].Value);
+            int second = int.Parse(groups[6].Value);
 
             cache.NextTime = DateTime.Now.AddYears(year).AddMonths(month).AddDays(day).AddHours(hour).AddMinutes(minute).AddSeconds(second);
             return true;
         }
-        private bool NextTimeAfter(PlanExecCacheInfo cache)
+        private bool NextTimeTrigger(PlanExecCacheInfo cache)
         {
-            if (Regex.IsMatch(cache.Plan.Rule, regex) == false)
+            if (Regex.IsMatch(cache.Plan.Rule, regexNumver) == false)
             {
                 cache.Error = $"{cache.Plan.Rule} format error";
                 return false;
             }
 
-            GroupCollection groups = Regex.Match(cache.Plan.Rule, regex).Groups;
-            int year = groups[1].Value == "?" ? 0 : int.Parse(groups[1].Value);
-            int month = groups[2].Value == "?" ? 0 : int.Parse(groups[2].Value);
-            int day = groups[3].Value == "?" ? 0 : int.Parse(groups[3].Value);
-            int hour = groups[4].Value == "?" ? 0 : int.Parse(groups[4].Value);
-            int minute = groups[5].Value == "?" ? 0 : int.Parse(groups[5].Value);
-            int second = groups[6].Value == "?" ? 0 : int.Parse(groups[6].Value);
+            GroupCollection groups = Regex.Match(cache.Plan.Rule, regexNumver).Groups;
+            int year = int.Parse(groups[1].Value);
+            int month = int.Parse(groups[2].Value);
+            int day = int.Parse(groups[3].Value);
+            int hour = int.Parse(groups[4].Value);
+            int minute = int.Parse(groups[5].Value);
+            int second = int.Parse(groups[6].Value);
 
             cache.NextTime = DateTime.Now.AddYears(year).AddMonths(month).AddDays(day).AddHours(hour).AddMinutes(minute).AddSeconds(second);
             return true;

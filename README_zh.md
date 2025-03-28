@@ -32,7 +32,7 @@
 | Linux | ✔ |  |✔ |✔ |
 | Linux Musl | ✔ |  |✔ |✔ |
 | Openwrt | ✔ |  |✔ |✔ |
-| Android(soon) | ✔ |  |  | |
+| Android(很快) | ✔ |  |  | |
 
 ## 大概意思
 

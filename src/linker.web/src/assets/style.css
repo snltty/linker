@@ -405,8 +405,8 @@ span.split-pad10 {
 
 .el-input-group__append,
 .el-input-group__prepend {
-    padding: 0 4px !important;
-    background-color: transparent !important;
+    padding: 0 6px !important;
+    /* background-color: transparent !important; */
 }
 
 .el-checkbox__label .el-icon {

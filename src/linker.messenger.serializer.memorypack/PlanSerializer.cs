@@ -92,17 +92,14 @@ namespace linker.messenger.serializer.memorypack
         string MachineId => info.MachineId;
         [MemoryPackInclude]
         string Category => info.Category;
-        [MemoryPackInclude]
-        string Key => info.Key;
 
         [MemoryPackConstructor]
-        SerializablePlanGetInfo(string machineId, string category, string key)
+        SerializablePlanGetInfo(string machineId, string category)
         {
             var info = new PlanGetInfo
             {
                 MachineId = machineId,
-                Category = category,
-                Key = key
+                Category = category
             };
             this.info = info;
         }

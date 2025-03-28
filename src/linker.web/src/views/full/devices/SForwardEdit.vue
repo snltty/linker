@@ -1,94 +1,101 @@
 <template>
-  <el-dialog v-model="state.show" @open="handleOnShowList" append-to=".app-wrap" :title="`【${machineName}】的内网穿透`" top="1vh" width="700">
-        <div>
-            <div class="t-c head">
-                <el-button type="success" size="small" @click="handleAdd" :loading="state.loading">添加</el-button>
-                <el-button size="small" @click="handleRefresh">刷新</el-button>
-            </div>
-            <el-table :data="state.data" size="small" border height="500" @cell-dblclick="handleCellClick">
-                <el-table-column property="Name" label="名称">
-                    <template #default="scope">
-                        <template v-if="scope.row.NameEditing && scope.row.Started==false ">
-                            <el-input autofocus size="small" v-model="scope.row.Name"
-                                @blur="handleEditBlur(scope.row, 'Name')"></el-input>
-                        </template>
-                        <template v-else>
-                            {{ scope.row.Name }}
-                        </template>
-                    </template>
-                </el-table-column>
-                <el-table-column prop="Plan" label="计划" width="100">
-                    <template #default="scope">
-                        <span>{{ scope.row.Plan }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column property="Temp" label="远程端口/域名" width="160">
-                    <template #default="scope">
-                        <template v-if="scope.row.TempEditing && scope.row.Started==false">
-                            <el-input autofocus size="small" v-model="scope.row.Temp"
-                                @blur="handleEditBlur(scope.row, 'Temp')"></el-input>
-                        </template>
-                        <template v-else>
-                            <template v-if="scope.row.Msg">
-                                <div class="error red" :title="scope.row.Msg">
-                                    <span>{{ scope.row.Temp }}</span>
-                                    <el-icon size="20"><WarnTriangleFilled /></el-icon>
-                                </div>
-                            </template>
-                            <template v-else><span :class="{green:scope.row.Started}">{{ scope.row.Temp }}</span></template>
-                        </template>
-                    </template>
-                </el-table-column>
-                <el-table-column property="LocalEP" label="本机服务" width="140">
-                    <template #default="scope">
-                        <template v-if="scope.row.LocalEPEditing && scope.row.Started==false">
-                            <el-input autofocus size="small" v-model="scope.row.LocalEP"
-                                @blur="handleEditBlur(scope.row, 'LocalEP')"></el-input>
-                        </template>
-                        <template v-else>
-                            <template v-if="scope.row.LocalMsg">
-                                <div class="error red" :title="scope.row.LocalMsg">
-                                    <span>{{ scope.row.LocalEP }}</span>
-                                    <el-icon size="20"><WarnTriangleFilled /></el-icon>
-                                </div>
+    <PlanList :machineid="machineId" category="sforward" :handles="state.handles">
+        <el-dialog v-model="state.show" @open="handleOnShowList" append-to=".app-wrap" :title="`【${machineName}】的内网穿透`" top="2vh" width="760">
+            <div>
+                <div class="t-c head">
+                    <el-button type="success" size="small" @click="handleAdd" :loading="state.loading">添加</el-button>
+                    <el-button size="small" @click="handleRefresh">刷新</el-button>
+                </div>
+                <el-table :data="state.data" size="small" border height="500" @cell-dblclick="handleCellClick">
+                    <el-table-column property="Name" label="名称">
+                        <template #default="scope">
+                            <template v-if="scope.row.NameEditing && scope.row.Started==false ">
+                                <el-input autofocus size="small" v-model="scope.row.Name"
+                                    @blur="handleEditBlur(scope.row, 'Name')"></el-input>
                             </template>
                             <template v-else>
-                                <span :class="{green:scope.row.Started}">{{ scope.row.LocalEP }}</span>
+                                {{ scope.row.Name }}
                             </template>
                         </template>
-                    </template>
-                </el-table-column>
-                <el-table-column property="Started" label="状态" width="60">
-                    <template #default="scope">
-                        <el-switch v-model="scope.row.Started" @change="handleStartChange(scope.row)" inline-prompt
-                            active-text="是" inactive-text="否" />
-                    </template>
-                </el-table-column>
-                <el-table-column label="操作" width="54">
-                    <template #default="scope">
-                        <el-popconfirm confirm-button-text="确认" cancel-button-text="取消" title="删除不可逆，是否确认?"
-                            @confirm="handleDel(scope.row.Id)">
-                            <template #reference>
-                                <el-button type="danger" size="small"><el-icon><Delete /></el-icon></el-button>
+                    </el-table-column>
+                    <el-table-column prop="Plan" label="计划" width="200">
+                        <template #default="scope">
+                            <div class="plan">
+                                <p><el-icon><Select /></el-icon><PlanShow handle="start"  :keyid="scope.row.Id"></PlanShow></p>
+                                <p><el-icon><CloseBold /></el-icon><PlanShow handle="stop"  :keyid="scope.row.Id"></PlanShow></p>
+                            </div>
+                        </template>
+                    </el-table-column>
+                    <el-table-column property="Temp" label="服务器端口/域名" width="160">
+                        <template #default="scope">
+                            <template v-if="scope.row.TempEditing && scope.row.Started==false">
+                                <el-input autofocus size="small" v-model="scope.row.Temp"
+                                    @blur="handleEditBlur(scope.row, 'Temp')"></el-input>
                             </template>
-                        </el-popconfirm>
-                    </template>
-                </el-table-column>
-            </el-table>
-        </div>
-    </el-dialog>
+                            <template v-else>
+                                <template v-if="scope.row.Msg">
+                                    <div class="error red" :title="scope.row.Msg">
+                                        <span>{{ scope.row.Temp }}</span>
+                                        <el-icon size="20"><WarnTriangleFilled /></el-icon>
+                                    </div>
+                                </template>
+                                <template v-else><span :class="{green:scope.row.Started}">{{ scope.row.Temp }}</span></template>
+                            </template>
+                        </template>
+                    </el-table-column>
+                    <el-table-column property="LocalEP" label="本机服务" width="140">
+                        <template #default="scope">
+                            <template v-if="scope.row.LocalEPEditing && scope.row.Started==false">
+                                <el-input autofocus size="small" v-model="scope.row.LocalEP"
+                                    @blur="handleEditBlur(scope.row, 'LocalEP')"></el-input>
+                            </template>
+                            <template v-else>
+                                <template v-if="scope.row.LocalMsg">
+                                    <div class="error red" :title="scope.row.LocalMsg">
+                                        <span>{{ scope.row.LocalEP }}</span>
+                                        <el-icon size="20"><WarnTriangleFilled /></el-icon>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    <span :class="{green:scope.row.Started}">{{ scope.row.LocalEP }}</span>
+                                </template>
+                            </template>
+                        </template>
+                    </el-table-column>
+                    <el-table-column property="Started" label="状态" width="60">
+                        <template #default="scope">
+                            <el-switch v-model="scope.row.Started" @change="handleStartChange(scope.row)" inline-prompt
+                                active-text="是" inactive-text="否" />
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="操作" width="54">
+                        <template #default="scope">
+                            <el-popconfirm confirm-button-text="确认" cancel-button-text="取消" title="删除不可逆，是否确认?"
+                                @confirm="handleDel(scope.row.Id)">
+                                <template #reference>
+                                    <el-button type="danger" size="small"><el-icon><Delete /></el-icon></el-button>
+                                </template>
+                            </el-popconfirm>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </div>
+        </el-dialog>
+    </PlanList>
 </template>
 <script>
-import { onMounted, onUnmounted, reactive, watch } from 'vue';
+import { onMounted, onUnmounted,  reactive, watch } from 'vue';
 import { getSForwardInfo, removeSForwardInfo, addSForwardInfo,testLocalSForwardInfo } from '@/apis/sforward'
 import { ElMessage } from 'element-plus';
-import {WarnTriangleFilled,Delete} from '@element-plus/icons-vue'
+import {WarnTriangleFilled,Delete,Select,CloseBold} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
 import { useSforward } from './sforward';
+import PlanList from './PlanList.vue';
+import PlanShow from './PlanShow.vue';
 export default {
     props: ['data','modelValue'],
     emits: ['update:modelValue'],
-    components:{WarnTriangleFilled,Delete},
+    components:{WarnTriangleFilled,Delete,Select,CloseBold,PlanList,PlanShow},
     setup(props, { emit }) {
 
         const globalData = injectGlobalData();
@@ -101,6 +108,10 @@ export default {
             timer1:0,
             editing:false,
             loading:false,
+            handles:[
+                {label:'开启',value:'start'},
+                {label:'关闭',value:'stop'},
+            ]
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -142,7 +153,6 @@ export default {
         const handleCellClick = (row, column) => {
             handleEdit(row, column.property);
         }
-
         const handleRefresh = () => {
             _getSForwardInfo();
             ElMessage.success('已刷新')
@@ -217,6 +227,8 @@ export default {
                 ElMessage.error(err);
             });
         }
+
+
         onMounted(()=>{
             _getSForwardInfo();
             _testLocalSForwardInfo();
@@ -227,7 +239,9 @@ export default {
         })
 
         return {
-            state,machineName:sforward.value.machineName, 
+            state,
+            machineName:sforward.value.machineName, 
+            machineId:sforward.value.machineid, 
             handleOnShowList, handleCellClick, handleRefresh, handleAdd, handleEdit, handleEditBlur, handleDel, handleStartChange
         }
     }
@@ -241,6 +255,11 @@ export default {
     font-weight:bold;
     .el-icon{
         vertical-align:text-bottom
+    }
+}
+.plan{
+    .el-icon{
+        vertical-align:middle
     }
 }
 </style>

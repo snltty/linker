@@ -43,7 +43,6 @@
     {
         public string MachineId { get; set; }
         public string Category { get; set; }
-        public string Key { get; set; }
     }
     public sealed class PlanAddInfo
     {

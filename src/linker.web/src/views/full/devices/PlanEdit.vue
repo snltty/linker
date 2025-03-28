@@ -1,0 +1,197 @@
+<template>
+    <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" title="计划任务" top="2vh" width="450">
+       <div>
+           <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="auto">
+                <el-form-item label="执行操作" prop="Handle">
+                    <el-select v-model="state.ruleForm.Handle" style="width:10rem" disabled>
+                        <el-option v-for="(item,index) in plan.handles" :value="item.value" :label="item.label"></el-option>
+                    </el-select>
+                </el-form-item>  
+                <el-form-item label="执行方式" prop="Method">
+                    <el-select v-model="state.ruleForm.Method" style="width:10rem" @change="handleChange">
+                        <el-option v-for="(item,index) in plan.methods" :value="item.value" :label="item.label"></el-option>
+                    </el-select>
+                    <strong class="mgl-2" v-if="state.ruleForm.Method >= 100">
+                        {{ state.ruleForm.Rule }}
+                    </strong>
+                </el-form-item>
+               
+                <el-form-item label="在" prop="Rule" v-if="state.ruleForm.Method == 100">
+                    <div class="w-100">
+                        <el-select v-model="state.ruleAt.type" style="width:10rem" @change="handleChange">
+                            <el-option :value="2" label="每月"></el-option>
+                            <el-option :value="3" label="每日"></el-option>
+                            <el-option :value="4" label="每时"></el-option>
+                            <el-option :value="5" label="每分"></el-option>
+                        </el-select>  <span>的</span>
+                    </div>
+                    <div class="w-100 mgt-1">
+                        <el-input @change="handleChange" v-if="state.ruleAt.type < 2" v-model="state.ruleAt.month" style="width: 8rem"><template #append>月</template></el-input>
+                        <el-input @change="handleChange" v-if="state.ruleAt.type < 3" :class="{'mgl-1':state.ruleAt.type < 2}" v-model="state.ruleAt.day" style="width: 8rem"><template #append>日</template></el-input>
+                        <el-input @change="handleChange" v-if="state.ruleAt.type < 4" :class="{'mgl-1':state.ruleAt.type < 3}" v-model="state.ruleAt.hour" style="width: 8rem"><template #append>时</template></el-input>
+                        <el-input @change="handleChange" v-if="state.ruleAt.type < 5" :class="{'mgl-1':state.ruleAt.type < 4}" v-model="state.ruleAt.min" style="width: 8rem"><template #append>分</template></el-input>
+                        <el-input @change="handleChange" :class="{'mgl-1':state.ruleAt.type < 5}" v-model="state.ruleAt.sec" style="width: 8rem"><template #append>秒</template></el-input>
+                    </div>
+                </el-form-item>
+                <el-form-item label="每" prop="Rule" v-if="state.ruleForm.Method == 101">
+                    <div class="w-100">
+                        <el-input @change="handleChange" v-model="state.ruleTimer.year" style="width: 8rem"><template #append>年</template></el-input>
+                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleTimer.month" style="width: 8rem"><template #append>月</template></el-input>
+                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleTimer.day" style="width: 8rem"><template #append>日</template></el-input>
+                    </div>
+                    <div class="w-100 mgt-1">
+                        <el-input @change="handleChange" v-model="state.ruleTimer.hour" style="width: 8rem"><template #append>时</template></el-input>
+                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleTimer.min" style="width: 8rem"><template #append>分</template></el-input>
+                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleTimer.sec" style="width: 8rem"><template #append>秒</template></el-input>
+                    </div>
+                </el-form-item>
+                <el-form-item label="Cron" prop="Rule" v-if="state.ruleForm.Method == 102">
+                    <div class="w-100">
+                        <el-input @change="handleChange" v-model="state.ruleCron.sec" style="width: 8rem"><template #append>秒</template></el-input>
+                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleCron.min" style="width: 8rem"><template #append>分</template></el-input>
+                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleCron.hour" style="width: 8rem"><template #append>时</template></el-input>
+                    </div>
+                    <div class="w-100 mgt-1">
+                        <el-input @change="handleChange" v-model="state.ruleCron.day" style="width: 8rem"><template #append>日</template></el-input>
+                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleCron.month" style="width: 8rem"><template #append>月</template></el-input>
+                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleCron.week" style="width: 8rem"><template #append>周</template></el-input>
+                    </div>
+                </el-form-item>
+                <el-form-item label="在" prop="Rule" v-if="state.ruleForm.Method == 103">
+                    <div class="w-100">
+                        <el-select v-model="state.ruleForm.TriggerHandle" style="width:10rem" @change="handleChange">
+                            <el-option v-for="(item,index) in plan.triggers" :value="item.value" :label="item.label"></el-option>
+                        </el-select> <span>的</span>
+                    </div>
+                    <div class="mgt-1 w-100">
+                        <el-input @change="handleChange" v-model="state.ruleTrigger.year" style="width: 8rem"><template #append>年</template></el-input>
+                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleTrigger.month" style="width: 8rem"><template #append>月</template></el-input>
+                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleTrigger.day" style="width: 8rem"><template #append>日</template></el-input>
+                    </div>
+                    <div class="mgt-1 w-100">
+                        <el-input @change="handleChange" v-model="state.ruleTrigger.hour" style="width: 8rem"><template #append>时</template></el-input>
+                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleTrigger.min" style="width: 8rem"><template #append>分</template></el-input>
+                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleTrigger.sec" style="width: 8rem"><template #append>秒</template></el-input>
+                        <span>后</span>
+                    </div>
+                </el-form-item> 
+                <el-form-item label="禁用" prop="Disabled">
+                    <el-switch v-model="state.ruleForm.Disabled" />
+                </el-form-item>
+
+                <el-form-item label="" prop="Btns">
+                   <div class="t-c w-100">
+                       <el-button @click="state.show = false">取消</el-button>
+                       <el-button type="primary" @click="handleSave">确认</el-button>
+                   </div>
+                </el-form-item>
+           </el-form>
+       </div>
+   </el-dialog>
+</template>
+<script>
+import { inject, reactive, ref, watch } from 'vue';
+
+export default {
+   props: ['data','modelValue'],
+   emits: ['change','update:modelValue'],
+   setup(props, { emit }) {
+        const ruleFormRef = ref(null);
+        const plan = inject('plan');
+        if(!plan.value.current.TriggerHandle && plan.value.triggers.length > 0){
+            plan.value.current.TriggerHandle = plan.value.triggers[0].value;
+        }
+        const state = reactive({
+           show: true,
+           ruleCron:{
+                week:'*',
+                month:'*',
+                day:'*',
+                hour:'*',
+                min:'*',
+                sec:'30',
+           },
+           ruleAt:{
+                type:2,
+                month:1,
+                day:1,
+                hour:0,
+                min:0,
+                sec:0,
+           },
+           ruleTimer:{
+                year:0,
+                month:0,
+                day:0,
+                hour:0,
+                min:0,
+                sec:30,
+           },
+           ruleTrigger:{
+                year:0,
+                month:0,
+                day:0,
+                hour:0,
+                min:0,
+                sec:30,
+           },
+           ruleForm: {
+                Id: plan.value.current.Id,
+                Category: plan.value.current.Category,
+                Key: plan.value.current.Key,
+                Value: plan.value.current.Value,
+                Rule: plan.value.current.Rule,
+                Handle: plan.value.current.Handle,
+                Method: plan.value.current.Method,
+                Disabled:plan.value.current.Disabled,
+                TriggerHandle:plan.value.current.TriggerHandle
+           },
+           rules: {}
+        });
+        watch(() => state.show, (val) => {
+           if (!val) {
+               setTimeout(() => {
+                   emit('update:modelValue', val);
+               }, 300);
+           }
+        });
+
+        const buildRule = {
+            100:()=>{
+                switch (state.ruleAt.type) {
+                    case 2:
+                        return `*-*-${state.ruleAt.day} ${state.ruleAt.hour}:${state.ruleAt.min}:${state.ruleAt.sec}`;
+                    break;
+                    case 3:
+                    return `*-*-* ${state.ruleAt.hour}:${state.ruleAt.min}:${state.ruleAt.sec}`;
+                    break;
+                    case 4:
+                    return `*-*-* *:${state.ruleAt.min}:${state.ruleAt.sec}`;
+                    break;
+                    case 5:
+                    return `*-*-* *:*:${state.ruleAt.sec}`;
+                    break;
+                } 
+                return '';
+            },
+            101:()=>`${state.ruleTimer.year}-${state.ruleTimer.month}-${state.ruleTimer.day} ${state.ruleTimer.hour}:${state.ruleTimer.min}:${state.ruleTimer.sec}`,
+            102:()=>`${state.ruleCron.sec} ${state.ruleCron.min} ${state.ruleCron.hour} ${state.ruleCron.day} ${state.ruleCron.month} ${state.ruleCron.week}`,
+            103:()=>`${state.ruleTrigger.year}-${state.ruleTrigger.month}-${state.ruleTrigger.day} ${state.ruleTrigger.hour}:${state.ruleTrigger.min}:${state.ruleTrigger.sec}`,
+        }
+        const handleChange = () => {
+            if(state.ruleForm.Method in buildRule){
+                state.ruleForm.Rule = buildRule[state.ruleForm.Method]();
+            }
+        }
+
+        const handleSave = () => {
+        }
+
+       return {
+          state, ruleFormRef,plan,handleChange,  handleSave
+       }
+   }
+}
+</script>
+<style lang="stylus" scoped>
+</style>

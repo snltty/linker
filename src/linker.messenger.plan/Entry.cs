@@ -18,7 +18,7 @@ namespace linker.messenger.plan
         {
             PlanTransfer planTransfer = serviceProvider.GetService<PlanTransfer>();
 
-            MessengerResolver messengerResolver = serviceProvider.GetService<MessengerResolver>();
+            IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<PlanClientMessenger>() });
 
             IApiServer apiServer = serviceProvider.GetService<IApiServer>();
@@ -31,11 +31,11 @@ namespace linker.messenger.plan
             serviceCollection.AddSingleton<PlanServerMessenger>();
 
             return serviceCollection;
-        }
+        } 
         public static ServiceProvider UsePlanServer(this ServiceProvider serviceProvider)
         {
-            MessengerResolver messengerResolver = serviceProvider.GetService<MessengerResolver>();
-            messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<PlanClientMessenger>() });
+            IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
+            messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<PlanServerMessenger>() });
             return serviceProvider;
         }
 
